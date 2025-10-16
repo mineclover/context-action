@@ -1,7 +1,7 @@
 import { useStoreValue } from '@context-action/react';
 import { useComparisonStore } from '../models/ComparisonModel';
-import { useRerenderMonitor } from './useRerenderMonitor';
 import { UI_THRESHOLDS } from '../types';
+import { useRerenderMonitor } from './useRerenderMonitor';
 
 /**
  * View State Hook - 순수 상태 관리
@@ -31,7 +31,7 @@ export function useMemoizedViewState() {
       count: renderCount,
       rate: renderRate,
       status: getRenderRateStatus(renderRate),
-    }
+    },
   };
 }
 
@@ -58,7 +58,7 @@ export function useNonMemoizedViewState() {
       count: renderCount,
       rate: renderRate,
       status: getRenderRateStatus(renderRate),
-    }
+    },
   };
 }
 
@@ -69,14 +69,18 @@ function getHeavyDataStatus(length: number): 'normal' | 'heavy' | 'blocked' {
   return 'normal';
 }
 
-function getMemoryDataStatus(length: number): 'normal' | 'warning' | 'leak' | 'blocked' {
+function getMemoryDataStatus(
+  length: number
+): 'normal' | 'warning' | 'leak' | 'blocked' {
   if (length > 5000) return 'blocked';
   if (length > UI_THRESHOLDS.MEMORY_DATA_DANGER) return 'leak';
   if (length > UI_THRESHOLDS.MEMORY_DATA_WARNING) return 'warning';
   return 'normal';
 }
 
-function getRenderRateStatus(rate: number): 'normal' | 'warning' | 'danger' | 'critical' {
+function getRenderRateStatus(
+  rate: number
+): 'normal' | 'warning' | 'danger' | 'critical' {
   if (rate > 15) return 'critical';
   if (rate > 10) return 'danger';
   if (rate > 5) return 'warning';

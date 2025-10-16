@@ -1,4 +1,8 @@
-import { type ActionPayloadMap, createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
 
 // ==============================================
 // CHILD A DOMAIN - MVVM Architecture
@@ -6,30 +10,34 @@ import { type ActionPayloadMap, createActionContext, createStoreContext } from '
 
 // 🗄️ Model Layer - Store Types Definition
 export interface ChildAStores {
-  'counter': number;
+  counter: number;
 }
 
 // ⚙️ ViewModel Layer - Action Types Definition
 export interface ChildAActions extends ActionPayloadMap {
   incrementCounter: { amount: number };
   resetCounter: void;
-  controlChild: { childId: string; action: 'increment' | 'reset'; amount?: number };
+  controlChild: {
+    childId: string;
+    action: 'increment' | 'reset';
+    amount?: number;
+  };
 }
 
 // 🗄️ Model Layer - Store Context Creation
 export const {
   Provider: ChildAModelProvider,
   useStore: useChildAStore,
-  useStoreManager: useChildAStoreManager
+  useStoreManager: useChildAStoreManager,
 } = createStoreContext<ChildAStores>('ChildA', {
-  'counter': { 
-    initialValue: 0 
-  }
+  counter: {
+    initialValue: 0,
+  },
 });
 
 // ⚙️ ViewModel Layer - Action Context Creation
 export const {
   Provider: ChildAActionProvider,
   useActionDispatch: useChildAActionDispatch,
-  useActionHandler: useChildAActionHandler
+  useActionHandler: useChildAActionHandler,
 } = createActionContext<ChildAActions>('ChildA');

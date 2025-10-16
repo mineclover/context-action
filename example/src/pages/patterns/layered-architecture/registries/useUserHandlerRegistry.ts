@@ -36,7 +36,7 @@ export function useUserHandlerRegistry() {
       'updateUser',
       'deleteUser',
       'validateUser',
-      'resetValidation'
-    ]
+      'resetValidation',
+    ],
   };
 }

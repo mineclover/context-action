@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
 import { ReactCompilerDemo } from '@/components/ReactCompilerTest';
+import { Card, CardContent } from '@/components/ui';
+import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
 
 function HomePage() {
   // 🎯 소스 링크 등록
@@ -11,8 +11,9 @@ function HomePage() {
     name: 'Home Page',
     filePath: 'pages/HomePage.tsx',
     category: 'core',
-    description: 'Main landing page showcasing Context-Action framework examples',
-    tags: ['homepage', 'overview', 'examples']
+    description:
+      'Main landing page showcasing Context-Action framework examples',
+    tags: ['homepage', 'overview', 'examples'],
   });
   return (
     <PageLayout
@@ -89,8 +90,8 @@ function HomePage() {
               Pipeline Features
             </h3>
             <p className="text-gray-600 mb-4">
-              Explore advanced pipeline flow control patterns including priority jumping, 
-              early returns, and complex branching logic.
+              Explore advanced pipeline flow control patterns including priority
+              jumping, early returns, and complex branching logic.
             </p>
             <ul className="space-y-2 mb-6 text-gray-700">
               <li className="flex items-start">
@@ -191,7 +192,7 @@ function HomePage() {
             🚀 React 컴파일러 테스트
           </h2>
           <p className="text-gray-600 mb-6">
-            React 컴파일러가 자동으로 메모이제이션을 적용하는지 확인해보세요. 
+            React 컴파일러가 자동으로 메모이제이션을 적용하는지 확인해보세요.
             React DevTools에서 "Memo ✨" 배지를 확인할 수 있습니다.
           </p>
           <ReactCompilerDemo />

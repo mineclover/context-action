@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardContent } from '@/components/ui';
-import { useChildBText } from '../hooks/useChildBData';
 import { useChildBTextActions } from '../actions/useChildBActions';
-import { useParentDataActions, useParentCounterActions } from '../actions/useParentActions';
+import {
+  useParentCounterActions,
+  useParentDataActions,
+} from '../actions/useParentActions';
+import { useChildBText } from '../hooks/useChildBData';
 
 // ==============================================
 // CHILD B DOMAIN - View Component
@@ -14,7 +17,7 @@ import { useParentDataActions, useParentCounterActions } from '../actions/usePar
 export function ChildBView() {
   // 🗄️ Model Layer - 데이터 구독
   const { isEmpty, length, displayValue, status } = useChildBText();
-  
+
   // ⚙️ ViewModel Layer - 액션 함수들
   const { updateText, clearText } = useChildBTextActions();
   const { registerChild } = useParentDataActions();
@@ -35,11 +38,14 @@ export function ChildBView() {
     clearText();
   }, [clearText]);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleUpdateText();
-    }
-  }, [handleUpdateText]);
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleUpdateText();
+      }
+    },
+    [handleUpdateText]
+  );
 
   const handleIncrementParent = useCallback(() => {
     incrementParentCounter();
@@ -101,11 +107,7 @@ export function ChildBView() {
             >
               🗑️ 클리어
             </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleIncrementParent}
-            >
+            <Button size="sm" variant="primary" onClick={handleIncrementParent}>
               🔼 상위 카운터 +1
             </Button>
           </div>

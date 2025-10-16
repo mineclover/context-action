@@ -1,11 +1,11 @@
 import React from 'react';
-import { useNonMemoizedHandlers } from '../../hooks/useNonMemoizedHandlers';
-import { useNonMemoizedViewState } from '../../hooks/useComparisonViewState';
-import { useNonMemoizedActions } from '../../hooks/useComparisonActions';
 import { useNonMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
-import { MetricsDisplay } from '../shared/MetricsDisplay';
-import { ActionButtons } from '../shared/ActionButtons';
+import { useNonMemoizedActions } from '../../hooks/useComparisonActions';
+import { useNonMemoizedViewState } from '../../hooks/useComparisonViewState';
+import { useNonMemoizedHandlers } from '../../hooks/useNonMemoizedHandlers';
 import { SafeModeWrapper } from '../SafeModeWrapper';
+import { ActionButtons } from '../shared/ActionButtons';
+import { MetricsDisplay } from '../shared/MetricsDisplay';
 
 /**
  * Widget Component - Non-Memoized Handler
@@ -47,10 +47,7 @@ export function NonMemoizedHandlerWidget() {
           metrics={metricsData}
           dataStatus={dataStatus}
         />
-        <ActionButtons
-          variant="non-memoized"
-          actions={actions}
-        />
+        <ActionButtons variant="non-memoized" actions={actions} />
       </div>
     </SafeModeWrapper>
   );

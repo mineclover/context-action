@@ -1,5 +1,5 @@
-import { createActionContext } from '@context-action/react';
 import type { ActionHandler } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
 import { useState } from 'react';
 import {
   LogMonitor,
@@ -13,8 +13,8 @@ import {
   Container,
   DemoCard,
 } from '@/components/ui';
-import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
 import { SourceLink } from '@/components/ui/SourceLink';
+import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
 
 // 1. Define Actions following EventActions pattern
 interface CoreBasicsActions {
@@ -31,7 +31,7 @@ const {
   Provider: CoreActionProvider,
   useActionDispatch: useCoreAction,
   useActionHandler: useCoreActionHandler,
-  useActionDispatchWithResult: useCoreActionWithResult
+  useActionDispatchWithResult: useCoreActionWithResult,
 } = createActionContext<CoreBasicsActions>('CoreBasics');
 
 // 4. Component Usage with Renamed Hooks
@@ -63,15 +63,22 @@ function CoreBasicsDemo() {
 
   const generateLogHandler: ActionHandler<void> = (payload, controller) => {
     // Generate random log message
-    const adjectives = ['Amazing', 'Brilliant', 'Creative', 'Dynamic', 'Elegant'];
+    const adjectives = [
+      'Amazing',
+      'Brilliant',
+      'Creative',
+      'Dynamic',
+      'Elegant',
+    ];
     const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task'];
     const colors = ['Red', 'Blue', 'Green', 'Purple', 'Orange'];
-    
-    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+
+    const randomAdjective =
+      adjectives[Math.floor(Math.random() * adjectives.length)];
     const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     const randomNumber = Math.floor(Math.random() * 1000) + 1;
-    
+
     const message = `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
     logAction('generateLog', message);
   };
@@ -210,27 +217,27 @@ function CoreBasicsDemo() {
 
 // Advanced Features Component
 function AdvancedFeaturesDemo() {
-  const { 
-    dispatchWithResult, 
-    abortAll 
-  } = useCoreActionWithResult();
+  const { dispatchWithResult, abortAll } = useCoreActionWithResult();
   const { logAction } = useActionLoggerWithToast();
   const [isRunning, setIsRunning] = useState(false);
   const [runningCount, setRunningCount] = useState(0);
 
   // Advanced async handler
-  const asyncOperationHandler: ActionHandler<string> = async (payload, controller) => {
+  const asyncOperationHandler: ActionHandler<string> = async (
+    payload,
+    controller
+  ) => {
     let aborted = false; // Move aborted to function scope
-    
+
     try {
       setIsRunning(true);
-      setRunningCount(prev => prev + 1);
+      setRunningCount((prev) => prev + 1);
       logAction('asyncOperation', '🔄 Async operation started... (3초 소요)');
-      
+
       // Simulate async operation with abort support (force reload)
       await new Promise((resolve, reject) => {
         const timeoutId = setTimeout(resolve, 3000);
-        
+
         // Handle abort through controller
         // Note: PipelineController doesn't have signal, we simulate abort handling
         const originalAbort = controller.abort;
@@ -241,21 +248,27 @@ function AdvancedFeaturesDemo() {
           reject(new Error('Operation aborted by user'));
         };
       });
-      
+
       // Check if still not aborted
       if (!aborted) {
-        logAction('asyncOperation', '✅ Async operation completed successfully');
+        logAction(
+          'asyncOperation',
+          '✅ Async operation completed successfully'
+        );
         setIsRunning(false);
-        setRunningCount(prev => Math.max(0, prev - 1));
+        setRunningCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
       setIsRunning(false);
-      setRunningCount(prev => Math.max(0, prev - 1));
-      
+      setRunningCount((prev) => Math.max(0, prev - 1));
+
       if (aborted) {
         logAction('asyncOperation', '❌ Async operation was aborted');
       } else {
-        logAction('asyncOperation', `❌ Async operation failed: ${(error as Error).message}`);
+        logAction(
+          'asyncOperation',
+          `❌ Async operation failed: ${(error as Error).message}`
+        );
       }
       throw error;
     }
@@ -286,34 +299,34 @@ function AdvancedFeaturesDemo() {
       </h3>
       <div className="space-y-4">
         <p className="text-gray-600">
-          Demonstrate advanced action features like result handling and abort functionality.
+          Demonstrate advanced action features like result handling and abort
+          functionality.
         </p>
-        
+
         {/* Status Display */}
         {(isRunning || runningCount > 0) && (
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium text-blue-800">
-                {runningCount > 1 
+                {runningCount > 1
                   ? `${runningCount}개의 비동기 액션이 실행 중입니다...`
-                  : '비동기 액션이 실행 중입니다... (3초 소요)'
-                }
+                  : '비동기 액션이 실행 중입니다... (3초 소요)'}
               </span>
             </div>
           </div>
         )}
-        
+
         <div className="flex flex-wrap gap-2">
-          <Button 
-            onClick={handleAsyncAction} 
+          <Button
+            onClick={handleAsyncAction}
             variant="secondary"
             disabled={false} // 여러 비동기 액션 동시 실행 허용
           >
             {isRunning ? '🔄 ' : ''}Async Action with Result
           </Button>
-          <Button 
-            onClick={handleAbortAll} 
+          <Button
+            onClick={handleAbortAll}
             variant="danger"
             disabled={runningCount === 0}
           >
@@ -333,8 +346,9 @@ function CoreBasicsPage() {
     name: 'Core Basics Page',
     filePath: 'pages/foundations/core/BasicsPage.tsx',
     category: 'core',
-    description: 'Fundamentals of Action Context pattern with handlers and dispatching',
-    tags: ['core', 'basics', 'action-context', 'handlers', 'dispatching']
+    description:
+      'Fundamentals of Action Context pattern with handlers and dispatching',
+    tags: ['core', 'basics', 'action-context', 'handlers', 'dispatching'],
   });
 
   return (
@@ -351,22 +365,27 @@ function CoreBasicsPage() {
                   Core Action Context Basics
                 </h1>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  Learn the fundamentals of the Action Context pattern - creating context with renaming patterns,
-                  registering handlers, and dispatching type-safe actions using the recommended approach.
+                  Learn the fundamentals of the Action Context pattern -
+                  creating context with renaming patterns, registering handlers,
+                  and dispatching type-safe actions using the recommended
+                  approach.
                 </p>
               </div>
               <div className="flex-shrink-0 ml-4">
-                <SourceLink filePath="pages/foundations/core/BasicsPage.tsx" variant="badge" />
+                <SourceLink
+                  filePath="pages/foundations/core/BasicsPage.tsx"
+                  variant="badge"
+                />
               </div>
             </div>
           </header>
 
           <CoreBasicsDemo />
 
-        {/* 코드 예제 */}
-        <CodeExample title="Action Context Pattern Implementation">
-          <CodeBlock>
-            {`// 1. Define Actions following EventActions pattern
+          {/* 코드 예제 */}
+          <CodeExample title="Action Context Pattern Implementation">
+            <CodeBlock>
+              {`// 1. Define Actions following EventActions pattern
 interface CoreBasicsActions {
   increment: undefined;
   setCount: number;
@@ -410,8 +429,8 @@ function CounterComponent() {
   
   return <button onClick={handleClick}>Count: {count}</button>;
 }`}
-          </CodeBlock>
-        </CodeExample>
+            </CodeBlock>
+          </CodeExample>
         </Container>
       </CoreActionProvider>
     </LogMonitorProvider>

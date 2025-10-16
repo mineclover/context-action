@@ -8,11 +8,11 @@ export function ReactCompilerTest() {
 
   // React 컴파일러가 자동으로 메모이제이션할 수 있는 함수들
   const handleIncrement = () => {
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
   };
 
   const handleDecrement = () => {
-    setCount(prev => prev - 1);
+    setCount((prev) => prev - 1);
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,19 +33,23 @@ export function ReactCompilerTest() {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">React 컴파일러 테스트</h2>
-      
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        React 컴파일러 테스트
+      </h2>
+
       <div className="space-y-4">
         <div className="text-center">
-          <p className="text-lg">카운트: <span className="font-bold text-blue-600">{count}</span></p>
+          <p className="text-lg">
+            카운트: <span className="font-bold text-blue-600">{count}</span>
+          </p>
           <div className="flex gap-2 justify-center mt-2">
-            <button 
+            <button
               onClick={handleIncrement}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               증가
             </button>
-            <button 
+            <button
               onClick={handleDecrement}
               className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
             >
@@ -84,12 +88,18 @@ export function ReactCompilerTest() {
 }
 
 // React 컴파일러가 자동으로 메모이제이션할 수 있는 자식 컴포넌트
-export function ChildComponent({ value, onUpdate }: { value: number; onUpdate: (value: number) => void }) {
+export function ChildComponent({
+  value,
+  onUpdate,
+}: {
+  value: number;
+  onUpdate: (value: number) => void;
+}) {
   // 이 컴포넌트는 React 컴파일러에 의해 자동으로 최적화되어야 합니다
   return (
     <div className="p-4 border border-gray-200 rounded">
       <p>자식 컴포넌트 값: {value}</p>
-      <button 
+      <button
         onClick={() => onUpdate(value + 1)}
         className="mt-2 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
       >
@@ -106,10 +116,7 @@ export function ReactCompilerDemo() {
   return (
     <div className="space-y-6">
       <ReactCompilerTest />
-      <ChildComponent 
-        value={parentValue} 
-        onUpdate={setParentValue} 
-      />
+      <ChildComponent value={parentValue} onUpdate={setParentValue} />
     </div>
   );
 }

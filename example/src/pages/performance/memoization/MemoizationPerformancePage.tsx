@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const MemoizationPerformancePage: React.FC = () => {
   return (
@@ -14,7 +14,10 @@ const MemoizationPerformancePage: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/performance" className="text-gray-500 hover:text-gray-700">
+                <Link
+                  to="/performance"
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   Performance
                 </Link>
               </li>
@@ -27,9 +30,10 @@ const MemoizationPerformancePage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             메모이제이션 성능 비교
           </h1>
-          
+
           <p className="text-gray-600 mb-6">
-            Context-Action에서 메모이제이션 사용 여부에 따른 성능 차이를 비교하고 분석합니다.
+            Context-Action에서 메모이제이션 사용 여부에 따른 성능 차이를
+            비교하고 분석합니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -41,7 +45,8 @@ const MemoizationPerformancePage: React.FC = () => {
                 실시간 성능 비교 데모
               </h3>
               <p className="text-blue-700">
-                메모이제이션 사용/미사용 시나리오를 실시간으로 비교하고 성능 지표를 확인합니다.
+                메모이제이션 사용/미사용 시나리오를 실시간으로 비교하고 성능
+                지표를 확인합니다.
               </p>
             </Link>
 
@@ -65,14 +70,15 @@ const MemoizationPerformancePage: React.FC = () => {
                 메모이제이션 가이드라인
               </h3>
               <p className="text-purple-700">
-                언제 메모이제이션을 사용해야 하는지에 대한 실용적인 가이드라인입니다.
+                언제 메모이제이션을 사용해야 하는지에 대한 실용적인
+                가이드라인입니다.
               </p>
             </Link>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MemoizationPerformancePage
+export default MemoizationPerformancePage;

@@ -65,34 +65,32 @@ export const {
   useActionDispatchWithResult: useCartActionWithResult,
 } = createActionContext<CartActions>({ name: 'Cart' });
 
-export const {
-  Provider: CartStoreProvider,
-  useStore: useCartStore,
-} = createStoreContext('CartStores', {
-  cart: { initialValue: [] as CartItem[] },
-  validation: {
-    initialValue: {
-      isValid: false,
-      errors: [],
-      validatedBy: 'initial',
-    } as ValidationResult
-  },
-  calculation: {
-    initialValue: {
-      subtotal: 0,
-      tax: 0,
-      total: 0,
-      itemCount: 0,
-      timestamp: Date.now(),
-      calculatedBy: 'initial',
-    } as CalculationResult
-  },
-  order: {
-    initialValue: {
-      orderId: '',
-      status: 'processing' as const,
-      processedBy: 'initial',
-      timestamp: Date.now(),
-    } as ProcessingResult
-  },
-});
+export const { Provider: CartStoreProvider, useStore: useCartStore } =
+  createStoreContext('CartStores', {
+    cart: { initialValue: [] as CartItem[] },
+    validation: {
+      initialValue: {
+        isValid: false,
+        errors: [],
+        validatedBy: 'initial',
+      } as ValidationResult,
+    },
+    calculation: {
+      initialValue: {
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        itemCount: 0,
+        timestamp: Date.now(),
+        calculatedBy: 'initial',
+      } as CalculationResult,
+    },
+    order: {
+      initialValue: {
+        orderId: '',
+        status: 'processing' as const,
+        processedBy: 'initial',
+        timestamp: Date.now(),
+      } as ProcessingResult,
+    },
+  });

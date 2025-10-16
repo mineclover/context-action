@@ -8,7 +8,12 @@
  * - All functions are testable and framework-agnostic
  */
 
-import type { CartItem, ValidationResult, CalculationResult, ProcessingResult } from '../contexts/CartContexts';
+import type {
+  CalculationResult,
+  CartItem,
+  ProcessingResult,
+  ValidationResult,
+} from '../contexts/CartContexts';
 
 // 🎯 Cart Validation Business Logic
 export function validateCartItems(items: CartItem[]): ValidationResult {
@@ -46,7 +51,7 @@ export function calculateCartTotal(
   discountCode?: string
 ): CalculationResult {
   const subtotal = items.reduce(
-    (sum, item) => sum + (item.price * item.quantity),
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
@@ -95,7 +100,10 @@ export function processOrderData(
   let status: ProcessingResult['status'] = 'processing';
 
   // Business rules for order processing
-  const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalValue = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   if (paymentMethod === 'credit_card' && totalValue > 1000) {
     status = 'processing'; // Requires manual verification for high-value orders
@@ -122,7 +130,7 @@ export function addItemToCart(
 ): CartItem[] {
   // Check if item already exists
   const existingItemIndex = currentCart.findIndex(
-    item => item.name === newItem.name && item.price === newItem.price
+    (item) => item.name === newItem.name && item.price === newItem.price
   );
 
   if (existingItemIndex >= 0) {
@@ -132,7 +140,7 @@ export function addItemToCart(
     if (existingItem) {
       updatedCart[existingItemIndex] = {
         ...existingItem,
-        quantity: Math.min(existingItem.quantity + newItem.quantity, 99)
+        quantity: Math.min(existingItem.quantity + newItem.quantity, 99),
       };
     }
     return updatedCart;
@@ -141,7 +149,7 @@ export function addItemToCart(
     const cartItem: CartItem = {
       ...newItem,
       id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      quantity: Math.min(newItem.quantity, 99)
+      quantity: Math.min(newItem.quantity, 99),
     };
     return [...currentCart, cartItem];
   }
@@ -151,7 +159,7 @@ export function removeItemFromCart(
   currentCart: CartItem[],
   itemId: string
 ): CartItem[] {
-  return currentCart.filter(item => item.id !== itemId);
+  return currentCart.filter((item) => item.id !== itemId);
 }
 
 export function updateItemQuantity(
@@ -163,7 +171,7 @@ export function updateItemQuantity(
     return removeItemFromCart(currentCart, itemId);
   }
 
-  return currentCart.map(item =>
+  return currentCart.map((item) =>
     item.id === itemId
       ? { ...item, quantity: Math.min(Math.max(newQuantity, 1), 99) }
       : item
@@ -177,14 +185,16 @@ export function clearCart(): CartItem[] {
 // 🎯 Cart Statistics Business Logic
 export function getCartStatistics(items: CartItem[]) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const averageItemPrice = items.length > 0
-    ? totalValue / totalItems
-    : 0;
+  const totalValue = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const averageItemPrice = items.length > 0 ? totalValue / totalItems : 0;
 
-  const mostExpensiveItem = items.length > 0
-    ? items.reduce((max, item) => item.price > max.price ? item : max)
-    : null;
+  const mostExpensiveItem =
+    items.length > 0
+      ? items.reduce((max, item) => (item.price > max.price ? item : max))
+      : null;
 
   return {
     totalItems,

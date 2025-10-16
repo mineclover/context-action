@@ -11,88 +11,88 @@ export const TEMPLATE_PATTERNS = {
   DEFAULT_DEMO_CONFIG: {
     showCode: true,
     complexity: 'Intermediate' as const,
-    patternType: 'integration' as const
+    patternType: 'integration' as const,
   },
-  
+
   // Common best practice categories
   BEST_PRACTICE_CATEGORIES: {
     PERFORMANCE: {
       category: 'Performance Optimization',
-      icon: '⚡'
+      icon: '⚡',
     },
     SECURITY: {
       category: 'Security & Safety',
-      icon: '🛡️'
+      icon: '🛡️',
     },
     API: {
       category: 'API Management',
-      icon: '🌐'
+      icon: '🌐',
     },
     SEARCH: {
       category: 'Search Optimization',
-      icon: '🔍'
+      icon: '🔍',
     },
     INTERACTION: {
       category: 'User Interaction',
-      icon: '🖱️'
+      icon: '🖱️',
     },
     ACCESSIBILITY: {
       category: 'Accessibility',
-      icon: '♿'
+      icon: '♿',
     },
     CODE_QUALITY: {
       category: 'Code Quality',
-      icon: '🔧'
-    }
+      icon: '🔧',
+    },
   },
-  
+
   // Common feature benefit/drawback patterns
   FEATURE_PATTERNS: {
     PERFORMANCE_BENEFITS: [
       'Improved execution speed',
       'Reduced resource usage',
       'Better user experience',
-      'Scalable architecture'
+      'Scalable architecture',
     ],
     PERFORMANCE_DRAWBACKS: [
       'Increased complexity',
       'Memory overhead',
-      'Setup complexity'
+      'Setup complexity',
     ],
     API_BENEFITS: [
       'Automatic error handling',
       'Request deduplication',
       'Built-in caching',
-      'Performance monitoring'
+      'Performance monitoring',
     ],
     API_DRAWBACKS: [
       'Cache invalidation complexity',
       'Memory usage for caching',
-      'Configuration overhead'
+      'Configuration overhead',
     ],
     SEARCH_BENEFITS: [
       'Improved search performance',
       'Automatic query optimization',
       'Built-in debouncing',
-      'Result caching'
+      'Result caching',
     ],
     SEARCH_DRAWBACKS: [
       'Initial setup complexity',
       'Memory usage for caching',
-      'Configuration requirements'
+      'Configuration requirements',
     ],
     INTERACTION_BENEFITS: [
       'Smooth user experience',
       'Optimized event handling',
       'Accessibility compliance',
-      'Performance optimization'
+      'Performance optimization',
     ],
     INTERACTION_DRAWBACKS: [
       'Event handling complexity',
       'Browser compatibility',
-      'Testing complexity'
-    ]
-  }
+      'Testing complexity',
+    ],
+  },
 } as const;
 
 // Template creation helpers
@@ -110,8 +110,9 @@ export function createPerformanceTemplate(config: {
         name: 'Performance Monitoring',
         description: 'Real-time performance tracking and metrics collection',
         benefits: TEMPLATE_PATTERNS.FEATURE_PATTERNS.PERFORMANCE_BENEFITS,
-        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.PERFORMANCE_DRAWBACKS.slice(0, 2)
-      }
+        drawbacks:
+          TEMPLATE_PATTERNS.FEATURE_PATTERNS.PERFORMANCE_DRAWBACKS.slice(0, 2),
+      },
     ],
     bestPractices: [
       {
@@ -120,16 +121,18 @@ export function createPerformanceTemplate(config: {
           {
             type: 'do' as const,
             text: 'Monitor performance metrics regularly',
-            explanation: 'Regular monitoring helps identify performance regressions early'
+            explanation:
+              'Regular monitoring helps identify performance regressions early',
           },
           {
             type: 'do' as const,
             text: 'Set performance budgets',
-            explanation: 'Clear budgets help maintain consistent user experience'
-          }
-        ]
-      }
-    ]
+            explanation:
+              'Clear budgets help maintain consistent user experience',
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -144,10 +147,11 @@ export function createApiTemplate(config: {
     features: [
       {
         name: 'Request Management',
-        description: 'Advanced API request handling with caching and deduplication',
+        description:
+          'Advanced API request handling with caching and deduplication',
         benefits: TEMPLATE_PATTERNS.FEATURE_PATTERNS.API_BENEFITS,
-        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.API_DRAWBACKS
-      }
+        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.API_DRAWBACKS,
+      },
     ],
     bestPractices: [
       {
@@ -156,16 +160,17 @@ export function createApiTemplate(config: {
           {
             type: 'do' as const,
             text: 'Implement request deduplication',
-            explanation: 'Prevents unnecessary network requests and server load'
+            explanation:
+              'Prevents unnecessary network requests and server load',
           },
           {
             type: 'consider' as const,
             text: 'Use appropriate cache TTL values',
-            explanation: 'Balance between data freshness and performance'
-          }
-        ]
-      }
-    ]
+            explanation: 'Balance between data freshness and performance',
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -182,8 +187,8 @@ export function createSearchTemplate(config: {
         name: 'Smart Search',
         description: 'Intelligent search with debouncing and optimization',
         benefits: TEMPLATE_PATTERNS.FEATURE_PATTERNS.SEARCH_BENEFITS,
-        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.SEARCH_DRAWBACKS
-      }
+        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.SEARCH_DRAWBACKS,
+      },
     ],
     bestPractices: [
       {
@@ -192,16 +197,18 @@ export function createSearchTemplate(config: {
           {
             type: 'do' as const,
             text: 'Use appropriate debounce timing',
-            explanation: '300ms provides good balance between responsiveness and performance'
+            explanation:
+              '300ms provides good balance between responsiveness and performance',
           },
           {
             type: 'do' as const,
             text: 'Implement result limits',
-            explanation: 'Prevents UI performance issues with large result sets'
-          }
-        ]
-      }
-    ]
+            explanation:
+              'Prevents UI performance issues with large result sets',
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -217,10 +224,11 @@ export function createInteractionTemplate(config: {
     features: [
       {
         name: 'Event Optimization',
-        description: 'Optimized user interaction handling with accessibility support',
+        description:
+          'Optimized user interaction handling with accessibility support',
         benefits: TEMPLATE_PATTERNS.FEATURE_PATTERNS.INTERACTION_BENEFITS,
-        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.INTERACTION_DRAWBACKS
-      }
+        drawbacks: TEMPLATE_PATTERNS.FEATURE_PATTERNS.INTERACTION_DRAWBACKS,
+      },
     ],
     bestPractices: [
       {
@@ -229,15 +237,17 @@ export function createInteractionTemplate(config: {
           {
             type: 'do' as const,
             text: 'Optimize high-frequency events',
-            explanation: 'Use throttling or debouncing for events like scroll and mousemove'
+            explanation:
+              'Use throttling or debouncing for events like scroll and mousemove',
           },
           {
             type: 'do' as const,
             text: 'Implement accessibility features',
-            explanation: 'Ensure keyboard navigation and screen reader compatibility'
-          }
-        ]
-      }
-    ]
+            explanation:
+              'Ensure keyboard navigation and screen reader compatibility',
+          },
+        ],
+      },
+    ],
   };
 }

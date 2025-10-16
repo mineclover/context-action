@@ -1,6 +1,6 @@
-import { createLogger, LogLevel } from '@/utils/logger';
 import { ActionRegister } from '@context-action/react';
 import { setupSelectiveActionToast } from '@/components/ToastSystem';
+import { createLogger, LogLevel } from '@/utils/logger';
 import type { StoreFullActionMap } from '../types';
 
 /**
@@ -15,7 +15,7 @@ import type { StoreFullActionMap } from '../types';
  * useEffect(() => {
  *   const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
  *     userStore.setValue(user);
- *     
+ *
  *   });
  *   return unsubscribe;
  * }, [userStore]);
@@ -49,7 +49,7 @@ const trackedActions = [
 setupSelectiveActionToast(storeActionRegister, trackedActions);
 
 // 💡 Rate limiting 활성화 (필요시):
-// setupSelectiveActionToast(storeActionRegister, trackedActions, { 
+// setupSelectiveActionToast(storeActionRegister, trackedActions, {
 //   enableRateLimit: true,
 //   maxToasts: 5,        // 1초당 최대 5개
 //   resetInterval: 1000  // 1초마다 리셋

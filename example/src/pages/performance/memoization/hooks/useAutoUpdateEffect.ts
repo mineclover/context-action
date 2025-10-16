@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
+import {
+  useMemoizedActions,
+  useNonMemoizedActions,
+} from './useComparisonActions';
 import { usePerformanceControlState } from './usePerformanceControl';
-import { useMemoizedActions, useNonMemoizedActions } from './useComparisonActions';
 
 /**
  * Auto Update Effect Hook for Memoized Context
@@ -31,7 +34,7 @@ export function useMemoizedAutoUpdateEffect() {
         intervalRef.current = null;
       }
     }
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -72,7 +75,7 @@ export function useNonMemoizedAutoUpdateEffect() {
         intervalRef.current = null;
       }
     }
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

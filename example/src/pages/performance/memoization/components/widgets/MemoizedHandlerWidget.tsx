@@ -1,11 +1,11 @@
 import React from 'react';
-import { useMemoizedHandlers } from '../../hooks/useMemoizedHandlers';
-import { useMemoizedViewState } from '../../hooks/useComparisonViewState';
-import { useMemoizedActions } from '../../hooks/useComparisonActions';
 import { useMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
-import { MetricsDisplay } from '../shared/MetricsDisplay';
-import { ActionButtons } from '../shared/ActionButtons';
+import { useMemoizedActions } from '../../hooks/useComparisonActions';
+import { useMemoizedViewState } from '../../hooks/useComparisonViewState';
+import { useMemoizedHandlers } from '../../hooks/useMemoizedHandlers';
 import { SafeModeWrapper } from '../SafeModeWrapper';
+import { ActionButtons } from '../shared/ActionButtons';
+import { MetricsDisplay } from '../shared/MetricsDisplay';
 
 /**
  * Widget Component - Memoized Handler
@@ -47,10 +47,7 @@ export function MemoizedHandlerWidget() {
           metrics={metricsData}
           dataStatus={dataStatus}
         />
-        <ActionButtons
-          variant="memoized"
-          actions={actions}
-        />
+        <ActionButtons variant="memoized" actions={actions} />
       </div>
     </SafeModeWrapper>
   );

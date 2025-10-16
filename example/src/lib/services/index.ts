@@ -3,8 +3,8 @@
  * Business logic and utility functions
  */
 
-import type { LogEntry, PerformanceMetrics } from '../hooks/types';
 import { LogLevel } from '@/utils/logger';
+import type { LogEntry, PerformanceMetrics } from '../hooks/types';
 
 // Helper to get log level name
 const getLogLevelName = (level: LogLevel): string => {
@@ -24,18 +24,23 @@ export class LoggerService {
     return LoggerService.instance;
   }
 
-  log(level: LogEntry['level'], message: string, data?: any, source?: string): LogEntry {
+  log(
+    level: LogEntry['level'],
+    message: string,
+    data?: any,
+    source?: string
+  ): LogEntry {
     const entry: LogEntry = {
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
       level,
       message,
       data,
-      ...(source !== undefined && { source })
+      ...(source !== undefined && { source }),
     };
 
     this.logs.push(entry);
-    
+
     // Keep only the most recent logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
@@ -65,7 +70,7 @@ export class LoggerService {
   }
 
   getLogsBySource(source: string): LogEntry[] {
-    return this.logs.filter(log => log.source === source);
+    return this.logs.filter((log) => log.source === source);
   }
 }
 
@@ -87,12 +92,21 @@ export class PerformanceService {
     return measurementId;
   }
 
-  endMeasurement(measurementId: string, operationName: string): PerformanceMetrics | null {
+  endMeasurement(
+    measurementId: string,
+    operationName: string
+  ): PerformanceMetrics | null {
     try {
       performance.mark(`${measurementId}-end`);
-      performance.measure(measurementId, `${measurementId}-start`, `${measurementId}-end`);
-      
-      const measure = performance.getEntriesByName(measurementId)[0] as PerformanceEntry;
+      performance.measure(
+        measurementId,
+        `${measurementId}-start`,
+        `${measurementId}-end`
+      );
+
+      const measure = performance.getEntriesByName(
+        measurementId
+      )[0] as PerformanceEntry;
       const duration = measure.duration;
 
       const metrics: PerformanceMetrics = {
@@ -101,7 +115,7 @@ export class PerformanceService {
         duration,
         operations: 1,
         errors: 0,
-        avgResponseTime: duration
+        avgResponseTime: duration,
       };
 
       // Store metrics
@@ -130,7 +144,10 @@ export class PerformanceService {
     const metrics = this.metrics.get(operationName);
     if (!metrics || metrics.length === 0) return null;
 
-    const totalDuration = metrics.reduce((sum, m) => sum + (m.duration || 0), 0);
+    const totalDuration = metrics.reduce(
+      (sum, m) => sum + (m.duration || 0),
+      0
+    );
     const totalOperations = metrics.reduce((sum, m) => sum + m.operations, 0);
     const totalErrors = metrics.reduce((sum, m) => sum + m.errors, 0);
 
@@ -141,7 +158,7 @@ export class PerformanceService {
       duration: totalDuration,
       operations: totalOperations,
       errors: totalErrors,
-      avgResponseTime: totalDuration / metrics.length
+      avgResponseTime: totalDuration / metrics.length,
     };
   }
 
@@ -156,7 +173,11 @@ export class PerformanceService {
 
 // Validation service for consistent validation patterns
 export function validateRequired(value: any, fieldName: string): string | null {
-  if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) {
+  if (
+    value == null ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  ) {
     return `${fieldName} is required`;
   }
   return null;
@@ -170,59 +191,77 @@ export function validateEmail(email: string): string | null {
   return null;
 }
 
-export function validateMinLength(value: string, minLength: number, fieldName: string): string | null {
+export function validateMinLength(
+  value: string,
+  minLength: number,
+  fieldName: string
+): string | null {
   if (value.length < minLength) {
     return `${fieldName} must be at least ${minLength} characters`;
   }
   return null;
 }
 
-export function validateMaxLength(value: string, maxLength: number, fieldName: string): string | null {
+export function validateMaxLength(
+  value: string,
+  maxLength: number,
+  fieldName: string
+): string | null {
   if (value.length > maxLength) {
     return `${fieldName} must be no more than ${maxLength} characters`;
   }
   return null;
 }
 
-export function validatePattern(value: string, pattern: RegExp, message: string): string | null {
+export function validatePattern(
+  value: string,
+  pattern: RegExp,
+  message: string
+): string | null {
   if (!pattern.test(value)) {
     return message;
   }
   return null;
 }
 
-export function combineValidators(...validators: Array<() => string | null>): string[] {
+export function combineValidators(
+  ...validators: Array<() => string | null>
+): string[] {
   return validators
-    .map(validator => validator())
+    .map((validator) => validator())
     .filter((result): result is string => result !== null);
 }
 
 // Form validation utilities
-export function validateForm(rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
+export function validateForm(
+  rules: Record<string, Array<() => string | null>>
+): Record<string, string[]> {
   const errors: Record<string, string[]> = {};
-  
+
   for (const [fieldName, validators] of Object.entries(rules)) {
     const fieldErrors = combineValidators(...validators);
     if (fieldErrors.length > 0) {
       errors[fieldName] = fieldErrors;
     }
   }
-  
+
   return errors;
 }
 
-
 // Async utilities service
 export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
-    )
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`Operation timed out after ${ms}ms`)),
+        ms
+      )
+    ),
   ]);
 }
 
@@ -233,23 +272,23 @@ export function retry<T>(
 ): Promise<T> {
   const attemptRetry = async (): Promise<T> => {
     let lastError: Error = new Error('No attempts made');
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await fn();
         return result;
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt < maxRetries) {
           await delay(delayMs * 2 ** attempt); // Exponential backoff
         }
       }
     }
-    
+
     throw lastError;
   };
-  
+
   return attemptRetry();
 }
 
@@ -269,7 +308,7 @@ export function debounce<T extends (...args: any[]) => any>(
   delayMs: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delayMs);
@@ -281,10 +320,10 @@ export function throttle<T extends (...args: any[]) => any>(
   delayMs: number
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
-  
+
   return (...args: Parameters<T>) => {
     const now = Date.now();
-    
+
     if (now - lastCall >= delayMs) {
       lastCall = now;
       func(...args);
@@ -298,7 +337,7 @@ export async function executeWithProgress<T>(
   onProgress?: (progress: number) => void
 ): Promise<T> {
   onProgress?.(0);
-  
+
   try {
     const result = await operation();
     onProgress?.(100);
@@ -316,17 +355,16 @@ export async function batchExecute<T, R>(
   delayMs: number = 100
 ): Promise<R[]> {
   const results: R[] = [];
-  
+
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
     const batchResults = await Promise.all(batch.map(processor));
     results.push(...batchResults);
-    
+
     if (i + batchSize < items.length) {
       await delay(delayMs);
     }
   }
-  
+
   return results;
 }
-

@@ -9,40 +9,50 @@
  * 4. Showcases useActionWithResult with structured layers
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
+import {
+  addItemToCart,
+  removeItemFromCart,
+  updateItemQuantity,
+} from './useActionWithResult/business/cartBusinessLogic';
 import {
   CartActionProvider,
-  CartStoreProvider,
   type CartItem,
+  CartStoreProvider,
 } from './useActionWithResult/contexts/CartContexts';
 import { CartHandlers } from './useActionWithResult/handlers/CartHandlers';
-import { useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
-import { useCartData, useCartStatistics } from './useActionWithResult/hooks/useCartData';
 import {
-  CartListView,
+  useCartData,
+  useCartStatistics,
+} from './useActionWithResult/hooks/useCartData';
+import {
   AddItemForm,
-  ValidationView,
   CalculationView,
-  OrderStatusView,
-  CheckoutForm,
+  CartListView,
   CartStatisticsView,
+  CheckoutForm,
+  OrderStatusView,
+  ValidationView,
 } from './useActionWithResult/views/CartView';
-import { addItemToCart, removeItemFromCart, updateItemQuantity } from './useActionWithResult/business/cartBusinessLogic';
 
 // 🎯 Mock external dependencies for demonstration
 const mockApiClient = {
   saveOrder: async (orderData: any) => {
     console.log('🌐 API: Saving order', orderData);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
   },
   updateInventory: async (items: CartItem[]) => {
     console.log('🌐 API: Updating inventory', items);
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
   },
   applyDiscountCode: async (code: string) => {
     console.log('🌐 API: Validating discount code', code);
-    await new Promise(resolve => setTimeout(resolve, 400));
-    return { valid: ['SAVE10', 'SAVE20', 'WELCOME'].includes(code.toUpperCase()), rate: 0.1 };
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return {
+      valid: ['SAVE10', 'SAVE20', 'WELCOME'].includes(code.toUpperCase()),
+      rate: 0.1,
+    };
   },
 };
 
@@ -93,7 +103,9 @@ function UseActionWithResultWithHandlers() {
       logger={mockLogger}
       onCartValidated={(result) => console.log('🎉 Cart validated:', result)}
       onOrderProcessed={(result) => console.log('📦 Order processed:', result)}
-      onCalculationCompleted={(result) => console.log('💰 Calculation completed:', result)}
+      onCalculationCompleted={(result) =>
+        console.log('💰 Calculation completed:', result)
+      }
       onCartCleared={() => console.log('🗑️ Cart cleared')}
     >
       <UseActionWithResultUI />
@@ -142,17 +154,32 @@ function UseActionWithResultUI() {
   } = useCartActionCallbacks();
 
   // 🎯 Event Handlers for Cart Management
-  const handleAddItem = useCallback((newItem: Omit<CartItem, 'id'>) => {
-    stores.cartStore.update((currentCart) => addItemToCart(currentCart, newItem));
-  }, [stores.cartStore]);
+  const handleAddItem = useCallback(
+    (newItem: Omit<CartItem, 'id'>) => {
+      stores.cartStore.update((currentCart) =>
+        addItemToCart(currentCart, newItem)
+      );
+    },
+    [stores.cartStore]
+  );
 
-  const handleUpdateQuantity = useCallback((itemId: string, quantity: number) => {
-    stores.cartStore.update((currentCart) => updateItemQuantity(currentCart, itemId, quantity));
-  }, [stores.cartStore]);
+  const handleUpdateQuantity = useCallback(
+    (itemId: string, quantity: number) => {
+      stores.cartStore.update((currentCart) =>
+        updateItemQuantity(currentCart, itemId, quantity)
+      );
+    },
+    [stores.cartStore]
+  );
 
-  const handleRemoveItem = useCallback((itemId: string) => {
-    stores.cartStore.update((currentCart) => removeItemFromCart(currentCart, itemId));
-  }, [stores.cartStore]);
+  const handleRemoveItem = useCallback(
+    (itemId: string) => {
+      stores.cartStore.update((currentCart) =>
+        removeItemFromCart(currentCart, itemId)
+      );
+    },
+    [stores.cartStore]
+  );
 
   // 🎯 useActionWithResult Demo Functions
   const handleValidateCart = useCallback(async () => {
@@ -167,12 +194,17 @@ function UseActionWithResultUI() {
         onError: (error) => console.error('❌ Validation failed:', error),
       });
 
-      setResults(JSON.stringify({
-        success: result.success,
-        validation: validation,
-        timestamp: new Date().toISOString(),
-      }, null, 2));
-
+      setResults(
+        JSON.stringify(
+          {
+            success: result.success,
+            validation: validation,
+            timestamp: new Date().toISOString(),
+          },
+          null,
+          2
+        )
+      );
     } catch (error) {
       console.error('Validation error:', error);
       setResults(`Error: ${error}`);
@@ -181,76 +213,100 @@ function UseActionWithResultUI() {
     }
   }, [cart, validateCartWithCallbacks, validation]);
 
-  const handleCalculateTotal = useCallback(async (discountCode?: string) => {
-    console.clear();
-    console.log('💰 Calculating Total with useActionWithResult');
-    setIsProcessing(true);
+  const handleCalculateTotal = useCallback(
+    async (discountCode?: string) => {
+      console.clear();
+      console.log('💰 Calculating Total with useActionWithResult');
+      setIsProcessing(true);
 
-    try {
-      const result = await calculateTotalWithCallbacks(cart, discountCode, {
-        onSuccess: () => console.log('✅ Calculation succeeded'),
-        onError: (error) => console.error('❌ Calculation failed:', error),
-      });
+      try {
+        const result = await calculateTotalWithCallbacks(cart, discountCode, {
+          onSuccess: () => console.log('✅ Calculation succeeded'),
+          onError: (error) => console.error('❌ Calculation failed:', error),
+        });
 
-      setResults(JSON.stringify({
-        success: result.success,
-        calculation: calculation,
-        discountApplied: !!discountCode,
-        timestamp: new Date().toISOString(),
-      }, null, 2));
+        setResults(
+          JSON.stringify(
+            {
+              success: result.success,
+              calculation: calculation,
+              discountApplied: !!discountCode,
+              timestamp: new Date().toISOString(),
+            },
+            null,
+            2
+          )
+        );
+      } catch (error) {
+        console.error('Calculation error:', error);
+        setResults(`Error: ${error}`);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [cart, calculateTotalWithCallbacks, calculation]
+  );
 
-    } catch (error) {
-      console.error('Calculation error:', error);
-      setResults(`Error: ${error}`);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [cart, calculateTotalWithCallbacks, calculation]);
+  const handleCompleteWorkflow = useCallback(
+    async (paymentMethod: string, discountCode?: string) => {
+      console.clear();
+      console.log('🚀 Complete Workflow with Progress Tracking');
+      setIsProcessing(true);
+      setWorkflowStep('Starting...');
 
-  const handleCompleteWorkflow = useCallback(async (paymentMethod: string, discountCode?: string) => {
-    console.clear();
-    console.log('🚀 Complete Workflow with Progress Tracking');
-    setIsProcessing(true);
-    setWorkflowStep('Starting...');
+      try {
+        const result = await completeCheckoutWithCallbacks(
+          cart,
+          paymentMethod,
+          discountCode,
+          {
+            onValidationStart: () => setWorkflowStep('🔍 Validating cart...'),
+            onValidationComplete: () =>
+              setWorkflowStep('✅ Validation complete'),
+            onCalculationStart: () =>
+              setWorkflowStep('💰 Calculating total...'),
+            onCalculationComplete: () =>
+              setWorkflowStep('✅ Calculation complete'),
+            onOrderStart: () => setWorkflowStep('📦 Processing order...'),
+            onOrderComplete: () => setWorkflowStep('✅ Order complete'),
+            onSuccess: () => {
+              setWorkflowStep('🎉 Workflow completed successfully!');
+              console.log('🎉 Complete workflow succeeded');
+            },
+            onError: (error, step) => {
+              setWorkflowStep(`❌ Failed at ${step}: ${error}`);
+              console.error(`❌ Workflow failed at ${step}:`, error);
+            },
+          }
+        );
 
-    try {
-      const result = await completeCheckoutWithCallbacks(cart, paymentMethod, discountCode, {
-        onValidationStart: () => setWorkflowStep('🔍 Validating cart...'),
-        onValidationComplete: () => setWorkflowStep('✅ Validation complete'),
-        onCalculationStart: () => setWorkflowStep('💰 Calculating total...'),
-        onCalculationComplete: () => setWorkflowStep('✅ Calculation complete'),
-        onOrderStart: () => setWorkflowStep('📦 Processing order...'),
-        onOrderComplete: () => setWorkflowStep('✅ Order complete'),
-        onSuccess: () => {
-          setWorkflowStep('🎉 Workflow completed successfully!');
-          console.log('🎉 Complete workflow succeeded');
-        },
-        onError: (error, step) => {
-          setWorkflowStep(`❌ Failed at ${step}: ${error}`);
-          console.error(`❌ Workflow failed at ${step}:`, error);
-        },
-      });
-
-      setResults(JSON.stringify({
-        success: result.success,
-        step: 'step' in result ? result.step : 'unknown',
-        finalState: {
-          validation,
-          calculation,
-          order,
-        },
-        timestamp: new Date().toISOString(),
-      }, null, 2));
-
-    } catch (error) {
-      console.error('Workflow error:', error);
-      setResults(`Error: ${error}`);
-      setWorkflowStep(`❌ Workflow failed: ${error}`);
-    } finally {
-      setIsProcessing(false);
-      setTimeout(() => setWorkflowStep(''), 3000);
-    }
-  }, [cart, completeCheckoutWithCallbacks, validation, calculation, order]);
+        setResults(
+          JSON.stringify(
+            {
+              success: result.success,
+              step: 'step' in result ? result.step : 'unknown',
+              finalState: {
+                validation,
+                calculation,
+                order,
+              },
+              timestamp: new Date().toISOString(),
+            },
+            null,
+            2
+          )
+        );
+      } catch (error) {
+        console.error('Workflow error:', error);
+        setResults(`Error: ${error}`);
+        setWorkflowStep(`❌ Workflow failed: ${error}`);
+      } finally {
+        setIsProcessing(false);
+        setTimeout(() => setWorkflowStep(''), 3000);
+      }
+    },
+    [cart, completeCheckoutWithCallbacks, validation, calculation, order]
+  );
 
   const handleClearCart = useCallback(async () => {
     await clearCart();
@@ -270,7 +326,7 @@ function UseActionWithResultUI() {
     // Use store.update() for safer state updates with current value
     stores.cartStore.update((currentCart) => {
       let updatedCart = currentCart;
-      sampleItems.forEach(item => {
+      sampleItems.forEach((item) => {
         updatedCart = addItemToCart(updatedCart, item);
       });
       return updatedCart;
@@ -283,9 +339,12 @@ function UseActionWithResultUI() {
       <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 p-6 rounded-xl border border-purple-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">useActionWithResult Demo</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              useActionWithResult Demo
+            </h1>
             <p className="text-sm text-gray-600">
-              5-Layer Architecture with Action Result Collection & Handler Injection Pattern
+              5-Layer Architecture with Action Result Collection & Handler
+              Injection Pattern
             </p>
           </div>
 
@@ -295,9 +354,10 @@ function UseActionWithResultUI() {
               onClick={() => setCurrentView('demo')}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
-                ${currentView === 'demo'
-                  ? 'bg-purple-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 hover:scale-105 hover:shadow-md'
+                ${
+                  currentView === 'demo'
+                    ? 'bg-purple-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 hover:scale-105 hover:shadow-md'
                 }
               `}
             >
@@ -308,9 +368,10 @@ function UseActionWithResultUI() {
               onClick={() => setCurrentView('advanced')}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
-                ${currentView === 'advanced'
-                  ? 'bg-blue-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:scale-105 hover:shadow-md'
+                ${
+                  currentView === 'advanced'
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:scale-105 hover:shadow-md'
                 }
               `}
             >
@@ -384,7 +445,10 @@ function UseActionWithResultUI() {
                   </h3>
                 </div>
                 <div className="p-6">
-                  <AddItemForm onAddItem={handleAddItem} disabled={isProcessing} />
+                  <AddItemForm
+                    onAddItem={handleAddItem}
+                    disabled={isProcessing}
+                  />
                 </div>
               </div>
 
@@ -428,8 +492,12 @@ function UseActionWithResultUI() {
                     >
                       <span className="text-2xl">🔍</span>
                       <div className="text-center">
-                        <div className="font-medium text-blue-800">Validate Cart</div>
-                        <div className="text-xs text-blue-600">Individual execution</div>
+                        <div className="font-medium text-blue-800">
+                          Validate Cart
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          Individual execution
+                        </div>
                       </div>
                     </button>
 
@@ -440,20 +508,32 @@ function UseActionWithResultUI() {
                     >
                       <span className="text-2xl">💰</span>
                       <div className="text-center">
-                        <div className="font-medium text-green-800">Calculate Total</div>
-                        <div className="text-xs text-green-600">With discount code</div>
+                        <div className="font-medium text-green-800">
+                          Calculate Total
+                        </div>
+                        <div className="text-xs text-green-600">
+                          With discount code
+                        </div>
                       </div>
                     </button>
 
                     <button
-                      onClick={() => handleCompleteWorkflow('credit_card', 'SAVE10')}
-                      disabled={isProcessing || cart.length === 0 || !canCheckout}
+                      onClick={() =>
+                        handleCompleteWorkflow('credit_card', 'SAVE10')
+                      }
+                      disabled={
+                        isProcessing || cart.length === 0 || !canCheckout
+                      }
                       className="flex flex-col items-center gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="text-2xl">🎯</span>
                       <div className="text-center">
-                        <div className="font-medium text-purple-800">Complete Workflow</div>
-                        <div className="text-xs text-purple-600">Full checkout process</div>
+                        <div className="font-medium text-purple-800">
+                          Complete Workflow
+                        </div>
+                        <div className="text-xs text-purple-600">
+                          Full checkout process
+                        </div>
                       </div>
                     </button>
                   </div>
@@ -524,7 +604,9 @@ function UseActionWithResultUI() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-indigo-800 mb-2">🎯 Action Result Collection</h4>
+                <h4 className="font-semibold text-indigo-800 mb-2">
+                  🎯 Action Result Collection
+                </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• Automatic handler result collection</li>
                   <li>• Execution time and success/failure tracking</li>
@@ -532,7 +614,9 @@ function UseActionWithResultUI() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-indigo-800 mb-2">🏗️ Layer Separation</h4>
+                <h4 className="font-semibold text-indigo-800 mb-2">
+                  🏗️ Layer Separation
+                </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• Business logic in pure functions</li>
                   <li>• Handler injection with dependencies</li>
@@ -540,7 +624,9 @@ function UseActionWithResultUI() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-indigo-800 mb-2">🔄 State Management</h4>
+                <h4 className="font-semibold text-indigo-800 mb-2">
+                  🔄 State Management
+                </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• Reactive store subscriptions</li>
                   <li>• Computed values and derived state</li>
@@ -548,7 +634,9 @@ function UseActionWithResultUI() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-indigo-800 mb-2">⚡ Enhanced Workflow</h4>
+                <h4 className="font-semibold text-indigo-800 mb-2">
+                  ⚡ Enhanced Workflow
+                </h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   <li>• Progress tracking with callbacks</li>
                   <li>• Error handling at each step</li>

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enhanced Context Store Page - Reactive Pattern
- * 
+ *
  * Reactive MVVM architecture with Store subscriptions:
  * - MouseEventsModelProvider: Model layer with declarative contexts
  * - EnhancedContextStoreView: View layer with useStoreValue subscriptions
@@ -8,12 +8,12 @@
  */
 
 import React from 'react';
-import { MouseEventsModelProvider } from './context/MouseEventsModel';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
+import { MouseEventsModelProvider } from './context/MouseEventsModel';
 
 /**
  * Enhanced Context Store - Reactive Pattern 페이지
- * 
+ *
  * Reactive MVVM 아키텍처:
  * - Model: MouseEventsModel (Context declarations)
  * - ViewModel: Hooks (state injection, event handlers)
@@ -29,9 +29,11 @@ export function EnhancedContextStorePage() {
             <span className="text-3xl">🔔</span>
             Reactive Pattern - Enhanced Context Store
           </h1>
-          
+
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <h3 className="font-semibold text-purple-800 mb-2">🔔 Reactive Pattern</h3>
+            <h3 className="font-semibold text-purple-800 mb-2">
+              🔔 Reactive Pattern
+            </h3>
             <ul className="space-y-1 text-purple-700">
               <li>• Store subscriptions with useStoreValue()</li>
               <li>• React re-renders on state changes</li>
@@ -45,10 +47,9 @@ export function EnhancedContextStorePage() {
 
       {/* Model Layer - Declarative Context Management */}
       <MouseEventsModelProvider>
-        
         {/* View Layer - Reactive Pattern */}
         <EnhancedContextStoreView />
-        
+
         {/* Enhanced Context Store Architecture Documentation - 페이지 최하단 */}
         <div className="px-6 pb-6 mt-12">
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 border border-purple-200 shadow-lg">
@@ -56,7 +57,7 @@ export function EnhancedContextStorePage() {
               <span className="text-3xl">🔔</span>
               Reactive Pattern Architecture
             </h2>
-            
+
             {/* 아키텍처 구조 설명 - 1열 레이아웃 */}
             <div className="space-y-6">
               {/* Model Layer */}
@@ -181,23 +182,53 @@ const useNonReactiveCanvasControl = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
-                    <h4 className="font-semibold text-purple-700 mb-3">🏪 Enhanced Context Store</h4>
+                    <h4 className="font-semibold text-purple-700 mb-3">
+                      🏪 Enhanced Context Store
+                    </h4>
                     <ul className="space-y-2 text-sm text-purple-600">
-                      <li>• <strong>MVVM 분리:</strong> Model-ViewModel-View 계층화</li>
-                      <li>• <strong>Store Context:</strong> 도메인별 상태 분산 관리</li>
-                      <li>• <strong>Hooks ViewModel:</strong> 재사용 가능한 비즈니스 로직</li>
-                      <li>• <strong>Pure Components:</strong> Props 기반 순수 렌더링</li>
-                      <li>• <strong>RefContext 최적화:</strong> 선택적 DOM 조작</li>
+                      <li>
+                        • <strong>MVVM 분리:</strong> Model-ViewModel-View
+                        계층화
+                      </li>
+                      <li>
+                        • <strong>Store Context:</strong> 도메인별 상태 분산
+                        관리
+                      </li>
+                      <li>
+                        • <strong>Hooks ViewModel:</strong> 재사용 가능한
+                        비즈니스 로직
+                      </li>
+                      <li>
+                        • <strong>Pure Components:</strong> Props 기반 순수
+                        렌더링
+                      </li>
+                      <li>
+                        • <strong>RefContext 최적화:</strong> 선택적 DOM 조작
+                      </li>
                     </ul>
                   </div>
                   <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-4 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-700 mb-3">🏛️ Legacy Pattern</h4>
+                    <h4 className="font-semibold text-gray-700 mb-3">
+                      🏛️ Legacy Pattern
+                    </h4>
                     <ul className="space-y-2 text-sm text-gray-600">
-                      <li>• <strong>단일 계층:</strong> Action Context만 사용</li>
-                      <li>• <strong>Component State:</strong> useState 중심 상태</li>
-                      <li>• <strong>Inline Logic:</strong> 컴포넌트 내 비즈니스 로직</li>
-                      <li>• <strong>Mixed Responsibility:</strong> 상태와 렌더링 혼재</li>
-                      <li>• <strong>Full Rendering:</strong> 모든 변경 시 리렌더링</li>
+                      <li>
+                        • <strong>단일 계층:</strong> Action Context만 사용
+                      </li>
+                      <li>
+                        • <strong>Component State:</strong> useState 중심 상태
+                      </li>
+                      <li>
+                        • <strong>Inline Logic:</strong> 컴포넌트 내 비즈니스
+                        로직
+                      </li>
+                      <li>
+                        • <strong>Mixed Responsibility:</strong> 상태와 렌더링
+                        혼재
+                      </li>
+                      <li>
+                        • <strong>Full Rendering:</strong> 모든 변경 시 리렌더링
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -205,7 +236,6 @@ const useNonReactiveCanvasControl = () => {
             </div>
           </div>
         </div>
-        
       </MouseEventsModelProvider>
     </div>
   );

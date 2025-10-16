@@ -1,4 +1,8 @@
-import { type ActionPayloadMap, createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
 
 // ==============================================
 // PARENT DOMAIN - MVVM Architecture
@@ -29,19 +33,19 @@ export interface ParentActions extends ActionPayloadMap {
 export const {
   Provider: ParentModelProvider,
   useStore: useParentStore,
-  useStoreManager: useParentStoreManager
+  useStoreManager: useParentStoreManager,
 } = createStoreContext<ParentStores>('Parent', {
-  'registered-children': { 
-    initialValue: [] as Array<{ childId: string; childType: string }> 
+  'registered-children': {
+    initialValue: [] as Array<{ childId: string; childType: string }>,
   },
-  'parent-counter': { 
-    initialValue: 0 
-  }
+  'parent-counter': {
+    initialValue: 0,
+  },
 });
 
 // ⚙️ ViewModel Layer - Action Context Creation
 export const {
   Provider: ParentActionProvider,
   useActionDispatch: useParentActionDispatch,
-  useActionHandler: useParentActionHandler
+  useActionHandler: useParentActionHandler,
 } = createActionContext<ParentActions>('Parent');

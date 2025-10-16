@@ -26,6 +26,7 @@ export { DemoCard } from './DemoCard';
 export { Grid } from './Grid';
 export { Input, Textarea } from './Input';
 export { Label } from './Label';
+export { MetricsDisplay } from './MetricsDisplay';
 export {
   ActionPatternBadge,
   ContextPatternBadge,
@@ -36,9 +37,8 @@ export {
   StorePatternBadge,
   UnifiedPatternBadge,
 } from './PatternBadge';
-export { Status } from './Status';
 export { Section } from './Section';
+export { Status } from './Status';
 export { StatusIndicator } from './StatusIndicator';
-export { MetricsDisplay } from './MetricsDisplay';
 // Export variants and types
 export * from './variants';

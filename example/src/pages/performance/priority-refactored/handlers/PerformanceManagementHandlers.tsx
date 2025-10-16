@@ -6,7 +6,7 @@
  */
 
 import type { Store } from '@context-action/react';
-import { useCallback, type ReactNode } from 'react';
+import { type ReactNode, useCallback } from 'react';
 import {
   type PerformanceStateData,
   type TestInstance,
@@ -27,7 +27,6 @@ export function PerformanceManagementHandlers({
   performanceStore,
   children,
 }: PerformanceManagementHandlersProps & { children: ReactNode }) {
-
   // 새 인스턴스 생성 헬퍼
   const generateNewInstance = useCallback(
     (instanceNumber: number): TestInstance => {
@@ -45,101 +44,120 @@ export function PerformanceManagementHandlers({
   // 인스턴스 추가 핸들러
   usePerformanceManagementActionHandler(
     'addInstance',
-    useCallback(async (_, controller) => {
-      const currentState = performanceStore.getValue();
-      const newInstance = generateNewInstance(currentState.instances.length + 1);
+    useCallback(
+      async (_, controller) => {
+        const currentState = performanceStore.getValue();
+        const newInstance = generateNewInstance(
+          currentState.instances.length + 1
+        );
 
-      performanceStore.update((state) => ({
-        ...state,
-        instances: [...state.instances, newInstance],
-      }));
+        performanceStore.update((state) => ({
+          ...state,
+          instances: [...state.instances, newInstance],
+        }));
 
-      console.log(`✅ Added new instance: ${newInstance.id}`);
-    }, [performanceStore, generateNewInstance]),
+        console.log(`✅ Added new instance: ${newInstance.id}`);
+      },
+      [performanceStore, generateNewInstance]
+    ),
     { priority: 100, id: 'add-instance-handler' }
   );
 
   // 인스턴스 제거 핸들러
   usePerformanceManagementActionHandler(
     'removeInstance',
-    useCallback(async ({ instanceId }, controller) => {
-      const currentState = performanceStore.getValue();
+    useCallback(
+      async ({ instanceId }, controller) => {
+        const currentState = performanceStore.getValue();
 
-      // 실행 중인 인스턴스는 제거할 수 없음
-      if (currentState.runningInstances.has(instanceId)) {
-        controller.abort('Cannot remove running instance');
-        return;
-      }
+        // 실행 중인 인스턴스는 제거할 수 없음
+        if (currentState.runningInstances.has(instanceId)) {
+          controller.abort('Cannot remove running instance');
+          return;
+        }
 
-      // 최소 1개 인스턴스는 유지
-      if (currentState.instances.length <= 1) {
-        controller.abort('Cannot remove last instance');
-        return;
-      }
+        // 최소 1개 인스턴스는 유지
+        if (currentState.instances.length <= 1) {
+          controller.abort('Cannot remove last instance');
+          return;
+        }
 
-      performanceStore.update((state) => ({
-        ...state,
-        instances: state.instances.filter((instance) => instance.id !== instanceId),
-      }));
+        performanceStore.update((state) => ({
+          ...state,
+          instances: state.instances.filter(
+            (instance) => instance.id !== instanceId
+          ),
+        }));
 
-      console.log(`✅ Removed instance: ${instanceId}`);
-    }, [performanceStore]),
+        console.log(`✅ Removed instance: ${instanceId}`);
+      },
+      [performanceStore]
+    ),
     { priority: 100, id: 'remove-instance-handler' }
   );
 
   // 인스턴스 리셋 핸들러
   usePerformanceManagementActionHandler(
     'resetInstances',
-    useCallback(async (_, controller) => {
-      const defaultInstances: TestInstance[] = [
-        { id: 'instance-a', title: '🔴 Priority Test Instance A' },
-        { id: 'instance-b', title: '🔵 Priority Test Instance B' },
-      ];
+    useCallback(
+      async (_, controller) => {
+        const defaultInstances: TestInstance[] = [
+          { id: 'instance-a', title: '🔴 Priority Test Instance A' },
+          { id: 'instance-b', title: '🔵 Priority Test Instance B' },
+        ];
 
-      performanceStore.update((state) => ({
-        ...state,
-        instances: defaultInstances,
-        runningInstances: new Set<string>(),
-      }));
+        performanceStore.update((state) => ({
+          ...state,
+          instances: defaultInstances,
+          runningInstances: new Set<string>(),
+        }));
 
-      console.log('✅ Reset instances to default state');
-    }, [performanceStore]),
+        console.log('✅ Reset instances to default state');
+      },
+      [performanceStore]
+    ),
     { priority: 100, id: 'reset-instances-handler' }
   );
 
   // 인스턴스 실행 시작 핸들러
   usePerformanceManagementActionHandler(
     'startInstanceExecution',
-    useCallback(async ({ instanceId }, controller) => {
-      performanceStore.update((state) => {
-        const newRunningInstances = new Set(state.runningInstances);
-        newRunningInstances.add(instanceId);
-        return {
-          ...state,
-          runningInstances: newRunningInstances,
-        };
-      });
+    useCallback(
+      async ({ instanceId }, controller) => {
+        performanceStore.update((state) => {
+          const newRunningInstances = new Set(state.runningInstances);
+          newRunningInstances.add(instanceId);
+          return {
+            ...state,
+            runningInstances: newRunningInstances,
+          };
+        });
 
-      console.log(`✅ Started execution for instance: ${instanceId}`);
-    }, [performanceStore]),
+        console.log(`✅ Started execution for instance: ${instanceId}`);
+      },
+      [performanceStore]
+    ),
     { priority: 100, id: 'start-instance-execution-handler' }
   );
 
   // 인스턴스 실행 종료 핸들러
   usePerformanceManagementActionHandler(
     'stopInstanceExecution',
-    useCallback(async ({ instanceId }, controller) => {
-      performanceStore.update((state) => {
-        const newRunningInstances = new Set(state.runningInstances);
-        newRunningInstances.delete(instanceId);
-        return {
-          ...state,
-          runningInstances: newRunningInstances,
-        };
-      });
+    useCallback(
+      async ({ instanceId }, controller) => {
+        performanceStore.update((state) => {
+          const newRunningInstances = new Set(state.runningInstances);
+          newRunningInstances.delete(instanceId);
+          return {
+            ...state,
+            runningInstances: newRunningInstances,
+          };
+        });
 
-      console.log(`✅ Stopped execution for instance: ${instanceId}`);
-    }, [performanceStore]),
+        console.log(`✅ Stopped execution for instance: ${instanceId}`);
+      },
+      [performanceStore]
+    ),
     { priority: 100, id: 'stop-instance-execution-handler' }
   );
 

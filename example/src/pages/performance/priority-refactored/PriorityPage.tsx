@@ -18,7 +18,11 @@ import {
 import { PerformanceManagementHandlers } from './handlers/PerformanceManagementHandlers';
 import { PriorityTestHandlers } from './handlers/PriorityTestHandlers';
 import { usePerformanceState } from './hooks/usePerformanceState';
-import { usePriorityCountsState, usePriorityTestState, useTestConfigState } from './hooks/usePriorityTestState';
+import {
+  usePriorityCountsState,
+  usePriorityTestState,
+  useTestConfigState,
+} from './hooks/usePriorityTestState';
 import { PriorityGrid } from './views/PriorityGrid';
 import { TestControlsView } from './views/TestControlsView';
 import { TestMetricsView } from './views/TestMetricsView';
@@ -30,10 +34,16 @@ import { TestMetricsView } from './views/TestMetricsView';
  */
 function PriorityPageContent() {
   // Hooks Layer - Store subscriptions
-  const { performanceState, performanceStore, isAnyInstanceRunning } = usePerformanceState();
+  const { performanceState, performanceStore, isAnyInstanceRunning } =
+    usePerformanceState();
   const { executionStateStore } = usePriorityTestState();
   const { priorityCountsStore } = usePriorityCountsState();
-  const { handlerConfigs, selectedDelay, selectedDelayStore, configsWithDelay } = useTestConfigState();
+  const {
+    handlerConfigs,
+    selectedDelay,
+    selectedDelayStore,
+    configsWithDelay,
+  } = useTestConfigState();
 
   // Actions Layer - Action dispatching
   const performanceActions = usePerformanceManagementActions();
@@ -51,13 +61,16 @@ function PriorityPageContent() {
     }
   }, [performanceActions]);
 
-  const handleRemoveInstance = useCallback(async (instanceId: string) => {
-    try {
-      await performanceActions.removeInstance(instanceId);
-    } catch (error) {
-      console.error('Failed to remove instance:', error);
-    }
-  }, [performanceActions]);
+  const handleRemoveInstance = useCallback(
+    async (instanceId: string) => {
+      try {
+        await performanceActions.removeInstance(instanceId);
+      } catch (error) {
+        console.error('Failed to remove instance:', error);
+      }
+    },
+    [performanceActions]
+  );
 
   const handleResetInstances = useCallback(async () => {
     try {
@@ -105,9 +118,12 @@ function PriorityPageContent() {
   }, [priorityCountsStore, executionStateStore]);
 
   // Delay setting handler
-  const handleDelayChange = useCallback((delay: 0 | 1 | 50) => {
-    selectedDelayStore.setValue(delay);
-  }, [selectedDelayStore]);
+  const handleDelayChange = useCallback(
+    (delay: 0 | 1 | 50) => {
+      selectedDelayStore.setValue(delay);
+    },
+    [selectedDelayStore]
+  );
 
   // Bulk operations
   const handleBulkAdd = useCallback(() => {
@@ -161,7 +177,11 @@ function PriorityPageContent() {
               🎯 우선순위별 실행 횟수 (높은 순위 → 낮은 순위)
             </h4>
             <div className="bg-gray-50 rounded p-1">
-              <PriorityGrid configs={configsWithDelay} className="" allowManualClick={true} />
+              <PriorityGrid
+                configs={configsWithDelay}
+                className=""
+                allowManualClick={true}
+              />
             </div>
             <div className="text-xs text-gray-500 mt-1 space-y-1">
               <div className="flex items-center gap-4">
@@ -184,10 +204,17 @@ function PriorityPageContent() {
                 </div>
               </div>
               <div className="text-xs text-gray-400 space-y-1">
-                <div>💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건 확인</div>
-                <div>🖱️ 블럭 클릭: 좌클릭 +1, 우클릭 -1 (수동 카운트 조작 가능)</div>
+                <div>
+                  💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간
+                  조건 확인
+                </div>
+                <div>
+                  🖱️ 블럭 클릭: 좌클릭 +1, 우클릭 -1 (수동 카운트 조작 가능)
+                </div>
                 <div className="text-amber-600 font-medium">
-                  ⚡ 점프 패턴 테스트: 성능 테스트 버튼을 누르고 점프가 등록된 P90, P70, P55, P45, P30을 각각 4 이상으로 높이면 모든 우선순위 영역을 채울 수 있습니다
+                  ⚡ 점프 패턴 테스트: 성능 테스트 버튼을 누르고 점프가 등록된
+                  P90, P70, P55, P45, P30을 각각 4 이상으로 높이면 모든 우선순위
+                  영역을 채울 수 있습니다
                 </div>
               </div>
             </div>
@@ -195,7 +222,9 @@ function PriorityPageContent() {
 
           {/* Performance State Display */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-700 mb-2 text-sm">📈 성능 상태</h4>
+            <h4 className="font-medium text-gray-700 mb-2 text-sm">
+              📈 성능 상태
+            </h4>
             <div className="text-xs text-gray-600 space-y-1">
               <div>총 인스턴스: {performanceState.instances.length}개</div>
               <div>실행 중: {performanceState.runningInstances.size}개</div>

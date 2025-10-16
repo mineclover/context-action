@@ -60,9 +60,13 @@ export function PriorityPerformanceView() {
       </header>
 
       {/* 인스턴스 관리 컨트롤 */}
-      <div className={`bg-white p-6 rounded-lg shadow-sm border transition-all duration-200 ${
-        isAnyInstanceRunning ? 'border-orange-200 bg-orange-50' : 'border-gray-200'
-      }`}>
+      <div
+        className={`bg-white p-6 rounded-lg shadow-sm border transition-all duration-200 ${
+          isAnyInstanceRunning
+            ? 'border-orange-200 bg-orange-50'
+            : 'border-gray-200'
+        }`}
+      >
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
@@ -70,7 +74,8 @@ export function PriorityPerformanceView() {
             </h2>
             {isAnyInstanceRunning && (
               <p className="text-sm text-orange-600 mt-1">
-                ⚠️ {runningInstanceIds.size}개 인스턴스가 성능 테스트 실행 중입니다
+                ⚠️ {runningInstanceIds.size}개 인스턴스가 성능 테스트 실행
+                중입니다
               </p>
             )}
           </div>
@@ -95,9 +100,14 @@ export function PriorityPerformanceView() {
         {performanceState.instances.map((instance) => {
           const isInstanceRunning = runningInstanceIds.has(instance.id);
           return (
-            <div key={instance.id} className={`relative transition-all duration-200 ${
-              isInstanceRunning ? 'ring-2 ring-orange-300 ring-opacity-50' : ''
-            }`}>
+            <div
+              key={instance.id}
+              className={`relative transition-all duration-200 ${
+                isInstanceRunning
+                  ? 'ring-2 ring-orange-300 ring-opacity-50'
+                  : ''
+              }`}
+            >
               {canRemove && (
                 <button
                   onClick={() => removeInstance(instance.id)}
@@ -107,7 +117,7 @@ export function PriorityPerformanceView() {
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
                       : 'bg-red-500 text-white hover:bg-red-600'
                   }`}
-                  title={!canRemove ? "성능 테스트 실행 중" : "인스턴스 제거"}
+                  title={!canRemove ? '성능 테스트 실행 중' : '인스턴스 제거'}
                 >
                   ×
                 </button>

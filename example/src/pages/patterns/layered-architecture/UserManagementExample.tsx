@@ -12,22 +12,23 @@
  * 6. views/        - Pure UI Components
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import {
+  type User,
   UserManagementActionProvider,
   UserManagementStoreProvider,
-  type User,
 } from './contexts/UserManagementContexts';
-import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
-
-// 6-Layer Hooks
-import { useUserManagementData, useUserFormData } from './subscriptions/useUserSubscriptions';
-import { useUserHandlerRegistry } from './registries/useUserHandlerRegistry';
 import { useUserManagementActions } from './dispatchers/useUserDispatchers';
-
+import { useUserHandlerRegistry } from './registries/useUserHandlerRegistry';
+// 6-Layer Hooks
+import {
+  useUserFormData,
+  useUserManagementData,
+} from './subscriptions/useUserSubscriptions';
+import { type UserFormData, UserFormView } from './views/UserFormView';
 // Views Layer
 import { UserListView } from './views/UserListView';
-import { UserFormView, type UserFormData } from './views/UserFormView';
 import { UserStatsView } from './views/UserStatsView';
 
 /**
@@ -36,27 +37,39 @@ import { UserStatsView } from './views/UserStatsView';
  * Demonstrates the complete 6-layer architecture implementation
  */
 export function UserManagementExample() {
-  useRegisterSourceFile('pages/patterns/layered-architecture/UserManagementExample.tsx', {
-    name: 'UserManagementExample',
-    description: 'Main integration component for 6-layer architecture demonstration',
-    tags: ['integration', 'main', 'demo'],
-    priority: 5
-  });
+  useRegisterSourceFile(
+    'pages/patterns/layered-architecture/UserManagementExample.tsx',
+    {
+      name: 'UserManagementExample',
+      description:
+        'Main integration component for 6-layer architecture demonstration',
+      tags: ['integration', 'main', 'demo'],
+      priority: 5,
+    }
+  );
 
   // Register other layer files
-  useRegisterSourceFile('pages/patterns/layered-architecture/contexts/UserManagementContexts.ts', {
-    name: 'UserManagementContexts',
-    description: 'Context definitions, types, and action payload maps for user management',
-    tags: ['contexts', 'types', 'definitions'],
-    priority: 30
-  });
+  useRegisterSourceFile(
+    'pages/patterns/layered-architecture/contexts/UserManagementContexts.ts',
+    {
+      name: 'UserManagementContexts',
+      description:
+        'Context definitions, types, and action payload maps for user management',
+      tags: ['contexts', 'types', 'definitions'],
+      priority: 30,
+    }
+  );
 
-  useRegisterSourceFile('pages/patterns/layered-architecture/business/userBusinessLogic.ts', {
-    name: 'userBusinessLogic',
-    description: 'Pure business logic functions for user validation and operations',
-    tags: ['business', 'pure-functions', 'validation'],
-    priority: 35
-  });
+  useRegisterSourceFile(
+    'pages/patterns/layered-architecture/business/userBusinessLogic.ts',
+    {
+      name: 'userBusinessLogic',
+      description:
+        'Pure business logic functions for user validation and operations',
+      tags: ['business', 'pure-functions', 'validation'],
+      priority: 35,
+    }
+  );
 
   return (
     <UserManagementActionProvider>
@@ -92,7 +105,9 @@ function UserManagementWithRegistry() {
  */
 function UserManagementUI() {
   // 🎯 Local UI State
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>(
+    'list'
+  );
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // 🎯 Layer 3: Selective State Subscriptions
@@ -108,60 +123,70 @@ function UserManagementUI() {
   const { validationResult, isSubmitting } = useUserFormData();
 
   // 🎯 Layer 5: Action Dispatchers (View Interface)
-  const {
-    createUser,
-    updateUser,
-    deleteUser,
-    validateUser,
-    resetValidation,
-  } = useUserManagementActions();
+  const { createUser, updateUser, deleteUser, validateUser, resetValidation } =
+    useUserManagementActions();
 
   // 🎯 Event Handlers
-  const handleCreateUser = useCallback(async (formData: UserFormData) => {
-    try {
-      await createUser(formData);
-      setCurrentView('list');
-      await resetValidation();
-    } catch (error) {
-      console.error('Failed to create user:', error);
-    }
-  }, [createUser, resetValidation]);
+  const handleCreateUser = useCallback(
+    async (formData: UserFormData) => {
+      try {
+        await createUser(formData);
+        setCurrentView('list');
+        await resetValidation();
+      } catch (error) {
+        console.error('Failed to create user:', error);
+      }
+    },
+    [createUser, resetValidation]
+  );
 
-  const handleUpdateUser = useCallback(async (formData: UserFormData) => {
-    if (!editingUser) return;
+  const handleUpdateUser = useCallback(
+    async (formData: UserFormData) => {
+      if (!editingUser) return;
 
-    try {
-      await updateUser({
-        id: editingUser.id,
-        updates: formData,
-      });
-      setCurrentView('list');
-      setEditingUser(null);
-      await resetValidation();
-    } catch (error) {
-      console.error('Failed to update user:', error);
-    }
-  }, [updateUser, editingUser, resetValidation]);
+      try {
+        await updateUser({
+          id: editingUser.id,
+          updates: formData,
+        });
+        setCurrentView('list');
+        setEditingUser(null);
+        await resetValidation();
+      } catch (error) {
+        console.error('Failed to update user:', error);
+      }
+    },
+    [updateUser, editingUser, resetValidation]
+  );
 
-  const handleDeleteUser = useCallback(async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+  const handleDeleteUser = useCallback(
+    async (userId: string) => {
+      if (!confirm('Are you sure you want to delete this user?')) return;
 
-    try {
-      await deleteUser(userId);
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-    }
-  }, [deleteUser]);
+      try {
+        await deleteUser(userId);
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+      }
+    },
+    [deleteUser]
+  );
 
-  const handleEditUser = useCallback((user: User) => {
-    setEditingUser(user);
-    setCurrentView('edit');
-    resetValidation();
-  }, [resetValidation]);
+  const handleEditUser = useCallback(
+    (user: User) => {
+      setEditingUser(user);
+      setCurrentView('edit');
+      resetValidation();
+    },
+    [resetValidation]
+  );
 
-  const handleFormValidation = useCallback(async (data: { name: string; email: string }) => {
-    await validateUser(data);
-  }, [validateUser]);
+  const handleFormValidation = useCallback(
+    async (data: { name: string; email: string }) => {
+      await validateUser(data);
+    },
+    [validateUser]
+  );
 
   const handleCancel = useCallback(() => {
     setCurrentView('list');
@@ -187,7 +212,9 @@ function UserManagementUI() {
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-xl border border-blue-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">User Management System</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              User Management System
+            </h2>
             <p className="text-sm text-gray-600">
               Experience the 6-Layer Architecture with Handler Injection Pattern
             </p>
@@ -199,9 +226,10 @@ function UserManagementUI() {
               onClick={() => setCurrentView('list')}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
-                ${currentView === 'list'
-                  ? 'bg-blue-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:scale-105 hover:shadow-md'
+                ${
+                  currentView === 'list'
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:scale-105 hover:shadow-md'
                 }
               `}
             >
@@ -215,9 +243,10 @@ function UserManagementUI() {
               }}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
-                ${currentView === 'create'
-                  ? 'bg-green-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-green-600 border border-green-200 hover:bg-green-50 hover:scale-105 hover:shadow-md'
+                ${
+                  currentView === 'create'
+                    ? 'bg-green-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-green-600 border border-green-200 hover:bg-green-50 hover:scale-105 hover:shadow-md'
                 }
               `}
             >
@@ -233,41 +262,54 @@ function UserManagementUI() {
         <div
           className={`
             relative overflow-hidden p-5 rounded-xl border-l-4 transition-all duration-500 ease-in-out transform
-            ${operationStatus.result.success
-              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-green-500 border border-green-200'
-              : 'bg-gradient-to-r from-red-50 to-rose-50 border-l-red-500 border border-red-200'
+            ${
+              operationStatus.result.success
+                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-green-500 border border-green-200'
+                : 'bg-gradient-to-r from-red-50 to-rose-50 border-l-red-500 border border-red-200'
             }
           `}
         >
           <div className="flex items-start gap-3">
-            <div className={`
+            <div
+              className={`
               flex items-center justify-center w-8 h-8 rounded-full
               ${operationStatus.result?.success ? 'bg-green-100' : 'bg-red-100'}
-            `}>
+            `}
+            >
               <span className="text-lg">
                 {operationStatus.result?.success ? '✅' : '❌'}
               </span>
             </div>
             <div className="flex-1">
-              <p className={`font-semibold capitalize ${
-                operationStatus.result?.success ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {operationStatus.lastOperation} Operation: {' '}
+              <p
+                className={`font-semibold capitalize ${
+                  operationStatus.result?.success
+                    ? 'text-green-800'
+                    : 'text-red-800'
+                }`}
+              >
+                {operationStatus.lastOperation} Operation:{' '}
                 {operationStatus.result?.success ? 'Success' : 'Failed'}
               </p>
-              <p className={`text-sm mt-1 ${
-                operationStatus.result?.success ? 'text-green-700' : 'text-red-700'
-              }`}>
+              <p
+                className={`text-sm mt-1 ${
+                  operationStatus.result?.success
+                    ? 'text-green-700'
+                    : 'text-red-700'
+                }`}
+              >
                 {operationStatus.result?.message}
               </p>
             </div>
           </div>
 
           {/* Animated background overlay */}
-          <div className={`
+          <div
+            className={`
             absolute inset-0 opacity-10 animate-pulse
             ${operationStatus.result?.success ? 'bg-green-400' : 'bg-red-400'}
-          `}></div>
+          `}
+          ></div>
         </div>
       )}
 
@@ -302,7 +344,9 @@ function UserManagementUI() {
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">👥</span>
-                  <h3 className="text-xl font-semibold text-gray-800">User Directory</h3>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    User Directory
+                  </h3>
                   <div className="ml-auto bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
                     {users.length} {users.length === 1 ? 'user' : 'users'}
                   </div>
@@ -314,7 +358,9 @@ function UserManagementUI() {
                   isLoading={isLoading}
                   onEditUser={handleEditUser}
                   onDeleteUser={handleDeleteUser}
-                  onViewDetails={(userId) => console.log('View details for:', userId)}
+                  onViewDetails={(userId) =>
+                    console.log('View details for:', userId)
+                  }
                 />
               </div>
             </div>
@@ -323,17 +369,21 @@ function UserManagementUI() {
           {/* Form View */}
           {currentView === 'create' || currentView === 'edit' ? (
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
-              <div className={`bg-gradient-to-r p-4 border-b ${
-                currentView === 'create'
-                  ? 'from-green-50 to-emerald-100'
-                  : 'from-blue-50 to-indigo-100'
-              }`}>
+              <div
+                className={`bg-gradient-to-r p-4 border-b ${
+                  currentView === 'create'
+                    ? 'from-green-50 to-emerald-100'
+                    : 'from-blue-50 to-indigo-100'
+                }`}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">
                     {currentView === 'create' ? '➕' : '✏️'}
                   </span>
                   <h3 className="text-xl font-semibold text-gray-800">
-                    {currentView === 'create' ? 'Create New User' : 'Edit User Profile'}
+                    {currentView === 'create'
+                      ? 'Create New User'
+                      : 'Edit User Profile'}
                   </h3>
                   {currentView === 'edit' && editingUser && (
                     <div className="ml-auto bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -348,7 +398,11 @@ function UserManagementUI() {
                   initialData={formInitialData}
                   validationResult={validationResult}
                   isSubmitting={isSubmitting}
-                  onSubmit={currentView === 'create' ? handleCreateUser : handleUpdateUser}
+                  onSubmit={
+                    currentView === 'create'
+                      ? handleCreateUser
+                      : handleUpdateUser
+                  }
                   onCancel={handleCancel}
                   onValidate={handleFormValidation}
                 />

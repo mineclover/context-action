@@ -3,10 +3,14 @@
  * @module LogMonitorContext
  */
 
-import { LogLevel } from '@/utils/logger';
-import { useStoreValue, createActionContext, createStoreContext } from '@context-action/react';
-import React, { useMemo } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+import React, { useMemo } from 'react';
+import { LogLevel } from '@/utils/logger';
 import { LogMonitor } from './LogMonitor';
 import type {
   LogEntry,
@@ -35,25 +39,25 @@ export interface LogMonitorActions extends ActionPayloadMap {
 const {
   Provider: LogMonitorStoreProvider,
   useStore: useLogMonitorStore,
-  useStoreManager: useLogMonitorStoreManager
+  useStoreManager: useLogMonitorStoreManager,
 } = createStoreContext<LogMonitorStores>('LogMonitor', {
   logs: { initialValue: [] as Array<LogEntry> },
   logLevel: { initialValue: LogLevel.DEBUG },
-  config: { 
+  config: {
     initialValue: {
       maxLogs: 50,
       defaultLogLevel: LogLevel.DEBUG,
       enableToast: true,
       enableAutoCleanup: true,
-    } as LogMonitorConfig 
-  }
+    } as LogMonitorConfig,
+  },
 });
 
 // Context-Action LogMonitor Action Context 생성
 const {
   Provider: LogMonitorActionProvider,
   useActionDispatch: useLogMonitorAction,
-  useActionHandler: useLogMonitorActionHandler
+  useActionHandler: useLogMonitorActionHandler,
 } = createActionContext<LogMonitorActions>('LogMonitor');
 
 /**
@@ -69,65 +73,92 @@ interface LogMonitorProviderProps {
 /**
  * ViewModel Layer - 액션 핸들러들
  */
-function LogMonitorActionHandlers({ 
-  pageId, 
-  fallbackConfig 
-}: { 
+function LogMonitorActionHandlers({
+  pageId,
+  fallbackConfig,
+}: {
   pageId: string;
   fallbackConfig: LogMonitorConfig;
 }) {
   const storeManager = useLogMonitorStoreManager();
-  
+
   // addLog 핸들러 - 로그 추가
-  useLogMonitorActionHandler('addLog', React.useCallback(async (payload) => {
-    const logEntry = createLogEntry(pageId, payload.entry);
-    const logsStore = storeManager.getStore('logs');
-    const currentLogs = logsStore.getValue();
-    const updatedLogs = maintainMaxLogs(
-      currentLogs,
-      logEntry,
-      fallbackConfig.maxLogs
-    );
-    logsStore.setValue(updatedLogs);
-  }, [pageId, storeManager, fallbackConfig.maxLogs]));
+  useLogMonitorActionHandler(
+    'addLog',
+    React.useCallback(
+      async (payload) => {
+        const logEntry = createLogEntry(pageId, payload.entry);
+        const logsStore = storeManager.getStore('logs');
+        const currentLogs = logsStore.getValue();
+        const updatedLogs = maintainMaxLogs(
+          currentLogs,
+          logEntry,
+          fallbackConfig.maxLogs
+        );
+        logsStore.setValue(updatedLogs);
+      },
+      [pageId, storeManager, fallbackConfig.maxLogs]
+    )
+  );
 
   // clearLogs 핸들러 - 로그 클리어
-  useLogMonitorActionHandler('clearLogs', React.useCallback(async () => {
-    const logsStore = storeManager.getStore('logs');
-    logsStore.setValue([]);
-  }, [storeManager]));
+  useLogMonitorActionHandler(
+    'clearLogs',
+    React.useCallback(async () => {
+      const logsStore = storeManager.getStore('logs');
+      logsStore.setValue([]);
+    }, [storeManager])
+  );
 
   // setLogLevel 핸들러 - 로그 레벨 설정
-  useLogMonitorActionHandler('setLogLevel', React.useCallback(async (payload) => {
-    const logLevelStore = storeManager.getStore('logLevel');
-    logLevelStore.setValue(payload.level);
-  }, [storeManager]));
+  useLogMonitorActionHandler(
+    'setLogLevel',
+    React.useCallback(
+      async (payload) => {
+        const logLevelStore = storeManager.getStore('logLevel');
+        logLevelStore.setValue(payload.level);
+      },
+      [storeManager]
+    )
+  );
 
   // updateConfig 핸들러 - 설정 업데이트
-  useLogMonitorActionHandler('updateConfig', React.useCallback(async (payload) => {
-    const configStore = storeManager.getStore('config');
-    const currentConfig = configStore.getValue();
-    const newConfig = { ...currentConfig, ...payload.configUpdate };
-    configStore.setValue(newConfig);
-  }, [storeManager]));
+  useLogMonitorActionHandler(
+    'updateConfig',
+    React.useCallback(
+      async (payload) => {
+        const configStore = storeManager.getStore('config');
+        const currentConfig = configStore.getValue();
+        const newConfig = { ...currentConfig, ...payload.configUpdate };
+        configStore.setValue(newConfig);
+      },
+      [storeManager]
+    )
+  );
 
   // log 핸들러 - 시스템 로그
-  useLogMonitorActionHandler('log', React.useCallback(async (payload) => {
-    const logEntry = createLogEntry(pageId, {
-      level: LogLevel.INFO,
-      type: 'system',
-      message: payload.message,
-      details: payload.data,
-    });
-    const logsStore = storeManager.getStore('logs');
-    const currentLogs = logsStore.getValue();
-    const updatedLogs = maintainMaxLogs(
-      currentLogs,
-      logEntry,
-      fallbackConfig.maxLogs
-    );
-    logsStore.setValue(updatedLogs);
-  }, [pageId, storeManager, fallbackConfig.maxLogs]));
+  useLogMonitorActionHandler(
+    'log',
+    React.useCallback(
+      async (payload) => {
+        const logEntry = createLogEntry(pageId, {
+          level: LogLevel.INFO,
+          type: 'system',
+          message: payload.message,
+          details: payload.data,
+        });
+        const logsStore = storeManager.getStore('logs');
+        const currentLogs = logsStore.getValue();
+        const updatedLogs = maintainMaxLogs(
+          currentLogs,
+          logEntry,
+          fallbackConfig.maxLogs
+        );
+        logsStore.setValue(updatedLogs);
+      },
+      [pageId, storeManager, fallbackConfig.maxLogs]
+    )
+  );
 
   return null;
 }
@@ -159,7 +190,7 @@ export function LogMonitorProvider({
   return (
     <LogMonitorStoreProvider>
       <LogMonitorActionProvider>
-        <LogMonitorActionHandlers 
+        <LogMonitorActionHandlers
           pageId={pageId}
           fallbackConfig={fallbackConfig}
         />
@@ -175,28 +206,29 @@ export function LogMonitorProvider({
 export function useLogMonitorLogs() {
   const logsStore = useLogMonitorStore('logs');
   const logs = useStoreValue(logsStore);
-  
+
   return {
     logs,
     logCount: logs.length,
     hasLogs: logs.length > 0,
     latestLog: logs[logs.length - 1],
-    getLogsByLevel: (level: LogLevel) => logs.filter(log => log.level === level)
+    getLogsByLevel: (level: LogLevel) =>
+      logs.filter((log) => log.level === level),
   };
 }
 
 export function useLogMonitorConfig() {
   const logLevelStore = useLogMonitorStore('logLevel');
   const configStore = useLogMonitorStore('config');
-  
+
   const logLevel = useStoreValue(logLevelStore);
   const config = useStoreValue(configStore);
-  
+
   return {
     logLevel,
     config,
     isDebugMode: logLevel === LogLevel.DEBUG,
-    isToastEnabled: config.enableToast
+    isToastEnabled: config.enableToast,
   };
 }
 
@@ -205,13 +237,16 @@ export function useLogMonitorConfig() {
  */
 export function useLogMonitorActions() {
   const dispatch = useLogMonitorAction();
-  
+
   return {
-    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => dispatch('addLog', { entry }),
+    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) =>
+      dispatch('addLog', { entry }),
     clearLogs: () => dispatch('clearLogs'),
     setLogLevel: (level: LogLevel) => dispatch('setLogLevel', { level }),
-    updateConfig: (configUpdate: Partial<LogMonitorConfig>) => dispatch('updateConfig', { configUpdate }),
-    log: (message: string, data?: unknown) => dispatch('log', { message, data }),
+    updateConfig: (configUpdate: Partial<LogMonitorConfig>) =>
+      dispatch('updateConfig', { configUpdate }),
+    log: (message: string, data?: unknown) =>
+      dispatch('log', { message, data }),
   };
 }
 
@@ -222,12 +257,12 @@ export function useLogMonitorContext(): LogMonitorContextValue {
   const { logs } = useLogMonitorLogs();
   const { logLevel, config } = useLogMonitorConfig();
   const actions = useLogMonitorActions();
-  
+
   return {
     logs,
     logLevel,
     config,
-    ...actions
+    ...actions,
   };
 }
 
@@ -236,17 +271,15 @@ export function useLogMonitorContext(): LogMonitorContextValue {
  */
 export function useLogMonitor() {
   const dispatch = useLogMonitorAction();
-  
+
   return {
-    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => 
+    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) =>
       dispatch('addLog', { entry }),
-    clearLogs: () => 
-      dispatch('clearLogs'),
-    setLogLevel: (level: LogLevel) => 
-      dispatch('setLogLevel', { level }),
-    updateConfig: (configUpdate: Partial<LogMonitorConfig>) => 
+    clearLogs: () => dispatch('clearLogs'),
+    setLogLevel: (level: LogLevel) => dispatch('setLogLevel', { level }),
+    updateConfig: (configUpdate: Partial<LogMonitorConfig>) =>
       dispatch('updateConfig', { configUpdate }),
-    log: (message: string, data?: unknown) => 
+    log: (message: string, data?: unknown) =>
       dispatch('log', { message, data }),
   };
 }

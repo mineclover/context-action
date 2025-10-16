@@ -1,58 +1,57 @@
 // import React from 'react';
-import { Container, Grid } from '@/components/ui';
-import { LogMonitor, LogMonitorProvider } from '@/components/LogMonitor';
+
 import { useStoreValue } from '@context-action/react';
-
-// Context-Layered Architecture imports
-import { 
-  FlowControlProvider,
-  useFlowControlStore 
-} from './contexts/FlowControlContexts';
-import { 
-  SecurityHandlers, 
-  CacheHandlers, 
-  OrderHandlers, 
-  ApiHandlers 
-} from './handlers';
-import { 
-  FlowControlActions, 
-  useFlowControlActions 
+import { LogMonitor, LogMonitorProvider } from '@/components/LogMonitor';
+import { Container, Grid } from '@/components/ui';
+import {
+  FlowControlActions,
+  useFlowControlActions,
 } from './actions/FlowControlActions';
-
-// Import existing components (reusable)
-import { scenarios } from './scenarios';
-import { 
-  ScenarioSelector,
-  SystemControls, 
-  ScenarioDetails,
+import {
   ExecutionMetrics,
   ExecutionPath,
-  ResultsDisplay 
+  ResultsDisplay,
+  ScenarioDetails,
+  ScenarioSelector,
+  SystemControls,
 } from './components';
+// Context-Layered Architecture imports
+import {
+  FlowControlProvider,
+  useFlowControlStore,
+} from './contexts/FlowControlContexts';
+import {
+  ApiHandlers,
+  CacheHandlers,
+  OrderHandlers,
+  SecurityHandlers,
+} from './handlers';
+// Import existing components (reusable)
+import { scenarios } from './scenarios';
 
 // Handler registration and integration component
 function FlowControlHandlers() {
   const demoStateStore = useFlowControlStore('demoState');
   const demoState = useStoreValue(demoStateStore);
   const { onExecutionStep, onHandlerExecution } = useFlowControlActions();
-  
+
   return (
     <>
-      <SecurityHandlers 
+      <SecurityHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
         isBusinessHours={demoState.isBusinessHours}
       />
-      <CacheHandlers 
+      <CacheHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
       />
-      <OrderHandlers 
+      <OrderHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
         isBusinessHours={demoState.isBusinessHours}
       />
-      <ApiHandlers 
+      <ApiHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
       />
@@ -64,12 +63,12 @@ function FlowControlHandlers() {
 function FlowControlUI() {
   const demoStateStore = useFlowControlStore('demoState');
   const demoState = useStoreValue(demoStateStore);
-  const { 
+  const {
     setSelectedScenario,
     executeScenario,
     clearCache,
     toggleBusinessHours,
-    adjustSystemLoad
+    adjustSystemLoad,
   } = useFlowControlActions();
 
   const currentScenario = scenarios[demoState.selectedScenario];
@@ -82,23 +81,32 @@ function FlowControlUI() {
   return (
     <Container>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">🔀 Pipeline Flow Control Playground</h1>
+        <h1 className="text-3xl font-bold mb-4">
+          🔀 Pipeline Flow Control Playground
+        </h1>
         <p className="text-gray-600 mb-6">
-          Interactive demonstration of Context-Action pipeline flow control patterns featuring 
-          <strong> priority-based execution</strong> (higher numbers execute first), 
-          <strong>dynamic priority jumping</strong>, <strong>early returns</strong>, and 
+          Interactive demonstration of Context-Action pipeline flow control
+          patterns featuring
+          <strong> priority-based execution</strong> (higher numbers execute
+          first),
+          <strong>dynamic priority jumping</strong>,{' '}
+          <strong>early returns</strong>, and
           <strong>conditional branching</strong> with real-time visualization.
         </p>
         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
           <p className="text-sm text-blue-800">
-            <strong>💡 Key Concept:</strong> Priority system where <code>P:1000</code> executes before <code>P:50</code>. 
-            Use <code>jumpToPriority()</code> to dynamically route execution flow based on business logic.
+            <strong>💡 Key Concept:</strong> Priority system where{' '}
+            <code>P:1000</code> executes before <code>P:50</code>. Use{' '}
+            <code>jumpToPriority()</code> to dynamically route execution flow
+            based on business logic.
           </p>
         </div>
         <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded mt-4">
           <p className="text-sm text-green-800">
-            <strong>🏗️ Architecture:</strong> This demo uses <strong>Context-Layered Architecture</strong> with 
-            separate layers for contexts, handlers, actions, and views for clean separation of concerns.
+            <strong>🏗️ Architecture:</strong> This demo uses{' '}
+            <strong>Context-Layered Architecture</strong> with separate layers
+            for contexts, handlers, actions, and views for clean separation of
+            concerns.
           </p>
         </div>
       </div>

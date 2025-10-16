@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { Button, Card, CardContent } from '@/components/ui';
 import { useLogMonitorActions } from '@/components/LogMonitor';
+import { Button, Card, CardContent } from '@/components/ui';
 import { LogLevel } from '@/utils/logger';
 
 export function LogMonitorLiveDemo() {
@@ -16,10 +16,10 @@ export function LogMonitorLiveDemo() {
         counter,
         action: 'demo-info',
         timestamp: Date.now(),
-        context: 'Live Demo'
-      }
+        context: 'Live Demo',
+      },
     });
-    setCounter(prev => prev + 1);
+    setCounter((prev) => prev + 1);
   }, [addLog, counter]);
 
   const handleWarningLog = useCallback(() => {
@@ -30,8 +30,8 @@ export function LogMonitorLiveDemo() {
       details: {
         warning: 'demo-warning',
         severity: 'medium',
-        context: 'Live Demo'
-      }
+        context: 'Live Demo',
+      },
     });
   }, [addLog]);
 
@@ -44,8 +44,8 @@ export function LogMonitorLiveDemo() {
         error: 'demo-error',
         severity: 'high',
         action: 'demo-error',
-        context: 'Live Demo'
-      }
+        context: 'Live Demo',
+      },
     });
   }, [addLog]);
 
@@ -61,12 +61,12 @@ export function LogMonitorLiveDemo() {
           metadata: {
             component: 'LogMonitorLiveDemo',
             timestamp: new Date().toISOString(),
-            sessionId: `demo-session-${Math.random().toString(36).substr(2, 9)}`
-          }
+            sessionId: `demo-session-${Math.random().toString(36).substr(2, 9)}`,
+          },
         },
         action: 'complex-demo',
-        context: 'Live Demo'
-      }
+        context: 'Live Demo',
+      },
     });
   }, [addLog]);
 
@@ -74,19 +74,22 @@ export function LogMonitorLiveDemo() {
     clearLogs();
   }, [clearLogs]);
 
-  const handleChangeLogLevel = useCallback((level: LogLevel) => {
-    setLogLevel(level);
-    addLog({
-      level: LogLevel.INFO,
-      type: 'system',
-      message: `로그 레벨 변경: ${level}`,
-      details: {
-        newLevel: level,
-        action: 'change-log-level',
-        context: 'Live Demo'
-      }
-    });
-  }, [setLogLevel, addLog]);
+  const handleChangeLogLevel = useCallback(
+    (level: LogLevel) => {
+      setLogLevel(level);
+      addLog({
+        level: LogLevel.INFO,
+        type: 'system',
+        message: `로그 레벨 변경: ${level}`,
+        details: {
+          newLevel: level,
+          action: 'change-log-level',
+          context: 'Live Demo',
+        },
+      });
+    },
+    [setLogLevel, addLog]
+  );
 
   return (
     <Card className="border-l-4 border-l-blue-600 bg-white shadow-sm">
@@ -104,32 +107,16 @@ export function LogMonitorLiveDemo() {
           <div>
             <h5 className="font-semibold text-gray-900 mb-2">기본 로그 생성</h5>
             <div className="flex gap-2 flex-wrap">
-              <Button
-                size="sm"
-                variant="success"
-                onClick={handleInfoLog}
-              >
+              <Button size="sm" variant="success" onClick={handleInfoLog}>
                 📝 INFO 로그
               </Button>
-              <Button
-                size="sm"
-                variant="warning"
-                onClick={handleWarningLog}
-              >
+              <Button size="sm" variant="warning" onClick={handleWarningLog}>
                 ⚠️ WARNING 로그
               </Button>
-              <Button
-                size="sm"
-                variant="danger"
-                onClick={handleErrorLog}
-              >
+              <Button size="sm" variant="danger" onClick={handleErrorLog}>
                 ❌ ERROR 로그
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={handleComplexLog}
-              >
+              <Button size="sm" variant="secondary" onClick={handleComplexLog}>
                 🔍 복잡한 데이터 로그
               </Button>
             </div>
@@ -178,19 +165,16 @@ export function LogMonitorLiveDemo() {
 
           <div>
             <h5 className="font-semibold text-gray-900 mb-2">로그 관리</h5>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleClearLogs}
-            >
+            <Button size="sm" variant="secondary" onClick={handleClearLogs}>
               🗑️ 모든 로그 삭제
             </Button>
           </div>
 
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-sm text-gray-900 font-medium">
-              💡 <strong>사용법:</strong> 위 버튼들을 클릭하여 다양한 로그를 생성하고, 
-              오른쪽 LogMonitor 패널에서 실시간으로 로그가 수집되는 것을 확인하세요.
+              💡 <strong>사용법:</strong> 위 버튼들을 클릭하여 다양한 로그를
+              생성하고, 오른쪽 LogMonitor 패널에서 실시간으로 로그가 수집되는
+              것을 확인하세요.
             </p>
             <p className="text-sm text-gray-700 mt-2">
               로그 레벨을 변경하면 해당 레벨 이상의 로그만 표시됩니다.

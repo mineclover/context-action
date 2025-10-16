@@ -1,6 +1,4 @@
-import {
-  createStoreContext,
-} from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 import type {
   AppSettings,
   CartItem,

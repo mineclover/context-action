@@ -16,7 +16,12 @@ export type CacheResult = {
 };
 
 export type OrderResult = {
-  type: 'standard' | 'international' | 'premium-after-hours' | 'expedited' | 'high-value';
+  type:
+    | 'standard'
+    | 'international'
+    | 'premium-after-hours'
+    | 'expedited'
+    | 'high-value';
   processingTime: string;
   orderId: string;
   timestamp: number;
@@ -33,17 +38,17 @@ export type ApiResult = {
 
 // Action type definitions for different flow control scenarios
 export interface SecurityActions extends ActionPayloadMap {
-  processRequest: { 
-    userId: string; 
-    action: string; 
+  processRequest: {
+    userId: string;
+    action: string;
     role: 'standard' | 'admin' | 'super';
     requiresElevation?: boolean;
   };
 }
 
 export interface CacheActions extends ActionPayloadMap {
-  fetchData: { 
-    key: string; 
+  fetchData: {
+    key: string;
     fallbackUrl?: string;
     bustCache?: boolean;
   };
@@ -68,8 +73,16 @@ export interface ApiActions extends ActionPayloadMap {
   };
 }
 
-// Scenario configuration types  
-export type ScenarioKey = 'securityEscalation' | 'securitySuccess' | 'securityNormal' | 'cacheOptimization' | 'cacheRedisHit' | 'cacheMissAll' | 'businessHourRouting' | 'errorRecovery';
+// Scenario configuration types
+export type ScenarioKey =
+  | 'securityEscalation'
+  | 'securitySuccess'
+  | 'securityNormal'
+  | 'cacheOptimization'
+  | 'cacheRedisHit'
+  | 'cacheMissAll'
+  | 'businessHourRouting'
+  | 'errorRecovery';
 
 export interface ScenarioConfig<T = any> {
   title: string;

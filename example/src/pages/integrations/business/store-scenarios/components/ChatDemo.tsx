@@ -1,21 +1,23 @@
-import { useStoreValue, createStoreContext, createActionContext } from '@context-action/react';
-import { createRefContext } from '@context-action/react';
-import React, { useCallback, useEffect, memo, useRef } from 'react';
+import {
+  createActionContext,
+  createRefContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { useActionLoggerWithToast } from '@/components/LogMonitor';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { ChatMessage } from '../types';
 
 // UI State Management with Context-Action
-const {
-  Provider: ChatUIStoreProvider,
-  useStore: useChatUIStore
-} = createStoreContext('ChatUI', {
-  newMessage: { initialValue: '' },
-  currentUser: { initialValue: '김개발' },
-  messageType: { initialValue: 'text' as ChatMessage['type'] },
-  isTyping: { initialValue: false }
-});
+const { Provider: ChatUIStoreProvider, useStore: useChatUIStore } =
+  createStoreContext('ChatUI', {
+    newMessage: { initialValue: '' },
+    currentUser: { initialValue: '김개발' },
+    messageType: { initialValue: 'text' as ChatMessage['type'] },
+    isTyping: { initialValue: false },
+  });
 
 // UI Actions for chat interactions
 interface ChatUIActions {
@@ -29,7 +31,7 @@ interface ChatUIActions {
 const {
   Provider: ChatUIActionProvider,
   useActionDispatch: useChatUIAction,
-  useActionHandler: useChatUIActionHandler
+  useActionHandler: useChatUIActionHandler,
 } = createActionContext<ChatUIActions>('ChatUI');
 import '../styles/chat-scroll.css';
 
@@ -88,9 +90,7 @@ const ChatHeader = memo(({ messageCount, onClearChat }: ChatHeaderProps) => {
     <div className="chat-header">
       <div className="chat-title">
         <h3>💬 실시간 채팅 데모</h3>
-        <span className="badge">
-          {messageCount} 메시지
-        </span>
+        <span className="badge">{messageCount} 메시지</span>
       </div>
       <div className="chat-actions">
         <button
@@ -112,28 +112,33 @@ interface UserSelectorProps {
   onUserSwitch: (user: string, previousUser: string) => void;
 }
 
-const UserSelector = memo(({ currentUser, onUserChange, onUserSwitch }: UserSelectorProps) => {
-  const handleUserClick = useCallback((user: string) => {
-    onUserSwitch(user, currentUser);
-    onUserChange(user);
-  }, [currentUser, onUserChange, onUserSwitch]);
+const UserSelector = memo(
+  ({ currentUser, onUserChange, onUserSwitch }: UserSelectorProps) => {
+    const handleUserClick = useCallback(
+      (user: string) => {
+        onUserSwitch(user, currentUser);
+        onUserChange(user);
+      },
+      [currentUser, onUserChange, onUserSwitch]
+    );
 
-  return (
-    <div className="user-selector">
-      <span className="label">현재 사용자:</span>
-      {CHAT_USERS.map((user) => (
-        <button
-          key={user}
-          onClick={() => handleUserClick(user)}
-          className={`user-btn ${currentUser === user ? 'active' : ''}`}
-          style={{ borderColor: getUserColor(user) }}
-        >
-          {getUserAvatar(user)} {user}
-        </button>
-      ))}
-    </div>
-  );
-});
+    return (
+      <div className="user-selector">
+        <span className="label">현재 사용자:</span>
+        {CHAT_USERS.map((user) => (
+          <button
+            key={user}
+            onClick={() => handleUserClick(user)}
+            className={`user-btn ${currentUser === user ? 'active' : ''}`}
+            style={{ borderColor: getUserColor(user) }}
+          >
+            {getUserAvatar(user)} {user}
+          </button>
+        ))}
+      </div>
+    );
+  }
+);
 
 // 메시지 컴포넌트
 interface MessageItemProps {
@@ -142,7 +147,10 @@ interface MessageItemProps {
   onDelete: (messageId: string) => void;
 }
 
-const messageItemAreEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps) => {
+const messageItemAreEqual = (
+  prevProps: MessageItemProps,
+  nextProps: MessageItemProps
+) => {
   return (
     prevProps.message.id === nextProps.message.id &&
     prevProps.currentUser === nextProps.currentUser &&
@@ -154,47 +162,50 @@ const messageItemAreEqual = (prevProps: MessageItemProps, nextProps: MessageItem
   );
 };
 
-const MessageItem = memo(({ message, currentUser, onDelete }: MessageItemProps) => {
-  const handleDelete = useCallback(() => {
-    onDelete(message.id);
-  }, [message.id, onDelete]);
+const MessageItem = memo(
+  ({ message, currentUser, onDelete }: MessageItemProps) => {
+    const handleDelete = useCallback(() => {
+      onDelete(message.id);
+    }, [message.id, onDelete]);
 
-  return (
-    <div className={`message ${message.sender === currentUser ? 'own' : 'other'}`}>
-      <div className="message-avatar">
-        {getUserAvatar(message.sender)}
-      </div>
-      <div className="message-content">
-        <div className="message-header">
-          <span
-            className="message-sender"
-            style={{ color: getUserColor(message.sender) }}
-          >
-            {message.sender}
-          </span>
-          <span className="message-time">
-            {getMessageTime(message.timestamp)}
-          </span>
-          {message.type !== 'text' && (
-            <span className="message-type-badge">
-              {message.type === 'image' ? '🖼️' : '📎'}
+    return (
+      <div
+        className={`message ${message.sender === currentUser ? 'own' : 'other'}`}
+      >
+        <div className="message-avatar">{getUserAvatar(message.sender)}</div>
+        <div className="message-content">
+          <div className="message-header">
+            <span
+              className="message-sender"
+              style={{ color: getUserColor(message.sender) }}
+            >
+              {message.sender}
             </span>
+            <span className="message-time">
+              {getMessageTime(message.timestamp)}
+            </span>
+            {message.type !== 'text' && (
+              <span className="message-type-badge">
+                {message.type === 'image' ? '🖼️' : '📎'}
+              </span>
+            )}
+          </div>
+          <div className="message-text">{message.message}</div>
+          {message.sender === currentUser && (
+            <button
+              onClick={handleDelete}
+              className="message-delete"
+              title="메시지 삭제"
+            >
+              ×
+            </button>
           )}
         </div>
-        <div className="message-text">{message.message}</div>
-        {message.sender === currentUser && (
-          <button
-            onClick={handleDelete}
-            className="message-delete"
-            title="메시지 삭제"
-          >
-            ×
-          </button>
-        )}
       </div>
-    </div>
-  );
-}, messageItemAreEqual);
+    );
+  },
+  messageItemAreEqual
+);
 
 // 문자 입력 중 표시 컴포넌트
 const TypingIndicator = memo(() => {
@@ -223,7 +234,10 @@ interface MessagesListProps {
 }
 
 // Custom equality function for props comparison
-const areEqual = (prevProps: MessagesListProps, nextProps: MessagesListProps) => {
+const areEqual = (
+  prevProps: MessagesListProps,
+  nextProps: MessagesListProps
+) => {
   // Compare primitive props
   if (
     prevProps.currentUser !== nextProps.currentUser ||
@@ -236,10 +250,14 @@ const areEqual = (prevProps: MessagesListProps, nextProps: MessagesListProps) =>
   if (prevProps.messages.length !== nextProps.messages.length) {
     return false;
   }
-  
+
   // For messages, check if the last few messages are the same (performance optimization)
   const checkCount = Math.min(5, prevProps.messages.length);
-  for (let i = prevProps.messages.length - checkCount; i < prevProps.messages.length; i++) {
+  for (
+    let i = prevProps.messages.length - checkCount;
+    i < prevProps.messages.length;
+    i++
+  ) {
     if (prevProps.messages[i]?.id !== nextProps.messages[i]?.id) {
       return false;
     }
@@ -254,41 +272,44 @@ const areEqual = (prevProps: MessagesListProps, nextProps: MessagesListProps) =>
   return true;
 };
 
-const MessagesList = memo(({ 
-  messages, 
-  currentUser, 
-  isTyping, 
-  onDeleteMessage, 
-  messagesContainerRef, 
-  messagesEndRef 
-}: MessagesListProps) => {
-  return (
-    <div ref={messagesContainerRef.setRef} className="chat-messages">
-      {messages?.length === 0 ? (
-        <div className="chat-empty">
-          <div className="empty-icon">💬</div>
-          <div className="empty-message">채팅을 시작해보세요!</div>
-          <div className="empty-hint">
-            아래에서 메시지를 입력하거나 빠른 메시지를 선택하세요
+const MessagesList = memo(
+  ({
+    messages,
+    currentUser,
+    isTyping,
+    onDeleteMessage,
+    messagesContainerRef,
+    messagesEndRef,
+  }: MessagesListProps) => {
+    return (
+      <div ref={messagesContainerRef.setRef} className="chat-messages">
+        {messages?.length === 0 ? (
+          <div className="chat-empty">
+            <div className="empty-icon">💬</div>
+            <div className="empty-message">채팅을 시작해보세요!</div>
+            <div className="empty-hint">
+              아래에서 메시지를 입력하거나 빠른 메시지를 선택하세요
+            </div>
           </div>
-        </div>
-      ) : (
-        <>
-          {messages?.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              currentUser={currentUser}
-              onDelete={onDeleteMessage}
-            />
-          ))}
-          {isTyping && <TypingIndicator />}
-          <div ref={messagesEndRef.setRef} />
-        </>
-      )}
-    </div>
-  );
-}, areEqual);
+        ) : (
+          <>
+            {messages?.map((message) => (
+              <MessageItem
+                key={message.id}
+                message={message}
+                currentUser={currentUser}
+                onDelete={onDeleteMessage}
+              />
+            ))}
+            {isTyping && <TypingIndicator />}
+            <div ref={messagesEndRef.setRef} />
+          </>
+        )}
+      </div>
+    );
+  },
+  areEqual
+);
 
 // 빠른 메시지 컴포넌트
 interface QuickMessagesProps {
@@ -320,39 +341,47 @@ interface MessageTypeSelectorProps {
   onTypeChange: (type: ChatMessage['type']) => void;
 }
 
-const MessageTypeSelector = memo(({ messageType, onTypeChange }: MessageTypeSelectorProps) => {
-  return (
-    <div className="message-type-selector">
-      <label className="radio-label">
-        <input
-          type="radio"
-          value="text"
-          checked={messageType === 'text'}
-          onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
-        />
-        <span>💬 텍스트</span>
-      </label>
-      <label className="radio-label">
-        <input
-          type="radio"
-          value="image"
-          checked={messageType === 'image'}
-          onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
-        />
-        <span>🖼️ 이미지</span>
-      </label>
-      <label className="radio-label">
-        <input
-          type="radio"
-          value="file"
-          checked={messageType === 'file'}
-          onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
-        />
-        <span>📎 파일</span>
-      </label>
-    </div>
-  );
-});
+const MessageTypeSelector = memo(
+  ({ messageType, onTypeChange }: MessageTypeSelectorProps) => {
+    return (
+      <div className="message-type-selector">
+        <label className="radio-label">
+          <input
+            type="radio"
+            value="text"
+            checked={messageType === 'text'}
+            onChange={(e) =>
+              onTypeChange(e.target.value as ChatMessage['type'])
+            }
+          />
+          <span>💬 텍스트</span>
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            value="image"
+            checked={messageType === 'image'}
+            onChange={(e) =>
+              onTypeChange(e.target.value as ChatMessage['type'])
+            }
+          />
+          <span>🖼️ 이미지</span>
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            value="file"
+            checked={messageType === 'file'}
+            onChange={(e) =>
+              onTypeChange(e.target.value as ChatMessage['type'])
+            }
+          />
+          <span>📎 파일</span>
+        </label>
+      </div>
+    );
+  }
+);
 
 // 메시지 입력 영역 컴포넌트
 interface MessageInputProps {
@@ -362,36 +391,46 @@ interface MessageInputProps {
   onSendMessage: () => void;
 }
 
-const MessageInput = memo(({ newMessage, currentUser, onMessageChange, onSendMessage }: MessageInputProps) => {
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      onSendMessage();
-    }
-  }, [onSendMessage]);
+const MessageInput = memo(
+  ({
+    newMessage,
+    currentUser,
+    onMessageChange,
+    onSendMessage,
+  }: MessageInputProps) => {
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          onSendMessage();
+        }
+      },
+      [onSendMessage]
+    );
 
-  return (
-    <div className="chat-input-area">
-      <div className="input-wrapper">
-        <textarea
-          value={newMessage}
-          onChange={(e) => onMessageChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={`${currentUser}로 메시지 입력... (Enter로 전송, Shift+Enter로 줄바꿨)`}
-          className="chat-input"
-          rows={2}
-        />
-        <button
-          onClick={onSendMessage}
-          disabled={!newMessage.trim()}
-          className="btn btn-primary send-btn"
-        >
-          📤 전송
-        </button>
+    return (
+      <div className="chat-input-area">
+        <div className="input-wrapper">
+          <textarea
+            value={newMessage}
+            onChange={(e) => onMessageChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={`${currentUser}로 메시지 입력... (Enter로 전송, Shift+Enter로 줄바꿨)`}
+            className="chat-input"
+            rows={2}
+          />
+          <button
+            onClick={onSendMessage}
+            disabled={!newMessage.trim()}
+            className="btn btn-primary send-btn"
+          >
+            📤 전송
+          </button>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 /**
  * 실시간 채팅 시스템 데모 컴포넌트
@@ -409,24 +448,25 @@ const MessageInput = memo(({ newMessage, currentUser, onMessageChange, onSendMes
 function ChatComponent() {
   const messagesStore = StoreScenarios.useStore('messages');
   const messages = useStoreValue(messagesStore);
-  
+
   // Context-Action UI state instead of React useState
   const newMessageStore = useChatUIStore('newMessage');
   const currentUserStore = useChatUIStore('currentUser');
   const messageTypeStore = useChatUIStore('messageType');
   const isTypingStore = useChatUIStore('isTyping');
-  
+
   const newMessage = useStoreValue(newMessageStore);
   const currentUser = useStoreValue(currentUserStore);
   const messageType = useStoreValue(messageTypeStore);
   const isTyping = useStoreValue(isTypingStore);
-  
+
   const uiDispatch = useChatUIAction();
-  
+
   // Ref 핸들러들 - createRefContext 사용
-  const messagesContainerRef = ChatRefsContext.useRefHandler('messagesContainer');
+  const messagesContainerRef =
+    ChatRefsContext.useRefHandler('messagesContainer');
   const messagesEndRef = ChatRefsContext.useRefHandler('messagesEnd');
-  
+
   const logger = useActionLoggerWithToast();
 
   // 🔧 Fix 1: Debouncing for automatic responses
@@ -436,7 +476,15 @@ function ChatComponent() {
 
   // 🔧 Fix 3: Stable action handlers - use refs to avoid re-registration
   const handlersRef = useRef({
-    sendMessage: ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
+    sendMessage: ({
+      message,
+      sender,
+      type,
+    }: {
+      message: string;
+      sender: string;
+      type: ChatMessage['type'];
+    }) => {
       const newMessage: ChatMessage = {
         id: `msg-${Date.now()}`,
         sender,
@@ -453,13 +501,21 @@ function ChatComponent() {
     },
     clearChat: () => {
       messagesStore.setValue([]);
-    }
+    },
   });
 
   // Keep handlers updated with latest store references
   useEffect(() => {
     handlersRef.current = {
-      sendMessage: ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
+      sendMessage: ({
+        message,
+        sender,
+        type,
+      }: {
+        message: string;
+        sender: string;
+        type: ChatMessage['type'];
+      }) => {
         const newMessage: ChatMessage = {
           id: `msg-${Date.now()}`,
           sender,
@@ -476,14 +532,23 @@ function ChatComponent() {
       },
       clearChat: () => {
         messagesStore.setValue([]);
-      }
+      },
     };
   }, [messagesStore]);
 
   // Stable wrapper functions
-  const sendMessageHandler = useCallback((payload: any) => handlersRef.current.sendMessage(payload), []);
-  const deleteMessageHandler = useCallback((payload: any) => handlersRef.current.deleteMessage(payload), []);
-  const clearChatHandler = useCallback(() => handlersRef.current.clearChat(), []);
+  const sendMessageHandler = useCallback(
+    (payload: any) => handlersRef.current.sendMessage(payload),
+    []
+  );
+  const deleteMessageHandler = useCallback(
+    (payload: any) => handlersRef.current.deleteMessage(payload),
+    []
+  );
+  const clearChatHandler = useCallback(
+    () => handlersRef.current.clearChat(),
+    []
+  );
 
   // 🔧 Fix 3: Stabilize action handler registration - register only once
   useEffect(() => {
@@ -507,28 +572,27 @@ function ChatComponent() {
       }
     };
   }, []); // 🔧 Remove dependencies to prevent re-registration
-  
+
   // UI Action handlers for form interactions
   useChatUIActionHandler('updateNewMessage', async ({ message }) => {
     newMessageStore.setValue(message);
   });
-  
+
   useChatUIActionHandler('setCurrentUser', async ({ user }) => {
     currentUserStore.setValue(user);
   });
-  
+
   useChatUIActionHandler('setMessageType', async ({ type }) => {
     messageTypeStore.setValue(type);
   });
-  
+
   useChatUIActionHandler('setIsTyping', async ({ typing }) => {
     isTypingStore.setValue(typing);
   });
-  
+
   useChatUIActionHandler('clearNewMessage', async () => {
     newMessageStore.setValue('');
   });
-
 
   // 🔧 Fix 2: Improved scroll management with timer cleanup
   useEffect(() => {
@@ -536,16 +600,16 @@ function ChatComponent() {
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     scrollTimeoutRef.current = setTimeout(() => {
       messagesContainerRef.withTarget((container) => {
         container.scrollTo({
           top: container.scrollHeight,
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       });
     }, 100);
-    
+
     return () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
@@ -559,7 +623,7 @@ function ChatComponent() {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     uiDispatch('setIsTyping', { typing: true });
     typingTimeoutRef.current = setTimeout(() => {
       uiDispatch('setIsTyping', { typing: false });
@@ -590,7 +654,7 @@ function ChatComponent() {
         if (autoResponseTimeoutRef.current) {
           clearTimeout(autoResponseTimeoutRef.current);
         }
-        
+
         const otherUsers = CHAT_USERS.filter((user) => user !== currentUser);
         const randomUser =
           otherUsers[Math.floor(Math.random() * otherUsers.length)];
@@ -620,7 +684,14 @@ function ChatComponent() {
         }
       }
     }
-  }, [newMessage, currentUser, messageType, messages?.length, logger, simulateTyping]);
+  }, [
+    newMessage,
+    currentUser,
+    messageType,
+    messages?.length,
+    logger,
+    simulateTyping,
+  ]);
 
   const clearChat = useCallback(() => {
     if (window.confirm('모든 메시지를 삭제하시겠습니까?')) {
@@ -638,7 +709,6 @@ function ChatComponent() {
     },
     [logger]
   );
-
 
   const sendQuickMessage = useCallback(
     (text: string, type: ChatMessage['type']) => {
@@ -658,26 +728,29 @@ function ChatComponent() {
   );
 
   // 사용자 전환 핸들러
-  const handleUserSwitch = useCallback((newUser: string, previousUser: string) => {
-    logger.logAction('switchChatUser', {
-      newUser,
-      previousUser,
-    });
-  }, [logger]);
+  const handleUserSwitch = useCallback(
+    (newUser: string, previousUser: string) => {
+      logger.logAction('switchChatUser', {
+        newUser,
+        previousUser,
+      });
+    },
+    [logger]
+  );
 
   return (
     <div className="chat-demo">
-      <ChatHeader 
-        messageCount={messages?.length ?? 0} 
-        onClearChat={clearChat} 
+      <ChatHeader
+        messageCount={messages?.length ?? 0}
+        onClearChat={clearChat}
       />
-      
+
       <UserSelector
         currentUser={currentUser}
         onUserChange={(user) => uiDispatch('setCurrentUser', { user })}
         onUserSwitch={handleUserSwitch}
       />
-      
+
       <MessagesList
         messages={messages || []}
         currentUser={currentUser}
@@ -686,20 +759,20 @@ function ChatComponent() {
         messagesContainerRef={messagesContainerRef}
         messagesEndRef={messagesEndRef}
       />
-      
-      <QuickMessages 
-        onSendQuickMessage={sendQuickMessage} 
-      />
-      
+
+      <QuickMessages onSendQuickMessage={sendQuickMessage} />
+
       <MessageTypeSelector
         messageType={messageType}
         onTypeChange={(type) => uiDispatch('setMessageType', { type })}
       />
-      
+
       <MessageInput
         newMessage={newMessage}
         currentUser={currentUser}
-        onMessageChange={(message) => uiDispatch('updateNewMessage', { message })}
+        onMessageChange={(message) =>
+          uiDispatch('updateNewMessage', { message })
+        }
         onSendMessage={sendMessage}
       />
     </div>

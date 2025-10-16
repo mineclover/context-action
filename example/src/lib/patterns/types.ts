@@ -20,7 +20,12 @@ export interface ManagedObject {
 /**
  * 객체 생명주기 상태
  */
-export type ObjectLifecycleState = 'created' | 'active' | 'inactive' | 'archived' | 'deleted';
+export type ObjectLifecycleState =
+  | 'created'
+  | 'active'
+  | 'inactive'
+  | 'archived'
+  | 'deleted';
 
 /**
  * 객체 메타데이터 (Store에 저장되는 직렬화 가능한 데이터)
@@ -39,17 +44,18 @@ export interface ObjectMetadata {
 /**
  * 객체 관리 액션의 기본 인터페이스
  */
-export interface BaseObjectActions<T extends ManagedObject> extends ActionPayloadMap {
-  register: { 
-    id: string; 
-    object: T; 
-    metadata?: Record<string, unknown>; 
+export interface BaseObjectActions<T extends ManagedObject>
+  extends ActionPayloadMap {
+  register: {
+    id: string;
+    object: T;
+    metadata?: Record<string, unknown>;
     contextMetadata?: Record<string, unknown>;
   };
   unregister: { id: string; force?: boolean };
-  update: { 
-    id: string; 
-    object?: Partial<T>; 
+  update: {
+    id: string;
+    object?: Partial<T>;
     metadata?: Record<string, unknown>;
     contextMetadata?: Record<string, unknown>;
   };
@@ -57,7 +63,7 @@ export interface BaseObjectActions<T extends ManagedObject> extends ActionPayloa
   deactivate: { id: string };
   archive: { id: string };
   restore: { id: string };
-  cleanup: { 
+  cleanup: {
     olderThan?: number; // milliseconds
     lifecycleStates?: ObjectLifecycleState[];
     force?: boolean;
@@ -121,8 +127,16 @@ export interface ValidationResult {
 /**
  * 객체 관리 이벤트
  */
-export interface ObjectManagementEvent<T extends ManagedObject = ManagedObject> {
-  type: 'registered' | 'unregistered' | 'updated' | 'lifecycle_changed' | 'selected' | 'focused';
+export interface ObjectManagementEvent<
+  T extends ManagedObject = ManagedObject,
+> {
+  type:
+    | 'registered'
+    | 'unregistered'
+    | 'updated'
+    | 'lifecycle_changed'
+    | 'selected'
+    | 'focused';
   objectId: string;
   object?: T;
   metadata?: ObjectMetadata;

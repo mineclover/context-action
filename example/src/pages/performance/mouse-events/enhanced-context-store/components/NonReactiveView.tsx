@@ -1,6 +1,6 @@
 /**
  * @fileoverview Non-Reactive Enhanced Context Store View
- * 
+ *
  * 완전한 Non-Reactive MVVM 구현:
  * - Store 구독 완전 제거
  * - 모든 시각적 업데이트는 RefContext 직접 조작
@@ -9,14 +9,14 @@
  */
 
 import React from 'react';
-import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useAdvancedCanvasControl } from '../hooks/useAdvancedCanvasControl';
+import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useNonReactiveMetrics } from '../hooks/useNonReactiveMetrics';
 import { NonReactiveCanvas } from './NonReactiveCanvas';
 
 /**
  * Non-Reactive Enhanced Context Store 메인 뷰
- * 
+ *
  * 아키텍처:
  * - Model: Store contexts (데이터 저장만)
  * - ViewModel: RefContext hooks (직접 DOM 조작)
@@ -24,29 +24,31 @@ import { NonReactiveCanvas } from './NonReactiveCanvas';
  */
 export function NonReactiveView() {
   // === ViewModel Layer - 완전한 Non-Reactive ===
-  
+
   // 비즈니스 로직 초기화 (Store 관리만) - TEMPORARILY DISABLED FOR DEBUGGING
   // const { initialized } = useMouseEventsLogic();
   const initialized = true; // Force initialized for debugging
-  
+
   // 고급 Canvas 직접 제어 (클릭 마커 포함)
   const canvasControl = useAdvancedCanvasControl();
-  
+
   // Non-reactive 메트릭 (수동 업데이트)
   const metrics = useNonReactiveMetrics();
-  
+
   // === Local UI State (React 상태 - 비즈니스와 무관) ===
   // const [animationSpeed, setAnimationSpeed] = useState(1); // Removed for now
-  
+
   // Hook 초기화 대기
   if (!initialized) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg text-purple-600">Initializing Non-Reactive MVVM...</div>
+        <div className="text-lg text-purple-600">
+          Initializing Non-Reactive MVVM...
+        </div>
       </div>
     );
   }
-  
+
   return (
     <div className="p-6">
       {/* CSS 스타일 정의 */}
@@ -63,21 +65,27 @@ export function NonReactiveView() {
           }
         }
       `}</style>
-      
+
       {/* 헤더 */}
       <div className="mb-6">
         <div className="flex items-center gap-3">
           <span className="text-3xl">🚀</span>
           <div>
-            <h2 className="text-2xl font-bold text-purple-800">Non-Reactive MVVM</h2>
-            <p className="text-sm text-purple-600">Zero React re-renders • Pure RefContext DOM control</p>
+            <h2 className="text-2xl font-bold text-purple-800">
+              Non-Reactive MVVM
+            </h2>
+            <p className="text-sm text-purple-600">
+              Zero React re-renders • Pure RefContext DOM control
+            </p>
           </div>
         </div>
       </div>
-      
+
       {/* Non-Reactive 아키텍처 설명 */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-green-800 mb-2">🚀 Non-Reactive MVVM Features:</h3>
+        <h3 className="font-semibold text-green-800 mb-2">
+          🚀 Non-Reactive MVVM Features:
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-700">
           <div>
             <h4 className="font-medium mb-1">Model Layer</h4>
@@ -109,7 +117,9 @@ export function NonReactiveView() {
       {/* 성능 비교 정보 */}
       <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h4 className="font-semibold text-red-800 mb-2">❌ Traditional Reactive Pattern</h4>
+          <h4 className="font-semibold text-red-800 mb-2">
+            ❌ Traditional Reactive Pattern
+          </h4>
           <div className="space-y-1 text-xs text-red-700">
             <p>• Store subscriptions → React re-renders</p>
             <p>• Path drawing via useState → Performance hit</p>
@@ -117,9 +127,11 @@ export function NonReactiveView() {
             <p>• Continuous useStoreValue() subscriptions</p>
           </div>
         </div>
-        
+
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-semibold text-green-800 mb-2">✅ Non-Reactive Pattern</h4>
+          <h4 className="font-semibold text-green-800 mb-2">
+            ✅ Non-Reactive Pattern
+          </h4>
           <div className="space-y-1 text-xs text-green-700">
             <p>• Zero React re-renders</p>
             <p>• Path drawing via direct DOM → 60fps</p>
@@ -131,7 +143,7 @@ export function NonReactiveView() {
 
       {/* Non-Reactive Canvas */}
       <div className="p-6 border border-purple-200 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
-        <NonReactiveCanvas 
+        <NonReactiveCanvas
           onMouseMove={canvasControl.handleMouseMove}
           onMouseClick={canvasControl.handleMouseClick}
           onMouseEnter={canvasControl.handleMouseEnter}
@@ -169,10 +181,13 @@ export function NonReactiveView() {
             <p>• Path Points: {canvasControl.getPathPoints().length}</p>
             <p>• Click Count: {canvasControl.getClickCount()}</p>
             <p>• Active Markers: {canvasControl.getActiveMarkers()}</p>
-            <p>• Position: ({canvasControl.getCurrentPosition().x}, {canvasControl.getCurrentPosition().y})</p>
+            <p>
+              • Position: ({canvasControl.getCurrentPosition().x},{' '}
+              {canvasControl.getCurrentPosition().y})
+            </p>
           </div>
         </div>
-        
+
         <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200">
           <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
             <span className="text-sm">🎯</span>

@@ -13,10 +13,15 @@ interface MetricCardProps {
   children: React.ReactNode;
 }
 
-const MetricCard = memo<MetricCardProps>(function MetricCard({ title, children }) {
+const MetricCard = memo<MetricCardProps>(function MetricCard({
+  title,
+  children,
+}) {
   return (
     <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200 min-w-fit">
-      <div className="text-xs text-gray-600 mb-1 whitespace-nowrap">{title}</div>
+      <div className="text-xs text-gray-600 mb-1 whitespace-nowrap">
+        {title}
+      </div>
       <div className="text-sm font-semibold text-gray-900">{children}</div>
     </div>
   );
@@ -39,7 +44,11 @@ const AverageExecutionTime = memo(function AverageExecutionTime() {
 
 const MinMaxExecutionTime = memo(function MinMaxExecutionTime() {
   const { minExecutionTime, maxExecutionTime } = usePriorityTestState();
-  return <span>{minExecutionTime}-{maxExecutionTime}ms</span>;
+  return (
+    <span>
+      {minExecutionTime}-{maxExecutionTime}ms
+    </span>
+  );
 });
 
 interface TestMetricsViewProps {
@@ -55,7 +64,9 @@ export const TestMetricsView = memo<TestMetricsViewProps>(
   function TestMetricsView({ isRunning }) {
     return (
       <div className="mb-4">
-        <h4 className="font-medium text-gray-700 mb-2 text-sm">📊 성능 메트릭</h4>
+        <h4 className="font-medium text-gray-700 mb-2 text-sm">
+          📊 성능 메트릭
+        </h4>
         <div className="flex flex-wrap gap-3">
           <MetricCard title="총 실행">
             <TotalExecutionCount />

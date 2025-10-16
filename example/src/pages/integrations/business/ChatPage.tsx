@@ -10,10 +10,7 @@ import { StoreScenarios } from './store-scenarios/stores';
 
 export function ChatPage() {
   return (
-    <PageWithLogMonitor
-      pageId="chat-demo"
-      title="Chat Demo"
-    >
+    <PageWithLogMonitor pageId="chat-demo" title="Chat Demo">
       <StoreScenarios.Provider>
         <div className="max-w-5xl mx-auto p-6">
           {/* Hero Section */}
@@ -21,12 +18,15 @@ export function ChatPage() {
             <div className="flex items-start gap-6">
               <div className="text-5xl">💬</div>
               <div>
-                <h1 className="text-3xl font-bold text-green-900 mb-4">Real-time Chat System Demo</h1>
+                <h1 className="text-3xl font-bold text-green-900 mb-4">
+                  Real-time Chat System Demo
+                </h1>
                 <p className="text-green-800 text-lg mb-4">
-                  실시간 <strong>메시징과 사용자 관리</strong>, 메시지 히스토리를 포함한 채팅 시스템입니다.
-                  실제 채팅 애플리케이션에서 사용되는 핵심 기능들을 구현했습니다.
+                  실시간 <strong>메시징과 사용자 관리</strong>, 메시지
+                  히스토리를 포함한 채팅 시스템입니다. 실제 채팅
+                  애플리케이션에서 사용되는 핵심 기능들을 구현했습니다.
                 </p>
-                
+
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-green-600">💬</span>
@@ -35,25 +35,42 @@ export function ChatPage() {
                     </span>
                   </div>
                   <p className="text-green-800 text-sm">
-                    메시지 전송, 사용자 전환, 자동 응답, 타이핑 인디케이터, 스마트 스크롤 기능을 제공합니다.
+                    메시지 전송, 사용자 전환, 자동 응답, 타이핑 인디케이터,
+                    스마트 스크롤 기능을 제공합니다.
                   </p>
                 </div>
-                
+
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="font-semibold text-green-900 mb-3">💬 채팅 기능</h3>
+                    <h3 className="font-semibold text-green-900 mb-3">
+                      💬 채팅 기능
+                    </h3>
                     <ul className="text-green-700 space-y-2 text-sm">
-                      <li>• <strong>Multi-User Chat</strong>: 다중 사용자 지원</li>
-                      <li>• <strong>Message Types</strong>: 텍스트, 이미지, 파일</li>
-                      <li>• <strong>Auto Response</strong>: 자동 응답 시뮬레이션</li>
-                      <li>• <strong>Typing Indicator</strong>: 타이핑 상태 표시</li>
-                      <li>• <strong>Message History</strong>: 메시지 기록 관리</li>
-                      <li>• <strong>Quick Messages</strong>: 빠른 메시지 템플릿</li>
+                      <li>
+                        • <strong>Multi-User Chat</strong>: 다중 사용자 지원
+                      </li>
+                      <li>
+                        • <strong>Message Types</strong>: 텍스트, 이미지, 파일
+                      </li>
+                      <li>
+                        • <strong>Auto Response</strong>: 자동 응답 시뮬레이션
+                      </li>
+                      <li>
+                        • <strong>Typing Indicator</strong>: 타이핑 상태 표시
+                      </li>
+                      <li>
+                        • <strong>Message History</strong>: 메시지 기록 관리
+                      </li>
+                      <li>
+                        • <strong>Quick Messages</strong>: 빠른 메시지 템플릿
+                      </li>
                     </ul>
                   </div>
-                  
+
                   <div>
-                    <h3 className="font-semibold text-green-900 mb-3">⚡ UX 특징</h3>
+                    <h3 className="font-semibold text-green-900 mb-3">
+                      ⚡ UX 특징
+                    </h3>
                     <ul className="text-green-700 space-y-2 text-sm">
                       <li>• 스마트 자동 스크롤</li>
                       <li>• 키보드 단축키 (Enter 전송)</li>
@@ -97,25 +114,47 @@ export function ChatPage() {
 
           {/* Technical Implementation */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">🔧 기술적 구현 세부사항</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              🔧 기술적 구현 세부사항
+            </h2>
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-green-600">Store Architecture</h3>
+                <h3 className="font-semibold text-lg mb-4 text-green-600">
+                  Store Architecture
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>messagesStore</strong>: 메시지 히스토리 관리</li>
-                  <li>• <strong>Immutable Updates</strong>: 메시지 배열 불변성</li>
-                  <li>• <strong>Real-time Updates</strong>: 즉시 UI 반영</li>
-                  <li>• <strong>Message Validation</strong>: 입력 검증</li>
+                  <li>
+                    • <strong>messagesStore</strong>: 메시지 히스토리 관리
+                  </li>
+                  <li>
+                    • <strong>Immutable Updates</strong>: 메시지 배열 불변성
+                  </li>
+                  <li>
+                    • <strong>Real-time Updates</strong>: 즉시 UI 반영
+                  </li>
+                  <li>
+                    • <strong>Message Validation</strong>: 입력 검증
+                  </li>
                 </ul>
               </div>
 
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-blue-600">Advanced Features</h3>
+                <h3 className="font-semibold text-lg mb-4 text-blue-600">
+                  Advanced Features
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>Auto Scroll</strong>: 스마트 스크롤 관리</li>
-                  <li>• <strong>Ref Management</strong>: DOM 참조 최적화</li>
-                  <li>• <strong>Event Handling</strong>: 키보드 이벤트</li>
-                  <li>• <strong>CSS Animations</strong>: 타이핑 애니메이션</li>
+                  <li>
+                    • <strong>Auto Scroll</strong>: 스마트 스크롤 관리
+                  </li>
+                  <li>
+                    • <strong>Ref Management</strong>: DOM 참조 최적화
+                  </li>
+                  <li>
+                    • <strong>Event Handling</strong>: 키보드 이벤트
+                  </li>
+                  <li>
+                    • <strong>CSS Animations</strong>: 타이핑 애니메이션
+                  </li>
                 </ul>
               </div>
             </div>
@@ -123,10 +162,14 @@ export function ChatPage() {
 
           {/* Chat Features */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">🎯 채팅 시스템 특징</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              🎯 채팅 시스템 특징
+            </h2>
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-purple-600">사용자 경험</h3>
+                <h3 className="font-semibold text-lg mb-4 text-purple-600">
+                  사용자 경험
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li>• 사용자별 아바타 및 색상</li>
                   <li>• 메시지 시간 표시</li>
@@ -136,7 +179,9 @@ export function ChatPage() {
               </div>
 
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-orange-600">자동화 기능</h3>
+                <h3 className="font-semibold text-lg mb-4 text-orange-600">
+                  자동화 기능
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li>• 30% 확률 자동 응답</li>
                   <li>• 타이핑 인디케이터 (2초)</li>
@@ -146,7 +191,9 @@ export function ChatPage() {
               </div>
 
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-red-600">스크롤 최적화</h3>
+                <h3 className="font-semibold text-lg mb-4 text-red-600">
+                  스크롤 최적화
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li>• 자동 최하단 스크롤</li>
                   <li>• 사용자 스크롤 감지</li>
@@ -159,11 +206,13 @@ export function ChatPage() {
 
           {/* Code Example */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">💻 핵심 코드 패턴</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              💻 핵심 코드 패턴
+            </h2>
             <div className="bg-gray-50 p-6 rounded-lg border">
               <h3 className="font-semibold text-lg mb-4">실시간 채팅 구현</h3>
               <pre className="bg-gray-800 text-green-400 p-4 rounded text-sm overflow-x-auto">
-{`// 1. 메시지 전송 핸들러
+                {`// 1. 메시지 전송 핸들러
 const sendMessageHandler = useCallback(
   ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
     const newMessage: ChatMessage = {
@@ -220,21 +269,23 @@ const sendMessage = useCallback(() => {
 
           {/* Related Links */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">🔗 관련 리소스</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              🔗 관련 리소스
+            </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a 
+              <a
                 href="/demos/store-scenarios"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🏪 전체 Store 데모 컬렉션
               </a>
-              <a 
+              <a
                 href="/refs/canvas"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 Canvas Ref Demo
               </a>
-              <a 
+              <a
                 href="/actionguard/scroll"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >

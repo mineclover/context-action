@@ -18,15 +18,20 @@ export function usePerformanceState() {
   const performanceStore = usePerformanceManagementStore('performanceState');
   const performanceState = useStoreValue(performanceStore);
 
-  const computedValues = useMemo(() => ({
-    instanceCount: performanceState.instances.length,
-    runningInstanceCount: performanceState.runningInstances.size,
-    isAnyInstanceRunning: performanceState.runningInstances.size > 0,
-    canAddInstance: true, // 인스턴스 추가는 항상 가능
-    canRemoveInstance: performanceState.instances.length > 1 && performanceState.runningInstances.size === 0,
-    canResetInstances: performanceState.runningInstances.size === 0,
-    runningInstanceIds: Array.from(performanceState.runningInstances),
-  }), [performanceState]);
+  const computedValues = useMemo(
+    () => ({
+      instanceCount: performanceState.instances.length,
+      runningInstanceCount: performanceState.runningInstances.size,
+      isAnyInstanceRunning: performanceState.runningInstances.size > 0,
+      canAddInstance: true, // 인스턴스 추가는 항상 가능
+      canRemoveInstance:
+        performanceState.instances.length > 1 &&
+        performanceState.runningInstances.size === 0,
+      canResetInstances: performanceState.runningInstances.size === 0,
+      runningInstanceIds: Array.from(performanceState.runningInstances),
+    }),
+    [performanceState]
+  );
 
   return {
     performanceState,
@@ -43,11 +48,14 @@ export function usePerformanceState() {
 export function useInstanceState(instanceId: string) {
   const { performanceState } = usePerformanceState();
 
-  const instanceState = useMemo(() => ({
-    isRunning: performanceState.runningInstances.has(instanceId),
-    canStart: !performanceState.runningInstances.has(instanceId),
-    canStop: performanceState.runningInstances.has(instanceId),
-  }), [performanceState, instanceId]);
+  const instanceState = useMemo(
+    () => ({
+      isRunning: performanceState.runningInstances.has(instanceId),
+      canStart: !performanceState.runningInstances.has(instanceId),
+      canStop: performanceState.runningInstances.has(instanceId),
+    }),
+    [performanceState, instanceId]
+  );
 
   return instanceState;
 }

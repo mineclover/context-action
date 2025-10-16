@@ -4,32 +4,31 @@ import { PageWithLogMonitor } from '@/components/LogMonitor';
 // CONTEXT-LAYERED ARCHITECTURE - Context Page
 // ==============================================
 
-// 🗄️ Context Layer - Store & Action Contexts
-import { 
-  ParentModelProvider, 
-  ParentActionProvider 
-} from './contexts/ParentContext';
-import { 
-  ChildAModelProvider, 
-  ChildAActionProvider 
+import {
+  ChildAActionProvider,
+  ChildAModelProvider,
 } from './contexts/ChildAContext';
-import { 
-  ChildBModelProvider, 
-  ChildBActionProvider 
+import {
+  ChildBActionProvider,
+  ChildBModelProvider,
 } from './contexts/ChildBContext';
+// 🗄️ Context Layer - Store & Action Contexts
+import {
+  ParentActionProvider,
+  ParentModelProvider,
+} from './contexts/ParentContext';
 
 // ⚙️ Handler Layer - Props-based Handler Registration
-import { 
-  useParentCounterHandlers,
+import {
+  type ParentHandlerProps,
   useParentControlHandlers,
+  useParentCounterHandlers,
   useParentDataHandlers,
-  type ParentHandlerProps
 } from './handlers/useParentHandlers';
-
-// 🖼️ View Layer - Pure UI Components
-import { ParentView } from './views/ParentView';
 import { ChildAView } from './views/ChildAView';
 import { ChildBView } from './views/ChildBView';
+// 🖼️ View Layer - Pure UI Components
+import { ParentView } from './views/ParentView';
 
 // ==============================================
 // CONTEXT-LAYERED HANDLERS SETUP
@@ -39,7 +38,7 @@ import { ChildBView } from './views/ChildBView';
  * Context-Layered Handler Setup Component
  * Props 기반 의존성 주입으로 Handler들을 등록
  */
-function ContextLayeredHandlers({ moduleId = "main" }: { moduleId?: string }) {
+function ContextLayeredHandlers({ moduleId = 'main' }: { moduleId?: string }) {
   // Props-based dependency injection for Parent handlers
   const parentHandlerProps: ParentHandlerProps = {
     moduleId,
@@ -49,17 +48,17 @@ function ContextLayeredHandlers({ moduleId = "main" }: { moduleId?: string }) {
     },
     onChildRegistered: (childId: string, childType: string) => {
       console.log(`🔄 [${moduleId}] Child registered:`, { childId, childType });
-    }
+    },
   };
 
   // Register Parent handlers with props-based DI
   useParentCounterHandlers(parentHandlerProps);
   useParentControlHandlers(parentHandlerProps);
   useParentDataHandlers(parentHandlerProps);
-  
+
   // TODO: ChildA and ChildB handlers also need to be converted to Context-Layered pattern
   // For now, keeping the old pattern for children components
-  
+
   return null;
 }
 
@@ -69,7 +68,7 @@ function ContextLayeredHandlers({ moduleId = "main" }: { moduleId?: string }) {
 
 /**
  * Context-Layered 아키텍처 기반 Context 페이지
- * 
+ *
  * 🏗️ Context-Layered Architecture:
  * - 🗄️ Context Layer: Store & Action contexts (컨텍스트 정의)
  * - ⚙️ Handler Layer: Props-based handlers (비즈니스 로직)
@@ -77,7 +76,11 @@ function ContextLayeredHandlers({ moduleId = "main" }: { moduleId?: string }) {
  * - 🔗 Hook Layer: Store subscriptions (데이터 구독)
  * - 🖼️ View Layer: React components (UI 표현)
  */
-export default function ReactContextPage({ moduleId = "context-layered-demo" }: { moduleId?: string }) {
+export default function ReactContextPage({
+  moduleId = 'context-layered-demo',
+}: {
+  moduleId?: string;
+}) {
   return (
     <PageWithLogMonitor pageId="react-context">
       <div className="container mx-auto p-6 space-y-6">
@@ -100,10 +103,9 @@ export default function ReactContextPage({ moduleId = "context-layered-demo" }: 
               <ChildAActionProvider>
                 <ChildBModelProvider>
                   <ChildBActionProvider>
-                    
                     {/* Context-Layered Handler Setup with Props-based DI */}
                     <ContextLayeredHandlers moduleId={moduleId} />
-                    
+
                     {/* View Layer - Pure UI Components */}
                     <div className="space-y-6">
                       <ParentView />
@@ -112,7 +114,6 @@ export default function ReactContextPage({ moduleId = "context-layered-demo" }: 
                         <ChildBView />
                       </div>
                     </div>
-                    
                   </ChildBActionProvider>
                 </ChildBModelProvider>
               </ChildAActionProvider>

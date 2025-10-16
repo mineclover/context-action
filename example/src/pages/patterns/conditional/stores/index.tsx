@@ -1,5 +1,5 @@
-import React from 'react';
 import { createActionContext, createStoreContext } from '@context-action/react';
+import React from 'react';
 
 // =============================================================================
 // Type Definitions
@@ -72,28 +72,33 @@ export interface LogEntry {
 
 const storePattern = createStoreContext('ConditionalPatterns', {
   // Environment Configuration
-  environment: { 
-    initialValue: 'development' as 'development' | 'staging' | 'production' 
+  environment: {
+    initialValue: 'development' as 'development' | 'staging' | 'production',
   },
-  
+
   // Feature Flags Configuration
-  featureFlags: { 
+  featureFlags: {
     initialValue: {
       'enhanced-user-processing': true,
       'experimental-features': false,
       'advanced-analytics': true,
       'blue-green-deployment': false,
       'premium-features': false,
-      'maintenance-mode': false
-    } as Record<string, boolean>
+      'maintenance-mode': false,
+    } as Record<string, boolean>,
   },
-  
+
   // User and Permission Configuration
-  userRole: { 
-    initialValue: 'user' as 'user' | 'admin' | 'guest' | 'moderator' | 'superadmin'
+  userRole: {
+    initialValue: 'user' as
+      | 'user'
+      | 'admin'
+      | 'guest'
+      | 'moderator'
+      | 'superadmin',
   },
-  currentUser: { 
-    initialValue: 'user-123' 
+  currentUser: {
+    initialValue: 'user-123',
   },
   currentUserProfile: {
     initialValue: {
@@ -101,10 +106,10 @@ const storePattern = createStoreContext('ConditionalPatterns', {
       name: 'Demo User',
       email: 'demo@example.com',
       tier: 'bronze' as 'bronze' | 'silver' | 'gold' | 'platinum',
-      permissions: ['read'] as string[]
-    }
+      permissions: ['read'] as string[],
+    },
   },
-  
+
   // Business Context
   selectedCustomer: {
     initialValue: {
@@ -114,20 +119,24 @@ const storePattern = createStoreContext('ConditionalPatterns', {
       creditLimit: 1000,
       currentBalance: 200,
       loyaltyPoints: 150,
-      riskScore: 0.3
-    }
+      riskScore: 0.3,
+    },
   },
   selectedProduct: {
     initialValue: {
       id: 'product-001',
       name: 'Sample Product',
       basePrice: 100,
-      category: 'electronics' as 'electronics' | 'clothing' | 'books' | 'premium',
+      category: 'electronics' as
+        | 'electronics'
+        | 'clothing'
+        | 'books'
+        | 'premium',
       inventory: 10,
-      requiresPremium: false
-    }
+      requiresPremium: false,
+    },
   },
-  
+
   // Time Context
   timeContext: {
     initialValue: {
@@ -135,59 +144,59 @@ const storePattern = createStoreContext('ConditionalPatterns', {
       timezone: 'UTC',
       businessHours: { start: 9, end: 17 },
       isBusinessDay: true,
-      isHoliday: false
-    }
+      isHoliday: false,
+    },
   },
-  
+
   // Result Storage
-  deploymentResults: { 
-    initialValue: [] as Array<any> 
+  deploymentResults: {
+    initialValue: [] as Array<any>,
   },
-  featureFlagResults: { 
-    initialValue: [] as Array<any> 
+  featureFlagResults: {
+    initialValue: [] as Array<any>,
   },
   permissionResults: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
   businessRuleResults: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
   timeBasedResults: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
   combinedResults: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
-  
+
   // Feature Flag Specific Stores
   basicUserData: {
-    initialValue: null as any
+    initialValue: null as any,
   },
   userProcessingResults: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
-  
+
   // Logging System
-  logs: { 
-    initialValue: [] as Array<LogEntry> 
+  logs: {
+    initialValue: [] as Array<LogEntry>,
   },
   errorLogs: {
-    initialValue: [] as Array<LogEntry>
+    initialValue: [] as Array<LogEntry>,
   },
   auditLogs: {
-    initialValue: [] as Array<any>
+    initialValue: [] as Array<any>,
   },
-  
+
   // UI State
   activeDemo: {
-    initialValue: '' as string
+    initialValue: '' as string,
   },
   isLoading: {
-    initialValue: false
+    initialValue: false,
   },
   lastExecutionTime: {
-    initialValue: 0
-  }
+    initialValue: 0,
+  },
 });
 
 export const ConditionalStoreProvider = storePattern.Provider;
@@ -198,7 +207,9 @@ export const useConditionalStoreManager = storePattern.useStoreManager;
 // Action Context Setup
 // =============================================================================
 
-const actionContext = createActionContext<ConditionalActions>('ConditionalPatterns');
+const actionContext = createActionContext<ConditionalActions>(
+  'ConditionalPatterns'
+);
 
 export const ConditionalActionProvider = actionContext.Provider;
 export const useConditionalAction = actionContext.useActionDispatch;
@@ -208,12 +219,14 @@ export const useConditionalActionHandler = actionContext.useActionHandler;
 // Combined Provider Setup
 // =============================================================================
 
-export function ConditionalPatternsProvider({ children }: { children: React.ReactNode }) {
+export function ConditionalPatternsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ConditionalStoreProvider>
-      <ConditionalActionProvider>
-        {children}
-      </ConditionalActionProvider>
+      <ConditionalActionProvider>{children}</ConditionalActionProvider>
     </ConditionalStoreProvider>
   );
 }

@@ -12,10 +12,10 @@ interface WithSourceRegistrationProps {
 
 /**
  * 자식 컴포넌트를 렌더링하면서 소스 파일을 자동으로 등록하는 래퍼 컴포넌트
- * 
+ *
  * @example
  * ```tsx
- * <WithSourceRegistration 
+ * <WithSourceRegistration
  *   filePath="components/MyComponent.tsx"
  *   name="My Component"
  * >
@@ -29,7 +29,7 @@ export function WithSourceRegistration({
   description,
   tags,
   priority,
-  children
+  children,
 }: WithSourceRegistrationProps) {
   useRegisterSourceFile(filePath, { name, description, tags, priority });
   return <>{children}</>;
@@ -37,7 +37,7 @@ export function WithSourceRegistration({
 
 /**
  * HOC 버전 - 컴포넌트를 감싸서 소스 파일을 자동 등록
- * 
+ *
  * @example
  * ```tsx
  * export default withSourceRegistration(MyComponent, {
@@ -60,8 +60,8 @@ export function withSourceRegistration<P extends object>(
     useRegisterSourceFile(registrationOptions.filePath, registrationOptions);
     return <Component {...props} />;
   };
-  
+
   WrappedComponent.displayName = `WithSourceRegistration(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }

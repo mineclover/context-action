@@ -1,12 +1,13 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ActionRegister } from '@context-action/core';
-import type { 
-  SecurityActions, 
-  CacheActions, 
-  OrderActions, 
-  ApiActions, 
-  ScenarioKey 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type {
+  ApiActions,
+  CacheActions,
+  OrderActions,
+  ScenarioKey,
+  SecurityActions,
 } from '../scenarios/types';
+
 // Removed imports for deleted handlers
 
 // Dummy handler setup functions
@@ -21,7 +22,8 @@ const redisCache = new Map<string, any>();
 
 export function useFlowControlDemo() {
   // State management
-  const [selectedScenario, setSelectedScenario] = useState<ScenarioKey>('securityEscalation');
+  const [selectedScenario, setSelectedScenario] =
+    useState<ScenarioKey>('securityEscalation');
   const [executionResults, setExecutionResults] = useState<any[]>([]);
   const [executionPath, setExecutionPath] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -30,24 +32,32 @@ export function useFlowControlDemo() {
   const [isBusinessHours, setIsBusinessHours] = useState(true);
 
   // Action registers
-  const [securityRegister] = useState(() => new ActionRegister<SecurityActions>());
+  const [securityRegister] = useState(
+    () => new ActionRegister<SecurityActions>()
+  );
   const [cacheRegister] = useState(() => new ActionRegister<CacheActions>());
   const [orderRegister] = useState(() => new ActionRegister<OrderActions>());
   const [apiRegister] = useState(() => new ActionRegister<ApiActions>());
 
   // Handler dependencies - memoized to prevent re-registration
-  const handlerDeps = useMemo(() => ({
-    setExecutionPath,
-    setHandlerExecutions,
-    memoryCache,
-    redisCache,
-    isBusinessHours
-  }), [isBusinessHours]);
+  const handlerDeps = useMemo(
+    () => ({
+      setExecutionPath,
+      setHandlerExecutions,
+      memoryCache,
+      redisCache,
+      isBusinessHours,
+    }),
+    [isBusinessHours]
+  );
 
   // Setup handlers - only once per register
   useEffect(() => {
     console.log('🔧 Setting up security handlers');
-    const cleanupSecurity = setupSecurityHandlers(securityRegister, handlerDeps);
+    const cleanupSecurity = setupSecurityHandlers(
+      securityRegister,
+      handlerDeps
+    );
     return () => {
       console.log('🧹 Cleaning up security handlers');
       cleanupSecurity();
@@ -89,7 +99,7 @@ export function useFlowControlDemo() {
   }, []);
 
   const toggleBusinessHours = useCallback(() => {
-    setIsBusinessHours(prev => {
+    setIsBusinessHours((prev) => {
       const newValue = !prev;
       console.log(`🕐 Business hours: ${newValue ? 'ON' : 'OFF'}`);
       return newValue;
@@ -102,48 +112,61 @@ export function useFlowControlDemo() {
   }, []);
 
   // Execution function
-  const executeScenario = useCallback(async (scenario: ScenarioKey, payload: any) => {
-    if (isExecuting) return;
-    
-    setIsExecuting(true);
-    setExecutionResults([]);
-    setExecutionPath([]);
-    setHandlerExecutions(0);
+  const executeScenario = useCallback(
+    async (scenario: ScenarioKey, payload: any) => {
+      if (isExecuting) return;
 
-    console.log(`\n🧪 Executing scenario: ${scenario}`);
-    
-    try {
-      let result;
-      
-      switch (scenario) {
-        case 'securityEscalation':
-        case 'securitySuccess':
-        case 'securityNormal':
-          result = await securityRegister.dispatchWithResult('processRequest', payload);
-          break;
-        case 'cacheOptimization':
-          result = await cacheRegister.dispatchWithResult('fetchData', payload);
-          break;
-        case 'businessHourRouting':
-          result = await orderRegister.dispatchWithResult('processOrder', payload);
-          break;
-        case 'errorRecovery':
-          result = await apiRegister.dispatchWithResult('apiCall', payload);
-          break;
-        default:
-          throw new Error(`Unknown scenario: ${scenario}`);
+      setIsExecuting(true);
+      setExecutionResults([]);
+      setExecutionPath([]);
+      setHandlerExecutions(0);
+
+      console.log(`\n🧪 Executing scenario: ${scenario}`);
+
+      try {
+        let result;
+
+        switch (scenario) {
+          case 'securityEscalation':
+          case 'securitySuccess':
+          case 'securityNormal':
+            result = await securityRegister.dispatchWithResult(
+              'processRequest',
+              payload
+            );
+            break;
+          case 'cacheOptimization':
+            result = await cacheRegister.dispatchWithResult(
+              'fetchData',
+              payload
+            );
+            break;
+          case 'businessHourRouting':
+            result = await orderRegister.dispatchWithResult(
+              'processOrder',
+              payload
+            );
+            break;
+          case 'errorRecovery':
+            result = await apiRegister.dispatchWithResult('apiCall', payload);
+            break;
+          default:
+            throw new Error(`Unknown scenario: ${scenario}`);
+        }
+
+        setExecutionResults([result]);
+        console.log('✅ Scenario completed:', result);
+      } catch (error) {
+        console.error('❌ Scenario failed:', error);
+        setExecutionResults([
+          { error: (error as Error).message, timestamp: Date.now() },
+        ]);
+      } finally {
+        setIsExecuting(false);
       }
-      
-      setExecutionResults([result]);
-      console.log('✅ Scenario completed:', result);
-      
-    } catch (error) {
-      console.error('❌ Scenario failed:', error);
-      setExecutionResults([{ error: (error as Error).message, timestamp: Date.now() }]);
-    } finally {
-      setIsExecuting(false);
-    }
-  }, [isExecuting, securityRegister, cacheRegister, orderRegister, apiRegister]);
+    },
+    [isExecuting, securityRegister, cacheRegister, orderRegister, apiRegister]
+  );
 
   return {
     // State
@@ -154,12 +177,12 @@ export function useFlowControlDemo() {
     handlerExecutions,
     systemLoad,
     isBusinessHours,
-    
+
     // Actions
     setSelectedScenario,
     executeScenario,
     clearCache,
     toggleBusinessHours,
-    adjustSystemLoad
+    adjustSystemLoad,
   };
 }

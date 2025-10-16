@@ -106,10 +106,12 @@ export const TestControlsView = memo<TestControlsViewProps>(
                   selectedDelay === delay
                     ? 'bg-purple-600 text-white'
                     : isRunning
-                    ? 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-50'
-                    : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-100'
+                      ? 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-50'
+                      : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-100'
                 }`}
-                title={isRunning ? '현재 실행 중...' : `딜레이를 ${delay}ms로 설정`}
+                title={
+                  isRunning ? '현재 실행 중...' : `딜레이를 ${delay}ms로 설정`
+                }
               >
                 {delay}ms
               </button>

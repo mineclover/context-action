@@ -81,31 +81,37 @@ export const PriorityGrid = memo<PriorityGridProps>(
     }, []);
 
     // 수동 클릭 핸들러
-    const handleBlockClick = useCallback((priority: number, event: React.MouseEvent) => {
-      if (!allowManualClick) return;
+    const handleBlockClick = useCallback(
+      (priority: number, event: React.MouseEvent) => {
+        if (!allowManualClick) return;
 
-      event.preventDefault();
+        event.preventDefault();
 
-      if (event.button === 0) {
-        // 좌클릭: +1
+        if (event.button === 0) {
+          // 좌클릭: +1
+          priorityCountsStore.update((counts) => ({
+            ...counts,
+            [priority]: (counts[priority] || 0) + 1,
+          }));
+        }
+      },
+      [allowManualClick, priorityCountsStore]
+    );
+
+    const handleBlockContextMenu = useCallback(
+      (priority: number, event: React.MouseEvent) => {
+        if (!allowManualClick) return;
+
+        event.preventDefault();
+
+        // 우클릭: -1 (최소값 0)
         priorityCountsStore.update((counts) => ({
           ...counts,
-          [priority]: (counts[priority] || 0) + 1,
+          [priority]: Math.max(0, (counts[priority] || 0) - 1),
         }));
-      }
-    }, [allowManualClick, priorityCountsStore]);
-
-    const handleBlockContextMenu = useCallback((priority: number, event: React.MouseEvent) => {
-      if (!allowManualClick) return;
-
-      event.preventDefault();
-
-      // 우클릭: -1 (최소값 0)
-      priorityCountsStore.update((counts) => ({
-        ...counts,
-        [priority]: Math.max(0, (counts[priority] || 0) - 1),
-      }));
-    }, [allowManualClick, priorityCountsStore]);
+      },
+      [allowManualClick, priorityCountsStore]
+    );
 
     // 색상 계산 함수 - 우선순위에 따라 일관된 색상 생성 (고대비 버전)
     const getPriorityColor = useCallback((priority: number, count: number) => {
@@ -113,7 +119,7 @@ export const PriorityGrid = memo<PriorityGridProps>(
       if (count === 0) {
         return {
           bg: '#f3f4f6', // gray-100
-          text: '#6b7280' // gray-500
+          text: '#6b7280', // gray-500
         };
       }
 
@@ -124,14 +130,22 @@ export const PriorityGrid = memo<PriorityGridProps>(
       const opacity = Math.min(count / 5, 1.0);
 
       let baseColor: string;
-      if (normalized >= 0.9) baseColor = '#b91c1c'; // red-700 (더 진한 빨강)
-      else if (normalized >= 0.8) baseColor = '#c2410c'; // orange-700
-      else if (normalized >= 0.7) baseColor = '#a16207'; // amber-700
-      else if (normalized >= 0.6) baseColor = '#047857'; // emerald-700
-      else if (normalized >= 0.5) baseColor = '#0f766e'; // teal-700
-      else if (normalized >= 0.4) baseColor = '#0e7490'; // cyan-700
-      else if (normalized >= 0.3) baseColor = '#1d4ed8'; // blue-700
-      else if (normalized >= 0.2) baseColor = '#6d28d9'; // violet-700
+      if (normalized >= 0.9)
+        baseColor = '#b91c1c'; // red-700 (더 진한 빨강)
+      else if (normalized >= 0.8)
+        baseColor = '#c2410c'; // orange-700
+      else if (normalized >= 0.7)
+        baseColor = '#a16207'; // amber-700
+      else if (normalized >= 0.6)
+        baseColor = '#047857'; // emerald-700
+      else if (normalized >= 0.5)
+        baseColor = '#0f766e'; // teal-700
+      else if (normalized >= 0.4)
+        baseColor = '#0e7490'; // cyan-700
+      else if (normalized >= 0.3)
+        baseColor = '#1d4ed8'; // blue-700
+      else if (normalized >= 0.2)
+        baseColor = '#6d28d9'; // violet-700
       else baseColor = '#7c3aed'; // purple-600
 
       // RGB 값으로 변환하여 투명도 적용
@@ -142,7 +156,7 @@ export const PriorityGrid = memo<PriorityGridProps>(
 
       return {
         bg: `rgba(${r}, ${g}, ${b}, ${opacity})`,
-        text: opacity > 0.5 ? '#ffffff' : '#374151' // 투명도가 높으면 흰색, 낮으면 회색
+        text: opacity > 0.5 ? '#ffffff' : '#374151', // 투명도가 높으면 흰색, 낮으면 회색
       };
     }, []);
 
@@ -191,8 +205,16 @@ export const PriorityGrid = memo<PriorityGridProps>(
                 title={`${config.label} - ${count}회 실행${
                   allowManualClick ? ' (좌클릭: +1, 우클릭: -1)' : ''
                 }`}
-                onMouseDown={allowManualClick ? (e) => handleBlockClick(config.priority, e) : undefined}
-                onContextMenu={allowManualClick ? (e) => handleBlockContextMenu(config.priority, e) : undefined}
+                onMouseDown={
+                  allowManualClick
+                    ? (e) => handleBlockClick(config.priority, e)
+                    : undefined
+                }
+                onContextMenu={
+                  allowManualClick
+                    ? (e) => handleBlockContextMenu(config.priority, e)
+                    : undefined
+                }
               >
                 {/* 우선순위 번호 */}
                 <div

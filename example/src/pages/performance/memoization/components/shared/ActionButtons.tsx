@@ -18,7 +18,7 @@ interface ActionButtonsProps {
  */
 export function ActionButtons({ variant, actions }: ActionButtonsProps) {
   const baseColor = variant === 'memoized' ? 'green' : 'red';
-  
+
   return (
     <div className="flex gap-2 flex-wrap text-sm">
       <button
@@ -27,35 +27,35 @@ export function ActionButtons({ variant, actions }: ActionButtonsProps) {
       >
         +1
       </button>
-      
+
       <button
         onClick={actions.decrement}
         className={`px-2 py-1 bg-${baseColor}-600 text-white rounded hover:bg-${baseColor}-700`}
       >
         -1
       </button>
-      
+
       <button
         onClick={actions.calculate}
         className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
         Calc
       </button>
-      
+
       <button
         onClick={actions.performHeavyOperation}
         className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
       >
         Heavy
       </button>
-      
+
       <button
         onClick={actions.performMemoryTask}
         className="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700"
       >
         Memory
       </button>
-      
+
       <button
         onClick={actions.reset}
         className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"

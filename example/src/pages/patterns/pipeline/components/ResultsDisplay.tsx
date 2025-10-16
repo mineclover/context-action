@@ -12,7 +12,7 @@ export function ResultsDisplay({ executionResults }: ResultsDisplayProps) {
       {executionResults.length > 0 ? (
         <div className="space-y-3">
           {executionResults.map((result, index) => (
-            <pre 
+            <pre
               key={index}
               className="bg-gray-50 p-3 rounded text-xs font-mono overflow-x-auto"
             >

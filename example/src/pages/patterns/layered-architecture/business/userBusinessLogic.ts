@@ -8,7 +8,11 @@
  * - No dependencies on React hooks or external services
  */
 
-import type { User, UserValidationResult, UserOperationResult } from '../contexts/UserManagementContexts';
+import type {
+  User,
+  UserOperationResult,
+  UserValidationResult,
+} from '../contexts/UserManagementContexts';
 
 // 🎯 User Validation Logic (Pure Function)
 export function validateUserData(data: {
@@ -39,13 +43,16 @@ export function validateUserData(data: {
 }
 
 // 🎯 User Creation Logic (Pure Function)
-export function createUserEntity(data: {
-  name: string;
-  email: string;
-  role: User['role'];
-}, existingUsers: User[]): UserOperationResult {
+export function createUserEntity(
+  data: {
+    name: string;
+    email: string;
+    role: User['role'];
+  },
+  existingUsers: User[]
+): UserOperationResult {
   // Check if email already exists
-  const emailExists = existingUsers.some(user => user.email === data.email);
+  const emailExists = existingUsers.some((user) => user.email === data.email);
   if (emailExists) {
     return {
       success: false,
@@ -84,7 +91,7 @@ export function updateUserEntity(
   updates: Partial<Pick<User, 'name' | 'email' | 'role'>>,
   existingUsers: User[]
 ): UserOperationResult {
-  const userIndex = existingUsers.findIndex(user => user.id === userId);
+  const userIndex = existingUsers.findIndex((user) => user.id === userId);
   if (userIndex === -1) {
     return {
       success: false,
@@ -97,7 +104,7 @@ export function updateUserEntity(
   // If email is being updated, check for duplicates
   if (updates.email && updates.email !== currentUser?.email) {
     const emailExists = existingUsers.some(
-      user => user.id !== userId && user.email === updates.email
+      (user) => user.id !== userId && user.email === updates.email
     );
     if (emailExists) {
       return {
@@ -127,7 +134,9 @@ export function updateUserEntity(
   const updatedUser: User = {
     ...currentUser!,
     ...updates,
-    email: updates.email ? updates.email.toLowerCase().trim() : currentUser!.email,
+    email: updates.email
+      ? updates.email.toLowerCase().trim()
+      : currentUser!.email,
     name: updates.name ? updates.name.trim() : currentUser!.name,
   };
 
@@ -143,7 +152,7 @@ export function deleteUserEntity(
   userId: string,
   existingUsers: User[]
 ): UserOperationResult {
-  const userIndex = existingUsers.findIndex(user => user.id === userId);
+  const userIndex = existingUsers.findIndex((user) => user.id === userId);
   if (userIndex === -1) {
     return {
       success: false,
@@ -155,7 +164,7 @@ export function deleteUserEntity(
 
   // Business rule: Cannot delete admin users if they're the last admin
   if (user?.role === 'admin') {
-    const adminCount = existingUsers.filter(u => u.role === 'admin').length;
+    const adminCount = existingUsers.filter((u) => u.role === 'admin').length;
     if (adminCount <= 1) {
       return {
         success: false,
@@ -173,7 +182,7 @@ export function deleteUserEntity(
 
 // 🎯 User List Operations (Pure Functions)
 export function filterUsersByRole(users: User[], role: User['role']): User[] {
-  return users.filter(user => user.role === role);
+  return users.filter((user) => user.role === role);
 }
 
 export function sortUsersByName(users: User[]): User[] {
@@ -181,7 +190,9 @@ export function sortUsersByName(users: User[]): User[] {
 }
 
 export function sortUsersByCreatedDate(users: User[]): User[] {
-  return [...users].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return [...users].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  );
 }
 
 // 🎯 Utility Functions (Pure Functions)
@@ -197,16 +208,20 @@ function generateUserId(existingUsers: User[]): string {
 // 🎯 User Statistics (Pure Functions)
 export function calculateUserStatistics(users: User[]) {
   const totalUsers = users.length;
-  const roleDistribution = users.reduce((acc, user) => {
-    acc[user.role] = (acc[user.role] || 0) + 1;
-    return acc;
-  }, { admin: 0, user: 0, guest: 0 } as Record<User['role'], number>);
+  const roleDistribution = users.reduce(
+    (acc, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    },
+    { admin: 0, user: 0, guest: 0 } as Record<User['role'], number>
+  );
 
-  const newestUser = users.length > 0
-    ? users.reduce((newest, user) =>
-        user.createdAt > newest.createdAt ? user : newest
-      )
-    : null;
+  const newestUser =
+    users.length > 0
+      ? users.reduce((newest, user) =>
+          user.createdAt > newest.createdAt ? user : newest
+        )
+      : null;
 
   return {
     totalUsers,

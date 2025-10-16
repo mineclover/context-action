@@ -8,9 +8,12 @@
  * - Optimized re-registration strategies
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  FormData,
+  validateFormData,
+} from '../business/imperativeRefBusinessLogic';
 import { useRefRegistry } from '../contexts/RefContexts';
-import { validateFormData, FormData } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Performance Monitoring Hook
 function usePerformanceMonitor(label: string) {
@@ -28,7 +31,9 @@ function usePerformanceMonitor(label: string) {
   const endMeasure = () => {
     if (startTime.current) {
       const duration = performance.now() - startTime.current;
-      console.log(`⚡ ${label}: ${duration.toFixed(2)}ms (render #${renderCount.current})`);
+      console.log(
+        `⚡ ${label}: ${duration.toFixed(2)}ms (render #${renderCount.current})`
+      );
     }
   };
 
@@ -36,15 +41,21 @@ function usePerformanceMonitor(label: string) {
 }
 
 // 🎯 Memory Leak Prevention Example
-export function MemoryLeakPreventionExample({ children }: { children: React.ReactNode }) {
+export function MemoryLeakPreventionExample({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
-  const { startMeasure, endMeasure, renderCount } = usePerformanceMonitor('MemoryLeakPrevention');
+  const { startMeasure, endMeasure, renderCount } = usePerformanceMonitor(
+    'MemoryLeakPrevention'
+  );
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   };
 
   // 🔑 Cleanup Pattern: useEffect cleanup function
@@ -78,22 +89,24 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
     const operations = [
       () => refRegistry.nameInput.current?.getValue(),
       () => refRegistry.emailInput.current?.getValue(),
-      () => refRegistry.counter.current?.getValue()
+      () => refRegistry.counter.current?.getValue(),
     ];
 
     // Execute operations and measure performance
-    const results = operations.map(op => op());
+    const results = operations.map((op) => op());
 
     endMeasure();
     addLog(`✅ Batch operation completed: ${results.join(', ')}`);
-
   };
 
   return (
     <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-      <h3 className="font-semibold text-red-800 mb-2">🛡️ Memory Leak Prevention</h3>
+      <h3 className="font-semibold text-red-800 mb-2">
+        🛡️ Memory Leak Prevention
+      </h3>
       <p className="text-sm text-red-600 mb-3">
-        Demonstrates proper cleanup patterns and performance monitoring (Render #{renderCount})
+        Demonstrates proper cleanup patterns and performance monitoring (Render
+        #{renderCount})
       </p>
 
       <div className="flex gap-2 mb-3">
@@ -122,7 +135,9 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
           <div className="text-red-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-red-700 font-mono">{log}</div>
+            <div key={index} className="text-red-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -135,7 +150,7 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
 // 🎯 Optimized Re-registration Example
 export function OptimizedReregistrationExample({
   debounceMs = 300,
-  children
+  children,
 }: {
   debounceMs?: number;
   children: React.ReactNode;
@@ -143,7 +158,9 @@ export function OptimizedReregistrationExample({
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [triggerCount, setTriggerCount] = useState(0);
-  const { startMeasure, endMeasure } = usePerformanceMonitor('OptimizedReregistration');
+  const { startMeasure, endMeasure } = usePerformanceMonitor(
+    'OptimizedReregistration'
+  );
 
   // 🔑 Debounced state for preventing excessive re-registrations
   const [debouncedTriggerCount, setDebouncedTriggerCount] = useState(0);
@@ -158,7 +175,7 @@ export function OptimizedReregistrationExample({
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   };
 
   // 🔑 Memoized handler - only re-creates when debouncedTriggerCount changes
@@ -169,7 +186,7 @@ export function OptimizedReregistrationExample({
     const formData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
-      message: refRegistry.messageInput.current?.getValue() || ''
+      message: refRegistry.messageInput.current?.getValue() || '',
     };
 
     const result = validateFormData(formData);
@@ -181,7 +198,9 @@ export function OptimizedReregistrationExample({
 
   return (
     <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-      <h3 className="font-semibold text-indigo-800 mb-2">⚡ Optimized Re-registration</h3>
+      <h3 className="font-semibold text-indigo-800 mb-2">
+        ⚡ Optimized Re-registration
+      </h3>
       <p className="text-sm text-indigo-600 mb-3">
         Debounced handler re-registration (debounce: {debounceMs}ms)
       </p>
@@ -191,7 +210,7 @@ export function OptimizedReregistrationExample({
 
       <div className="flex gap-2 mb-3">
         <button
-          onClick={() => setTriggerCount(prev => prev + 1)}
+          onClick={() => setTriggerCount((prev) => prev + 1)}
           className="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
         >
           Trigger Re-registration
@@ -210,7 +229,9 @@ export function OptimizedReregistrationExample({
           <div className="text-indigo-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-indigo-700 font-mono">{log}</div>
+            <div key={index} className="text-indigo-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -221,7 +242,11 @@ export function OptimizedReregistrationExample({
 }
 
 // 🎯 Resource Cleanup Example with WeakMap pattern
-export function WeakMapCleanupExample({ children }: { children: React.ReactNode }) {
+export function WeakMapCleanupExample({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const _refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -231,7 +256,7 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   };
 
   // 🔑 Resource creation with automatic cleanup tracking
@@ -243,7 +268,7 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
       cleanup: () => {
         addLog(`🗑️ Resource ${id} cleaned up`);
         resourceMap.current.delete(id);
-      }
+      },
     };
 
     resourceMap.current.set(id, resource);
@@ -271,7 +296,6 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
     setTimeout(() => {
       resource.cleanup();
     }, 3000);
-
   };
 
   // 🔑 Manual cleanup all resources
@@ -294,7 +318,9 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
 
   return (
     <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-      <h3 className="font-semibold text-teal-800 mb-2">🗂️ WeakMap Cleanup Pattern</h3>
+      <h3 className="font-semibold text-teal-800 mb-2">
+        🗂️ WeakMap Cleanup Pattern
+      </h3>
       <p className="text-sm text-teal-600 mb-3">
         Automatic resource cleanup using WeakMap and proper resource management
       </p>
@@ -323,7 +349,9 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
           <div className="text-teal-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-teal-700 font-mono">{log}</div>
+            <div key={index} className="text-teal-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -342,7 +370,8 @@ export function PerformanceOptimizedDemo() {
           ⚡ Performance Optimized Handler Patterns
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          고급 성능 최적화 패턴: 메모리 누수 방지, 리소스 관리, 최적화된 재등록 전략
+          고급 성능 최적화 패턴: 메모리 누수 방지, 리소스 관리, 최적화된 재등록
+          전략
         </p>
       </div>
 
@@ -362,7 +391,9 @@ export function PerformanceOptimizedDemo() {
 
         {/* Comparison Chart */}
         <div className="bg-gray-50 p-4 rounded-lg border">
-          <h3 className="font-semibold text-gray-800 mb-3">📊 Performance Metrics</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">
+            📊 Performance Metrics
+          </h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Memory Usage:</span>
@@ -386,7 +417,9 @@ export function PerformanceOptimizedDemo() {
 
       {/* Performance Tips */}
       <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-        <h3 className="font-semibold text-amber-800 mb-2">💡 Performance Best Practices</h3>
+        <h3 className="font-semibold text-amber-800 mb-2">
+          💡 Performance Best Practices
+        </h3>
         <div className="grid md:grid-cols-2 gap-4 text-sm text-amber-700">
           <div>
             <h4 className="font-medium mb-1">Memory Management</h4>

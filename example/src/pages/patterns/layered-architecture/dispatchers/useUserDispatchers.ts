@@ -14,31 +14,47 @@ export function useUserManagementActions() {
   const dispatch = useUserManagementAction();
 
   // 🎯 Create User Dispatcher
-  const createUser = useCallback(async (formData: {
-    name: string;
-    email: string;
-    role: 'admin' | 'user' | 'guest';
-  }) => {
-    return await dispatch('createUser', formData);
-  }, [dispatch]);
+  const createUser = useCallback(
+    async (formData: {
+      name: string;
+      email: string;
+      role: 'admin' | 'user' | 'guest';
+    }) => {
+      return await dispatch('createUser', formData);
+    },
+    [dispatch]
+  );
 
   // 🎯 Update User Dispatcher
-  const updateUser = useCallback(async (payload: {
-    id: string;
-    updates: Partial<{ name: string; email: string; role: 'admin' | 'user' | 'guest' }>;
-  }) => {
-    return await dispatch('updateUser', payload);
-  }, [dispatch]);
+  const updateUser = useCallback(
+    async (payload: {
+      id: string;
+      updates: Partial<{
+        name: string;
+        email: string;
+        role: 'admin' | 'user' | 'guest';
+      }>;
+    }) => {
+      return await dispatch('updateUser', payload);
+    },
+    [dispatch]
+  );
 
   // 🎯 Delete User Dispatcher
-  const deleteUser = useCallback(async (userId: string) => {
-    return await dispatch('deleteUser', { id: userId });
-  }, [dispatch]);
+  const deleteUser = useCallback(
+    async (userId: string) => {
+      return await dispatch('deleteUser', { id: userId });
+    },
+    [dispatch]
+  );
 
   // 🎯 Validate User Dispatcher
-  const validateUser = useCallback(async (data: { name: string; email: string }) => {
-    return await dispatch('validateUser', data);
-  }, [dispatch]);
+  const validateUser = useCallback(
+    async (data: { name: string; email: string }) => {
+      return await dispatch('validateUser', data);
+    },
+    [dispatch]
+  );
 
   // 🎯 Reset Validation Dispatcher
   const resetValidation = useCallback(async () => {

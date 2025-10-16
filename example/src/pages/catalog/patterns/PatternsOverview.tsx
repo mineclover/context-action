@@ -14,10 +14,12 @@ export default function PatternsOverview() {
         <h2 className="text-2xl font-semibold mb-4">🎨 패턴 학습 경로</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
-            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">1</span>
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              1
+            </span>
             <div>
-              <Link 
-                to="/patterns/conditional" 
+              <Link
+                to="/patterns/conditional"
                 className="text-purple-600 hover:text-purple-800 font-medium text-lg"
               >
                 Conditional Patterns
@@ -26,10 +28,12 @@ export default function PatternsOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">2</span>
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              2
+            </span>
             <div>
-              <Link 
-                to="/patterns/pipeline/flow-control" 
+              <Link
+                to="/patterns/pipeline/flow-control"
                 className="text-purple-600 hover:text-purple-800 font-medium text-lg"
               >
                 Pipeline Patterns
@@ -38,10 +42,12 @@ export default function PatternsOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">3</span>
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              3
+            </span>
             <div>
-              <Link 
-                to="/patterns/refs" 
+              <Link
+                to="/patterns/refs"
                 className="text-purple-600 hover:text-purple-800 font-medium text-lg"
               >
                 Ref Patterns
@@ -57,27 +63,42 @@ export default function PatternsOverview() {
           <h3 className="text-xl font-semibold mb-4">🔀 Conditional</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/patterns/conditional" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/conditional"
+                className="text-purple-600 hover:underline"
+              >
                 Overview
               </Link>
             </li>
             <li>
-              <Link to="/patterns/conditional/permissions" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/conditional/permissions"
+                className="text-purple-600 hover:underline"
+              >
                 Permission-based
               </Link>
             </li>
             <li>
-              <Link to="/patterns/conditional/form-validation" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/conditional/form-validation"
+                className="text-purple-600 hover:underline"
+              >
                 Form Validation
               </Link>
             </li>
             <li>
-              <Link to="/patterns/conditional/workflow-steps" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/conditional/workflow-steps"
+                className="text-purple-600 hover:underline"
+              >
                 Workflow Steps
               </Link>
             </li>
             <li>
-              <Link to="/patterns/conditional/feature-toggle" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/conditional/feature-toggle"
+                className="text-purple-600 hover:underline"
+              >
                 Feature Toggle
               </Link>
             </li>
@@ -88,7 +109,10 @@ export default function PatternsOverview() {
           <h3 className="text-xl font-semibold mb-4">🔄 Pipeline</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/patterns/pipeline/flow-control" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/pipeline/flow-control"
+                className="text-purple-600 hover:underline"
+              >
                 Flow Control
               </Link>
             </li>
@@ -99,22 +123,34 @@ export default function PatternsOverview() {
           <h3 className="text-xl font-semibold mb-4">📎 Refs</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/patterns/refs" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/refs"
+                className="text-purple-600 hover:underline"
+              >
                 Refs Index
               </Link>
             </li>
             <li>
-              <Link to="/patterns/refs/form-builder" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/refs/form-builder"
+                className="text-purple-600 hover:underline"
+              >
                 Form Builder
               </Link>
             </li>
             <li>
-              <Link to="/patterns/refs/waitforrefs-performance" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/refs/waitforrefs-performance"
+                className="text-purple-600 hover:underline"
+              >
                 Performance Test
               </Link>
             </li>
             <li>
-              <Link to="/patterns/refs/canvas" className="text-purple-600 hover:underline">
+              <Link
+                to="/patterns/refs/canvas"
+                className="text-purple-600 hover:underline"
+              >
                 Canvas Integration
               </Link>
             </li>

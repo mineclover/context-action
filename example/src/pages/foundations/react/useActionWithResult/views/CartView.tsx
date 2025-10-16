@@ -8,8 +8,13 @@
  * - No direct business logic or store access
  */
 
-import React, { useState, useCallback } from 'react';
-import type { CartItem, ValidationResult, CalculationResult, ProcessingResult } from '../contexts/CartContexts';
+import React, { useCallback, useState } from 'react';
+import type {
+  CalculationResult,
+  CartItem,
+  ProcessingResult,
+  ValidationResult,
+} from '../contexts/CartContexts';
 
 // 🎯 Cart Item View Component
 export interface CartItemViewProps {
@@ -19,13 +24,21 @@ export interface CartItemViewProps {
   disabled?: boolean;
 }
 
-export function CartItemView({ item, onUpdateQuantity, onRemoveItem, disabled = false }: CartItemViewProps) {
+export function CartItemView({
+  item,
+  onUpdateQuantity,
+  onRemoveItem,
+  disabled = false,
+}: CartItemViewProps) {
   // Use item.quantity directly instead of local state to sync with store updates
   const quantity = item.quantity;
 
-  const handleQuantityChange = useCallback((newQuantity: number) => {
-    onUpdateQuantity(item.id, newQuantity);
-  }, [item.id, onUpdateQuantity]);
+  const handleQuantityChange = useCallback(
+    (newQuantity: number) => {
+      onUpdateQuantity(item.id, newQuantity);
+    },
+    [item.id, onUpdateQuantity]
+  );
 
   const totalPrice = item.price * quantity;
 
@@ -76,7 +89,12 @@ export interface CartListViewProps {
   disabled?: boolean;
 }
 
-export function CartListView({ items, onUpdateQuantity, onRemoveItem, disabled = false }: CartListViewProps) {
+export function CartListView({
+  items,
+  onUpdateQuantity,
+  onRemoveItem,
+  disabled = false,
+}: CartListViewProps) {
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
@@ -115,27 +133,38 @@ export function AddItemForm({ onAddItem, disabled = false }: AddItemFormProps) {
     quantity: '1',
   });
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
 
-    if (!formData.name.trim() || !formData.price || Number(formData.price) <= 0) {
-      return;
-    }
+      if (
+        !formData.name.trim() ||
+        !formData.price ||
+        Number(formData.price) <= 0
+      ) {
+        return;
+      }
 
-    onAddItem({
-      name: formData.name.trim(),
-      price: Number(formData.price),
-      quantity: Number(formData.quantity),
-    });
+      onAddItem({
+        name: formData.name.trim(),
+        price: Number(formData.price),
+        quantity: Number(formData.quantity),
+      });
 
-    // Reset form
-    setFormData({ name: '', price: '', quantity: '1' });
-  }, [formData, onAddItem]);
+      // Reset form
+      setFormData({ name: '', price: '', quantity: '1' });
+    },
+    [formData, onAddItem]
+  );
 
-  const canSubmit = formData.name.trim() && formData.price && Number(formData.price) > 0;
+  const canSubmit =
+    formData.name.trim() && formData.price && Number(formData.price) > 0;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 bg-gray-50 rounded-lg border"
+    >
       <h3 className="font-semibold text-gray-800">Add New Item</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -146,7 +175,9 @@ export function AddItemForm({ onAddItem, disabled = false }: AddItemFormProps) {
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             disabled={disabled}
             placeholder="Enter item name"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
@@ -160,7 +191,9 @@ export function AddItemForm({ onAddItem, disabled = false }: AddItemFormProps) {
           <input
             type="number"
             value={formData.price}
-            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, price: e.target.value }))
+            }
             disabled={disabled}
             placeholder="0.00"
             min="0.01"
@@ -176,7 +209,9 @@ export function AddItemForm({ onAddItem, disabled = false }: AddItemFormProps) {
           <input
             type="number"
             value={formData.quantity}
-            onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, quantity: e.target.value }))
+            }
             disabled={disabled}
             min="1"
             max="99"
@@ -205,15 +240,15 @@ export function ValidationView({ validation }: ValidationViewProps) {
   if (!validation) return null;
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      validation.isValid
-        ? 'bg-green-50 border-green-200 text-green-800'
-        : 'bg-red-50 border-red-200 text-red-800'
-    }`}>
+    <div
+      className={`p-4 rounded-lg border ${
+        validation.isValid
+          ? 'bg-green-50 border-green-200 text-green-800'
+          : 'bg-red-50 border-red-200 text-red-800'
+      }`}
+    >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">
-          {validation.isValid ? '✅' : '❌'}
-        </span>
+        <span className="text-lg">{validation.isValid ? '✅' : '❌'}</span>
         <h3 className="font-semibold">
           {validation.isValid ? 'Cart is Valid' : 'Validation Errors'}
         </h3>
@@ -291,22 +326,30 @@ export function OrderStatusView({ order }: OrderStatusViewProps) {
   const config = statusConfig[order.status];
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      config.color === 'green' ? 'bg-green-50 border-green-200 text-green-800' :
-      config.color === 'red' ? 'bg-red-50 border-red-200 text-red-800' :
-      'bg-yellow-50 border-yellow-200 text-yellow-800'
-    }`}>
+    <div
+      className={`p-4 rounded-lg border ${
+        config.color === 'green'
+          ? 'bg-green-50 border-green-200 text-green-800'
+          : config.color === 'red'
+            ? 'bg-red-50 border-red-200 text-red-800'
+            : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+      }`}
+    >
       <div className="flex items-center gap-2 mb-2">
         <span className="text-lg">{config.icon}</span>
         <h3 className="font-semibold">Order {config.label}</h3>
       </div>
 
       <p className="text-sm mb-1">
-        Order ID: <code className="bg-white bg-opacity-50 px-1 rounded">{order.orderId}</code>
+        Order ID:{' '}
+        <code className="bg-white bg-opacity-50 px-1 rounded">
+          {order.orderId}
+        </code>
       </p>
 
       <p className="text-xs opacity-75">
-        Processed by: {order.processedBy} at {new Date(order.timestamp).toLocaleString()}
+        Processed by: {order.processedBy} at{' '}
+        {new Date(order.timestamp).toLocaleString()}
       </p>
     </div>
   );
@@ -319,17 +362,27 @@ export interface CheckoutFormProps {
   isProcessing?: boolean;
 }
 
-export function CheckoutForm({ onCheckout, disabled = false, isProcessing = false }: CheckoutFormProps) {
+export function CheckoutForm({
+  onCheckout,
+  disabled = false,
+  isProcessing = false,
+}: CheckoutFormProps) {
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [discountCode, setDiscountCode] = useState('');
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    onCheckout(paymentMethod, discountCode || undefined);
-  }, [paymentMethod, discountCode, onCheckout]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      onCheckout(paymentMethod, discountCode || undefined);
+    },
+    [paymentMethod, discountCode, onCheckout]
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 bg-gray-50 rounded-lg border"
+    >
       <h3 className="font-semibold text-gray-800">Checkout</h3>
 
       <div>
@@ -415,7 +468,9 @@ export function CartStatisticsView({ statistics }: CartStatisticsViewProps) {
         </div>
         <div>
           <p className="text-gray-600">Average Price:</p>
-          <p className="font-semibold">${statistics.averageItemPrice.toFixed(2)}</p>
+          <p className="font-semibold">
+            ${statistics.averageItemPrice.toFixed(2)}
+          </p>
         </div>
       </div>
 
@@ -423,7 +478,8 @@ export function CartStatisticsView({ statistics }: CartStatisticsViewProps) {
         <div className="mt-3 pt-3 border-t">
           <p className="text-gray-600 text-sm">Most Expensive:</p>
           <p className="font-semibold text-sm">
-            {statistics.mostExpensiveItem.name} - ${statistics.mostExpensiveItem.price.toFixed(2)}
+            {statistics.mostExpensiveItem.name} - $
+            {statistics.mostExpensiveItem.price.toFixed(2)}
           </p>
         </div>
       )}

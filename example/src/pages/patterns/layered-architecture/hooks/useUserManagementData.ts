@@ -8,16 +8,19 @@
  * - Abstracts store access from views
  */
 
-import { useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useUserManagementStore, type User } from '../contexts/UserManagementContexts';
+import { useMemo } from 'react';
+import { useRegisterSourceFile } from '../../../../hooks/useRegisterSourceFile';
 import {
   calculateUserStatistics,
-  sortUsersByName,
-  sortUsersByCreatedDate,
   filterUsersByRole,
+  sortUsersByCreatedDate,
+  sortUsersByName,
 } from '../business/userBusinessLogic';
-import { useRegisterSourceFile } from '../../../../hooks/useRegisterSourceFile';
+import {
+  type User,
+  useUserManagementStore,
+} from '../contexts/UserManagementContexts';
 
 /**
  * User Management Data Hook
@@ -26,12 +29,15 @@ import { useRegisterSourceFile } from '../../../../hooks/useRegisterSourceFile';
  */
 export function useUserManagementData() {
   // hooks 레이어 등록
-  useRegisterSourceFile('pages/patterns/layered-architecture/hooks/useUserManagementData.ts', {
-    name: 'useUserManagementData',
-    description: 'Store subscriptions and derived state management',
-    tags: ['hooks', 'subscriptions', 'derived-state'],
-    priority: 20
-  });
+  useRegisterSourceFile(
+    'pages/patterns/layered-architecture/hooks/useUserManagementData.ts',
+    {
+      name: 'useUserManagementData',
+      description: 'Store subscriptions and derived state management',
+      tags: ['hooks', 'subscriptions', 'derived-state'],
+      priority: 20,
+    }
+  );
 
   // 🎯 Raw Store Subscriptions
   const usersStore = useUserManagementStore('users');
@@ -67,7 +73,8 @@ export function useUserManagementData() {
   // 🎯 Status Helpers
   const isLoading = operationStatus.isLoading;
   const hasValidationErrors = validationResult && !validationResult.isValid;
-  const lastOperationFailed = operationStatus.result && !operationStatus.result.success;
+  const lastOperationFailed =
+    operationStatus.result && !operationStatus.result.success;
 
   return {
     // Raw store data
@@ -106,20 +113,20 @@ export function useUserDetailData(userId: string | null) {
   // 🎯 Find specific user
   const user = useMemo(() => {
     if (!userId) return null;
-    return users.find(u => u.id === userId) || null;
+    return users.find((u) => u.id === userId) || null;
   }, [users, userId]);
 
   // 🎯 Related users (same role)
   const relatedUsers = useMemo(() => {
     if (!user) return [];
-    return usersByRole[user.role].filter(u => u.id !== user.id);
+    return usersByRole[user.role].filter((u) => u.id !== user.id);
   }, [user, usersByRole]);
 
   // 🎯 User position in list
   const userPosition = useMemo(() => {
     if (!user) return null;
     const sortedUsers = sortUsersByName(users);
-    return sortedUsers.findIndex(u => u.id === user.id) + 1;
+    return sortedUsers.findIndex((u) => u.id === user.id) + 1;
   }, [user, users]);
 
   return {
@@ -147,7 +154,7 @@ export function useUserFormData() {
   const getFieldError = (fieldName: string) => {
     if (!hasErrors) return null;
 
-    const fieldErrors = formErrors.filter(error =>
+    const fieldErrors = formErrors.filter((error) =>
       error.toLowerCase().includes(fieldName.toLowerCase())
     );
 
@@ -188,10 +195,11 @@ export function useUserSearchData() {
       if (!query.trim()) return users;
 
       const lowercaseQuery = query.toLowerCase();
-      return users.filter(user =>
-        user.name.toLowerCase().includes(lowercaseQuery) ||
-        user.email.toLowerCase().includes(lowercaseQuery) ||
-        user.role.toLowerCase().includes(lowercaseQuery)
+      return users.filter(
+        (user) =>
+          user.name.toLowerCase().includes(lowercaseQuery) ||
+          user.email.toLowerCase().includes(lowercaseQuery) ||
+          user.role.toLowerCase().includes(lowercaseQuery)
       );
     };
   }, [users]);

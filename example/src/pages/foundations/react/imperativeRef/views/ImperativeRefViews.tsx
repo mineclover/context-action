@@ -32,18 +32,24 @@ export function DemoStatusView({
   counterAtMax,
   timerDisplay,
   isTimerRunning,
-  modalsOpen
+  modalsOpen,
 }: DemoStatusViewProps) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg border">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">📊 Demo Status</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">
+        📊 Demo Status
+      </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Form Status */}
         <div className="bg-white p-3 rounded-lg">
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Form Status</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Form Status
+          </h4>
           <div className="space-y-1">
-            <div className={`text-sm ${isFormValid ? 'text-green-600' : 'text-red-600'}`}>
+            <div
+              className={`text-sm ${isFormValid ? 'text-green-600' : 'text-red-600'}`}
+            >
               {isFormValid ? '✅ Valid' : '❌ Invalid'}
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -52,29 +58,53 @@ export function DemoStatusView({
                 style={{ width: `${formProgress}%` }}
               />
             </div>
-            <div className="text-xs text-gray-500">{Math.round(formProgress)}% Complete</div>
+            <div className="text-xs text-gray-500">
+              {Math.round(formProgress)}% Complete
+            </div>
           </div>
         </div>
 
         {/* Counter Status */}
         <div className="bg-white p-3 rounded-lg">
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Counter Status</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Counter Status
+          </h4>
           <div className="space-y-1">
-            <div className="text-xl font-bold text-blue-600">{counterValue}</div>
+            <div className="text-xl font-bold text-blue-600">
+              {counterValue}
+            </div>
             <div className="flex gap-1">
-              {counterAtMin && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">MIN</span>}
-              {counterAtMax && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">MAX</span>}
-              {!counterAtMin && !counterAtMax && <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">OK</span>}
+              {counterAtMin && (
+                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                  MIN
+                </span>
+              )}
+              {counterAtMax && (
+                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                  MAX
+                </span>
+              )}
+              {!counterAtMin && !counterAtMax && (
+                <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+                  OK
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Timer Status */}
         <div className="bg-white p-3 rounded-lg">
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Timer Status</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Timer Status
+          </h4>
           <div className="space-y-1">
-            <div className="text-xl font-mono font-bold text-blue-600">{timerDisplay}</div>
-            <div className={`text-sm ${isTimerRunning ? 'text-green-600' : 'text-gray-500'}`}>
+            <div className="text-xl font-mono font-bold text-blue-600">
+              {timerDisplay}
+            </div>
+            <div
+              className={`text-sm ${isTimerRunning ? 'text-green-600' : 'text-gray-500'}`}
+            >
               {isTimerRunning ? '🔵 Running' : '⏸️ Stopped'}
             </div>
           </div>
@@ -82,21 +112,27 @@ export function DemoStatusView({
 
         {/* Modal Status */}
         <div className="bg-white p-3 rounded-lg">
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Modal Status</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Modal Status
+          </h4>
           <div className="space-y-1">
             <div className="flex gap-2">
-              <span className={`text-xs px-2 py-1 rounded ${
-                modalsOpen.confirm
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
+              <span
+                className={`text-xs px-2 py-1 rounded ${
+                  modalsOpen.confirm
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-500'
+                }`}
+              >
                 Confirm {modalsOpen.confirm ? '👁️' : '👁️‍🗨️'}
               </span>
-              <span className={`text-xs px-2 py-1 rounded ${
-                modalsOpen.alert
-                  ? 'bg-yellow-100 text-yellow-600'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
+              <span
+                className={`text-xs px-2 py-1 rounded ${
+                  modalsOpen.alert
+                    ? 'bg-yellow-100 text-yellow-600'
+                    : 'bg-gray-100 text-gray-500'
+                }`}
+              >
                 Alert {modalsOpen.alert ? '⚠️' : '💤'}
               </span>
             </div>
@@ -145,16 +181,20 @@ export function ControlPanelView({
   isFormValid,
   counterAtMin,
   counterAtMax,
-  isTimerRunning
+  isTimerRunning,
 }: ControlPanelViewProps) {
   return (
     <div className="bg-white p-4 rounded-lg border">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">🎮 Control Panel</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">
+        🎮 Control Panel
+      </h3>
 
       <div className="space-y-4">
         {/* Form Controls */}
         <div>
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Form Controls</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Form Controls
+          </h4>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onFormSubmit}
@@ -190,7 +230,9 @@ export function ControlPanelView({
 
         {/* Counter Controls */}
         <div>
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Counter Controls</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Counter Controls
+          </h4>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onCounterIncrement}
@@ -217,7 +259,9 @@ export function ControlPanelView({
 
         {/* Timer Controls */}
         <div>
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Timer Controls</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Timer Controls
+          </h4>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onTimerStart}
@@ -244,7 +288,9 @@ export function ControlPanelView({
 
         {/* Modal Controls */}
         <div>
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Modal Controls</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Modal Controls
+          </h4>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => onModalOpen('confirm')}
@@ -275,7 +321,9 @@ export function ControlPanelView({
 
         {/* Global Controls */}
         <div>
-          <h4 className="font-medium text-sm text-gray-600 mb-2">Global Controls</h4>
+          <h4 className="font-medium text-sm text-gray-600 mb-2">
+            Global Controls
+          </h4>
           <button
             onClick={onResetAll}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium transition-colors"
@@ -297,7 +345,9 @@ export function CodeExamplesView({ className = '' }: CodeExamplesViewProps) {
   return (
     <div className={`bg-white rounded-lg border ${className}`}>
       <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">💻 Code Examples</h3>
+        <h3 className="text-lg font-semibold text-gray-800">
+          💻 Code Examples
+        </h3>
         <p className="text-sm text-gray-600 mt-1">
           useImperativeHandle pattern with 6-Layer Architecture
         </p>
@@ -306,10 +356,12 @@ export function CodeExamplesView({ className = '' }: CodeExamplesViewProps) {
       <div className="p-4 space-y-4">
         {/* Basic useImperativeHandle Example */}
         <div>
-          <h4 className="font-medium text-sm text-gray-700 mb-2">🔧 Basic useImperativeHandle Pattern</h4>
+          <h4 className="font-medium text-sm text-gray-700 mb-2">
+            🔧 Basic useImperativeHandle Pattern
+          </h4>
           <div className="bg-gray-50 p-3 rounded-md">
             <pre className="text-xs text-gray-700 overflow-x-auto">
-{`// 🎯 Layer 6: Views - Imperative Component
+              {`// 🎯 Layer 6: Views - Imperative Component
 const ImperativeInput = forwardRef<FormRefHandle, Props>((props, ref) => {
   const [value, setValue] = useState('');
   const [isValid, setIsValid] = useState(false);
@@ -338,10 +390,12 @@ const ImperativeInput = forwardRef<FormRefHandle, Props>((props, ref) => {
 
         {/* Handler Injection Pattern Example */}
         <div>
-          <h4 className="font-medium text-sm text-gray-700 mb-2">💉 Layer 3: Handler Injection Pattern</h4>
+          <h4 className="font-medium text-sm text-gray-700 mb-2">
+            💉 Layer 3: Handler Injection Pattern
+          </h4>
           <div className="bg-gray-50 p-3 rounded-md">
             <pre className="text-xs text-gray-700 overflow-x-auto">
-{`// 🎯 Layer 3: Handlers - Handler with Dependency Injection
+              {`// 🎯 Layer 3: Handlers - Handler with Dependency Injection
 const handleFormSubmit = useCallback(() => {
   // 1️⃣ Handler Injection: Get current values from ref registry
   const currentFormData = {
@@ -370,10 +424,12 @@ const handleFormSubmit = useCallback(() => {
 
         {/* 6-Layer Architecture Example */}
         <div>
-          <h4 className="font-medium text-sm text-gray-700 mb-2">🏗️ Complete 6-Layer Architecture Flow</h4>
+          <h4 className="font-medium text-sm text-gray-700 mb-2">
+            🏗️ Complete 6-Layer Architecture Flow
+          </h4>
           <div className="bg-gray-50 p-3 rounded-md">
             <pre className="text-xs text-gray-700 overflow-x-auto">
-{`// 🎯 Complete 6-Layer Data Flow with useImperativeHandle
+              {`// 🎯 Complete 6-Layer Data Flow with useImperativeHandle
 
 // 📱 Layer 6: Views - User Interaction
 <button onClick={() => actions.submitForm()}>Submit Form</button>
@@ -438,7 +494,7 @@ export function ValidationDisplayView({
   validationStates,
   hasValidationErrors,
   formProgress,
-  className = ''
+  className = '',
 }: ValidationDisplayViewProps) {
   return (
     <div className={`bg-white p-4 rounded-lg border ${className}`}>
@@ -447,27 +503,33 @@ export function ValidationDisplayView({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Name Field:</span>
-          <span className={`text-sm font-medium ${
-            validationStates.name ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <span
+            className={`text-sm font-medium ${
+              validationStates.name ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
             {validationStates.name ? '✅ Valid' : '❌ Invalid'}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Email Field:</span>
-          <span className={`text-sm font-medium ${
-            validationStates.email ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <span
+            className={`text-sm font-medium ${
+              validationStates.email ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
             {validationStates.email ? '✅ Valid' : '❌ Invalid'}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Message Field:</span>
-          <span className={`text-sm font-medium ${
-            validationStates.message ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <span
+            className={`text-sm font-medium ${
+              validationStates.message ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
             {validationStates.message ? '✅ Valid' : '❌ Invalid'}
           </span>
         </div>
@@ -475,9 +537,11 @@ export function ValidationDisplayView({
         <div className="pt-2 border-t">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm text-gray-600">Overall:</span>
-            <span className={`text-sm font-medium ${
-              !hasValidationErrors ? 'text-green-600' : 'text-orange-600'
-            }`}>
+            <span
+              className={`text-sm font-medium ${
+                !hasValidationErrors ? 'text-green-600' : 'text-orange-600'
+              }`}
+            >
               {Math.round(formProgress)}% Complete
             </span>
           </div>

@@ -6,7 +6,7 @@
  */
 
 import type { Store } from '@context-action/react';
-import { useCallback, useRef, type ReactNode } from 'react';
+import { type ReactNode, useCallback, useRef } from 'react';
 import {
   type ExecutionStateData,
   type HandlerConfig,
@@ -35,34 +35,41 @@ export function PriorityTestHandlers({
   // 초기화 핸들러 등록 (우선순위 200 - 가장 먼저 실행)
   usePriorityTestActionHandler(
     'priorityTest',
-    useCallback(async (payload, controller) => {
-      console.log('🚀 Priority Test Started - Initializing execution state...');
+    useCallback(
+      async (payload, controller) => {
+        console.log(
+          '🚀 Priority Test Started - Initializing execution state...'
+        );
 
-      // Execution State Store 완전 초기화 (Priority Counts는 유지)
-      executionStateStore.setValue({
-        isRunning: true,
-        testResults: [],
-        currentTestId: payload.testId,
-        totalTests: 0,
-        successfulTests: 0,
-        failedTests: 0,
-        abortedTests: 0,
-        averageExecutionTime: 0,
-        lastExecutionTime: 0,
-        maxExecutionTime: 0,
-        minExecutionTime: Number.MAX_VALUE,
-        startTime: Date.now(),
-        executionTimes: [] as number[],
-      });
+        // Execution State Store 완전 초기화 (Priority Counts는 유지)
+        executionStateStore.setValue({
+          isRunning: true,
+          testResults: [],
+          currentTestId: payload.testId,
+          totalTests: 0,
+          successfulTests: 0,
+          failedTests: 0,
+          abortedTests: 0,
+          averageExecutionTime: 0,
+          lastExecutionTime: 0,
+          maxExecutionTime: 0,
+          minExecutionTime: Number.MAX_VALUE,
+          startTime: Date.now(),
+          executionTimes: [] as number[],
+        });
 
-      console.log('✅ Execution state initialized (priority counts preserved)');
-    }, [executionStateStore]),
+        console.log(
+          '✅ Execution state initialized (priority counts preserved)'
+        );
+      },
+      [executionStateStore]
+    ),
     { priority: 200, id: 'initializer', blocking: true }
   );
 
   // 통합된 핸들러로 모든 설정을 처리
-  const createConfigHandler = useCallback((configIndex: number) =>
-    async (payload: any, controller: any) => {
+  const createConfigHandler = useCallback(
+    (configIndex: number) => async (payload: any, controller: any) => {
       const config = handlerConfigs[configIndex];
       if (!config) return;
 
@@ -157,7 +164,17 @@ export function PriorityTestHandlers({
   const handler7 = useCallback(createConfigHandler(7), [createConfigHandler]);
   const handler8 = useCallback(createConfigHandler(8), [createConfigHandler]);
 
-  const handlers = [handler0, handler1, handler2, handler3, handler4, handler5, handler6, handler7, handler8];
+  const handlers = [
+    handler0,
+    handler1,
+    handler2,
+    handler3,
+    handler4,
+    handler5,
+    handler6,
+    handler7,
+    handler8,
+  ];
 
   // 각 핸들러 등록 (항상 9개 등록, 설정이 없으면 기본값 사용)
   usePriorityTestActionHandler('priorityTest', handlers[0]!, {
@@ -209,18 +226,21 @@ export function PriorityTestHandlers({
   // 완료 핸들러 등록 (우선순위 0 - 가장 마지막 실행)
   usePriorityTestActionHandler(
     'priorityTest',
-    useCallback(async (payload, controller) => {
-      console.log('🏁 Priority Test Completed - Finalizing...');
+    useCallback(
+      async (payload, controller) => {
+        console.log('🏁 Priority Test Completed - Finalizing...');
 
-      const currentState = executionStateStore.getValue();
-      executionStateStore.setValue({
-        ...currentState,
-        isRunning: false,
-        currentTestId: null,
-      });
+        const currentState = executionStateStore.getValue();
+        executionStateStore.setValue({
+          ...currentState,
+          isRunning: false,
+          currentTestId: null,
+        });
 
-      console.log('✅ Test completed successfully');
-    }, [executionStateStore]),
+        console.log('✅ Test completed successfully');
+      },
+      [executionStateStore]
+    ),
     { priority: 0, id: 'finalizer', blocking: true }
   );
 

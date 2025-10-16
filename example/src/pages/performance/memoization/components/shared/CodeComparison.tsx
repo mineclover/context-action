@@ -8,9 +8,11 @@ export function CodeComparison() {
   return (
     <div className="grid md:grid-cols-2 gap-4 text-sm">
       <div className="p-3 bg-green-50 rounded-lg">
-        <h4 className="font-bold text-green-700 mb-2">✅ 스마트 메모이제이션 패턴</h4>
+        <h4 className="font-bold text-green-700 mb-2">
+          ✅ 스마트 메모이제이션 패턴
+        </h4>
         <pre className="text-xs overflow-x-auto">
-{`// ✅ 함수는 메모이제이션 + 데이터는 지연 평가
+          {`// ✅ 함수는 메모이제이션 + 데이터는 지연 평가
 const handleIncrement = useCallback(async () => {
   const current = store.getValue(); // 🔄 항상 최신 값
   store.setValue({ ...current, counter: current.counter + 1 });
@@ -40,11 +42,11 @@ const handleHeavyOperation = useCallback(async (payload) => {
 // 🚀 결과: 함수 생성 비용 0, 하지만 최신 데이터 접근!`}
         </pre>
       </div>
-      
+
       <div className="p-3 bg-red-50 rounded-lg">
         <h4 className="font-bold text-red-700 mb-2">❌ 비효율적인 패턴</h4>
         <pre className="text-xs overflow-x-auto">
-{`// ❌ 렌더링마다 새로운 함수 생성 = 메모리 낭비
+          {`// ❌ 렌더링마다 새로운 함수 생성 = 메모리 낭비
 const handleIncrement = async () => {
   const current = store.getValue(); // ✓ 최신 값은 가져오지만
   store.setValue({ ...current, counter: current.counter + 1 });

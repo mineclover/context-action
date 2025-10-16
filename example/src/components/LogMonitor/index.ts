@@ -4,10 +4,14 @@
  */
 
 // 컨텍스트 및 프로바이더
+// MVVM 레이어별 훅들 (context.tsx에서 export)
 export {
   LogMonitorProvider,
   PageWithLogMonitor,
+  useLogMonitorActions,
+  useLogMonitorConfig,
   useLogMonitorContext,
+  useLogMonitorLogs,
 } from './context';
 // 훅들
 export {
@@ -18,13 +22,6 @@ export {
   useLogMonitor,
   usePureActionLogger,
 } from './hooks';
-
-// MVVM 레이어별 훅들 (context.tsx에서 export)
-export {
-  useLogMonitorActions,
-  useLogMonitorLogs,
-  useLogMonitorConfig,
-} from './context';
 // 메인 컴포넌트
 // 기본 내보내기 (하위 호환성)
 export { LogMonitor, LogMonitor as default } from './LogMonitor';

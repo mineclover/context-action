@@ -3,23 +3,22 @@
  * 단일 엔드포인트 패턴의 React 통합
  */
 
-import React, { 
-  useEffect,
-  ReactNode,
-  useRef
-} from 'react';
-import { createActionContext, useStoreValue } from '@context-action/react';
-import { createStoreContext } from '@context-action/react';
 import {
-  ManagedObject,
-  ObjectMetadata,
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+import React, { ReactNode, useEffect, useRef } from 'react';
+import { ObjectContextManager } from './ObjectContextManager';
+import {
   BaseObjectActions,
+  ManagedObject,
   ObjectContextConfig,
   ObjectLifecycleState,
+  ObjectManagementEvent,
+  ObjectMetadata,
   QueryOptions,
-  ObjectManagementEvent
 } from './types';
-import { ObjectContextManager } from './ObjectContextManager';
 
 /**
  * 객체 컨텍스트 관리를 위한 React Hooks 팩토리
@@ -27,43 +26,45 @@ import { ObjectContextManager } from './ObjectContextManager';
  * @param config 컨텍스트 설정
  * @returns 객체 관리를 위한 React 훅들과 컴포넌트들
  */
-export function createObjectContextHooks<T extends ManagedObject>(config: ObjectContextConfig) {
+export function createObjectContextHooks<T extends ManagedObject>(
+  config: ObjectContextConfig
+) {
   // Store Pattern 생성
   const {
     Provider: ObjectStoreProvider,
     useStore: useObjectStore,
-    useStoreManager: useObjectStoreManager
+    useStoreManager: useObjectStoreManager,
   } = createStoreContext(`ObjectContext_${config.contextName}`, {
-    objects: { 
-      initialValue: new Map<string, ObjectMetadata>()
+    objects: {
+      initialValue: new Map<string, ObjectMetadata>(),
     },
-    selectedObjects: { 
-      initialValue: [] as string[] 
+    selectedObjects: {
+      initialValue: [] as string[],
     },
-    focusedObject: { 
-      initialValue: null as string | null 
+    focusedObject: {
+      initialValue: null as string | null,
     },
-    lastCleanup: { 
-      initialValue: null as string | null 
-    }
+    lastCleanup: {
+      initialValue: null as string | null,
+    },
   });
 
   // Action Context 생성
   const {
     Provider: ObjectActionProvider,
     useActionDispatch: useObjectAction,
-    useActionHandler: useObjectActionHandler
-  } = createActionContext<BaseObjectActions<T>>(`ObjectContext_${config.contextName}_Actions`);
+    useActionHandler: useObjectActionHandler,
+  } = createActionContext<BaseObjectActions<T>>(
+    `ObjectContext_${config.contextName}_Actions`
+  );
 
   // Manager Store 생성 (Core ObjectContextManager 인스턴스 공유를 위한 Store)
-  const {
-    Provider: ObjectManagerProvider,
-    useStore: useObjectManagerStore,
-  } = createStoreContext(`ObjectManager_${config.contextName}`, {
-    manager: { 
-      initialValue: null as ObjectContextManager<T> | null 
-    }
-  });
+  const { Provider: ObjectManagerProvider, useStore: useObjectManagerStore } =
+    createStoreContext(`ObjectManager_${config.contextName}`, {
+      manager: {
+        initialValue: null as ObjectContextManager<T> | null,
+      },
+    });
 
   /**
    * Core Store Hook - 순수 상태 조회
@@ -81,26 +82,37 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     const manager = useObjectContextManager();
 
     // Computed values (React 컴파일러가 자동으로 메모이제이션)
-    const objectsMap = objects instanceof Map ? objects as Map<string, ObjectMetadata> : new Map(Object.entries(objects as Record<string, ObjectMetadata>));
+    const objectsMap =
+      objects instanceof Map
+        ? (objects as Map<string, ObjectMetadata>)
+        : new Map(Object.entries(objects as Record<string, ObjectMetadata>));
 
-    const selectedObjectsInfo = selectedObjects.map(id => objectsMap.get(id)).filter(Boolean) as ObjectMetadata[];
+    const selectedObjectsInfo = selectedObjects
+      .map((id) => objectsMap.get(id))
+      .filter(Boolean) as ObjectMetadata[];
 
-    const focusedObjectInfo = focusedObject ? objectsMap.get(focusedObject) || null : null;
+    const focusedObjectInfo = focusedObject
+      ? objectsMap.get(focusedObject) || null
+      : null;
 
     // Query function
     const queryObjects = (options: QueryOptions = {}): ObjectMetadata[] => {
       const results: ObjectMetadata[] = [];
-      
+
       for (const metadata of objectsMap.values()) {
         // 타입 필터
         if (options.type) {
-          const types = Array.isArray(options.type) ? options.type : [options.type];
+          const types = Array.isArray(options.type)
+            ? options.type
+            : [options.type];
           if (!types.includes(metadata.type)) continue;
         }
 
         // 생명주기 상태 필터
         if (options.lifecycleState) {
-          const states = Array.isArray(options.lifecycleState) ? options.lifecycleState : [options.lifecycleState];
+          const states = Array.isArray(options.lifecycleState)
+            ? options.lifecycleState
+            : [options.lifecycleState];
           if (!states.includes(metadata.lifecycleState)) continue;
         }
 
@@ -162,21 +174,21 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       selectedObjects,
       focusedObject,
       lastCleanup,
-      
+
       // Computed values
       selectedObjectsInfo,
       focusedObjectInfo,
-      
+
       // Query function
       queryObjects,
-      
+
       // Getters (Metadata)
       getObject: (id: string) => objectsMap.get(id) || null,
       getAllObjects: () => objectsMap,
-      
+
       // Getters (Actual Objects)
       getActualObject: (id: string) => manager.getObject(id),
-      
+
       // Statistics
       getStats: () => {
         const lifecycleStats: Record<ObjectLifecycleState, number> = {
@@ -184,7 +196,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
           active: 0,
           inactive: 0,
           archived: 0,
-          deleted: 0
+          deleted: 0,
         };
 
         const typeStats: Record<string, number> = {};
@@ -199,9 +211,9 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
           selectedCount: selectedObjects.length,
           focusedObjectId: focusedObject,
           lifecycleStats,
-          typeStats
+          typeStats,
         };
-      }
+      },
     };
   };
 
@@ -213,16 +225,16 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
 
     return {
       register: (
-        id: string, 
-        object: T, 
-        metadata?: Record<string, unknown>, 
+        id: string,
+        object: T,
+        metadata?: Record<string, unknown>,
         contextMetadata?: Record<string, unknown>
       ) => {
-        dispatch('register', { 
-          id, 
-          object, 
+        dispatch('register', {
+          id,
+          object,
           ...(metadata !== undefined && { metadata }),
-          ...(contextMetadata !== undefined && { contextMetadata })
+          ...(contextMetadata !== undefined && { contextMetadata }),
         });
       },
 
@@ -231,16 +243,16 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       },
 
       update: (
-        id: string, 
-        object?: Partial<T>, 
+        id: string,
+        object?: Partial<T>,
         metadata?: Record<string, unknown>,
         contextMetadata?: Record<string, unknown>
       ) => {
-        dispatch('update', { 
-          id, 
+        dispatch('update', {
+          id,
           ...(object !== undefined && { object }),
           ...(metadata !== undefined && { metadata }),
-          ...(contextMetadata !== undefined && { contextMetadata })
+          ...(contextMetadata !== undefined && { contextMetadata }),
         });
       },
 
@@ -262,7 +274,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       },
 
       // 선택 관리 (조건부 처리)
-      select: (ids: string[], mode: 'replace' | 'add' | 'toggle' = 'replace') => {
+      select: (
+        ids: string[],
+        mode: 'replace' | 'add' | 'toggle' = 'replace'
+      ) => {
         if (!config.enableSelection) return;
         dispatch('select', { ids, mode });
       },
@@ -285,16 +300,16 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
 
       // 정리
       cleanup: (
-        olderThan?: number, 
-        lifecycleStates?: ObjectLifecycleState[], 
+        olderThan?: number,
+        lifecycleStates?: ObjectLifecycleState[],
         force = false
       ) => {
-        dispatch('cleanup', { 
+        dispatch('cleanup', {
           ...(olderThan !== undefined && { olderThan }),
           ...(lifecycleStates !== undefined && { lifecycleStates }),
-          force 
+          force,
         });
-      }
+      },
     };
   };
 
@@ -305,7 +320,9 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     const managerStore = useObjectManagerStore('manager');
     const manager = useStoreValue(managerStore);
     if (!manager) {
-      throw new Error(`useObjectContextManager must be used within ObjectContextProvider for context '${config.contextName}'`);
+      throw new Error(
+        `useObjectContextManager must be used within ObjectContextProvider for context '${config.contextName}'`
+      );
     }
     return manager;
   };
@@ -325,14 +342,14 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       getAllObjects: store.getAllObjects,
       queryObjects: store.queryObjects,
       getStats: store.getStats,
-      
+
       // State values
       objects: store.objects,
       selectedObjects: store.selectedObjects,
       focusedObject: store.focusedObject,
       selectedObjectsInfo: store.selectedObjectsInfo,
       focusedObjectInfo: store.focusedObjectInfo,
-      
+
       // Action methods (상태 변경)
       register: actions.register,
       unregister: actions.unregister,
@@ -346,10 +363,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       ...(actions.focus && { focus: actions.focus }),
       ...(actions.clearFocus && { clearFocus: actions.clearFocus }),
       cleanup: actions.cleanup,
-      
+
       // Manager methods
       addEventListener: manager.addEventListener.bind(manager),
-      removeEventListener: manager.removeEventListener.bind(manager)
+      removeEventListener: manager.removeEventListener.bind(manager),
     };
   };
 
@@ -358,7 +375,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
    */
   const useObjectContextEvents = (
     eventType: ObjectManagementEvent<T>['type'],
-    listener: (event: ObjectManagementEvent<T>) => void,
+    listener: (event: ObjectManagementEvent<T>) => void
   ) => {
     const manager = useObjectContextManager();
 
@@ -382,12 +399,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // Manager를 통해 실제 등록 처리
       const { id, object, metadata, contextMetadata } = payload;
       await manager.register(id, object, metadata, contextMetadata);
-      
+
       // Store 동기화
       const objectMetadata = manager.getMetadata(id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
+        const currentObjects = objectsStore.getValue() as Map<
+          string,
+          ObjectMetadata
+        >;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -397,21 +417,26 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useObjectActionHandler('unregister', async (payload) => {
       const { id, force } = payload;
       await manager.unregister(id, force);
-      
+
       // Store 동기화
       const objectsStore = storeManager.getStore('objects');
-      const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
+      const currentObjects = objectsStore.getValue() as Map<
+        string,
+        ObjectMetadata
+      >;
       const updatedObjects = new Map(currentObjects);
       updatedObjects.delete(id);
       objectsStore.setValue(updatedObjects);
-      
+
       // 선택 및 포커스에서 제거
       const selectedObjectsStore = storeManager.getStore('selectedObjects');
       const currentSelected = selectedObjectsStore.getValue() as string[];
       if (currentSelected.includes(id)) {
-        selectedObjectsStore.setValue(currentSelected.filter(selectedId => selectedId !== id));
+        selectedObjectsStore.setValue(
+          currentSelected.filter((selectedId) => selectedId !== id)
+        );
       }
-      
+
       const focusedObjectStore = storeManager.getStore('focusedObject');
       if (focusedObjectStore.getValue() === id) {
         focusedObjectStore.setValue(null);
@@ -421,12 +446,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useObjectActionHandler('update', async (payload) => {
       const { id, object, metadata, contextMetadata } = payload;
       await manager.update(id, object, metadata, contextMetadata);
-      
+
       // Store 동기화
       const objectMetadata = manager.getMetadata(id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
+        const currentObjects = objectsStore.getValue() as Map<
+          string,
+          ObjectMetadata
+        >;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -437,12 +465,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     const handleLifecycleChange = async (actionType: string, payload: any) => {
       // @ts-ignore - 동적 액션 호출
       await manager.actionRegister.dispatch(actionType, payload);
-      
+
       // Store 동기화
       const objectMetadata = manager.getMetadata(payload.id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
+        const currentObjects = objectsStore.getValue() as Map<
+          string,
+          ObjectMetadata
+        >;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(payload.id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -468,10 +499,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     // 선택 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
     const selectHandler = async (payload: any) => {
       if (!config.enableSelection) return;
-      
+
       // @ts-ignore
       await manager.actionRegister.dispatch('select', payload);
-      
+
       // Store 동기화
       const selectedObjects = manager.getSelectedObjects();
       const selectedObjectsStore = storeManager.getStore('selectedObjects');
@@ -480,10 +511,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
 
     const clearSelectionHandler = async () => {
       if (!config.enableSelection) return;
-      
+
       // @ts-ignore
       await manager.actionRegister.dispatch('clearSelection');
-      
+
       // Store 동기화
       const selectedObjectsStore = storeManager.getStore('selectedObjects');
       selectedObjectsStore.setValue([]);
@@ -495,10 +526,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     // 포커스 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
     const focusHandler = async (payload: any) => {
       if (!config.enableFocus) return;
-      
+
       // @ts-ignore
       await manager.actionRegister.dispatch('focus', payload);
-      
+
       // Store 동기화
       const focusedObject = manager.getFocusedObject();
       const focusedObjectStore = storeManager.getStore('focusedObject');
@@ -507,10 +538,10 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
 
     const clearFocusHandler = async () => {
       if (!config.enableFocus) return;
-      
+
       // @ts-ignore
       await manager.actionRegister.dispatch('clearFocus');
-      
+
       // Store 동기화
       const focusedObjectStore = storeManager.getStore('focusedObject');
       focusedObjectStore.setValue(null);
@@ -522,21 +553,21 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useObjectActionHandler('cleanup', async (payload) => {
       // @ts-ignore
       await manager.actionRegister.dispatch('cleanup', payload);
-      
+
       // Store 전체 동기화
       const allObjects = manager.getAllObjects();
       const objectsStore = storeManager.getStore('objects');
       const objectsMetadata = new Map<string, ObjectMetadata>();
-      
+
       for (const [id, _] of allObjects) {
         const metadata = manager.getMetadata(id);
         if (metadata) {
           objectsMetadata.set(id, metadata);
         }
       }
-      
+
       objectsStore.setValue(objectsMetadata);
-      
+
       // 정리 시간 업데이트
       const lastCleanupStore = storeManager.getStore('lastCleanup');
       lastCleanupStore.setValue(new Date().toISOString());
@@ -546,10 +577,12 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   /**
    * Provider 컴포넌트 (Manager 초기화)
    */
-  const ObjectManagerInitializer: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const ObjectManagerInitializer: React.FC<{ children: ReactNode }> = ({
+    children,
+  }) => {
     const managerStore = useObjectManagerStore('manager');
     const managerRef = useRef<ObjectContextManager<T> | null>(null);
-    
+
     if (!managerRef.current) {
       managerRef.current = new ObjectContextManager<T>(config);
       managerStore.setValue(managerRef.current);
@@ -571,15 +604,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   /**
    * Provider 컴포넌트
    */
-  const ObjectContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const ObjectContextProvider: React.FC<{ children: ReactNode }> = ({
+    children,
+  }) => {
     return (
       <ObjectManagerProvider>
         <ObjectStoreProvider>
           <ObjectActionProvider>
             <ObjectManagerInitializer>
-              <ObjectContextSyncProvider>
-                {children}
-              </ObjectContextSyncProvider>
+              <ObjectContextSyncProvider>{children}</ObjectContextSyncProvider>
             </ObjectManagerInitializer>
           </ObjectActionProvider>
         </ObjectStoreProvider>
@@ -590,7 +623,9 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   /**
    * 동기화 Provider 컴포넌트
    */
-  const ObjectContextSyncProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const ObjectContextSyncProvider: React.FC<{ children: ReactNode }> = ({
+    children,
+  }) => {
     useObjectContextSync();
     return <>{children}</>;
   };
@@ -598,14 +633,14 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   return {
     // Provider Components
     ObjectContextProvider,
-    
+
     // Core Hooks
     useObjectContextStore,
     useObjectContextActions,
     useObjectContextManager,
     useObjectManager, // Facade Hook
     useObjectContextEvents,
-    
+
     // Store and Action Providers (for selective usage)
     ObjectStoreProvider,
     ObjectActionProvider,
@@ -614,8 +649,8 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useObjectAction,
     useObjectActionHandler,
     useObjectManagerStore,
-    
+
     // Configuration
-    config
+    config,
   };
 }

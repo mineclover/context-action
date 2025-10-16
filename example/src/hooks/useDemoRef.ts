@@ -13,7 +13,7 @@ type DemoRefs = {
 const {
   Provider: DemoRefsProvider,
   useRefHandler: useDemoRef,
-  useWaitForRefs: useWaitForDemoRefs
+  useWaitForRefs: useWaitForDemoRefs,
 } = createRefContext<DemoRefs>('Demo');
 
 export { DemoRefsProvider, useDemoRef, useWaitForDemoRefs };

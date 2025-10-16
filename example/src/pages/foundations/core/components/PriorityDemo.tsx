@@ -17,7 +17,7 @@ export function PriorityDemo() {
 
   const logActionRef = useRef(logAction);
   const logSystemRef = useRef(logSystem);
-  
+
   // Update refs when logger functions change
   logActionRef.current = logAction;
   logSystemRef.current = logSystem;
@@ -31,7 +31,7 @@ export function PriorityDemo() {
       'priorityTest',
       (message, _controller) => {
         const result = `High Priority (3): ${message}`;
-        setResults(prev => [...prev, result]);
+        setResults((prev) => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 3 });
       },
       { priority: 3 }
@@ -42,7 +42,7 @@ export function PriorityDemo() {
       'priorityTest',
       (message, _controller) => {
         const result = `Low Priority (1): ${message}`;
-        setResults(prev => [...prev, result]);
+        setResults((prev) => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 1 });
       },
       { priority: 1 }
@@ -53,7 +53,7 @@ export function PriorityDemo() {
       'priorityTest',
       (message, _controller) => {
         const result = `Mid Priority (2): ${message}`;
-        setResults(prev => [...prev, result]);
+        setResults((prev) => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 2 });
       },
       { priority: 2 }
@@ -84,13 +84,17 @@ export function PriorityDemo() {
       <div className="space-y-4">
         <div className="flex gap-2">
           <Button onClick={testPriority}>우선순위 테스트 실행</Button>
-          <Button variant="outline" onClick={clearResults}>결과 초기화</Button>
+          <Button variant="outline" onClick={clearResults}>
+            결과 초기화
+          </Button>
         </div>
-        
+
         <div className="bg-gray-50 p-4 rounded-lg">
           <h4 className="font-semibold mb-2">실행 순서 (우선순위별):</h4>
           {results.length === 0 ? (
-            <p className="text-gray-500 italic">테스트 버튼을 눌러서 우선순위 실행 순서를 확인해보세요.</p>
+            <p className="text-gray-500 italic">
+              테스트 버튼을 눌러서 우선순위 실행 순서를 확인해보세요.
+            </p>
           ) : (
             <ol className="space-y-1">
               {results.map((result, index) => (
@@ -101,10 +105,10 @@ export function PriorityDemo() {
             </ol>
           )}
         </div>
-        
+
         <p className="text-sm text-gray-600">
-          하나의 액션에 여러 핸들러가 등록되어 있을 때, 우선순위가 높은 핸들러부터 순차적으로 실행됩니다.
-          (Priority 3 → 2 → 1 순서)
+          하나의 액션에 여러 핸들러가 등록되어 있을 때, 우선순위가 높은
+          핸들러부터 순차적으로 실행됩니다. (Priority 3 → 2 → 1 순서)
         </p>
       </div>
     </DemoCard>

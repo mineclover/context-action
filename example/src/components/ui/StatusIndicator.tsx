@@ -16,12 +16,12 @@ export function StatusIndicator({
   status,
   message,
   size = 'md',
-  className
+  className,
 }: StatusIndicatorProps) {
   const sizeClasses = {
     sm: 'w-2 h-2',
-    md: 'w-3 h-3', 
-    lg: 'w-4 h-4'
+    md: 'w-3 h-3',
+    lg: 'w-4 h-4',
   };
 
   const statusClasses = {
@@ -30,23 +30,15 @@ export function StatusIndicator({
     warning: 'bg-yellow-500',
     info: 'bg-blue-500',
     loading: 'bg-gray-400 animate-pulse',
-    idle: 'bg-gray-300'
+    idle: 'bg-gray-300',
   };
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div
-        className={cn(
-          'rounded-full',
-          sizeClasses[size],
-          statusClasses[status]
-        )}
+        className={cn('rounded-full', sizeClasses[size], statusClasses[status])}
       />
-      {message && (
-        <span className="text-sm font-medium">
-          {message}
-        </span>
-      )}
+      {message && <span className="text-sm font-medium">{message}</span>}
     </div>
   );
 }

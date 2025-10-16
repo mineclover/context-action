@@ -11,12 +11,12 @@ import { useChildAStore } from '../contexts/ChildAContext';
 export function useChildACounter() {
   const counterStore = useChildAStore('counter');
   const counter = useStoreValue(counterStore);
-  
+
   return {
     counter,
     isZero: counter === 0,
     isPositive: counter > 0,
     displayValue: `카운터: ${counter}`,
-    status: counter === 0 ? 'idle' : counter > 10 ? 'high' : 'normal'
+    status: counter === 0 ? 'idle' : counter > 10 ? 'high' : 'normal',
   };
 }

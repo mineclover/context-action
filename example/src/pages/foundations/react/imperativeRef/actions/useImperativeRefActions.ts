@@ -7,7 +7,12 @@
  */
 
 import { useCallback } from 'react';
-import { ValidationState, FormData, ValidationResult, TimerState } from '../business/imperativeRefBusinessLogic';
+import {
+  FormData,
+  TimerState,
+  ValidationResult,
+  ValidationState,
+} from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Action Payload Types
 export interface ImperativeRefActions {
@@ -64,11 +69,20 @@ export interface ImperativeRefActionHandlers {
 export function useImperativeRefActions(
   handlers?: ImperativeRefActionHandlers,
   handlerMethods?: {
-    handleFieldValidation?: (field: keyof ValidationState, isValid: boolean) => ValidationResult | undefined;
+    handleFieldValidation?: (
+      field: keyof ValidationState,
+      isValid: boolean
+    ) => ValidationResult | undefined;
     handleFormSubmit?: () => ValidationResult | undefined;
-    handleCounterOperation?: (operation: 'increment' | 'decrement' | 'reset' | 'set', setValue?: number) => number;
+    handleCounterOperation?: (
+      operation: 'increment' | 'decrement' | 'reset' | 'set',
+      setValue?: number
+    ) => number;
     handleTimerControl?: (action: 'start' | 'stop' | 'reset') => TimerState;
-    handleModalControl?: (modalType: 'confirm' | 'alert', action: 'open' | 'close' | 'toggle') => boolean;
+    handleModalControl?: (
+      modalType: 'confirm' | 'alert',
+      action: 'open' | 'close' | 'toggle'
+    ) => boolean;
     batchOperations?: {
       validateAllFields: () => boolean;
       resetAllFields: () => void;
@@ -79,11 +93,17 @@ export function useImperativeRefActions(
   }
 ) {
   // 🎯 Form Actions
-  const validateField = useCallback((payload: ImperativeRefActions['validateField']) => {
-    const result = handlerMethods?.handleFieldValidation?.(payload.field, payload.isValid);
-    handlers?.onFieldValidation?.(payload.field, payload.isValid);
-    return result;
-  }, [handlers?.onFieldValidation, handlerMethods?.handleFieldValidation]);
+  const validateField = useCallback(
+    (payload: ImperativeRefActions['validateField']) => {
+      const result = handlerMethods?.handleFieldValidation?.(
+        payload.field,
+        payload.isValid
+      );
+      handlers?.onFieldValidation?.(payload.field, payload.isValid);
+      return result;
+    },
+    [handlers?.onFieldValidation, handlerMethods?.handleFieldValidation]
+  );
 
   const submitForm = useCallback(() => {
     const result = handlerMethods?.handleFormSubmit?.();
@@ -91,7 +111,7 @@ export function useImperativeRefActions(
       const currentFormData: FormData = {
         name: '',
         email: '',
-        message: ''
+        message: '',
       };
       handlers?.onFormSubmit?.(currentFormData, result.isValid);
     }
@@ -131,13 +151,19 @@ export function useImperativeRefActions(
     return newValue;
   }, [handlers?.onCounterChange, handlerMethods?.handleCounterOperation]);
 
-  const setCounterValue = useCallback((payload: ImperativeRefActions['setCounterValue']) => {
-    const newValue = handlerMethods?.handleCounterOperation?.('set', payload.value);
-    if (newValue !== undefined) {
-      handlers?.onCounterChange?.(newValue);
-    }
-    return newValue;
-  }, [handlers?.onCounterChange, handlerMethods?.handleCounterOperation]);
+  const setCounterValue = useCallback(
+    (payload: ImperativeRefActions['setCounterValue']) => {
+      const newValue = handlerMethods?.handleCounterOperation?.(
+        'set',
+        payload.value
+      );
+      if (newValue !== undefined) {
+        handlers?.onCounterChange?.(newValue);
+      }
+      return newValue;
+    },
+    [handlers?.onCounterChange, handlerMethods?.handleCounterOperation]
+  );
 
   // 🎯 Timer Actions
   const startTimer = useCallback(() => {
@@ -165,29 +191,47 @@ export function useImperativeRefActions(
   }, [handlers?.onTimerTick, handlerMethods?.handleTimerControl]);
 
   // 🎯 Modal Actions
-  const openModal = useCallback((payload: ImperativeRefActions['openModal']) => {
-    const newState = handlerMethods?.handleModalControl?.(payload.modalType, 'open');
-    if (newState !== undefined) {
-      handlers?.onModalToggle?.(payload.modalType, newState);
-    }
-    return newState;
-  }, [handlers?.onModalToggle, handlerMethods?.handleModalControl]);
+  const openModal = useCallback(
+    (payload: ImperativeRefActions['openModal']) => {
+      const newState = handlerMethods?.handleModalControl?.(
+        payload.modalType,
+        'open'
+      );
+      if (newState !== undefined) {
+        handlers?.onModalToggle?.(payload.modalType, newState);
+      }
+      return newState;
+    },
+    [handlers?.onModalToggle, handlerMethods?.handleModalControl]
+  );
 
-  const closeModal = useCallback((payload: ImperativeRefActions['closeModal']) => {
-    const newState = handlerMethods?.handleModalControl?.(payload.modalType, 'close');
-    if (newState !== undefined) {
-      handlers?.onModalToggle?.(payload.modalType, newState);
-    }
-    return newState;
-  }, [handlers?.onModalToggle, handlerMethods?.handleModalControl]);
+  const closeModal = useCallback(
+    (payload: ImperativeRefActions['closeModal']) => {
+      const newState = handlerMethods?.handleModalControl?.(
+        payload.modalType,
+        'close'
+      );
+      if (newState !== undefined) {
+        handlers?.onModalToggle?.(payload.modalType, newState);
+      }
+      return newState;
+    },
+    [handlers?.onModalToggle, handlerMethods?.handleModalControl]
+  );
 
-  const toggleModal = useCallback((payload: ImperativeRefActions['toggleModal']) => {
-    const newState = handlerMethods?.handleModalControl?.(payload.modalType, 'toggle');
-    if (newState !== undefined) {
-      handlers?.onModalToggle?.(payload.modalType, newState);
-    }
-    return newState;
-  }, [handlers?.onModalToggle, handlerMethods?.handleModalControl]);
+  const toggleModal = useCallback(
+    (payload: ImperativeRefActions['toggleModal']) => {
+      const newState = handlerMethods?.handleModalControl?.(
+        payload.modalType,
+        'toggle'
+      );
+      if (newState !== undefined) {
+        handlers?.onModalToggle?.(payload.modalType, newState);
+      }
+      return newState;
+    },
+    [handlers?.onModalToggle, handlerMethods?.handleModalControl]
+  );
 
   // 🎯 Batch Actions
   const resetAll = useCallback(() => {
@@ -196,7 +240,8 @@ export function useImperativeRefActions(
   }, [handlers?.onBatchReset, handlerMethods?.batchOperations]);
 
   const validateAll = useCallback(() => {
-    const isValid = handlerMethods?.batchOperations?.validateAllFields() || false;
+    const isValid =
+      handlerMethods?.batchOperations?.validateAllFields() || false;
     handlers?.onValidateAll?.(isValid);
     return isValid;
   }, [handlers?.onValidateAll, handlerMethods?.batchOperations]);
@@ -259,11 +304,22 @@ export function useImperativeRefActions(
           startTimer();
           setTimeout(() => stopTimer(), 3000);
           setTimeout(() => resetTimer(), 4000);
-        }
+        },
       };
-    }, [focusFirstField, validateAll, incrementCounter, decrementCounter, resetCounter, startTimer, stopTimer, resetTimer])
+    }, [
+      focusFirstField,
+      validateAll,
+      incrementCounter,
+      decrementCounter,
+      resetCounter,
+      startTimer,
+      stopTimer,
+      resetTimer,
+    ]),
   };
 }
 
 // 🎯 Type Exports for Consumer Components
-export type ImperativeRefActionDispatch = ReturnType<typeof useImperativeRefActions>;
+export type ImperativeRefActionDispatch = ReturnType<
+  typeof useImperativeRefActions
+>;

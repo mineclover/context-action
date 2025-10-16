@@ -6,9 +6,15 @@
  * for the UI layer without directly accessing business logic.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FormData,
+  formatTimerDisplay,
+  isFormComplete,
+  ValidationState,
+  validateFormData,
+} from '../business/imperativeRefBusinessLogic';
 import { useRefRegistry } from '../contexts/RefContexts';
-import { FormData, ValidationState, validateFormData, isFormComplete, formatTimerDisplay } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Reactive State Types
 export interface ImperativeRefReactiveState {
@@ -56,13 +62,13 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
   const [formValues, setFormValues] = useState<FormData>({
     name: '',
     email: '',
-    message: ''
+    message: '',
   });
 
   const [validationStates, setValidationStates] = useState<ValidationState>({
     name: false,
     email: false,
-    message: false
+    message: false,
   });
 
   const [counterValue, setCounterValue] = useState(0);
@@ -71,7 +77,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
 
   const [modalsOpen, setModalsOpen] = useState({
     confirm: false,
-    alert: false
+    alert: false,
   });
 
   // 🎯 Ref State Polling (since refs don't emit events naturally)
@@ -81,11 +87,11 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
       const currentFormValues: FormData = {
         name: refRegistry.nameInput.current?.getValue() || '',
         email: refRegistry.emailInput.current?.getValue() || '',
-        message: refRegistry.messageInput.current?.getValue() || ''
+        message: refRegistry.messageInput.current?.getValue() || '',
       };
 
       // Check if form values changed
-      setFormValues(prev => {
+      setFormValues((prev) => {
         if (
           prev.name !== currentFormValues.name ||
           prev.email !== currentFormValues.email ||
@@ -98,22 +104,29 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
 
       // Poll counter value
       const currentCounter = refRegistry.counter.current?.getValue() || 0;
-      setCounterValue(prev => prev !== currentCounter ? currentCounter : prev);
+      setCounterValue((prev) =>
+        prev !== currentCounter ? currentCounter : prev
+      );
 
       // Poll timer state
       const currentTimerTime = refRegistry.timer.current?.getTime() || 0;
-      const currentTimerRunning = refRegistry.timer.current?.isRunning() || false;
+      const currentTimerRunning =
+        refRegistry.timer.current?.isRunning() || false;
 
-      setTimerTime(prev => prev !== currentTimerTime ? currentTimerTime : prev);
-      setIsTimerRunning(prev => prev !== currentTimerRunning ? currentTimerRunning : prev);
+      setTimerTime((prev) =>
+        prev !== currentTimerTime ? currentTimerTime : prev
+      );
+      setIsTimerRunning((prev) =>
+        prev !== currentTimerRunning ? currentTimerRunning : prev
+      );
 
       // Poll modal states
       const currentModalStates = {
         confirm: refRegistry.confirmModal.current?.isOpen() || false,
-        alert: refRegistry.alertModal.current?.isOpen() || false
+        alert: refRegistry.alertModal.current?.isOpen() || false,
       };
 
-      setModalsOpen(prev => {
+      setModalsOpen((prev) => {
         if (
           prev.confirm !== currentModalStates.confirm ||
           prev.alert !== currentModalStates.alert
@@ -122,7 +135,6 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
         }
         return prev;
       });
-
     }, 100); // Poll every 100ms for smooth reactive updates
 
     return () => clearInterval(pollInterval);
@@ -133,7 +145,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
     // Update validation states based on current form values
     const validationResult = validateFormData(formValues);
 
-    setValidationStates(prev => {
+    setValidationStates((prev) => {
       if (
         prev.name !== validationResult.fieldValidation.name ||
         prev.email !== validationResult.fieldValidation.email ||
@@ -162,14 +174,16 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
     const formProgress = (validFieldCount / 3) * 100;
 
     // Check if all fields are empty
-    const allFieldsEmpty = !formValues.name.trim() &&
-                          !formValues.email.trim() &&
-                          !formValues.message.trim();
+    const allFieldsEmpty =
+      !formValues.name.trim() &&
+      !formValues.email.trim() &&
+      !formValues.message.trim();
 
     // Check for validation errors
-    const hasValidationErrors = !validationStates.name ||
-                               !validationStates.email ||
-                               !validationStates.message;
+    const hasValidationErrors =
+      !validationStates.name ||
+      !validationStates.email ||
+      !validationStates.message;
 
     // Counter bounds checking
     const counterAtMin = counterValue <= 0;
@@ -186,7 +200,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
       hasValidationErrors,
       counterAtMin,
       counterAtMax,
-      timerDisplay
+      timerDisplay,
     };
   }, [formValues, validationStates, counterValue, timerTime]);
 
@@ -201,7 +215,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
     modalsOpen,
 
     // Computed state
-    ...computedState
+    ...computedState,
   };
 }
 
@@ -218,7 +232,7 @@ export function useImperativeRefFormData() {
     isFormComplete: fullData.isFormComplete,
     formProgress: fullData.formProgress,
     allFieldsEmpty: fullData.allFieldsEmpty,
-    hasValidationErrors: fullData.hasValidationErrors
+    hasValidationErrors: fullData.hasValidationErrors,
   };
 }
 
@@ -231,7 +245,7 @@ export function useImperativeRefCounterData() {
   return {
     counterValue: fullData.counterValue,
     counterAtMin: fullData.counterAtMin,
-    counterAtMax: fullData.counterAtMax
+    counterAtMax: fullData.counterAtMax,
   };
 }
 
@@ -244,7 +258,7 @@ export function useImperativeRefTimerData() {
   return {
     timerTime: fullData.timerTime,
     timerDisplay: fullData.timerDisplay,
-    isTimerRunning: fullData.isTimerRunning
+    isTimerRunning: fullData.isTimerRunning,
   };
 }
 
@@ -255,7 +269,7 @@ export function useImperativeRefModalData() {
   const fullData = useImperativeRefData();
 
   return {
-    modalsOpen: fullData.modalsOpen
+    modalsOpen: fullData.modalsOpen,
   };
 }
 
@@ -271,7 +285,7 @@ export function useImperativeRefComputedData() {
     hasValidationErrors: fullData.hasValidationErrors,
     counterAtMin: fullData.counterAtMin,
     counterAtMax: fullData.counterAtMax,
-    timerDisplay: fullData.timerDisplay
+    timerDisplay: fullData.timerDisplay,
   };
 }
 
@@ -302,8 +316,15 @@ export function useImperativeRefStateCallbacks(callbacks: {
   }, [reactiveState.counterValue, callbacks.onCounterChange]);
 
   useEffect(() => {
-    callbacks.onTimerChange?.(reactiveState.timerTime, reactiveState.isTimerRunning);
-  }, [reactiveState.timerTime, reactiveState.isTimerRunning, callbacks.onTimerChange]);
+    callbacks.onTimerChange?.(
+      reactiveState.timerTime,
+      reactiveState.isTimerRunning
+    );
+  }, [
+    reactiveState.timerTime,
+    reactiveState.isTimerRunning,
+    callbacks.onTimerChange,
+  ]);
 
   useEffect(() => {
     callbacks.onModalChange?.(reactiveState.modalsOpen);

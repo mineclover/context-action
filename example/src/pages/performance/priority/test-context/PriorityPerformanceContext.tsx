@@ -6,10 +6,7 @@
  */
 
 import type { ActionPayloadMap } from '@context-action/core';
-import {
-  createActionContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 import type React from 'react';
 
 // ================================

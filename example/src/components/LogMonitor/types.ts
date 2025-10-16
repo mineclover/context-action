@@ -3,8 +3,8 @@
  * @module LogMonitorTypes
  */
 
-import type { LogLevel } from '@/utils/logger';
 import type { ActionPayloadMap, Store } from '@context-action/react';
+import type { LogLevel } from '@/utils/logger';
 
 /**
  * 로그 엔트리 타입 정의
@@ -117,7 +117,11 @@ export interface StableLoggerAPI {
   log: (message: string, data?: unknown, options?: ActionLogOptions) => void;
   info: (message: string, data?: unknown, options?: ActionLogOptions) => void;
   warn: (message: string, data?: unknown, options?: ActionLogOptions) => void;
-  error: (message: string, error?: Error | unknown, options?: ActionLogOptions) => void;
+  error: (
+    message: string,
+    error?: Error | unknown,
+    options?: ActionLogOptions
+  ) => void;
 }
 
 /**

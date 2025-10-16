@@ -54,8 +54,6 @@ export function usePriorityPerformanceLogic() {
         ...state,
         instances: [...state.instances, newInstance],
       }));
-
-      
     });
 
     // 인스턴스 제거 핸들러
@@ -68,8 +66,6 @@ export function usePriorityPerformanceLogic() {
             (instance) => instance.id !== instanceId
           ),
         }));
-
-        
       }
     );
 
@@ -87,8 +83,6 @@ export function usePriorityPerformanceLogic() {
           instances: defaultInstances,
           runningInstances: new Set<string>(),
         }));
-
-
       }
     );
 
@@ -159,9 +153,12 @@ export function usePriorityPerformanceLogic() {
 
     // Computed values
     canOperate: !!register && !!dispatch,
-    canModifyInstances: !!register && !!dispatch && performanceState.runningInstances.size === 0,
+    canModifyInstances:
+      !!register && !!dispatch && performanceState.runningInstances.size === 0,
     instanceCount: performanceState.instances.length,
-    canRemove: performanceState.instances.length > 1 && performanceState.runningInstances.size === 0,
+    canRemove:
+      performanceState.instances.length > 1 &&
+      performanceState.runningInstances.size === 0,
     isAnyInstanceRunning: performanceState.runningInstances.size > 0,
     runningInstanceIds: performanceState.runningInstances,
   };

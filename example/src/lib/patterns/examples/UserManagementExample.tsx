@@ -3,9 +3,9 @@
  * 범용 객체 컨텍스트 관리 패턴 적용 사례
  */
 
-import React, { useState, useEffect } from 'react';
-import { ManagedObject } from '../types';
+import React, { useEffect, useState } from 'react';
 import { createObjectContextHooks } from '../createObjectContextHooks';
+import { ManagedObject } from '../types';
 
 // 사용자 객체 정의
 interface User extends ManagedObject {
@@ -27,25 +27,25 @@ interface User extends ManagedObject {
 const {
   ObjectContextProvider: UserContextProvider,
   useObjectManager: useUserManager,
-  useObjectContextEvents: useUserEvents
+  useObjectContextEvents: useUserEvents,
 } = createObjectContextHooks<User>({
   contextName: 'UserManagement',
   autoCleanup: {
     enabled: true,
     intervalMs: 300000, // 5분마다
     olderThanMs: 1800000, // 30분 이상
-    lifecycleStates: ['inactive', 'archived']
+    lifecycleStates: ['inactive', 'archived'],
   },
   maxObjects: 1000,
   enableSelection: true,
-  enableFocus: true
+  enableFocus: true,
 });
 
 // 사용자 생성 헬퍼
 const createUser = (
-  id: string, 
-  name: string, 
-  email: string, 
+  id: string,
+  name: string,
+  email: string,
   role: User['role'] = 'user',
   department?: string
 ): User => ({
@@ -57,8 +57,8 @@ const createUser = (
   createdAt: new Date(),
   metadata: {
     ...(department !== undefined && { department }),
-    preferences: {}
-  }
+    preferences: {},
+  },
 });
 
 /**
@@ -70,22 +70,23 @@ const UserList: React.FC = () => {
   const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'email'>('name');
 
   const users = queryObjects({
-    ...(filterRole !== 'all' && { 
-      metadata: { role: filterRole } 
+    ...(filterRole !== 'all' && {
+      metadata: { role: filterRole },
     }),
-    sortBy: (sortBy === 'name' || sortBy === 'email') ? 'id' : sortBy as 'createdAt', // name과 email 정렬은 id로 대체 (예제용)
-    sortOrder: 'asc'
+    sortBy:
+      sortBy === 'name' || sortBy === 'email' ? 'id' : (sortBy as 'createdAt'), // name과 email 정렬은 id로 대체 (예제용)
+    sortOrder: 'asc',
   });
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">사용자 목록 ({users.length})</h3>
-        
+
         <div className="flex gap-2">
           {/* 역할 필터 */}
-          <select 
-            value={filterRole} 
+          <select
+            value={filterRole}
             onChange={(e) => setFilterRole(e.target.value as any)}
             className="px-2 py-1 border rounded text-sm"
           >
@@ -96,8 +97,8 @@ const UserList: React.FC = () => {
           </select>
 
           {/* 정렬 */}
-          <select 
-            value={sortBy} 
+          <select
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="px-2 py-1 border rounded text-sm"
           >
@@ -111,23 +112,28 @@ const UserList: React.FC = () => {
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {users.map((userMetadata) => {
           const isSelected = selectedObjects.includes(userMetadata.id);
-          
+
           return (
             <div
               key={userMetadata.id}
               onClick={() => select([userMetadata.id], 'toggle')}
               className={`p-3 border rounded cursor-pointer transition-colors ${
-                isSelected 
-                  ? 'bg-blue-50 border-blue-300' 
+                isSelected
+                  ? 'bg-blue-50 border-blue-300'
                   : 'hover:bg-gray-50 border-gray-200'
               }`}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-medium">{(userMetadata.metadata?.name as string) || userMetadata.id}</div>
-                  <div className="text-sm text-gray-600">{(userMetadata.metadata?.email as string) || 'N/A'}</div>
+                  <div className="font-medium">
+                    {(userMetadata.metadata?.name as string) || userMetadata.id}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {(userMetadata.metadata?.email as string) || 'N/A'}
+                  </div>
                   <div className="text-xs text-gray-500">
-                    {(userMetadata.metadata?.department as string) || 'N/A'} • {userMetadata.lifecycleState}
+                    {(userMetadata.metadata?.department as string) || 'N/A'} •{' '}
+                    {userMetadata.lifecycleState}
                   </div>
                 </div>
                 <div className="text-xs text-gray-400">
@@ -141,7 +147,9 @@ const UserList: React.FC = () => {
 
       {users.length === 0 && (
         <div className="text-center text-gray-500 py-8">
-          {filterRole === 'all' ? '사용자가 없습니다' : `${filterRole} 역할의 사용자가 없습니다`}
+          {filterRole === 'all'
+            ? '사용자가 없습니다'
+            : `${filterRole} 역할의 사용자가 없습니다`}
         </div>
       )}
     </div>
@@ -157,14 +165,14 @@ const UserRegistrationForm: React.FC = () => {
     name: '',
     email: '',
     role: 'user' as User['role'],
-    department: ''
+    department: '',
   });
 
   const stats = getStats();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email) {
       alert('이름과 이메일은 필수입니다');
       return;
@@ -178,28 +186,33 @@ const UserRegistrationForm: React.FC = () => {
       formData.department || undefined
     );
 
-    register(user.id, user, {
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }, {
-      source: 'registration_form',
-      timestamp: new Date().toISOString()
-    });
+    register(
+      user.id,
+      user,
+      {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      {
+        source: 'registration_form',
+        timestamp: new Date().toISOString(),
+      }
+    );
 
     // 폼 초기화
     setFormData({
       name: '',
       email: '',
       role: 'user',
-      department: ''
+      department: '',
     });
   };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">새 사용자 등록</h3>
-      
+
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="block text-sm font-medium mb-1">이름</label>
@@ -217,7 +230,9 @@ const UserRegistrationForm: React.FC = () => {
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="user@example.com"
           />
@@ -227,7 +242,9 @@ const UserRegistrationForm: React.FC = () => {
           <label className="block text-sm font-medium mb-1">역할</label>
           <select
             value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
+            onChange={(e) =>
+              setFormData({ ...formData, role: e.target.value as User['role'] })
+            }
             className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="guest">게스트</option>
@@ -241,7 +258,9 @@ const UserRegistrationForm: React.FC = () => {
           <input
             type="text"
             value={formData.department}
-            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, department: e.target.value })
+            }
             className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="개발팀, 마케팅팀 등"
           />
@@ -273,14 +292,14 @@ const UserRegistrationForm: React.FC = () => {
  * 선택된 사용자 액션 패널
  */
 const SelectedUserActions: React.FC = () => {
-  const { 
-    selectedObjects, 
-    selectedObjectsInfo, 
+  const {
+    selectedObjects,
+    selectedObjectsInfo,
     clearSelection,
     activate,
     deactivate,
     archive,
-    unregister
+    unregister,
   } = useUserManager();
 
   if (selectedObjects.length === 0) {
@@ -293,12 +312,18 @@ const SelectedUserActions: React.FC = () => {
     );
   }
 
-  const handleBulkAction = (action: 'activate' | 'deactivate' | 'archive' | 'delete') => {
-    if (!confirm(`선택된 ${selectedObjects.length}명의 사용자에 대해 ${action} 작업을 수행하시겠습니까?`)) {
+  const handleBulkAction = (
+    action: 'activate' | 'deactivate' | 'archive' | 'delete'
+  ) => {
+    if (
+      !confirm(
+        `선택된 ${selectedObjects.length}명의 사용자에 대해 ${action} 작업을 수행하시겠습니까?`
+      )
+    ) {
       return;
     }
 
-    selectedObjects.forEach(id => {
+    selectedObjects.forEach((id) => {
       switch (action) {
         case 'activate':
           activate(id);
@@ -321,7 +346,9 @@ const SelectedUserActions: React.FC = () => {
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold">선택된 사용자 ({selectedObjects.length})</h3>
+        <h3 className="text-lg font-semibold">
+          선택된 사용자 ({selectedObjects.length})
+        </h3>
         <button
           onClick={clearSelection}
           className="text-sm text-gray-500 hover:text-gray-700"
@@ -334,8 +361,12 @@ const SelectedUserActions: React.FC = () => {
       <div className="mb-4 max-h-32 overflow-y-auto">
         <div className="space-y-1">
           {selectedObjectsInfo.map((userMetadata) => (
-            <div key={userMetadata.id} className="text-sm bg-blue-50 p-2 rounded">
-              {(userMetadata.metadata?.name as string) || userMetadata.id} ({userMetadata.lifecycleState})
+            <div
+              key={userMetadata.id}
+              className="text-sm bg-blue-50 p-2 rounded"
+            >
+              {(userMetadata.metadata?.name as string) || userMetadata.id} (
+              {userMetadata.lifecycleState})
             </div>
           ))}
         </div>
@@ -376,43 +407,54 @@ const SelectedUserActions: React.FC = () => {
  * 이벤트 로그 컴포넌트
  */
 const UserEventLog: React.FC = () => {
-  const [events, setEvents] = useState<Array<{
-    id: string;
-    type: string;
-    objectId: string;
-    timestamp: string;
-    details: string;
-  }>>([]);
+  const [events, setEvents] = useState<
+    Array<{
+      id: string;
+      type: string;
+      objectId: string;
+      timestamp: string;
+      details: string;
+    }>
+  >([]);
 
   // 이벤트 리스너 등록
   useUserEvents('registered', (event) => {
-    setEvents(prev => [{
-      id: `${Date.now()}_${Math.random()}`,
-      type: 'registered',
-      objectId: event.objectId,
-      timestamp: event.timestamp.toLocaleTimeString(),
-      details: `사용자 등록: ${event.metadata?.metadata?.name || event.objectId}`
-    }, ...prev.slice(0, 49)]); // 최대 50개 유지
+    setEvents((prev) => [
+      {
+        id: `${Date.now()}_${Math.random()}`,
+        type: 'registered',
+        objectId: event.objectId,
+        timestamp: event.timestamp.toLocaleTimeString(),
+        details: `사용자 등록: ${event.metadata?.metadata?.name || event.objectId}`,
+      },
+      ...prev.slice(0, 49),
+    ]); // 최대 50개 유지
   });
 
   useUserEvents('unregistered', (event) => {
-    setEvents(prev => [{
-      id: `${Date.now()}_${Math.random()}`,
-      type: 'unregistered',
-      objectId: event.objectId,
-      timestamp: event.timestamp.toLocaleTimeString(),
-      details: `사용자 해제: ${event.objectId}`
-    }, ...prev.slice(0, 49)]);
+    setEvents((prev) => [
+      {
+        id: `${Date.now()}_${Math.random()}`,
+        type: 'unregistered',
+        objectId: event.objectId,
+        timestamp: event.timestamp.toLocaleTimeString(),
+        details: `사용자 해제: ${event.objectId}`,
+      },
+      ...prev.slice(0, 49),
+    ]);
   });
 
   useUserEvents('lifecycle_changed', (event) => {
-    setEvents(prev => [{
-      id: `${Date.now()}_${Math.random()}`,
-      type: 'lifecycle_changed',
-      objectId: event.objectId,
-      timestamp: event.timestamp.toLocaleTimeString(),
-      details: `상태 변경: ${event.objectId} -> ${event.metadata?.lifecycleState}`
-    }, ...prev.slice(0, 49)]);
+    setEvents((prev) => [
+      {
+        id: `${Date.now()}_${Math.random()}`,
+        type: 'lifecycle_changed',
+        objectId: event.objectId,
+        timestamp: event.timestamp.toLocaleTimeString(),
+        details: `상태 변경: ${event.objectId} -> ${event.metadata?.lifecycleState}`,
+      },
+      ...prev.slice(0, 49),
+    ]);
   });
 
   return (
@@ -431,11 +473,15 @@ const UserEventLog: React.FC = () => {
         {events.map((event) => (
           <div key={event.id} className="text-xs p-2 bg-gray-50 rounded">
             <span className="text-gray-400">{event.timestamp}</span>
-            <span className={`ml-2 px-2 py-1 rounded text-white text-xs ${
-              event.type === 'registered' ? 'bg-green-500' :
-              event.type === 'unregistered' ? 'bg-red-500' :
-              'bg-blue-500'
-            }`}>
+            <span
+              className={`ml-2 px-2 py-1 rounded text-white text-xs ${
+                event.type === 'registered'
+                  ? 'bg-green-500'
+                  : event.type === 'unregistered'
+                    ? 'bg-red-500'
+                    : 'bg-blue-500'
+              }`}
+            >
               {event.type}
             </span>
             <span className="ml-2">{event.details}</span>
@@ -460,23 +506,33 @@ const UserManagementExample: React.FC = () => {
 
   // 샘플 데이터 추가
   useEffect(() => {
-    
     // 샘플 사용자들 등록
     const sampleUsers = [
       createUser('user_1', 'John Doe', 'john@example.com', 'admin', '개발팀'),
-      createUser('user_2', 'Jane Smith', 'jane@example.com', 'user', '마케팅팀'),
+      createUser(
+        'user_2',
+        'Jane Smith',
+        'jane@example.com',
+        'user',
+        '마케팅팀'
+      ),
       createUser('user_3', 'Bob Johnson', 'bob@example.com', 'user', '개발팀'),
     ];
 
-    sampleUsers.forEach(user => {
-      register(user.id, user, {
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }, {
-        source: 'sample_data',
-        timestamp: new Date().toISOString()
-      });
+    sampleUsers.forEach((user) => {
+      register(
+        user.id,
+        user,
+        {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        {
+          source: 'sample_data',
+          timestamp: new Date().toISOString(),
+        }
+      );
     });
   }, []);
 
@@ -485,9 +541,11 @@ const UserManagementExample: React.FC = () => {
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">사용자 관리 시스템</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              사용자 관리 시스템
+            </h1>
             <p className="text-gray-600">범용 객체 컨텍스트 관리 패턴 예제</p>
-            
+
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => cleanup(600000, ['inactive', 'archived'])} // 10분 이상된 비활성/보관 객체 정리
@@ -496,7 +554,13 @@ const UserManagementExample: React.FC = () => {
                 정리 실행
               </button>
               <button
-                onClick={() => cleanup(0, ['created', 'active', 'inactive', 'archived'], true)} // 강제 전체 정리
+                onClick={() =>
+                  cleanup(
+                    0,
+                    ['created', 'active', 'inactive', 'archived'],
+                    true
+                  )
+                } // 강제 전체 정리
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
               >
                 전체 정리 (강제)

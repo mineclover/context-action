@@ -1,5 +1,5 @@
 // import React from 'react';
-import { Card, Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 
 interface SystemControlsProps {
   systemLoad: number;
@@ -14,7 +14,7 @@ export function SystemControls({
   isBusinessHours,
   onSystemLoadChange,
   onToggleBusinessHours,
-  onClearCache
+  onClearCache,
 }: SystemControlsProps) {
   return (
     <Card>
@@ -34,15 +34,15 @@ export function SystemControls({
             className="w-full"
           />
         </div>
-        
+
         <Button
           onClick={onToggleBusinessHours}
-          variant={isBusinessHours ? "primary" : "secondary"}
+          variant={isBusinessHours ? 'primary' : 'secondary'}
           className="w-full"
         >
           Business Hours: {isBusinessHours ? 'ON' : 'OFF'}
         </Button>
-        
+
         <Button onClick={onClearCache} variant="outline" className="w-full">
           Clear Cache
         </Button>

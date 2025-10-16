@@ -1,5 +1,5 @@
 // import React from 'react';
-import { Card, Badge } from '@/components/ui';
+import { Badge, Card } from '@/components/ui';
 
 interface ExecutionPathProps {
   executionPath: string[];

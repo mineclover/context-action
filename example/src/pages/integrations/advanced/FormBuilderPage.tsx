@@ -8,11 +8,7 @@ import { PageWithLogMonitor } from '@/components/LogMonitor';
 // TODO: These components need to be restored or created
 // import { ElementManagementProvider } from './ReactElementHooks';
 // import { FormBuilderExample } from './FormBuilderIntegrationExample';
-import {
-  Badge,
-  Card,
-  CardContent,
-} from '@/components/ui';
+import { Badge, Card, CardContent } from '@/components/ui';
 
 export function FormBuilderDemoPage() {
   return (
@@ -25,10 +21,12 @@ export function FormBuilderDemoPage() {
         <header className="page-header">
           <h1>📝 Dynamic Form Builder Demo</h1>
           <p className="page-description">
-            Context-Action 프레임워크를 활용한 <strong>동적 폼 빌더 시스템</strong>입니다.
-            실시간으로 폼 요소를 추가/제거하며, DOM Element를 효과적으로 관리하는 실용적인 구현 예제입니다.
+            Context-Action 프레임워크를 활용한{' '}
+            <strong>동적 폼 빌더 시스템</strong>입니다. 실시간으로 폼 요소를
+            추가/제거하며, DOM Element를 효과적으로 관리하는 실용적인 구현
+            예제입니다.
           </p>
-          
+
           <div className="flex flex-wrap gap-2 mt-4">
             <Badge variant="outline" className="bg-green-50 text-green-800">
               📋 동적 폼 생성
@@ -104,12 +102,15 @@ export function FormBuilderDemoPage() {
                 🚀 실시간 폼 빌더
               </h3>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-100 text-green-800">
+                <Badge
+                  variant="outline"
+                  className="bg-green-100 text-green-800"
+                >
                   Demo Coming Soon
                 </Badge>
               </div>
             </div>
-            
+
             <p className="text-gray-500 text-center py-8">
               Form Builder demo will be available after component restoration
             </p>
@@ -124,22 +125,45 @@ export function FormBuilderDemoPage() {
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-blue-600 mb-3">DOM Element 관리</h4>
+                <h4 className="font-semibold text-blue-600 mb-3">
+                  DOM Element 관리
+                </h4>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>Dynamic Creation</strong>: 런타임 폼 요소 생성</li>
-                  <li>• <strong>Ref Management</strong>: createRefContext로 참조 관리</li>
-                  <li>• <strong>Event Handling</strong>: 통합 이벤트 처리 시스템</li>
-                  <li>• <strong>Memory Cleanup</strong>: 자동 메모리 정리 및 최적화</li>
+                  <li>
+                    • <strong>Dynamic Creation</strong>: 런타임 폼 요소 생성
+                  </li>
+                  <li>
+                    • <strong>Ref Management</strong>: createRefContext로 참조
+                    관리
+                  </li>
+                  <li>
+                    • <strong>Event Handling</strong>: 통합 이벤트 처리 시스템
+                  </li>
+                  <li>
+                    • <strong>Memory Cleanup</strong>: 자동 메모리 정리 및
+                    최적화
+                  </li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="font-semibold text-green-600 mb-3">Context-Action 통합</h4>
+                <h4 className="font-semibold text-green-600 mb-3">
+                  Context-Action 통합
+                </h4>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>Action Pipeline</strong>: 폼 조작 액션 중앙 관리</li>
-                  <li>• <strong>Store Sync</strong>: 폼 상태와 UI 실시간 동기화</li>
-                  <li>• <strong>Validation Engine</strong>: 통합 유효성 검사 시스템</li>
-                  <li>• <strong>Type Safety</strong>: TypeScript 완전 지원</li>
+                  <li>
+                    • <strong>Action Pipeline</strong>: 폼 조작 액션 중앙 관리
+                  </li>
+                  <li>
+                    • <strong>Store Sync</strong>: 폼 상태와 UI 실시간 동기화
+                  </li>
+                  <li>
+                    • <strong>Validation Engine</strong>: 통합 유효성 검사
+                    시스템
+                  </li>
+                  <li>
+                    • <strong>Type Safety</strong>: TypeScript 완전 지원
+                  </li>
                 </ul>
               </div>
             </div>
@@ -154,7 +178,9 @@ export function FormBuilderDemoPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-medium text-blue-900 mb-1">📝 Text Input</h4>
+                <h4 className="font-medium text-blue-900 mb-1">
+                  📝 Text Input
+                </h4>
                 <p className="text-xs text-blue-700">일반 텍스트 입력 필드</p>
               </div>
 
@@ -165,7 +191,9 @@ export function FormBuilderDemoPage() {
 
               <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                 <h4 className="font-medium text-purple-900 mb-1">🔢 Number</h4>
-                <p className="text-xs text-purple-700">숫자 입력 및 범위 설정</p>
+                <p className="text-xs text-purple-700">
+                  숫자 입력 및 범위 설정
+                </p>
               </div>
 
               <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -184,7 +212,9 @@ export function FormBuilderDemoPage() {
               </div>
 
               <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <h4 className="font-medium text-indigo-900 mb-1">📄 Textarea</h4>
+                <h4 className="font-medium text-indigo-900 mb-1">
+                  📄 Textarea
+                </h4>
                 <p className="text-xs text-indigo-700">여러 줄 텍스트 입력</p>
               </div>
 
@@ -209,22 +239,44 @@ export function FormBuilderDemoPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-green-600 mb-3">🎯 폼 빌드 과정</h4>
+                <h4 className="font-semibold text-green-600 mb-3">
+                  🎯 폼 빌드 과정
+                </h4>
                 <div className="space-y-2 text-sm text-gray-700">
-                  <p><strong>1단계</strong>: 좌측 도구 팔레트에서 필드 선택</p>
-                  <p><strong>2단계</strong>: 드래그하여 폼 영역에 필드 추가</p>
-                  <p><strong>3단계</strong>: 속성 패널에서 필드 설정 편집</p>
-                  <p><strong>4단계</strong>: 미리보기로 폼 동작 확인</p>
+                  <p>
+                    <strong>1단계</strong>: 좌측 도구 팔레트에서 필드 선택
+                  </p>
+                  <p>
+                    <strong>2단계</strong>: 드래그하여 폼 영역에 필드 추가
+                  </p>
+                  <p>
+                    <strong>3단계</strong>: 속성 패널에서 필드 설정 편집
+                  </p>
+                  <p>
+                    <strong>4단계</strong>: 미리보기로 폼 동작 확인
+                  </p>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-orange-600 mb-3">⚡ 고급 기능</h4>
+                <h4 className="font-semibold text-orange-600 mb-3">
+                  ⚡ 고급 기능
+                </h4>
                 <div className="space-y-2 text-sm text-gray-700">
-                  <p><strong>조건부 표시</strong>: 다른 필드 값에 따른 필드 표시/숨김</p>
-                  <p><strong>커스텀 검증</strong>: JavaScript 기반 사용자 정의 검증</p>
-                  <p><strong>템플릿 저장</strong>: 자주 사용하는 폼 템플릿 저장</p>
-                  <p><strong>JSON 내보내기</strong>: 폼 구조를 JSON으로 내보내기</p>
+                  <p>
+                    <strong>조건부 표시</strong>: 다른 필드 값에 따른 필드
+                    표시/숨김
+                  </p>
+                  <p>
+                    <strong>커스텀 검증</strong>: JavaScript 기반 사용자 정의
+                    검증
+                  </p>
+                  <p>
+                    <strong>템플릿 저장</strong>: 자주 사용하는 폼 템플릿 저장
+                  </p>
+                  <p>
+                    <strong>JSON 내보내기</strong>: 폼 구조를 JSON으로 내보내기
+                  </p>
                 </div>
               </div>
             </div>

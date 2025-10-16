@@ -1,8 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { Badge, Button, Card, CardContent } from '@/components/ui';
+import {
+  useChildACounterActions,
+  useChildARemoteControlActions,
+} from '../actions/useChildAActions';
+import {
+  useParentCounterActions,
+  useParentDataActions,
+} from '../actions/useParentActions';
 import { useChildACounter } from '../hooks/useChildAData';
-import { useChildACounterActions, useChildARemoteControlActions } from '../actions/useChildAActions';
-import { useParentDataActions, useParentCounterActions } from '../actions/useParentActions';
 
 // ==============================================
 // CHILD A DOMAIN - View Component
@@ -14,7 +20,7 @@ import { useParentDataActions, useParentCounterActions } from '../actions/usePar
 export function ChildAView() {
   // 🗄️ Model Layer - 데이터 구독
   const { isZero, isPositive, displayValue, status } = useChildACounter();
-  
+
   // ⚙️ ViewModel Layer - 액션 함수들
   const { incrementCounter, resetCounter } = useChildACounterActions();
   const { childId } = useChildARemoteControlActions();
@@ -67,18 +73,10 @@ export function ChildAView() {
           </div>
 
           <div className="flex gap-2 flex-wrap">
-            <Button
-              size="sm"
-              variant="success"
-              onClick={handleIncrement1}
-            >
+            <Button size="sm" variant="success" onClick={handleIncrement1}>
               🔢 +1
             </Button>
-            <Button
-              size="sm"
-              variant="success"
-              onClick={handleIncrement5}
-            >
+            <Button size="sm" variant="success" onClick={handleIncrement5}>
               🔢 +5
             </Button>
             <Button
@@ -89,11 +87,7 @@ export function ChildAView() {
             >
               🔄 리셋
             </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleIncrementParent}
-            >
+            <Button size="sm" variant="primary" onClick={handleIncrementParent}>
               🔼 상위 카운터 +1
             </Button>
           </div>

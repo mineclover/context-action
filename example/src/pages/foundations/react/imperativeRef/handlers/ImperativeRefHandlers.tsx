@@ -26,8 +26,16 @@
  */
 
 import React, { ReactNode } from 'react';
+import {
+  calculateCounterValue,
+  calculateTimerState,
+  FormData,
+  TimerState,
+  ValidationResult,
+  ValidationState,
+  validateFormData,
+} from '../business/imperativeRefBusinessLogic';
 import { useRefRegistry } from '../contexts/RefContexts';
-import { validateFormData, FormData, ValidationState, ValidationResult, calculateCounterValue, calculateTimerState, TimerState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Handler Configuration Interface
 export interface ImperativeRefHandlerConfig {
@@ -53,7 +61,7 @@ export function ImperativeRefHandlers({
   onCounterChange,
   onTimerTick,
   onModalToggle,
-  children
+  children,
 }: ImperativeRefHandlerConfig) {
   const refRegistry = useRefRegistry();
 
@@ -66,7 +74,7 @@ export function ImperativeRefHandlers({
     const currentFormData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
-      message: refRegistry.messageInput.current?.getValue() || ''
+      message: refRegistry.messageInput.current?.getValue() || '',
     };
 
     // 2️⃣ Pure Business Logic: Validate form with current data
@@ -85,7 +93,7 @@ export function ImperativeRefHandlers({
     const currentFormData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
-      message: refRegistry.messageInput.current?.getValue() || ''
+      message: refRegistry.messageInput.current?.getValue() || '',
     };
 
     // 2️⃣ Pure Business Logic: Full form validation
@@ -129,7 +137,7 @@ export function ImperativeRefHandlers({
       step: 1,
       min: 0,
       max: 100,
-      setValue: businessSetValue
+      setValue: businessSetValue,
     });
 
     // 3️⃣ Side Effects: Update counter ref
@@ -178,9 +186,10 @@ export function ImperativeRefHandlers({
     action: 'open' | 'close' | 'toggle'
   ) => {
     // 1️⃣ Handler Injection: Get current modal state
-    const modalRef = modalType === 'confirm'
-      ? refRegistry.confirmModal.current
-      : refRegistry.alertModal.current;
+    const modalRef =
+      modalType === 'confirm'
+        ? refRegistry.confirmModal.current
+        : refRegistry.alertModal.current;
 
     const isCurrentlyOpen = modalRef?.isOpen() || false;
 
@@ -231,7 +240,7 @@ export function ImperativeRefHandlers({
       resetAndFocus: () => {
         refRegistry.resetAllInputs();
         refRegistry.focusFirstInput();
-      }
+      },
     };
   };
 
@@ -256,16 +265,19 @@ export function ImperativeRefHandlers({
     batchOperations: handleBatchOperations(),
 
     // Direct ref registry access for advanced use cases
-    refRegistry
+    refRegistry,
   };
 
   // Create context for handlers (if needed)
   return (
     <>
       {/* Store handler context in ref for access from child components */}
-      {React.cloneElement(children as React.ReactElement, {
-        handlerContext
-      } as any)}
+      {React.cloneElement(
+        children as React.ReactElement,
+        {
+          handlerContext,
+        } as any
+      )}
     </>
   );
 }
@@ -282,11 +294,20 @@ export function useImperativeRefHandlers() {
 
 // 🎯 Handler Types Export for TypeScript
 export type ImperativeRefHandlerMethods = {
-  handleFieldValidation: (field: keyof ValidationState, isValid: boolean) => ValidationResult | undefined;
+  handleFieldValidation: (
+    field: keyof ValidationState,
+    isValid: boolean
+  ) => ValidationResult | undefined;
   handleFormSubmit: () => ValidationResult | undefined;
-  handleCounterOperation: (operation: 'increment' | 'decrement' | 'reset' | 'set', setValue?: number) => number;
+  handleCounterOperation: (
+    operation: 'increment' | 'decrement' | 'reset' | 'set',
+    setValue?: number
+  ) => number;
   handleTimerControl: (action: 'start' | 'stop' | 'reset') => TimerState;
-  handleModalControl: (modalType: 'confirm' | 'alert', action: 'open' | 'close' | 'toggle') => boolean;
+  handleModalControl: (
+    modalType: 'confirm' | 'alert',
+    action: 'open' | 'close' | 'toggle'
+  ) => boolean;
   batchOperations: {
     validateAllFields: () => boolean;
     resetAllFields: () => void;

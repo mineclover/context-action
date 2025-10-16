@@ -21,15 +21,13 @@ interface BasicActionMap extends ActionPayloadMap {
 
 export function BasicActionsDemo() {
   const [count, setCount] = useState(0);
-  const [actionRegister] = useState(
-    () => new ActionRegister<BasicActionMap>()
-  );
+  const [actionRegister] = useState(() => new ActionRegister<BasicActionMap>());
   const { logAction, logSystem, logError } = useActionLoggerWithToast();
 
   const logActionRef = useRef(logAction);
   const logSystemRef = useRef(logSystem);
   const logErrorRef = useRef(logError);
-  
+
   // Update refs when logger functions change
   logActionRef.current = logAction;
   logSystemRef.current = logSystem;
@@ -39,9 +37,9 @@ export function BasicActionsDemo() {
     logSystemRef.current('BasicActionsDemo - ActionRegister 초기화');
 
     // 1. 기본 액션 핸들러 - 낮은 우선순위
-      const unsubscribeIncrement = actionRegister.register(
-        ACTION_NAMES.INCREMENT,
-        (_) => {
+    const unsubscribeIncrement = actionRegister.register(
+      ACTION_NAMES.INCREMENT,
+      (_) => {
         setCount((prev) => prev + 1);
         logActionRef.current(ACTION_NAMES.INCREMENT, undefined);
       },
@@ -49,9 +47,9 @@ export function BasicActionsDemo() {
     );
 
     // 2. 곱하기 액션 - 높은 우선순위로 먼저 실행
-      const unsubscribeMultiply = actionRegister.register(
-        ACTION_NAMES.MULTIPLY,
-        (factor) => {
+    const unsubscribeMultiply = actionRegister.register(
+      ACTION_NAMES.MULTIPLY,
+      (factor) => {
         setCount((prev) => prev * factor);
         logActionRef.current(ACTION_NAMES.MULTIPLY, factor, { priority: 2 });
       },
@@ -63,7 +61,10 @@ export function BasicActionsDemo() {
       ACTION_NAMES.DIVIDE,
       (divisor, controller) => {
         if (divisor === 0) {
-          logErrorRef.current('Cannot divide by zero', new Error('Division by zero'));
+          logErrorRef.current(
+            'Cannot divide by zero',
+            new Error('Division by zero')
+          );
           controller.abort('Division by zero is not allowed');
           return;
         }

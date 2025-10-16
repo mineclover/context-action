@@ -3,21 +3,20 @@
  * Context-Action 프레임워크 기반 표준화된 객체 관리 솔루션
  */
 
-// Core Types
-export type {
-  ManagedObject,
-  ObjectMetadata,
-  BaseObjectActions,
-  ObjectLifecycleState,
-  ObjectContextState,
-  ObjectContextConfig,
-  QueryOptions,
-  ValidationResult,
-  ObjectManagementEvent
-} from './types';
-
 // Core Manager
 export { ObjectContextManager } from './ObjectContextManager';
+// Core Types
+export type {
+  BaseObjectActions,
+  ManagedObject,
+  ObjectContextConfig,
+  ObjectContextState,
+  ObjectLifecycleState,
+  ObjectManagementEvent,
+  ObjectMetadata,
+  QueryOptions,
+  ValidationResult,
+} from './types';
 
 // React Hooks Factory
 // export { createObjectContextHooks } from './createObjectContextHooks';

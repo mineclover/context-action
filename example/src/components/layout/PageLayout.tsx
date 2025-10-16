@@ -32,7 +32,7 @@ export function PageLayout({
   sourceConfig,
 }: PageLayoutProps) {
   const showSourceHeader = sourceConfig && !sourceConfig.hideSource;
-  
+
   return (
     <Container size={size} className={className}>
       <header className="mb-8">
@@ -44,7 +44,7 @@ export function PageLayout({
             variant={sourceConfig.variant || 'standard'}
           />
         )}
-        
+
         <h1 className="text-3xl font-bold text-gray-900 mb-4">{title}</h1>
         {description && (
           <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">

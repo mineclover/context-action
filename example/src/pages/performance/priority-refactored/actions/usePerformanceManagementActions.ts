@@ -27,16 +27,19 @@ export function usePerformanceManagementActions() {
     }
   }, [dispatch]);
 
-  const removeInstance = useCallback(async (instanceId: string) => {
-    try {
-      const result = await dispatch('removeInstance', { instanceId });
-      console.log('Instance removed successfully:', result);
-      return result;
-    } catch (error) {
-      console.error('Failed to remove instance:', error);
-      throw error;
-    }
-  }, [dispatch]);
+  const removeInstance = useCallback(
+    async (instanceId: string) => {
+      try {
+        const result = await dispatch('removeInstance', { instanceId });
+        console.log('Instance removed successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to remove instance:', error);
+        throw error;
+      }
+    },
+    [dispatch]
+  );
 
   const resetInstances = useCallback(async () => {
     try {
@@ -49,27 +52,33 @@ export function usePerformanceManagementActions() {
     }
   }, [dispatch]);
 
-  const startInstanceExecution = useCallback(async (instanceId: string) => {
-    try {
-      const result = await dispatch('startInstanceExecution', { instanceId });
-      console.log('Instance execution started:', result);
-      return result;
-    } catch (error) {
-      console.error('Failed to start instance execution:', error);
-      throw error;
-    }
-  }, [dispatch]);
+  const startInstanceExecution = useCallback(
+    async (instanceId: string) => {
+      try {
+        const result = await dispatch('startInstanceExecution', { instanceId });
+        console.log('Instance execution started:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to start instance execution:', error);
+        throw error;
+      }
+    },
+    [dispatch]
+  );
 
-  const stopInstanceExecution = useCallback(async (instanceId: string) => {
-    try {
-      const result = await dispatch('stopInstanceExecution', { instanceId });
-      console.log('Instance execution stopped:', result);
-      return result;
-    } catch (error) {
-      console.error('Failed to stop instance execution:', error);
-      throw error;
-    }
-  }, [dispatch]);
+  const stopInstanceExecution = useCallback(
+    async (instanceId: string) => {
+      try {
+        const result = await dispatch('stopInstanceExecution', { instanceId });
+        console.log('Instance execution stopped:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to stop instance execution:', error);
+        throw error;
+      }
+    },
+    [dispatch]
+  );
 
   return {
     addInstance,

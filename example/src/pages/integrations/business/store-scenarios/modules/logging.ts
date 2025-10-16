@@ -19,7 +19,7 @@ class LoggingModule {
   // 디바운스된 로깅으로 무한루프 방지
   logSystem(message: string, context?: Record<string, any>) {
     const key = `system-${message}`;
-    
+
     // 기존 타이머 클리어
     if (this.debounceTimers.has(key)) {
       clearTimeout(this.debounceTimers.get(key)!);
@@ -32,7 +32,7 @@ class LoggingModule {
         timestamp: new Date(),
         type: 'system',
         message,
-        context
+        context,
       });
       this.debounceTimers.delete(key);
     }, 100);
@@ -46,20 +46,20 @@ class LoggingModule {
       timestamp: new Date(),
       type: 'action',
       message: `액션 실행: ${action}`,
-      context
+      context,
     });
   }
 
   private addLog(log: LogEntry) {
     this.logs.push(log);
-    
+
     // 최대 100개 로그만 유지
     if (this.logs.length > 100) {
       this.logs = this.logs.slice(-100);
     }
 
     // 리스너들에게 알림
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener([...this.logs]);
       } catch (error) {
@@ -70,7 +70,7 @@ class LoggingModule {
 
   subscribe(listener: (logs: LogEntry[]) => void) {
     this.listeners.add(listener);
-    
+
     // 현재 로그 즉시 전달
     listener([...this.logs]);
 
@@ -86,7 +86,7 @@ class LoggingModule {
 
   clear() {
     this.logs = [];
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener([]);
       } catch (error) {
@@ -97,7 +97,7 @@ class LoggingModule {
 
   destroy() {
     // 모든 타이머 클리어
-    this.debounceTimers.forEach(timer => clearTimeout(timer));
+    this.debounceTimers.forEach((timer) => clearTimeout(timer));
     this.debounceTimers.clear();
     this.listeners.clear();
     this.logs = [];

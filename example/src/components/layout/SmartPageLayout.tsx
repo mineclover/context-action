@@ -1,10 +1,10 @@
 import React from 'react';
-import { PageLayout, type PageLayoutProps } from './PageLayout';
 import { useSmartSourceLinks } from '../../hooks/useAutoSourceDetection';
+import { PageLayout, type PageLayoutProps } from './PageLayout';
 
 interface SmartPageLayoutProps extends Omit<PageLayoutProps, 'sourceConfig'> {
-  /** 
-   * 소스 링크 설정 - 'auto'로 설정시 자동 감지 
+  /**
+   * 소스 링크 설정 - 'auto'로 설정시 자동 감지
    */
   sourceConfig?: PageLayoutProps['sourceConfig'] | 'auto' | false;
 }
@@ -18,29 +18,26 @@ export function SmartPageLayout({
   ...props
 }: SmartPageLayoutProps) {
   const autoDetected = useSmartSourceLinks();
-  
+
   // sourceConfig 결정
   const resolvedSourceConfig = React.useMemo(() => {
     if (sourceConfig === false) {
       return { hideSource: true };
     }
-    
+
     if (sourceConfig === 'auto') {
-      return autoDetected ? {
-        filePaths: autoDetected.filePaths,
-        variant: 'standard' as const
-      } : { hideSource: true };
+      return autoDetected
+        ? {
+            filePaths: autoDetected.filePaths,
+            variant: 'standard' as const,
+          }
+        : { hideSource: true };
     }
-    
+
     return sourceConfig;
   }, [sourceConfig, autoDetected]);
 
-  return (
-    <PageLayout 
-      {...props} 
-      sourceConfig={resolvedSourceConfig}
-    />
-  );
+  return <PageLayout {...props} sourceConfig={resolvedSourceConfig} />;
 }
 
 /**
@@ -48,9 +45,9 @@ export function SmartPageLayout({
  */
 export function AutoDetectionDebug() {
   const autoDetected = useSmartSourceLinks();
-  
+
   if (!autoDetected || process.env.NODE_ENV !== 'development') return null;
-  
+
   return (
     <div className="fixed bottom-4 right-4 bg-black/80 text-white text-xs p-3 rounded-lg font-mono max-w-xs">
       <div className="font-bold mb-2">🔍 Auto-detected sources:</div>

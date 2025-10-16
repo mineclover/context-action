@@ -119,15 +119,24 @@ export const ActionPatternBadge = ({
 
 // 동적 PatternBadge 컴포넌트 - type과 difficulty를 받아서 처리
 interface DynamicPatternBadgeProps {
-  type?: 'store' | 'action' | 'async' | 'ref' | 'integration' | 'performance' | 'api' | 'search' | 'interaction';
+  type?:
+    | 'store'
+    | 'action'
+    | 'async'
+    | 'ref'
+    | 'integration'
+    | 'performance'
+    | 'api'
+    | 'search'
+    | 'interaction';
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const DynamicPatternBadge = ({ 
-  type = 'integration', 
+export const DynamicPatternBadge = ({
+  type = 'integration',
   difficulty = 'intermediate',
-  size = 'md' 
+  size = 'md',
 }: DynamicPatternBadgeProps) => {
   const typeIcons = {
     store: '🗄️',

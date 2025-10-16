@@ -6,7 +6,8 @@ export default function PerformanceOverview() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4">⚡ Performance</h1>
         <p className="text-xl text-gray-700 mb-6">
-          성능 최적화, 액션 가드 시스템, 그리고 우선순위 기반 실행에 대해 학습합니다.
+          성능 최적화, 액션 가드 시스템, 그리고 우선순위 기반 실행에 대해
+          학습합니다.
         </p>
       </div>
 
@@ -14,10 +15,12 @@ export default function PerformanceOverview() {
         <h2 className="text-2xl font-semibold mb-4">🎯 성능 최적화 경로</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
-            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">1</span>
+            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              1
+            </span>
             <div>
-              <Link 
-                to="/performance/action-guard" 
+              <Link
+                to="/performance/action-guard"
                 className="text-yellow-600 hover:text-yellow-800 font-medium text-lg"
               >
                 Action Guard 시스템
@@ -26,10 +29,12 @@ export default function PerformanceOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">2</span>
+            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              2
+            </span>
             <div>
-              <Link 
-                to="/performance/priority/advanced" 
+              <Link
+                to="/performance/priority/advanced"
                 className="text-yellow-600 hover:text-yellow-800 font-medium text-lg"
               >
                 Priority 시스템
@@ -38,10 +43,12 @@ export default function PerformanceOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">3</span>
+            <span className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              3
+            </span>
             <div>
-              <Link 
-                to="/performance/mouse-events" 
+              <Link
+                to="/performance/mouse-events"
                 className="text-yellow-600 hover:text-yellow-800 font-medium text-lg"
               >
                 Mouse Events 최적화
@@ -57,27 +64,42 @@ export default function PerformanceOverview() {
           <h3 className="text-xl font-semibold mb-4">🛡️ Action Guard</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/performance/action-guard" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/action-guard"
+                className="text-yellow-600 hover:underline"
+              >
                 Guard 개요
               </Link>
             </li>
             <li>
-              <Link to="/performance/action-guard/search" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/action-guard/search"
+                className="text-yellow-600 hover:underline"
+              >
                 Search Protection
               </Link>
             </li>
             <li>
-              <Link to="/performance/action-guard/scroll" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/action-guard/scroll"
+                className="text-yellow-600 hover:underline"
+              >
                 Scroll Optimization
               </Link>
             </li>
             <li>
-              <Link to="/performance/action-guard/api-blocking" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/action-guard/api-blocking"
+                className="text-yellow-600 hover:underline"
+              >
                 API Blocking
               </Link>
             </li>
             <li>
-              <Link to="/performance/action-guard/throttle-comparison" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/action-guard/throttle-comparison"
+                className="text-yellow-600 hover:underline"
+              >
                 Throttle Comparison
               </Link>
             </li>
@@ -88,12 +110,18 @@ export default function PerformanceOverview() {
           <h3 className="text-xl font-semibold mb-4">🎯 Priority</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/performance/priority/advanced" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/priority/advanced"
+                className="text-yellow-600 hover:underline"
+              >
                 Priority System
               </Link>
             </li>
             <li>
-              <Link to="/performance/priority/demo" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/priority/demo"
+                className="text-yellow-600 hover:underline"
+              >
                 Priority Demo
               </Link>
             </li>
@@ -104,17 +132,26 @@ export default function PerformanceOverview() {
           <h3 className="text-xl font-semibold mb-4">🖱️ Mouse Events</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/performance/mouse-events" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/mouse-events"
+                className="text-yellow-600 hover:underline"
+              >
                 Mouse Events Index
               </Link>
             </li>
             <li>
-              <Link to="/performance/mouse-events/enhanced-context-store" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/mouse-events/enhanced-context-store"
+                className="text-yellow-600 hover:underline"
+              >
                 Enhanced Context Store
               </Link>
             </li>
             <li>
-              <Link to="/performance/mouse-events/context-store-action" className="text-yellow-600 hover:underline">
+              <Link
+                to="/performance/mouse-events/context-store-action"
+                className="text-yellow-600 hover:underline"
+              >
                 Context Store Action
               </Link>
             </li>

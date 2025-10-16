@@ -12,12 +12,11 @@ export function useScenarioExecution({
   scenarios,
   selectedScenario,
   isExecuting,
-  executeScenario
+  executeScenario,
 }: UseScenarioExecutionProps) {
-  
   const handleExecuteScenario = useCallback(async () => {
     if (isExecuting) return;
-    
+
     const scenario = scenarios[selectedScenario];
     if (!scenario) {
       console.error(`Scenario not found: ${selectedScenario}`);
@@ -35,6 +34,6 @@ export function useScenarioExecution({
   return {
     handleExecuteScenario,
     getCurrentScenario,
-    currentScenario: scenarios[selectedScenario]
+    currentScenario: scenarios[selectedScenario],
   };
 }

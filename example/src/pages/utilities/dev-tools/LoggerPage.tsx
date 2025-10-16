@@ -1,3 +1,11 @@
+import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
+import { useCallback, useEffect, useState } from 'react';
+import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+  useLogMonitor,
+} from '@/components/LogMonitor';
 import {
   ConsoleLogger,
   createLogger,
@@ -5,14 +13,6 @@ import {
   type Logger,
   LogLevel,
 } from '@/utils/logger';
-import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
-import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
-import { useCallback, useEffect, useState } from 'react';
-import {
-  PageWithLogMonitor,
-  useActionLoggerWithToast,
-  useLogMonitor,
-} from '@/components/LogMonitor';
 
 // 액션 타입 정의
 interface LoggerActionMap extends ActionPayloadMap {
@@ -190,7 +190,6 @@ function ConsoleLoggerDemo() {
             toast: { type: 'info', message: `액션 ${type} 실행됨` },
           }
         );
-        
       }
     );
 
@@ -233,7 +232,6 @@ function ConsoleLoggerDemo() {
             },
           }
         );
-        
       }
     );
 
@@ -349,8 +347,6 @@ function MemoryLoggerDemo() {
             toast: { type: 'success', message: `${count}개 배치 로그 완료` },
           }
         );
-
-        
       }
     );
 
@@ -589,13 +585,14 @@ function LoggerDemoPage() {
           <div className="demo-card info-card">
             <h3>🔍 LogMonitor 통합 가이드</h3>
             <p className="text-gray-600 mb-4">
-              LogMonitor는 액션 핸들러에서 발생하는 모든 이벤트를 실시간으로 수집하고 표시합니다.
+              LogMonitor는 액션 핸들러에서 발생하는 모든 이벤트를 실시간으로
+              수집하고 표시합니다.
             </p>
-            
+
             <div className="mb-4">
               <h4 className="font-semibold mb-2 text-gray-900">1. 기본 설정</h4>
               <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
-{`// PageWithLogMonitor로 페이지 래핑
+                {`// PageWithLogMonitor로 페이지 래핑
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 
 function MyPage() {
@@ -609,9 +606,11 @@ function MyPage() {
             </div>
 
             <div className="mb-4">
-              <h4 className="font-semibold mb-2 text-gray-900">2. 액션 핸들러에서 로깅</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">
+                2. 액션 핸들러에서 로깅
+              </h4>
               <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
-{`// 핸들러에서 LogMonitor 사용
+                {`// 핸들러에서 LogMonitor 사용
 import { useLogMonitor } from '@/components/LogMonitor/context';
 import { LogLevel } from '@/utils/logger';
 
@@ -635,20 +634,37 @@ function useMyHandlers() {
             </div>
 
             <div className="mb-4">
-              <h4 className="font-semibold mb-2 text-gray-900">3. 로그 타입별 활용</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">
+                3. 로그 타입별 활용
+              </h4>
               <ul className="space-y-2">
-                <li className="text-gray-800"><strong className="text-gray-900">action</strong>: 사용자 액션과 그 결과</li>
-                <li className="text-gray-800"><strong className="text-gray-900">system</strong>: 시스템 이벤트 (컴포넌트 등록, 초기화 등)</li>
-                <li className="text-gray-800"><strong className="text-gray-900">error</strong>: 오류 및 예외 상황</li>
-                <li className="text-gray-800"><strong className="text-gray-900">performance</strong>: 성능 관련 측정 데이터</li>
+                <li className="text-gray-800">
+                  <strong className="text-gray-900">action</strong>: 사용자
+                  액션과 그 결과
+                </li>
+                <li className="text-gray-800">
+                  <strong className="text-gray-900">system</strong>: 시스템
+                  이벤트 (컴포넌트 등록, 초기화 등)
+                </li>
+                <li className="text-gray-800">
+                  <strong className="text-gray-900">error</strong>: 오류 및 예외
+                  상황
+                </li>
+                <li className="text-gray-800">
+                  <strong className="text-gray-900">performance</strong>: 성능
+                  관련 측정 데이터
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2 text-gray-900">4. 실전 활용 예제</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">
+                4. 실전 활용 예제
+              </h4>
               <p className="text-sm text-gray-800">
-                Context-Action 프레임워크에서 LogMonitor를 사용하여 모든 액션의 실행 과정을 추적하고,
-                디버깅과 성능 분석을 위한 상세한 로그를 실시간으로 확인할 수 있습니다.
+                Context-Action 프레임워크에서 LogMonitor를 사용하여 모든 액션의
+                실행 과정을 추적하고, 디버깅과 성능 분석을 위한 상세한 로그를
+                실시간으로 확인할 수 있습니다.
               </p>
             </div>
           </div>
@@ -657,11 +673,13 @@ function useMyHandlers() {
         {/* LogMonitor 실전 사용 예제 */}
         <div className="demo-card info-card">
           <h3>📋 LogMonitor 실전 사용 패턴</h3>
-          
+
           <div className="mb-6">
-            <h4 className="font-semibold mb-2 text-gray-900">액션 핸들러에서 LogMonitor 통합</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">
+              액션 핸들러에서 LogMonitor 통합
+            </h4>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
-{`// Parent Handler 예제 (Context-Layered Architecture)
+              {`// Parent Handler 예제 (Context-Layered Architecture)
 import { useLogMonitor } from '@/components/LogMonitor/context';
 import { LogLevel } from '@/utils/logger';
 
@@ -703,9 +721,11 @@ export function useParentCounterHandlers(props: ParentHandlerProps) {
           </div>
 
           <div className="mb-6">
-            <h4 className="font-semibold mb-2 text-gray-900">Child Component 로깅 패턴</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">
+              Child Component 로깅 패턴
+            </h4>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
-{`// Child Handler 예제 (원격 제어 포함)
+              {`// Child Handler 예제 (원격 제어 포함)
 export function useChildARemoteControlActions() {
   const storeManager = useChildAStoreManager();
   const { addLog } = useLogMonitorActions();
@@ -744,12 +764,14 @@ export function useChildARemoteControlActions() {
           </div>
 
           <div className="mb-4">
-            <h4 className="font-semibold mb-2 text-gray-900">로그 타입별 활용 패턴</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">
+              로그 타입별 활용 패턴
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h5 className="font-medium text-gray-900">Action 로그</h5>
                 <pre className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
-{`addLog({
+                  {`addLog({
   level: LogLevel.INFO,
   type: 'action',
   message: '사용자 액션 실행',
@@ -760,7 +782,7 @@ export function useChildARemoteControlActions() {
               <div>
                 <h5 className="font-medium text-gray-900">System 로그</h5>
                 <pre className="bg-gray-900 text-blue-400 p-3 rounded text-xs font-mono overflow-x-auto">
-{`addLog({
+                  {`addLog({
   level: LogLevel.DEBUG,
   type: 'system',
   message: '컴포넌트 등록됨',
@@ -776,13 +798,16 @@ export function useChildARemoteControlActions() {
         <div className="demo-card info-card">
           <h3>⚠️ LogMonitor 의존성 주의사항</h3>
           <p className="text-red-600 mb-4 font-medium">
-            actionLogger와 logMonitor를 useCallback/useEffect 의존성에 포함하면 무한루프가 발생할 수 있습니다!
+            actionLogger와 logMonitor를 useCallback/useEffect 의존성에 포함하면
+            무한루프가 발생할 수 있습니다!
           </p>
-          
+
           <div className="mb-6">
-            <h4 className="font-semibold mb-2 text-red-900">❌ 위험한 패턴 (무한루프 발생)</h4>
+            <h4 className="font-semibold mb-2 text-red-900">
+              ❌ 위험한 패턴 (무한루프 발생)
+            </h4>
             <pre className="bg-red-900 text-red-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-red-300">
-{`// 위험! actionLogger를 의존성에 포함하면 무한루프 발생
+              {`// 위험! actionLogger를 의존성에 포함하면 무한루프 발생
 function MyComponent() {
   const actionLogger = useActionLogger();
   const logMonitor = useLogMonitor();
@@ -803,9 +828,11 @@ function MyComponent() {
           </div>
 
           <div className="mb-6">
-            <h4 className="font-semibold mb-2 text-green-900">✅ 안전한 패턴 (권장)</h4>
+            <h4 className="font-semibold mb-2 text-green-900">
+              ✅ 안전한 패턴 (권장)
+            </h4>
             <pre className="bg-green-900 text-green-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-green-300">
-{`// 안전! 의존성에서 제외하여 무한루프 방지
+              {`// 안전! 의존성에서 제외하여 무한루프 방지
 function MyComponent() {
   const actionLogger = useActionLogger();
   const logMonitor = useLogMonitor();
@@ -831,14 +858,27 @@ function MyComponent() {
           </div>
 
           <div className="mb-4">
-            <h4 className="font-semibold mb-2 text-gray-900">🔍 무한루프가 발생하는 이유</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">
+              🔍 무한루프가 발생하는 이유
+            </h4>
             <div className="bg-gray-100 p-4 rounded-lg">
               <ol className="list-decimal list-inside space-y-2 text-sm text-gray-800">
-                <li><strong>actionLogger 호출</strong> → LogMonitor 상태 변경</li>
-                <li><strong>LogMonitor Context 리렌더링</strong> → useActionLogger 재실행</li>
-                <li><strong>새로운 actionLogger 객체 생성</strong> → 참조 변경</li>
-                <li><strong>useCallback 재실행</strong> → 의존성 변경 감지</li>
-                <li><strong>다시 actionLogger 호출</strong> → 무한 반복...</li>
+                <li>
+                  <strong>actionLogger 호출</strong> → LogMonitor 상태 변경
+                </li>
+                <li>
+                  <strong>LogMonitor Context 리렌더링</strong> → useActionLogger
+                  재실행
+                </li>
+                <li>
+                  <strong>새로운 actionLogger 객체 생성</strong> → 참조 변경
+                </li>
+                <li>
+                  <strong>useCallback 재실행</strong> → 의존성 변경 감지
+                </li>
+                <li>
+                  <strong>다시 actionLogger 호출</strong> → 무한 반복...
+                </li>
               </ol>
             </div>
           </div>
@@ -846,7 +886,12 @@ function MyComponent() {
           <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
             <h4 className="font-semibold text-yellow-900 mb-2">💡 핵심 원칙</h4>
             <ul className="space-y-1 text-sm text-yellow-800">
-              <li>• <strong>actionLogger, logMonitor는 의존성에 포함하지 마세요</strong></li>
+              <li>
+                •{' '}
+                <strong>
+                  actionLogger, logMonitor는 의존성에 포함하지 마세요
+                </strong>
+              </li>
               <li>• ESLint 경고가 나와도 무시하는 것이 안전합니다</li>
               <li>• "Stable API"라는 이름과 달리 실제로는 참조가 변경됩니다</li>
               <li>• 대신 콘솔 로깅이나 직접 호출 패턴을 사용하세요</li>
@@ -858,7 +903,8 @@ function MyComponent() {
         <div className="demo-card">
           <h3>🎮 LogMonitor 라이브 데모</h3>
           <p className="text-gray-600 mb-4">
-            아래 버튼들을 클릭하여 LogMonitor에 실시간으로 로그가 수집되는 것을 확인하세요.
+            아래 버튼들을 클릭하여 LogMonitor에 실시간으로 로그가 수집되는 것을
+            확인하세요.
           </p>
           <LogMonitorLiveDemo />
         </div>

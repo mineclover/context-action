@@ -1,4 +1,8 @@
-import { type ActionPayloadMap, createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
 
 // ==============================================
 // CHILD B DOMAIN - MVVM Architecture
@@ -6,7 +10,7 @@ import { type ActionPayloadMap, createActionContext, createStoreContext } from '
 
 // 🗄️ Model Layer - Store Types Definition
 export interface ChildBStores {
-  'text': string;
+  text: string;
 }
 
 // ⚙️ ViewModel Layer - Action Types Definition
@@ -19,16 +23,16 @@ export interface ChildBActions extends ActionPayloadMap {
 export const {
   Provider: ChildBModelProvider,
   useStore: useChildBStore,
-  useStoreManager: useChildBStoreManager
+  useStoreManager: useChildBStoreManager,
 } = createStoreContext<ChildBStores>('ChildB', {
-  'text': { 
-    initialValue: 'Hello World' 
-  }
+  text: {
+    initialValue: 'Hello World',
+  },
 });
 
 // ⚙️ ViewModel Layer - Action Context Creation
 export const {
   Provider: ChildBActionProvider,
   useActionDispatch: useChildBActionDispatch,
-  useActionHandler: useChildBActionHandler
+  useActionHandler: useChildBActionHandler,
 } = createActionContext<ChildBActions>('ChildB');

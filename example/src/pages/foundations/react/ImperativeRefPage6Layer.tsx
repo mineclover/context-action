@@ -24,35 +24,34 @@ import { RefContextProvider } from './imperativeRef/contexts/RefContexts';
 
 // 🎯 Layer 2: Business Logic (imported in handlers)
 
-// 🎯 Layer 3: Handlers
-import { ImperativeRefHandlers } from './imperativeRef/handlers/ImperativeRefHandlers';
+// External dependencies
+import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 
 // 🎯 Layer 4: Actions
-import { useImperativeRefActions, ImperativeRefActionHandlers } from './imperativeRef/actions/useImperativeRefActions';
-
-// 🎯 Layer 5: Hooks
-import { useImperativeRefData } from './imperativeRef/hooks/useImperativeRefData';
-
-// 🎯 Layer 6: Views
 import {
-  DemoStatusView,
-  ControlPanelView,
-  CodeExamplesView,
-  ValidationDisplayView,
-  // Import imperative components from the existing location
-  ImperativeInput,
-  ImperativeModal,
-  ImperativeCounter,
-  ImperativeTimer
-} from './imperativeRef/views/ImperativeRefViews';
-
+  ImperativeRefActionHandlers,
+  useImperativeRefActions,
+} from './imperativeRef/actions/useImperativeRefActions';
+import { formatTimerDisplay } from './imperativeRef/business/imperativeRefBusinessLogic';
 // Import advanced patterns for integration
 import { PerformanceOptimizedDemo } from './imperativeRef/examples/PerformanceOptimizedExamples';
 import { TypeSafeErrorHandlingDemo } from './imperativeRef/examples/TypeSafeErrorHandlingExamples';
-
-// External dependencies
-import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
-import { formatTimerDisplay } from './imperativeRef/business/imperativeRefBusinessLogic';
+// 🎯 Layer 3: Handlers
+import { ImperativeRefHandlers } from './imperativeRef/handlers/ImperativeRefHandlers';
+// 🎯 Layer 5: Hooks
+import { useImperativeRefData } from './imperativeRef/hooks/useImperativeRefData';
+// 🎯 Layer 6: Views
+import {
+  CodeExamplesView,
+  ControlPanelView,
+  DemoStatusView,
+  ImperativeCounter,
+  // Import imperative components from the existing location
+  ImperativeInput,
+  ImperativeModal,
+  ImperativeTimer,
+  ValidationDisplayView,
+} from './imperativeRef/views/ImperativeRefViews';
 
 // 🎯 Integration Layer Component
 function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
@@ -61,7 +60,7 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 9)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 9)]);
   };
 
   // 🎯 Layer 5: Reactive Data (Hooks Layer)
@@ -70,12 +69,16 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
   // 🎯 Action Handlers for Layer 4 (Actions Layer)
   const actionHandlers: ImperativeRefActionHandlers = {
     onFieldValidation: (field: string, isValid: boolean) => {
-      addLog(`📝 Field "${field}" validation: ${isValid ? '✅ Valid' : '❌ Invalid'}`);
+      addLog(
+        `📝 Field "${field}" validation: ${isValid ? '✅ Valid' : '❌ Invalid'}`
+      );
     },
 
     onFormSubmit: (formData: any, isValid: boolean) => {
       if (isValid) {
-        addLog(`✅ Form submitted successfully: ${formData.name}, ${formData.email}`);
+        addLog(
+          `✅ Form submitted successfully: ${formData.name}, ${formData.email}`
+        );
       } else {
         addLog(`❌ Form submission failed - validation errors`);
       }
@@ -86,7 +89,8 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
     },
 
     onTimerTick: (time: number) => {
-      if (time % 5 === 0 && time > 0) { // Log every 5 seconds
+      if (time % 5 === 0 && time > 0) {
+        // Log every 5 seconds
         addLog(`⏱️ Timer: ${formatTimerDisplay(time)}`);
       }
     },
@@ -100,17 +104,22 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
     },
 
     onValidateAll: (isValid: boolean) => {
-      addLog(`🔍 Validation check: ${isValid ? 'All fields valid' : 'Some fields invalid'}`);
-    }
+      addLog(
+        `🔍 Validation check: ${isValid ? 'All fields valid' : 'Some fields invalid'}`
+      );
+    },
   };
 
   // Pass integration context to children
-  return React.cloneElement(children as React.ReactElement, {
-    reactiveData,
-    actionHandlers,
-    logs,
-    handlerContext: {}
-  } as any);
+  return React.cloneElement(
+    children as React.ReactElement,
+    {
+      reactiveData,
+      actionHandlers,
+      logs,
+      handlerContext: {},
+    } as any
+  );
 }
 
 // 🎯 Main Demo Components
@@ -118,7 +127,7 @@ function ImperativeRefDemo({
   reactiveData,
   actionHandlers,
   logs,
-  handlerContext
+  handlerContext,
 }: {
   reactiveData: ReturnType<typeof useImperativeRefData>;
   actionHandlers: ImperativeRefActionHandlers;
@@ -150,8 +159,9 @@ function ImperativeRefDemo({
             useImperativeHandle + 6-Layer Architecture
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Complete demonstration of imperative React patterns with advanced ref management,
-            following the 6-Layer Context Architecture for maximum separation of concerns.
+            Complete demonstration of imperative React patterns with advanced
+            ref management, following the 6-Layer Context Architecture for
+            maximum separation of concerns.
           </p>
         </div>
 
@@ -172,7 +182,9 @@ function ImperativeRefDemo({
 
             {/* Imperative Form Components */}
             <div className="bg-white p-6 rounded-lg border">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">📝 Imperative Form</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                📝 Imperative Form
+              </h3>
               <div className="space-y-4">
                 <ImperativeInput
                   ref={handlerContext?.refRegistry?.nameInput}
@@ -207,19 +219,25 @@ function ImperativeRefDemo({
             {/* Interactive Components */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">🔢 Counter</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  🔢 Counter
+                </h3>
                 <ImperativeCounter
                   ref={handlerContext?.refRegistry?.counter}
                   initialValue={0}
                   min={0}
                   max={100}
                   step={1}
-                  onChange={(value) => actions.validateField({ field: 'name', isValid: value > 0 })}
+                  onChange={(value) =>
+                    actions.validateField({ field: 'name', isValid: value > 0 })
+                  }
                 />
               </div>
 
               <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">⏱️ Timer</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  ⏱️ Timer
+                </h3>
                 <ImperativeTimer
                   ref={handlerContext?.refRegistry?.timer}
                   onTick={(time) => actionHandlers.onTimerTick?.(time)}
@@ -263,7 +281,9 @@ function ImperativeRefDemo({
 
             {/* Activity Log */}
             <div className="bg-white p-4 rounded-lg border">
-              <h4 className="font-medium text-gray-700 mb-3">📋 Activity Log</h4>
+              <h4 className="font-medium text-gray-700 mb-3">
+                📋 Activity Log
+              </h4>
               <div className="max-h-64 overflow-y-auto bg-gray-50 rounded-md p-3">
                 {logs.length === 0 ? (
                   <div className="text-gray-500 text-sm text-center py-4">
@@ -272,7 +292,10 @@ function ImperativeRefDemo({
                 ) : (
                   <div className="space-y-1">
                     {logs.map((log, index) => (
-                      <div key={index} className="text-xs text-gray-700 font-mono">
+                      <div
+                        key={index}
+                        className="text-xs text-gray-700 font-mono"
+                      >
                         {log}
                       </div>
                     ))}
@@ -293,8 +316,8 @@ function ImperativeRefDemo({
         >
           <div className="space-y-4">
             <p className="text-gray-600">
-              This is a confirm modal controlled via imperative ref API.
-              The modal state is managed through the 6-layer architecture.
+              This is a confirm modal controlled via imperative ref API. The
+              modal state is managed through the 6-layer architecture.
             </p>
             <div className="flex gap-2 justify-end">
               <button
@@ -322,8 +345,8 @@ function ImperativeRefDemo({
         >
           <div className="space-y-4">
             <p className="text-gray-600">
-              Alert modal demonstrating imperative control patterns.
-              Form validation failed - please check your inputs.
+              Alert modal demonstrating imperative control patterns. Form
+              validation failed - please check your inputs.
             </p>
             <button
               onClick={() => actions.closeModal({ modalType: 'alert' })}
@@ -341,24 +364,43 @@ function ImperativeRefDemo({
               🚀 Advanced 6-Layer Architecture Patterns
             </h2>
             <p className="text-blue-700 mb-4">
-              6-Layer Architecture에 통합된 고급 패턴들: 성능 최적화, 에러 핸들링, 메모리 관리가 각 레이어와 어떻게 조화를 이루는지 확인할 수 있습니다.
+              6-Layer Architecture에 통합된 고급 패턴들: 성능 최적화, 에러
+              핸들링, 메모리 관리가 각 레이어와 어떻게 조화를 이루는지 확인할 수
+              있습니다.
             </p>
 
             <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
               <div>
-                <h3 className="font-semibold mb-2">🎯 Layer Integration Benefits</h3>
+                <h3 className="font-semibold mb-2">
+                  🎯 Layer Integration Benefits
+                </h3>
                 <ul className="space-y-1">
-                  <li>• <strong>Contexts Layer</strong>: Type-safe ref registry</li>
-                  <li>• <strong>Business Layer</strong>: Pure validation functions</li>
-                  <li>• <strong>Handlers Layer</strong>: Error-resilient injection</li>
+                  <li>
+                    • <strong>Contexts Layer</strong>: Type-safe ref registry
+                  </li>
+                  <li>
+                    • <strong>Business Layer</strong>: Pure validation functions
+                  </li>
+                  <li>
+                    • <strong>Handlers Layer</strong>: Error-resilient injection
+                  </li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold mb-2">⚡ Performance Integration</h3>
+                <h3 className="font-semibold mb-2">
+                  ⚡ Performance Integration
+                </h3>
                 <ul className="space-y-1">
-                  <li>• <strong>Actions Layer</strong>: Memoized dispatch functions</li>
-                  <li>• <strong>Hooks Layer</strong>: Optimized subscriptions</li>
-                  <li>• <strong>Views Layer</strong>: Cleanup-aware components</li>
+                  <li>
+                    • <strong>Actions Layer</strong>: Memoized dispatch
+                    functions
+                  </li>
+                  <li>
+                    • <strong>Hooks Layer</strong>: Optimized subscriptions
+                  </li>
+                  <li>
+                    • <strong>Views Layer</strong>: Cleanup-aware components
+                  </li>
                 </ul>
               </div>
             </div>
@@ -397,8 +439,12 @@ function ImperativeRefDemo({
                 <thead>
                   <tr className="border-b border-slate-300">
                     <th className="text-left p-2 font-semibold">Pattern</th>
-                    <th className="text-left p-2 font-semibold">Basic Implementation</th>
-                    <th className="text-left p-2 font-semibold">6-Layer Integration</th>
+                    <th className="text-left p-2 font-semibold">
+                      Basic Implementation
+                    </th>
+                    <th className="text-left p-2 font-semibold">
+                      6-Layer Integration
+                    </th>
                     <th className="text-left p-2 font-semibold">Benefits</th>
                   </tr>
                 </thead>
@@ -442,23 +488,31 @@ export default function ImperativeRefPage() {
   // Source file registration (React 컴파일러가 자동으로 메모이제이션)
   const imperativeRefPageOptions = {
     name: 'ImperativeRefPage (6-Layer Architecture)',
-    description: '6-Layer Context Architecture with useImperativeHandle patterns',
-    tags: ['6-layer-architecture', 'useImperativeHandle', 'ref-context', 'handler-injection'],
-    priority: 60
+    description:
+      '6-Layer Context Architecture with useImperativeHandle patterns',
+    tags: [
+      '6-layer-architecture',
+      'useImperativeHandle',
+      'ref-context',
+      'handler-injection',
+    ],
+    priority: 60,
   };
 
   const refContextsOptions = {
     name: 'RefContexts',
-    description: 'Centralized ref management with Context pattern and TypeScript interfaces',
+    description:
+      'Centralized ref management with Context pattern and TypeScript interfaces',
     tags: ['ref-context', 'typescript', 'centralized-management'],
-    priority: 55
+    priority: 55,
   };
 
   const imperativeComponentsOptions = {
     name: 'ImperativeComponents',
-    description: 'Components implementing useImperativeHandle with custom ref interfaces',
+    description:
+      'Components implementing useImperativeHandle with custom ref interfaces',
     tags: ['useImperativeHandle', 'forwardRef', 'custom-ref-interface'],
-    priority: 50
+    priority: 50,
   };
 
   useRegisterSourceFile(
@@ -483,14 +537,20 @@ export default function ImperativeRefPage() {
   // - Implementation Logic: Handlers inside ImperativeRefHandlers register based on dependencies
   // - This separation allows flexible handler lifecycle management
   return (
-    <RefContextProvider>        {/* Layer 1: Contexts */}
+    <RefContextProvider>
+      {' '}
+      {/* Layer 1: Contexts */}
       <ImperativeRefIntegration>
-        <ImperativeRefHandlers    // Layer 3: Handlers - Mount Logic
+        <ImperativeRefHandlers // Layer 3: Handlers - Mount Logic
           onValidationChange={(field: string, isValid: boolean) => {
-            console.log(`Handler: Field ${field} validation changed to ${isValid}`);
+            console.log(
+              `Handler: Field ${field} validation changed to ${isValid}`
+            );
           }}
           onFormSubmit={(_formData: any, isValid: boolean) => {
-            console.log(`Handler: Form submission ${isValid ? 'successful' : 'failed'}`);
+            console.log(
+              `Handler: Form submission ${isValid ? 'successful' : 'failed'}`
+            );
           }}
         >
           <ImperativeRefDemo
@@ -498,7 +558,8 @@ export default function ImperativeRefPage() {
             actionHandlers={{} as any}
             logs={[]}
             handlerContext={{}}
-          />    {/* Layers 4, 5, 6: Actions, Hooks, Views */}
+          />{' '}
+          {/* Layers 4, 5, 6: Actions, Hooks, Views */}
         </ImperativeRefHandlers>
       </ImperativeRefIntegration>
     </RefContextProvider>

@@ -15,7 +15,7 @@ export function PerformanceControlPanel({
   autoUpdate,
   updateInterval,
   onToggleAutoUpdate,
-  onIntervalChange
+  onIntervalChange,
 }: PerformanceControlPanelProps) {
   return (
     <div className="p-4 bg-gray-100 rounded-lg">
@@ -30,7 +30,7 @@ export function PerformanceControlPanel({
           />
           <span>Auto Update</span>
         </label>
-        
+
         <div className="flex items-center gap-2">
           <label>Interval (ms):</label>
           <input
@@ -43,7 +43,7 @@ export function PerformanceControlPanel({
             className="w-20 px-2 py-1 border rounded"
           />
         </div>
-        
+
         {autoUpdate && (
           <div className="text-sm text-yellow-600 font-medium">
             ⚠️ Auto-updating every {updateInterval}ms

@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { Badge, Button, Card, CardContent } from '@/components/ui';
+import {
+  useParentControlActions,
+  useParentCounterActions,
+} from '../actions/useParentActions';
 import { useParentState } from '../hooks/useParentData';
-import { useParentCounterActions, useParentControlActions } from '../actions/useParentActions';
 
 // ==============================================
 // PARENT DOMAIN - View Component
@@ -13,9 +16,10 @@ import { useParentCounterActions, useParentControlActions } from '../actions/use
 export function ParentView() {
   // 🗄️ Model Layer - 데이터 구독
   const { parentCounter, isZero } = useParentState();
-  
+
   // ⚙️ ViewModel Layer - 액션 함수들
-  const { incrementParentCounter, resetParentCounter } = useParentCounterActions();
+  const { incrementParentCounter, resetParentCounter } =
+    useParentCounterActions();
   const { requestChildControl } = useParentControlActions();
 
   // 🖼️ View Layer - 이벤트 핸들러들

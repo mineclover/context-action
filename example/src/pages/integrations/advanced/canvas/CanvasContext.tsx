@@ -1,6 +1,10 @@
-import { useRef, useCallback, ReactNode } from 'react';
-import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+import { ReactNode, useCallback, useRef } from 'react';
 
 // Canvas 도형 타입 정의
 export interface Point {
@@ -42,18 +46,18 @@ export interface CanvasActions extends ActionPayloadMap {
   deleteShape: { id: string };
   clearAllShapes: void;
   selectShape: { id: string | null };
-  
+
   // 모드 및 도구 설정 액션들
   setMode: { mode: 'draw' | 'select' };
   setTool: { tool: 'rectangle' | 'circle' | 'line' | 'freehand' };
   setColor: { color: string };
   setStrokeWidth: { width: number };
-  
+
   // 드래그 상태 관리 액션들
   startDrag: { point: Point; shape?: CanvasShape };
   updateDrag: { point: Point };
   endDrag: void;
-  
+
   // Freehand 포인트 관리 액션들
   addFreehandPoint: { point: Point };
   clearFreehandPoints: void;
@@ -63,25 +67,27 @@ export interface CanvasActions extends ActionPayloadMap {
 const {
   Provider: CanvasStoreProvider,
   useStore: useCanvasStore,
-  useStoreManager: useCanvasStoreManager
+  useStoreManager: useCanvasStoreManager,
 } = createStoreContext('Canvas', {
   shapes: { initialValue: [] as CanvasShape[] },
   selectedShapeId: { initialValue: null as string | null },
   currentMode: { initialValue: 'draw' as 'draw' | 'select' },
-  currentTool: { initialValue: 'rectangle' as 'rectangle' | 'circle' | 'line' | 'freehand' },
+  currentTool: {
+    initialValue: 'rectangle' as 'rectangle' | 'circle' | 'line' | 'freehand',
+  },
   currentColor: { initialValue: '#000000' },
   strokeWidth: { initialValue: 2 },
   isDragging: { initialValue: false },
   dragStart: { initialValue: { x: 0, y: 0 } as Point },
   dragShape: { initialValue: null as CanvasShape | null },
-  freehandPoints: { initialValue: [] as Point[] }
+  freehandPoints: { initialValue: [] as Point[] },
 });
 
 // Context-Action Action Context 생성 (Action Pattern)
 const {
   Provider: CanvasActionProvider,
   useActionDispatch: useCanvasAction,
-  useActionHandler: useCanvasActionHandler
+  useActionHandler: useCanvasActionHandler,
 } = createActionContext<CanvasActions>('Canvas');
 
 // 참조 안정성을 위한 상수 정의
@@ -103,99 +109,176 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 // Canvas Action Handlers 컴포넌트
 function CanvasActionHandlers() {
   const stores = useCanvasStoreManager();
-  
+
   // Ref로 최신 상태 관리 (무한 루프 방지)
   const shapesRef = useRef<CanvasShape[]>([]);
   const shapes = stores.getStore('shapes').getValue();
   shapesRef.current = shapes;
 
   // 도형 관리 액션 핸들러들
-  useCanvasActionHandler('addShape', useCallback(async (payload) => {
-    const shapesStore = stores.getStore('shapes');
-    const currentShapes = shapesStore.getValue();
-    shapesStore.setValue([...currentShapes, payload.shape]);
-  }, [stores]));
+  useCanvasActionHandler(
+    'addShape',
+    useCallback(
+      async (payload) => {
+        const shapesStore = stores.getStore('shapes');
+        const currentShapes = shapesStore.getValue();
+        shapesStore.setValue([...currentShapes, payload.shape]);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('updateShape', useCallback(async (payload) => {
-    const shapesStore = stores.getStore('shapes');
-    const currentShapes = shapesStore.getValue();
-    const updatedShapes = currentShapes.map(shape => 
-      shape.id === payload.id ? { ...shape, ...payload.updates } : shape
-    );
-    shapesStore.setValue(updatedShapes);
-  }, [stores]));
+  useCanvasActionHandler(
+    'updateShape',
+    useCallback(
+      async (payload) => {
+        const shapesStore = stores.getStore('shapes');
+        const currentShapes = shapesStore.getValue();
+        const updatedShapes = currentShapes.map((shape) =>
+          shape.id === payload.id ? { ...shape, ...payload.updates } : shape
+        );
+        shapesStore.setValue(updatedShapes);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('deleteShape', useCallback(async (payload) => {
-    const shapesStore = stores.getStore('shapes');
-    const selectedShapeIdStore = stores.getStore('selectedShapeId');
-    const currentShapes = shapesStore.getValue();
-    const currentSelectedId = selectedShapeIdStore.getValue();
-    
-    const filteredShapes = currentShapes.filter(shape => shape.id !== payload.id);
-    shapesStore.setValue(filteredShapes);
-    
-    if (currentSelectedId === payload.id) {
-      selectedShapeIdStore.setValue(null);
-    }
-  }, [stores]));
+  useCanvasActionHandler(
+    'deleteShape',
+    useCallback(
+      async (payload) => {
+        const shapesStore = stores.getStore('shapes');
+        const selectedShapeIdStore = stores.getStore('selectedShapeId');
+        const currentShapes = shapesStore.getValue();
+        const currentSelectedId = selectedShapeIdStore.getValue();
 
-  useCanvasActionHandler('clearAllShapes', useCallback(async () => {
-    stores.getStore('shapes').setValue(EMPTY_SHAPES_ARRAY);
-    stores.getStore('selectedShapeId').setValue(null);
-  }, [stores]));
+        const filteredShapes = currentShapes.filter(
+          (shape) => shape.id !== payload.id
+        );
+        shapesStore.setValue(filteredShapes);
 
-  useCanvasActionHandler('selectShape', useCallback(async (payload) => {
-    stores.getStore('selectedShapeId').setValue(payload.id);
-  }, [stores]));
+        if (currentSelectedId === payload.id) {
+          selectedShapeIdStore.setValue(null);
+        }
+      },
+      [stores]
+    )
+  );
+
+  useCanvasActionHandler(
+    'clearAllShapes',
+    useCallback(async () => {
+      stores.getStore('shapes').setValue(EMPTY_SHAPES_ARRAY);
+      stores.getStore('selectedShapeId').setValue(null);
+    }, [stores])
+  );
+
+  useCanvasActionHandler(
+    'selectShape',
+    useCallback(
+      async (payload) => {
+        stores.getStore('selectedShapeId').setValue(payload.id);
+      },
+      [stores]
+    )
+  );
 
   // 모드 및 도구 설정 액션 핸들러들
-  useCanvasActionHandler('setMode', useCallback(async (payload) => {
-    stores.getStore('currentMode').setValue(payload.mode);
-    if (payload.mode === 'draw') {
-      stores.getStore('selectedShapeId').setValue(null);
-    }
-  }, [stores]));
+  useCanvasActionHandler(
+    'setMode',
+    useCallback(
+      async (payload) => {
+        stores.getStore('currentMode').setValue(payload.mode);
+        if (payload.mode === 'draw') {
+          stores.getStore('selectedShapeId').setValue(null);
+        }
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('setTool', useCallback(async (payload) => {
-    stores.getStore('currentTool').setValue(payload.tool);
-  }, [stores]));
+  useCanvasActionHandler(
+    'setTool',
+    useCallback(
+      async (payload) => {
+        stores.getStore('currentTool').setValue(payload.tool);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('setColor', useCallback(async (payload) => {
-    stores.getStore('currentColor').setValue(payload.color);
-  }, [stores]));
+  useCanvasActionHandler(
+    'setColor',
+    useCallback(
+      async (payload) => {
+        stores.getStore('currentColor').setValue(payload.color);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('setStrokeWidth', useCallback(async (payload) => {
-    stores.getStore('strokeWidth').setValue(payload.width);
-  }, [stores]));
+  useCanvasActionHandler(
+    'setStrokeWidth',
+    useCallback(
+      async (payload) => {
+        stores.getStore('strokeWidth').setValue(payload.width);
+      },
+      [stores]
+    )
+  );
 
   // 드래그 상태 관리 액션 핸들러들
-  useCanvasActionHandler('startDrag', useCallback(async (payload) => {
-    stores.getStore('isDragging').setValue(true);
-    stores.getStore('dragStart').setValue(payload.point);
-    stores.getStore('dragShape').setValue(payload.shape || null);
-  }, [stores]));
+  useCanvasActionHandler(
+    'startDrag',
+    useCallback(
+      async (payload) => {
+        stores.getStore('isDragging').setValue(true);
+        stores.getStore('dragStart').setValue(payload.point);
+        stores.getStore('dragShape').setValue(payload.shape || null);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('updateDrag', useCallback(async (payload) => {
-    // 드래그 업데이트 로직은 사용하는 곳에서 처리
-    // 필요시 dragStart와 현재 point로 계산된 결과를 업데이트
-  }, [stores]));
+  useCanvasActionHandler(
+    'updateDrag',
+    useCallback(
+      async (payload) => {
+        // 드래그 업데이트 로직은 사용하는 곳에서 처리
+        // 필요시 dragStart와 현재 point로 계산된 결과를 업데이트
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('endDrag', useCallback(async () => {
-    stores.getStore('isDragging').setValue(false);
-    stores.getStore('dragShape').setValue(null);
-    stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
-  }, [stores]));
+  useCanvasActionHandler(
+    'endDrag',
+    useCallback(async () => {
+      stores.getStore('isDragging').setValue(false);
+      stores.getStore('dragShape').setValue(null);
+      stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
+    }, [stores])
+  );
 
   // Freehand 포인트 관리 핸들러들
-  useCanvasActionHandler('addFreehandPoint', useCallback(async (payload) => {
-    const freehandPointsStore = stores.getStore('freehandPoints');
-    const currentPoints = freehandPointsStore.getValue();
-    freehandPointsStore.setValue([...currentPoints, payload.point]);
-  }, [stores]));
+  useCanvasActionHandler(
+    'addFreehandPoint',
+    useCallback(
+      async (payload) => {
+        const freehandPointsStore = stores.getStore('freehandPoints');
+        const currentPoints = freehandPointsStore.getValue();
+        freehandPointsStore.setValue([...currentPoints, payload.point]);
+      },
+      [stores]
+    )
+  );
 
-  useCanvasActionHandler('clearFreehandPoints', useCallback(async () => {
-    stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
-  }, [stores]));
+  useCanvasActionHandler(
+    'clearFreehandPoints',
+    useCallback(async () => {
+      stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
+    }, [stores])
+  );
 
   return null; // 이 컴포넌트는 핸들러만 등록하고 UI를 렌더링하지 않음
 }
@@ -204,12 +287,20 @@ function CanvasActionHandlers() {
 export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
   // 기본값: 모든 store 구독 (기존 호환성 유지)
   const defaultKeys: Array<keyof CanvasStoreState> = [
-    'shapes', 'selectedShapeId', 'currentMode', 'currentTool', 'currentColor',
-    'strokeWidth', 'isDragging', 'dragStart', 'dragShape', 'freehandPoints'
+    'shapes',
+    'selectedShapeId',
+    'currentMode',
+    'currentTool',
+    'currentColor',
+    'strokeWidth',
+    'isDragging',
+    'dragStart',
+    'dragShape',
+    'freehandPoints',
   ];
-  
+
   const storeKeys = keys || defaultKeys;
-  
+
   // 모든 store들을 먼저 가져오기 (hooks는 최상위에서만)
   const shapesStore = useCanvasStore('shapes');
   const selectedShapeIdStore = useCanvasStore('selectedShapeId');
@@ -221,7 +312,7 @@ export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
   const dragStartStore = useCanvasStore('dragStart');
   const dragShapeStore = useCanvasStore('dragShape');
   const freehandPointsStore = useCanvasStore('freehandPoints');
-  
+
   // 모든 값들을 구독
   const shapesValue = useStoreValue(shapesStore);
   const selectedShapeIdValue = useStoreValue(selectedShapeIdStore);
@@ -233,7 +324,7 @@ export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
   const dragStartValue = useStoreValue(dragStartStore);
   const dragShapeValue = useStoreValue(dragShapeStore);
   const freehandPointsValue = useStoreValue(freehandPointsStore);
-  
+
   // 모든 값들의 매핑
   const allValues = {
     shapes: shapesValue,
@@ -245,16 +336,16 @@ export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
     isDragging: isDraggingValue,
     dragStart: dragStartValue,
     dragShape: dragShapeValue,
-    freehandPoints: freehandPointsValue
+    freehandPoints: freehandPointsValue,
   };
-  
+
   // 선택된 키들만 반환
   const result = {} as any;
   for (const key of storeKeys) {
     result[key] = allValues[key];
   }
-  
-  return result as Pick<CanvasStoreState, typeof storeKeys[number]>;
+
+  return result as Pick<CanvasStoreState, (typeof storeKeys)[number]>;
 }
 
 // Context-Action 기반 Canvas 사용 훅들 (기존 호환성을 위해 유지)
@@ -270,7 +361,7 @@ export function useCanvas() {
   const dragStartStore = useCanvasStore('dragStart');
   const dragShapeStore = useCanvasStore('dragShape');
   const freehandPointsStore = useCanvasStore('freehandPoints');
-  
+
   // Store 값들을 구독
   const shapes = useStoreValue(shapesStore);
   const selectedShapeId = useStoreValue(selectedShapeIdStore);
@@ -290,25 +381,28 @@ export function useCanvas() {
   const actions = {
     // 도형 관리
     addShape: (shape: CanvasShape) => dispatch('addShape', { shape }),
-    updateShape: (id: string, updates: Partial<CanvasShape>) => dispatch('updateShape', { id, updates }),
+    updateShape: (id: string, updates: Partial<CanvasShape>) =>
+      dispatch('updateShape', { id, updates }),
     deleteShape: (id: string) => dispatch('deleteShape', { id }),
     clearAllShapes: () => dispatch('clearAllShapes'),
     selectShape: (id: string | null) => dispatch('selectShape', { id }),
-    
+
     // 모드 및 도구 설정
     setMode: (mode: 'draw' | 'select') => dispatch('setMode', { mode }),
-    setTool: (tool: 'rectangle' | 'circle' | 'line' | 'freehand') => dispatch('setTool', { tool }),
+    setTool: (tool: 'rectangle' | 'circle' | 'line' | 'freehand') =>
+      dispatch('setTool', { tool }),
     setColor: (color: string) => dispatch('setColor', { color }),
     setStrokeWidth: (width: number) => dispatch('setStrokeWidth', { width }),
-    
+
     // 드래그 상태 관리
-    startDrag: (point: Point, shape?: CanvasShape) => dispatch('startDrag', { 
-      point, 
-      ...(shape !== undefined && { shape }) 
-    }),
+    startDrag: (point: Point, shape?: CanvasShape) =>
+      dispatch('startDrag', {
+        point,
+        ...(shape !== undefined && { shape }),
+      }),
     updateDrag: (point: Point) => dispatch('updateDrag', { point }),
     endDrag: () => dispatch('endDrag'),
-    
+
     // Freehand 포인트 관리
     addFreehandPoint: (point: Point) => dispatch('addFreehandPoint', { point }),
     clearFreehandPoints: () => dispatch('clearFreehandPoints'),
@@ -326,11 +420,16 @@ export function useCanvas() {
     dragStart,
     dragShape,
     freehandPoints,
-    
+
     // 액션들
     ...actions,
   };
 }
 
 // 개별 Store 접근을 위한 편의 훅들
-export { useCanvasStore, useCanvasStoreManager, useCanvasAction, useCanvasActionHandler };
+export {
+  useCanvasStore,
+  useCanvasStoreManager,
+  useCanvasAction,
+  useCanvasActionHandler,
+};

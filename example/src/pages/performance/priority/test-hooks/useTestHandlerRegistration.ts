@@ -85,7 +85,9 @@ export function useTestHandlerRegistration(
             executionTimes: [] as number[],
           });
 
-          console.log('✅ Execution state initialized (priority counts preserved)');
+          console.log(
+            '✅ Execution state initialized (priority counts preserved)'
+          );
         },
         {
           priority: 200,
@@ -175,10 +177,8 @@ export function useTestHandlerRegistration(
                 );
                 controller.jumpToPriority(config.jumpToPriority);
               } else {
-                
               }
             } else {
-              
             }
           },
           {

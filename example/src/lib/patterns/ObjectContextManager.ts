@@ -5,14 +5,14 @@
 
 import { ActionRegister } from '@context-action/core';
 import {
-  ManagedObject,
-  ObjectMetadata,
   BaseObjectActions,
+  ManagedObject,
   ObjectContextConfig,
   ObjectLifecycleState,
+  ObjectManagementEvent,
+  ObjectMetadata,
   QueryOptions,
   ValidationResult,
-  ObjectManagementEvent
 } from './types';
 
 /**
@@ -27,7 +27,10 @@ export class ObjectContextManager<T extends ManagedObject> {
   private focusedObject: string | null = null;
   private config: ObjectContextConfig;
   private cleanupInterval?: NodeJS.Timeout;
-  private eventListeners = new Map<string, ((event: ObjectManagementEvent<T>) => void)[]>();
+  private eventListeners = new Map<
+    string,
+    ((event: ObjectManagementEvent<T>) => void)[]
+  >();
 
   constructor(config: ObjectContextConfig) {
     this.config = {
@@ -35,7 +38,7 @@ export class ObjectContextManager<T extends ManagedObject> {
       enableSelection: true,
       enableFocus: true,
       persistState: false,
-      ...config
+      ...config,
     };
 
     this.actionRegister = new ActionRegister<BaseObjectActions<T>>({
@@ -43,8 +46,8 @@ export class ObjectContextManager<T extends ManagedObject> {
       registry: {
         debug: true,
         autoCleanup: true,
-        defaultExecutionMode: 'sequential'
-      }
+        defaultExecutionMode: 'sequential',
+      },
     });
 
     this.setupActionHandlers();
@@ -57,13 +60,17 @@ export class ObjectContextManager<T extends ManagedObject> {
   private setupActionHandlers(): void {
     // 객체 등록
     this.actionRegister.register('register', this.handleRegister.bind(this), {
-      priority: 100
+      priority: 100,
     });
 
     // 객체 해제
-    this.actionRegister.register('unregister', this.handleUnregister.bind(this), {
-      priority: 100
-    });
+    this.actionRegister.register(
+      'unregister',
+      this.handleUnregister.bind(this),
+      {
+        priority: 100,
+      }
+    );
 
     // 객체 업데이트
     this.actionRegister.register('update', this.handleUpdate.bind(this), {
@@ -75,9 +82,13 @@ export class ObjectContextManager<T extends ManagedObject> {
       priority: 80,
     });
 
-    this.actionRegister.register('deactivate', this.handleDeactivate.bind(this), {
-      priority: 80,
-    });
+    this.actionRegister.register(
+      'deactivate',
+      this.handleDeactivate.bind(this),
+      {
+        priority: 80,
+      }
+    );
 
     this.actionRegister.register('archive', this.handleArchive.bind(this), {
       priority: 80,
@@ -93,9 +104,13 @@ export class ObjectContextManager<T extends ManagedObject> {
         priority: 70,
       });
 
-      this.actionRegister.register('clearSelection', this.handleClearSelection.bind(this), {
-        priority: 70,
-      });
+      this.actionRegister.register(
+        'clearSelection',
+        this.handleClearSelection.bind(this),
+        {
+          priority: 70,
+        }
+      );
     }
 
     if (this.config.enableFocus) {
@@ -103,9 +118,13 @@ export class ObjectContextManager<T extends ManagedObject> {
         priority: 70,
       });
 
-      this.actionRegister.register('clearFocus', this.handleClearFocus.bind(this), {
-        priority: 70,
-      });
+      this.actionRegister.register(
+        'clearFocus',
+        this.handleClearFocus.bind(this),
+        {
+          priority: 70,
+        }
+      );
     }
 
     // 정리
@@ -117,28 +136,36 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 객체 등록 핸들러
    */
-  private async handleRegister(payload: BaseObjectActions<T>['register']): Promise<void> {
+  private async handleRegister(
+    payload: BaseObjectActions<T>['register']
+  ): Promise<void> {
     const { id, object, metadata = {}, contextMetadata = {} } = payload;
 
     // 유효성 검증
     const validation = this.validateObject(object);
     if (!validation.isValid) {
-      throw new Error(`Object validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(
+        `Object validation failed: ${validation.errors.join(', ')}`
+      );
     }
 
     // 최대 객체 수 확인
     if (this.config.maxObjects && this.objects.size >= this.config.maxObjects) {
-      throw new Error(`Maximum object limit (${this.config.maxObjects}) reached`);
+      throw new Error(
+        `Maximum object limit (${this.config.maxObjects}) reached`
+      );
     }
 
     // 기존 객체 확인
     if (this.objects.has(id)) {
-      console.warn(`Object with ID '${id}' already exists. Updating existing object.`);
+      console.warn(
+        `Object with ID '${id}' already exists. Updating existing object.`
+      );
     }
 
     // 객체 및 메타데이터 저장
     this.objects.set(id, object);
-    
+
     const objectMetadata: ObjectMetadata = {
       id,
       type: object.type,
@@ -146,9 +173,9 @@ export class ObjectContextManager<T extends ManagedObject> {
       lastAccessed: new Date().toISOString(),
       lifecycleState: 'created',
       metadata,
-      contextMetadata
+      contextMetadata,
     };
-    
+
     this.metadata.set(id, objectMetadata);
 
     // 이벤트 발생
@@ -158,16 +185,20 @@ export class ObjectContextManager<T extends ManagedObject> {
       object,
       metadata: objectMetadata,
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Object registered in context '${this.config.contextName}': ${id}`);
+    console.log(
+      `Object registered in context '${this.config.contextName}': ${id}`
+    );
   }
 
   /**
    * 객체 해제 핸들러
    */
-  private async handleUnregister(payload: BaseObjectActions<T>['unregister']): Promise<void> {
+  private async handleUnregister(
+    payload: BaseObjectActions<T>['unregister']
+  ): Promise<void> {
     const { id, force = false } = payload;
 
     const object = this.objects.get(id);
@@ -175,7 +206,9 @@ export class ObjectContextManager<T extends ManagedObject> {
 
     if (!object || !metadata) {
       if (!force) {
-        console.warn(`Object with ID '${id}' not found in context '${this.config.contextName}'`);
+        console.warn(
+          `Object with ID '${id}' not found in context '${this.config.contextName}'`
+        );
         return;
       }
     }
@@ -197,28 +230,44 @@ export class ObjectContextManager<T extends ManagedObject> {
       ...(object !== undefined && { object }),
       ...(metadata !== undefined && { metadata }),
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Object unregistered from context '${this.config.contextName}': ${id}`);
+    console.log(
+      `Object unregistered from context '${this.config.contextName}': ${id}`
+    );
   }
 
   /**
    * 객체 업데이트 핸들러
    */
-  private async handleUpdate(payload: BaseObjectActions<T>['update']): Promise<void> {
-    const { id, object: objectUpdate, metadata: metadataUpdate, contextMetadata: contextMetadataUpdate } = payload;
+  private async handleUpdate(
+    payload: BaseObjectActions<T>['update']
+  ): Promise<void> {
+    const {
+      id,
+      object: objectUpdate,
+      metadata: metadataUpdate,
+      contextMetadata: contextMetadataUpdate,
+    } = payload;
 
     const existingObject = this.objects.get(id);
     const existingMetadata = this.metadata.get(id);
 
     if (!existingObject || !existingMetadata) {
-      throw new Error(`Object with ID '${id}' not found in context '${this.config.contextName}'`);
+      throw new Error(
+        `Object with ID '${id}' not found in context '${this.config.contextName}'`
+      );
     }
 
     // 객체 업데이트
     if (objectUpdate) {
-      const updatedObject = { ...existingObject, ...objectUpdate, id, lastAccessed: new Date() } as T;
+      const updatedObject = {
+        ...existingObject,
+        ...objectUpdate,
+        id,
+        lastAccessed: new Date(),
+      } as T;
       this.objects.set(id, updatedObject);
     }
 
@@ -226,8 +275,15 @@ export class ObjectContextManager<T extends ManagedObject> {
     const updatedMetadata: ObjectMetadata = {
       ...existingMetadata,
       lastAccessed: new Date().toISOString(),
-      ...(metadataUpdate && { metadata: { ...existingMetadata.metadata, ...metadataUpdate } }),
-      ...(contextMetadataUpdate && { contextMetadata: { ...existingMetadata.contextMetadata, ...contextMetadataUpdate } })
+      ...(metadataUpdate && {
+        metadata: { ...existingMetadata.metadata, ...metadataUpdate },
+      }),
+      ...(contextMetadataUpdate && {
+        contextMetadata: {
+          ...existingMetadata.contextMetadata,
+          ...contextMetadataUpdate,
+        },
+      }),
     };
 
     this.metadata.set(id, updatedMetadata);
@@ -240,44 +296,59 @@ export class ObjectContextManager<T extends ManagedObject> {
       ...(currentObject !== undefined && { object: currentObject }),
       metadata: updatedMetadata,
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Object updated in context '${this.config.contextName}': ${id}`);
+    console.log(
+      `Object updated in context '${this.config.contextName}': ${id}`
+    );
   }
 
   /**
    * 생명주기 상태 변경 핸들러들
    */
-  private async handleActivate(payload: BaseObjectActions<T>['activate']): Promise<void> {
+  private async handleActivate(
+    payload: BaseObjectActions<T>['activate']
+  ): Promise<void> {
     await this.changeLifecycleState(payload.id, 'active');
   }
 
-  private async handleDeactivate(payload: BaseObjectActions<T>['deactivate']): Promise<void> {
+  private async handleDeactivate(
+    payload: BaseObjectActions<T>['deactivate']
+  ): Promise<void> {
     await this.changeLifecycleState(payload.id, 'inactive');
   }
 
-  private async handleArchive(payload: BaseObjectActions<T>['archive']): Promise<void> {
+  private async handleArchive(
+    payload: BaseObjectActions<T>['archive']
+  ): Promise<void> {
     await this.changeLifecycleState(payload.id, 'archived');
   }
 
-  private async handleRestore(payload: BaseObjectActions<T>['restore']): Promise<void> {
+  private async handleRestore(
+    payload: BaseObjectActions<T>['restore']
+  ): Promise<void> {
     await this.changeLifecycleState(payload.id, 'active');
   }
 
   /**
    * 생명주기 상태 변경
    */
-  private async changeLifecycleState(id: string, newState: ObjectLifecycleState): Promise<void> {
+  private async changeLifecycleState(
+    id: string,
+    newState: ObjectLifecycleState
+  ): Promise<void> {
     const metadata = this.metadata.get(id);
     if (!metadata) {
-      throw new Error(`Object with ID '${id}' not found in context '${this.config.contextName}'`);
+      throw new Error(
+        `Object with ID '${id}' not found in context '${this.config.contextName}'`
+      );
     }
 
     const updatedMetadata = {
       ...metadata,
       lifecycleState: newState,
-      lastAccessed: new Date().toISOString()
+      lastAccessed: new Date().toISOString(),
     };
 
     this.metadata.set(id, updatedMetadata);
@@ -290,37 +361,43 @@ export class ObjectContextManager<T extends ManagedObject> {
       ...(currentObject !== undefined && { object: currentObject }),
       metadata: updatedMetadata,
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Object lifecycle changed in context '${this.config.contextName}': ${id} -> ${newState}`);
+    console.log(
+      `Object lifecycle changed in context '${this.config.contextName}': ${id} -> ${newState}`
+    );
   }
 
   /**
    * 선택 관리 핸들러
    */
-  private async handleSelect(payload: BaseObjectActions<T>['select']): Promise<void> {
+  private async handleSelect(
+    payload: BaseObjectActions<T>['select']
+  ): Promise<void> {
     const { ids, mode = 'replace' } = payload;
 
     // 존재하는 객체들만 필터링
-    const validIds = ids.filter(id => this.objects.has(id));
-    
+    const validIds = ids.filter((id) => this.objects.has(id));
+
     if (validIds.length !== ids.length) {
-      const invalidIds = ids.filter(id => !this.objects.has(id));
-      console.warn(`Some objects not found in context '${this.config.contextName}': ${invalidIds.join(', ')}`);
+      const invalidIds = ids.filter((id) => !this.objects.has(id));
+      console.warn(
+        `Some objects not found in context '${this.config.contextName}': ${invalidIds.join(', ')}`
+      );
     }
 
     // 선택 모드에 따른 처리
     switch (mode) {
       case 'replace':
         this.selectedObjects.clear();
-        validIds.forEach(id => this.selectedObjects.add(id));
+        validIds.forEach((id) => this.selectedObjects.add(id));
         break;
       case 'add':
-        validIds.forEach(id => this.selectedObjects.add(id));
+        validIds.forEach((id) => this.selectedObjects.add(id));
         break;
       case 'toggle':
-        validIds.forEach(id => {
+        validIds.forEach((id) => {
           if (this.selectedObjects.has(id)) {
             this.selectedObjects.delete(id);
           } else {
@@ -331,12 +408,12 @@ export class ObjectContextManager<T extends ManagedObject> {
     }
 
     // 선택된 객체들의 lastAccessed 업데이트
-    validIds.forEach(id => {
+    validIds.forEach((id) => {
       const metadata = this.metadata.get(id);
       if (metadata) {
         this.metadata.set(id, {
           ...metadata,
-          lastAccessed: new Date().toISOString()
+          lastAccessed: new Date().toISOString(),
         });
       }
     });
@@ -346,10 +423,12 @@ export class ObjectContextManager<T extends ManagedObject> {
       type: 'selected',
       objectId: validIds.join(','),
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Objects selected in context '${this.config.contextName}': ${Array.from(this.selectedObjects).join(', ')}`);
+    console.log(
+      `Objects selected in context '${this.config.contextName}': ${Array.from(this.selectedObjects).join(', ')}`
+    );
   }
 
   private async handleClearSelection(): Promise<void> {
@@ -360,11 +439,15 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 포커스 관리 핸들러
    */
-  private async handleFocus(payload: BaseObjectActions<T>['focus']): Promise<void> {
+  private async handleFocus(
+    payload: BaseObjectActions<T>['focus']
+  ): Promise<void> {
     const { id } = payload;
 
     if (!this.objects.has(id)) {
-      throw new Error(`Object with ID '${id}' not found in context '${this.config.contextName}'`);
+      throw new Error(
+        `Object with ID '${id}' not found in context '${this.config.contextName}'`
+      );
     }
 
     this.focusedObject = id;
@@ -374,7 +457,7 @@ export class ObjectContextManager<T extends ManagedObject> {
     if (metadata) {
       this.metadata.set(id, {
         ...metadata,
-        lastAccessed: new Date().toISOString()
+        lastAccessed: new Date().toISOString(),
       });
     }
 
@@ -385,10 +468,12 @@ export class ObjectContextManager<T extends ManagedObject> {
       objectId: id,
       ...(currentObject !== undefined && { object: currentObject }),
       timestamp: new Date(),
-      context: this.config.contextName
+      context: this.config.contextName,
     });
 
-    console.log(`Object focused in context '${this.config.contextName}': ${id}`);
+    console.log(
+      `Object focused in context '${this.config.contextName}': ${id}`
+    );
   }
 
   private async handleClearFocus(): Promise<void> {
@@ -399,11 +484,13 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 정리 핸들러
    */
-  private async handleCleanup(payload: BaseObjectActions<T>['cleanup']): Promise<void> {
+  private async handleCleanup(
+    payload: BaseObjectActions<T>['cleanup']
+  ): Promise<void> {
     const {
       olderThan = this.config.autoCleanup?.olderThanMs || 1800000,
       lifecycleStates = ['inactive', 'archived'],
-      force = false
+      force = false,
     } = payload;
 
     const now = new Date();
@@ -411,10 +498,12 @@ export class ObjectContextManager<T extends ManagedObject> {
     const objectsToCleanup: string[] = [];
 
     for (const [id, metadata] of this.metadata.entries()) {
-      const shouldCleanup = (
-        lifecycleStates.includes(metadata.lifecycleState) &&
-        (metadata.lastAccessed ? new Date(metadata.lastAccessed) < cutoffTime : new Date(metadata.createdAt) < cutoffTime)
-      ) || force;
+      const shouldCleanup =
+        (lifecycleStates.includes(metadata.lifecycleState) &&
+          (metadata.lastAccessed
+            ? new Date(metadata.lastAccessed) < cutoffTime
+            : new Date(metadata.createdAt) < cutoffTime)) ||
+        force;
 
       if (shouldCleanup) {
         objectsToCleanup.push(id);
@@ -426,7 +515,9 @@ export class ObjectContextManager<T extends ManagedObject> {
       await this.actionRegister.dispatch('unregister', { id, force: true });
     }
 
-    console.log(`Cleaned up ${objectsToCleanup.length} objects in context '${this.config.contextName}'`);
+    console.log(
+      `Cleaned up ${objectsToCleanup.length} objects in context '${this.config.contextName}'`
+    );
   }
 
   /**
@@ -438,9 +529,9 @@ export class ObjectContextManager<T extends ManagedObject> {
     this.cleanupInterval = setInterval(() => {
       this.actionRegister.dispatch('cleanup', {
         olderThan: this.config.autoCleanup!.olderThanMs,
-        ...(this.config.autoCleanup!.lifecycleStates !== undefined && { 
-          lifecycleStates: this.config.autoCleanup!.lifecycleStates 
-        })
+        ...(this.config.autoCleanup!.lifecycleStates !== undefined && {
+          lifecycleStates: this.config.autoCleanup!.lifecycleStates,
+        }),
       });
     }, this.config.autoCleanup.intervalMs);
   }
@@ -467,7 +558,7 @@ export class ObjectContextManager<T extends ManagedObject> {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -476,7 +567,7 @@ export class ObjectContextManager<T extends ManagedObject> {
    */
   private emitEvent(event: ObjectManagementEvent<T>): void {
     const listeners = this.eventListeners.get(event.type) || [];
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       try {
         listener(event);
       } catch (error) {
@@ -490,12 +581,17 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 객체 등록
    */
-  public async register(id: string, object: T, metadata?: Record<string, unknown>, contextMetadata?: Record<string, unknown>): Promise<void> {
-    return this.actionRegister.dispatch('register', { 
-      id, 
+  public async register(
+    id: string,
+    object: T,
+    metadata?: Record<string, unknown>,
+    contextMetadata?: Record<string, unknown>
+  ): Promise<void> {
+    return this.actionRegister.dispatch('register', {
+      id,
       object,
       ...(metadata !== undefined && { metadata }),
-      ...(contextMetadata !== undefined && { contextMetadata })
+      ...(contextMetadata !== undefined && { contextMetadata }),
     });
   }
 
@@ -509,12 +605,17 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 객체 업데이트
    */
-  public async update(id: string, object?: Partial<T>, metadata?: Record<string, unknown>, contextMetadata?: Record<string, unknown>): Promise<void> {
-    return this.actionRegister.dispatch('update', { 
+  public async update(
+    id: string,
+    object?: Partial<T>,
+    metadata?: Record<string, unknown>,
+    contextMetadata?: Record<string, unknown>
+  ): Promise<void> {
+    return this.actionRegister.dispatch('update', {
       id,
       ...(object !== undefined && { object }),
       ...(metadata !== undefined && { metadata }),
-      ...(contextMetadata !== undefined && { contextMetadata })
+      ...(contextMetadata !== undefined && { contextMetadata }),
     });
   }
 
@@ -544,20 +645,24 @@ export class ObjectContextManager<T extends ManagedObject> {
    */
   public queryObjects(options: QueryOptions = {}): T[] {
     const objects: T[] = [];
-    
+
     for (const [id, object] of this.objects.entries()) {
       const metadata = this.metadata.get(id);
       if (!metadata) continue;
 
       // 타입 필터
       if (options.type) {
-        const types = Array.isArray(options.type) ? options.type : [options.type];
+        const types = Array.isArray(options.type)
+          ? options.type
+          : [options.type];
         if (!types.includes(object.type)) continue;
       }
 
       // 생명주기 상태 필터
       if (options.lifecycleState) {
-        const states = Array.isArray(options.lifecycleState) ? options.lifecycleState : [options.lifecycleState];
+        const states = Array.isArray(options.lifecycleState)
+          ? options.lifecycleState
+          : [options.lifecycleState];
         if (!states.includes(metadata.lifecycleState)) continue;
       }
 
@@ -581,7 +686,7 @@ export class ObjectContextManager<T extends ManagedObject> {
       objects.sort((a, b) => {
         const aMetadata = this.metadata.get(a.id)!;
         const bMetadata = this.metadata.get(b.id)!;
-        
+
         let aValue: any, bValue: any;
         switch (options.sortBy) {
           case 'createdAt':
@@ -589,8 +694,12 @@ export class ObjectContextManager<T extends ManagedObject> {
             bValue = new Date(bMetadata.createdAt);
             break;
           case 'lastAccessed':
-            aValue = aMetadata.lastAccessed ? new Date(aMetadata.lastAccessed) : new Date(0);
-            bValue = bMetadata.lastAccessed ? new Date(bMetadata.lastAccessed) : new Date(0);
+            aValue = aMetadata.lastAccessed
+              ? new Date(aMetadata.lastAccessed)
+              : new Date(0);
+            bValue = bMetadata.lastAccessed
+              ? new Date(bMetadata.lastAccessed)
+              : new Date(0);
             break;
           case 'id':
             aValue = a.id;
@@ -633,7 +742,10 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 이벤트 리스너 등록
    */
-  public addEventListener(eventType: ObjectManagementEvent<T>['type'], listener: (event: ObjectManagementEvent<T>) => void): void {
+  public addEventListener(
+    eventType: ObjectManagementEvent<T>['type'],
+    listener: (event: ObjectManagementEvent<T>) => void
+  ): void {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, []);
     }
@@ -643,7 +755,10 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 이벤트 리스너 제거
    */
-  public removeEventListener(eventType: ObjectManagementEvent<T>['type'], listener: (event: ObjectManagementEvent<T>) => void): void {
+  public removeEventListener(
+    eventType: ObjectManagementEvent<T>['type'],
+    listener: (event: ObjectManagementEvent<T>) => void
+  ): void {
     const listeners = this.eventListeners.get(eventType);
     if (listeners) {
       const index = listeners.indexOf(listener);
@@ -683,7 +798,7 @@ export class ObjectContextManager<T extends ManagedObject> {
       active: 0,
       inactive: 0,
       archived: 0,
-      deleted: 0
+      deleted: 0,
     };
 
     const typeStats: Record<string, number> = {};
@@ -698,7 +813,7 @@ export class ObjectContextManager<T extends ManagedObject> {
       selectedCount: this.selectedObjects.size,
       focusedObjectId: this.focusedObject,
       lifecycleStats,
-      typeStats
+      typeStats,
     };
   }
 }

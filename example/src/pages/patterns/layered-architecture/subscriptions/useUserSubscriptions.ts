@@ -7,13 +7,13 @@
  * - Access parent context subscriptions when needed
  */
 
-import { useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useMemo } from 'react';
 import {
-  useUserManagementStore,
   type User,
-  type UserValidationResult,
   type UserOperationResult,
+  type UserValidationResult,
+  useUserManagementStore,
 } from '../contexts/UserManagementContexts';
 
 export function useUserManagementData() {
@@ -32,21 +32,32 @@ export function useUserManagementData() {
     return [...users].sort((a, b) => a.name.localeCompare(b.name));
   }, [users]);
 
-  const userStatistics = useMemo(() => ({
-    totalUsers: users.length,
-    roleDistribution: {
-      admin: users.filter(user => user.role === 'admin').length,
-      user: users.filter(user => user.role === 'user').length,
-      guest: users.filter(user => user.role === 'guest').length,
-    },
-    newestUser: users.length > 0
-      ? [...users].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] ?? null
-      : null,
-  }), [users]);
+  const userStatistics = useMemo(
+    () => ({
+      totalUsers: users.length,
+      roleDistribution: {
+        admin: users.filter((user) => user.role === 'admin').length,
+        user: users.filter((user) => user.role === 'user').length,
+        guest: users.filter((user) => user.role === 'guest').length,
+      },
+      newestUser:
+        users.length > 0
+          ? ([...users].sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            )[0] ?? null)
+          : null,
+    }),
+    [users]
+  );
 
   const recentUsers = useMemo(() => {
     return users
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
       .slice(0, 3);
   }, [users]);
 

@@ -3,10 +3,10 @@
  * @module LogMonitorHooks
  */
 
-import type { Logger } from '@/utils/logger';
-import { createLogger, LogLevel } from '@/utils/logger';
 import { ActionRegister } from '@context-action/react';
 import { useMemo } from 'react';
+import type { Logger } from '@/utils/logger';
+import { createLogger, LogLevel } from '@/utils/logger';
 import { toastActionRegister } from '../ToastSystem/actions';
 import { useLogMonitorContext } from './context';
 import type {
@@ -58,7 +58,7 @@ function sanitizeLogPayload(payload: unknown): unknown {
 
   // Handle arrays
   if (Array.isArray(payload)) {
-    return payload.map(item => sanitizeLogPayload(item));
+    return payload.map((item) => sanitizeLogPayload(item));
   }
 
   // Handle plain objects
@@ -69,7 +69,7 @@ function sanitizeLogPayload(payload: unknown): unknown {
         // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn not available in ES2020 target
         if (Object.prototype.hasOwnProperty.call(payload, key)) {
           const value = (payload as any)[key];
-          
+
           // Skip non-cloneable objects
           if (
             value instanceof Promise ||
@@ -79,24 +79,31 @@ function sanitizeLogPayload(payload: unknown): unknown {
             value instanceof Event ||
             value instanceof WeakMap ||
             value instanceof WeakSet ||
-            (value && typeof value === 'object' && value.nodeType !== undefined) ||
-            (value && typeof value === 'object' && value.target !== undefined) ||
+            (value &&
+              typeof value === 'object' &&
+              value.nodeType !== undefined) ||
+            (value &&
+              typeof value === 'object' &&
+              value.target !== undefined) ||
             (value && typeof value.preventDefault === 'function')
           ) {
-            let replacementText = '[Unknown Object - Removed for Cloning Safety]';
-            
+            let replacementText =
+              '[Unknown Object - Removed for Cloning Safety]';
+
             if (value instanceof Promise) {
               replacementText = '[Promise Object - Removed for Cloning Safety]';
             } else if (typeof value === 'function') {
               replacementText = '[Function - Removed for Cloning Safety]';
             } else if (value instanceof Element || value instanceof Node) {
-              replacementText = '[DOM Element/Node - Removed for Cloning Safety]';
+              replacementText =
+                '[DOM Element/Node - Removed for Cloning Safety]';
             } else if (value instanceof Event) {
               replacementText = '[Event Object - Removed for Cloning Safety]';
             } else if (value instanceof WeakMap || value instanceof WeakSet) {
-              replacementText = '[WeakMap/WeakSet - Removed for Cloning Safety]';
+              replacementText =
+                '[WeakMap/WeakSet - Removed for Cloning Safety]';
             }
-            
+
             sanitized[key] = replacementText;
           } else {
             sanitized[key] = sanitizeLogPayload(value);
@@ -228,8 +235,6 @@ export function useActionLogger(
         } else {
           console.log('🍞 Toast not shown due to conditions not met');
         }
-
-        
       }
     );
 
@@ -268,8 +273,6 @@ export function useActionLogger(
             toastSystem.showToast('error', '오류 발생', message);
           }
         }
-
-        
       }
     );
 
@@ -302,8 +305,6 @@ export function useActionLogger(
             toastSystem.showToast('system', '시스템', message);
           }
         }
-
-        
       }
     );
 
@@ -340,8 +341,6 @@ export function useActionLogger(
             toastSystem.showToast('info', 'Info', message);
           }
         }
-
-        
       }
     );
 
@@ -378,8 +377,6 @@ export function useActionLogger(
             toastSystem.showToast('error', 'Warning', message);
           }
         }
-
-        
       }
     );
 
@@ -447,7 +444,11 @@ export function useActionLogger(
         });
       },
 
-      log: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+      log: (
+        message: string,
+        data?: unknown,
+        options: ActionLogOptions = {}
+      ) => {
         internalActionRegister.dispatch('_internal.log.info', {
           message,
           data: sanitizeLogPayload(data),
@@ -455,7 +456,11 @@ export function useActionLogger(
         });
       },
 
-      info: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+      info: (
+        message: string,
+        data?: unknown,
+        options: ActionLogOptions = {}
+      ) => {
         internalActionRegister.dispatch('_internal.log.info', {
           message,
           data: sanitizeLogPayload(data),
@@ -463,7 +468,11 @@ export function useActionLogger(
         });
       },
 
-      warn: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+      warn: (
+        message: string,
+        data?: unknown,
+        options: ActionLogOptions = {}
+      ) => {
         internalActionRegister.dispatch('_internal.log.warn', {
           message,
           data: sanitizeLogPayload(data),
@@ -471,7 +480,11 @@ export function useActionLogger(
         });
       },
 
-      error: (message: string, error?: Error | unknown, options: ActionLogOptions = {}) => {
+      error: (
+        message: string,
+        error?: Error | unknown,
+        options: ActionLogOptions = {}
+      ) => {
         internalActionRegister.dispatch('_internal.log.error', {
           message,
           error: sanitizeLogPayload(error),

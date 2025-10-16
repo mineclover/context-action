@@ -1,23 +1,26 @@
-import React from 'react'
+import React from 'react';
 
 interface NonMemoizedComponentProps {
-  data: any[]
-  onRender?: () => void
+  data: any[];
+  onRender?: () => void;
 }
 
-const NonMemoizedComponent: React.FC<NonMemoizedComponentProps> = ({ data, onRender }) => {
+const NonMemoizedComponent: React.FC<NonMemoizedComponentProps> = ({
+  data,
+  onRender,
+}) => {
   // 렌더링 시마다 실행되는 복잡한 계산
   const processedData = data.map((item, index) => ({
     ...item,
     processed: item.value * 2 + Math.sqrt(item.value),
     timestamp: Date.now(),
-    renderCount: index + 1
-  }))
+    renderCount: index + 1,
+  }));
 
   // 렌더링 알림
   React.useEffect(() => {
-    onRender?.()
-  })
+    onRender?.();
+  });
 
   return (
     <div className="bg-white rounded-lg p-4 border-2 border-red-200">
@@ -40,7 +43,7 @@ const NonMemoizedComponent: React.FC<NonMemoizedComponentProps> = ({ data, onRen
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default NonMemoizedComponent
+export default NonMemoizedComponent;

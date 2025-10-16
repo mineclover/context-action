@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Events Metrics Components
- * 
+ *
  * View Layer: 순수한 Presentation 컴포넌트들
  * - Props를 통한 상태 주입
  * - 재사용 가능한 UI 컴포넌트들
@@ -23,13 +23,13 @@ export interface MetricCardProps {
  * 개별 메트릭을 표시하는 카드 컴포넌트
  * 재사용 가능한 순수 컴포넌트
  */
-export function MetricCard({ 
-  title, 
-  icon, 
-  value, 
-  subtitle, 
-  color = 'purple', 
-  details = [] 
+export function MetricCard({
+  title,
+  icon,
+  value,
+  subtitle,
+  color = 'purple',
+  details = [],
 }: MetricCardProps) {
   const colorClasses = {
     purple: {
@@ -37,55 +37,55 @@ export function MetricCard({
       border: 'border-purple-200',
       text: 'text-purple-800',
       value: 'text-purple-700',
-      detail: 'text-purple-500'
+      detail: 'text-purple-500',
     },
     green: {
       bg: 'bg-gradient-to-br from-green-50 to-green-100',
       border: 'border-green-200',
       text: 'text-green-800',
       value: 'text-green-700',
-      detail: 'text-green-500'
+      detail: 'text-green-500',
     },
     orange: {
       bg: 'bg-gradient-to-br from-orange-50 to-orange-100',
       border: 'border-orange-200',
       text: 'text-orange-800',
       value: 'text-orange-700',
-      detail: 'text-orange-500'
+      detail: 'text-orange-500',
     },
     cyan: {
       bg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
       border: 'border-cyan-200',
       text: 'text-cyan-800',
       value: 'text-cyan-700',
-      detail: 'text-cyan-500'
+      detail: 'text-cyan-500',
     },
     teal: {
       bg: 'bg-gradient-to-br from-teal-50 to-teal-100',
       border: 'border-teal-200',
       text: 'text-teal-800',
       value: 'text-teal-700',
-      detail: 'text-teal-500'
-    }
+      detail: 'text-teal-500',
+    },
   };
-  
+
   const classes = colorClasses[color];
-  
+
   return (
-    <div className={`${classes.bg} p-4 rounded-xl border ${classes.border} shadow-sm`}>
+    <div
+      className={`${classes.bg} p-4 rounded-xl border ${classes.border} shadow-sm`}
+    >
       <div className="flex items-center gap-2 mb-2">
         <span className="text-lg">{icon}</span>
         <h4 className={`font-semibold ${classes.text} text-sm`}>{title}</h4>
       </div>
       <div className="space-y-1">
-        <p className={`text-xs ${classes.value} font-mono bg-white/50 px-2 py-1 rounded`}>
+        <p
+          className={`text-xs ${classes.value} font-mono bg-white/50 px-2 py-1 rounded`}
+        >
           {value}
         </p>
-        {subtitle && (
-          <p className={`text-xs ${classes.text}`}>
-            {subtitle}
-          </p>
-        )}
+        {subtitle && <p className={`text-xs ${classes.text}`}>{subtitle}</p>}
         {details.map((detail, index) => (
           <p key={index} className={`text-xs ${classes.detail}`}>
             {detail.label}: {detail.value}
@@ -134,44 +134,52 @@ export function MetricsGrid({
   movement,
   clicks,
   activity,
-  performance
+  performance,
 }: MetricsGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <MetricCard
         title="Position"
         icon="📍"
-        value={position ? position.displayText : "RefContext Control"}
-        subtitle={position ? `Status: ${position.isValid ? '✅ Inside' : '❌ Outside'}` : "🚀 Direct DOM"}
+        value={position ? position.displayText : 'RefContext Control'}
+        subtitle={
+          position
+            ? `Status: ${position.isValid ? '✅ Inside' : '❌ Outside'}`
+            : '🚀 Direct DOM'
+        }
         color="purple"
       />
-      
+
       <MetricCard
         title="Movement"
         icon="🏃"
-        value={movement ? movement.velocityText : "High-Performance"}
-        subtitle={movement ? `Path: ${movement.pathLengthText}` : "⚡ RefContext Direct"}
+        value={movement ? movement.velocityText : 'High-Performance'}
+        subtitle={
+          movement ? `Path: ${movement.pathLengthText}` : '⚡ RefContext Direct'
+        }
         color="green"
-        details={movement ? [
-          { label: 'Moving', value: movement.isMoving ? '✅' : '❌' },
-          { label: 'Count', value: movement.moveCount.toString() }
-        ] : [
-          { label: 'Mode', value: 'GPU Accelerated' },
-          { label: 'FPS', value: '60fps Canvas' }
-        ]}
+        details={
+          movement
+            ? [
+                { label: 'Moving', value: movement.isMoving ? '✅' : '❌' },
+                { label: 'Count', value: movement.moveCount.toString() },
+              ]
+            : [
+                { label: 'Mode', value: 'GPU Accelerated' },
+                { label: 'FPS', value: '60fps Canvas' },
+              ]
+        }
       />
-      
+
       <MetricCard
         title="Clicks"
         icon="👆"
         value={clicks.totalText}
         subtitle={`Recent: ${clicks.recentText}`}
         color="orange"
-        details={[
-          { label: 'History', value: clicks.hasHistory ? '✅' : '❌' }
-        ]}
+        details={[{ label: 'History', value: clicks.hasHistory ? '✅' : '❌' }]}
       />
-      
+
       <MetricCard
         title="Activity"
         icon="🧮"
@@ -179,16 +187,14 @@ export function MetricsGrid({
         subtitle={`Status: ${activity.isActive ? '✅ Active' : '❌ Idle'}`}
         color="cyan"
       />
-      
+
       <MetricCard
         title="Performance"
         icon="📊"
         value={performance.renderCountText}
         subtitle={`Avg: ${performance.avgRenderTimeText}`}
         color="teal"
-        details={[
-          { label: 'Memory', value: performance.memoryUsageText }
-        ]}
+        details={[{ label: 'Memory', value: performance.memoryUsageText }]}
       />
     </div>
   );
@@ -228,7 +234,7 @@ export function DetailedMetrics({ computed, summary }: DetailedMetricsProps) {
             <p>Maximum: {computed.maxVelocityText}</p>
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h5 className="font-medium text-purple-700">Session Metrics</h5>
           <div className="space-y-1 text-purple-600">
@@ -237,7 +243,7 @@ export function DetailedMetrics({ computed, summary }: DetailedMetricsProps) {
             <p>Total Distance: {computed.totalDistanceText}</p>
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h5 className="font-medium text-purple-700">Session Summary</h5>
           <div className="space-y-1 text-purple-600">

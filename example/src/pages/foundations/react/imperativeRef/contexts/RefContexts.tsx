@@ -8,7 +8,7 @@
  * - Type-safe ref handling
  */
 
-import { createContext, useContext, useRef, ReactNode, RefObject } from 'react';
+import { createContext, ReactNode, RefObject, useContext, useRef } from 'react';
 
 // 🎯 Ref Interface Definitions
 export interface FormRefHandle {
@@ -143,11 +143,7 @@ export function RefContextProvider({ children }: RefContextProviderProps) {
     resetAllComponents,
   };
 
-  return (
-    <RefContext.Provider value={registry}>
-      {children}
-    </RefContext.Provider>
-  );
+  return <RefContext.Provider value={registry}>{children}</RefContext.Provider>;
 }
 
 // 🎯 Specific ref hooks for convenience

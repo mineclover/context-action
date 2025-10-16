@@ -1,7 +1,4 @@
-import {
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import {
@@ -22,13 +19,13 @@ const PageStores = createStoreContext('StoreBasics', {});
 // Dynamic store creation helper for Store Only pattern
 function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
   const manager = PageStores.useStoreManager();
-  
+
   // Check if store already exists
   const existingStore = manager.stores.get(storeName);
   if (existingStore) {
     return existingStore;
   }
-  
+
   // Create new store dynamically
   if (initialValue !== undefined) {
     (manager.initialStores as any)[storeName] = {
@@ -40,24 +37,20 @@ function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
       version: options?.version,
     };
   }
-  
+
   return manager.getStore(storeName);
 }
 
 // 커스텀 훅 - 메시지 스토어 관리 (PageStores 패턴 사용)
 function useMessageDemo() {
   // PageStores 영역 내에서 'message' Store 사용 - 페이지별로 독립적
-  const messageStore = usePageStore(
-    'message',
-    'Hello, Context-Action!',
-    {
-      strategy: 'reference', // 단순 string이므로 reference 비교
-      debug: true,
-      description: 'Message store for demo purposes',
-      tags: ['demo', 'message'],
-      version: '1.0.0',
-    }
-  );
+  const messageStore = usePageStore('message', 'Hello, Context-Action!', {
+    strategy: 'reference', // 단순 string이므로 reference 비교
+    debug: true,
+    description: 'Message store for demo purposes',
+    tags: ['demo', 'message'],
+    version: '1.0.0',
+  });
 
   const message = useStoreValue(messageStore);
   const { logAction } = useActionLoggerWithToast();
@@ -327,9 +320,10 @@ function UserDemo() {
 function RegistryActionsDemo() {
   const manager = PageStores.useStoreManager();
   const storeInfo = PageStores.useStoreInfo();
-  
+
   const clearStores = () => manager.clear();
-  const removeStore = (storeName: string) => manager.registry.unregister(storeName);
+  const removeStore = (storeName: string) =>
+    manager.registry.unregister(storeName);
 
   return (
     <DemoCard variant="info">
@@ -345,7 +339,8 @@ function RegistryActionsDemo() {
             <strong>Store Count:</strong> {storeInfo.storeCount}
           </div>
           <div className="col-span-2">
-            <strong>Active Stores:</strong> {storeInfo.availableStores.join(', ')}
+            <strong>Active Stores:</strong>{' '}
+            {storeInfo.availableStores.join(', ')}
           </div>
         </div>
 

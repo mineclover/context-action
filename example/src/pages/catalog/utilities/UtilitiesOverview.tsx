@@ -14,10 +14,12 @@ export default function UtilitiesOverview() {
         <h2 className="text-2xl font-semibold mb-4">🔧 개발 도구 활용법</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
-            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">1</span>
+            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              1
+            </span>
             <div>
-              <Link 
-                to="/utilities/dev-tools/logger" 
+              <Link
+                to="/utilities/dev-tools/logger"
                 className="text-orange-600 hover:text-orange-800 font-medium text-lg"
               >
                 로깅 시스템
@@ -26,10 +28,12 @@ export default function UtilitiesOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">2</span>
+            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              2
+            </span>
             <div>
-              <Link 
-                to="/utilities/dev-tools/toast-config" 
+              <Link
+                to="/utilities/dev-tools/toast-config"
                 className="text-orange-600 hover:text-orange-800 font-medium text-lg"
               >
                 토스트 시스템
@@ -38,10 +42,12 @@ export default function UtilitiesOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">3</span>
+            <span className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              3
+            </span>
             <div>
-              <Link 
-                to="/utilities/dev-tools/store-scenarios" 
+              <Link
+                to="/utilities/dev-tools/store-scenarios"
                 className="text-orange-600 hover:text-orange-800 font-medium text-lg"
               >
                 스토어 시나리오
@@ -60,19 +66,30 @@ export default function UtilitiesOverview() {
           </p>
           <ul className="space-y-2">
             <li>
-              <Link to="/utilities/dev-tools/logger" className="text-orange-600 hover:underline">
+              <Link
+                to="/utilities/dev-tools/logger"
+                className="text-orange-600 hover:underline"
+              >
                 📝 Logger System
               </Link>
-              <span className="text-xs text-gray-500 ml-2">Debug & Monitoring</span>
+              <span className="text-xs text-gray-500 ml-2">
+                Debug & Monitoring
+              </span>
             </li>
             <li>
-              <Link to="/utilities/dev-tools/toast-config" className="text-orange-600 hover:underline">
+              <Link
+                to="/utilities/dev-tools/toast-config"
+                className="text-orange-600 hover:underline"
+              >
                 🍞 Toast Config
               </Link>
               <span className="text-xs text-gray-500 ml-2">User Feedback</span>
             </li>
             <li>
-              <Link to="/utilities/dev-tools/store-scenarios" className="text-orange-600 hover:underline">
+              <Link
+                to="/utilities/dev-tools/store-scenarios"
+                className="text-orange-600 hover:underline"
+              >
                 🏪 Store Scenarios
               </Link>
               <span className="text-xs text-gray-500 ml-2">State Testing</span>
@@ -87,7 +104,10 @@ export default function UtilitiesOverview() {
           </p>
           <ul className="space-y-2">
             <li>
-              <Link to="/utilities/testing/enhanced-search" className="text-orange-600 hover:underline">
+              <Link
+                to="/utilities/testing/enhanced-search"
+                className="text-orange-600 hover:underline"
+              >
                 🔍 Enhanced Search
               </Link>
               <span className="text-xs text-gray-500 ml-2">Search Testing</span>

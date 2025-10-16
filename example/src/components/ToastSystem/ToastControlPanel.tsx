@@ -202,12 +202,8 @@ export function ToastControlPanel() {
                 onClick={() => {
                   for (let i = 0; i < 8; i++) {
                     setTimeout(() => {
-                      const types: ('info' | 'success' | 'error' | 'system')[] = [
-                        'info',
-                        'success',
-                        'error',
-                        'system',
-                      ];
+                      const types: ('info' | 'success' | 'error' | 'system')[] =
+                        ['info', 'success', 'error', 'system'];
                       const selectedType = types[i % types.length];
                       if (selectedType) {
                         showToast(

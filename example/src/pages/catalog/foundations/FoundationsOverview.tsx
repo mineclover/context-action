@@ -14,22 +14,28 @@ export default function FoundationsOverview() {
         <h2 className="text-2xl font-semibold mb-4">📚 추천 학습 순서</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
-            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">1</span>
+            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              1
+            </span>
             <div>
-              <Link 
-                to="/foundations/core/basics" 
+              <Link
+                to="/foundations/core/basics"
                 className="text-blue-600 hover:text-blue-800 font-medium text-lg"
               >
                 Core Basics
               </Link>
-              <p className="text-gray-600">ActionRegister의 기본 개념과 사용법</p>
+              <p className="text-gray-600">
+                ActionRegister의 기본 개념과 사용법
+              </p>
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">2</span>
+            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              2
+            </span>
             <div>
-              <Link 
-                to="/foundations/store/basics" 
+              <Link
+                to="/foundations/store/basics"
                 className="text-blue-600 hover:text-blue-800 font-medium text-lg"
               >
                 Store Basics
@@ -38,10 +44,12 @@ export default function FoundationsOverview() {
             </div>
           </li>
           <li className="flex items-center">
-            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">3</span>
+            <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              3
+            </span>
             <div>
-              <Link 
-                to="/foundations/react/provider" 
+              <Link
+                to="/foundations/react/provider"
                 className="text-blue-600 hover:text-blue-800 font-medium text-lg"
               >
                 React Integration
@@ -57,12 +65,18 @@ export default function FoundationsOverview() {
           <h3 className="text-xl font-semibold mb-4">⚙️ Core</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/foundations/core/basics" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/core/basics"
+                className="text-blue-600 hover:underline"
+              >
                 Basic Concepts
               </Link>
             </li>
             <li>
-              <Link to="/foundations/core/advanced" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/core/advanced"
+                className="text-blue-600 hover:underline"
+              >
                 Advanced Features
               </Link>
             </li>
@@ -73,12 +87,18 @@ export default function FoundationsOverview() {
           <h3 className="text-xl font-semibold mb-4">🏪 Store</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/foundations/store/basics" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/store/basics"
+                className="text-blue-600 hover:underline"
+              >
                 Store Basics
               </Link>
             </li>
             <li>
-              <Link to="/foundations/store/immutability-test" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/store/immutability-test"
+                className="text-blue-600 hover:underline"
+              >
                 Immutability Test
               </Link>
             </li>
@@ -89,17 +109,26 @@ export default function FoundationsOverview() {
           <h3 className="text-xl font-semibold mb-4">⚛️ React</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/foundations/react/provider" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/react/provider"
+                className="text-blue-600 hover:underline"
+              >
                 Provider Pattern
               </Link>
             </li>
             <li>
-              <Link to="/foundations/react/context" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/react/context"
+                className="text-blue-600 hover:underline"
+              >
                 Context Integration
               </Link>
             </li>
             <li>
-              <Link to="/foundations/react/hooks" className="text-blue-600 hover:underline">
+              <Link
+                to="/foundations/react/hooks"
+                className="text-blue-600 hover:underline"
+              >
                 Hooks Usage
               </Link>
             </li>

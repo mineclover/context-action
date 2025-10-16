@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enhanced Context Store View - MVVM Architecture
- * 
+ *
  * View Layer: MVVM 패턴을 따르는 메인 컴포넌트
  * - Hook을 통한 상태 및 이벤트 주입
  * - 순수 컴포넌트들의 조합
@@ -8,15 +8,15 @@
  */
 
 import React, { useState } from 'react';
-import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useCanvasDirectControl } from '../hooks/useCanvasDirectControl';
 import { useMetricsOnly } from '../hooks/useMetricsOnly';
-import { MetricsGrid, DetailedMetrics } from './MouseEventsMetrics';
+import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { MouseEventsCanvas } from './MouseEventsCanvas';
+import { DetailedMetrics, MetricsGrid } from './MouseEventsMetrics';
 
 /**
  * Enhanced Context Store 메인 뷰 컴포넌트
- * 
+ *
  * MVVM 아키텍처:
  * - Model: MouseEventsModel (Context 정의)
  * - ViewModel: Hooks (비즈니스 로직 + 상태 주입)
@@ -24,29 +24,31 @@ import { MouseEventsCanvas } from './MouseEventsCanvas';
  */
 export function EnhancedContextStoreView() {
   // === ViewModel Layer - RefContext 중심 아키텍처 ===
-  
+
   // 비즈니스 로직 초기화 (Store 관리)
   const { initialized } = useMouseEventsLogic();
-  
+
   // RefContext 기반 Canvas 직접 제어
   const canvasControl = useCanvasDirectControl();
-  
+
   // 최소 Store 구독 (메트릭만)
   const metricsState = useMetricsOnly();
-  
+
   // === Local UI State (비즈니스 로직과 무관한 View 상태) ===
   const [showDetails, setShowDetails] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
-  
+
   // Hook 초기화 대기
   if (!initialized) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg text-purple-600">Initializing MVVM architecture...</div>
+        <div className="text-lg text-purple-600">
+          Initializing MVVM architecture...
+        </div>
       </div>
     );
   }
-  
+
   return (
     <div className="p-6">
       {/* CSS 스타일 정의 */}
@@ -85,17 +87,21 @@ export function EnhancedContextStoreView() {
           }
         }
       `}</style>
-      
+
       {/* 헤더 및 컨트롤 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <span className="text-3xl animate-pulse">🏪</span>
           <div>
-            <h2 className="text-2xl font-bold text-purple-800">Enhanced Context Store - MVVM</h2>
-            <p className="text-sm text-purple-600">Hooks-based state injection with pure components</p>
+            <h2 className="text-2xl font-bold text-purple-800">
+              Enhanced Context Store - MVVM
+            </h2>
+            <p className="text-sm text-purple-600">
+              Hooks-based state injection with pure components
+            </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowDetails(!showDetails)}
@@ -106,10 +112,12 @@ export function EnhancedContextStoreView() {
           </button>
         </div>
       </div>
-      
+
       {/* MVVM 아키텍처 설명 */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-emerald-800 mb-2">🏗️ MVVM Architecture Features:</h3>
+        <h3 className="font-semibold text-emerald-800 mb-2">
+          🏗️ MVVM Architecture Features:
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-emerald-700">
           <div>
             <h4 className="font-medium mb-1">Model Layer</h4>
@@ -163,18 +171,15 @@ export function EnhancedContextStoreView() {
         onMouseEnter={canvasControl.handleMouseEnter}
         onMouseLeave={canvasControl.handleMouseLeave}
         onReset={canvasControl.handleReset}
-        
         // DOM 참조 설정 함수들 (RefContext)
         setContainerRef={canvasControl.setContainerRef}
         setCursorRef={canvasControl.setCursorRef}
         setPathSvgRef={canvasControl.setPathSvgRef}
         setCoordinatesRef={canvasControl.setCoordinatesRef}
-        
         // 최소 View 상태 (메트릭만)
         activity={metricsState.activity}
         clicks={metricsState.clicks}
         summary={metricsState.summary}
-        
         // UI 설정
         width={800}
         height={400}
@@ -191,7 +196,13 @@ export function EnhancedContextStoreView() {
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <svg width="30" height="8" viewBox="0 0 30 8">
-                <path d="M0 4 L30 4" stroke="url(#pathGradient)" strokeWidth="3" fill="none" strokeLinecap="round" />
+                <path
+                  d="M0 4 L30 4"
+                  stroke="url(#pathGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
             <span className="text-purple-700">
@@ -201,7 +212,14 @@ export function EnhancedContextStoreView() {
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <svg width="30" height="8" viewBox="0 0 30 8">
-                <path d="M0 4 L30 4" stroke="url(#clickConnectionGradient)" strokeWidth="2" strokeDasharray="8,4" fill="none" strokeLinecap="round" />
+                <path
+                  d="M0 4 L30 4"
+                  stroke="url(#clickConnectionGradient)"
+                  strokeWidth="2"
+                  strokeDasharray="8,4"
+                  fill="none"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
             <span className="text-blue-700">
@@ -231,7 +249,7 @@ export function EnhancedContextStoreView() {
             <p>🔄 Data Flow: Unidirectional with reactive updates</p>
           </div>
         </div>
-        
+
         <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200">
           <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
             <span className="text-sm">📊</span>

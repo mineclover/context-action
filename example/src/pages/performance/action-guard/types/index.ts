@@ -25,7 +25,11 @@ export interface PriorityConfig {
 // =============================================================================
 // Context-Action 라이브러리를 직접 사용한 성능 추적 시스템
 
-import type { ActionPayloadMap, HandlerConfig, ExecutionResult } from '@context-action/core';
+import type {
+  ActionPayloadMap,
+  ExecutionResult,
+  HandlerConfig,
+} from '@context-action/core';
 
 // Performance tracking action types using Context-Action
 export interface PerformanceTrackingActions extends ActionPayloadMap {
@@ -37,20 +41,20 @@ export interface PerformanceTrackingActions extends ActionPayloadMap {
     payload?: unknown;
     metadata?: ActionExecutionMetadata;
   };
-  
+
   completeActionExecution: {
     actionId: string;
     result?: unknown;
     duration: number;
     success: boolean;
   };
-  
+
   failActionExecution: {
     actionId: string;
     error: Error;
     duration: number;
   };
-  
+
   // Performance analytics
   recordPerformanceMetrics: {
     actionType: string;
@@ -58,14 +62,14 @@ export interface PerformanceTrackingActions extends ActionPayloadMap {
     memoryUsage: number;
     priority: number;
   };
-  
+
   // Queue management
   addToQueue: {
     actionId: string;
     priority: number;
     queueTime: number;
   };
-  
+
   removeFromQueue: {
     actionId: string;
     dequeueTime: number;
@@ -77,46 +81,46 @@ export interface ActionPerformanceData<TPayload = unknown, TResult = unknown> {
   // Core identification
   readonly actionId: string;
   readonly actionType: string;
-  
+
   // Context-Action integration
-  readonly handlerConfig?: HandlerConfig;    // Uses Context-Action's HandlerConfig
+  readonly handlerConfig?: HandlerConfig; // Uses Context-Action's HandlerConfig
   readonly executionResult?: ExecutionResult<TResult>; // Uses Context-Action's ExecutionResult
-  
+
   // Timing (all in milliseconds)
   readonly startTime: number;
   readonly endTime: number;
   readonly duration: number;
   readonly queueTime?: number;
-  
+
   // Status tracking
   readonly status: ActionExecutionStatus;
   readonly priority: number; // Uses Context-Action's priority system
-  
+
   // Data
   readonly payload?: TPayload;
   readonly result?: TResult;
   readonly error?: Error;
-  
+
   // Enhanced metadata
   readonly metadata?: ActionExecutionMetadata;
 }
 
 // Action execution status (simplified but comprehensive)
-type ActionExecutionStatus = 
-  | 'queued'      // Added to execution queue
-  | 'executing'   // Currently being processed
-  | 'completed'   // Successfully completed
-  | 'failed'      // Failed with error
-  | 'aborted'     // Manually aborted
-  | 'timeout';    // Exceeded timeout
+type ActionExecutionStatus =
+  | 'queued' // Added to execution queue
+  | 'executing' // Currently being processed
+  | 'completed' // Successfully completed
+  | 'failed' // Failed with error
+  | 'aborted' // Manually aborted
+  | 'timeout'; // Exceeded timeout
 
 // Execution metadata for Context-Action integration
 export interface ActionExecutionMetadata {
-  readonly component?: string;    // React component that triggered action
-  readonly userId?: string;       // User identifier
-  readonly sessionId?: string;    // Session identifier
+  readonly component?: string; // React component that triggered action
+  readonly userId?: string; // User identifier
+  readonly sessionId?: string; // Session identifier
   readonly source: 'user' | 'system' | 'background';
-  readonly tags?: readonly string[];        // Tags for filtering and categorization
+  readonly tags?: readonly string[]; // Tags for filtering and categorization
   readonly context?: Record<string, unknown>; // Additional context data
 }
 
@@ -233,7 +237,12 @@ export interface UsePerformanceMonitorReturn {
   startMonitoring: () => void;
   stopMonitoring: () => void;
   clearMetrics: () => void;
-  recordAction: (actionType: string, startTime: number, endTime: number, priority: number) => void;
+  recordAction: (
+    actionType: string,
+    startTime: number,
+    endTime: number,
+    priority: number
+  ) => void;
 }
 
 export interface UseApiManagerReturn {
@@ -264,17 +273,17 @@ export interface UsePriorityExecutionReturn {
   // Context-Action의 dispatch 패턴을 활용
   executeWithPriority: <T = unknown, P = unknown>(
     actionType: keyof PerformanceTrackingActions,
-    payload: P, 
+    payload: P,
     priority?: number
   ) => Promise<T>;
-  
+
   // Performance tracking data
   performanceQueue: ActionPerformanceData[];
   metrics: PerformanceMetrics[];
-  
+
   // State
   isExecuting: boolean;
-  
+
   // Management functions
   clearQueue: () => void;
   getMetricsByType: (actionType: string) => PerformanceMetrics[];

@@ -23,12 +23,12 @@ interface ProviderActions extends ActionPayloadMap {
 
 // Action Only + Store Only 패턴 생성 - Provider Pattern 데모용
 const ProviderActions = createActionContext<ProviderActions>({
-  name: 'ReactProviderDemo-actions'
+  name: 'ReactProviderDemo-actions',
 });
 const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
-  'counter': { initialValue: 0 },
-  'message': { initialValue: 'Hello from Provider!' },
-  'activities': { initialValue: [] as string[] }
+  counter: { initialValue: 0 },
+  message: { initialValue: 'Hello from Provider!' },
+  activities: { initialValue: [] as string[] },
 });
 
 // 카운터 컴포넌트 - Store Only + Action Only 패턴 사용
@@ -452,7 +452,8 @@ function ProviderApp() {
                     Create Separated Patterns
                   </div>
                   <div className="text-sm text-gray-600">
-                    const MyActions = createActionContext&lt;Actions&gt;(...);<br/>
+                    const MyActions = createActionContext&lt;Actions&gt;(...);
+                    <br />
                     const MyStores = createStoreContext(...);
                   </div>
                 </div>
@@ -515,10 +516,10 @@ function ReactProviderPage() {
         <header className="page-header">
           <h1>Separated Provider Pattern Demo</h1>
           <p className="page-description">
-            Experience the separated Action Only + Store Only patterns that provide
-            clear separation of concerns. This demo shows complete integration
-            with the Logger Monitor and demonstrates modern Context-Action
-            framework usage.
+            Experience the separated Action Only + Store Only patterns that
+            provide clear separation of concerns. This demo shows complete
+            integration with the Logger Monitor and demonstrates modern
+            Context-Action framework usage.
           </p>
         </header>
 

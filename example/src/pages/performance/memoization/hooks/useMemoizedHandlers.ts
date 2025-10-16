@@ -1,7 +1,14 @@
 import { useCallback } from 'react';
-import { useMemoizedActionHandler, useComparisonStore } from '../models/ComparisonModel';
-import { createExpensiveCalculation, createMemoryLeakData, convertToProcessedResults } from '../utils/performanceHelpers';
+import {
+  useComparisonStore,
+  useMemoizedActionHandler,
+} from '../models/ComparisonModel';
 import { PERFORMANCE_LIMITS } from '../types';
+import {
+  convertToProcessedResults,
+  createExpensiveCalculation,
+  createMemoryLeakData,
+} from '../utils/performanceHelpers';
 
 /**
  * Memoized ViewModel Hook - 메모이제이션된 비즈니스 로직 관리
@@ -27,63 +34,77 @@ export function useMemoizedHandlers() {
     const current = store.getValue();
     store.setValue({ ...current, counter: current.counter + 1 });
   }, [store]);
-  
+
   const handleDecrement = useCallback(async () => {
     const current = store.getValue();
     store.setValue({ ...current, counter: current.counter - 1 });
   }, [store]);
-  
+
   const handleReset = useCallback(async () => {
-    store.setValue({ 
-      counter: 0, 
+    store.setValue({
+      counter: 0,
       calcResult: 0,
       heavyData: [],
       processedResults: [],
-      memoryLeakData: []
+      memoryLeakData: [],
     });
-  }, [store]);
-  
-  const handleCalculation = useCallback(async (payload: { multiplier: number }) => {
-    const current = store.getValue();
-    const result = current.counter * payload.multiplier;
-    store.setValue({ ...current, calcResult: result });
   }, [store]);
 
+  const handleCalculation = useCallback(
+    async (payload: { multiplier: number }) => {
+      const current = store.getValue();
+      const result = current.counter * payload.multiplier;
+      store.setValue({ ...current, calcResult: result });
+    },
+    [store]
+  );
+
   // Heavy operation handler
-  const handleHeavyOperation = useCallback(async (payload: { dataSize: number }) => {
-    console.log('🔄 Memoized: Heavy operation executing...');
-    const current = store.getValue();
-    
-    if (current.heavyData.length > PERFORMANCE_LIMITS.HEAVY_DATA_LIMIT) {
-      console.warn('🚨 Memoized: Heavy data 한계 도달! 더 이상 추가하지 않습니다.');
-      return;
-    }
-    
-    const safeDataSize = Math.min(payload.dataSize, PERFORMANCE_LIMITS.MAX_DATA_SIZE);
-    const result = expensiveCalculator(safeDataSize);
-    
-    store.setValue({ 
-      ...current, 
-      heavyData: [...current.heavyData, ...result],
-      processedResults: [...current.processedResults, ...convertToProcessedResults(result)]
-    });
-  }, [store, expensiveCalculator]);
+  const handleHeavyOperation = useCallback(
+    async (payload: { dataSize: number }) => {
+      console.log('🔄 Memoized: Heavy operation executing...');
+      const current = store.getValue();
+
+      if (current.heavyData.length > PERFORMANCE_LIMITS.HEAVY_DATA_LIMIT) {
+        console.warn(
+          '🚨 Memoized: Heavy data 한계 도달! 더 이상 추가하지 않습니다.'
+        );
+        return;
+      }
+
+      const safeDataSize = Math.min(
+        payload.dataSize,
+        PERFORMANCE_LIMITS.MAX_DATA_SIZE
+      );
+      const result = expensiveCalculator(safeDataSize);
+
+      store.setValue({
+        ...current,
+        heavyData: [...current.heavyData, ...result],
+        processedResults: [
+          ...current.processedResults,
+          ...convertToProcessedResults(result),
+        ],
+      });
+    },
+    [store, expensiveCalculator]
+  );
 
   // Memory intensive task handler
   const handleMemoryTask = useCallback(async () => {
     console.log('🔄 Memoized: Memory task executing...');
     const current = store.getValue();
-    
+
     if (current.memoryLeakData.length > PERFORMANCE_LIMITS.MEMORY_DATA_LIMIT) {
       console.warn('🚨 Memoized: 메모리 한계 도달! 더 이상 추가하지 않습니다.');
       return;
     }
-    
+
     const newMemoryData = memoryDataGenerator();
-    
-    store.setValue({ 
-      ...current, 
-      memoryLeakData: [...current.memoryLeakData, ...newMemoryData]
+
+    store.setValue({
+      ...current,
+      memoryLeakData: [...current.memoryLeakData, ...newMemoryData],
     });
   }, [store, memoryDataGenerator]);
 
@@ -98,6 +119,6 @@ export function useMemoizedHandlers() {
   // Return handler registration status (for debugging)
   return {
     handlersRegistered: true,
-    storeType: 'memoized' as const
+    storeType: 'memoized' as const,
   };
 }

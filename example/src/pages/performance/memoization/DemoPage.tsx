@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { HandlerComparisonDemo } from './components/HandlerComparisonDemo'
-import { HandlerComparisonDemoRefactored } from './components/HandlerComparisonDemoRefactored'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { HandlerComparisonDemo } from './components/HandlerComparisonDemo';
+import { HandlerComparisonDemoRefactored } from './components/HandlerComparisonDemoRefactored';
 
 const DemoPage: React.FC = () => {
   const [demoVersion, setDemoVersion] = useState<'original' | 'mvvm'>('mvvm');
@@ -18,12 +18,18 @@ const DemoPage: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/performance" className="text-gray-500 hover:text-gray-700">
+                <Link
+                  to="/performance"
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   Performance
                 </Link>
               </li>
               <li>
-                <Link to="/performance/memoization" className="text-gray-500 hover:text-gray-700">
+                <Link
+                  to="/performance/memoization"
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   Memoization
                 </Link>
               </li>
@@ -39,10 +45,11 @@ const DemoPage: React.FC = () => {
                 실시간 성능 비교 데모
               </h1>
               <p className="text-gray-600">
-                메모이제이션 사용 여부에 따른 성능 차이를 실시간으로 확인할 수 있습니다.
+                메모이제이션 사용 여부에 따른 성능 차이를 실시간으로 확인할 수
+                있습니다.
               </p>
             </div>
-            
+
             {/* Architecture Version Toggle */}
             <div className="flex bg-gray-100 p-1 rounded-lg">
               <button
@@ -72,27 +79,48 @@ const DemoPage: React.FC = () => {
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             {demoVersion === 'mvvm' ? (
               <div>
-                <h3 className="font-semibold text-blue-900 mb-2">🏗️ MVVM 아키텍처 (Context-Action)</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  🏗️ MVVM 아키텍처 (Context-Action)
+                </h3>
                 <p className="text-blue-800 text-sm mb-2">
                   완전한 관심사 분리로 구현된 MVVM 패턴을 사용합니다.
                 </p>
                 <ul className="text-blue-700 text-xs space-y-1">
-                  <li>• <strong>Model:</strong> createStoreContext, createActionContext로 데이터 계층 관리</li>
-                  <li>• <strong>ViewModel:</strong> hooks를 통한 비즈니스 로직 주입</li>
-                  <li>• <strong>View:</strong> 순수 UI 컴포넌트 + Widget 조합</li>
-                  <li>• <strong>특징:</strong> useEffect, dispatch 직접 사용 금지, context-action 기반 복잡도 해소</li>
+                  <li>
+                    • <strong>Model:</strong> createStoreContext,
+                    createActionContext로 데이터 계층 관리
+                  </li>
+                  <li>
+                    • <strong>ViewModel:</strong> hooks를 통한 비즈니스 로직
+                    주입
+                  </li>
+                  <li>
+                    • <strong>View:</strong> 순수 UI 컴포넌트 + Widget 조합
+                  </li>
+                  <li>
+                    • <strong>특징:</strong> useEffect, dispatch 직접 사용 금지,
+                    context-action 기반 복잡도 해소
+                  </li>
                 </ul>
               </div>
             ) : (
               <div>
-                <h3 className="font-semibold text-blue-900 mb-2">🏗️ 기존 구조 (React Hooks)</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  🏗️ 기존 구조 (React Hooks)
+                </h3>
                 <p className="text-blue-800 text-sm mb-2">
                   전통적인 React hooks 패턴으로 구현된 버전입니다.
                 </p>
                 <ul className="text-blue-700 text-xs space-y-1">
-                  <li>• <strong>상태 관리:</strong> useState, useEffect 직접 사용</li>
-                  <li>• <strong>비즈니스 로직:</strong> 컴포넌트 내부에 포함</li>
-                  <li>• <strong>특징:</strong> 단순한 구조, 전통적인 React 패턴</li>
+                  <li>
+                    • <strong>상태 관리:</strong> useState, useEffect 직접 사용
+                  </li>
+                  <li>
+                    • <strong>비즈니스 로직:</strong> 컴포넌트 내부에 포함
+                  </li>
+                  <li>
+                    • <strong>특징:</strong> 단순한 구조, 전통적인 React 패턴
+                  </li>
                 </ul>
               </div>
             )}
@@ -107,7 +135,7 @@ const DemoPage: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DemoPage
+export default DemoPage;

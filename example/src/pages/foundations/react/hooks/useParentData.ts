@@ -11,17 +11,15 @@ import { useParentStore } from '../contexts/ParentContext';
 export function useRegisteredChildren() {
   const registeredChildrenStore = useParentStore('registered-children');
   const registeredChildren = useStoreValue(registeredChildrenStore);
-  
+
   return {
     registeredChildren,
     childrenCount: registeredChildren.length,
     hasChildren: registeredChildren.length > 0,
-    getChildById: (childId: string) => 
-      registeredChildren.find(child => child.childId === childId)
+    getChildById: (childId: string) =>
+      registeredChildren.find((child) => child.childId === childId),
   };
 }
-
-
 
 /**
  * 상위 카운터 데이터 구독
@@ -29,12 +27,12 @@ export function useRegisteredChildren() {
 export function useParentCounter() {
   const parentCounterStore = useParentStore('parent-counter');
   const parentCounter = useStoreValue(parentCounterStore);
-  
+
   return {
     parentCounter,
     isZero: parentCounter === 0,
     isPositive: parentCounter > 0,
-    displayValue: `카운터: ${parentCounter}`
+    displayValue: `카운터: ${parentCounter}`,
   };
 }
 
@@ -44,7 +42,7 @@ export function useParentCounter() {
 export function useParentState() {
   const { registeredChildren, childrenCount } = useRegisteredChildren();
   const { parentCounter, isZero } = useParentCounter();
-  
+
   return {
     registeredChildren,
     childrenCount,
@@ -52,7 +50,7 @@ export function useParentState() {
     isZero,
     summary: {
       totalChildren: childrenCount,
-      currentCounter: parentCounter
-    }
+      currentCounter: parentCounter,
+    },
   };
 }

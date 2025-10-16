@@ -50,13 +50,15 @@ const actionGuardDemos = [
   {
     path: '/actionguard/conditional',
     title: '🎯 Conditional Execution Patterns',
-    description: '패턴별 분리된 조건부 실행 데모 - 환경, 기능플래그, 권한, 비즈니스룰',
+    description:
+      '패턴별 분리된 조건부 실행 데모 - 환경, 기능플래그, 권한, 비즈니스룰',
     tags: ['Conditional', 'Patterns', 'Focused'],
   },
   {
     path: '/actionguard/advanced-filtering',
     title: '🎛️ Advanced Filtering Demo',
-    description: '고급 필터링 패턴 - 핸들러 ID, 우선순위, 커스텀 로직, 결합 필터링',
+    description:
+      '고급 필터링 패턴 - 핸들러 ID, 우선순위, 커스텀 로직, 결합 필터링',
     tags: ['Filtering', 'Advanced', 'Control'],
   },
 ];
@@ -71,8 +73,9 @@ export default function ActionGuardIndexPage() {
       <header className="page-header">
         <h1>🛡️ ActionGuard Demos</h1>
         <p className="page-description">
-          Context-Action 프레임워크의 고급 기능들을 다룬 ActionGuard 데모 모음입니다.
-          성능 최적화, 이벤트 처리, API 관리 등 다양한 실무 시나리오를 다룹니다.
+          Context-Action 프레임워크의 고급 기능들을 다룬 ActionGuard 데모
+          모음입니다. 성능 최적화, 이벤트 처리, API 관리 등 다양한 실무
+          시나리오를 다룹니다.
         </p>
         <div className="flex items-center gap-4 mt-4">
           <Link
@@ -99,12 +102,12 @@ export default function ActionGuardIndexPage() {
             <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 mb-3">
               {demo.title}
             </h3>
-            
+
             {/* 설명 */}
             <p className="text-sm text-gray-600 mb-4 leading-relaxed">
               {demo.description}
             </p>
-            
+
             {/* 태그들 */}
             <div className="flex flex-wrap gap-2">
               {demo.tags.map((tag) => (
@@ -116,7 +119,7 @@ export default function ActionGuardIndexPage() {
                 </span>
               ))}
             </div>
-            
+
             {/* 화살표 아이콘 */}
             <div className="mt-4 flex items-center text-blue-600 group-hover:text-blue-700">
               <span className="text-sm font-medium">데모 보기</span>
@@ -140,19 +143,25 @@ export default function ActionGuardIndexPage() {
 
       {/* 추가 정보 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-3">💡 ActionGuard 시스템</h3>
+        <h3 className="font-semibold text-blue-900 mb-3">
+          💡 ActionGuard 시스템
+        </h3>
         <div className="text-sm text-blue-800 space-y-2">
           <div>
-            <strong>성능 최적화:</strong> 고급 성능 측정 및 최적화 기법들을 실제 시나리오에서 테스트
+            <strong>성능 최적화:</strong> 고급 성능 측정 및 최적화 기법들을 실제
+            시나리오에서 테스트
           </div>
           <div>
-            <strong>이벤트 관리:</strong> 복잡한 사용자 상호작용과 이벤트 처리 시스템
+            <strong>이벤트 관리:</strong> 복잡한 사용자 상호작용과 이벤트 처리
+            시스템
           </div>
           <div>
-            <strong>API 최적화:</strong> 중복 요청 방지, 캐싱, 에러 처리 등 API 관리 시스템
+            <strong>API 최적화:</strong> 중복 요청 방지, 캐싱, 에러 처리 등 API
+            관리 시스템
           </div>
           <div>
-            <strong>실무 적용:</strong> 실제 프로덕션 환경에서 활용 가능한 패턴들
+            <strong>실무 적용:</strong> 실제 프로덕션 환경에서 활용 가능한
+            패턴들
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-export { SecurityHandlers } from './SecurityHandlers';
+export { ApiHandlers } from './ApiHandlers';
 export { CacheHandlers } from './CacheHandlers';
 export { OrderHandlers } from './OrderHandlers';
-export { ApiHandlers } from './ApiHandlers';
+export { SecurityHandlers } from './SecurityHandlers';

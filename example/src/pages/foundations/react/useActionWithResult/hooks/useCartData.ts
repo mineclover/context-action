@@ -8,10 +8,10 @@
  * - Abstracts store complexities from views
  */
 
-import { useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useCartStore } from '../contexts/CartContexts';
+import { useMemo } from 'react';
 import { getCartStatistics } from '../business/cartBusinessLogic';
+import { useCartStore } from '../contexts/CartContexts';
 
 /**
  * Cart Data Hook
@@ -47,7 +47,7 @@ export function useCartData() {
   }, [cart]);
 
   const expensiveItems = useMemo(() => {
-    return cart.filter(item => item.price > 50);
+    return cart.filter((item) => item.price > 50);
   }, [cart]);
 
   const isCartEmpty = useMemo(() => {
@@ -209,18 +209,21 @@ export function useCartStatistics() {
 
       // Category analysis
       priceRanges: {
-        under10: cart.filter(item => item.price < 10).length,
-        between10And50: cart.filter(item => item.price >= 10 && item.price <= 50).length,
-        over50: cart.filter(item => item.price > 50).length,
+        under10: cart.filter((item) => item.price < 10).length,
+        between10And50: cart.filter(
+          (item) => item.price >= 10 && item.price <= 50
+        ).length,
+        over50: cart.filter((item) => item.price > 50).length,
       },
 
       // Quantity analysis
       quantityStats: {
-        single: cart.filter(item => item.quantity === 1).length,
-        multiple: cart.filter(item => item.quantity > 1).length,
-        averageQuantity: cart.length > 0
-          ? cart.reduce((sum, item) => sum + item.quantity, 0) / cart.length
-          : 0,
+        single: cart.filter((item) => item.quantity === 1).length,
+        multiple: cart.filter((item) => item.quantity > 1).length,
+        averageQuantity:
+          cart.length > 0
+            ? cart.reduce((sum, item) => sum + item.quantity, 0) / cart.length
+            : 0,
       },
     };
   }, [cart, calculation]);
@@ -242,11 +245,11 @@ export function useCartItemData(itemId?: string) {
 
   // 🎯 Item-specific data
   const selectedItem = useMemo(() => {
-    return itemId ? cart.find(item => item.id === itemId) : null;
+    return itemId ? cart.find((item) => item.id === itemId) : null;
   }, [cart, itemId]);
 
   const itemIndex = useMemo(() => {
-    return itemId ? cart.findIndex(item => item.id === itemId) : -1;
+    return itemId ? cart.findIndex((item) => item.id === itemId) : -1;
   }, [cart, itemId]);
 
   const itemExists = useMemo(() => {
@@ -256,10 +259,11 @@ export function useCartItemData(itemId?: string) {
   const similarItems = useMemo(() => {
     if (!selectedItem) return [];
 
-    return cart.filter(item =>
-      item.id !== selectedItem.id &&
-      (item.name.toLowerCase().includes(selectedItem.name.toLowerCase()) ||
-       Math.abs(item.price - selectedItem.price) < 5)
+    return cart.filter(
+      (item) =>
+        item.id !== selectedItem.id &&
+        (item.name.toLowerCase().includes(selectedItem.name.toLowerCase()) ||
+          Math.abs(item.price - selectedItem.price) < 5)
     );
   }, [cart, selectedItem]);
 

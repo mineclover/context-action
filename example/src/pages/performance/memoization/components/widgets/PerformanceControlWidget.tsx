@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  usePerformanceControlState, 
-  usePerformanceControlActions, 
-  usePerformanceControlLogic
+import {
+  usePerformanceControlActions,
+  usePerformanceControlLogic,
+  usePerformanceControlState,
 } from '../../hooks/usePerformanceControl';
 import { PerformanceControlPanel } from '../shared/PerformanceControlPanel';
 
@@ -14,9 +14,10 @@ import { PerformanceControlPanel } from '../shared/PerformanceControlPanel';
 export function PerformanceControlWidget() {
   // ViewModel hooks 조합
   usePerformanceControlLogic(); // 비즈니스 로직 등록
-  
+
   const { autoUpdate, updateInterval } = usePerformanceControlState();
-  const { toggleAutoUpdate, setUpdateInterval } = usePerformanceControlActions();
+  const { toggleAutoUpdate, setUpdateInterval } =
+    usePerformanceControlActions();
 
   return (
     <PerformanceControlPanel

@@ -1,5 +1,9 @@
 import { createActionContext, createStoreContext } from '@context-action/react';
-import type { ComparisonActions, ComparisonStore, MemoryLeakItem } from '../types';
+import type {
+  ComparisonActions,
+  ComparisonStore,
+  MemoryLeakItem,
+} from '../types';
 
 // Model Layer - 선언적 Context 관리
 
@@ -8,19 +12,19 @@ export const {
   Provider: ComparisonStoreProvider,
   useStore: useComparisonStore,
 } = createStoreContext('ComparisonStore', {
-  memoized: { 
-    counter: 0, 
-    calcResult: 0, 
-    heavyData: [] as number[],
-    processedResults: [] as { id: number; value: number; timestamp: number }[],
-    memoryLeakData: [] as MemoryLeakItem[]
-  },
-  nonMemoized: { 
-    counter: 0, 
+  memoized: {
+    counter: 0,
     calcResult: 0,
     heavyData: [] as number[],
     processedResults: [] as { id: number; value: number; timestamp: number }[],
-    memoryLeakData: [] as MemoryLeakItem[]
+    memoryLeakData: [] as MemoryLeakItem[],
+  },
+  nonMemoized: {
+    counter: 0,
+    calcResult: 0,
+    heavyData: [] as number[],
+    processedResults: [] as { id: number; value: number; timestamp: number }[],
+    memoryLeakData: [] as MemoryLeakItem[],
   },
 });
 

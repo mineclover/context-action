@@ -1,5 +1,5 @@
-import { createLogger, LogLevel } from '@/utils/logger';
 import { ActionRegister } from '@context-action/react';
+import { createLogger, LogLevel } from '@/utils/logger';
 import { toastConfigStore, toastStackIndexStore, toastsStore } from './store';
 import type { ActionExecutionToast, Toast, ToastConfig } from './types';
 
@@ -46,7 +46,7 @@ const recentToasts = new Map<string, number>(); // Track recent toasts to preven
 const clearToastTimers = (toastId: string) => {
   const timers = toastTimers.get(toastId);
   if (timers) {
-    timers.forEach(timer => clearTimeout(timer));
+    timers.forEach((timer) => clearTimeout(timer));
     toastTimers.delete(toastId);
   }
 };
@@ -62,20 +62,20 @@ const isDuplicateToast = (type: string, message: string): boolean => {
   const key = `${type}:${message}`;
   const now = Date.now();
   const lastTime = recentToasts.get(key);
-  
-  if (lastTime && (now - lastTime) < 500) {
+
+  if (lastTime && now - lastTime < 500) {
     return true;
   }
-  
+
   recentToasts.set(key, now);
-  
+
   // Clean up old entries (older than 1 minute)
   for (const [k, time] of recentToasts.entries()) {
     if (now - time > 60000) {
       recentToasts.delete(k);
     }
   }
-  
+
   return false;
 };
 
@@ -212,10 +212,12 @@ toastActionRegister.register(
             : new Date(toast.timestamp).getTime();
         return currentTime < oldestTime ? toast : oldest;
       });
-      
+
       // 🔧 CRITICAL: Direct store update instead of dispatch to prevent infinite loop
       clearToastTimers(oldestToast.id);
-      const filteredToasts = currentToasts.filter((toast) => toast.id !== oldestToast.id);
+      const filteredToasts = currentToasts.filter(
+        (toast) => toast.id !== oldestToast.id
+      );
       toastsStore.setValue(filteredToasts);
       logger.debug('🍞 Removed oldest toast directly:', oldestToast.id);
     }
@@ -267,7 +269,7 @@ toastActionRegister.register(
         logger.debug('🍞 Removing toast:', newToast.id);
         toastActionRegister.dispatch('removeToast', { toastId: newToast.id });
       }, 300); // 애니메이션 완료 후 제거
-      
+
       addToastTimer(newToast.id, removeTimer);
     }, newToast.duration);
     addToastTimer(newToast.id, exitTimer);
@@ -325,7 +327,7 @@ toastActionRegister.register(
 toastActionRegister.register('removeToast', ({ toastId }) => {
   // 🔧 Fix: Clear all timers for this toast to prevent memory leaks
   clearToastTimers(toastId);
-  
+
   const currentToasts = toastsStore.getValue();
   const updatedToasts = currentToasts.filter((toast) => toast.id !== toastId);
   toastsStore.setValue(updatedToasts);
@@ -348,8 +350,8 @@ toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
 toastActionRegister.register('clearAllToasts', () => {
   // 🔧 Fix: Clear all timers when clearing all toasts
   const currentToasts = toastsStore.getValue();
-  currentToasts.forEach(toast => clearToastTimers(toast.id));
-  
+  currentToasts.forEach((toast) => clearToastTimers(toast.id));
+
   toastsStore.setValue([]);
   toastStackIndexStore.setValue(0);
 

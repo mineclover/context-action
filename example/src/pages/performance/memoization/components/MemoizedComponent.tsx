@@ -1,25 +1,28 @@
-import React from 'react'
+import React from 'react';
 
 interface MemoizedComponentProps {
-  data: any[]
-  onRender?: () => void
+  data: any[];
+  onRender?: () => void;
 }
 
-const MemoizedComponent: React.FC<MemoizedComponentProps> = ({ data, onRender }) => {
+const MemoizedComponent: React.FC<MemoizedComponentProps> = ({
+  data,
+  onRender,
+}) => {
   // 메모이제이션된 복잡한 계산
   const processedData = React.useMemo(() => {
     return data.map((item, index) => ({
       ...item,
       processed: item.value * 2 + Math.sqrt(item.value),
       timestamp: Date.now(),
-      renderCount: index + 1
-    }))
-  }, [data])
+      renderCount: index + 1,
+    }));
+  }, [data]);
 
   // 렌더링 알림
   React.useEffect(() => {
-    onRender?.()
-  })
+    onRender?.();
+  });
 
   return (
     <div className="bg-white rounded-lg p-4 border-2 border-green-200">
@@ -42,7 +45,7 @@ const MemoizedComponent: React.FC<MemoizedComponentProps> = ({ data, onRender })
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default React.memo(MemoizedComponent)
+export default React.memo(MemoizedComponent);

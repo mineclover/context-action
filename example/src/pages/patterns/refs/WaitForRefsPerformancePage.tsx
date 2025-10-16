@@ -1,8 +1,9 @@
 /**
  * RefContext 패턴 데모 페이지
  */
-import { WaitForRefsPatternDemo } from '../../../components/demos/WaitForRefsPatternDemo';
+
 import { PageWithLogMonitor } from '@/components/LogMonitor';
+import { WaitForRefsPatternDemo } from '../../../components/demos/WaitForRefsPatternDemo';
 
 export function WaitForRefsPerformancePage() {
   return (

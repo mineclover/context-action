@@ -40,20 +40,20 @@ const HooksStores = createStoreContext('ReactHooks', {});
 // Store 생성 헬퍼 함수
 function useHooksStore<T>(storeName: string, initialValue: T) {
   const manager = HooksStores.useStoreManager();
-  
+
   // Check if store already exists
   const existingStore = manager.stores.get(storeName);
   if (existingStore) {
     return existingStore;
   }
-  
+
   // Create new store dynamically
   (manager.initialStores as any)[storeName] = {
     initialValue,
     strategy: 'reference',
     debug: false,
   };
-  
+
   return manager.getStore(storeName);
 }
 
@@ -99,7 +99,6 @@ function MemoizationDemo() {
       ({ numbers }, controller) => {
         const result = heavyComputation(numbers);
         calculationStore.setValue(result);
-        
       }
     );
 
@@ -183,7 +182,6 @@ function ConditionalHandlerDemo() {
           setActionCount((prev) => prev + 1);
           console.log('✅ Conditional handler executed:', data);
         }
-        
       }
     );
 
@@ -264,7 +262,6 @@ function DynamicHandlerDemo() {
             }));
             console.log(`✅ Handler ${handlerType} processed:`, payload);
           }
-          
         }
       );
 
@@ -476,7 +473,6 @@ function ReactHooksSetup() {
         'memoryIntensive',
         ({ size }, controller) => {
           console.log(`🧠 Processing memory intensive task: ${size} objects`);
-          
         }
       )
     );
@@ -485,7 +481,6 @@ function ReactHooksSetup() {
     unsubscribers.push(
       hooksActionRegister.register('rerenderTrigger', (_, controller) => {
         console.log('🔄 Re-render triggered');
-        
       })
     );
 
@@ -528,12 +523,12 @@ function ReactHooksPage() {
               <h3>Performance Optimization Concepts</h3>
               <ul className="concept-list">
                 <li>
-                  <strong>React 컴파일러:</strong> 자동으로 비용이 많이 드는 계산 결과를
-                  메모이제이션
+                  <strong>React 컴파일러:</strong> 자동으로 비용이 많이 드는
+                  계산 결과를 메모이제이션
                 </li>
                 <li>
-                  <strong>React 컴파일러:</strong> 자동으로 함수 참조를 안정화하여 불필요한
-                  리렌더 방지
+                  <strong>React 컴파일러:</strong> 자동으로 함수 참조를
+                  안정화하여 불필요한 리렌더 방지
                 </li>
                 <li>
                   <strong>조건부 등록:</strong> 필요할 때만 핸들러를 등록하여

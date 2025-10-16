@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { 
-  usePerformanceControlStore, 
-  usePerformanceControlDispatch, 
-  usePerformanceControlHandler 
+import { useCallback } from 'react';
+import {
+  usePerformanceControlDispatch,
+  usePerformanceControlHandler,
+  usePerformanceControlStore,
 } from '../models/ComparisonModel';
 
 /**
@@ -27,7 +27,8 @@ export function usePerformanceControlActions() {
 
   return {
     toggleAutoUpdate: () => dispatch('toggleAutoUpdate'),
-    setUpdateInterval: (interval: number) => dispatch('setUpdateInterval', { interval }),
+    setUpdateInterval: (interval: number) =>
+      dispatch('setUpdateInterval', { interval }),
   };
 }
 
@@ -45,9 +46,12 @@ export function usePerformanceControlLogic() {
   }, [autoUpdateStore]);
 
   // Interval setting handler
-  const handleSetUpdateInterval = useCallback(async (payload: { interval: number }) => {
-    updateIntervalStore.setValue(payload.interval);
-  }, [updateIntervalStore]);
+  const handleSetUpdateInterval = useCallback(
+    async (payload: { interval: number }) => {
+      updateIntervalStore.setValue(payload.interval);
+    },
+    [updateIntervalStore]
+  );
 
   // Register handlers
   usePerformanceControlHandler('toggleAutoUpdate', handleToggleAutoUpdate);

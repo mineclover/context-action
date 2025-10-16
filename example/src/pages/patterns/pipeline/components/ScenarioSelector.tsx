@@ -8,10 +8,10 @@ interface ScenarioSelectorProps {
   onScenarioSelect: (scenario: ScenarioKey) => void;
 }
 
-export function ScenarioSelector({ 
-  scenarios, 
-  selectedScenario, 
-  onScenarioSelect 
+export function ScenarioSelector({
+  scenarios,
+  selectedScenario,
+  onScenarioSelect,
 }: ScenarioSelectorProps) {
   return (
     <Card>
@@ -28,7 +28,9 @@ export function ScenarioSelector({
               }`}
             >
               <div className="font-medium">{scenario.title}</div>
-              <div className="text-sm text-gray-600 mt-1">{scenario.description}</div>
+              <div className="text-sm text-gray-600 mt-1">
+                {scenario.description}
+              </div>
               <div className="text-xs text-gray-500 mt-2 font-mono">
                 {scenario.expectedFlow}
               </div>

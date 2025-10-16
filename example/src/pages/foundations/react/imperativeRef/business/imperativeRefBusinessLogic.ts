@@ -42,14 +42,14 @@ export function validateField(
   if (required && !value.trim()) {
     return {
       isValid: false,
-      errorMessage: `${fieldName} is required`
+      errorMessage: `${fieldName} is required`,
     };
   }
 
   if (minLength > 0 && value.length < minLength) {
     return {
       isValid: false,
-      errorMessage: `${fieldName} must be at least ${minLength} characters`
+      errorMessage: `${fieldName} must be at least ${minLength} characters`,
     };
   }
 
@@ -58,7 +58,7 @@ export function validateField(
     if (!emailRegex.test(value)) {
       return {
         isValid: false,
-        errorMessage: 'Please enter a valid email address'
+        errorMessage: 'Please enter a valid email address',
       };
     }
   }
@@ -68,7 +68,7 @@ export function validateField(
     if (!regex.test(value)) {
       return {
         isValid: false,
-        errorMessage: `${fieldName} format is invalid`
+        errorMessage: `${fieldName} format is invalid`,
       };
     }
   }
@@ -86,35 +86,38 @@ export function validateFormData(formData: FormData): {
 } {
   const nameValidation = validateField(formData.name, 'Name', {
     required: true,
-    minLength: 2
+    minLength: 2,
   });
 
   const emailValidation = validateField(formData.email, 'Email', {
     required: true,
-    type: 'email'
+    type: 'email',
   });
 
   const messageValidation = validateField(formData.message, 'Message', {
     required: true,
-    minLength: 10
+    minLength: 10,
   });
 
   const fieldValidation: ValidationState = {
     name: nameValidation.isValid,
     email: emailValidation.isValid,
-    message: messageValidation.isValid
+    message: messageValidation.isValid,
   };
 
   const errors: Record<keyof FormData, string> = {
     name: nameValidation.errorMessage || '',
     email: emailValidation.errorMessage || '',
-    message: messageValidation.errorMessage || ''
+    message: messageValidation.errorMessage || '',
   };
 
   return {
-    isValid: nameValidation.isValid && emailValidation.isValid && messageValidation.isValid,
+    isValid:
+      nameValidation.isValid &&
+      emailValidation.isValid &&
+      messageValidation.isValid,
     fieldValidation,
-    errors
+    errors,
   };
 }
 
@@ -129,7 +132,7 @@ export function validateFormDataLenient(formData: FormData): {
 } {
   const nameValidation = validateField(formData.name, 'Name', {
     required: true,
-    minLength: 1 // Lenient: only 1 character required
+    minLength: 1, // Lenient: only 1 character required
   });
 
   // Lenient email validation - just check for @ symbol
@@ -139,25 +142,28 @@ export function validateFormDataLenient(formData: FormData): {
 
   const messageValidation = validateField(formData.message, 'Message', {
     required: true,
-    minLength: 3 // Lenient: only 3 characters required
+    minLength: 3, // Lenient: only 3 characters required
   });
 
   const fieldValidation: ValidationState = {
     name: nameValidation.isValid,
     email: emailValidation.isValid,
-    message: messageValidation.isValid
+    message: messageValidation.isValid,
   };
 
   const errors: Record<keyof FormData, string> = {
     name: nameValidation.errorMessage || '',
     email: emailValidation.errorMessage || '',
-    message: messageValidation.errorMessage || ''
+    message: messageValidation.errorMessage || '',
   };
 
   return {
-    isValid: nameValidation.isValid && emailValidation.isValid && messageValidation.isValid,
+    isValid:
+      nameValidation.isValid &&
+      emailValidation.isValid &&
+      messageValidation.isValid,
     fieldValidation,
-    errors
+    errors,
   };
 }
 
@@ -261,22 +267,22 @@ export function createInitialDemoState(): DemoState {
     validationStates: {
       name: false,
       email: false,
-      message: false
+      message: false,
     },
     formData: {
       name: '',
       email: '',
-      message: ''
+      message: '',
     },
     counterValue: 0,
     timerState: {
       time: 0,
-      isRunning: false
+      isRunning: false,
     },
     modalStates: {
       confirm: false,
-      alert: false
-    }
+      alert: false,
+    },
   };
 }
 
@@ -290,7 +296,7 @@ export function updateValidationState(
 ): ValidationState {
   return {
     ...currentStates,
-    [field]: isValid
+    [field]: isValid,
   };
 }
 
@@ -298,5 +304,7 @@ export function updateValidationState(
  * Check if all form fields are valid
  */
 export function isFormComplete(validationStates: ValidationState): boolean {
-  return validationStates.name && validationStates.email && validationStates.message;
+  return (
+    validationStates.name && validationStates.email && validationStates.message
+  );
 }

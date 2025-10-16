@@ -1,4 +1,7 @@
-import { useMemoizedActionDispatch, useNonMemoizedActionDispatch } from '../models/ComparisonModel';
+import {
+  useMemoizedActionDispatch,
+  useNonMemoizedActionDispatch,
+} from '../models/ComparisonModel';
 
 /**
  * Action Dispatch Hooks - DOM 이벤트에 주입할 함수들을 제공
@@ -12,8 +15,10 @@ export function useMemoizedActions() {
     increment: () => dispatch('increment'),
     decrement: () => dispatch('decrement'),
     reset: () => dispatch('reset'),
-    calculate: (multiplier: number = 10) => dispatch('complexCalculation', { multiplier }),
-    performHeavyOperation: (dataSize: number = 20) => dispatch('heavyOperation', { dataSize }),
+    calculate: (multiplier: number = 10) =>
+      dispatch('complexCalculation', { multiplier }),
+    performHeavyOperation: (dataSize: number = 20) =>
+      dispatch('heavyOperation', { dataSize }),
     performMemoryTask: () => dispatch('memoryIntensiveTask'),
   };
 }
@@ -25,8 +30,10 @@ export function useNonMemoizedActions() {
     increment: () => dispatch('increment'),
     decrement: () => dispatch('decrement'),
     reset: () => dispatch('reset'),
-    calculate: (multiplier: number = 10) => dispatch('complexCalculation', { multiplier }),
-    performHeavyOperation: (dataSize: number = 50) => dispatch('heavyOperation', { dataSize }),
+    calculate: (multiplier: number = 10) =>
+      dispatch('complexCalculation', { multiplier }),
+    performHeavyOperation: (dataSize: number = 50) =>
+      dispatch('heavyOperation', { dataSize }),
     performMemoryTask: () => dispatch('memoryIntensiveTask'),
   };
 }
@@ -44,25 +51,25 @@ export function usePerformanceTestActions() {
       memoizedActions.increment();
       nonMemoizedActions.increment();
     },
-    
+
     // 성능 집약적 테스트
     runPerformanceTest: () => {
       memoizedActions.performHeavyOperation(30);
       nonMemoizedActions.performHeavyOperation(30);
     },
-    
+
     // 메모리 테스트
     runMemoryTest: () => {
       memoizedActions.performMemoryTask();
       nonMemoizedActions.performMemoryTask();
     },
-    
+
     // 모든 데이터 리셋
     resetAll: () => {
       memoizedActions.reset();
       nonMemoizedActions.reset();
     },
-    
+
     // 개별 액션 그룹들
     memoized: memoizedActions,
     nonMemoized: nonMemoizedActions,

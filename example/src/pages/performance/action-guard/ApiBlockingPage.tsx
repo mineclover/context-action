@@ -3,14 +3,17 @@
  * 통합된 API 블로킹 데모 페이지
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '@/components/LogMonitor';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '@/components/LogMonitor';
 import { toastActionRegister } from '@/components/ToastSystem/actions';
 import {
   Button,
@@ -76,25 +79,22 @@ export interface ApiBlockingActions extends ActionPayloadMap {
 }
 
 // Store & Action Context 생성
-const ApiBlockingStores = createStoreContext(
-  'ApiBlockingStoreManager',
-  {
-    blockingState: {
-      initialValue: {
-        apiCalls: [] as ApiCallRecord[],
-        blockedAction: null as string | null,
-        isBlocked: false,
-        blockEndTime: null as number | null,
-        blockDuration: 2000,
-        successCount: 0,
-        blockedCount: 0,
-        lastCallTime: null as number | null,
-      },
-      description: 'API blocking state management',
-      strategy: 'shallow',
+const ApiBlockingStores = createStoreContext('ApiBlockingStoreManager', {
+  blockingState: {
+    initialValue: {
+      apiCalls: [] as ApiCallRecord[],
+      blockedAction: null as string | null,
+      isBlocked: false,
+      blockEndTime: null as number | null,
+      blockDuration: 2000,
+      successCount: 0,
+      blockedCount: 0,
+      lastCallTime: null as number | null,
     },
-  }
-);
+    description: 'API blocking state management',
+    strategy: 'shallow',
+  },
+});
 
 const ApiBlockingActionContext = createActionContext<ApiBlockingActions>({
   name: 'ApiBlockingActions',

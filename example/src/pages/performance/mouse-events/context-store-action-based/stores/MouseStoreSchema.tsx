@@ -4,8 +4,8 @@
  * Action Only + Store Only 패턴으로 마우스 이벤트 상태 관리
  */
 
-import React from 'react';
 import { createActionContext, createStoreContext } from '@context-action/react';
+import React from 'react';
 
 // ================================
 // 📊 기본 타입 정의
@@ -122,7 +122,9 @@ export function computeAverageVelocity(validPath: MousePosition[]): number {
   for (let i = 1; i < Math.min(validPath.length, 10); i++) {
     const prev = validPath[i - 1];
     const curr = validPath[i];
-    const distance = Math.sqrt((curr!.x - prev!.x) ** 2 + (curr!.y - prev!.y) ** 2);
+    const distance = Math.sqrt(
+      (curr!.x - prev!.x) ** 2 + (curr!.y - prev!.y) ** 2
+    );
     totalDistance += distance;
   }
 
@@ -164,7 +166,7 @@ const MouseActionContext = createActionContext<MouseActions>({
 });
 
 const MouseStoreContext = createStoreContext('Mouse-stores', {
-  'mouseState': {
+  mouseState: {
     initialValue: initialMouseState,
     strategy: 'shallow',
     debug: process.env.NODE_ENV === 'development',
@@ -191,10 +193,14 @@ export const {
 } = MouseStoreContext;
 
 // Combined Provider wrapper for convenience
-export const MouseProvider = ({ children, registryId }: { children: React.ReactNode; registryId?: string }) => (
+export const MouseProvider = ({
+  children,
+  registryId,
+}: {
+  children: React.ReactNode;
+  registryId?: string;
+}) => (
   <MouseActionProvider>
-    <MouseStoreProvider registryId={registryId}>
-      {children}
-    </MouseStoreProvider>
+    <MouseStoreProvider registryId={registryId}>{children}</MouseStoreProvider>
   </MouseActionProvider>
 );

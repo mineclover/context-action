@@ -6,10 +6,7 @@
  */
 
 import type { ActionPayloadMap } from '@context-action/core';
-import {
-  createActionContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 import type React from 'react';
 
 // ================================
@@ -111,66 +108,63 @@ interface MouseEventsStores {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론 사용
-const MouseEventsStores = createStoreContext(
-  'MouseEventsStoreManager',
-  {
-    position: {
-      initialValue: {
-        current: { x: -999, y: -999 },
-        previous: { x: -999, y: -999 },
-        isInsideArea: false,
-      },
-      description: 'Mouse position and area state',
-      strategy: 'shallow',
+const MouseEventsStores = createStoreContext('MouseEventsStoreManager', {
+  position: {
+    initialValue: {
+      current: { x: -999, y: -999 },
+      previous: { x: -999, y: -999 },
+      isInsideArea: false,
     },
+    description: 'Mouse position and area state',
+    strategy: 'shallow',
+  },
 
-    movement: {
-      initialValue: {
-        moveCount: 0,
-        isMoving: false,
-        velocity: 0,
-        lastMoveTime: null as number | null,
-        path: [] as MousePosition[],
-      },
-      description: 'Mouse movement metrics and tracking',
-      strategy: 'shallow',
+  movement: {
+    initialValue: {
+      moveCount: 0,
+      isMoving: false,
+      velocity: 0,
+      lastMoveTime: null as number | null,
+      path: [] as MousePosition[],
     },
+    description: 'Mouse movement metrics and tracking',
+    strategy: 'shallow',
+  },
 
-    clicks: {
-      initialValue: {
-        count: 0,
-        history: [] as Array<MousePosition & { timestamp: number }>,
-      },
-      description: 'Click events and history tracking',
-      strategy: 'shallow',
+  clicks: {
+    initialValue: {
+      count: 0,
+      history: [] as Array<MousePosition & { timestamp: number }>,
     },
+    description: 'Click events and history tracking',
+    strategy: 'shallow',
+  },
 
-    computed: {
-      initialValue: {
-        validPath: [] as MousePosition[],
-        recentClickCount: 0,
-        averageVelocity: 0,
-        totalEvents: 0,
-        activityStatus: 'idle' as 'idle' | 'moving' | 'clicking',
-        hasActivity: false,
-      },
-      description: 'Computed values and derived state',
-      strategy: 'shallow',
+  computed: {
+    initialValue: {
+      validPath: [] as MousePosition[],
+      recentClickCount: 0,
+      averageVelocity: 0,
+      totalEvents: 0,
+      activityStatus: 'idle' as 'idle' | 'moving' | 'clicking',
+      hasActivity: false,
     },
+    description: 'Computed values and derived state',
+    strategy: 'shallow',
+  },
 
-    performance: {
-      initialValue: {
-        containerRenderCount: 0,
-        totalRenderCount: 0,
-        averageRenderTime: 0,
-        lastRenderTime: 0,
-        sessionStartTime: Date.now(),
-      },
-      description: 'Performance metrics and render tracking',
-      strategy: 'reference',
+  performance: {
+    initialValue: {
+      containerRenderCount: 0,
+      totalRenderCount: 0,
+      averageRenderTime: 0,
+      lastRenderTime: 0,
+      sessionStartTime: Date.now(),
     },
-  }
-);
+    description: 'Performance metrics and render tracking',
+    strategy: 'reference',
+  },
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -549,7 +543,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
     const validPath = computeValidPath(updatedMovement.path);
     const averageVelocity = computeAverageVelocity(validPath);
     const recentClickCount = computeRecentClickCount(currentClicks.history);
-    
+
     // activityStatus 실시간 업데이트 - 마지막 클릭 시간 고려
     const lastClickTime = currentClicks.history[0]?.timestamp || null;
     const activityStatus = computeActivityStatus(
@@ -560,7 +554,10 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
     );
 
     // hasActivity와 totalEvents 정확히 계산
-    const hasActivity = computeHasActivity(updatedMovement.moveCount, currentClicks.count);
+    const hasActivity = computeHasActivity(
+      updatedMovement.moveCount,
+      currentClicks.count
+    );
     const totalEvents = updatedMovement.moveCount + currentClicks.count;
 
     // 실시간 computed 값들 업데이트
@@ -631,7 +628,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
     const currentClicks = clicksStore.getValue();
     const recentClickCount = computeRecentClickCount(currentClicks.history);
     const lastClickTime = currentClicks.history[0]?.timestamp || null;
-    
+
     const activityStatus = computeActivityStatus(
       false, // isMoving = false
       recentClickCount,
@@ -662,7 +659,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
       const currentClicks = clicksStore.getValue();
       const recentClickCount = computeRecentClickCount(currentClicks.history);
       const lastClickTime = currentClicks.history[0]?.timestamp || null;
-      
+
       const activityStatus = computeActivityStatus(
         false, // isMoving = false
         recentClickCount,

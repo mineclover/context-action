@@ -14,15 +14,19 @@ export default function IntegrationsOverview() {
         <h2 className="text-2xl font-semibold mb-4">🚀 실무 적용 경로</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
-            <span className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">1</span>
+            <span className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              1
+            </span>
             <div>
-              <Link 
-                to="/integrations/business/todo-list" 
+              <Link
+                to="/integrations/business/todo-list"
                 className="text-green-600 hover:text-green-800 font-medium text-lg"
               >
                 Business Applications
               </Link>
-              <p className="text-gray-600">실제 비즈니스 로직이 적용된 애플리케이션</p>
+              <p className="text-gray-600">
+                실제 비즈니스 로직이 적용된 애플리케이션
+              </p>
             </div>
           </li>
         </ol>
@@ -30,34 +34,56 @@ export default function IntegrationsOverview() {
 
       <div className="categories grid md:grid-cols-2 gap-6">
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-semibold mb-4">🏢 Business Applications</h3>
+          <h3 className="text-xl font-semibold mb-4">
+            🏢 Business Applications
+          </h3>
           <p className="text-sm text-gray-600 mb-4">
             실제 비즈니스 시나리오에서 사용할 수 있는 완성된 애플리케이션들
           </p>
           <ul className="space-y-2">
             <li>
-              <Link to="/integrations/business/todo-list" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/business/todo-list"
+                className="text-green-600 hover:underline"
+              >
                 📝 Todo List
               </Link>
-              <span className="text-xs text-gray-500 ml-2">CRUD, State Management</span>
+              <span className="text-xs text-gray-500 ml-2">
+                CRUD, State Management
+              </span>
             </li>
             <li>
-              <Link to="/integrations/business/shopping-cart" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/business/shopping-cart"
+                className="text-green-600 hover:underline"
+              >
                 🛒 Shopping Cart
               </Link>
-              <span className="text-xs text-gray-500 ml-2">E-commerce Logic</span>
+              <span className="text-xs text-gray-500 ml-2">
+                E-commerce Logic
+              </span>
             </li>
             <li>
-              <Link to="/integrations/business/chat" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/business/chat"
+                className="text-green-600 hover:underline"
+              >
                 💬 Chat Application
               </Link>
-              <span className="text-xs text-gray-500 ml-2">Real-time Communication</span>
+              <span className="text-xs text-gray-500 ml-2">
+                Real-time Communication
+              </span>
             </li>
             <li>
-              <Link to="/integrations/business/user-profile" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/business/user-profile"
+                className="text-green-600 hover:underline"
+              >
                 👤 User Profile
               </Link>
-              <span className="text-xs text-gray-500 ml-2">User Management</span>
+              <span className="text-xs text-gray-500 ml-2">
+                User Management
+              </span>
             </li>
           </ul>
         </div>
@@ -69,22 +95,35 @@ export default function IntegrationsOverview() {
           </p>
           <ul className="space-y-2">
             <li>
-              <Link to="/integrations/advanced/form-builder" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/advanced/form-builder"
+                className="text-green-600 hover:underline"
+              >
                 📋 Form Builder
               </Link>
               <span className="text-xs text-gray-500 ml-2">Dynamic Forms</span>
             </li>
             <li>
-              <Link to="/integrations/advanced/canvas" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/advanced/canvas"
+                className="text-green-600 hover:underline"
+              >
                 🎨 Canvas Integration
               </Link>
-              <span className="text-xs text-gray-500 ml-2">Graphics & Animation</span>
+              <span className="text-xs text-gray-500 ml-2">
+                Graphics & Animation
+              </span>
             </li>
             <li>
-              <Link to="/integrations/advanced/concurrent-actions" className="text-green-600 hover:underline">
+              <Link
+                to="/integrations/advanced/concurrent-actions"
+                className="text-green-600 hover:underline"
+              >
                 ⚡ Concurrent Actions
               </Link>
-              <span className="text-xs text-gray-500 ml-2">Parallel Processing</span>
+              <span className="text-xs text-gray-500 ml-2">
+                Parallel Processing
+              </span>
             </li>
           </ul>
         </div>
@@ -136,7 +175,9 @@ export default function IntegrationsOverview() {
         <h3 className="text-lg font-semibold mb-4">📚 활용 시나리오</h3>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-medium text-green-600 mb-2">🏢 엔터프라이즈 애플리케이션</h4>
+            <h4 className="font-medium text-green-600 mb-2">
+              🏢 엔터프라이즈 애플리케이션
+            </h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• CRM 시스템의 고객 관리</li>
               <li>• ERP 시스템의 업무 프로세스</li>

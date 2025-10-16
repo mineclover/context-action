@@ -3,5 +3,9 @@
  * Export all subscription hooks
  */
 
-export { useUserManagementData, useUserFormData } from './useUserSubscriptions';
-export type { User, UserValidationResult, UserOperationResult } from './useUserSubscriptions';
+export type {
+  User,
+  UserOperationResult,
+  UserValidationResult,
+} from './useUserSubscriptions';
+export { useUserFormData, useUserManagementData } from './useUserSubscriptions';

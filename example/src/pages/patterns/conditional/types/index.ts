@@ -198,7 +198,7 @@ export interface ConditionalPatternStore {
   selectedProduct: Product;
   timeContext: TimeContext;
   patternContext: PatternContext;
-  
+
   // Result stores
   deploymentResults: DeploymentResult[];
   userProcessingResults: any[];
@@ -206,7 +206,7 @@ export interface ConditionalPatternStore {
   orderResults: any[];
   scheduleResults: any[];
   logs: LogEntry[];
-  
+
   // Coordination stores
   basicUserData: any;
   permissionCheckResult: any;
@@ -221,50 +221,50 @@ export interface ConditionalActions {
     environment: 'development' | 'staging' | 'production';
     features?: string[];
   };
-  
+
   // Feature flag actions
   toggleFeatureFlag: {
     flagId: string;
     enabled: boolean;
   };
-  
+
   evaluateFeatureFlags: {
     userId: string;
     context?: Record<string, any>;
   };
-  
+
   // Permission actions
   checkPermission: {
     action: string;
     userId: string;
     resourceId?: string;
   };
-  
+
   executeSecureAction: {
     action: string;
     payload: any;
     userId: string;
   };
-  
+
   // Business rule actions
   processOrder: {
     customerId: string;
     productId: string;
     quantity: number;
   };
-  
+
   validateCreditLimit: {
     customerId: string;
     amount: number;
   };
-  
+
   // Time-based actions
   scheduleTask: {
     taskId: string;
     scheduledTime: Date;
     taskType: string;
   };
-  
+
   executeTimeBasedAction: {
     actionType: string;
     payload: any;
@@ -273,7 +273,7 @@ export interface ConditionalActions {
       emergencyOverride?: boolean;
     };
   };
-  
+
   // Combined pattern actions
   executeCombinedScenario: {
     scenarioId: string;
@@ -282,7 +282,11 @@ export interface ConditionalActions {
 }
 
 // Utility Types
-export type PatternDifficulty = 'Basic' | 'Intermediate' | 'Advanced' | 'Expert';
+export type PatternDifficulty =
+  | 'Basic'
+  | 'Intermediate'
+  | 'Advanced'
+  | 'Expert';
 export type PatternStatus = 'Complete' | 'Preview' | 'Coming Soon';
 export type LogLevel = 'info' | 'warning' | 'error' | 'success';
 export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'failed';

@@ -4,17 +4,12 @@
  */
 
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import {
-  ChatDemo
-} from '@/pages/integrations/business/store-scenarios/components';
+import { ChatDemo } from '@/pages/integrations/business/store-scenarios/components';
 import { StoreScenarios } from '@/pages/integrations/business/store-scenarios/stores';
 
 export function StoreScenariosPage() {
   return (
-    <PageWithLogMonitor
-      pageId="store-scenarios"
-      title="Store Scenarios"
-    >
+    <PageWithLogMonitor pageId="store-scenarios" title="Store Scenarios">
       <StoreScenarios.Provider>
         <div className="max-w-6xl mx-auto p-6">
           {/* Hero Section */}
@@ -63,65 +58,97 @@ export function StoreScenariosPage() {
 
           {/* Removed Demos Info */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">🗑️ 제거된 데모들</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              🗑️ 제거된 데모들
+            </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 className="font-semibold text-lg mb-4 text-gray-600">🛒 Shopping Cart</h3>
+                <h3 className="font-semibold text-lg mb-4 text-gray-600">
+                  🛒 Shopping Cart
+                </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   복잡한 계산과 실시간 가격 업데이트를 보여주는 쇼핑카트 데모
                 </p>
-                <div className="text-xs text-gray-500">
-                  상태: 제거됨
-                </div>
+                <div className="text-xs text-gray-500">상태: 제거됨</div>
               </div>
 
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 className="font-semibold text-lg mb-4 text-gray-600">✅ Todo List</h3>
+                <h3 className="font-semibold text-lg mb-4 text-gray-600">
+                  ✅ Todo List
+                </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   CRUD 작업과 필터링, 정렬 기능을 보여주는 할일 관리 데모
                 </p>
-                <div className="text-xs text-gray-500">
-                  상태: 제거됨
-                </div>
+                <div className="text-xs text-gray-500">상태: 제거됨</div>
               </div>
 
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 className="font-semibold text-lg mb-4 text-gray-600">👤 User Profile</h3>
+                <h3 className="font-semibold text-lg mb-4 text-gray-600">
+                  👤 User Profile
+                </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   폼 처리와 검증 패턴을 보여주는 사용자 프로필 데모
                 </p>
-                <div className="text-xs text-gray-500">
-                  상태: 제거됨
-                </div>
+                <div className="text-xs text-gray-500">상태: 제거됨</div>
               </div>
             </div>
           </div>
 
           {/* Available Features */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">✅ 사용 가능한 기능들</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              ✅ 사용 가능한 기능들
+            </h2>
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-green-600">Chat Demo 기능</h3>
+                <h3 className="font-semibold text-lg mb-4 text-green-600">
+                  Chat Demo 기능
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>실시간 메시징</strong>: Enter 키로 전송</li>
-                  <li>• <strong>사용자 전환</strong>: 사용자명 변경 가능</li>
-                  <li>• <strong>자동 응답</strong>: Bot 자동 응답</li>
-                  <li>• <strong>타이핑 인디케이터</strong>: 타이핑 상태 표시</li>
-                  <li>• <strong>메시지 히스토리</strong>: 모든 메시지 저장</li>
-                  <li>• <strong>빠른 메시지</strong>: 템플릿 메시지</li>
+                  <li>
+                    • <strong>실시간 메시징</strong>: Enter 키로 전송
+                  </li>
+                  <li>
+                    • <strong>사용자 전환</strong>: 사용자명 변경 가능
+                  </li>
+                  <li>
+                    • <strong>자동 응답</strong>: Bot 자동 응답
+                  </li>
+                  <li>
+                    • <strong>타이핑 인디케이터</strong>: 타이핑 상태 표시
+                  </li>
+                  <li>
+                    • <strong>메시지 히스토리</strong>: 모든 메시지 저장
+                  </li>
+                  <li>
+                    • <strong>빠른 메시지</strong>: 템플릿 메시지
+                  </li>
                 </ul>
               </div>
 
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-lg mb-4 text-blue-600">기술적 특징</h3>
+                <h3 className="font-semibold text-lg mb-4 text-blue-600">
+                  기술적 특징
+                </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• <strong>Store Architecture</strong>: 메시지 히스토리 관리</li>
-                  <li>• <strong>Immutable Updates</strong>: 메시지 배열 불변성</li>
-                  <li>• <strong>Real-time Updates</strong>: 즉시 UI 반영</li>
-                  <li>• <strong>Auto Scroll</strong>: 스마트 스크롤 관리</li>
-                  <li>• <strong>Ref Management</strong>: DOM 참조 최적화</li>
-                  <li>• <strong>Event Handling</strong>: 키보드 이벤트</li>
+                  <li>
+                    • <strong>Store Architecture</strong>: 메시지 히스토리 관리
+                  </li>
+                  <li>
+                    • <strong>Immutable Updates</strong>: 메시지 배열 불변성
+                  </li>
+                  <li>
+                    • <strong>Real-time Updates</strong>: 즉시 UI 반영
+                  </li>
+                  <li>
+                    • <strong>Auto Scroll</strong>: 스마트 스크롤 관리
+                  </li>
+                  <li>
+                    • <strong>Ref Management</strong>: DOM 참조 최적화
+                  </li>
+                  <li>
+                    • <strong>Event Handling</strong>: 키보드 이벤트
+                  </li>
                 </ul>
               </div>
             </div>
@@ -129,21 +156,23 @@ export function StoreScenariosPage() {
 
           {/* Related Links */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">🔗 관련 리소스</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              🔗 관련 리소스
+            </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a 
+              <a
                 href="/demos/chat"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 💬 Chat Demo 페이지
               </a>
-              <a 
+              <a
                 href="/refs/canvas"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 Canvas Ref Demo
               </a>
-              <a 
+              <a
                 href="/actionguard/scroll"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >

@@ -8,9 +8,14 @@
  * - Lazy Registration: Handlers registered after async initialization
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import {
+  calculateCounterValue,
+  FormData,
+  validateFormData,
+  validateFormDataLenient,
+} from '../business/imperativeRefBusinessLogic';
 import { useRefRegistry } from '../contexts/RefContexts';
-import { validateFormData, validateFormDataLenient, FormData, calculateCounterValue } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Example 1: Mount Logic Registration
 // Handlers are registered immediately when component mounts
@@ -20,7 +25,7 @@ export function MountLogicExample({ children }: { children: React.ReactNode }) {
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   }, []);
 
   // 🔑 Mount Logic: Handler registered immediately on component mount
@@ -30,18 +35,22 @@ export function MountLogicExample({ children }: { children: React.ReactNode }) {
     const formData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
-      message: refRegistry.messageInput.current?.getValue() || ''
+      message: refRegistry.messageInput.current?.getValue() || '',
     };
 
     const result = validateFormData(formData);
-    addLog(`📋 Mount Logic: Validation ${result.isValid ? 'passed' : 'failed'}`);
+    addLog(
+      `📋 Mount Logic: Validation ${result.isValid ? 'passed' : 'failed'}`
+    );
 
     return result;
   }, [refRegistry, addLog]);
 
   return (
     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-      <h3 className="font-semibold text-blue-800 mb-2">🏗️ Mount Logic Registration</h3>
+      <h3 className="font-semibold text-blue-800 mb-2">
+        🏗️ Mount Logic Registration
+      </h3>
       <p className="text-sm text-blue-600 mb-3">
         Handler registered immediately when component mounts
       </p>
@@ -58,7 +67,9 @@ export function MountLogicExample({ children }: { children: React.ReactNode }) {
           <div className="text-blue-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-blue-700 font-mono">{log}</div>
+            <div key={index} className="text-blue-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -72,7 +83,7 @@ export function MountLogicExample({ children }: { children: React.ReactNode }) {
 // Handlers re-register when dependencies change
 export function ImplementationLogicExample({
   validationMode,
-  children
+  children,
 }: {
   validationMode: 'strict' | 'lenient';
   children: React.ReactNode;
@@ -82,7 +93,7 @@ export function ImplementationLogicExample({
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   }, []);
 
   // 🔑 Implementation Logic: Handler re-registers when validationMode changes
@@ -92,26 +103,33 @@ export function ImplementationLogicExample({
     const formData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
-      message: refRegistry.messageInput.current?.getValue() || ''
+      message: refRegistry.messageInput.current?.getValue() || '',
     };
 
     // Different validation logic based on mode
-    const result = validationMode === 'strict'
-      ? validateFormData(formData)
-      : validateFormDataLenient?.(formData) || validateFormData(formData);
+    const result =
+      validationMode === 'strict'
+        ? validateFormData(formData)
+        : validateFormDataLenient?.(formData) || validateFormData(formData);
 
-    addLog(`📋 Implementation Logic: ${validationMode} validation ${result.isValid ? 'passed' : 'failed'}`);
+    addLog(
+      `📋 Implementation Logic: ${validationMode} validation ${result.isValid ? 'passed' : 'failed'}`
+    );
 
     return result;
   }, [refRegistry, addLog, validationMode]); // 🔑 Dependencies include validationMode
 
   return (
     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-      <h3 className="font-semibold text-green-800 mb-2">⚙️ Implementation Logic Registration</h3>
+      <h3 className="font-semibold text-green-800 mb-2">
+        ⚙️ Implementation Logic Registration
+      </h3>
       <p className="text-sm text-green-600 mb-3">
         Handler re-registers when validationMode dependency changes
       </p>
-      <p className="text-xs text-green-500 mb-2">Current mode: <strong>{validationMode}</strong></p>
+      <p className="text-xs text-green-500 mb-2">
+        Current mode: <strong>{validationMode}</strong>
+      </p>
 
       <button
         onClick={handleDynamicValidation}
@@ -125,7 +143,9 @@ export function ImplementationLogicExample({
           <div className="text-green-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-green-700 font-mono">{log}</div>
+            <div key={index} className="text-green-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -139,7 +159,7 @@ export function ImplementationLogicExample({
 // Handlers are registered only when certain conditions are met
 export function ConditionalRegistrationExample({
   isEnabled,
-  children
+  children,
 }: {
   isEnabled: boolean;
   children: React.ReactNode;
@@ -149,7 +169,7 @@ export function ConditionalRegistrationExample({
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   }, []);
 
   // 🔑 Conditional Logic: Handler only exists when isEnabled is true
@@ -165,21 +185,24 @@ export function ConditionalRegistrationExample({
     const newValue = calculateCounterValue(counterValue, 'increment', {
       step: 1,
       min: 0,
-      max: 100
+      max: 100,
     });
 
     refRegistry.counter.current?.setValue(newValue);
     addLog(`🔢 Conditional Logic: Counter updated to ${newValue}`);
-
   }, [refRegistry, addLog, isEnabled]); // 🔑 Handler behavior depends on isEnabled
 
   return (
     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-      <h3 className="font-semibold text-yellow-800 mb-2">🎛️ Conditional Registration</h3>
+      <h3 className="font-semibold text-yellow-800 mb-2">
+        🎛️ Conditional Registration
+      </h3>
       <p className="text-sm text-yellow-600 mb-3">
         Handler behavior changes based on isEnabled condition
       </p>
-      <p className="text-xs text-yellow-500 mb-2">Status: <strong>{isEnabled ? 'Enabled' : 'Disabled'}</strong></p>
+      <p className="text-xs text-yellow-500 mb-2">
+        Status: <strong>{isEnabled ? 'Enabled' : 'Disabled'}</strong>
+      </p>
 
       <button
         onClick={handleConditionalOperation}
@@ -197,7 +220,9 @@ export function ConditionalRegistrationExample({
           <div className="text-yellow-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-yellow-700 font-mono">{log}</div>
+            <div key={index} className="text-yellow-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -209,7 +234,11 @@ export function ConditionalRegistrationExample({
 
 // 🎯 Example 4: Lazy Registration
 // Handlers are registered after async initialization
-export function LazyRegistrationExample({ children }: { children: React.ReactNode }) {
+export function LazyRegistrationExample({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -217,7 +246,7 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
+    setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   }, []);
 
   // 🔑 Async initialization simulation
@@ -228,7 +257,7 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
     addLog('🚀 Lazy Logic: Starting async initialization...');
 
     // Simulate async initialization (API call, config loading, etc.)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setIsInitialized(true);
     setIsInitializing(false);
@@ -257,13 +286,20 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
 
   return (
     <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-      <h3 className="font-semibold text-purple-800 mb-2">⏳ Lazy Registration</h3>
+      <h3 className="font-semibold text-purple-800 mb-2">
+        ⏳ Lazy Registration
+      </h3>
       <p className="text-sm text-purple-600 mb-3">
         Handler is functional only after async initialization
       </p>
       <p className="text-xs text-purple-500 mb-2">
-        Status: <strong>
-          {isInitializing ? 'Initializing...' : isInitialized ? 'Ready' : 'Not Initialized'}
+        Status:{' '}
+        <strong>
+          {isInitializing
+            ? 'Initializing...'
+            : isInitialized
+              ? 'Ready'
+              : 'Not Initialized'}
         </strong>
       </p>
 
@@ -279,7 +315,11 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
                 : 'bg-purple-600 text-white hover:bg-purple-700'
           }`}
         >
-          {isInitializing ? 'Initializing...' : isInitialized ? 'Initialized' : 'Initialize System'}
+          {isInitializing
+            ? 'Initializing...'
+            : isInitialized
+              ? 'Initialized'
+              : 'Initialize System'}
         </button>
 
         <button
@@ -299,7 +339,9 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
           <div className="text-purple-500">No activity yet</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} className="text-purple-700 font-mono">{log}</div>
+            <div key={index} className="text-purple-700 font-mono">
+              {log}
+            </div>
           ))
         )}
       </div>
@@ -311,7 +353,9 @@ export function LazyRegistrationExample({ children }: { children: React.ReactNod
 
 // 🎯 Main Demo Component showing all patterns
 export function HandlerRegistrationTimingDemo() {
-  const [validationMode, setValidationMode] = useState<'strict' | 'lenient'>('strict');
+  const [validationMode, setValidationMode] = useState<'strict' | 'lenient'>(
+    'strict'
+  );
   const [isConditionalEnabled, setIsConditionalEnabled] = useState(true);
 
   return (
@@ -321,7 +365,8 @@ export function HandlerRegistrationTimingDemo() {
           🔄 Handler Registration Timing Patterns
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          이 예제는 핸들러 등록 시점의 차이점을 보여줍니다: Mount Logic vs Implementation Logic
+          이 예제는 핸들러 등록 시점의 차이점을 보여줍니다: Mount Logic vs
+          Implementation Logic
         </p>
 
         {/* Control Panel */}
@@ -330,7 +375,9 @@ export function HandlerRegistrationTimingDemo() {
             <label className="text-sm font-medium">Validation Mode:</label>
             <select
               value={validationMode}
-              onChange={(e) => setValidationMode(e.target.value as 'strict' | 'lenient')}
+              onChange={(e) =>
+                setValidationMode(e.target.value as 'strict' | 'lenient')
+              }
               className="text-sm border rounded px-2 py-1"
             >
               <option value="strict">Strict</option>

@@ -23,7 +23,7 @@ export function MetricsDisplay({
   metrics,
   title,
   className,
-  layout = 'grid'
+  layout = 'grid',
 }: MetricsDisplayProps) {
   const getTrendIcon = (trend?: 'up' | 'down' | 'neutral') => {
     switch (trend) {
@@ -40,7 +40,7 @@ export function MetricsDisplay({
 
   const layoutClasses = {
     grid: 'grid grid-cols-2 gap-4',
-    list: 'space-y-2'
+    list: 'space-y-2',
   };
 
   return (
@@ -49,25 +49,29 @@ export function MetricsDisplay({
         <h3 className="text-lg font-semibold mb-4 text-gray-900">{title}</h3>
       )}
       <div className={layoutClasses[layout]}>
-        {Array.isArray(metrics) ? metrics.map((metric, index) => (
-          <div key={index} className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{metric.label}:</span>
-            <div className="flex items-center gap-1">
-              <span className="font-medium">
-                {metric.value}
-                {metric.unit && (
-                  <span className="text-gray-500 ml-1">{metric.unit}</span>
-                )}
-              </span>
-              {getTrendIcon(metric.trend)}
+        {Array.isArray(metrics) ? (
+          metrics.map((metric, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">{metric.label}:</span>
+              <div className="flex items-center gap-1">
+                <span className="font-medium">
+                  {metric.value}
+                  {metric.unit && (
+                    <span className="text-gray-500 ml-1">{metric.unit}</span>
+                  )}
+                </span>
+                {getTrendIcon(metric.trend)}
+              </div>
             </div>
-          </div>
-        )) : metrics && typeof metrics === 'object' ? Object.entries(metrics).map(([key, value], index) => (
-          <div key={index} className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{key}:</span>
-            <span className="font-medium">{value}</span>
-          </div>
-        )) : (
+          ))
+        ) : metrics && typeof metrics === 'object' ? (
+          Object.entries(metrics).map(([key, value], index) => (
+            <div key={index} className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">{key}:</span>
+              <span className="font-medium">{value}</span>
+            </div>
+          ))
+        ) : (
           <div className="text-sm text-gray-500 text-center py-4">
             No metrics available
           </div>
