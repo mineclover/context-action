@@ -256,5 +256,25 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
 
       emptyRegister.destroy();
     });
+
+    it('should handle dispatch with no registered handlers', async () => {
+      const emptyRegister = new ActionRegister<TestActions>({
+        name: 'EmptyRegister',
+        registry: { debug: false }
+      });
+
+      // Test direct dispatch with no handlers - should succeed but with no execution
+      const result = await emptyRegister.dispatchWithResult('userLogin', { 
+        userId: '123', 
+        email: 'user@example.com' 
+      });
+
+      // Should succeed but with no handlers executed
+      expect(result.success).toBe(true);
+      expect(result.execution.handlersExecuted).toBe(0);
+      expect(result.results).toHaveLength(0);
+
+      emptyRegister.destroy();
+    });
   });
 });
