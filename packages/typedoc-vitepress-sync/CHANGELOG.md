@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
+
+
+### Features
+
+* clean release with unified version 0.7.8/0.7.9 ([f0b54a6](https://github.com/mineclover/context-action/commit/f0b54a6ecfa378a42e924492ac2cefaaf90dbb88))
+
+
+
+
+
 ## [0.7.7](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.7) (2025-09-17)
 
 

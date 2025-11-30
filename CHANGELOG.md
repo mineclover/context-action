@@ -3,6 +3,59 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
+
+
+### Bug Fixes
+
+* CartItemView local state sync causing Total Items vs Shopping Cart inconsistency ([e2fd16a](https://github.com/mineclover/context-action/commit/e2fd16ad5a18e4aece738e7b4c03d3e73d0a6c13))
+* Change @context-action/core dependency from workspace:* to latest ([595508e](https://github.com/mineclover/context-action/commit/595508ea99e4c920b6d6646980f1acc5cf001dd1))
+* Improve cart state updates in useActionWithResult demo page ([2f5fdc8](https://github.com/mineclover/context-action/commit/2f5fdc868a3ef5afce702532a2a01028696e2e16))
+* Remove unnecessary [@ts-expect-error](https://github.com/ts-expect-error) comments from test files ([27c98e0](https://github.com/mineclover/context-action/commit/27c98e0c2acb876c25ecd89e70c1a4afd0196a99))
+* replace workspace dependency with actual version in react package ([b2187af](https://github.com/mineclover/context-action/commit/b2187afd9ecebf7f342c6cd36578512b1d9aaf63))
+* Resolve TypeScript type errors in ActionContext.tsx ([4581305](https://github.com/mineclover/context-action/commit/4581305cf402768d5cb142e3c9c80a57fad8227d))
+
+
+### Features
+
+* Add actions-based dispatching with improved type safety ([6bc36e6](https://github.com/mineclover/context-action/commit/6bc36e6d751218d09621fc7ae9bed780154cc70e))
+* Add actionsWithResult for result collection in actions-based dispatching ([a9131a4](https://github.com/mineclover/context-action/commit/a9131a439b0143b17813ec668166fee5264efbfa))
+* Add code examples and source directory integration to ImperativeRef demo ([be1f348](https://github.com/mineclover/context-action/commit/be1f3482d8c339cba2038eebe924b73dbdbf8440))
+* Add comprehensive TypeScript type inference system and documentation ([debde90](https://github.com/mineclover/context-action/commit/debde9069f6e4aa1d87ba2652f510c7fcf552707))
+* Add comprehensive useImperativeHandle + Ref Context demo page ([48bccd2](https://github.com/mineclover/context-action/commit/48bccd27e9f608df019e250d06c6005a621d99a9))
+* Add optimization analysis report and enhance performance monitoring ([9aad8ac](https://github.com/mineclover/context-action/commit/9aad8ac0515c289ca8195f348e6f68b521af9046))
+* Add Warning Demo Page to showcase unregistered action warnings ([0293aaa](https://github.com/mineclover/context-action/commit/0293aaaddff89656b3453867e16a2bc98264f542))
+* Add warning messages for unregistered action handlers ([93fb16c](https://github.com/mineclover/context-action/commit/93fb16ccddb1d4458305b626fb3c9ff037e45956))
+* clean release with unified version 0.7.8/0.7.9 ([f0b54a6](https://github.com/mineclover/context-action/commit/f0b54a6ecfa378a42e924492ac2cefaaf90dbb88))
+* Complete @context-action/test-driven-docs integration with enhanced features ([2954a19](https://github.com/mineclover/context-action/commit/2954a19d897eb95a8497d3d39ac4fdd4db769580))
+* Complete 6-layer architecture implementation with Source Directory integration ([83e7de1](https://github.com/mineclover/context-action/commit/83e7de175e5febf1d9014fb677292f5154ff6b13))
+* Create @context-action/test-driven-docs standalone library ([c687149](https://github.com/mineclover/context-action/commit/c687149174f065da6615b6078b16e209a20dfeef))
+* Enhance performance with React Compiler integration in examples ([d503162](https://github.com/mineclover/context-action/commit/d503162b637bf3e63452a65bf9739959de9b0e13))
+* Implement 6-Layer Architecture refactoring and enhance development tools ([9fc44e3](https://github.com/mineclover/context-action/commit/9fc44e3a9cffc6984fc3b57dc78c819bc7792217))
+* Implement Phase 2 enhanced test-based documentation system ([51fade3](https://github.com/mineclover/context-action/commit/51fade3067e0691836c6c002c505e07e8f96bac6))
+* Implement test-based API documentation system ([0b46838](https://github.com/mineclover/context-action/commit/0b46838e9d0ef1644e1f204e25433b61ea2154dd))
+* Introduce Demos Index Page for interactive demonstrations ([3b14daa](https://github.com/mineclover/context-action/commit/3b14daa8f4482724d32ea663ea662ea4be90c2d3))
+* Introduce User Management Example and refactor createObjectContextHooks ([8a0fb05](https://github.com/mineclover/context-action/commit/8a0fb05ae6612c0b19da8bd83294a7c155f88679))
+* **react:** v0.8.1 - React Compiler integration with backwards compatibility ([f3adbcf](https://github.com/mineclover/context-action/commit/f3adbcf2060a89261f01703b3e69ed31852d36a3))
+* Reorganize layered architecture demo layout and make statistics overview compact ([4d9b544](https://github.com/mineclover/context-action/commit/4d9b544a37c165e07846bb3ce5fe9a9b456ec249))
+* Update @context-action/react to use latest dependencies ([c349442](https://github.com/mineclover/context-action/commit/c34944222d73799f4a1f0272de689e67fe63920d))
+* Update README files for better internationalization ([9f8438f](https://github.com/mineclover/context-action/commit/9f8438f53053d0c019f62664ee8e07c9e7fb8d19))
+* Upgrade React and related dependencies, add React Compiler demo ([50e0c0a](https://github.com/mineclover/context-action/commit/50e0c0acb7f9aa4bf26c87e2bfcf0deb19019f78))
+
+
+### Performance Improvements
+
+* Optimize core and react package implementations ([88fab30](https://github.com/mineclover/context-action/commit/88fab30709c03537a97b3ba8e1cfe058e80a1107))
+
+
+### Reverts
+
+* Revert "refactor: Update store methods to use updateValue for safer state management" ([d158c93](https://github.com/mineclover/context-action/commit/d158c936f6045f0fa6affdd1af34403cb281f868))
+
+
+
+
+
 ## [0.7.7](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.7) (2025-09-17)
 
 

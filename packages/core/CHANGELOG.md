@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
+
+
+### Bug Fixes
+
+* Remove unnecessary [@ts-expect-error](https://github.com/ts-expect-error) comments from test files ([27c98e0](https://github.com/mineclover/context-action/commit/27c98e0c2acb876c25ecd89e70c1a4afd0196a99))
+
+
+### Features
+
+* Add actions-based dispatching with improved type safety ([6bc36e6](https://github.com/mineclover/context-action/commit/6bc36e6d751218d09621fc7ae9bed780154cc70e))
+* Add actionsWithResult for result collection in actions-based dispatching ([a9131a4](https://github.com/mineclover/context-action/commit/a9131a439b0143b17813ec668166fee5264efbfa))
+* Add comprehensive TypeScript type inference system and documentation ([debde90](https://github.com/mineclover/context-action/commit/debde9069f6e4aa1d87ba2652f510c7fcf552707))
+* Add warning messages for unregistered action handlers ([93fb16c](https://github.com/mineclover/context-action/commit/93fb16ccddb1d4458305b626fb3c9ff037e45956))
+* clean release with unified version 0.7.8/0.7.9 ([f0b54a6](https://github.com/mineclover/context-action/commit/f0b54a6ecfa378a42e924492ac2cefaaf90dbb88))
+* **react:** v0.8.1 - React Compiler integration with backwards compatibility ([f3adbcf](https://github.com/mineclover/context-action/commit/f3adbcf2060a89261f01703b3e69ed31852d36a3))
+
+
+### Performance Improvements
+
+* Optimize core and react package implementations ([88fab30](https://github.com/mineclover/context-action/commit/88fab30709c03537a97b3ba8e1cfe058e80a1107))
+
+
+
+
+
 ## [0.7.7](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.7) (2025-09-17)
 
 

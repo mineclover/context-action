@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
+
+
+### Bug Fixes
+
+* Change @context-action/core dependency from workspace:* to latest ([595508e](https://github.com/mineclover/context-action/commit/595508ea99e4c920b6d6646980f1acc5cf001dd1))
+* replace workspace dependency with actual version in react package ([b2187af](https://github.com/mineclover/context-action/commit/b2187afd9ecebf7f342c6cd36578512b1d9aaf63))
+* Resolve TypeScript type errors in ActionContext.tsx ([4581305](https://github.com/mineclover/context-action/commit/4581305cf402768d5cb142e3c9c80a57fad8227d))
+
+
+### Features
+
+* Add comprehensive TypeScript type inference system and documentation ([debde90](https://github.com/mineclover/context-action/commit/debde9069f6e4aa1d87ba2652f510c7fcf552707))
+* Add optimization analysis report and enhance performance monitoring ([9aad8ac](https://github.com/mineclover/context-action/commit/9aad8ac0515c289ca8195f348e6f68b521af9046))
+* clean release with unified version 0.7.8/0.7.9 ([f0b54a6](https://github.com/mineclover/context-action/commit/f0b54a6ecfa378a42e924492ac2cefaaf90dbb88))
+* Complete @context-action/test-driven-docs integration with enhanced features ([2954a19](https://github.com/mineclover/context-action/commit/2954a19d897eb95a8497d3d39ac4fdd4db769580))
+* **react:** v0.8.1 - React Compiler integration with backwards compatibility ([f3adbcf](https://github.com/mineclover/context-action/commit/f3adbcf2060a89261f01703b3e69ed31852d36a3))
+* Update @context-action/react to use latest dependencies ([c349442](https://github.com/mineclover/context-action/commit/c34944222d73799f4a1f0272de689e67fe63920d))
+
+
+### Performance Improvements
+
+* Optimize core and react package implementations ([88fab30](https://github.com/mineclover/context-action/commit/88fab30709c03537a97b3ba8e1cfe058e80a1107))
+
+
+### Reverts
+
+* Revert "refactor: Update store methods to use updateValue for safer state management" ([d158c93](https://github.com/mineclover/context-action/commit/d158c936f6045f0fa6affdd1af34403cb281f868))
+
+
+
+
+
 ## [0.8.1](https://github.com/mineclover/context-action/compare/v0.8.0...v0.8.1) (2025-01-15)
 
 ### Bug Fixes
