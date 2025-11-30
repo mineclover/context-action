@@ -104,20 +104,32 @@ export function useSafeStoreSubscription<T, R = T>(
     initialValue?: R;
   } = {}
 ): R | T | undefined {
-  const { initialValue, equalityFn, ...subscriptionOptions } = options;
+  const { initialValue, equalityFn, debounce, throttle, condition, debug, name } = options;
+
+  // 🔧 Performance: Memoize subscription options to prevent unnecessary re-subscriptions
+  const stableSubscriptionOptions = useMemo((): EnhancedSubscriptionOptions => ({
+    debounce,
+    throttle,
+    condition,
+    debug,
+    name
+  }), [debounce, throttle, condition, debug, name]);
+
+  // 🔧 Performance: Check if enhanced subscription is needed (stable boolean)
+  const needsEnhancedSubscription = Boolean(debounce || throttle || condition);
 
   // 구독 함수 생성
   const subscribe = useCallback((callback: () => void) => {
     if (!store) return () => {};
 
     // 향상된 구독이 필요한 경우
-    if (subscriptionOptions.debounce || subscriptionOptions.throttle || subscriptionOptions.condition) {
-      return createEnhancedSubscriber(store, subscriptionOptions)(callback);
+    if (needsEnhancedSubscription) {
+      return createEnhancedSubscriber(store, stableSubscriptionOptions)(callback);
     }
 
     // 기본 구독
     return store.subscribe(callback);
-  }, [store, subscriptionOptions]);
+  }, [store, needsEnhancedSubscription, stableSubscriptionOptions]);
 
   // 스냅샷 가져오기 함수 - 안정적인 참조 유지
   const getSnapshot = useCallback((): R | T | undefined => {

@@ -260,7 +260,7 @@ export function createActionContext<T extends {}>(
   const useFactoryActionDispatchWithResult = () => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
-    
+
     // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends keyof T>(
       action: K,
@@ -271,7 +271,10 @@ export function createActionContext<T extends {}>(
       if (!register) {
         throw new Error('ActionRegister not initialized');
       }
-      
+
+      // 🔧 Performance: Track controller for cleanup after completion
+      let createdController: AbortController | undefined;
+
       const dispatchOptions: DispatchOptions = {
         ...options,
         // Enable autoAbort if no signal is provided
@@ -280,14 +283,21 @@ export function createActionContext<T extends {}>(
             enabled: true,
             allowHandlerAbort: true,
             onControllerCreated: (controller) => {
+              createdController = controller;
               activeControllersRef.current.add(controller);
             }
           }
         })
       };
-      return register.dispatch(action, payload as T[K], dispatchOptions);
+
+      // 🔧 Performance: Remove controller from Set after dispatch completes
+      return register.dispatch(action, payload as T[K], dispatchOptions).finally(() => {
+        if (createdController) {
+          activeControllersRef.current.delete(createdController);
+        }
+      });
     }, [context.actionRegisterRef]);
-    
+
     // Create wrapped dispatchWithResult using core's autoAbort
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
@@ -298,7 +308,10 @@ export function createActionContext<T extends {}>(
       if (!register) {
         throw new Error('ActionRegister not initialized');
       }
-      
+
+      // 🔧 Performance: Track controller for cleanup after completion
+      let createdController: AbortController | undefined;
+
       const dispatchOptions: DispatchOptions = {
         ...options,
         // Enable autoAbort if no signal is provided
@@ -307,12 +320,19 @@ export function createActionContext<T extends {}>(
             enabled: true,
             allowHandlerAbort: true,
             onControllerCreated: (controller) => {
+              createdController = controller;
               activeControllersRef.current.add(controller);
             }
           }
         })
       };
-      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
+
+      // 🔧 Performance: Remove controller from Set after dispatch completes
+      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions).finally(() => {
+        if (createdController) {
+          activeControllersRef.current.delete(createdController);
+        }
+      });
     }, [context.actionRegisterRef]);
     
     // Method to manually abort all pending actions

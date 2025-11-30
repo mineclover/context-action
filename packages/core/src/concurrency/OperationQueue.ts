@@ -93,7 +93,13 @@ export class OperationQueue {
    */
   private async processQueue(): Promise<void> {
     if (this.processingPromise) {
-      return this.processingPromise;
+      // Wait for current processing to complete, then check if we need to process more
+      await this.processingPromise;
+      // After waiting, check if there are new items to process
+      if (this.queue.length > 0 && !this.processingPromise) {
+        return this.processQueue();
+      }
+      return;
     }
 
     this.processingPromise = this._doProcess();

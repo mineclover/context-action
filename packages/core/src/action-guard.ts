@@ -72,6 +72,11 @@ export class ActionGuard {
   private readonly maxIdleTime: number = 60000; // 1 minute
   private readonly cleanupIntervalMs: number = 30000; // 30 seconds
 
+  // 🔧 Performance optimization: Limit max guards to prevent unbounded growth
+  private readonly maxGuards: number = 1000;
+  // 🔧 Performance optimization: Track access order for LRU-style eviction
+  private accessOrder: string[] = [];
+
   constructor(autoCleanup: boolean = true) {
     if (autoCleanup) {
       this.startAutoCleanup();
@@ -80,33 +85,136 @@ export class ActionGuard {
 
   /**
    * Start automatic cleanup of idle guard states
-   * 
+   *
    * @internal
    */
   private startAutoCleanup(): void {
     this.cleanupInterval = setInterval(() => {
-      const now = Date.now();
-      const keysToDelete: string[] = [];
-      
-      // Collect keys to delete (avoid modifying map during iteration)
+      this.performCleanup();
+    }, this.cleanupIntervalMs);
+  }
+
+  /**
+   * 🔧 Optimized cleanup with early exit and batched operations
+   *
+   * @internal
+   */
+  private performCleanup(): void {
+    const guardCount = this.guards.size;
+
+    // Early exit if no guards to clean
+    if (guardCount === 0) {
+      return;
+    }
+
+    const now = Date.now();
+    const keysToDelete: string[] = [];
+
+    // 🔧 Performance: Only iterate if cleanup is potentially needed
+    // Skip cleanup if guard count is low and no guards are old enough
+    if (guardCount <= 10) {
+      // For small maps, check all entries
       this.guards.forEach((state, key) => {
         const isIdle = now - state.lastExecuted > this.maxIdleTime;
         const hasActiveTimers = state.debounceTimer || state.throttleTimer;
-        
+
         if (isIdle && !hasActiveTimers) {
           keysToDelete.push(key);
         }
       });
-      
-      // Batch delete idle guards
-      if (keysToDelete.length > 0) {
-        keysToDelete.forEach(key => this.guards.delete(key));
-        // Optional debug logging for cleanup
-        if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
-          console.debug(`[ActionGuard] Cleaned up ${keysToDelete.length} idle guards`);
+    } else {
+      // 🔧 Performance: For larger maps, use access order for LRU-style cleanup
+      // Only check oldest entries first (more likely to be idle)
+      const entriesToCheck = Math.min(this.accessOrder.length, Math.ceil(guardCount / 4));
+
+      for (let i = 0; i < entriesToCheck; i++) {
+        const key = this.accessOrder[i];
+        if (!key) continue;
+
+        const state = this.guards.get(key);
+        if (!state) {
+          // Key no longer exists, will be cleaned from accessOrder
+          keysToDelete.push(key);
+          continue;
+        }
+
+        const isIdle = now - state.lastExecuted > this.maxIdleTime;
+        const hasActiveTimers = state.debounceTimer || state.throttleTimer;
+
+        if (isIdle && !hasActiveTimers) {
+          keysToDelete.push(key);
         }
       }
-    }, this.cleanupIntervalMs);
+    }
+
+    // Batch delete idle guards
+    if (keysToDelete.length > 0) {
+      keysToDelete.forEach(key => {
+        this.guards.delete(key);
+        // Remove from access order
+        const accessIndex = this.accessOrder.indexOf(key);
+        if (accessIndex !== -1) {
+          this.accessOrder.splice(accessIndex, 1);
+        }
+      });
+
+      // Optional debug logging for cleanup
+      if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
+        console.debug(`[ActionGuard] Cleaned up ${keysToDelete.length} idle guards`);
+      }
+    }
+  }
+
+  /**
+   * 🔧 Update access order for LRU tracking
+   *
+   * @internal
+   */
+  private updateAccessOrder(key: string): void {
+    // Remove existing entry if present
+    const existingIndex = this.accessOrder.indexOf(key);
+    if (existingIndex !== -1) {
+      this.accessOrder.splice(existingIndex, 1);
+    }
+    // Add to end (most recently accessed)
+    this.accessOrder.push(key);
+  }
+
+  /**
+   * 🔧 Evict oldest guards if max limit exceeded
+   *
+   * @internal
+   */
+  private evictIfNeeded(): void {
+    if (this.guards.size >= this.maxGuards) {
+      // Evict oldest 10% of guards
+      const evictCount = Math.ceil(this.maxGuards * 0.1);
+      const keysToEvict = this.accessOrder.slice(0, evictCount);
+
+      keysToEvict.forEach(key => {
+        const state = this.guards.get(key);
+        // Clean up timers before eviction
+        if (state) {
+          if (state.debounceTimer) {
+            clearTimeout(state.debounceTimer);
+            if (state.debounceResolve) {
+              state.debounceResolve(false);
+            }
+          }
+          if (state.throttleTimer) {
+            clearTimeout(state.throttleTimer);
+          }
+        }
+        this.guards.delete(key);
+      });
+
+      // Remove from access order
+      this.accessOrder = this.accessOrder.slice(evictCount);
+
+      if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
+        console.debug(`[ActionGuard] Evicted ${evictCount} oldest guards due to limit`);
+      }
+    }
   }
 
   /**
@@ -132,6 +240,8 @@ export class ActionGuard {
    * @internal
    */
   async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
+    // 🔧 Performance: Check for eviction before adding new guards
+    this.evictIfNeeded();
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
@@ -147,6 +257,9 @@ export class ActionGuard {
       };
       this.guards.set(actionKey, state);
     }
+
+    // 🔧 Performance: Update LRU access order
+    this.updateAccessOrder(actionKey);
 
     /** Clear any existing debounce timer to restart the delay period */
     if (state.debounceTimer) {
@@ -198,6 +311,8 @@ export class ActionGuard {
    * @internal
    */
   throttle(actionKey: string, throttleMs: number): boolean {
+    // 🔧 Performance: Check for eviction before adding new guards
+    this.evictIfNeeded();
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
@@ -213,6 +328,9 @@ export class ActionGuard {
       };
       this.guards.set(actionKey, state);
     }
+
+    // 🔧 Performance: Update LRU access order
+    this.updateAccessOrder(actionKey);
 
     const now = Date.now();
     const timeSinceLastExecution = now - state.lastExecuted;
@@ -359,9 +477,12 @@ export class ActionGuard {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = undefined as NodeJS.Timeout | undefined;
     }
-    
+
     // Clear all existing guards
     this.clearAll();
+
+    // 🔧 Clear LRU tracking array
+    this.accessOrder = [];
   }
 
   /**

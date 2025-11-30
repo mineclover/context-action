@@ -34,6 +34,49 @@ import { OperationQueue } from './concurrency/OperationQueue.js';
  * 
  * @public
  */
+
+/**
+ * Type guard to determine if an object is DispatchOptions
+ * Extracted as utility function for reuse and performance
+ * 
+ * @param obj - Object to check
+ * @returns True if object is DispatchOptions
+ * @internal
+ */
+function isDispatchOptions(obj: any): obj is DispatchOptions {
+  if (!obj || typeof obj !== 'object') return false;
+
+  // Check for DispatchOptions-specific properties
+  // These are unique to DispatchOptions and unlikely to appear in payloads
+  if ('debounce' in obj && typeof obj.debounce === 'number') return true;
+  if ('throttle' in obj && typeof obj.throttle === 'number') return true;
+  if ('executionMode' in obj) return true;
+  if ('signal' in obj && obj.signal instanceof AbortSignal) return true;
+  if ('immediate' in obj && typeof obj.immediate === 'boolean') return true;
+  if ('queuePriority' in obj && typeof obj.queuePriority === 'number') return true;
+  if ('timeout' in obj && typeof obj.timeout === 'number') return true;
+  if ('retryOnError' in obj && typeof obj.retryOnError === 'object') return true;
+  if ('autoAbort' in obj && typeof obj.autoAbort === 'object') return true;
+
+  // filter must be an object with specific structure
+  if ('filter' in obj && typeof obj.filter === 'object' && obj.filter !== null) {
+    const filter = obj.filter;
+    if ('handlerIds' in filter || 'excludeHandlerIds' in filter || 'priority' in filter || 'custom' in filter) {
+      return true;
+    }
+  }
+
+  // result must be an object with specific DispatchOptions.result structure
+  if ('result' in obj && typeof obj.result === 'object' && obj.result !== null) {
+    const result = obj.result;
+    if ('strategy' in result || 'merger' in result || 'collect' in result || 'maxResults' in result || 'includeErrors' in result) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private pipelines = new Map<keyof T, Array<HandlerRegistration<any, any>>>();
   private readonly actionGuard: ActionGuard;
@@ -65,6 +108,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   // 🔧 Performance optimization: PipelineController pool for object reuse
   private controllerPool: PipelineController<any, any>[] = [];
   private readonly maxControllerPoolSize = 10;
+
+  // 🔧 Performance optimization: Cached Proxy instances for actions getters
+  private _actionsProxy?: {
+    [K in keyof T]: T[K] extends void
+      ? (options?: DispatchOptions) => Promise<void>
+      : (payload: T[K], options?: DispatchOptions) => Promise<void>
+  };
+  private _actionsWithResultProxy?: {
+    [K in keyof T]: T[K] extends void
+      ? (options?: DispatchOptions) => Promise<ExecutionResult<any>>
+      : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
+  };
 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
@@ -124,37 +179,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       ? (options?: DispatchOptions) => Promise<void>
       : (payload: T[K], options?: DispatchOptions) => Promise<void>
   } {
-    return new Proxy({} as any, {
-      get: (target, prop: string | symbol) => {
-        // Type guard to ensure prop is a valid action key
-        if (typeof prop === 'string' && this.pipelines.has(prop)) {
-          const actionKey = prop as keyof T;
-          return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
-            // Type guard to determine if first parameter is DispatchOptions
-            const isDispatchOptions = (obj: any): obj is DispatchOptions => {
-              return obj && typeof obj === 'object' && (
-                'debounce' in obj || 
-                'throttle' in obj || 
-                'executionMode' in obj ||
-                'signal' in obj ||
-                'immediate' in obj ||
-                'filter' in obj ||
-                'result' in obj
-              );
+    // 🔧 Performance: Return cached Proxy instance
+    if (!this._actionsProxy) {
+      this._actionsProxy = new Proxy({} as any, {
+        get: (_target, prop: string | symbol) => {
+          // Type guard to ensure prop is a valid action key
+          if (typeof prop === 'string' && this.pipelines.has(prop)) {
+            const actionKey = prop as keyof T;
+            return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
+              if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
+                // First parameter is options
+                return this.dispatch(actionKey, undefined, payloadOrOptions);
+              } else {
+                // First parameter is payload (or undefined for void actions)
+                return this.dispatch(actionKey, payloadOrOptions as T[typeof actionKey], options);
+              }
             };
-
-            if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
-              // First parameter is options
-              return this.dispatch(actionKey, undefined, payloadOrOptions);
-            } else {
-              // First parameter is payload (or undefined for void actions)
-              return this.dispatch(actionKey, payloadOrOptions as T[typeof actionKey], options);
-            }
-          };
+          }
+          return undefined;
         }
-        return undefined;
-      }
-    });
+      });
+    }
+    return this._actionsProxy!;
   }
 
   /**
@@ -185,37 +231,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       ? (options?: DispatchOptions) => Promise<ExecutionResult<any>>
       : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
   } {
-    return new Proxy({} as any, {
-      get: (target, prop: string | symbol) => {
-        // Type guard to ensure prop is a valid action key
-        if (typeof prop === 'string' && this.pipelines.has(prop)) {
-          const actionKey = prop as keyof T;
-          return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
-            // Type guard to determine if first parameter is DispatchOptions
-            const isDispatchOptions = (obj: any): obj is DispatchOptions => {
-              return obj && typeof obj === 'object' && (
-                'debounce' in obj || 
-                'throttle' in obj || 
-                'executionMode' in obj ||
-                'signal' in obj ||
-                'immediate' in obj ||
-                'filter' in obj ||
-                'result' in obj
-              );
+    // 🔧 Performance: Return cached Proxy instance
+    if (!this._actionsWithResultProxy) {
+      this._actionsWithResultProxy = new Proxy({} as any, {
+        get: (_target, prop: string | symbol) => {
+          // Type guard to ensure prop is a valid action key
+          if (typeof prop === 'string' && this.pipelines.has(prop)) {
+            const actionKey = prop as keyof T;
+            return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
+              if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
+                // First parameter is options
+                return this.dispatchWithResult(actionKey, undefined, payloadOrOptions);
+              } else {
+                // First parameter is payload (or undefined for void actions)
+                return this.dispatchWithResult(actionKey, payloadOrOptions as T[typeof actionKey], options);
+              }
             };
-
-            if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
-              // First parameter is options
-              return this.dispatchWithResult(actionKey, undefined, payloadOrOptions);
-            } else {
-              // First parameter is payload (or undefined for void actions)
-              return this.dispatchWithResult(actionKey, payloadOrOptions as T[typeof actionKey], options);
-            }
-          };
+          }
+          return undefined;
         }
-        return undefined;
-      }
-    });
+      });
+    }
+    return this._actionsWithResultProxy!;
   }
 
   /**

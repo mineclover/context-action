@@ -176,18 +176,25 @@ export class Store<T = unknown> implements IStore<T> {
    * 보안 강화: 외부에서 반환된 값을 수정해도 Store 내부 상태는 보호됨
    */
   getValue(): T {
+    // 🔧 Performance: Direct return for primitive types (no cloning needed)
+    // Primitives are immutable by nature, so cloning provides no benefit
+    const valueType = typeof this._value;
+    if (valueType !== 'object' || this._value === null) {
+      return this._value;
+    }
+
     // Copy-on-Write optimization: reuse cloned value if version hasn't changed
     if (this.cloningEnabled) {
       if (this._lastClonedVersion === this._version && this._lastClonedValue !== null) {
         return this._lastClonedValue;
       }
-      
+
       // Clone and cache for future reads
       this._lastClonedValue = safeGet(this._value, this.cloningEnabled);
       this._lastClonedVersion = this._version;
       return this._lastClonedValue;
     }
-    
+
     // Direct return when cloning disabled
     return this._value;
   }

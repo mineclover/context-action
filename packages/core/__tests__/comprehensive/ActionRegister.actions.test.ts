@@ -66,7 +66,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
           throw new Error('Intentional error');
         }
         return { success: true };
-      }, { id: 'error-handler', priority: 100 });
+      }, { id: 'error-handler', priority: 100, blocking: true });
 
     });
 
@@ -170,7 +170,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
           throw new Error('Intentional error');
         }
         return { success: true };
-      }, { id: 'error-handler', priority: 100 });
+      }, { id: 'error-handler', priority: 100, blocking: true });
     });
 
     it('should provide function-based dispatching with results for actions with payload', async () => {
@@ -256,7 +256,8 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       expect(result.execution.handlersExecuted).toBe(1);
       expect(result.execution.handlersFailed).toBe(1);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain('Intentional error');
+      // errors[0] is a HandlerError object with error property
+      expect(result.errors[0].error.message).toContain('Intentional error');
 
       const successResult = await actionRegister.actionsWithResult.errorAction({ shouldFail: false });
       expect(successResult.success).toBe(true);
@@ -324,15 +325,38 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
   });
 
   describe('type safety', () => {
+    beforeEach(() => {
+      // Register handlers to test type inference
+      actionRegister.register('userLogin', (payload) => {
+        return { success: true, userId: payload.userId };
+      }, { id: 'login-handler', priority: 100 });
+
+      actionRegister.register('userLogout', () => {
+        return { success: true };
+      }, { id: 'logout-handler', priority: 100 });
+
+      actionRegister.register('processData', (payload) => {
+        return { processed: true, type: payload.type };
+      }, { id: 'data-processor', priority: 100 });
+
+      actionRegister.register('sendNotification', (payload) => {
+        return { sent: true, message: payload.message };
+      }, { id: 'notification-sender', priority: 100 });
+
+      actionRegister.register('resetApp', () => {
+        return { reset: true };
+      }, { id: 'app-resetter', priority: 100 });
+    });
+
     it('should provide correct type inference for actions', () => {
       // These should compile without errors
       const actions = actionRegister.actions;
-      
+
       // Actions with payload
       expect(typeof actions.userLogin).toBe('function');
       expect(typeof actions.processData).toBe('function');
       expect(typeof actions.sendNotification).toBe('function');
-      
+
       // Actions without payload
       expect(typeof actions.userLogout).toBe('function');
       expect(typeof actions.resetApp).toBe('function');
@@ -341,12 +365,12 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
     it('should provide correct type inference for actionsWithResult', () => {
       // These should compile without errors
       const actionsWithResult = actionRegister.actionsWithResult;
-      
+
       // Actions with payload
       expect(typeof actionsWithResult.userLogin).toBe('function');
       expect(typeof actionsWithResult.processData).toBe('function');
       expect(typeof actionsWithResult.sendNotification).toBe('function');
-      
+
       // Actions without payload
       expect(typeof actionsWithResult.userLogout).toBe('function');
       expect(typeof actionsWithResult.resetApp).toBe('function');
@@ -370,10 +394,12 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
     });
 
     it('should handle actions with no handlers', async () => {
-      // Register action but don't add handlers
-      const result = await actionRegister.actionsWithResult.userLogin({ 
-        userId: '123', 
-        email: 'user@example.com' 
+      // Dispatch directly without registering handlers
+      // Note: actions getter returns undefined when no handlers are registered,
+      // so we use dispatchWithResult directly to test no-handler behavior
+      const result = await actionRegister.dispatchWithResult('userLogin', {
+        userId: '123',
+        email: 'user@example.com'
       });
 
       // Should succeed but with no handlers executed
