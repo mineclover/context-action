@@ -41,3 +41,46 @@ export type {
 } from '@context-action/core';
 
 export { ActionRegister } from '@context-action/core';
+
+// ==============================================
+// Zod Schema Integration (optional - requires zod peer dependency)
+// ==============================================
+
+// Re-export from @context-action/core for convenience
+export {
+  defineAction,
+  createActionSchema,
+  createActionFactory,
+  zodToJsonSchema,
+  ActionValidationError,
+  isActionValidationError,
+} from '@context-action/core';
+
+export type {
+  JSONSchema,
+  JSONSchemaType,
+  MCPToolDefinition,
+  OpenAIToolDefinition,
+  AnthropicToolDefinition,
+  DefineActionOptions,
+  UnifiedAction,
+  ActionSchemaMap,
+  InferActionPayloadMap,
+  SafeParseResult,
+} from '@context-action/core';
+
+// ==============================================
+// Tool Context (LLM Tool Registry)
+// ==============================================
+
+export { createToolContext } from './tools/ToolContext';
+export type {
+  ToolContextConfig,
+  ToolContextReturn,
+  ToolContextType,
+  ToolRegistry,
+  ToolDispatchFunction,
+  ToolDispatchWithResultReturn,
+  ToolExecutionResult,
+  ToolValidationMode,
+} from './tools/ToolContext.types';

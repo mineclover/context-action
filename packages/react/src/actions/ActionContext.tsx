@@ -55,6 +55,17 @@ export function createActionContext<T extends {}>(
     effectiveConfig = contextNameOrConfig;
     contextName = effectiveConfig.name || 'ActionContext';
   }
+
+  // 🆕 Merge schema option into registry.schema (shorthand support)
+  if (effectiveConfig.schema && !effectiveConfig.registry?.schema) {
+    effectiveConfig = {
+      ...effectiveConfig,
+      registry: {
+        ...effectiveConfig.registry,
+        schema: effectiveConfig.schema,
+      },
+    };
+  }
   
   // Create the factory-specific context with a default value
   const FactoryActionContext = createContext<ActionContextType<T> | null>(null);

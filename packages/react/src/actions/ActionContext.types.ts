@@ -1,26 +1,47 @@
 /**
  * @fileoverview ActionContext Type Definitions
- * 
+ *
  * Core type definitions for the ActionContext system.
  * Only includes types that are actually used in ActionContext.tsx implementation.
  */
 
 import { ReactNode } from 'react';
-import { 
-  ActionRegister, 
-  ActionHandler, 
-  HandlerConfig, 
-  ActionRegisterConfig, 
-  DispatchOptions, 
-  ExecutionResult 
+import {
+  ActionRegister,
+  ActionHandler,
+  HandlerConfig,
+  ActionRegisterConfig,
+  DispatchOptions,
+  ExecutionResult,
+  ActionSchemaMap,
 } from '@context-action/core';
 
 /**
  * Configuration options for createActionContext
+ *
+ * Extends ActionRegisterConfig with optional Zod schema validation.
+ * When schema is provided, payload validation is enabled on dispatch.
+ *
+ * @example
+ * ```typescript
+ * const { Provider } = createActionContext<UserActions>('User', {
+ *   schema: userActionSchema,
+ *   registry: {
+ *     validationMode: 'strict', // 'strict' | 'warn' | 'silent'
+ *   },
+ * });
+ * ```
  */
 export interface ActionContextConfig extends ActionRegisterConfig {
   /** Name identifier for this ActionRegister instance */
   name?: string;
+
+  /**
+   * Action schema map for runtime payload validation
+   * When provided, enables Zod-based validation on dispatch
+   * Shorthand for config.registry.schema
+   */
+  schema?: ActionSchemaMap;
 }
 
 /**

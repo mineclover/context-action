@@ -30,6 +30,13 @@ This section contains comprehensive code patterns and implementation guides for 
   - [Composition Strategies](./architecture/composition.md) - Advanced pattern composition for complex applications
   - [Context Splitting Patterns](./architecture/context-splitting.md) - Managing and splitting large contexts for scalability
 
+### Schema Patterns
+- **[Schema Patterns](./schema/)** - Zod-based action definition with runtime validation
+  - [Basic Usage](./schema/basic-usage.md) - Define actions with Zod schemas
+  - [Validation Modes](./schema/validation-modes.md) - Configure validation behavior (strict/warn/silent)
+  - [Tool Chain Export](./schema/tool-chain.md) - Export to MCP, OpenAI, Anthropic formats
+  - [Error Handling](./schema/error-handling.md) - Handle validation errors in React
+
 ### Async Patterns
 - **[Async Patterns](./async/)** - Asynchronous operation patterns and control flow
   - [Real-time State Access](./async/real-time-state-access.md) - Avoiding closure traps with store.getValue()
@@ -52,6 +59,7 @@ This section contains comprehensive code patterns and implementation guides for 
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching with memory management | `createActionContext` | Event systems, command patterns, large applications |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
+| **📋 Schema** | Zod-based validation + LLM tool export | `defineAction`, `createActionSchema` | Type-safe APIs, LLM integrations |
 | **🔧 Ref Context** *(Advanced)* | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
 
 **Note**: For complex applications, compose patterns together for maximum flexibility and separation of concerns.

@@ -573,21 +573,44 @@ export interface ActionRegisterConfig {
   registry?: {
     /** Debug mode for registry operations - enables detailed logging */
     debug?: boolean;
-    
+
     /** Auto-cleanup configuration for one-time handlers */
     autoCleanup?: boolean;
-    
+
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
-    
+
     /** Use concurrency queue for thread safety. Default: true */
     useConcurrencyQueue?: boolean;
-    
+
     /** Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended) */
     maxHandlersPerAction?: number;
-    
+
     /** Global error handler for unhandled errors */
     errorHandler?: (error: Error, context: unknown) => void;
+
+    // ---- Zod Schema Validation Options (optional) ----
+
+    /**
+     * Action schema map for runtime payload validation
+     * When provided, enables Zod-based validation on dispatch
+     * @see ActionSchemaMap from './action-schema'
+     */
+    schema?: import('./action-schema').ActionSchemaMap;
+
+    /**
+     * Enable/disable validation on dispatch
+     * Default: true when schema is provided
+     */
+    validateOnDispatch?: boolean;
+
+    /**
+     * Validation mode when schema validation fails
+     * - 'strict': throw ActionValidationError (default)
+     * - 'warn': console.warn and continue execution
+     * - 'silent': ignore validation errors silently
+     */
+    validationMode?: 'strict' | 'warn' | 'silent';
   };
 }
 

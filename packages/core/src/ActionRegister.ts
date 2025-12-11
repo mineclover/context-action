@@ -18,6 +18,7 @@ import {
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
+import { ActionValidationError } from './errors.js';
 
 /**
  * Action Register for managing action handlers with priority-based execution
@@ -575,7 +576,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (payload instanceof Event && process.env.NODE_ENV === 'development') {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
-    
+
+    // 🆕 Zod Schema Validation (when schema is provided)
+    if (
+      this.registryConfig?.schema &&
+      this.registryConfig?.validateOnDispatch !== false
+    ) {
+      const actionSchema = this.registryConfig.schema[action as string];
+      if (actionSchema) {
+        const result = actionSchema.safeParse(payload);
+        if (!result.success) {
+          const mode = this.registryConfig.validationMode ?? 'strict';
+          if (mode === 'strict') {
+            throw new ActionValidationError(action as string, result.error);
+          } else if (mode === 'warn') {
+            console.warn(
+              `Action "${String(action)}" payload validation failed:`,
+              result.error.message
+            );
+            this.log(`Validation warning for action '${String(action)}'`, {
+              issues: result.error.issues,
+            }, 'warn');
+          }
+          // 'silent' 모드: 검증 실패 무시하고 계속 진행
+        }
+      }
+    }
+
     // 🔧 Improved AbortSignal handling with cleaner merge logic
     const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
     

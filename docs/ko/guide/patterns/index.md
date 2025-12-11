@@ -44,12 +44,20 @@
 - **[디버그 패턴](./debug/)** - 프로덕션 디버깅 및 트러블슈팅 패턴
   - [프로덕션 디버깅](./debug/production-debugging.md) - 치명적 문제, 상태 모니터링, 에러 복구, 스트레스 테스팅
 
+### 스키마 패턴
+- **[스키마 패턴](./schema/)** - Zod 기반 런타임 검증을 포함한 액션 정의
+  - [기본 사용법](./schema/basic-usage.md) - Zod 스키마로 액션 정의하기
+  - [검증 모드](./schema/validation-modes.md) - 검증 동작 설정 (strict/warn/silent)
+  - [Tool Chain 내보내기](./schema/tool-chain.md) - MCP, OpenAI, Anthropic 포맷으로 내보내기
+  - [에러 처리](./schema/error-handling.md) - React에서 검증 에러 처리하기
+
 ## 빠른 시작 가이드
 
 | 패턴 | 사용 사례 | 임포트 | 최적 용도 |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없는 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 명령 패턴 |
 | **🏪 Store Only** | 액션 없는 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
+| **📋 Schema** | Zod 기반 검증 + LLM 도구 내보내기 | `defineAction`, `createActionSchema` | 타입 안전 API, LLM 통합 |
 | **🔧 Ref Context** *(고급)* | 직접 DOM 조작 및 싱글톤 객체 관리 | `createRefContext` | 고성능 UI, 애니메이션, 외부 서비스 |
 
 **참고**: 복잡한 애플리케이션의 경우 최대 유연성과 관심사 분리를 위해 패턴들을 조합하여 사용하세요.
