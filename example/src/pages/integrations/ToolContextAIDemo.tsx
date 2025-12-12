@@ -7,6 +7,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { createToolContext } from '@context-action/react';
+import { generateText, LanguageModel } from 'ai';
 import { uiToolsSchema } from '../../lib/ui-tools-schema';
 import { getFreeModelsWithTools, formatModelName, type OpenRouterModel } from '../../lib/openrouter-models';
 import styles from './ToolContextAIDemo.module.css';
@@ -173,36 +174,35 @@ function DemoUI({ uiState }: any) {
       // Get tool definitions for OpenRouter
       const tools = registry.toOpenAI();
 
-      // Create OpenRouter API request
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+      // Create OpenAI-compatible client for OpenRouter
+      const { OpenAI } = await import('openai');
+      const client = new OpenAI({
+        apiKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+        defaultHeaders: {
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'ToolContext AI Demo',
         },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            ...messages.map(m => ({
-              role: m.role,
-              content: m.content,
-            })),
-            { role: 'user', content: userMessage },
-          ],
-          tools: tools as any,
-          tool_choice: 'auto',
-        }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'API request failed');
-      }
+      // Call chat.completions with tool support and auto-routing
+      const response = await client.chat.completions.create({
+        model: selectedModel,
+        messages: [
+          ...messages.map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+          { role: 'user', content: userMessage },
+        ],
+        tools: tools as any,
+        tool_choice: 'auto', // Auto-route to tools when needed
+        max_tokens: 1024,
+      });
 
-      const data = await response.json();
-      const assistantMessage = data.choices[0].message;
+      const assistantMessage = response.choices[0].message;
 
-      let finalContent = assistantMessage.content || '';
+      let finalContent = assistantMessage.content || 'Action completed';
       let toolsExecuted: string[] = [];
 
       // Process tool calls
