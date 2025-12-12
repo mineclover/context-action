@@ -188,6 +188,11 @@ const ChatPage = lazy(() =>
   }))
 );
 
+// Integrations - Tool Context AI Demo (ToolContext with OpenRouter and AI SDK)
+const ToolContextAIDemo = lazy(
+  () => import('./pages/integrations/ToolContextAIDemo')
+);
+
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
   import('./pages/integrations/advanced/FormBuilderPage').then((m) => ({
@@ -470,6 +475,7 @@ function AppContent() {
             />
 
             {/* 🧩 INTEGRATIONS - Real-world use cases */}
+            <Route path="/integrations/tool-context-ai" element={<ToolContextAIDemo />} />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route
               path="/integrations/advanced/form-builder"
