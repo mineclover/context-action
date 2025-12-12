@@ -48,7 +48,6 @@ import React, {
   useEffect,
   useId,
   useMemo,
-  useCallback,
 } from 'react';
 import {
   ActionRegister,
@@ -158,49 +157,22 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 
   // Provider component
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<TPayloadMap>>(
-      new ActionRegister<TPayloadMap>({
+    // Create singleton ActionRegister instance (only once per Provider mount)
+    const actionRegisterRef = useRef<ActionRegister<TPayloadMap> | null>(null);
+    if (!actionRegisterRef.current) {
+      actionRegisterRef.current = new ActionRegister<TPayloadMap>({
         name: contextName,
         registry: {
           schema: schema as ActionSchemaMap,
           validationMode,
           validateOnDispatch,
         },
-      })
-    );
-
-    const contextValue = useMemo(
-      () => ({
-        actionRegisterRef,
-        registry,
-      }),
-      []
-    );
-
-    return (
-      <ToolReactContext.Provider value={contextValue}>{children}</ToolReactContext.Provider>
-    );
-  };
-
-  // Internal hook to get context
-  const useToolContext = (): ToolContextType<TSchema> => {
-    const context = useContext(ToolReactContext);
-    if (!context) {
-      throw new Error(
-        `useToolContext must be used within a ${contextName} ToolContext Provider`
-      );
+      });
     }
-    return context;
-  };
 
-  /**
-   * Hook to dispatch tools with validation
-   */
-  const useToolDispatch = () => {
-    const { actionRegisterRef } = useToolContext();
-
-    const dispatch = useCallback(
-      <K extends keyof TPayloadMap>(
+    // Create dispatch function (singleton)
+    const dispatch = useMemo(() => {
+      return <K extends keyof TPayloadMap>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DispatchOptions
@@ -227,15 +199,46 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         };
 
         return register.dispatch(toolName, payload, dispatchOptions);
-      },
-      [actionRegisterRef]
+      };
+    }, []);
+
+    const contextValue = useMemo(
+      () => ({
+        actionRegisterRef,
+        registry,
+        dispatch,
+      }),
+      []
     );
 
-    return dispatch;
+    return (
+      <ToolReactContext.Provider value={contextValue}>{children}</ToolReactContext.Provider>
+    );
+  };
+
+  // Internal hook to get context
+  const useToolContext = (): ToolContextType<TSchema> => {
+    const context = useContext(ToolReactContext);
+    if (!context) {
+      throw new Error(
+        `useToolContext must be used within a ${contextName} ToolContext Provider`
+      );
+    }
+    return context;
+  };
+
+  /**
+   * Hook to dispatch tools
+   * Returns the singleton dispatch function
+   */
+  const useToolDispatch = () => {
+    const { dispatch: contextDispatch } = useToolContext();
+    return contextDispatch;
   };
 
   /**
    * Hook to register tool handlers
+   * Handler is kept up-to-date via ref to always call the latest version
    */
   const useToolHandler = <K extends keyof TSchema>(
     toolName: K,
@@ -245,52 +248,31 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const { actionRegisterRef } = useToolContext();
     const handlerId = useId();
 
-    // Store latest handler in ref
+    // Keep handler up-to-date via ref
     const handlerRef = useRef(handler);
     handlerRef.current = handler;
-
-    // Extract config properties for stable dependencies
-    const priority = handlerConfig?.priority ?? 0;
-    const id = handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`;
-    const blocking = handlerConfig?.blocking ?? false;
-    const once = handlerConfig?.once ?? false;
-    const debounce = handlerConfig?.debounce;
-    const throttle = handlerConfig?.throttle;
-
-    const stableConfig = useMemo(
-      (): HandlerConfig => ({
-        priority,
-        id,
-        blocking,
-        once,
-        replaceExisting: true,
-        ...(debounce !== undefined && { debounce }),
-        ...(throttle !== undefined && { throttle }),
-      }),
-      [priority, id, blocking, once, debounce, throttle]
-    );
 
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
 
-      // Wrapper handler that calls the latest handler
-      const wrapperHandler: ActionHandler<TPayloadMap[K]> = (payload, controller) => {
-        return handlerRef.current(payload, controller);
-      };
-
       if (debug) {
         console.log(`[${contextName}] Registering handler for tool '${String(toolName)}'`);
       }
 
+      // Register handler with wrapper that always calls latest handler
       const unregister = register.register(
         toolName as unknown as keyof TPayloadMap,
-        wrapperHandler as ActionHandler<TPayloadMap[keyof TPayloadMap]>,
-        stableConfig
+        (payload, controller) => handlerRef.current(payload, controller),
+        {
+          ...handlerConfig,
+          replaceExisting: true,
+          id: handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`,
+        }
       );
 
       return unregister;
-    }, [toolName, actionRegisterRef, stableConfig]);
+    }, [toolName]);
   };
 
   /**
@@ -308,8 +290,20 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const { actionRegisterRef } = useToolContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
 
-    const dispatch = useCallback(
-      <K extends keyof TPayloadMap>(
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        activeControllersRef.current.forEach((controller) => {
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
+        });
+        activeControllersRef.current.clear();
+      };
+    }, []);
+
+    const dispatch = useMemo(() => {
+      return <K extends keyof TPayloadMap>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DispatchOptions
@@ -342,12 +336,11 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             activeControllersRef.current.delete(createdController);
           }
         });
-      },
-      [actionRegisterRef]
-    );
+      };
+    }, []);
 
-    const dispatchWithResult = useCallback(
-      <K extends keyof TPayloadMap, R = void>(
+    const dispatchWithResult = useMemo(() => {
+      return <K extends keyof TPayloadMap, R = void>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DispatchOptions
@@ -386,29 +379,17 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               activeControllersRef.current.delete(createdController);
             }
           });
-      },
-      [actionRegisterRef]
-    );
-
-    const abortAll = useCallback(() => {
-      activeControllersRef.current.forEach((controller) => {
-        if (!controller.signal.aborted) {
-          controller.abort();
-        }
-      });
-      activeControllersRef.current.clear();
+      };
     }, []);
 
-    // Cleanup on unmount
-    useEffect(() => {
-      const controllers = activeControllersRef;
+    const abortAll = useMemo(() => {
       return () => {
-        controllers.current.forEach((controller) => {
+        activeControllersRef.current.forEach((controller) => {
           if (!controller.signal.aborted) {
             controller.abort();
           }
         });
-        controllers.current.clear();
+        activeControllersRef.current.clear();
       };
     }, []);
 

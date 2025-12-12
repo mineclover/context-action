@@ -118,8 +118,9 @@ export interface ToolExecutionResult<R = void> extends ExecutionResult<R> {
  * Internal context type for ToolContext
  */
 export interface ToolContextType<TSchema extends ActionSchemaMap> {
-  actionRegisterRef: React.RefObject<ActionRegister<InferActionPayloadMap<TSchema>>>;
+  actionRegisterRef: React.RefObject<ActionRegister<InferActionPayloadMap<TSchema>> | null>;
   registry: ToolRegistry<TSchema>;
+  dispatch: ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
 }
 
 // ============================================
