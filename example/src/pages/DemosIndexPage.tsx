@@ -23,6 +23,17 @@ interface DemoItem {
 
 const demos: DemoItem[] = [
   {
+    path: '/integrations/tool-context-ai',
+    title: '🤖 ToolContext + AI SDK Demo',
+    emoji: '🤖',
+    description: 'AI가 ToolContext를 통해 UI를 제어하는 완전한 데모. OpenRouter와 function calling 통합.',
+    tags: ['AI/LLM', 'Function Calling', 'Tools', 'Real-time UI Control'],
+    category: 'advanced',
+    complexity: 'Advanced',
+    features: ['ToolContext integration', 'OpenRouter API', 'Function calling', 'Real-time UI updates', 'Theme switching', 'State management'],
+    estimatedTime: '10-15분',
+  },
+  {
     path: '/demos/chat',
     title: '💬 Real-time Chat Demo',
     emoji: '💬',
