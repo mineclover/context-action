@@ -11,10 +11,25 @@ export type {
 } from './actions/ActionContext.types';
 
 // Store System (Core functionality)
-export { createStore, Store } from './stores/core/Store';
+export { createStore, Store, type PatchAwareListener } from './stores/core/Store';
+export {
+  createTimeTravelStore,
+  TimeTravelStore,
+  isTimeTravelStore
+} from './stores/core/TimeTravelStore';
+export type { TimeTravelStoreOptions } from './stores/core/TimeTravelStore';
 export { useStoreValue } from './stores/hooks/useStoreValue';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
+export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
+export type { StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
+export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
+export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelControls';
+export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
+export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
+
+// Re-export Patches type from mutative for subscribeWithPatches users
+export type { Patches, TravelPatches } from '@context-action/mutative';
 
 // Store Error Boundary (Essential for production apps)
 export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
@@ -23,6 +38,15 @@ export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoun
 // Declarative Store Pattern (Most commonly used)
 export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
 export type { InitialStores, StoreConfig, WithProviderConfig } from './stores/patterns/declarative-store-pattern-v2';
+
+// Time Travel Store Pattern (Store Context with undo/redo)
+export { createTimeTravelStoreContext, TimeTravelStoreManager } from './stores/patterns/time-travel-store-pattern';
+export type {
+  TimeTravelStoreConfig,
+  TimeTravelInitialStores,
+  TimeTravelControlsState as TimeTravelContextControlsState,
+  InferTimeTravelStoreTypes
+} from './stores/patterns/time-travel-store-pattern';
 
 // Ref System (Core functionality)
 export { createRefContext } from './refs/createRefContext';

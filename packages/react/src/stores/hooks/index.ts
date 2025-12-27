@@ -13,15 +13,12 @@
 
 // === CORE STORE HOOKS ===
 // Essential hooks for store management
-export { useStoreSelector as useStore } from '../utils/store-selector';
-export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
+export { useStoreValue, useStoreValues } from './useStoreValue';
 
 // === COMMON UTILITIES ===
 // Shared utilities for all store hooks
-export { 
+export {
   useSafeStoreSubscription,
-  useConditionalStoreSubscription,
-  useMultiStoreSubscription,
   equalityFunctions,
   type EnhancedSubscriptionOptions
 } from '../utils/sync-external-store-utils';
@@ -39,10 +36,15 @@ export {
   defaultEqualityFn
 } from './useStoreSelector';
 
-export { 
-  useComputedStore, 
-  useMultiComputedStore, 
-  useComputedStoreInstance,
-  useAsyncComputedStore 
-} from './useComputedStore';
+export { useComputedStore } from './useComputedStore';
+
+// === PATH-BASED SUBSCRIPTION HOOKS ===
+// 패치 기반 경로별 구독 (v2.2.0+)
+export {
+  useStorePath,
+  useStoreSelectorWithPaths,
+  type StorePath,
+  type UseStorePathOptions,
+  type UseStoreSelectorWithPathsOptions
+} from './useStorePath';
 

@@ -55,8 +55,9 @@ export function useRegisterSourceFile(
 
     if (existingEntry) {
       // 기존 엔트리가 있으면 인스턴스만 추가
-      const updatedInstances = new Set(existingEntry.instances);
-      updatedInstances.add(instanceId);
+      const updatedInstances = existingEntry.instances.includes(instanceId)
+        ? existingEntry.instances
+        : [...existingEntry.instances, instanceId];
 
       entriesStore.setValue({
         ...currentEntries,
@@ -81,7 +82,7 @@ export function useRegisterSourceFile(
         description: options?.description,
         tags: options?.tags || [],
         priority: options?.priority || 0,
-        instances: new Set([instanceId]),
+        instances: [instanceId],
         firstRegisteredAt: new Date(),
         lastUpdatedAt: new Date(),
       };
@@ -106,10 +107,9 @@ export function useRegisterSourceFile(
       const entry = entries[filePath];
 
       if (entry) {
-        const updatedInstances = new Set(entry.instances);
-        updatedInstances.delete(instanceId);
+        const updatedInstances = entry.instances.filter((id) => id !== instanceId);
 
-        if (updatedInstances.size === 0) {
+        if (updatedInstances.length === 0) {
           // 마지막 인스턴스가 언마운트되면 엔트리 제거
           const { [filePath]: _, ...remaining } = entries;
           entriesStore.setValue(remaining);
@@ -150,7 +150,7 @@ export function useIsSourceFileRegistered(filePath: string): boolean {
   const entries = useStoreValue(entriesStore);
 
   const entry = entries[filePath];
-  return entry ? entry.instances.size > 0 : false;
+  return entry ? entry.instances.length > 0 : false;
 }
 
 /**
@@ -161,5 +161,5 @@ export function useSourceFileInstanceCount(filePath: string): number {
   const entries = useStoreValue(entriesStore);
 
   const entry = entries[filePath];
-  return entry ? entry.instances.size : 0;
+  return entry ? entry.instances.length : 0;
 }

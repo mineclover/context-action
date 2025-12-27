@@ -1,20 +1,7 @@
 import { useMemo } from 'react';
 import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
-import type { Store } from '../core/Store';
+import type { IStore } from '../core/types';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
-
-/**
- * Create a type assertion helper for stores created with initial values
- */
-export function assertStoreValue<T>(value: T | undefined, storeName: string): T {
-  if (value === undefined) {
-    throw new Error(
-      `Store "${storeName}" returned undefined value. ` +
-      'This should not happen with properly initialized stores.'
-    );
-  }
-  return value;
-}
 
 /**
  * Performance-optimized store value hook with advanced features
@@ -67,32 +54,32 @@ export interface StoreValueOptions<R> {
 
 // Store가 확정된 경우 - 기본 구독
 export function useStoreValue<T>(
-  store: Store<T>, 
+  store: IStore<T>,
   options?: StoreValueOptions<T>
 ): T;
 
 // Store가 undefined일 수 있는 경우 - 안전한 구독
 export function useStoreValue<T>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   options?: StoreValueOptions<T>
 ): T | undefined;
 
 // Store가 확정된 경우 + selector - 선택적 구독
 export function useStoreValue<T, R>(
-  store: Store<T>, 
+  store: IStore<T>,
   selector: (value: T) => R,
   options?: StoreValueOptions<R>
 ): R;
 
-// Store가 undefined일 수 있는 경우 + selector - 안전한 선택적 구독  
+// Store가 undefined일 수 있는 경우 + selector - 안전한 선택적 구독
 export function useStoreValue<T, R>(
-  store: Store<T> | undefined | null, 
+  store: IStore<T> | undefined | null,
   selector: (value: T) => R,
   options?: StoreValueOptions<R>
 ): R | undefined;
 
 export function useStoreValue<T, R>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T>,
   options?: StoreValueOptions<R>
 ): T | R | undefined {
@@ -150,7 +137,7 @@ export function useStoreValue<T, R>(
  *
  * @public\n */
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
   "use memo";

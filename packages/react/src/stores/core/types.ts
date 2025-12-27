@@ -159,8 +159,8 @@ export interface IStore<T = unknown> {
   /** Set store value with enhanced options and validation */
   setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
   
-  /** Update store value with function (for functional updates) */
-  update: (updater: (current: T) => T) => void;
+  /** Update store value with function (for functional updates, supports draft mutations) */
+  update: (updater: (current: T) => T | void) => void;
   
   /** Get current value directly (for action handlers) */
   getValue: () => T;

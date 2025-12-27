@@ -1047,21 +1047,73 @@ const {
 function UserComponent() {
   const profileStore = useUserStore('profile');
   const profile = useStoreValue(profileStore);
-  
+
   // 핸들러 메모이제이션 (의존성 배열 주의)
   const updateHandler = useCallback(async (payload) => {
     profileStore.setValue({ ...profile, ...payload.data });
   }, [profile, profileStore]);
-  
+
   useUserActionHandler('updateProfile', updateHandler);
-  
+
   // 계산된 값 메모이제이션
   const displayName = useMemo(() => {
     return profile.firstName + ' ' + profile.lastName;
   }, [profile.firstName, profile.lastName]);
-  
+
   return <div>{displayName}</div>;
 }
+```
+
+#### 경로 기반 구독 (선택적 리렌더링 권장)
+
+경로 기반 구독은 JSON 패치를 사용하여 리렌더링 시점을 결정하며, 컴포넌트 업데이트를 세밀하게 제어할 수 있습니다.
+
+```tsx
+import { useStorePath, useStoreSelectorWithPaths } from '@context-action/react';
+
+// ✅ 권장: 직접 속성 접근에는 useStorePath 사용
+function UserName() {
+  // user.name이 변경될 때만 리렌더링, 다른 user 속성 변경 시에는 리렌더링 안 함
+  const name = useStorePath(userStore, ['user', 'name']);
+  return <span>{name}</span>;
+}
+
+// ✅ 권장: 파생값과 최적화가 필요하면 useStoreSelectorWithPaths 사용
+function FullName() {
+  // firstName 또는 lastName이 변경될 때만 셀렉터 실행
+  const fullName = useStoreSelectorWithPaths(
+    userStore,
+    (state) => `${state.user.firstName} ${state.user.lastName}`,
+    { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
+  );
+  return <span>{fullName}</span>;
+}
+
+// 비교: useStoreSelector vs useStorePath vs useStoreSelectorWithPaths
+// ┌─────────────────────────┬───────────────────┬────────────────┬─────────────────────────┐
+// │ 기능                    │ useStoreSelector  │ useStorePath   │ useStoreSelectorWithPaths│
+// ├─────────────────────────┼───────────────────┼────────────────┼─────────────────────────┤
+// │ 셀렉터 실행             │ 매 변경마다       │ 경로 매칭 시만 │ 경로 매칭 시만          │
+// │ 비교 대상               │ 셀렉터 결과       │ 패치 경로      │ 패치 경로               │
+// │ 파생값 지원             │ ✅ 가능           │ ❌ 불가        │ ✅ 가능                 │
+// │ 성능                    │ 셀렉터 비용 의존  │ 빠름 (문자열)  │ 두 장점 결합            │
+// └─────────────────────────┴───────────────────┴────────────────┴─────────────────────────┘
+```
+
+**언제 무엇을 사용할까:**
+- **useStorePath**: 변환 없이 단순 속성 접근
+- **useStoreSelector**: 경로 힌트가 실용적이지 않은 복잡한 변환
+- **useStoreSelectorWithPaths**: 의존성이 명확한 파생값 (최고 성능)
+
+```tsx
+// Store API: 커스텀 구현을 위한 subscribeWithPatches
+const unsubscribe = store.subscribeWithPatches((patches) => {
+  // patches: [{ op: 'replace', path: ['user', 'name'], value: 'John' }]
+  console.log('변경된 경로:', patches?.map(p => p.path.join('.')));
+});
+
+// 디버깅을 위한 마지막 패치 조회
+const lastPatches = store.getLastPatches();
 ```
 
 ### 🔄 Action 최적화

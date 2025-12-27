@@ -35,7 +35,7 @@ export function useSourceLinkRegistration({
       category,
       description,
       tags,
-      instances: new Set<string>(),
+      instances: [],
       firstRegisteredAt: new Date(),
       lastUpdatedAt: new Date(),
     };

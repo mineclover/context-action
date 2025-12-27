@@ -1,4 +1,4 @@
-import { Store, createStore, ManagedStore, createManagedStore } from '../../../src/stores/core/Store';
+import { Store, createStore } from '../../../src/stores/core/Store';
 import { StoreRegistry } from '../../../src/stores/core/StoreRegistry';
 
 // Mock requestAnimationFrame for testing
@@ -594,76 +594,6 @@ describe('Factory Functions', () => {
     });
   });
 
-  describe('ManagedStore', () => {
-    let registry: StoreRegistry;
-
-    beforeEach(() => {
-      registry = new StoreRegistry('test-registry');
-    });
-
-    afterEach(() => {
-      registry.dispose();
-    });
-
-    it('should auto-register with registry', () => {
-      const managedStore = new ManagedStore({
-        name: 'managed',
-        initialValue: 'test',
-        registry,
-        autoRegister: true
-      });
-
-      expect(registry.hasStore('managed')).toBe(true);
-      expect(registry.getStore('managed')).toBe(managedStore);
-
-      managedStore.dispose();
-    });
-
-    it('should not auto-register when disabled', () => {
-      const managedStore = new ManagedStore({
-        name: 'managed',
-        initialValue: 'test',
-        registry,
-        autoRegister: false
-      });
-
-      expect(registry.hasStore('managed')).toBe(false);
-
-      managedStore.dispose();
-    });
-
-    it('should unregister on disposal', () => {
-      const managedStore = new ManagedStore({
-        name: 'managed',
-        initialValue: 'test',
-        registry,
-        autoRegister: true
-      });
-
-      expect(registry.hasStore('managed')).toBe(true);
-
-      managedStore.dispose();
-      expect(registry.hasStore('managed')).toBe(false);
-    });
-  });
-
-  describe('createManagedStore', () => {
-    it('should create managed store correctly', () => {
-      const registry = new StoreRegistry('test');
-      const managedStore = createManagedStore({
-        name: 'test-managed',
-        initialValue: { value: 42 },
-        registry,
-        autoRegister: true
-      });
-
-      expect(managedStore).toBeInstanceOf(ManagedStore);
-      expect(registry.hasStore('test-managed')).toBe(true);
-
-      managedStore.dispose();
-      registry.dispose();
-    });
-  });
 });
 
 describe('Store Options and Edge Cases', () => {

@@ -2,16 +2,14 @@
 // UTILS INDEX - Utility Functions
 // ==============================================
 
-// Immutability utilities
-export { 
+// Immutability utilities (powered by @context-action/mutative)
+export {
   deepClone,
-  deepCloneWithImmer,
   safeGet,
   safeSet,
-  ImmerUtils,
-  preloadImmer,
+  MutativeUtils,
   produce
-} from './stores/utils/immutable';
+} from '@context-action/mutative';
 
 // Comparison utilities
 export { 
@@ -26,15 +24,6 @@ export type {
 } from './stores/utils/comparison';
 
 // Type utilities
-export {
-  isStore,
-  isValidStoreValue,
-  extractStoreValue,
-  extractStoreValues,
-  createSafeEqualityFn,
-  createStoreConfig,
-  TypeUtils
-} from './stores/utils/type-helpers';
 export type {
   StoreValue,
   StoresValues,
@@ -50,19 +39,9 @@ export type {
 } from './stores/utils/type-helpers';
 
 // Provider composition
-export { 
+export {
   composeProviders
 } from './stores/utils/provider-composition';
 export type {
   ProviderComponent
 } from './stores/utils/provider-composition';
-
-// Subscription management
-export {
-  SubscriptionManager,
-  useSubscriptionManager
-} from './stores/utils/subscription-manager';
-export type {
-  SubscriptionEntry,
-  SubscriptionStats
-} from './stores/utils/subscription-manager';

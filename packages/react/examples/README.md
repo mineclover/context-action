@@ -11,8 +11,7 @@ examples/
 │   │   ├── useStoreValue-example.tsx
 │   │   └── useLocalStore-example.tsx
 │   ├── utility/            # Performance and convenience hooks
-│   │   ├── useStoreSelector-example.tsx
-│   │   └── useComputedStore-example.tsx
+│   │   └── useStoreSelector-example.tsx
 │   ├── patterns/           # Pattern hook examples
 │   └── index.tsx           # Interactive hook explorer
 └── stores/
@@ -29,7 +28,6 @@ examples/
 
 ### Utility Hooks (Learn As Needed)
 - **`useStoreSelector`**: Performance optimization through selective subscriptions
-- **`useComputedStore`**: Derived state computation from store values
 
 ### Pattern Hooks (For Larger Apps)
 - **`createStoreContext`**: Type-safe store pattern factory
@@ -79,7 +77,6 @@ Begin with the hooks you'll use most frequently:
 ### 2. Add Performance Optimization
 When you need better performance:
 - `useStoreSelector` - Selective subscriptions
-- `useComputedStore` - Memoized derived state
 
 ### 3. Use Pattern Hooks
 For larger applications:
@@ -88,7 +85,6 @@ For larger applications:
 
 ### 4. Add Specialized Features
 As needed:
-- `useAsyncComputedStore` - Async operations
 - `useStoreActions` - Memoized methods
 
 ## 🔍 Example Features
@@ -121,8 +117,7 @@ __tests__/
 │   └── hooks/
 │       ├── useStoreValue.test.tsx
 │       ├── useLocalStore.test.tsx
-│       ├── useStoreSelector.test.tsx
-│       ├── useComputedStore.test.tsx
+│       └── useStoreSelector.test.tsx
 ```
 
 Run tests with:

@@ -1,6 +1,7 @@
 packages:
   - packages/core
   - packages/react
+  - packages/mutative
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
   - example

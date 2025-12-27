@@ -71,7 +71,7 @@ export function PerformanceManagementHandlers({
         const currentState = performanceStore.getValue();
 
         // 실행 중인 인스턴스는 제거할 수 없음
-        if (currentState.runningInstances.has(instanceId)) {
+        if (currentState.runningInstances.includes(instanceId)) {
           controller.abort('Cannot remove running instance');
           return;
         }
@@ -109,7 +109,7 @@ export function PerformanceManagementHandlers({
         performanceStore.update((state) => ({
           ...state,
           instances: defaultInstances,
-          runningInstances: new Set<string>(),
+          runningInstances: [],
         }));
 
         console.log('✅ Reset instances to default state');
@@ -125,11 +125,12 @@ export function PerformanceManagementHandlers({
     useCallback(
       async ({ instanceId }, controller) => {
         performanceStore.update((state) => {
-          const newRunningInstances = new Set(state.runningInstances);
-          newRunningInstances.add(instanceId);
+          if (state.runningInstances.includes(instanceId)) {
+            return state;
+          }
           return {
             ...state,
-            runningInstances: newRunningInstances,
+            runningInstances: [...state.runningInstances, instanceId],
           };
         });
 
@@ -145,14 +146,10 @@ export function PerformanceManagementHandlers({
     'stopInstanceExecution',
     useCallback(
       async ({ instanceId }, controller) => {
-        performanceStore.update((state) => {
-          const newRunningInstances = new Set(state.runningInstances);
-          newRunningInstances.delete(instanceId);
-          return {
-            ...state,
-            runningInstances: newRunningInstances,
-          };
-        });
+        performanceStore.update((state) => ({
+          ...state,
+          runningInstances: state.runningInstances.filter((id) => id !== instanceId),
+        }));
 
         console.log(`✅ Stopped execution for instance: ${instanceId}`);
       },

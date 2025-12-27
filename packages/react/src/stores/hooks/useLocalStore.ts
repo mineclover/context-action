@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Store, createStore } from '../core/Store';
-import { useStoreSelector } from '../utils/store-selector';
+import { useStoreValue } from './useStoreValue';
 import type { Snapshot } from '../core/types';
 
 // Counter for generating unique store names (more efficient than Date.now + Math.random)
@@ -18,11 +18,14 @@ export function useLocalStore<T>(
     storeRef.current = createStore(storeName, initialValue);
   }
 
-  const snapshot = useStoreSelector(storeRef.current);
+  const store = storeRef.current;
+  const value = useStoreValue(store);
 
   return {
-    ...snapshot,
-    store: storeRef.current
+    value,
+    name: store.name,
+    lastUpdate: store.getSnapshot().lastUpdate,
+    store
   };
 }
 

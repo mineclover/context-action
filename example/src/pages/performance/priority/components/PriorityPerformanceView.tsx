@@ -53,7 +53,7 @@ export function PriorityPerformanceView() {
           </div>
           {isAnyInstanceRunning && (
             <div className="text-sm text-orange-600 font-medium">
-              🚀 Running: <strong>{runningInstanceIds.size}</strong> instances
+              🚀 Running: <strong>{runningInstanceIds.length}</strong> instances
             </div>
           )}
         </div>
@@ -74,7 +74,7 @@ export function PriorityPerformanceView() {
             </h2>
             {isAnyInstanceRunning && (
               <p className="text-sm text-orange-600 mt-1">
-                ⚠️ {runningInstanceIds.size}개 인스턴스가 성능 테스트 실행
+                ⚠️ {runningInstanceIds.length}개 인스턴스가 성능 테스트 실행
                 중입니다
               </p>
             )}
@@ -98,7 +98,7 @@ export function PriorityPerformanceView() {
       {/* 성능 테스트 인스턴스들 */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         {performanceState.instances.map((instance) => {
-          const isInstanceRunning = runningInstanceIds.has(instance.id);
+          const isInstanceRunning = runningInstanceIds.includes(instance.id);
           return (
             <div
               key={instance.id}

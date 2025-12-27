@@ -81,7 +81,7 @@ export function usePriorityPerformanceLogic() {
         performanceStore.update((state) => ({
           ...state,
           instances: defaultInstances,
-          runningInstances: new Set<string>(),
+          runningInstances: [],
         }));
       }
     );
@@ -91,11 +91,12 @@ export function usePriorityPerformanceLogic() {
       'startInstanceExecution',
       ({ instanceId }, controller) => {
         performanceStore.update((state) => {
-          const newRunningInstances = new Set(state.runningInstances);
-          newRunningInstances.add(instanceId);
+          if (state.runningInstances.includes(instanceId)) {
+            return state;
+          }
           return {
             ...state,
-            runningInstances: newRunningInstances,
+            runningInstances: [...state.runningInstances, instanceId],
           };
         });
       }
@@ -105,14 +106,10 @@ export function usePriorityPerformanceLogic() {
     const unregisterStopExecution = register.register(
       'stopInstanceExecution',
       ({ instanceId }, controller) => {
-        performanceStore.update((state) => {
-          const newRunningInstances = new Set(state.runningInstances);
-          newRunningInstances.delete(instanceId);
-          return {
-            ...state,
-            runningInstances: newRunningInstances,
-          };
-        });
+        performanceStore.update((state) => ({
+          ...state,
+          runningInstances: state.runningInstances.filter((id) => id !== instanceId),
+        }));
       }
     );
 
@@ -154,12 +151,12 @@ export function usePriorityPerformanceLogic() {
     // Computed values
     canOperate: !!register && !!dispatch,
     canModifyInstances:
-      !!register && !!dispatch && performanceState.runningInstances.size === 0,
+      !!register && !!dispatch && performanceState.runningInstances.length === 0,
     instanceCount: performanceState.instances.length,
     canRemove:
       performanceState.instances.length > 1 &&
-      performanceState.runningInstances.size === 0,
-    isAnyInstanceRunning: performanceState.runningInstances.size > 0,
+      performanceState.runningInstances.length === 0,
+    isAnyInstanceRunning: performanceState.runningInstances.length > 0,
     runningInstanceIds: performanceState.runningInstances,
   };
 }

@@ -1,12 +1,46 @@
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 import type { StoreRegistry } from './StoreRegistry';
-import { safeGet, safeSet, produce } from '../utils/immutable';
+import { safeGet, safeSet, produceWithPatches, type Draft, type Patches } from '@context-action/mutative';
 import {
   compareValues,
   ComparisonOptions
 } from '../utils/comparison';
 import { TypeGuards } from '../utils/type-guards';
 import { ErrorHandlers } from '../utils/error-handling';
+
+/**
+ * Listener that receives patches information for path-based optimization
+ */
+export type PatchAwareListener = (patches: Patches | null) => void;
+
+/**
+ * Deep freeze an object to make it immutable
+ * Prevents modifications to the returned value from affecting cached state
+ */
+function deepFreeze<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  // Don't freeze non-plain objects (DOM elements, class instances with methods, etc.)
+  const proto = Object.getPrototypeOf(obj);
+  if (proto !== Object.prototype && proto !== Array.prototype) {
+    return obj;
+  }
+
+  // Freeze the object itself
+  Object.freeze(obj);
+
+  // Recursively freeze all properties
+  for (const key of Object.keys(obj)) {
+    const value = (obj as Record<string, unknown>)[key];
+    if (value !== null && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  }
+
+  return obj;
+}
 
 /**
  * Core Store class for centralized state management with memory leak prevention
@@ -43,6 +77,10 @@ import { ErrorHandlers } from '../utils/error-handling';
 export class Store<T = unknown> implements IStore<T> {
   // Subscriber list - Set for duplicate prevention and O(1) deletion
   private listeners = new Set<Listener>();
+  // Patch-aware subscribers for path-based optimization
+  private patchAwareListeners = new Set<PatchAwareListener>();
+  // Last patches from the most recent update
+  private _lastPatches: Patches | null = null;
   // Actual state value - Single Source of Truth
   protected _value: T;
   // Immutable snapshot - Compatible with React's useSyncExternalStore
@@ -157,6 +195,47 @@ export class Store<T = unknown> implements IStore<T> {
   };
 
   /**
+   * Subscribe with patches information for path-based optimization
+   *
+   * Allows subscribers to receive JSON patches describing what changed,
+   * enabling efficient path-based re-rendering decisions.
+   *
+   * @param listener - Callback that receives patches array on each update
+   * @returns Unsubscribe function
+   *
+   * @example
+   * ```typescript
+   * store.subscribeWithPatches((patches) => {
+   *   if (patches?.some(p => p.path[0] === 'user')) {
+   *     // Only handle user-related changes
+   *     updateUserUI();
+   *   }
+   * });
+   * ```
+   */
+  subscribeWithPatches = (listener: PatchAwareListener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    this.patchAwareListeners.add(listener);
+    return () => this.patchAwareListeners.delete(listener);
+  };
+
+  /**
+   * Get the patches from the last state change
+   *
+   * Returns the JSON patches that describe the most recent update,
+   * or null if no patches are available (e.g., initial state or full replacement).
+   *
+   * @returns Array of JSON patches or null
+   */
+  getLastPatches(): Patches | null {
+    return this._lastPatches;
+  }
+
+  /**
    * 현재 Store 스냅샷 가져오기
    * 핵심 로직: React의 useSyncExternalStore가 사용하는 불변 스냅샷 제공
    */
@@ -183,14 +262,19 @@ export class Store<T = unknown> implements IStore<T> {
       return this._value;
     }
 
-    // Copy-on-Write optimization: reuse cloned value if version hasn't changed
+    // Return cloned and frozen value for immutability guarantee
+    // Uses version-based caching: same version = reuse cached clone for performance
+    // Different version = create new clone (value changed via setValue)
+    // Frozen objects prevent external modifications from affecting cached state
     if (this.cloningEnabled) {
+      // Cache hit: return cached frozen clone if version hasn't changed
       if (this._lastClonedVersion === this._version && this._lastClonedValue !== null) {
         return this._lastClonedValue;
       }
 
-      // Clone and cache for future reads
-      this._lastClonedValue = safeGet(this._value, this.cloningEnabled);
+      // Cache miss: create fresh clone, freeze it, and cache it
+      const cloned = safeGet(this._value, this.cloningEnabled);
+      this._lastClonedValue = deepFreeze(cloned);
       this._lastClonedVersion = this._version;
       return this._lastClonedValue;
     }
@@ -275,35 +359,71 @@ export class Store<T = unknown> implements IStore<T> {
     
     // 성능 최적화된 불변성 보장 with optional cloning
     const safeValue = options?.skipClone ? value : safeSet(value, this.cloningEnabled);
-    
+
     // 강화된 값 비교 시스템 (선택적 skip 가능)
     let hasChanged = true;
     if (!options?.skipComparison) {
       hasChanged = this._compareValues(this._value, safeValue);
     }
-    
+
     if (hasChanged) {
+      // Generate patches if we have patch-aware listeners and values are objects
+      if (this.patchAwareListeners.size > 0 &&
+          TypeGuards.isObject(this._value) &&
+          TypeGuards.isObject(safeValue)) {
+        try {
+          // Use Mutative produceWithPatches to generate patches
+          const [, patches] = produceWithPatches(
+            this._value,
+            (draft) => {
+              // Overwrite draft with new value to capture all changes
+              const draftKeys = Object.keys(draft as object);
+              const valueKeys = Object.keys(safeValue as object);
+
+              // Remove keys not in new value
+              for (const key of draftKeys) {
+                if (!Object.prototype.hasOwnProperty.call(safeValue, key)) {
+                  delete (draft as Record<string, unknown>)[key];
+                }
+              }
+
+              // Set/update all keys from new value
+              for (const key of valueKeys) {
+                (draft as Record<string, unknown>)[key] = (safeValue as Record<string, unknown>)[key];
+              }
+            }
+          );
+          this._lastPatches = patches;
+        } catch {
+          // Fallback: no patches on error
+          this._lastPatches = null;
+        }
+      } else {
+        // No patch-aware listeners or non-object values
+        this._lastPatches = null;
+      }
+
       this._value = safeValue;
       // Increment version for Copy-on-Write cache invalidation
       this._version++;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
-      
+
       // 듀얼 모드 알림 시스템
       this._scheduleNotification();
     }
   }
 
   /**
-   * Update value using updater function with Immer integration
-   * 핵심 로직: 
-   * 1. Immer produce를 사용하여 draft 객체 제공
+   * Update value using updater function with Mutative integration
+   * 핵심 로직:
+   * 1. Mutative create를 사용하여 draft 객체 제공 (패치 캡처 포함)
    * 2. updater 결과를 불변성을 보장하며 설정
-   * 
+   *
    * @implements store-immutability
-   * 보안 강화: Immer draft를 통한 안전한 상태 수정
+   * 보안 강화: Mutative draft를 통한 안전한 상태 수정
    */
-  update(updater: (current: T) => T): void {
+  update(updater: (current: T) => T | void): void {
     // 동시성 보호: update 진행 중이면 큐에 추가
     if (this.isUpdating) {
       this.updateQueue.push(() => this.update(updater));
@@ -312,47 +432,76 @@ export class Store<T = unknown> implements IStore<T> {
 
     try {
       this.isUpdating = true;
-      
-      // Immer 기반 업데이트 우선 시도
+
+      // Mutative 기반 업데이트 시도 (패치 캡처 포함)
       let updatedValue: T;
-      
+      let patches: Patches | null = null;
+
       try {
-        // Immer produce로 불변성 보장된 업데이트
-        updatedValue = produce(this._value, (draft: T) => {
-          // updater 함수 실행 - draft를 수정하거나 새 값을 반환할 수 있음
-          const result = updater(draft);
-          // 반환값이 있으면 그것을 사용, 없으면 draft의 수정을 사용
-          return result !== undefined ? result : draft;
-        });
-      } catch (immerError) {
+        // Mutative produceWithPatches로 불변성 보장된 업데이트 + 패치 캡처
+        const [nextState, capturedPatches] = produceWithPatches(
+          this._value,
+          (draft): T | void => {
+            // updater 함수 실행 - draft를 수정하거나 새 값을 반환할 수 있음
+            const result = updater(draft as T);
+            // 반환값이 있으면 그것을 사용 (새 객체로 대체)
+            // 없으면 draft 수정을 그대로 사용 (void 반환)
+            if (result !== undefined) {
+              return result;
+            }
+            // 명시적 void 반환 - draft 수정이 적용됨
+          }
+        );
+        updatedValue = nextState;
+        patches = capturedPatches;
+      } catch (mutativeError) {
         if (process.env.NODE_ENV === 'development') {
-          console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
+          console.warn('[Store] Mutative update failed, falling back to safe copy method', mutativeError);
         }
         // 폴백: 안전한 복사본 생성 후 updater 실행
         const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
-        
+
         try {
-          // 폴백에서도 Immer의 동작을 시뮬레이션
-          updatedValue = produce(safeCurrentValue, (draft: T) => {
-            const result = updater(draft);
-            return result !== undefined ? result : draft;
-          });
-        } catch (secondImmerError) {
-          // Immer가 완전히 실패한 경우에만 일반 객체 사용
+          // 폴백에서도 Mutative의 동작을 시뮬레이션
+          const [nextState, capturedPatches] = produceWithPatches(
+            safeCurrentValue,
+            (draft): T | void => {
+              const result = updater(draft as T);
+              if (result !== undefined) {
+                return result;
+              }
+              // 명시적 void 반환 - draft 수정이 적용됨
+            }
+          );
+          updatedValue = nextState;
+          patches = capturedPatches;
+        } catch (secondMutativeError) {
+          // Mutative가 완전히 실패한 경우에만 일반 객체 사용
           if (process.env.NODE_ENV === 'development') {
-            console.warn('[Store] Immer completely failed, using direct update (immutability not guaranteed)', secondImmerError);
+            console.warn('[Store] Mutative completely failed, using direct update (immutability not guaranteed)', secondMutativeError);
           }
-          updatedValue = updater(safeCurrentValue);
+          try {
+            const result = updater(safeCurrentValue);
+            // If updater returns a value, use it; otherwise use the (possibly mutated) safeCurrentValue
+            updatedValue = result !== undefined ? result : safeCurrentValue;
+          } catch (updaterError) {
+            // Updater threw an error - don't crash, just log and return
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Store] Updater function threw an error, update aborted', updaterError);
+            }
+            return;
+          }
+          patches = null; // No patches available in fallback mode
         }
       }
-      
+
       // 이벤트 객체 감지 및 기본 처리 (update 메소드는 block 모드만 지원)
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
           const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
           const hasPreventDefault = TypeGuards.isEventLike(updatedValue);
           const isEvent = TypeGuards.isDOMEvent(updatedValue);
-          
+
           ErrorHandlers.store(
             'Event object detected in Store.update result - this may cause memory leaks',
             {
@@ -365,15 +514,22 @@ export class Store<T = unknown> implements IStore<T> {
               problematicProperties: TypeGuards.findProblematicProperties(updatedValue)
             }
           );
-          
+
           return;
         }
       }
-      
-      this.setValue(updatedValue);
+
+      // 직접 상태 업데이트 (setValue 대신) - 패치 정보 유지
+      if (this._compareValues(this._value, updatedValue)) {
+        this._lastPatches = patches;
+        this._value = updatedValue;
+        this._version++;
+        this._snapshot = this._createSnapshot();
+        this._scheduleNotification();
+      }
     } finally {
       this.isUpdating = false;
-      
+
       // 큐에 대기 중인 업데이트 처리
       if (this.updateQueue.length > 0) {
         const nextUpdate = this.updateQueue.shift();
@@ -386,17 +542,18 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   /**
-   * Get number of active listeners
+   * Get number of active listeners (includes patch-aware listeners)
    */
   getListenerCount(): number {
-    return this.listeners.size;
+    return this.listeners.size + this.patchAwareListeners.size;
   }
 
   /**
-   * Clear all listeners
+   * Clear all listeners (includes patch-aware listeners)
    */
   clearListeners(): void {
     this.listeners.clear();
+    this.patchAwareListeners.clear();
   }
 
   /**
@@ -594,12 +751,15 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   protected _createSnapshot(): Snapshot<T> {
-    // 최적화된 불변성 보장 with selective cloning
+    // 최적화된 불변성 보장 with selective cloning and freezing
     const clonedValue = safeGet(this._value, this.cloningEnabled);
-    
-    
+
+    // Freeze the cloned value to guarantee immutability
+    // Prevents external modifications from affecting the snapshot
+    const frozenValue = deepFreeze(clonedValue);
+
     return {
-      value: clonedValue,
+      value: frozenValue,
       name: this.name,
       lastUpdate: Date.now()
     };
@@ -715,10 +875,25 @@ export class Store<T = unknown> implements IStore<T> {
   
   private _notifyListeners(): void {
     if (this.isDisposed) return;
-    
+
+    // Notify regular listeners
     this.listeners.forEach(listener => {
       if (this.isDisposed) return; // Double-check during iteration
       listener(); // Enhanced listeners handle their own errors
+    });
+
+    // Notify patch-aware listeners with last patches
+    this.patchAwareListeners.forEach(listener => {
+      if (this.isDisposed) return;
+      try {
+        listener(this._lastPatches);
+      } catch (error) {
+        ErrorHandlers.store(
+          'Error in patch-aware listener execution',
+          { storeName: this.name },
+          error instanceof Error ? error : undefined
+        );
+      }
     });
   }
 }
@@ -751,66 +926,4 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
   return store;
 }
 
-/**
- * Store configuration options for HOC patterns
- */
-export interface StoreConfig<T = unknown> {
-  name: string;
-  initialValue: T;
-  registry?: StoreRegistry;
-  autoRegister?: boolean;
-}
-
-/**
- * Enhanced store with auto-registration capability
- */
-export class ManagedStore<T> extends Store<T> {
-  private registry: StoreRegistry | undefined;
-  private autoRegister: boolean;
-
-  constructor(config: StoreConfig<T>) {
-    super(config.name, config.initialValue);
-    this.registry = config.registry ?? undefined;
-    this.autoRegister = config.autoRegister ?? true;
-    
-    if (this.autoRegister && this.registry) {
-      this.registry.register(this.name, this);
-    }
-  }
-
-  /**
-   * Dispose store and unregister from registry
-   */
-  dispose(): void {
-    if (this.registry) {
-      this.registry.unregister(this.name);
-    }
-    this.clearListeners();
-  }
-}
-
-/**
- * Create a managed store with auto-registration
- * @template T The store value type
- * @param config - Store configuration
- * @returns ManagedStore instance
- * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- */
-export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
-  return new ManagedStore<T>(config);
-}
-
-/**
- * Advanced Store configuration options for factory pattern
- */
-export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
-  comparisonStrategy?: 'reference' | 'shallow' | 'deep' | 'custom';
-  customComparator?: (oldValue: T, newValue: T) => boolean;
-  enablePersistence?: boolean;
-  persistenceKey?: string;
-  enablePerformanceMonitoring?: boolean;
-  notificationMode?: 'batched' | 'immediate';
-  enableCloning?: boolean;
-}
 

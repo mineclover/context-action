@@ -249,11 +249,11 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 - **Optimization**: Single subscription for multiple stores
 - **Use Case**: Cross-store computed values
 
-#### `useStorePathSelector(store, path, equalityFn?)`
-**Path-based selector** for nested objects.
-- **Purpose**: Select nested values by path
-- **Convenience**: Dot notation for deep selection
-- **Use Case**: Complex nested state
+#### `useStorePath(store, path, options?)`
+**Path-based subscription** using JSON patches.
+- **Purpose**: Subscribe to specific path with minimal re-renders
+- **Performance**: Only re-renders when subscribed path changes
+- **Use Case**: Direct property access optimization
 
 #### `useAsyncComputedStore(asyncCompute, deps, config?)`
 **Async computed values** hook.
@@ -432,21 +432,58 @@ const dashboard = useMultiComputedStore(
 );
 ```
 
-### 🎯 Specialized Selector Hooks
+### 🎯 Path-Based Subscription Hooks
 
-#### `useStorePathSelector<T>(store, path, equalityFn?)`
-**Path-based selector** for nested values.
-- **Purpose**: Select deeply nested values by path
-- **Convenience**: Array or dot notation for paths
-- **Use Case**: Complex nested state structures
+#### `useStorePath<T, R>(store, path, options?)`
+**Path-based subscription** using JSON patches for optimal re-renders.
+- **Purpose**: Subscribe to a specific path in the store
+- **Performance**: Only re-renders when the subscribed path changes (uses patch analysis)
+- **Use Case**: Direct property access with minimal re-renders
 
 ```tsx
-// Using array path
-const city = useStorePathSelector(userStore, ['address', 'city']);
+import { useStorePath } from '@context-action/react';
 
-// Would also support dot notation if implemented
-const city = useStorePathSelector(userStore, 'address.city');
+// Only re-renders when user.name changes
+const name = useStorePath(userStore, ['user', 'name']);
+
+// Array access
+const firstItem = useStorePath(listStore, ['items', 0]);
+
+// With custom equality
+const position = useStorePath(gameStore, ['player', 'position'], {
+  equalityFn: (a, b) => a?.x === b?.x && a?.y === b?.y
+});
 ```
+
+#### `useStoreSelectorWithPaths<T, R>(store, selector, options?)`
+**Optimized selector** with path-based subscription hints.
+- **Purpose**: Combine selector transformation with path-based optimization
+- **Performance**: Selector only runs when dependent paths change
+- **Use Case**: Derived values with known dependencies (best of both worlds)
+
+```tsx
+import { useStoreSelectorWithPaths } from '@context-action/react';
+
+// Selector runs only when firstName or lastName changes
+const fullName = useStoreSelectorWithPaths(
+  userStore,
+  (state) => `${state.user.firstName} ${state.user.lastName}`,
+  { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
+);
+
+// Without dependsOn, falls back to subscribing to all changes
+const total = useStoreSelectorWithPaths(
+  cartStore,
+  (state) => state.items.reduce((sum, i) => sum + i.price, 0)
+);
+```
+
+**Comparison:**
+| Hook | Selector Runs | Best For |
+|------|---------------|----------|
+| `useStoreSelector` | Every change | Complex transformations |
+| `useStorePath` | Path match only | Direct property access |
+| `useStoreSelectorWithPaths` | Path match only | Derived values with known deps |
 
 #### `useAsyncComputedStore<R>(dependencies, compute, config?)`
 **Async computation hook** for asynchronous derived state.
@@ -596,7 +633,8 @@ These hooks are created by factory functions:
 #### Performance Optimization
 - `useStoreSelector` - Selective subscription
 - `useMultiStoreSelector` - Multi-store selection
-- `useStorePathSelector` - Path-based selection
+- `useStorePath` - Path-based subscription
+- `useStoreSelectorWithPaths` - Optimized selector with path hints
 - `useComputedStore` - Computed values
 - `useMultiComputedStore` - Multi-store computation
 - `useAsyncComputedStore` - Async computation
@@ -638,7 +676,7 @@ These hooks are created by factory functions:
 ### Specialized Hooks (For Specific Cases)
 - **Multi-Store**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`
 - **Async**: `useAsyncComputedStore`
-- **Path Selection**: `useStorePathSelector`
+- **Path Selection**: `useStorePath`, `useStoreSelectorWithPaths`
 - **Type Safety**: `assertStoreValue`
 - **Low-Level**: `useActionContext`
 

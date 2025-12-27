@@ -6,7 +6,8 @@
  */
 
 import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
-import type { Store } from '../core/Store';
+import type { IStore } from '../core/types';
+import { referenceEquals, shallowEquals, deepEquals } from './comparison';
 
 /**
  * 향상된 구독 옵션
@@ -29,7 +30,7 @@ export interface EnhancedSubscriptionOptions {
  * 디바운싱, 스로틀링, 조건부 구독 기능 제공
  */
 function createEnhancedSubscriber<T>(
-  store: Store<T>,
+  store: IStore<T>,
   options: EnhancedSubscriptionOptions = {}
 ) {
   const { debounce, throttle, condition, debug, name = 'unknown' } = options;
@@ -97,7 +98,7 @@ function createEnhancedSubscriber<T>(
  * useSyncExternalStore를 기반으로 한 안전한 구독
  */
 export function useSafeStoreSubscription<T, R = T>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selector?: (value: T) => R,
   options: EnhancedSubscriptionOptions & {
     equalityFn?: (a: R, b: R) => boolean;
@@ -173,122 +174,26 @@ export function useSafeStoreSubscription<T, R = T>(
 }
 
 /**
- * 조건부 Store 구독 훅
- */
-export function useConditionalStoreSubscription<T>(
-  store: Store<T> | undefined | null,
-  condition: boolean,
-  initialValue?: T
-): T | undefined {
-  const subscribe = useCallback((callback: () => void) => {
-    if (!store || !condition) return () => {};
-    return store.subscribe(callback);
-  }, [store, condition]);
-
-  const getSnapshot = useCallback((): T | undefined => {
-    if (!store || !condition) return initialValue;
-    return store.getSnapshot().value;
-  }, [store, condition, initialValue]);
-
-  const getServerSnapshot = useCallback((): T | undefined => {
-    return initialValue;
-  }, [initialValue]);
-
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
-
-/**
- * 다중 Store 구독 훅
- */
-export function useMultiStoreSubscription<T extends readonly Store<any>[], R>(
-  stores: T,
-  selector: (values: { [K in keyof T]: T[K] extends Store<infer U> ? U : never }) => R,
-  equalityFn?: (a: R, b: R) => boolean
-): R {
-  const subscribe = useCallback((callback: () => void) => {
-    const unsubscribes = stores.map(store => store.subscribe(callback));
-    return () => unsubscribes.forEach(unsub => unsub());
-  }, [stores]);
-
-  const getSnapshot = useCallback((): R => {
-    const values = stores.map(store => store.getSnapshot().value) as any;
-    return selector(values);
-  }, [stores, selector]);
-
-  // 동등성 비교 최적화
-  const previousValueRef = useRef<R>();
-  const currentValue = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  
-  return useMemo(() => {
-    if (equalityFn && previousValueRef.current !== undefined) {
-      if (equalityFn(previousValueRef.current, currentValue)) {
-        return previousValueRef.current;
-      }
-    }
-    previousValueRef.current = currentValue;
-    return currentValue;
-  }, [currentValue, equalityFn]);
-}
-
-/**
  * 기본 동등성 비교 함수들
+ * comparison.ts의 함수들을 래핑하여 hook에서 사용하기 편한 인터페이스 제공
  */
 export const equalityFunctions = {
-  reference: <T>(a: T, b: T): boolean => Object.is(a, b),
-  
-  shallow: <T>(a: T, b: T): boolean => {
-    if (Object.is(a, b)) return true;
-    
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-      return false;
-    }
-    
-    const keysA = Object.keys(a) as Array<keyof T>;
-    const keysB = Object.keys(b) as Array<keyof T>;
-    
-    if (keysA.length !== keysB.length) return false;
-    
-    for (const key of keysA) {
-      if (!Object.prototype.hasOwnProperty.call(b, key) || !Object.is(a[key], b[key])) {
-        return false;
-      }
-    }
-    
-    return true;
-  },
-  
-  deep: <T>(a: T, b: T): boolean => {
-    if (Object.is(a, b)) return true;
-    
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-      return false;
-    }
-    
-    if (Array.isArray(a) !== Array.isArray(b)) return false;
-    
-    const keysA = Object.keys(a) as Array<keyof T>;
-    const keysB = Object.keys(b) as Array<keyof T>;
-    
-    if (keysA.length !== keysB.length) return false;
-    
-    for (const key of keysA) {
-      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-      if (!equalityFunctions.deep(a[key], b[key])) return false;
-    }
-    
-    return true;
-  },
-  
+  reference: <T>(a: T, b: T): boolean => referenceEquals(a, b),
+
+  shallow: <T>(a: T, b: T): boolean => shallowEquals(a, b),
+
+  deep: <T>(a: T, b: T): boolean => deepEquals(a, b),
+
   // 똑똑한 자동 동등성 함수 - 배열의 깊은 비교 지원
   smart: <T>(a: T, b: T): boolean => {
     // 참조가 같으면 바로 true
-    if (Object.is(a, b)) return true;
-    
-    // primitive 값들은 Object.is로 처리
+    if (referenceEquals(a, b)) return true;
+
+    // primitive 값들은 참조 비교로 처리
     if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
       return false;
     }
-    
+
     // 배열인 경우 깊은 비교
     if (Array.isArray(a) && Array.isArray(b)) {
       if (a.length !== b.length) return false;
@@ -296,14 +201,14 @@ export const equalityFunctions = {
         const bItem = b[index];
         // 배열 요소가 객체인 경우 shallow 비교
         if (typeof item === 'object' && item !== null && typeof bItem === 'object' && bItem !== null) {
-          return equalityFunctions.shallow(item, bItem);
+          return shallowEquals(item, bItem);
         }
-        // primitive 값은 Object.is로 비교
-        return Object.is(item, bItem);
+        // primitive 값은 참조 비교
+        return referenceEquals(item, bItem);
       });
     }
-    
+
     // 일반 객체인 경우 shallow 비교
-    return equalityFunctions.shallow(a, b);
+    return shallowEquals(a, b);
   }
 };

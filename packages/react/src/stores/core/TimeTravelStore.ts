@@ -1,0 +1,392 @@
+/**
+ * @fileoverview Time Travel Store
+ *
+ * Store with undo/redo capabilities powered by @context-action/mutative.
+ * Provides time-travel functionality through Mutative JSON patches.
+ */
+
+import { TimeTravel, createTimeTravel, safeGet, type TimeTravelOptions, type TimeTravelControls, type TravelPatches, type Patches } from '@context-action/mutative';
+import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+
+/**
+ * Listener that receives patches information
+ */
+export type PatchAwareListener = (patches: Patches | null) => void;
+import { TypeGuards } from '../utils/type-guards';
+import { ErrorHandlers } from '../utils/error-handling';
+
+/**
+ * Configuration options for TimeTravelStore
+ */
+export interface TimeTravelStoreOptions<T> {
+  /** Maximum number of history entries */
+  maxHistory?: number;
+  /** Enable mutable mode for observable state */
+  mutable?: boolean;
+  /** Custom equality function */
+  isEqual?: (a: T, b: T) => boolean;
+}
+
+/**
+ * TimeTravelStore - Store with built-in undo/redo functionality
+ *
+ * @example
+ * ```tsx
+ * const store = createTimeTravelStore('counter', { count: 0 }, { maxHistory: 50 });
+ *
+ * // Update state
+ * store.setValue({ count: 1 });
+ * store.setValue({ count: 2 });
+ *
+ * // Undo/Redo
+ * store.undo(); // count: 1
+ * store.redo(); // count: 2
+ *
+ * // Get controls for UI
+ * const { canUndo, canRedo, position, history } = store.getTimeTravelControls();
+ * ```
+ */
+export class TimeTravelStore<T = unknown> implements IStore<T> {
+  public readonly name: string;
+
+  private timeTravel: TimeTravel<T, false, true>;
+  private listeners = new Set<Listener>();
+  private patchAwareListeners = new Set<PatchAwareListener>();
+  private _snapshot: Snapshot<T>;
+  private _lastPatches: Patches | null = null;
+  private isDisposed = false;
+  private cleanupTasks = new Set<() => void>();
+  private customComparator?: (a: T, b: T) => boolean;
+  private cloningEnabled = true;
+
+  constructor(
+    name: string,
+    initialValue: T,
+    options: TimeTravelStoreOptions<T> = {}
+  ) {
+    this.name = name;
+    this.customComparator = options.isEqual;
+
+    // Create TimeTravel instance
+    const timeTravelOptions: TimeTravelOptions<false, true> = {
+      maxHistory: options.maxHistory ?? 50,
+      mutable: options.mutable ?? false,
+      autoArchive: true,
+    };
+
+    this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
+
+    // Subscribe to TimeTravel changes with patches
+    this.timeTravel.subscribe((state, travelPatches, position) => {
+      // Flatten patches for easy access
+      this._lastPatches = travelPatches.patches.flat() as Patches;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, this._lastPatches.length, 'listeners:', this.listeners.size);
+      }
+
+      this._updateSnapshot();
+      this._notifyListeners();
+      this._notifyPatchAwareListeners();
+    });
+
+    // Create initial snapshot
+    this._snapshot = this._createSnapshot();
+  }
+
+  // ============================================================================
+  // IStore Implementation
+  // ============================================================================
+
+  subscribe = (listener: Listener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+
+  /**
+   * Subscribe with patches information for path-based optimization
+   */
+  subscribeWithPatches = (listener: PatchAwareListener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    this.patchAwareListeners.add(listener);
+    return () => this.patchAwareListeners.delete(listener);
+  };
+
+  /**
+   * Get the patches from the last state change
+   */
+  getLastPatches(): Patches | null {
+    return this._lastPatches;
+  }
+
+  getSnapshot = (): Snapshot<T> => this._snapshot;
+
+  getValue(): T {
+    const value = this.timeTravel.getState();
+    return this.cloningEnabled ? safeGet(value, true) : value;
+  }
+
+  setValue(value: T, options?: StoreSetValueOptions<T>): void {
+    if (this.isDisposed) return;
+
+    // Event object detection
+    if (TypeGuards.isObject(value)) {
+      if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
+        const eventHandling = options?.eventHandling || 'block';
+
+        if (eventHandling === 'block') {
+          ErrorHandlers.store(
+            'Event object detected in TimeTravelStore.setValue',
+            { storeName: this.name }
+          );
+          return;
+        }
+
+        if (eventHandling === 'transform' && options?.eventTransform) {
+          value = options.eventTransform(value);
+        }
+      }
+    }
+
+    // Skip update if values are equal
+    if (!options?.skipComparison) {
+      const currentValue = this.timeTravel.getState();
+      if (this._areEqual(currentValue, value)) {
+        return;
+      }
+    }
+
+    // Update through TimeTravel
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] setValue - position before: ${this.timeTravel.getPosition()}`);
+    }
+    this.timeTravel.setState(value);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] setValue complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+
+  update(updater: (current: T) => T | void): void {
+    if (this.isDisposed) return;
+
+    // Use TimeTravel's draft-based update
+    this.timeTravel.setState((draft): T | void => {
+      const result = updater(draft as T);
+      if (result !== undefined) {
+        return result;
+      }
+      // When updater modifies draft in-place, return void (mutative handles this)
+    });
+  }
+
+  getListenerCount(): number {
+    return this.listeners.size;
+  }
+
+  clearListeners(): void {
+    this.listeners.clear();
+    this.patchAwareListeners.clear();
+  }
+
+  dispose(): void {
+    if (this.isDisposed) return;
+    this.isDisposed = true;
+
+    // Execute cleanup tasks
+    this.cleanupTasks.forEach((task) => {
+      try {
+        task();
+      } catch (error) {
+        ErrorHandlers.store('Cleanup task error', { storeName: this.name });
+      }
+    });
+    this.cleanupTasks.clear();
+    this.listeners.clear();
+    this.patchAwareListeners.clear();
+  }
+
+  registerCleanup(task: () => void): () => void {
+    if (this.isDisposed) return () => {};
+    this.cleanupTasks.add(task);
+    return () => this.cleanupTasks.delete(task);
+  }
+
+  isStoreDisposed(): boolean {
+    return this.isDisposed;
+  }
+
+  // ============================================================================
+  // Time Travel API
+  // ============================================================================
+
+  /**
+   * Undo the last change
+   */
+  undo(steps = 1): void {
+    if (this.isDisposed) return;
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] undo(${steps}) - position before: ${this.timeTravel.getPosition()}, canBack: ${this.timeTravel.canBack()}`);
+    }
+    this.timeTravel.back(steps);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] undo complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+
+  /**
+   * Redo the last undone change
+   */
+  redo(steps = 1): void {
+    if (this.isDisposed) return;
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] redo(${steps}) - position before: ${this.timeTravel.getPosition()}, canForward: ${this.timeTravel.canForward()}`);
+    }
+    this.timeTravel.forward(steps);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] redo complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+
+  /**
+   * Check if undo is possible
+   */
+  canUndo(): boolean {
+    return this.timeTravel.canBack();
+  }
+
+  /**
+   * Check if redo is possible
+   */
+  canRedo(): boolean {
+    return this.timeTravel.canForward();
+  }
+
+  /**
+   * Go to a specific position in history
+   */
+  goTo(position: number): void {
+    if (this.isDisposed) return;
+    this.timeTravel.go(position);
+  }
+
+  /**
+   * Reset to initial state
+   */
+  reset(): void {
+    if (this.isDisposed) return;
+    this.timeTravel.reset();
+  }
+
+  /**
+   * Get the complete history of states
+   */
+  getHistory(): readonly T[] {
+    return this.timeTravel.getHistory();
+  }
+
+  /**
+   * Get current position in history
+   */
+  getPosition(): number {
+    return this.timeTravel.getPosition();
+  }
+
+  /**
+   * Get time travel controls object
+   */
+  getTimeTravelControls(): TimeTravelControls<T, false> {
+    return this.timeTravel.getControls();
+  }
+
+  // ============================================================================
+  // Configuration
+  // ============================================================================
+
+  setCloningEnabled(enabled: boolean): void {
+    this.cloningEnabled = enabled;
+  }
+
+  isCloningEnabled(): boolean {
+    return this.cloningEnabled;
+  }
+
+  setCustomComparator(comparator: (a: T, b: T) => boolean): void {
+    this.customComparator = comparator;
+  }
+
+  // ============================================================================
+  // Private Methods
+  // ============================================================================
+
+  private _createSnapshot(): Snapshot<T> {
+    const value = this.cloningEnabled
+      ? safeGet(this.timeTravel.getState(), true)
+      : this.timeTravel.getState();
+
+    return {
+      value,
+      name: this.name,
+      lastUpdate: Date.now(),
+    };
+  }
+
+  private _updateSnapshot(): void {
+    this._snapshot = this._createSnapshot();
+  }
+
+  private _notifyListeners(): void {
+    if (this.isDisposed) return;
+    this.listeners.forEach((listener) => {
+      try {
+        listener();
+      } catch (error) {
+        ErrorHandlers.store('Listener error', { storeName: this.name });
+      }
+    });
+  }
+
+  private _notifyPatchAwareListeners(): void {
+    if (this.isDisposed) return;
+    this.patchAwareListeners.forEach((listener) => {
+      try {
+        listener(this._lastPatches);
+      } catch (error) {
+        ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
+      }
+    });
+  }
+
+  private _areEqual(a: T, b: T): boolean {
+    if (this.customComparator) {
+      return this.customComparator(a, b);
+    }
+    return Object.is(a, b);
+  }
+}
+
+/**
+ * Factory function to create a TimeTravelStore
+ */
+export function createTimeTravelStore<T>(
+  name: string,
+  initialValue: T,
+  options?: TimeTravelStoreOptions<T>
+): TimeTravelStore<T> {
+  return new TimeTravelStore(name, initialValue, options);
+}
+
+/**
+ * Type guard to check if a store is a TimeTravelStore
+ */
+export function isTimeTravelStore<T>(store: IStore<T>): store is TimeTravelStore<T> {
+  return store instanceof TimeTravelStore;
+}

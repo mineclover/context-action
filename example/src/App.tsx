@@ -34,6 +34,12 @@ const StoreBasicsPage = lazy(
 const StoreImmutabilityTestPage = lazy(
   () => import('./pages/foundations/store/ImmutabilityTestPage')
 );
+const TimeTravelTestPage = lazy(
+  () => import('./pages/foundations/store/TimeTravelTestPage')
+);
+const TimeTravelContextTestPage = lazy(
+  () => import('./pages/foundations/store/TimeTravelContextTestPage')
+);
 
 // React foundations - Separate chunk for React-specific features
 const ReactProviderPage = lazy(
@@ -188,9 +194,9 @@ const ChatPage = lazy(() =>
   }))
 );
 
-// Integrations - Tool Context AI Demo (ToolContext with OpenRouter and AI SDK)
+// Integrations - AI/LLM (ToolContext with OpenRouter and AI SDK)
 const ToolContextAIDemo = lazy(
-  () => import('./pages/integrations/ToolContextAIDemo')
+  () => import('./pages/integrations/ai/ToolContextAIDemo')
 );
 
 // Integrations - Advanced (separate chunk for advanced features)
@@ -333,6 +339,14 @@ function AppContent() {
             <Route
               path="/foundations/store/immutability-test"
               element={<StoreImmutabilityTestPage />}
+            />
+            <Route
+              path="/foundations/store/time-travel"
+              element={<TimeTravelTestPage />}
+            />
+            <Route
+              path="/foundations/store/time-travel-context"
+              element={<TimeTravelContextTestPage />}
             />
             <Route
               path="/foundations/react/provider"

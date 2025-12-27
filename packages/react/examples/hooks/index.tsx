@@ -10,7 +10,6 @@ import React, { useState } from 'react';
 import UseStoreValueExamples from './essential/useStoreValue-example';
 import UseLocalStoreExamples from './essential/useLocalStore-example';
 import UseStoreSelectorExamples from './utility/useStoreSelector-example';
-import UseComputedStoreExamples from './utility/useComputedStore-example';
 
 // Hook categories for navigation
 const hookCategories = {
@@ -51,13 +50,6 @@ const hookCategories = {
         component: () => <div>Coming soon...</div>,
         frequency: 'Low (<20%)',
         complexity: 'Simple'
-      },
-      {
-        name: 'useComputedStore',
-        description: 'Derived state from store values',
-        component: UseComputedStoreExamples,
-        frequency: 'Low (<20%)',
-        complexity: 'Intermediate'
       },
       {
         name: 'usePersistedStore',

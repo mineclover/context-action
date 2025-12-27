@@ -69,7 +69,7 @@ function LayeredArchitectureFiles() {
   const layeredArchFiles = Object.values(entries).filter(
     (entry) =>
       entry.instances &&
-      entry.instances.size > 0 &&
+      entry.instances.length > 0 &&
       entry.filePath.includes('layered-architecture')
   );
 
@@ -157,9 +157,9 @@ function LayeredArchitectureFiles() {
                       </div>
                     )}
                   </div>
-                  {file.instances.size > 1 && (
+                  {file.instances.length > 1 && (
                     <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">
-                      {file.instances.size} instances
+                      {file.instances.length} instances
                     </span>
                   )}
                   <div className="text-xs text-gray-400">
@@ -224,9 +224,9 @@ function LayeredArchitectureFiles() {
                     </div>
                   )}
                 </div>
-                {file.instances.size > 1 && (
+                {file.instances.length > 1 && (
                   <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">
-                    {file.instances.size} instances
+                    {file.instances.length} instances
                   </span>
                 )}
                 <div className="text-xs text-gray-400">

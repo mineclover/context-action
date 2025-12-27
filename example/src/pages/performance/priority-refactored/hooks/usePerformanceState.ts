@@ -21,14 +21,14 @@ export function usePerformanceState() {
   const computedValues = useMemo(
     () => ({
       instanceCount: performanceState.instances.length,
-      runningInstanceCount: performanceState.runningInstances.size,
-      isAnyInstanceRunning: performanceState.runningInstances.size > 0,
+      runningInstanceCount: performanceState.runningInstances.length,
+      isAnyInstanceRunning: performanceState.runningInstances.length > 0,
       canAddInstance: true, // 인스턴스 추가는 항상 가능
       canRemoveInstance:
         performanceState.instances.length > 1 &&
-        performanceState.runningInstances.size === 0,
-      canResetInstances: performanceState.runningInstances.size === 0,
-      runningInstanceIds: Array.from(performanceState.runningInstances),
+        performanceState.runningInstances.length === 0,
+      canResetInstances: performanceState.runningInstances.length === 0,
+      runningInstanceIds: performanceState.runningInstances,
     }),
     [performanceState]
   );
@@ -50,9 +50,9 @@ export function useInstanceState(instanceId: string) {
 
   const instanceState = useMemo(
     () => ({
-      isRunning: performanceState.runningInstances.has(instanceId),
-      canStart: !performanceState.runningInstances.has(instanceId),
-      canStop: performanceState.runningInstances.has(instanceId),
+      isRunning: performanceState.runningInstances.includes(instanceId),
+      canStart: !performanceState.runningInstances.includes(instanceId),
+      canStop: performanceState.runningInstances.includes(instanceId),
     }),
     [performanceState, instanceId]
   );

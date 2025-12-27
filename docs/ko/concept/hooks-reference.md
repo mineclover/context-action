@@ -240,11 +240,11 @@ const safeUser = assertStoreValue(user, 'userStore'); // 절대 undefined 아님
 - **최적화**: 여러 스토어에 대한 단일 구독
 - **사용 사례**: 스토어 간 계산된 값
 
-#### `useStorePathSelector(store, path, equalityFn?)`
-중첩된 객체를 위한 **경로 기반 선택자**.
-- **목적**: 경로로 중첩된 값 선택
-- **편의성**: 깊은 선택을 위한 점 표기법
-- **사용 사례**: 복잡한 중첩 상태
+#### `useStorePath(store, path, options?)`
+JSON 패치를 사용한 **경로 기반 구독**.
+- **목적**: 특정 경로 구독으로 최소한의 리렌더링
+- **성능**: 구독 경로가 변경될 때만 리렌더링
+- **사용 사례**: 직접 속성 접근 최적화
 
 #### `useAsyncComputedStore(asyncCompute, deps, config?)`
 **비동기 계산된 값** 훅.
@@ -423,21 +423,52 @@ const dashboard = useMultiComputedStore(
 );
 ```
 
-### 🎯 전문 선택자 훅
+### 🎯 경로 기반 구독 훅
 
-#### `useStorePathSelector<T>(store, path, equalityFn?)`
-중첩된 값을 위한 **경로 기반 선택자**.
-- **목적**: 경로로 깊게 중첩된 값 선택
-- **편의성**: 경로에 배열 또는 닷 표기법 사용
-- **사용 사례**: 복잡한 중첩 상태 구조
+#### `useStorePath<T, R>(store, path, options?)`
+최적의 리렌더링을 위한 JSON 패치 기반 **경로 기반 구독**.
+- **목적**: 최소한의 리렌더링으로 특정 경로 구독
+- **성능**: 구독 경로가 변경될 때만 리렌더링 (패치 분석 사용)
+- **사용 사례**: 직접 속성 접근 최적화
 
 ```tsx
-// 배열 경로 사용
-const city = useStorePathSelector(userStore, ['address', 'city']);
+import { useStorePath } from '@context-action/react';
 
-// 구현될 경우 닷 표기법도 지원
-const city = useStorePathSelector(userStore, 'address.city');
+// user.name이 변경될 때만 리렌더링
+const name = useStorePath(userStore, ['user', 'name']);
+
+// 배열 접근
+const firstItem = useStorePath(listStore, ['items', 0]);
+
+// 커스텀 동등성 비교
+const position = useStorePath(gameStore, ['player', 'position'], {
+  equalityFn: (a, b) => a?.x === b?.x && a?.y === b?.y
+});
 ```
+
+#### `useStoreSelectorWithPaths<T, R>(store, selector, options?)`
+경로 기반 구독 힌트가 있는 **최적화된 선택자**.
+- **목적**: 선택자 변환과 경로 기반 최적화 결합
+- **성능**: 의존 경로가 변경될 때만 선택자 실행
+- **사용 사례**: 알려진 의존성을 가진 파생값 (두 장점 결합)
+
+```tsx
+import { useStoreSelectorWithPaths } from '@context-action/react';
+
+// firstName 또는 lastName이 변경될 때만 선택자 실행
+const fullName = useStoreSelectorWithPaths(
+  userStore,
+  (state) => `${state.user.firstName} ${state.user.lastName}`,
+  { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
+);
+```
+
+**비교:**
+| 훅 | 선택자 실행 | 최적 용도 |
+|----|------------|----------|
+| `useStoreSelector` | 매 변경마다 | 복잡한 변환 |
+| `useStorePath` | 경로 매칭 시만 | 직접 속성 접근 |
+| `useStoreSelectorWithPaths` | 경로 매칭 시만 | 의존성이 명확한 파생값 |
 
 #### `useAsyncComputedStore<R>(dependencies, compute, config?)`
 비동기 파생 상태를 위한 **비동기 계산 훅**.
@@ -587,7 +618,8 @@ function CriticalComponent() {
 #### 성능 최적화
 - `useStoreSelector` - 선택적 구독
 - `useMultiStoreSelector` - 다중 스토어 선택
-- `useStorePathSelector` - 경로 기반 선택
+- `useStorePath` - 경로 기반 구독
+- `useStoreSelectorWithPaths` - 경로 힌트가 있는 최적화된 선택자
 - `useComputedStore` - 계산된 값
 - `useMultiComputedStore` - 다중 스토어 계산
 - `useAsyncComputedStore` - 비동기 계산
@@ -629,7 +661,7 @@ function CriticalComponent() {
 ### 전문 훅 (특정 경우용)
 - **다중 스토어**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`
 - **비동기**: `useAsyncComputedStore`
-- **경로 선택**: `useStorePathSelector`
+- **경로 선택**: `useStorePath`, `useStoreSelectorWithPaths`
 - **타입 안전성**: `assertStoreValue`
 - **저수준**: `useActionContext`
 - **RefContext**: `useWaitForRefs`, `useGetAllRefs`

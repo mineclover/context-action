@@ -84,6 +84,18 @@ function Layout({
       label: '4. 🔒 Immutability Test',
       category: 'store',
     },
+    {
+      path: '/foundations/store/time-travel',
+      label: '5. 🕰️ Time Travel Store',
+      category: 'store',
+      description: 'Undo/Redo capabilities with state history',
+    },
+    {
+      path: '/foundations/store/time-travel-context',
+      label: '6. ⏪ Time Travel Context',
+      category: 'store',
+      description: 'Context pattern with patch-based optimization',
+    },
 
     // === React Integration (리액트 통합) ===
     {
@@ -118,6 +130,12 @@ function Layout({
       label: '💬 Chat Demo',
       category: 'demos',
       description: 'Real-time messaging and auto-scroll features',
+    },
+    {
+      path: '/integrations/tool-context-ai',
+      label: '🤖 ToolContext + AI SDK',
+      category: 'demos',
+      description: 'AI controls UI through ToolContext with OpenRouter',
     },
 
     // === Advanced Demos (고급 데모) ===

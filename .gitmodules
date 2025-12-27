@@ -1,0 +1,3 @@
+[submodule "reference/travels"]
+	path = reference/travels
+	url = https://github.com/mutativejs/travels

@@ -8,7 +8,7 @@ export interface SourceLinkEntry {
   description?: string; // 설명
   tags?: string[]; // 태그들
   priority?: number; // 우선순위 (높을수록 먼저 표시)
-  instances: Set<string>; // 마운트된 컴포넌트 인스턴스 ID들 (useId)
+  instances: string[]; // 마운트된 컴포넌트 인스턴스 ID들 (useId)
   firstRegisteredAt: Date; // 최초 등록 시간
   lastUpdatedAt: Date; // 마지막 업데이트 시간
 }

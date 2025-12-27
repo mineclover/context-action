@@ -1614,21 +1614,73 @@ const {
 function UserComponent() {
   const profileStore = useUserStore('profile');
   const profile = useStoreValue(profileStore);
-  
+
   // Handler memoization (careful with dependency array)
   const updateHandler = useCallback(async (payload) => {
     profileStore.setValue({ ...profile, ...payload.data });
   }, [profile, profileStore]);
-  
+
   useUserActionHandler('updateProfile', updateHandler);
-  
+
   // Computed value memoization
   const displayName = useMemo(() => {
     return profile.firstName + ' ' + profile.lastName;
   }, [profile.firstName, profile.lastName]);
-  
+
   return <div>{displayName}</div>;
 }
+```
+
+#### Path-Based Subscription (Recommended for Selective Re-renders)
+
+Path-based subscription uses JSON patches to determine when to re-render, providing fine-grained control over component updates.
+
+```tsx
+import { useStorePath, useStoreSelectorWithPaths } from '@context-action/react';
+
+// ✅ Recommended: useStorePath for direct property access
+function UserName() {
+  // Only re-renders when user.name changes, not on other user property changes
+  const name = useStorePath(userStore, ['user', 'name']);
+  return <span>{name}</span>;
+}
+
+// ✅ Recommended: useStoreSelectorWithPaths for derived values with optimization
+function FullName() {
+  // Selector only runs when firstName or lastName changes
+  const fullName = useStoreSelectorWithPaths(
+    userStore,
+    (state) => `${state.user.firstName} ${state.user.lastName}`,
+    { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
+  );
+  return <span>{fullName}</span>;
+}
+
+// Comparison: useStoreSelector vs useStorePath vs useStoreSelectorWithPaths
+// ┌─────────────────────────┬───────────────────┬────────────────┬─────────────────────────┐
+// │ Feature                 │ useStoreSelector  │ useStorePath   │ useStoreSelectorWithPaths│
+// ├─────────────────────────┼───────────────────┼────────────────┼─────────────────────────┤
+// │ Selector Execution      │ Every change      │ Path match only│ Path match only         │
+// │ Comparison Target       │ Selector result   │ Patch paths    │ Patch paths             │
+// │ Derived Values          │ ✅ Yes            │ ❌ No          │ ✅ Yes                  │
+// │ Performance             │ Selector cost     │ Fast (strings) │ Best of both            │
+// └─────────────────────────┴───────────────────┴────────────────┴─────────────────────────┘
+```
+
+**When to Use Each:**
+- **useStorePath**: Simple property access without transformation
+- **useStoreSelector**: Complex transformations where path hints aren't practical
+- **useStoreSelectorWithPaths**: Derived values with known dependencies (best performance)
+
+```tsx
+// Store API: subscribeWithPatches for custom implementations
+const unsubscribe = store.subscribeWithPatches((patches) => {
+  // patches: [{ op: 'replace', path: ['user', 'name'], value: 'John' }]
+  console.log('Changed paths:', patches?.map(p => p.path.join('.')));
+});
+
+// Get last patches for debugging
+const lastPatches = store.getLastPatches();
 ```
 
 ### 🔄 Action Optimization

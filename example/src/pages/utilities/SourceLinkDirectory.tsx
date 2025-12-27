@@ -214,7 +214,7 @@ export function SourceLinkDirectory() {
 
   // 활성 파일들만 필터링하고 정렬
   const activeFiles = Object.values(entries)
-    .filter((e) => e.instances && e.instances.size > 0)
+    .filter((e) => e.instances && e.instances.length > 0)
     .sort((a, b) => a.filePath.localeCompare(b.filePath));
 
   return (
@@ -499,7 +499,7 @@ function UserManagementExample() {
   description?: string;         // 설명
   tags?: string[];              // 태그들
   priority?: number;            // 우선순위
-  instances: Set<string>;       // 활성 인스턴스 ID들
+  instances: string[];          // 활성 인스턴스 ID들
   firstRegisteredAt: Date;      // 최초 등록 시간
   lastUpdatedAt: Date;          // 마지막 업데이트 시간
 }
@@ -577,9 +577,9 @@ interface SourceLinkRegistryState {
                     >
                       {file.name}
                     </a>
-                    {file.instances.size > 1 && (
+                    {file.instances.length > 1 && (
                       <span className="text-xs text-gray-400 bg-gray-200 px-1 rounded">
-                        {file.instances.size}
+                        {file.instances.length}
                       </span>
                     )}
                   </div>

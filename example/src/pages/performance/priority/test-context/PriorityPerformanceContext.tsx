@@ -28,7 +28,7 @@ export interface PriorityPerformanceStateData {
   /** 테스트 인스턴스 목록 */
   instances: TestInstance[];
   /** 실행 중인 인스턴스 ID 목록 */
-  runningInstances: Set<string>;
+  runningInstances: string[];
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론
@@ -41,7 +41,7 @@ const PriorityPerformanceStores = createStoreContext(
           { id: 'instance-a', title: '🔴 Priority Test Instance A' },
           { id: 'instance-b', title: '🔵 Priority Test Instance B' },
         ],
-        runningInstances: new Set<string>(),
+        runningInstances: [] as string[],
       },
       description: 'Priority performance test state with multiple instances',
       tags: ['priority', 'performance', 'testing', 'instances'],

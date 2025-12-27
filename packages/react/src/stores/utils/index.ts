@@ -21,14 +21,13 @@ export {
 } from './comparison';
 
 // === IMMUTABILITY UTILITIES ===
-// Safe mutation and immutability helpers
-export { 
-  safeGet, 
-  safeSet, 
+// Safe mutation and immutability helpers (powered by @context-action/mutative)
+export {
+  safeGet,
+  safeSet,
   deepClone,
   getGlobalImmutabilityOptions,
- 
-} from './immutable';
+} from '@context-action/mutative';
 
 // === STORE SELECTORS ===
 // Store selector utilities - useStoreSelector moved to hooks for consistency
@@ -39,10 +38,6 @@ export {
 // === ACTION HANDLER UTILITIES ===
 // Moved to actions/utils - use import from '@context-action/react/actions'
 
-// === REGISTRY SYNC ===
-// Store registry synchronization utilities
-export { createRegistrySync, RegistryUtils } from './registry-sync';
-
 // === PROVIDER COMPOSITION ===
 // Provider composition utilities for managing multiple contexts
 export { 
@@ -50,26 +45,9 @@ export {
   type ProviderComponent
 } from './provider-composition';
 
-// === SUBSCRIPTION MANAGEMENT ===
-// Enhanced subscription management for memory leak prevention
-export {
-  SubscriptionManager,
-  useSubscriptionManager,
-  type SubscriptionEntry,
-  type SubscriptionStats
-} from './subscription-manager';
-
-
 // === TYPE HELPERS ===
 // Enhanced type utilities and helpers
 export {
-  isStore,
-  isValidStoreValue,
-  extractStoreValue,
-  extractStoreValues,
-  createSafeEqualityFn,
-  createStoreConfig,
-  TypeUtils,
   type StoreValue,
   type StoresValues,
   type StoreRecordValues,

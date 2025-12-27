@@ -6,6 +6,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@context-action/react$': '<rootDir>/src/index',
     '^@context-action/core$': '<rootDir>/../core/src/index',
+    '^@context-action/mutative$': '<rootDir>/../mutative/dist/index.cjs',
     '^(.+)\\.js$': '$1'
   },
   testMatch: [

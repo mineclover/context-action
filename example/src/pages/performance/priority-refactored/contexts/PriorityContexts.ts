@@ -56,7 +56,7 @@ export interface ExecutionStateData {
  */
 export interface PerformanceStateData {
   instances: TestInstance[];
-  runningInstances: Set<string>;
+  runningInstances: string[];
 }
 
 // ================================
@@ -179,7 +179,7 @@ export const {
         { id: 'instance-a', title: '🔴 Priority Test Instance A' },
         { id: 'instance-b', title: '🔵 Priority Test Instance B' },
       ] as TestInstance[],
-      runningInstances: new Set<string>(),
+      runningInstances: [] as string[],
     } as PerformanceStateData,
     description: 'Performance test state and instance management',
     strategy: 'shallow',
