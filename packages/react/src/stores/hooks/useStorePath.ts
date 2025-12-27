@@ -23,14 +23,27 @@ export interface UseStorePathOptions<R> {
 }
 
 /**
- * Check if patches affect the target path
+ * Convert path array to normalized string key for fast comparison
+ * Uses '/' as separator since it's unlikely in property names
+ */
+function pathToKey(path: StorePath): string {
+  return '/' + path.join('/');
+}
+
+/**
+ * Check if patches affect the target path using optimized string prefix matching
  * A patch affects a path if:
  * 1. The patch path is a prefix of target path (parent changed)
  * 2. The target path is a prefix of patch path (descendant changed)
  * 3. The paths are equal
+ *
+ * Uses string-based prefix matching for better performance
  */
-function patchesAffectPath(patches: Patches | null, targetPath: StorePath): boolean {
+function patchesAffectPath(patches: Patches | null, targetPath: StorePath, targetPathKey?: string): boolean {
   if (!patches || patches.length === 0) return true; // No patches = full update
+
+  // Use pre-computed key if available, otherwise compute
+  const targetKey = targetPathKey ?? pathToKey(targetPath);
 
   return patches.some(patch => {
     const patchPath = patch.path as StorePath;
@@ -38,15 +51,12 @@ function patchesAffectPath(patches: Patches | null, targetPath: StorePath): bool
     // Empty patch path means root replacement
     if (patchPath.length === 0) return true;
 
-    const minLen = Math.min(patchPath.length, targetPath.length);
+    const patchKey = pathToKey(patchPath);
 
-    // Check if paths share a common prefix
-    for (let i = 0; i < minLen; i++) {
-      if (patchPath[i] !== targetPath[i]) return false;
-    }
-
-    // Paths share common prefix - affected
-    return true;
+    // Check string prefix relationship (either direction)
+    // targetKey starts with patchKey = parent changed
+    // patchKey starts with targetKey = descendant changed
+    return targetKey.startsWith(patchKey) || patchKey.startsWith(targetKey);
   });
 }
 
@@ -99,8 +109,8 @@ export function useStorePath<T, R = unknown>(
 ): R {
   const { equalityFn } = options;
 
-  // Memoize path key for stable comparison
-  const pathKey = useMemo(() => path.join('.'), [path]);
+  // Memoize path key for stable comparison and optimized patch matching
+  const pathKey = useMemo(() => pathToKey(path), [path]);
 
   // Cache for value comparison
   const cacheRef = useRef<{ value: R; initialized: boolean }>({
@@ -112,8 +122,8 @@ export function useStorePath<T, R = unknown>(
   const subscribe = useCallback(
     (callback: () => void) => {
       return store.subscribeWithPatches((patches) => {
-        // Check if patches affect our path
-        if (patchesAffectPath(patches, path)) {
+        // Check if patches affect our path (using pre-computed key)
+        if (patchesAffectPath(patches, path, pathKey)) {
           callback();
         }
       });
@@ -187,23 +197,29 @@ export function useStoreSelectorWithPaths<T, R>(
   // Cache for value comparison
   const cacheRef = useRef<R>();
 
-  // Create stable path key for dependencies
-  const depsKey = useMemo(
-    () => (dependsOn ? dependsOn.map(p => p.join('.')).sort().join('|') : null),
+  // Pre-compute path keys for all dependencies (optimized matching)
+  const pathKeys = useMemo(
+    () => (dependsOn ? dependsOn.map(p => ({ path: p, key: pathToKey(p) })) : null),
     [dependsOn]
+  );
+
+  // Create stable dependency key for memoization
+  const depsKey = useMemo(
+    () => (pathKeys ? pathKeys.map(pk => pk.key).sort().join('|') : null),
+    [pathKeys]
   );
 
   // Subscribe with patch awareness
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!dependsOn) {
+      if (!pathKeys) {
         // No path hints - subscribe to all changes
         return store.subscribe(callback);
       }
 
       return store.subscribeWithPatches((patches) => {
-        // Check if any dependent path is affected
-        const affected = dependsOn.some(path => patchesAffectPath(patches, path));
+        // Check if any dependent path is affected (using pre-computed keys)
+        const affected = pathKeys.some(({ path, key }) => patchesAffectPath(patches, path, key));
         if (affected) {
           callback();
         }
