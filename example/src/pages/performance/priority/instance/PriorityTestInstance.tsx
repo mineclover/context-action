@@ -368,7 +368,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
   }, [resetTest]);
 
   // 글로벌 상태 기반 계산값들
-  const isAnyInstanceRunning = performanceState.runningInstances.size > 0;
+  const isAnyInstanceRunning = performanceState.runningInstances.length > 0;
   const canStartTest = !isRunning; // 본인만 실행 중이 아니면 시작 가능
 
   // Abort 액션에 실행 상태 정리 추가

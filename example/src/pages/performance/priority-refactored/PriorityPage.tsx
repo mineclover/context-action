@@ -227,7 +227,7 @@ function PriorityPageContent() {
             </h4>
             <div className="text-xs text-gray-600 space-y-1">
               <div>총 인스턴스: {performanceState.instances.length}개</div>
-              <div>실행 중: {performanceState.runningInstances.size}개</div>
+              <div>실행 중: {performanceState.runningInstances.length}개</div>
               <div>아키텍처: Context-Driven (4-Layer)</div>
             </div>
           </div>
