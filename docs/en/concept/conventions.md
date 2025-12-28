@@ -12,10 +12,11 @@ This document defines coding conventions and best practices when using the Conte
 6. [Code Style](#code-style)
 7. [Import and Module Patterns](#import-and-module-patterns)
 8. [Core Framework Principles](#core-framework-principles)
-9. [Store Update Conventions](#store-update-conventions)
-10. [Performance Guidelines](#performance-guidelines)
-11. [Error Handling](#error-handling)
-12. [RefContext Conventions](#refcontext-conventions)
+9. [Store Types](#store-types)
+10. [Store Update Conventions](#store-update-conventions)
+11. [Performance Guidelines](#performance-guidelines)
+12. [Error Handling](#error-handling)
+13. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
@@ -1396,6 +1397,200 @@ function PaymentHandlers() {
   });
 }
 ```
+
+---
+
+## Store Types
+
+### 🏪 **Three Store Types**
+
+Context-Action Framework provides three specialized Store implementations, each optimized for different use cases:
+
+| Store Type | Use Case | Key Feature | Subscription Method |
+|------------|----------|-------------|---------------------|
+| **Store** | General state management | Immutability + Safety | `useStoreValue()` ✅ |
+| **TimeTravelStore** | Undo/Redo functionality | History + Structural Sharing | `useStorePath()` ✅ |
+| **MutableStore** | High-performance updates | Structural Sharing | `useStorePath()` ✅ |
+
+---
+
+### 📦 **Store** (Default)
+
+The standard store with full immutability guarantees and safety features.
+
+```typescript
+import { createStore } from '@context-action/react';
+
+const userStore = createStore('user', { name: '', email: '' });
+
+// ✅ Use useStoreValue for reactive subscriptions
+const user = useStoreValue(userStore);
+
+// ✅ Safe updates with immutability
+userStore.setValue({ name: 'John', email: 'john@example.com' });
+userStore.update(draft => { draft.name = 'Jane'; });
+```
+
+**Features:**
+- **Deep Freeze**: Values are frozen to prevent accidental mutations
+- **Copy-on-Write**: Efficient cloning with version-based caching
+- **RAF Batching**: Multiple updates batched into single frame
+- **Error Recovery**: Automatic problematic listener removal
+- **Concurrency Protection**: Update queue prevents race conditions
+
+**When to Use:**
+- General state management
+- Forms, settings, cached data
+- When immutability guarantees are important
+- When using `useStoreValue()` for subscriptions
+
+---
+
+### ⏪ **TimeTravelStore**
+
+Store with built-in undo/redo functionality and history management.
+
+```typescript
+import { createTimeTravelStore } from '@context-action/react';
+
+const editorStore = createTimeTravelStore('editor',
+  { content: '', cursor: 0 },
+  { maxHistory: 50 }
+);
+
+// ⚠️ IMPORTANT: Use useStorePath, NOT useStoreValue
+const content = useStorePath(editorStore, ['content']); // ✅ Correct
+const state = useStoreValue(editorStore); // ❌ Won't update!
+
+// Updates create history entries
+editorStore.setValue({ content: 'Hello', cursor: 5 });
+editorStore.update(draft => { draft.content = 'Hello World'; });
+
+// Time travel controls
+editorStore.undo();        // Go back one step
+editorStore.redo();        // Go forward one step
+editorStore.goTo(3);       // Jump to specific position
+editorStore.reset();       // Reset to initial state
+
+// Check capabilities
+if (editorStore.canUndo()) { /* ... */ }
+if (editorStore.canRedo()) { /* ... */ }
+
+// Get controls for UI
+const controls = editorStore.getTimeTravelControls();
+// { canUndo, canRedo, position, history }
+```
+
+**Features:**
+- **Undo/Redo**: Full history navigation with `undo()`, `redo()`, `goTo()`
+- **Structural Sharing**: Unchanged parts keep same reference (via mutative mutable mode)
+- **Configurable History**: Set `maxHistory` to limit memory usage
+- **Patch-based Updates**: Efficient change tracking with JSON patches
+
+**When to Use:**
+- Text editors, drawing applications
+- Form wizards with back/forward navigation
+- Any feature requiring undo/redo
+- Debugging with state history
+
+**⚠️ Critical: Subscription Pattern**
+```typescript
+// TimeTravelStore uses structural sharing - top-level reference doesn't change!
+// ❌ WRONG: useStoreValue won't detect changes
+const state = useStoreValue(store);
+
+// ✅ CORRECT: useStorePath detects nested reference changes
+const content = useStorePath(store, ['content']);
+const cursor = useStorePath(store, ['cursor']);
+```
+
+---
+
+### 🚀 **MutableStore**
+
+High-performance store optimized for frequent updates with structural sharing.
+
+```typescript
+import { createMutableStore } from '@context-action/react';
+
+const appStore = createMutableStore('app', {
+  user: { name: 'John', settings: { theme: 'dark' } },
+  ui: { sidebar: { isOpen: true } }
+});
+
+// ⚠️ IMPORTANT: Use useStorePath, NOT useStoreValue
+const userName = useStorePath(appStore, ['user', 'name']); // ✅ Correct
+const state = useStoreValue(appStore); // ❌ Won't update!
+
+// Update only user.name - other parts keep same reference
+appStore.update(draft => { draft.user.name = 'Jane'; });
+// user.settings and ui still have same reference = no re-render for those paths
+```
+
+**Features:**
+- **Structural Sharing**: Unchanged parts keep same reference for selective re-rendering
+- **No Deep Freeze**: Compatible with mutable mode (unlike Store)
+- **RAF Batching**: Inherited from Store
+- **Patch Accumulation**: Batches patches during RAF cycle
+- **Concurrency Protection**: Inherited from Store
+
+**When to Use:**
+- High-frequency updates (animations, real-time data)
+- Large state trees where selective re-rendering is critical
+- Performance-sensitive applications
+- When using `useStorePath()` for subscriptions
+
+**⚠️ Critical: Subscription Pattern**
+```typescript
+// MutableStore uses structural sharing - top-level reference doesn't change!
+// ❌ WRONG: useStoreValue won't detect changes
+const state = useStoreValue(store);
+
+// ✅ CORRECT: useStorePath detects nested reference changes
+const name = useStorePath(store, ['user', 'name']);
+const theme = useStorePath(store, ['user', 'settings', 'theme']);
+```
+
+---
+
+### 🔄 **Store Type Comparison**
+
+```
+┌─────────────────────────┬───────────────┬──────────────────┬─────────────────┐
+│ Feature                 │ Store         │ TimeTravelStore  │ MutableStore    │
+├─────────────────────────┼───────────────┼──────────────────┼─────────────────┤
+│ Immutability            │ ✅ Deep Freeze │ ❌ Mutable Mode  │ ❌ Mutable Mode │
+│ Structural Sharing      │ ❌ No          │ ✅ Yes           │ ✅ Yes          │
+│ Undo/Redo               │ ❌ No          │ ✅ Yes           │ ❌ No           │
+│ useStoreValue()         │ ✅ Works       │ ❌ Won't Update  │ ❌ Won't Update │
+│ useStorePath()          │ ✅ Works       │ ✅ Required      │ ✅ Required     │
+│ RAF Batching            │ ✅ Yes         │ ✅ Yes           │ ✅ Yes          │
+│ Clone on getValue()     │ ✅ Default On  │ ❌ Default Off   │ ❌ No Cloning   │
+└─────────────────────────┴───────────────┴──────────────────┴─────────────────┘
+```
+
+---
+
+### 🎯 **Store Selection Guide**
+
+```typescript
+// ✅ Use Store for: General state, forms, settings
+const formStore = createStore('form', { name: '', email: '' });
+
+// ✅ Use TimeTravelStore for: Undo/redo features
+const editorStore = createTimeTravelStore('editor', { content: '' });
+
+// ✅ Use MutableStore for: High-performance, large state trees
+const dashboardStore = createMutableStore('dashboard', {
+  widgets: [...],
+  layout: {...}
+});
+```
+
+**Decision Tree:**
+1. Need undo/redo? → **TimeTravelStore**
+2. High-frequency updates or large state tree? → **MutableStore**
+3. Standard state management? → **Store**
 
 ---
 
