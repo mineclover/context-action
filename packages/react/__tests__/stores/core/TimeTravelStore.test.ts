@@ -40,7 +40,10 @@ describe('TimeTravelStore', () => {
     });
 
     it('should handle update function', () => {
-      store.update((current) => ({ ...current, count: current.count + 1 }));
+      // In mutable mode (default), draft should be modified directly
+      store.update((draft) => {
+        draft.count++;
+      });
       expect(store.getValue().count).toBe(1);
     });
 
@@ -318,13 +321,14 @@ describe('TimeTravelStore', () => {
 
   describe('Configuration', () => {
     it('should toggle cloning', () => {
-      expect(store.isCloningEnabled()).toBe(true);
-
-      store.setCloningEnabled(false);
+      // Default is false to preserve structural sharing
       expect(store.isCloningEnabled()).toBe(false);
 
       store.setCloningEnabled(true);
       expect(store.isCloningEnabled()).toBe(true);
+
+      store.setCloningEnabled(false);
+      expect(store.isCloningEnabled()).toBe(false);
     });
 
     it('should use custom comparator', () => {

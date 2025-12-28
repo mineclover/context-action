@@ -21,7 +21,12 @@ import { ErrorHandlers } from '../utils/error-handling';
 export interface TimeTravelStoreOptions<T> {
   /** Maximum number of history entries */
   maxHistory?: number;
-  /** Enable mutable mode for observable state */
+  /**
+   * Enable mutable mode for structural sharing (default: true)
+   *
+   * When true, unchanged parts of state keep the same reference,
+   * enabling selective re-rendering with path-based subscriptions.
+   */
   mutable?: boolean;
   /** Custom equality function */
   isEqual?: (a: T, b: T) => boolean;
@@ -57,7 +62,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private isDisposed = false;
   private cleanupTasks = new Set<() => void>();
   private customComparator?: (a: T, b: T) => boolean;
-  private cloningEnabled = true;
+  // Disabled by default to preserve structural sharing for selective re-rendering
+  private cloningEnabled = false;
 
   constructor(
     name: string,
@@ -68,9 +74,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.customComparator = options.isEqual;
 
     // Create TimeTravel instance
+    // mutable=true enables structural sharing for selective re-rendering
     const timeTravelOptions: TimeTravelOptions<false, true> = {
       maxHistory: options.maxHistory ?? 50,
-      mutable: options.mutable ?? false,
+      mutable: options.mutable ?? true,
       autoArchive: true,
     };
 
@@ -130,8 +137,17 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
 
   getSnapshot = (): Snapshot<T> => this._snapshot;
 
+  /**
+   * Get current value directly (preserves structural sharing)
+   *
+   * Returns the state reference directly to maintain structural sharing.
+   * This enables selective re-rendering when combined with path-based subscriptions.
+   * Use setCloningEnabled(true) if you need defensive copies.
+   */
   getValue(): T {
     const value = this.timeTravel.getState();
+    // Direct return preserves structural sharing for selective re-rendering
+    // Clone only when explicitly enabled for defensive copying
     return this.cloningEnabled ? safeGet(value, true) : value;
   }
 
@@ -328,6 +344,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   // ============================================================================
 
   private _createSnapshot(): Snapshot<T> {
+    // Direct reference preserves structural sharing
+    // Clone only when explicitly enabled
     const value = this.cloningEnabled
       ? safeGet(this.timeTravel.getState(), true)
       : this.timeTravel.getState();
