@@ -9,6 +9,65 @@ interface AppStores {
   settings: { theme: 'light' | 'dark'; fontSize: number };
 }
 
+// ============================================================================
+// Deep Structure Store for Structural Sharing Test
+// ============================================================================
+interface DeepAppState {
+  user: {
+    profile: {
+      name: string;
+      avatar: string;
+      bio: string;
+    };
+    preferences: {
+      theme: 'light' | 'dark';
+      language: string;
+      notifications: boolean;
+    };
+    stats: {
+      loginCount: number;
+      lastLogin: string;
+      totalActions: number;
+    };
+  };
+  ui: {
+    sidebar: {
+      isOpen: boolean;
+      width: number;
+    };
+    modal: {
+      isVisible: boolean;
+      title: string;
+    };
+  };
+}
+
+interface DeepStores {
+  app: DeepAppState;
+}
+
+const {
+  Provider: DeepAppProvider,
+  useStore: useDeepStore,
+  useStorePath: useDeepStorePath,
+  useTimeTravelControls: useDeepTimeTravelControls,
+} = createTimeTravelStoreContext<DeepStores>('DeepApp', {
+  app: {
+    initialValue: {
+      user: {
+        profile: { name: 'John Doe', avatar: '👤', bio: 'Developer' },
+        preferences: { theme: 'light', language: 'en', notifications: true },
+        stats: { loginCount: 0, lastLogin: 'Never', totalActions: 0 },
+      },
+      ui: {
+        sidebar: { isOpen: true, width: 240 },
+        modal: { isVisible: false, title: '' },
+      },
+    },
+    maxHistory: 50,
+  },
+});
+
 // Create Time Travel Store Context
 // Note: settings has timeTravel: false - no undo/redo for settings
 const {
@@ -465,6 +524,232 @@ function SelectorDemo() {
   );
 }
 
+// ============================================================================
+// Deep Structure Structural Sharing Test
+// ============================================================================
+
+function DeepStructureDemo() {
+  return (
+    <DeepAppProvider>
+      <DemoCard title="🔬 Deep Structure - Structural Sharing Test">
+        <div className="space-y-4">
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3 text-sm">
+            <p className="font-medium text-indigo-800 dark:text-indigo-200">Structural Sharing Test</p>
+            <p className="text-indigo-600 dark:text-indigo-300 text-xs mt-1">
+              With <code>mutable=true</code>, unchanged paths keep the same reference.
+              Path-based subscriptions skip re-renders for unaffected paths.
+            </p>
+          </div>
+
+          <DeepStructureControls />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase">Path Subscribers</div>
+              <ProfileNameSubscriber />
+              <ProfileAvatarSubscriber />
+              <PreferencesThemeSubscriber />
+              <StatsLoginCountSubscriber />
+              <SidebarSubscriber />
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase">Full Subscriber</div>
+              <FullStateSubscriber />
+            </div>
+          </div>
+
+          <DeepUndoRedoControls />
+        </div>
+      </DemoCard>
+    </DeepAppProvider>
+  );
+}
+
+function DeepStructureControls() {
+  const appStore = useDeepStore('app');
+
+  const updateProfileName = useCallback(() => {
+    appStore.update((draft) => {
+      draft.user.profile.name = `User_${Date.now() % 10000}`;
+    });
+  }, [appStore]);
+
+  const updateProfileAvatar = useCallback(() => {
+    const avatars = ['👤', '🧑‍💻', '👨‍🎨', '👩‍🔬', '🧙‍♂️', '🦸‍♀️'];
+    appStore.update((draft) => {
+      const current = avatars.indexOf(draft.user.profile.avatar);
+      draft.user.profile.avatar = avatars[(current + 1) % avatars.length];
+    });
+  }, [appStore]);
+
+  const updateTheme = useCallback(() => {
+    appStore.update((draft) => {
+      draft.user.preferences.theme = draft.user.preferences.theme === 'light' ? 'dark' : 'light';
+    });
+  }, [appStore]);
+
+  const updateLoginCount = useCallback(() => {
+    appStore.update((draft) => {
+      draft.user.stats.loginCount++;
+      draft.user.stats.lastLogin = new Date().toLocaleTimeString();
+    });
+  }, [appStore]);
+
+  const toggleSidebar = useCallback(() => {
+    appStore.update((draft) => {
+      draft.ui.sidebar.isOpen = !draft.ui.sidebar.isOpen;
+    });
+  }, [appStore]);
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button onClick={updateProfileName} variant="primary" size="sm">
+        Update Name
+      </Button>
+      <Button onClick={updateProfileAvatar} variant="secondary" size="sm">
+        Change Avatar
+      </Button>
+      <Button onClick={updateTheme} variant="secondary" size="sm">
+        Toggle Theme
+      </Button>
+      <Button onClick={updateLoginCount} variant="secondary" size="sm">
+        +Login Count
+      </Button>
+      <Button onClick={toggleSidebar} variant="outline" size="sm">
+        Toggle Sidebar
+      </Button>
+    </div>
+  );
+}
+
+function DeepUndoRedoControls() {
+  const { canUndo, canRedo, undo, redo, reset, position, historyLength } = useDeepTimeTravelControls('app');
+
+  return (
+    <div className="flex items-center gap-2 pt-3 border-t">
+      <Button onClick={() => undo()} disabled={!canUndo} variant="outline" size="sm">
+        Undo
+      </Button>
+      <Button onClick={() => redo()} disabled={!canRedo} variant="outline" size="sm">
+        Redo
+      </Button>
+      <Button onClick={() => reset()} variant="danger" size="sm">
+        Reset
+      </Button>
+      <span className="text-xs text-gray-500 ml-auto">
+        Position: {position} / {historyLength - 1}
+      </span>
+    </div>
+  );
+}
+
+// Path-based subscribers - should only re-render when their specific path changes
+function ProfileNameSubscriber() {
+  const renderCount = useRef(0);
+  const name = useDeepStorePath('app', ['user', 'profile', 'name']) as string;
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+      <div className="font-mono">user.profile.name</div>
+      <div className="font-semibold">{name}</div>
+      <div className="text-green-600">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
+function ProfileAvatarSubscriber() {
+  const renderCount = useRef(0);
+  const avatar = useDeepStorePath('app', ['user', 'profile', 'avatar']) as string;
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+      <div className="font-mono">user.profile.avatar</div>
+      <div className="font-semibold text-2xl">{avatar}</div>
+      <div className="text-green-600">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
+function PreferencesThemeSubscriber() {
+  const renderCount = useRef(0);
+  const theme = useDeepStorePath('app', ['user', 'preferences', 'theme']) as string;
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+      <div className="font-mono">user.preferences.theme</div>
+      <div className="font-semibold">{theme === 'light' ? '☀️ Light' : '🌙 Dark'}</div>
+      <div className="text-green-600">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
+function StatsLoginCountSubscriber() {
+  const renderCount = useRef(0);
+  const loginCount = useDeepStorePath('app', ['user', 'stats', 'loginCount']) as number;
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+      <div className="font-mono">user.stats.loginCount</div>
+      <div className="font-semibold">{loginCount}</div>
+      <div className="text-green-600">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
+function SidebarSubscriber() {
+  const renderCount = useRef(0);
+  const isOpen = useDeepStorePath('app', ['ui', 'sidebar', 'isOpen']) as boolean;
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+      <div className="font-mono">ui.sidebar.isOpen</div>
+      <div className="font-semibold">{isOpen ? '📂 Open' : '📁 Closed'}</div>
+      <div className="text-green-600">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
+// Full state subscriber - should re-render on ANY change
+function FullStateSubscriber() {
+  const renderCount = useRef(0);
+  const appStore = useDeepStore('app');
+  const state = useStoreValue(appStore);
+
+  useEffect(() => {
+    renderCount.current++;
+  });
+
+  return (
+    <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded text-xs h-full">
+      <div className="font-mono mb-2">Full State (useStoreValue)</div>
+      <pre className="text-[10px] bg-white dark:bg-gray-800 p-2 rounded overflow-auto max-h-48">
+        {JSON.stringify(state, null, 2)}
+      </pre>
+      <div className="text-red-600 mt-2">renders: {renderCount.current}</div>
+    </div>
+  );
+}
+
 function TimeTravelContextTestPage() {
   return (
     <AppTimeTravelProvider>
@@ -500,6 +785,17 @@ function TimeTravelContextTestPage() {
 
           <PathOptimizationDemo />
           <SelectorDemo />
+
+          {/* Deep Structure Test Section */}
+          <div className="prose dark:prose-invert max-w-none">
+            <h2>Deep Structure - Structural Sharing</h2>
+            <p>
+              Test with deeply nested state. Each path subscriber (green) should only re-render
+              when its specific path changes. The full subscriber (red) re-renders on every change.
+            </p>
+          </div>
+
+          <DeepStructureDemo />
 
           <DemoCard title="createTimeTravelStoreContext API">
             <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto">
