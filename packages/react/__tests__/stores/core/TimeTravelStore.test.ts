@@ -426,4 +426,243 @@ describe('TimeTravelStore', () => {
       expect(store.getValue()).toEqual(initialValue);
     });
   });
+
+  describe('Manual Path Notification (notifyPath/notifyPaths)', () => {
+    type NestedNotifyState = {
+      ui: { loading: boolean; progress: number };
+      data: { items: string[]; count: number };
+    };
+
+    let nestedStore: TimeTravelStore<NestedNotifyState>;
+
+    beforeEach(() => {
+      nestedStore = createTimeTravelStore<NestedNotifyState>('nested-notify-test', {
+        ui: { loading: false, progress: 0 },
+        data: { items: ['a', 'b'], count: 2 }
+      });
+    });
+
+    afterEach(() => {
+      nestedStore.dispose();
+    });
+
+    describe('notifyPath', () => {
+      it('should notify patch-aware listeners with synthetic patch', (done) => {
+        const patchListener = jest.fn();
+        nestedStore.subscribeWithPatches(patchListener);
+
+        nestedStore.notifyPath(['ui', 'loading']);
+
+        setTimeout(() => {
+          expect(patchListener).toHaveBeenCalledTimes(1);
+          expect(patchListener).toHaveBeenCalledWith([
+            {
+              op: 'replace',
+              path: ['ui', 'loading'],
+              value: false
+            }
+          ]);
+          done();
+        }, 10);
+      });
+
+      it('should notify regular listeners', (done) => {
+        const listener = jest.fn();
+        nestedStore.subscribe(listener);
+
+        nestedStore.notifyPath(['ui', 'progress']);
+
+        setTimeout(() => {
+          expect(listener).toHaveBeenCalledTimes(1);
+          done();
+        }, 10);
+      });
+
+      it('should not change store value', (done) => {
+        const originalValue = nestedStore.getValue();
+
+        nestedStore.notifyPath(['ui', 'loading']);
+
+        setTimeout(() => {
+          expect(nestedStore.getValue()).toEqual(originalValue);
+          done();
+        }, 10);
+      });
+
+      it('should not affect time travel history', () => {
+        nestedStore.setValue({
+          ui: { loading: true, progress: 50 },
+          data: { items: ['c'], count: 1 }
+        });
+
+        const positionBefore = nestedStore.getPosition();
+        const historyLengthBefore = nestedStore.getHistory().length;
+
+        nestedStore.notifyPath(['ui', 'loading']);
+
+        // notifyPath should NOT add to history
+        expect(nestedStore.getPosition()).toBe(positionBefore);
+        expect(nestedStore.getHistory().length).toBe(historyLengthBefore);
+      });
+
+      it('should not notify on disposed store', () => {
+        const listener = jest.fn();
+        nestedStore.subscribe(listener);
+
+        nestedStore.dispose();
+        nestedStore.notifyPath(['ui', 'loading']);
+
+        expect(listener).not.toHaveBeenCalled();
+      });
+
+      it('should handle non-existent path gracefully', (done) => {
+        const patchListener = jest.fn();
+        nestedStore.subscribeWithPatches(patchListener);
+
+        nestedStore.notifyPath(['nonexistent', 'path']);
+
+        setTimeout(() => {
+          expect(patchListener).toHaveBeenCalledWith([
+            {
+              op: 'replace',
+              path: ['nonexistent', 'path'],
+              value: undefined
+            }
+          ]);
+          done();
+        }, 10);
+      });
+
+      it('should update lastPatches correctly', (done) => {
+        nestedStore.notifyPath(['data', 'count']);
+
+        setTimeout(() => {
+          const lastPatches = nestedStore.getLastPatches();
+          expect(lastPatches).toEqual([
+            {
+              op: 'replace',
+              path: ['data', 'count'],
+              value: 2
+            }
+          ]);
+          done();
+        }, 10);
+      });
+    });
+
+    describe('notifyPaths', () => {
+      it('should notify with multiple synthetic patches', (done) => {
+        const patchListener = jest.fn();
+        nestedStore.subscribeWithPatches(patchListener);
+
+        nestedStore.notifyPaths([
+          ['ui', 'loading'],
+          ['ui', 'progress']
+        ]);
+
+        setTimeout(() => {
+          expect(patchListener).toHaveBeenCalledTimes(1);
+          expect(patchListener).toHaveBeenCalledWith([
+            { op: 'replace', path: ['ui', 'loading'], value: false },
+            { op: 'replace', path: ['ui', 'progress'], value: 0 }
+          ]);
+          done();
+        }, 10);
+      });
+
+      it('should handle empty paths array gracefully', () => {
+        const listener = jest.fn();
+        nestedStore.subscribe(listener);
+
+        nestedStore.notifyPaths([]);
+
+        expect(listener).not.toHaveBeenCalled();
+      });
+
+      it('should not notify on disposed store', () => {
+        const listener = jest.fn();
+        nestedStore.subscribe(listener);
+
+        nestedStore.dispose();
+        nestedStore.notifyPaths([['ui', 'loading'], ['data', 'count']]);
+
+        expect(listener).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Integration with Time Travel', () => {
+      it('should work correctly after undo/redo', (done) => {
+        nestedStore.setValue({
+          ui: { loading: true, progress: 100 },
+          data: { items: ['x'], count: 1 }
+        });
+
+        nestedStore.undo();
+
+        const patchListener = jest.fn();
+        nestedStore.subscribeWithPatches(patchListener);
+
+        nestedStore.notifyPath(['ui', 'loading']);
+
+        setTimeout(() => {
+          expect(patchListener).toHaveBeenCalledWith([
+            {
+              op: 'replace',
+              path: ['ui', 'loading'],
+              value: false // Back to initial value after undo
+            }
+          ]);
+          done();
+        }, 10);
+      });
+    });
+
+    describe('Real-world use case: External async with undo support', () => {
+      it('should support external updates with time travel', (done) => {
+        const uiUpdates: any[] = [];
+
+        nestedStore.subscribeWithPatches((patches) => {
+          patches?.forEach((patch: any) => {
+            if (patch.path[0] === 'ui') {
+              uiUpdates.push(patch);
+            }
+          });
+        });
+
+        // Simulate external async service
+        const externalService = {
+          async fetchData() {
+            // Signal loading start (no history impact)
+            nestedStore.notifyPath(['ui', 'loading']);
+
+            await new Promise(resolve => setTimeout(resolve, 5));
+
+            // Actual data update (adds to history for undo)
+            nestedStore.setValue({
+              ui: { loading: false, progress: 100 },
+              data: { items: ['fetched'], count: 1 }
+            });
+          }
+        };
+
+        const positionBefore = nestedStore.getPosition();
+
+        externalService.fetchData().then(() => {
+          setTimeout(() => {
+            // notifyPath should not have added to history
+            // only setValue should have added one entry
+            expect(nestedStore.getPosition()).toBe(positionBefore + 1);
+
+            // Should have received UI notifications
+            expect(uiUpdates.length).toBeGreaterThanOrEqual(1);
+
+            // Can undo the actual data change
+            expect(nestedStore.canUndo()).toBe(true);
+
+            done();
+          }, 20);
+        });
+      });
+    });
+  });
 });

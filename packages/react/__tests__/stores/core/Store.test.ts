@@ -651,7 +651,7 @@ describe('Store Options and Edge Cases', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
     const mockEvent = { target: 'value', type: 'input' };
-    
+
     store.setValue(mockEvent as any, {
       eventHandling: 'transform'
       // Missing eventTransform function
@@ -662,5 +662,326 @@ describe('Store Options and Edge Cases', () => {
 
     consoleErrorSpy.mockRestore();
     store.dispose();
+  });
+});
+
+describe('Manual Path Notification (notifyPath/notifyPaths)', () => {
+  type NotifyTestState = {
+    ui: { loading: boolean; progress: number };
+    data: { items: string[]; count: number };
+  };
+
+  let store: Store<NotifyTestState>;
+
+  beforeEach(() => {
+    store = createStore<NotifyTestState>('notify-test', {
+      ui: { loading: false, progress: 0 },
+      data: { items: ['a', 'b'], count: 2 }
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    store.dispose();
+  });
+
+  describe('notifyPath', () => {
+    it('should notify patch-aware listeners with synthetic patch', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.notifyPath(['ui', 'loading']);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        expect(patchListener).toHaveBeenCalledWith([
+          {
+            op: 'replace',
+            path: ['ui', 'loading'],
+            value: false // current value at path
+          }
+        ]);
+        done();
+      }, 20);
+    });
+
+    it('should notify regular listeners', (done) => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      store.notifyPath(['ui', 'progress']);
+
+      setTimeout(() => {
+        expect(listener).toHaveBeenCalledTimes(1);
+        done();
+      }, 20);
+    });
+
+    it('should not change store value', (done) => {
+      const originalValue = store.getValue();
+
+      store.notifyPath(['ui', 'loading']);
+
+      setTimeout(() => {
+        expect(store.getValue()).toEqual(originalValue);
+        done();
+      }, 20);
+    });
+
+    it('should handle nested paths correctly', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.notifyPath(['data', 'items']);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledWith([
+          {
+            op: 'replace',
+            path: ['data', 'items'],
+            value: ['a', 'b']
+          }
+        ]);
+        done();
+      }, 20);
+    });
+
+    it('should handle non-existent path gracefully', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.notifyPath(['nonexistent', 'path']);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledWith([
+          {
+            op: 'replace',
+            path: ['nonexistent', 'path'],
+            value: undefined
+          }
+        ]);
+        done();
+      }, 20);
+    });
+
+    it('should not notify on disposed store', () => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      store.dispose();
+      store.notifyPath(['ui', 'loading']);
+
+      // Should not throw and not notify
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should support external mutation + notifyPath pattern', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      // Simulate external mutation (bypassing setValue)
+      const state = store.getValue() as any;
+      // Note: In real usage, external code might mutate the actual internal state
+      // This test simulates the pattern where external code calls notifyPath after mutation
+
+      store.notifyPath(['ui', 'loading']);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        // The patch contains the current value at the path
+        const patches = patchListener.mock.calls[0][0];
+        expect(patches[0].path).toEqual(['ui', 'loading']);
+        done();
+      }, 20);
+    });
+
+    it('should update lastPatches correctly', (done) => {
+      store.notifyPath(['data', 'count']);
+
+      setTimeout(() => {
+        const lastPatches = store.getLastPatches();
+        expect(lastPatches).toEqual([
+          {
+            op: 'replace',
+            path: ['data', 'count'],
+            value: 2
+          }
+        ]);
+        done();
+      }, 20);
+    });
+  });
+
+  describe('notifyPaths', () => {
+    it('should notify with multiple synthetic patches', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.notifyPaths([
+        ['ui', 'loading'],
+        ['ui', 'progress']
+      ]);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        expect(patchListener).toHaveBeenCalledWith([
+          { op: 'replace', path: ['ui', 'loading'], value: false },
+          { op: 'replace', path: ['ui', 'progress'], value: 0 }
+        ]);
+        done();
+      }, 20);
+    });
+
+    it('should notify regular listeners once for multiple paths', (done) => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      store.notifyPaths([
+        ['ui', 'loading'],
+        ['data', 'count']
+      ]);
+
+      setTimeout(() => {
+        expect(listener).toHaveBeenCalledTimes(1);
+        done();
+      }, 20);
+    });
+
+    it('should handle empty paths array gracefully', () => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      store.notifyPaths([]);
+
+      // Should not notify
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should handle mixed existing and non-existing paths', (done) => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.notifyPaths([
+        ['ui', 'loading'],
+        ['nonexistent']
+      ]);
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledWith([
+          { op: 'replace', path: ['ui', 'loading'], value: false },
+          { op: 'replace', path: ['nonexistent'], value: undefined }
+        ]);
+        done();
+      }, 20);
+    });
+
+    it('should not notify on disposed store', () => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      store.dispose();
+      store.notifyPaths([['ui', 'loading'], ['data', 'count']]);
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should batch multiple notifyPaths calls within same frame', (done) => {
+      const listener = jest.fn();
+      store.subscribe(listener);
+
+      // Rapid calls
+      store.notifyPaths([['ui', 'loading']]);
+      store.notifyPaths([['ui', 'progress']]);
+      store.notifyPaths([['data', 'count']]);
+
+      setTimeout(() => {
+        // RAF batching should combine these
+        expect(listener).toHaveBeenCalledTimes(1);
+        done();
+      }, 50);
+    });
+  });
+
+  describe('Integration with subscribeWithPatches', () => {
+    it('should allow path-based filtering in subscriber', (done) => {
+      const uiChanges: any[] = [];
+      const dataChanges: any[] = [];
+
+      store.subscribeWithPatches((patches) => {
+        patches?.forEach((patch: any) => {
+          if (patch.path[0] === 'ui') {
+            uiChanges.push(patch);
+          } else if (patch.path[0] === 'data') {
+            dataChanges.push(patch);
+          }
+        });
+      });
+
+      store.notifyPath(['ui', 'loading']);
+
+      setTimeout(() => {
+        expect(uiChanges.length).toBe(1);
+        expect(dataChanges.length).toBe(0);
+
+        store.notifyPath(['data', 'count']);
+
+        setTimeout(() => {
+          expect(uiChanges.length).toBe(1);
+          expect(dataChanges.length).toBe(1);
+          done();
+        }, 20);
+      }, 20);
+    });
+  });
+
+  describe('Real-world use case: External async operation', () => {
+    it('should support WebSocket-like external update pattern', (done) => {
+      const uiUpdates: any[] = [];
+      let notifyCount = 0;
+
+      store.subscribeWithPatches((patches) => {
+        patches?.forEach((patch: any) => {
+          if (patch.path[0] === 'ui') {
+            uiUpdates.push(patch);
+          }
+        });
+      });
+
+      // Simulate external async service
+      const externalService = {
+        async fetchData() {
+          // Signal loading start
+          store.notifyPath(['ui', 'loading']);
+          notifyCount++;
+
+          // Wait for notification to be processed
+          await new Promise(resolve => setTimeout(resolve, 30));
+
+          // Update actual data
+          store.update(draft => {
+            draft.data.items = ['x', 'y', 'z'];
+            draft.data.count = 3;
+          });
+
+          // Wait for update to be processed
+          await new Promise(resolve => setTimeout(resolve, 30));
+
+          // Signal loading end
+          store.notifyPath(['ui', 'loading']);
+          notifyCount++;
+        }
+      };
+
+      externalService.fetchData().then(() => {
+        setTimeout(() => {
+          // Should have called notifyPath twice
+          expect(notifyCount).toBe(2);
+          // Should have received at least one UI notification
+          expect(uiUpdates.length).toBeGreaterThanOrEqual(1);
+          expect(store.getValue().data.items).toEqual(['x', 'y', 'z']);
+          done();
+        }, 50);
+      });
+    });
   });
 });

@@ -323,6 +323,62 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     return this.timeTravel.getControls();
   }
 
+  /**
+   * Manually notify path-based subscribers without changing state value
+   *
+   * Useful for external systems (WebSocket, async operations) that need to
+   * trigger UI updates for specific paths without actual state changes.
+   *
+   * @param path - The path to notify subscribers about
+   */
+  notifyPath(path: (string | number)[]): void {
+    if (this.isDisposed) return;
+
+    const currentValue = this._getValueAtPath(path);
+    this._lastPatches = [{
+      op: 'replace',
+      path: path,
+      value: currentValue
+    }] as Patches;
+
+    this._notifyListeners();
+    this._notifyPatchAwareListeners();
+  }
+
+  /**
+   * Manually notify multiple paths at once
+   *
+   * @param paths - Array of paths to notify subscribers about
+   */
+  notifyPaths(paths: (string | number)[][]): void {
+    if (this.isDisposed) return;
+    if (paths.length === 0) return;
+
+    this._lastPatches = paths.map(path => ({
+      op: 'replace' as const,
+      path: path,
+      value: this._getValueAtPath(path)
+    })) as Patches;
+
+    this._notifyListeners();
+    this._notifyPatchAwareListeners();
+  }
+
+  /**
+   * Get value at a specific path in the store
+   * @private
+   */
+  private _getValueAtPath(path: (string | number)[]): unknown {
+    let current: unknown = this.timeTravel.getState();
+    for (const segment of path) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = (current as Record<string | number, unknown>)[segment];
+    }
+    return current;
+  }
+
   // ============================================================================
   // Configuration
   // ============================================================================

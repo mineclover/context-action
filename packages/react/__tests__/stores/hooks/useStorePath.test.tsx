@@ -1432,3 +1432,298 @@ describe('Stability tests', () => {
     store.dispose();
   });
 });
+
+describe('notifyPath integration with useStorePath', () => {
+  type NotifyTestState = {
+    ui: { loading: boolean; progress: number };
+    data: { items: string[]; count: number };
+  };
+
+  let store: Store<NotifyTestState>;
+
+  beforeEach(() => {
+    store = createStore<NotifyTestState>('notify-path-integration-test', {
+      ui: { loading: false, progress: 0 },
+      data: { items: ['a', 'b'], count: 2 }
+    });
+  });
+
+  afterEach(() => {
+    store.dispose();
+  });
+
+  it('should receive patch notification when notifyPath is called for subscribed path', async () => {
+    const patchReceived = { current: false };
+
+    // Subscribe to patches directly to verify notifyPath works
+    const unsubscribe = store.subscribeWithPatches((patches) => {
+      if (patches?.some((p: any) => p.path[0] === 'ui' && p.path[1] === 'loading')) {
+        patchReceived.current = true;
+      }
+    });
+
+    function LoadingComponent() {
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    render(<LoadingComponent />);
+    expect(screen.getByTestId('loading').textContent).toBe('false');
+
+    // Trigger notifyPath
+    act(() => {
+      store.notifyPath(['ui', 'loading']);
+    });
+
+    await waitFor(() => {
+      // Should have received the patch
+      expect(patchReceived.current).toBe(true);
+    });
+
+    // Value should still be the same
+    expect(screen.getByTestId('loading').textContent).toBe('false');
+
+    unsubscribe();
+  });
+
+  it('should NOT trigger useStorePath re-render for unrelated path notification', async () => {
+    const renderCount = { current: 0 };
+
+    function LoadingComponent() {
+      renderCount.current++;
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    render(<LoadingComponent />);
+    const initialRenderCount = renderCount.current;
+
+    // Notify a different path
+    act(() => {
+      store.notifyPath(['data', 'count']);
+    });
+
+    // Wait a bit for any potential re-renders
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Should NOT re-render because the notified path doesn't affect ui.loading
+    expect(renderCount.current).toBe(initialRenderCount);
+  });
+
+  it('should send patch when parent path is notified', async () => {
+    const patchReceived = { current: false };
+
+    // Subscribe to patches directly
+    const unsubscribe = store.subscribeWithPatches((patches) => {
+      if (patches?.some((p: any) => p.path[0] === 'ui')) {
+        patchReceived.current = true;
+      }
+    });
+
+    function LoadingComponent() {
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    render(<LoadingComponent />);
+
+    // Notify parent path
+    act(() => {
+      store.notifyPath(['ui']);
+    });
+
+    await waitFor(() => {
+      // Should have received patch for 'ui' path
+      expect(patchReceived.current).toBe(true);
+    });
+
+    unsubscribe();
+  });
+
+  it('should send patches for notifyPaths with multiple paths', async () => {
+    const receivedPaths: string[][] = [];
+
+    // Subscribe to patches directly
+    const unsubscribe = store.subscribeWithPatches((patches) => {
+      patches?.forEach((p: any) => {
+        receivedPaths.push(p.path);
+      });
+    });
+
+    function LoadingComponent() {
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    function ProgressComponent() {
+      const progress = useStorePath<NotifyTestState, number>(store, ['ui', 'progress']);
+      return <span data-testid="progress">{progress}</span>;
+    }
+
+    function CountComponent() {
+      const count = useStorePath<NotifyTestState, number>(store, ['data', 'count']);
+      return <span data-testid="count">{count}</span>;
+    }
+
+    render(
+      <>
+        <LoadingComponent />
+        <ProgressComponent />
+        <CountComponent />
+      </>
+    );
+
+    // Notify both UI paths
+    act(() => {
+      store.notifyPaths([
+        ['ui', 'loading'],
+        ['ui', 'progress']
+      ]);
+    });
+
+    await waitFor(() => {
+      // Should have received patches for both UI paths
+      const hasLoading = receivedPaths.some(p => p[0] === 'ui' && p[1] === 'loading');
+      const hasProgress = receivedPaths.some(p => p[0] === 'ui' && p[1] === 'progress');
+      expect(hasLoading).toBe(true);
+      expect(hasProgress).toBe(true);
+    });
+
+    // Should NOT have received patch for data.count
+    const hasCount = receivedPaths.some(p => p[0] === 'data' && p[1] === 'count');
+    expect(hasCount).toBe(false);
+
+    unsubscribe();
+  });
+
+  it('should send patch when notifyPath is called with useStoreSelectorWithPaths', async () => {
+    type SelectorState = { user: { firstName: string; lastName: string; age: number } };
+    const selectorStore = createStore<SelectorState>('selector-notify-test', {
+      user: { firstName: 'John', lastName: 'Doe', age: 30 }
+    });
+
+    const patchReceived = { current: false };
+
+    // Subscribe to patches directly
+    const unsubscribe = selectorStore.subscribeWithPatches((patches) => {
+      if (patches?.some((p: any) => p.path[0] === 'user' && p.path[1] === 'firstName')) {
+        patchReceived.current = true;
+      }
+    });
+
+    function FullNameComponent() {
+      const fullName = useStoreSelectorWithPaths(
+        selectorStore,
+        (state) => `${state.user.firstName} ${state.user.lastName}`,
+        { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
+      );
+      return <span data-testid="name">{fullName}</span>;
+    }
+
+    render(<FullNameComponent />);
+    expect(screen.getByTestId('name').textContent).toBe('John Doe');
+
+    // Notify firstName path
+    act(() => {
+      selectorStore.notifyPath(['user', 'firstName']);
+    });
+
+    await waitFor(() => {
+      // Should have received patch for firstName
+      expect(patchReceived.current).toBe(true);
+    });
+
+    unsubscribe();
+    selectorStore.dispose();
+  });
+
+  it('should simulate external mutation + notifyPath workflow', async () => {
+    const patchCount = { current: 0 };
+
+    // Track patch notifications
+    const unsubscribe = store.subscribeWithPatches((patches) => {
+      if (patches?.some((p: any) => p.path[0] === 'ui' && p.path[1] === 'loading')) {
+        patchCount.current++;
+      }
+    });
+
+    function LoadingComponent() {
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    render(<LoadingComponent />);
+    expect(screen.getByTestId('loading').textContent).toBe('false');
+
+    // Step 1: Update loading to true
+    act(() => {
+      store.update(draft => {
+        draft.ui.loading = true;
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading').textContent).toBe('true');
+    });
+
+    const countAfterUpdate = patchCount.current;
+
+    // Step 2: Notify without changing (e.g., to trigger animation frame)
+    act(() => {
+      store.notifyPath(['ui', 'loading']);
+    });
+
+    await waitFor(() => {
+      // notifyPath should have sent an additional patch
+      expect(patchCount.current).toBeGreaterThan(countAfterUpdate);
+    });
+
+    // Step 3: Update loading back to false
+    act(() => {
+      store.update(draft => {
+        draft.ui.loading = false;
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading').textContent).toBe('false');
+    });
+
+    unsubscribe();
+  });
+
+  it('should handle rapid notifyPath calls with batching', async () => {
+    const patchCount = { current: 0 };
+
+    // Track patch notifications
+    const unsubscribe = store.subscribeWithPatches((patches) => {
+      if (patches?.some((p: any) => p.path[0] === 'ui' && p.path[1] === 'loading')) {
+        patchCount.current++;
+      }
+    });
+
+    function LoadingComponent() {
+      const loading = useStorePath<NotifyTestState, boolean>(store, ['ui', 'loading']);
+      return <span data-testid="loading">{loading ? 'true' : 'false'}</span>;
+    }
+
+    render(<LoadingComponent />);
+
+    // Rapid notifyPath calls
+    act(() => {
+      store.notifyPath(['ui', 'loading']);
+      store.notifyPath(['ui', 'loading']);
+      store.notifyPath(['ui', 'loading']);
+    });
+
+    // Wait for batched notifications
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Due to RAF batching, should batch multiple calls
+    // patchCount should be <= 3 (could be 1 if all batched)
+    expect(patchCount.current).toBeGreaterThanOrEqual(1);
+    expect(patchCount.current).toBeLessThanOrEqual(3);
+
+    unsubscribe();
+  });
+});

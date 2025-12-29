@@ -188,9 +188,22 @@ export interface IStore<T = unknown> {
   // 🔧 Advanced Configuration
   /** Set security options */
   setSecurityOptions?: (options: SecurityOptions) => void;
-  
+
   /** Get current security options */
   getSecurityOptions?: () => SecurityOptions | undefined;
+
+  // 🔔 Manual Path Notification (for external async operations)
+  /**
+   * Manually notify path-based subscribers without changing state value
+   * Useful for external systems (WebSocket, async operations) that need to
+   * trigger UI updates for specific paths without actual state changes.
+   */
+  notifyPath?: (path: (string | number)[]) => void;
+
+  /**
+   * Manually notify multiple paths at once
+   */
+  notifyPaths?: (paths: (string | number)[][]) => void;
 }
 
 /**

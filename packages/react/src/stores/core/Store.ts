@@ -557,6 +557,82 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   /**
+   * Manually notify path-based subscribers without changing state value
+   *
+   * Useful for external systems (WebSocket, async operations) that need to
+   * trigger UI updates for specific paths without actual state changes.
+   *
+   * @param path - The path to notify subscribers about
+   *
+   * @example
+   * ```typescript
+   * // External async logic
+   * async function fetchData(store: Store<AppState>) {
+   *   store.notifyPath(['ui', 'loading']); // Trigger loading UI
+   *   const data = await api.fetch();
+   *   store.setValue({ ...store.getValue(), data });
+   * }
+   * ```
+   */
+  notifyPath(path: (string | number)[]): void {
+    if (this.isDisposed) return;
+
+    // Create a synthetic patch for the path
+    const currentValue = this._getValueAtPath(path);
+    const syntheticPatch: Patches = [{
+      op: 'replace',
+      path: path,
+      value: currentValue
+    }];
+
+    this._lastPatches = syntheticPatch;
+    this._scheduleNotification();
+  }
+
+  /**
+   * Manually notify multiple paths at once
+   *
+   * @param paths - Array of paths to notify subscribers about
+   *
+   * @example
+   * ```typescript
+   * store.notifyPaths([
+   *   ['ui', 'loading'],
+   *   ['ui', 'progress']
+   * ]);
+   * ```
+   */
+  notifyPaths(paths: (string | number)[][]): void {
+    if (this.isDisposed) return;
+    if (paths.length === 0) return;
+
+    // Create synthetic patches for all paths
+    const syntheticPatches: Patches = paths.map(path => ({
+      op: 'replace' as const,
+      path: path,
+      value: this._getValueAtPath(path)
+    }));
+
+    this._lastPatches = syntheticPatches;
+    this._scheduleNotification();
+  }
+
+  /**
+   * Get value at a specific path in the store
+   * @private
+   */
+  private _getValueAtPath(path: (string | number)[]): unknown {
+    let current: unknown = this._value;
+    for (const segment of path) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = (current as Record<string | number, unknown>)[segment];
+    }
+    return current;
+  }
+
+  /**
    * Register cleanup task for automatic execution on disposal
    * 
    * Registers a cleanup function that will be automatically called when the store
