@@ -61,3 +61,16 @@ export {
   type RequiredBy
 } from './type-helpers';
 
+// === JSON POINTER UTILITIES ===
+// RFC 6901 compliant path utilities for patch-based subscriptions
+export {
+  escapeSegment,
+  unescapeSegment,
+  pathToPointer,
+  pointerToPath,
+  isPointerPrefix,
+  arePointersRelated,
+  pathToKey, // Alias for pathToPointer
+  isPathPrefix, // Alias for isPointerPrefix
+  type JsonPointerPath
+} from './json-pointer';

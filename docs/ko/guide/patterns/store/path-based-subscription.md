@@ -118,6 +118,98 @@ const cartSummary = useStoreSelectorWithPaths(
 );
 ```
 
+## 경로 포맷 레퍼런스
+
+### 경로 타입 정의
+
+```typescript
+type StorePath = (string | number)[];
+```
+
+- **string**: 객체 속성 키
+- **number**: 배열 인덱스
+
+### 경로 예시
+
+| 상태 접근 | 경로 |
+|----------|------|
+| `state.user` | `['user']` |
+| `state.user.name` | `['user', 'name']` |
+| `state.user.profile.address.city` | `['user', 'profile', 'address', 'city']` |
+| `state.items[0]` | `['items', 0]` |
+| `state.items[1].name` | `['items', 1, 'name']` |
+| `state.matrix[0][1]` | `['matrix', 0, 1]` |
+
+### 경로 문자열 정규화 (JSON Pointer RFC 6901)
+
+내부적으로 경로는 효율적인 접두사 매칭을 위해 JSON Pointer 문자열 (RFC 6901)로 변환됩니다:
+
+```typescript
+['user', 'name']           → '/user/name'
+['items', 0]               → '/items/0'
+['items', 1, 'name']       → '/items/1/name'
+['matrix', 0, 1]           → '/matrix/0/1'
+[]                         → '' (빈 문자열 = 루트/전체 문서)
+['']                       → '/' (빈 문자열 키)
+```
+
+**특수 문자 이스케이프 (RFC 6901 섹션 3):**
+
+`~`나 `/`를 포함한 키는 이스케이프됩니다. 순서가 중요합니다 - `~`를 먼저 이스케이프:
+- `~` → `~0`
+- `/` → `~1`
+
+```typescript
+['data', 'a/b']            → '/data/a~1b'
+['config', 'key~value']    → '/config/key~0value'
+['path/key', 'nested~val'] → '/path~1key/nested~0val'
+
+// 엣지 케이스: 키에 '~1'이 리터럴로 포함된 경우
+['data', '~1']             → '/data/~01' (~ → ~0 이스케이프, 1은 유지)
+```
+
+**RFC 6901 섹션 5 예시:**
+
+```typescript
+// 주어진 데이터: { "m~n": 8, "a/b": 1, "": 0 }
+pathToPointer(['m~n'])     → '/m~0n'    // 8로 평가
+pathToPointer(['a/b'])     → '/a~1b'    // 1로 평가
+pathToPointer([''])        → '/'        // 0으로 평가
+```
+
+**경로 경계 매칭:**
+
+매칭 알고리즘은 경로 경계를 정확히 처리합니다:
+```typescript
+// '/user'는 '/users'나 '/userName'과 매칭되지 않음
+// 매칭되는 것: '/user', '/user/name', '/user/profile/...'
+
+isPointerPrefix('/user', '/user/name')  // true (유효한 부모)
+isPointerPrefix('/user', '/users')       // false (다른 경로)
+isPointerPrefix('/user', '/userName')    // false (다른 경로)
+```
+
+**유틸리티 함수 (export됨):**
+
+```typescript
+import {
+  pathToPointer,
+  pointerToPath,
+  isPointerPrefix,
+  escapeSegment,
+  unescapeSegment
+} from '@context-action/react';
+
+// 경로 배열을 JSON Pointer 문자열로 변환
+pathToPointer(['user', 'name'])  // → '/user/name'
+
+// JSON Pointer를 경로 배열로 파싱
+pointerToPath('/user/name')      // → ['user', 'name']
+
+// 접두사 관계 확인
+isPointerPrefix('/user', '/user/name')  // → true
+```
+
 ## 경로 매칭 동작 방식
 
 패치가 구독 경로에 영향을 주는 경우:
@@ -139,6 +231,132 @@ const store = createStore('app', {
 // ✅ 영향받음: ['user'] 패치 (조상)
 // ❌ 영향없음: ['user', 'settings'] 패치 (형제)
 // ❌ 영향없음: ['user', 'profile', 'age'] 패치 (형제)
+```
+
+### 매칭 알고리즘
+
+```
+패치: /user/name
+├─ 구독 /user/name         → 일치 (정확) ✓
+├─ 구독 /user              → 일치 (자식 변경) ✓
+├─ 구독 /user/name/first   → 일치 (부모 변경) ✓
+└─ 구독 /settings          → 불일치 ✗
+```
+
+## 배열 연산과 패치
+
+배열 변경이 어떤 패치를 생성하는지 이해하면 효과적인 경로 구독이 가능합니다.
+
+### 배열 변경 패치 패턴
+
+| 연산 | 생성되는 패치 | 예시 |
+|------|--------------|------|
+| `arr[i] = value` | 인덱스에 `replace` | `{ path: ['items', 1], op: 'replace' }` |
+| `arr[i].prop = value` | 중첩 경로에 `replace` | `{ path: ['items', 1, 'name'], op: 'replace' }` |
+| `arr.push(value)` | 새 인덱스에 `add` | `{ path: ['items', 3], op: 'add' }` |
+| `arr.unshift(value)` | 여러 `replace` + `add` | 모든 인덱스 이동 |
+| `arr.splice(i, n)` | 여러 `replace` + `length` | i 이후 인덱스 영향 |
+
+### 상세 패치 예시
+
+```typescript
+// 1. 직접 인덱스 수정
+store.update(draft => { draft.items[1].name = 'updated'; });
+// 패치: [{ op: 'replace', path: ['items', 1, 'name'], value: 'updated' }]
+
+// 2. 배열 push
+store.update(draft => { draft.list.push(4); });
+// 패치: [{ op: 'add', path: ['list', 3], value: 4 }]
+
+// 3. 배열 unshift (시작에 삽입)
+store.update(draft => { draft.list.unshift(0); });
+// 패치:
+//   [{ op: 'replace', path: ['list', 0], value: 0 },
+//    { op: 'replace', path: ['list', 1], value: <old[0]> },
+//    { op: 'add', path: ['list', 2], value: <old[1]> }]
+
+// 4. 배열 splice (중간 요소 삭제)
+store.update(draft => { draft.list.splice(1, 2); });
+// 패치:
+//   [{ op: 'replace', path: ['list', 1], value: <old[3]> },
+//    { op: 'replace', path: ['list', 'length'], value: 2 }]
+
+// 5. 중첩 배열
+store.update(draft => { draft.matrix[0][1] = 99; });
+// 패치: [{ op: 'replace', path: ['matrix', 0, 1], value: 99 }]
+```
+
+### 배열 구독 전략
+
+#### 전략 1: 특정 인덱스 구독
+```tsx
+// items[0]이 변경될 때만 리렌더
+const firstItem = useStorePath(store, ['items', 0]);
+
+// ⚠️ 주의: unshift 후 인덱스 0의 새 아이템은 감지 못함
+// 배열 순서가 안정적일 때 사용
+```
+
+#### 전략 2: 전체 배열 구독
+```tsx
+// 모든 items 변경에 리렌더 (동적 배열에 권장)
+const items = useStorePath(store, ['items']);
+
+// ✅ 감지: push, pop, splice, unshift, 인덱스 수정
+```
+
+#### 전략 3: 배열 길이 + 특정 아이템
+```tsx
+// 구조 변경 감지를 위한 길이 구독
+const itemCount = useStorePath(store, ['items', 'length']);
+const firstItem = useStorePath(store, ['items', 0]);
+
+// 구조 인식과 아이템 접근 모두 필요할 때 유용
+```
+
+### 중첩 배열 (Matrix)
+
+```tsx
+const store = createStore('game', {
+  board: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+  ]
+});
+
+// 특정 셀 구독
+const centerCell = useStorePath(store, ['board', 1, 1]); // 값: 5
+
+// 전체 행 구독
+const middleRow = useStorePath(store, ['board', 1]); // 값: [4, 5, 6]
+
+// 전체 보드 구독
+const board = useStorePath(store, ['board']);
+```
+
+### 복잡한 중첩 구조
+
+```tsx
+const store = createStore('app', {
+  users: [
+    { id: 1, profile: { name: 'John', tags: ['admin', 'active'] } },
+    { id: 2, profile: { name: 'Jane', tags: ['user'] } }
+  ]
+});
+
+// 깊은 경로: users[0].profile.tags[1]
+const firstUserSecondTag = useStorePath(store, ['users', 0, 'profile', 'tags', 1]);
+
+// 배열 내 객체
+const firstUserProfile = useStorePath(store, ['users', 0, 'profile']);
+
+// 계산값을 위한 경로 힌트가 있는 셀렉터
+const allTags = useStoreSelectorWithPaths(
+  store,
+  (s) => s.users.flatMap(u => u.profile.tags),
+  { dependsOn: [['users']] }  // 전체 users 배열 구독
+);
 ```
 
 ## 커스텀 동등성 비교

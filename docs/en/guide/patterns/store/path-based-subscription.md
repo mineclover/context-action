@@ -118,6 +118,98 @@ const cartSummary = useStoreSelectorWithPaths(
 );
 ```
 
+## Path Format Reference
+
+### Path Type Definition
+
+```typescript
+type StorePath = (string | number)[];
+```
+
+- **string**: Object property keys
+- **number**: Array indices
+
+### Path Examples
+
+| State Access | Path |
+|-------------|------|
+| `state.user` | `['user']` |
+| `state.user.name` | `['user', 'name']` |
+| `state.user.profile.address.city` | `['user', 'profile', 'address', 'city']` |
+| `state.items[0]` | `['items', 0]` |
+| `state.items[1].name` | `['items', 1, 'name']` |
+| `state.matrix[0][1]` | `['matrix', 0, 1]` |
+
+### Path String Normalization (JSON Pointer RFC 6901)
+
+Internally, paths are converted to JSON Pointer strings (RFC 6901) for efficient prefix matching:
+
+```typescript
+['user', 'name']           → '/user/name'
+['items', 0]               → '/items/0'
+['items', 1, 'name']       → '/items/1/name'
+['matrix', 0, 1]           → '/matrix/0/1'
+[]                         → '' (empty string = root/whole document)
+['']                       → '/' (empty string key)
+```
+
+**Special Character Escaping (RFC 6901 Section 3):**
+
+Keys containing `~` or `/` are escaped. The order matters - `~` must be escaped first:
+- `~` → `~0`
+- `/` → `~1`
+
+```typescript
+['data', 'a/b']            → '/data/a~1b'
+['config', 'key~value']    → '/config/key~0value'
+['path/key', 'nested~val'] → '/path~1key/nested~0val'
+
+// Edge case: key contains '~1' literally
+['data', '~1']             → '/data/~01' (~ escaped to ~0, then 1 preserved)
+```
+
+**RFC 6901 Section 5 Examples:**
+
+```typescript
+// Given: { "m~n": 8, "a/b": 1, "": 0 }
+pathToPointer(['m~n'])     → '/m~0n'    // evaluates to 8
+pathToPointer(['a/b'])     → '/a~1b'    // evaluates to 1
+pathToPointer([''])        → '/'        // evaluates to 0
+```
+
+**Path Boundary Matching:**
+
+The matching algorithm correctly handles path boundaries:
+```typescript
+// '/user' does NOT match '/users' or '/userName'
+// Only matches: '/user', '/user/name', '/user/profile/...'
+
+isPointerPrefix('/user', '/user/name')  // true (valid parent)
+isPointerPrefix('/user', '/users')       // false (different path)
+isPointerPrefix('/user', '/userName')    // false (different path)
+```
+
+**Utility Functions (exported):**
+
+```typescript
+import {
+  pathToPointer,
+  pointerToPath,
+  isPointerPrefix,
+  escapeSegment,
+  unescapeSegment
+} from '@context-action/react';
+
+// Convert path array to JSON Pointer string
+pathToPointer(['user', 'name'])  // → '/user/name'
+
+// Parse JSON Pointer back to path array
+pointerToPath('/user/name')      // → ['user', 'name']
+
+// Check prefix relationship
+isPointerPrefix('/user', '/user/name')  // → true
+```
+
 ## How Path Matching Works
 
 A patch affects a subscribed path when:
@@ -139,6 +231,132 @@ const store = createStore('app', {
 // ✅ Affected by: patch to ['user'] (ancestor)
 // ❌ NOT affected by: patch to ['user', 'settings'] (sibling)
 // ❌ NOT affected by: patch to ['user', 'profile', 'age'] (sibling)
+```
+
+### Matching Algorithm
+
+```
+Patch: /user/name
+├─ Subscribe /user/name         → Match (exact) ✓
+├─ Subscribe /user              → Match (child changed) ✓
+├─ Subscribe /user/name/first   → Match (parent changed) ✓
+└─ Subscribe /settings          → No match ✗
+```
+
+## Array Operations and Patches
+
+Understanding how array mutations generate patches is crucial for effective path subscriptions.
+
+### Array Mutation Patch Patterns
+
+| Operation | Patches Generated | Example |
+|-----------|------------------|---------|
+| `arr[i] = value` | `replace` at index | `{ path: ['items', 1], op: 'replace' }` |
+| `arr[i].prop = value` | `replace` at nested path | `{ path: ['items', 1, 'name'], op: 'replace' }` |
+| `arr.push(value)` | `add` at new index | `{ path: ['items', 3], op: 'add' }` |
+| `arr.unshift(value)` | Multiple `replace` + `add` | Shifts all indices |
+| `arr.splice(i, n)` | Multiple `replace` + `length` | Affects index i onwards |
+
+### Detailed Patch Examples
+
+```typescript
+// 1. Direct index modification
+store.update(draft => { draft.items[1].name = 'updated'; });
+// Patch: [{ op: 'replace', path: ['items', 1, 'name'], value: 'updated' }]
+
+// 2. Array push
+store.update(draft => { draft.list.push(4); });
+// Patch: [{ op: 'add', path: ['list', 3], value: 4 }]
+
+// 3. Array unshift (inserts at beginning)
+store.update(draft => { draft.list.unshift(0); });
+// Patches:
+//   [{ op: 'replace', path: ['list', 0], value: 0 },
+//    { op: 'replace', path: ['list', 1], value: <old[0]> },
+//    { op: 'add', path: ['list', 2], value: <old[1]> }]
+
+// 4. Array splice (remove middle elements)
+store.update(draft => { draft.list.splice(1, 2); });
+// Patches:
+//   [{ op: 'replace', path: ['list', 1], value: <old[3]> },
+//    { op: 'replace', path: ['list', 'length'], value: 2 }]
+
+// 5. Nested array
+store.update(draft => { draft.matrix[0][1] = 99; });
+// Patch: [{ op: 'replace', path: ['matrix', 0, 1], value: 99 }]
+```
+
+### Array Subscription Strategies
+
+#### Strategy 1: Specific Index Subscription
+```tsx
+// Only re-renders when items[0] changes
+const firstItem = useStorePath(store, ['items', 0]);
+
+// ⚠️ Warning: Won't detect new items at index 0 after unshift
+// Use this when array order is stable
+```
+
+#### Strategy 2: Entire Array Subscription
+```tsx
+// Re-renders on any items change (recommended for dynamic arrays)
+const items = useStorePath(store, ['items']);
+
+// ✅ Detects: push, pop, splice, unshift, index modifications
+```
+
+#### Strategy 3: Array Length + Specific Items
+```tsx
+// Subscribe to length for structural changes
+const itemCount = useStorePath(store, ['items', 'length']);
+const firstItem = useStorePath(store, ['items', 0]);
+
+// Useful when you need both structure awareness and item access
+```
+
+### Nested Arrays (Matrix)
+
+```tsx
+const store = createStore('game', {
+  board: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+  ]
+});
+
+// Subscribe to specific cell
+const centerCell = useStorePath(store, ['board', 1, 1]); // value: 5
+
+// Subscribe to entire row
+const middleRow = useStorePath(store, ['board', 1]); // value: [4, 5, 6]
+
+// Subscribe to entire board
+const board = useStorePath(store, ['board']);
+```
+
+### Complex Nested Structures
+
+```tsx
+const store = createStore('app', {
+  users: [
+    { id: 1, profile: { name: 'John', tags: ['admin', 'active'] } },
+    { id: 2, profile: { name: 'Jane', tags: ['user'] } }
+  ]
+});
+
+// Deep path: users[0].profile.tags[1]
+const firstUserSecondTag = useStorePath(store, ['users', 0, 'profile', 'tags', 1]);
+
+// Object within array
+const firstUserProfile = useStorePath(store, ['users', 0, 'profile']);
+
+// Selector with path hints for computed values
+const allTags = useStoreSelectorWithPaths(
+  store,
+  (s) => s.users.flatMap(u => u.profile.tags),
+  { dependsOn: [['users']] }  // Subscribe to entire users array
+);
 ```
 
 ## Custom Equality

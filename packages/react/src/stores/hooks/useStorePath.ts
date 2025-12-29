@@ -6,8 +6,19 @@
  */
 
 import { useSyncExternalStore, useCallback, useRef, useMemo } from 'react';
-import { Store, type PatchAwareListener } from '../core/Store';
 import type { Patches } from '@context-action/mutative';
+import type { Unsubscribe } from '../core/types';
+import { pathToPointer, isPointerPrefix } from '../utils/json-pointer';
+
+/**
+ * Store interface that supports patch-aware subscriptions
+ * Compatible with Store, MutableStore, and TimeTravelStore
+ */
+export interface PatchAwareStore<T> {
+  getValue(): T;
+  subscribe(listener: () => void): Unsubscribe;
+  subscribeWithPatches(listener: (patches: Patches | null) => void): Unsubscribe;
+}
 
 /**
  * Path type for store subscription
@@ -22,22 +33,18 @@ export interface UseStorePathOptions<R> {
   equalityFn?: (a: R, b: R) => boolean;
 }
 
-/**
- * Convert path array to normalized string key for fast comparison
- * Uses '/' as separator since it's unlikely in property names
- */
-function pathToKey(path: StorePath): string {
-  return '/' + path.join('/');
-}
+// Use JSON Pointer utilities
+const pathToKey = pathToPointer;
+const isPathPrefix = isPointerPrefix;
 
 /**
- * Check if patches affect the target path using optimized string prefix matching
+ * Check if patches affect the target path
  * A patch affects a path if:
- * 1. The patch path is a prefix of target path (parent changed)
+ * 1. The patch path is a prefix of target path (parent/ancestor changed)
  * 2. The target path is a prefix of patch path (descendant changed)
- * 3. The paths are equal
+ * 3. The paths are exactly equal
  *
- * Uses string-based prefix matching for better performance
+ * Uses JSON Pointer string comparison with proper boundary handling
  */
 function patchesAffectPath(patches: Patches | null, targetPath: StorePath, targetPathKey?: string): boolean {
   if (!patches || patches.length === 0) return true; // No patches = full update
@@ -53,10 +60,10 @@ function patchesAffectPath(patches: Patches | null, targetPath: StorePath, targe
 
     const patchKey = pathToKey(patchPath);
 
-    // Check string prefix relationship (either direction)
-    // targetKey starts with patchKey = parent changed
-    // patchKey starts with targetKey = descendant changed
-    return targetKey.startsWith(patchKey) || patchKey.startsWith(targetKey);
+    // Check path relationship (either direction) with proper boundary handling
+    // isPathPrefix(patchKey, targetKey) = parent/ancestor changed
+    // isPathPrefix(targetKey, patchKey) = descendant changed
+    return isPathPrefix(patchKey, targetKey) || isPathPrefix(targetKey, patchKey);
   });
 }
 
@@ -103,20 +110,27 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
  * ```
  */
 export function useStorePath<T, R = unknown>(
-  store: Store<T>,
+  store: PatchAwareStore<T>,
   path: StorePath,
   options: UseStorePathOptions<R> = {}
 ): R {
   const { equalityFn } = options;
 
   // Memoize path key for stable comparison and optimized patch matching
-  const pathKey = useMemo(() => pathToKey(path), [path]);
+  // Using JSON.stringify for stable dependency (path array reference may change)
+  const pathKey = useMemo(() => pathToKey(path), [JSON.stringify(path)]);
 
-  // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean }>({
+  // Cache for value comparison with path tracking for invalidation
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathKey: string }>({
     value: undefined as R,
     initialized: false,
+    pathKey: '',
   });
+
+  // Invalidate cache when path changes
+  if (cacheRef.current.pathKey !== pathKey) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathKey };
+  }
 
   // Subscribe with patch awareness
   const subscribe = useCallback(
@@ -138,7 +152,7 @@ export function useStorePath<T, R = unknown>(
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true };
+      cacheRef.current = { value: currentValue, initialized: true, pathKey };
       return currentValue;
     }
 
@@ -188,19 +202,28 @@ export interface UseStoreSelectorWithPathsOptions<R> {
 }
 
 export function useStoreSelectorWithPaths<T, R>(
-  store: Store<T>,
+  store: PatchAwareStore<T>,
   selector: (value: T) => R,
   options: UseStoreSelectorWithPathsOptions<R> = {}
 ): R {
   const { dependsOn, equalityFn } = options;
 
-  // Cache for value comparison
-  const cacheRef = useRef<R>();
+  // Stable serialization of dependsOn for dependency tracking
+  const dependsOnKey = useMemo(
+    () => (dependsOn ? JSON.stringify(dependsOn) : null),
+    [dependsOn ? JSON.stringify(dependsOn) : null]
+  );
+
+  // Cache for value comparison with dependency tracking
+  const cacheRef = useRef<{ value: R | undefined; depsKey: string | null }>({
+    value: undefined,
+    depsKey: null,
+  });
 
   // Pre-compute path keys for all dependencies (optimized matching)
   const pathKeys = useMemo(
     () => (dependsOn ? dependsOn.map(p => ({ path: p, key: pathToKey(p) })) : null),
-    [dependsOn]
+    [dependsOnKey]
   );
 
   // Create stable dependency key for memoization
@@ -208,6 +231,11 @@ export function useStoreSelectorWithPaths<T, R>(
     () => (pathKeys ? pathKeys.map(pk => pk.key).sort().join('|') : null),
     [pathKeys]
   );
+
+  // Invalidate cache when dependencies change
+  if (cacheRef.current.depsKey !== depsKey) {
+    cacheRef.current = { value: undefined, depsKey };
+  }
 
   // Subscribe with patch awareness
   const subscribe = useCallback(
@@ -234,8 +262,8 @@ export function useStoreSelectorWithPaths<T, R>(
     const currentValue = selector(storeValue);
 
     // Compare with cached value
-    if (cacheRef.current !== undefined) {
-      const prevValue = cacheRef.current;
+    if (cacheRef.current.value !== undefined) {
+      const prevValue = cacheRef.current.value;
 
       if (equalityFn) {
         if (equalityFn(prevValue, currentValue)) {
@@ -246,7 +274,7 @@ export function useStoreSelectorWithPaths<T, R>(
       }
     }
 
-    cacheRef.current = currentValue;
+    cacheRef.current.value = currentValue;
     return currentValue;
   }, [store, selector, equalityFn]);
 
