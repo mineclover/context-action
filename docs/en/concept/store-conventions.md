@@ -760,6 +760,10 @@ class FileUploadService {
 - ✅ Clear separation of concerns
 - ✅ Easy to mock and test
 
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Business Logic Separation')` - Pure business logic without dependencies
+- `FileUploadService` class implementation
+
 ### Pattern 2: Async Process State Machine
 
 Use explicit state types and transitions for complex async workflows:
@@ -810,6 +814,10 @@ async function executeUpload(file: File) {
 - ✅ Prevents invalid states
 - ✅ Facilitates debugging
 
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Async Process State Machine')` - State machine pattern with notifyPath
+- `it('proves state machine pattern with notifyPath for state-only updates')` - Full workflow test
+
 ### Pattern 3: Progress-Only Updates
 
 Decouple progress updates from state changes for maximum performance:
@@ -856,6 +864,10 @@ function updateState(newState: ProcessState) {
 - ✅ High-frequency updates without performance cost
 - ✅ Independent component subscriptions
 - ✅ Optimal for progress bars, loading indicators
+
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Async Process State Machine')` - Progress-only updates test
+- `it('proves progress-only updates do not trigger state re-renders')` - 10 progress updates, 0 state renders
 
 ### Pattern 4: Modular Integration
 
@@ -940,6 +952,10 @@ function FileItem({ file }) {
 - ✅ Clear separation of concerns
 - ✅ Each layer independently testable
 
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Modular Business Logic Integration')` - Complete integration test
+- `it('proves integration of business logic, state management, and selective rendering')` - Full layer separation proof
+
 ### Pattern 5: Error Handling with State Machine
 
 Handle errors through explicit state transitions:
@@ -994,6 +1010,10 @@ async function executeWithErrorHandling(operation: () => Promise<void>) {
 - ✅ Retry logic with backoff
 - ✅ Error details tracked
 - ✅ Clear failure recovery paths
+
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Error Handling with State Machine')` - Error state management test
+- `it('proves error state management with notifyPath')` - Validation error handling
 
 ### Pattern 6: Multi-file Queue Management
 
@@ -1074,6 +1094,10 @@ async function processQueue(files: File[]) {
 - ✅ No unnecessary re-renders
 - ✅ Global queue status tracking
 
+**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
+- `describe('Complex Workflow: Multi-file Upload Queue')` - Queue management test
+- `it('proves complex async workflow with queue management')` - 3 files, 5 progress updates each
+
 ### Testing Business Logic
 
 ```typescript
@@ -1142,9 +1166,21 @@ store.setValue(state);                          // Final re-render
 
 ### Related Documentation
 
-- [Performance Proof](./notifyPath-performance-proof.md) - Mathematical performance proofs
-- [Event Loop Control](#event-loop-control) - Integration patterns
-- [Test Examples](../../packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - Comprehensive test suite
+**Performance & Testing**:
+- [Performance Proof](./notifyPath-performance-proof.md) - Mathematical performance proofs (50% re-render reduction, RAF batching, etc.)
+- [Async Process Tests](../../packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - Comprehensive test suite with 6 test categories:
+  - Business Logic Separation - Pure business logic without dependencies
+  - Async Process State Machine - State transitions with notifyPath
+  - Progress-Only Updates - Selective re-rendering proof
+  - Modular Business Logic Integration - Full layer separation
+  - Error Handling - Validation and error states
+  - Multi-file Queue Management - Complex concurrent workflows
+- [Performance Tests](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx) - Re-render reduction, RAF batching, selective rendering benchmarks
+
+**Architecture & Patterns**:
+- [Event Loop Control](#event-loop-control) - Integration patterns with Action Handlers and RefContext
+- [Main Conventions](./conventions.md) - Overall framework conventions
+- [Hooks Reference](./hooks-reference.md) - Complete hooks documentation
 
 ---
 
