@@ -12,11 +12,12 @@ This document defines coding conventions and best practices when using the Conte
 6. [Code Style](#code-style)
 7. [Import and Module Patterns](#import-and-module-patterns)
 8. [Core Framework Principles](#core-framework-principles)
-9. [Store Types](#store-types)
+9. [Store Types](#store-types) → **[Complete Store Conventions](./store-conventions.md)**
 10. [Store Update Conventions](#store-update-conventions)
-11. [Performance Guidelines](#performance-guidelines)
-12. [Error Handling](#error-handling)
-13. [RefContext Conventions](#refcontext-conventions)
+11. [Event Loop Control Conventions](#event-loop-control-conventions)
+12. [Performance Guidelines](#performance-guidelines)
+13. [Error Handling](#error-handling)
+14. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
@@ -1402,15 +1403,19 @@ function PaymentHandlers() {
 
 ## Store Types
 
-### 🏪 **Three Store Types**
+> **📖 Complete Store Documentation**: For detailed conventions, patterns, and best practices for all store types, see [Store Conventions](./store-conventions.md)
 
-Context-Action Framework provides three specialized Store implementations, each optimized for different use cases:
+### 🏪 **Three Store Types Overview**
 
-| Store Type | Use Case | Key Feature | Subscription Method |
-|------------|----------|-------------|---------------------|
-| **Store** | General state management | Immutability + Safety | `useStoreValue()` ✅ |
-| **TimeTravelStore** | Undo/Redo functionality | History + Structural Sharing | `useStorePath()` ✅ |
-| **MutableStore** | High-performance updates | Structural Sharing | `useStorePath()` ✅ |
+Context-Action Framework provides three specialized Store implementations:
+
+| Store Type | Implementation | Key Feature | Use Case |
+|------------|---------------|-------------|----------|
+| **Store** | `createStore()` | Immutability + Safety | General state, forms, settings |
+| **TimeTravelStore** | `createTimeTravelStore()` | Undo/Redo + Structural Sharing | Text editors, drawing apps |
+| **MutableStore** | TimeTravelStore (no undo/redo) | Structural Sharing + Performance | High-frequency updates, large trees |
+
+**MutableStore Definition**: TimeTravelStore with `mutable: true` where undo/redo methods are NOT used. This provides structural sharing and high performance without history overhead.
 
 ---
 
