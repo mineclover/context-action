@@ -1506,16 +1506,20 @@ const cursor = useStorePath(store, ['cursor']);
 
 ---
 
-### 🚀 **MutableStore**
+### 🚀 **Mutable Mode Pattern (High-Performance)**
 
-High-performance store optimized for frequent updates with structural sharing.
+**Pattern Definition**: Using TimeTravelStore with `mutable: true` or Store with `notifyPath/notifyPaths` API for high-performance updates with structural sharing and efficient event loop control.
+
+#### Basic Usage - TimeTravelStore Mutable Mode
 
 ```typescript
-import { createMutableStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react';
 
-const appStore = createMutableStore('app', {
+const appStore = createTimeTravelStore('app', {
   user: { name: 'John', settings: { theme: 'dark' } },
   ui: { sidebar: { isOpen: true } }
+}, {
+  mutable: true  // Enable structural sharing (default)
 });
 
 // ⚠️ IMPORTANT: Use useStorePath, NOT useStoreValue
@@ -1527,22 +1531,76 @@ appStore.update(draft => { draft.user.name = 'Jane'; });
 // user.settings and ui still have same reference = no re-render for those paths
 ```
 
+#### Advanced Pattern - Manual Event Control with notifyPath/notifyPaths
+
+**Revolutionary Feature**: Control React re-renders WITHOUT changing store values through manual path notifications.
+
+```typescript
+import { createStore, createTimeTravelStore } from '@context-action/react';
+
+const dashboardStore = createTimeTravelStore('dashboard', {
+  user: { name: 'John', status: 'idle' },
+  ui: { loading: false, progress: 0 }
+}, { mutable: true });
+
+// 🎯 Pattern 1: Direct mutation + manual notification
+async function loadUserData() {
+  const currentState = dashboardStore.getValue();
+
+  // Step 1: Notify loading UI (no actual state change needed)
+  dashboardStore.notifyPath(['ui', 'loading']);
+
+  // Step 2: External async operation
+  const userData = await fetchUserData();
+
+  // Step 3: Update state once with actual data
+  dashboardStore.update(draft => {
+    draft.user.name = userData.name;
+    draft.user.status = 'loaded';
+    draft.ui.loading = false;
+  });
+}
+
+// 🎯 Pattern 2: Batch notifications for multiple paths
+function updateMultiplePaths() {
+  dashboardStore.notifyPaths([
+    ['ui', 'loading'],
+    ['ui', 'progress']
+  ]);
+  // Triggers re-render for both paths with single RAF batch
+}
+
+// 🎯 Pattern 3: External system integration (WebSocket, etc.)
+function setupWebSocket(store: typeof dashboardStore) {
+  ws.on('message', (data) => {
+    // External vanilla JS directly mutates store value
+    const state = store.getValue();
+    state.user.status = data.status; // Direct mutation
+
+    // Notify React subscribers about the change
+    store.notifyPath(['user', 'status']);
+  });
+}
+```
+
 **Features:**
 - **Structural Sharing**: Unchanged parts keep same reference for selective re-rendering
 - **No Deep Freeze**: Compatible with mutable mode (unlike Store)
-- **RAF Batching**: Inherited from Store
+- **RAF Batching**: All notifications batched in requestAnimationFrame
 - **Patch Accumulation**: Batches patches during RAF cycle
-- **Concurrency Protection**: Inherited from Store
+- **Manual Event Control**: `notifyPath/notifyPaths` for external async operations
+- **Zero Re-renders**: Update without triggering React when using direct mutation + notifyPath
 
 **When to Use:**
-- High-frequency updates (animations, real-time data)
+- High-frequency updates (animations, real-time data, WebSocket streams)
 - Large state trees where selective re-rendering is critical
-- Performance-sensitive applications
-- When using `useStorePath()` for subscriptions
+- External async operations that need fine-grained render control
+- Performance-sensitive applications requiring event loop optimization
+- Integration with vanilla JS libraries that mutate state directly
 
 **⚠️ Critical: Subscription Pattern**
 ```typescript
-// MutableStore uses structural sharing - top-level reference doesn't change!
+// Mutable mode uses structural sharing - top-level reference doesn't change!
 // ❌ WRONG: useStoreValue won't detect changes
 const state = useStoreValue(store);
 
@@ -1556,17 +1614,20 @@ const theme = useStorePath(store, ['user', 'settings', 'theme']);
 ### 🔄 **Store Type Comparison**
 
 ```
-┌─────────────────────────┬───────────────┬──────────────────┬─────────────────┐
-│ Feature                 │ Store         │ TimeTravelStore  │ MutableStore    │
-├─────────────────────────┼───────────────┼──────────────────┼─────────────────┤
-│ Immutability            │ ✅ Deep Freeze │ ❌ Mutable Mode  │ ❌ Mutable Mode │
-│ Structural Sharing      │ ❌ No          │ ✅ Yes           │ ✅ Yes          │
-│ Undo/Redo               │ ❌ No          │ ✅ Yes           │ ❌ No           │
-│ useStoreValue()         │ ✅ Works       │ ❌ Won't Update  │ ❌ Won't Update │
-│ useStorePath()          │ ✅ Works       │ ✅ Required      │ ✅ Required     │
-│ RAF Batching            │ ✅ Yes         │ ✅ Yes           │ ✅ Yes          │
-│ Clone on getValue()     │ ✅ Default On  │ ❌ Default Off   │ ❌ No Cloning   │
-└─────────────────────────┴───────────────┴──────────────────┴─────────────────┘
+┌──────────────────────────┬───────────────┬──────────────────────────┐
+│ Feature                  │ Store         │ TimeTravelStore (Mutable)│
+├──────────────────────────┼───────────────┼──────────────────────────┤
+│ Immutability             │ ✅ Deep Freeze │ ❌ Mutable Mode          │
+│ Structural Sharing       │ ❌ No          │ ✅ Yes                   │
+│ Undo/Redo                │ ❌ No          │ ✅ Yes                   │
+│ notifyPath/notifyPaths   │ ✅ Yes         │ ✅ Yes                   │
+│ useStoreValue()          │ ✅ Works       │ ❌ Won't Update          │
+│ useStorePath()           │ ✅ Works       │ ✅ Required              │
+│ RAF Batching             │ ✅ Yes         │ ✅ Yes                   │
+│ Clone on getValue()      │ ✅ Default On  │ ❌ Default Off           │
+│ Manual Event Control     │ ✅ notifyPath  │ ✅ notifyPath            │
+│ External Mutation        │ ⚠️ Not Safe    │ ✅ Safe with notifyPath  │
+└──────────────────────────┴───────────────┴──────────────────────────┘
 ```
 
 ---
@@ -1580,17 +1641,18 @@ const formStore = createStore('form', { name: '', email: '' });
 // ✅ Use TimeTravelStore for: Undo/redo features
 const editorStore = createTimeTravelStore('editor', { content: '' });
 
-// ✅ Use MutableStore for: High-performance, large state trees
-const dashboardStore = createMutableStore('dashboard', {
+// ✅ Use TimeTravelStore (Mutable Mode) for: High-performance, large state trees
+const dashboardStore = createTimeTravelStore('dashboard', {
   widgets: [...],
   layout: {...}
-});
+}, { mutable: true }); // Structural sharing enabled
 ```
 
 **Decision Tree:**
 1. Need undo/redo? → **TimeTravelStore**
-2. High-frequency updates or large state tree? → **MutableStore**
-3. Standard state management? → **Store**
+2. High-frequency updates or large state tree? → **TimeTravelStore (mutable: true)**
+3. External async operations with manual event control? → **Store/TimeTravelStore + notifyPath**
+4. Standard state management? → **Store**
 
 ---
 
@@ -2000,6 +2062,241 @@ function SmoothAnimationComponent() {
     </div>
   );
 }
+```
+
+---
+
+## Event Loop Control Conventions
+
+### 🔄 **Efficient Event Loop Management with notifyPath/notifyPaths**
+
+The Context-Action framework provides powerful event loop control through the `notifyPath/notifyPaths` API, enabling efficient rendering control and preventing infinite loops.
+
+#### Core Concept: Manual Event Control
+
+Traditional state management triggers React re-renders on every state change. The notifyPath API decouples state changes from React updates, allowing:
+- **Selective notifications** without changing state
+- **Batched updates** via RAF (requestAnimationFrame)
+- **External mutation** with controlled React integration
+
+#### Pattern 1: Action Handler + notifyPath Integration
+
+**Traditional Approach (Inefficient):**
+```typescript
+// ❌ Problem: Every action triggers full state update + re-render
+useUserActionHandler('updateUserStatus', useCallback(async (payload) => {
+  const userStore = storeManager.getStore('user');
+
+  // Step 1: Update loading state → triggers re-render
+  userStore.update(draft => { draft.loading = true; });
+
+  // Step 2: Fetch data
+  const data = await fetchUserData(payload.userId);
+
+  // Step 3: Update user data → triggers re-render
+  userStore.update(draft => {
+    draft.user = data;
+    draft.loading = false;
+  });
+}, [storeManager]));
+```
+
+**Optimized Approach with notifyPath:**
+```typescript
+// ✅ Solution: Manual event control reduces re-renders
+useUserActionHandler('updateUserStatus', useCallback(async (payload) => {
+  const userStore = storeManager.getStore('user');
+
+  // Step 1: Notify loading UI WITHOUT changing state
+  userStore.notifyPath(['loading']);
+
+  // Step 2: Fetch data (UI already shows loading)
+  const data = await fetchUserData(payload.userId);
+
+  // Step 3: Single state update with actual data
+  userStore.update(draft => {
+    draft.user = data;
+    draft.loading = false;
+  });
+  // Only ONE re-render with final data
+}, [storeManager]));
+```
+
+**Performance Improvement:**
+- Traditional: 2 re-renders (loading + data)
+- Optimized: 1 re-render (data only)
+- Result: **50% fewer React updates**
+
+#### Pattern 2: RefContext + notifyPath Integration
+
+**Use Case**: High-performance DOM updates with coordinated state changes
+
+```typescript
+// ✅ Recommended: Combine RefContext (DOM) + notifyPath (State)
+function InteractiveDashboard() {
+  const progressBar = useProgressRef('progressBar');
+  const dashboardStore = useAppStore('dashboard');
+
+  const updateProgress = useCallback((progress: number) => {
+    // Step 1: Direct DOM update (zero React overhead)
+    if (progressBar.target) {
+      progressBar.target.style.width = `${progress}%`;
+      progressBar.target.setAttribute('aria-valuenow', String(progress));
+    }
+
+    // Step 2: Notify state subscribers (selective re-render)
+    dashboardStore.notifyPath(['ui', 'progress']);
+
+    // Step 3: Update store value for persistence
+    const state = dashboardStore.getValue();
+    state.ui.progress = progress; // Direct mutation (safe with notifyPath)
+  }, [progressBar, dashboardStore]);
+
+  return (
+    <div>
+      <div ref={progressBar.setRef} className="progress-bar" />
+      <ProgressStats /> {/* Only this re-renders on notifyPath */}
+    </div>
+  );
+}
+```
+
+**Benefits:**
+- **Zero React overhead** for DOM updates (RefContext)
+- **Selective re-rendering** for data-dependent components (notifyPath)
+- **Direct mutation** safe when paired with notifyPath
+
+#### Pattern 3: Preventing Infinite Loops with notifyPath
+
+**Common Infinite Loop Problem:**
+```typescript
+// ❌ INFINITE LOOP: Action triggers store update → triggers action
+useEffect(() => {
+  const unsubscribe = store.subscribe(() => {
+    dispatch('onStoreChange', { data: store.getValue() });
+  });
+  return unsubscribe;
+}, []);
+
+useActionHandler('onStoreChange', (payload) => {
+  store.setValue(processData(payload.data)); // Triggers subscribe → loop!
+});
+```
+
+**Solution with Conditional notifyPath:**
+```typescript
+// ✅ SOLUTION: Use notifyPath for notification-only updates
+useEffect(() => {
+  const unsubscribe = store.subscribe(() => {
+    // Only dispatch if actual business logic needed
+    const currentValue = store.getValue();
+    if (requiresProcessing(currentValue)) {
+      dispatch('onStoreChange', { data: currentValue });
+    }
+  });
+  return unsubscribe;
+}, []);
+
+useActionHandler('onStoreChange', (payload) => {
+  // Process data without triggering store update
+  const processed = processData(payload.data);
+
+  // Direct mutation + manual notification (no subscribe trigger)
+  const state = store.getValue();
+  state.processed = processed;
+  store.notifyPath(['processed']); // Selective notification only
+});
+```
+
+#### Pattern 4: Batch Notifications with notifyPaths
+
+**Multiple Path Updates:**
+```typescript
+// ✅ Recommended: Batch multiple path notifications
+function updateDashboardMetrics() {
+  const store = useDashboardStore('metrics');
+  const state = store.getValue();
+
+  // Update multiple properties directly
+  state.ui.loading = false;
+  state.ui.progress = 100;
+  state.data.lastUpdated = Date.now();
+
+  // Single batched notification (RAF batched)
+  store.notifyPaths([
+    ['ui', 'loading'],
+    ['ui', 'progress'],
+    ['data', 'lastUpdated']
+  ]);
+  // All paths notified in single RAF frame
+}
+```
+
+**RAF Batching Behavior:**
+- All `notifyPath/notifyPaths` calls batched in same frame
+- Single React update cycle per RAF tick
+- Prevents layout thrashing and excessive re-renders
+
+#### Pattern 5: External System Integration
+
+**WebSocket + notifyPath:**
+```typescript
+// ✅ Recommended: External system with controlled React integration
+function setupRealtimeUpdates(store: IStore<AppState>) {
+  const ws = new WebSocket('ws://api.example.com');
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    const state = store.getValue();
+
+    // Direct mutation (vanilla JS)
+    state.realtime.messages.push(data.message);
+    state.realtime.lastUpdate = Date.now();
+
+    // Notify React about specific changes
+    store.notifyPaths([
+      ['realtime', 'messages'],
+      ['realtime', 'lastUpdate']
+    ]);
+    // React updates only for subscribed paths
+  };
+
+  return () => ws.close();
+}
+```
+
+### 🎯 **Best Practices Summary**
+
+1. **Use notifyPath for loading states**: Avoid intermediate state updates
+2. **Combine RefContext + notifyPath**: Direct DOM + selective React updates
+3. **Batch with notifyPaths**: Multiple path updates in single RAF frame
+4. **Prevent infinite loops**: Use notifyPath instead of setValue in subscriptions
+5. **External systems**: Direct mutation + notifyPath for vanilla JS integration
+
+### ⚠️ **Anti-Patterns to Avoid**
+
+```typescript
+// ❌ WRONG: Using setValue in subscription (infinite loop risk)
+store.subscribe(() => {
+  store.setValue(processData(store.getValue()));
+});
+
+// ✅ CORRECT: Using notifyPath for notification-only
+store.subscribe(() => {
+  const state = store.getValue();
+  state.processed = processData(state.raw);
+  store.notifyPath(['processed']);
+});
+
+// ❌ WRONG: Multiple setValue calls (multiple re-renders)
+store.setValue({ ...state, loading: true });
+await fetchData();
+store.setValue({ ...state, loading: false, data });
+
+// ✅ CORRECT: notifyPath + single setValue (one re-render)
+store.notifyPath(['loading']);
+const data = await fetchData();
+store.setValue({ ...state, loading: false, data });
 ```
 
 ---
