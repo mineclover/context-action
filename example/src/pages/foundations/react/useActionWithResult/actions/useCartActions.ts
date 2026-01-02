@@ -127,8 +127,10 @@ export function useCartActions() {
           };
         }
 
-        // Clear cart after successful order
-        await clearCart();
+
+        // NOTE: clearCart is intentionally NOT called here
+        // This allows the user to see the final validation, calculation, and order results
+        // Users can manually clear the cart using the "Clear Cart" button
 
         return { success: true, step: 'completed' };
       } catch (error) {
@@ -136,7 +138,7 @@ export function useCartActions() {
         return { success: false, error, step: 'unknown' };
       }
     },
-    [validateCart, calculateTotal, processOrder, clearCart]
+    [validateCart, calculateTotal, processOrder]
   );
 
   return {
@@ -299,8 +301,10 @@ export function useCartActionCallbacks() {
           return orderResult;
         }
 
-        // Step 4: Clear Cart
-        await actions.clearCart();
+        // NOTE: clearCart is intentionally NOT called here
+        // This allows the user to see the final validation, calculation, and order results
+        // Users can manually clear the cart using the "Clear Cart" button
+
 
         callbacks?.onSuccess?.();
         return { success: true, step: 'completed' };

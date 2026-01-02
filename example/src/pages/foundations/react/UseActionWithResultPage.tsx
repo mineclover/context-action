@@ -9,7 +9,7 @@
  * 4. Showcases useActionWithResult with structured layers
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CodeBlock } from '@/components/ui';
 import { useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
 import {
@@ -130,6 +130,7 @@ function UseActionWithResultUI() {
   const [workflowStep, setWorkflowStep] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<string>('');
+  const [validationHistory, setValidationHistory] = useState<any[]>([]);
 
   // 🎯 Hook Layer - Data subscriptions
   const {
@@ -145,6 +146,19 @@ function UseActionWithResultUI() {
 
   // const { } = useCartFormData(); // 사용하지 않는 훅 호출 제거
   const { statistics } = useCartStatistics();
+
+  // 🎯 Track validation history
+  useEffect(() => {
+    if (validation && validation.validatedBy !== 'initial') {
+      setValidationHistory(prev => [
+        ...prev,
+        {
+          ...validation,
+          timestamp: Date.now(),
+        }
+      ]);
+    }
+  }, [validation]);
 
   // 🎯 Action Layer - Behavior with callbacks
   const {
@@ -312,6 +326,7 @@ function UseActionWithResultUI() {
   const handleClearCart = useCallback(async () => {
     await clearCart();
     setResults('');
+    setValidationHistory([]);
     setWorkflowStep('');
     console.log('🗑️ Cart cleared');
   }, [clearCart]);
@@ -428,7 +443,7 @@ function UseActionWithResultUI() {
           {/* Validation Status */}
           {validation && (
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-              <ValidationView validation={validation} />
+              <ValidationView validation={validation} history={validationHistory} />
             </div>
           )}
         </div>

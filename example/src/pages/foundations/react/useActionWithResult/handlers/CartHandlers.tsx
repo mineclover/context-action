@@ -210,6 +210,12 @@ export function CartHandlers({
               logger?.info(`[${moduleId}] Order saved to API`, {
                 orderId: orderResult.orderId,
               });
+
+              // Update order status to completed after successful API save
+              orderStore.update((current) => ({
+                ...current!,
+                status: 'completed' as const,
+              }));
             } catch (error) {
               logger?.error(`[${moduleId}] Failed to save order to API`, error);
               // Update order status to reflect API failure
@@ -218,6 +224,12 @@ export function CartHandlers({
                 status: 'failed' as const,
               }));
             }
+          } else {
+            // No API client provided, mark as completed immediately
+            orderStore.update((current) => ({
+              ...current!,
+              status: 'completed' as const,
+            }));
           }
 
           // Update inventory if needed
@@ -268,27 +280,9 @@ export function CartHandlers({
         cartStore.setValue(emptyCart);
 
         // Side effects: Reset related stores
-        validationStore.setValue({
-          isValid: true,
-          errors: [],
-          validatedBy: 'cart-cleared',
-        });
-
-        calculationStore.setValue({
-          subtotal: 0,
-          tax: 0,
-          total: 0,
-          itemCount: 0,
-          timestamp: Date.now(),
-          calculatedBy: 'cart-cleared',
-        });
-
-        orderStore.setValue({
-          orderId: '',
-          status: 'processing',
-          processedBy: 'cart-cleared',
-          timestamp: Date.now(),
-        });
+        validationStore.setValue(null);
+        calculationStore.setValue(null);
+        orderStore.setValue(null);
 
         logger?.info(`[${moduleId}] Cart cleared`, {
           previousItemCount: itemCount,

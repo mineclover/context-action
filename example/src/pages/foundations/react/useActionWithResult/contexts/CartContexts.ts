@@ -69,28 +69,12 @@ export const { Provider: CartStoreProvider, useStore: useCartStore } =
   createStoreContext('CartStores', {
     cart: { initialValue: [] as CartItem[] },
     validation: {
-      initialValue: {
-        isValid: false,
-        errors: [],
-        validatedBy: 'initial',
-      } as ValidationResult,
+      initialValue: null as ValidationResult | null,
     },
     calculation: {
-      initialValue: {
-        subtotal: 0,
-        tax: 0,
-        total: 0,
-        itemCount: 0,
-        timestamp: Date.now(),
-        calculatedBy: 'initial',
-      } as CalculationResult,
+      initialValue: null as CalculationResult | null,
     },
     order: {
-      initialValue: {
-        orderId: '',
-        status: 'processing' as const,
-        processedBy: 'initial',
-        timestamp: Date.now(),
-      } as ProcessingResult,
+      initialValue: null as ProcessingResult | null,
     },
   });

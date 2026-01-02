@@ -55,7 +55,9 @@ export function useCartData() {
   }, [cart]);
 
   const isCartValid = useMemo(() => {
-    return validation?.isValid ?? false;
+    // validation이 null이면 아직 검증하지 않은 상태로 간주 (유효한 것으로 처리)
+    // validation이 있으면 isValid 값 확인
+    return validation === null ? true : validation.isValid;
   }, [validation]);
 
   const hasValidationErrors = useMemo(() => {
@@ -276,3 +278,4 @@ export function useCartItemData(itemId?: string) {
     sortedItems: sortedCart,
   };
 }
+
