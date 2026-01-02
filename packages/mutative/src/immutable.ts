@@ -82,7 +82,7 @@ export function produce<T, F extends boolean = false>(
     const result = create(baseState, producer, {
       enablePatches: true,
       strict: options?.freeze ?? false,
-    });
+    }) as [T, Patches<true>, Patches<true>];
     const [nextState] = result;
     return nextState;
   } catch (error) {
@@ -115,7 +115,7 @@ export function produceWithPatches<T, F extends boolean = false>(
   const [nextState, patches, inversePatches] = create(baseState, producer, {
     enablePatches: true,
     strict: options?.freeze ?? false,
-  });
+  }) as [T, Patches<true>, Patches<true>];
   return [nextState, patches, inversePatches];
 }
 
@@ -246,14 +246,14 @@ export const MutativeUtils = {
    * Get current state of Draft (finalized snapshot)
    */
   current<T>(value: T): T {
-    return current(value);
+    return current(value as object) as T;
   },
 
   /**
    * Raw return for replacing entire state
    */
   rawReturn<T>(value: T): T {
-    return rawReturn(value) as T;
+    return rawReturn(value as object) as T;
   },
 
   /**

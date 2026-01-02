@@ -30,6 +30,8 @@ export interface TimeTravelStoreOptions<T> {
   mutable?: boolean;
   /** Custom equality function */
   isEqual?: (a: T, b: T) => boolean;
+  /** Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate') */
+  notificationMode?: 'batched' | 'immediate';
 }
 
 /**
@@ -65,6 +67,11 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   // Disabled by default to preserve structural sharing for selective re-rendering
   private cloningEnabled = false;
 
+  // RAF-based notification batching
+  private notificationMode: 'batched' | 'immediate' = 'immediate';
+  private pendingNotification = false;
+  private animationFrameId: number | null = null;
+
   constructor(
     name: string,
     initialValue: T,
@@ -72,6 +79,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   ) {
     this.name = name;
     this.customComparator = options.isEqual;
+    this.notificationMode = options.notificationMode ?? 'immediate';
 
     // Create TimeTravel instance
     // mutable=true enables structural sharing for selective re-rendering
@@ -93,8 +101,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       }
 
       this._updateSnapshot();
-      this._notifyListeners();
-      this._notifyPatchAwareListeners();
+      this._scheduleNotification();
     });
 
     // Create initial snapshot
@@ -216,6 +223,12 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   dispose(): void {
     if (this.isDisposed) return;
     this.isDisposed = true;
+
+    // Cancel pending RAF
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
 
     // Execute cleanup tasks
     this.cleanupTasks.forEach((task) => {
@@ -341,8 +354,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       value: currentValue
     }] as Patches;
 
-    this._notifyListeners();
-    this._notifyPatchAwareListeners();
+    this._scheduleNotification();
   }
 
   /**
@@ -360,8 +372,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       value: this._getValueAtPath(path)
     })) as Patches;
 
-    this._notifyListeners();
-    this._notifyPatchAwareListeners();
+    this._scheduleNotification();
   }
 
   /**
@@ -417,8 +428,29 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this._snapshot = this._createSnapshot();
   }
 
-  private _notifyListeners(): void {
+  private _scheduleNotification(): void {
     if (this.isDisposed) return;
+
+    if (this.notificationMode === 'immediate') {
+      this._executeNotification();
+      return;
+    }
+
+    // RAF batching
+    if (!this.pendingNotification) {
+      this.pendingNotification = true;
+      this.animationFrameId = requestAnimationFrame(() => {
+        this._executeNotification();
+        this.pendingNotification = false;
+        this.animationFrameId = null;
+      });
+    }
+  }
+
+  private _executeNotification(): void {
+    if (this.isDisposed) return;
+
+    // Notify regular listeners
     this.listeners.forEach((listener) => {
       try {
         listener();
@@ -426,10 +458,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
         ErrorHandlers.store('Listener error', { storeName: this.name });
       }
     });
-  }
 
-  private _notifyPatchAwareListeners(): void {
-    if (this.isDisposed) return;
+    // Notify patch-aware listeners
     this.patchAwareListeners.forEach((listener) => {
       try {
         listener(this._lastPatches);
