@@ -234,39 +234,81 @@ export function AddItemForm({ onAddItem, disabled = false }: AddItemFormProps) {
 // 🎯 Validation Result View Component
 export interface ValidationViewProps {
   validation: ValidationResult | null;
+  history?: Array<ValidationResult & { timestamp: number }>;
 }
 
-export function ValidationView({ validation }: ValidationViewProps) {
+export function ValidationView({ validation, history = [] }: ValidationViewProps) {
   if (!validation) return null;
 
   return (
-    <div
-      className={`p-4 rounded-lg border ${
-        validation.isValid
-          ? 'bg-green-50 border-green-200 text-green-800'
-          : 'bg-red-50 border-red-200 text-red-800'
-      }`}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{validation.isValid ? '✅' : '❌'}</span>
-        <h3 className="font-semibold">
-          {validation.isValid ? 'Cart is Valid' : 'Validation Errors'}
-        </h3>
+    <div className="space-y-3">
+      {/* Current Validation */}
+      <div
+        className={`p-4 rounded-lg border ${
+          validation.isValid
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">{validation.isValid ? '✅' : '❌'}</span>
+          <h3 className="font-semibold">
+            {validation.isValid ? 'Cart is Valid' : 'Validation Errors'}
+          </h3>
+        </div>
+
+        {!validation.isValid && validation.errors.length > 0 && (
+          <ul className="space-y-1">
+            {validation.errors.map((error, index) => (
+              <li key={index} className="text-sm">
+                • {error}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p className="text-xs mt-2 opacity-75">
+          Validated by: {validation.validatedBy}
+        </p>
       </div>
 
-      {!validation.isValid && validation.errors.length > 0 && (
-        <ul className="space-y-1">
-          {validation.errors.map((error, index) => (
-            <li key={index} className="text-sm">
-              • {error}
-            </li>
-          ))}
-        </ul>
+      {/* Validation History */}
+      {history.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold text-gray-600 px-1">
+            Validation History ({history.length})
+          </h4>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {history.slice().reverse().map((item, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-lg border text-xs ${
+                  item.isValid
+                    ? 'bg-green-50/50 border-green-200/50 text-green-700'
+                    : 'bg-red-50/50 border-red-200/50 text-red-700'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium">
+                    {item.isValid ? '✅ Valid' : '❌ Invalid'}
+                  </span>
+                  <span className="text-gray-500">
+                    {new Date(item.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+                {!item.isValid && item.errors.length > 0 && (
+                  <div className="text-xs opacity-75">
+                    {item.errors.join(', ')}
+                  </div>
+                )}
+                <div className="text-xs opacity-60 mt-1">
+                  by: {item.validatedBy}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
-
-      <p className="text-xs mt-2 opacity-75">
-        Validated by: {validation.validatedBy}
-      </p>
     </div>
   );
 }
