@@ -10,6 +10,7 @@
 import { NonReactiveView } from './components/NonReactiveView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
 
+import { CodeBlock } from '@/components/ui';
 /**
  * Non-Reactive Context Store 페이지
  *
@@ -66,7 +67,7 @@ export function NonReactiveContextStorePage() {
                   Model Layer: Store Context (Read-Only Access)
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// Model Layer: 동일한 Store Context 사용 (Legacy와 동일)
+                  <CodeBlock size="sm">{`// Model Layer: 동일한 Store Context 사용 (Legacy와 동일)
 export const MouseEventsModel = createStoreContext('MouseEvents', {
   activity: { isActive: false, statusText: 'Idle', statusColor: 'gray' },
   movement: { path: [], isMoving: false, velocity: 0 },
@@ -76,7 +77,7 @@ export const MouseEventsModel = createStoreContext('MouseEvents', {
 
 // Non-Reactive 패턴: Store 구독 대신 getValue() 사용
 const movementStore = useMouseEventsModel('movement');
-const currentMovement = movementStore.getValue(); // 구독하지 않고 읽기만`}</pre>
+const currentMovement = movementStore.getValue(); // 구독하지 않고 읽기만`}</CodeBlock>
                 </div>
               </div>
 
@@ -87,7 +88,7 @@ const currentMovement = movementStore.getValue(); // 구독하지 않고 읽기�
                   RefContext Layer: Direct DOM Manipulation
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// RefContext 기반 DOM 직접 조작
+                  <CodeBlock size="sm">{`// RefContext 기반 DOM 직접 조작
 const CanvasRefs = createRefContext('MouseCanvas', {
   container: { name: 'container', objectType: 'dom' },
   cursor: { name: 'cursor', objectType: 'dom' },
@@ -115,7 +116,7 @@ const useNonReactiveCanvasControl = () => {
       });
     }
   };
-};`}</pre>
+};`}</CodeBlock>
                 </div>
               </div>
 
@@ -126,7 +127,7 @@ const useNonReactiveCanvasControl = () => {
                   ViewModel Layer: Hybrid Logic
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// ViewModel: Store 업데이트 + RefContext 조작 결합
+                  <CodeBlock size="sm">{`// ViewModel: Store 업데이트 + RefContext 조작 결합
 export const useNonReactiveMouseEventsLogic = () => {
   const { updateCursor, updatePath } = useNonReactiveCanvasControl();
   const activityStore = useMouseEventsModel('activity');
@@ -148,7 +149,7 @@ export const useNonReactiveMouseEventsLogic = () => {
   }, [updateCursor, updatePath]);
   
   return { handleMove, handleClick };
-};`}</pre>
+};`}</CodeBlock>
                 </div>
               </div>
 

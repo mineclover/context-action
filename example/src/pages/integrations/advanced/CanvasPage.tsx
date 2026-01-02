@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { Canvas, type CanvasEvent } from './canvas/Canvas';
 import { CanvasProvider } from './canvas/CanvasContext';
 import { CanvasStatus } from './canvas/CanvasStatus';
@@ -325,7 +326,7 @@ function AdvancedCanvasContent() {
         <h3 className="text-lg font-semibold mb-4">
           Canvas Context 모듈화 구현
         </h3>
-        <pre className="text-sm overflow-x-auto">
+        <CodeBlock size="sm" className="overflow-x-auto">
           {`// CanvasContext.tsx - 상태 관리 분리
 export function CanvasProvider({ children }) {
   const [shapes, setShapes] = useState<CanvasShape[]>([]);
@@ -362,7 +363,7 @@ export function Canvas({ width, height, onFocusChange }) {
     </div>
   );
 }`}
-        </pre>
+        </CodeBlock>
       </div>
 
       {/* Drawing Tools */}

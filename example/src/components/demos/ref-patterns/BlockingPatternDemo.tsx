@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useDemoRef, useWaitForDemoRefs } from '../../../hooks/useDemoRef';
 
 export function BlockingPatternDemo() {
@@ -153,18 +154,18 @@ const handleClick = async () => {
         <summary className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800">
           📋 블로킹 코드 예제 보기 (❌ 안티패턴)
         </summary>
-        <pre className="mt-2 p-3 bg-red-50 rounded text-xs overflow-x-auto border border-red-200">
+        <CodeBlock size="sm">
           <code>{blockingCodeExample}</code>
-        </pre>
+        </CodeBlock>
       </details>
 
       <details className="mb-3">
         <summary className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800">
           📋 Non-blocking 코드 예제 보기 (✅ 권장)
         </summary>
-        <pre className="mt-2 p-3 bg-green-50 rounded text-xs overflow-x-auto border border-green-200">
+        <CodeBlock size="sm">
           <code>{nonBlockingCodeExample}</code>
-        </pre>
+        </CodeBlock>
       </details>
 
       <div className="space-y-3">

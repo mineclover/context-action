@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -268,7 +269,7 @@ function ToastConfigExamplePage() {
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-800 mb-2">💡 핵심 설정</h3>
-            <pre className="text-sm text-yellow-700 font-mono">
+            <CodeBlock size="sm" className="text-yellow-700">
               {`<PageWithLogMonitor 
   pageId="toast-config-example"
   initialConfig={{
@@ -279,7 +280,7 @@ function ToastConfigExamplePage() {
 >
   {/* 컴포넌트 내용 */}
 </PageWithLogMonitor>`}
-            </pre>
+            </CodeBlock>
           </div>
         </header>
 
@@ -299,21 +300,21 @@ function ToastConfigExamplePage() {
                 <h4 className="font-semibold text-gray-800 mb-2">
                   1. PageWithLogMonitor 컴포넌트에서
                 </h4>
-                <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
+                <CodeBlock size="sm" className="bg-gray-50">
                   {`<PageWithLogMonitor 
   pageId="my-page"
   initialConfig={{ enableToast: true }}
 >
   <MyComponent />
 </PageWithLogMonitor>`}
-                </pre>
+                </CodeBlock>
               </div>
 
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
                   2. 런타임에서 동적 변경
                 </h4>
-                <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
+                <CodeBlock size="sm" className="bg-gray-50">
                   {`const { updateConfig } = useLogMonitor();
 
 // Toast 활성화
@@ -321,21 +322,21 @@ updateConfig({ enableToast: true });
 
 // Toast 비활성화  
 updateConfig({ enableToast: false });`}
-                </pre>
+                </CodeBlock>
               </div>
 
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
                   3. 액션 로깅에서 Toast 사용
                 </h4>
-                <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
+                <CodeBlock size="sm" className="bg-gray-50">
                   {`const { logAction } = useActionLoggerWithToast();
 
 // 기본 Toast (ACTION_MESSAGES 기반)
 logAction('myAction', { data: 'test' });
 
 // enableToast: true 설정 후 자동으로 Toast 표시됨`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
           </DemoCard>

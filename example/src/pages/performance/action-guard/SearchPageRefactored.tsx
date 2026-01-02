@@ -12,6 +12,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useMemo } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // ===== 타입 정의 =====
 interface SearchItem {
@@ -1268,7 +1269,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🏪 Store Context Pattern
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const { Provider, useStore } = createStoreContext('AdvancedSearch', {
   query: '',
   filters: {} as Record<string, string>,
@@ -1285,14 +1286,14 @@ function CodeSection() {
     popularSearchs: []
   } as SearchMetrics
 });`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               ⚡ Action Handler
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`useActionHandler('performSearch', useCallback(async (payload, controller) => {
   const startTime = Date.now();
   isSearchingStore.setValue(true);
@@ -1321,7 +1322,7 @@ function CodeSection() {
     isSearchingStore.setValue(false);
   }
 }, [resultsStore, isSearchingStore, metricsStore]));`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -1330,7 +1331,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🎯 Action Types
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`interface SearchActions {
   performSearch: { 
     query: string; 
@@ -1344,14 +1345,14 @@ function CodeSection() {
   selectResult: { id: string; item: SearchItem };
   abortSearch: void;
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               📊 Relevance Scoring
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`function calculateRelevance(item: SearchItem, query: string): number {
   if (!query.trim()) return 0.5;
   
@@ -1379,7 +1380,7 @@ function CodeSection() {
   
   return Math.min(score, 1);
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-blue-50 rounded-xl">

@@ -4,6 +4,7 @@
  */
 
 import { useEffect } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { LogLevel } from '@/utils/logger';
 import { cn } from '../../lib/utils';
 import {
@@ -182,9 +183,9 @@ function LogDetails({ details }: LogDetailsProps) {
       <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">
         Details
       </summary>
-      <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
+      <CodeBlock size="sm">
         {JSON.stringify(details, null, 2)}
-      </pre>
+      </CodeBlock>
     </details>
   );
 }

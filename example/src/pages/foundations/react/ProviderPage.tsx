@@ -5,6 +5,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useCallback, useState } from 'react';
 import {
   PageWithLogMonitor,
@@ -536,7 +537,7 @@ function ReactProviderPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               💻 Separated Provider Pattern Code
             </h3>
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+            <CodeBlock size="sm">
               {`// 1. Create Separated Patterns
 const ProviderActions = createActionContext<ProviderActions>({
   name: 'ReactProviderDemo-actions'
@@ -587,7 +588,7 @@ function MyComponent() {
     </div>
   );
 }`}
-            </pre>
+            </CodeBlock>
           </CardContent>
         </Card>
 

@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 export { ContextActionDemo } from './ContextActionDemo';
 
@@ -791,7 +792,7 @@ export function ApiManagerDemo({ className = '' }: { className?: string }) {
               </div>
             </div>
             <div className="bg-white rounded border p-2 text-xs font-mono max-h-32 overflow-y-auto">
-              <pre>{JSON.stringify(response.data, null, 2)}</pre>
+              {JSON.stringify(response.data, null, 2)}
             </div>
           </div>
         )}

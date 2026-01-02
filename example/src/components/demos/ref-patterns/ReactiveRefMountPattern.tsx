@@ -1,5 +1,6 @@
 import { createRefContext } from '@context-action/react';
 import { useCallback, useEffect, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // RefContext 생성
 const DemoRefs = createRefContext<{
@@ -173,7 +174,7 @@ export function ReactiveRefMountPattern() {
               <h5 className="font-semibold text-green-700 mb-2">
                 ✅ 올바른 패턴
               </h5>
-              <pre className="p-3 bg-green-50 rounded text-xs overflow-x-auto">
+              <CodeBlock size="sm">
                 <code>{`// 반응형 마운트 상태 구독
 const mountState = useRefMountState('container');
 const { isMounted, mountedTarget } = mountState;
@@ -187,14 +188,14 @@ useEffect(() => {
     console.log('Unmounted!');
   }
 }, [isMounted, mountedTarget]);`}</code>
-              </pre>
+              </CodeBlock>
             </div>
 
             <div>
               <h5 className="font-semibold text-yellow-700 mb-2">
                 ⚠️ 피해야 할 패턴
               </h5>
-              <pre className="p-3 bg-yellow-50 rounded text-xs overflow-x-auto">
+              <CodeBlock size="sm">
                 <code>{`// 수동 상태 관리 (문제 있음)
 const [mounted, setMounted] = useState(false);
 
@@ -209,7 +210,7 @@ useEffect(() => {
     setMounted(false); // 수동으로 추가 필요
   };
 }, [ref]);`}</code>
-              </pre>
+              </CodeBlock>
             </div>
           </div>
         </details>

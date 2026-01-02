@@ -5,6 +5,7 @@
  */
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // ================================
 // 📊 타입 정의
@@ -297,9 +298,9 @@ const RealTimeDebuggerComponent = ({
             </div>
             {log.data && Object.keys(log.data).length > 0 && (
               <div className="ml-6 mt-1 p-2 bg-gray-800 rounded text-xs">
-                <pre className="text-gray-300 overflow-hidden">
+                <CodeBlock size="sm">
                   {JSON.stringify(log.data, null, 2)}
-                </pre>
+                </CodeBlock>
               </div>
             )}
           </div>

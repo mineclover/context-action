@@ -5,6 +5,7 @@
 
 import { createActionContext } from '@context-action/react';
 import React, { useCallback, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent } from '@/components/ui';
 
@@ -437,7 +438,7 @@ function MouseEventsDemo() {
         <Card>
           <CardContent className="p-6">
             <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <pre className="text-sm">
+              <CodeBlock size="sm">
                 <code>{`// Action Context 정의
 const { Provider, useActionDispatch, useActionHandler } = 
   createActionContext<BasicMouseActions>('BasicMouse');
@@ -467,7 +468,7 @@ const handleMouseClick = (e: React.MouseEvent) => {
     target: 'interactive-area' 
   });
 };`}</code>
-              </pre>
+              </CodeBlock>
             </div>
           </CardContent>
         </Card>

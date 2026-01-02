@@ -15,6 +15,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { NonReactiveCanvas } from './components/NonReactiveCanvas';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
@@ -339,7 +340,7 @@ function RefactoredPageContent() {
                 <span>⚡</span>
                 RefContext Direct DOM Manipulation
               </h3>
-              <pre className="text-xs font-mono text-gray-700 overflow-x-auto bg-white p-4 rounded-lg border">
+              <CodeBlock size="sm">
                 {`// RefContext for zero re-renders
 const CanvasRefs = createRefContext('MouseCanvas', {
   cursor: { name: 'cursor', objectType: 'dom' },
@@ -359,7 +360,7 @@ const useCanvasControl = () => {
     }
   };
 };`}
-              </pre>
+              </CodeBlock>
             </div>
 
             {/* Store Integration */}
@@ -368,7 +369,7 @@ const useCanvasControl = () => {
                 <span>🏪</span>
                 Store Integration Pattern
               </h3>
-              <pre className="text-xs font-mono text-gray-700 overflow-x-auto bg-white p-4 rounded-lg border">
+              <CodeBlock size="sm">
                 {`// Non-reactive store access
 const useNonReactiveLogic = () => {
   const activityStore = useMouseEventsModel('activity');
@@ -389,7 +390,7 @@ const useNonReactiveLogic = () => {
     updateCursor(payload.x, payload.y);
   }, []);
 };`}
-              </pre>
+              </CodeBlock>
             </div>
 
             {/* Performance Optimization */}
@@ -398,7 +399,7 @@ const useNonReactiveLogic = () => {
                 <span>🚀</span>
                 Performance Optimizations
               </h3>
-              <pre className="text-xs font-mono text-gray-700 overflow-x-auto bg-white p-4 rounded-lg border">
+              <CodeBlock size="sm">
                 {`// GPU acceleration with CSS transforms
 const updateVisuals = (x: number, y: number) => {
   cursorRef.withTarget(cursor => {
@@ -417,7 +418,7 @@ const updateVisuals = (x: number, y: number) => {
     updateMetricsDisplay();
   });
 };`}
-              </pre>
+              </CodeBlock>
             </div>
 
             {/* Architecture Benefits */}

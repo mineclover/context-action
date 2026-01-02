@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import {
   type User,
@@ -391,7 +392,7 @@ function UserManagementUI() {
               </span>
             </summary>
             <div className="p-4 bg-gray-900">
-              <pre className="text-green-400 font-mono text-xs overflow-auto leading-relaxed">
+              <CodeBlock size="sm">
                 {JSON.stringify(
                   {
                     currentView,
@@ -408,7 +409,7 @@ function UserManagementUI() {
                   null,
                   2
                 )}
-              </pre>
+              </CodeBlock>
             </div>
           </details>
         </div>

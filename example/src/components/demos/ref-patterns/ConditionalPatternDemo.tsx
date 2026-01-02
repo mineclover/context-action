@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useDemoRef } from '../../../hooks/useDemoRef';
 
 export function ConditionalPatternDemo() {
@@ -75,9 +76,9 @@ const handleClick = useCallback(() => {
         <summary className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800">
           📋 코드 예제 보기
         </summary>
-        <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
+        <CodeBlock size="sm">
           <code>{codeExample}</code>
-        </pre>
+        </CodeBlock>
       </details>
 
       <div className="space-y-3">

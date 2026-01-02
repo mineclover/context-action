@@ -1,3 +1,5 @@
+import { CodeBlock } from '@/components/ui';
+
 /**
  * Shared Component - 코드 비교 표시
  * 메모이제이션 패턴 비교를 위한 순수 UI 컴포넌트
@@ -9,7 +11,7 @@ export function CodeComparison() {
         <h4 className="font-bold text-green-700 mb-2">
           ✅ 스마트 메모이제이션 패턴
         </h4>
-        <pre className="text-xs overflow-x-auto">
+        <CodeBlock size="sm">
           {`// ✅ 함수는 메모이제이션 + 데이터는 지연 평가
 const handleIncrement = useCallback(async () => {
   const current = store.getValue(); // 🔄 항상 최신 값
@@ -38,12 +40,12 @@ const handleHeavyOperation = useCallback(async (payload) => {
 }, [expensiveCalculator]); // 의존성 명시
 
 // 🚀 결과: 함수 생성 비용 0, 하지만 최신 데이터 접근!`}
-        </pre>
+        </CodeBlock>
       </div>
 
       <div className="p-3 bg-red-50 rounded-lg">
         <h4 className="font-bold text-red-700 mb-2">❌ 비효율적인 패턴</h4>
-        <pre className="text-xs overflow-x-auto">
+        <CodeBlock size="sm">
           {`// ❌ 렌더링마다 새로운 함수 생성 = 메모리 낭비
 const handleIncrement = async () => {
   const current = store.getValue(); // ✓ 최신 값은 가져오지만
@@ -72,7 +74,7 @@ const handleHeavyOperation = async (payload) => {
 }; // 💥 핸들러도 매번 재생성!
 
 // 💸 결과: 함수 생성 비용 높음 + 핸들러 재등록 + 가비지컬렉션 부하`}
-        </pre>
+        </CodeBlock>
       </div>
     </div>
   );

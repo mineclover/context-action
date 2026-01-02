@@ -12,6 +12,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useRef } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // ===== 타입 정의 =====
 interface ApiCallRecord {
@@ -1147,7 +1148,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🏪 Store Context
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const { Provider, useStore } = createStoreContext('AdvancedApiBlocking', {
   apiCalls: [] as ApiCallRecord[],
   isBlocked: false,
@@ -1172,14 +1173,14 @@ function CodeSection() {
     currentLoadLevel: 'low' as const
   } as BlockingMetrics
 });`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🛡️ Blocking Logic
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`useActionHandler('makeApiCall', useCallback(async (payload) => {
   const { endpoint, method, timestamp } = payload;
   
@@ -1229,7 +1230,7 @@ function CodeSection() {
     });
   }
 }, [dispatch, blockDuration, isCurrentlyBlocked, isRateLimited]));`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -1238,7 +1239,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               📊 Rate Limiting
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const isRateLimited = useCallback(() => {
   if (!rateLimit?.enabled) return false;
   
@@ -1267,14 +1268,14 @@ if (rateLimit?.enabled) {
     requestsInWindow: rateLimit.requestsInWindow + 1
   });
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               📈 Metrics Tracking
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`// Success metrics update
 const currentMetrics = metricsStore.getValue();
 const newTotalRequests = currentMetrics.totalRequests + 1;
@@ -1293,7 +1294,7 @@ metricsStore.setValue({
                    responseTime > 400 ? 'medium' : 'low',
   blockingEfficiency: (blockedRequests / totalRequests) * 100
 });`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-orange-50 rounded-xl">

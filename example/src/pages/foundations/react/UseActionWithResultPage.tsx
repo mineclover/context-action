@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
 import {
   addItemToCart,
@@ -589,9 +590,9 @@ function UseActionWithResultUI() {
                 </h3>
               </div>
               <div className="p-6">
-                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96 text-sm font-mono">
+                <CodeBlock size="sm" className="max-h-96 overflow-auto">
                   {results}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
           )}

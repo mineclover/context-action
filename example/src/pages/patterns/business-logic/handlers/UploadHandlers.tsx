@@ -51,7 +51,7 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
       const fileIndex = state.queue.findIndex((f) => f.id === payload.fileId);
 
       if (fileIndex >= 0) {
-        const removedFile = state.queue[fileIndex];
+        const removedFile = state.queue[fileIndex]!;
         state.queue.splice(fileIndex, 1);
         state.totalBytes -= removedFile.size;
 
@@ -87,7 +87,7 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
     const uploadService = uploadServiceRef.current;
 
     for (let i = 0; i < state.queue.length; i++) {
-      const fileState = state.queue[i];
+      const fileState = state.queue[i]!;
 
       // Skip already completed files
       if (fileState.state === 'complete') {
@@ -122,8 +122,8 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
           const current = uploadStore.getValue();
 
           // Update queue item state
-          if (current.queue[i]) {
-            current.queue[i].state = newState;
+          if (current.queue[i] !== undefined) {
+            current.queue[i]!.state = newState;
             uploadStore.notifyPath(['queue', i, 'state']);
           }
 
@@ -139,8 +139,8 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
           const current = uploadStore.getValue();
 
           // Update queue item progress
-          if (current.queue[i]) {
-            current.queue[i].progress = progress;
+          if (current.queue[i] !== undefined) {
+            current.queue[i]!.progress = progress;
             uploadStore.notifyPath(['queue', i, 'progress']);
           }
 
@@ -162,8 +162,8 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
           const current = uploadStore.getValue();
 
           // Update queue item status
-          if (current.queue[i]) {
-            current.queue[i].status = status;
+          if (current.queue[i] !== undefined) {
+            current.queue[i]!.status = status;
             uploadStore.notifyPath(['queue', i, 'status']);
           }
 
@@ -179,9 +179,9 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
       const current = uploadStore.getValue();
 
       if (result.success) {
-        if (current.queue[i]) {
-          current.queue[i].result = result;
-          current.queue[i].error = null;
+        if (current.queue[i] !== undefined) {
+          current.queue[i]!.result = result;
+          current.queue[i]!.error = null;
         }
         current.completedCount++;
         uploadStore.notifyPaths([
@@ -190,9 +190,9 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
           ['completedCount'],
         ]);
       } else {
-        if (current.queue[i]) {
-          current.queue[i].error = result.error || 'Unknown error';
-          current.queue[i].result = null;
+        if (current.queue[i] !== undefined) {
+          current.queue[i]!.error = result.error || 'Unknown error';
+          current.queue[i]!.result = null;
         }
         current.failedCount++;
         uploadStore.notifyPaths([
@@ -262,12 +262,12 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
       const state = uploadStore.getValue();
       const fileIndex = state.queue.findIndex((f) => f.id === payload.fileId);
 
-      if (fileIndex >= 0 && state.queue[fileIndex].state === 'error') {
-        state.queue[fileIndex].state = 'idle';
-        state.queue[fileIndex].error = null;
-        state.queue[fileIndex].progress = {
+      if (fileIndex >= 0 && state.queue[fileIndex]!.state === 'error') {
+        state.queue[fileIndex]!.state = 'idle';
+        state.queue[fileIndex]!.error = null;
+        state.queue[fileIndex]!.progress = {
           bytesUploaded: 0,
-          totalBytes: state.queue[fileIndex].size,
+          totalBytes: state.queue[fileIndex]!.size,
           percentage: 0,
         };
 

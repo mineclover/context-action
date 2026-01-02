@@ -15,6 +15,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
@@ -353,7 +354,7 @@ function ReactivePageContent() {
                 <span>🔔</span>
                 Reactive Store Subscriptions
               </h3>
-              <pre className="text-xs font-mono text-gray-700 overflow-x-auto bg-white p-4 rounded-lg border">
+              <CodeBlock size="sm">
                 {`// Reactive pattern with useStoreValue subscriptions
 const ReactiveMouseCanvas = () => {
   const activityStore = useMouseEventsModel('activity');
@@ -371,7 +372,7 @@ const ReactiveMouseCanvas = () => {
   
   return <div>Canvas updates via React cycle</div>;
 };`}
-              </pre>
+              </CodeBlock>
             </div>
 
             {/* useState Pattern */}
@@ -380,7 +381,7 @@ const ReactiveMouseCanvas = () => {
                 <span>🔄</span>
                 React State Management
               </h3>
-              <pre className="text-xs font-mono text-gray-700 overflow-x-auto bg-white p-4 rounded-lg border">
+              <CodeBlock size="sm">
                 {`// Reactive pattern with useState
 const ReactiveVisualization = () => {
   const [renderCount, setRenderCount] = useState(0);
@@ -398,7 +399,7 @@ const ReactiveVisualization = () => {
     return () => clearInterval(interval);
   }, [refreshData]);
 };`}
-              </pre>
+              </CodeBlock>
             </div>
 
             {/* Performance Trade-offs */}

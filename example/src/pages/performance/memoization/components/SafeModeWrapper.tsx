@@ -1,4 +1,5 @@
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 interface SafeModeWrapperProps {
   componentName: string;

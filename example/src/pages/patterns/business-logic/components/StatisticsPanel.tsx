@@ -6,18 +6,19 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore } from '../contexts/UploadStoreContext';
+import { useUploadStore, type UploadStoreState, type FileUploadState } from '../contexts/UploadStoreContext';
 
 export function StatisticsPanel() {
   const uploadStore = useUploadStore('upload');
 
   // Selective subscriptions - each component re-renders independently
-  const queueLength = useStorePath(uploadStore, ['queue']).length;
-  const processing = useStorePath(uploadStore, ['processing']);
-  const completedCount = useStorePath(uploadStore, ['completedCount']);
-  const failedCount = useStorePath(uploadStore, ['failedCount']);
-  const totalBytes = useStorePath(uploadStore, ['totalBytes']);
-  const uploadedBytes = useStorePath(uploadStore, ['uploadedBytes']);
+  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, ['queue']);
+  const queueLength = queue.length;
+  const processing = useStorePath<UploadStoreState, boolean>(uploadStore, ['processing']);
+  const completedCount = useStorePath<UploadStoreState, number>(uploadStore, ['completedCount']);
+  const failedCount = useStorePath<UploadStoreState, number>(uploadStore, ['failedCount']);
+  const totalBytes = useStorePath<UploadStoreState, number>(uploadStore, ['totalBytes']);
+  const uploadedBytes = useStorePath<UploadStoreState, number>(uploadStore, ['uploadedBytes']);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';

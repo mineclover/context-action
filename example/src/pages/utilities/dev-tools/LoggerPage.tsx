@@ -1,5 +1,6 @@
 import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
 import { useCallback, useEffect, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
 import {
   PageWithLogMonitor,
@@ -591,7 +592,7 @@ function LoggerDemoPage() {
 
             <div className="mb-4">
               <h4 className="font-semibold mb-2 text-gray-900">1. 기본 설정</h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
+              <CodeBlock size="sm">
                 {`// PageWithLogMonitor로 페이지 래핑
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 
@@ -602,14 +603,14 @@ function MyPage() {
     </PageWithLogMonitor>
   );
 }`}
-              </pre>
+              </CodeBlock>
             </div>
 
             <div className="mb-4">
               <h4 className="font-semibold mb-2 text-gray-900">
                 2. 액션 핸들러에서 로깅
               </h4>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
+              <CodeBlock size="sm">
                 {`// 핸들러에서 LogMonitor 사용
 import { useLogMonitor } from '@/components/LogMonitor/context';
 import { LogLevel } from '@/utils/logger';
@@ -630,7 +631,7 @@ function useMyHandlers() {
     });
   }, [addLog]);
 }`}
-              </pre>
+              </CodeBlock>
             </div>
 
             <div className="mb-4">
@@ -678,7 +679,7 @@ function useMyHandlers() {
             <h4 className="font-semibold mb-2 text-gray-900">
               액션 핸들러에서 LogMonitor 통합
             </h4>
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
+            <CodeBlock size="sm">
               {`// Parent Handler 예제 (Context-Layered Architecture)
 import { useLogMonitor } from '@/components/LogMonitor/context';
 import { LogLevel } from '@/utils/logger';
@@ -717,14 +718,14 @@ export function useParentCounterHandlers(props: ParentHandlerProps) {
     }
   }, [storeManager, moduleId, enableLogging, addLog]);
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="mb-6">
             <h4 className="font-semibold mb-2 text-gray-900">
               Child Component 로깅 패턴
             </h4>
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
+            <CodeBlock size="sm">
               {`// Child Handler 예제 (원격 제어 포함)
 export function useChildARemoteControlActions() {
   const storeManager = useChildAStoreManager();
@@ -760,7 +761,7 @@ export function useChildARemoteControlActions() {
     }
   }, [storeManager, childId, addLog]);
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="mb-4">
@@ -770,25 +771,25 @@ export function useChildARemoteControlActions() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h5 className="font-medium text-gray-900">Action 로그</h5>
-                <pre className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
+                <CodeBlock size="xs" className="text-green-400">
                   {`addLog({
   level: LogLevel.INFO,
   type: 'action',
   message: '사용자 액션 실행',
   details: { actionName, payload }
 });`}
-                </pre>
+                </CodeBlock>
               </div>
               <div>
                 <h5 className="font-medium text-gray-900">System 로그</h5>
-                <pre className="bg-gray-900 text-blue-400 p-3 rounded text-xs font-mono overflow-x-auto">
+                <CodeBlock size="xs" className="text-blue-400">
                   {`addLog({
   level: LogLevel.DEBUG,
   type: 'system',
   message: '컴포넌트 등록됨',
   details: { componentId, type }
 });`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
           </div>
@@ -806,7 +807,7 @@ export function useChildARemoteControlActions() {
             <h4 className="font-semibold mb-2 text-red-900">
               ❌ 위험한 패턴 (무한루프 발생)
             </h4>
-            <pre className="bg-red-900 text-red-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-red-300">
+            <CodeBlock size="sm" className="bg-red-900 text-red-100 border-red-300">
               {`// 위험! actionLogger를 의존성에 포함하면 무한루프 발생
 function MyComponent() {
   const actionLogger = useActionLogger();
@@ -824,14 +825,14 @@ function MyComponent() {
     });
   }, [logMonitor]); // ❌ 무한루프 발생!
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="mb-6">
             <h4 className="font-semibold mb-2 text-green-900">
               ✅ 안전한 패턴 (권장)
             </h4>
-            <pre className="bg-green-900 text-green-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-green-300">
+            <CodeBlock size="sm" className="bg-green-900 text-green-100 border-green-300">
               {`// 안전! 의존성에서 제외하여 무한루프 방지
 function MyComponent() {
   const actionLogger = useActionLogger();
@@ -854,7 +855,7 @@ function MyComponent() {
     });
   }, []); // ✅ 안전! 마운트시 한 번만 실행
 }`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="mb-4">
@@ -912,7 +913,7 @@ function MyComponent() {
         {/* 코드 예제 */}
         <div className="code-example">
           <h3 className="text-gray-900 font-bold">Logger Usage Example</h3>
-          <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto border">
+          <CodeBlock size="sm">
             {`// 1. 기본 ConsoleLogger 사용
 const logger = new ConsoleLogger(LogLevel.DEBUG, '[MyApp]');
 logger.info('Application started');
@@ -936,7 +937,7 @@ class CustomLogger implements Logger {
   }
   // ... 다른 메서드들
 }`}
-          </pre>
+          </CodeBlock>
         </div>
       </div>
     </PageWithLogMonitor>

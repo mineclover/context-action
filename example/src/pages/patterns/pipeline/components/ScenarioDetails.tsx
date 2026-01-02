@@ -1,4 +1,5 @@
 import React from 'react';
+import { CodeBlock } from '@/components/ui';
 import { Badge, Card } from '@/components/ui';
 import type { ScenarioConfig } from '../scenarios/types';
 
@@ -18,9 +19,9 @@ export function ScenarioDetails({ scenario }: ScenarioDetailsProps) {
 
         <div>
           <h3 className="font-medium text-sm mb-2">Payload:</h3>
-          <pre className="bg-gray-50 p-3 rounded text-xs font-mono overflow-x-auto">
+          <CodeBlock size="sm">
             {JSON.stringify(scenario.payload, null, 2)}
-          </pre>
+          </CodeBlock>
         </div>
 
         <div>

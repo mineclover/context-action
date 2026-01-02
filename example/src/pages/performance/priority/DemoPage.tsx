@@ -8,6 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
 import { useCallback, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { Link } from 'react-router-dom';
 import { Button, Card } from '@/components/ui';
 
@@ -463,9 +464,9 @@ function ActionPriorityDemoContent() {
                   </div>
                   <div className="text-sm">
                     <strong>Result:</strong>
-                    <pre className="mt-1 p-2 bg-white bg-opacity-50 rounded text-xs overflow-x-auto">
+                    <CodeBlock size="sm">
                       {JSON.stringify(result.result, null, 2)}
-                    </pre>
+                    </CodeBlock>
                   </div>
                 </div>
               ))}
@@ -479,7 +480,7 @@ function ActionPriorityDemoContent() {
             💻 Implementation Example
           </h2>
           <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-            <pre className="text-sm">{`// 높은 priority (100) - 가장 먼저 실행
+            <CodeBlock size="sm">{`// 높은 priority (100) - 가장 먼저 실행
 useActionHandler('authenticate', validateInput, { priority: 100 });
 
 // 중간 priority (95) - 두 번째 실행  
@@ -495,7 +496,7 @@ useActionHandler('authenticate', performAuth, { priority: 80 });
 useActionHandler('authenticate', trackAnalytics, { priority: 30 });
 
 // 가장 낮은 priority (10) - 마지막 실행
-useActionHandler('authenticate', auditLog, { priority: 10 });`}</pre>
+useActionHandler('authenticate', auditLog, { priority: 10 });`}</CodeBlock>
           </div>
         </Card>
       </div>

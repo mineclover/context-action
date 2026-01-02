@@ -11,6 +11,7 @@
 
 import { useStoreValue } from '@context-action/react';
 import React, { useCallback, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
 import {
@@ -472,7 +473,7 @@ function CodeExamplesSection() {
             1. 기본 useImperativeHandle 사용법
           </h4>
           <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-            <pre className="text-sm text-green-400">
+            <CodeBlock size="sm" className="text-green-400">
               {`// 📝 Custom ref interface 정의
 interface InputRefHandle {
   focus: () => void;
@@ -496,7 +497,7 @@ const CustomInput = forwardRef<InputRefHandle, InputProps>((props, ref) => {
 
   return <input ref={inputRef} value={value} onChange={e => setValue(e.target.value)} />;
 });`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -506,7 +507,7 @@ const CustomInput = forwardRef<InputRefHandle, InputProps>((props, ref) => {
             2. Ref Context로 중앙화된 ref 관리
           </h4>
           <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-            <pre className="text-sm text-green-400">
+            <CodeBlock size="sm" className="text-green-400">
               {`// 🏗️ Ref Registry 인터페이스 정의
 interface RefRegistry {
   inputRef: RefObject<InputRefHandle>;
@@ -535,7 +536,7 @@ export function RefContextProvider({ children }: { children: ReactNode }) {
 
   return <RefContext.Provider value={registry}>{children}</RefContext.Provider>;
 }`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -545,7 +546,7 @@ export function RefContextProvider({ children }: { children: ReactNode }) {
             3. 실제 사용 예시
           </h4>
           <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-            <pre className="text-sm text-green-400">
+            <CodeBlock size="sm" className="text-green-400">
               {`// 🎮 Control Panel에서 모든 컴포넌트 제어
 function ControlPanel() {
   const { inputRef, modalRef, validateAllInputs, resetAll } = useRefRegistry();
@@ -566,7 +567,7 @@ function ControlPanel() {
     </div>
   );
 }`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -582,7 +583,7 @@ function ControlPanel() {
                 🏗️ Mount Logic (마운트 시점 등록)
               </h5>
               <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-sm text-green-400">
+                <CodeBlock size="sm" className="text-green-400">
                   {`// Integration Point에서 마운트 시 즉시 등록
 function ImperativeRefPage() {
   return (
@@ -597,7 +598,7 @@ function ImperativeRefPage() {
     </RefContextProvider>
   );
 }`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
 
@@ -607,7 +608,7 @@ function ImperativeRefPage() {
                 ⚙️ Implementation Logic (구현 시점 등록)
               </h5>
               <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-sm text-green-400">
+                <CodeBlock size="sm" className="text-green-400">
                   {`// Handler Layer에서 의존성 변화에 따른 동적 등록
 function ImperativeRefHandlers({ validationMode, children }) {
   const refRegistry = useRefRegistry();
@@ -629,7 +630,7 @@ function ImperativeRefHandlers({ validationMode, children }) {
 
   return children;
 }`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
 
@@ -639,7 +640,7 @@ function ImperativeRefHandlers({ validationMode, children }) {
                 🎛️ Conditional Logic (조건부 등록)
               </h5>
               <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-sm text-green-400">
+                <CodeBlock size="sm" className="text-green-400">
                   {`// 런타임 조건에 따른 핸들러 등록/해제
 function ConditionalHandlers({ isEnabled, children }) {
   const refRegistry = useRefRegistry();
@@ -657,7 +658,7 @@ function ConditionalHandlers({ isEnabled, children }) {
 
   return children;
 }`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
 
@@ -667,7 +668,7 @@ function ConditionalHandlers({ isEnabled, children }) {
                 ⏳ Lazy Logic (지연 등록)
               </h5>
               <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-sm text-green-400">
+                <CodeBlock size="sm" className="text-green-400">
                   {`// 비동기 초기화 후 핸들러 등록
 function LazyHandlers({ children }) {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -693,7 +694,7 @@ function LazyHandlers({ children }) {
 
   return children;
 }`}
-                </pre>
+                </CodeBlock>
               </div>
             </div>
           </div>

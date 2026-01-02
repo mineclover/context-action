@@ -8,17 +8,18 @@
 import { useStorePath } from '@context-action/react';
 import { useUploadStore } from '../contexts/UploadStoreContext';
 import { useUploadAction } from '../contexts/UploadActionContext';
-import type { FileUploadState } from '../contexts/UploadStoreContext';
+import type { FileUploadState, UploadStoreState } from '../contexts/UploadStoreContext';
+import type { ProcessState, UploadProgress } from '../services/FileUploadService';
 
 function QueueItem({ item, index }: { item: FileUploadState; index: number }) {
   const dispatch = useUploadAction();
   const uploadStore = useUploadStore('upload');
 
   // Selective subscriptions - only re-render when specific paths change
-  const state = useStorePath(uploadStore, ['queue', index, 'state']);
-  const progress = useStorePath(uploadStore, ['queue', index, 'progress']);
-  const status = useStorePath(uploadStore, ['queue', index, 'status']);
-  const error = useStorePath(uploadStore, ['queue', index, 'error']);
+  const state = useStorePath<UploadStoreState, ProcessState>(uploadStore, ['queue', index, 'state']);
+  const progress = useStorePath<UploadStoreState, UploadProgress>(uploadStore, ['queue', index, 'progress']);
+  const status = useStorePath<UploadStoreState, string>(uploadStore, ['queue', index, 'status']);
+  const error = useStorePath<UploadStoreState, string | null>(uploadStore, ['queue', index, 'error']);
 
   const getStateColor = () => {
     switch (state) {
@@ -137,7 +138,7 @@ export function UploadQueue() {
   const dispatch = useUploadAction();
 
   // Subscribe to queue array
-  const queue = useStorePath(uploadStore, ['queue']);
+  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, ['queue']);
 
   if (queue.length === 0) {
     return (

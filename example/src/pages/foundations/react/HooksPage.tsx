@@ -5,6 +5,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 
 // React Hooks 최적화 액션 맵
@@ -564,7 +565,7 @@ function ReactHooksPage() {
           {/* 코드 예제 */}
           <div className="code-example">
             <h3>React Hooks Optimization Patterns</h3>
-            <pre className="code-block">
+            <CodeBlock size="md">
               {`// 1. React 컴파일러가 자동으로 무거운 계산 최적화
 const expensiveValue = heavyComputation(data); // 자동으로 메모이제이션됨
 
@@ -602,7 +603,7 @@ useEffect(() => {
   
   return () => clearInterval(cleanup);
 }, []);`}
-            </pre>
+            </CodeBlock>
           </div>
         </HooksStores.Provider>
       </div>

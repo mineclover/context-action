@@ -1,5 +1,6 @@
 import { createTimeTravelStore, useStoreValue, useTimeTravelControls } from '@context-action/react';
 import { useState, useCallback } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { Button, DemoCard } from '@/components/ui';
 
 // Counter state type
@@ -297,9 +298,9 @@ function HistoryViewer() {
                   </span>
                 )}
               </div>
-              <pre className="text-xs mt-1 overflow-x-auto">
+              <CodeBlock size="xs" className="mt-1 overflow-x-auto">
                 {JSON.stringify(state, null, 2).slice(0, 100)}...
-              </pre>
+              </CodeBlock>
             </div>
           ))}
         </div>
@@ -333,7 +334,7 @@ function TimeTravelTestPage() {
         {/* API Reference */}
         <DemoCard title="TimeTravelStore API">
           <div className="prose dark:prose-invert max-w-none text-sm">
-            <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
 {`// Create a time travel store
 const store = createTimeTravelStore('name', initialValue, {
   maxHistory: 50,  // Maximum undo steps
@@ -354,7 +355,7 @@ store.goTo(position)       // Jump to specific history point
 store.reset()              // Reset to initial state
 store.getHistory()         // Get all history states
 store.getPosition()        // Get current position in history`}
-            </pre>
+            </CodeBlock>
           </div>
         </DemoCard>
       </div>

@@ -7,6 +7,7 @@
 // import { PageLayout } from '../../components/layout/PageLayout';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 // import { Card, CardContent, Badge } from '@/components/ui';
+import { CodeBlock } from '@/components/ui';
 
 export function RefsIndexPage() {
   return (
@@ -98,7 +99,7 @@ export function RefsIndexPage() {
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">
                     Method 1: 간단한 타입 사용
                   </h3>
-                  <pre className="bg-gray-800 text-green-400 p-4 rounded text-sm overflow-x-auto">
+                  <CodeBlock size="sm" className="text-green-400">
                     {`import { createRefContext } from '@context-action/react';
 
 // 간단한 타입 정의
@@ -128,14 +129,14 @@ function CanvasComponent() {
     />
   );
 }`}
-                  </pre>
+                  </CodeBlock>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">
                     Method 2: 선언적 정의
                   </h3>
-                  <pre className="bg-gray-800 text-green-400 p-4 rounded text-sm overflow-x-auto">
+                  <CodeBlock size="sm" className="text-green-400">
                     {`import { createRefContext } from '@context-action/react';
 
 // 선언적 정의 (고급 기능)
@@ -165,7 +166,7 @@ function Component() {
     <canvas ref={(el) => setRef('canvas', el)} />
   );
 }`}
-                  </pre>
+                  </CodeBlock>
                 </div>
               </div>
             </div>
@@ -426,20 +427,20 @@ function Component() {
                       <h4 className="font-medium text-gray-700 mb-2">
                         Method 1: 간단한 타입
                       </h4>
-                      <pre className="bg-gray-100 p-3 rounded text-xs">
+                      <CodeBlock size="xs">
                         {`createRefContext<T>(contextName: string)`}
-                      </pre>
+                      </CodeBlock>
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-700 mb-2">
                         Method 2: RefDefinitions
                       </h4>
-                      <pre className="bg-gray-100 p-3 rounded text-xs">
+                      <CodeBlock size="xs">
                         {`createRefContext<T>(
   contextName: string,
   refDefinitions: RefDefinitions<T>
 )`}
-                      </pre>
+                      </CodeBlock>
                     </div>
                   </div>
                 </div>
@@ -453,7 +454,7 @@ function Component() {
                       <h4 className="font-medium text-gray-700 mb-2">
                         반환 값
                       </h4>
-                      <pre className="bg-gray-100 p-3 rounded text-xs">
+                      <CodeBlock size="xs">
                         {`{
   refs: RefStore<T>,
   getRef: (key: keyof T) => T[key] | null,
@@ -461,7 +462,7 @@ function Component() {
   clearRef: (key: keyof T) => void,
   clearAllRefs: () => void
 }`}
-                      </pre>
+                      </CodeBlock>
                     </div>
                   </div>
                 </div>

@@ -7,6 +7,7 @@
  */
 
 // import React from 'react';
+import { CodeBlock } from '@/components/ui';
 // import { validateFormData, ValidationState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Demo Status Display Component
@@ -360,7 +361,7 @@ export function CodeExamplesView({ className = '' }: CodeExamplesViewProps) {
             🔧 Basic useImperativeHandle Pattern
           </h4>
           <div className="bg-gray-50 p-3 rounded-md">
-            <pre className="text-xs text-gray-700 overflow-x-auto">
+            <CodeBlock size="xs" className="overflow-x-auto">
               {`// 🎯 Layer 6: Views - Imperative Component
 const ImperativeInput = forwardRef<FormRefHandle, Props>((props, ref) => {
   const [value, setValue] = useState('');
@@ -384,7 +385,7 @@ const ImperativeInput = forwardRef<FormRefHandle, Props>((props, ref) => {
     />
   );
 });`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -394,7 +395,7 @@ const ImperativeInput = forwardRef<FormRefHandle, Props>((props, ref) => {
             💉 Layer 3: Handler Injection Pattern
           </h4>
           <div className="bg-gray-50 p-3 rounded-md">
-            <pre className="text-xs text-gray-700 overflow-x-auto">
+            <CodeBlock size="xs" className="overflow-x-auto">
               {`// 🎯 Layer 3: Handlers - Handler with Dependency Injection
 const handleFormSubmit = useCallback(() => {
   // 1️⃣ Handler Injection: Get current values from ref registry
@@ -418,7 +419,7 @@ const handleFormSubmit = useCallback(() => {
 
   return validationResult;
 }, [refRegistry, onFormSubmit]);`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -428,7 +429,7 @@ const handleFormSubmit = useCallback(() => {
             🏗️ Complete 6-Layer Architecture Flow
           </h4>
           <div className="bg-gray-50 p-3 rounded-md">
-            <pre className="text-xs text-gray-700 overflow-x-auto">
+            <CodeBlock size="xs" className="overflow-x-auto">
               {`// 🎯 Complete 6-Layer Data Flow with useImperativeHandle
 
 // 📱 Layer 6: Views - User Interaction
@@ -474,7 +475,7 @@ const { formProgress, isFormValid } = useImperativeRefData();
     <YourComponents />
   </ImperativeRefHandlers>
 </RefContextProvider>`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
       </div>

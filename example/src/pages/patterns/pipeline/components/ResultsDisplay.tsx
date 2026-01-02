@@ -1,4 +1,5 @@
 // import React from 'react';
+import { CodeBlock } from '@/components/ui';
 import { Card } from '@/components/ui';
 
 interface ResultsDisplayProps {
@@ -12,12 +13,12 @@ export function ResultsDisplay({ executionResults }: ResultsDisplayProps) {
       {executionResults.length > 0 ? (
         <div className="space-y-3">
           {executionResults.map((result, index) => (
-            <pre
+            <CodeBlock
               key={index}
-              className="bg-gray-50 p-3 rounded text-xs font-mono overflow-x-auto"
+              size="xs"
             >
               {JSON.stringify(result, null, 2)}
-            </pre>
+            </CodeBlock>
           ))}
         </div>
       ) : (

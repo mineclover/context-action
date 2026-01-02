@@ -1,4 +1,5 @@
 import React from 'react';
+import { CodeBlock } from '@/components/ui';
 
 interface MemoizedComponentProps {
   data: any[];

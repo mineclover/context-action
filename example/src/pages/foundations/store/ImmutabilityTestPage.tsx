@@ -1,6 +1,7 @@
 import { createStore } from '@context-action/react';
 import { produce } from 'immer';
 import { useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Button, DemoCard } from '@/components/ui';
 
@@ -494,9 +495,9 @@ function StoreImmutabilityTestPage() {
         {/* 현재 Store 값 */}
         {currentStoreValue && (
           <DemoCard title="현재 Store 값" variant="logger">
-            <pre className="text-sm bg-gray-100 p-3 rounded overflow-auto">
+            <CodeBlock size="sm" className="overflow-auto">
               {JSON.stringify(currentStoreValue, null, 2)}
-            </pre>
+            </CodeBlock>
           </DemoCard>
         )}
 

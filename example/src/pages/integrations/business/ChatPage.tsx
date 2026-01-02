@@ -4,6 +4,7 @@
  */
 
 // import React from 'react';
+import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { ChatDemo } from './store-scenarios/components';
 import { StoreScenarios } from './store-scenarios/stores';
@@ -211,7 +212,7 @@ export function ChatPage() {
             </h2>
             <div className="bg-gray-50 p-6 rounded-lg border">
               <h3 className="font-semibold text-lg mb-4">실시간 채팅 구현</h3>
-              <pre className="bg-gray-800 text-green-400 p-4 rounded text-sm overflow-x-auto">
+              <CodeBlock size="sm">
                 {`// 1. 메시지 전송 핸들러
 const sendMessageHandler = useCallback(
   ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
@@ -263,7 +264,7 @@ const sendMessage = useCallback(() => {
     }
   }
 }, [newMessage, currentUser, messageType]);`}
-              </pre>
+              </CodeBlock>
             </div>
           </div>
 

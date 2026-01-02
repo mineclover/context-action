@@ -10,6 +10,7 @@
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
 
+import { CodeBlock } from '@/components/ui';
 /**
  * Enhanced Context Store - Reactive Pattern 페이지
  *
@@ -66,7 +67,7 @@ export function EnhancedContextStorePage() {
                   Model Layer: Declarative Store Context
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// Model Layer: 도메인별 Store Context 선언
+                  <CodeBlock size="sm">{`// Model Layer: 도메인별 Store Context 선언
 export const MouseEventsModel = createStoreContext('MouseEvents', {
   activity: {
     isActive: false,
@@ -84,7 +85,7 @@ export const MouseEventsModel = createStoreContext('MouseEvents', {
   summary: {
     hasActivity: false
   }
-});`}</pre>
+});`}</CodeBlock>
                 </div>
               </div>
 
@@ -95,7 +96,7 @@ export const MouseEventsModel = createStoreContext('MouseEvents', {
                   ViewModel Layer: Hooks-based Business Logic
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// ViewModel Layer: 비즈니스 로직과 상태 관리 분리
+                  <CodeBlock size="sm">{`// ViewModel Layer: 비즈니스 로직과 상태 관리 분리
 export const useMouseEventsLogic = () => {
   const activityStore = useMouseEventsModel('activity');
   const movementStore = useMouseEventsModel('movement');
@@ -109,7 +110,7 @@ export const useMouseEventsLogic = () => {
   }, []);
   
   return { handleMove, handleClick, handleEnter, handleLeave };
-};`}</pre>
+};`}</CodeBlock>
                 </div>
               </div>
 
@@ -120,7 +121,7 @@ export const useMouseEventsLogic = () => {
                   View Layer: Pure Presentation Components
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// View Layer: Props 기반 순수 컴포넌트
+                  <CodeBlock size="sm">{`// View Layer: Props 기반 순수 컴포넌트
 export function MouseEventsCanvas({
   onMouseMove,     // ViewModel에서 주입받은 이벤트 핸들러
   onMouseClick,
@@ -134,7 +135,7 @@ export function MouseEventsCanvas({
 }: MouseEventsCanvasProps) {
   // 순수 렌더링 로직만 포함, 상태 관리 없음
   return <div>...</div>;
-}`}</pre>
+}`}</CodeBlock>
                 </div>
               </div>
 
@@ -145,7 +146,7 @@ export function MouseEventsCanvas({
                   Performance Optimization Strategies
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
-                  <pre>{`// Reactive Pattern: Store 구독 + React 리렌더링
+                  <CodeBlock size="sm">{`// Reactive Pattern: Store 구독 + React 리렌더링
 const useReactiveCanvasControl = () => {
   const movement = useStoreValue(movementStore);
   
@@ -169,7 +170,7 @@ const useNonReactiveCanvasControl = () => {
       });
     }
   };
-};`}</pre>
+};`}</CodeBlock>
                 </div>
               </div>
 

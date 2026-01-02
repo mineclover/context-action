@@ -6,13 +6,13 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore } from '../contexts/UploadStoreContext';
+import { useUploadStore, type UploadStoreState } from '../contexts/UploadStoreContext';
 
 export function ActiveUploadPanel() {
   const uploadStore = useUploadStore('upload');
 
   // Subscribe only to activeUpload path
-  const activeUpload = useStorePath(uploadStore, ['activeUpload']);
+  const activeUpload = useStorePath<UploadStoreState, UploadStoreState['activeUpload']>(uploadStore, ['activeUpload']);
 
   if (!activeUpload) {
     return null;

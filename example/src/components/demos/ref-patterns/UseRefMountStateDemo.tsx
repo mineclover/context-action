@@ -6,6 +6,7 @@
 
 import { createRefContext } from '@context-action/react';
 import { useCallback, useEffect, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // 격리된 RefContext 생성
 type TestRefs = {

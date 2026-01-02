@@ -1,6 +1,6 @@
 import { createTimeTravelStoreContext, useStoreValue } from '@context-action/react';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Button, DemoCard } from '@/components/ui';
+import { Button, DemoCard, CodeBlock } from '@/components/ui';
 
 // Define store types
 interface AppStores {
@@ -336,9 +336,9 @@ function DeepReferenceTest() {
   return (
     <DemoCard title="Deep Reference Test (update with draft)">
       <div className="space-y-3">
-        <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-x-auto">
+        <CodeBlock size="sm" className="max-h-48 overflow-auto">
           {JSON.stringify(user, null, 2)}
-        </pre>
+        </CodeBlock>
         <div className="text-xs text-gray-400 text-center">
           Position: {position} / {historyLength - 1}
         </div>
@@ -578,7 +578,7 @@ function DeepStructureControls() {
     const avatars = ['👤', '🧑‍💻', '👨‍🎨', '👩‍🔬', '🧙‍♂️', '🦸‍♀️'];
     appStore.update((draft) => {
       const current = avatars.indexOf(draft.user.profile.avatar);
-      draft.user.profile.avatar = avatars[(current + 1) % avatars.length];
+      draft.user.profile.avatar = avatars[(current + 1) % avatars.length]!;
     });
   }, [appStore]);
 
@@ -742,9 +742,9 @@ function FullStateSubscriber() {
   return (
     <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded text-xs h-full">
       <div className="font-mono mb-2">Full State (useStoreValue)</div>
-      <pre className="text-[10px] bg-white dark:bg-gray-800 p-2 rounded overflow-auto max-h-48">
+      <CodeBlock size="sm" className="max-h-64 overflow-auto">
         {JSON.stringify(state, null, 2)}
-      </pre>
+      </CodeBlock>
       <div className="text-red-600 mt-2">renders: {renderCount.current}</div>
     </div>
   );
@@ -798,7 +798,7 @@ function TimeTravelContextTestPage() {
           <DeepStructureDemo />
 
           <DemoCard title="createTimeTravelStoreContext API">
-            <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock>
 {`// Create context with time travel stores
 const {
   Provider,
@@ -830,7 +830,7 @@ const displayName = useStoreSelector('user',
   (user) => \`\${user.firstName} \${user.lastName}\`,
   { dependsOn: [['firstName'], ['lastName']] }          // Skip loginCount changes
 );`}
-            </pre>
+            </CodeBlock>
           </DemoCard>
         </div>
       </div>

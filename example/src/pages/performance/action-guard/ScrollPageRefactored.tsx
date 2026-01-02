@@ -12,6 +12,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // ===== 타입 정의 =====
 interface ScrollItem {
@@ -1099,7 +1100,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🏪 Store Context
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const { Provider, useStore } = createStoreContext('AdvancedScroll', {
   scrollData: {
     scrollTop: 0,
@@ -1128,14 +1129,14 @@ function CodeSection() {
     performanceScore: 95
   } as ScrollMetrics
 });`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🎯 Virtualization Logic
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
   const target = event.currentTarget;
   const scrollTop = target.scrollTop;
@@ -1160,7 +1161,7 @@ function CodeSection() {
     });
   }
 }, [dispatch, virtualization?.itemHeight, content.length]);`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -1169,7 +1170,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               ⚡ Smooth Scroll Animation
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`useActionHandler('smoothScrollTo', useCallback(async (payload) => {
   const container = scrollContainerRef.current;
   if (!container) return;
@@ -1200,14 +1201,14 @@ function CodeSection() {
   
   requestAnimationFrame(animateScroll);
 }, []));`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               📊 Performance Tracking
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`useActionHandler('updateScrollPosition', useCallback(async (payload) => {
   const now = Date.now();
   const timeDelta = now - lastScrollTime.current;
@@ -1232,7 +1233,7 @@ function CodeSection() {
     maxScrollDepth: Math.max(currentMetrics.maxScrollDepth, payload.scrollTop)
   });
 }, [scrollDataStore, metricsStore]));`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-purple-50 rounded-xl">

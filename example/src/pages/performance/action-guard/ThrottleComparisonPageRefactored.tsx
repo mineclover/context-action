@@ -13,6 +13,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/ui';
 
 // ===== 타입 정의 =====
 interface EventLog {
@@ -1176,7 +1177,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🏪 Store Context
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`const { Provider, useStore } = createStoreContext('AdvancedThrottle', {
   eventLogs: [] as EventLog[],
   isAutoTesting: false,
@@ -1195,14 +1196,14 @@ function CodeSection() {
     cpuLoad: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 }
   } as PerformanceMetrics
 });`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               ⏱️ Throttle Implementation
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`function useThrottle<T extends (...args: any[]) => void>(
   func: T, 
   delay: number, 
@@ -1234,7 +1235,7 @@ function CodeSection() {
     }
   }) as T, [func, delay, leading, trailing]);
 }`}
-            </pre>
+            </CodeBlock>
           </div>
         </div>
 
@@ -1243,7 +1244,7 @@ function CodeSection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               🎯 Debounce Implementation
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`function useDebounce<T extends (...args: any[]) => void>(
   func: T, 
   delay: number
@@ -1273,14 +1274,14 @@ const debouncedHandler = useDebounce(
   }, [dispatch, config?.debounceDelay]),
   config?.debounceDelay || 500
 );`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-gray-50 rounded-xl">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               📊 Performance Tracking
             </h3>
-            <pre className="text-sm bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <CodeBlock size="sm">
               {`useActionHandler('processEvent', useCallback(async (payload) => {
   const startTime = performance.now();
   
@@ -1313,7 +1314,7 @@ const debouncedHandler = useDebounce(
     }
   });
 }, [metricsStore]));`}
-            </pre>
+            </CodeBlock>
           </div>
 
           <div className="p-6 bg-teal-50 rounded-xl">
