@@ -55,10 +55,24 @@ export default function PatternsOverview() {
               <p className="text-gray-600">Ref 기반 상호작용 패턴</p>
             </div>
           </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              4
+            </span>
+            <div>
+              <Link
+                to="/patterns/business-logic"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Business Logic Separation
+              </Link>
+              <p className="text-gray-600">비즈니스 로직 분리와 비동기 프로세스 상태 관리</p>
+            </div>
+          </li>
         </ol>
       </div>
 
-      <div className="categories grid md:grid-cols-3 gap-6">
+      <div className="categories grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">🔀 Conditional</h3>
           <ul className="space-y-2">
@@ -153,6 +167,32 @@ export default function PatternsOverview() {
               >
                 Canvas Integration
               </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold mb-4">🏗️ Business Logic</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/patterns/business-logic"
+                className="text-purple-600 hover:underline"
+              >
+                Business Logic Separation
+              </Link>
+            </li>
+            <li className="text-sm text-gray-600">
+              • FileUpload Service
+            </li>
+            <li className="text-sm text-gray-600">
+              • State Machine Pattern
+            </li>
+            <li className="text-sm text-gray-600">
+              • Progress-Only Updates
+            </li>
+            <li className="text-sm text-gray-600">
+              • Modular Integration
             </li>
           </ul>
         </div>

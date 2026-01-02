@@ -133,6 +133,11 @@ const MemoizationDemoPage = lazy(
   () => import('./pages/performance/memoization/DemoPage')
 );
 
+// Patterns - Business Logic (separate chunk for business logic patterns)
+const BusinessLogicPage = lazy(
+  () => import('./pages/patterns/business-logic/BusinessLogicPage')
+);
+
 // Patterns - Conditional (separate chunk for conditional patterns)
 const ConditionalPatternsIndex = lazy(() =>
   import('./pages/patterns/conditional/ConditionalPatternsIndex').then((m) => ({
@@ -465,6 +470,10 @@ function AppContent() {
             <Route
               path="/patterns/conditional/feature-toggle"
               element={<FeatureToggle />}
+            />
+            <Route
+              path="/patterns/business-logic"
+              element={<BusinessLogicPage />}
             />
             <Route
               path="/patterns/layered-architecture"
