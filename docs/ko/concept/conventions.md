@@ -11,10 +11,11 @@
 5. [코드 스타일](#코드-스타일)
 6. [Import와 모듈 패턴](#import와-모듈-패턴)
 7. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
-8. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
-9. [성능 가이드라인](#성능-가이드라인)
-10. [에러 핸들링](#에러-핸들링)
-11. [RefContext 컨벤션](#refcontext-컨벤션)
+8. [Action Handler Registration 컨벤션](#action-handler-registration-컨벤션)
+9. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
+10. [성능 가이드라인](#성능-가이드라인)
+11. [에러 핸들링](#에러-핸들링)
+12. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -829,6 +830,466 @@ function PaymentHandlers() {
   });
 }
 ```
+
+---
+
+## Action Handler Registration 컨벤션
+
+### 🎯 **핵심 개념**
+
+#### **Handler 등록 기본 원칙**
+
+Action handler는 디스패치된 액션에 대응하여 비즈니스 로직을 실행합니다. 등록 라이프사이클을 이해하는 것이 최적 성능을 위해 중요합니다.
+
+**핵심 원칙:**
+1. **지연 평가(Lazy Evaluation)**: 등록 시점이 아닌 실행 시점에 상태를 읽어야 함
+2. **최소 의존성**: `useCallback` deps에는 안정적인 참조만 포함
+3. **상태 구독 없음**: Handler는 store를 구독하지 않음 (React 컴포넌트와 달리)
+
+```typescript
+// ✅ 권장: 지연 평가 패턴
+const handler = useCallback(async (payload) => {
+  const current = store.getValue(); // 실행 시점에 최신 상태 읽기
+  store.setValue({ ...current, ...payload });
+}, [store]); // deps에는 store 참조만
+```
+
+#### **useActionHandler 내부 최적화**
+
+`useActionHandler`는 이미 ref 패턴을 사용하여 재등록을 방지합니다:
+
+```typescript
+// 내부 구현 (단순화)
+const useActionHandler = (action, handler, config) => {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler; // 항상 최신으로 업데이트
+
+  useEffect(() => {
+    const wrapperHandler = (payload, controller) => {
+      return handlerRef.current(payload, controller); // 최신 handler 호출
+    };
+
+    return register.register(action, wrapperHandler, stableConfig);
+  }, [action, register, stableConfig]);
+  // ✅ 'handler'가 deps에 없음 - handler 변경 시 재등록 안 함
+};
+```
+
+---
+
+### 📚 **두 가지 등록 방식**
+
+#### **방식 1: useActionHandler (권장)**
+
+대부분의 사용 사례를 위한 표준 훅. 자동으로 등록/정리를 처리합니다.
+
+```typescript
+function StandardPattern({ children }) {
+  const dataStore = useDataStore('data');
+
+  const updateHandler = useCallback(async (payload) => {
+    const current = dataStore.getValue();
+    dataStore.setValue({ ...current, ...payload });
+  }, [dataStore]);
+
+  useDataActionHandler('updateData', updateHandler, {
+    id: 'update-handler',
+    priority: 100
+  });
+
+  return children;
+}
+```
+
+**장점:**
+- ✅ 언마운트 시 자동 정리
+- ✅ 내장 ref 최적화 (handler 변경 시 재등록 안 함)
+- ✅ 간단하고 선언적인 API
+
+**단점:**
+- ⚠️ 재등록 조건에 대한 제한된 제어
+- ⚠️ ActionRegister 메서드 접근 불가
+
+#### **방식 2: useActionRegister (고급 제어)**
+
+handler 라이프사이클에 대한 세밀한 제어를 위한 직접 등록.
+
+```typescript
+function AdvancedPattern({ children }) {
+  const register = useDataActionRegister();
+  const dataStore = useDataStore('data');
+  const [criticalMode, setCriticalMode] = useState(false);
+
+  useEffect(() => {
+    if (!register) return;
+
+    const handler = async (payload) => {
+      const current = dataStore.getValue();
+      dataStore.setValue({ ...current, ...payload, critical: criticalMode });
+    };
+
+    return register.register('updateData', handler, {
+      priority: criticalMode ? 200 : 100
+    });
+  }, [register, criticalMode]);
+  // ✅ criticalMode 변경 시에만 재등록
+  // ✅ dataStore 변경은 재등록을 트리거하지 않음
+
+  return children;
+}
+```
+
+**장점:**
+- ✅ 재등록 deps에 대한 완전한 제어
+- ✅ ActionRegister API 접근 (getHandlers, clearAction 등)
+- ✅ 명시적 useEffect를 통한 조건부 등록
+- ✅ 동적 다중 handler 등록
+
+**단점:**
+- ⚠️ 수동 useEffect 관리 필요
+- ⚠️ useActionHandler보다 장황함
+
+#### **비교 표**
+
+| 시나리오 | useActionHandler | useActionRegister |
+|----------|------------------|-------------------|
+| **표준 사용 사례** | ✅✅ 권장 | 선택 사항 |
+| **Handler 자주 변경** | ✅ 최적화됨 (ref) | ✅ 동일 |
+| **순수 store handler** | ⚠️ wrapper 사용 | ✅✅ [register]만 |
+| **조건부 등록** | ⚠️ `if` 문 사용 | ✅ 명시적 useEffect |
+| **동적 다중 handler** | ⚠️ 복잡함 | ✅ useEffect 내 루프 |
+| **커스텀 재등록 로직** | ❌ 제한적 | ✅ 완전한 제어 |
+| **ActionRegister API 접근** | ❌ 불가 | ✅ 가능 |
+
+---
+
+### ⚡ **최소 등록 패턴** (핵심 최적화)
+
+**핵심 통찰**: Handler가 **오직 store 작업만** `getValue()`를 통해 사용할 때, 마운트 시 **한 번만** 등록하고 **재등록 제로**를 달성할 수 있습니다.
+
+#### **순수 Store Handler 패턴**
+
+```typescript
+// ✅✅ 최적: 최소 등록
+function MinimalRegistrationPattern({ children }) {
+  const register = useDataActionRegister();
+  const dataStore = useDataStore('data');
+  const configStore = useDataStore('config');
+
+  useEffect(() => {
+    if (!register) return;
+
+    const handler = async (payload) => {
+      // ✅ getValue()를 통해 항상 최신 값 읽기
+      const data = dataStore.getValue();
+      const config = configStore.getValue();
+
+      // ✅ 순수 store 조작만
+      dataStore.setValue({
+        ...data,
+        ...payload,
+        timestamp: Date.now(),
+        configVersion: config.version
+      });
+    };
+
+    return register.register('updateData', handler);
+  }, [register]);
+  // 🎯 중요: deps에 [register]만!
+  // ✅ dataStore/configStore 변경은 재등록을 트리거하지 않음
+  // ✅ Handler는 마운트 시 한 번만 등록됨
+  // ✅ Handler는 언마운트 시 한 번만 해제됨
+  // ✅ 컴포넌트 라이프타임 동안 재등록 제로
+
+  return children;
+}
+```
+
+**사용 시기:**
+```typescript
+// ✅ 최소 등록에 완벽함
+const handler = async (payload) => {
+  const a = storeA.getValue(); // getValue()만
+  const b = storeB.getValue();
+  storeA.setValue({ ...a, ...payload }); // setValue()만
+};
+
+// ❌ 부적합 (외부 의존성 있음)
+const handler = async (payload) => {
+  const data = store.getValue();
+  const result = await externalAPI(data, apiConfig); // 외부 deps
+  store.setValue(result);
+};
+// apiConfig가 deps에 있어야 함 → 재등록 필요
+```
+
+#### **TimeTravelStore 지원**
+
+최소 등록 패턴은 **TimeTravelStore에서도 동일하게** 작동합니다.
+
+```typescript
+function TimeTravelPattern({ children }) {
+  const register = useEditorActionRegister();
+  const editorStore = useEditorStore('document'); // TimeTravelStore
+
+  useEffect(() => {
+    if (!register) return;
+
+    const handler = async (payload) => {
+      // ✅ getValue()는 현재 상태 반환 (undo/redo 이후에도)
+      const current = editorStore.getValue();
+      editorStore.setValue({ ...current, ...payload });
+    };
+
+    return register.register('updateDocument', handler);
+  }, [register]);
+  // ✅ undo/redo는 재등록을 트리거하지 않음
+  // ✅ Handler는 getValue()를 통해 undo/redo 이후 상태를 읽음
+
+  return children;
+}
+```
+
+**TimeTravelStore 알림 작동 방식:**
+
+```
+사용자 액션 (setValue/undo/redo)
+          ↓
+TimeTravel.setState/back/forward
+          ↓
+timeTravel.subscribe() 콜백
+          ↓
+TimeTravelStore._scheduleNotification()
+          ↓
+    ┌─────┴─────┐
+immediate      batched (RAF)
+    └─────┬─────┘
+          ↓
+구독자에게 알림
+    ┌─────┴─────────┐
+    ↓               ↓
+React 컴포넌트    Handler
+(재렌더 ✅)       (변경 없음 ✅)
+    ↓               ↓
+UI 업데이트      다음 실행 시:
+                 getValue() → 최신 상태
+```
+
+**핵심 포인트:**
+1. **두 가지 알림 경로:**
+   - **React**: TimeTravel → Store → listeners → Components (재렌더)
+   - **Handlers**: 알림 없음 (실행 시 상태 읽기)
+
+2. **[register]만 작동하는 이유:**
+   - Handler 캡처: `register` (안정적) + `store` (안정적 참조)
+   - Handler 읽기: `store.getValue()` → 항상 현재 상태
+   - Store 변경 → React만 재렌더 (handler 재등록 아님)
+
+3. **성능 이점:**
+   - 라이프타임 동안 재등록 제로
+   - 배치된 업데이트 (`notificationMode: 'batched'` 사용 시)
+   - Structural sharing으로 불필요한 재렌더 방지
+
+---
+
+### 🎯 **고급 패턴**
+
+#### **조건부 등록**
+
+```typescript
+// 패턴 1: 권한 기반 조건부
+function ConditionalPattern({ children }) {
+  const register = useDataActionRegister();
+  const isAdmin = useUserPermission('admin');
+
+  useEffect(() => {
+    if (!register || !isAdmin) return; // 관리자인 경우에만 등록
+
+    const handler = async (payload) => {
+      // 관리자 전용 로직
+    };
+
+    return register.register('adminAction', handler);
+  }, [register, isAdmin]);
+
+  return children;
+}
+
+// 패턴 2: Handler 내부 가드 (항상 등록됨)
+function GuardPattern({ children }) {
+  const { hasPermission } = useUserPermissions();
+
+  const handler = useCallback(async (payload, controller) => {
+    if (!hasPermission('approve')) {
+      controller.abort('권한 부족');
+      return;
+    }
+    // 로직...
+  }, [hasPermission]);
+
+  useDataActionHandler('approveData', handler);
+
+  return children;
+}
+```
+
+#### **Handler 옵션**
+
+```typescript
+useActionHandler('search', searchHandler, {
+  id: 'search-handler',    // 디버깅용 고유 ID
+  priority: 100,           // 실행 순서 (높을수록 먼저)
+  debounce: 300,           // 300ms debounce
+  throttle: 100,           // 또는 100ms throttle
+  blocking: false,         // 동시 실행 허용
+  once: false              // 여러 번 실행 가능
+});
+
+// 동일 액션에 대한 여러 handler
+useActionHandler('trackEvent', analyticsHandler, { priority: 100 });
+useActionHandler('trackEvent', loggingHandler, { priority: 50 });
+```
+
+#### **동적 다중 Handler 등록**
+
+```typescript
+function DynamicHandlers({ children }) {
+  const register = useDataActionRegister();
+  const [handlerIds, setHandlerIds] = useState(['h1', 'h2']);
+
+  useEffect(() => {
+    if (!register) return;
+
+    const unregisters = handlerIds.map(id => {
+      const handler = async (payload) => {
+        console.log(`${id} 실행:`, payload);
+      };
+
+      return register.register('process', handler, {
+        id,
+        priority: handlerIds.indexOf(id) * 10
+      });
+    });
+
+    return () => unregisters.forEach(unregister => unregister());
+  }, [register, handlerIds]);
+
+  return children;
+}
+```
+
+#### **자주 변경되는 값을 위한 Ref 패턴**
+
+```typescript
+function RefPattern({ children }) {
+  const configRef = useRef({ threshold: 100 });
+  const dataStore = useDataStore('data');
+
+  // 재등록 없이 config 업데이트
+  const updateConfig = (newConfig) => {
+    configRef.current = { ...configRef.current, ...newConfig };
+  };
+
+  const handler = useCallback(async (payload) => {
+    const data = dataStore.getValue();
+
+    // ref에서 최신 config 사용
+    if (payload.value > configRef.current.threshold) {
+      dataStore.setValue({ ...data, result: payload.value });
+    }
+  }, [dataStore]); // Config 변경은 재등록을 트리거하지 않음
+
+  useDataActionHandler('processData', handler);
+
+  return children;
+}
+```
+
+---
+
+### 📋 **베스트 프랙티스**
+
+#### ✅ **권장 사항**
+
+1. **getValue()로 지연 평가 사용**
+   ```typescript
+   const current = store.getValue(); // 항상 최신
+   ```
+
+2. **최소 의존성 - store 참조만**
+   ```typescript
+   useCallback(async (payload) => {
+     const current = store.getValue();
+   }, [store]); // store 참조만
+   ```
+
+3. **자주 변경되는 중요하지 않은 값에는 ref 사용**
+   ```typescript
+   const configRef = useRef({ threshold: 100 });
+   configRef.current.threshold = 200; // 재등록 없음
+   ```
+
+4. **순수 store handler에는 useActionRegister 사용**
+   ```typescript
+   useEffect(() => {
+     return register.register('action', handler);
+   }, [register]); // 최소 등록
+   ```
+
+5. **디버깅을 위한 고유 ID 제공**
+   ```typescript
+   useActionHandler('action', handler, { id: 'unique-id' });
+   ```
+
+6. **실행 순서를 위한 priority 사용**
+   ```typescript
+   useActionHandler('action', validationHandler, { priority: 100 });
+   useActionHandler('action', executionHandler, { priority: 50 });
+   ```
+
+#### ❌ **금지 사항**
+
+1. **반응형 상태 값 캡처하지 않기**
+   ```typescript
+   // ❌ 잘못됨
+   const user = useStoreValue(userStore);
+   const handler = useCallback(async (payload) => {
+     // 오래된 'user' 사용
+   }, [user, userStore]); // user 변경마다 재등록!
+   ```
+
+2. **의존성 누락하지 않기**
+   ```typescript
+   // ❌ 잘못됨
+   const handler = useCallback(async (payload) => {
+     if (config.threshold > 100) {} // config 사용
+   }, []); // config 누락!
+   ```
+
+3. **자주 변경되는 값을 deps에 포함하지 않기**
+   ```typescript
+   // ❌ 잘못됨
+   const [timestamp, setTimestamp] = useState(Date.now());
+   const handler = useCallback(() => {
+     log({ timestamp });
+   }, [timestamp]); // 계속 재등록!
+   ```
+
+4. **등록 중 부수 효과 수행하지 않기**
+   ```typescript
+   // ❌ 잘못됨
+   useActionHandler('action', useCallback(async () => {
+     await fetchData(); // 매 렌더마다 실행됨!
+   }, []));
+   ```
+
+5. **Handler에서 useStoreValue 사용하지 않기**
+   ```typescript
+   // ❌ 잘못됨 - Handler에서 hook 사용 불가
+   const handler = async (payload) => {
+     const user = useStoreValue(store); // ❌ 에러!
+   };
+   ```
 
 ---
 
