@@ -766,11 +766,148 @@ function TimeTravelBusinessLogic({ children }) {
 // 4. Next handler execution → getValue() returns undo'd state
 ```
 
-**Why this works:**
-- `editorStore.getValue()` returns current `timeTravel.getState()` (always fresh)
-- `undo()`/`redo()` only notify subscribers (React re-renders)
-- Handler registration is independent of store state changes
-- Handler closure doesn't capture store values, only store reference
+**Complete TimeTravel Notification Flow:**
+
+```typescript
+// TimeTravelStore internal architecture (for understanding)
+
+constructor() {
+  // 1. TimeTravel subscribes to all state changes
+  this.timeTravel.subscribe((state, travelPatches, position) => {
+    // Triggered by: setState(), back(), forward()
+    this._lastPatches = travelPatches.patches.flat();
+    this._updateSnapshot();
+    this._scheduleNotification(); // → triggers React listeners
+  });
+}
+
+_scheduleNotification() {
+  if (this.notificationMode === 'immediate') {
+    this._executeNotification(); // Immediate notify
+  } else {
+    // 'batched' mode: RAF-based batching
+    requestAnimationFrame(() => {
+      this._executeNotification();
+    });
+  }
+}
+
+_executeNotification() {
+  // Notify all React subscribers (useStoreValue, useStorePath)
+  this.listeners.forEach(listener => listener());
+
+  // Notify patch-aware subscribers (for path-based optimization)
+  this.patchAwareListeners.forEach(listener => {
+    listener(this._lastPatches);
+  });
+}
+```
+
+**Complete Flow Diagram:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ User Action Flow (setValue, undo, redo)                        │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. TimeTravelStore Method Called                               │
+│    - setValue(newValue) → timeTravel.setState(newValue)        │
+│    - undo() → timeTravel.back()                                │
+│    - redo() → timeTravel.forward()                             │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. TimeTravel Internal State Update                            │
+│    - Mutative creates patches (structural sharing)             │
+│    - History management (maxHistory, position tracking)        │
+│    - Triggers timeTravel.subscribe() callback                  │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. TimeTravelStore.subscribe() Callback                        │
+│    - Receives: (state, patches, position)                      │
+│    - Updates: _lastPatches, _snapshot                          │
+│    - Calls: _scheduleNotification()                            │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+                    ┌───────┴───────┐
+                    ↓               ↓
+        ┌──────────────────┐ ┌──────────────────┐
+        │ Immediate Mode   │ │ Batched Mode     │
+        │ (default)        │ │ (RAF)            │
+        │ _executeNotify() │ │ requestAnimation │
+        │                  │ │ Frame()          │
+        └──────────────────┘ └──────────────────┘
+                    └───────┬───────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. Notify All Subscribers                                       │
+│    - listeners.forEach(listener => listener())                  │
+│    - patchAwareListeners.forEach(listener => listener(patches)) │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+        ┌───────────────────┴───────────────────┐
+        ↓                                       ↓
+┌──────────────────┐                  ┌──────────────────┐
+│ React Components │                  │ Action Handlers  │
+│ (useStoreValue)  │                  │ (NO notification)│
+│ → Re-render ✅   │                  │ → Stay same ✅   │
+└──────────────────┘                  └──────────────────┘
+        ↓                                       ↓
+┌──────────────────┐                  ┌──────────────────┐
+│ UI Updates       │                  │ Next execution:  │
+│ - Show new data  │                  │ getValue() →     │
+│ - Undo/Redo btns │                  │ Fresh state ✅   │
+└──────────────────┘                  └──────────────────┘
+```
+
+**Why Handlers Don't Need Re-registration:**
+
+```typescript
+// ❌ WRONG Assumption: "Handler needs store value in closure"
+const handler = useCallback(async (payload) => {
+  const data = useStoreValue(store); // ❌ Can't use hooks here!
+  // ...
+}, [store, data]); // ❌ Would re-register constantly
+
+// ✅ CORRECT: Handler reads value when executed
+useEffect(() => {
+  const handler = async (payload) => {
+    const data = store.getValue(); // ✅ Always fresh at execution time
+    // Handler logic uses current data
+    store.setValue({ ...data, ...payload });
+  };
+
+  return register.register('action', handler);
+}, [register]);
+// ✅ [register] only - handler doesn't subscribe to store
+// ✅ getValue() called DURING execution, not during registration
+// ✅ undo/redo changes store → notifies React → handler unchanged
+```
+
+**Key Architectural Insights:**
+
+1. **Separation of Concerns:**
+   - TimeTravel → State management + History
+   - TimeTravelStore → React integration layer (subscribe/notify)
+   - React Components → Subscribe to store changes
+   - Action Handlers → Execute on demand (no subscription)
+
+2. **Two Notification Paths:**
+   - **React Path**: TimeTravel → TimeTravelStore → listeners → Components (re-render)
+   - **Handler Path**: No notification! Handler reads state when executed
+
+3. **Why `[register]` Only Works:**
+   - Handler closure captures: `register` (stable) + `store` (stable reference)
+   - Handler reads state via: `store.getValue()` → `timeTravel.getState()` (always current)
+   - Store changes trigger: React re-renders only (not handler re-registration)
+
+4. **Performance Benefits:**
+   - Zero handler re-registrations during component lifetime
+   - React components get batched updates (if notificationMode: 'batched')
+   - Structural sharing prevents unnecessary re-renders
+   - Handlers always execute with fresh state
 
 **When to use `useActionRegister` over `useActionHandler`:**
 
