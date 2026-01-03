@@ -58,10 +58,15 @@ export class DiffEngine {
 
     for (const property of properties) {
       const expectedValue = expected[property];
-      const actualValue = actual[property];
+      let actualValue = actual[property];
 
       // Skip if expected value is not set
       if (expectedValue === undefined) continue;
+
+      // Handle shorthand properties that might be split
+      if (!actualValue && this.isShorthandProperty(property)) {
+        actualValue = this.getShorthandValue(property, actual);
+      }
 
       // Normalize values if needed
       const normalizedExpected = this.options.normalize
@@ -73,6 +78,11 @@ export class DiffEngine {
 
       // Compare values
       if (!this.valuesMatch(normalizedExpected, normalizedActual, property)) {
+        // Don't report if actual has individual properties set correctly
+        if (this.isShorthandProperty(property) && actualValue) {
+          continue; // Skip if shorthand was successfully resolved
+        }
+
         differences.push({
           property,
           expected: expectedValue,
@@ -90,12 +100,51 @@ export class DiffEngine {
     };
   }
 
+  private isShorthandProperty(property: string): boolean {
+    return ['padding', 'margin', 'border', 'borderWidth', 'borderStyle', 'borderColor'].includes(property);
+  }
+
+  private getShorthandValue(property: string, actual: Record<string, string>): string {
+    // For padding and margin, check if all 4 sides are set to the same value
+    if (property === 'padding') {
+      const top = actual.paddingTop;
+      const right = actual.paddingRight;
+      const bottom = actual.paddingBottom;
+      const left = actual.paddingLeft;
+
+      if (top && right && bottom && left && top === right && right === bottom && bottom === left) {
+        return top;
+      }
+    }
+
+    if (property === 'margin') {
+      const top = actual.marginTop;
+      const right = actual.marginRight;
+      const bottom = actual.marginBottom;
+      const left = actual.marginLeft;
+
+      if (top && right && bottom && left && top === right && right === bottom && bottom === left) {
+        return top;
+      }
+    }
+
+    return '';
+  }
+
   private normalizeValue(value: string): string {
     if (!value) return '';
 
     // Normalize 0 values
     if (value === '0px' || value === '0rem' || value === '0em') {
       return '0';
+    }
+
+    // Handle CSS variables - extract the fallback value
+    if (value.includes('var(')) {
+      const match = value.match(/var\([^,]+,\s*(.+)\)/);
+      if (match) {
+        value = match[1].trim();
+      }
     }
 
     // Normalize colors
@@ -105,6 +154,14 @@ export class DiffEngine {
 
     if (value.startsWith('rgb')) {
       return this.normalizeRgb(value);
+    }
+
+    // Convert rem to px (assuming 16px base font size)
+    if (value.endsWith('rem')) {
+      const rem = parseFloat(value);
+      if (!isNaN(rem)) {
+        return `${rem * 16}px`;
+      }
     }
 
     // Normalize whitespace
