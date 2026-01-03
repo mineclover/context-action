@@ -514,18 +514,24 @@ function AutoCleanupPattern({ children }) {
   return children;
 }
 
-// ✅ Manual cleanup with useEffect when needed
-function ManualCleanupPattern({ children }) {
+// ✅ Manual registration with useActionRegister (fine-grained control)
+function ManualRegistrationPattern({ children }) {
+  const register = useDataActionRegister(); // Get ActionRegister instance
   const dataStore = useDataStore('data');
+  const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
+    if (!register || !isEnabled) return; // Conditional registration
+
     const handler = async (payload) => {
-      dataStore.setValue(payload);
+      const current = dataStore.getValue();
+      dataStore.setValue({ ...current, ...payload });
     };
 
-    // Manual registration
-    const unregister = dataActionHandler.register('updateData', handler, {
-      id: 'manual-handler'
+    // Direct registration - full control over re-registration
+    const unregister = register.register('updateData', handler, {
+      id: 'manual-handler',
+      priority: 100
     });
 
     // Custom cleanup logic
@@ -533,11 +539,115 @@ function ManualCleanupPattern({ children }) {
       console.log('Cleaning up manual handler');
       unregister();
     };
-  }, [dataStore]);
+  }, [register, isEnabled]);
+  // ⚠️ Note: dataStore NOT in deps - prevents re-registration on store changes
 
   return children;
 }
 ```
+
+#### **Pattern 4: Preventing Re-registration with Direct Registration**
+
+The `useActionHandler` hook already optimizes handler updates using refs internally, **but direct registration with `useActionRegister` provides even finer control**:
+
+```typescript
+// ✅ useActionHandler (already optimized - handler changes don't cause re-registration)
+function OptimizedWithHook({ children }) {
+  const dataStore = useDataStore('data');
+  const configStore = useDataStore('config');
+
+  // Handler can reference latest values via closure
+  const updateHandler = useCallback(async (payload) => {
+    const data = dataStore.getValue();
+    const config = configStore.getValue();
+
+    // Business logic with fresh values
+    dataStore.setValue({ ...data, ...payload });
+  }, [dataStore, configStore]);
+
+  // ✅ Handler changes don't trigger re-registration (uses ref internally)
+  useDataActionHandler('updateData', updateHandler);
+
+  return children;
+}
+
+// ✅ Direct registration (maximum control - choose exact re-registration conditions)
+function MaximumControlPattern({ children }) {
+  const register = useDataActionRegister();
+  const dataStore = useDataStore('data');
+  const configStore = useDataStore('config');
+  const [criticalSetting, setCriticalSetting] = useState(false);
+
+  useEffect(() => {
+    if (!register) return;
+
+    const handler = async (payload) => {
+      // Always reads fresh values via getValue()
+      const data = dataStore.getValue();
+      const config = configStore.getValue();
+
+      if (criticalSetting) {
+        // Critical path logic
+        dataStore.setValue({ ...data, ...payload, critical: true });
+      } else {
+        // Normal path logic
+        dataStore.setValue({ ...data, ...payload });
+      }
+    };
+
+    const unregister = register.register('updateData', handler, {
+      id: 'controlled-handler',
+      priority: criticalSetting ? 200 : 100 // Priority changes with setting
+    });
+
+    return unregister;
+  }, [register, criticalSetting]);
+  // ✅ Only re-registers when criticalSetting changes
+  // ✅ dataStore/configStore changes don't trigger re-registration
+
+  return children;
+}
+
+// ✅ Dynamic multi-handler registration
+function DynamicHandlersPattern({ children }) {
+  const register = useDataActionRegister();
+  const [handlers, setHandlers] = useState<string[]>(['handler1', 'handler2']);
+
+  useEffect(() => {
+    if (!register) return;
+
+    const unregisters = handlers.map(handlerId => {
+      const handler = async (payload) => {
+        console.log(`${handlerId} executed:`, payload);
+      };
+
+      return register.register('processData', handler, {
+        id: handlerId,
+        priority: handlers.indexOf(handlerId) * 10
+      });
+    });
+
+    // Cleanup all handlers
+    return () => {
+      unregisters.forEach(unregister => unregister());
+    };
+  }, [register, handlers]); // Only re-register when handlers array changes
+
+  return children;
+}
+```
+
+**When to use `useActionRegister` over `useActionHandler`:**
+
+| Scenario | useActionHandler | useActionRegister |
+|----------|------------------|-------------------|
+| **Standard handler registration** | ✅ Recommended | Optional |
+| **Handler changes frequently** | ✅ Already optimized (uses ref) | Optional |
+| **Conditional registration** | ⚠️ Can use `if` statement | ✅ More explicit with useEffect |
+| **Dynamic multi-handler registration** | ⚠️ Complex with multiple hooks | ✅ Loop in useEffect |
+| **Custom re-registration logic** | ⚠️ Limited to config changes | ✅ Full control over deps |
+| **Need ActionRegister methods** | ❌ No access | ✅ Full API access |
+| **Debug/inspect handlers** | ❌ No access | ✅ `register.getHandlers()` |
 
 ### 📋 **Best Practices Summary**
 
@@ -573,6 +683,18 @@ function ManualCleanupPattern({ children }) {
    ```typescript
    useActionHandler('action', validationHandler, { priority: 100 });
    useActionHandler('action', executionHandler, { priority: 50 });
+   ```
+
+6. **Use `useActionRegister` for advanced control**
+   ```typescript
+   const register = useActionRegister();
+
+   useEffect(() => {
+     if (!register || !condition) return;
+
+     const unregister = register.register('action', handler, config);
+     return unregister;
+   }, [register, condition]); // Full control over deps
    ```
 
 #### ❌ **DON'T**
