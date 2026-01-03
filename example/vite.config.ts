@@ -66,6 +66,8 @@ export default defineConfig({
     minify: 'esbuild',
   },
   resolve: {
+    // React 중복 방지 - 모든 패키지가 동일한 React 인스턴스 사용
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
     alias: {
       '@context-action/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
       '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
