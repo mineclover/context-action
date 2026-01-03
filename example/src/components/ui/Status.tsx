@@ -1,12 +1,11 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { type StatusVariants, statusVariants } from './variants';
+import { statusRecipe, type StatusRecipeProps } from './recipes';
 
-export interface StatusProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    StatusVariants {
-  icon?: React.ReactNode;
-}
+export type StatusProps = React.HTMLAttributes<HTMLDivElement> &
+  StatusRecipeProps & {
+    icon?: React.ReactNode;
+  };
 
 export function Status({
   className,
@@ -16,7 +15,7 @@ export function Status({
   ...props
 }: StatusProps) {
   return (
-    <div className={cn(statusVariants({ status }), className)} {...props}>
+    <div className={cn(statusRecipe({ status }), className)} {...props}>
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{children}</span>
     </div>

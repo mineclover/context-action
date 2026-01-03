@@ -1,12 +1,11 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { type ButtonVariants, buttonVariants } from './variants';
+import { buttonRecipe, type ButtonRecipeProps } from './recipes';
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    ButtonVariants {
-  loading?: boolean;
-}
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  ButtonRecipeProps & {
+    loading?: boolean;
+  };
 
 export function Button({
   className,
@@ -19,7 +18,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(buttonVariants({ variant, size }), className)}
+      className={cn(buttonRecipe({ variant, size }), className)}
       disabled={disabled || loading}
       {...props}
     >

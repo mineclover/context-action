@@ -1,45 +1,56 @@
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type RecipeVariantProps } from '../../../styled-system/css';
+type VariantProps<T extends (...args: any) => any> = RecipeVariantProps<T>;
 import type React from 'react';
+import { cn } from '../../lib/utils';
 
-const patternBadgeVariants = cva(
-  'inline-flex items-center gap-1 font-medium text-xs px-2 py-1 rounded-md border whitespace-nowrap',
-  {
-    variants: {
-      pattern: {
-        hoc: 'bg-blue-100 text-blue-800 border-blue-200',
-        provider: 'bg-green-100 text-green-800 border-green-200',
-        context: 'bg-purple-100 text-purple-800 border-purple-200',
-        hook: 'bg-orange-100 text-orange-800 border-orange-200',
-        unified: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-        store: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-        action: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-        async: 'bg-purple-100 text-purple-800 border-purple-200',
-        ref: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        integration: 'bg-pink-100 text-pink-800 border-pink-200',
-        performance: 'bg-red-100 text-red-800 border-red-200',
-        api: 'bg-blue-100 text-blue-800 border-blue-200',
-        search: 'bg-green-100 text-green-800 border-green-200',
-        interaction: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-        custom: 'bg-gray-100 text-gray-800 border-gray-200',
-      },
-      size: {
-        sm: 'text-xs px-2 py-0.5',
-        md: 'text-xs px-2 py-1',
-        lg: 'text-sm px-3 py-1.5',
-      },
+const patternBadgeVariants = cva({
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '1',
+    fontWeight: 'medium',
+    fontSize: 'xs',
+    px: '2',
+    py: '1',
+    rounded: 'md',
+    borderWidth: '1px',
+    whiteSpace: 'nowrap',
+  },
+  variants: {
+    pattern: {
+      hoc: { bg: 'blue.100', color: 'blue.800', borderColor: 'blue.200' },
+      provider: { bg: 'green.100', color: 'green.800', borderColor: 'green.200' },
+      context: { bg: 'purple.100', color: 'purple.800', borderColor: 'purple.200' },
+      hook: { bg: 'orange.100', color: 'orange.800', borderColor: 'orange.200' },
+      unified: { bg: 'indigo.100', color: 'indigo.800', borderColor: 'indigo.200' },
+      store: { bg: 'cyan.100', color: 'cyan.800', borderColor: 'cyan.200' },
+      action: { bg: 'emerald.100', color: 'emerald.800', borderColor: 'emerald.200' },
+      async: { bg: 'purple.100', color: 'purple.800', borderColor: 'purple.200' },
+      ref: { bg: 'yellow.100', color: 'yellow.800', borderColor: 'yellow.200' },
+      integration: { bg: 'pink.100', color: 'pink.800', borderColor: 'pink.200' },
+      performance: { bg: 'red.100', color: 'red.800', borderColor: 'red.200' },
+      api: { bg: 'blue.100', color: 'blue.800', borderColor: 'blue.200' },
+      search: { bg: 'green.100', color: 'green.800', borderColor: 'green.200' },
+      interaction: { bg: 'indigo.100', color: 'indigo.800', borderColor: 'indigo.200' },
+      custom: { bg: 'gray.100', color: 'gray.800', borderColor: 'gray.200' },
     },
-    defaultVariants: {
-      pattern: 'custom',
-      size: 'md',
+    size: {
+      sm: { fontSize: 'xs', px: '2', py: '0.5' },
+      md: { fontSize: 'xs', px: '2', py: '1' },
+      lg: { fontSize: 'sm', px: '3', py: '1.5' },
     },
-  }
-);
+  },
+  defaultVariants: {
+    pattern: 'custom',
+    size: 'md',
+  },
+});
 
-interface PatternBadgeProps extends VariantProps<typeof patternBadgeVariants> {
+type PatternBadgeProps = VariantProps<typeof patternBadgeVariants> & {
   children: React.ReactNode;
   icon?: string;
   className?: string;
-}
+};
 
 export function PatternBadge({
   children,
@@ -49,7 +60,7 @@ export function PatternBadge({
   className,
 }: PatternBadgeProps) {
   return (
-    <span className={patternBadgeVariants({ pattern, size, className })}>
+    <span className={cn(patternBadgeVariants({ pattern, size }), className)}>
       {icon && <span className="text-xs">{icon}</span>}
       <span className="font-medium">{children}</span>
     </span>

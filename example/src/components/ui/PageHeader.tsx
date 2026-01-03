@@ -70,12 +70,16 @@ export function PageHeader({
       {badges && badges.length > 0 && (
         <div className={styles.badgeContainer}>
           {badges.map((badge, index) => {
-            const colorConfig = badgeColors[badge.color || 'blue'];
+            const colorConfig =
+              badgeColors[badge.color || 'blue'] || badgeColors.blue;
             return (
               <Badge
                 key={index}
                 variant="outline"
-                className={css({ bg: colorConfig.bg, color: colorConfig.color })}
+                className={css({
+                  bg: colorConfig!.bg,
+                  color: colorConfig!.color,
+                })}
               >
                 {badge.label}
               </Badge>

@@ -1,10 +1,9 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { type ContainerVariants, containerVariants } from './variants';
+import { containerRecipe, type ContainerRecipeProps } from './recipes';
 
-export interface ContainerProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    ContainerVariants {}
+export type ContainerProps = React.HTMLAttributes<HTMLDivElement> &
+  ContainerRecipeProps;
 
 export function Container({
   className,
@@ -16,7 +15,7 @@ export function Container({
 }: ContainerProps) {
   return (
     <div
-      className={cn(containerVariants({ size, centered, padding }), className)}
+      className={cn(containerRecipe({ size, centered, padding }), className)}
       {...props}
     >
       {children}

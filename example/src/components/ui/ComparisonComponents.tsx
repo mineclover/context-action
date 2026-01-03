@@ -1,73 +1,86 @@
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type RecipeVariantProps } from '../../../styled-system/css';
+type VariantProps<T extends (...args: any) => any> = RecipeVariantProps<T>;
 import type React from 'react';
 import { cn } from '../../lib/utils';
 
 // Comparison Strategy Variants
-export const comparisonStrategyVariants = cva(
-  'border-2 p-4 rounded-lg transition-all duration-200',
-  {
-    variants: {
-      strategy: {
-        reference: 'border-orange-400 bg-orange-50 text-orange-700',
-        shallow: 'border-blue-400 bg-blue-50 text-blue-700',
-        deep: 'border-purple-400 bg-purple-50 text-purple-700',
-        default: 'border-gray-400 bg-gray-50 text-gray-700',
-      },
-      throttled: {
-        true: 'ring-2 ring-yellow-300',
-        false: '',
-      },
+export const comparisonStrategyVariants = cva({
+  base: {
+    borderWidth: '2px',
+    p: '4',
+    rounded: 'lg',
+    transition: 'all 0.2s',
+  },
+  variants: {
+    strategy: {
+      reference: { borderColor: 'orange.400', bg: 'orange.50', color: 'orange.700' },
+      shallow: { borderColor: 'blue.400', bg: 'blue.50', color: 'blue.700' },
+      deep: { borderColor: 'purple.400', bg: 'purple.50', color: 'purple.700' },
+      default: { borderColor: 'gray.400', bg: 'gray.50', color: 'gray.700' },
     },
-    defaultVariants: {
-      strategy: 'default',
-      throttled: false,
+    throttled: {
+      true: { ring: '2', ringColor: 'yellow.300' },
+      false: {},
     },
-  }
-);
+  },
+  defaultVariants: {
+    strategy: 'default',
+    throttled: false,
+  },
+});
 
 // Render Status Variants
-export const renderStatusVariants = cva(
-  'inline-flex items-center gap-1 px-2 py-1 rounded font-medium text-xs',
-  {
-    variants: {
-      status: {
-        safe: 'text-green-600 bg-green-100',
-        watch: 'text-yellow-600 bg-yellow-100',
-        high: 'text-orange-600 bg-orange-100',
-        danger: 'text-red-600 bg-red-100',
-      },
+export const renderStatusVariants = cva({
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '1',
+    px: '2',
+    py: '1',
+    rounded: 'md',
+    fontWeight: 'medium',
+    fontSize: 'xs',
+  },
+  variants: {
+    status: {
+      safe: { color: 'green.600', bg: 'green.100' },
+      watch: { color: 'yellow.600', bg: 'yellow.100' },
+      high: { color: 'orange.600', bg: 'orange.100' },
+      danger: { color: 'red.600', bg: 'red.100' },
     },
-    defaultVariants: {
-      status: 'safe',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    status: 'safe',
+  },
+});
 
 // Performance Card Variants
-export const performanceCardVariants = cva(
-  'border rounded-lg p-4 transition-colors',
-  {
-    variants: {
-      type: {
-        info: 'bg-blue-50 border-blue-200',
-        warning: 'bg-yellow-50 border-yellow-200',
-        success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
-      },
+export const performanceCardVariants = cva({
+  base: {
+    borderWidth: '1px',
+    rounded: 'lg',
+    p: '4',
+    transition: 'colors 0.2s',
+  },
+  variants: {
+    type: {
+      info: { bg: 'blue.50', borderColor: 'blue.200' },
+      warning: { bg: 'yellow.50', borderColor: 'yellow.200' },
+      success: { bg: 'green.50', borderColor: 'green.200' },
+      error: { bg: 'red.50', borderColor: 'red.200' },
     },
-    defaultVariants: {
-      type: 'info',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    type: 'info',
+  },
+});
 
-export interface ComparisonCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof comparisonStrategyVariants> {
-  title: string;
-  renderCount: number;
-  stopped?: boolean;
-}
+export type ComparisonCardProps = React.HTMLAttributes<HTMLDivElement> &
+  VariantProps<typeof comparisonStrategyVariants> & {
+    title: string;
+    renderCount: number;
+    stopped?: boolean;
+  };
 
 export function ComparisonCard({
   className,
@@ -140,12 +153,11 @@ export function RenderStatus({ renderCount }: RenderStatusProps) {
   );
 }
 
-export interface PerformanceCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof performanceCardVariants> {
-  title: string;
-  icon?: string;
-}
+export type PerformanceCardProps = React.HTMLAttributes<HTMLDivElement> &
+  VariantProps<typeof performanceCardVariants> & {
+    title: string;
+    icon?: string;
+  };
 
 export function PerformanceCard({
   className,

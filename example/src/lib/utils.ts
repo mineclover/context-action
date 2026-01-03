@@ -1,11 +1,11 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { css, cx } from '../../styled-system/css';
 
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
+// Panda CSS utility function
+export function cn(...inputs: (string | undefined | null | false)[]): string {
+  return cx(...inputs.filter(Boolean) as string[]);
 }
 
-// 타입 안전한 variant 래퍼
+// 타입 안전한 variant 래퍼 (Panda CSS 호환)
 export function safeVariant<T extends (...args: any[]) => any>(
   variantFn: T
 ): (...args: Parameters<T>) => string {

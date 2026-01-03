@@ -1,14 +1,16 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
-import { type InputVariants, inputVariants } from './variants';
+import { inputRecipe, type InputRecipeProps } from './recipes';
 
-export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
-    InputVariants {
-  label?: string;
-  error?: string;
-  helper?: string;
-}
+export type InputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'size'
+> &
+  InputRecipeProps & {
+    label?: string;
+    error?: string;
+    helper?: string;
+  };
 
 export function Input({
   className,
@@ -36,10 +38,7 @@ export function Input({
       )}
       <input
         id={inputId}
-        className={cn(
-          inputVariants({ variant: errorVariant, size }),
-          className
-        )}
+        className={cn(inputRecipe({ variant: errorVariant, size }), className)}
         {...props}
       />
       {error && <p className="text-sm text-danger-600">{error}</p>}
@@ -48,13 +47,15 @@ export function Input({
   );
 }
 
-export interface TextareaProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
-    InputVariants {
-  label?: string;
-  error?: string;
-  helper?: string;
-}
+export type TextareaProps = Omit<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'size'
+> &
+  InputRecipeProps & {
+    label?: string;
+    error?: string;
+    helper?: string;
+  };
 
 export function Textarea({
   className,
@@ -83,7 +84,7 @@ export function Textarea({
       <textarea
         id={textareaId}
         className={cn(
-          inputVariants({ variant: errorVariant, size }),
+          inputRecipe({ variant: errorVariant, size }),
           'min-h-[80px]',
           className
         )}

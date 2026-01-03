@@ -14,7 +14,27 @@ import {
 interface NavItem {
   path: string;
   label: string;
-  category: NonNullable<NavItemVariants['category']>;
+  category:
+    | 'main'
+    | 'core'
+    | 'store'
+    | 'action'
+    | 'async'
+    | 'architecture'
+    | 'interaction'
+    | 'pipeline'
+    | 'react'
+    | 'logger'
+    | 'actionguard'
+    | 'conditional'
+    | 'examples'
+    | 'refs'
+    | 'demos'
+    | 'performance'
+    | 'utilities'
+    | 'debug'
+    | 'dev'
+    | 'coming-soon';
   isIndex?: boolean;
   disabled?: boolean;
   description?: string;
@@ -23,8 +43,8 @@ interface NavItem {
 
 interface LayoutProps {
   children: React.ReactNode;
-  variant?: LayoutVariants['variant'];
-  sidebarWidth?: SidebarVariants['width'];
+  variant?: 'default' | 'fullscreen';
+  sidebarWidth?: 'sm' | 'md' | 'lg';
   collapsed?: boolean;
 }
 

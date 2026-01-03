@@ -1,12 +1,11 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { type DemoCardVariants, demoCardVariants } from './variants';
+import { demoCardRecipe, type DemoCardRecipeProps } from './recipes';
 
-interface DemoCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    DemoCardVariants {
-  children: React.ReactNode;
-}
+type DemoCardProps = React.HTMLAttributes<HTMLDivElement> &
+  DemoCardRecipeProps & {
+    children: React.ReactNode;
+  };
 
 export function DemoCard({
   variant,
@@ -17,7 +16,7 @@ export function DemoCard({
 }: DemoCardProps) {
   return (
     <div
-      className={cn(demoCardVariants({ variant, spacing }), className)}
+      className={cn(demoCardRecipe({ variant, spacing }), className)}
       {...props}
     >
       {children}
