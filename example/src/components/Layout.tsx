@@ -331,12 +331,7 @@ function Layout({
 
   return (
     <div className={cn(layoutVariants({ variant }))}>
-      <nav
-        className={cn(
-          sidebarVariants({ width: sidebarWidth, collapsed }),
-          'hidden md:block'
-        )}
-      >
+      <nav className={cn(sidebarVariants({ width: sidebarWidth, collapsed }))}>
         {/* Logo Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -731,17 +726,7 @@ function Layout({
           mainContentVariants({
             sidebarWidth,
             sidebarCollapsed: collapsed,
-          }),
-          'ml-0', // 모바일에서는 margin 없음
-          collapsed
-            ? 'md:ml-16'
-            : sidebarWidth === 'sm'
-              ? 'md:ml-64'
-              : sidebarWidth === 'md'
-                ? 'md:ml-72'
-                : sidebarWidth === 'lg'
-                  ? 'md:ml-80'
-                  : 'md:ml-72'
+          })
         )}
       >
         {children}

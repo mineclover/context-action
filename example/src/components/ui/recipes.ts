@@ -332,6 +332,7 @@ export const sidebarRecipe = cva({
     left: '0',
     top: '0',
     zIndex: 40,
+    display: { base: 'none', md: 'block' }, // Hide on mobile, show on md+
   },
   variants: {
     width: {
@@ -359,15 +360,16 @@ export const mainContentRecipe = cva({
     w: 'full',
     minW: '0',
     overflowX: 'hidden',
+    ml: '0', // No margin on mobile
   },
   variants: {
     sidebarWidth: {
-      sm: { ml: { base: '56', md: '64' } },
-      md: { ml: { base: '64', md: '72' } },
-      lg: { ml: { base: '72', md: '80' } },
+      sm: { ml: { base: '0', md: '64' } },
+      md: { ml: { base: '0', md: '72' } },
+      lg: { ml: { base: '0', md: '80' } },
     },
     sidebarCollapsed: {
-      true: { ml: '16' },
+      true: { ml: { base: '0', md: '16' } },
       false: {},
     },
     maxWidth: {
