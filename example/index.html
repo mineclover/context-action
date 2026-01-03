@@ -17,10 +17,19 @@
     
     <!-- GitHub Pages SPA 라우팅 지원 스크립트 -->
     <script>
-      // GitHub Pages에서 클라이언트 사이드 라우팅 지원
       (function(l) {
+        // VitePress 404 redirect 처리: ?redirect=<path>
+        var params = new URLSearchParams(l.search);
+        if (params.has('redirect')) {
+          var redirectPath = decodeURIComponent(params.get('redirect'));
+          console.log('VitePress redirect detected:', redirectPath);
+          window.history.replaceState(null, null, redirectPath + l.hash);
+          return;
+        }
+
+        // 기존 SPA 404 redirect 처리: ?/<path>
         if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
+          var decoded = l.search.slice(1).split('&').map(function(s) {
             return s.replace(/~and~/g, '&')
           }).join('?');
           window.history.replaceState(null, null,
