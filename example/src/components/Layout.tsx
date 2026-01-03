@@ -330,8 +330,22 @@ function Layout({
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className={cn(layoutVariants({ variant }))}>
-      <nav className={cn(sidebarVariants({ width: sidebarWidth, collapsed }))}>
+    <div className="flex min-h-screen bg-gray-50 w-full max-w-full overflow-hidden">
+      <nav
+        className={cn(
+          'fixed h-full overflow-y-auto bg-white border-r border-gray-200 transition-all duration-200 left-0 top-0 z-40',
+          'hidden md:block',
+          collapsed
+            ? 'w-16'
+            : sidebarWidth === 'sm'
+              ? 'w-56 md:w-64'
+              : sidebarWidth === 'md'
+                ? 'w-64 md:w-72'
+                : sidebarWidth === 'lg'
+                  ? 'w-72 md:w-80'
+                  : 'w-64 md:w-72'
+        )}
+      >
         {/* Logo Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -723,10 +737,17 @@ function Layout({
 
       <main
         className={cn(
-          mainContentVariants({
-            sidebarWidth,
-            sidebarCollapsed: collapsed,
-          })
+          'flex-1 p-4 md:p-8 transition-all duration-200 w-full min-w-0 overflow-x-hidden',
+          'ml-0',
+          collapsed
+            ? 'md:ml-16'
+            : sidebarWidth === 'sm'
+              ? 'md:ml-64'
+              : sidebarWidth === 'md'
+                ? 'md:ml-72'
+                : sidebarWidth === 'lg'
+                  ? 'md:ml-80'
+                  : 'md:ml-72'
         )}
       >
         {children}
