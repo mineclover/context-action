@@ -99,3 +99,9 @@ packages/llms-generator/data/**/*.md
 test-deploy/
 .serena
 .serena_backup
+
+# Claude Code
+.claude/
+
+# Panda CSS generated
+example/styled-system/
