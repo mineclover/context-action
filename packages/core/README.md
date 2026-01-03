@@ -1,6 +1,8 @@
 # @context-action/core
 
-Type-safe action pipeline management library for JavaScript/TypeScript applications with advanced filtering, performance optimizations, and React integration support.
+Type-safe action pipeline management library for **vanilla JavaScript/TypeScript** applications with advanced filtering, performance optimizations, and optional React integration support.
+
+> **✨ Framework-Agnostic**: Works with vanilla JavaScript, React, Vue, Svelte, or any JavaScript environment. No framework dependencies required!
 
 ## Installation
 
@@ -8,6 +10,15 @@ Type-safe action pipeline management library for JavaScript/TypeScript applicati
 npm install @context-action/core
 # or
 pnpm install @context-action/core
+```
+
+### CDN (for quick prototyping)
+
+```html
+<script type="module">
+  import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+  // Your code here
+</script>
 ```
 
 ## Quick Start
@@ -41,6 +52,94 @@ actions.register('setCount', (count) => {
 await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
+
+## 🌟 Vanilla JavaScript Support
+
+**@context-action/core works perfectly with vanilla JavaScript!** No React, Vue, or any framework required.
+
+### Browser Example (HTML + JavaScript)
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Context-Action Example</title>
+</head>
+<body>
+  <div id="counter">0</div>
+  <button id="increment">Increment</button>
+
+  <script type="module">
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+
+    // Simple store
+    class Store {
+      constructor(initialState) {
+        this.state = initialState;
+        this.listeners = new Set();
+      }
+      getValue() { return this.state; }
+      setValue(newState) {
+        this.state = newState;
+        this.listeners.forEach(fn => fn(this.state));
+      }
+      subscribe(listener) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+      }
+    }
+
+    // Create store and actions
+    const counterStore = new Store({ count: 0 });
+    const actions = new ActionRegister({ name: 'Counter' });
+
+    // Register handler
+    actions.register('increment', () => {
+      const current = counterStore.getValue();
+      counterStore.setValue({ count: current.count + 1 });
+    });
+
+    // Subscribe to updates
+    counterStore.subscribe(state => {
+      document.getElementById('counter').textContent = state.count;
+    });
+
+    // Wire up button
+    document.getElementById('increment').onclick = () => {
+      actions.dispatch('increment');
+    };
+  </script>
+</body>
+</html>
+```
+
+### Node.js Example
+
+```javascript
+import { ActionRegister } from '@context-action/core';
+
+const actions = new ActionRegister({ name: 'MyApp' });
+
+actions.register('processData', async (data, controller) => {
+  console.log('Processing:', data);
+
+  // Business logic here
+  const result = await someAsyncOperation(data);
+
+  controller.setResult(result);
+}, { priority: 100 });
+
+// Dispatch action
+const result = await actions.dispatchWithResult('processData', {
+  input: 'example'
+});
+
+console.log('Result:', result.successResults);
+```
+
+**📚 Learn More:**
+- [Vanilla JavaScript Guide](../../docs/en/guide/vanilla-js-guide.md) - Complete guide with examples
+- [Live Examples](../../examples/vanilla-js/) - Interactive HTML examples (counter, todo app)
 
 ### Memory Management
 
@@ -489,5 +588,7 @@ Apache-2.0
 
 - [Main Repository](https://github.com/mineclover/context-action)
 - [Documentation](https://mineclover.github.io/context-action/)
-- [React Package](../react/README.md)
-- [Examples](../../example/README.md)
+- [Vanilla JS Guide](../../docs/en/guide/vanilla-js-guide.md) - Complete vanilla JavaScript guide
+- [Vanilla JS Examples](../../examples/vanilla-js/) - Interactive examples (counter, todo app)
+- [React Package](../react/README.md) - React integration
+- [Examples](../../example/README.md) - React example application

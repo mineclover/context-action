@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context-Action Vanilla JS - Basic Counter</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    .counter {
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin: 30px 0;
+      color: #0066cc;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #0066cc;
+      color: white;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .log {
+      margin-top: 30px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Context-Action Vanilla JS Example</h1>
+    <p>A simple counter demonstrating action pipeline with vanilla JavaScript</p>
+
+    <div class="counter" id="counter">0</div>
+
+    <div class="buttons">
+      <button id="increment">➕ Increment</button>
+      <button id="decrement">➖ Decrement</button>
+      <button id="reset">🔄 Reset</button>
+      <button id="async">⏳ Async +10</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script type="module">
+    // Import from CDN (or use local build)
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+
+    // Simple store implementation
+    class Store {
+      constructor(initialState) {
+        this.state = initialState;
+        this.listeners = new Set();
+      }
+
+      getValue() {
+        return this.state;
+      }
+
+      setValue(newState) {
+        this.state = newState;
+        this.notify();
+      }
+
+      subscribe(listener) {
+        this.listeners.add(listener);
+        listener(this.state); // Call immediately
+        return () => this.listeners.delete(listener);
+      }
+
+      notify() {
+        this.listeners.forEach(listener => listener(this.state));
+      }
+    }
+
+    // Create store
+    const counterStore = new Store({ count: 0 });
+
+    // Create action register
+    const actions = new ActionRegister({
+      name: 'CounterActions',
+      registry: {
+        debug: true,
+        defaultExecutionMode: 'sequential'
+      }
+    });
+
+    // Logging helper
+    const logElement = document.getElementById('log');
+    function log(message) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logElement.insertBefore(entry, logElement.firstChild);
+
+      // Keep only last 20 entries
+      while (logElement.children.length > 20) {
+        logElement.removeChild(logElement.lastChild);
+      }
+    }
+
+    // Register action handlers
+    actions.register('increment', (payload, controller) => {
+      const current = counterStore.getValue();
+      counterStore.setValue({ count: current.count + 1 });
+
+      log(`Incremented: ${current.count} → ${current.count + 1}`);
+      controller.setResult({ count: current.count + 1 });
+    }, { priority: 100 });
+
+    actions.register('decrement', (payload, controller) => {
+      const current = counterStore.getValue();
+      counterStore.setValue({ count: current.count - 1 });
+
+      log(`Decremented: ${current.count} → ${current.count - 1}`);
+      controller.setResult({ count: current.count - 1 });
+    }, { priority: 100 });
+
+    actions.register('reset', (payload, controller) => {
+      const current = counterStore.getValue();
+      counterStore.setValue({ count: 0 });
+
+      log(`Reset: ${current.count} → 0`);
+      controller.setResult({ count: 0 });
+    }, { priority: 100 });
+
+    actions.register('asyncIncrement', async (payload, controller) => {
+      log('Starting async increment (+10)...');
+
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const current = counterStore.getValue();
+      counterStore.setValue({ count: current.count + 10 });
+
+      log(`Async completed: ${current.count} → ${current.count + 10}`);
+      controller.setResult({ count: current.count + 10 });
+    }, { priority: 100 });
+
+    // Subscribe to store changes
+    counterStore.subscribe((state) => {
+      document.getElementById('counter').textContent = state.count;
+    });
+
+    // Wire up buttons
+    document.getElementById('increment').addEventListener('click', () => {
+      actions.dispatch('increment');
+    });
+
+    document.getElementById('decrement').addEventListener('click', () => {
+      actions.dispatch('decrement');
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      actions.dispatch('reset');
+    });
+
+    document.getElementById('async').addEventListener('click', () => {
+      actions.dispatch('asyncIncrement');
+    });
+
+    // Initial log
+    log('Application initialized');
+  </script>
+</body>
+</html>

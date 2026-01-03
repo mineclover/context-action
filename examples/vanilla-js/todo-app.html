@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context-Action Vanilla JS - Todo App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .add-todo {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .filter-btn {
+      padding: 8px 16px;
+      background: #f5f5f5;
+      color: #666;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+    }
+    .todo-list {
+      list-style: none;
+    }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    .todo-item:hover {
+      background: #f0f0f0;
+    }
+    .todo-item.completed {
+      opacity: 0.6;
+    }
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+    }
+    .todo-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .todo-text {
+      flex: 1;
+      color: #333;
+    }
+    .delete-btn {
+      padding: 6px 12px;
+      background: #ff4757;
+      font-size: 12px;
+    }
+    .delete-btn:hover {
+      background: #ee3344;
+    }
+    .stats {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Todo App with Context-Action</h1>
+
+    <div class="add-todo">
+      <input
+        type="text"
+        id="todoInput"
+        placeholder="What needs to be done?"
+        autocomplete="off"
+      >
+      <button id="addBtn">Add Todo</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+    </div>
+
+    <ul class="todo-list" id="todoList"></ul>
+
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <script type="module">
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+
+    // Store implementation
+    class Store {
+      constructor(initialState) {
+        this.state = initialState;
+        this.listeners = new Set();
+      }
+
+      getValue() {
+        return this.state;
+      }
+
+      setValue(newState) {
+        this.state = newState;
+        this.notify();
+      }
+
+      update(updater) {
+        this.setValue(updater(this.state));
+      }
+
+      subscribe(listener) {
+        this.listeners.add(listener);
+        listener(this.state);
+        return () => this.listeners.delete(listener);
+      }
+
+      notify() {
+        this.listeners.forEach(listener => listener(this.state));
+      }
+    }
+
+    // Create stores
+    const todoStore = new Store({ todos: [] });
+    const filterStore = new Store({ filter: 'all' });
+
+    // Create action register
+    const actions = new ActionRegister({
+      name: 'TodoActions',
+      registry: { defaultExecutionMode: 'sequential' }
+    });
+
+    // Register action handlers
+    let nextId = 1;
+
+    actions.register('addTodo', (payload, controller) => {
+      if (!payload.text.trim()) {
+        controller.abort('Todo text cannot be empty');
+        return;
+      }
+
+      const state = todoStore.getValue();
+      const newTodo = {
+        id: nextId++,
+        text: payload.text,
+        completed: false,
+        createdAt: Date.now()
+      };
+
+      todoStore.setValue({
+        todos: [...state.todos, newTodo]
+      });
+
+      controller.setResult(newTodo);
+    }, { priority: 100 });
+
+    actions.register('toggleTodo', (payload, controller) => {
+      const state = todoStore.getValue();
+      const updatedTodos = state.todos.map(todo =>
+        todo.id === payload.id
+          ? { ...todo, completed: !todo.completed }
+          : todo
+      );
+
+      todoStore.setValue({ todos: updatedTodos });
+    }, { priority: 100 });
+
+    actions.register('deleteTodo', (payload, controller) => {
+      const state = todoStore.getValue();
+      const updatedTodos = state.todos.filter(todo => todo.id !== payload.id);
+
+      todoStore.setValue({ todos: updatedTodos });
+    }, { priority: 100 });
+
+    actions.register('setFilter', (payload, controller) => {
+      filterStore.setValue({ filter: payload.filter });
+    }, { priority: 100 });
+
+    // UI rendering
+    function renderTodos() {
+      const { todos } = todoStore.getValue();
+      const { filter } = filterStore.getValue();
+
+      const filteredTodos = todos.filter(todo => {
+        if (filter === 'active') return !todo.completed;
+        if (filter === 'completed') return todo.completed;
+        return true;
+      });
+
+      const todoList = document.getElementById('todoList');
+
+      if (filteredTodos.length === 0) {
+        todoList.innerHTML = '<div class="empty-state">No todos to show</div>';
+        return;
+      }
+
+      todoList.innerHTML = filteredTodos
+        .map(todo => `
+          <li class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+            <input
+              type="checkbox"
+              class="todo-checkbox"
+              ${todo.completed ? 'checked' : ''}
+              data-id="${todo.id}"
+            >
+            <span class="todo-text">${todo.text}</span>
+            <button class="delete-btn" data-id="${todo.id}">Delete</button>
+          </li>
+        `)
+        .join('');
+
+      // Add event listeners
+      todoList.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const id = parseInt(e.target.dataset.id);
+          actions.dispatch('toggleTodo', { id });
+        });
+      });
+
+      todoList.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.target.dataset.id);
+          actions.dispatch('deleteTodo', { id });
+        });
+      });
+    }
+
+    function renderStats() {
+      const { todos } = todoStore.getValue();
+      const total = todos.length;
+      const completed = todos.filter(t => t.completed).length;
+      const active = total - completed;
+
+      document.getElementById('stats').textContent =
+        `Total: ${total} | Active: ${active} | Completed: ${completed}`;
+    }
+
+    function updateFilterButtons() {
+      const { filter } = filterStore.getValue();
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+    }
+
+    // Subscribe to store changes
+    todoStore.subscribe(() => {
+      renderTodos();
+      renderStats();
+    });
+
+    filterStore.subscribe(() => {
+      renderTodos();
+      updateFilterButtons();
+    });
+
+    // Wire up events
+    const todoInput = document.getElementById('todoInput');
+    const addBtn = document.getElementById('addBtn');
+
+    async function addTodo() {
+      const text = todoInput.value;
+      const result = await actions.dispatchWithResult('addTodo', { text });
+
+      if (result.success) {
+        todoInput.value = '';
+        todoInput.focus();
+      } else {
+        alert(result.abortReason);
+      }
+    }
+
+    addBtn.addEventListener('click', addTodo);
+    todoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addTodo();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        actions.dispatch('setFilter', { filter: e.target.dataset.filter });
+      });
+    });
+
+    // Initialize
+    todoInput.focus();
+  </script>
+</body>
+</html>
