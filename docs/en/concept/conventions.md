@@ -635,6 +635,92 @@ function DynamicHandlersPattern({ children }) {
 
   return children;
 }
+
+// ✅✅ OPTIMAL: Minimal registration - register only ONCE (pure store handlers)
+function MinimalRegistrationPattern({ children }) {
+  const register = useDataActionRegister();
+  const dataStore = useDataStore('data');
+  const configStore = useDataStore('config');
+  const settingsStore = useDataStore('settings');
+
+  useEffect(() => {
+    if (!register) return;
+
+    // Handler with ZERO external dependencies
+    const handler = async (payload) => {
+      // ✅ Always reads fresh values via getValue()
+      const data = dataStore.getValue();
+      const config = configStore.getValue();
+      const settings = settingsStore.getValue();
+
+      // ✅ Pure store manipulation only
+      const updated = {
+        ...data,
+        ...payload,
+        timestamp: Date.now(),
+        configApplied: config.version,
+        theme: settings.theme
+      };
+
+      dataStore.setValue(updated);
+    };
+
+    const unregister = register.register('updateData', handler, {
+      id: 'minimal-handler'
+    });
+
+    return unregister;
+  }, [register]);
+  // 🎯 CRITICAL: Only [register] in deps!
+  // ✅ dataStore/configStore/settingsStore changes DON'T trigger re-registration
+  // ✅ Handler is registered ONCE on component mount
+  // ✅ Handler is unregistered ONCE on component unmount
+  // ✅ ZERO re-registrations during component lifetime
+
+  return children;
+}
+```
+
+**Key Insight: Pure Store Handlers = Minimal Registration**
+
+When a handler **only manipulates stores** using `getValue()` with no external dependencies:
+- ✅ Register with `[register]` deps only
+- ✅ Handler registered **once** on mount
+- ✅ **Zero re-registrations** during component lifetime
+- ✅ Always accesses fresh store values via `getValue()`
+
+```typescript
+// ✅ Perfect candidate for minimal registration
+useEffect(() => {
+  if (!register) return;
+
+  const handler = async (payload) => {
+    const a = storeA.getValue(); // Fresh value
+    const b = storeB.getValue(); // Fresh value
+    const c = storeC.getValue(); // Fresh value
+
+    // Pure store manipulation
+    storeA.setValue({ ...a, ...payload });
+  };
+
+  return register.register('action', handler);
+}, [register]); // ONLY register - never re-registers!
+
+// ❌ NOT suitable for minimal registration (has external dependencies)
+useEffect(() => {
+  if (!register) return;
+
+  const handler = async (payload) => {
+    const data = store.getValue();
+
+    // ⚠️ Uses external API function - needs to be in deps
+    const result = await externalAPI.process(data, apiConfig);
+
+    store.setValue(result);
+  };
+
+  return register.register('action', handler);
+}, [register]); // ❌ Missing apiConfig - stale closure!
 ```
 
 **When to use `useActionRegister` over `useActionHandler`:**
@@ -643,6 +729,7 @@ function DynamicHandlersPattern({ children }) {
 |----------|------------------|-------------------|
 | **Standard handler registration** | ✅ Recommended | Optional |
 | **Handler changes frequently** | ✅ Already optimized (uses ref) | Optional |
+| **Pure store handlers (minimal registration)** | ⚠️ Registers once, but uses wrapper | ✅✅ OPTIMAL - `[register]` only |
 | **Conditional registration** | ⚠️ Can use `if` statement | ✅ More explicit with useEffect |
 | **Dynamic multi-handler registration** | ⚠️ Complex with multiple hooks | ✅ Loop in useEffect |
 | **Custom re-registration logic** | ⚠️ Limited to config changes | ✅ Full control over deps |
