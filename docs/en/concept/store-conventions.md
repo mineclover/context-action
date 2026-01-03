@@ -679,27 +679,31 @@ function OptimizedComponent() {
 
 ## Business Logic Separation
 
-### Overview
-
-Separating business logic from UI components and state management is crucial for maintainability, testability, and scalability. The Context-Action framework supports this through modular business logic patterns with async process state management.
+Separating business logic from UI components and state management is crucial for maintainability, testability, and scalability.
 
 ### Core Principles
 
-1. **Pure Business Logic**: Business logic should be independent of React and store implementations
-2. **State Machines**: Use explicit state transitions for complex async processes
+1. **Pure Business Logic**: Independent of React and store implementations
+2. **State Machines**: Explicit state transitions for complex async processes
 3. **Progress Decoupling**: Separate progress updates from state changes using `notifyPath`
-4. **Modular Design**: Business logic modules should be testable without UI
+4. **Modular Design**: Testable business logic modules
 
-### Pattern 1: Business Logic Module
+### Patterns Overview
 
-Create pure business logic classes or functions independent of React/stores:
+The Context-Action framework supports business logic separation through:
+
+1. **Business Logic Module** - Pure classes/functions independent of React
+2. **Async Process State Machine** - State-driven async operations
+3. **Progress-Only Updates** - Decoupled progress tracking with `notifyPath`
+4. **Modular Integration** - Composable business logic modules
+5. **Error Handling with State Machine** - Robust error recovery
+6. **Multi-file Queue Management** - Complex workflows
+
+### Quick Example
 
 ```typescript
-// ✅ Pure business logic module
+// Pure business logic module
 class FileUploadService {
-  /**
-   * Validate file (pure function)
-   */
   validateFile(file: File): { valid: boolean; error?: string } {
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
@@ -708,481 +712,59 @@ class FileUploadService {
     return { valid: true };
   }
 
-  /**
-   * Upload with progress callbacks
-   */
-  async uploadFile(
-    file: File,
-    onProgress: (progress: number) => void
-  ): Promise<{ fileId: string }> {
-    // Upload implementation with progress tracking
-    for (let i = 0; i <= 100; i += 10) {
-      await delay(100);
-      onProgress(i);
-    }
-    return { fileId: `file_${Date.now()}` };
-  }
-
-  /**
-   * Complete workflow orchestration
-   */
-  async completeUpload(
-    file: File,
-    callbacks: {
-      onStateChange: (state: ProcessState) => void;
-      onProgress: (progress: number) => void;
-    }
-  ): Promise<UploadResult> {
-    try {
-      callbacks.onStateChange('validating');
-      const validation = this.validateFile(file);
-      if (!validation.valid) {
-        callbacks.onStateChange('error');
-        return { success: false, error: validation.error };
-      }
-
-      callbacks.onStateChange('uploading');
-      const { fileId } = await this.uploadFile(file, callbacks.onProgress);
-
-      callbacks.onStateChange('complete');
-      return { success: true, fileId };
-    } catch (error) {
-      callbacks.onStateChange('error');
-      return { success: false, error: error.message };
-    }
-  }
-}
-```
-
-**Benefits**:
-- ✅ Testable without React or stores
-- ✅ Reusable across different UI frameworks
-- ✅ Clear separation of concerns
-- ✅ Easy to mock and test
-
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Business Logic Separation')` - Pure business logic without dependencies
-- `FileUploadService` class implementation
-
-### Pattern 2: Async Process State Machine
-
-Use explicit state types and transitions for complex async workflows:
-
-```typescript
-// State machine type
-type ProcessState =
-  | 'idle'
-  | 'validating'
-  | 'uploading'
-  | 'processing'
-  | 'complete'
-  | 'error';
-
-// Store with state machine
-const processStore = createTimeTravelStore('process', {
-  state: 'idle' as ProcessState,
-  progress: { percentage: 0, bytesUploaded: 0, totalBytes: 0 },
-  error: null as string | null,
-  result: null as UploadResult | null
-}, { mutable: true });
-
-// State transitions with notifyPath
-async function executeUpload(file: File) {
-  const uploadService = new FileUploadService();
-
-  await uploadService.completeUpload(file, {
-    // State transition (notifyPath only)
-    onStateChange: (state) => {
-      const current = processStore.getValue();
-      current.state = state;
-      processStore.notifyPath(['state']);
-    },
-
-    // Progress update (notifyPath only)
-    onProgress: (percentage) => {
-      const current = processStore.getValue();
-      current.progress.percentage = percentage;
-      processStore.notifyPath(['progress', 'percentage']);
-    }
-  });
-}
-```
-
-**State Machine Benefits**:
-- ✅ Explicit state transitions
-- ✅ Easy to visualize workflow
-- ✅ Prevents invalid states
-- ✅ Facilitates debugging
-
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Async Process State Machine')` - State machine pattern with notifyPath
-- `it('proves state machine pattern with notifyPath for state-only updates')` - Full workflow test
-
-### Pattern 3: Progress-Only Updates
-
-Decouple progress updates from state changes for maximum performance:
-
-```typescript
-const uploadStore = createTimeTravelStore('upload', {
-  state: 'uploading' as ProcessState,
-  progress: { current: 0, total: 100 },
-  file: null as File | null
-}, { mutable: true });
-
-// Component subscribes to specific paths
-function UploadProgress() {
-  // Only re-renders when progress changes
-  const progress = useStorePath(uploadStore, ['progress']);
-  return <ProgressBar value={progress.current} max={progress.total} />;
-}
-
-function UploadState() {
-  // Only re-renders when state changes
-  const state = useStorePath(uploadStore, ['state']);
-  return <StatusText state={state} />;
-}
-
-// Update progress WITHOUT triggering state re-render
-function updateProgress(current: number) {
-  const store = uploadStore.getValue();
-  store.progress.current = current;
-  // Only UploadProgress component re-renders
-  uploadStore.notifyPath(['progress', 'current']);
-}
-
-// Update state WITHOUT triggering progress re-render
-function updateState(newState: ProcessState) {
-  const store = uploadStore.getValue();
-  store.state = newState;
-  // Only UploadState component re-renders
-  uploadStore.notifyPath(['state']);
-}
-```
-
-**Progress Decoupling Benefits**:
-- ✅ 100% re-render efficiency (no wasted renders)
-- ✅ High-frequency updates without performance cost
-- ✅ Independent component subscriptions
-- ✅ Optimal for progress bars, loading indicators
-
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Async Process State Machine')` - Progress-only updates test
-- `it('proves progress-only updates do not trigger state re-renders')` - 10 progress updates, 0 state renders
-
-### Pattern 4: Modular Integration
-
-Integrate business logic, state management, and UI with clear boundaries:
-
-```typescript
-// 1. Business Logic Layer (no dependencies)
-const uploadService = new FileUploadService();
-
-// 2. State Management Layer
-const uploadFlowStore = createTimeTravelStore('uploadFlow', {
-  files: [] as Array<{ id: string; state: ProcessState; progress: number }>,
-  activeUpload: null as { fileId: string; state: ProcessState } | null
-}, { mutable: true });
-
-// 3. Orchestration Layer (connects business logic + state)
-async function processUploadQueue(files: File[]) {
-  const state = uploadFlowStore.getValue();
-
-  for (const file of files) {
-    const fileId = `file_${Date.now()}`;
-
-    // Add to queue
-    state.files.push({ id: fileId, state: 'idle', progress: 0 });
-    uploadFlowStore.notifyPath(['files']);
-
-    // Set active
-    state.activeUpload = { fileId, state: 'uploading' };
-    uploadFlowStore.notifyPath(['activeUpload']);
-
-    // Execute business logic
-    await uploadService.completeUpload(file, {
-      onStateChange: (uploadState) => {
-        const current = uploadFlowStore.getValue();
-        if (current.activeUpload) {
-          current.activeUpload.state = uploadState;
-          uploadFlowStore.notifyPath(['activeUpload', 'state']);
-        }
-      },
-      onProgress: (percentage) => {
-        const current = uploadFlowStore.getValue();
-        const fileIndex = current.files.findIndex(f => f.id === fileId);
-        if (fileIndex >= 0) {
-          current.files[fileIndex].progress = percentage;
-          uploadFlowStore.notifyPath(['files', fileIndex, 'progress']);
-        }
-      }
+  async uploadFile(file: File): Promise<UploadResult> {
+    // Pure async logic
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
     });
-
-    // Complete
-    state.activeUpload = null;
-    uploadFlowStore.notifyPath(['activeUpload']);
+    
+    return response.json();
   }
 }
 
-// 4. UI Layer (pure presentation)
-function UploadQueue() {
-  const files = useStorePath(uploadFlowStore, ['files']);
-  return (
-    <div>
-      {files.map(file => (
-        <FileItem key={file.id} file={file} />
-      ))}
-    </div>
-  );
-}
+// Integration with action handler
+function FileUploadLogic({ children }) {
+  const uploadService = useMemo(() => new FileUploadService(), []);
+  const fileStore = useFileStore('upload');
 
-function FileItem({ file }) {
-  return (
-    <div>
-      <span>{file.state}</span>
-      <ProgressBar value={file.progress} />
-    </div>
-  );
-}
-```
-
-**Integration Benefits**:
-- ✅ Business logic testable in isolation
-- ✅ State management decoupled from business logic
-- ✅ UI components are pure presentation
-- ✅ Clear separation of concerns
-- ✅ Each layer independently testable
-
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Modular Business Logic Integration')` - Complete integration test
-- `it('proves integration of business logic, state management, and selective rendering')` - Full layer separation proof
-
-### Pattern 5: Error Handling with State Machine
-
-Handle errors through explicit state transitions:
-
-```typescript
-const errorStore = createTimeTravelStore('error', {
-  state: 'idle' as ProcessState,
-  error: null as { code: string; message: string } | null,
-  retryCount: 0,
-  maxRetries: 3
-}, { mutable: true });
-
-async function executeWithErrorHandling(operation: () => Promise<void>) {
-  const state = errorStore.getValue();
-
-  try {
-    state.state = 'processing';
-    state.error = null;
-    errorStore.notifyPaths([['state'], ['error']]);
-
-    await operation();
-
-    state.state = 'complete';
-    state.retryCount = 0;
-    errorStore.notifyPaths([['state'], ['retryCount']]);
-
-  } catch (error) {
-    state.state = 'error';
-    state.error = {
-      code: error.code || 'UNKNOWN_ERROR',
-      message: error.message
-    };
-    state.retryCount++;
-
-    errorStore.notifyPaths([
-      ['state'],
-      ['error'],
-      ['retryCount']
-    ]);
-
-    // Auto-retry logic
-    if (state.retryCount < state.maxRetries) {
-      await delay(1000 * state.retryCount); // Exponential backoff
-      await executeWithErrorHandling(operation);
+  useFileActionHandler('uploadFile', useCallback(async (payload) => {
+    // Validation
+    const validation = uploadService.validateFile(payload.file);
+    if (!validation.valid) {
+      fileStore.setValue({ error: validation.error });
+      return;
     }
-  }
-}
-```
 
-**Error Handling Benefits**:
-- ✅ Explicit error states
-- ✅ Retry logic with backoff
-- ✅ Error details tracked
-- ✅ Clear failure recovery paths
-
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Error Handling with State Machine')` - Error state management test
-- `it('proves error state management with notifyPath')` - Validation error handling
-
-### Pattern 6: Multi-file Queue Management
-
-Complex workflow with multiple concurrent operations:
-
-```typescript
-const queueStore = createTimeTravelStore('queue', {
-  queue: [] as Array<{
-    id: string;
-    state: ProcessState;
-    progress: number;
-    error: string | null;
-  }>,
-  processing: false,
-  currentIndex: -1,
-  completedCount: 0,
-  failedCount: 0
-}, { mutable: true });
-
-async function processQueue(files: File[]) {
-  const state = queueStore.getValue();
-
-  // Initialize queue
-  state.queue = files.map((file, i) => ({
-    id: `file_${i}`,
-    state: 'idle' as ProcessState,
-    progress: 0,
-    error: null
-  }));
-  state.processing = true;
-  queueStore.notifyPaths([['queue'], ['processing']]);
-
-  // Process each file
-  for (let i = 0; i < files.length; i++) {
-    state.currentIndex = i;
-    state.queue[i].state = 'uploading';
-    queueStore.notifyPaths([
-      ['currentIndex'],
-      ['queue', i, 'state']
-    ]);
-
+    // Business logic execution
     try {
-      await uploadService.uploadFile(files[i], (progress) => {
-        // Progress-only update
-        state.queue[i].progress = progress;
-        queueStore.notifyPath(['queue', i, 'progress']);
-      });
-
-      state.queue[i].state = 'complete';
-      state.completedCount++;
-      queueStore.notifyPaths([
-        ['queue', i, 'state'],
-        ['completedCount']
-      ]);
-
+      fileStore.setValue({ status: 'uploading', progress: 0 });
+      const result = await uploadService.uploadFile(payload.file);
+      fileStore.setValue({ status: 'complete', result });
     } catch (error) {
-      state.queue[i].state = 'error';
-      state.queue[i].error = error.message;
-      state.failedCount++;
-      queueStore.notifyPaths([
-        ['queue', i, 'state'],
-        ['queue', i, 'error'],
-        ['failedCount']
-      ]);
+      fileStore.setValue({ status: 'error', error });
     }
-  }
+  }, [uploadService, fileStore]));
 
-  state.processing = false;
-  state.currentIndex = -1;
-  queueStore.notifyPaths([['processing'], ['currentIndex']]);
+  return children;
 }
 ```
 
-**Queue Management Benefits**:
-- ✅ Per-item state tracking
-- ✅ Selective path updates
-- ✅ Batch notifications with `notifyPaths`
-- ✅ No unnecessary re-renders
-- ✅ Global queue status tracking
+### Comprehensive Guide
 
-**Test Reference**: See `packages/react/__tests__/stores/notifyPath-async-process.test.tsx`
-- `describe('Complex Workflow: Multi-file Upload Queue')` - Queue management test
-- `it('proves complex async workflow with queue management')` - 3 files, 5 progress updates each
+For detailed patterns, testing strategies, and advanced examples, see:  
+**📘 [Business Logic Separation Guide](./business-logic-separation-guide.md)**
 
-### Testing Business Logic
+This dedicated guide covers:
+- 6 detailed patterns with complete examples
+- Testing business logic independently
+- Performance characteristics and optimization
+- Integration strategies with stores and actions
+- Real-world implementation examples
 
-```typescript
-// Test business logic WITHOUT React or stores
-describe('FileUploadService', () => {
-  it('validates file size', () => {
-    const service = new FileUploadService();
-    const largeFile = new File(['x'.repeat(20 * 1024 * 1024)], 'huge.pdf');
-
-    const result = service.validateFile(largeFile);
-
-    expect(result.valid).toBe(false);
-    expect(result.error).toContain('10MB');
-  });
-
-  it('uploads with progress tracking', async () => {
-    const service = new FileUploadService();
-    const file = new File(['content'], 'test.pdf');
-    const progressUpdates: number[] = [];
-
-    await service.uploadFile(file, (progress) => {
-      progressUpdates.push(progress);
-    });
-
-    expect(progressUpdates.length).toBeGreaterThan(0);
-    expect(progressUpdates[progressUpdates.length - 1]).toBe(100);
-  });
-});
-```
-
-### Performance Characteristics
-
-**Traditional setValue Approach**:
-```typescript
-// ❌ Multiple re-renders for single operation
-store.setValue({ ...state, loading: true });    // Re-render 1
-store.setValue({ ...state, progress: 50 });     // Re-render 2
-store.setValue({ ...state, loading: false });   // Re-render 3
-// Total: 3 re-renders
-```
-
-**Optimized notifyPath Approach**:
-```typescript
-// ✅ Selective updates, minimal re-renders
-state.loading = true;
-store.notifyPath(['loading']);                  // Notification only
-
-state.progress = 50;
-store.notifyPath(['progress']);                 // Progress update only
-
-state.loading = false;
-store.setValue(state);                          // Final re-render
-// Total: 1 re-render + 2 selective notifications
-```
-
-### Best Practices Summary
-
-1. **Separate Business Logic**: Keep business logic independent of React/stores
-2. **Use State Machines**: Explicit states for complex async workflows
-3. **Decouple Progress**: Use `notifyPath` for progress without state changes
-4. **Path-based Subscriptions**: `useStorePath` for selective re-rendering
-5. **Batch Updates**: Use `notifyPaths` for multiple path updates
-6. **Test in Isolation**: Unit test business logic without UI dependencies
-7. **Clear Boundaries**: Business → State → UI layer separation
-8. **Error States**: Explicit error handling through state machine
-
-### Related Documentation
-
-**Performance & Testing**:
-- [Performance Proof](./notifyPath-performance-proof.md) - Mathematical performance proofs (50% re-render reduction, RAF batching, etc.)
-- [Async Process Tests](../../packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - Comprehensive test suite with 6 test categories:
-  - Business Logic Separation - Pure business logic without dependencies
-  - Async Process State Machine - State transitions with notifyPath
-  - Progress-Only Updates - Selective re-rendering proof
-  - Modular Business Logic Integration - Full layer separation
-  - Error Handling - Validation and error states
-  - Multi-file Queue Management - Complex concurrent workflows
-- [Performance Tests](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx) - Re-render reduction, RAF batching, selective rendering benchmarks
-
-**Architecture & Patterns**:
-- [Event Loop Control](#event-loop-control) - Integration patterns with Action Handlers and RefContext
-- [Main Conventions](./conventions.md) - Overall framework conventions
-- [Hooks Reference](./hooks-reference.md) - Complete hooks documentation
-
----
 
 ## Comparison Table
 
