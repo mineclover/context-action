@@ -41,5 +41,10 @@
     "description": "이 문서는 Context-Action 프레임워크의 세 가지 핵심 패턴(Actions, Stores, RefContext)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다.",
     "language": "ko",
     "created_at": "2025-08-21T02:13:42.331Z"
+  },
+  "lastUpdated": "2026-01-03T06:32:34.903Z",
+  "source": {
+    "file": "docs/ko/concept/conventions.md",
+    "lastModified": "2026-01-03T06:32:15.031Z"
   }
 }
