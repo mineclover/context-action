@@ -608,364 +608,221 @@ This simplified approach:
 
 ## Real-World Example: Mouse Events with RefContext
 
-Here's a practical example showing how RefContext enables high-performance mouse tracking with zero React re-renders:
+RefContext enables high-performance mouse tracking with zero React re-renders through direct DOM manipulation.
+
+### Key Concept
 
 ```typescript
-import React, { useCallback, useRef } from 'react';
 import { createRefContext } from '@context-action/react';
 
-// 1. Define mouse event types
-type MousePosition = { x: number; y: number };
-type MouseClick = { x: number; y: number; timestamp: number; button: number };
-
-// 2. Create RefContext for mouse position management
+// 1. Create RefContext for DOM elements
 const {
-  Provider: MousePositionProvider,
-  useRefHandler: useMousePositionRef
+  Provider: MouseRefsProvider,
+  useRefHandler: useMouseRef
 } = createRefContext<{
   cursor: HTMLDivElement;
-  trail: HTMLDivElement;
   container: HTMLDivElement;
-}>('MousePosition');
+}>('MouseRefs');
 
-// 3. Create RefContext for visual effects
-const {
-  Provider: VisualEffectsProvider,
-  useRefHandler: useVisualEffectsRef
-} = createRefContext<{
-  clickEffectsContainer: HTMLDivElement;
-  pathSvg: SVGSVGElement;
-  pathElement: SVGPathElement;
-}>('VisualEffects');
-
-// 4. Custom hook for mouse position updates
-function useMousePositionUpdater() {
-  const cursor = useMousePositionRef('cursor');
-  const trail = useMousePositionRef('trail');
+// 2. Custom hook for direct DOM updates
+function useMouseTracking() {
+  const cursor = useMouseRef('cursor');
   
-  const updatePosition = useCallback((position: MousePosition) => {
-    // Direct DOM manipulation - zero React re-renders!
+  const updatePosition = useCallback((x: number, y: number) => {
+    // ✅ Direct DOM manipulation - zero React re-renders
     if (cursor.target) {
-      cursor.target.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
-    }
-    if (trail.target) {
-      trail.target.style.transform = `translate3d(${position.x - 5}px, ${position.y - 5}px, 0)`;
-      trail.target.style.opacity = '0.7';
-    }
-  }, [cursor, trail]);
-  
-  const showCursor = useCallback((visible: boolean) => {
-    if (cursor.target) {
-      cursor.target.style.display = visible ? 'block' : 'none';
+      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     }
   }, [cursor]);
   
-  return { updatePosition, showCursor };
+  return { updatePosition };
 }
 
-// 5. Custom hook for visual effects
-function useVisualEffectsUpdater() {
-  const clickEffectsContainer = useVisualEffectsRef('clickEffectsContainer');
-  const pathElement = useVisualEffectsRef('pathElement');
-  const pathHistoryRef = useRef<MousePosition[]>([]);
+// 3. Component with mouse tracking
+function MouseTracker() {
+  const { updatePosition } = useMouseTracking();
+  const cursor = useMouseRef('cursor');
+  const container = useMouseRef('container');
   
-  const addClickEffect = useCallback((click: MouseClick) => {
-    if (!clickEffectsContainer.target) return;
-    
-    // Create click effect element
-    const effect = document.createElement('div');
-    effect.className = 'absolute pointer-events-none';
-    effect.style.cssText = `
-      left: ${click.x - 15}px;
-      top: ${click.y - 15}px;
-      width: 30px;
-      height: 30px;
-      border: 2px solid #ef4444;
-      border-radius: 50%;
-      transform: scale(0);
-      opacity: 1;
-      transition: all 800ms cubic-bezier(0.23, 1, 0.32, 1);
-    `;
-    
-    clickEffectsContainer.target.appendChild(effect);
-    
-    // Start animation
-    requestAnimationFrame(() => {
-      effect.style.transform = 'scale(2)';
-      effect.style.opacity = '0';
-    });
-    
-    // Clean up after animation
-    setTimeout(() => {
-      if (clickEffectsContainer.target && effect.parentNode) {
-        clickEffectsContainer.target.removeChild(effect);
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.target?.getBoundingClientRect();
+      if (rect) {
+        updatePosition(e.clientX - rect.left, e.clientY - rect.top);
       }
-    }, 800);
-  }, [clickEffectsContainer]);
-  
-  const addPathPoint = useCallback((position: MousePosition) => {
-    pathHistoryRef.current = [position, ...pathHistoryRef.current.slice(0, 49)];
-    
-    if (pathElement.target && pathHistoryRef.current.length > 1) {
-      const pathString = generatePathString(pathHistoryRef.current);
-      pathElement.target.setAttribute('d', pathString);
-    }
-  }, [pathElement]);
-  
-  return { addClickEffect, addPathPoint };
-}
-
-// 6. Helper function for smooth path generation
-function generatePathString(points: MousePosition[]): string {
-  if (points.length < 2) return '';
-  
-  const [firstPoint, ...restPoints] = points;
-  let pathString = `M ${firstPoint.x},${firstPoint.y}`;
-  
-  for (let i = 0; i < restPoints.length; i++) {
-    const current = restPoints[i];
-    if (i === restPoints.length - 1) {
-      pathString += ` L ${current.x},${current.y}`;
-    } else {
-      const next = restPoints[i + 1];
-      const cpx = (current.x + next.x) / 2;
-      const cpy = (current.y + next.y) / 2;
-      pathString += ` Q ${current.x},${current.y} ${cpx},${cpy}`;
-    }
-  }
-  
-  return pathString;
-}
-
-// 7. Main mouse events component
-function RefContextMouseDemo() {
-  const { updatePosition, showCursor } = useMousePositionUpdater();
-  const { addClickEffect, addPathPoint } = useVisualEffectsUpdater();
-  
-  const container = useMousePositionRef('container');
-  const cursor = useMousePositionRef('cursor');
-  const trail = useMousePositionRef('trail');
-  
-  // Event handlers with direct DOM manipulation
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (!container.target) return;
-    
-    const rect = container.target.getBoundingClientRect();
-    const position: MousePosition = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
     };
     
-    // Update all visual elements without React re-renders
-    updatePosition(position);
-    addPathPoint(position);
-  }, [container, updatePosition, addPathPoint]);
-  
-  const handleMouseClick = useCallback((event: React.MouseEvent) => {
-    if (!container.target) return;
-    
-    const rect = container.target.getBoundingClientRect();
-    const click: MouseClick = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-      timestamp: performance.now(),
-      button: event.button,
-    };
-    
-    addClickEffect(click);
-  }, [container, addClickEffect]);
+    container.target?.addEventListener('mousemove', handleMouseMove);
+    return () => container.target?.removeEventListener('mousemove', handleMouseMove);
+  }, [container, updatePosition]);
   
   return (
-    <div
-      ref={container.setRef}
-      className="relative h-96 bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden cursor-none"
-      onMouseMove={handleMouseMove}
-      onClick={handleMouseClick}
-      onMouseEnter={() => showCursor(true)}
-      onMouseLeave={() => showCursor(false)}
-    >
-      {/* Mouse cursor */}
-      <div
-        ref={cursor.setRef}
-        className="absolute w-4 h-4 bg-blue-500 rounded-full pointer-events-none"
-        style={{ transform: 'translate3d(0, 0, 0)' }}
-      />
-      
-      {/* Mouse trail */}
-      <div
-        ref={trail.setRef}
-        className="absolute w-3 h-3 bg-blue-300 rounded-full pointer-events-none"
-        style={{ transform: 'translate3d(0, 0, 0)', opacity: 0 }}
+    <div ref={container.ref} style={{ position: 'relative', width: '100%', height: '400px' }}>
+      <div 
+        ref={cursor.ref}
+        style={{
+          position: 'absolute',
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          background: 'red',
+          pointerEvents: 'none'
+        }}
       />
     </div>
   );
 }
 
-// 8. Complete app with all providers
-function MouseEventsApp() {
+// 4. App with provider
+function App() {
   return (
-    <MousePositionProvider>
-      <VisualEffectsProvider>
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">RefContext Mouse Events</h2>
-          <RefContextMouseDemo />
-          <p className="mt-4 text-sm text-gray-600">
-            Move your mouse and click to see zero React re-render performance!
-          </p>
-        </div>
-      </VisualEffectsProvider>
-    </MousePositionProvider>
+    <MouseRefsProvider>
+      <MouseTracker />
+    </MouseRefsProvider>
   );
 }
 ```
 
-### Key Benefits of This Approach:
+### Performance Benefits
 
-1. **Zero React Re-renders**: All mouse movements are handled through direct DOM manipulation
-2. **Perfect Separation of Concerns**: Each RefContext manages its own domain
-3. **Hardware Acceleration**: Using `translate3d()` for smooth 60fps performance
-4. **Type Safety**: Full TypeScript support with proper ref typing
-5. **Independent Contexts**: Mouse position and visual effects are completely decoupled
-6. **Memory Efficient**: Automatic cleanup when components unmount
+- **Zero re-renders**: Direct DOM updates bypass React reconciliation
+- **60fps tracking**: Smooth mouse movement without frame drops
+- **Memory efficient**: No state updates, no component re-renders
+
+### Use Cases
+
+- Mouse/touch tracking interfaces
+- Canvas/WebGL interactions
+- High-frequency animation controls
+- Real-time visual feedback
+
+> **💡 Tip:** For more complex examples with visual effects, animations, and advanced patterns, see the [example application](../../../example/src/pages/performance/mouse-events/).
+
+---
 
 ## Complete Example: Game Component
+
+RefContext simplifies complex object lifecycle management in games and 3D applications.
+
+### Key Pattern
 
 ```typescript
 import { createRefContext } from '@context-action/react/refs';
 import * as THREE from 'three';
 
-// ✅ Recommended: Renaming Pattern with comprehensive configuration
+// 1. Create RefContext with cleanup configuration
 const {
   Provider: GameRefsProvider,
-  useRefHandler: useGameRefHandler,
-  waitForRefs: useGameWaitForRefs
+  useRefHandler: useGameRef,
+  waitForRefs: waitForGameRefs
 } = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
+    validator: (el): el is HTMLCanvasElement => el instanceof HTMLCanvasElement
+  },
+  
+  renderer: {
+    name: 'renderer',
     autoCleanup: true,
-    validator: (el): el is HTMLCanvasElement => 
-      el instanceof HTMLCanvasElement
+    cleanup: (renderer) => renderer.dispose()
   },
   
   scene: {
     name: 'scene',
     autoCleanup: true,
     cleanup: (scene) => {
-      scene.traverse((object) => {
-        if (object.geometry) object.geometry.dispose();
-        if (object.material) object.material.dispose();
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
       });
       scene.clear();
-    }
-  },
-  
-  renderer: {
-    name: 'renderer',
-    autoCleanup: true,
-    cleanup: (renderer) => {
-      renderer.dispose();
-    }
-  },
-  
-  gameState: {
-    name: 'gameState',
-    autoCleanup: true,
-    cleanup: (state) => {
-      state.cleanup();
     }
   }
 });
 
-function GameComponent() {
-  const canvas = useGameRefHandler('canvas');
-  const scene = useGameRefHandler('scene');
+// 2. Game initialization hook
+function useGameSetup() {
+  const canvas = useGameRef('canvas');
   const renderer = useGameRef('renderer');
-  const gameState = useGameRef('gameState');
+  const scene = useGameRef('scene');
   
-  // ✅ Extract function for stable reference (Pattern 1)
-  const waitForRefs = useGameWaitForRefs();
-  
-  const initializeGame = async () => {
-    try {
-      // Wait for all essential refs with default 1s timeout each
-      const refs = await waitForRefs('canvas', 'scene', 'renderer');
+  useEffect(() => {
+    (async () => {
+      // Wait for canvas to be ready
+      await waitForGameRefs('canvas');
       
-      if (!refs.canvas) throw new Error('Canvas not available');
-      
-      // Initialize Three.js scene
+      // Initialize Three.js
+      const threeRenderer = new THREE.WebGLRenderer({ canvas: canvas.target! });
       const threeScene = new THREE.Scene();
-      const threeRenderer = new THREE.WebGLRenderer({ 
-        canvas: refs.canvas 
-      });
       
-      // Set refs
-      scene.setRef(threeScene);
-      renderer.setRef(threeRenderer);
-      gameState.setRef(new GameState());
+      // Add objects to scene
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      const cube = new THREE.Mesh(geometry, material);
+      threeScene.add(cube);
       
-      console.log('Game initialized successfully');
-    } catch (error) {
-      console.error('Game initialization failed:', error);
-    }
-  };
+      // Store in refs
+      renderer.setTarget(threeRenderer);
+      scene.setTarget(threeScene);
+      
+      // Start render loop
+      const animate = () => {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        threeRenderer.render(threeScene, camera);
+      };
+      animate();
+    })();
+  }, [canvas, renderer, scene]);
+}
+
+// 3. Game component
+function GameComponent() {
+  const canvas = useGameRef('canvas');
+  useGameSetup();
   
-  const startGame = async () => {
-    const result = await scene.withTarget(
-      async (sceneRef) => {
-        const result2 = await renderer.withTarget(
-          async (rendererRef) => {
-            // Both refs are guaranteed to be available
-            return startGameLoop(sceneRef, rendererRef);
-          }
-        );
-        return result2.data;
-      }
-    );
-    
-    if (result.success) {
-      console.log('Game started:', result.data);
-    } else {
-      console.error('Failed to start game:', result.error);
-    }
-  };
-  
+  return <canvas ref={canvas.ref} width={800} height={600} />;
+}
+
+// 4. App with provider
+function App() {
   return (
     <GameRefsProvider>
-      <div className="game-container">
-        <canvas 
-          ref={canvas.setRef}
-          width={800}
-          height={600}
-        />
-        <div className="game-controls">
-          <button onClick={initializeGame}>
-            Initialize Game
-          </button>
-          <button onClick={startGame}>
-            Start Game
-          </button>
-          <div>
-            Canvas Ready: {canvas.isMounted ? 'Yes' : 'No'}
-          </div>
-        </div>
-      </div>
+      <GameComponent />
     </GameRefsProvider>
   );
 }
-
-class GameState {
-  cleanup() {
-    // Game state cleanup logic
-  }
-}
-
-function startGameLoop(scene: THREE.Scene, renderer: THREE.WebGLRenderer) {
-  // Game loop implementation
-  return { status: 'running' };
-}
 ```
 
-## Best Practices
+### Cleanup Benefits
+
+- **Automatic disposal**: `autoCleanup: true` handles Three.js cleanup
+- **Memory leak prevention**: Custom cleanup functions for complex objects
+- **Predictable lifecycle**: Cleanup runs on unmount or ref change
+
+### Advanced Patterns
+
+```typescript
+// Multiple game objects with cleanup
+const gameRefs = createRefContext('GameRefs', {
+  enemies: {
+    name: 'enemies',
+    autoCleanup: true,
+    cleanup: (enemies) => enemies.forEach(e => e.destroy())
+  },
+  
+  particles: {
+    name: 'particles',
+    autoCleanup: true,
+    cleanup: (system) => system.dispose()
+  }
+});
+```
+
+> **💡 Tip:** For complete game implementations with physics, audio, and advanced rendering, see the [Canvas Integration example](../../../example/src/pages/integrations/advanced/CanvasPage.tsx).
+
+
 
 ### 1. Choose the Right Configuration Approach
 
