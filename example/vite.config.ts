@@ -8,7 +8,7 @@ export default defineConfig({
       babel: {
         plugins: [
           ['babel-plugin-react-compiler', {
-            target: '17', // 최소 지원 React 버전
+            target: '19', // React 19 사용
             compilationMode: 'infer', // 모든 React 컴포넌트 자동 컴파일
           }],
         ],
