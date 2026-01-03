@@ -7,9 +7,9 @@
 
 **Revolutionary TypeScript state management with document-centric context separation and MVVM architecture.**
 
-**🎯 Perfect separation of concerns** • **🔒 Full type safety** • **⚡ Zero boilerplate** • **🏗️ Scalable architecture**
+**🎯 Perfect separation of concerns** • **🔒 Full type safety** • **⚡ Zero boilerplate** • **🏗️ Scalable architecture** • **🌐 Vanilla JS Support**
 
-[📚 Documentation](https://mineclover.github.io/context-action/) • [🇰🇷 한국어 문서](README.ko.md) • [🎮 Live Demo](https://mineclover.github.io/context-action/example/) • [🚀 Quick Start](#-quick-start)
+[📚 Documentation](https://mineclover.github.io/context-action/) • [🇰🇷 한국어 문서](README.ko.md) • [🎮 Live Demo](https://mineclover.github.io/context-action/example/) • [🚀 Quick Start](#-quick-start) • [🌟 Vanilla JS](#-vanilla-javascript)
 
 ---
 
@@ -17,12 +17,19 @@
 
 ### Installation
 ```bash
+# React applications
 npm install @context-action/react
-# or
-npm install @context-action/core  # Pure TypeScript
+
+# Vanilla JavaScript/TypeScript (framework-agnostic)
+npm install @context-action/core
+
+# CDN (quick prototyping)
+# <script type="module">
+#   import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+# </script>
 ```
 
-### 30-Second Example
+### 30-Second Example (React)
 ```typescript
 import { createStoreContext, useStoreValue } from '@context-action/react';
 import { useCallback } from 'react';
@@ -51,6 +58,59 @@ function App() {
 ```
 
 **That's it!** 🎉 Full type safety, reactive updates, and clean architecture.
+
+### 30-Second Example (Vanilla JS)
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="counter">0</div>
+  <button id="increment">Increment</button>
+
+  <script type="module">
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+
+    // Simple store
+    class Store {
+      constructor(initialState) {
+        this.state = initialState;
+        this.listeners = new Set();
+      }
+      getValue() { return this.state; }
+      setValue(newState) {
+        this.state = newState;
+        this.listeners.forEach(fn => fn(this.state));
+      }
+      subscribe(listener) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+      }
+    }
+
+    // Create store and actions
+    const store = new Store({ count: 0 });
+    const actions = new ActionRegister({ name: 'Counter' });
+
+    // Register handler
+    actions.register('increment', () => {
+      const current = store.getValue();
+      store.setValue({ count: current.count + 1 });
+    });
+
+    // Subscribe and wire up
+    store.subscribe(state => {
+      document.getElementById('counter').textContent = state.count;
+    });
+    document.getElementById('increment').onclick = () => {
+      actions.dispatch('increment');
+    };
+  </script>
+</body>
+</html>
+```
+
+**📚 [Complete Vanilla JS Guide](./docs/en/guide/vanilla-js-guide.md)** • **[Interactive Examples](./examples/vanilla-js/)**
 
 ---
 
@@ -548,7 +608,21 @@ dispatch('updateProfile', { name: 'John', email: 'john@example.com' });
 
 ## 🎮 Examples & Demos
 
-### 🚀 Live Interactive Examples
+### 🌟 Vanilla JavaScript
+
+**[📁 Interactive Vanilla JS Examples](./examples/vanilla-js/)** - No build tools required!
+
+- **[Basic Counter](./examples/vanilla-js/basic-counter.html)** - Simple counter with async operations
+- **[Todo App](./examples/vanilla-js/todo-app.html)** - Full-featured todo application
+- **[Complete Guide](./docs/en/guide/vanilla-js-guide.md)** - 5 real-world patterns and examples
+
+Just open the HTML files in your browser or run:
+```bash
+npx serve examples/vanilla-js
+# Then visit: http://localhost:3000/basic-counter.html
+```
+
+### 🚀 React Live Examples
 **[Explore 20+ working examples →](https://mineclover.github.io/context-action/example/)**
 
 #### 🏪 **Store System**
@@ -632,16 +706,20 @@ Context-Action Framework implements multiple architectural approaches for differ
 ## 📦 Packages
 
 ### [@context-action/core](./packages/core)
-**Pure TypeScript action pipeline** - Framework agnostic core
+**Pure TypeScript action pipeline** - ⭐ **Framework-agnostic** (Vanilla JS, React, Vue, Svelte, etc.)
 ```bash
 npm install @context-action/core
+# or use CDN
+# https://esm.sh/@context-action/core@latest
 ```
+- 🌐 **Vanilla JavaScript support** - No framework required!
 - 🔒 Full TypeScript support
-- ⚡ Action pipeline system  
-- 🛡️ Advanced action guards
+- ⚡ Action pipeline system with priority-based execution
+- 🛡️ Advanced action guards (debounce, throttle, filtering)
 - 🚫 Zero dependencies
+- 📚 **[Vanilla JS Guide](./docs/en/guide/vanilla-js-guide.md)** | **[Interactive Examples](./examples/vanilla-js/)**
 
-### [@context-action/react](./packages/react)  
+### [@context-action/react](./packages/react)
 **React integration** - Complete MVVM architecture
 ```bash
 npm install @context-action/react

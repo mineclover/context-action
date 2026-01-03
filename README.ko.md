@@ -7,9 +7,9 @@
 
 **문서 중심의 컨텍스트 분리와 MVVM 아키텍처를 갖춘 혁신적인 TypeScript 상태 관리 라이브러리**
 
-**🎯 완벽한 관심사 분리** • **🔒 완전한 타입 안전성** • **⚡ 제로 보일러플레이트** • **🏗️ 확장 가능한 아키텍처**
+**🎯 완벽한 관심사 분리** • **🔒 완전한 타입 안전성** • **⚡ 제로 보일러플레이트** • **🏗️ 확장 가능한 아키텍처** • **🌐 바닐라 JS 지원**
 
-[📚 문서](https://mineclover.github.io/context-action/ko/) • [🎮 라이브 데모](https://mineclover.github.io/context-action/example/) • [🚀 빠른 시작](#-빠른-시작)
+[📚 문서](https://mineclover.github.io/context-action/ko/) • [🎮 라이브 데모](https://mineclover.github.io/context-action/example/) • [🚀 빠른 시작](#-빠른-시작) • [🌟 바닐라 JS](#-바닐라-자바스크립트)
 
 ---
 
@@ -18,12 +18,19 @@
 ### 설치
 
 ```bash
+# React 애플리케이션
 npm install @context-action/react
-# 또는
-npm install @context-action/core  # 순수 TypeScript
+
+# 바닐라 JavaScript/TypeScript (프레임워크 불필요)
+npm install @context-action/core
+
+# CDN (빠른 프로토타이핑)
+# <script type="module">
+#   import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+# </script>
 ```
 
-### 30초 예제
+### 30초 예제 (React)
 
 ```typescript
 import { createStoreContext, useStoreValue } from '@context-action/react';
@@ -53,6 +60,59 @@ function App() {
 ```
 
 **끝!** 🎉 완전한 타입 안전성, 반응형 업데이트, 깔끔한 아키텍처.
+
+### 30초 예제 (바닐라 JS)
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="counter">0</div>
+  <button id="increment">증가</button>
+
+  <script type="module">
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+
+    // 간단한 스토어
+    class Store {
+      constructor(initialState) {
+        this.state = initialState;
+        this.listeners = new Set();
+      }
+      getValue() { return this.state; }
+      setValue(newState) {
+        this.state = newState;
+        this.listeners.forEach(fn => fn(this.state));
+      }
+      subscribe(listener) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+      }
+    }
+
+    // 스토어와 액션 생성
+    const store = new Store({ count: 0 });
+    const actions = new ActionRegister({ name: 'Counter' });
+
+    // 핸들러 등록
+    actions.register('increment', () => {
+      const current = store.getValue();
+      store.setValue({ count: current.count + 1 });
+    });
+
+    // 구독 및 연결
+    store.subscribe(state => {
+      document.getElementById('counter').textContent = state.count;
+    });
+    document.getElementById('increment').onclick = () => {
+      actions.dispatch('increment');
+    };
+  </script>
+</body>
+</html>
+```
+
+**📚 [완전한 바닐라 JS 가이드](./docs/ko/guide/vanilla-js-guide.md)** • **[인터랙티브 예제](./examples/vanilla-js/)**
 
 ---
 
@@ -524,7 +584,21 @@ dispatch('updateProfile', { name: 'John', email: 'john@example.com' });
 
 ## 🎮 예제 및 데모
 
-### 🚀 라이브 인터랙티브 예제
+### 🌟 바닐라 자바스크립트
+
+**[📁 인터랙티브 바닐라 JS 예제](./examples/vanilla-js/)** - 빌드 도구 불필요!
+
+- **[기본 카운터](./examples/vanilla-js/basic-counter.html)** - 비동기 작업이 있는 간단한 카운터
+- **[Todo 앱](./examples/vanilla-js/todo-app.html)** - 완전한 기능의 Todo 애플리케이션
+- **[완전한 가이드](./docs/ko/guide/vanilla-js-guide.md)** - 5가지 실전 패턴과 예제
+
+브라우저에서 HTML 파일을 바로 열거나 다음을 실행하세요:
+```bash
+npx serve examples/vanilla-js
+# 그리고 방문: http://localhost:3000/basic-counter.html
+```
+
+### 🚀 React 라이브 예제
 **[20개 이상의 실제 예제 탐색 →](https://mineclover.github.io/context-action/example/)**
 
 #### 🏪 **스토어 시스템**
@@ -585,14 +659,18 @@ interface UserActions extends ActionPayloadMap {
 ## 📦 패키지
 
 ### [@context-action/core](./packages/core)
-**순수 TypeScript 액션 파이프라인** - 프레임워크 독립적 핵심
+**순수 TypeScript 액션 파이프라인** - ⭐ **프레임워크 독립적** (바닐라 JS, React, Vue, Svelte 등)
 ```bash
 npm install @context-action/core
+# 또는 CDN 사용
+# https://esm.sh/@context-action/core@latest
 ```
+- 🌐 **바닐라 JavaScript 지원** - 프레임워크 불필요!
 - 🔒 완전한 TypeScript 지원
-- ⚡ 액션 파이프라인 시스템
-- 🛡️ 고급 액션 가드
+- ⚡ 우선순위 기반 실행을 갖춘 액션 파이프라인 시스템
+- 🛡️ 고급 액션 가드 (디바운싱, 쓰로틀링, 필터링)
 - 🚫 의존성 없음
+- 📚 **[바닐라 JS 가이드](./docs/ko/guide/vanilla-js-guide.md)** | **[인터랙티브 예제](./examples/vanilla-js/)**
 
 ### [@context-action/react](./packages/react)
 **React 통합** - 완전한 MVVM 아키텍처
