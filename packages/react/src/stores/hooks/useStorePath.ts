@@ -12,7 +12,7 @@ import { pathToPointer, isPointerPrefix } from '../utils/json-pointer';
 
 /**
  * Store interface that supports patch-aware subscriptions
- * Compatible with Store, MutableStore, and TimeTravelStore
+ * Compatible with Store and TimeTravelStore
  */
 export interface PatchAwareStore<T> {
   getValue(): T;
