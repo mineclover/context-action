@@ -179,557 +179,200 @@ export function Button({ variant, onClick, children }: ButtonProps) {
 
 ## Action Handler Registration Conventions
 
-### 🔧 **Handler Lifecycle Management**
+### 🎯 **Core Concepts**
 
-Action handlers have specific registration and cleanup behaviors that must be understood for predictable application behavior.
+#### **Handler Registration Basics**
 
-#### **Registration Lifecycle Rules**
+Action handlers execute business logic in response to dispatched actions. Understanding their registration lifecycle is crucial for optimal performance.
+
+**Key Principles:**
+1. **Lazy Evaluation**: Always read state when handler executes, not when it registers
+2. **Minimal Dependencies**: Only include stable references in `useCallback` deps
+3. **No State Subscription**: Handlers don't subscribe to stores (unlike React components)
 
 ```typescript
-// ✅ RULE 1: Handlers register on component mount
-function UserBusinessLogic({ children }) {
-  const profileStore = useUserStore('profile');
-
-  const updateHandler = useCallback(async (payload) => {
-    const current = profileStore.getValue();
-    profileStore.setValue({ ...current, ...payload });
-  }, [profileStore]);
-
-  // Registers when component mounts
-  // Unregisters automatically when component unmounts
-  useUserActionHandler('updateProfile', updateHandler);
-
-  return children;
-}
-
-// ✅ RULE 2: Handlers re-register when dependency array changes
-function DynamicBusinessLogic({ children }) {
-  const [config, setConfig] = useState({ threshold: 100 });
-  const dataStore = useDataStore('data');
-
-  const processHandler = useCallback(async (payload) => {
-    const current = dataStore.getValue();
-
-    // Uses latest config value
-    if (payload.value > config.threshold) {
-      dataStore.setValue({ ...current, processed: payload.value });
-    }
-  }, [dataStore, config]); // Re-registers when config changes
-
-  useDataActionHandler('processData', processHandler);
-
-  return children;
-}
-
-// ❌ WRONG: Missing dependencies causes stale closures
-function StaleClosureExample({ children }) {
-  const [multiplier, setMultiplier] = useState(2);
-  const calcStore = useCalcStore('result');
-
-  const calculateHandler = useCallback(async (payload) => {
-    // ⚠️ STALE: Always uses initial multiplier (2)
-    const result = payload.value * multiplier;
-    calcStore.setValue({ result });
-  }, [calcStore]); // Missing 'multiplier' in deps!
-
-  useCalcActionHandler('calculate', calculateHandler);
-
-  return children;
-}
+// ✅ RECOMMENDED: Lazy evaluation pattern
+const handler = useCallback(async (payload) => {
+  const current = store.getValue(); // Read fresh state at execution time
+  store.setValue({ ...current, ...payload });
+}, [store]); // Only store reference in deps
 ```
 
-#### **Recommended Pattern: Lazy Evaluation for State Access**
+#### **useActionHandler Internal Optimization**
+
+`useActionHandler` already prevents re-registration using a ref pattern:
 
 ```typescript
-// ✅ BEST PRACTICE: Use getValue() for lazy state evaluation
-function OptimalBusinessLogic({ children }) {
-  const userStore = useUserStore('profile');
-  const settingsStore = useUserStore('settings');
+// Internal implementation (simplified)
+const useActionHandler = (action, handler, config) => {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler; // Always update to latest
 
-  const syncHandler = useCallback(async (payload) => {
-    // Step 1: Read fresh state when handler executes
-    const currentUser = userStore.getValue();
-    const currentSettings = settingsStore.getValue();
-
-    // Step 2: Business logic with fresh state
-    const updated = {
-      ...currentUser,
-      preferences: { ...currentSettings, ...payload }
+  useEffect(() => {
+    const wrapperHandler = (payload, controller) => {
+      return handlerRef.current(payload, controller); // Calls latest handler
     };
 
-    // Step 3: Update stores
-    userStore.setValue(updated);
-  }, [userStore, settingsStore]); // Only store references in deps
+    return register.register(action, wrapperHandler, stableConfig);
+  }, [action, register, stableConfig]);
+  // ✅ 'handler' NOT in deps - no re-registration on handler changes
+};
+```
 
-  useUserActionHandler('syncPreferences', syncHandler);
+---
 
-  return children;
-}
+### 📚 **Two Registration Approaches**
 
-// ❌ ANTI-PATTERN: Capturing state values in closure
-function SuboptimalBusinessLogic({ children }) {
-  const userStore = useUserStore('profile');
-  const user = useStoreValue(userStore); // ❌ Reactive subscription
+#### **Approach 1: useActionHandler (Recommended)**
+
+Standard hook for most use cases. Handles registration/cleanup automatically.
+
+```typescript
+function StandardPattern({ children }) {
+  const dataStore = useDataStore('data');
 
   const updateHandler = useCallback(async (payload) => {
-    // ⚠️ STALE: Uses captured 'user' from closure
-    const updated = { ...user, ...payload };
-    userStore.setValue(updated);
-  }, [user, userStore]); // ❌ Re-registers on every user change!
-
-  useUserActionHandler('updateUser', updateHandler);
-
-  return children;
-}
-```
-
-### 🔄 **Handler Re-registration Behavior**
-
-#### **Understanding Re-registration**
-
-When `useCallback` dependencies change, the handler function is recreated and **re-registered** in the action pipeline:
-
-```typescript
-// Example: Demonstrating re-registration
-function ReregistrationExample({ children }) {
-  const [retryCount, setRetryCount] = useState(3);
-  const apiStore = useAPIStore('data');
-
-  const fetchHandler = useCallback(async (payload) => {
-    let attempts = 0;
-
-    while (attempts < retryCount) { // Uses current retryCount
-      try {
-        const data = await fetchAPI(payload.url);
-        apiStore.setValue(data);
-        return;
-      } catch (error) {
-        attempts++;
-      }
-    }
-  }, [apiStore, retryCount]); // Re-registers when retryCount changes
-
-  useAPIActionHandler('fetchData', fetchHandler);
-
-  // Changing retryCount triggers handler re-registration
-  return (
-    <>
-      <button onClick={() => setRetryCount(5)}>
-        Increase Retry Count
-      </button>
-      {children}
-    </>
-  );
-}
-```
-
-**Re-registration Impact:**
-- ✅ Fresh handler with updated closure values
-- ✅ Previous handler automatically unregistered
-- ⚠️ Performance cost if dependencies change frequently
-- ⚠️ Can cause unexpected behavior if not understood
-
-#### **Controlling Re-registration with Stable References**
-
-```typescript
-// ✅ PATTERN 1: Minimal dependencies with lazy evaluation
-function StableHandlerPattern({ children }) {
-  const dataStore = useDataStore('data');
-  const configStore = useDataStore('config');
-
-  const processHandler = useCallback(async (payload) => {
-    // Lazy evaluation - always reads fresh values
-    const data = dataStore.getValue();
-    const config = configStore.getValue();
-
-    // Business logic uses fresh values
-    const processed = processData(data, config, payload);
-    dataStore.setValue({ ...data, processed });
-  }, [dataStore, configStore]); // Stable references only
-
-  // Handler only re-registers if store references change (rare)
-  useDataActionHandler('processData', processHandler);
-
-  return children;
-}
-
-// ✅ PATTERN 2: Ref pattern for frequently changing values
-function RefBasedPattern({ children }) {
-  const configRef = useRef({ threshold: 100, multiplier: 2 });
-  const dataStore = useDataStore('data');
-
-  // Update config without triggering re-registration
-  const updateConfig = (newConfig) => {
-    configRef.current = { ...configRef.current, ...newConfig };
-  };
-
-  const processHandler = useCallback(async (payload) => {
-    const data = dataStore.getValue();
-
-    // Uses latest config from ref (no re-registration needed)
-    if (payload.value > configRef.current.threshold) {
-      const result = payload.value * configRef.current.multiplier;
-      dataStore.setValue({ ...data, result });
-    }
-  }, [dataStore]); // Config changes don't trigger re-registration
-
-  useDataActionHandler('processData', processHandler);
-
-  return children;
-}
-
-// ❌ ANTI-PATTERN: Frequent re-registration
-function FrequentReregistrationExample({ children }) {
-  const [timestamp, setTimestamp] = useState(Date.now());
-  const logStore = useLogStore('events');
-
-  useEffect(() => {
-    const timer = setInterval(() => setTimestamp(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const logHandler = useCallback(async (payload) => {
-    // ⚠️ Handler re-registers every second!
-    logStore.setValue({ ...payload, timestamp });
-  }, [logStore, timestamp]); // ❌ Timestamp changes every second
-
-  useLogActionHandler('logEvent', logHandler);
-
-  return children;
-}
-```
-
-### 🎯 **Advanced Handler Registration Patterns**
-
-#### **Pattern 1: Conditional Handler Registration**
-
-```typescript
-// ✅ Use Cases: Feature flags, user permissions, environment-based logic
-function ConditionalHandlerRegistration({ children }) {
-  const isAdmin = useUserPermission('admin');
-  const dataStore = useDataStore('data');
-
-  const adminOnlyHandler = useCallback(async (payload) => {
-    // Admin-only business logic
     const current = dataStore.getValue();
-    dataStore.setValue({ ...current, ...payload, adminApproved: true });
+    dataStore.setValue({ ...current, ...payload });
   }, [dataStore]);
 
-  // Only register handler if user is admin
-  if (isAdmin) {
-    useDataActionHandler('approveData', adminOnlyHandler);
-  }
-
-  return children;
-}
-
-// ✅ Alternative: Guard inside handler
-function GuardedHandlerPattern({ children }) {
-  const { hasPermission } = useUserPermissions();
-  const dataStore = useDataStore('data');
-
-  const approveHandler = useCallback(async (payload, controller) => {
-    // Guard: Check permission at execution time
-    if (!hasPermission('approve')) {
-      controller.abort('Insufficient permissions');
-      return;
-    }
-
-    const current = dataStore.getValue();
-    dataStore.setValue({ ...current, ...payload, approved: true });
-  }, [dataStore, hasPermission]);
-
-  useDataActionHandler('approveData', approveHandler);
-
-  return children;
-}
-```
-
-#### **Pattern 2: Handler Registration with Options**
-
-```typescript
-// ✅ Use handler options for controlled execution behavior
-function AdvancedHandlerOptions({ children }) {
-  const searchStore = useSearchStore('results');
-
-  const searchHandler = useCallback(async (payload) => {
-    const results = await performSearch(payload.query);
-    searchStore.setValue({ results, query: payload.query });
-  }, [searchStore]);
-
-  // Register with execution control options
-  useSearchActionHandler('search', searchHandler, {
-    id: 'search-handler',        // Unique ID for debugging
-    priority: 100,                // Execution priority
-    debounce: 300,                // Debounce for 300ms
-    blocking: false,              // Allow concurrent executions
-    once: false                   // Can execute multiple times
-  });
-
-  return children;
-}
-
-// ✅ Multiple handlers for same action
-function MultiHandlerPattern({ children }) {
-  const analyticsStore = useAnalyticsStore('events');
-  const logStore = useLogStore('events');
-
-  const analyticsHandler = useCallback(async (payload) => {
-    analyticsStore.setValue({ event: payload.type, timestamp: Date.now() });
-  }, [analyticsStore]);
-
-  const loggingHandler = useCallback(async (payload) => {
-    logStore.setValue({ log: payload, level: 'info' });
-  }, [logStore]);
-
-  // Both handlers execute for 'trackEvent' action
-  useAnalyticsActionHandler('trackEvent', analyticsHandler, {
-    id: 'analytics-handler',
-    priority: 100  // Executes first
-  });
-
-  useAnalyticsActionHandler('trackEvent', loggingHandler, {
-    id: 'logging-handler',
-    priority: 50   // Executes second
+  useDataActionHandler('updateData', updateHandler, {
+    id: 'update-handler',
+    priority: 100
   });
 
   return children;
 }
 ```
 
-#### **Pattern 3: Handler Cleanup and Unregistration**
+**Pros:**
+- ✅ Automatic cleanup on unmount
+- ✅ Built-in ref optimization (handler changes don't re-register)
+- ✅ Simple, declarative API
+
+**Cons:**
+- ⚠️ Limited control over re-registration conditions
+- ⚠️ Can't access ActionRegister methods
+
+#### **Approach 2: useActionRegister (Advanced Control)**
+
+Direct registration for fine-grained control over handler lifecycle.
 
 ```typescript
-// ✅ Automatic cleanup on unmount
-function AutoCleanupPattern({ children }) {
+function AdvancedPattern({ children }) {
+  const register = useDataActionRegister();
   const dataStore = useDataStore('data');
-
-  const handler = useCallback(async (payload) => {
-    dataStore.setValue(payload);
-  }, [dataStore]);
-
-  // Automatically unregisters when component unmounts
-  useDataActionHandler('updateData', handler);
-
-  return children;
-}
-
-// ✅ Manual registration with useActionRegister (fine-grained control)
-function ManualRegistrationPattern({ children }) {
-  const register = useDataActionRegister(); // Get ActionRegister instance
-  const dataStore = useDataStore('data');
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [criticalMode, setCriticalMode] = useState(false);
 
   useEffect(() => {
-    if (!register || !isEnabled) return; // Conditional registration
+    if (!register) return;
 
     const handler = async (payload) => {
       const current = dataStore.getValue();
-      dataStore.setValue({ ...current, ...payload });
+      dataStore.setValue({ ...current, ...payload, critical: criticalMode });
     };
 
-    // Direct registration - full control over re-registration
-    const unregister = register.register('updateData', handler, {
-      id: 'manual-handler',
-      priority: 100
+    return register.register('updateData', handler, {
+      priority: criticalMode ? 200 : 100
     });
-
-    // Custom cleanup logic
-    return () => {
-      console.log('Cleaning up manual handler');
-      unregister();
-    };
-  }, [register, isEnabled]);
-  // ⚠️ Note: dataStore NOT in deps - prevents re-registration on store changes
+  }, [register, criticalMode]);
+  // ✅ Only re-registers when criticalMode changes
+  // ✅ dataStore changes DON'T trigger re-registration
 
   return children;
 }
 ```
 
-#### **Pattern 4: Preventing Re-registration with Direct Registration**
+**Pros:**
+- ✅ Full control over re-registration deps
+- ✅ Access to ActionRegister API (getHandlers, clearAction, etc.)
+- ✅ Conditional registration with explicit useEffect
+- ✅ Dynamic multi-handler registration
 
-The `useActionHandler` hook already optimizes handler updates using refs internally, **but direct registration with `useActionRegister` provides even finer control**:
+**Cons:**
+- ⚠️ Manual useEffect management
+- ⚠️ More verbose than useActionHandler
+
+#### **Comparison Table**
+
+| Scenario | useActionHandler | useActionRegister |
+|----------|------------------|-------------------|
+| **Standard use cases** | ✅✅ Recommended | Optional |
+| **Handler changes frequently** | ✅ Optimized (ref) | ✅ Same |
+| **Pure store handlers** | ⚠️ Uses wrapper | ✅✅ [register] only |
+| **Conditional registration** | ⚠️ Use `if` statement | ✅ Explicit useEffect |
+| **Dynamic multi-handlers** | ⚠️ Complex | ✅ Loop in useEffect |
+| **Custom re-registration logic** | ❌ Limited | ✅ Full control |
+| **Access ActionRegister API** | ❌ No | ✅ Yes |
+
+---
+
+### ⚡ **Minimal Registration Pattern** (Key Optimization)
+
+**Core Insight**: When handlers **only use store operations** via `getValue()`, they can register **once** on mount with **zero re-registrations**.
+
+#### **Pure Store Handler Pattern**
 
 ```typescript
-// ✅ useActionHandler (already optimized - handler changes don't cause re-registration)
-function OptimizedWithHook({ children }) {
-  const dataStore = useDataStore('data');
-  const configStore = useDataStore('config');
-
-  // Handler can reference latest values via closure
-  const updateHandler = useCallback(async (payload) => {
-    const data = dataStore.getValue();
-    const config = configStore.getValue();
-
-    // Business logic with fresh values
-    dataStore.setValue({ ...data, ...payload });
-  }, [dataStore, configStore]);
-
-  // ✅ Handler changes don't trigger re-registration (uses ref internally)
-  useDataActionHandler('updateData', updateHandler);
-
-  return children;
-}
-
-// ✅ Direct registration (maximum control - choose exact re-registration conditions)
-function MaximumControlPattern({ children }) {
-  const register = useDataActionRegister();
-  const dataStore = useDataStore('data');
-  const configStore = useDataStore('config');
-  const [criticalSetting, setCriticalSetting] = useState(false);
-
-  useEffect(() => {
-    if (!register) return;
-
-    const handler = async (payload) => {
-      // Always reads fresh values via getValue()
-      const data = dataStore.getValue();
-      const config = configStore.getValue();
-
-      if (criticalSetting) {
-        // Critical path logic
-        dataStore.setValue({ ...data, ...payload, critical: true });
-      } else {
-        // Normal path logic
-        dataStore.setValue({ ...data, ...payload });
-      }
-    };
-
-    const unregister = register.register('updateData', handler, {
-      id: 'controlled-handler',
-      priority: criticalSetting ? 200 : 100 // Priority changes with setting
-    });
-
-    return unregister;
-  }, [register, criticalSetting]);
-  // ✅ Only re-registers when criticalSetting changes
-  // ✅ dataStore/configStore changes don't trigger re-registration
-
-  return children;
-}
-
-// ✅ Dynamic multi-handler registration
-function DynamicHandlersPattern({ children }) {
-  const register = useDataActionRegister();
-  const [handlers, setHandlers] = useState<string[]>(['handler1', 'handler2']);
-
-  useEffect(() => {
-    if (!register) return;
-
-    const unregisters = handlers.map(handlerId => {
-      const handler = async (payload) => {
-        console.log(`${handlerId} executed:`, payload);
-      };
-
-      return register.register('processData', handler, {
-        id: handlerId,
-        priority: handlers.indexOf(handlerId) * 10
-      });
-    });
-
-    // Cleanup all handlers
-    return () => {
-      unregisters.forEach(unregister => unregister());
-    };
-  }, [register, handlers]); // Only re-register when handlers array changes
-
-  return children;
-}
-
-// ✅✅ OPTIMAL: Minimal registration - register only ONCE (pure store handlers)
+// ✅✅ OPTIMAL: Minimal registration
 function MinimalRegistrationPattern({ children }) {
   const register = useDataActionRegister();
   const dataStore = useDataStore('data');
   const configStore = useDataStore('config');
-  const settingsStore = useDataStore('settings');
 
   useEffect(() => {
     if (!register) return;
 
-    // Handler with ZERO external dependencies
     const handler = async (payload) => {
       // ✅ Always reads fresh values via getValue()
       const data = dataStore.getValue();
       const config = configStore.getValue();
-      const settings = settingsStore.getValue();
 
       // ✅ Pure store manipulation only
-      const updated = {
+      dataStore.setValue({
         ...data,
         ...payload,
         timestamp: Date.now(),
-        configApplied: config.version,
-        theme: settings.theme
-      };
-
-      dataStore.setValue(updated);
+        configVersion: config.version
+      });
     };
 
-    const unregister = register.register('updateData', handler, {
-      id: 'minimal-handler'
-    });
-
-    return unregister;
+    return register.register('updateData', handler);
   }, [register]);
   // 🎯 CRITICAL: Only [register] in deps!
-  // ✅ dataStore/configStore/settingsStore changes DON'T trigger re-registration
-  // ✅ Handler is registered ONCE on component mount
-  // ✅ Handler is unregistered ONCE on component unmount
+  // ✅ dataStore/configStore changes DON'T trigger re-registration
+  // ✅ Handler registered ONCE on mount
+  // ✅ Handler unregistered ONCE on unmount
   // ✅ ZERO re-registrations during component lifetime
 
   return children;
 }
 ```
 
-**Key Insight: Pure Store Handlers = Minimal Registration**
-
-When a handler **only manipulates stores** using `getValue()` with no external dependencies:
-- ✅ Register with `[register]` deps only
-- ✅ Handler registered **once** on mount
-- ✅ **Zero re-registrations** during component lifetime
-- ✅ Always accesses fresh store values via `getValue()`
-
+**When to Use:**
 ```typescript
-// ✅ Perfect candidate for minimal registration
-useEffect(() => {
-  if (!register) return;
+// ✅ Perfect for minimal registration
+const handler = async (payload) => {
+  const a = storeA.getValue(); // Only getValue()
+  const b = storeB.getValue();
+  storeA.setValue({ ...a, ...payload }); // Only setValue()
+};
 
-  const handler = async (payload) => {
-    const a = storeA.getValue(); // Fresh value
-    const b = storeB.getValue(); // Fresh value
-    const c = storeC.getValue(); // Fresh value
-
-    // Pure store manipulation
-    storeA.setValue({ ...a, ...payload });
-  };
-
-  return register.register('action', handler);
-}, [register]); // ONLY register - never re-registers!
-
-// ❌ NOT suitable for minimal registration (has external dependencies)
-useEffect(() => {
-  if (!register) return;
-
-  const handler = async (payload) => {
-    const data = store.getValue();
-
-    // ⚠️ Uses external API function - needs to be in deps
-    const result = await externalAPI.process(data, apiConfig);
-
-    store.setValue(result);
-  };
-
-  return register.register('action', handler);
-}, [register]); // ❌ Missing apiConfig - stale closure!
+// ❌ NOT suitable (has external dependencies)
+const handler = async (payload) => {
+  const data = store.getValue();
+  const result = await externalAPI(data, apiConfig); // External dep
+  store.setValue(result);
+};
+// apiConfig must be in deps → re-registration needed
 ```
 
-**TimeTravelStore Support**
+#### **TimeTravelStore Support**
 
-The minimal registration pattern works **identically with TimeTravelStore**:
+The minimal registration pattern works **identically with TimeTravelStore**.
 
 ```typescript
-// ✅ TimeTravelStore with minimal registration
-function TimeTravelBusinessLogic({ children }) {
+function TimeTravelPattern({ children }) {
   const register = useEditorActionRegister();
   const editorStore = useEditorStore('document'); // TimeTravelStore
 
@@ -739,275 +382,261 @@ function TimeTravelBusinessLogic({ children }) {
     const handler = async (payload) => {
       // ✅ getValue() returns current state (even after undo/redo)
       const current = editorStore.getValue();
-
-      // Business logic
-      const updated = {
-        ...current,
-        content: payload.content,
-        lastModified: Date.now()
-      };
-
-      // ✅ setValue() creates history entry
-      editorStore.setValue(updated);
+      editorStore.setValue({ ...current, ...payload });
     };
 
     return register.register('updateDocument', handler);
   }, [register]);
-  // ✅ undo/redo operations DON'T trigger re-registration
-  // ✅ Handler always reads post-undo/redo state via getValue()
+  // ✅ undo/redo DON'T trigger re-registration
+  // ✅ Handler reads post-undo/redo state via getValue()
+
+  return children;
+}
+```
+
+**How TimeTravelStore Notifications Work:**
+
+```
+User Action (setValue/undo/redo)
+          ↓
+TimeTravel.setState/back/forward
+          ↓
+timeTravel.subscribe() callback
+          ↓
+TimeTravelStore._scheduleNotification()
+          ↓
+    ┌─────┴─────┐
+immediate      batched (RAF)
+    └─────┬─────┘
+          ↓
+Notify subscribers
+    ┌─────┴─────────┐
+    ↓               ↓
+React Components  Handlers
+(re-render ✅)    (no change ✅)
+    ↓               ↓
+UI updates        Next execution:
+                  getValue() → fresh state
+```
+
+**Key Points:**
+1. **Two Notification Paths:**
+   - **React**: TimeTravel → Store → listeners → Components (re-render)
+   - **Handlers**: No notification (read state when executed)
+
+2. **Why [register] Only Works:**
+   - Handler captures: `register` (stable) + `store` (stable reference)
+   - Handler reads: `store.getValue()` → always current state
+   - Store changes → React re-renders only (not handler re-registration)
+
+3. **Performance Benefits:**
+   - Zero re-registrations during lifetime
+   - Batched updates (if `notificationMode: 'batched'`)
+   - Structural sharing prevents unnecessary re-renders
+
+---
+
+### 🎯 **Advanced Patterns**
+
+#### **Conditional Registration**
+
+```typescript
+// Pattern 1: Conditional based on permissions
+function ConditionalPattern({ children }) {
+  const register = useDataActionRegister();
+  const isAdmin = useUserPermission('admin');
+
+  useEffect(() => {
+    if (!register || !isAdmin) return; // Only register if admin
+
+    const handler = async (payload) => {
+      // Admin-only logic
+    };
+
+    return register.register('adminAction', handler);
+  }, [register, isAdmin]);
 
   return children;
 }
 
-// How it works:
-// 1. User calls undo() → TimeTravelStore state changes
-// 2. Store notifies subscribers → React components re-render
-// 3. Handler remains registered (no re-registration)
-// 4. Next handler execution → getValue() returns undo'd state
+// Pattern 2: Guard inside handler (always registered)
+function GuardPattern({ children }) {
+  const { hasPermission } = useUserPermissions();
+
+  const handler = useCallback(async (payload, controller) => {
+    if (!hasPermission('approve')) {
+      controller.abort('Insufficient permissions');
+      return;
+    }
+    // Logic...
+  }, [hasPermission]);
+
+  useDataActionHandler('approveData', handler);
+
+  return children;
+}
 ```
 
-**Complete TimeTravel Notification Flow:**
+#### **Handler Options**
 
 ```typescript
-// TimeTravelStore internal architecture (for understanding)
+useActionHandler('search', searchHandler, {
+  id: 'search-handler',    // Unique ID for debugging
+  priority: 100,           // Execution order (higher = earlier)
+  debounce: 300,           // Debounce 300ms
+  throttle: 100,           // Or throttle 100ms
+  blocking: false,         // Allow concurrent executions
+  once: false              // Can execute multiple times
+});
 
-constructor() {
-  // 1. TimeTravel subscribes to all state changes
-  this.timeTravel.subscribe((state, travelPatches, position) => {
-    // Triggered by: setState(), back(), forward()
-    this._lastPatches = travelPatches.patches.flat();
-    this._updateSnapshot();
-    this._scheduleNotification(); // → triggers React listeners
-  });
-}
+// Multiple handlers for same action
+useActionHandler('trackEvent', analyticsHandler, { priority: 100 });
+useActionHandler('trackEvent', loggingHandler, { priority: 50 });
+```
 
-_scheduleNotification() {
-  if (this.notificationMode === 'immediate') {
-    this._executeNotification(); // Immediate notify
-  } else {
-    // 'batched' mode: RAF-based batching
-    requestAnimationFrame(() => {
-      this._executeNotification();
+#### **Dynamic Multi-Handler Registration**
+
+```typescript
+function DynamicHandlers({ children }) {
+  const register = useDataActionRegister();
+  const [handlerIds, setHandlerIds] = useState(['h1', 'h2']);
+
+  useEffect(() => {
+    if (!register) return;
+
+    const unregisters = handlerIds.map(id => {
+      const handler = async (payload) => {
+        console.log(`${id} executed:`, payload);
+      };
+
+      return register.register('process', handler, {
+        id,
+        priority: handlerIds.indexOf(id) * 10
+      });
     });
-  }
-}
 
-_executeNotification() {
-  // Notify all React subscribers (useStoreValue, useStorePath)
-  this.listeners.forEach(listener => listener());
+    return () => unregisters.forEach(unregister => unregister());
+  }, [register, handlerIds]);
 
-  // Notify patch-aware subscribers (for path-based optimization)
-  this.patchAwareListeners.forEach(listener => {
-    listener(this._lastPatches);
-  });
+  return children;
 }
 ```
 
-**Complete Flow Diagram:**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ User Action Flow (setValue, undo, redo)                        │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ 1. TimeTravelStore Method Called                               │
-│    - setValue(newValue) → timeTravel.setState(newValue)        │
-│    - undo() → timeTravel.back()                                │
-│    - redo() → timeTravel.forward()                             │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ 2. TimeTravel Internal State Update                            │
-│    - Mutative creates patches (structural sharing)             │
-│    - History management (maxHistory, position tracking)        │
-│    - Triggers timeTravel.subscribe() callback                  │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ 3. TimeTravelStore.subscribe() Callback                        │
-│    - Receives: (state, patches, position)                      │
-│    - Updates: _lastPatches, _snapshot                          │
-│    - Calls: _scheduleNotification()                            │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-                    ┌───────┴───────┐
-                    ↓               ↓
-        ┌──────────────────┐ ┌──────────────────┐
-        │ Immediate Mode   │ │ Batched Mode     │
-        │ (default)        │ │ (RAF)            │
-        │ _executeNotify() │ │ requestAnimation │
-        │                  │ │ Frame()          │
-        └──────────────────┘ └──────────────────┘
-                    └───────┬───────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ 4. Notify All Subscribers                                       │
-│    - listeners.forEach(listener => listener())                  │
-│    - patchAwareListeners.forEach(listener => listener(patches)) │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-        ┌───────────────────┴───────────────────┐
-        ↓                                       ↓
-┌──────────────────┐                  ┌──────────────────┐
-│ React Components │                  │ Action Handlers  │
-│ (useStoreValue)  │                  │ (NO notification)│
-│ → Re-render ✅   │                  │ → Stay same ✅   │
-└──────────────────┘                  └──────────────────┘
-        ↓                                       ↓
-┌──────────────────┐                  ┌──────────────────┐
-│ UI Updates       │                  │ Next execution:  │
-│ - Show new data  │                  │ getValue() →     │
-│ - Undo/Redo btns │                  │ Fresh state ✅   │
-└──────────────────┘                  └──────────────────┘
-```
-
-**Why Handlers Don't Need Re-registration:**
+#### **Ref Pattern for Frequently Changing Values**
 
 ```typescript
-// ❌ WRONG Assumption: "Handler needs store value in closure"
-const handler = useCallback(async (payload) => {
-  const data = useStoreValue(store); // ❌ Can't use hooks here!
-  // ...
-}, [store, data]); // ❌ Would re-register constantly
+function RefPattern({ children }) {
+  const configRef = useRef({ threshold: 100 });
+  const dataStore = useDataStore('data');
 
-// ✅ CORRECT: Handler reads value when executed
-useEffect(() => {
-  const handler = async (payload) => {
-    const data = store.getValue(); // ✅ Always fresh at execution time
-    // Handler logic uses current data
-    store.setValue({ ...data, ...payload });
+  // Update config without re-registration
+  const updateConfig = (newConfig) => {
+    configRef.current = { ...configRef.current, ...newConfig };
   };
 
-  return register.register('action', handler);
-}, [register]);
-// ✅ [register] only - handler doesn't subscribe to store
-// ✅ getValue() called DURING execution, not during registration
-// ✅ undo/redo changes store → notifies React → handler unchanged
+  const handler = useCallback(async (payload) => {
+    const data = dataStore.getValue();
+
+    // Uses latest config from ref
+    if (payload.value > configRef.current.threshold) {
+      dataStore.setValue({ ...data, result: payload.value });
+    }
+  }, [dataStore]); // Config changes don't trigger re-registration
+
+  useDataActionHandler('processData', handler);
+
+  return children;
+}
 ```
 
-**Key Architectural Insights:**
+---
 
-1. **Separation of Concerns:**
-   - TimeTravel → State management + History
-   - TimeTravelStore → React integration layer (subscribe/notify)
-   - React Components → Subscribe to store changes
-   - Action Handlers → Execute on demand (no subscription)
-
-2. **Two Notification Paths:**
-   - **React Path**: TimeTravel → TimeTravelStore → listeners → Components (re-render)
-   - **Handler Path**: No notification! Handler reads state when executed
-
-3. **Why `[register]` Only Works:**
-   - Handler closure captures: `register` (stable) + `store` (stable reference)
-   - Handler reads state via: `store.getValue()` → `timeTravel.getState()` (always current)
-   - Store changes trigger: React re-renders only (not handler re-registration)
-
-4. **Performance Benefits:**
-   - Zero handler re-registrations during component lifetime
-   - React components get batched updates (if notificationMode: 'batched')
-   - Structural sharing prevents unnecessary re-renders
-   - Handlers always execute with fresh state
-
-**When to use `useActionRegister` over `useActionHandler`:**
-
-| Scenario | useActionHandler | useActionRegister |
-|----------|------------------|-------------------|
-| **Standard handler registration** | ✅ Recommended | Optional |
-| **Handler changes frequently** | ✅ Already optimized (uses ref) | Optional |
-| **Pure store handlers (minimal registration)** | ⚠️ Registers once, but uses wrapper | ✅✅ OPTIMAL - `[register]` only |
-| **Conditional registration** | ⚠️ Can use `if` statement | ✅ More explicit with useEffect |
-| **Dynamic multi-handler registration** | ⚠️ Complex with multiple hooks | ✅ Loop in useEffect |
-| **Custom re-registration logic** | ⚠️ Limited to config changes | ✅ Full control over deps |
-| **Need ActionRegister methods** | ❌ No access | ✅ Full API access |
-| **Debug/inspect handlers** | ❌ No access | ✅ `register.getHandlers()` |
-
-### 📋 **Best Practices Summary**
+### 📋 **Best Practices**
 
 #### ✅ **DO**
 
-1. **Use `useCallback` with minimal dependencies**
+1. **Use lazy evaluation with getValue()**
    ```typescript
-   const handler = useCallback(async (payload) => {
-     const current = store.getValue(); // Lazy evaluation
-     // Business logic
-   }, [store]); // Only store reference
+   const current = store.getValue(); // Always fresh
    ```
 
-2. **Use lazy evaluation with `getValue()`**
+2. **Minimal dependencies - store references only**
    ```typescript
-   // Always read fresh state inside handler
-   const current = store.getValue();
+   useCallback(async (payload) => {
+     const current = store.getValue();
+   }, [store]); // Only store reference
    ```
 
 3. **Use refs for frequently changing non-critical values**
    ```typescript
    const configRef = useRef({ threshold: 100 });
-   // Update without re-registration
-   configRef.current.threshold = 200;
+   configRef.current.threshold = 200; // No re-registration
    ```
 
-4. **Provide unique IDs for debugging**
+4. **Use useActionRegister for pure store handlers**
    ```typescript
-   useActionHandler('action', handler, { id: 'unique-handler-id' });
+   useEffect(() => {
+     return register.register('action', handler);
+   }, [register]); // Minimal registration
    ```
 
-5. **Use priority for execution order control**
+5. **Provide unique IDs for debugging**
+   ```typescript
+   useActionHandler('action', handler, { id: 'unique-id' });
+   ```
+
+6. **Use priority for execution order**
    ```typescript
    useActionHandler('action', validationHandler, { priority: 100 });
    useActionHandler('action', executionHandler, { priority: 50 });
    ```
 
-6. **Use `useActionRegister` for advanced control**
-   ```typescript
-   const register = useActionRegister();
-
-   useEffect(() => {
-     if (!register || !condition) return;
-
-     const unregister = register.register('action', handler, config);
-     return unregister;
-   }, [register, condition]); // Full control over deps
-   ```
-
 #### ❌ **DON'T**
 
-1. **Don't capture reactive state values in closures**
+1. **Don't capture reactive state values**
    ```typescript
    // ❌ WRONG
    const user = useStoreValue(userStore);
    const handler = useCallback(async (payload) => {
-     // Uses stale 'user' from closure
-   }, [user]); // Re-registers on every user change!
+     // Uses stale 'user'
+   }, [user, userStore]); // Re-registers on every user change!
    ```
 
 2. **Don't omit dependencies**
    ```typescript
    // ❌ WRONG
    const handler = useCallback(async (payload) => {
-     // Uses 'config' from closure
-     if (payload.value > config.threshold) { }
-   }, []); // Missing 'config' - stale closure!
+     if (config.threshold > 100) {} // Uses config
+   }, []); // Missing config!
    ```
 
 3. **Don't include frequently changing values in deps**
    ```typescript
    // ❌ WRONG
    const [timestamp, setTimestamp] = useState(Date.now());
-   const handler = useCallback(async (payload) => {
-     log({ ...payload, timestamp });
-   }, [timestamp]); // Re-registers every state change!
+   const handler = useCallback(() => {
+     log({ timestamp });
+   }, [timestamp]); // Re-registers constantly!
    ```
 
 4. **Don't perform side effects during registration**
    ```typescript
    // ❌ WRONG
    useActionHandler('action', useCallback(async () => {
-     await fetchData(); // This executes on every render!
+     await fetchData(); // Executes on every render!
    }, []));
    ```
 
+5. **Don't use useStoreValue in handlers**
+   ```typescript
+   // ❌ WRONG - Can't use hooks in handlers
+   const handler = async (payload) => {
+     const user = useStoreValue(store); // ❌ Error!
+   };
+   ```
+
 ---
+
 
 ## Naming Conventions
 
