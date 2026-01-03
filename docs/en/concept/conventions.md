@@ -723,6 +723,55 @@ useEffect(() => {
 }, [register]); // ❌ Missing apiConfig - stale closure!
 ```
 
+**TimeTravelStore Support**
+
+The minimal registration pattern works **identically with TimeTravelStore**:
+
+```typescript
+// ✅ TimeTravelStore with minimal registration
+function TimeTravelBusinessLogic({ children }) {
+  const register = useEditorActionRegister();
+  const editorStore = useEditorStore('document'); // TimeTravelStore
+
+  useEffect(() => {
+    if (!register) return;
+
+    const handler = async (payload) => {
+      // ✅ getValue() returns current state (even after undo/redo)
+      const current = editorStore.getValue();
+
+      // Business logic
+      const updated = {
+        ...current,
+        content: payload.content,
+        lastModified: Date.now()
+      };
+
+      // ✅ setValue() creates history entry
+      editorStore.setValue(updated);
+    };
+
+    return register.register('updateDocument', handler);
+  }, [register]);
+  // ✅ undo/redo operations DON'T trigger re-registration
+  // ✅ Handler always reads post-undo/redo state via getValue()
+
+  return children;
+}
+
+// How it works:
+// 1. User calls undo() → TimeTravelStore state changes
+// 2. Store notifies subscribers → React components re-render
+// 3. Handler remains registered (no re-registration)
+// 4. Next handler execution → getValue() returns undo'd state
+```
+
+**Why this works:**
+- `editorStore.getValue()` returns current `timeTravel.getState()` (always fresh)
+- `undo()`/`redo()` only notify subscribers (React re-renders)
+- Handler registration is independent of store state changes
+- Handler closure doesn't capture store values, only store reference
+
 **When to use `useActionRegister` over `useActionHandler`:**
 
 | Scenario | useActionHandler | useActionRegister |
