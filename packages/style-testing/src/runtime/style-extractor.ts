@@ -4,8 +4,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
+import traverseImport from '@babel/traverse';
 import type * as t from '@babel/types';
+
+// @ts-ignore - Handle ESM/CJS interop
+const traverse = traverseImport.default || traverseImport;
 import { resolveTailwindClasses } from '../analyzers/class-resolver.js';
 
 export interface ExtractedElement {
@@ -70,6 +73,7 @@ export class StyleExtractor {
 
   private parseFile(code: string, filePath: string): ExtractedElement[] {
     const elements: ExtractedElement[] = [];
+    let currentComponentName = 'Unknown';
 
     try {
       const ast = parse(code, {
@@ -78,17 +82,24 @@ export class StyleExtractor {
       });
 
       traverse(ast, {
+        // Track component names
+        FunctionDeclaration(path) {
+          if (path.node.id?.name) {
+            currentComponentName = path.node.id.name;
+          }
+        },
+        VariableDeclarator(path) {
+          if (
+            path.node.id.type === 'Identifier' &&
+            path.node.init &&
+            (path.node.init.type === 'ArrowFunctionExpression' ||
+              path.node.init.type === 'FunctionExpression')
+          ) {
+            currentComponentName = path.node.id.name;
+          }
+        },
         JSXOpeningElement: (path) => {
           const { node } = path;
-
-          // Find data-style-test attribute
-          const testIdAttr = node.attributes.find(
-            (attr): attr is t.JSXAttribute =>
-              attr.type === 'JSXAttribute' &&
-              attr.name.type === 'JSXIdentifier' &&
-              attr.name.name === 'data-style-test' &&
-              attr.value?.type === 'StringLiteral'
-          );
 
           // Find className attribute
           const classNameAttr = node.attributes.find(
@@ -98,21 +109,40 @@ export class StyleExtractor {
               attr.name.name === 'className'
           );
 
-          if (testIdAttr && classNameAttr && testIdAttr.value?.type === 'StringLiteral') {
-            const testId = testIdAttr.value.value;
+          if (classNameAttr) {
             let className = '';
 
             // Extract className value (can be string or expression)
             if (classNameAttr.value?.type === 'StringLiteral') {
               className = classNameAttr.value.value;
-            } else if (
-              classNameAttr.value?.type === 'JSXExpressionContainer' &&
-              classNameAttr.value.expression.type === 'StringLiteral'
-            ) {
-              className = classNameAttr.value.expression.value;
+            } else if (classNameAttr.value?.type === 'JSXExpressionContainer') {
+              const expr = classNameAttr.value.expression;
+
+              // Direct string literal
+              if (expr.type === 'StringLiteral') {
+                className = expr.value;
+              }
+              // Template literal
+              else if (expr.type === 'TemplateLiteral' && expr.quasis.length > 0) {
+                className = expr.quasis.map(q => q.value.raw).join(' ');
+              }
+              // Call expression like cn()
+              else if (expr.type === 'CallExpression' && expr.arguments.length > 0) {
+                const firstArg = expr.arguments[0];
+                if (firstArg.type === 'StringLiteral') {
+                  className = firstArg.value;
+                } else if (firstArg.type === 'TemplateLiteral' && firstArg.quasis.length > 0) {
+                  className = firstArg.quasis.map((q: any) => q.value.raw).join(' ');
+                }
+              }
             }
 
             if (className) {
+              // Generate test ID (same logic as Babel plugin)
+              const elementName = node.name.type === 'JSXIdentifier' ? node.name.name : 'element';
+              const line = node.loc?.start.line || 0;
+              const testId = `${currentComponentName}:${elementName}:${line}`;
+
               const expectedStyles = resolveTailwindClasses(className);
 
               elements.push({
@@ -120,7 +150,7 @@ export class StyleExtractor {
                 className,
                 expectedStyles,
                 file: filePath,
-                line: node.loc?.start.line || 0,
+                line,
               });
             }
           }

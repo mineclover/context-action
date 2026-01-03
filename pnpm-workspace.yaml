@@ -4,6 +4,7 @@ packages:
   - packages/mutative
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
+  - packages/style-testing
   - example
 
 overrides:

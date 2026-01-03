@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import styleTestPlugin from '../packages/style-testing/src/analyzers/babel-plugin.js'
 
 export default defineConfig({
   plugins: [
@@ -11,7 +12,9 @@ export default defineConfig({
             target: '19', // React 19 사용
             compilationMode: 'infer', // 모든 React 컴포넌트 자동 컴파일
           }],
-        ],
+          // 스타일 테스트용 data-style-test 속성 자동 주입
+          process.env.STYLE_TEST === 'true' ? styleTestPlugin : null,
+        ].filter(Boolean),
       },
     })
   ],
