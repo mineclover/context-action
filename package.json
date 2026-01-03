@@ -50,6 +50,9 @@
     "llms:work-next": "node packages/llms-generator/dist/cli/index.js work-next",
     "llms:detect-mismatches": "node packages/llms-generator/dist/cli/index.js detect-mismatches",
     "llms:code-mode": "node packages/llms-generator/dist/cli/index.js code-mode --force",
+    "style-test": "node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src",
+    "style-test:snapshot": "node packages/style-testing/dist/cli/index.js snapshot --url http://localhost:4000",
+    "style-test:verbose": "node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src --verbose",
     "security:audit": "pnpm audit --audit-level high",
     "security:audit:all": "lerna run security:audit",
     "prepare": "husky"
