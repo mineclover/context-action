@@ -142,6 +142,34 @@ function App() {
 }
 ```
 
+### 📚 Advanced Store Features
+
+**TimeTravelStore** - Undo/redo + High-performance mode
+
+```typescript
+// Full undo/redo for editors
+const editorStore = createTimeTravelStore('editor', { content: '' }, {
+  maxHistory: 50,  // Keep 50 undo levels
+  mutable: true
+});
+
+editorStore.undo();
+editorStore.redo();
+
+// High-performance mode (no undo/redo overhead)
+const dashboardStore = createTimeTravelStore('dashboard', data, {
+  maxHistory: 0,   // ⚡ Disable undo/redo for performance
+  mutable: true,   // ✅ Structural sharing for selective re-rendering
+  notificationMode: 'batched'  // RAF batching
+});
+```
+
+**📖 [Complete Store Guide](docs/STORE_GUIDE.md)** - Learn about:
+- TimeTravelStore usage patterns
+- Disabling undo/redo for performance
+- Notification modes (batched vs immediate)
+- Best practices and migration guides
+
 ### 🏗️ 5-Layer Hooks Architecture
 
 **Context-Action implements a sophisticated 5-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
