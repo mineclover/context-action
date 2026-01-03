@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { CodeBlock } from '@/components/ui';
 import {
   PageWithLogMonitor,
@@ -65,7 +66,9 @@ function BasicToastDemo() {
           <Input
             type="text"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setMessage(e.target.value)
+            }
             placeholder="커스텀 메시지를 입력하세요"
             className="w-full"
           />

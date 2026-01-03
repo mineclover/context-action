@@ -1,6 +1,7 @@
 import { createStoreContext, useStoreValue } from '@context-action/react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -177,7 +178,9 @@ function MessageDemo() {
         <Input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setInputValue(e.target.value)
+          }
           placeholder="Enter new message"
           className="w-full"
         />
@@ -230,7 +233,9 @@ function CounterDemo() {
           <Input
             type="number"
             value={addValueInput}
-            onChange={(e) => setAddValueInput(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setAddValueInput(e.target.value)
+            }
             placeholder="Enter value to add"
             className="flex-1"
           />
@@ -288,7 +293,9 @@ function UserDemo() {
           <Input
             type="text"
             value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setNameInput(e.target.value)
+            }
             placeholder="Enter new name"
             className="flex-1"
           />
@@ -300,7 +307,9 @@ function UserDemo() {
           <Input
             type="email"
             value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setEmailInput(e.target.value)
+            }
             placeholder="Enter new email"
             className="flex-1"
           />
