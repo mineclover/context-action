@@ -44,13 +44,19 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Hybrid approach: Manual splitting for stable vendors, auto for app code
-        manualChunks: {
-          // Stable vendor libraries (rarely change)
-          'react-vendor': ['react', 'react-dom'],
-          'router-vendor': ['react-router-dom'],
-          // Context-Action framework
-          'context-action': ['@context-action/core', '@context-action/react'],
+        // Manual splitting for stable vendors only
+        // Workspace packages will be bundled with app code to avoid React duplication
+        manualChunks: (id) => {
+          // Only chunk node_modules dependencies
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react/')) {
+              return 'react-vendor';
+            }
+            if (id.includes('react-router')) {
+              return 'router-vendor';
+            }
+          }
+          // Don't manually chunk workspace packages - they share React with app code
         },
       },
     },
