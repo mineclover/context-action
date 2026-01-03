@@ -123,7 +123,7 @@ function UIStateManager({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={styles.container} data-theme={uiState.theme}>
-      {React.cloneElement(children as React.ReactElement, { uiState })}
+      {React.cloneElement(children as React.ReactElement<{ uiState: UIState }>, { uiState })}
     </div>
   );
 }
