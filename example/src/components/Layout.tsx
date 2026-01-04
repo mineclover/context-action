@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { navItemRecipe } from './ui/recipes';
 
 
 interface NavItem {
@@ -40,47 +41,8 @@ interface LayoutProps {
   collapsed?: boolean;
 }
 
-// Temporary navItemVariants replacement - convert to direct Tailwind classes
-function navItemVariants({
-  variant = 'default',
-  category = 'main'
-}: {
-  variant?: 'default' | 'active' | 'disabled';
-  category?: string;
-}) {
-  const baseClasses = 'block w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200';
-
-  const variantClasses = {
-    default: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-    active: 'bg-primary-100 text-primary-900 border-l-4 border-primary-600',
-    disabled: 'text-gray-400 cursor-not-allowed opacity-60',
-  };
-
-  const categoryHoverClasses: Record<string, string> = {
-    main: '',
-    core: 'hover:bg-red-50 hover:text-red-900',
-    store: 'hover:bg-green-50 hover:text-green-900',
-    action: 'hover:bg-blue-50 hover:text-blue-900',
-    async: 'hover:bg-purple-50 hover:text-purple-900',
-    architecture: 'hover:bg-gray-50 hover:text-gray-900',
-    interaction: 'hover:bg-indigo-50 hover:text-indigo-900',
-    pipeline: 'hover:bg-orange-50 hover:text-orange-900',
-    react: 'hover:bg-purple-50 hover:text-purple-900',
-    logger: 'hover:bg-yellow-50 hover:text-yellow-900',
-    actionguard: 'hover:bg-pink-50 hover:text-pink-900',
-    conditional: 'hover:bg-cyan-50 hover:text-cyan-900',
-    examples: 'hover:bg-orange-50 hover:text-orange-900',
-    refs: 'hover:bg-blue-50 hover:text-blue-900',
-    demos: 'hover:bg-emerald-50 hover:text-emerald-900',
-    performance: 'hover:bg-red-50 hover:text-red-900',
-    utilities: 'hover:bg-teal-50 hover:text-teal-900',
-    debug: 'hover:bg-indigo-50 hover:text-indigo-900',
-    dev: 'hover:bg-red-50 hover:text-red-900',
-    'coming-soon': 'bg-gray-50 text-gray-500',
-  };
-
-  return `${baseClasses} ${variantClasses[variant]} ${categoryHoverClasses[category] || ''}`.trim();
-}
+// Use Panda CSS navItemRecipe for maximum style reusability
+const navItemVariants = navItemRecipe;
 
 function Layout({
   children,
