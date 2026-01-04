@@ -1,10 +1,18 @@
 /**
  * Centralized component variants for maximum style reusability
- * All component variants are defined here for consistency and maintainability
+ * Structured by component categories for better organization and maintainability
+ *
+ * Categories:
+ * - Core: Basic UI components (buttons, cards, grids)
+ * - Forms: Form-related components (inputs, selects, checkboxes)
+ * - Layout: Layout and positioning components (containers, flex, spacing)
+ * - UI: Specialized UI components (alerts, badges, avatars)
+ * - Utilities: Utility variants (animations, shadows, borders)
  */
 
 // ================================
-// Core Component Variants
+// 1. CORE COMPONENTS
+// Basic building blocks for UI
 // ================================
 
 export const cardVariants = ({
@@ -113,7 +121,8 @@ export const gridVariants = ({
 };
 
 // ================================
-// Form Component Variants
+// 3. LAYOUT COMPONENTS
+// Positioning, containers, and layout utilities
 // ================================
 
 export const inputVariants = ({
@@ -177,8 +186,85 @@ export const statusVariants = ({
   return `${baseClasses} ${statusClasses[status]}`;
 };
 
+// Select variants
+export const selectVariants = ({
+  size = 'md',
+  variant = 'default'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'error';
+} = {}) => {
+  const baseClasses = 'block w-full rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white';
+
+  const variantClasses = {
+    default: 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
+    error: 'border-danger-300 focus:border-danger-500 focus:ring-danger-500',
+  };
+
+  const sizeClasses = {
+    sm: 'px-3 py-2 text-sm',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-4 py-3 text-base',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
+};
+
+// Checkbox variants
+export const checkboxVariants = ({
+  size = 'md',
+  color = 'primary'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  color?: 'primary' | 'success' | 'warning' | 'danger';
+} = {}) => {
+  const baseClasses = 'rounded border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+
+  const colorClasses = {
+    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
+    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
+  };
+
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  };
+
+  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
+};
+
+// Radio variants
+export const radioVariants = ({
+  size = 'md',
+  color = 'primary'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  color?: 'primary' | 'success' | 'warning' | 'danger';
+} = {}) => {
+  const baseClasses = 'rounded-full border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+
+  const colorClasses = {
+    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
+    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
+  };
+
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  };
+
+  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
+};
+
 // ================================
-// Layout Component Variants
+// 4. UI COMPONENTS
+// Visual feedback and specialized UI elements
 // ================================
 
 export const containerVariants = ({
@@ -255,7 +341,8 @@ export const navItemVariants = ({
 };
 
 // ================================
-// Specialized Component Variants
+// 5. SPECIALIZED COMPONENTS
+// Domain-specific or advanced UI components
 // ================================
 
 export const demoCardVariants = ({
@@ -369,84 +456,11 @@ export const logLevelBadgeVariants = ({
 };
 
 // ================================
-// Extended Component Variants
+// 2. FORM COMPONENTS
+// Input controls and form elements
 // ================================
 
-// Select/Input related variants
-export const selectVariants = ({
-  size = 'md',
-  variant = 'default'
-}: {
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'error';
-} = {}) => {
-  const baseClasses = 'block w-full rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white';
 
-  const variantClasses = {
-    default: 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
-    error: 'border-danger-300 focus:border-danger-500 focus:ring-danger-500',
-  };
-
-  const sizeClasses = {
-    sm: 'px-3 py-2 text-sm',
-    md: 'px-4 py-2.5 text-sm',
-    lg: 'px-4 py-3 text-base',
-  };
-
-  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
-};
-
-// Checkbox variants
-export const checkboxVariants = ({
-  size = 'md',
-  color = 'primary'
-}: {
-  size?: 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'success' | 'warning' | 'danger';
-} = {}) => {
-  const baseClasses = 'rounded border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
-
-  const colorClasses = {
-    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
-    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
-    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
-    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
-  };
-
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6',
-  };
-
-  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
-};
-
-// Radio variants
-export const radioVariants = ({
-  size = 'md',
-  color = 'primary'
-}: {
-  size?: 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'success' | 'warning' | 'danger';
-} = {}) => {
-  const baseClasses = 'rounded-full border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
-
-  const colorClasses = {
-    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
-    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
-    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
-    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
-  };
-
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6',
-  };
-
-  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
-};
 
 // Progress variants
 export const progressVariants = ({
@@ -677,7 +691,8 @@ export const metricsDisplayVariants = ({
 };
 
 // ================================
-// Utility Variants
+// 6. UTILITIES
+// Generic utility variants for common styling needs
 // ================================
 
 // Spacing variants
