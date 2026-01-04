@@ -6,9 +6,9 @@
   "description": "Example application for @context-action/core library",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm panda:codegen && tsc && vite build",
-    "build:fast": "pnpm panda:codegen && vite build",
-    "build:strict": "pnpm panda:codegen && tsc && vite build",
+    "build": "tsc && vite build",
+    "build:fast": "vite build",
+    "build:strict": "tsc && vite build",
     "preview": "vite preview",
     "test": "echo 'No tests for example app'",
     "lint": "biome lint src",
@@ -20,9 +20,7 @@
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
     "analyze": "vite-bundle-analyzer",
-    "bundle-report": "vite build --mode analyze",
-    "panda:codegen": "panda codegen",
-    "prepare": "panda codegen"
+    "bundle-report": "vite build --mode analyze"
   },
   "dependencies": {
     "@context-action/core": "workspace:*",
@@ -42,7 +40,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.2",
-    "@pandacss/dev": "^1.7.2",
     "@types/node": "24.3.0",
     "@types/react": "19.2.7",
     "@types/react-dom": "^19.2.3",

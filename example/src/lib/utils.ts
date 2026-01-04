@@ -1,18 +1,11 @@
-import { css, cx } from '../../styled-system/css';
+import { clsx } from 'clsx';
 
-// Panda CSS utility function
+// Tailwind CSS utility function
 export function cn(...inputs: (string | undefined | null | false)[]): string {
-  return cx(...inputs.filter(Boolean) as string[]);
+  return clsx(...inputs);
 }
 
-// 타입 안전한 variant 래퍼 (Panda CSS 호환)
-export function safeVariant<T extends (...args: any[]) => any>(
-  variantFn: T
-): (...args: Parameters<T>) => string {
-  return (...args: Parameters<T>): string => {
-    return variantFn(...args) as string;
-  };
-}
+
 
 export function formatTimestamp(timestamp: number): string {
   return new Intl.DateTimeFormat('ko-KR', {
