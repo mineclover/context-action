@@ -5,10 +5,13 @@
 
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { sectionVariants, spacingVariants } from './variants';
 
 export interface SectionProps {
   title?: string;
   children: React.ReactNode;
+  spacing?: 'sm' | 'md' | 'lg' | 'xl';
+  divider?: boolean;
   className?: string;
   id?: string;
   titleClassName?: string;
@@ -18,13 +21,15 @@ export interface SectionProps {
 export function Section({
   title,
   children,
+  spacing = 'md',
+  divider = false,
   className,
   id,
   titleClassName,
   contentClassName,
 }: SectionProps) {
   return (
-    <section className={cn('space-y-4', className)} id={id}>
+    <section className={cn(sectionVariants({ spacing, divider }), className)} id={id}>
       {title && (
         <h2
           className={cn('text-2xl font-semibold text-gray-900', titleClassName)}
@@ -32,7 +37,9 @@ export function Section({
           {title}
         </h2>
       )}
-      <div className={cn('space-y-4', contentClassName)}>{children}</div>
+      <div className={cn(spacingVariants({ size: spacing, direction: 'vertical' }), contentClassName)}>
+        {children}
+      </div>
     </section>
   );
 }

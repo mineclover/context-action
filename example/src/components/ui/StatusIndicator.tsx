@@ -4,11 +4,12 @@
  */
 
 import { cn } from '../../lib/utils';
+import { flexVariants } from './variants';
 
 export interface StatusIndicatorProps {
   status: 'success' | 'error' | 'warning' | 'info' | 'loading' | 'idle';
   message?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -19,9 +20,11 @@ export function StatusIndicator({
   className,
 }: StatusIndicatorProps) {
   const sizeClasses = {
-    sm: 'w-2 h-2',
-    md: 'w-3 h-3',
-    lg: 'w-4 h-4',
+    xs: 'w-2 h-2',
+    sm: 'w-3 h-3',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5',
+    xl: 'w-6 h-6',
   };
 
   const statusClasses = {
@@ -34,7 +37,7 @@ export function StatusIndicator({
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn(flexVariants({ align: 'center', gap: 'sm' }), className)}>
       <div
         className={cn('rounded-full', sizeClasses[size], statusClasses[status])}
       />
