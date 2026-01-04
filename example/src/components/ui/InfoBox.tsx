@@ -4,49 +4,8 @@
  */
 
 import type React from 'react';
-import { css } from '../../../styled-system/css';
 import { cn } from '../../lib/utils';
-
-// ================================
-// Styles
-// ================================
-
-const baseStyle = css({
-  p: '4',
-  rounded: 'lg',
-  border: '1px solid',
-  fontSize: 'sm',
-});
-
-const variantStyles = {
-  info: css({
-    bg: 'blue.50',
-    borderColor: 'blue.200',
-    color: 'blue.800',
-  }),
-  success: css({
-    bg: 'green.50',
-    borderColor: 'green.200',
-    color: 'green.800',
-  }),
-  warning: css({
-    bg: 'yellow.50',
-    borderColor: 'yellow.200',
-    color: 'yellow.800',
-  }),
-  error: css({
-    bg: 'red.50',
-    borderColor: 'red.200',
-    color: 'red.800',
-  }),
-};
-
-const titleStyles = {
-  info: css({ fontWeight: 'medium', color: 'blue.800', mb: '1' }),
-  success: css({ fontWeight: 'medium', color: 'green.800', mb: '1' }),
-  warning: css({ fontWeight: 'medium', color: 'yellow.800', mb: '1' }),
-  error: css({ fontWeight: 'medium', color: 'red.800', mb: '1' }),
-};
+import { infoBoxVariants } from './variants';
 
 // ================================
 // Types
@@ -56,6 +15,7 @@ export type InfoBoxVariant = 'info' | 'success' | 'warning' | 'error';
 
 export interface InfoBoxProps {
   variant?: InfoBoxVariant;
+  size?: 'sm' | 'md' | 'lg';
   title?: string;
   children: React.ReactNode;
   className?: string;
@@ -67,13 +27,25 @@ export interface InfoBoxProps {
 
 export function InfoBox({
   variant = 'info',
+  size = 'md',
   title,
   children,
   className,
 }: InfoBoxProps) {
+  const titleColorClasses = {
+    info: 'text-blue-800',
+    success: 'text-green-800',
+    warning: 'text-yellow-800',
+    error: 'text-red-800',
+  };
+
   return (
-    <div className={cn(baseStyle, variantStyles[variant], className)}>
-      {title && <div className={titleStyles[variant]}>{title}</div>}
+    <div className={cn(infoBoxVariants({ variant, size }), className)}>
+      {title && (
+        <div className={cn('font-medium mb-2', titleColorClasses[variant])}>
+          {title}
+        </div>
+      )}
       {children}
     </div>
   );

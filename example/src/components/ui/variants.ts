@@ -369,6 +369,536 @@ export const logLevelBadgeVariants = ({
 };
 
 // ================================
+// Extended Component Variants
+// ================================
+
+// Select/Input related variants
+export const selectVariants = ({
+  size = 'md',
+  variant = 'default'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'error';
+} = {}) => {
+  const baseClasses = 'block w-full rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white';
+
+  const variantClasses = {
+    default: 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
+    error: 'border-danger-300 focus:border-danger-500 focus:ring-danger-500',
+  };
+
+  const sizeClasses = {
+    sm: 'px-3 py-2 text-sm',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-4 py-3 text-base',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
+};
+
+// Checkbox variants
+export const checkboxVariants = ({
+  size = 'md',
+  color = 'primary'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  color?: 'primary' | 'success' | 'warning' | 'danger';
+} = {}) => {
+  const baseClasses = 'rounded border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+
+  const colorClasses = {
+    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
+    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
+  };
+
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  };
+
+  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
+};
+
+// Radio variants
+export const radioVariants = ({
+  size = 'md',
+  color = 'primary'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  color?: 'primary' | 'success' | 'warning' | 'danger';
+} = {}) => {
+  const baseClasses = 'rounded-full border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+
+  const colorClasses = {
+    primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
+    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
+  };
+
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  };
+
+  return `${baseClasses} ${colorClasses[color]} ${sizeClasses[size]}`;
+};
+
+// Progress variants
+export const progressVariants = ({
+  variant = 'primary',
+  size = 'md'
+}: {
+  variant?: 'primary' | 'success' | 'warning' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+} = {}) => {
+  const baseClasses = 'w-full bg-gray-200 rounded-full overflow-hidden';
+
+  const variantClasses = {
+    primary: 'bg-blue-600',
+    success: 'bg-green-600',
+    warning: 'bg-yellow-600',
+    danger: 'bg-red-600',
+  };
+
+  const sizeClasses = {
+    sm: 'h-2',
+    md: 'h-3',
+    lg: 'h-4',
+  };
+
+  return {
+    container: `${baseClasses} ${sizeClasses[size]}`,
+    bar: variantClasses[variant],
+  };
+};
+
+// Avatar variants
+export const avatarVariants = ({
+  size = 'md',
+  shape = 'circle'
+}: {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  shape?: 'circle' | 'square' | 'rounded';
+} = {}) => {
+  const baseClasses = 'bg-gray-300 text-white font-medium flex items-center justify-center overflow-hidden';
+
+  const sizeClasses = {
+    xs: 'w-6 h-6 text-xs',
+    sm: 'w-8 h-8 text-sm',
+    md: 'w-10 h-10 text-base',
+    lg: 'w-12 h-12 text-lg',
+    xl: 'w-16 h-16 text-xl',
+  };
+
+  const shapeClasses = {
+    circle: 'rounded-full',
+    square: 'rounded-none',
+    rounded: 'rounded-lg',
+  };
+
+  return `${baseClasses} ${sizeClasses[size]} ${shapeClasses[shape]}`;
+};
+
+// Skeleton variants
+export const skeletonVariants = ({
+  variant = 'default',
+  animation = 'pulse'
+}: {
+  variant?: 'default' | 'text' | 'title' | 'avatar';
+  animation?: 'pulse' | 'wave' | 'none';
+} = {}) => {
+  const baseClasses = 'bg-gray-200';
+
+  const variantClasses = {
+    default: 'rounded',
+    text: 'h-4 rounded',
+    title: 'h-6 rounded w-3/4',
+    avatar: 'rounded-full',
+  };
+
+  const animationClasses = {
+    pulse: 'animate-pulse',
+    wave: 'animate-pulse', // Simplified, wave would need custom CSS
+    none: '',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${animationClasses[animation]}`;
+};
+
+// Alert/Notification variants
+export const alertVariants = ({
+  variant = 'info',
+  size = 'md'
+}: {
+  variant?: 'info' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+} = {}) => {
+  const baseClasses = 'rounded-lg border transition-all duration-200';
+
+  const variantClasses = {
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    success: 'bg-green-50 border-green-200 text-green-800',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+  };
+
+  const sizeClasses = {
+    sm: 'p-3 text-sm',
+    md: 'p-4 text-base',
+    lg: 'p-6 text-lg',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
+};
+
+// Label variants
+export const labelVariants = ({
+  size = 'md',
+  required = false
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  required?: boolean;
+} = {}) => {
+  const baseClasses = 'block font-medium text-gray-700';
+
+  const sizeClasses = {
+    sm: 'text-sm',
+    md: 'text-sm',
+    lg: 'text-base',
+  };
+
+  const requiredClasses = required ? 'after:content-["*"] after:text-red-500 after:ml-1' : '';
+
+  return `${baseClasses} ${sizeClasses[size]} ${requiredClasses}`.trim();
+};
+
+// Page Header variants
+export const pageHeaderVariants = ({
+  size = 'md',
+  align = 'left'
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  align?: 'left' | 'center' | 'right';
+} = {}) => {
+  const baseClasses = 'mb-8';
+
+  const sizeClasses = {
+    sm: 'space-y-2',
+    md: 'space-y-4',
+    lg: 'space-y-6',
+  };
+
+  const alignClasses = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+  };
+
+  return `${baseClasses} ${sizeClasses[size]} ${alignClasses[align]}`;
+};
+
+// Section variants
+export const sectionVariants = ({
+  spacing = 'md',
+  divider = false
+}: {
+  spacing?: 'sm' | 'md' | 'lg' | 'xl';
+  divider?: boolean;
+} = {}) => {
+  const baseClasses = 'py-8';
+
+  const spacingClasses = {
+    sm: 'py-4',
+    md: 'py-8',
+    lg: 'py-12',
+    xl: 'py-16',
+  };
+
+  const dividerClasses = divider ? 'border-b border-gray-200' : '';
+
+  return `${baseClasses} ${spacingClasses[spacing]} ${dividerClasses}`.trim();
+};
+
+// InfoBox variants
+export const infoBoxVariants = ({
+  variant = 'info',
+  size = 'md'
+}: {
+  variant?: 'info' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+} = {}) => {
+  const baseClasses = 'rounded-lg border-l-4 p-4 bg-gray-50';
+
+  const variantClasses = {
+    info: 'border-blue-400 bg-blue-50 text-blue-800',
+    success: 'border-green-400 bg-green-50 text-green-800',
+    warning: 'border-yellow-400 bg-yellow-50 text-yellow-800',
+    error: 'border-red-400 bg-red-50 text-red-800',
+  };
+
+  const sizeClasses = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
+};
+
+// Metrics Display variants
+export const metricsDisplayVariants = ({
+  variant = 'default',
+  size = 'md'
+}: {
+  variant?: 'default' | 'success' | 'warning' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+} = {}) => {
+  const baseClasses = 'bg-white p-4 rounded-lg border border-gray-200 transition-all duration-200';
+
+  const variantClasses = {
+    default: 'text-gray-700',
+    success: 'text-green-700 border-green-200 bg-green-50',
+    warning: 'text-yellow-700 border-yellow-200 bg-yellow-50',
+    danger: 'text-red-700 border-red-200 bg-red-50',
+  };
+
+  const sizeClasses = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
+};
+
+// ================================
+// Utility Variants
+// ================================
+
+// Spacing variants
+export const spacingVariants = ({
+  size = 'md',
+  direction = 'vertical'
+}: {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  direction?: 'vertical' | 'horizontal';
+} = {}) => {
+  const sizeClasses = {
+    xs: direction === 'vertical' ? 'space-y-1' : 'space-x-1',
+    sm: direction === 'vertical' ? 'space-y-2' : 'space-x-2',
+    md: direction === 'vertical' ? 'space-y-4' : 'space-x-4',
+    lg: direction === 'vertical' ? 'space-y-6' : 'space-x-6',
+    xl: direction === 'vertical' ? 'space-y-8' : 'space-x-8',
+    '2xl': direction === 'vertical' ? 'space-y-12' : 'space-x-12',
+  };
+
+  return sizeClasses[size];
+};
+
+// Flex variants
+export const flexVariants = ({
+  direction = 'row',
+  align = 'center',
+  justify = 'start',
+  wrap = false,
+  gap = 'md'
+}: {
+  direction?: 'row' | 'col';
+  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+  wrap?: boolean;
+  gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+} = {}) => {
+  const baseClasses = 'flex';
+
+  const directionClasses = {
+    row: 'flex-row',
+    col: 'flex-col',
+  };
+
+  const alignClasses = {
+    start: 'items-start',
+    center: 'items-center',
+    end: 'items-end',
+    stretch: 'items-stretch',
+    baseline: 'items-baseline',
+  };
+
+  const justifyClasses = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    between: 'justify-between',
+    around: 'justify-around',
+    evenly: 'justify-evenly',
+  };
+
+  const wrapClasses = wrap ? 'flex-wrap' : 'flex-nowrap';
+
+  const gapClasses = {
+    xs: 'gap-1',
+    sm: 'gap-2',
+    md: 'gap-4',
+    lg: 'gap-6',
+    xl: 'gap-8',
+  };
+
+  return `${baseClasses} ${directionClasses[direction]} ${alignClasses[align]} ${justifyClasses[justify]} ${wrapClasses} ${gapClasses[gap]}`;
+};
+
+// Grid utility variants
+export const gridUtilityVariants = ({
+  cols = 'auto',
+  gap = 'md',
+  responsive = true
+}: {
+  cols?: 'auto' | 1 | 2 | 3 | 4 | 6 | 12;
+  gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  responsive?: boolean;
+} = {}) => {
+  const baseClasses = 'grid';
+
+  const colsClasses = {
+    auto: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-4',
+    1: 'grid-cols-1',
+    2: responsive ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2',
+    3: responsive ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-3',
+    4: responsive ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-4',
+    6: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-6',
+    12: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12' : 'grid-cols-12',
+  };
+
+  const gapClasses = {
+    xs: 'gap-2',
+    sm: 'gap-3',
+    md: 'gap-4',
+    lg: 'gap-6',
+    xl: 'gap-8',
+  };
+
+  return `${baseClasses} ${colsClasses[cols]} ${gapClasses[gap]}`;
+};
+
+// Animation variants
+export const animationVariants = ({
+  type = 'fade',
+  duration = 'normal',
+  easing = 'ease'
+}: {
+  type?: 'fade' | 'slide' | 'scale' | 'bounce' | 'spin' | 'ping';
+  duration?: 'fast' | 'normal' | 'slow';
+  easing?: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out';
+} = {}) => {
+  const typeClasses = {
+    fade: 'opacity-0 animate-fade-in',
+    slide: 'transform translate-x-full animate-slide-in',
+    scale: 'transform scale-0 animate-scale-in',
+    bounce: 'animate-bounce',
+    spin: 'animate-spin',
+    ping: 'animate-ping',
+  };
+
+  const durationClasses = {
+    fast: 'duration-150',
+    normal: 'duration-300',
+    slow: 'duration-500',
+  };
+
+  const easingClasses = {
+    linear: 'ease-linear',
+    ease: 'ease',
+    'ease-in': 'ease-in',
+    'ease-out': 'ease-out',
+    'ease-in-out': 'ease-in-out',
+  };
+
+  return `${typeClasses[type] || ''} ${durationClasses[duration]} ${easingClasses[easing]}`.trim();
+};
+
+// Shadow variants
+export const shadowVariants = ({
+  size = 'md',
+  color = 'gray'
+}: {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'inner';
+  color?: 'gray' | 'blue' | 'green' | 'red' | 'yellow' | 'purple';
+} = {}) => {
+  const sizeClasses = {
+    xs: 'shadow-xs',
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
+    xl: 'shadow-xl',
+    '2xl': 'shadow-2xl',
+    inner: 'shadow-inner',
+  };
+
+  const colorClasses = {
+    gray: '',
+    blue: 'shadow-blue-500/50',
+    green: 'shadow-green-500/50',
+    red: 'shadow-red-500/50',
+    yellow: 'shadow-yellow-500/50',
+    purple: 'shadow-purple-500/50',
+  };
+
+  return `${sizeClasses[size]} ${colorClasses[color]}`.trim();
+};
+
+// Border variants
+export const borderVariants = ({
+  width = 'default',
+  style = 'solid',
+  color = 'gray',
+  radius = 'md'
+}: {
+  width?: 'thin' | 'default' | 'thick' | 'extra';
+  style?: 'solid' | 'dashed' | 'dotted' | 'double';
+  color?: 'gray' | 'blue' | 'green' | 'red' | 'yellow' | 'purple';
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+} = {}) => {
+  const widthClasses = {
+    thin: 'border',
+    default: 'border-2',
+    thick: 'border-4',
+    extra: 'border-8',
+  };
+
+  const styleClasses = {
+    solid: 'border-solid',
+    dashed: 'border-dashed',
+    dotted: 'border-dotted',
+    double: 'border-double',
+  };
+
+  const colorClasses = {
+    gray: 'border-gray-300',
+    blue: 'border-blue-500',
+    green: 'border-green-500',
+    red: 'border-red-500',
+    yellow: 'border-yellow-500',
+    purple: 'border-purple-500',
+  };
+
+  const radiusClasses = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    '2xl': 'rounded-2xl',
+    full: 'rounded-full',
+  };
+
+  return `${widthClasses[width]} ${styleClasses[style]} ${colorClasses[color]} ${radiusClasses[radius]}`;
+};
+
+// ================================
 // Type Definitions for Compatibility
 // ================================
 
@@ -386,6 +916,19 @@ export type CodeBlockVariants = Parameters<typeof codeBlockVariants>[0];
 export type ToastVariants = Parameters<typeof toastVariants>[0];
 export type ToastContainerVariants = Parameters<typeof toastContainerVariants>[0];
 export type ToastStepBadgeVariants = Parameters<typeof toastStepBadgeVariants>[0];
+export type AlertVariants = Parameters<typeof alertVariants>[0];
+export type SelectVariants = Parameters<typeof selectVariants>[0];
+export type CheckboxVariants = Parameters<typeof checkboxVariants>[0];
+export type RadioVariants = Parameters<typeof radioVariants>[0];
+export type ProgressVariants = Parameters<typeof progressVariants>[0];
+export type AvatarVariants = Parameters<typeof avatarVariants>[0];
+export type SkeletonVariants = Parameters<typeof skeletonVariants>[0];
+export type SpacingVariants = Parameters<typeof spacingVariants>[0];
+export type FlexVariants = Parameters<typeof flexVariants>[0];
+export type GridUtilityVariants = Parameters<typeof gridUtilityVariants>[0];
+export type AnimationVariants = Parameters<typeof animationVariants>[0];
+export type ShadowVariants = Parameters<typeof shadowVariants>[0];
+export type BorderVariants = Parameters<typeof borderVariants>[0];
 export type LayoutVariants = any;
 export type SidebarVariants = any;
 export type MainContentVariants = any;
