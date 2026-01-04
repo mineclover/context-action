@@ -1,11 +1,11 @@
-import pandacss from '@pandacss/dev/postcss';
 import tailwindcss from 'tailwindcss';
+import pandacss from '@pandacss/dev/postcss';
 import autoprefixer from 'autoprefixer';
 
 export default {
   plugins: [
-    pandacss(),
     tailwindcss,
+    pandacss(),
     autoprefixer,
   ],
 }
