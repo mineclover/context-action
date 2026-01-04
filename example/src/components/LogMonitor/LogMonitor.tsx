@@ -12,7 +12,6 @@ import {
   inputVariants,
   logEntryVariants,
   logLevelBadgeVariants,
-  logMonitorVariants,
 } from '../ui/variants';
 import { useLogMonitor } from './hooks';
 import type { LogEntry, LogMonitorProps } from './types';
@@ -44,7 +43,7 @@ export function LogMonitor({
   return (
     <div
       className={cn(
-        logMonitorVariants({ variant: 'default' }),
+        'bg-white rounded-lg border border-gray-200',
         'p-4',
         className
       )}
