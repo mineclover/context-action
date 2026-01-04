@@ -18,7 +18,41 @@ import {
   type StorePath,
 } from '@context-action/react';
 import { CodeBlock } from '@/components/ui';
-import { css } from '../../../../styled-system/css';
+import {
+  storeSubscriberVariants,
+  subscriberHeaderVariants,
+  subscriberLabelVariants,
+  renderCountBadgeVariants,
+  subscriberValueVariants,
+  subscriberPathVariants,
+  mutableStoreButtonVariants,
+  controlPanelVariants,
+  controlPanelHeaderVariants,
+  controlPanelTitleVariants,
+  controlPanelHintVariants,
+  controlPanelButtonGroupVariants,
+  patternCardVariants,
+  patternCardHeaderVariants,
+  patternIconVariants,
+  patternTitleVariants,
+  patternButtonGroupVariants,
+  pageContainerVariants,
+  mutableStorePageHeaderVariants,
+  mutableStorePageTitleVariants,
+  pageDescriptionVariants,
+  pageGridVariants,
+  performanceSectionVariants,
+  performanceHeaderVariants,
+  performanceIconVariants,
+  performanceTitleVariants,
+  performanceHintVariants,
+  performanceGridVariants,
+  keyFeaturesCardVariants,
+  keyFeaturesTitleVariants,
+  keyFeaturesItemTitleVariants,
+  keyFeaturesItemTextVariants,
+} from '@/components/ui/variants';
+
 
 // ============================================================================
 // Deep State Structure for Structural Sharing Demo
@@ -108,22 +142,15 @@ const PathSubscriber = memo(function PathSubscriber({
   const value = useStorePath(appStore, path);
 
   return (
-    <div className={css({ p: '2', bg: 'gray.50', _dark: { bg: 'gray.800' }, rounded: 'base', borderWidth: '1px', borderColor: 'gray.200' })}>
-      <div className={css({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
-        <span className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'gray.700', _dark: { color: 'gray.300' } })}>{label}</span>
-        <span className={css({
-          fontSize: '10px',
-          px: '1.5',
-          py: '0.5',
-          rounded: 'full',
-          bg: renderCount.current > 1 ? 'amber.400' : 'green.500',
-          color: renderCount.current > 1 ? 'black' : 'white'
-        })}>
+    <div className={storeSubscriberVariants()}>
+      <div className={subscriberHeaderVariants()}>
+        <span className={subscriberLabelVariants()}>{label}</span>
+        <span className={renderCountBadgeVariants({ isRendered: renderCount.current > 1 })}>
           {renderCount.current}
         </span>
       </div>
-      <div className={css({ fontSize: 'lg', fontWeight: 'medium', color: 'gray.900', _dark: { color: 'white' }, mt: '1' })}>{renderValue(value)}</div>
-      <div className={css({ fontSize: '9px', fontFamily: 'mono', color: 'gray.400', mt: '0.5' })}>{path.join('.')}</div>
+      <div className={subscriberValueVariants()}>{renderValue(value)}</div>
+      <div className={subscriberPathVariants()}>{path.join('.')}</div>
     </div>
   );
 });
@@ -136,17 +163,17 @@ const FullStateSubscriber = memo(function FullStateSubscriber() {
   const snapshot = appStore.getSnapshot();
 
   return (
-    <div className={css({ p: '2', bg: 'red.50', _dark: { bg: 'red.900/20' }, rounded: 'base', borderWidth: '1px', borderColor: 'red.200' })}>
-      <div className={css({ display: 'flex', justifyContent: 'space-between', alignItems: 'center' })}>
-        <span className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'red.700', _dark: { color: 'red.400' } })}>Full State</span>
-        <span className={css({ fontSize: '10px', px: '1.5', py: '0.5', rounded: 'full', bg: 'red.500', color: 'white' })}>
+    <div className={storeSubscriberVariants({ type: 'fullState' })}>
+      <div className={subscriberHeaderVariants()}>
+        <span className={subscriberLabelVariants({ type: 'fullState' })}>Full State</span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white">
           {renderCount.current}
         </span>
       </div>
-      <div className={css({ fontSize: '10px', fontFamily: 'mono', color: 'red.600', _dark: { color: 'red.400' }, mt: '1' })}>
+      <div className="text-[10px] font-mono text-red-600 dark:text-red-400 mt-1">
         useStoreValue 비호환 → useStorePath 사용
       </div>
-      <div className={css({ fontSize: '9px', color: 'red.500', mt: '0.5' })}>
+      <div className="text-[9px] text-red-500 mt-0.5">
         {new Date(snapshot.lastUpdate).toLocaleTimeString()}
       </div>
     </div>
@@ -203,34 +230,32 @@ function ControlPanel() {
     appStore.setValue(initialState);
   }, []);
 
-  const btn = css({ px: '2', py: '1', fontSize: 'xs', fontWeight: 'medium', rounded: 'base', cursor: 'pointer', borderStyle: 'none', color: 'white' });
-
   return (
-    <div className={css({ bg: 'gray.100', _dark: { bg: 'gray.800' }, rounded: 'lg', p: '3' })}>
-      <div className={css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '2' })}>
-        <h3 className={css({ fontSize: 'sm', fontWeight: 'semibold', color: 'gray.700', _dark: { color: 'gray.200' } })}>Control Panel</h3>
-        <span className={css({ fontSize: '10px', color: 'gray.500' })}>각 버튼 클릭 시 해당 경로만 업데이트</span>
+    <div className={controlPanelVariants()}>
+      <div className={controlPanelHeaderVariants()}>
+        <h3 className={controlPanelTitleVariants()}>Control Panel</h3>
+        <span className={controlPanelHintVariants()}>각 버튼 클릭 시 해당 경로만 업데이트</span>
       </div>
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '1' })}>
-        <button onClick={incrementCounter} className={`${btn} ${css({ bg: 'blue.600', _hover: { bg: 'blue.700' } })}`}>
+      <div className={controlPanelButtonGroupVariants()}>
+        <button onClick={incrementCounter} className={mutableStoreButtonVariants({ color: 'blue' })}>
           Counter++
         </button>
-        <button onClick={toggleTheme} className={`${btn} ${css({ bg: 'violet.600', _hover: { bg: 'violet.700' } })}`}>
+        <button onClick={toggleTheme} className={mutableStoreButtonVariants({ color: 'violet' })}>
           Theme
         </button>
-        <button onClick={updateName} className={`${btn} ${css({ bg: 'green.600', _hover: { bg: 'green.700' } })}`}>
+        <button onClick={updateName} className={mutableStoreButtonVariants({ color: 'green' })}>
           Name
         </button>
-        <button onClick={toggleSidebar} className={`${btn} ${css({ bg: 'teal.600', _hover: { bg: 'teal.700' } })}`}>
+        <button onClick={toggleSidebar} className={mutableStoreButtonVariants({ color: 'teal' })}>
           Sidebar
         </button>
-        <button onClick={updateLoginStats} className={`${btn} ${css({ bg: 'orange.500', _hover: { bg: 'orange.600' } })}`}>
+        <button onClick={updateLoginStats} className={mutableStoreButtonVariants({ color: 'orange' })}>
           Login Stats
         </button>
-        <button onClick={cycleAvatar} className={`${btn} ${css({ bg: 'pink.600', _hover: { bg: 'pink.700' } })}`}>
+        <button onClick={cycleAvatar} className={mutableStoreButtonVariants({ color: 'pink' })}>
           Avatar
         </button>
-        <button onClick={resetState} className={`${btn} ${css({ bg: 'gray.500', _hover: { bg: 'gray.600' } })}`}>
+        <button onClick={resetState} className={mutableStoreButtonVariants({ color: 'gray' })}>
           Reset
         </button>
       </div>
@@ -329,30 +354,28 @@ function ComplexOperationsPanel() {
     });
   }, []);
 
-  const btnBase = css({ px: '2', py: '1', fontSize: 'xs', fontWeight: 'medium', rounded: 'base', cursor: 'pointer', borderStyle: 'none' });
-
   return (
-    <div className={css({ bg: 'slate.50', _dark: { bg: 'slate.800' }, rounded: 'lg', p: '3' })}>
-      <h3 className={css({ fontSize: 'sm', fontWeight: 'semibold', color: 'slate.700', _dark: { color: 'slate.200' }, mb: '3' })}>
+    <div className={controlPanelVariants({ theme: 'dark' })}>
+      <h3 className={controlPanelTitleVariants({ theme: 'dark' })}>
         Update Patterns Comparison
       </h3>
 
       {/* 2-column layout */}
-      <div className={css({ display: 'grid', gridTemplateColumns: { base: '1fr', lg: 'repeat(2, 1fr)' }, gap: '4' })}>
+      <div className={pageGridVariants({ cols: 2 })}>
         {/* Left: Recommended */}
-        <div className={css({ bg: 'green.50', _dark: { bg: 'green.900/20' }, rounded: 'lg', p: '3' })}>
-          <div className={css({ display: 'flex', alignItems: 'center', gap: '2', mb: '2' })}>
-            <span className={css({ color: 'green.600', _dark: { color: 'green.400' } })}>✓</span>
-            <span className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'green.700', _dark: { color: 'green.300' } })}>권장 패턴</span>
+        <div className={patternCardVariants({ type: 'good' })}>
+          <div className={patternCardHeaderVariants()}>
+            <span className={patternIconVariants({ type: 'good' })}>✓</span>
+            <span className={patternTitleVariants({ type: 'good' })}>권장 패턴</span>
           </div>
-          <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '1', mb: '3' })}>
-            <button onClick={batchedProfileUpdate} className={`${btnBase} ${css({ bg: 'green.600', color: 'white', _hover: { bg: 'green.700' } })}`}>
+          <div className={patternButtonGroupVariants()}>
+            <button onClick={batchedProfileUpdate} className={mutableStoreButtonVariants({ color: 'green' })}>
               Batched
             </button>
-            <button onClick={computedUpdate} className={`${btnBase} ${css({ bg: 'teal.600', color: 'white', _hover: { bg: 'teal.700' } })}`}>
+            <button onClick={computedUpdate} className={mutableStoreButtonVariants({ color: 'teal' })}>
               Read-Compute-Write
             </button>
-            <button onClick={conditionalUpdate} className={`${btnBase} ${css({ bg: 'violet.600', color: 'white', _hover: { bg: 'violet.700' } })}`}>
+            <button onClick={conditionalUpdate} className={mutableStoreButtonVariants({ color: 'violet' })}>
               Conditional
             </button>
           </div>
@@ -367,16 +390,16 @@ store.update((draft) => {
         </div>
 
         {/* Right: Anti-pattern */}
-        <div className={css({ bg: 'amber.50', _dark: { bg: 'amber.900/20' }, rounded: 'lg', p: '3' })}>
-          <div className={css({ display: 'flex', alignItems: 'center', gap: '2', mb: '2' })}>
-            <span className={css({ color: 'amber.600', _dark: { color: 'amber.400' } })}>⚠</span>
-            <span className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'amber.700', _dark: { color: 'amber.300' } })}>안티패턴</span>
+        <div className={patternCardVariants({ type: 'bad' })}>
+          <div className={patternCardHeaderVariants()}>
+            <span className={patternIconVariants({ type: 'bad' })}>⚠</span>
+            <span className={patternTitleVariants({ type: 'bad' })}>안티패턴</span>
           </div>
-          <div className={css({ display: 'flex', flexWrap: 'wrap', gap: '1', mb: '3' })}>
-            <button onClick={separateUpdates} className={`${btnBase} ${css({ bg: 'amber.500', color: 'black', _hover: { bg: 'amber.600' } })}`}>
+          <div className={patternButtonGroupVariants()}>
+            <button onClick={separateUpdates} className="px-2 py-1 text-xs font-medium rounded cursor-pointer border-none bg-amber-500 text-black hover:bg-amber-600">
               Separate Updates
             </button>
-            <span className={css({ fontSize: '10px', color: 'amber.600', _dark: { color: 'amber.400' }, alignSelf: 'center', ml: '1' })}>
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 align-self-center ml-1">
               (console 확인)
             </span>
           </div>
@@ -387,7 +410,7 @@ store.update((d) => { d.user.stats.loginCount++; });
 store.update((d) => { d.ui.sidebar.isOpen = !d.ui.sidebar.isOpen; });
 // → 3개 패치, 3번 structural sharing 연산`}
           </CodeBlock>
-          <ul className={css({ mt: '2', fontSize: '10px', color: 'amber.700', _dark: { color: 'amber.300' }, spaceY: '0.5', pl: '3' })}>
+          <ul className="mt-2 text-[10px] text-amber-700 dark:text-amber-300 space-y-0.5 pl-3">
             <li>• RAF 배칭으로 알림은 1번이지만 3번 연산</li>
             <li>• immediate 모드에서는 3번 알림</li>
             <li>• getLastPatches()는 3개 패치 모두 반환 (누적)</li>
@@ -406,12 +429,12 @@ function PatchesDisplay() {
   const patches = appStore.getLastPatches();
 
   return (
-    <div className={css({ bg: 'gray.100', _dark: { bg: 'gray.800' }, rounded: 'lg', p: '3', mt: '3' })}>
-      <h4 className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'gray.600', _dark: { color: 'gray.300' }, mb: '2' })}>Last Patches</h4>
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mt-3">
+      <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">Last Patches</h4>
       {patches && patches.length > 0 ? (
         <CodeBlock size="xs">{JSON.stringify(patches, null, 2)}</CodeBlock>
       ) : (
-        <p className={css({ fontSize: 'xs', color: 'gray.500' })}>No patches yet</p>
+        <p className="text-xs text-gray-500">No patches yet</p>
       )}
     </div>
   );
@@ -423,13 +446,13 @@ function PatchesDisplay() {
 
 function MutableStoreDemoPage() {
   return (
-    <div className={css({ p: '4', maxW: '6xl', mx: 'auto' })}>
+    <div className={pageContainerVariants()}>
       {/* Header */}
-      <div className={css({ mb: '4' })}>
-        <h1 className={css({ fontSize: 'xl', fontWeight: 'bold', color: 'gray.900', _dark: { color: 'white' } })}>MutableStore Demo</h1>
-        <p className={css({ fontSize: 'sm', color: 'gray.600', _dark: { color: 'gray.400' } })}>
+      <div className={mutableStorePageHeaderVariants()}>
+        <h1 className={mutableStorePageTitleVariants()}>MutableStore Demo</h1>
+        <p className={pageDescriptionVariants()}>
           Structural sharing via{' '}
-          <a href="https://github.com/unadlib/mutative" target="_blank" rel="noopener noreferrer" className={css({ color: 'blue.600', _hover: { textDecoration: 'underline' } })}>
+          <a href="https://github.com/unadlib/mutative" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
             mutative
           </a>
           {' '}— unchanged parts keep same reference
@@ -437,23 +460,23 @@ function MutableStoreDemoPage() {
       </div>
 
       {/* Controls Row */}
-      <div className={css({ display: 'grid', gridTemplateColumns: { base: '1fr', lg: 'repeat(2, 1fr)' }, gap: '4', mb: '4' })}>
+      <div className={pageGridVariants({ cols: 2 })}>
         <ControlPanel />
         <ComplexOperationsPanel />
       </div>
 
       {/* Subscribers Grid */}
-      <div className={css({ display: 'grid', gridTemplateColumns: { base: '1fr', lg: 'repeat(3, 1fr)' }, gap: '4', mb: '4' })}>
+      <div className={pageGridVariants({ cols: 3 })}>
         {/* Path-based Subscribers */}
-        <div className={css({ gridColumn: { lg: 'span 2' } })}>
-          <div className={css({ display: 'flex', alignItems: 'center', gap: '2', mb: '2' })}>
-            <span className={css({ color: 'green.600' })}>✓</span>
-            <h3 className={css({ fontSize: 'sm', fontWeight: 'semibold', color: 'green.700', _dark: { color: 'green.400' } })}>
+        <div className={performanceSectionVariants({ span: true })}>
+          <div className={performanceHeaderVariants()}>
+            <span className={performanceIconVariants({ type: 'good' })}>✓</span>
+            <h3 className={performanceTitleVariants({ type: 'good' })}>
               Path-based Subscribers
             </h3>
-            <span className={css({ fontSize: '10px', color: 'gray.500' })}>(green = 1 render)</span>
+            <span className={performanceHintVariants()}>(green = 1 render)</span>
           </div>
-          <div className={css({ display: 'grid', gridTemplateColumns: { base: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: '2' })}>
+          <div className={performanceGridVariants({ cols: 'auto' })}>
             <PathSubscriber label="Counter" path={['counter']} renderValue={(v: number) => `${v}`} />
             <PathSubscriber label="Name" path={['user', 'profile', 'name']} renderValue={(v: string) => v} />
             <PathSubscriber label="Avatar" path={['user', 'profile', 'avatar']} renderValue={(v: string) => v} />
@@ -465,9 +488,9 @@ function MutableStoreDemoPage() {
 
         {/* Full State + Patches */}
         <div>
-          <div className={css({ display: 'flex', alignItems: 'center', gap: '2', mb: '2' })}>
-            <span className={css({ color: 'red.600' })}>✗</span>
-            <h3 className={css({ fontSize: 'sm', fontWeight: 'semibold', color: 'red.700', _dark: { color: 'red.400' } })}>
+          <div className={performanceHeaderVariants()}>
+            <span className={performanceIconVariants({ type: 'bad' })}>✗</span>
+            <h3 className={performanceTitleVariants({ type: 'bad' })}>
               Full State (비호환)
             </h3>
           </div>
@@ -477,20 +500,20 @@ function MutableStoreDemoPage() {
       </div>
 
       {/* Key Features - Compact */}
-      <div className={css({ bg: 'blue.50', _dark: { bg: 'blue.900/20' }, rounded: 'lg', p: '3' })}>
-        <h3 className={css({ fontSize: 'xs', fontWeight: 'semibold', color: 'blue.800', _dark: { color: 'blue.300' }, mb: '2' })}>Key Features</h3>
-        <div className={css({ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3', fontSize: '11px' })}>
+      <div className={keyFeaturesCardVariants()}>
+        <h3 className={keyFeaturesTitleVariants()}>Key Features</h3>
+        <div className={keyFeaturesGridVariants()}>
           <div>
-            <span className={css({ fontWeight: 'medium', color: 'blue.700', _dark: { color: 'blue.400' } })}>Structural Sharing</span>
-            <p className={css({ color: 'blue.600', _dark: { color: 'blue.300' } })}>unchanged parts keep same reference</p>
+            <span className={keyFeaturesItemTitleVariants()}>Structural Sharing</span>
+            <p className={keyFeaturesItemTextVariants()}>unchanged parts keep same reference</p>
           </div>
           <div>
-            <span className={css({ fontWeight: 'medium', color: 'blue.700', _dark: { color: 'blue.400' } })}>RAF Batching</span>
-            <p className={css({ color: 'blue.600', _dark: { color: 'blue.300' } })}>multiple updates → single notification</p>
+            <span className={keyFeaturesItemTitleVariants()}>RAF Batching</span>
+            <p className={keyFeaturesItemTextVariants()}>multiple updates → single notification</p>
           </div>
           <div>
-            <span className={css({ fontWeight: 'medium', color: 'blue.700', _dark: { color: 'blue.400' } })}>Concurrency Safe</span>
-            <p className={css({ color: 'blue.600', _dark: { color: 'blue.300' } })}>update queue prevents race conditions</p>
+            <span className={keyFeaturesItemTitleVariants()}>Concurrency Safe</span>
+            <p className={keyFeaturesItemTextVariants()}>update queue prevents race conditions</p>
           </div>
         </div>
       </div>

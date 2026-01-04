@@ -4,69 +4,14 @@
  */
 
 import type React from 'react';
-import { css } from '../../../styled-system/css';
 import { cn } from '../../lib/utils';
-
-// ================================
-// Styles
-// ================================
-
-const styles = {
-  container: css({ p: '6' }),
-  title: css({
-    fontSize: 'lg',
-    fontWeight: 'semibold',
-    color: 'gray.900',
-    mb: '4',
-  }),
-  grid: css({
-    display: 'grid',
-    gridTemplateColumns: '1',
-    gap: '6',
-    md: { gridTemplateColumns: 'repeat(2, 1fr)' },
-  }),
-  grid3: css({
-    display: 'grid',
-    gridTemplateColumns: '1',
-    gap: '6',
-    md: { gridTemplateColumns: 'repeat(3, 1fr)' },
-  }),
-  section: css({}),
-  sectionTitle: css({
-    fontWeight: 'semibold',
-    color: 'gray.700',
-    mb: '3',
-  }),
-  buttonGroup: css({ spaceY: '2' }),
-  settingsRow: css({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4',
-    p: '3',
-    bg: 'gray.50',
-    rounded: 'lg',
-  }),
-  label: css({
-    fontSize: 'sm',
-    fontWeight: 'medium',
-    color: 'gray.700',
-  }),
-  rangeLabel: css({
-    display: 'block',
-    fontSize: 'xs',
-    fontWeight: 'medium',
-    color: 'gray.600',
-    mb: '1',
-  }),
-  rangeInput: css({
-    w: 'full',
-    h: '2',
-    bg: 'gray.200',
-    rounded: 'lg',
-    appearance: 'none',
-    cursor: 'pointer',
-  }),
-};
+import {
+  textTitleVariants,
+  textHintVariants,
+  gridVariants,
+  spacingVariants,
+  flexVariants,
+} from './variants';
 
 // ================================
 // Types
@@ -100,23 +45,30 @@ export interface RangeControlProps {
 
 export function ControlSection({ title, children }: ControlSectionProps) {
   return (
-    <div className={styles.section}>
-      <h4 className={styles.sectionTitle}>{title}</h4>
+    <div>
+      <h4 className={cn(textTitleVariants({ variant: 'subsection' }))}>{title}</h4>
       {children}
     </div>
   );
 }
 
 export function ControlButtonGroup({ children }: { children: React.ReactNode }) {
-  return <div className={styles.buttonGroup}>{children}</div>;
+  return <div className={cn(spacingVariants({ size: 'sm', direction: 'vertical' }))}>{children}</div>;
 }
 
 export function ControlSettingsRow({ children }: { children: React.ReactNode }) {
-  return <div className={styles.settingsRow}>{children}</div>;
+  return (
+    <div className={cn(
+      flexVariants({ align: 'center', gap: 'md' }),
+      'p-3 bg-gray-50 rounded-lg'
+    )}>
+      {children}
+    </div>
+  );
 }
 
 export function ControlLabel({ children }: { children: React.ReactNode }) {
-  return <label className={styles.label}>{children}</label>;
+  return <label className="text-sm font-medium text-gray-700">{children}</label>;
 }
 
 export function RangeControl({
@@ -130,7 +82,7 @@ export function RangeControl({
 }: RangeControlProps) {
   return (
     <div>
-      <label className={styles.rangeLabel}>
+      <label className={cn(textHintVariants({ size: 'xs' }), 'block mb-1')}>
         {label}: {value}{unit}
       </label>
       <input
@@ -140,7 +92,7 @@ export function RangeControl({
         step={step}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
-        className={styles.rangeInput}
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
       />
     </div>
   );
@@ -152,12 +104,12 @@ export function ControlPanel({
   children,
   className,
 }: ControlPanelProps) {
-  const gridClass = cols === 3 ? styles.grid3 : styles.grid;
-
   return (
-    <div className={cn(styles.container, className)}>
-      <h3 className={styles.title}>{title}</h3>
-      <div className={gridClass}>{children}</div>
+    <div className={cn('p-6', className)}>
+      <h3 className={cn(textTitleVariants({ variant: 'section' }))}>{title}</h3>
+      <div className={cn(gridVariants({ cols: cols as 2 | 3, gap: 'lg' }))}>
+        {children}
+      </div>
     </div>
   );
 }

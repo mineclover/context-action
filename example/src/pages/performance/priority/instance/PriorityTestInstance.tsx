@@ -1,5 +1,6 @@
 import { useStoreValue } from '@context-action/react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { buttonVariants } from '@/components/ui/variants';
 import {
   AverageExecutionTime,
   MetricCard,
@@ -142,7 +143,7 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onAbort}
           disabled={!isRunning}
-          className="btn btn-danger text-sm px-3 py-2"
+          className={buttonVariants({ variant: 'danger', size: 'sm' })}
           title="실행 중단"
         >
           🛑 중단
@@ -150,7 +151,7 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onReset}
           disabled={isRunning}
-          className={`btn btn-secondary text-sm px-3 py-2 transition-all duration-200 ${
+          className={`${buttonVariants({ variant: 'secondary', size: 'sm' })} ${
             isRunning ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           title={isRunning ? '현재 실행 중...' : '전체 초기화'}
@@ -164,7 +165,7 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onBulkAdd}
           disabled={isRunning}
-          className={`btn btn-warning text-xs px-3 py-2 flex-1 whitespace-nowrap transition-all duration-200 ${
+          className={`${buttonVariants({ variant: 'warning', size: 'xs' })} flex-1 whitespace-nowrap ${
             isRunning ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           title={isRunning ? '현재 실행 중...' : '1-100번 핸들러 일괄 추가'}
@@ -212,7 +213,7 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onClear}
           disabled={isRunning}
-          className={`ml-auto btn btn-warning text-xs px-2 py-1 transition-all duration-200 ${
+          className={`ml-auto ${buttonVariants({ variant: 'warning', size: 'xs' })} ${
             isRunning ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           title={isRunning ? '현재 실행 중...' : '데이터 클리어'}

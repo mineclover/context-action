@@ -1,5 +1,7 @@
 import { useStoreValue } from '@context-action/react';
 import React, { memo, useCallback } from 'react';
+import { buttonVariants } from '@/components/ui/variants';
+
 import type { ChatMessage } from '../types';
 import {
   useChatMessages,
@@ -54,15 +56,15 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader = memo(({ messageCount, onClearChat }: ChatHeaderProps) => (
-  <div className="chat-header">
-    <div className="chat-title">
+  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-t-xl">
+    <div className="flex items-center gap-2">
       <h3>💬 실시간 채팅 데모</h3>
-      <span className="badge">{messageCount} 메시지</span>
+      <span className="px-2 py-1 bg-white/20 rounded-full text-xs font-medium">{messageCount} 메시지</span>
     </div>
-    <div className="chat-actions">
+    <div className="flex gap-2">
       <button
         onClick={onClearChat}
-        className="btn btn-sm btn-danger"
+        className={buttonVariants({ variant: 'danger', size: 'sm' })}
         disabled={!messageCount}
       >
         🗑️ 전체 삭제
@@ -89,13 +91,13 @@ const UserSelector = memo(
     );
 
     return (
-      <div className="user-selector">
-        <span className="label">현재 사용자:</span>
+  <div className="flex items-center gap-2 mb-4">
+    <span className="text-sm font-medium text-gray-700">현재 사용자:</span>
         {CHAT_USERS.map((user) => (
           <button
             key={user}
             onClick={() => handleUserClick(user)}
-            className={`user-btn ${currentUser === user ? 'active' : ''}`}
+            className={`px-3 py-1 text-sm rounded-lg transition-all ${currentUser === user ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             style={{ borderColor: getUserColor(user) }}
           >
             {getUserAvatar(user)} {user}
@@ -137,29 +139,29 @@ const MessageItem = memo(
       <div
         className={`message ${message.sender === currentUser ? 'own' : 'other'}`}
       >
-        <div className="message-avatar">{getUserAvatar(message.sender)}</div>
-        <div className="message-content">
-          <div className="message-header">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm">{getUserAvatar(message.sender)}</div>
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 mb-1">
             <span
-              className="message-sender"
+              className="text-sm font-medium text-gray-700"
               style={{ color: getUserColor(message.sender) }}
             >
               {message.sender}
             </span>
-            <span className="message-time">
+            <span className="text-xs text-gray-500">
               {getMessageTime(message.timestamp)}
             </span>
             {message.type !== 'text' && (
-              <span className="message-type-badge">
+              <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded">
                 {message.type === 'image' ? '🖼️' : '📎'}
               </span>
             )}
           </div>
-          <div className="message-text">{message.message}</div>
+          <div className="text-sm text-gray-900 leading-relaxed">{message.message}</div>
           {message.sender === currentUser && (
             <button
               onClick={handleDelete}
-              className="message-delete"
+              className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 flex items-center justify-center"
               title="메시지 삭제"
             >
               ×
@@ -174,13 +176,13 @@ const MessageItem = memo(
 
 // 타이핑 인디케이터
 const TypingIndicator = memo(() => (
-  <div className="message other typing">
-    <div className="message-avatar">💭</div>
-    <div className="message-content">
-      <div className="typing-indicator">
-        <span></span>
-        <span></span>
-        <span></span>
+  <div className="flex gap-3 max-w-md">
+    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm">💭</div>
+    <div className="bg-gray-100 p-3 rounded-2xl">
+      <div className="flex space-x-1">
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></span>
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
       </div>
     </div>
   </div>
@@ -238,12 +240,12 @@ const MessagesList = memo(
     messagesContainerRef,
     messagesEndRef,
   }: MessagesListProps) => (
-    <div ref={messagesContainerRef.setRef} className="chat-messages">
+    <div ref={messagesContainerRef.setRef} className="flex-1 p-4 space-y-4 overflow-y-auto max-h-96 bg-gray-50 rounded-b-xl">
       {messages?.length === 0 ? (
-        <div className="chat-empty">
-          <div className="empty-icon">💬</div>
-          <div className="empty-message">채팅을 시작해보세요!</div>
-          <div className="empty-hint">
+        <div className="text-center py-8">
+          <div className="text-4xl mb-2">💬</div>
+          <div className="text-lg text-gray-600 mb-2">채팅을 시작해보세요!</div>
+          <div className="text-sm text-gray-500">
             아래에서 메시지를 입력하거나 빠른 메시지를 선택하세요
           </div>
         </div>
@@ -272,14 +274,14 @@ interface QuickMessagesProps {
 }
 
 const QuickMessages = memo(({ onSendQuickMessage }: QuickMessagesProps) => (
-  <div className="quick-messages">
-    <span className="label">빠른 메시지:</span>
-    <div className="quick-message-list">
+  <div className="mb-4">
+    <span className="text-sm font-medium text-gray-700 mr-2">빠른 메시지:</span>
+    <div className="flex flex-wrap gap-2">
       {QUICK_MESSAGES.map((msg, index) => (
         <button
           key={index}
           onClick={() => onSendQuickMessage(msg.text, msg.type)}
-          className="quick-message-btn"
+          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
         >
           {msg.text}
         </button>
@@ -296,33 +298,36 @@ interface MessageTypeSelectorProps {
 
 const MessageTypeSelector = memo(
   ({ messageType, onTypeChange }: MessageTypeSelectorProps) => (
-    <div className="message-type-selector">
-      <label className="radio-label">
+    <div className="flex gap-4 mb-4">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="radio"
           value="text"
           checked={messageType === 'text'}
           onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
+          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
         />
-        <span>💬 텍스트</span>
+        <span className="text-sm text-gray-700">💬 텍스트</span>
       </label>
-      <label className="radio-label">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="radio"
           value="image"
           checked={messageType === 'image'}
           onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
+          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
         />
-        <span>🖼️ 이미지</span>
+        <span className="text-sm text-gray-700">🖼️ 이미지</span>
       </label>
-      <label className="radio-label">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="radio"
           value="file"
           checked={messageType === 'file'}
           onChange={(e) => onTypeChange(e.target.value as ChatMessage['type'])}
+          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
         />
-        <span>📎 파일</span>
+        <span className="text-sm text-gray-700">📎 파일</span>
       </label>
     </div>
   )
@@ -354,20 +359,20 @@ const MessageInput = memo(
     );
 
     return (
-      <div className="chat-input-area">
-        <div className="input-wrapper">
+      <div className="p-4 bg-white border-t border-gray-200 rounded-b-xl">
+        <div className="flex gap-2">
           <textarea
             value={newMessage}
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={`${currentUser}로 메시지 입력... (Enter로 전송, Shift+Enter로 줄바꿈)`}
-            className="chat-input"
+            className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             rows={2}
           />
           <button
             onClick={onSendMessage}
             disabled={!newMessage.trim()}
-            className="btn btn-primary send-btn"
+            className={buttonVariants({ variant: 'primary' })}
           >
             📤 전송
           </button>
@@ -428,7 +433,7 @@ function ChatComponent() {
   });
 
   return (
-    <div className="chat-demo">
+    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <ChatHeader messageCount={messageCount} onClearChat={clearChat} />
 
       <UserSelector

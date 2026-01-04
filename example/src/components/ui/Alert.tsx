@@ -5,13 +5,40 @@
 
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { alertVariants, type AlertVariants } from './variants';
 
-export type AlertProps = React.HTMLAttributes<HTMLDivElement> & AlertVariants & {
+export type AlertProps = React.HTMLAttributes<HTMLDivElement> & {
+  variant?: 'info' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
   title?: string;
   children: React.ReactNode;
   dismissible?: boolean;
   onDismiss?: () => void;
+};
+
+// Direct Tailwind variants - keeping it simple and reliable
+const alertVariants = ({
+  variant = 'info',
+  size = 'md'
+}: {
+  variant?: 'info' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+} = {}) => {
+  const baseClasses = 'rounded-lg border transition-all duration-200';
+
+  const variantClasses = {
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    success: 'bg-green-50 border-green-200 text-green-800',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+  };
+
+  const sizeClasses = {
+    sm: 'p-3 text-sm',
+    md: 'p-4 text-base',
+    lg: 'p-6 text-lg',
+  };
+
+  return `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`;
 };
 
 export function Alert({

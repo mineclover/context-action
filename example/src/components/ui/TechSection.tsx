@@ -4,38 +4,13 @@
  */
 
 import type React from 'react';
-import { css } from '../../../styled-system/css';
 import { cn } from '../../lib/utils';
-
-// ================================
-// Styles
-// ================================
-
-const styles = {
-  container: css({ p: '6' }),
-  title: css({
-    fontSize: 'lg',
-    fontWeight: 'semibold',
-    color: 'gray.900',
-    mb: '4',
-  }),
-  grid: css({
-    display: 'grid',
-    gridTemplateColumns: '1',
-    gap: '6',
-    lg: { gridTemplateColumns: 'repeat(2, 1fr)' },
-  }),
-  columnTitle: (color: string) => css({
-    fontWeight: 'semibold',
-    color: `${color}.600`,
-    mb: '3',
-  }),
-  list: css({
-    spaceY: '2',
-    fontSize: 'sm',
-    color: 'gray.700',
-  }),
-};
+import {
+  techSectionGridVariants,
+  techTitleVariants,
+  techListVariants,
+  textTitleVariants,
+} from './variants';
 
 // ================================
 // Types
@@ -60,8 +35,10 @@ export interface TechSectionProps {
 export function TechColumn({ title, color = 'blue', items }: TechColumnProps) {
   return (
     <div>
-      <h4 className={styles.columnTitle(color)}>{title}</h4>
-      <ul className={styles.list}>
+      <h4 className={cn(techTitleVariants({ color: color as 'blue' | 'green' }))}>
+        {title}
+      </h4>
+      <ul className={cn(techListVariants())}>
         {items.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
@@ -76,9 +53,9 @@ export function TechSection({
   className,
 }: TechSectionProps) {
   return (
-    <div className={cn(styles.container, className)}>
-      <h3 className={styles.title}>{title}</h3>
-      <div className={styles.grid}>
+    <div className={cn('p-6', className)}>
+      <h3 className={cn(textTitleVariants({ variant: 'section' }))}>{title}</h3>
+      <div className={cn(techSectionGridVariants())}>
         {columns.map((column, index) => (
           <TechColumn key={index} {...column} />
         ))}
