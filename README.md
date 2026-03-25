@@ -114,6 +114,19 @@ function App() {
 
 ---
 
+## 🧭 Recommended First Example
+
+If you want to understand Context-Action through one realistic example instead of many isolated APIs, start with the **Implementation Playbook**.
+
+- **Live example**: [Implementation Playbook](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+- **Guide**: [Canonical Order Form](https://mineclover.github.io/context-action/en/examples/canonical-order-form)
+- **Stability rationale**: [Stability Test Cycle](https://mineclover.github.io/context-action/en/context-layered/stability-test-cycle)
+- **PR-friendly verification**: `pnpm test:canonical-example`
+
+This path shows Action, Store, Ref, file-by-file reading order, and the actual integration test that validates the example.
+
+---
+
 ## 🎯 Why Context-Action?
 
 ### ❌ Problems with Existing Libraries

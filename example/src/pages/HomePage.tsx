@@ -20,6 +20,55 @@ function HomePage() {
       title="Context-Action Framework Examples"
       description="Interactive examples demonstrating the Context-Action framework's capabilities. Learn through hands-on experience with action pipelines, store management, and React integration."
     >
+      <Card variant="elevated" className="mb-8 border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50">
+        <CardContent>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                Recommended First Example
+              </div>
+              <h2 className="mt-4 text-3xl font-semibold text-slate-900">
+                Start with the Implementation Playbook
+              </h2>
+              <p className="mt-3 text-slate-700 leading-relaxed">
+                If you want the fastest route from architecture to working code,
+                start with the canonical order form example. It ties Action,
+                Store, and Ref boundaries to a real implementation and a real
+                integration test.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-600">
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
+                  Action + Store + Ref
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
+                  File-by-file reading order
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
+                  Verified by Jest
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/patterns/implementation-playbook"
+                className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                Open canonical example →
+              </Link>
+              <a
+                href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+              >
+                Read example guide ↗
+              </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="space-y-6 mb-8">
         <Card category="core" hover>
           <CardContent>
@@ -159,7 +208,15 @@ function HomePage() {
             Getting Started
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            Start with{' '}
+            Start with the{' '}
+            <Link
+              to="/patterns/implementation-playbook"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Implementation Playbook
+            </Link>{' '}
+            if you want the fastest path from architecture to working code. Then
+            move to{' '}
             <Link
               to="/foundations/core/basics"
               className="text-primary-600 hover:text-primary-700 font-medium"

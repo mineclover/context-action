@@ -116,6 +116,19 @@ function App() {
 
 ---
 
+## 🧭 첫 추천 예제
+
+개별 API를 따로 보기보다, 실제 구조와 검증 흐름을 한 번에 이해하고 싶다면 **Implementation Playbook**부터 시작하는 것이 가장 좋습니다.
+
+- **라이브 예제**: [Implementation Playbook](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+- **설명 문서**: [Canonical Order Form](https://mineclover.github.io/context-action/ko/examples/canonical-order-form)
+- **안정성 배경**: [Stability Test Cycle](https://mineclover.github.io/context-action/ko/context-layered/stability-test-cycle)
+- **PR용 검증 명령**: `pnpm test:canonical-example`
+
+이 경로를 따라가면 Action, Store, Ref 경계, 파일 읽기 순서, 그리고 실제 integration test까지 한 번에 확인할 수 있습니다.
+
+---
+
 ## 🎯 왜 Context-Action인가?
 
 ### ❌ 기존 라이브러리의 문제점

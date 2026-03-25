@@ -17,7 +17,8 @@ const GUIDE_STRUCTURE = {
         { text: 'Getting Started', link: '/en/guide/getting-started' },
         { text: 'Actions-based Dispatching', link: '/en/guide/actions-based-dispatching' },
         { text: 'Code Patterns', link: '/en/guide/code-patterns' },
-        { text: 'Best Practices', link: '/en/guide/best-practices' }
+        { text: 'Best Practices', link: '/en/guide/best-practices' },
+        { text: 'React Context Migration', link: '/en/guide/react-context-migration' }
       ]
     },
     pipeline: {
@@ -98,7 +99,8 @@ const GUIDE_STRUCTURE = {
         { text: '시작하기', link: '/ko/guide/getting-started' },
         { text: 'Actions 기반 디스패칭', link: '/ko/guide/actions-based-dispatching' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
-        { text: '모범 사례', link: '/ko/guide/best-practices' }
+        { text: '모범 사례', link: '/ko/guide/best-practices' },
+        { text: 'React Context 마이그레이션', link: '/ko/guide/react-context-migration' }
       ]
     },
     pipeline: {
@@ -183,7 +185,8 @@ const EXAMPLES_STRUCTURE = {
         { text: 'Basic Setup', link: '/en/examples/basic-setup' },
         { text: 'Action Only Pattern', link: '/en/examples/action-only' },
         { text: 'Store Only Pattern', link: '/en/examples/store-only' },
-        { text: 'Pattern Composition', link: '/en/examples/pattern-composition' }
+        { text: 'Pattern Composition', link: '/en/examples/pattern-composition' },
+        { text: 'Canonical Order Form', link: '/en/examples/canonical-order-form' }
       ]
     }
   },
@@ -195,7 +198,8 @@ const EXAMPLES_STRUCTURE = {
         { text: '기본 설정', link: '/ko/examples/basic-setup' },
         { text: 'Action Only 패턴', link: '/ko/examples/action-only' },
         { text: 'Store Only 패턴', link: '/ko/examples/store-only' },
-        { text: '패턴 조합', link: '/ko/examples/pattern-composition' }
+        { text: '패턴 조합', link: '/ko/examples/pattern-composition' },
+        { text: 'Canonical Order Form 예제', link: '/ko/examples/canonical-order-form' }
       ]
     }
   }
@@ -220,7 +224,8 @@ const CONCEPT_STRUCTURE = {
             { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
-            { text: 'Migration Guide', link: '/en/context-layered/migration-guide' }
+            { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
+            { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
           ]
         }
       ]
@@ -240,10 +245,11 @@ const CONCEPT_STRUCTURE = {
           text: '🏗️ Context-Layered',
           collapsed: true,
           items: [
-            { text: '개요', link: '/en/context-layered/context-layered-guide' },
-            { text: '폴더 구조', link: '/en/context-layered/architecture/folder-structure' },
-            { text: '핸들러 레지스트리', link: '/en/context-layered/architecture/handler-registry' },
-            { text: '마이그레이션 가이드', link: '/en/context-layered/migration-guide' }
+            { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+            { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
+            { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
+            { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
+            { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
           ]
         }
       ]
@@ -277,16 +283,29 @@ const LLMS_STRUCTURE = {
   }
 }
 
-// Context-Layered sidebar (English only)
 const CONTEXT_LAYERED_SIDEBAR = {
-  text: '🏗️ Context-Layered Architecture',
-  collapsed: false,
-  items: [
-    { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
-    { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
-    { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
-    { text: 'Migration Guide', link: '/en/context-layered/migration-guide' }
-  ]
+  en: {
+    text: '🏗️ Context-Layered Architecture',
+    collapsed: false,
+    items: [
+      { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+      { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
+      { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
+      { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
+      { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
+    ]
+  },
+  ko: {
+    text: '🏗️ Context-Layered Architecture',
+    collapsed: false,
+    items: [
+      { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+      { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
+      { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
+      { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
+      { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
+    ]
+  }
 }
 
 export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['sidebar'] {
@@ -319,15 +338,10 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     ]
   }
 
-  // Add context-layered sidebar for English only
-  if (locale === 'en') {
-    return {
-      ...baseSidebar,
-      '/en/context-layered/': [CONTEXT_LAYERED_SIDEBAR]
-    }
+  return {
+    ...baseSidebar,
+    [`/${locale}/context-layered/`]: [CONTEXT_LAYERED_SIDEBAR[locale]]
   }
-
-  return baseSidebar
 }
 
 export default createSidebars

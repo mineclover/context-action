@@ -7,6 +7,11 @@ module.exports = {
     '^@context-action/react$': '<rootDir>/src/index',
     '^@context-action/core$': '<rootDir>/../core/src/index',
     '^@context-action/mutative$': '<rootDir>/../mutative/dist/index.cjs',
+    '^react$': '<rootDir>/node_modules/react',
+    '^react/jsx-runtime$': '<rootDir>/node_modules/react/jsx-runtime',
+    '^react/jsx-dev-runtime$': '<rootDir>/node_modules/react/jsx-dev-runtime',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
+    '^react-dom/client$': '<rootDir>/node_modules/react-dom/client',
     '^(.+)\\.js$': '$1'
   },
   testMatch: [

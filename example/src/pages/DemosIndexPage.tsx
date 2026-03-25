@@ -266,6 +266,40 @@ export default function DemosIndexPage() {
             </div>
           </div>
 
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-6 rounded-xl mb-8 border border-emerald-200">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="inline-flex rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                  Recommended Entry Point
+                </div>
+                <h2 className="text-2xl font-semibold mt-4 text-slate-900">
+                  Start with the Implementation Playbook before deeper demos
+                </h2>
+                <p className="mt-2 text-slate-700 max-w-3xl">
+                  If you want one example that ties architecture, runtime flow,
+                  and verification together, begin with the canonical order form
+                  example and then come back to the specialized demos below.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/patterns/implementation-playbook"
+                  className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800"
+                >
+                  Open canonical example →
+                </Link>
+                <a
+                  href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                >
+                  Read docs ↗
+                </a>
+              </div>
+            </div>
+          </div>
+
           {/* Category Filter */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-6">📂 카테고리별 데모</h2>

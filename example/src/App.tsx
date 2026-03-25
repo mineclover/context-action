@@ -169,6 +169,12 @@ const FeatureToggle = lazy(() =>
 const LayeredArchitecturePage = lazy(
   () => import('./pages/patterns/layered-architecture/LayeredArchitecturePage')
 );
+const CanonicalOrderExamplePage = lazy(
+  () =>
+    import(
+      './pages/patterns/implementation-playbook/CanonicalOrderExamplePage'
+    )
+);
 const FlowControlPlaygroundPage = lazy(() =>
   import('./pages/patterns/pipeline/FlowControlPlaygroundPageV2').then((m) => ({
     default: m.FlowControlPlaygroundPageV2,
@@ -478,6 +484,10 @@ function AppContent() {
             <Route
               path="/patterns/layered-architecture"
               element={<LayeredArchitecturePage />}
+            />
+            <Route
+              path="/patterns/implementation-playbook"
+              element={<CanonicalOrderExamplePage />}
             />
             <Route
               path="/patterns/pipeline/flow-control"

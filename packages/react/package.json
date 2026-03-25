@@ -51,6 +51,7 @@
     "build:dev": "NODE_ENV=development tsdown",
     "build:watch": "tsdown --watch",
     "test": "jest",
+    "test:canonical-example": "jest --runInBand __tests__/patterns/implementation-playbook.integration.test.tsx",
     "test:watch": "jest --watch",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",

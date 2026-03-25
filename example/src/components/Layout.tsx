@@ -103,6 +103,13 @@ function Layout({
       description:
         'Revolutionary 6-layer pattern with Handler Injection and pure business logic',
     },
+    {
+      path: '/patterns/implementation-playbook',
+      label: '🧪 Implementation Playbook',
+      category: 'architecture',
+      description:
+        'Implementation-first canonical example with Action, Store, Ref, and testable boundaries',
+    },
 
     // === Overview Pages (루트 개요) ===
     {

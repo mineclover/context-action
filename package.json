@@ -14,6 +14,7 @@
     "example:build": "cd example && pnpm build",
     "example:build:fast": "cd example && pnpm build:fast",
     "test": "lerna run test",
+    "test:canonical-example": "pnpm --dir packages/react test:canonical-example",
     "test:core": "lerna run test --scope=@context-action/core",
     "lint": "lerna run lint",
     "type-check": "lerna run type-check",

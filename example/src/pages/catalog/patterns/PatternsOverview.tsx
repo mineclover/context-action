@@ -10,12 +10,60 @@ export default function PatternsOverview() {
         </p>
       </div>
 
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-6 rounded-lg mb-8 border border-emerald-200">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="inline-flex rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
+              First Stop
+            </div>
+            <h2 className="text-2xl font-semibold mt-4 text-gray-900">
+              Implementation Playbook is the recommended starting pattern
+            </h2>
+            <p className="text-gray-700 mt-2 max-w-3xl">
+              이 예제는 설계 문서, 실제 구현, 테스트 사이클이 한 번에 연결된
+              canonical example입니다. 패턴을 하나만 먼저 본다면 여기서
+              시작하는 것이 가장 빠릅니다.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/patterns/implementation-playbook"
+              className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800"
+            >
+              Open example →
+            </Link>
+            <a
+              href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+            >
+              Read docs ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="learning-path bg-purple-50 p-6 rounded-lg mb-8">
         <h2 className="text-2xl font-semibold mb-4">🎨 패턴 학습 경로</h2>
         <ol className="space-y-3">
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
               1
+            </span>
+            <div>
+              <Link
+                to="/patterns/implementation-playbook"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Implementation Playbook
+              </Link>
+              <p className="text-gray-600">설계와 구현, 테스트를 한 번에 연결해서 보는 canonical example</p>
+            </div>
+          </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              2
             </span>
             <div>
               <Link
@@ -29,7 +77,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              2
+              3
             </span>
             <div>
               <Link
@@ -43,7 +91,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              3
+              4
             </span>
             <div>
               <Link
@@ -57,7 +105,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              4
+              5
             </span>
             <div>
               <Link
@@ -72,7 +120,38 @@ export default function PatternsOverview() {
         </ol>
       </div>
 
-      <div className="categories grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="categories grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold mb-4">🏗️ Architecture</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/patterns/layered-architecture"
+                className="text-purple-600 hover:underline"
+              >
+                Layered Architecture
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/patterns/implementation-playbook"
+                className="text-purple-600 hover:underline"
+              >
+                Implementation Playbook
+              </Link>
+            </li>
+            <li className="text-sm text-gray-600">
+              • Store + Action + Ref interplay
+            </li>
+            <li className="text-sm text-gray-600">
+              • Canonical example structure
+            </li>
+            <li className="text-sm text-gray-600">
+              • Stability-oriented testing flow
+            </li>
+          </ul>
+        </div>
+
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">🔀 Conditional</h3>
           <ul className="space-y-2">
