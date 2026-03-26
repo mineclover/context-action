@@ -89,13 +89,13 @@ function CanonicalOrderHandlerRegistry({
               ? null
               : current.focusField,
           summary: changedKeys.length
-            ? `Draft updated: ${changedKeys.join(', ')}.`
+            ? `입력값이 갱신되었습니다: ${changedKeys.join(', ')}`
             : current.summary,
         }));
 
         appendActivity(
-          'Draft updated',
-          changedKeys.length ? changedKeys.join(', ') : 'No fields changed.',
+          '입력값 갱신',
+          changedKeys.length ? changedKeys.join(', ') : '변경된 항목이 없습니다.',
           'info'
         );
       },
@@ -109,12 +109,12 @@ function CanonicalOrderHandlerRegistry({
       storeManager.getStore('draft').setValue(createExampleOrderDraft());
       storeManager.getStore('validation').setValue({
         ...initialValidationState,
-        summary: 'Loaded a valid implementation-focused example.',
+        summary: '샘플 입력을 불러왔습니다. 바로 견적 흐름을 확인할 수 있습니다.',
       });
       storeManager.getStore('submission').setValue(initialSubmissionState);
       appendActivity(
-        'Example loaded',
-        'Injected a valid draft so you can inspect the happy path quickly.',
+        '샘플 불러오기',
+        '정상 제출 경로를 바로 볼 수 있도록 예시 입력을 채웠습니다.',
         'info'
       );
     }, [appendActivity, storeManager])
@@ -129,8 +129,8 @@ function CanonicalOrderHandlerRegistry({
       storeManager.getStore('activity').setValue([
         ...initialActivityState,
         createActivityEntry(
-          'Demo reset',
-          'Stores returned to their initial baseline state.',
+          '예제 초기화',
+          'draft, validation, submission 상태를 초기값으로 되돌렸습니다.',
           'info'
         ),
       ]);
@@ -151,13 +151,13 @@ function CanonicalOrderHandlerRegistry({
 
       submissionStore.setValue({
         status: 'validating',
-        message: 'Validating draft in the business layer.',
+        message: '입력값을 검증하고 있습니다.',
         quote: null,
         submittedAt: null,
       });
       appendActivity(
-        'Validation started',
-        'Handler pulled the latest draft from Store Context.',
+        '검증 시작',
+        'handler가 Store Context에서 최신 draft를 읽었습니다.',
         'info'
       );
 
@@ -177,7 +177,7 @@ function CanonicalOrderHandlerRegistry({
           submittedAt: null,
         });
         appendActivity(
-          'Validation failed',
+          '검증 실패',
           validation.summary,
           'warning'
         );
@@ -205,13 +205,13 @@ function CanonicalOrderHandlerRegistry({
 
       submissionStore.setValue({
         status: 'submitting',
-        message: 'Calculating quote and committing side effects.',
+        message: '견적을 계산하고 상태를 반영하고 있습니다.',
         quote: null,
         submittedAt: null,
       });
       appendActivity(
-        'Business logic running',
-        'Validation passed. Quote calculation moved to the business layer.',
+        '비즈니스 로직 실행',
+        '검증이 통과되어 business 레이어에서 견적 계산을 시작했습니다.',
         'info'
       );
 
@@ -220,13 +220,13 @@ function CanonicalOrderHandlerRegistry({
 
       submissionStore.setValue({
         status: 'success',
-        message: `Prepared quote for ${draft.customerName}.`,
+        message: `${draft.customerName}님 팀 견적이 준비되었습니다.`,
         quote,
         submittedAt: new Date().toISOString(),
       });
       appendActivity(
-        'Submission ready',
-        `Quote total: $${quote.total.toFixed(2)}.`,
+        '견적 준비 완료',
+        `최종 견적은 $${quote.total.toFixed(2)} 입니다.`,
         'success'
       );
 

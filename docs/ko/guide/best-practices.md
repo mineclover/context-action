@@ -2,6 +2,34 @@
 
 Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다.
 
+## 🧭 빠른 팀 요약
+
+팀에서 “이 프레임워크를 권장 방식대로 어떻게 개발해야 하는가”만 빠르게 맞추고 싶다면 아래 규칙부터 공유하면 됩니다.
+
+1. `contexts`에서 액션/스토어/리프 컨텍스트 경계를 먼저 정의합니다.
+2. 비즈니스 규칙과 계산은 `business` 또는 순수 함수로 분리합니다.
+3. 최신 store 값 읽기, side effect, API 호출은 `handlers`가 담당합니다.
+4. `actions`는 view에서 직접 dispatch 문자열을 쓰지 않도록 helper를 제공합니다.
+5. `hooks`는 `useStoreValue()` 중심으로 구독과 파생 값을 노출합니다.
+6. `views`는 렌더링과 사용자 입력 전달만 담당하고 business logic을 넣지 않습니다.
+7. action handler에서는 컴포넌트 스코프 값을 쓰지 말고 항상 `store.getValue()`로 최신 값을 읽습니다.
+8. handler는 `useCallback`으로 안정화하고, 에러 처리는 `try/catch` 또는 `controller.abort()`로 명시합니다.
+9. DOM 이벤트 객체나 무거운 참조 객체는 store에 그대로 저장하지 않습니다.
+10. 새 기능을 추가할 때는 “문서 → 예제 → 테스트” 순서로 최소 검증 루프를 남깁니다.
+
+### 바로 연결되는 문서
+
+- 전체 규칙 원문: [컨벤션](../concept/conventions.md)
+- 권장 레이어 구조: [Context-Layered 개요](../context-layered/context-layered-guide.md)
+- 실제 구현 예제: [Canonical Order Form 예제](../examples/canonical-order-form.md)
+- 안정성 관점 테스트: [안정성 테스트 사이클](../context-layered/stability-test-cycle.md)
+
+### 이 문서를 언제 읽으면 좋은가
+
+- 팀 온보딩 직후 공통 규칙을 맞출 때
+- PR 리뷰 기준을 짧게 합의할 때
+- 새 기능을 어떤 레이어에 넣어야 할지 빠르게 판단할 때
+
 ## 🔧 보안 및 성능 가이드라인
 
 ### 이벤트 객체 처리

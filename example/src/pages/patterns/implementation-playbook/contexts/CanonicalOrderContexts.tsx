@@ -51,12 +51,12 @@ export const initialValidationState: CanonicalOrderStores['validation'] = {
   fieldErrors: {},
   focusField: null,
   hasAttemptedSubmit: false,
-  summary: 'Complete the form and submit to see the handler flow.',
+  summary: '입력 후 견적 생성을 눌러 전체 흐름을 확인해 보세요.',
 };
 
 export const initialSubmissionState: CanonicalOrderStores['submission'] = {
   status: 'idle',
-  message: 'Waiting for input.',
+  message: '입력을 기다리고 있습니다.',
   quote: null,
   submittedAt: null,
 };
@@ -64,8 +64,8 @@ export const initialSubmissionState: CanonicalOrderStores['submission'] = {
 export const initialActivityState: CanonicalOrderStores['activity'] = [
   {
     id: 'boot-1',
-    step: 'Boundary ready',
-    detail: 'Providers mounted for Action, Store, and Ref contexts.',
+    step: '경계 준비 완료',
+    detail: 'Action, Store, Ref provider가 모두 마운트되었습니다.',
     tone: 'info',
   },
 ];

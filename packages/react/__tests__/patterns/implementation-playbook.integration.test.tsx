@@ -29,10 +29,10 @@ describe('Implementation Playbook canonical example', () => {
 
     await waitFor(() => {
       expect(getByTestId('email-error')).toHaveTextContent(
-        'Enter a valid work email address.'
+        '올바른 업무용 이메일 형식으로 입력해 주세요.'
       );
       expect(getByTestId('submission-status')).toHaveTextContent(
-        'Please fix the highlighted fields before submitting.'
+        '강조된 항목을 수정한 뒤 다시 시도해 주세요.'
       );
       expect(document.activeElement).toBe(getByTestId('email-input'));
     });
@@ -46,10 +46,10 @@ describe('Implementation Playbook canonical example', () => {
 
     await waitFor(() => {
       expect(getByTestId('submission-status')).toHaveTextContent(
-        'Prepared quote for Avery Kim.'
+        'Avery Kim님 팀 견적이 준비되었습니다.'
       );
       expect(getByTestId('quote-total')).toHaveTextContent('$425.80');
-      expect(getByTestId('activity-log')).toHaveTextContent('Submission ready');
+      expect(getByTestId('activity-log')).toHaveTextContent('견적 준비 완료');
     });
   });
 
@@ -64,7 +64,7 @@ describe('Implementation Playbook canonical example', () => {
       expect(getByTestId('email-input')).toHaveValue('');
       expect(getByTestId('quantity-input')).toHaveValue(1);
       expect(getByTestId('submission-status')).toHaveTextContent(
-        'Waiting for input.'
+        '입력을 기다리고 있습니다.'
       );
     });
   });

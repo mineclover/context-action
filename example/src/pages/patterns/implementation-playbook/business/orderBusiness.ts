@@ -55,7 +55,7 @@ export function createExampleOrderDraft(): OrderDraft {
     quantity: 6,
     plan: 'team',
     onboarding: true,
-    notes: 'Need rollout support for the first week.',
+    notes: '첫 주 온보딩과 운영 가이드가 필요합니다.',
   };
 }
 
@@ -63,17 +63,17 @@ export function validateOrderDraft(draft: OrderDraft): OrderValidationResult {
   const fieldErrors: OrderFieldErrors = {};
 
   if (!draft.customerName.trim()) {
-    fieldErrors.customerName = 'Customer name is required.';
+    fieldErrors.customerName = '담당자 이름을 입력해 주세요.';
   }
 
   if (!draft.email.trim()) {
-    fieldErrors.email = 'Work email is required.';
+    fieldErrors.email = '업무용 이메일을 입력해 주세요.';
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) {
-    fieldErrors.email = 'Enter a valid work email address.';
+    fieldErrors.email = '올바른 업무용 이메일 형식으로 입력해 주세요.';
   }
 
   if (!Number.isFinite(draft.quantity) || draft.quantity < 1) {
-    fieldErrors.quantity = 'Quantity must be at least 1.';
+    fieldErrors.quantity = '좌석 수는 1 이상이어야 합니다.';
   }
 
   const focusField =
@@ -91,8 +91,8 @@ export function validateOrderDraft(draft: OrderDraft): OrderValidationResult {
     focusField,
     summary:
       Object.keys(fieldErrors).length === 0
-        ? 'Validation passed. Ready to calculate quote.'
-        : 'Please fix the highlighted fields before submitting.',
+        ? '검증이 완료되었습니다. 견적을 계산할 수 있습니다.'
+        : '강조된 항목을 수정한 뒤 다시 시도해 주세요.',
   };
 }
 
