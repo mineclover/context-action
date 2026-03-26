@@ -86,6 +86,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: 9.12.3
           run_install: false
 
       - name: Get pnpm store directory
@@ -100,13 +101,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: |
-          if pnpm install --frozen-lockfile 2>/dev/null; then
-            echo "✅ Installed with frozen lockfile"
-          else
-            echo "⚠️ Frozen lockfile failed, trying without frozen lockfile"
-            pnpm install --no-frozen-lockfile
-          fi
+        run: pnpm install --frozen-lockfile
 
       # CI에서 빌드 아티팩트 재사용 시도, 실패 시 직접 빌드
       - name: Try to download CI build artifacts
