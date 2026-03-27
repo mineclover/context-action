@@ -89,7 +89,7 @@
   },
   "dependencies": {
     "@context-action/core": "^0.8.5",
-    "@context-action/mutative": "workspace:*",
+    "@context-action/mutative": "0.8.5",
     "react-compiler-runtime": "1.0.0"
   },
   "devDependencies": {
@@ -132,5 +132,6 @@
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ]
+  ],
+  "gitHead": "13fef9f1f8aaf6cf6834724bef723bd9cd6d81e9"
 }
