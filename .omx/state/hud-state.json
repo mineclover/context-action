@@ -1,0 +1,5 @@
+{
+  "last_turn_at": "2026-03-27T13:07:43.441Z",
+  "turn_count": 41,
+  "last_agent_output": "지금 상태에서 직접 퍼블리시하려면 이 명령을 쓰시면 됩니다.\n\n```bash\nnpx lerna publish from-package --yes --otp <6자리_OTP>\n```\n"
+}

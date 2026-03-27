@@ -105,3 +105,6 @@ test-deploy/
 
 # Panda CSS generated
 example/styled-system/
+
+# Reference repositories
+reference/*
