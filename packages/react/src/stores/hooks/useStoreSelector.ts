@@ -65,7 +65,7 @@ export function useStoreSelector<T, R>(
   }
   
   // 동등성 비교를 위한 이전 값 추적
-  const previousValueRef = useRef<R>();
+  const previousValueRef = useRef<R | undefined>(undefined);
   
   // useSyncExternalStore를 사용한 구독
   const subscribe = useCallback((callback: () => void) => {
@@ -94,6 +94,5 @@ export function useStoreSelector<T, R>(
   
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-
 
 

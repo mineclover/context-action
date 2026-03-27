@@ -90,8 +90,8 @@ export function useComputedStore<T, R>(
   // Refs for stable references
   const computeRef = useRef(compute);
   const cacheRef = useRef<Map<T, R>>(new Map());
-  const lastComputedRef = useRef<R>();
-  const lastInputRef = useRef<T>();
+  const lastComputedRef = useRef<R | undefined>(undefined);
+  const lastInputRef = useRef<T | undefined>(undefined);
 
   // Update compute function ref on every render
   computeRef.current = compute;

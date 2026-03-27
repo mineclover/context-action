@@ -185,7 +185,7 @@ export function useTimeTravelSelector<T, R>(
   const { dependsOn, equalityFn } = options;
 
   // Cache for value comparison
-  const cacheRef = useRef<R>();
+  const cacheRef = useRef<R | undefined>(undefined);
 
   // Create stable path key for dependencies
   const depsKey = useMemo(

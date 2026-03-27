@@ -456,7 +456,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   ): R {
     const store = useStore(storeName);
     const { dependsOn, equalityFn } = options;
-    const cacheRef = useRef<R>();
+    const cacheRef = useRef<R | undefined>(undefined);
 
     const depsKey = useMemo(
       () => (dependsOn ? dependsOn.map(p => p.join('.')).sort().join('|') : null),
