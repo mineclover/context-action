@@ -312,10 +312,10 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^0.8.4
+        specifier: ^0.8.6
         version: link:../core
       '@context-action/mutative':
-        specifier: workspace:*
+        specifier: ^0.8.6
         version: link:../mutative
       react-compiler-runtime:
         specifier: 1.0.0
