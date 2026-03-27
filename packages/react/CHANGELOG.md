@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.5](https://github.com/mineclover/context-action/compare/v0.8.4...v0.8.5) (2026-03-27)
+
+
+### Features
+
+* add canonical implementation playbook ([34aeebf](https://github.com/mineclover/context-action/commit/34aeebf86ba1b0d153973e6fe86e0829e733cd3c))
+* Add path-based subscription and TimeTravelStore with major docs cleanup ([9b7d8d2](https://github.com/mineclover/context-action/commit/9b7d8d2f84a65751e477202960e649ad6aa45b01))
+* Add Zod schema integration and createToolContext for LLM tool registry ([1baf4b8](https://github.com/mineclover/context-action/commit/1baf4b80fe236ee9b5ae6b3d11ca66d745185c7a))
+* **stores:** Add notificationMode support to TimeTravelStore ([8bc40c3](https://github.com/mineclover/context-action/commit/8bc40c30b8b08bae00547e15bcd5563c23e2553c))
+* **stores:** Add notifyPath/notifyPaths API for external async operations ([0d080b8](https://github.com/mineclover/context-action/commit/0d080b839947b652375057262360ea95854299c9))
+* **stores:** Add RFC 6901 JSON Pointer support and stability improvements ([c0b6665](https://github.com/mineclover/context-action/commit/c0b6665d9014dc4b759b5e6fb0070a41af07b9f5))
+
+
+### Performance Improvements
+
+* Optimize path matching with string-based prefix comparison ([a03da65](https://github.com/mineclover/context-action/commit/a03da6539244257185f6286127dda533d26e7a32))
+* **TimeTravelStore:** Enable structural sharing by default ([2eaa812](https://github.com/mineclover/context-action/commit/2eaa812b0a32fd9e887a2c4d5e25279f9cb8120f))
+
+
+### BREAKING CHANGES
+
+* **TimeTravelStore:** TimeTravelStore now defaults to mutable=true and cloningEnabled=false
+
+- mutable=true: Enables structural sharing where unchanged parts keep same reference
+- cloningEnabled=false: Preserves structural sharing in getValue() and snapshots
+- Enables selective re-rendering with path-based subscriptions
+- Updated tests to use draft mutation pattern (mutable mode requirement)
+
+Migration: If you relied on defensive copying, call store.setCloningEnabled(true)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+
+
+
+
 ## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
 
 

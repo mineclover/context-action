@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.5](https://github.com/mineclover/context-action/compare/v0.8.4...v0.8.5) (2026-03-27)
+
+
+### Features
+
+* Add path-based subscription and TimeTravelStore with major docs cleanup ([9b7d8d2](https://github.com/mineclover/context-action/commit/9b7d8d2f84a65751e477202960e649ad6aa45b01))
+* Add Zod schema integration and createToolContext for LLM tool registry ([1baf4b8](https://github.com/mineclover/context-action/commit/1baf4b80fe236ee9b5ae6b3d11ca66d745185c7a))
+
+
+
+
+
 ## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
 
 

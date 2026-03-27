@@ -1,6 +1,6 @@
 {
   "name": "@context-action/mutative",
-  "version": "0.1.0",
+  "version": "0.8.5",
   "type": "module",
   "description": "Mutative-based immutability and time-travel utilities for @context-action",
   "main": "dist/index.cjs",

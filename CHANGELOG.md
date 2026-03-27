@@ -3,6 +3,72 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.5](https://github.com/mineclover/context-action/compare/v0.8.4...v0.8.5) (2026-03-27)
+
+
+### Bug Fixes
+
+* Add React dedupe to prevent multiple instances ([82422fa](https://github.com/mineclover/context-action/commit/82422fa80cb26b70089da52eb721cd67b444da8e))
+* **example:** Add Panda CSS codegen to build pipeline for CI/CD ([00e3aef](https://github.com/mineclover/context-action/commit/00e3aefba74ee5b0f3d08c6d4e85f30648cdfd6b))
+* **example:** Complete Panda CSS migration and fix TypeScript errors ([686bb16](https://github.com/mineclover/context-action/commit/686bb165d0689305540b26f60857d7c6f9827ff5))
+* **example:** Fix React duplication in build chunks ([7a95320](https://github.com/mineclover/context-action/commit/7a9532055f9c2f9ae91004a895635c4d0f399f94))
+* **example:** Fix sidebar layout using pure Panda CSS ([6e11710](https://github.com/mineclover/context-action/commit/6e117107d61de57de758064dc6fa4820736d9a83))
+* **example:** Fix sidebar layout with Tailwind classes ([3f96d91](https://github.com/mineclover/context-action/commit/3f96d91c3ca752f0c37ad01ca4107d8c438b837b))
+* **example:** Fix SPA routing for VitePress redirect integration ([e8df598](https://github.com/mineclover/context-action/commit/e8df59881ddb234453171a502281dc7c6504c182))
+* **example:** Fix useActionWithResult page initial state and add validation history ([c4f2931](https://github.com/mineclover/context-action/commit/c4f2931fd2dae09aab5d986230c4f5aec9e9518c))
+* **example:** Integrate Panda CSS with PostCSS pipeline ([7a95dbe](https://github.com/mineclover/context-action/commit/7a95dbe8a7bdad8d0aa7eded4759f270543bc593))
+* Re-enable Tailwind CSS for globals.css processing ([1376509](https://github.com/mineclover/context-action/commit/137650909ff8dbce8ca459f6c16661833e899ddd))
+* Remove vite.svg favicon causing 404 error ([e7c5f7b](https://github.com/mineclover/context-action/commit/e7c5f7b7b9a417182801d143dd859a8a408b1302))
+* restore deterministic deploy build ([ffe94a7](https://github.com/mineclover/context-action/commit/ffe94a77e5a80b9d01d71daa3b5929a852578574))
+* Update React Compiler target to 19 to match React version ([a699eaa](https://github.com/mineclover/context-action/commit/a699eaac51eed1993bcbbce67ee69a609ff4c44b))
+* Use .length instead of .size for array type ([2698da7](https://github.com/mineclover/context-action/commit/2698da737764d9b905370b9f47b01320d57dd5c3))
+
+
+### Features
+
+* add canonical implementation playbook ([34aeebf](https://github.com/mineclover/context-action/commit/34aeebf86ba1b0d153973e6fe86e0829e733cd3c))
+* Add path-based subscription and TimeTravelStore with major docs cleanup ([9b7d8d2](https://github.com/mineclover/context-action/commit/9b7d8d2f84a65751e477202960e649ad6aa45b01))
+* Add ToolContext + AI SDK demo with OpenRouter integration ([129ad13](https://github.com/mineclover/context-action/commit/129ad131cbe82962745031e7a980551b1cb35edb))
+* Add Zod schema integration and createToolContext for LLM tool registry ([1baf4b8](https://github.com/mineclover/context-action/commit/1baf4b80fe236ee9b5ae6b3d11ca66d745185c7a))
+* Complete Panda CSS migration to variants-based design system ([2136399](https://github.com/mineclover/context-action/commit/213639954a26486371c77464e86b2b5d9a190149))
+* **example:** Add deep structure test for structural sharing ([d8ba5bb](https://github.com/mineclover/context-action/commit/d8ba5bba5f7c34cf779c4c3afa0ca2ae7883bd59))
+* **example:** Add validation history display to ValidationView component ([4a7261a](https://github.com/mineclover/context-action/commit/4a7261aac1228282333e227a83868aa0f41d5c11))
+* expand variants system and add Alert component ([4ca450f](https://github.com/mineclover/context-action/commit/4ca450f4f4b86b2f7cffbedcdd63f9f5759c9579))
+* **stores:** Add notificationMode support to TimeTravelStore ([8bc40c3](https://github.com/mineclover/context-action/commit/8bc40c30b8b08bae00547e15bcd5563c23e2553c))
+* **stores:** Add notifyPath/notifyPaths API for external async operations ([0d080b8](https://github.com/mineclover/context-action/commit/0d080b839947b652375057262360ea95854299c9))
+* **stores:** Add RFC 6901 JSON Pointer support and stability improvements ([c0b6665](https://github.com/mineclover/context-action/commit/c0b6665d9014dc4b759b5e6fb0070a41af07b9f5))
+* **style-testing:** Add automated style testing package ([c599499](https://github.com/mineclover/context-action/commit/c5994999c22f0f04c60f390a2e3bd7fe90adfb66))
+* **style-testing:** Fix style extractor and add workspace config ([b995016](https://github.com/mineclover/context-action/commit/b9950161e730e9852f97497f1bbb455981bf6b6d))
+* **style-testing:** Improve DiffEngine to reduce false positives ([fe55fda](https://github.com/mineclover/context-action/commit/fe55fdac947a91775b05d19364c62dfa31c6b45c))
+* Update to React 19.2.3 ([d0a652f](https://github.com/mineclover/context-action/commit/d0a652fc9c3fc6376c32e5a5a1045f8a980f51bb))
+* **vanilla-js:** Add comprehensive vanilla JavaScript support ([db7e0c4](https://github.com/mineclover/context-action/commit/db7e0c435675d97542956ae595f8f5db700f36ab))
+
+
+### Performance Improvements
+
+* Optimize path matching with string-based prefix comparison ([a03da65](https://github.com/mineclover/context-action/commit/a03da6539244257185f6286127dda533d26e7a32))
+* **TimeTravelStore:** Enable structural sharing by default ([2eaa812](https://github.com/mineclover/context-action/commit/2eaa812b0a32fd9e887a2c4d5e25279f9cb8120f))
+
+
+### BREAKING CHANGES
+
+* **TimeTravelStore:** TimeTravelStore now defaults to mutable=true and cloningEnabled=false
+
+- mutable=true: Enables structural sharing where unchanged parts keep same reference
+- cloningEnabled=false: Preserves structural sharing in getValue() and snapshots
+- Enables selective re-rendering with path-based subscriptions
+- Updated tests to use draft mutation pattern (mutable mode requirement)
+
+Migration: If you relied on defensive copying, call store.setCloningEnabled(true)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+
+
+
+
 ## [0.7.8](https://github.com/mineclover/context-action/compare/v0.7.7...v0.7.8) (2025-11-30)
 
 
