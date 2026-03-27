@@ -103,6 +103,9 @@ test-deploy/
 # Claude Code
 .claude/
 
+# OMX local state
+.omx/
+
 # Panda CSS generated
 example/styled-system/
 
