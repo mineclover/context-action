@@ -59,6 +59,9 @@
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "zod": "^4.0.0"
   },
@@ -98,5 +101,5 @@
     "not dead",
     "not ie 11"
   ],
-  "gitHead": "13fef9f1f8aaf6cf6834724bef723bd9cd6d81e9"
+  "gitHead": "a8ed013a4a6b2d08792f00ec30bdbc0f886b7c71"
 }

@@ -50,6 +50,9 @@
     "url": "git+https://github.com/mineclover/context-action.git",
     "directory": "packages/mutative"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "mutative": "^1.3.0"
   },
@@ -67,5 +70,5 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "gitHead": "13fef9f1f8aaf6cf6834724bef723bd9cd6d81e9"
+  "gitHead": "a8ed013a4a6b2d08792f00ec30bdbc0f886b7c71"
 }

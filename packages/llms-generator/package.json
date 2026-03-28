@@ -68,6 +68,9 @@
     "url": "git+https://github.com/mineclover/context-action.git",
     "directory": "packages/llms-generator"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
@@ -100,5 +103,5 @@
     "CONFIG.md",
     "CLI_SETUP_GUIDE.md"
   ],
-  "gitHead": "13fef9f1f8aaf6cf6834724bef723bd9cd6d81e9"
+  "gitHead": "a8ed013a4a6b2d08792f00ec30bdbc0f886b7c71"
 }
