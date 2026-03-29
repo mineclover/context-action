@@ -61,23 +61,33 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Mutative version: $VERSION"
 
-      - name: Ensure version is unpublished
+      - name: Check if version is already published
+        id: publish_check
         run: |
           if npm view "@context-action/mutative@${{ steps.mutative.outputs.version }}" version >/dev/null 2>&1; then
             echo "Version ${{ steps.mutative.outputs.version }} is already published."
-            exit 1
+            echo "already_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version ${{ steps.mutative.outputs.version }} is not published yet."
+            echo "already_published=false" >> $GITHUB_OUTPUT
           fi
-          echo "Version ${{ steps.mutative.outputs.version }} is not published yet."
 
       - name: Build mutative package
+        if: steps.publish_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative build
 
       - name: Test mutative package
+        if: steps.publish_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative test
 
       - name: Publish mutative package
+        if: steps.publish_check.outputs.already_published != 'true'
         working-directory: packages/mutative
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+      - name: Skip notice
+        if: steps.publish_check.outputs.already_published == 'true'
+        run: echo "Mutative ${{ steps.mutative.outputs.version }} is already published. Skipping publish."
