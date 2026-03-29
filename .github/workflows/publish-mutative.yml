@@ -1,10 +1,7 @@
-name: Publish Packages
+name: Publish Mutative Package
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
 
 permissions:
   contents: read
@@ -13,7 +10,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  publish:
+  publish-mutative:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,20 +54,30 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
 
-      - name: Build packages
-        run: pnpm build
+      - name: Resolve mutative version
+        id: mutative
+        run: |
+          VERSION=$(jq -r '.version' packages/mutative/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Mutative version: $VERSION"
 
-      - name: Build docs
-        run: pnpm docs:build
+      - name: Ensure version is unpublished
+        run: |
+          if npm view "@context-action/mutative@${{ steps.mutative.outputs.version }}" version >/dev/null 2>&1; then
+            echo "Version ${{ steps.mutative.outputs.version }} is already published."
+            exit 1
+          fi
+          echo "Version ${{ steps.mutative.outputs.version }} is not published yet."
 
-      - name: Build example
-        run: pnpm --dir example build:fast
+      - name: Build mutative package
+        run: pnpm --filter @context-action/mutative build
 
-      - name: Run canonical example test
-        run: pnpm test:canonical-example
+      - name: Test mutative package
+        run: pnpm --filter @context-action/mutative test
 
-      - name: Publish packages
+      - name: Publish mutative package
+        working-directory: packages/mutative
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm exec lerna publish from-package --yes
+        run: npm publish --access public
