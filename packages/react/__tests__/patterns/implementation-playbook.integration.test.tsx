@@ -53,6 +53,29 @@ describe('Implementation Playbook canonical example', () => {
     });
   });
 
+  it('returns to idle when the draft changes after a successful submission', async () => {
+    const { getByTestId, queryByTestId } = renderCanonicalExample();
+
+    fireEvent.click(getByTestId('prefill-valid-order-button'));
+    fireEvent.click(getByTestId('submit-order-button'));
+
+    await waitFor(() => {
+      expect(getByTestId('quote-total')).toHaveTextContent('$425.80');
+    });
+
+    fireEvent.change(getByTestId('quantity-input'), {
+      target: { value: '8' },
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('submission-status')).toHaveTextContent(
+        '입력이 바뀌어 다시 제출 대기 상태로 돌아왔습니다.'
+      );
+      expect(queryByTestId('quote-total')).not.toBeInTheDocument();
+      expect(getByTestId('activity-log')).toHaveTextContent('입력값 갱신');
+    });
+  });
+
   it('resets the example back to a known baseline state', async () => {
     const { getByTestId } = renderCanonicalExample();
 

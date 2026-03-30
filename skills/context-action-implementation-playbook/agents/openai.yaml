@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implementation Playbook"
+  short_description: "Build Context-Layered example scenarios with explicit state transitions"
+  default_prompt: "Create or refactor this scenario so it follows the repository implementation-playbook standard, including business layer splits, explicit state transitions when needed, docs linkage, and verification."

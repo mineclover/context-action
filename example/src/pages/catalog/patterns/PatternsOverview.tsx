@@ -67,6 +67,62 @@ export default function PatternsOverview() {
             </span>
             <div>
               <Link
+                to="/patterns/implementation-playbook/scenarios"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Scenario Library
+              </Link>
+              <p className="text-gray-600">같은 컨벤션과 skill을 다른 도메인에 적용하는 예제 모음</p>
+            </div>
+          </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              3
+            </span>
+            <div>
+              <Link
+                to="/patterns/implementation-playbook/access-request"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Access Request Playbook
+              </Link>
+              <p className="text-gray-600">같은 skill을 approval/review workflow에 적용한 interactive demo</p>
+            </div>
+          </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              4
+            </span>
+            <div>
+              <Link
+                to="/patterns/implementation-playbook/incident-escalation"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Incident Escalation Playbook
+              </Link>
+              <p className="text-gray-600">같은 skill을 incident/escalation workflow에 적용한 interactive demo</p>
+            </div>
+          </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              5
+            </span>
+            <div>
+              <Link
+                to="/patterns/implementation-playbook/renewal-risk-review"
+                className="text-purple-600 hover:text-purple-800 font-medium text-lg"
+              >
+                Renewal Risk Review Playbook
+              </Link>
+              <p className="text-gray-600">같은 skill을 renewal/customer-success workflow에 적용한 interactive demo</p>
+            </div>
+          </li>
+          <li className="flex items-center">
+            <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
+              6
+            </span>
+            <div>
+              <Link
                 to="/patterns/conditional"
                 className="text-purple-600 hover:text-purple-800 font-medium text-lg"
               >
@@ -77,7 +133,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              3
+              7
             </span>
             <div>
               <Link
@@ -91,7 +147,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              4
+              8
             </span>
             <div>
               <Link
@@ -105,7 +161,7 @@ export default function PatternsOverview() {
           </li>
           <li className="flex items-center">
             <span className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">
-              5
+              9
             </span>
             <div>
               <Link
@@ -140,6 +196,38 @@ export default function PatternsOverview() {
                 Implementation Playbook
               </Link>
             </li>
+            <li>
+              <Link
+                to="/patterns/implementation-playbook/scenarios"
+                className="text-purple-600 hover:underline"
+              >
+                Scenario Library
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/patterns/implementation-playbook/access-request"
+                className="text-purple-600 hover:underline"
+              >
+                Access Request Playbook
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/patterns/implementation-playbook/incident-escalation"
+                className="text-purple-600 hover:underline"
+              >
+                Incident Escalation Playbook
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/patterns/implementation-playbook/renewal-risk-review"
+                className="text-purple-600 hover:underline"
+              >
+                Renewal Risk Review Playbook
+              </Link>
+            </li>
             <li className="text-sm text-gray-600">
               • Store + Action + Ref interplay
             </li>
@@ -148,6 +236,9 @@ export default function PatternsOverview() {
             </li>
             <li className="text-sm text-gray-600">
               • Stability-oriented testing flow
+            </li>
+            <li className="text-sm text-gray-600">
+              • Reusable skill and domain scenario mapping
             </li>
           </ul>
         </div>

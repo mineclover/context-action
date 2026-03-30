@@ -10,8 +10,11 @@ import {
 
 const readingOrder = [
   'contexts/CanonicalOrderContexts.tsx',
-  'business/orderBusiness.ts',
-  'handlers/CanonicalOrderHandlers.tsx',
+  'business/orderDraft.ts',
+  'business/orderValidation.ts',
+  'business/orderQuote.ts',
+  'business/submissionStateMachine.ts',
+  'handlers/useCanonicalOrderSubmissionHandlers.tsx',
   'actions/useCanonicalOrderActions.ts',
   'hooks/useCanonicalOrderData.ts',
   'views/CanonicalOrderView.tsx',
@@ -28,8 +31,8 @@ const specSections = [
 
 const codeLayers = [
   ['contexts/', 'Action, Store, Ref 경계를 정의합니다.'],
-  ['business/', '검증과 견적 계산을 순수 함수로 둡니다.'],
-  ['handlers/', '최신 상태 읽기와 side effect를 조율합니다.'],
+  ['business/', 'draft 기본값, validation, quote, state machine을 순수 함수로 둡니다.'],
+  ['handlers/', '최신 상태 읽기, 상태 전이, side effect를 조율합니다.'],
   ['actions/', 'view가 쓰는 dispatch helper를 제공합니다.'],
   ['hooks/', '구독과 파생 값을 화면용으로 정리합니다.'],
   ['views/', '렌더링과 입력 전달만 담당합니다.'],
@@ -38,8 +41,8 @@ const codeLayers = [
 const quickSourceFiles = [
   'pages/patterns/implementation-playbook/CanonicalOrderExample.tsx',
   'pages/patterns/implementation-playbook/contexts/CanonicalOrderContexts.tsx',
-  'pages/patterns/implementation-playbook/business/orderBusiness.ts',
-  'pages/patterns/implementation-playbook/handlers/CanonicalOrderHandlers.tsx',
+  'pages/patterns/implementation-playbook/business/submissionStateMachine.ts',
+  'pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx',
   'pages/patterns/implementation-playbook/views/CanonicalOrderView.tsx',
 ] as const;
 
@@ -49,8 +52,8 @@ const docsLinks = [
     href: 'https://mineclover.github.io/context-action/ko/examples/canonical-order-form',
   },
   {
-    label: '안정성 테스트 사이클',
-    href: 'https://mineclover.github.io/context-action/ko/context-layered/stability-test-cycle',
+    label: '명시적 상태 전이',
+    href: 'https://mineclover.github.io/context-action/ko/context-layered/patterns/explicit-state-machine',
   },
 ] as const;
 
@@ -58,10 +61,10 @@ function statusTone(status: string) {
   switch (status) {
     case 'success':
       return 'border-green-300 bg-green-50 text-green-900';
-    case 'error':
+    case 'blocked':
       return 'border-red-300 bg-red-50 text-red-900';
-    case 'submitting':
     case 'validating':
+    case 'calculating':
       return 'border-blue-300 bg-blue-50 text-blue-900';
     default:
       return 'border-gray-300 bg-gray-50 text-gray-800';
@@ -72,19 +75,27 @@ function statusLabel(status: string) {
   switch (status) {
     case 'validating':
       return '검증';
-    case 'submitting':
+    case 'calculating':
       return '계산';
     case 'success':
       return '완료';
-    case 'error':
-      return '오류';
+    case 'blocked':
+      return '수정 필요';
     default:
       return '대기';
   }
 }
 
 export function CanonicalOrderView() {
-  const { draft, validation, submission, activity, isBusy, hasErrors } =
+  const {
+    draft,
+    validation,
+    submission,
+    submissionView,
+    activity,
+    isBusy,
+    hasErrors,
+  } =
     useCanonicalOrderData();
   const {
     updatePlan,
@@ -174,7 +185,7 @@ export function CanonicalOrderView() {
               </p>
             </div>
             <div className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              {statusLabel(submission.status)}
+              {submissionView.label ?? statusLabel(submission.phase)}
             </div>
           </div>
 
@@ -389,7 +400,7 @@ export function CanonicalOrderView() {
 
           <article
             className={`rounded-[28px] border p-5 shadow-sm ${statusTone(
-              submission.status
+              submission.phase
             )}`}
             data-testid="submission-status"
             ref={statusPanelRef.setRef}
@@ -398,7 +409,7 @@ export function CanonicalOrderView() {
             <div className="text-sm font-semibold uppercase tracking-[0.16em]">
               제출 상태
             </div>
-            <p className="mt-3 text-lg font-semibold">{submission.message}</p>
+            <p className="mt-3 text-lg font-semibold">{submissionView.message}</p>
             <p className="mt-2 text-sm opacity-80" data-testid="validation-summary">
               {validation.summary}
             </p>
@@ -457,7 +468,7 @@ export function CanonicalOrderView() {
               </a>
             </div>
             <p className="mt-2 text-sm text-slate-600">
-              현재 화면에서 중요한 상태 전이만 짧게 보여줍니다.
+              상태 머신 이벤트를 사람이 읽기 쉬운 로그로 바꿔서 보여줍니다.
             </p>
             <ul className="mt-3 space-y-2" data-testid="activity-log">
               {activity.map((entry) => (

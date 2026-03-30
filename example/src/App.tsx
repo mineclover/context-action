@@ -175,6 +175,30 @@ const CanonicalOrderExamplePage = lazy(
       './pages/patterns/implementation-playbook/CanonicalOrderExamplePage'
     )
 );
+const ImplementationScenarioLibraryPage = lazy(
+  () =>
+    import(
+      './pages/patterns/implementation-playbook/ImplementationScenarioLibraryPage'
+    )
+);
+const AccessRequestExamplePage = lazy(
+  () =>
+    import(
+      './pages/patterns/implementation-playbook/access-request/AccessRequestExamplePage'
+    )
+);
+const IncidentEscalationExamplePage = lazy(
+  () =>
+    import(
+      './pages/patterns/implementation-playbook/incident-escalation/IncidentEscalationExamplePage'
+    )
+);
+const RenewalRiskReviewExamplePage = lazy(
+  () =>
+    import(
+      './pages/patterns/implementation-playbook/renewal-risk-review/RenewalRiskReviewExamplePage'
+    )
+);
 const FlowControlPlaygroundPage = lazy(() =>
   import('./pages/patterns/pipeline/FlowControlPlaygroundPageV2').then((m) => ({
     default: m.FlowControlPlaygroundPageV2,
@@ -488,6 +512,22 @@ function AppContent() {
             <Route
               path="/patterns/implementation-playbook"
               element={<CanonicalOrderExamplePage />}
+            />
+            <Route
+              path="/patterns/implementation-playbook/scenarios"
+              element={<ImplementationScenarioLibraryPage />}
+            />
+            <Route
+              path="/patterns/implementation-playbook/access-request"
+              element={<AccessRequestExamplePage />}
+            />
+            <Route
+              path="/patterns/implementation-playbook/incident-escalation"
+              element={<IncidentEscalationExamplePage />}
+            />
+            <Route
+              path="/patterns/implementation-playbook/renewal-risk-review"
+              element={<RenewalRiskReviewExamplePage />}
             />
             <Route
               path="/patterns/pipeline/flow-control"

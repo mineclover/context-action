@@ -110,6 +110,34 @@ function Layout({
       description:
         'Implementation-first canonical example with Action, Store, Ref, and testable boundaries',
     },
+    {
+      path: '/patterns/implementation-playbook/scenarios',
+      label: '🗂️ Playbook Scenarios',
+      category: 'architecture',
+      description:
+        'Scenario library that maps the same implementation-playbook logic to other domains',
+    },
+    {
+      path: '/patterns/implementation-playbook/access-request',
+      label: '🔐 Access Request Playbook',
+      category: 'architecture',
+      description:
+        'Approval-oriented interactive example built from the same implementation-playbook skill',
+    },
+    {
+      path: '/patterns/implementation-playbook/incident-escalation',
+      label: '🚨 Incident Escalation Playbook',
+      category: 'architecture',
+      description:
+        'Incident-oriented interactive example built from the same implementation-playbook skill',
+    },
+    {
+      path: '/patterns/implementation-playbook/renewal-risk-review',
+      label: '📈 Renewal Risk Review Playbook',
+      category: 'architecture',
+      description:
+        'Renewal-oriented interactive example built from the same implementation-playbook skill',
+    },
 
     // === Overview Pages (루트 개요) ===
     {

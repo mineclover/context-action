@@ -186,7 +186,11 @@ const EXAMPLES_STRUCTURE = {
         { text: 'Action Only Pattern', link: '/en/examples/action-only' },
         { text: 'Store Only Pattern', link: '/en/examples/store-only' },
         { text: 'Pattern Composition', link: '/en/examples/pattern-composition' },
-        { text: 'Canonical Order Form', link: '/en/examples/canonical-order-form' }
+        { text: 'Canonical Order Form', link: '/en/examples/canonical-order-form' },
+        { text: 'Access Request Playbook', link: '/en/examples/access-request-playbook' },
+        { text: 'Incident Escalation Playbook', link: '/en/examples/incident-escalation-playbook' },
+        { text: 'Renewal Risk Review Playbook', link: '/en/examples/renewal-risk-review-playbook' },
+        { text: 'Playbook Scenario Library', link: '/en/examples/implementation-playbook-scenarios' }
       ]
     }
   },
@@ -199,7 +203,11 @@ const EXAMPLES_STRUCTURE = {
         { text: 'Action Only 패턴', link: '/ko/examples/action-only' },
         { text: 'Store Only 패턴', link: '/ko/examples/store-only' },
         { text: '패턴 조합', link: '/ko/examples/pattern-composition' },
-        { text: 'Canonical Order Form 예제', link: '/ko/examples/canonical-order-form' }
+        { text: 'Canonical Order Form 예제', link: '/ko/examples/canonical-order-form' },
+        { text: 'Access Request Playbook 예제', link: '/ko/examples/access-request-playbook' },
+        { text: 'Incident Escalation Playbook 예제', link: '/ko/examples/incident-escalation-playbook' },
+        { text: 'Renewal Risk Review Playbook 예제', link: '/ko/examples/renewal-risk-review-playbook' },
+        { text: 'Playbook 시나리오 라이브러리', link: '/ko/examples/implementation-playbook-scenarios' }
       ]
     }
   }
@@ -225,6 +233,8 @@ const CONCEPT_STRUCTURE = {
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
             { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
+            { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
+            { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
             { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
           ]
         }
@@ -249,6 +259,8 @@ const CONCEPT_STRUCTURE = {
             { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
             { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
             { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
+            { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
+            { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
             { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
           ]
         }

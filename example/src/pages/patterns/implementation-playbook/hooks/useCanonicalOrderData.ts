@@ -3,6 +3,11 @@ import {
   useCanonicalOrderRef,
   useCanonicalOrderStore,
 } from '../contexts/CanonicalOrderContexts';
+import {
+  isSubmissionBusy,
+  toActivityEntry,
+  toSubmissionViewState,
+} from '../handlers/orderHandlerSupport';
 
 export function useCanonicalOrderData() {
   const draftStore = useCanonicalOrderStore('draft');
@@ -14,16 +19,18 @@ export function useCanonicalOrderData() {
   const validation = useStoreValue(validationStore);
   const submission = useStoreValue(submissionStore);
   const activity = useStoreValue(activityStore);
+  const submissionView = toSubmissionViewState(submission);
+  const activityEntries = activity.map(toActivityEntry);
 
   return {
     draft,
     validation,
     submission,
-    activity,
-    isBusy:
-      submission.status === 'validating' || submission.status === 'submitting',
+    submissionView,
+    activity: activityEntries,
+    isBusy: isSubmissionBusy(submission),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,
-    latestActivity: activity[activity.length - 1] ?? null,
+    latestActivity: activityEntries[activityEntries.length - 1] ?? null,
   };
 }
 

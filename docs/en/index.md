@@ -6,38 +6,51 @@ titleTemplate: Type-Safe Action Pipeline Management System
 hero:
   name: Context Action
   text: Type-Safe Action Pipeline Management System
-  tagline: TypeScript monorepo for React integration and enhanced state management
+  tagline: TypeScript monorepo for React integration, implementation playbooks, and reusable scenario demos
   image:
     src: /logo.svg
     alt: Context Action
   actions:
     - theme: brand
-      text: Get Started
-      link: /en/guide/overview
+      text: Implementation Convention
+      link: /en/context-layered/implementation-convention
     - theme: alt
-      text: View on GitHub
-      link: https://github.com/mineclover/context-action
+      text: Scenario Library
+      link: /en/examples/implementation-playbook-scenarios
 
 features:
-  - icon: 🚀
-    title: Action Context Pattern
-    details: Unified Action + Store management, type-safe action handlers, Provider-based isolation
-  - icon: 🎯
-    title: Action Only Pattern
-    details: Pure action dispatching without stores, perfect for event systems and command patterns
-  - icon: 🏪
-    title: Store Only Pattern
-    details: Pure state management without actions, excellent type inference with simplified API
-  - icon: ⚡
-    title: RefContext Pattern
-    details: High-performance DOM manipulation with zero React re-renders, hardware acceleration
-  - icon: 🧩
-    title: MVVM Architecture
-    details: Clear separation of View (components), ViewModel (action pipeline), Model (store system) layers
-  - icon: 🛡️
-    title: Type Safety
-    details: Complete TypeScript support with strict type checking and domain-specific hooks
+  - icon: 📐
+    title: Standard Convention
+    details: Start with the implementation convention that fixes folder structure, state transitions, testing, and docs linkage
+  - icon: 🧠
+    title: Repo-Local Skill
+    details: Reuse the checked-in skill to scaffold and iteratively strengthen new playbook scenarios
+  - icon: 🧪
+    title: Canonical Order Demo
+    details: The base implementation-playbook example for Action, Store, Ref, and explicit workflow transitions
+  - icon: 🔐
+    title: Access Request Demo
+    details: Approval-oriented scenario showing review packets, policy checks, and result invalidation after draft edits
+  - icon: 🚨
+    title: Incident Escalation Demo
+    details: Incident workflow showing severity rules, escalation packets, and operational state transitions
+  - icon: 📈
+    title: Renewal Risk Demo
+    details: Customer-success workflow showing scoring, sponsor rules, and follow-up packet generation
 ---
+
+## Recommended First Path
+
+1. Read [Implementation Convention](/en/context-layered/implementation-convention)
+2. Open [Canonical Order Form](/en/examples/canonical-order-form)
+3. Browse [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+4. Try the live demos:
+   - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+   - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
+   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
+   - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+
+Repo-local skill path: `skills/context-action-implementation-playbook/SKILL.md`
 
 <style>
 .VPFeature .icon {

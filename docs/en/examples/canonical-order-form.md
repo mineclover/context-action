@@ -29,9 +29,17 @@ example/src/pages/patterns/implementation-playbook/
 ├── contexts/
 │   └── CanonicalOrderContexts.tsx
 ├── business/
-│   └── orderBusiness.ts
+│   ├── orderActivity.ts
+│   ├── orderBusiness.ts
+│   ├── orderDraft.ts
+│   ├── orderQuote.ts
+│   ├── orderValidation.ts
+│   └── submissionStateMachine.ts
 ├── handlers/
-│   └── CanonicalOrderHandlers.tsx
+│   ├── CanonicalOrderHandlers.tsx
+│   ├── orderHandlerSupport.ts
+│   ├── useCanonicalOrderDraftHandlers.tsx
+│   └── useCanonicalOrderSubmissionHandlers.tsx
 ├── actions/
 │   └── useCanonicalOrderActions.ts
 ├── hooks/
@@ -56,16 +64,43 @@ sequenceDiagram
     Handler->>Store: read latest draft
     Handler->>Business: validateOrderDraft(draft)
     alt invalid draft
-        Business-->>Handler: field errors + focus field
-        Handler->>Store: save validation and error state
+        Business-->>Handler: validation issues
+        Handler->>Business: transition(state, validation_failed)
+        Handler->>Store: save validation and blocked state
         Handler->>Ref: focus first invalid input
     else valid draft
         Business-->>Handler: validation passed
+        Handler->>Business: transition(state, validation_passed)
         Handler->>Business: buildOrderQuote(draft)
+        Handler->>Business: transition(state, quote_ready)
         Handler->>Store: save success state and quote
     end
     Store-->>View: reactive update through hooks
 ```
+
+## Explicit State Machine
+
+The submission flow in this example is no longer just a mutable status string. It is modeled as `state + event + transition function`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> validating: submit_requested
+    validating --> blocked: validation_failed
+    validating --> calculating: validation_passed
+    calculating --> success: quote_ready
+    success --> idle: draft_changed
+    blocked --> idle: draft_changed
+    idle --> idle: prefill_loaded / reset
+```
+
+Relevant files:
+
+- `business/submissionStateMachine.ts`
+- `handlers/useCanonicalOrderSubmissionHandlers.tsx`
+- `handlers/orderHandlerSupport.ts`
+
+See [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine) for the general concept behind this pattern.
 
 ## Specification Example
 
@@ -157,20 +192,21 @@ State lives in stores, not in view-local business state.
 
 ### Where does business logic live
 
-Pure decision logic lives in `business/orderBusiness.ts`.
+Pure decision logic lives in focused modules under `business/`.
 
-- field validation
-- quote calculation
-- default state generation
+- `orderDraft.ts`: draft defaults and example data
+- `orderValidation.ts`: validation issue calculation
+- `orderQuote.ts`: quote calculation
+- `submissionStateMachine.ts`: explicit workflow transitions
 
 ### Where do side effects live
 
 Orchestration and imperative work live in handlers.
 
 - reading the latest store values
-- transitioning submission status
+- calling explicit submission transitions
 - focusing the first invalid field
-- appending activity log entries
+- appending activity events and mapping them for the view
 
 ### What do views do
 
@@ -192,11 +228,15 @@ The example is verified by an integration test that imports the real example com
 ## Recommended Reading Order
 
 1. `contexts/CanonicalOrderContexts.tsx`
-2. `business/orderBusiness.ts`
-3. `handlers/CanonicalOrderHandlers.tsx`
-4. `actions/useCanonicalOrderActions.ts`
-5. `hooks/useCanonicalOrderData.ts`
-6. `views/CanonicalOrderView.tsx`
-7. `CanonicalOrderExample.tsx`
+2. `business/orderDraft.ts`
+3. `business/orderValidation.ts`
+4. `business/orderQuote.ts`
+5. `business/submissionStateMachine.ts`
+6. `handlers/useCanonicalOrderSubmissionHandlers.tsx`
+7. `handlers/orderHandlerSupport.ts`
+8. `actions/useCanonicalOrderActions.ts`
+9. `hooks/useCanonicalOrderData.ts`
+10. `views/CanonicalOrderView.tsx`
+11. `CanonicalOrderExample.tsx`
 
 This order mirrors the intended architectural understanding: boundaries first, implementation next, UI last.

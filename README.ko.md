@@ -116,16 +116,26 @@ function App() {
 
 ---
 
-## 🧭 첫 추천 예제
+## 🧭 첫 추천 학습 경로
 
-개별 API를 따로 보기보다, 실제 구조와 검증 흐름을 한 번에 이해하고 싶다면 **Implementation Playbook**부터 시작하는 것이 가장 좋습니다.
+개별 API를 따로 보기보다, 현재 저장소가 권장하는 표준을 한 번에 이해하고 싶다면 **Implementation Playbook 경로**부터 시작하는 것이 가장 좋습니다.
 
-- **라이브 예제**: [Implementation Playbook](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
-- **설명 문서**: [Canonical Order Form](https://mineclover.github.io/context-action/ko/examples/canonical-order-form)
-- **안정성 배경**: [Stability Test Cycle](https://mineclover.github.io/context-action/ko/context-layered/stability-test-cycle)
-- **PR용 검증 명령**: `pnpm test:canonical-example`
+- **표준 컨벤션**: [Implementation Convention](https://mineclover.github.io/context-action/ko/context-layered/implementation-convention)
+- **canonical example**: [Canonical Order Form](https://mineclover.github.io/context-action/ko/examples/canonical-order-form)
+- **시나리오 라이브러리**: [Playbook 시나리오 라이브러리](https://mineclover.github.io/context-action/ko/examples/implementation-playbook-scenarios)
+- **라이브 데모**:
+  - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+  - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
+  - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
+  - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+- **repo-local skill**: `skills/context-action-implementation-playbook/SKILL.md`
+- **검증 명령**:
+  - `pnpm test:canonical-example`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/access-request-playbook.integration.test.tsx`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/renewal-risk-review-playbook.integration.test.tsx`
 
-이 경로를 따라가면 Action, Store, Ref 경계, 파일 읽기 순서, 그리고 실제 integration test까지 한 번에 확인할 수 있습니다.
+이 경로를 따라가면 Action, Store, Ref 경계뿐 아니라, 표준 컨벤션, skill, canonical example, 그리고 3개의 도메인 시나리오 데모까지 한 번에 확인할 수 있습니다.
 
 ---
 

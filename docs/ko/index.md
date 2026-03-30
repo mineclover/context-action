@@ -6,38 +6,51 @@ titleTemplate: 타입 안전한 액션 파이프라인 관리 시스템
 hero:
   name: Context Action
   text: 타입 안전한 액션 파이프라인 관리 시스템
-  tagline: React 통합과 향상된 상태 관리를 위한 TypeScript 모노레포
+  tagline: React 통합, implementation playbook, 재사용 가능한 시나리오 데모를 위한 TypeScript 모노레포
   image:
     src: /logo.svg
     alt: Context Action
   actions:
     - theme: brand
-      text: 시작하기
-      link: /ko/guide/overview
+      text: 표준 컨벤션 보기
+      link: /ko/context-layered/implementation-convention
     - theme: alt
-      text: GitHub에서 보기
-      link: https://github.com/mineclover/context-action
+      text: 시나리오 라이브러리
+      link: /ko/examples/implementation-playbook-scenarios
 
 features:
-  - icon: 🚀
-    title: 액션 컨텍스트 패턴
-    details: 통합된 액션 + 스토어 관리, 타입 안전한 액션 핸들러, Provider 기반 격리
-  - icon: 🎯
-    title: 액션 전용 패턴
-    details: 스토어 없이 순수한 액션 디스패칭, 이벤트 시스템과 커맨드 패턴에 적합
-  - icon: 🏪
-    title: 스토어 전용 패턴
-    details: 액션 없이 순수한 상태 관리, 뛰어난 타입 추론과 간소화된 API
-  - icon: ⚡
-    title: RefContext 패턴
-    details: 제로 React 리렌더링으로 고성능 DOM 조작, 하드웨어 가속 지원
-  - icon: 🧩
-    title: MVVM 아키텍처
-    details: View(컴포넌트), ViewModel(액션 파이프라인), Model(스토어 시스템) 계층 분리
-  - icon: 🛡️
-    title: 타입 안전성
-    details: 엄격한 타입 검사와 도메인별 훅으로 완전한 TypeScript 지원
+  - icon: 📐
+    title: 표준 컨벤션
+    details: 폴더 구조, 상태 전이, 테스트, 문서 연결 방식을 먼저 고정하는 implementation-playbook 표준
+  - icon: 🧠
+    title: Repo-Local Skill
+    details: 새 시나리오를 같은 규칙으로 스캐폴딩하고 반복 보강할 수 있는 저장소 내 skill
+  - icon: 🧪
+    title: Canonical Order Demo
+    details: Action, Store, Ref, 명시적 상태 전이를 한 번에 보여주는 기본 데모
+  - icon: 🔐
+    title: Access Request Demo
+    details: approval/review workflow를 같은 skill로 옮긴 interactive demo
+  - icon: 🚨
+    title: Incident Escalation Demo
+    details: severity 규칙과 escalation packet을 다루는 운영 시나리오 demo
+  - icon: 📈
+    title: Renewal Risk Demo
+    details: scoring, sponsor rule, follow-up packet을 다루는 customer-success 시나리오 demo
 ---
+
+## 추천 학습 경로
+
+1. [Implementation Convention](/ko/context-layered/implementation-convention)을 읽습니다.
+2. [Canonical Order Form](/ko/examples/canonical-order-form)으로 기본 구조를 봅니다.
+3. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)로 다른 도메인 확장을 봅니다.
+4. 라이브 데모를 따라가 봅니다.
+   - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+   - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
+   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
+   - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+
+repo-local skill 경로: `skills/context-action-implementation-playbook/SKILL.md`
 
 <style>
 .VPFeature .icon {

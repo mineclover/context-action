@@ -5,11 +5,15 @@ import {
   createStoreContext,
 } from '@context-action/react';
 import type {
+  OrderActivityEvent,
   OrderDraft,
   OrderFieldErrors,
-  OrderQuote,
+  OrderSubmissionState,
 } from '../business/orderBusiness';
-import { createEmptyOrderDraft } from '../business/orderBusiness';
+import {
+  createEmptyOrderDraft,
+  createInitialSubmissionState,
+} from '../business/orderBusiness';
 
 export interface CanonicalOrderStores {
   draft: OrderDraft;
@@ -19,18 +23,8 @@ export interface CanonicalOrderStores {
     hasAttemptedSubmit: boolean;
     summary: string;
   };
-  submission: {
-    status: 'idle' | 'validating' | 'submitting' | 'success' | 'error';
-    message: string;
-    quote: OrderQuote | null;
-    submittedAt: string | null;
-  };
-  activity: Array<{
-    id: string;
-    step: string;
-    detail: string;
-    tone: 'info' | 'success' | 'warning';
-  }>;
+  submission: OrderSubmissionState;
+  activity: OrderActivityEvent[];
 }
 
 export interface CanonicalOrderActions extends ActionPayloadMap {
@@ -54,19 +48,13 @@ export const initialValidationState: CanonicalOrderStores['validation'] = {
   summary: '입력 후 견적 생성을 눌러 전체 흐름을 확인해 보세요.',
 };
 
-export const initialSubmissionState: CanonicalOrderStores['submission'] = {
-  status: 'idle',
-  message: '입력을 기다리고 있습니다.',
-  quote: null,
-  submittedAt: null,
-};
+export const initialSubmissionState: CanonicalOrderStores['submission'] =
+  createInitialSubmissionState();
 
 export const initialActivityState: CanonicalOrderStores['activity'] = [
   {
     id: 'boot-1',
-    step: '경계 준비 완료',
-    detail: 'Action, Store, Ref provider가 모두 마운트되었습니다.',
-    tone: 'info',
+    type: 'providers_ready',
   },
 ];
 

@@ -29,9 +29,17 @@ example/src/pages/patterns/implementation-playbook/
 ├── contexts/
 │   └── CanonicalOrderContexts.tsx
 ├── business/
-│   └── orderBusiness.ts
+│   ├── orderActivity.ts
+│   ├── orderBusiness.ts
+│   ├── orderDraft.ts
+│   ├── orderQuote.ts
+│   ├── orderValidation.ts
+│   └── submissionStateMachine.ts
 ├── handlers/
-│   └── CanonicalOrderHandlers.tsx
+│   ├── CanonicalOrderHandlers.tsx
+│   ├── orderHandlerSupport.ts
+│   ├── useCanonicalOrderDraftHandlers.tsx
+│   └── useCanonicalOrderSubmissionHandlers.tsx
 ├── actions/
 │   └── useCanonicalOrderActions.ts
 ├── hooks/
@@ -56,16 +64,43 @@ sequenceDiagram
     Handler->>Store: 최신 draft 조회
     Handler->>Business: validateOrderDraft(draft)
     alt invalid draft
-        Business-->>Handler: field errors + focus field
-        Handler->>Store: validation 및 error 상태 저장
+        Business-->>Handler: validation issues
+        Handler->>Business: transition(state, validation_failed)
+        Handler->>Store: validation 및 blocked 상태 저장
         Handler->>Ref: 첫 번째 잘못된 input에 focus
     else valid draft
         Business-->>Handler: validation 통과
+        Handler->>Business: transition(state, validation_passed)
         Handler->>Business: buildOrderQuote(draft)
+        Handler->>Business: transition(state, quote_ready)
         Handler->>Store: success 상태와 quote 저장
     end
     Store-->>View: hook 구독을 통한 reactive update
 ```
+
+## 명시적 상태 머신
+
+이 예제의 submission 흐름은 단순 `status string` 갱신이 아니라, `상태 + 이벤트 + 전이 함수` 조합으로 관리됩니다.
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> validating: submit_requested
+    validating --> blocked: validation_failed
+    validating --> calculating: validation_passed
+    calculating --> success: quote_ready
+    success --> idle: draft_changed
+    blocked --> idle: draft_changed
+    idle --> idle: prefill_loaded / reset
+```
+
+관련 파일:
+
+- `business/submissionStateMachine.ts`
+- `handlers/useCanonicalOrderSubmissionHandlers.tsx`
+- `handlers/orderHandlerSupport.ts`
+
+상세 설명은 [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine) 문서를 함께 보시면 됩니다.
 
 ## 스펙 문서 예시
 
@@ -157,20 +192,21 @@ Context-Layered Architecture의 권장 개발 방식을 한 번에 보여주는 
 
 ### 비즈니스 로직은 어디에 두는가
 
-순수 의사결정 로직은 `business/orderBusiness.ts`에 둡니다.
+순수 의사결정 로직은 `business/`에 작은 함수 단위로 둡니다.
 
-- 필드 validation
-- quote 계산
-- 기본 상태 생성
+- `orderDraft.ts`: 기본 상태와 예시 draft
+- `orderValidation.ts`: validation issue 계산
+- `orderQuote.ts`: quote 계산
+- `submissionStateMachine.ts`: 명시적 상태 전이
 
 ### 사이드 이펙트는 어디에 두는가
 
 조율과 imperative 작업은 handler에 둡니다.
 
 - 최신 store 값 읽기
-- submission 상태 전이
+- submission 상태 전이 함수 호출
 - 첫 번째 invalid field focus
-- activity log 기록
+- activity event 기록과 UI용 메시지 매핑
 
 ### view는 무엇을 하는가
 
@@ -192,11 +228,15 @@ view는 상태를 렌더링하고 사용자 의도만 발생시킵니다.
 ## 권장 읽기 순서
 
 1. `contexts/CanonicalOrderContexts.tsx`
-2. `business/orderBusiness.ts`
-3. `handlers/CanonicalOrderHandlers.tsx`
-4. `actions/useCanonicalOrderActions.ts`
-5. `hooks/useCanonicalOrderData.ts`
-6. `views/CanonicalOrderView.tsx`
-7. `CanonicalOrderExample.tsx`
+2. `business/orderDraft.ts`
+3. `business/orderValidation.ts`
+4. `business/orderQuote.ts`
+5. `business/submissionStateMachine.ts`
+6. `handlers/useCanonicalOrderSubmissionHandlers.tsx`
+7. `handlers/orderHandlerSupport.ts`
+8. `actions/useCanonicalOrderActions.ts`
+9. `hooks/useCanonicalOrderData.ts`
+10. `views/CanonicalOrderView.tsx`
+11. `CanonicalOrderExample.tsx`
 
 이 순서는 의도한 아키텍처 이해 순서와 같습니다. 먼저 경계를 보고, 다음에 구현을 보고, 마지막에 UI를 보는 방식입니다.

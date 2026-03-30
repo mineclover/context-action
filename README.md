@@ -114,16 +114,26 @@ function App() {
 
 ---
 
-## 🧭 Recommended First Example
+## 🧭 Recommended First Path
 
-If you want to understand Context-Action through one realistic example instead of many isolated APIs, start with the **Implementation Playbook**.
+If you want to understand Context-Action through the repository's current standard, start with the **Implementation Playbook path** instead of isolated APIs.
 
-- **Live example**: [Implementation Playbook](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
-- **Guide**: [Canonical Order Form](https://mineclover.github.io/context-action/en/examples/canonical-order-form)
-- **Stability rationale**: [Stability Test Cycle](https://mineclover.github.io/context-action/en/context-layered/stability-test-cycle)
-- **PR-friendly verification**: `pnpm test:canonical-example`
+- **Standard convention**: [Implementation Convention](https://mineclover.github.io/context-action/en/context-layered/implementation-convention)
+- **Canonical example**: [Canonical Order Form](https://mineclover.github.io/context-action/en/examples/canonical-order-form)
+- **Scenario library**: [Playbook Scenario Library](https://mineclover.github.io/context-action/en/examples/implementation-playbook-scenarios)
+- **Live demos**:
+  - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
+  - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
+  - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
+  - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+- **Repo-local skill**: `skills/context-action-implementation-playbook/SKILL.md`
+- **Verification**:
+  - `pnpm test:canonical-example`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/access-request-playbook.integration.test.tsx`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`
+  - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/renewal-risk-review-playbook.integration.test.tsx`
 
-This path shows Action, Store, Ref, file-by-file reading order, and the actual integration test that validates the example.
+This path now shows the full pattern as a reusable standard: convention, skill, canonical example, and three domain-specific demos.
 
 ---
 
