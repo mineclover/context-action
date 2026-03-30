@@ -20,7 +20,7 @@ export function useCanonicalOrderData() {
   const submission = useStoreValue(submissionStore);
   const activity = useStoreValue(activityStore);
   const submissionView = toSubmissionViewState(submission);
-  const activityEntries = activity.map(toActivityEntry);
+  const activityEntries = activity.map(toActivityEntry).slice().reverse();
 
   return {
     draft,
@@ -30,7 +30,7 @@ export function useCanonicalOrderData() {
     activity: activityEntries,
     isBusy: isSubmissionBusy(submission),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,
-    latestActivity: activityEntries[activityEntries.length - 1] ?? null,
+    latestActivity: activityEntries[0] ?? null,
   };
 }
 

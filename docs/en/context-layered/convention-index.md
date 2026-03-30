@@ -1,0 +1,90 @@
+# Convention Index
+
+This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model.
+
+## Short Recommended Reading Path
+
+1. [Implementation Convention](/en/context-layered/implementation-convention)
+2. [Canonical Order Form Example](/en/examples/canonical-order-form)
+3. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+4. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+5. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+
+These five cover:
+- folder structure
+- workflow transition rules
+- domain-level expansion
+- testing expectations
+
+## Grouped by Role
+
+### 1. Documents that define the standard
+
+- [Implementation Convention](/en/context-layered/implementation-convention)
+  - the standard implementation-playbook rule set
+- [Folder Structure](/en/context-layered/architecture/folder-structure)
+  - responsibility split across `contexts / business / handlers / actions / hooks / views`
+- [Handler Registry](/en/context-layered/architecture/handler-registry)
+  - handler registration and separation rules
+
+### 2. Documents that explain logic and transitions
+
+- [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+  - how to lock complex async flows as `state + event + transition`
+- [Context-Layered Overview](/en/context-layered/context-layered-guide)
+  - the high-level architectural picture
+- [Migration Guide](/en/context-layered/migration-guide)
+  - how to move older structures into this model
+
+### 3. Documents that demonstrate the implementation
+
+- [Canonical Order Form Example](/en/examples/canonical-order-form)
+  - the base canonical example
+- [Access Request Playbook Example](/en/examples/access-request-playbook)
+  - approval/review workflow example
+- [Incident Escalation Playbook Example](/en/examples/incident-escalation-playbook)
+  - incident/escalation workflow example
+- [Renewal Risk Review Playbook Example](/en/examples/renewal-risk-review-playbook)
+  - renewal/customer-success workflow example
+- [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+  - scenario extensions that follow the same skill and convention
+
+### 4. Documents that define verification
+
+- [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+  - how to split contract tests, scenario tests, and stress validation
+
+## Reading Paths by Goal
+
+### For architecture alignment
+
+1. [Implementation Convention](/en/context-layered/implementation-convention)
+2. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+3. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+
+### For implementer onboarding
+
+1. [Canonical Order Form Example](/en/examples/canonical-order-form)
+2. [Access Request Playbook Example](/en/examples/access-request-playbook)
+3. [Incident Escalation Playbook Example](/en/examples/incident-escalation-playbook)
+4. [Renewal Risk Review Playbook Example](/en/examples/renewal-risk-review-playbook)
+
+### For designing new scenarios
+
+1. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+2. [Implementation Convention](/en/context-layered/implementation-convention)
+3. repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
+
+## Read Alongside the Example App
+
+The docs make more sense when paired with the live demos:
+
+- `/patterns/implementation-playbook`
+- `/patterns/implementation-playbook/access-request`
+- `/patterns/implementation-playbook/incident-escalation`
+- `/patterns/implementation-playbook/renewal-risk-review`
+
+## One-Line Summary
+
+To turn this into a team convention, follow:
+`Implementation Convention -> Explicit State Machine -> Canonical Example -> Scenario Demos -> Stability Test Cycle`

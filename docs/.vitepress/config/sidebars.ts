@@ -230,6 +230,7 @@ const CONCEPT_STRUCTURE = {
           collapsed: true,
           items: [
             { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+            { text: 'Convention Index', link: '/en/context-layered/convention-index' },
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
             { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
@@ -256,6 +257,7 @@ const CONCEPT_STRUCTURE = {
           collapsed: true,
           items: [
             { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+            { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
             { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
             { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
             { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },

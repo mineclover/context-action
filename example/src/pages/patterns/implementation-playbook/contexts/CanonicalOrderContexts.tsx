@@ -54,6 +54,7 @@ export const initialSubmissionState: CanonicalOrderStores['submission'] =
 export const initialActivityState: CanonicalOrderStores['activity'] = [
   {
     id: 'boot-1',
+    occurredAt: new Date().toISOString(),
     type: 'providers_ready',
   },
 ];

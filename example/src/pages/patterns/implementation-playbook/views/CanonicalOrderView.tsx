@@ -86,6 +86,15 @@ function statusLabel(status: string) {
   }
 }
 
+function formatOccurredAt(occurredAt: string) {
+  const date = new Date(occurredAt);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${hours}시 ${minutes}분 ${seconds}초`;
+}
+
 export function CanonicalOrderView() {
   const {
     draft,
@@ -477,7 +486,12 @@ export function CanonicalOrderView() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-900">{entry.step}</div>
+                    <div>
+                      <div className="font-medium text-slate-900">{entry.step}</div>
+                      <div className="mt-1 text-xs text-slate-500">
+                        {formatOccurredAt(entry.occurredAt)}
+                      </div>
+                    </div>
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
                       {entry.tone}
                     </div>

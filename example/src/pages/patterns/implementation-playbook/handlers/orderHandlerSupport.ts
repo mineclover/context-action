@@ -88,10 +88,15 @@ function summarizeIssueFields(issues: OrderValidationIssue[]) {
 }
 
 export function toActivityEntry(event: OrderActivityEvent) {
+  const baseEntry = {
+    id: event.id,
+    occurredAt: event.occurredAt,
+  };
+
   switch (event.type) {
     case 'providers_ready':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '경계 준비 완료',
         detail: 'Action, Store, Ref provider가 모두 마운트되었습니다.',
         tone: 'info' as const,
@@ -99,7 +104,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'draft_updated':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '입력값 갱신',
         detail: event.fields.length
           ? `입력값이 갱신되었습니다: ${event.fields
@@ -111,7 +116,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'sample_loaded':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '샘플 불러오기',
         detail: '정상 제출 경로를 바로 볼 수 있도록 예시 입력을 채웠습니다.',
         tone: 'info' as const,
@@ -119,7 +124,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'demo_reset':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '예제 초기화',
         detail: 'draft, validation, submission 상태를 초기값으로 되돌렸습니다.',
         tone: 'info' as const,
@@ -127,7 +132,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'submission_requested':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '검증 시작',
         detail: 'handler가 Store Context에서 최신 draft를 읽었습니다.',
         tone: 'info' as const,
@@ -135,7 +140,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'validation_failed':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '검증 실패',
         detail: summarizeIssueFields(event.issues).length
           ? `${summarizeIssueFields(event.issues).join(', ')} 항목을 확인해 주세요.`
@@ -145,7 +150,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'validation_passed':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '비즈니스 로직 실행',
         detail: '검증이 통과되어 business 레이어에서 견적 계산을 시작했습니다.',
         tone: 'info' as const,
@@ -153,7 +158,7 @@ export function toActivityEntry(event: OrderActivityEvent) {
 
     case 'quote_ready':
       return {
-        id: event.id,
+        ...baseEntry,
         step: '견적 준비 완료',
         detail: `${event.plan === 'starter' ? '스타터' : '팀'} 플랜 최종 견적은 $${event.total.toFixed(
           2
