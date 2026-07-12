@@ -1,12 +1,10 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   // Memory optimization
   maxWorkers: 1,
   workerIdleMemoryLimit: '512MB',
   detectOpenHandles: true,
-  forceExit: true,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@context-action/core$': '<rootDir>/src/index',
@@ -17,20 +15,22 @@ module.exports = {
     '**/__tests__/unit/*.test.ts',
     '**/__tests__/production/*.test.ts',
     '**/__tests__/feature-coverage/*.test.ts',
+    '**/__tests__/individual-features/*.test.ts',
     '**/__tests__/concurrency/*.test.ts',
     '**/__tests__/edge-cases/*.test.ts',
     '**/__tests__/comprehensive/*.test.ts',
-    '**/__tests__/schema/*.test.ts'
+    '**/__tests__/schema/*.test.ts',
+    '**/__tests__/type-safety/*.test.ts',
+    '**/__tests__/working/*.test.ts'
   ],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-        module: 'commonjs',
+    '^.+\\.tsx?$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'typescript', tsx: true },
         target: 'es2020',
-        types: ['jest', 'node']
-      }
+        transform: { react: { runtime: 'automatic' } }
+      },
+      module: { type: 'commonjs' }
     }]
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

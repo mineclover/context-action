@@ -18,7 +18,116 @@ import {
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
-import { ActionValidationError } from './errors.js';
+import {
+  ActionRegisterDestroyedError,
+  ActionTimeoutError,
+  ActionValidationError,
+} from './errors.js';
+
+type DispatchHandlerPromises = Set<Promise<unknown>>;
+
+const dispatchOptionKeys = new Set<keyof DispatchOptions>([
+  'autoAbort',
+  'debounce',
+  'executionMode',
+  'filter',
+  'immediate',
+  'queuePriority',
+  'result',
+  'retryOnError',
+  'signal',
+  'throttle',
+  'timeout',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isOptionalNumber(value: unknown): boolean {
+  return value === undefined || typeof value === 'number';
+}
+
+function isOptionalBoolean(value: unknown): boolean {
+  return value === undefined || typeof value === 'boolean';
+}
+
+/**
+ * Recognize the deprecated options-first void-action proxy call.
+ *
+ * Every supplied field is validated so ordinary payloads that merely overlap
+ * one option name are not silently reinterpreted as dispatch options.
+ */
+function isDispatchOptions(value: unknown): value is DispatchOptions {
+  if (!isRecord(value)) return false;
+
+  const keys = Object.keys(value);
+  if (
+    keys.length === 0
+    || keys.some(key => !dispatchOptionKeys.has(key as keyof DispatchOptions))
+  ) {
+    return false;
+  }
+
+  return keys.every(key => {
+    const optionValue = value[key];
+    switch (key as keyof DispatchOptions) {
+      case 'debounce':
+      case 'queuePriority':
+      case 'throttle':
+      case 'timeout':
+        return isOptionalNumber(optionValue);
+      case 'immediate':
+        return isOptionalBoolean(optionValue);
+      case 'executionMode':
+        return optionValue === undefined
+          || optionValue === 'sequential'
+          || optionValue === 'parallel'
+          || optionValue === 'race';
+      case 'signal':
+        return optionValue === undefined
+          || (isRecord(optionValue)
+            && typeof optionValue.aborted === 'boolean'
+            && typeof optionValue.addEventListener === 'function');
+      case 'retryOnError':
+        return optionValue === undefined
+          || (isRecord(optionValue)
+            && typeof optionValue.maxAttempts === 'number'
+            && typeof optionValue.delay === 'number');
+      case 'autoAbort':
+        return optionValue === undefined
+          || (isRecord(optionValue)
+            && typeof optionValue.enabled === 'boolean'
+            && isOptionalBoolean(optionValue.allowHandlerAbort)
+            && (optionValue.onControllerCreated === undefined
+              || typeof optionValue.onControllerCreated === 'function'));
+      case 'filter':
+        return optionValue === undefined
+          || (isRecord(optionValue)
+            && (optionValue.handlerIds === undefined
+              || (Array.isArray(optionValue.handlerIds)
+                && optionValue.handlerIds.every(item => typeof item === 'string')))
+            && (optionValue.excludeHandlerIds === undefined
+              || (Array.isArray(optionValue.excludeHandlerIds)
+                && optionValue.excludeHandlerIds.every(item => typeof item === 'string')))
+            && (optionValue.priority === undefined || isRecord(optionValue.priority))
+            && (optionValue.custom === undefined || typeof optionValue.custom === 'function'));
+      case 'result':
+        return optionValue === undefined
+          || (isRecord(optionValue)
+            && (optionValue.strategy === undefined
+              || optionValue.strategy === 'first'
+              || optionValue.strategy === 'last'
+              || optionValue.strategy === 'all'
+              || optionValue.strategy === 'merge'
+              || optionValue.strategy === 'custom')
+            && (optionValue.merger === undefined || typeof optionValue.merger === 'function')
+            && isOptionalBoolean(optionValue.collect)
+            && isOptionalNumber(optionValue.maxResults)
+            && isOptionalBoolean(optionValue.includeErrors));
+    }
+  });
+}
 
 /**
  * Action Register for managing action handlers with priority-based execution
@@ -36,49 +145,9 @@ import { ActionValidationError } from './errors.js';
  * @public
  */
 
-/**
- * Type guard to determine if an object is DispatchOptions
- * Extracted as utility function for reuse and performance
- * 
- * @param obj - Object to check
- * @returns True if object is DispatchOptions
- * @internal
- */
-function isDispatchOptions(obj: any): obj is DispatchOptions {
-  if (!obj || typeof obj !== 'object') return false;
-
-  // Check for DispatchOptions-specific properties
-  // These are unique to DispatchOptions and unlikely to appear in payloads
-  if ('debounce' in obj && typeof obj.debounce === 'number') return true;
-  if ('throttle' in obj && typeof obj.throttle === 'number') return true;
-  if ('executionMode' in obj) return true;
-  if ('signal' in obj && obj.signal instanceof AbortSignal) return true;
-  if ('immediate' in obj && typeof obj.immediate === 'boolean') return true;
-  if ('queuePriority' in obj && typeof obj.queuePriority === 'number') return true;
-  if ('timeout' in obj && typeof obj.timeout === 'number') return true;
-  if ('retryOnError' in obj && typeof obj.retryOnError === 'object') return true;
-  if ('autoAbort' in obj && typeof obj.autoAbort === 'object') return true;
-
-  // filter must be an object with specific structure
-  if ('filter' in obj && typeof obj.filter === 'object' && obj.filter !== null) {
-    const filter = obj.filter;
-    if ('handlerIds' in filter || 'excludeHandlerIds' in filter || 'priority' in filter || 'custom' in filter) {
-      return true;
-    }
-  }
-
-  // result must be an object with specific DispatchOptions.result structure
-  if ('result' in obj && typeof obj.result === 'object' && obj.result !== null) {
-    const result = obj.result;
-    if ('strategy' in result || 'merger' in result || 'collect' in result || 'maxResults' in result || 'includeErrors' in result) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
+export class ActionRegister<
+  T extends ActionPayloadMap = Record<string, unknown>
+> {
   private pipelines = new Map<keyof T, Array<HandlerRegistration<any, any>>>();
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
@@ -110,15 +179,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private controllerPool: PipelineController<any, any>[] = [];
   private readonly maxControllerPoolSize = 10;
 
+  private lifecycleState: 'active' | 'closing' | 'destroyed' = 'active';
+  private readonly lifecycleController = new AbortController();
+  private readonly activeDispatches = new Set<Promise<unknown>>();
+  private readonly activeHandlerPromises = new Set<Promise<unknown>>();
+  private destroyAsyncPromise: Promise<void> | undefined;
+  private dispatchConstructionDepth = 0;
+
   // 🔧 Performance optimization: Cached Proxy instances for actions getters
   private _actionsProxy?: {
     [K in keyof T]: T[K] extends void
-      ? (options?: DispatchOptions) => Promise<void>
+      ? (
+          payloadOrOptions?: undefined | DispatchOptions,
+          options?: DispatchOptions
+        ) => Promise<void>
       : (payload: T[K], options?: DispatchOptions) => Promise<void>
   };
   private _actionsWithResultProxy?: {
     [K in keyof T]: T[K] extends void
-      ? (options?: DispatchOptions) => Promise<ExecutionResult<any>>
+      ? (
+          payloadOrOptions?: undefined | DispatchOptions,
+          options?: DispatchOptions
+        ) => Promise<ExecutionResult<any>>
       : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
   };
 
@@ -155,10 +237,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   /**
    * 🆕 Action-based dispatcher
-   * 
+   *
    * Provides function-based access to actions for more convenient dispatching.
    * Each action becomes a callable function that can be invoked directly.
-   * 
+   *
    * @example
    * ```typescript
    * interface MyActions extends ActionPayloadMap {
@@ -171,13 +253,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * // Function-based dispatching
    * await registry.actions.userLogin({ userId: '123', email: 'test@example.com' });
    * await registry.actions.resetApp();
+   * await registry.actions.resetApp({ debounce: 100 }); // Legacy options-first form
+   * await registry.actions.resetApp(undefined, { debounce: 100 });
    * ```
    * 
    * @public
    */
   get actions(): {
     [K in keyof T]: T[K] extends void
-      ? (options?: DispatchOptions) => Promise<void>
+      ? (
+          payloadOrOptions?: undefined | DispatchOptions,
+          options?: DispatchOptions
+        ) => Promise<void>
       : (payload: T[K], options?: DispatchOptions) => Promise<void>
   } {
     // 🔧 Performance: Return cached Proxy instance
@@ -185,16 +272,20 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this._actionsProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           // Type guard to ensure prop is a valid action key
-          if (typeof prop === 'string' && this.pipelines.has(prop)) {
-            const actionKey = prop as keyof T;
-            return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
-              if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
-                // First parameter is options
+          const actionKey = prop as keyof T;
+          if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
+            return (
+              payloadOrOptions?: T[typeof actionKey] | DispatchOptions,
+              options?: DispatchOptions
+            ) => {
+              if (isDispatchOptions(payloadOrOptions)) {
                 return this.dispatch(actionKey, undefined, payloadOrOptions);
-              } else {
-                // First parameter is payload (or undefined for void actions)
-                return this.dispatch(actionKey, payloadOrOptions as T[typeof actionKey], options);
               }
+              return this.dispatch(
+                actionKey,
+                payloadOrOptions as T[typeof actionKey],
+                options
+              );
             };
           }
           return undefined;
@@ -217,6 +308,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * // Actions without payload
    * const result = await registry.actionsWithResult.userLogout();
+   * const debouncedResult = await registry.actionsWithResult.userLogout(
+   *   undefined,
+   *   { debounce: 100 }
+   * );
    * 
    * // With options
    * const result = await registry.actionsWithResult.processData(
@@ -229,7 +324,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   get actionsWithResult(): {
     [K in keyof T]: T[K] extends void
-      ? (options?: DispatchOptions) => Promise<ExecutionResult<any>>
+      ? (
+          payloadOrOptions?: undefined | DispatchOptions,
+          options?: DispatchOptions
+        ) => Promise<ExecutionResult<any>>
       : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
   } {
     // 🔧 Performance: Return cached Proxy instance
@@ -237,16 +335,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this._actionsWithResultProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           // Type guard to ensure prop is a valid action key
-          if (typeof prop === 'string' && this.pipelines.has(prop)) {
-            const actionKey = prop as keyof T;
-            return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
-              if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
-                // First parameter is options
+          const actionKey = prop as keyof T;
+          if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
+            return (
+              payloadOrOptions?: T[typeof actionKey] | DispatchOptions,
+              options?: DispatchOptions
+            ) => {
+              if (isDispatchOptions(payloadOrOptions)) {
                 return this.dispatchWithResult(actionKey, undefined, payloadOrOptions);
-              } else {
-                // First parameter is payload (or undefined for void actions)
-                return this.dispatchWithResult(actionKey, payloadOrOptions as T[typeof actionKey], options);
               }
+              return this.dispatchWithResult(actionKey, payloadOrOptions, options);
             };
           }
           return undefined;
@@ -274,8 +372,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   register<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
-    config: HandlerConfig = {}
+    config: HandlerConfig<T[K]> = {}
   ): UnregisterFunction {
+    this.assertAcceptingWork();
     // 🔄 임시로 기존 구현 유지하되 개선된 방식 적용
     // 동기적 API를 유지하면서 내부적으로만 동시성 보호
     
@@ -296,6 +395,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const timestamp = new Date().toISOString();
       console[level](`🎯 [${timestamp}] [${this.name}] ${message}`, data || '');
     }
+  }
+
+  private assertAcceptingWork(): void {
+    if (this.lifecycleState !== 'active') {
+      throw new ActionRegisterDestroyedError(this.name, this.lifecycleState);
+    }
+  }
+
+  private rejectedLifecyclePromise<R>(): Promise<R> {
+    const error = new ActionRegisterDestroyedError(
+      this.name,
+      this.lifecycleState === 'active' ? 'destroyed' : this.lifecycleState
+    );
+    const rejected = Promise.reject<R>(error);
+    void rejected.catch(() => {});
+    return rejected;
   }
 
   /**
@@ -384,7 +499,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private _performRegistrationSync<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
-    config: HandlerConfig,
+    config: HandlerConfig<T[K]>,
     handlerId: string
   ): UnregisterFunction {
     // Create handler registration with defaults
@@ -400,7 +515,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         replaceExisting: config.replaceExisting ?? true, // 🔧 Fix: Default to true for backward compatibility
         cleanup: config.cleanup, // 🔧 Preserve cleanup function from config
         condition: config.condition, // 🔧 Fix: Preserve condition function from config
-      } as Required<HandlerConfig>,
+      } as Required<HandlerConfig<T[K]>>,
       id: handlerId,
     };
     
@@ -525,35 +640,413 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @public
    */
   // Overload for actions with payload (more specific)
-  async dispatch<K extends keyof T>(
+  dispatch<K extends keyof T>(
     action: K,
     payload: T[K],
     options?: DispatchOptions
   ): Promise<void>;
   
   // Overload for actions without payload
-  async dispatch<K extends keyof T>(
+  dispatch<K extends keyof T>(
     action: K,
     payload?: undefined,
     options?: DispatchOptions
   ): Promise<void>;
   
   // Implementation (least specific)
-  async dispatch<K extends keyof T>(
+  dispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
     options?: DispatchOptions
   ): Promise<void> {
-    // 🆕 Conditional queue usage for performance
-    if (options?.immediate || !this.dispatchQueue) {
-      // Bypass queue for immediate execution or when queues disabled
-      return this._performDispatch(action, payload, options);
-    } else {
-      // Use queue for concurrency protection
-      return this.dispatchQueue.enqueue(async () => {
-        return this._performDispatch(action, payload, options);
-      });
+    if (this.lifecycleState !== 'active') {
+      return this.rejectedLifecyclePromise<void>();
     }
+
+    const timeoutScope = this.createTimeoutScope(action, options);
+    const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
+    const attemptState = { count: 0 };
+    const operation = async () => {
+      if (!timeoutScope.options?.signal?.aborted) {
+        this.validatePayload(action, payload);
+      }
+
+      return this.executeWithRetry(async () => {
+        const executedHandlers: HandlerRegistration<any, any>[] = [];
+        try {
+          return await this._performDispatch(
+            action,
+            payload,
+            timeoutScope.options,
+            attemptState.count > 1,
+            executedHandlers,
+            dispatchHandlerPromises
+          );
+        } finally {
+          this.cleanupOneTimeHandlers(
+            action,
+            executedHandlers,
+            dispatchHandlerPromises
+          );
+        }
+      }, timeoutScope.options, attemptState, undefined, () => this.getHandlerCount(action) > 0);
+    };
+
+    let dispatchPromise: Promise<void>;
+    this.dispatchConstructionDepth += 1;
+    try {
+      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+        dispatchPromise = operation();
+      } else {
+        const queued = this.dispatchQueue.enqueueWithHandle(
+          operation,
+          timeoutScope.options?.queuePriority ?? 0
+        );
+        timeoutScope.onTimeout(error => queued.cancel(error));
+        dispatchPromise = queued.promise;
+      }
+      this.trackDispatchPromise(dispatchPromise);
+    } finally {
+      this.dispatchConstructionDepth -= 1;
+    }
+    const exposedPromise = this.raceWithTimeout(
+      dispatchPromise,
+      timeoutScope,
+      dispatchHandlerPromises
+    );
+    const observedPromise = exposedPromise.catch(error => {
+      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+      throw error;
+    });
+
+    // Preserve rejection semantics for observers without leaking fire-and-forget
+    // dispatches as process-level unhandled rejections.
+    void observedPromise.catch(() => {});
+    return observedPromise;
+  }
+
+  /** Execute a dispatch operation with an optional whole-action retry policy. */
+  private async executeWithRetry<R>(
+    operation: () => Promise<R>,
+    options: DispatchOptions | undefined,
+    attemptState: { count: number },
+    shouldRetryResult?: (result: R) => boolean,
+    canRetry: () => boolean = () => true
+  ): Promise<R> {
+    const configuredAttempts = options?.retryOnError?.maxAttempts ?? 1;
+    const maxAttempts = Number.isFinite(configuredAttempts)
+      ? Math.max(1, Math.floor(configuredAttempts))
+      : 1;
+    const retryDelay = Math.max(0, options?.retryOnError?.delay ?? 0);
+
+    while (attemptState.count < maxAttempts) {
+      attemptState.count += 1;
+
+      try {
+        const result = await operation();
+        const shouldRetry = shouldRetryResult?.(result) ?? false;
+        if (
+          !shouldRetry ||
+          attemptState.count >= maxAttempts ||
+          options?.signal?.aborted ||
+          !canRetry()
+        ) {
+          return result;
+        }
+      } catch (error) {
+        if (
+          error instanceof ActionValidationError ||
+          attemptState.count >= maxAttempts ||
+          options?.signal?.aborted ||
+          !canRetry()
+        ) {
+          throw error;
+        }
+      }
+
+      await this.waitForRetry(retryDelay, options?.signal);
+    }
+
+    // The loop always returns or throws. This protects the generic return type
+    // if an invalid retry configuration somehow reaches this point.
+    return operation();
+  }
+
+  private trackDispatchPromise<R>(promise: Promise<R>): Promise<R> {
+    this.activeDispatches.add(promise);
+    const remove = () => this.activeDispatches.delete(promise);
+    void promise.then(remove, remove);
+    return promise;
+  }
+
+  private trackHandlerPromise<R>(
+    promise: Promise<R>,
+    dispatchHandlerPromises: DispatchHandlerPromises
+  ): Promise<R> {
+    this.activeHandlerPromises.add(promise);
+    dispatchHandlerPromises.add(promise);
+    const remove = () => {
+      this.activeHandlerPromises.delete(promise);
+      dispatchHandlerPromises.delete(promise);
+    };
+    void promise.then(remove, remove);
+    return promise;
+  }
+
+  private trackGlobalHandlerPromise<R>(promise: Promise<R>): Promise<R> {
+    this.activeHandlerPromises.add(promise);
+    const remove = () => this.activeHandlerPromises.delete(promise);
+    void promise.then(remove, remove);
+    return promise;
+  }
+
+  /** Abort-aware retry delay so cancellation does not wait for the full backoff. */
+  private waitForRetry(delay: number, signal?: AbortSignal): Promise<void> {
+    if (delay <= 0 || signal?.aborted) return Promise.resolve();
+
+    return new Promise(resolve => {
+      const timer = setTimeout(finish, delay);
+      const abort = () => finish();
+
+      function finish() {
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', abort);
+        resolve();
+      }
+
+      signal?.addEventListener('abort', abort, { once: true });
+    });
+  }
+
+  /** Build a wall-clock timeout that also participates in pipeline cancellation. */
+  private createTimeoutScope<K extends keyof T>(
+    action: K,
+    options?: DispatchOptions
+  ): {
+    options: DispatchOptions | undefined;
+    timeoutPromise?: Promise<never>;
+    onTimeout: (callback: (error: ActionTimeoutError) => void) => void;
+    cleanup: () => void;
+    cleanupSignals: () => void;
+  } {
+    const hasTimeout = options?.timeout !== undefined && Number.isFinite(options.timeout);
+    const timeout = hasTimeout ? Math.max(0, options!.timeout!) : undefined;
+    const timeoutController = hasTimeout ? new AbortController() : undefined;
+    const signalCleanups: Array<() => void> = [];
+    const timeoutCallbacks = new Set<(error: ActionTimeoutError) => void>();
+    const signals = [
+      this.lifecycleController.signal,
+      options?.signal,
+      timeoutController?.signal,
+    ].filter((candidate): candidate is AbortSignal => Boolean(candidate));
+    let signal = signals[0]!;
+
+    if (signals.length > 1) {
+      if (typeof (AbortSignal as typeof AbortSignal & {
+        any?: (signals: AbortSignal[]) => AbortSignal;
+      }).any === 'function') {
+        signal = (AbortSignal as typeof AbortSignal & {
+          any: (signals: AbortSignal[]) => AbortSignal;
+        }).any(signals);
+      } else {
+        const mergedController = new AbortController();
+        const forwardAbort = (source: AbortSignal) => {
+          if (!mergedController.signal.aborted) mergedController.abort(source.reason);
+        };
+
+        for (const source of signals) {
+          if (source.aborted) {
+            forwardAbort(source);
+            break;
+          }
+          const listener = () => forwardAbort(source);
+          source.addEventListener('abort', listener, { once: true });
+          signalCleanups.push(() => source.removeEventListener('abort', listener));
+        }
+        signal = mergedController.signal;
+      }
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = timeoutController && timeout !== undefined
+      ? new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            const error = new ActionTimeoutError(String(action), timeout);
+            timeoutController.abort(error);
+            timeoutCallbacks.forEach(callback => callback(error));
+            reject(error);
+          }, timeout);
+        })
+      : undefined;
+
+    return {
+      options: { ...options, signal },
+      timeoutPromise,
+      onTimeout: callback => timeoutCallbacks.add(callback),
+      cleanup: () => {
+        if (timer !== undefined) clearTimeout(timer);
+        timeoutCallbacks.clear();
+      },
+      cleanupSignals: () => signalCleanups.forEach(cleanup => cleanup()),
+    };
+  }
+
+  /** Expose timeout failure while allowing the queued operation to drain safely. */
+  private raceWithTimeout<R>(
+    operation: Promise<R>,
+    scope: {
+      timeoutPromise?: Promise<never>;
+      cleanup: () => void;
+      cleanupSignals: () => void;
+    },
+    dispatchHandlerPromises: DispatchHandlerPromises
+  ): Promise<R> {
+    const exposed = scope.timeoutPromise
+      ? Promise.race([operation, scope.timeoutPromise])
+      : operation;
+    const cleanupAfterStartedHandlers = () => {
+      // Successful completion must cancel the ref'ed timeout timer immediately.
+      // Only fallback signal-forwarding listeners need to outlive race losers.
+      scope.cleanup();
+      this.cleanupSignalsAfterStartedHandlers(
+        scope.cleanupSignals,
+        dispatchHandlerPromises
+      );
+    };
+    void exposed.then(cleanupAfterStartedHandlers, cleanupAfterStartedHandlers);
+    return exposed;
+  }
+
+  private cleanupSignalsAfterStartedHandlers(
+    cleanup: () => void,
+    dispatchHandlerPromises: DispatchHandlerPromises
+  ): void {
+    const handlersStillRunning = [...dispatchHandlerPromises];
+    if (handlersStillRunning.length === 0) {
+      cleanup();
+      return;
+    }
+
+    // In AbortSignal.any() fallback environments, this dispatch's signal
+    // forwarding listeners must outlive its race-mode losers even though the
+    // exposed dispatch resolved. Unrelated dispatches must not delay cleanup.
+    void Promise.allSettled(handlersStillRunning).then(cleanup);
+  }
+
+  /** Invoke the configured error handler without allowing it to replace the dispatch error. */
+  private invokeErrorHandler<K extends keyof T>(
+    error: unknown,
+    action: K,
+    payload: T[K] | undefined,
+    options: DispatchOptions | undefined,
+    attempts: number
+  ): void {
+    const errorHandler = this.registryConfig?.errorHandler;
+    if (!errorHandler) return;
+
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    try {
+      const handlerResult = errorHandler(normalizedError, {
+        action: String(action),
+        payload,
+        options,
+        attempts,
+        phase: normalizedError instanceof ActionTimeoutError
+          ? 'timeout'
+          : normalizedError instanceof ActionValidationError
+            ? 'validation'
+            : 'execution',
+      });
+      if (handlerResult && typeof (handlerResult as PromiseLike<void>).then === 'function') {
+        void Promise.resolve(handlerResult).catch(handlerError => {
+          this.log('Global async error handler failed', handlerError, 'warn');
+        });
+      }
+    } catch (handlerError) {
+      this.log('Global error handler failed', handlerError, 'warn');
+    }
+  }
+
+  /**
+   * Validate an action payload against the configured schema.
+   * Shared by all dispatch paths so result collection cannot bypass validation.
+   */
+  private validatePayload<K extends keyof T>(
+    action: K,
+    payload?: T[K]
+  ): ExecutionResult<never>['validation'] {
+    if (
+      !this.registryConfig?.schema ||
+      this.registryConfig.validateOnDispatch === false
+    ) {
+      return undefined;
+    }
+
+    const actionName = String(action);
+    const actionSchema = this.registryConfig.schema[actionName];
+    if (!actionSchema) {
+      return undefined;
+    }
+
+    let result: ReturnType<typeof actionSchema.safeParse>;
+    try {
+      result = actionSchema.safeParse(payload);
+    } catch (error) {
+      throw new ActionValidationError(actionName, error);
+    }
+    if (result.success) {
+      return { passed: true, errors: [] };
+    }
+
+    const mode = this.registryConfig.validationMode ?? 'strict';
+    if (mode === 'strict') {
+      throw new ActionValidationError(actionName, result.error);
+    }
+
+    if (mode === 'warn') {
+      console.warn(
+        `Action "${actionName}" payload validation failed:`,
+        result.error.message
+      );
+      this.log(`Validation warning for action '${actionName}'`, {
+        issues: result.error.issues,
+      }, 'warn');
+    }
+
+    return {
+      passed: false,
+      errors: result.error.issues.map(issue => issue.message),
+    };
+  }
+
+  private createAbortedExecutionResult<R>(
+    startTime: number,
+    handlersSkipped: number = 0,
+    validation?: ExecutionResult<R>['validation']
+  ): ExecutionResult<R> {
+    const endTime = Date.now();
+
+    return {
+      success: false,
+      aborted: true,
+      abortReason: 'Action dispatch aborted by signal',
+      terminated: false,
+      validation,
+      result: undefined,
+      successResults: [],
+      results: [],
+      failedResults: [],
+      execution: {
+        duration: endTime - startTime,
+        handlersExecuted: 0,
+        handlersSkipped,
+        handlersFailed: 0,
+        startTime,
+        endTime,
+      },
+      handlers: [],
+      errors: [],
+    };
   }
 
   /**
@@ -561,8 +1054,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   private async _performDispatch<K extends keyof T>(
     action: K,
-    payload?: T[K],
-    options?: DispatchOptions
+    payload: T[K] | undefined,
+    options: DispatchOptions | undefined,
+    skipGuards: boolean,
+    executedHandlers: HandlerRegistration<any, any>[],
+    dispatchHandlerPromises: DispatchHandlerPromises
   ): Promise<void> {
     // 🔍 디스패치 시작 디버그
     this.log(`Starting dispatch for action '${String(action)}'`, {
@@ -577,32 +1073,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
 
-    // 🆕 Zod Schema Validation (when schema is provided)
-    if (
-      this.registryConfig?.schema &&
-      this.registryConfig?.validateOnDispatch !== false
-    ) {
-      const actionSchema = this.registryConfig.schema[action as string];
-      if (actionSchema) {
-        const result = actionSchema.safeParse(payload);
-        if (!result.success) {
-          const mode = this.registryConfig.validationMode ?? 'strict';
-          if (mode === 'strict') {
-            throw new ActionValidationError(action as string, result.error);
-          } else if (mode === 'warn') {
-            console.warn(
-              `Action "${String(action)}" payload validation failed:`,
-              result.error.message
-            );
-            this.log(`Validation warning for action '${String(action)}'`, {
-              issues: result.error.issues,
-            }, 'warn');
-          }
-          // 'silent' 모드: 검증 실패 무시하고 계속 진행
-        }
-      }
-    }
-
     // 🔧 Improved AbortSignal handling with cleaner merge logic
     const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
     
@@ -613,6 +1083,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
       this.log(`Dispatch aborted before execution for '${String(action)}'`);
+      cleanup();
       return;
     }
     
@@ -637,6 +1108,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       }
       
       this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
+      cleanup();
       return;
     }
 
@@ -678,19 +1150,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     
     // Apply debounce if specified
-    if (debounceMs !== undefined) {
+    if (!skipGuards && debounceMs !== undefined) {
       const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
       if (!shouldProceed) {
+        cleanup();
         return; // Debounced - don't execute
       }
     }
     
     // Apply throttle if specified
-    if (throttleMs !== undefined) {
+    if (!skipGuards && throttleMs !== undefined) {
       const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
       if (!shouldProceed) {
+        cleanup();
         return; // Throttled - don't execute
       }
+    }
+
+    // The signal may have been aborted while awaiting debounce.
+    if (effectiveSignal?.aborted) {
+      this.log(`Dispatch aborted during guard processing for '${String(action)}'`);
+      cleanup();
+      return;
     }
 
     // Determine execution mode for this action (with option override)
@@ -702,7 +1183,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const context: PipelineContext<T[K], any> = {
       action: String(action),
       payload: payload as T[K],
-      handlers: filteredHandlers, // Use filtered handlers
+      handlers: [...filteredHandlers],
+      executedHandlers: [],
+      deferOnceCleanup: true,
+      signal: effectiveSignal ?? this.lifecycleController.signal,
+      trackHandlerPromise: promise => this.trackHandlerPromise(
+        promise,
+        dispatchHandlerPromises
+      ),
       aborted: false,
       abortReason: undefined as string | undefined,
       currentIndex: 0,
@@ -721,23 +1209,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
-      context.abortReason = 'Action dispatch aborted by signal';
+      context.abortReason = typeof effectiveSignal.reason === 'string'
+        ? effectiveSignal.reason
+        : 'Action dispatch aborted by signal';
     } : undefined;
     
     if (effectiveSignal && abortHandler) {
-      effectiveSignal.addEventListener('abort', abortHandler);
+      effectiveSignal.addEventListener('abort', abortHandler, { once: true });
     }
     
     
     try {
-      await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      await this.executePipeline(
+        context,
+        dispatchHandlerPromises,
+        autoAbortController,
+        options?.autoAbort
+      );
       this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
       this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
       throw error;
     } finally {
-      // 🔧 Use cleanup function from createAbortSignal
-      cleanup();
+      executedHandlers?.push(...(context.executedHandlers ?? []));
+      if (effectiveSignal && abortHandler) {
+        effectiveSignal.removeEventListener('abort', abortHandler);
+      }
+      this.cleanupSignalsAfterStartedHandlers(cleanup, dispatchHandlerPromises);
     }
   }
 
@@ -754,10 +1252,111 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @public
    */
-  async dispatchWithResult<K extends keyof T, R = void>(
+  dispatchWithResult<K extends keyof T, R = void>(
     action: K,
     payload?: T[K],
     options?: DispatchOptions
+  ): Promise<ExecutionResult<R>> {
+    if (this.lifecycleState !== 'active') {
+      return this.rejectedLifecyclePromise<ExecutionResult<R>>();
+    }
+
+    const timeoutScope = this.createTimeoutScope(action, options);
+    const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
+    const attemptState = { count: 0 };
+    let validation: ExecutionResult<R>['validation'];
+
+    const operation = async () => {
+      if (!timeoutScope.options?.signal?.aborted) {
+        validation = this.validatePayload(action, payload);
+      }
+
+      return this.executeWithRetry(async () => {
+        const executedHandlers: HandlerRegistration<any, any>[] = [];
+        try {
+          return await this._performDispatchWithResult<K, R>(
+            action,
+            payload,
+            timeoutScope.options,
+            validation,
+            attemptState.count > 1,
+            executedHandlers,
+            dispatchHandlerPromises
+          );
+        } finally {
+          this.cleanupOneTimeHandlers(
+            action,
+            executedHandlers,
+            dispatchHandlerPromises
+          );
+        }
+      }, timeoutScope.options, attemptState, result => (
+        !result.success &&
+        !result.aborted &&
+        this.getHandlerCount(action) > 0
+      ), () => this.getHandlerCount(action) > 0);
+    };
+
+    // Result dispatches historically executed immediately. Preserve that
+    // behavior for nested dispatch and debounce compatibility; queuePriority is
+    // the explicit opt-in to shared queue ordering.
+    const shouldQueue = (
+      !timeoutScope.options?.immediate &&
+      Boolean(this.dispatchQueue) &&
+      timeoutScope.options?.queuePriority !== undefined
+    );
+    let dispatchPromise: Promise<ExecutionResult<R>>;
+    this.dispatchConstructionDepth += 1;
+    try {
+      if (shouldQueue) {
+        const queued = this.dispatchQueue!.enqueueWithHandle(
+          operation,
+          timeoutScope.options!.queuePriority!
+        );
+        timeoutScope.onTimeout(error => queued.cancel(error));
+        dispatchPromise = queued.promise;
+      } else {
+        dispatchPromise = operation();
+      }
+      this.trackDispatchPromise(dispatchPromise);
+    } finally {
+      this.dispatchConstructionDepth -= 1;
+    }
+    const exposedPromise = this.raceWithTimeout(
+      dispatchPromise,
+      timeoutScope,
+      dispatchHandlerPromises
+    );
+    const observedPromise = exposedPromise.then(result => {
+      if (!result.success && !result.aborted) {
+        const terminalError = result.errors[result.errors.length - 1]?.error
+          ?? new Error(`Action "${String(action)}" failed`);
+        this.invokeErrorHandler(
+          terminalError,
+          action,
+          payload,
+          options,
+          attemptState.count
+        );
+      }
+      return result;
+    }, error => {
+      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+      throw error;
+    });
+
+    void observedPromise.catch(() => {});
+    return observedPromise;
+  }
+
+  private async _performDispatchWithResult<K extends keyof T, R = void>(
+    action: K,
+    payload: T[K] | undefined,
+    options: DispatchOptions | undefined,
+    validation: ExecutionResult<R>['validation'],
+    skipGuards: boolean,
+    executedHandlers: HandlerRegistration<any, any>[],
+    dispatchHandlerPromises: DispatchHandlerPromises
   ): Promise<ExecutionResult<R>> {
     const _startTime = Date.now();
     
@@ -770,26 +1369,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
-      return {
-        success: false,
-        aborted: true,
-        abortReason: 'Action dispatch aborted by signal',
-        terminated: false,
-        result: undefined as any,
-        successResults: [] as any,
-        results: [],
-        failedResults: [],
-        execution: {
-          duration: 0,
-          handlersExecuted: 0,
-          handlersSkipped: 0,
-          handlersFailed: 0,
-          startTime: _startTime,
-          endTime: _startTime,
-        },
-        handlers: [],
-        errors: [],
-      };
+      cleanup();
+      return this.createAbortedExecutionResult<R>(_startTime, 0, validation);
     }
     
     const pipeline = this.pipelines.get(action);
@@ -804,11 +1385,13 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
       }
       
+      cleanup();
       return {
         success: true,
         aborted: false,
         abortReason: undefined as string | undefined,
         terminated: false,
+        validation,
         result: undefined as any,
         successResults: [] as any,
         results: [],
@@ -833,15 +1416,25 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
     // 🔧 Apply ActionGuard controls using unified method with ExecutionResult return
     const actionKey = String(action);
-    const guardResult = await this.applyActionGuardControlsWithResult<R>(
-      actionKey, 
-      filteredHandlers, 
-      options, 
-      _startTime, 
-      pipeline.length
-    );
+    const guardResult = skipGuards
+      ? null
+      : await this.applyActionGuardControlsWithResult<R>(
+          actionKey,
+          filteredHandlers,
+          options,
+          _startTime,
+          pipeline.length
+        );
+
+    // The signal may have been aborted while awaiting debounce.
+    if (effectiveSignal?.aborted) {
+      cleanup();
+      return this.createAbortedExecutionResult<R>(_startTime, pipeline.length, validation);
+    }
+
     if (guardResult) {
-      return guardResult; // Throttled or debounced - return early with proper result
+      cleanup();
+      return { ...guardResult, validation }; // Throttled or debounced
     }
 
     // Determine execution mode for this action (with option override)
@@ -853,7 +1446,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const context: PipelineContext<T[K], R> = {
       action: String(action),
       payload: payload as T[K],
-      handlers: filteredHandlers,
+      handlers: [...filteredHandlers],
+      executedHandlers: [],
+      deferOnceCleanup: true,
+      signal: effectiveSignal ?? this.lifecycleController.signal,
+      trackHandlerPromise: promise => this.trackHandlerPromise(
+        promise,
+        dispatchHandlerPromises
+      ),
       aborted: false,
       abortReason: undefined as string | undefined,
       currentIndex: 0,
@@ -894,18 +1494,25 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
-      context.abortReason = 'Action dispatch aborted by signal';
+      context.abortReason = typeof effectiveSignal.reason === 'string'
+        ? effectiveSignal.reason
+        : 'Action dispatch aborted by signal';
     } : undefined;
     
     if (effectiveSignal && abortHandler) {
-      effectiveSignal.addEventListener('abort', abortHandler);
+      effectiveSignal.addEventListener('abort', abortHandler, { once: true });
     }
     
     // 🔧 Initialize errors array (will be updated after pipeline execution)
     let errors: HandlerError[] = [];
     
     try {
-      await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      await this.executePipeline(
+        context,
+        dispatchHandlerPromises,
+        autoAbortController,
+        options?.autoAbort
+      );
       
       // 🔧 Collect errors from execution context after pipeline execution
       const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
@@ -947,8 +1554,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
       }
     } finally {
-      // 🔧 Use cleanup function from createAbortSignal
-      cleanup();
+      executedHandlers.push(...(context.executedHandlers ?? []));
+      if (effectiveSignal && abortHandler) {
+        effectiveSignal.removeEventListener('abort', abortHandler);
+      }
+      this.cleanupSignalsAfterStartedHandlers(cleanup, dispatchHandlerPromises);
     }
 
     const endTime = Date.now();
@@ -970,6 +1580,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       aborted: context.aborted,
       abortReason: context.abortReason,
       terminated: context.terminated,
+      validation,
       result: processedResult,
       successResults: successResults,
       results: context.results,
@@ -990,9 +1601,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         severity: 'non-blocking' as const
       })),
     };
-
-    /** Clean up one-time handlers after execution */
-    this.cleanupOneTimeHandlers(action, context.handlers);
 
     return executionResult;
   }
@@ -1145,6 +1753,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     // Configure/reset the controller for current context
+    (controller as { signal: AbortSignal }).signal =
+      context.signal ?? this.lifecycleController.signal;
+
     controller.abort = (reason?: string) => {
       context.aborted = true;
       context.abortReason = reason;
@@ -1319,7 +1930,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   private async executePipeline<K extends keyof T>(
-    context: PipelineContext<T[K], any>, 
+    context: PipelineContext<T[K], any>,
+    dispatchHandlerPromises: DispatchHandlerPromises,
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): Promise<void> {
@@ -1341,36 +1953,48 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
 
-    this.cleanupOneTimeHandlers(context.action as K, context.handlers);
+    if (!context.deferOnceCleanup) {
+      this.cleanupOneTimeHandlers(
+        context.action as K,
+        context.executedHandlers ?? [],
+        dispatchHandlerPromises
+      );
+    }
   }
 
-  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<any, any>[]): void {
-    const pipeline = this.pipelines.get(action);
-    if (!pipeline) return;
-
+  private cleanupOneTimeHandlers<K extends keyof T>(
+    action: K,
+    executedHandlers: HandlerRegistration<any, any>[],
+    dispatchHandlerPromises: DispatchHandlerPromises
+  ): void {
     const oneTimeHandlers = executedHandlers.filter(reg => reg.config.once);
     if (oneTimeHandlers.length === 0) return;
 
-    oneTimeHandlers.forEach(registration => {
-      const index = pipeline.findIndex(reg => reg.id === registration.id);
-      if (index !== -1) {
-        pipeline.splice(index, 1);
+    // Race mode returns its winner while loser handlers can still be active.
+    // Detach every invoked once-handler immediately so retries cannot invoke it
+    // again, but defer resource cleanup until this dispatch's started handler
+    // work drains. Unrelated dispatches must not delay cleanup.
+    const handlersStillRunning = [...dispatchHandlerPromises];
+    const shouldDeferCleanup = handlersStillRunning.length > 0;
 
-        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-          console.log(`🎯 One-time handler removed: ${String(action)}`, {
-            handlerId: registration.id,
-            remainingHandlers: pipeline.length,
-            registry: this.name
+    oneTimeHandlers.forEach(registration => {
+      if (this.removeRegistration(action, registration, !shouldDeferCleanup)) {
+        if (
+          shouldDeferCleanup &&
+          typeof registration.config.cleanup === 'function'
+        ) {
+          const cleanupPromise = Promise.allSettled(handlersStillRunning).then(() => {
+            this.runRegistrationCleanup(action, registration);
           });
+          void this.trackGlobalHandlerPromise(cleanupPromise).catch(() => {});
         }
+
+        this.log(`One-time handler removed: ${String(action)}`, {
+          handlerId: registration.id,
+          remainingHandlers: this.getHandlerCount(action)
+        });
       }
     });
-
-    // 🔧 Fix: Remove action key from pipelines map when pipeline becomes empty after cleanup
-    if (pipeline.length === 0) {
-      this.pipelines.delete(action);
-      this.lastRegisteredTimestamps.delete(action);
-    }
   }
 
 
@@ -1428,11 +2052,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @public
    */
   clearAction<K extends keyof T>(action: K): void {
+    const pipeline = this.pipelines.get(action);
+    if (pipeline) {
+      [...pipeline].forEach(registration => {
+        this.removeRegistration(action, registration);
+      });
+    }
+
     this.pipelines.delete(action);
-    // 🔧 Fix: Clear last registered timestamp
     this.lastRegisteredTimestamps.delete(action);
-    // 🔧 Invalidate filter cache when pipeline changes
-    // Cache disabled
+    this.actionGuard.clearGuards(String(action));
   }
 
   /**
@@ -1443,11 +2072,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @public
    */
   clearAll(): void {
+    [...this.pipelines.keys()].forEach(action => {
+      this.clearAction(action);
+    });
+
     this.pipelines.clear();
-    // 🔧 Fix: Clear all last registered timestamps
     this.lastRegisteredTimestamps.clear();
-    // 🔧 Invalidate filter cache when pipeline changes
-    // Cache disabled
+    this.unregisterFunctions.clear();
+    this.actionGuard.clearAll();
   }
 
   /**
@@ -1623,37 +2255,54 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     registration: HandlerRegistration<any, any>
   ): UnregisterFunction {
     return () => {
-      const pipeline = this.pipelines.get(action);
-      if (!pipeline) return;
-
-      const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
-      if (index !== -1) {
-        pipeline.splice(index, 1);
-        // Cache disabled
-        this.unregisterFunctions.delete(handlerId);
-
-        // 🔧 Fix: Remove action key from pipelines map when pipeline becomes empty
-        if (pipeline.length === 0) {
-          this.pipelines.delete(action);
-          this.lastRegisteredTimestamps.delete(action);
-        }
-
-        // Execute cleanup function if available
-        if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
-          try {
-            registration.config.cleanup();
-          } catch (cleanupError) {
-            this.log(`Cleanup error during unregister: ${String(action)}`, cleanupError, 'warn');
-          }
-        }
-
+      if (this.removeRegistration(action, registration)) {
         this.log(`Handler unregistered: ${String(action)}`, {
           handlerId,
-          remainingHandlers: pipeline.length,
-          actionRemoved: pipeline.length === 0
+          remainingHandlers: this.getHandlerCount(action),
+          actionRemoved: !this.pipelines.has(action)
         });
       }
     };
+  }
+
+  /** Remove a registration and release every resource owned by it exactly once. */
+  private removeRegistration<K extends keyof T>(
+    action: K,
+    registration: HandlerRegistration<any, any>,
+    runCleanup = true
+  ): boolean {
+    const pipeline = this.pipelines.get(action);
+    if (!pipeline) return false;
+
+    const index = pipeline.findIndex(candidate => candidate === registration);
+    if (index === -1) return false;
+
+    pipeline.splice(index, 1);
+    this.unregisterFunctions.delete(registration.id);
+
+    if (runCleanup) {
+      this.runRegistrationCleanup(action, registration);
+    }
+
+    if (pipeline.length === 0) {
+      this.pipelines.delete(action);
+      this.lastRegisteredTimestamps.delete(action);
+    }
+
+    return true;
+  }
+
+  private runRegistrationCleanup<K extends keyof T>(
+    action: K,
+    registration: HandlerRegistration<any, any>
+  ): void {
+    if (!registration.config.cleanup) return;
+
+    try {
+      registration.config.cleanup();
+    } catch (cleanupError) {
+      this.log(`Cleanup error while removing handler: ${String(action)}`, cleanupError, 'warn');
+    }
   }
 
   /**
@@ -1677,51 +2326,112 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return this.unregisterFunctions.has(handlerId);
   }
 
+  /** Reject queued dispatches without releasing registered handlers. */
+  cancelPendingDispatches(): void {
+    this.dispatchQueue?.clear({ rejectPending: true });
+  }
+
+  private beginShutdown(): Promise<void> {
+    if (this.destroyAsyncPromise) return this.destroyAsyncPromise;
+
+    if (this.lifecycleState === 'destroyed') {
+      this.destroyAsyncPromise = Promise.resolve();
+      return this.destroyAsyncPromise;
+    }
+
+    this.lifecycleState = 'closing';
+    const shutdownError = new ActionRegisterDestroyedError(this.name, 'closing');
+
+    // Store the stable shutdown promise before aborting signals: abort listeners
+    // run synchronously and may re-enter destroyAsync().
+    let resolveShutdown!: () => void;
+    let rejectShutdown!: (error: unknown) => void;
+    this.destroyAsyncPromise = new Promise<void>((resolve, reject) => {
+      resolveShutdown = resolve;
+      rejectShutdown = reject;
+    });
+
+    if (!this.lifecycleController.signal.aborted) {
+      this.lifecycleController.abort(shutdownError);
+    }
+
+    // Stop guard timers immediately and reject operations that have not begun.
+    // Registered handler cleanup is deferred until every started handler settles.
+    this.actionGuard.destroy();
+    this.dispatchQueue?.clear({ rejectPending: true, reason: shutdownError });
+
+    const canFinalizeSynchronously = (
+      this.dispatchConstructionDepth === 0 &&
+      this.activeDispatches.size === 0 &&
+      this.activeHandlerPromises.size === 0
+    );
+
+    if (canFinalizeSynchronously) {
+      this.finalizeDestroy();
+      resolveShutdown();
+      return this.destroyAsyncPromise;
+    }
+
+    const drainAndFinalize = async () => {
+      // Handler promises can be created by a dispatch that was already starting
+      // when shutdown began, so drain until both dynamic sets stay empty.
+      while (this.activeDispatches.size > 0 || this.activeHandlerPromises.size > 0) {
+        await Promise.allSettled([
+          ...this.activeDispatches,
+          ...this.activeHandlerPromises,
+        ]);
+      }
+
+      this.finalizeDestroy();
+    };
+    // Dispatch and queue construction call handlers synchronously before their
+    // promises can be inserted into the active sets. Start draining on the next
+    // microtask so handler-initiated shutdown cannot finalize through that gap.
+    void Promise.resolve()
+      .then(drainAndFinalize)
+      .then(resolveShutdown, rejectShutdown);
+
+    // destroy() is intentionally fire-and-forget; keep its internal promise
+    // observed while destroyAsync() remains available to callers that need proof.
+    void this.destroyAsyncPromise.catch(error => {
+      this.log('ActionRegister async destroy failed', error, 'warn');
+    });
+    return this.destroyAsyncPromise;
+  }
+
+  private finalizeDestroy(): void {
+    if (this.lifecycleState === 'destroyed') return;
+
+    this.clearAll();
+    this.actionExecutionModes.clear();
+    this.controllerPool.length = 0;
+    this.lifecycleState = 'destroyed';
+    this.log('ActionRegister destroyed');
+  }
+
   /**
    * 🆕 Destroy method for comprehensive cleanup
-   * 
-   * Cleans up all internal resources including pipelines, guards, queues, and statistics.
-   * Should be called when the ActionRegister is no longer needed to prevent memory leaks.
-   * 
+   *
+   * Begins terminal cleanup of pipelines, guards, queues, and statistics. Cleanup
+   * remains synchronous when no work has started; otherwise active handlers drain
+   * in the background. Use destroyAsync() when completion must be observed.
+   *
    * @public
    */
   destroy(): void {
-    // 🔧 Fix: Clean up resources without calling unregister functions to prevent circular references
-    // Clear unregister functions without executing them to avoid potential memory leaks
-    this.unregisterFunctions.clear();
+    void this.beginShutdown();
+  }
 
-    // Clean up all pipelines with handler cleanup
-    for (const [action, pipeline] of this.pipelines.entries()) {
-      for (const registration of pipeline) {
-        if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
-          try {
-            registration.config.cleanup();
-          } catch (cleanupError) {
-            this.log(`Cleanup error for handler during destroy: ${String(action)}`, cleanupError, 'warn');
-          }
-        }
-      }
-    }
-
-    // Clean up all pipelines
-    this.pipelines.clear();
-
-    // 🔧 Fix: Clear all timestamps
-    this.lastRegisteredTimestamps.clear();
-
-    // Clean up guard system
-    this.actionGuard.destroy();
-
-    // Clean up queues if they exist
-    this.dispatchQueue?.clear?.();
-
-    this.actionExecutionModes.clear();
-
-    // Cache disabled
-
-    // 🔧 Clean up controller pool
-    this.controllerPool.length = 0;
-
-    this.log('ActionRegister destroyed');
+  /**
+   * Begin terminal shutdown and resolve after all started handlers have settled
+   * and their registered cleanup functions have run.
+   *
+   * Repeated calls return the same promise. New registrations and dispatches are
+   * rejected as soon as shutdown begins.
+   *
+   * @public
+   */
+  destroyAsync(): Promise<void> {
+    return this.beginShutdown();
   }
 }

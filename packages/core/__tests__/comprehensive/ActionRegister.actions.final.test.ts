@@ -10,10 +10,16 @@ interface TestActions extends ActionPayloadMap {
   processData: { data: any; type: string };
   sendNotification: { message: string; userId: string };
   resetApp: void;
+  optionsPayload: {
+    debounce: number;
+    timeout: number;
+    result: { strategy: string };
+  };
 }
 
 describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
   let actionRegister: ActionRegister<TestActions>;
+  let optionsPayloadHandler: jest.Mock;
 
   beforeEach(() => {
     actionRegister = new ActionRegister<TestActions>({
@@ -41,6 +47,12 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
     actionRegister.register('resetApp', () => {
       return { reset: true };
     }, { id: 'app-resetter', priority: 100 });
+
+    optionsPayloadHandler = jest.fn((payload) => payload);
+    actionRegister.register('optionsPayload', optionsPayloadHandler, {
+      id: 'options-payload-handler',
+      priority: 100
+    });
   });
 
   afterEach(() => {
@@ -71,9 +83,20 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       );
     });
 
-    it('should handle options as first parameter for void actions', async () => {
-      await actionRegister.actions.userLogout({ executionMode: 'parallel' });
-      await actionRegister.actions.resetApp({ debounce: 100 });
+    it('should handle options in the explicit second parameter for void actions', async () => {
+      await actionRegister.actions.userLogout(undefined, { executionMode: 'parallel' });
+      await actionRegister.actions.resetApp(undefined, { debounce: 100 });
+    });
+
+    it('should preserve payloads whose fields overlap dispatch option names', async () => {
+      const payload = {
+        debounce: 25,
+        timeout: 500,
+        result: { strategy: 'payload-value' }
+      };
+
+      await expect(actionRegister.actions.optionsPayload(payload)).resolves.toBeUndefined();
+      expect(optionsPayloadHandler.mock.calls[0]?.[0]).toEqual(payload);
     });
 
     it('should return undefined for non-existent actions', () => {
@@ -139,20 +162,33 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       expect(notificationResult.execution.handlersExecuted).toBe(1);
     });
 
-    it('should handle options as first parameter for void actions with result collection', async () => {
-      const logoutResult = await actionRegister.actionsWithResult.userLogout({ 
+    it('should handle options in the explicit second parameter for void actions with result collection', async () => {
+      const logoutResult = await actionRegister.actionsWithResult.userLogout(undefined, {
         executionMode: 'parallel' 
       });
 
       expect(logoutResult.success).toBe(true);
       expect(logoutResult.execution.handlersExecuted).toBe(1);
 
-      const resetResult = await actionRegister.actionsWithResult.resetApp({ 
+      const resetResult = await actionRegister.actionsWithResult.resetApp(undefined, {
         debounce: 100 
       });
 
       expect(resetResult.success).toBe(true);
       expect(resetResult.execution.handlersExecuted).toBe(1);
+    });
+
+    it('should return option-shaped payloads unchanged', async () => {
+      const payload = {
+        debounce: 25,
+        timeout: 500,
+        result: { strategy: 'payload-value' }
+      };
+
+      const result = await actionRegister.actionsWithResult.optionsPayload(payload);
+
+      expect(result.success).toBe(true);
+      expect(result.results).toEqual([payload]);
     });
 
     it('should return undefined for non-existent actions', () => {
@@ -234,9 +270,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       });
 
       // Actions should return undefined for non-existent actions
-      // @ts-expect-error - Testing runtime behavior
       expect(emptyRegister.actions.userLogin).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(emptyRegister.actionsWithResult.userLogin).toBeUndefined();
 
       emptyRegister.destroy();
@@ -249,9 +283,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       });
 
       // Actions should be undefined for non-existent actions
-      // @ts-expect-error - Testing runtime behavior
       expect(emptyRegister.actions.userLogin).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(emptyRegister.actionsWithResult.userLogin).toBeUndefined();
 
       emptyRegister.destroy();

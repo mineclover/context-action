@@ -89,18 +89,18 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
   registry: ActionRegister<T>,
   action: K,
   handler: ActionHandler<T[K]>,
-  config?: HandlerConfig
+  config?: HandlerConfig<T[K]>
 ): {
   register: () => UnregisterFunction;
   unregister: () => void;
   registerWithCleanup: () => () => void;
-  config: Required<HandlerConfig>;
+  config: Required<HandlerConfig<T[K]>>;
 } {
   // Inline React-optimized handler configuration
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 5);
   
-  const finalConfig: Required<HandlerConfig> = {
+  const finalConfig: Required<HandlerConfig<T[K]>> = {
     priority: config?.priority ?? 0,
     id: config?.id || `react_${String(action)}_${timestamp}_${random}`,
     blocking: config?.blocking ?? false,
@@ -109,7 +109,7 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
     throttle: config?.throttle ?? undefined,
     // React-optimized defaults
     replaceExisting: true, // Always replace in React (handles HMR/remounting)
-  } as Required<HandlerConfig>;
+  } as Required<HandlerConfig<T[K]>>;
   let currentUnregister: UnregisterFunction | undefined;
   let isRegistered = false;
   

@@ -4,7 +4,7 @@
  * Provides three different execution strategies for action handler pipelines:
  * - Sequential: Execute handlers one after another in priority order
  * - Parallel: Execute all handlers simultaneously
- * - Race: First handler to complete wins, others are cancelled
+ * - Race: First handler to complete wins, other started handlers keep running
  */
 
 import type { 
@@ -13,6 +13,14 @@ import type {
   PipelineController,
   HandlerError
 } from './types.js';
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  return (
+    (typeof value === 'object' || typeof value === 'function') &&
+    value !== null &&
+    typeof (value as { then?: unknown }).then === 'function'
+  );
+}
 
 /**
  * Create standardized error handling for handlers
@@ -99,19 +107,26 @@ export async function executeSequential<T, R = void>(
         }
       }
 
+      (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
+      const asyncResult = isPromiseLike(result) ? Promise.resolve(result) : undefined;
+      const trackedResult = asyncResult && context.trackHandlerPromise
+        ? context.trackHandlerPromise<unknown>(asyncResult)
+        : asyncResult;
 
       if (registration.config.blocking) {
         // 🆕 Blocking handlers: Wait for completion (sync or async)
-        const handlerResult = result instanceof Promise ? await result : result;
+        const handlerResult = trackedResult
+          ? await trackedResult
+          : result;
         if (handlerResult !== undefined && !context.terminated) {
           context.results.push(handlerResult as R);
         }
       } else {
         // 🆕 Non-blocking handlers: Handle differently for sync vs async
-        if (result instanceof Promise) {
+        if (trackedResult) {
           // Non-blocking async: Track promise with error handling
-          const promiseWithErrorHandling = result
+          const promiseWithErrorHandling = trackedResult
             .then(asyncResult => {
               if (asyncResult !== undefined && !context.terminated) {
                 context.results.push(asyncResult as R);
@@ -282,15 +297,12 @@ export async function executeParallel<T, R = void>(
         }
       }
 
+      (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
       
-      let handlerResult: R | undefined;
-      if (result instanceof Promise) {
-        const resolved = await result;
-        handlerResult = resolved as R | undefined;
-      } else {
-        handlerResult = result as R | undefined;
-      }
+      const handlerResult = (
+        isPromiseLike(result) ? await Promise.resolve(result) : result
+      ) as R | undefined;
       
       /** Collect result if handler returned something and pipeline wasn't terminated */
       if (handlerResult !== undefined && !context.terminated) {
@@ -316,8 +328,12 @@ export async function executeParallel<T, R = void>(
     }
   });
 
+  const trackedHandlerPromises = context.trackHandlerPromise
+    ? handlerPromises.map(promise => context.trackHandlerPromise!(promise))
+    : handlerPromises;
+
   /** Wait for all handlers to complete */
-  const results = await Promise.allSettled(handlerPromises);
+  const results = await Promise.allSettled(trackedHandlerPromises);
   
   /** Check for any rejected blocking handlers */
   const failures = results.filter((result, index) => {
@@ -352,8 +368,10 @@ export async function executeParallel<T, R = void>(
  * 
  * Executes all qualifying handlers simultaneously using Promise.race, where
  * the first handler to complete determines the pipeline result. Other handlers
- * are effectively cancelled. Useful for scenarios where you want the fastest
- * response from multiple equivalent handlers.
+ * continue in the background and remain tracked for lifecycle cleanup; handlers
+ * must observe the controller signal for cooperative external cancellation.
+ * Useful for scenarios where you want the fastest response from multiple
+ * equivalent handlers.
  * 
  * @template T - The payload type for the action
  * @template R - The result type for handlers
@@ -412,15 +430,12 @@ export async function executeRace<T, R = void>(
         }
       }
 
+      (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
       
-      let handlerResult: R | undefined;
-      if (result instanceof Promise) {
-        const resolved = await result;
-        handlerResult = resolved as R | undefined;
-      } else {
-        handlerResult = result as R | undefined;
-      }
+      const handlerResult = (
+        isPromiseLike(result) ? await Promise.resolve(result) : result
+      ) as R | undefined;
       
       return { 
         success: true, 
@@ -437,8 +452,12 @@ export async function executeRace<T, R = void>(
     }
   });
 
-  /** Race all handlers */
-  const winner = await Promise.race(handlerPromises);
+  const trackedHandlerPromises = context.trackHandlerPromise
+    ? handlerPromises.map(promise => context.trackHandlerPromise!(promise))
+    : handlerPromises;
+
+  /** Race all handlers while retaining every loser for lifecycle draining. */
+  const winner = await Promise.race(trackedHandlerPromises);
 
   /** If the winner failed and was blocking, throw the error */
   if (!winner.success && winner.registration?.config.blocking) {

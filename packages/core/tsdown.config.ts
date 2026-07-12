@@ -7,10 +7,9 @@ export default defineConfig({
   hash: false,
   clean: true,
   nodeProtocol: 'strip', // Strip node: protocol for browser compatibility
-  external: [
-    'react',
-    'react-dom'
-  ],
+  deps: {
+    neverBundle: ['react', 'react-dom'],
+  },
   target: 'es2020',
   minify: false,
   platform: 'browser', // Explicitly target browser platform

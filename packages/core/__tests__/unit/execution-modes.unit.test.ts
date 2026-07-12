@@ -11,6 +11,7 @@ import {
   executeRace
 } from '../../src/execution-modes.js';
 import type {
+  ActionHandler,
   PipelineContext,
   PipelineController,
   HandlerRegistration,
@@ -18,6 +19,13 @@ import type {
 } from '../../src/types.js';
 
 describe('Execution Modes Unit Tests', () => {
+  type MockHandlerRegistration<T = any, R = any> = Omit<
+    HandlerRegistration<T, R>,
+    'handler'
+  > & {
+    handler: jest.MockedFunction<ActionHandler<T, R>>;
+  };
+
   // Test helpers
   const createMockHandler = (
     id: string,
@@ -26,8 +34,8 @@ describe('Execution Modes Unit Tests', () => {
     behavior: 'success' | 'error' | 'async-success' | 'async-error' = 'success',
     result?: any,
     delay: number = 0
-  ): HandlerRegistration<any, any> => {
-    const handler = jest.fn(async (payload: any, controller: PipelineController<any, any>) => {
+  ): MockHandlerRegistration => {
+    const handler = jest.fn<any, Parameters<ActionHandler<any, any>>>(async () => {
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -53,10 +61,11 @@ describe('Execution Modes Unit Tests', () => {
         priority,
         blocking,
         once: false,
-        throttle: undefined,
-        debounce: undefined,
+        throttle: 0,
+        debounce: 0,
         replaceExisting: false,
-        cleanup: undefined
+        cleanup: () => {},
+        condition: () => true
       },
       id
     };
@@ -69,6 +78,7 @@ describe('Execution Modes Unit Tests', () => {
     action: 'testAction',
     payload,
     handlers,
+    signal: new AbortController().signal,
     aborted: false,
     abortReason: undefined,
     currentIndex: 0,
@@ -80,6 +90,7 @@ describe('Execution Modes Unit Tests', () => {
   });
 
   const createMockController = (context: PipelineContext<any, any>): PipelineController<any, any> => ({
+    signal: context.signal,
     abort: (reason?: string) => {
       context.aborted = true;
       context.abortReason = reason;

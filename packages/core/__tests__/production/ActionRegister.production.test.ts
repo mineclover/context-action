@@ -127,7 +127,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     it('should support conditional execution using pipeline controller', async () => {
       const handler = jest.fn();
 
-      actionRegister.register('validateInput', (payload, controller) => {
+      actionRegister.register<'validateInput', Record<string, unknown>>('validateInput', (payload, controller) => {
         // Implement condition logic inside handler using controller
         if (payload.value.length < 3) {
           controller.abort('Input too short');
@@ -169,7 +169,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
       let finalPayload: any;
 
       // First handler modifies payload
-      actionRegister.register('processData', (payload, controller) => {
+      actionRegister.register<'processData', Record<string, unknown>>('processData', (payload, controller) => {
         controller.modifyPayload(current => ({
           ...current,
           preprocessed: true,
@@ -198,7 +198,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     it('should abort pipeline execution when controller.abort is called', async () => {
       const executedHandlers: string[] = [];
 
-      actionRegister.register('authenticate', (payload, controller) => {
+      actionRegister.register<'authenticate', Record<string, unknown>>('authenticate', (payload, controller) => {
         executedHandlers.push('validator');
         if (!payload.username) {
           controller.abort('Username is required');
@@ -227,7 +227,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     });
 
     it('should provide access to current payload via controller.getPayload', async () => {
-      actionRegister.register('uploadFile', (payload, controller) => {
+      actionRegister.register<'uploadFile', Record<string, unknown>>('uploadFile', (payload, controller) => {
         const currentPayload = controller.getPayload();
         expect(currentPayload).toBe(payload);
         expect(currentPayload.filename).toBe('test.txt');
@@ -268,13 +268,13 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     it('should handle controller.setResult and getResults methods', async () => {
       let previousResultsFromController: any[] = [];
 
-      actionRegister.register('processData', (payload, controller) => {
+      actionRegister.register<'processData', Record<string, unknown>>('processData', (payload, controller) => {
         // Set an intermediate result for other handlers to access
         controller.setResult({ phase: 'preprocessing', status: 'started' });
         return { phase: 'preprocessing', status: 'completed', data: payload.data };
       }, { priority: 20, id: 'preprocessor' });
 
-      actionRegister.register('processData', (payload, controller) => {
+      actionRegister.register<'processData', Record<string, unknown>>('processData', (payload, controller) => {
         // Access previous results from other handlers via getResults
         previousResultsFromController = controller.getResults();
         return { phase: 'processing', processedData: `processed-${payload.data}` };
@@ -450,7 +450,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
       const authFlow: string[] = [];
 
       // Input validation
-      actionRegister.register('authenticate', (payload, controller) => {
+      actionRegister.register<'authenticate', Record<string, unknown>>('authenticate', (payload, controller) => {
         authFlow.push('validation');
         if (!payload.username || !payload.password) {
           controller.abort('Missing credentials');
@@ -507,7 +507,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
       const processingPipeline: string[] = [];
 
       // File validation
-      actionRegister.register('uploadFile', (payload, controller) => {
+      actionRegister.register<'uploadFile', Record<string, unknown>>('uploadFile', (payload, controller) => {
         processingPipeline.push('validation');
         if (!payload.filename.match(/\.(txt|pdf|doc)$/)) {
           controller.abort('Unsupported file type');
@@ -547,7 +547,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
         };
       }, { priority: 20, id: 'metadata-extractor' });
 
-      const result = await actionRegister.dispatchWithResult('uploadFile', 
+      const result = await actionRegister.dispatchWithResult<'uploadFile', Record<string, unknown>>('uploadFile',
         { filename: 'document.pdf', content: 'PDF content here...' },
         { result: { collect: true } }
       );
@@ -564,7 +564,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
         size: 'PDF content here...'.length
       });
 
-      const metadataResult = result.results.find((r: any) => r.step === 'metadata');
+      const metadataResult = result.successResults.find(item => item.step === 'metadata');
       expect(metadataResult?.metadata).toMatchObject({
         filename: 'document.pdf',
         contentLength: 'PDF content here...'.length,

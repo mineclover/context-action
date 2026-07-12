@@ -188,9 +188,7 @@ describe('ActionRegister - Warning Messages Tests', () => {
 
     it('should not show warnings when accessing actions getter', () => {
       // Accessing actions getter should not trigger warnings
-      // @ts-expect-error - Testing runtime behavior
       const actions = actionRegister.actions;
-      // @ts-expect-error - Testing runtime behavior
       const actionsWithResult = actionRegister.actionsWithResult;
 
       expect(actions).toBeDefined();
@@ -199,7 +197,6 @@ describe('ActionRegister - Warning Messages Tests', () => {
     });
 
     it('should show warnings when calling actions functions', async () => {
-      // @ts-expect-error - Testing runtime behavior
       if (actionRegister.actions.userLogin) {
         await actionRegister.actions.userLogin({ userId: '123', email: 'user@example.com' });
         expect(consoleSpy).toHaveBeenCalled();

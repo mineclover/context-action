@@ -225,11 +225,20 @@ await actions.dispatch('backgroundTask', data, {
   queuePriority: 5
 });
 
-// Execution timeout
-await actions.dispatch('timedAction', data, {
-  timeout: 5000
-});
+// Wall-clock timeout (queue wait + retry delay included).
+// Rejects with ActionTimeoutError while the internal operation drains safely.
+await actions.dispatch('timedAction', data, { timeout: 5000 });
 ```
+
+The default queue is single-slot. When a handler awaits another dispatch on
+the **same** register, make that nested call explicit with `{ immediate: true }`
+so it can run inside the current queue turn. Likewise, do not set
+`queuePriority` on an awaited nested `dispatchWithResult` call. Independent
+top-level dispatches should keep the queue defaults.
+
+Handlers that perform cancellable I/O can observe `controller.signal`. It is
+aborted for caller cancellation, timeout, provider teardown, and register
+shutdown.
 
 ### Result Collection with Strategies
 
@@ -406,7 +415,7 @@ actions.register('riskyOperation', async (data, controller) => {
 // With retry configuration
 await actions.dispatch('apiCall', data, {
   retryOnError: {
-    maxAttempts: 3,
+    maxAttempts: 3, // Total attempts, including the first call
     delay: 1000
   }
 });
@@ -440,8 +449,11 @@ const registry = new ActionRegister({ name: 'MyApp' });
 
 // Use the registry...
 
-// Clean up all resources
-registry.destroy(); // Cleans up pipelines, guards, queues, stats
+// Begin terminal cleanup. New work is rejected immediately.
+registry.destroy();
+
+// Or await proof that started handlers settled and cleanup callbacks ran.
+await registry.destroyAsync();
 ```
 
 ## API Reference
@@ -472,7 +484,8 @@ registry.destroy(); // Cleans up pipelines, guards, queues, stats
 #### Utility Methods
 - `getName()` - Get registry name
 - `isDebugEnabled()` - Check if debug mode is enabled
-- `destroy()` - Clean up all resources
+- `destroy()` - Begin terminal cleanup without waiting
+- `destroyAsync()` - Resolve after started handlers settle and cleanup completes
 
 ### Configuration Interfaces
 
@@ -576,7 +589,7 @@ actions.destroy();
 1. **Use handler IDs** for better debugging and filtering
 2. **Enable replaceExisting** for React components to prevent duplicates
 3. **Use immediate: false** (default) to benefit from queue optimizations  
-4. **Call destroy()** when registry is no longer needed
+4. **Await destroyAsync()** when shutdown completion must be guaranteed
 5. **Use priority filtering** instead of excludeHandlerIds for better performance
 6. **Cache ActionRegister instances** - don't create new ones frequently
 

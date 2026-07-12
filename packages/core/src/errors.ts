@@ -155,6 +155,37 @@ export class ActionValidationError extends Error {
   }
 }
 
+/**
+ * Raised when a dispatch exceeds its configured wall-clock timeout.
+ * The underlying handler receives an aborted controller signal and the internal
+ * queue keeps draining it safely, while the caller is released immediately with
+ * this error.
+ */
+export class ActionTimeoutError extends Error {
+  override name = 'ActionTimeoutError';
+
+  constructor(
+    public readonly action: string,
+    public readonly timeout: number
+  ) {
+    super(`Action "${action}" timed out after ${timeout}ms`);
+    Object.setPrototypeOf(this, ActionTimeoutError.prototype);
+  }
+}
+
+/** Raised when work is submitted after an ActionRegister begins shutdown. */
+export class ActionRegisterDestroyedError extends Error {
+  override name = 'ActionRegisterDestroyedError';
+
+  constructor(
+    public readonly registerName: string,
+    public readonly state: 'closing' | 'destroyed'
+  ) {
+    super(`ActionRegister "${registerName}" is ${state} and cannot accept new work`);
+    Object.setPrototypeOf(this, ActionRegisterDestroyedError.prototype);
+  }
+}
+
 // ============================================
 // Type Guard
 // ============================================
@@ -166,4 +197,18 @@ export function isActionValidationError(
   error: unknown
 ): error is ActionValidationError {
   return error instanceof ActionValidationError;
+}
+
+/** ActionTimeoutError type guard. */
+export function isActionTimeoutError(
+  error: unknown
+): error is ActionTimeoutError {
+  return error instanceof ActionTimeoutError;
+}
+
+/** ActionRegisterDestroyedError type guard. */
+export function isActionRegisterDestroyedError(
+  error: unknown
+): error is ActionRegisterDestroyedError {
+  return error instanceof ActionRegisterDestroyedError;
 }

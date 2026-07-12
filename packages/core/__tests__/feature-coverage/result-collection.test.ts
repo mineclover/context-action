@@ -118,7 +118,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
     });
 
     it('should use "merge" strategy correctly', async () => {
-      actionRegister.destroy();
+      actionRegister.clearAll();
       actionRegister.register('mixedAction', () => ({ name: 'John', age: 25 }), { priority: 20 });
       actionRegister.register('mixedAction', () => ({ email: 'john@example.com' }), { priority: 10 });
 
@@ -134,10 +134,17 @@ describe('Result Collection - dispatchWithResult Tests', () => {
     });
 
     it('should use "custom" strategy with merger function', async () => {
-      const customMerger = jest.fn((results) => ({
-        totalValue: results.reduce((sum, r) => sum + (r?.value || 0), 0),
-        handlerCount: results.length
-      }));
+      const mergerSpy = jest.fn();
+      const customMerger = <R>(results: Array<R | undefined>): R => {
+        mergerSpy(results);
+        return ({
+          totalValue: results.reduce((sum, result) => {
+          const value = (result as { value?: number } | undefined)?.value ?? 0;
+          return sum + value;
+          }, 0),
+          handlerCount: results.length
+        }) as R;
+      };
 
       const result = await actionRegister.dispatchWithResult('mixedAction', 
         { scenario: 'custom-strategy' }, 
@@ -153,7 +160,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
       expect(result.success).toBe(true);
       expect(result.results).toHaveLength(3);
       expect(result.result).toEqual({ totalValue: 6, handlerCount: 3 });
-      expect(customMerger).toHaveBeenCalledWith([
+      expect(mergerSpy).toHaveBeenCalledWith([
         { handler: 'first', value: 1 },
         { handler: 'second', value: 2 },
         { handler: 'third', value: 3 }
@@ -186,6 +193,9 @@ describe('Result Collection - dispatchWithResult Tests', () => {
       
       // But result field should only contain first 3 results due to maxResults
       expect(result.result).toHaveLength(3);
+      if (!Array.isArray(result.result)) {
+        throw new Error('Expected the all strategy to return an array');
+      }
       expect(result.result[0]).toEqual({ handler: 1, data: 'result-1' });
       expect(result.result[1]).toEqual({ handler: 2, data: 'result-2' });
       expect(result.result[2]).toEqual({ handler: 3, data: 'result-3' });
@@ -325,7 +335,11 @@ describe('Result Collection - dispatchWithResult Tests', () => {
 
   describe('🔄 Pipeline Controller Integration', () => {
     it('should collect results from controller.setResult', async () => {
-      actionRegister.register('basicAction', (payload, controller) => {
+      type ControllerResult =
+        | { fromController: boolean; step: number }
+        | { fromReturn: boolean };
+
+      actionRegister.register<'basicAction', ControllerResult>('basicAction', (payload, controller) => {
         controller.setResult({ fromController: true, step: 1 });
         controller.setResult({ fromController: true, step: 2 });
         return { fromReturn: true };
@@ -345,8 +359,9 @@ describe('Result Collection - dispatchWithResult Tests', () => {
 
     it('should handle controller.return with result collection', async () => {
       const executionOrder: string[] = [];
+      type EarlyResult = { earlyReturn: boolean } | { shouldNotExecute: boolean };
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      actionRegister.register<'basicAction', EarlyResult>('basicAction', (payload, controller) => {
         executionOrder.push('first');
         controller.return({ earlyReturn: true });
         return { shouldNotExecute: true }; // This won't be collected since controller.return terminates
@@ -372,8 +387,9 @@ describe('Result Collection - dispatchWithResult Tests', () => {
 
     it('should handle abort with result collection', async () => {
       const executionOrder: string[] = [];
+      type AbortResult = { beforeAbort: boolean } | { shouldNotReturn: boolean };
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      actionRegister.register<'basicAction', AbortResult>('basicAction', (payload, controller) => {
         executionOrder.push('first');
         controller.setResult({ beforeAbort: true });
         controller.abort('Test abort');
@@ -385,7 +401,15 @@ describe('Result Collection - dispatchWithResult Tests', () => {
         return { shouldNotExecute: true };
       }, { priority: 10 });
 
-      const result = await actionRegister.dispatchWithResult('basicAction', 
+      type ComplexResult =
+        | {
+            user: { id: number; name: string; preferences: { theme: string } };
+            items: number[];
+            timestamp: number;
+          }
+        | Array<{ type: string; data: { action: string } }>;
+
+      const result = await actionRegister.dispatchWithResult<'basicAction', ComplexResult>('basicAction',
         { id: 'test', value: 'data' },
         { result: { collect: true } }
       );
@@ -463,8 +487,12 @@ describe('Result Collection - dispatchWithResult Tests', () => {
         user: { id: 1, name: 'John' },
         items: [1, 2, 3]
       });
-      expect(result.results[1]).toHaveLength(2);
-      expect(result.results[1][0]).toMatchObject({ type: 'event' });
+      const eventResults = result.results[1];
+      expect(eventResults).toHaveLength(2);
+      if (!Array.isArray(eventResults)) {
+        throw new Error('Expected the second handler result to be an array');
+      }
+      expect(eventResults[0]).toMatchObject({ type: 'event' });
     });
   });
 

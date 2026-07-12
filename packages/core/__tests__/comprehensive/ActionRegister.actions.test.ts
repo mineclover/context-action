@@ -120,19 +120,19 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       ).resolves.toBeUndefined();
     });
 
-    it('should handle options as first parameter for void actions', async () => {
-      // Test void action with options as first parameter
+    it('should handle options in the explicit second parameter for void actions', async () => {
+      // Explicit undefined remains available as the unambiguous form.
       await expect(
-        actionRegister.actions.userLogout({ executionMode: 'parallel' })
+        actionRegister.actions.userLogout(undefined, { executionMode: 'parallel' })
       ).resolves.toBeUndefined();
 
       await expect(
-        actionRegister.actions.resetApp({ debounce: 100 })
+        actionRegister.actions.resetApp(undefined, { debounce: 100 })
       ).resolves.toBeUndefined();
     });
 
     it('should return undefined for non-existent actions', () => {
-      
+      // @ts-expect-error - Deliberately probe an action outside TestActions.
       expect(actionRegister.actions.nonExistentAction).toBeUndefined();
     });
   });
@@ -264,16 +264,15 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       expect(successResult.execution.handlersExecuted).toBe(1);
     });
 
-    it('should handle options as first parameter for void actions with result collection', async () => {
-      // Test void action with options as first parameter
-      const logoutResult = await actionRegister.actionsWithResult.userLogout({ 
+    it('should handle options for void actions with result collection', async () => {
+      const logoutResult = await actionRegister.actionsWithResult.userLogout(undefined, {
         executionMode: 'parallel' 
       });
 
       expect(logoutResult.success).toBe(true);
       expect(logoutResult.execution.handlersExecuted).toBe(1);
 
-      const resetResult = await actionRegister.actionsWithResult.resetApp({ 
+      const resetResult = await actionRegister.actionsWithResult.resetApp(undefined, {
         debounce: 100 
       });
 
@@ -282,7 +281,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
     });
 
     it('should return undefined for non-existent actions', () => {
-      
+      // @ts-expect-error - Deliberately probe an action outside TestActions.
       expect(actionRegister.actionsWithResult.nonExistentAction).toBeUndefined();
     });
 

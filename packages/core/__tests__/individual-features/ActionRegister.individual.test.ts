@@ -56,12 +56,10 @@ describe('ActionRegister - Individual Method Tests', () => {
           once: false,
           blocking: true,
           condition: (payload) => payload.value.length > 0,
-          metadata: {
-            description: 'Handler with full configuration',
-            version: '1.0.0',
-            tags: ['test', 'individual'],
-            category: 'validation'
-          }
+          debounce: 5,
+          throttle: 10,
+          replaceExisting: true,
+          cleanup: jest.fn()
         });
 
         expect(actionRegister.hasHandlers('testAction')).toBe(true);
@@ -308,7 +306,7 @@ describe('ActionRegister - Individual Method Tests', () => {
       });
 
       it('should handle aborted execution', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.abort('Test abort message');
         });
 
@@ -322,7 +320,7 @@ describe('ActionRegister - Individual Method Tests', () => {
       });
 
       it('should handle terminated execution', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.return('early-return-value');
         });
 
@@ -350,7 +348,7 @@ describe('ActionRegister - Individual Method Tests', () => {
   describe('🎛️ Controller Methods', () => {
     describe('controller.abort()', () => {
       it('should abort with custom reason', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.abort('Custom abort reason');
         });
 
@@ -374,7 +372,7 @@ describe('ActionRegister - Individual Method Tests', () => {
       it('should stop subsequent handlers', async () => {
         const executedHandlers: string[] = [];
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           executedHandlers.push('first');
           controller.abort('Stop execution');
         }, { priority: 20 });
@@ -391,7 +389,7 @@ describe('ActionRegister - Individual Method Tests', () => {
 
     describe('controller.return()', () => {
       it('should terminate with return value', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.return('terminated-value');
         });
 
@@ -405,7 +403,7 @@ describe('ActionRegister - Individual Method Tests', () => {
       it('should stop subsequent handlers', async () => {
         const executedHandlers: string[] = [];
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           executedHandlers.push('first');
           controller.return('early-return');
         }, { priority: 20 });
@@ -504,7 +502,8 @@ describe('ActionRegister - Individual Method Tests', () => {
 
     describe('controller.setResult()', () => {
       it('should set intermediate results', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        type IntermediateResult = { intermediate: string } | { final: string };
+        actionRegister.register<'testAction', IntermediateResult>('testAction', (payload, controller) => {
           controller.setResult({ intermediate: 'result1' });
           controller.setResult({ intermediate: 'result2' });
           return { final: 'result' };
@@ -528,12 +527,12 @@ describe('ActionRegister - Individual Method Tests', () => {
 
         actionRegister.register('testAction', () => 'result1', { priority: 30 });
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.setResult('intermediate');
           return 'result2';
         }, { priority: 20 });
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           collectedResults = controller.getResults();
           return 'result3';
         }, { priority: 10 });

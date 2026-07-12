@@ -265,6 +265,17 @@ describe('ActionRegister Schema Validation Integration', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
+    it('should throw ActionValidationError for invalid payload with dispatchWithResult', async () => {
+      const handler = jest.fn();
+      register.register('updateUser', handler);
+
+      await expect(
+        register.dispatchWithResult('updateUser', { id: '', name: 'John' })
+      ).rejects.toThrow(ActionValidationError);
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
     it('should include action name in error', async () => {
       register.register('updateUser', jest.fn());
 
@@ -306,6 +317,20 @@ describe('ActionRegister Schema Validation Integration', () => {
 
       await register.dispatch('updateUser', { id: '', name: 'John' });
 
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      expect(handler).toHaveBeenCalled();
+    });
+
+    it('should log warning but continue dispatchWithResult for invalid payload', async () => {
+      const handler = jest.fn();
+      register.register('updateUser', handler);
+
+      const result = await register.dispatchWithResult('updateUser', {
+        id: '',
+        name: 'John',
+      });
+
+      expect(result.success).toBe(true);
       expect(consoleWarnSpy).toHaveBeenCalled();
       expect(handler).toHaveBeenCalled();
     });
@@ -368,6 +393,28 @@ describe('ActionRegister Schema Validation Integration', () => {
       // Invalid payload should not throw when validation is disabled
       await register.dispatch('updateUser', { id: '', name: '' });
 
+      expect(handler).toHaveBeenCalled();
+      register.destroy();
+    });
+
+    it('should skip dispatchWithResult validation when validateOnDispatch is false', async () => {
+      const register = new ActionRegister<TestActions>({
+        registry: {
+          schema: userSchema,
+          validateOnDispatch: false,
+          validationMode: 'strict',
+        },
+      });
+
+      const handler = jest.fn();
+      register.register('updateUser', handler);
+
+      const result = await register.dispatchWithResult('updateUser', {
+        id: '',
+        name: '',
+      });
+
+      expect(result.success).toBe(true);
       expect(handler).toHaveBeenCalled();
       register.destroy();
     });

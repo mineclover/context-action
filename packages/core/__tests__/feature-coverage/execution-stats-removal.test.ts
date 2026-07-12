@@ -88,8 +88,7 @@ describe('ExecutionStats Removal Tests - v0.4.1', () => {
     it('should maintain handler information without execution history', () => {
       actionRegister.register('testAction', jest.fn(), { 
         id: 'test-handler',
-        priority: 15,
-        metadata: { version: '1.0.0' }
+        priority: 15
       });
       
       const stats = actionRegister.getActionStats('testAction');

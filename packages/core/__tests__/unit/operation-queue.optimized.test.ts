@@ -189,12 +189,17 @@ describe('OperationQueue (Memory Optimized)', () => {
       const op = getMock();
       op.mockReturnValue('result');
       
-      queue.enqueue(() => op());
+      const operationPromise = queue.enqueue(() => op());
       queue.clear();
       
-      const info = queue.getQueueInfo();
-      expect(info.queueLength).toBe(0);
-      expect(info.isProcessing).toBe(false);
+      const activeInfo = queue.getQueueInfo();
+      expect(activeInfo.queueLength).toBe(0);
+      expect(activeInfo.isProcessing).toBe(true);
+
+      await expect(operationPromise).resolves.toBe('result');
+      await new Promise<void>(resolve => setImmediate(resolve));
+
+      expect(queue.getQueueInfo().isProcessing).toBe(false);
       
       // Clean up
       returnMock(op);

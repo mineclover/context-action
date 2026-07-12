@@ -153,14 +153,11 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
 
     it('should return undefined for type-only actions in actions getter', () => {
       // 타입으로만 선언된 액션들은 실제 핸들러가 없으므로 undefined 반환
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actions.typeOnlyAction).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actions.anotherTypeOnly).toBeUndefined();
     });
 
     it('should show warning when calling type-only actions through actions getter', async () => {
-      // @ts-expect-error - Testing runtime behavior
       if (actionRegister.actions.typeOnlyAction) {
         await actionRegister.actions.typeOnlyAction({ value: 'test' });
         
@@ -172,7 +169,6 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
 
     it('should return undefined for type-only actions in actionsWithResult getter', () => {
       // 타입으로만 선언된 액션들은 실제 핸들러가 없으므로 undefined 반환
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actionsWithResult.anotherTypeOnly).toBeUndefined();
     });
   });

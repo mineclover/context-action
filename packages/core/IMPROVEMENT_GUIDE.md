@@ -408,7 +408,7 @@ actionRegister.register('risky-action', async (payload, controller) => {
 - [ ] 추가 메모리 최적화
 
 ### 중기 계획 (6개월 내)
-- [ ] TypeScript 5.0+ 최적화
+- [ ] TypeScript 6.0.3 최적화
 - [ ] 웹 워커 지원 강화
 - [ ] 실시간 성능 모니터링 옵션
 

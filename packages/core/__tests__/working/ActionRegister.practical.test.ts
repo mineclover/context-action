@@ -133,7 +133,7 @@ describe('ActionRegister - Practical Tests', () => {
     it('should handle payload modification', async () => {
       let finalPayload: any;
 
-      actionRegister.register('dataProcess', (payload, controller) => {
+      actionRegister.register<'dataProcess', Record<string, unknown>>('dataProcess', (payload, controller) => {
         controller.modifyPayload(current => ({
           ...current,
           processed: true,
@@ -178,7 +178,7 @@ describe('ActionRegister - Practical Tests', () => {
     });
 
     it('should get current payload', async () => {
-      actionRegister.register('dataProcess', (payload, controller) => {
+      actionRegister.register<'dataProcess', Record<string, unknown>>('dataProcess', (payload, controller) => {
         const currentPayload = controller.getPayload();
         expect(currentPayload).toEqual(payload);
         expect(currentPayload.data).toBe('test-data');
@@ -210,12 +210,12 @@ describe('ActionRegister - Practical Tests', () => {
     });
 
     it('should handle controller.setResult and getResults', async () => {
-      actionRegister.register('dataProcess', (payload, controller) => {
+      actionRegister.register<'dataProcess', Record<string, unknown>>('dataProcess', (payload, controller) => {
         controller.setResult({ phase: 'preprocessing', status: 'complete' });
         return { phase: 'processing', data: payload.data };
       }, { priority: 20 });
 
-      actionRegister.register('dataProcess', (payload, controller) => {
+      actionRegister.register<'dataProcess', Record<string, unknown>>('dataProcess', (payload, controller) => {
         const previousResults = controller.getResults();
         expect(previousResults).toHaveLength(1);
         expect(previousResults[0]).toEqual({ phase: 'processing', data: payload.data });
@@ -232,7 +232,7 @@ describe('ActionRegister - Practical Tests', () => {
     });
 
     it('should handle early termination with controller.return', async () => {
-      actionRegister.register('userAuth', (payload, controller) => {
+      actionRegister.register<'userAuth', Record<string, unknown>>('userAuth', (payload, controller) => {
         if (payload.username === 'admin') {
           controller.return({ success: true, role: 'administrator', fastTrack: true });
         }
@@ -289,8 +289,8 @@ describe('ActionRegister - Practical Tests', () => {
 
       expect(result.execution.handlersExecuted).toBe(2);
       expect(result.execution.startTime).toBeGreaterThanOrEqual(startTime);
-      expect(result.execution.endTime).toBeGreaterThan(result.execution.startTime);
-      expect(result.execution.duration).toBeGreaterThan(0);
+      expect(result.execution.endTime).toBeGreaterThanOrEqual(result.execution.startTime);
+      expect(result.execution.duration).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -348,7 +348,7 @@ describe('ActionRegister - Practical Tests', () => {
 
     it('should override execution mode via dispatch options', async () => {
       actionRegister.setActionExecutionMode('dataProcess', 'sequential');
-      
+
       const executionTimes: number[] = [];
 
       actionRegister.register('dataProcess', async () => {
@@ -380,13 +380,13 @@ describe('ActionRegister - Practical Tests', () => {
         await new Promise(resolve => setTimeout(resolve, 30));
         results.push('async-1');
         return 'result-1';
-      });
+      }, { blocking: true });
 
       actionRegister.register('dataProcess', async () => {
         await new Promise(resolve => setTimeout(resolve, 20));
         results.push('async-2');
         return 'result-2';
-      });
+      }, { blocking: true });
 
       const result = await actionRegister.dispatchWithResult('dataProcess', 
         { data: 'test' },

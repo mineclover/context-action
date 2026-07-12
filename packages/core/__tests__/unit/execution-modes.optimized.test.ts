@@ -10,26 +10,34 @@ import {
   executeRace
 } from '../../src/execution-modes.js';
 import type {
+  ActionHandler,
   PipelineContext,
   PipelineController,
   HandlerRegistration
 } from '../../src/types.js';
 
 describe('Execution Modes (Memory Optimized)', () => {
+  type MockHandlerRegistration<T = any, R = any> = Omit<
+    HandlerRegistration<T, R>,
+    'handler'
+  > & {
+    handler: jest.MockedFunction<ActionHandler<T, R>>;
+  };
+
   // Mock pool for reusing mock functions
-  const mockPool: jest.MockedFunction<any>[] = [];
+  const mockPool: jest.MockedFunction<ActionHandler<any, any>>[] = [];
   
-  const getMock = (): jest.MockedFunction<any> => {
-    return mockPool.pop() || jest.fn();
+  const getMock = (): jest.MockedFunction<ActionHandler<any, any>> => {
+    return mockPool.pop() || jest.fn<any, Parameters<ActionHandler<any, any>>>();
   };
   
-  const returnMock = (mock: jest.MockedFunction<any>) => {
+  const returnMock = (mock: jest.MockedFunction<ActionHandler<any, any>>) => {
     mock.mockReset();
     mockPool.push(mock);
   };
 
   // Simplified mock handler creation
-  const createHandler = (id: string, behavior: 'success' | 'error' = 'success', result: any = `result-${id}`): HandlerRegistration<any, any> => {
+  const createHandler = (id: string, behavior: 'success' | 'error' = 'success', result: any = `result-${id}`): MockHandlerRegistration => {
     const handler = getMock();
     
     if (behavior === 'success') {
@@ -40,7 +48,17 @@ describe('Execution Modes (Memory Optimized)', () => {
 
     return {
       handler,
-      config: { id, priority: 0, blocking: false, once: false, throttle: undefined, debounce: undefined, replaceExisting: false, cleanup: undefined },
+      config: {
+        id,
+        priority: 0,
+        blocking: false,
+        once: false,
+        throttle: 0,
+        debounce: 0,
+        replaceExisting: false,
+        cleanup: () => {},
+        condition: () => true
+      },
       id
     };
   };
@@ -49,6 +67,7 @@ describe('Execution Modes (Memory Optimized)', () => {
     action: 'testAction',
     payload,
     handlers,
+    signal: new AbortController().signal,
     aborted: false,
     abortReason: undefined,
     currentIndex: 0,
@@ -60,6 +79,7 @@ describe('Execution Modes (Memory Optimized)', () => {
   });
 
   const createController = (context: PipelineContext<any, any>): PipelineController<any, any> => ({
+    signal: context.signal,
     abort: (reason?: string) => { context.aborted = true; context.abortReason = reason; },
     modifyPayload: (modifier) => { context.payload = modifier(context.payload); },
     getPayload: () => context.payload,
@@ -190,8 +210,17 @@ describe('Execution Modes (Memory Optimized)', () => {
     it('should complete with first successful handler', async () => {
       const fastHandler = createHandler('fast', 'success', 'fast-result');
       const slowHandler = createHandler('slow');
+      let releaseSlow: (() => void) | undefined;
+      let markSlowSettled: (() => void) | undefined;
+      const slowGate = new Promise<void>(resolve => {
+        releaseSlow = resolve;
+      });
+      const slowSettled = new Promise<void>(resolve => {
+        markSlowSettled = resolve;
+      });
       slowHandler.handler.mockImplementation(async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await slowGate;
+        markSlowSettled?.();
         return 'slow-result';
       });
 
@@ -203,6 +232,9 @@ describe('Execution Modes (Memory Optimized)', () => {
 
       expect(duration).toBeLessThan(30); // Should complete quickly
       expect(context.results).toEqual(['fast-result']);
+
+      releaseSlow?.();
+      await slowSettled;
       
       // Clean up
       returnMock(fastHandler.handler);

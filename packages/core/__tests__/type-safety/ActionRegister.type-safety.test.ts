@@ -2,7 +2,11 @@
  * Type safety tests - Compile-time and runtime type checking
  */
 
-import { ActionRegister, type ActionPayloadMap } from '../../src';
+import {
+  ActionRegister,
+  type ActionPayloadMap,
+  type PipelineController
+} from '../../src';
 
 // Test type definitions
 interface TypeSafetyActions extends ActionPayloadMap {
@@ -250,9 +254,13 @@ describe('ActionRegister - Type Safety Tests', () => {
 
       actionRegister.register('numberAction', numberHandler);
 
-      const result = await actionRegister.dispatchWithResult('numberAction', 42);
+      type NumberResult = { doubled: number; isEven: boolean };
+      const result = await actionRegister.dispatchWithResult<'numberAction', NumberResult>('numberAction', 42);
       
       expect(result.result).toEqual({ doubled: 84, isEven: true });
+      if (!result.result || Array.isArray(result.result)) {
+        throw new Error('Expected a single number handler result');
+      }
       expect(typeof result.result.doubled).toBe('number');
       expect(typeof result.result.isEven).toBe('boolean');
     });
@@ -276,7 +284,13 @@ describe('ActionRegister - Type Safety Tests', () => {
 
   describe('🔧 Controller Type Safety', () => {
     it('should maintain payload type through controller methods', async () => {
-      const handler = jest.fn((payload: { name: string; age: number }, controller) => {
+      const handler = jest.fn((
+        payload: { name: string; age: number },
+        controller: PipelineController<
+          { name: string; age: number },
+          { originalAge: number; modified: boolean }
+        >
+      ) => {
         // getPayload should return the same type as the original payload
         const currentPayload = controller.getPayload();
         expect(currentPayload).toEqual(payload);
@@ -372,8 +386,11 @@ describe('ActionRegister - Type Safety Tests', () => {
       expect(result.results[0]).toEqual({ handler: 1, length: 5 });
       expect(result.results[1]).toEqual({ handler: 2, upper: 'HELLO' });
       
-      // Last handler's result should be the main result
-      expect(result.result).toEqual({ handler: 2, upper: 'HELLO' });
+      // collect:true without a strategy preserves the complete collected result set.
+      expect(result.result).toEqual([
+        { handler: 1, length: 5 },
+        { handler: 2, upper: 'HELLO' },
+      ]);
     });
 
     it('should handle mixed return types in result collection', async () => {
@@ -407,8 +424,9 @@ describe('ActionRegister - Type Safety Tests', () => {
         { result: { collect: true } }
       );
 
-      expect(result.results).toEqual([undefined, undefined, 'actual-result']);
-      expect(result.result).toBe('actual-result');
+      // Void handler returns are not persisted as collected results.
+      expect(result.results).toEqual(['actual-result']);
+      expect(result.result).toEqual(['actual-result']);
     });
   });
 
@@ -423,11 +441,10 @@ describe('ActionRegister - Type Safety Tests', () => {
         once: false,
         blocking: true,
         condition: (payload) => payload.length > 0,
-        metadata: { 
-          description: 'Test handler',
-          version: '1.0.0',
-          customData: { any: 'value' }
-        }
+        debounce: 5,
+        throttle: 10,
+        replaceExisting: true,
+        cleanup: jest.fn()
       });
 
       expect(actionRegister.getHandlerCount('stringAction')).toBe(1);

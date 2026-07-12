@@ -22,6 +22,7 @@ interface TestActions extends ActionPayloadMap {
   parallelAction: { value: number };
   errorAction: { shouldError: boolean };
   multiAction: { data: string };
+  concurrentAction: { index: number };
 }
 
 describe('ActionRegister Comprehensive Feature Tests', () => {
@@ -510,7 +511,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     }, 5000);
 
     it('should handle automatic abort from handlers', async () => {
-      register.register('testAction', async (payload, controller) => {
+      register.register<'testAction', string>('testAction', async (payload, controller) => {
         controller.abort('Handler requested abort');
         return 'aborted';
       }, { id: 'self-aborting' });
@@ -522,7 +523,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
       const result = await register.dispatchWithResult('testAction', 
         { message: 'test' },
         { 
-          autoAbort: { allowHandlerAbort: true },
+          autoAbort: { enabled: true, allowHandlerAbort: true },
           result: { collect: true, strategy: 'all' }
         }
       );
@@ -642,7 +643,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     });
 
     it('should handle controller termination', async () => {
-      register.register('testAction', async (payload, controller) => {
+      register.register<'testAction', string>('testAction', async (payload, controller) => {
         controller.return('Early termination');
         return 'terminated';
       }, { id: 'terminator', priority: 3 });
@@ -699,9 +700,12 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     });
 
     it('should merge results using custom merger', async () => {
-      register.destroy();
+      register.clearAll();
       register.register('testAction', async () => ({ a: 1, b: 2 }), { priority: 2, id: 'first' });
       register.register('testAction', async () => ({ b: 3, c: 4 }), { priority: 1, id: 'second' });
+      const mergeResults = <R>(results: Array<R | undefined>): R => (
+        Object.assign({}, ...results.filter((result): result is R => result !== undefined)) as R
+      );
 
       const result = await register.dispatchWithResult('testAction',
         { message: 'test' },
@@ -709,7 +713,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
           result: { 
             collect: true, 
             strategy: 'merge',
-            merger: (results) => results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+            merger: mergeResults
           } 
         }
       );
@@ -718,7 +722,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     });
 
     it('should limit result collection with maxResults', async () => {
-      register.destroy();
+      register.clearAll();
       for (let i = 1; i <= 5; i++) {
         register.register('testAction', async () => `result-${i}`, { 
           priority: 10 - i, 
@@ -792,6 +796,10 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
       await register.dispatch('testAction', { message: 'test2' });
 
       const stats = register.getActionStats('testAction');
+      expect(stats).not.toBeNull();
+      if (!stats) {
+        throw new Error('Expected statistics for the registered testAction');
+      }
       expect(stats.handlerCount).toBe(2);
       expect(stats.totalHandlers).toBe(2);
 
@@ -811,7 +819,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     it('should reuse controller objects from pool', async () => {
       const controllerInstances = new Set();
       
-      register.register('testAction', async (payload, controller) => {
+      register.register<'testAction', string>('testAction', async (payload, controller) => {
         controllerInstances.add(controller);
         return 'pooled';
       }, { id: 'pooled-handler' });
@@ -830,14 +838,14 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
       // Simple test that validates controller pooling works
       const results: string[] = [];
 
-      register.register('testAction', async (payload) => {
+      register.register('concurrentAction', async (payload) => {
         results.push(`result-${payload.index}`);
         return `result-${payload.index}`;
       }, { id: 'concurrent-handler' });
       
       // Launch multiple concurrent dispatches (sequential mode)
       const promises = Array.from({ length: 3 }, (_, i) =>
-        register.dispatch('testAction', { index: i })
+        register.dispatch('concurrentAction', { index: i })
       );
 
       await Promise.all(promises);

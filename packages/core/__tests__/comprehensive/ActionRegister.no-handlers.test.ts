@@ -74,21 +74,15 @@ describe('ActionRegister - No Handlers Registered Tests', () => {
   describe('actions getter behavior', () => {
     it('should return undefined for actions when no handlers are registered', () => {
       // Actions getter should return undefined for non-existent actions
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actions.userLogin).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actions.userLogout).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actions.processData).toBeUndefined();
     });
 
     it('should return undefined for actionsWithResult when no handlers are registered', () => {
       // ActionsWithResult getter should return undefined for non-existent actions
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actionsWithResult.userLogin).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actionsWithResult.userLogout).toBeUndefined();
-      // @ts-expect-error - Testing runtime behavior
       expect(actionRegister.actionsWithResult.processData).toBeUndefined();
     });
   });
@@ -104,17 +98,15 @@ describe('ActionRegister - No Handlers Registered Tests', () => {
     });
 
     it('should return empty handlers list when no handlers are registered', () => {
-      // Check if action exists in pipelines
-      expect(actionRegister.pipelines.has('userLogin')).toBe(false);
-      expect(actionRegister.pipelines.has('userLogout')).toBe(false);
-      expect(actionRegister.pipelines.has('processData')).toBe(false);
+      expect(actionRegister.getHandlerCount('userLogin')).toBe(0);
+      expect(actionRegister.getHandlerCount('userLogout')).toBe(0);
+      expect(actionRegister.getHandlerCount('processData')).toBe(0);
     });
 
     it('should return false for hasAction when no handlers are registered', () => {
-      // Check pipeline existence
-      expect(actionRegister.pipelines.has('userLogin')).toBe(false);
-      expect(actionRegister.pipelines.has('userLogout')).toBe(false);
-      expect(actionRegister.pipelines.has('processData')).toBe(false);
+      expect(actionRegister.getHandlerCount('userLogin')).toBe(0);
+      expect(actionRegister.getHandlerCount('userLogout')).toBe(0);
+      expect(actionRegister.getHandlerCount('processData')).toBe(0);
     });
   });
 

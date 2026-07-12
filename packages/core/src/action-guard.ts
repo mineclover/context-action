@@ -69,6 +69,7 @@ interface GuardState {
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
   private cleanupInterval: NodeJS.Timeout | undefined;
+  private readonly autoCleanupEnabled: boolean;
   private readonly maxIdleTime: number = 60000; // 1 minute
   private readonly cleanupIntervalMs: number = 30000; // 30 seconds
 
@@ -78,7 +79,12 @@ export class ActionGuard {
   private accessOrder: string[] = [];
 
   constructor(autoCleanup: boolean = true) {
-    if (autoCleanup) {
+    this.autoCleanupEnabled = autoCleanup;
+  }
+
+  /** Start cleanup only after the first guard is used. */
+  private ensureAutoCleanup(): void {
+    if (this.autoCleanupEnabled && !this.cleanupInterval) {
       this.startAutoCleanup();
     }
   }
@@ -89,9 +95,21 @@ export class ActionGuard {
    * @internal
    */
   private startAutoCleanup(): void {
+    if (this.cleanupInterval) return;
+
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
     }, this.cleanupIntervalMs);
+
+    // A library-owned maintenance timer must not keep a Node.js process alive.
+    this.cleanupInterval.unref?.();
+  }
+
+  private stopAutoCleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
   }
 
   /**
@@ -104,6 +122,7 @@ export class ActionGuard {
 
     // Early exit if no guards to clean
     if (guardCount === 0) {
+      this.stopAutoCleanup();
       return;
     }
 
@@ -161,6 +180,10 @@ export class ActionGuard {
       // Optional debug logging for cleanup
       if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
         console.debug(`[ActionGuard] Cleaned up ${keysToDelete.length} idle guards`);
+      }
+
+      if (this.guards.size === 0) {
+        this.stopAutoCleanup();
       }
     }
   }
@@ -240,6 +263,8 @@ export class ActionGuard {
    * @internal
    */
   async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
+    this.ensureAutoCleanup();
+
     // 🔧 Performance: Check for eviction before adding new guards
     this.evictIfNeeded();
 
@@ -311,6 +336,8 @@ export class ActionGuard {
    * @internal
    */
   throttle(actionKey: string, throttleMs: number): boolean {
+    this.ensureAutoCleanup();
+
     // 🔧 Performance: Check for eviction before adding new guards
     this.evictIfNeeded();
 
@@ -400,6 +427,14 @@ export class ActionGuard {
       
       // Remove guard state from memory
       this.guards.delete(actionKey);
+      const accessIndex = this.accessOrder.indexOf(actionKey);
+      if (accessIndex !== -1) {
+        this.accessOrder.splice(accessIndex, 1);
+      }
+
+      if (this.guards.size === 0) {
+        this.stopAutoCleanup();
+      }
     }
   }
 
@@ -432,6 +467,8 @@ export class ActionGuard {
     
     /** Remove all guard states from memory */
     this.guards.clear();
+    this.accessOrder = [];
+    this.stopAutoCleanup();
   }
 
   /**
@@ -472,17 +509,8 @@ export class ActionGuard {
    * @internal
    */
   destroy(): void {
-    // Stop auto cleanup interval
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = undefined as NodeJS.Timeout | undefined;
-    }
-
     // Clear all existing guards
     this.clearAll();
-
-    // 🔧 Clear LRU tracking array
-    this.accessOrder = [];
   }
 
   /**

@@ -30,9 +30,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       name: 'ComprehensiveTestRegister',
       registry: {
         debug: false,
-        defaultExecutionMode: 'sequential',
-        maxRetries: 3,
-        retryDelay: 100
+        defaultExecutionMode: 'sequential'
       }
     });
   });
@@ -67,11 +65,10 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
           once: false,
           blocking: true,
           condition: (payload) => payload.value.length > 0,
-          metadata: { 
-            description: 'Test handler with all options',
-            version: '1.0.0',
-            tags: ['test', 'comprehensive']
-          }
+          debounce: 5,
+          throttle: 10,
+          replaceExisting: true,
+          cleanup: jest.fn()
         });
 
         expect(actionRegister.getHandlerCount('testAction')).toBe(1);
@@ -350,7 +347,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
         await actionRegister.dispatch('testAction', { value: 'test', count: 1 }, {
           executionMode: 'parallel',
           timeout: 5000,
-          retries: 2
+          retryOnError: { maxAttempts: 2, delay: 0 }
         });
 
         expect(handler).toHaveBeenCalled();
@@ -877,23 +874,17 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       });
     });
 
-    describe('metadata option', () => {
-      it('should store handler metadata', () => {
-        const metadata = {
-          description: 'Test handler for validation',
-          version: '1.2.3',
-          author: 'test-author',
-          tags: ['validation', 'security'],
-          config: { timeout: 5000, retries: 3 }
-        };
-
+    describe('cleanup option', () => {
+      it('should accept a handler cleanup callback', () => {
+        const cleanup = jest.fn();
         actionRegister.register('testAction', jest.fn(), { 
           id: 'documented-handler',
-          metadata 
+          cleanup
         });
 
         expect(actionRegister.getHandlerCount('testAction')).toBe(1);
-        // Metadata is stored internally - functionality verified through registration success
+        actionRegister.clearAction('testAction');
+        expect(cleanup).toHaveBeenCalledTimes(1);
       });
     });
   });

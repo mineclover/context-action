@@ -13,6 +13,12 @@ export interface QueuedOperation<T = any> {
   timestamp: number;
 }
 
+export interface QueuedOperationHandle<T> {
+  promise: Promise<T>;
+  /** Cancels only while the operation is still waiting in the queue. */
+  cancel(reason?: unknown): boolean;
+}
+
 /**
  * 작업 큐 관리자
  *
@@ -49,8 +55,17 @@ export class OperationQueue {
    * @returns Promise로 래핑된 작업 결과
    */
   enqueue<T>(operation: () => T | Promise<T>, priority: number = 0): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const queuedOperation: QueuedOperation<T> = {
+    return this.enqueueWithHandle(operation, priority).promise;
+  }
+
+  /** Enqueue an operation and retain a handle for pre-start cancellation. */
+  enqueueWithHandle<T>(
+    operation: () => T | Promise<T>,
+    priority: number = 0
+  ): QueuedOperationHandle<T> {
+    let queuedOperation!: QueuedOperation<T>;
+    const promise = new Promise<T>((resolve, reject) => {
+      queuedOperation = {
         id: `${this.name}-${++this.operationCounter}`,
         operation,
         resolve,
@@ -80,6 +95,19 @@ export class OperationQueue {
       }
       this.processQueue();
     });
+
+    return {
+      promise,
+      cancel: (reason = new Error('Queue operation cancelled')) => {
+        const index = this.queue.indexOf(queuedOperation);
+        if (index === -1) return false;
+
+        this.queue.splice(index, 1);
+        queuedOperation.reject(reason);
+        this.notifyNewOperation();
+        return true;
+      },
+    };
   }
 
   /**
@@ -219,14 +247,20 @@ export class OperationQueue {
   /**
    * 큐 비우기 (테스트용)
    */
-  clear(): void {
-    // 대기 중인 작업들에게 취소 알림
+  clear(options: { rejectPending?: boolean; reason?: unknown } = {}): void {
+    const rejectPending = options.rejectPending ?? true;
+    const reason = options.reason ?? new Error('Queue cleared');
+
+    // Settle queued operations so callers are never left with pending promises.
     this.queue.forEach(operation => {
-      operation.reject(new Error('Queue cleared'));
+      if (rejectPending) {
+        operation.reject(reason);
+      } else {
+        operation.resolve(undefined as never);
+      }
     });
 
     this.queue = [];
-    this.processingPromise = null;
 
     // 대기 중인 리졸버들도 정리
     const resolvers = this.pendingResolvers.splice(0);

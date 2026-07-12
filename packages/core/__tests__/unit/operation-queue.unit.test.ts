@@ -506,6 +506,98 @@ describe('OperationQueue Unit Tests', () => {
       expect(queue.processing).toBe(false);
     });
 
+    it('should resolve pending operations when cleared gracefully', async () => {
+      let finishRunningOperation: (() => void) | undefined;
+      const runningOperation = queue.enqueue(
+        () => new Promise<void>(resolve => {
+          finishRunningOperation = resolve;
+        })
+      );
+      const pendingOperation = queue.enqueue(() => 'never-executed');
+
+      queue.clear({ rejectPending: false });
+      finishRunningOperation?.();
+
+      await expect(runningOperation).resolves.toBeUndefined();
+      await expect(pendingOperation).resolves.toBeUndefined();
+    });
+
+    it('should keep the active worker and respect max concurrency after clear', async () => {
+      let activeOperations = 0;
+      let maxActiveOperations = 0;
+      let markFirstStarted: (() => void) | undefined;
+      let releaseFirst: (() => void) | undefined;
+      const executionOrder: string[] = [];
+      const firstStarted = new Promise<void>(resolve => {
+        markFirstStarted = resolve;
+      });
+      const firstGate = new Promise<void>(resolve => {
+        releaseFirst = resolve;
+      });
+
+      const firstOperation = queue.enqueue(async () => {
+        activeOperations++;
+        maxActiveOperations = Math.max(maxActiveOperations, activeOperations);
+        executionOrder.push('first:start');
+        markFirstStarted?.();
+
+        try {
+          await firstGate;
+        } finally {
+          executionOrder.push('first:end');
+          activeOperations--;
+        }
+      });
+
+      await firstStarted;
+
+      const clearedOperation = jest.fn();
+      const pendingOperation = queue.enqueue(clearedOperation);
+      const pendingRejection = expect(pendingOperation).rejects.toThrow('Queue cleared');
+
+      queue.clear();
+
+      expect(queue.processing).toBe(true);
+
+      const afterClearOperation = jest.fn(async () => {
+        activeOperations++;
+        maxActiveOperations = Math.max(maxActiveOperations, activeOperations);
+        executionOrder.push('after-clear:start');
+
+        try {
+          return 'after-clear-result';
+        } finally {
+          executionOrder.push('after-clear:end');
+          activeOperations--;
+        }
+      });
+      const afterClearResult = queue.enqueue(afterClearOperation);
+
+      try {
+        await Promise.resolve();
+        expect(afterClearOperation).not.toHaveBeenCalled();
+
+        releaseFirst?.();
+
+        await expect(firstOperation).resolves.toBeUndefined();
+        await expect(afterClearResult).resolves.toBe('after-clear-result');
+        await pendingRejection;
+        await new Promise<void>(resolve => setImmediate(resolve));
+
+        expect(clearedOperation).not.toHaveBeenCalled();
+        expect(maxActiveOperations).toBe(1);
+        expect(executionOrder).toEqual([
+          'first:start',
+          'first:end',
+          'after-clear:start',
+          'after-clear:end',
+        ]);
+        expect(queue.processing).toBe(false);
+      } finally {
+        releaseFirst?.();
+      }
+    });
+
     it('should handle multiple clear calls', () => {
       const op = jest.fn().mockReturnValue('result');
       queue.enqueue(op);

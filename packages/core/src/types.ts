@@ -11,11 +11,13 @@
  * @public
  */
 /**
- * Ensures action names are string literals and payloads are serializable
+ * Marker type for action payload maps.
+ *
+ * Deliberately does not declare a string index signature: adding one would
+ * widen `keyof` to `string | number` and make unknown action names compile.
+ * Applications extend this type from an interface with literal action keys.
  */
-export interface ActionPayloadMap {
-  [actionName: string]: unknown;
-}
+export type ActionPayloadMap = object;
 
 /**
  * Strict action payload map that prevents certain problematic types
@@ -253,6 +255,15 @@ export type ActionPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
  * @public
  */
 export interface PipelineController<T = any, R = void> {
+  /**
+   * Signal for the current dispatch lifecycle.
+   *
+   * Handlers should observe this signal when they can stop cooperatively. It is
+   * aborted by caller cancellation, timeout, provider teardown, or registry
+   * shutdown.
+   */
+  readonly signal?: AbortSignal;
+
   /** Abort the pipeline execution with an optional reason */
   abort(reason?: string): void;
   
@@ -404,7 +415,7 @@ export type ActionHandler<T = any, R = void> = (
  * 
  * @public
  */
-export interface HandlerConfig {
+export interface HandlerConfig<T = unknown> {
   /** Priority level (higher numbers execute first). Default: 0 */
   priority?: number;
   
@@ -430,7 +441,7 @@ export interface HandlerConfig {
   cleanup?: () => void;
 
   /** Condition function to determine if handler should execute. Default: always execute */
-  condition?: <P>(payload: P) => boolean;
+  condition?: (payload: T) => boolean;
 }
 
 
@@ -451,7 +462,7 @@ export interface HandlerRegistration<T = any, R = void> {
   handler: ActionHandler<T, R>;
   
   /** Complete handler configuration with all defaults applied */
-  config: Required<HandlerConfig>;
+  config: Required<HandlerConfig<T>>;
   
   /** Unique identifier for this handler registration */
   id: string;
@@ -463,7 +474,8 @@ export interface HandlerRegistration<T = any, R = void> {
  * Determines how multiple handlers for the same action are executed:
  * - `sequential`: Handlers execute one after another in priority order
  * - `parallel`: All handlers execute simultaneously
- * - `race`: First handler to complete wins, others are cancelled
+ * - `race`: First handler to complete wins; other started handlers keep running
+ *   and remain tracked until they settle
  * 
  * @example
  * ```typescript
@@ -502,6 +514,18 @@ export interface PipelineContext<T = any, R = void> {
   
   /** Handlers to execute in this pipeline */
   handlers: HandlerRegistration<T, R>[];
+
+  /** Registrations whose handler functions were actually invoked */
+  executedHandlers?: HandlerRegistration<T, R>[];
+
+  /** Defer once-handler removal to the outer retry lifecycle */
+  deferOnceCleanup?: boolean;
+
+  /** Effective signal shared with controllers for cooperative cancellation */
+  signal?: AbortSignal;
+
+  /** Track handler work that may outlive the exposed dispatch promise */
+  trackHandlerPromise?<V>(promise: Promise<V>): Promise<V>;
   
   /** Whether execution has been aborted */
   aborted: boolean;
@@ -587,7 +611,7 @@ export interface ActionRegisterConfig {
     maxHandlersPerAction?: number;
 
     /** Global error handler for unhandled errors */
-    errorHandler?: (error: Error, context: unknown) => void;
+    errorHandler?: (error: Error, context: unknown) => void | Promise<void>;
 
     // ---- Zod Schema Validation Options (optional) ----
 
@@ -689,12 +713,15 @@ export interface DispatchOptions {
   /** Priority in dispatch queue (higher = earlier execution) */
   queuePriority?: number;
   
-  /** Execution timeout in milliseconds */
+  /**
+   * Wall-clock timeout in milliseconds, including queue wait and retry delay.
+   * Rejects with ActionTimeoutError and aborts the dispatch signal.
+   */
   timeout?: number;
   
   /** Retry configuration for error recovery */
   retryOnError?: {
-    /** Maximum retry attempts */
+    /** Maximum total attempts, including the initial attempt. Minimum: 1 */
     maxAttempts: number;
     /** Delay between retries in milliseconds */
     delay: number;
@@ -804,6 +831,12 @@ export interface ExecutionResult<R = void> {
   
   /** Whether the execution was terminated early via controller.return() */
   terminated: boolean;
+
+  /** Runtime payload validation outcome when a schema was configured */
+  validation?: {
+    passed: boolean;
+    errors: string[];
+  };
   
   /** Final result based on result strategy - only present for non-void results */
   result: R | R[] | undefined;
@@ -1082,6 +1115,3 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
   /** Execution statistics - removed in favor of simplified architecture */
   executionStats?: undefined;
 }
-
-
-

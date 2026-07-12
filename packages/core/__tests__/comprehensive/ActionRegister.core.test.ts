@@ -11,6 +11,8 @@ interface CoreTestActions extends ActionPayloadMap {
   sendNotification: { message: string; type: 'info' | 'warning' | 'error' };
   processPayment: { amount: number; currency: string; method: string };
   uploadFile: { file: File; metadata?: Record<string, any> };
+  retryWorkflow: { data: string };
+  infiniteLoop: { test: boolean };
 }
 
 describe('ActionRegister - Core Functionality', () => {

@@ -203,10 +203,11 @@ describe('React Helpers Unit Tests', () => {
     });
 
     it('should handle edge case with empty action name', () => {
-      const handler: ActionHandler<any> = jest.fn();
+      const handler: ActionHandler<unknown> = jest.fn();
+      const dynamicRegistry = registry as unknown as ActionRegister<Record<string, unknown>>;
       
       // This should work but generate a different ID pattern
-      const handlerManager = createActionHandler(registry as any, '', handler);
+      const handlerManager = createActionHandler(dynamicRegistry, '', handler);
 
       expect(handlerManager.config.id).toMatch(/^react__\d+_[a-z0-9]{5}$/);
     });
@@ -535,8 +536,8 @@ describe('React Helpers Unit Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle special characters in action names', () => {
-      const specialActionRegistry = registry as any;
-      const handler: ActionHandler<any> = jest.fn();
+      const specialActionRegistry = registry as unknown as ActionRegister<Record<string, unknown>>;
+      const handler: ActionHandler<unknown> = jest.fn();
       
       const manager = createActionHandler(specialActionRegistry, 'action-with-dashes', handler);
       

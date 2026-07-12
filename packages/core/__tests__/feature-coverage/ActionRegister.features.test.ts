@@ -77,6 +77,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
       expect(stats?.handlerCount).toBe(2);
       expect(stats?.handlersByPriority).toBeDefined();
 
+      // @ts-expect-error - Deliberately verify runtime behavior for an unknown action.
       expect(actionRegister.getActionStats('nonExistentAction')).toBeNull();
     });
 
@@ -162,7 +163,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
     it('should handle payload modification between handlers', async () => {
       let finalPayload: any;
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      actionRegister.register<'basicAction', Record<string, unknown>>('basicAction', (payload, controller) => {
         controller.modifyPayload(current => ({
           ...current,
           modified: true,
@@ -193,7 +194,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
     it('should handle pipeline abortion', async () => {
       const executedHandlers: string[] = [];
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      actionRegister.register<'basicAction', Record<string, unknown>>('basicAction', (payload, controller) => {
         executedHandlers.push('first');
         if (payload.id === 'abort-test') {
           controller.abort('Test abortion');
@@ -217,13 +218,14 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
     it('should handle controller result methods', async () => {
       let previousResults: any[] = [];
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      type ControllerResult = { intermediate: string } | { final: string };
+      actionRegister.register<'basicAction', ControllerResult>('basicAction', (payload, controller) => {
         controller.setResult({ intermediate: 'step1' });
         controller.setResult({ intermediate: 'step2' });
         return { final: 'first-handler' };
       }, { priority: 20 });
 
-      actionRegister.register('basicAction', (payload, controller) => {
+      actionRegister.register<'basicAction', ControllerResult>('basicAction', (payload, controller) => {
         previousResults = controller.getResults();
         return { final: 'second-handler' };
       }, { priority: 10 });
@@ -264,7 +266,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
     it('should respect handler conditions using controller logic', async () => {
       const handler = jest.fn();
 
-      actionRegister.register('conditionalAction', (payload, controller) => {
+      actionRegister.register<'conditionalAction', { executed: boolean }>('conditionalAction', (payload, controller) => {
         if (!payload.condition) {
           controller.abort('Condition not met');
           return;
@@ -285,16 +287,10 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
       expect(handler).toHaveBeenCalledTimes(1); // Still only once
     });
 
-    it('should support handler metadata and identification', () => {
+    it('should support handler identification', () => {
       actionRegister.register('basicAction', jest.fn(), {
         id: 'documented-handler',
-        priority: 15,
-        metadata: {
-          description: 'Handler with complete metadata',
-          version: '1.0.0',
-          tags: ['test', 'feature-coverage'],
-          category: 'validation'
-        }
+        priority: 15
       });
 
       const stats = actionRegister.getActionStats('basicAction');

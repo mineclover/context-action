@@ -59,5 +59,9 @@ export type {
 // Validation Errors
 export {
   ActionValidationError,
+  ActionTimeoutError,
+  ActionRegisterDestroyedError,
   isActionValidationError,
+  isActionTimeoutError,
+  isActionRegisterDestroyedError,
 } from './errors.js';

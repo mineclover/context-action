@@ -11,6 +11,7 @@ interface AdvancedTestActions extends ActionPayloadMap {
       validate?: boolean; 
       transform?: boolean; 
       persist?: boolean; 
+      processedBy?: string;
     } 
   };
   dynamicAction: string;
@@ -140,7 +141,6 @@ describe('ActionRegister - Advanced Features', () => {
         payload.options = { ...payload.options, processedBy: 'middleware' };
         middlewareLog.push('middleware-end');
       }, {
-        middleware: true,
         priority: 100,
         id: 'middleware-handler'
       });
@@ -166,7 +166,9 @@ describe('ActionRegister - Advanced Features', () => {
 
       expect(middlewareLog).toEqual(['middleware-start', 'middleware-end', 'main-processing']);
       expect(finalProcessing).toBe(true);
-      expect(result.result?.processedOptions).toHaveProperty('processedBy', 'middleware');
+      expect(result.results).toContainEqual(expect.objectContaining({
+        processedOptions: expect.objectContaining({ processedBy: 'middleware' })
+      }));
     });
   });
 
@@ -187,8 +189,7 @@ describe('ActionRegister - Advanced Features', () => {
         return { step: 2, processed: true };
       }, {
         priority: 20,
-        id: 'main-handler',
-        dependencies: ['dependency-1']
+        id: 'main-handler'
       });
 
       actionRegister.register('chainedAction', () => {
@@ -299,7 +300,6 @@ describe('ActionRegister - Advanced Features', () => {
         executionLog.push('feature-a');
         return 'feature-a-result';
       }, {
-        feature: 'feature-a',
         condition: () => enabledFeatures.has('feature-a'),
         id: 'feature-a-handler'
       });
@@ -308,7 +308,6 @@ describe('ActionRegister - Advanced Features', () => {
         executionLog.push('feature-b');
         return 'feature-b-result';
       }, {
-        feature: 'feature-b',
         condition: () => enabledFeatures.has('feature-b'),
         id: 'feature-b-handler'
       });
@@ -368,8 +367,7 @@ describe('ActionRegister - Advanced Features', () => {
       expect(result.errors[0].error.message).toBe('Processing failed');
     });
 
-    it('should handle timeout configurations', async () => {
-      // Since timeout is not implemented, test basic async handler completion
+    it('should complete async handlers when no timeout is configured', async () => {
       actionRegister.register('complexWorkflow', async () => {
         await new Promise(resolve => setTimeout(resolve, 30));
         return 'slow-completion';
@@ -397,8 +395,7 @@ describe('ActionRegister - Advanced Features', () => {
       expect(result.results).toContainEqual('fast-completion');
     });
 
-    it('should handle retry configurations', async () => {
-      // Since retries are not implemented, test error handling
+    it('should report non-blocking errors without retry configuration', async () => {
       let attemptCount = 0;
 
       actionRegister.register('complexWorkflow', () => {
@@ -434,6 +431,34 @@ describe('ActionRegister - Advanced Features', () => {
 
   describe('Advanced Result Processing', () => {
     it('should handle custom result merging strategies', async () => {
+      type WorkflowStepResult = {
+        type: string;
+        score: number;
+        issues: string[];
+      };
+      const isWorkflowStep = (value: unknown): value is WorkflowStepResult => (
+        typeof value === 'object' &&
+        value !== null &&
+        'type' in value &&
+        typeof value.type === 'string' &&
+        'score' in value &&
+        typeof value.score === 'number' &&
+        'issues' in value &&
+        Array.isArray(value.issues)
+      );
+      const mergeWorkflowResults = <R>(results: Array<R | undefined>): R => {
+        const steps = results.filter(
+          (result): result is R & WorkflowStepResult => isWorkflowStep(result)
+        );
+
+        return ({
+          averageScore: steps.reduce((sum, result) => sum + result.score, 0) / steps.length,
+          allIssues: steps.flatMap(result => result.issues),
+          completedSteps: steps.map(result => result.type),
+          totalSteps: steps.length
+        }) as R;
+      };
+
       actionRegister.register('complexWorkflow', () => {
         return { type: 'validation', score: 85, issues: ['minor-issue'] };
       }, { priority: 30 });
@@ -452,12 +477,7 @@ describe('ActionRegister - Advanced Features', () => {
         result: {
           collect: true,
           strategy: 'merge',
-          merger: (results) => ({
-            averageScore: results.reduce((sum, r) => sum + r.score, 0) / results.length,
-            allIssues: results.flatMap(r => r.issues),
-            completedSteps: results.map(r => r.type),
-            totalSteps: results.length
-          })
+          merger: mergeWorkflowResults
         }
       });
 
@@ -477,7 +497,8 @@ describe('ActionRegister - Advanced Features', () => {
         }, { id: `handler-${i}`, priority: 100 - i });
       }
 
-      const result = await actionRegister.dispatchWithResult('complexWorkflow', {
+      type IndexedResult = { handlerIndex: number; value: number; category: string };
+      const result = await actionRegister.dispatchWithResult<'complexWorkflow', IndexedResult>('complexWorkflow', {
         data: 'test'
       }, {
         result: {
@@ -495,8 +516,8 @@ describe('ActionRegister - Advanced Features', () => {
       expect(result.execution.handlersExecuted).toBe(7); // Limited by filter
 
       // Check that results are from handlers 1-7
-      for (let i = 0; i < result.results.length; i++) {
-        const handlerIndex = result.results[i].handlerIndex;
+      for (const handlerResult of result.successResults) {
+        const handlerIndex = handlerResult.handlerIndex;
         expect(handlerIndex).toBeGreaterThanOrEqual(1);
         expect(handlerIndex).toBeLessThanOrEqual(7);
       }
