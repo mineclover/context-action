@@ -1,17 +1,18 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
     "noEmit": true,
     "skipLibCheck": true,
-    "preserveSymlinks": true,
-    "baseUrl": ".",
+    "types": ["node", "react", "react-dom"],
     "paths": {
-      "@/*": ["src/*"],
-      "@/lib/*": ["src/lib/*"],
-      "@/pages/*": ["src/pages/*"],
-      "@/components/*": ["src/components/*"],
-      "@/types/*": ["src/types/*"]
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/types/*": ["./src/types/*"]
     }
   },
   "include": ["src/**/*"],

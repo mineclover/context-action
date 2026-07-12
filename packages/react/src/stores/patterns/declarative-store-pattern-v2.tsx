@@ -14,6 +14,22 @@ import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
+import {
+  isExplicitStoreValue,
+  isStoreConfigShape,
+  type ExplicitStoreValue,
+} from './store-definition';
+
+const STORE_CONFIG_KEYS = new Set<PropertyKey>([
+  'initialValue',
+  'strategy',
+  'compareStrategy',
+  'description',
+  'debug',
+  'tags',
+  'version',
+  'comparisonOptions',
+]);
 
 /**
  * Store configuration interface for store context pattern
@@ -30,6 +46,8 @@ import type { ComparisonOptions } from '../utils/comparison';
 export interface StoreConfig<T = any> {
   initialValue: T;
   strategy?: 'reference' | 'shallow' | 'deep';
+  /** @deprecated Use strategy instead. */
+  compareStrategy?: 'reference' | 'shallow' | 'deep';
   description?: string;
   debug?: boolean;
   tags?: string[];
@@ -51,7 +69,7 @@ export interface StoreConfig<T = any> {
  * @public
  */
 export type InitialStores<T extends Record<string, any>> = {
-  [K in keyof T]: StoreConfig<T[K]> | T[K];  // Allow direct value or config
+  [K in keyof T]: StoreConfig<T[K]> | ExplicitStoreValue<T[K]> | T[K];
 };
 
 /**
@@ -62,7 +80,16 @@ export type InitialStores<T extends Record<string, any>> = {
  * 
  * @public
  */
-export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
+export type StoreDefinitions = Record<string, StoreConfig<any> | ExplicitStoreValue<any> | any>;
+
+type InferStoreDefinitionValue<T> =
+  T extends ExplicitStoreValue<infer V>
+    ? V
+    : T extends { initialValue: infer V }
+      ? Exclude<keyof T, keyof StoreConfig<any>> extends never
+        ? V
+        : T
+      : T;
 
 /**
  * Infer store value types from store definitions
@@ -81,19 +108,17 @@ export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
  * Enhanced type inference for store definitions with better error handling
  */
 export type InferStoreTypes<T extends StoreDefinitions> = {
-  readonly [K in keyof T]: T[K] extends StoreConfig<infer V>
-    ? V
-    : T[K] extends (...args: unknown[]) => unknown
+  readonly [K in keyof T]: InferStoreDefinitionValue<T[K]> extends (...args: unknown[]) => unknown
       ? never  // Exclude functions completely
-      : T[K] extends readonly unknown[]
-        ? T[K]  // Handle readonly arrays
-        : T[K] extends unknown[]
-          ? T[K]  // Handle mutable arrays
-          : T[K] extends Date | RegExp | Error
-            ? T[K]  // Built-in object types
-            : T[K] extends Record<string, unknown>
-              ? T[K]  // Plain objects
-              : T[K];  // Primitives and other types
+      : InferStoreDefinitionValue<T[K]> extends readonly unknown[]
+        ? InferStoreDefinitionValue<T[K]>  // Handle readonly arrays
+        : InferStoreDefinitionValue<T[K]> extends unknown[]
+          ? InferStoreDefinitionValue<T[K]>  // Handle mutable arrays
+          : InferStoreDefinitionValue<T[K]> extends Date | RegExp | Error
+            ? InferStoreDefinitionValue<T[K]>  // Built-in object types
+            : InferStoreDefinitionValue<T[K]> extends Record<string, unknown>
+              ? InferStoreDefinitionValue<T[K]>  // Plain objects
+              : InferStoreDefinitionValue<T[K]>;  // Primitives and other types
 };
 
 /**
@@ -162,11 +187,14 @@ export class StoreManager<T extends Record<string, any>> {
     let version: string | undefined;
     let comparisonOptions: StoreConfig<T[K]>['comparisonOptions'];
 
-    if (storeConfig && typeof storeConfig === 'object' && 'initialValue' in storeConfig) {
+    if (isExplicitStoreValue(storeConfig)) {
+      initialValue = storeConfig.value as T[K];
+      tags = ['declarative', strategy];
+    } else if (isStoreConfigShape(storeConfig, STORE_CONFIG_KEYS)) {
       // Config object with extended options
       const config = storeConfig as StoreConfig<T[K]>;
       initialValue = config.initialValue;
-      strategy = config.strategy || 'reference';
+      strategy = config.strategy ?? config.compareStrategy ?? 'reference';
       description = config.description;
       debug = config.debug || false;
       tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];
@@ -244,25 +272,57 @@ interface StoreContextValue<T extends Record<string, any>> {
   managerRef: React.RefObject<StoreManager<T> | null>;
 }
 
-/**
- * Overload 1: Explicit generic types - User provides explicit type interface
- * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- */
-export function createStoreContext<T extends Record<string, any>>(
-  contextName: string,
-  initialStores: InitialStores<T>
-): ReturnType<typeof createStoreContextImpl<T>>;
+/** Public return contract kept explicit for stable declaration consumers. */
+export interface StoreContextReturn<T extends Record<string, any>> {
+  readonly Provider: (props: {
+    children: ReactNode;
+    registryId?: string;
+  }) => React.JSX.Element;
+  readonly useStore: <K extends keyof T>(storeName: K) => Store<T[K]>;
+  readonly useStoreManager: () => StoreManager<T>;
+  readonly useStoreInfo: () => {
+    name: string;
+    storeCount: number;
+    availableStores: string[];
+  };
+  readonly useStoreClear: () => () => void;
+  readonly withProvider: <P extends {}>(
+    Component: React.ComponentType<P>,
+    config?: WithProviderConfig
+  ) => React.FC<P>;
+  readonly contextName: string;
+  readonly initialStores: InitialStores<T>;
+}
 
 /**
- * Overload 2: Type inference - Types inferred from store definitions
+ * Overload 1: Type inference - Types inferred from store definitions
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 export function createStoreContext<T extends StoreDefinitions>(
   contextName: string,
   storeDefinitions: T
-): ReturnType<typeof createStoreContextImpl<InferStoreTypes<T>>>;
+): StoreContextReturn<InferStoreTypes<T>>;
+
+/**
+ * Overload 2: Explicit generic types - User provides explicit type interface
+ * 
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+ */
+export function createStoreContext<T extends Record<string, any>>(
+  contextName: string,
+  initialStores: InitialStores<T>
+): StoreContextReturn<T>;
+
+/**
+ * Reflection-friendly overload used by utilities such as
+ * `ReturnType<typeof createStoreContext>`. Specific calls continue to resolve
+ * through the inference overloads above.
+ */
+export function createStoreContext(
+  contextName: string,
+  initialStores: Record<string, any>
+): StoreContextReturn<any>;
 
 /**
  * Implementation function that handles both overloads
@@ -270,9 +330,7 @@ export function createStoreContext<T extends StoreDefinitions>(
 export function createStoreContext<T extends Record<string, any> | StoreDefinitions>(
   contextName: string,
   initialStores: T extends StoreDefinitions ? T : InitialStores<T>
-): T extends StoreDefinitions
-  ? ReturnType<typeof createStoreContextImpl<InferStoreTypes<T>>>
-  : ReturnType<typeof createStoreContextImpl<T>> {
+): StoreContextReturn<any> {
   return createStoreContextImpl(contextName, initialStores as any) as any;
 }
 
@@ -284,7 +342,7 @@ export function createStoreContext<T extends Record<string, any> | StoreDefiniti
 function createStoreContextImpl<T extends Record<string, any>>(
   contextName: string,
   initialStores: InitialStores<T>
-) {
+): StoreContextReturn<T> {
   // Create context
   const StoreContext = createContext<StoreContextValue<T> | null>(null);
 
@@ -414,7 +472,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
 /**
  * Type helper for defining initial stores with better inference
  */
-export type InferInitialStores<T> = T extends InitialStores<infer U> ? U : never;
+export type InferInitialStores<T> = T extends StoreDefinitions ? InferStoreTypes<T> : never;
 
 /**
  * Enhanced configuration for withProvider HOC with additional safety features
@@ -434,5 +492,8 @@ export interface WithProviderConfig {
  * Type helper for store values
  */
 export type StoreValues<T extends Record<string, any>> = {
-  [K in keyof T]: T[K] extends StoreConfig<infer V> ? V : T[K];
+  [K in keyof T]: InferStoreDefinitionValue<T[K]>;
 };
+
+export { asStoreValue } from './store-definition';
+export type { ExplicitStoreValue } from './store-definition';

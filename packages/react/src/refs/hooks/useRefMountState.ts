@@ -34,7 +34,7 @@ export function useRefMountState<T>(refState: InternalRefState<T>): {
     isMounted: boolean;
     isWaitingForMount: boolean;
     mountedTarget: T | null;
-  }>();
+  } | undefined>(undefined);
 
   // Get snapshot function for current state with caching
   const getSnapshot = useCallback(() => {

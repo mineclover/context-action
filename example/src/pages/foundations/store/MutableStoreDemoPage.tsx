@@ -13,7 +13,6 @@
 import { useCallback, useRef, memo } from 'react';
 import {
   createMutableStore,
-  useStoreValue,
   useStorePath,
   type StorePath,
 } from '@context-action/react';

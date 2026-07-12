@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { RenewalRiskReviewProviders } from './handlers/RenewalRiskReviewHandlers';
 import { RenewalRiskReviewView } from './views/RenewalRiskReviewView';
 

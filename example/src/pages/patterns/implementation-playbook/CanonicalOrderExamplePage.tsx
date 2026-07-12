@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import CanonicalOrderExample from './CanonicalOrderExample';
 

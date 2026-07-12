@@ -9,6 +9,7 @@ import { useSyncExternalStore, useCallback, useRef, useMemo } from 'react';
 import type { Patches } from '@context-action/mutative';
 import type { Unsubscribe } from '../core/types';
 import { pathToPointer, isPointerPrefix } from '../utils/json-pointer';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 
 /**
  * Store interface that supports patch-aware subscriptions
@@ -116,20 +117,29 @@ export function useStorePath<T, R = unknown>(
 ): R {
   const { equalityFn } = options;
 
-  // Memoize path key for stable comparison and optimized patch matching
-  // Using JSON.stringify for stable dependency (path array reference may change)
-  const pathKey = useMemo(() => pathToKey(path), [JSON.stringify(path)]);
+  const pathSignature = createPathSignature(path);
+  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+    signature: pathSignature,
+    path: [...path],
+  });
+
+  if (stablePathRef.current.signature !== pathSignature) {
+    stablePathRef.current = { signature: pathSignature, path: [...path] };
+  }
+
+  const stablePath = stablePathRef.current.path;
+  const pathKey = useMemo(() => pathToKey(stablePath), [stablePath]);
 
   // Cache for value comparison with path tracking for invalidation
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathKey: string }>({
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
     value: undefined as R,
     initialized: false,
-    pathKey: '',
+    pathSignature: '',
   });
 
   // Invalidate cache when path changes
-  if (cacheRef.current.pathKey !== pathKey) {
-    cacheRef.current = { value: undefined as R, initialized: false, pathKey };
+  if (cacheRef.current.pathSignature !== pathSignature) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
   }
 
   // Subscribe with patch awareness
@@ -137,22 +147,22 @@ export function useStorePath<T, R = unknown>(
     (callback: () => void) => {
       return store.subscribeWithPatches((patches) => {
         // Check if patches affect our path (using pre-computed key)
-        if (patchesAffectPath(patches, path, pathKey)) {
+        if (patchesAffectPath(patches, stablePath, pathKey)) {
           callback();
         }
       });
     },
-    [store, pathKey]
+    [store, stablePath, pathKey]
   );
 
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
     const storeValue = store.getValue();
-    const currentValue = getValueAtPath<T, R>(storeValue, path);
+    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true, pathKey };
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature };
       return currentValue;
     }
 
@@ -172,12 +182,12 @@ export function useStorePath<T, R = unknown>(
 
     cacheRef.current.value = currentValue;
     return currentValue;
-  }, [store, pathKey, equalityFn]);
+  }, [store, stablePath, pathSignature, equalityFn]);
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getValue(), path);
-  }, [store, pathKey]);
+    return getValueAtPath<T, R>(store.getValue(), stablePath);
+  }, [store, stablePath]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
@@ -208,11 +218,23 @@ export function useStoreSelectorWithPaths<T, R>(
 ): R {
   const { dependsOn, equalityFn } = options;
 
-  // Stable serialization of dependsOn for dependency tracking
-  const dependsOnKey = useMemo(
-    () => (dependsOn ? JSON.stringify(dependsOn) : null),
-    [dependsOn ? JSON.stringify(dependsOn) : null]
-  );
+  const depsKey = createPathsSignature(dependsOn);
+  const stablePathsRef = useRef<{
+    signature: string | null;
+    paths: StorePath[] | undefined;
+  }>({
+    signature: depsKey,
+    paths: dependsOn?.map((path) => [...path]),
+  });
+
+  if (stablePathsRef.current.signature !== depsKey) {
+    stablePathsRef.current = {
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    };
+  }
+
+  const stablePaths = stablePathsRef.current.paths;
 
   // Cache for value comparison with dependency tracking
   const cacheRef = useRef<{ value: R | undefined; depsKey: string | null }>({
@@ -222,14 +244,8 @@ export function useStoreSelectorWithPaths<T, R>(
 
   // Pre-compute path keys for all dependencies (optimized matching)
   const pathKeys = useMemo(
-    () => (dependsOn ? dependsOn.map(p => ({ path: p, key: pathToKey(p) })) : null),
-    [dependsOnKey]
-  );
-
-  // Create stable dependency key for memoization
-  const depsKey = useMemo(
-    () => (pathKeys ? pathKeys.map(pk => pk.key).sort().join('|') : null),
-    [pathKeys]
+    () => (stablePaths ? stablePaths.map(p => ({ path: p, key: pathToKey(p) })) : null),
+    [stablePaths]
   );
 
   // Invalidate cache when dependencies change
@@ -253,7 +269,7 @@ export function useStoreSelectorWithPaths<T, R>(
         }
       });
     },
-    [store, depsKey]
+    [store, pathKeys]
   );
 
   // Get snapshot using selector

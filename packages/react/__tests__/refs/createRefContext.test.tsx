@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { createRefContext } from '../../src/refs/createRefContext';
@@ -468,6 +468,8 @@ describe('createRefContext', () => {
 
   describe('useWaitForRefs performance optimization', () => {
     it('should resolve immediately when target already exists', async () => {
+      jest.useFakeTimers();
+
       const {
         Provider: TestRefsProvider,
         useRefHandler: useTestRef,
@@ -477,96 +479,81 @@ describe('createRefContext', () => {
         nonExistingElement: HTMLDivElement;
       }>('TestRefs');
 
+      const existingResolved = jest.fn<void, [HTMLDivElement]>();
+      const delayedResolved = jest.fn<void, [HTMLDivElement]>();
+      let mountDelayedRef: (() => void) | undefined;
+      let resolveExistingCompletion: (() => void) | undefined;
+      let resolveDelayedCompletion: (() => void) | undefined;
+      const existingCompletion = new Promise<void>((resolve) => {
+        resolveExistingCompletion = resolve;
+      });
+      const delayedCompletion = new Promise<void>((resolve) => {
+        resolveDelayedCompletion = resolve;
+      });
+
       function TestComponent() {
         const existingElement = useTestRef('existingElement');
         const nonExistingElement = useTestRef('nonExistingElement');
         const waitForRefs = useWaitForRefs();
-        const [timingResults, setTimingResults] = React.useState<{
-          existingTime: number;
-          nonExistingTime: number;
-          isComplete: boolean;
-        }>({
-          existingTime: 0,
-          nonExistingTime: 0,
-          isComplete: false
-        });
 
         React.useEffect(() => {
-          const runTest = async () => {
-            // 먼저 하나의 요소를 즉시 마운트
-            const div = document.createElement('div');
-            div.id = 'existing-element';
-            existingElement.setRef(div);
+          const existingTarget = document.createElement('div');
+          existingTarget.id = 'existing-element';
+          existingElement.setRef(existingTarget);
 
-            // 이미 존재하는 요소에 대한 waitForRefs 성능 측정
-            const existingStart = performance.now();
-            await waitForRefs('existingElement');
-            const existingEnd = performance.now();
-            const existingTime = existingEnd - existingStart;
+          void waitForRefs('existingElement').then((refs) => {
+            existingResolved(refs.existingElement);
+            resolveExistingCompletion?.();
+          });
 
-            // 존재하지 않는 요소는 나중에 마운트 (50ms 후)
-            const nonExistingStart = performance.now();
-            setTimeout(() => {
-              const div2 = document.createElement('div');
-              div2.id = 'non-existing-element';
-              nonExistingElement.setRef(div2);
-            }, 50);
+          void waitForRefs('nonExistingElement').then((refs) => {
+            delayedResolved(refs.nonExistingElement);
+            resolveDelayedCompletion?.();
+          });
 
-            await waitForRefs('nonExistingElement');
-            const nonExistingEnd = performance.now();
-            const nonExistingTime = nonExistingEnd - nonExistingStart;
-
-            setTimingResults({
-              existingTime,
-              nonExistingTime,
-              isComplete: true
-            });
+          mountDelayedRef = () => {
+            const delayedTarget = document.createElement('div');
+            delayedTarget.id = 'non-existing-element';
+            nonExistingElement.setRef(delayedTarget);
           };
+        }, []);
 
-          runTest().catch(console.error);
-        }, [existingElement, nonExistingElement, waitForRefs]);
-
-        return (
-          <div data-testid="timing-test">
-            <div>Existing element time: {timingResults.existingTime.toFixed(2)}ms</div>
-            <div>Non-existing element time: {timingResults.nonExistingTime.toFixed(2)}ms</div>
-            <div>Test complete: {timingResults.isComplete ? 'true' : 'false'}</div>
-          </div>
-        );
+        return null;
       }
 
-      render(
+      const { unmount } = render(
         <TestRefsProvider>
           <TestComponent />
         </TestRefsProvider>
       );
 
-      // 테스트 완료까지 대기
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const testElement = document.querySelector('[data-testid="timing-test"]');
-      expect(testElement).toHaveTextContent('Test complete: true');
+      try {
+        await act(async () => {
+          await existingCompletion;
+        });
 
-      // 이미 존재하는 요소는 즉시 반환되어야 함 (< 5ms)
-      const existingTimeText = testElement?.querySelector('div:first-child')?.textContent;
-      const existingTime = parseFloat(existingTimeText?.match(/(\d+\.\d+)ms/)?.[1] || '0');
-      
-      // 존재하지 않는 요소는 대기 시간이 있어야 함 (> 45ms)
-      const nonExistingTimeText = testElement?.querySelector('div:nth-child(2)')?.textContent;
-      const nonExistingTime = parseFloat(nonExistingTimeText?.match(/(\d+\.\d+)ms/)?.[1] || '0');
+        expect(existingResolved).toHaveBeenCalledTimes(1);
+        expect(existingResolved.mock.calls[0]?.[0]).toHaveProperty('id', 'existing-element');
+        expect(delayedResolved).not.toHaveBeenCalled();
+        expect(mountDelayedRef).toBeDefined();
 
-      // 가설 검증: 이미 존재하는 target은 즉시 반환 (매우 빠름)
-      expect(existingTime).toBeLessThan(5); // 5ms 미만
-      
-      // 존재하지 않는 target은 실제 대기 시간이 있음 (테스트 환경에서는 더 빠를 수 있음)
-      expect(nonExistingTime).toBeGreaterThan(0); // 0ms 이상
-      
-      console.log(`Performance test results:
-        - Existing element: ${existingTime.toFixed(2)}ms (should be < 5ms)
-        - Non-existing element: ${nonExistingTime.toFixed(2)}ms (should be > 45ms)`);
+        await act(async () => {
+          mountDelayedRef?.();
+          await delayedCompletion;
+        });
+
+        expect(delayedResolved).toHaveBeenCalledTimes(1);
+        expect(delayedResolved.mock.calls[0]?.[0]).toHaveProperty('id', 'non-existing-element');
+      } finally {
+        unmount();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
     });
 
     it('should handle mixed scenario - some exist, some do not', async () => {
+      jest.useFakeTimers();
+
       const {
         Provider: TestRefsProvider,
         useRefHandler: useTestRef,
@@ -578,77 +565,73 @@ describe('createRefContext', () => {
         pending2: HTMLDivElement;
       }>('TestRefs');
 
+      const completed = jest.fn();
+      let mountPendingRefs: (() => void) | undefined;
+      let resolveCompletion: (() => void) | undefined;
+      const completion = new Promise<void>((resolve) => {
+        resolveCompletion = resolve;
+      });
+
       function TestComponent() {
         const ready1 = useTestRef('ready1');
         const ready2 = useTestRef('ready2');
         const pending1 = useTestRef('pending1');
         const pending2 = useTestRef('pending2');
         const waitForRefs = useWaitForRefs();
-        const [testResult, setTestResult] = React.useState<{
-          mixedWaitTime: number;
-          isComplete: boolean;
-        }>({
-          mixedWaitTime: 0,
-          isComplete: false
-        });
 
         React.useEffect(() => {
-          const runMixedTest = async () => {
-            // 일부 요소는 즉시 마운트
-            ready1.setRef(document.createElement('div'));
-            ready2.setRef(document.createElement('div'));
+          const readyTarget1 = document.createElement('div');
+          readyTarget1.id = 'ready-1';
+          const readyTarget2 = document.createElement('div');
+          readyTarget2.id = 'ready-2';
+          ready1.setRef(readyTarget1);
+          ready2.setRef(readyTarget2);
 
-            // 혼합 시나리오 테스트
-            const mixedStart = performance.now();
-            
-            // pending 요소들을 30ms 후에 마운트
-            setTimeout(() => {
-              pending1.setRef(document.createElement('div'));
-              pending2.setRef(document.createElement('div'));
-            }, 30);
+          void waitForRefs('ready1', 'ready2', 'pending1', 'pending2').then((refs) => {
+            completed(refs);
+            resolveCompletion?.();
+          });
 
-            // 모든 요소 대기 (일부는 즉시, 일부는 대기)
-            await waitForRefs('ready1', 'ready2', 'pending1', 'pending2');
-            
-            const mixedEnd = performance.now();
-            const mixedWaitTime = mixedEnd - mixedStart;
-
-            setTestResult({
-              mixedWaitTime,
-              isComplete: true
-            });
+          mountPendingRefs = () => {
+            const pendingTarget1 = document.createElement('div');
+            pendingTarget1.id = 'pending-1';
+            const pendingTarget2 = document.createElement('div');
+            pendingTarget2.id = 'pending-2';
+            pending1.setRef(pendingTarget1);
+            pending2.setRef(pendingTarget2);
           };
+        }, []);
 
-          runMixedTest().catch(console.error);
-        }, [ready1, ready2, pending1, pending2, waitForRefs]);
-
-        return (
-          <div data-testid="mixed-timing-test">
-            <div>Mixed wait time: {testResult.mixedWaitTime.toFixed(2)}ms</div>
-            <div>Test complete: {testResult.isComplete ? 'true' : 'false'}</div>
-          </div>
-        );
+        return null;
       }
 
-      render(
+      const { unmount } = render(
         <TestRefsProvider>
           <TestComponent />
         </TestRefsProvider>
       );
 
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const testElement = document.querySelector('[data-testid="mixed-timing-test"]');
-      expect(testElement).toHaveTextContent('Test complete: true');
+      try {
+        expect(completed).not.toHaveBeenCalled();
+        expect(mountPendingRefs).toBeDefined();
 
-      const mixedTimeText = testElement?.querySelector('div:first-child')?.textContent;
-      const mixedTime = parseFloat(mixedTimeText?.match(/(\d+\.\d+)ms/)?.[1] || '0');
+        await act(async () => {
+          mountPendingRefs?.();
+          await completion;
+        });
 
-      // 혼합 시나리오에서는 pending 요소들 때문에 대기 시간이 있어야 함 (테스트 환경에서는 더 빠를 수 있음)
-      expect(mixedTime).toBeGreaterThan(0); // 0ms 이상
-      expect(mixedTime).toBeLessThan(100); // 하지만 100ms 미만이어야 함
-      
-      console.log(`Mixed scenario test result: ${mixedTime.toFixed(2)}ms`);
+        expect(completed).toHaveBeenCalledTimes(1);
+        expect(completed).toHaveBeenCalledWith({
+          ready1: expect.objectContaining({ id: 'ready-1' }),
+          ready2: expect.objectContaining({ id: 'ready-2' }),
+          pending1: expect.objectContaining({ id: 'pending-1' }),
+          pending2: expect.objectContaining({ id: 'pending-2' }),
+        });
+      } finally {
+        unmount();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
     });
   });
 });

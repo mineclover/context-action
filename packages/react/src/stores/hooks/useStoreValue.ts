@@ -52,29 +52,31 @@ export interface StoreValueOptions<R> {
   name?: string;
 }
 
+type StoreValueOf<S extends IStore<any>> = ReturnType<S['getValue']>;
+
 // Store가 확정된 경우 - 기본 구독
-export function useStoreValue<T>(
-  store: IStore<T>,
-  options?: StoreValueOptions<T>
-): T;
+export function useStoreValue<S extends IStore<any>>(
+  store: S,
+  options?: StoreValueOptions<StoreValueOf<S>>
+): StoreValueOf<S>;
 
 // Store가 undefined일 수 있는 경우 - 안전한 구독
-export function useStoreValue<T>(
-  store: IStore<T> | undefined | null,
-  options?: StoreValueOptions<T>
-): T | undefined;
+export function useStoreValue<S extends IStore<any>>(
+  store: S | undefined | null,
+  options?: StoreValueOptions<StoreValueOf<S>>
+): StoreValueOf<S> | undefined;
 
 // Store가 확정된 경우 + selector - 선택적 구독
-export function useStoreValue<T, R>(
-  store: IStore<T>,
-  selector: (value: T) => R,
+export function useStoreValue<S extends IStore<any>, R>(
+  store: S,
+  selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R;
 
 // Store가 undefined일 수 있는 경우 + selector - 안전한 선택적 구독
-export function useStoreValue<T, R>(
-  store: IStore<T> | undefined | null,
-  selector: (value: T) => R,
+export function useStoreValue<S extends IStore<any>, R>(
+  store: S | undefined | null,
+  selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R | undefined;
 

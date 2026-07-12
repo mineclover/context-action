@@ -1,6 +1,5 @@
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
-import type { StoreRegistry } from './StoreRegistry';
-import { safeGet, safeSet, produceWithPatches, type Draft, type Patches } from '@context-action/mutative';
+import { safeGet, safeSet, produceWithPatches, type Patches } from '@context-action/mutative';
 import {
   compareValues,
   ComparisonOptions
@@ -1001,5 +1000,4 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
   
   return store;
 }
-
 

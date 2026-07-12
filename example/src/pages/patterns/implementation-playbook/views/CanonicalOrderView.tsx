@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { SourceLink } from '../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../constants/github';
 import { buildOrderQuote } from '../business/orderBusiness';

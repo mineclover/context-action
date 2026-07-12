@@ -36,8 +36,13 @@ export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
 
 // Declarative Store Pattern (Most commonly used)
-export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
-export type { InitialStores, StoreConfig, WithProviderConfig } from './stores/patterns/declarative-store-pattern-v2';
+export { createStoreContext, StoreManager, asStoreValue } from './stores/patterns/declarative-store-pattern-v2';
+export type {
+  InitialStores,
+  StoreConfig,
+  ExplicitStoreValue,
+  WithProviderConfig,
+} from './stores/patterns/declarative-store-pattern-v2';
 
 // Time Travel Store Pattern (Store Context with undo/redo)
 export { createTimeTravelStoreContext, TimeTravelStoreManager } from './stores/patterns/time-travel-store-pattern';

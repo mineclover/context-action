@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { GITHUB_CONFIG } from '../../../constants/github';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';

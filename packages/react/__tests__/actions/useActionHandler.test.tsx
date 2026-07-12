@@ -2,7 +2,7 @@
  * @fileoverview Tests for useActionHandler hook
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 
@@ -256,6 +256,79 @@ describe('useActionHandler', () => {
       await result.current.dispatch('fetchData', { id: 'test2' });
     });
     expect(handlerExecuted).toBe(true);
+  });
+
+  it('should preserve condition and cleanup handler config', async () => {
+    const handler = jest.fn();
+    const cleanup = jest.fn();
+
+    const TestComponent = () => {
+      const dispatch = useActionDispatch();
+
+      useActionHandler(
+        'fetchData',
+        useCallback(handler, []),
+        {
+          condition: (payload: unknown) =>
+            (payload as { id?: string }).id === 'allowed',
+          cleanup,
+        }
+      );
+
+      return { dispatch };
+    };
+
+    const { result, unmount } = renderHook(() => TestComponent(), {
+      wrapper: createWrapper()
+    });
+
+    await act(async () => {
+      await result.current.dispatch('fetchData', { id: 'blocked' });
+      await result.current.dispatch('fetchData', { id: 'allowed' });
+    });
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'allowed' }),
+      expect.any(Object)
+    );
+
+    unmount();
+
+    await waitFor(() => expect(cleanup).toHaveBeenCalledTimes(1));
+  });
+
+  it('should preserve replaceExisting false for duplicate handler IDs', async () => {
+    const firstHandler = jest.fn();
+    const secondHandler = jest.fn();
+
+    const TestComponent = () => {
+      const dispatch = useActionDispatch();
+
+      useActionHandler(
+        'fetchData',
+        useCallback(firstHandler, []),
+        { id: 'shared-handler', replaceExisting: false }
+      );
+      useActionHandler(
+        'fetchData',
+        useCallback(secondHandler, []),
+        { id: 'shared-handler', replaceExisting: false }
+      );
+
+      return { dispatch };
+    };
+
+    const { result } = renderHook(() => TestComponent(), {
+      wrapper: createWrapper()
+    });
+
+    await act(async () => {
+      await result.current.dispatch('fetchData', { id: 'test' });
+    });
+
+    expect(firstHandler).toHaveBeenCalledTimes(1);
+    expect(secondHandler).not.toHaveBeenCalled();
   });
 
   it('should handle handler re-registration', async () => {

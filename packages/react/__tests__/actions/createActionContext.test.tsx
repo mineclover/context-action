@@ -2,7 +2,7 @@
  * @fileoverview Tests for createActionContext factory
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 import type { ActionPayloadMap } from '@context-action/core';
@@ -147,6 +147,125 @@ describe('createActionContext', () => {
     expect(result.current.register).toBeDefined();
     expect(typeof result.current.register?.register).toBe('function');
     expect(typeof result.current.register?.dispatch).toBe('function');
+  });
+
+  it('should keep one action register across re-renders and destroy it on unmount', async () => {
+    const TestActions = createActionContext<UserActions>('LifecycleActions');
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TestActions.Provider>{children}</TestActions.Provider>
+    );
+
+    const { result, rerender, unmount } = renderHook(
+      () => TestActions.useActionRegister(),
+      { wrapper: Wrapper }
+    );
+
+    const register = result.current;
+    expect(register).not.toBeNull();
+
+    const destroySpy = jest.spyOn(register!, 'destroyAsync');
+
+    rerender();
+    rerender();
+
+    expect(result.current).toBe(register);
+    expect(destroySpy).not.toHaveBeenCalled();
+
+    unmount();
+
+    await waitFor(() => expect(destroySpy).toHaveBeenCalledTimes(1));
+  });
+
+  it('should not tear down handlers during StrictMode effect replay', async () => {
+    const StrictActions = createActionContext<{ run: void }>('StrictActions');
+    const handler = jest.fn();
+    const handlerCleanup = jest.fn();
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <React.StrictMode>
+        <StrictActions.Provider>{children}</StrictActions.Provider>
+      </React.StrictMode>
+    );
+
+    const { result, unmount } = renderHook(() => {
+      StrictActions.useActionHandler(
+        'run',
+        useCallback(handler, []),
+        { cleanup: handlerCleanup }
+      );
+      return {
+        dispatch: StrictActions.useActionDispatch(),
+        register: StrictActions.useActionRegister(),
+      };
+    }, { wrapper: Wrapper });
+
+    const destroySpy = jest.spyOn(result.current.register!, 'destroyAsync');
+    await act(async () => {});
+
+    expect(handlerCleanup).not.toHaveBeenCalled();
+    expect(destroySpy).not.toHaveBeenCalled();
+    expect(result.current.register?.getHandlerCount('run')).toBe(1);
+
+    await act(async () => {
+      await result.current.dispatch('run');
+    });
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    unmount();
+    await waitFor(() => {
+      expect(handlerCleanup).toHaveBeenCalledTimes(1);
+      expect(destroySpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('should reject active and queued dispatches before provider cleanup', async () => {
+    const QueuedActions = createActionContext<{ run: { id: number } }>('QueuedActions');
+    const events: string[] = [];
+    const handlerCleanup = jest.fn();
+    let releaseFirst!: () => void;
+    let markFirstStarted!: () => void;
+    const firstStarted = new Promise<void>(resolve => { markFirstStarted = resolve; });
+    const gate = new Promise<void>(resolve => { releaseFirst = resolve; });
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueuedActions.Provider>{children}</QueuedActions.Provider>
+    );
+
+    const { result, unmount } = renderHook(() => {
+      QueuedActions.useActionHandler('run', useCallback(async ({ id }) => {
+        events.push(`start:${id}`);
+        if (id === 1) {
+          markFirstStarted();
+          await gate;
+        }
+        events.push(`finish:${id}`);
+      }, []), { cleanup: handlerCleanup });
+      return {
+        dispatch: QueuedActions.useActionDispatch(),
+        register: QueuedActions.useActionRegister(),
+      };
+    }, { wrapper: Wrapper });
+
+    const destroySpy = jest.spyOn(result.current.register!, 'destroyAsync');
+    const first = result.current.dispatch('run', { id: 1 }).catch(error => error as Error);
+    await firstStarted;
+    const second = result.current.dispatch('run', { id: 2 }).catch(error => error as Error);
+
+    unmount();
+
+    await expect(first).resolves.toMatchObject({ name: 'AbortError' });
+    await expect(second).resolves.toMatchObject({ name: 'AbortError' });
+    expect(events).toEqual(['start:1']);
+    expect(handlerCleanup).not.toHaveBeenCalled();
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+
+    releaseFirst();
+    await waitFor(() => {
+      expect(handlerCleanup).toHaveBeenCalledTimes(1);
+      expect(destroySpy).toHaveBeenCalledTimes(1);
+    });
+    expect(events).toEqual(['start:1', 'finish:1']);
   });
 
   it('should provide access to action context', () => {

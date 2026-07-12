@@ -386,4 +386,4 @@ dispatch('updateUser', { wrong: 'data' });         // ❌ Type error
 
 ## License
 
-Apache-2.0 - see [LICENSE](../../LICENSE) for details.
+Apache-2.0 - see [LICENSE](./LICENSE) for details.

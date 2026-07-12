@@ -1,22 +1,16 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
 import path from 'path'
 import styleTestPlugin from '../packages/style-testing/src/analyzers/babel-plugin.js'
 
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [
-          ['babel-plugin-react-compiler', {
-            target: '19', // React 19 사용
-            compilationMode: 'infer', // 모든 React 컴포넌트 자동 컴파일
-          }],
-          // 스타일 테스트용 data-style-test 속성 자동 주입
-          process.env.STYLE_TEST === 'true' ? styleTestPlugin : null,
-        ].filter(Boolean),
-      },
-    })
+    react(),
+    babel({
+      presets: [reactCompilerPreset({ compilationMode: 'infer' })],
+      plugins: process.env.STYLE_TEST === 'true' ? [styleTestPlugin] : [],
+    }),
   ],
   // GitHub Pages 배포를 위한 base path 설정
   base: process.env.NODE_ENV === 'production' ? '/context-action/example/' : '/',
@@ -37,10 +31,6 @@ export default defineConfig({
       '@context-action/core',
       '@context-action/react'
     ],
-    // 빠른 개발을 위한 esbuild 설정
-    esbuildOptions: {
-      target: 'es2020',
-    },
   },
   build: {
     // 청크 크기 최적화

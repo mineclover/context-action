@@ -1,11 +1,11 @@
 /**
  * Upload Store Context
  *
- * State management layer using MutableStore pattern (TimeTravelStore without undo/redo).
- * Demonstrates structural sharing and selective re-rendering with notifyPath API.
+ * State management layer using the MutableStore pattern.
+ * Demonstrates direct mutation with selective notifyPath notifications.
  */
 
-import { createStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react';
 import type { ProcessState, UploadProgress, FileUploadResult } from '../services/FileUploadService';
 
 /**
@@ -62,21 +62,19 @@ const createInitialState = (): UploadStoreState => ({
 });
 
 /**
- * Store Context with MutableStore pattern
- * Uses TimeTravelStore with mutable: true for structural sharing
+ * MutableStore Context.
+ * TimeTravelStore supplies structural sharing and path-aware notifications;
+ * this example intentionally does not expose or use its undo/redo controls.
  */
 export const {
   Provider: UploadStoreProvider,
-  useStore: useUploadStore,
+  useTimeTravelStore: useUploadStore,
   useStoreManager: useUploadStoreManager,
-} = createStoreContext('UploadStore', {
+} = createTimeTravelStoreContext<{ upload: UploadStoreState }>('UploadStore', {
   upload: {
     initialValue: createInitialState(),
-    enableTimeTravel: true,
-    timeTravelOptions: {
-      mutable: true, // MutableStore pattern
-      maxHistory: 50,
-    },
+    mutable: true,
+    maxHistory: 50,
   },
 });
 
@@ -109,7 +107,9 @@ export function addFilesToQueue(
     result: null,
   }));
 
-  state.queue.push(...newFiles);
+  // Path subscribers compare the selected value by reference. Replace the
+  // array so queue subscribers observe the addition after notifyPaths().
+  state.queue = [...state.queue, ...newFiles];
   state.totalBytes += files.reduce((sum, f) => sum + f.size, 0);
 
   store.notifyPaths([['queue'], ['totalBytes']]);
@@ -128,7 +128,7 @@ export function clearProcessedUploads(
   );
 
   // Recalculate statistics
-  const processed = state.completedCount + state.failedCount;
+  const _processed = state.completedCount + state.failedCount;
   state.completedCount = 0;
   state.failedCount = 0;
 

@@ -9,7 +9,7 @@
  * Demonstrates modular business logic integration pattern.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { FileUploadService } from '../services/FileUploadService';
 import {
   useUploadStore,
@@ -23,7 +23,7 @@ import type { ProcessState, UploadProgress } from '../services/FileUploadService
 
 export function UploadHandlers({ children }: { children: React.ReactNode }) {
   const uploadStore = useUploadStore('upload');
-  const storeManager = useUploadStoreManager();
+  const _storeManager = useUploadStoreManager();
   const uploadServiceRef = useRef(new FileUploadService());
 
   // Handler: Add files to queue
@@ -52,7 +52,8 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
 
       if (fileIndex >= 0) {
         const removedFile = state.queue[fileIndex]!;
-        state.queue.splice(fileIndex, 1);
+        // Replace subscribed collections instead of mutating them in place.
+        state.queue = state.queue.filter((_, index) => index !== fileIndex);
         state.totalBytes -= removedFile.size;
 
         uploadStore.notifyPaths([['queue'], ['totalBytes']]);
@@ -129,7 +130,10 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
 
           // Update active upload state
           if (current.activeUpload) {
-            current.activeUpload.state = newState;
+            current.activeUpload = {
+              ...current.activeUpload,
+              state: newState,
+            };
             uploadStore.notifyPath(['activeUpload', 'state']);
           }
         },
@@ -146,7 +150,10 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
 
           // Update active upload progress
           if (current.activeUpload) {
-            current.activeUpload.progress = progress;
+            current.activeUpload = {
+              ...current.activeUpload,
+              progress,
+            };
             uploadStore.notifyPath(['activeUpload', 'progress']);
           }
 
@@ -169,7 +176,10 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
 
           // Update active upload status
           if (current.activeUpload) {
-            current.activeUpload.status = status;
+            current.activeUpload = {
+              ...current.activeUpload,
+              status,
+            };
             uploadStore.notifyPath(['activeUpload', 'status']);
           }
         },

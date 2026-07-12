@@ -224,17 +224,17 @@ describe('notifyPath Async Process State Management', () => {
       let statusRenderCount = 0;
 
       // Subscribe to different paths
-      const { result: stateResult } = renderHook(() => {
+      const { unmount: unmountState } = renderHook(() => {
         stateRenderCount++;
         return useStorePath(processStore, ['state']);
       });
 
-      const { result: progressResult } = renderHook(() => {
+      const { unmount: unmountProgress } = renderHook(() => {
         progressRenderCount++;
         return useStorePath(processStore, ['progress']);
       });
 
-      const { result: statusResult } = renderHook(() => {
+      const { unmount: unmountStatus } = renderHook(() => {
         statusRenderCount++;
         return useStorePath(processStore, ['status']);
       });
@@ -246,34 +246,31 @@ describe('notifyPath Async Process State Management', () => {
 
       // Execute upload workflow
       const uploadPromise = uploadService.completeUpload(mockFile, {
-        onStateChange: async (state) => {
+        onStateChange: (state) => {
           stateHistory.push(state);
 
           // Update state using direct mutation + notifyPath
-          await act(async () => {
+          act(() => {
             const current = processStore.getValue();
             current.state = state;
             processStore.notifyPath(['state']);
-            jest.advanceTimersByTime(16);
           });
         },
-        onProgress: async (progress) => {
+        onProgress: (progress) => {
           progressHistory.push(progress.percentage);
 
           // Progress-ONLY update (no state change)
-          await act(async () => {
+          act(() => {
             const current = processStore.getValue();
             current.progress = progress;
             processStore.notifyPath(['progress']); // Only notify progress path
-            jest.advanceTimersByTime(16);
           });
         },
-        onStatusUpdate: async (status) => {
-          await act(async () => {
+        onStatusUpdate: (status) => {
+          act(() => {
             const current = processStore.getValue();
             current.status = status;
             processStore.notifyPath(['status']);
-            jest.advanceTimersByTime(16);
           });
         }
       });
@@ -300,6 +297,11 @@ describe('notifyPath Async Process State Management', () => {
       expect(progressRenderCount).toBeGreaterThan(1); // Progress updates
       expect(statusRenderCount).toBeGreaterThan(1); // Status updates
 
+      unmountState();
+      unmountProgress();
+      unmountStatus();
+      processStore.dispose();
+
       console.log(`
       ✅ Async State Machine Proof:
       - State transitions: ${stateHistory.join(' → ')}
@@ -311,8 +313,7 @@ describe('notifyPath Async Process State Management', () => {
       `);
     });
 
-    // NOTE: This test passes individually but fails in suite due to test isolation issues
-    it.skip('proves progress-only updates do not trigger state re-renders', async () => {
+    it('proves progress-only updates do not trigger state re-renders', async () => {
       const uploadStore = createTimeTravelStore('upload', {
         state: 'uploading' as ProcessState,
         progress: { bytesUploaded: 0, totalBytes: 1000, percentage: 0 }
@@ -321,12 +322,12 @@ describe('notifyPath Async Process State Management', () => {
       let stateRenderCount = 0;
       let progressRenderCount = 0;
 
-      const { result: stateResult } = renderHook(() => {
+      const { unmount: unmountState } = renderHook(() => {
         stateRenderCount++;
         return useStorePath(uploadStore, ['state']);
       });
 
-      const { result: progressResult } = renderHook(() => {
+      const { unmount: unmountProgress } = renderHook(() => {
         progressRenderCount++;
         return useStorePath(uploadStore, ['progress']);
       });
@@ -344,7 +345,7 @@ describe('notifyPath Async Process State Management', () => {
           };
           // Only notify progress path (state unchanged)
           uploadStore.notifyPath(['progress']);
-          jest.advanceTimersByTime(16);
+          await jest.advanceTimersByTimeAsync(16);
         });
       }
 
@@ -352,6 +353,10 @@ describe('notifyPath Async Process State Management', () => {
       // With batched mode, renders may be consolidated by RAF
       expect(progressRenderCount).toBeGreaterThan(initialStateRenders); // Progress updated
       expect(stateRenderCount).toBe(initialStateRenders); // State unchanged
+
+      unmountState();
+      unmountProgress();
+      uploadStore.dispose();
 
       console.log(`
       ✅ Progress-Only Update Proof:
@@ -364,8 +369,7 @@ describe('notifyPath Async Process State Management', () => {
   });
 
   describe('Modular Business Logic Integration', () => {
-    // NOTE: This test passes individually but fails in suite due to test isolation issues
-    it.skip('proves integration of business logic, state management, and selective rendering', async () => {
+    it('proves integration of business logic, state management, and selective rendering', async () => {
       // State store
       const uploadFlowStore = createTimeTravelStore('uploadFlow', {
         files: [] as Array<{ id: string; name: string; state: ProcessState }>,
@@ -376,12 +380,12 @@ describe('notifyPath Async Process State Management', () => {
       let filesRenderCount = 0;
       let activeUploadRenderCount = 0;
 
-      const { result: filesResult } = renderHook(() => {
+      const { unmount: unmountFiles } = renderHook(() => {
         filesRenderCount++;
         return useStorePath(uploadFlowStore, ['files']);
       });
 
-      const { result: activeUploadResult } = renderHook(() => {
+      const { unmount: unmountActiveUpload } = renderHook(() => {
         activeUploadRenderCount++;
         return useStorePath(uploadFlowStore, ['activeUpload']);
       });
@@ -398,13 +402,16 @@ describe('notifyPath Async Process State Management', () => {
       // Step 1: Add file to queue (files path update only)
       await act(async () => {
         const state = uploadFlowStore.getValue();
-        state.files.push({ id: fileId, name: mockFile.name, state: 'idle' });
+        state.files = [
+          ...state.files,
+          { id: fileId, name: mockFile.name, state: 'idle' },
+        ];
         uploadFlowStore.notifyPath(['files']);
       });
 
       // Advance timers outside act to allow RAF to complete
       await act(async () => {
-        jest.advanceTimersByTime(20);
+        await jest.advanceTimersByTimeAsync(20);
       });
 
       expect(filesRenderCount).toBe(2); // Initial + add file
@@ -415,7 +422,7 @@ describe('notifyPath Async Process State Management', () => {
         const state = uploadFlowStore.getValue();
         state.activeUpload = { fileId, state: 'uploading', progress: 0 };
         uploadFlowStore.notifyPath(['activeUpload']);
-        jest.advanceTimersByTime(16);
+        await jest.advanceTimersByTimeAsync(16);
       });
 
       expect(filesRenderCount).toBe(2); // No change
@@ -426,9 +433,12 @@ describe('notifyPath Async Process State Management', () => {
         await act(async () => {
           const state = uploadFlowStore.getValue();
           if (state.activeUpload) {
-            state.activeUpload.progress = i * 20;
+            state.activeUpload = {
+              ...state.activeUpload,
+              progress: i * 20,
+            };
             uploadFlowStore.notifyPath(['activeUpload', 'progress']);
-            jest.advanceTimersByTime(16);
+            await jest.advanceTimersByTimeAsync(16);
           }
         });
       }
@@ -443,14 +453,19 @@ describe('notifyPath Async Process State Management', () => {
         // Update multiple paths
         const fileIndex = state.files.findIndex(f => f.id === fileId);
         if (fileIndex >= 0) {
-          state.files[fileIndex]!.state = 'complete';
+          state.files = state.files.map((file, index) =>
+            index === fileIndex ? { ...file, state: 'complete' } : file
+          );
         }
         state.activeUpload = null;
-        state.uploadHistory.push({
-          fileId,
-          timestamp: Date.now(),
-          success: true
-        });
+        state.uploadHistory = [
+          ...state.uploadHistory,
+          {
+            fileId,
+            timestamp: Date.now(),
+            success: true,
+          },
+        ];
 
         // Batch notify multiple paths
         uploadFlowStore.notifyPaths([
@@ -458,8 +473,12 @@ describe('notifyPath Async Process State Management', () => {
           ['activeUpload'],
           ['uploadHistory']
         ]);
-        jest.advanceTimersByTime(16);
+        await jest.advanceTimersByTimeAsync(16);
       });
+
+      unmountFiles();
+      unmountActiveUpload();
+      uploadFlowStore.dispose();
 
       console.log(`
       ✅ Modular Business Logic Integration Proof:
@@ -488,8 +507,7 @@ describe('notifyPath Async Process State Management', () => {
   });
 
   describe('Error Handling with State Machine', () => {
-    // NOTE: This test passes individually but fails in suite due to test isolation issues
-    it.skip('proves error state management with notifyPath', async () => {
+    it('proves error state management with notifyPath', async () => {
       const errorStore = createTimeTravelStore('error', {
         state: 'idle' as ProcessState,
         error: null as string | null,
@@ -499,20 +517,21 @@ describe('notifyPath Async Process State Management', () => {
       let stateRenderCount = 0;
       let errorRenderCount = 0;
 
-      const { result: stateResult } = renderHook(() => {
+      const { unmount: unmountState } = renderHook(() => {
         stateRenderCount++;
         return useStorePath(errorStore, ['state']);
       });
 
-      const { result: errorResult } = renderHook(() => {
+      const { unmount: unmountError } = renderHook(() => {
         errorRenderCount++;
         return useStorePath(errorStore, ['error']);
       });
 
       // Simulate upload failure
-      const invalidFile = new File(['x'.repeat(20 * 1024 * 1024)], 'huge.pdf', {
+      const invalidFile = new File(['x'], 'huge.pdf', {
         type: 'application/pdf'
       });
+      Object.defineProperty(invalidFile, 'size', { value: 20 * 1024 * 1024 });
 
       const validation = uploadService.validateFile(invalidFile);
 
@@ -527,7 +546,7 @@ describe('notifyPath Async Process State Management', () => {
             ['state'],
             ['error']
           ]);
-          jest.advanceTimersByTime(16);
+          await jest.advanceTimersByTimeAsync(16);
         });
       }
 
@@ -536,6 +555,10 @@ describe('notifyPath Async Process State Management', () => {
       // With batched mode, renders depend on RAF timing
       expect(stateRenderCount).toBeGreaterThanOrEqual(1); // At least initial
       expect(errorRenderCount).toBeGreaterThanOrEqual(1); // At least initial
+
+      unmountState();
+      unmountError();
+      errorStore.dispose();
 
       console.log(`
       ✅ Error State Management Proof:
@@ -644,6 +667,8 @@ describe('notifyPath Async Process State Management', () => {
       expect(finalState.failedCount).toBe(0);
       expect(finalState.processing).toBe(false);
       expect(finalState.queue.every(f => f.state === 'complete')).toBe(true);
+
+      queueStore.dispose();
 
       console.log(`
       ✅ Complex Multi-file Upload Queue Proof:

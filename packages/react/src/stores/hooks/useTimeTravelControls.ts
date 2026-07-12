@@ -6,7 +6,7 @@
  */
 
 import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
-import { TimeTravelStore, isTimeTravelStore } from '../core/TimeTravelStore';
+import { TimeTravelStore } from '../core/TimeTravelStore';
 
 /**
  * Time travel control state (without functions)

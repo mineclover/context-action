@@ -10,10 +10,28 @@ import { useSyncExternalStore } from 'react';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore, Store } from '../core/Store';
 import { createTimeTravelStore, TimeTravelStore, isTimeTravelStore } from '../core/TimeTravelStore';
-import type { TimeTravelStoreOptions } from '../core/TimeTravelStore';
 import type { ComparisonOptions } from '../utils/comparison';
 import type { Patches } from '@context-action/mutative';
 import type { StorePath } from '../hooks/useTimeTravelPath';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import {
+  isExplicitStoreValue,
+  isStoreConfigShape,
+  type ExplicitStoreValue,
+} from './store-definition';
+
+const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
+  'initialValue',
+  'timeTravel',
+  'maxHistory',
+  'mutable',
+  'strategy',
+  'description',
+  'debug',
+  'tags',
+  'version',
+  'comparisonOptions',
+]);
 
 /**
  * Check if patches affect the target path
@@ -69,7 +87,7 @@ export interface TimeTravelStoreConfig<T = any> {
  * Initial stores type for time travel pattern
  */
 export type TimeTravelInitialStores<T extends Record<string, any>> = {
-  [K in keyof T]: TimeTravelStoreConfig<T[K]> | T[K];
+  [K in keyof T]: TimeTravelStoreConfig<T[K]> | ExplicitStoreValue<T[K]> | T[K];
 };
 
 /**
@@ -90,11 +108,15 @@ export interface TimeTravelControlsState {
  * Infer store types from definitions
  */
 export type InferTimeTravelStoreTypes<T extends Record<string, any>> = {
-  readonly [K in keyof T]: T[K] extends TimeTravelStoreConfig<infer V>
+  readonly [K in keyof T]: T[K] extends ExplicitStoreValue<infer V>
     ? V
-    : T[K] extends (...args: unknown[]) => unknown
-      ? never
-      : T[K];
+    : T[K] extends { initialValue: infer V }
+      ? Exclude<keyof T[K], keyof TimeTravelStoreConfig<any>> extends never
+        ? V
+        : T[K]
+      : T[K] extends (...args: unknown[]) => unknown
+        ? never
+        : T[K];
 };
 
 /**
@@ -133,7 +155,10 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
     let version: string | undefined;
     let comparisonOptions: TimeTravelStoreConfig<T[K]>['comparisonOptions'];
 
-    if (storeConfig && typeof storeConfig === 'object' && 'initialValue' in storeConfig) {
+    if (isExplicitStoreValue(storeConfig)) {
+      initialValue = storeConfig.value as T[K];
+      tags = ['time-travel', strategy];
+    } else if (isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS)) {
       const config = storeConfig as TimeTravelStoreConfig<T[K]>;
       initialValue = config.initialValue;
       enableTimeTravel = config.timeTravel !== false; // default true
@@ -391,19 +416,34 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     path: StorePath
   ): R {
     const store = useStore(storeName);
-    const pathKey = useMemo(() => path.join('.'), [path]);
+    const pathSignature = createPathSignature(path);
+    const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+      signature: pathSignature,
+      path: [...path],
+    });
 
-    const cacheRef = useRef<{ value: R; initialized: boolean }>({
+    if (stablePathRef.current.signature !== pathSignature) {
+      stablePathRef.current = { signature: pathSignature, path: [...path] };
+    }
+
+    const stablePath = stablePathRef.current.path;
+
+    const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
       value: undefined as R,
       initialized: false,
+      pathSignature,
     });
+
+    if (cacheRef.current.pathSignature !== pathSignature) {
+      cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
+    }
 
     const subscribe = useCallback(
       (callback: () => void) => {
         // TimeTravelStore has subscribeWithPatches for optimized path-based subscriptions
         if (isTimeTravelStore(store)) {
           return store.subscribeWithPatches((patches: Patches | null) => {
-            if (patchesAffectPath(patches, path)) {
+            if (patchesAffectPath(patches, stablePath)) {
               callback();
             }
           });
@@ -411,15 +451,15 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
         // Regular Store: subscribe to all changes
         return store.subscribe(callback);
       },
-      [store, pathKey]
+      [store, stablePath]
     );
 
     const getSnapshot = useCallback((): R => {
       const storeValue = store.getValue();
-      const currentValue = getValueAtPath<T[K], R>(storeValue, path);
+      const currentValue = getValueAtPath<T[K], R>(storeValue, stablePath);
 
       if (!cacheRef.current.initialized) {
-        cacheRef.current = { value: currentValue, initialized: true };
+        cacheRef.current = { value: currentValue, initialized: true, pathSignature };
         return currentValue;
       }
 
@@ -429,11 +469,11 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
       cacheRef.current.value = currentValue;
       return currentValue;
-    }, [store, pathKey]);
+    }, [store, stablePath, pathSignature]);
 
     const getServerSnapshot = useCallback((): R => {
-      return getValueAtPath<T[K], R>(store.getValue(), path);
-    }, [store, pathKey]);
+      return getValueAtPath<T[K], R>(store.getValue(), stablePath);
+    }, [store, stablePath]);
 
     return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   }
@@ -458,27 +498,40 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     const { dependsOn, equalityFn } = options;
     const cacheRef = useRef<R | undefined>(undefined);
 
-    const depsKey = useMemo(
-      () => (dependsOn ? dependsOn.map(p => p.join('.')).sort().join('|') : null),
-      [dependsOn]
-    );
+    const depsKey = createPathsSignature(dependsOn);
+    const stablePathsRef = useRef<{
+      signature: string | null;
+      paths: StorePath[] | undefined;
+    }>({
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    });
+
+    if (stablePathsRef.current.signature !== depsKey) {
+      stablePathsRef.current = {
+        signature: depsKey,
+        paths: dependsOn?.map((path) => [...path]),
+      };
+    }
+
+    const stablePaths = stablePathsRef.current.paths;
 
     const subscribe = useCallback(
       (callback: () => void) => {
-        if (!dependsOn) {
+        if (!stablePaths) {
           return store.subscribe(callback);
         }
         // TimeTravelStore has subscribeWithPatches for optimized path-based subscriptions
         if (isTimeTravelStore(store)) {
           return store.subscribeWithPatches((patches: Patches | null) => {
-            const affected = dependsOn.some(path => patchesAffectPath(patches, path));
+            const affected = stablePaths.some(path => patchesAffectPath(patches, path));
             if (affected) callback();
           });
         }
         // Regular Store: subscribe to all changes when dependsOn is specified
         return store.subscribe(callback);
       },
-      [store, depsKey]
+      [store, stablePaths]
     );
 
     const getSnapshot = useCallback((): R => {

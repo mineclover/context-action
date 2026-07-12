@@ -17,7 +17,9 @@
 // Simplified and unified store management with excellent type inference
 export { 
   createStoreContext,
+  asStoreValue,
   type InitialStores,
+  type ExplicitStoreValue,
   type StoreConfig,
   type StoreDefinitions,
   type InferStoreTypes,
@@ -31,4 +33,3 @@ export {
 export { 
   type StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';
-

@@ -4,7 +4,6 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { CodeBlock } from '@/components/ui';
 
 export { ContextActionDemo } from './ContextActionDemo';
 

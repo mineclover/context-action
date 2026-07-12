@@ -357,7 +357,7 @@ export interface OrderStatusViewProps {
 }
 
 export function OrderStatusView({ order }: OrderStatusViewProps) {
-  if (!order || !order.orderId) return null;
+  if (!order?.orderId) return null;
 
   const statusConfig = {
     processing: { icon: '⏳', color: 'yellow', label: 'Processing' },

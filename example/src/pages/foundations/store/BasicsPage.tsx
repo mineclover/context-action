@@ -1,4 +1,8 @@
-import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createStoreContext,
+  type Store,
+  useStoreValue,
+} from '@context-action/react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import type { ChangeEvent } from 'react';
@@ -15,16 +19,23 @@ import {
 } from '@/components/ui';
 
 // Store Basics 데모용 Store Only 패턴
-const PageStores = createStoreContext('StoreBasics', {});
+const PageStores = createStoreContext<Record<string, unknown>>(
+  'StoreBasics',
+  {}
+);
 
 // Dynamic store creation helper for Store Only pattern
-function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
+function usePageStore<T>(
+  storeName: string,
+  initialValue: T,
+  options?: any
+): Store<T> {
   const manager = PageStores.useStoreManager();
 
   // Check if store already exists
   const existingStore = manager.stores.get(storeName);
   if (existingStore) {
-    return existingStore;
+    return existingStore as Store<T>;
   }
 
   // Create new store dynamically
@@ -39,7 +50,7 @@ function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
     };
   }
 
-  return manager.getStore(storeName);
+  return manager.getStore(storeName) as Store<T>;
 }
 
 // 커스텀 훅 - 메시지 스토어 관리 (PageStores 패턴 사용)

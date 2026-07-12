@@ -164,7 +164,7 @@ const TypeInferenceComplex = createStoreContext('ComplexInferred', {
 const NewActionContextAPI = createActionContext<TestActions>('TestActions', {
   registry: {
     debug: true,
-    maxHandlers: 10
+    maxHandlersPerAction: 10
   }
 });
 

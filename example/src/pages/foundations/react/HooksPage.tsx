@@ -2,6 +2,7 @@ import {
   type ActionPayloadMap,
   ActionRegister,
   createStoreContext,
+  type Store,
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -15,7 +16,6 @@ import {
   optimizationControlsVariants,
   controlGroupVariants,
   rangeInputVariants,
-  buttonGroupVariants,
   handlerStatusVariants,
   handlerItemVariants,
   handlerInfoVariants,
@@ -24,9 +24,6 @@ import {
   memoryControlsVariants,
   memoryStatsVariants,
   statCardVariants,
-  rangeControlVariants,
-  rangeLabelVariants,
-  textInputVariants,
   pageContainerVariants,
   generalPageHeaderVariants,
   pageTitleVariants,
@@ -34,8 +31,6 @@ import {
   codeExampleVariants,
   hooksDemoCardVariants,
   hooksButtonVariants,
-  hooksStatusVariants,
-  hooksMetricVariants,
   controlLabelVariants,
 } from '@/components/ui/variants';
 
@@ -67,16 +62,19 @@ interface HooksOptimizationMap extends ActionPayloadMap {
  * const memoryStore = HooksStores.useStoreManager().getStore('memory');
  * @since 1.0.0
  */
-const HooksStores = createStoreContext('ReactHooks', {});
+const HooksStores = createStoreContext<Record<string, unknown>>(
+  'ReactHooks',
+  {}
+);
 
 // Store 생성 헬퍼 함수
-function useHooksStore<T>(storeName: string, initialValue: T) {
+function useHooksStore<T>(storeName: string, initialValue: T): Store<T> {
   const manager = HooksStores.useStoreManager();
 
   // Check if store already exists
   const existingStore = manager.stores.get(storeName);
   if (existingStore) {
-    return existingStore;
+    return existingStore as Store<T>;
   }
 
   // Create new store dynamically
@@ -86,7 +84,7 @@ function useHooksStore<T>(storeName: string, initialValue: T) {
     debug: false,
   };
 
-  return manager.getStore(storeName);
+  return manager.getStore(storeName) as Store<T>;
 }
 
 // 무거운 계산 시뮬레이션
@@ -462,12 +460,12 @@ function MemoryOptimizationDemo() {
 
       <div className={memoryStatsVariants()}>
         <div className={statCardVariants()}>
-          <strong className={controlLabelVariants() + ' block'}>Total Memory:</strong>
-          <span className="text-lg font-bold text-primary-600">{memoryInfo.totalMemory} MB</span>
+          <strong className={`${controlLabelVariants()} block`}>Total Memory:</strong>
+          <span className="text-lg font-bold text-primary-600">{memoryInfo.allocatedMB} MB</span>
         </div>
         <div className={statCardVariants()}>
-          <strong className={controlLabelVariants() + ' block'}>Objects Count:</strong>
-          <span className="text-lg font-bold text-primary-600">{memoryInfo.objectCount}</span>
+          <strong className={`${controlLabelVariants()} block`}>Objects Count:</strong>
+          <span className="text-lg font-bold text-primary-600">{memoryInfo.objects}</span>
         </div>
 
         <div className="control-group">

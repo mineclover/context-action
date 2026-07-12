@@ -2,22 +2,22 @@
 // HANDLER REGISTRY - Context-Layered Architecture
 // ==============================================
 
-export interface HandlerConfig {
+export interface HandlerConfig<TAction extends string = string> {
   readonly id: string;
   readonly priority: number;
-  readonly dispatchName: string;
+  readonly dispatchName: TAction;
   readonly description?: string;
 }
 
 /**
  * Factory function to create consistent handler configurations
  */
-export function createHandlerConfig(
+export function createHandlerConfig<const TAction extends string>(
   domain: string,
-  action: string,
+  action: TAction,
   priority: number,
   options?: { description?: string }
-): HandlerConfig {
+): HandlerConfig<TAction> {
   return {
     id: `${domain}.${action}`,
     priority,

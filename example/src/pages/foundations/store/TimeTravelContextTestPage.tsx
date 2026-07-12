@@ -73,7 +73,6 @@ const {
 const {
   Provider: AppTimeTravelProvider,
   useStore: useAppStore,
-  useTimeTravelStore: useAppTimeTravelStore,
   useStorePath: useAppStorePath,
   useStoreSelector: useAppStoreSelector,
   useTimeTravelControls: useAppTimeTravelControls,

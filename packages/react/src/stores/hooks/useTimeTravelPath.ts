@@ -5,9 +5,10 @@
  * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
  */
 
-import { useSyncExternalStore, useCallback, useRef, useMemo } from 'react';
+import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { TimeTravelStore } from '../core/TimeTravelStore';
 import type { Patches } from '@context-action/mutative';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 
 /**
  * Path type for store subscription
@@ -99,36 +100,50 @@ export function useTimeTravelPath<T, R = unknown>(
 ): R {
   const { equalityFn } = options;
 
-  // Memoize path key for stable comparison
-  const pathKey = useMemo(() => path.join('.'), [path]);
+  const pathSignature = createPathSignature(path);
+  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+    signature: pathSignature,
+    path: [...path],
+  });
+
+  if (stablePathRef.current.signature !== pathSignature) {
+    stablePathRef.current = { signature: pathSignature, path: [...path] };
+  }
+
+  const stablePath = stablePathRef.current.path;
 
   // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean }>({
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
     value: undefined as R,
     initialized: false,
+    pathSignature,
   });
+
+  if (cacheRef.current.pathSignature !== pathSignature) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
+  }
 
   // Subscribe with patch awareness
   const subscribe = useCallback(
     (callback: () => void) => {
       return store.subscribeWithPatches((patches) => {
         // Check if patches affect our path
-        if (patchesAffectPath(patches, path)) {
+        if (patchesAffectPath(patches, stablePath)) {
           callback();
         }
       });
     },
-    [store, pathKey]
+    [store, stablePath]
   );
 
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
     const storeValue = store.getValue();
-    const currentValue = getValueAtPath<T, R>(storeValue, path);
+    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true };
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature };
       return currentValue;
     }
 
@@ -148,12 +163,12 @@ export function useTimeTravelPath<T, R = unknown>(
 
     cacheRef.current.value = currentValue;
     return currentValue;
-  }, [store, pathKey, equalityFn]);
+  }, [store, stablePath, pathSignature, equalityFn]);
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getValue(), path);
-  }, [store, pathKey]);
+    return getValueAtPath<T, R>(store.getValue(), stablePath);
+  }, [store, stablePath]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
@@ -187,29 +202,41 @@ export function useTimeTravelSelector<T, R>(
   // Cache for value comparison
   const cacheRef = useRef<R | undefined>(undefined);
 
-  // Create stable path key for dependencies
-  const depsKey = useMemo(
-    () => (dependsOn ? dependsOn.map(p => p.join('.')).sort().join('|') : null),
-    [dependsOn]
-  );
+  const depsKey = createPathsSignature(dependsOn);
+  const stablePathsRef = useRef<{
+    signature: string | null;
+    paths: StorePath[] | undefined;
+  }>({
+    signature: depsKey,
+    paths: dependsOn?.map((path) => [...path]),
+  });
+
+  if (stablePathsRef.current.signature !== depsKey) {
+    stablePathsRef.current = {
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    };
+  }
+
+  const stablePaths = stablePathsRef.current.paths;
 
   // Subscribe with patch awareness
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!dependsOn) {
+      if (!stablePaths) {
         // No path hints - subscribe to all changes
         return store.subscribe(callback);
       }
 
       return store.subscribeWithPatches((patches) => {
         // Check if any dependent path is affected
-        const affected = dependsOn.some(path => patchesAffectPath(patches, path));
+        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
         if (affected) {
           callback();
         }
       });
     },
-    [store, depsKey]
+    [store, stablePaths]
   );
 
   // Get snapshot using selector

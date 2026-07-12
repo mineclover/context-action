@@ -5,7 +5,7 @@
  * Provides time-travel functionality through Mutative JSON patches.
  */
 
-import { TimeTravel, createTimeTravel, safeGet, type TimeTravelOptions, type TimeTravelControls, type TravelPatches, type Patches } from '@context-action/mutative';
+import { TimeTravel, createTimeTravel, safeGet, type TimeTravelOptions, type TimeTravelControls, type Patches } from '@context-action/mutative';
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 
 /**
@@ -92,7 +92,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.timeTravel.subscribe((state, travelPatches, position) => {
+    this.timeTravel.subscribe((state, travelPatches, _position) => {
       // Flatten patches for easy access
       this._lastPatches = travelPatches.patches.flat() as Patches;
 
@@ -234,7 +234,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.cleanupTasks.forEach((task) => {
       try {
         task();
-      } catch (error) {
+      } catch {
         ErrorHandlers.store('Cleanup task error', { storeName: this.name });
       }
     });
@@ -454,7 +454,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.listeners.forEach((listener) => {
       try {
         listener();
-      } catch (error) {
+      } catch {
         ErrorHandlers.store('Listener error', { storeName: this.name });
       }
     });
@@ -463,7 +463,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.patchAwareListeners.forEach((listener) => {
       try {
         listener(this._lastPatches);
-      } catch (error) {
+      } catch {
         ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
       }
     });
