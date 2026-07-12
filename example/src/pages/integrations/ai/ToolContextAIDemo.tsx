@@ -5,15 +5,22 @@
  * for function calling with UI control tools
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { ModelMessage } from 'ai';
 import { createToolContext } from '@context-action/react';
-import { generateText, LanguageModel } from 'ai';
+import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import { uiToolsSchema } from '../../../lib/ui-tools-schema';
 import { getFreeModelsWithTools, formatModelName, type OpenRouterModel } from '../../../lib/openrouter-models';
 import styles from './ToolContextAIDemo.module.css';
 
 // Create Tool Context
-const { Provider: UIToolProvider, useToolDispatch, useToolHandler, useToolRegistry } = createToolContext('UITools', {
+const {
+  Provider: UIToolProvider,
+  useToolDispatch,
+  useToolDispatchWithResult,
+  useToolHandler,
+  useToolRegistry,
+} = createToolContext('UITools', {
   schema: uiToolsSchema,
   debug: true,
 });
@@ -42,25 +49,34 @@ const initialUIState: UIState = {
  */
 function UIStateManager({ children }: { children: React.ReactNode }) {
   const [uiState, setUIState] = useState<UIState>(initialUIState);
-  const dispatch = useToolDispatch();
+  const uiStateRef = useRef(uiState);
+
+  const updateUIState = useCallback((updater: (state: UIState) => UIState) => {
+    const nextState = updater(uiStateRef.current);
+    uiStateRef.current = nextState;
+    setUIState(nextState);
+    return nextState;
+  }, []);
 
   // Handle tool calls
-  useToolHandler('toggleTheme', useCallback(async (payload: any) => {
-    setUIState(prev => ({
+  useToolHandler('toggleTheme', useCallback(async (payload) => {
+    const nextState = updateUIState(prev => ({
       ...prev,
       theme: payload.theme || (prev.theme === 'light' ? 'dark' : 'light'),
     }));
-  }, []), { priority: 10 });
+    return { theme: nextState.theme };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('updateHeading', useCallback(async (payload: any) => {
-    setUIState(prev => ({
+  useToolHandler('updateHeading', useCallback(async (payload) => {
+    const nextState = updateUIState(prev => ({
       ...prev,
       heading: payload.text,
     }));
-  }, []), { priority: 10 });
+    return { heading: nextState.heading };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('addListItem', useCallback(async (payload: any) => {
-    setUIState(prev => ({
+  useToolHandler('addListItem', useCallback(async (payload) => {
+    const nextState = updateUIState(prev => ({
       ...prev,
       listItems: [...prev.listItems, {
         id: Date.now().toString(),
@@ -68,58 +84,62 @@ function UIStateManager({ children }: { children: React.ReactNode }) {
         priority: payload.priority || 'medium',
       }],
     }));
-  }, []), { priority: 10 });
+    return { itemCount: nextState.listItems.length };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('clearList', useCallback(async (payload: any) => {
+  useToolHandler('clearList', useCallback(async (payload) => {
     if (payload.confirm) {
-      setUIState(prev => ({
+      updateUIState(prev => ({
         ...prev,
         listItems: [],
       }));
     }
-  }, []), { priority: 10 });
+    return { cleared: Boolean(payload.confirm) };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('showNotification', useCallback(async (payload: any) => {
+  useToolHandler('showNotification', useCallback(async (payload) => {
     const id = Date.now().toString();
     const notification = {
       id,
       message: payload.message,
       type: payload.type || 'info' as const,
     };
-    setUIState(prev => ({
+    updateUIState(prev => ({
       ...prev,
       notifications: [...prev.notifications, notification],
     }));
 
     setTimeout(() => {
-      setUIState(prev => ({
+      updateUIState(prev => ({
         ...prev,
         notifications: prev.notifications.filter(n => n.id !== id),
       }));
     }, payload.duration || 3000);
-  }, []), { priority: 10 });
+    return { notificationId: id };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('updateCounter', useCallback(async (payload: any) => {
-    setUIState(prev => ({
+  useToolHandler('updateCounter', useCallback(async (payload) => {
+    const nextState = updateUIState(prev => ({
       ...prev,
       counter: prev.counter + payload.amount,
     }));
-  }, []), { priority: 10 });
+    return { counter: nextState.counter };
+  }, [updateUIState]), { priority: 10, blocking: true });
 
-  useToolHandler('getUiState', useCallback(async (payload: any) => {
+  useToolHandler('getUiState', useCallback(async (payload) => {
     const fields = payload.fields || ['theme', 'counter', 'listItems', 'heading'];
     const result: Record<string, unknown> = {};
+    const currentState = uiStateRef.current;
 
     for (const field of fields) {
-      if (field === 'theme') result.theme = uiState.theme;
-      if (field === 'counter') result.counter = uiState.counter;
-      if (field === 'listItems') result.listItems = uiState.listItems;
-      if (field === 'heading') result.heading = uiState.heading;
+      if (field === 'theme') result.theme = currentState.theme;
+      if (field === 'counter') result.counter = currentState.counter;
+      if (field === 'listItems') result.listItems = currentState.listItems;
+      if (field === 'heading') result.heading = currentState.heading;
     }
 
-    // Log the result for debugging (handlers return void)
-    console.log('[getUiState] Result:', result);
-  }, [uiState]), { priority: 10 });
+    return result;
+  }, []), { priority: 10, blocking: true });
 
   return (
     <div className={styles.container} data-theme={uiState.theme}>
@@ -131,16 +151,24 @@ function UIStateManager({ children }: { children: React.ReactNode }) {
 /**
  * Main Demo UI Component
  */
-function DemoUI({ uiState }: any) {
+function DemoUI({ uiState }: { uiState: UIState }) {
   const [apiKey, setApiKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [modelMessages, setModelMessages] = useState<ModelMessage[]>([]);
   const [input, setInput] = useState('');
   const [executing, setExecuting] = useState(false);
   const dispatch = useToolDispatch();
+  const { dispatchWithResult } = useToolDispatchWithResult();
   const registry = useToolRegistry();
+  const toolTextGenerator = useMemo(
+    () => apiKey
+      ? createBrowserOpenRouterToolRunner({ apiKey, referer: window.location.origin })
+      : null,
+    [apiKey]
+  );
 
   // Load models on mount
   useEffect(() => {
@@ -173,66 +201,29 @@ function DemoUI({ uiState }: any) {
     setExecuting(true);
 
     try {
-      // Get tool definitions for OpenRouter
-      const tools = registry.toOpenAI();
+      const requestMessages: ModelMessage[] = [
+        ...modelMessages,
+        { role: 'user', content: userMessage },
+      ];
+      if (!toolTextGenerator) {
+        throw new Error('OpenRouter API key is required');
+      }
 
-      // Create OpenAI-compatible client for OpenRouter
-      const { OpenAI } = await import('openai');
-      const client = new OpenAI({
-        apiKey,
-        baseURL: 'https://openrouter.ai/api/v1',
-        defaultHeaders: {
-          'HTTP-Referer': window.location.href,
-          'X-Title': 'ToolContext AI Demo',
-        },
-      });
-
-      // Call chat.completions with tool support and auto-routing
-      const response = await client.chat.completions.create({
+      const response = await toolTextGenerator.generate({
         model: selectedModel,
-        messages: [
-          ...messages.map(m => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-          })),
-          { role: 'user', content: userMessage },
-        ],
-        tools: tools as any,
-        tool_choice: 'auto', // Auto-route to tools when needed
-        max_tokens: 1024,
+        messages: requestMessages,
+        registry,
+        dispatchWithResult,
       });
 
-      const assistantMessage = response.choices[0]?.message;
-      if (!assistantMessage) {
-        throw new Error('No response from model');
-      }
-
-      let finalContent = assistantMessage.content || 'Action completed';
-      let toolsExecuted: string[] = [];
-
-      // Process tool calls
-      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-        for (const toolCall of assistantMessage.tool_calls) {
-          const fn = (toolCall as any).function;
-          if (!fn) continue;
-          const toolName = fn.name as keyof typeof uiToolsSchema;
-          const args = JSON.parse(fn.arguments);
-
-          try {
-            await dispatch(toolName, args);
-            toolsExecuted.push(`✓ ${toolName}`);
-          } catch (err) {
-            console.error(`Tool execution failed: ${toolName}`, err);
-            toolsExecuted.push(`✗ ${toolName}`);
-          }
-        }
-
-        if (toolsExecuted.length > 0) {
-          finalContent += `\n\nTools executed:\n${toolsExecuted.join('\n')}`;
-        }
-      }
+      const finalContent = response.text || (
+        response.toolCallCount > 0
+          ? `Completed ${response.toolCallCount} UI tool call(s).`
+          : 'Action completed'
+      );
 
       setMessages(prev => [...prev, { role: 'assistant', content: finalContent }]);
+      setModelMessages([...requestMessages, { role: 'assistant', content: finalContent }]);
     } catch (error) {
       console.error('AI request failed:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -262,7 +253,7 @@ function DemoUI({ uiState }: any) {
             onChange={e => setApiKey(e.target.value)}
             className={styles.input}
           />
-          <small>Get your key from https://openrouter.ai/</small>
+          <small>Your key stays in this browser session and is sent directly to OpenRouter.</small>
         </div>
 
         <div className={styles.settingGroup}>

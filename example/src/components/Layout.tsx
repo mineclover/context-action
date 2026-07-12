@@ -224,7 +224,7 @@ function Layout({
       path: '/integrations/tool-context-ai',
       label: '🤖 ToolContext + AI SDK',
       category: 'demos',
-      description: 'AI controls UI through ToolContext with OpenRouter',
+      description: 'AI SDK v7 tool loop controls UI through ToolContext and OpenRouter',
     },
 
     // === Advanced Demos (고급 데모) ===
