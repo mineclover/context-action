@@ -10,6 +10,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
+import { normalizeDocumentPath } from '../../core/DocumentIdentity.js';
 import { LLMSFrontmatter, PriorityData, ConfigCategories, CleanedPriorityData } from '../../types/frontmatter.js';
 
 export interface LLMSGenerateOptions {
@@ -33,6 +34,7 @@ export interface DocumentContent {
   content: string;
   priority: number;
   filePath: string;
+  sourcePath?: string;
   metadata: {
     completion_status: string;
     workflow_stage: string;
@@ -196,6 +198,7 @@ export class LLMSGenerateCommand {
               content: '', // Will be filled from original source
               priority: priorityData.priority?.score || 50,
               filePath: '', // Not used
+              sourcePath: priorityData.document?.source_path,
               metadata: {
                 completion_status: 'completed',
                 workflow_stage: 'content_generated',
@@ -290,6 +293,7 @@ export class LLMSGenerateCommand {
             content: sourceContent,
             priority: cleanedPriorityData.priority?.score || 50,
             filePath,
+            sourcePath: cleanedPriorityData.document?.source_path,
             metadata: {
               completion_status: 'generated_from_source',
               workflow_stage: 'auto_generated',
@@ -329,6 +333,7 @@ export class LLMSGenerateCommand {
         content: templateContent,
         priority,
         filePath,
+        sourcePath: priorityData?.document?.source_path || frontmatter.source_path,
         metadata: {
           completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
           workflow_stage: frontmatter.workflow_stage || 'template_content',
@@ -837,6 +842,10 @@ export class LLMSGenerateCommand {
   }
 
   private getRelativeSourcePath(doc: DocumentContent): string {
+    if (doc.sourcePath) {
+      return normalizeDocumentPath(doc.sourcePath);
+    }
+
     return this.pathManager.getRelativeSourcePath(doc.documentId, doc.language, doc.characterLimit, doc.filePath);
   }
 
@@ -925,14 +934,16 @@ export class LLMSGenerateCommand {
   }
 
   private getOriginalSourcePath(doc: DocumentContent): string {
-    // Extract the original source path from document metadata or reconstruct it
-    const parts = doc.documentId.split('--');
-    if (parts.length >= 2) {
-      const category = parts[0];
-      const filename = parts.slice(1).join('-');
-      return `${doc.language}/${category}/${filename}.md`;
+    if (doc.sourcePath) {
+      return normalizeDocumentPath(doc.sourcePath);
     }
-    return `${doc.language}/${doc.category}/${doc.documentId}.md`;
+
+    return this.pathManager.getRelativeSourcePath(
+      doc.documentId,
+      doc.language,
+      doc.characterLimit,
+      doc.filePath,
+    );
   }
 
   private readOriginalSourceFile(relativePath: string): string | null {

@@ -33,10 +33,10 @@
     "test:cli:sync": "jest test/cli/SyncDocsCommand.test.ts test/cli/MismatchDetectionCommand.test.ts",
     "test:adaptive": "jest test/integration/AdaptiveComposer.test.ts",
     "test:legacy": "jest test/cli/generate-all.test.ts test/cli/new-cli.test.ts",
-    "lint": "eslint src",
+    "lint": "pnpm --workspace-root exec biome lint packages/llms-generator/src",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "docs:generate": "typedoc src/index.ts --out docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*'",
+    "docs:generate": "pnpm --workspace-root exec typedoc packages/llms-generator/src/index.ts --tsconfig packages/llms-generator/tsconfig.json --out packages/llms-generator/docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*' --skipErrorChecking",
     "docs:build": "pnpm run docs:generate",
     "security:audit": "pnpm audit --audit-level high",
     "security:outdated": "pnpm outdated",
@@ -62,7 +62,7 @@
     "generator"
   ],
   "author": "mineclover",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
@@ -72,36 +72,34 @@
     "access": "public"
   },
   "dependencies": {
-    "ajv": "^8.18.0",
-    "ajv-formats": "^3.0.1",
-    "commander": "^14.0.3",
+    "commander": "15.0.0",
     "glob": "13.0.6",
-    "gray-matter": "^4.0.3",
-    "typescript": "^5.9.2",
-    "yaml": "^2.8.3"
+    "gray-matter": "4.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.5.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "eslint": "^9.34.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.6",
-    "tsdown": "^0.14.2"
+    "@swc/core": "1.15.43",
+    "@swc/helpers": "0.5.23",
+    "@swc/jest": "0.2.39",
+    "@types/jest": "30.0.0",
+    "@types/node": "24.13.3",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "jest": "30.4.2",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.11.0"
   },
   "files": [
     "dist",
-    "scripts",
     "data/priority-schema-enhanced.json",
     "data/config-schema.json",
     "README.md",
     "CHANGELOG.md",
     "CONFIG.md",
-    "CLI_SETUP_GUIDE.md"
+    "CLI_SETUP_GUIDE.md",
+    "LICENSE"
   ],
   "gitHead": "d044f181a22b8f1fc5ad3362afd30d117fedebdd"
 }

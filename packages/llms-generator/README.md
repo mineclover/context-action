@@ -3,7 +3,7 @@
 **Enterprise-grade LLM content generation framework with comprehensive type safety, mismatch detection, and integrity management.**
 
 [![npm version](https://badge.fury.io/js/@context-action%2Fllms-generator.svg)](https://www.npmjs.com/package/@context-action/llms-generator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 ![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 
@@ -283,7 +283,7 @@ This project is part of the Context-Action framework. When contributing:
 
 ## 📄 License
 
-MIT License - see [LICENSE](../../LICENSE) file for details.
+Apache-2.0 - see [LICENSE](./LICENSE) for details.
 
 ---
 

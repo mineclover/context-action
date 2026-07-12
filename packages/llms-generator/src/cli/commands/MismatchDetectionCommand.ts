@@ -2,6 +2,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { glob } from 'glob';
 import { EnhancedLLMSConfig } from '../../types/config.js';
+import {
+  getCanonicalDocumentIdentity,
+  getCanonicalDocumentKey,
+  getDocumentIdCategory,
+  getRelativeSourcePathFromDocumentId,
+} from '../../core/DocumentIdentity.js';
 
 export interface MismatchDetectionOptions {
   outputFile?: string;           // 미스매치 리포트 출력 파일 경로 (기본: docs/llms-mismatch-report.md)
@@ -91,31 +97,25 @@ export class MismatchDetectionCommand {
 
   private async collectSourceDocuments(): Promise<Array<{ path: string; language: string; category: string; documentId: string }>> {
     const documents: Array<{ path: string; language: string; category: string; documentId: string }> = [];
-    
-    // docs/(en|ko)/**/*.md 패턴으로 문서 검색
-    const pattern = 'docs/{en,ko}/**/*.md';
+
+    // Search from the configured documentation root so callers and tests do not
+    // accidentally inspect the process working directory instead.
+    const docsDir = this.config.paths?.docsDir || './docs';
+    const pattern = '{en,ko}/**/*.md';
     const files = await glob(pattern, { 
       ignore: ['**/llms/**', '**/api/**'], // llms와 api 디렉토리는 제외
-      cwd: process.cwd()
+      cwd: docsDir
     });
 
     for (const filePath of files) {
-      const pathParts = filePath.split('/');
-      if (pathParts.length < 3) continue;
-
-      const language = pathParts[1];
-      const category = pathParts[2];
-      
-      if (!language || !category) continue;
-      
-      const fileName = path.basename(filePath, '.md');
-      const documentId = this.generateDocumentId(language, category, fileName);
+      const identity = getCanonicalDocumentIdentity(filePath);
+      if (!identity) continue;
 
       documents.push({
-        path: filePath,
-        language,
-        category,
-        documentId
+        path: path.join(docsDir, filePath),
+        language: identity.language,
+        category: identity.category,
+        documentId: identity.documentId
       });
     }
 
@@ -151,20 +151,16 @@ export class MismatchDetectionCommand {
           const entryPath = path.join(langPath, entry.name);
           
           if (entry.isDirectory()) {
-            // category--filename 형태의 디렉토리
-            const match = entry.name.match(/^(.+?)--(.+)$/);
-            if (match && match[1] && match[2]) {
-              const [, category, fileName] = match;
-              const documentId = this.generateDocumentId(language, category, fileName);
+            const category = getDocumentIdCategory(entry.name);
+            if (!category) continue;
 
-              llmsData.push({
-                path: entryPath,
-                language,
-                category,
-                documentId,
-                type: 'directory'
-              });
-            }
+            llmsData.push({
+              path: entryPath,
+              language,
+              category,
+              documentId: entry.name,
+              type: 'directory'
+            });
           }
         }
       } catch (error) {
@@ -175,19 +171,17 @@ export class MismatchDetectionCommand {
     return llmsData;
   }
 
-  private generateDocumentId(language: string, category: string, fileName: string): string {
-    return `${language}_${category}_${fileName}`;
-  }
-
   private async detectOrphanedLLMS(
     sourceDocuments: Array<{ path: string; language: string; category: string; documentId: string }>,
     llmsData: Array<{ path: string; language: string; category: string; documentId: string; type: 'directory' | 'file' }>,
     report: MismatchReport
   ): Promise<void> {
-    const sourceIds = new Set(sourceDocuments.map(doc => doc.documentId));
+    const sourceIds = new Set(
+      sourceDocuments.map(doc => getCanonicalDocumentKey(doc.language, doc.documentId))
+    );
 
     for (const llmsEntry of llmsData) {
-      if (!sourceIds.has(llmsEntry.documentId)) {
+      if (!sourceIds.has(getCanonicalDocumentKey(llmsEntry.language, llmsEntry.documentId))) {
         const expectedSourcePath = this.reconstructSourcePath(llmsEntry);
         
         report.mismatches.push({
@@ -209,10 +203,12 @@ export class MismatchDetectionCommand {
     llmsData: Array<{ path: string; language: string; category: string; documentId: string; type: 'directory' | 'file' }>,
     report: MismatchReport
   ): Promise<void> {
-    const llmsIds = new Set(llmsData.map(entry => entry.documentId));
+    const llmsIds = new Set(
+      llmsData.map(entry => getCanonicalDocumentKey(entry.language, entry.documentId))
+    );
 
     for (const sourceDoc of sourceDocuments) {
-      if (!llmsIds.has(sourceDoc.documentId)) {
+      if (!llmsIds.has(getCanonicalDocumentKey(sourceDoc.language, sourceDoc.documentId))) {
         const expectedLlmsPath = this.constructLLMSPath(sourceDoc);
         
         report.mismatches.push({
@@ -317,23 +313,20 @@ export class MismatchDetectionCommand {
   }
 
   private reconstructSourcePath(llmsEntry: { path: string; language: string; category: string; documentId: string }): string {
-    // category--filename에서 filename 추출
-    const dirName = path.basename(llmsEntry.path);
-    const match = dirName.match(/^(.+?)--(.+)$/);
-    
-    if (match) {
-      const [, category, fileName] = match;
-      return `docs/${llmsEntry.language}/${category}/${fileName}.md`;
-    }
-    
-    return `docs/${llmsEntry.language}/${llmsEntry.category}/[unknown].md`;
+    const relativeSourcePath = getRelativeSourcePathFromDocumentId(
+      llmsEntry.language,
+      llmsEntry.documentId,
+    );
+    const docsDir = this.config.paths?.docsDir || './docs';
+
+    return relativeSourcePath
+      ? path.join(docsDir, ...relativeSourcePath.split('/'))
+      : path.join(docsDir, llmsEntry.language, llmsEntry.category, '[unknown].md');
   }
 
   private constructLLMSPath(sourceDoc: { path: string; language: string; category: string; documentId: string }): string {
     const llmsDir = this.config.paths?.llmContentDir || './llmsData';
-    const fileName = path.basename(sourceDoc.path, '.md');
-    const docDirName = `${sourceDoc.category}--${fileName}`;
-    return path.join(llmsDir, sourceDoc.language, docDirName);
+    return path.join(llmsDir, sourceDoc.language, sourceDoc.documentId);
   }
 
   private async generateReport(report: MismatchReport, options: MismatchDetectionOptions): Promise<void> {

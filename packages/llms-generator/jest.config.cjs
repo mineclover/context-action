@@ -1,11 +1,27 @@
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/test'],
   testMatch: ['**/test/**/*.test.ts', '**/test/**/*.test.js', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'typescript' },
+        target: 'es2020'
+      },
+      module: { type: 'commonjs' }
+    }],
+    '^.+\\.js$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'ecmascript' },
+        target: 'es2020'
+      },
+      module: { type: 'commonjs' }
+    }]
   },
+  transformIgnorePatterns: [
+    '<rootDir>/../../node_modules/.pnpm/(?!(commander)@)',
+    'node_modules/(?!.pnpm|commander/)'
+  ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },

@@ -22,7 +22,7 @@ export class TestParser {
     this.options = {
       cleanMocks: true,
       extractTypes: true,
-      categorizeExamples: true,
+      categorizeExamples: false,
       includeComments: false,
       ...options
     };
@@ -71,13 +71,14 @@ export class TestParser {
    * Extract import statements for context
    */
   private extractImports(content: string): ImportInfo[] {
-    const importMatches = content.matchAll(/^import\s+(?:\{[^}]*\}|\w+|\*\s+as\s+\w+)?\s*from\s*['"`]([^'"`]+)['"`];?/gm);
+    const importMatches = content.matchAll(/^[ \t]*import\s+(?:\{[^}]*\}|\w+|\*\s+as\s+\w+)?\s*from\s*['"`]([^'"`]+)['"`];?/gm);
 
     return Array.from(importMatches).map(match => ({
       statement: match[0].trim(),
       module: match[1],
       isLocal: match[1].startsWith('.') || match[1].startsWith('/'),
-      isTestUtility: match[1].includes('test') || match[1].includes('jest')
+      isTestUtility: /jest|vitest|@testing-library/.test(match[1]),
+      isTestFramework: /jest|vitest|@testing-library/.test(match[1])
     })).filter(imp => !imp.isTestUtility); // Exclude test utilities
   }
 
@@ -94,7 +95,8 @@ export class TestParser {
         type: 'interface',
         name: match[1],
         body: match[2].trim(),
-        fullDefinition: match[0]
+        fullDefinition: match[0],
+        definition: match[0]
       });
     }
 
@@ -105,7 +107,8 @@ export class TestParser {
         type: 'type',
         name: match[1],
         body: match[2].trim(),
-        fullDefinition: match[0]
+        fullDefinition: match[0],
+        definition: match[0]
       });
     }
 
@@ -170,10 +173,7 @@ export class TestParser {
           complexity: this.assessComplexity(testBody)
         };
 
-        // Only include examples that use our APIs
-        if (example.apis.length > 0) {
-          examples.push(example);
-        }
+        examples.push(example);
       }
     }
 
@@ -266,12 +266,12 @@ export class TestParser {
       return 'performance';
     }
 
-    if (desc.includes('integration') || desc.includes('multiple') || desc.includes('complex')) {
-      return 'integration';
-    }
-
     if (desc.includes('basic') || desc.includes('simple') || desc.includes('should create')) {
       return 'basic-usage';
+    }
+
+    if (desc.includes('integration') || desc.includes('multiple') || desc.includes('complex')) {
+      return 'integration';
     }
 
     if (desc.includes('advanced') || desc.includes('edge') || desc.includes('custom')) {
@@ -331,6 +331,10 @@ export class TestParser {
     const asyncOps = (code.match(/await|Promise/g) || []).length;
     const conditions = (code.match(/if|else|switch|case/g) || []).length;
     const loops = (code.match(/for|while|forEach|map|filter/g) || []).length;
+
+    if (asyncOps > 0 && (conditions > 0 || loops > 0)) {
+      return 'complex';
+    }
 
     let score = 0;
     score += Math.min(lines / 10, 3); // Max 3 points for length

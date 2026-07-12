@@ -3,7 +3,7 @@
 Enhanced TypeDoc to VitePress documentation sync with smart caching, parallel processing, and quality validation.
 
 [![npm version](https://badge.fury.io/js/@context-action/typedoc-vitepress-sync.svg)](https://badge.fury.io/js/@context-action/typedoc-vitepress-sync)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
 ## 🚀 Features
 
@@ -17,6 +17,8 @@ Enhanced TypeDoc to VitePress documentation sync with smart caching, parallel pr
 - **📱 Responsive Design**: Works with modern documentation workflows
 
 ## 📦 Installation
+
+Requires Node.js 24.11.0 or newer. This repository develops and validates the package with TypeScript 6.0.3.
 
 ### As a standalone package
 
@@ -365,7 +367,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '24.11'
           
       - name: Install dependencies
         run: npm ci
@@ -425,7 +427,7 @@ pnpm test:coverage
 
 ## 📄 License
 
-MIT © [mineclover](https://github.com/mineclover)
+Apache-2.0 © [mineclover](https://github.com/mineclover)
 
 ## 🔗 Related
 

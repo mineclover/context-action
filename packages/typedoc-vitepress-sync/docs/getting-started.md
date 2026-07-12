@@ -6,7 +6,8 @@ Quick start guide for TypeDoc VitePress Sync.
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 24.11.0 or newer
+- TypeScript 6.0.3 project
 - TypeDoc 0.25+
 - VitePress 1.0+
 - TypeScript project with documentation

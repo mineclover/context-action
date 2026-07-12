@@ -6,9 +6,12 @@ export default defineConfig({
   dts: true,
   hash: false,
   clean: true,
+  fixedExtension: false,
   sourcemap: true,
   treeshake: true,
   minify: process.env.NODE_ENV === 'production',
-  external: ['mutative'],
+  deps: {
+    neverBundle: ['mutative'],
+  },
   outDir: 'dist',
 });

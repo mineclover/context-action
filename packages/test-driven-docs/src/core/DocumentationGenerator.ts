@@ -419,7 +419,14 @@ export class DocumentationGenerator {
           example.apis.forEach(api => {
             if (!grouped[api]) {
               grouped[api] = {
-                categorizedExamples: {},
+                categorizedExamples: {
+                  'basic-usage': [],
+                  'advanced-patterns': [],
+                  'error-handling': [],
+                  performance: [],
+                  integration: [],
+                  'async-patterns': []
+                },
                 allTestData: [],
                 metadata: { testCount: 0, packageNames: [], fileCount: 0 },
                 packageName: testData.packageName

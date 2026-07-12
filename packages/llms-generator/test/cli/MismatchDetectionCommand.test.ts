@@ -7,11 +7,13 @@ import { EnhancedLLMSConfig } from '../../src/types/config.js';
 describe('MismatchDetectionCommand', () => {
   let mismatchDetectionCommand: MismatchDetectionCommand;
   let testDataDir: string;
+  let testReportPath: string;
   let config: EnhancedLLMSConfig;
 
   beforeEach(async () => {
     // Setup test directory
     testDataDir = path.join(__dirname, 'test-workspace-mismatch-detection');
+    testReportPath = path.join(testDataDir, 'mismatch-report.md');
     
     config = {
       paths: {
@@ -123,10 +125,9 @@ describe('MismatchDetectionCommand', () => {
         '# Missing LLMS\n\nThis document has no LLMS data.'
       );
 
-      await mismatchDetectionCommand.execute({});
-      
-      // Command executed successfully without error
-      expect(true).toBe(true);
+      const report = await mismatchDetectionCommand.execute({ outputFile: testReportPath });
+
+      expect(report.summary.missingLlms).toBeGreaterThan(0);
     });
 
     it('should detect orphaned LLMS directories', async () => {
@@ -140,10 +141,9 @@ describe('MismatchDetectionCommand', () => {
         }, null, 2)
       );
 
-      await mismatchDetectionCommand.execute({});
-      
-      // Command executed successfully without error
-      expect(true).toBe(true);
+      const report = await mismatchDetectionCommand.execute({ outputFile: testReportPath });
+
+      expect(report.summary.orphanedLlms).toBeGreaterThan(0);
     });
 
     it('should detect inconsistent structure (missing templates)', async () => {
@@ -163,10 +163,9 @@ describe('MismatchDetectionCommand', () => {
 
       // Don't create template files - this should be detected as inconsistent
 
-      await mismatchDetectionCommand.execute({});
-      
-      // Command executed successfully without error
-      expect(true).toBe(true);
+      const report = await mismatchDetectionCommand.execute({ outputFile: testReportPath });
+
+      expect(report.summary.inconsistentStructure).toBeGreaterThan(0);
     });
 
     it('should detect inconsistent structure (missing priority.json)', async () => {
@@ -183,10 +182,9 @@ describe('MismatchDetectionCommand', () => {
 
       // Don't create priority.json - this should be detected as inconsistent
 
-      await mismatchDetectionCommand.execute({});
-      
-      // Command executed successfully without error
-      expect(true).toBe(true);
+      const report = await mismatchDetectionCommand.execute({ outputFile: testReportPath });
+
+      expect(report.summary.inconsistentStructure).toBeGreaterThan(0);
     });
 
     it('should report no mismatches when everything is consistent', async () => {
@@ -213,10 +211,66 @@ describe('MismatchDetectionCommand', () => {
         );
       }
 
-      await mismatchDetectionCommand.execute({});
+      await mismatchDetectionCommand.execute({ outputFile: testReportPath });
       
       // Command executed successfully without error
       expect(true).toBe(true);
+    });
+
+    it('should match nested documents with identical basenames to distinct LLMS directories', async () => {
+      const nestedContexts = ['action', 'ref', 'store'];
+      const documentIds = nestedContexts.map(
+        context => `guide--patterns--${context}--basic-usage`,
+      );
+
+      for (const [index, context] of nestedContexts.entries()) {
+        const sourceDir = path.join(
+          testDataDir,
+          'docs',
+          'en',
+          'guide',
+          'patterns',
+          context,
+        );
+        const documentId = documentIds[index];
+        if (!documentId) throw new Error('Expected canonical document ID');
+
+        await fs.mkdir(sourceDir, { recursive: true });
+        await fs.writeFile(
+          path.join(sourceDir, 'basic-usage.md'),
+          `# ${context} Basic Usage\n\nUnique ${context} documentation.`,
+        );
+
+        const documentDir = path.join(testDataDir, 'llmsData', 'en', documentId);
+        await fs.mkdir(documentDir, { recursive: true });
+        await fs.writeFile(
+          path.join(documentDir, 'priority.json'),
+          JSON.stringify({
+            document: {
+              id: documentId,
+              category: 'guide',
+              source_path: `en/guide/patterns/${context}/basic-usage.md`,
+            },
+          }),
+        );
+
+        for (const limit of [100, 300, 1000, 2000, 5000]) {
+          await fs.writeFile(
+            path.join(documentDir, `${documentId}-${limit}.md`),
+            `---\ndocument_id: ${documentId}\ncharacter_limit: ${limit}\n---\n`,
+          );
+        }
+      }
+
+      const report = await mismatchDetectionCommand.execute({
+        outputFile: testReportPath,
+      });
+      const nestedMismatches = report.mismatches.filter(mismatch =>
+        mismatch.sourcePath?.includes('/patterns/')
+        || documentIds.includes(path.basename(mismatch.llmsPath)),
+      );
+
+      expect(nestedMismatches).toEqual([]);
     });
   });
 
@@ -235,7 +289,7 @@ describe('MismatchDetectionCommand', () => {
         '# Missing LLMS\n\nThis document has no LLMS data.'
       );
 
-      await mismatchDetectionCommand.execute({});
+      await mismatchDetectionCommand.execute({ outputFile: testReportPath });
       
       // Command executed successfully without error
       expect(true).toBe(true);
@@ -250,7 +304,7 @@ describe('MismatchDetectionCommand', () => {
         '# Getting Started\n\nThis is a guide.'
       );
 
-      await mismatchDetectionCommand.execute({ verbose: true });
+      await mismatchDetectionCommand.execute({ verbose: true, outputFile: testReportPath });
       
       // Command executed successfully without error
       expect(true).toBe(true);
@@ -311,7 +365,7 @@ describe('MismatchDetectionCommand', () => {
         '# Getting Started\n\nThis is a comprehensive guide.'
       );
 
-      await mismatchDetectionCommand.execute({ autoFix: true });
+      await mismatchDetectionCommand.execute({ autoFix: true, outputFile: testReportPath });
       
       // Command executed successfully without error - auto-fix may or may not work
       expect(true).toBe(true);
@@ -371,7 +425,7 @@ describe('MismatchDetectionCommand', () => {
         );
       }
 
-      await mismatchDetectionCommand.execute({});
+      await mismatchDetectionCommand.execute({ outputFile: testReportPath });
       
       // Command executed successfully without error
       expect(true).toBe(true);
@@ -400,7 +454,7 @@ describe('MismatchDetectionCommand', () => {
         '---\ndocument_id: guide--multi-word-document-name\n---\n\n# Content'
       );
 
-      await mismatchDetectionCommand.execute({});
+      await mismatchDetectionCommand.execute({ outputFile: testReportPath });
       
       // Command executed successfully without error
       expect(true).toBe(true);
@@ -424,7 +478,7 @@ describe('MismatchDetectionCommand', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       
       try {
-        await badMismatchDetectionCommand.execute({});
+        await badMismatchDetectionCommand.execute({ outputFile: testReportPath });
         
         // Should handle gracefully
         expect(true).toBe(true);

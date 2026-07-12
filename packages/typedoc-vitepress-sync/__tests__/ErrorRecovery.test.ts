@@ -3,19 +3,21 @@
  */
 
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import { TypeDocVitePressSync } from '../src/index.js'
 import { CacheManager } from '../src/core/CacheManager.js'
-import { QualityValidator } from '../src/core/QualityValidator.js'
-import type { SyncConfig, ErrorRecoveryStrategies } from '../src/types/index.js'
+import type { SyncConfig } from '../src/types/index.js'
 
-// Skip error recovery tests in CI environments to avoid timeouts
-const shouldSkipErrorRecoveryTests = process.env.CI || process.env.NODE_ENV === 'test';
+const canEnforceDirectoryPermissions = process.platform !== 'win32'
+  && (typeof process.getuid !== 'function' || process.getuid() !== 0)
+const permissionTest = canEnforceDirectoryPermissions ? it : it.skip
 
-const describeErrorRecovery = shouldSkipErrorRecoveryTests ? describe.skip : describe;
-
-describeErrorRecovery('Error Recovery', () => {
-  const testDir = './.test-error-recovery'
+describe('Error Recovery', () => {
+  const testDir = path.join(
+    os.tmpdir(),
+    `typedoc-vitepress-sync-error-recovery-${process.pid}`
+  )
   const sourceDir = path.join(testDir, 'source')
   const targetDir = path.join(testDir, 'target')
   const cacheDir = path.join(testDir, 'cache')
@@ -23,6 +25,7 @@ describeErrorRecovery('Error Recovery', () => {
   const config: SyncConfig = {
     sourceDir,
     targetDir,
+    sidebarConfigPath: path.join(testDir, 'api-spec.ts'),
     packageMapping: {
       'test-package': 'test'
     },
@@ -96,27 +99,26 @@ describeErrorRecovery('Error Recovery', () => {
       expect(result.errors.errors).toBeGreaterThanOrEqual(0) // May have warnings about missing files
     })
 
-    it('should handle permission denied errors', async () => {
+    permissionTest('should handle permission denied errors', async () => {
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test\n\nContent')
-      
-      // Make target directory read-only (if possible)
+
+      // Directory permission semantics differ on Windows and for root users.
+      fs.chmodSync(targetDir, 0o444)
       try {
-        fs.chmodSync(targetDir, 0o444)
-        
         const sync = createSync(config)
         const errors: Error[] = []
-        
+
         sync.on('error', (error) => {
           errors.push(error)
         })
 
-        const result = await sync.sync()
-        
+        await sync.sync()
+
         expect(errors.length).toBeGreaterThan(0)
         expect(errors.some(e => e.message.includes('permission') || e.message.includes('EACCES'))).toBe(true)
-      } catch (chmodError) {
-        console.log('Could not set read-only permissions, skipping permission test')
+      } finally {
+        fs.chmodSync(targetDir, 0o755)
       }
     })
 
@@ -129,13 +131,6 @@ describeErrorRecovery('Error Recovery', () => {
       
       sync.on('error', (error) => {
         errors.push(error)
-      })
-
-      // Mock process.exit to prevent test termination
-      const originalExit = process.exit
-      const mockExit = jest.spyOn(process, 'exit')
-      mockExit.mockImplementation((code?: number) => {
-        throw new Error(`Process exit called with code ${code}`)
       })
 
       // Mock file system to simulate disk space error
@@ -151,13 +146,14 @@ describeErrorRecovery('Error Recovery', () => {
       })
 
       try {
-        await sync.sync()
-      } catch (error) {
-        // Expected to catch process.exit error or sync error
-        expect(error).toBeDefined()
+        const result = await sync.sync()
+
+        expect(result.filesProcessed).toBe(0)
+        expect(result.errors.errors).toBe(1)
+        expect(errors).toHaveLength(1)
+        expect((errors[0] as NodeJS.ErrnoException | undefined)?.code).toBe('ENOSPC')
       } finally {
         mockWriteFileSync.mockRestore()
-        mockExit.mockRestore()
       }
     })
 
@@ -167,20 +163,27 @@ describeErrorRecovery('Error Recovery', () => {
       // Create files with various corruption patterns
       fs.writeFileSync(path.join(packageDir, 'binary.md'), Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) // PNG header
       fs.writeFileSync(path.join(packageDir, 'invalid-utf8.md'), Buffer.from([0xFF, 0xFE, 0xFD])) // Invalid UTF-8
-      fs.writeFileSync(path.join(packageDir, 'huge.md'), 'x'.repeat(10 * 1024 * 1024)) // 10MB file
+      const hugeFile = path.join(packageDir, 'huge.md')
+      fs.writeFileSync(hugeFile, '')
+      fs.truncateSync(hugeFile, 10 * 1024 * 1024) // Sparse 10MB file
       
       const sync = createSync(config)
-      const warnings: string[] = []
+      const errors: Array<{ error: NodeJS.ErrnoException; context: string }> = []
       
-      sync.on('warning', (message) => {
-        warnings.push(message)
+      sync.on('error', (error, context) => {
+        errors.push({ error, context })
       })
 
       const result = await sync.sync()
       
-      // Should handle corrupted files gracefully
-      expect(result.filesProcessed).toBeGreaterThanOrEqual(0)
-      expect(warnings.length).toBeGreaterThanOrEqual(0)
+      expect(result.filesProcessed).toBe(2)
+      expect(errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          error: expect.objectContaining({ code: 'EFBIG' }),
+          context: expect.stringContaining('huge.md')
+        })
+      ]))
+      expect(fs.existsSync(path.join(targetDir, 'test', 'huge.md'))).toBe(false)
     })
   })
 
@@ -190,7 +193,8 @@ describeErrorRecovery('Error Recovery', () => {
       await cacheManager.initialize()
       
       // Corrupt the manifest file
-      const manifestPath = path.join(cacheDir, 'manifest.json')
+      const manifestPath = cacheManager.getConfig().manifestFile
+      expect(manifestPath).toBe(path.join(cacheDir, 'cache-manifest.json'))
       fs.writeFileSync(manifestPath, 'invalid json content {{{')
       
       // Should recover gracefully
@@ -310,7 +314,7 @@ And an internal link: [Internal](./other.md)
       expect(result.quality.totalIssues).toBeGreaterThanOrEqual(0)
       
       // Files should still be created
-      expect(fs.existsSync(path.join(targetDir, 'test-package', 'test.md'))).toBe(true)
+      expect(fs.existsSync(path.join(targetDir, 'test', 'test.md'))).toBe(true)
     })
 
     it('should handle disabled features gracefully', async () => {
@@ -395,20 +399,36 @@ And an internal link: [Internal](./other.md)
 
       try {
         const sync = createSync(config)
+        const errors: Error[] = []
+        sync.on('error', error => errors.push(error))
         const result = await sync.sync()
         
         expect(result.filesProcessed).toBeGreaterThan(0)
         expect(attempts).toBe(3) // Should have retried
+        expect(errors).toHaveLength(0)
       } finally {
         mockWriteFileSync.mockRestore()
       }
     })
 
     it('should provide error context for debugging', async () => {
-      const sync = createSync({
-        sourceDir: './nonexistent-source',
-        targetDir: './nonexistent-target'
+      const packageDir = path.join(sourceDir, 'packages', 'test-package')
+      const sourceFile = path.join(packageDir, 'test.md')
+      const targetFile = path.join(targetDir, 'test', 'test.md')
+      fs.writeFileSync(sourceFile, '# Test\n\nContent')
+
+      const originalWriteFileSync = fs.writeFileSync
+      const mockWriteFileSync = jest.spyOn(fs, 'writeFileSync')
+      mockWriteFileSync.mockImplementation((file, data, options) => {
+        if (file.toString() === targetFile) {
+          const error = new Error('EACCES: permission denied') as NodeJS.ErrnoException
+          error.code = 'EACCES'
+          throw error
+        }
+        return originalWriteFileSync(file, data, options)
       })
+
+      const sync = createSync(config)
 
       const errors: { error: Error; context: string }[] = []
       sync.on('error', (error, context) => {
@@ -416,15 +436,16 @@ And an internal link: [Internal](./other.md)
       })
 
       try {
-        await sync.sync()
-      } catch (error) {
-        // Expected to fail
-      }
+        const result = await sync.sync()
 
-      // Should provide meaningful error context
-      expect(errors.length).toBeGreaterThan(0)
-      expect(errors[0].context).toBeDefined()
-      expect(errors[0].context.length).toBeGreaterThan(0)
+        expect(result.filesProcessed).toBe(0)
+        expect(result.errors.errors).toBe(1)
+        expect(errors).toHaveLength(1)
+        expect(errors[0]?.error.message).toContain('EACCES')
+        expect(errors[0]?.context).toBe(`Processing file: ${sourceFile}`)
+      } finally {
+        mockWriteFileSync.mockRestore()
+      }
     })
 
     it('should maintain operation state during partial failures', async () => {
@@ -512,9 +533,10 @@ And an internal link: [Internal](./other.md)
         const config = sync.getConfig()
         
         // Should use valid defaults
-        expect(config.cache.ttl).toBeGreaterThan(0)
-        expect(config.parallel.maxWorkers).toBeGreaterThan(0)
-        expect(config.parallel.batchSize).toBeGreaterThan(0)
+        expect(config.cache.ttl).toBe(24 * 60 * 60 * 1000)
+        expect(config.cache.hashAlgorithm).toBe('sha256')
+        expect(config.parallel.maxWorkers).toBe(4)
+        expect(config.parallel.batchSize).toBe(10)
       }).not.toThrow()
     })
   })

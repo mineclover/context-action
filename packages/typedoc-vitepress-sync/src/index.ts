@@ -18,6 +18,23 @@ import { FileProcessor } from './core/FileProcessor.js'
 import { SidebarGenerator } from './processors/SidebarGenerator.js'
 import { ConsoleLogger } from './utils/ConsoleLogger.js'
 
+const DEFAULT_CACHE_TTL = 24 * 60 * 60 * 1000
+const DEFAULT_MAX_WORKERS = 4
+const DEFAULT_BATCH_SIZE = 10
+const VALID_HASH_ALGORITHMS = new Set(['sha256', 'sha1', 'md5'])
+
+function normalizeNonNegativeNumber(value: number | undefined, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : fallback
+}
+
+function normalizePositiveInteger(value: number | undefined, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 1
+    ? Math.floor(value)
+    : fallback
+}
+
 export class TypeDocVitePressSync {
   private config: Required<SyncConfig>
   private cache: CacheManager
@@ -63,6 +80,12 @@ export class TypeDocVitePressSync {
       throw new Error('targetDir is required')
     }
 
+    const cacheDir = config.cache?.dir || './.typedoc-vitepress-cache'
+    const requestedHashAlgorithm = config.cache?.hashAlgorithm
+    const hashAlgorithm = requestedHashAlgorithm && VALID_HASH_ALGORITHMS.has(requestedHashAlgorithm)
+      ? requestedHashAlgorithm
+      : 'sha256'
+
     return {
       sourceDir: config.sourceDir,
       targetDir: config.targetDir,
@@ -72,18 +95,16 @@ export class TypeDocVitePressSync {
         'react': 'react'
       },
       cache: {
-        enabled: true,
-        dir: './.typedoc-vitepress-cache',
-        hashAlgorithm: 'sha256',
-        ttl: 24 * 60 * 60 * 1000, // 24 hours
-        manifestFile: './.typedoc-vitepress-cache/cache-manifest.json',
-        ...config.cache
+        enabled: config.cache?.enabled ?? true,
+        dir: cacheDir,
+        hashAlgorithm,
+        ttl: normalizeNonNegativeNumber(config.cache?.ttl, DEFAULT_CACHE_TTL),
+        manifestFile: config.cache?.manifestFile || path.join(cacheDir, 'cache-manifest.json')
       },
       parallel: {
-        enabled: true,
-        maxWorkers: 4,
-        batchSize: 10,
-        ...config.parallel
+        enabled: config.parallel?.enabled ?? true,
+        maxWorkers: normalizePositiveInteger(config.parallel?.maxWorkers, DEFAULT_MAX_WORKERS),
+        batchSize: normalizePositiveInteger(config.parallel?.batchSize, DEFAULT_BATCH_SIZE)
       },
       quality: {
         validateLinks: true,
@@ -124,10 +145,9 @@ export class TypeDocVitePressSync {
         const targetPackagePath = path.join(this.config.targetDir, targetName)
 
         if (!fs.existsSync(sourcePackagePath)) {
-          this.errorHandler.addWarning(
-            `Package source path does not exist: ${sourcePackagePath}`,
-            'sync'
-          )
+          const message = `Package source path does not exist: ${sourcePackagePath}`
+          this.errorHandler.addWarning(message, 'sync')
+          this.emit('warning', message, 'sync')
           continue
         }
 
@@ -187,9 +207,11 @@ export class TypeDocVitePressSync {
       return result
 
     } catch (error) {
-      this.events.error?.(error as Error, 'sync')
-      this.errorHandler.handleError(error as Error, 'sync')
-      throw error
+      const syncError = error instanceof Error ? error : new Error(String(error))
+      this.emit('error', syncError, 'sync')
+      this.events.error?.(syncError, 'sync')
+      this.errorHandler.handleError(syncError, 'sync')
+      throw syncError
     }
   }
 
@@ -372,7 +394,8 @@ export class TypeDocVitePressSync {
       this.validator,
       this.metrics,
       this.errorHandler,
-      this.logger
+      this.logger,
+      this.emit.bind(this)
     )
   }
 

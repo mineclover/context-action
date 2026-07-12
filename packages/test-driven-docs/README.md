@@ -14,15 +14,16 @@ A powerful test-driven documentation generator that extracts examples from test 
 ⚡ **Fast**: Optimized parsing and generation pipeline
 🔧 **Configurable**: Extensive customization options
 
-## Installation
+## Repository-internal setup
+
+This package is `private: true` and is not published to the npm registry. From the Context-Action repository root, install its standalone npm dependencies and build it before use:
 
 ```bash
-npm install @context-action/test-driven-docs
-# or
-yarn add @context-action/test-driven-docs
-# or
-pnpm add @context-action/test-driven-docs
+npm --prefix packages/test-driven-docs ci
+npm --prefix packages/test-driven-docs run build
 ```
+
+Repository-owned consumers can link the package locally instead of requesting a registry version. For a sibling package under `packages/`, use `"@context-action/test-driven-docs": "file:../test-driven-docs"` in its dependencies and run its package-manager install. The package-name imports below assume this local link (or package self-reference).
 
 ## Quick Start
 
@@ -30,22 +31,22 @@ pnpm add @context-action/test-driven-docs
 
 1. **Initialize configuration:**
 ```bash
-npx test-driven-docs init
+node packages/test-driven-docs/dist/cli/index.js init
 ```
 
 2. **Generate documentation:**
 ```bash
 # Basic generation
-npx test-driven-docs generate
+node packages/test-driven-docs/dist/cli/index.js generate
 
 # Enhanced generation with annotations
-npx test-driven-docs generate --enhanced --github-repo https://github.com/your-org/your-repo
+node packages/test-driven-docs/dist/cli/index.js generate --enhanced --github-repo https://github.com/your-org/your-repo
 
 # Generate with validation
-npx test-driven-docs generate --with-validation
+node packages/test-driven-docs/dist/cli/index.js generate --with-validation
 
 # Validate existing documentation
-npx test-driven-docs validate --consistency
+node packages/test-driven-docs/dist/cli/index.js validate --consistency
 ```
 
 ### Programmatic Usage
@@ -69,7 +70,7 @@ console.log(`Generated docs for ${result.apisGenerated.length} APIs`);
 ### CLI Options
 
 ```bash
-test-driven-docs generate [options]
+node packages/test-driven-docs/dist/cli/index.js generate [options]
 
 Options:
   -p, --packages-dir <dir>    Directory containing packages (default: "./packages")
@@ -85,7 +86,7 @@ Options:
   --github-repo <url>        GitHub repository URL for enhanced links
   --config <file>            Path to configuration file
 
-test-driven-docs validate [options]
+node packages/test-driven-docs/dist/cli/index.js validate [options]
 
 Options:
   --consistency              Validate test-documentation consistency
@@ -286,9 +287,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm install
-      - run: npx test-driven-docs generate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm --prefix packages/test-driven-docs ci
+      - run: npm --prefix packages/test-driven-docs run build
+      - run: node packages/test-driven-docs/dist/cli/index.js generate
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -373,7 +377,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## License
 
-MIT © Context-Action Team
+Apache-2.0 © Context-Action Team
 
 ## Related
 

@@ -1,6 +1,12 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
+import {
+  CanonicalDocumentIdentity,
+  getCanonicalDocumentIdentity,
+  getCanonicalDocumentKey,
+  normalizeDocumentPath,
+} from '../../core/DocumentIdentity.js';
 // Note: exec utilities available but not currently used
 // import { exec } from 'child_process';
 // import { promisify } from 'util';
@@ -19,6 +25,7 @@ export interface SyncDocsOptions {
 
 export interface DocumentChange {
   filePath: string;
+  sourcePath: string;
   changeType: 'added' | 'modified' | 'deleted';
   category: string;
   language: string;
@@ -29,6 +36,20 @@ export interface DocumentChange {
     llmsFiles: string[];
   };
 }
+
+interface ResolvedDocumentFile {
+  absolutePath: string;
+  identity: CanonicalDocumentIdentity;
+}
+
+type PriorityDocumentCategory = 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms';
+type PriorityTier = 'critical' | 'essential' | 'important' | 'reference' | 'supplementary';
+type ExtractionStrategy =
+  | 'concept-first'
+  | 'example-first'
+  | 'api-first'
+  | 'tutorial-first'
+  | 'reference-first';
 
 export class SyncDocsCommand {
   constructor(private config: EnhancedLLMSConfig) {}
@@ -58,7 +79,7 @@ export class SyncDocsCommand {
       const validChangedFiles = await this.validateAndFilterChangedFiles(options.changedFiles, options);
       
       if (!options.quiet) {
-        console.log(`🔍 Valid files after filtering: ${validChangedFiles.join(', ')}`);
+        console.log(`🔍 Valid files after filtering: ${validChangedFiles.map(file => file.identity.relativeSourcePath).join(', ')}`);
       }
       
       if (validChangedFiles.length === 0) {
@@ -70,7 +91,7 @@ export class SyncDocsCommand {
 
       if (!options.quiet) {
         console.log(`🔍 Processing ${validChangedFiles.length} changed file(s):`);
-        validChangedFiles.forEach(file => console.log(`   - ${file}`));
+        validChangedFiles.forEach(file => console.log(`   - ${file.identity.relativeSourcePath}`));
         console.log();
       }
 
@@ -114,48 +135,94 @@ export class SyncDocsCommand {
     }
   }
 
-  private async validateAndFilterChangedFiles(changedFiles: string[], options: SyncDocsOptions): Promise<string[]> {
-    const validFiles: string[] = [];
+  private async validateAndFilterChangedFiles(
+    changedFiles: string[],
+    options: SyncDocsOptions,
+  ): Promise<ResolvedDocumentFile[]> {
+    const validFiles = new Map<string, ResolvedDocumentFile>();
 
-    for (let filePath of changedFiles) {
-      // 절대 경로를 상대 경로로 변환
-      if (path.isAbsolute(filePath)) {
-        const cwd = process.cwd();
-        filePath = path.relative(cwd, filePath);
-      }
-
-      // docs/(en|ko)/**/*.md 패턴만 처리
-      const docMatch = filePath.match(/^docs\/(en|ko)\/.*\.md$/);
-      if (!docMatch || !docMatch[1]) {
-        continue;
-      }
-
-      const language = docMatch[1]; // 'en' 또는 'ko'
+    for (const filePath of changedFiles) {
+      const resolvedFile = this.resolveChangedFile(filePath);
+      if (!resolvedFile || !['en', 'ko'].includes(resolvedFile.identity.language)) continue;
 
       // 언어 필터링 적용
-      if (!this.shouldProcessLanguage(language, options)) {
+      if (!this.shouldProcessLanguage(resolvedFile.identity.language, options)) {
         if (!options.quiet) {
-          console.log(`⏭️  Skipping ${language} document: ${filePath}`);
+          console.log(`⏭️  Skipping ${resolvedFile.identity.language} document: ${filePath}`);
         }
         continue;
       }
 
       // llms/ 디렉토리는 제외 (무한 루프 방지)
-      if (filePath.includes('/llms/')) {
+      if (resolvedFile.identity.relativeSourcePath.includes('/llms/')) {
         continue;
       }
 
       // 파일 존재 여부 확인 (삭제된 파일도 처리 필요)
       try {
-        await fs.access(filePath);
-        validFiles.push(filePath);
+        await fs.access(resolvedFile.absolutePath);
+        validFiles.set(
+          getCanonicalDocumentKey(
+            resolvedFile.identity.language,
+            resolvedFile.identity.documentId,
+          ),
+          resolvedFile,
+        );
       } catch {
         // 삭제된 파일도 처리할 수 있지만, 현재는 존재하는 파일만 처리
         continue;
       }
     }
 
-    return validFiles;
+    return [...validFiles.values()];
+  }
+
+  private resolveChangedFile(filePath: string): ResolvedDocumentFile | null {
+    const docsDir = path.resolve(this.config.paths?.docsDir || './docs');
+    const normalizedInput = normalizeDocumentPath(filePath).replace(/^\.\//, '');
+    let absolutePath: string;
+
+    if (path.isAbsolute(filePath)) {
+      absolutePath = path.resolve(filePath);
+    } else {
+      const cwdCandidate = path.resolve(process.cwd(), ...normalizedInput.split('/'));
+      const cwdRelativePath = path.relative(docsDir, cwdCandidate);
+      const cwdCandidateIsInDocs = cwdRelativePath !== '..'
+        && !cwdRelativePath.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(cwdRelativePath);
+
+      if (cwdCandidateIsInDocs) {
+        absolutePath = cwdCandidate;
+      } else {
+        const docsDirectoryName = path.basename(docsDir);
+        const sourcePrefix = normalizedInput.startsWith(`${docsDirectoryName}/`)
+          ? `${docsDirectoryName}/`
+          : normalizedInput.startsWith('docs/')
+            ? 'docs/'
+            : '';
+        const relativeInput = sourcePrefix
+          ? normalizedInput.slice(sourcePrefix.length)
+          : normalizedInput;
+
+        if (!/^(?:en|ko)\//.test(relativeInput)) {
+          return null;
+        }
+
+        absolutePath = path.resolve(docsDir, ...relativeInput.split('/'));
+      }
+    }
+
+    const relativePath = path.relative(docsDir, absolutePath);
+    if (
+      relativePath === '..'
+      || relativePath.startsWith(`..${path.sep}`)
+      || path.isAbsolute(relativePath)
+    ) {
+      return null;
+    }
+
+    const identity = getCanonicalDocumentIdentity(normalizeDocumentPath(relativePath));
+    return identity ? { absolutePath, identity } : null;
   }
 
   private shouldProcessLanguage(language: string, options: SyncDocsOptions): boolean {
@@ -183,51 +250,34 @@ export class SyncDocsCommand {
     return true;
   }
 
-  private async analyzeChanges(validFiles: string[]): Promise<DocumentChange[]> {
+  private async analyzeChanges(validFiles: ResolvedDocumentFile[]): Promise<DocumentChange[]> {
     const changes: DocumentChange[] = [];
 
-    for (const filePath of validFiles) {
+    for (const file of validFiles) {
       try {
-        const change = await this.analyzeDocumentChange(filePath);
+        const change = await this.analyzeDocumentChange(file);
         if (change) {
           changes.push(change);
         }
       } catch (error) {
-        console.warn(`⚠️  Warning: Could not analyze ${filePath}:`, error instanceof Error ? error.message : error);
+        console.warn(`⚠️  Warning: Could not analyze ${file.absolutePath}:`, error instanceof Error ? error.message : error);
       }
     }
 
     return changes;
   }
 
-  private async analyzeDocumentChange(filePath: string): Promise<DocumentChange | null> {
-    // 파일 경로에서 정보 추출: docs/언어/카테고리/파일명.md
-    const pathParts = filePath.split('/');
-    if (pathParts.length < 3) {
-      return null;
-    }
-
-    const language = pathParts[1]; // en 또는 ko
-    const category = pathParts[2]; // guide, concept, api 등
-    
-    if (!language || !category) {
-      return null;
-    }
-    
-    const fileName = path.basename(filePath, '.md');
-    
-    // documentId 생성: language_category_filename
-    const documentId = `${language}_${category}_${fileName}`;
-
+  private async analyzeDocumentChange(file: ResolvedDocumentFile): Promise<DocumentChange> {
     // 기본 character limits (config에서 가져오거나 기본값 사용)
     const characterLimits = this.config.generation?.characterLimits || [100, 300, 500, 1000];
 
     return {
-      filePath,
+      filePath: file.absolutePath,
+      sourcePath: file.identity.relativeSourcePath,
       changeType: 'modified', // 현재는 수정된 파일만 처리
-      category,
-      language,
-      documentId,
+      category: file.identity.category,
+      language: file.identity.language,
+      documentId: file.identity.documentId,
       affectedOutputs: {
         priorityJson: true, // 항상 priority.json 업데이트
         templates: characterLimits, // 모든 character limits의 템플릿 업데이트
@@ -303,18 +353,28 @@ export class SyncDocsCommand {
         const existingPriority = JSON.parse(existingContent);
         
         // 소스 파일이 더 최신인지 확인
-        const priorityModified = new Date(existingPriority.source?.lastModified || 0);
+        const priorityModified = new Date(
+          existingPriority.metadata?.source_last_modified
+          || existingPriority.source?.lastModified
+          || 0,
+        );
         const sourceModified = new Date(sourceStats.mtime);
         
         if (sourceModified > priorityModified) {
           // 업데이트 필요 - 기존 메타데이터 유지하면서 업데이트
           const updatedPriority = {
             ...existingPriority,
-            lastUpdated: new Date().toISOString(),
-            source: {
-              ...existingPriority.source,
-              file: change.filePath,
-              lastModified: sourceStats.mtime.toISOString()
+            document: {
+              ...existingPriority.document,
+              id: change.documentId,
+              category: change.category,
+              source_path: change.sourcePath,
+            },
+            metadata: {
+              ...existingPriority.metadata,
+              language: change.language,
+              last_updated: new Date().toISOString(),
+              source_last_modified: sourceStats.mtime.toISOString(),
             }
           };
           
@@ -327,21 +387,11 @@ export class SyncDocsCommand {
       
       // 새로 생성
       const sourceContent = await fs.readFile(change.filePath, 'utf-8');
-      const title = this.extractTitle(sourceContent) || path.basename(change.filePath, '.md');
-      
-      const defaultPriority = {
-        documentId: change.documentId,
-        title: title,
-        category: change.category,
-        language: change.language,
-        priority: 0.5,
-        tags: this.extractTags(sourceContent),
-        lastUpdated: new Date().toISOString(),
-        source: {
-          file: change.filePath,
-          lastModified: sourceStats.mtime.toISOString()
-        }
-      };
+      const defaultPriority = this.buildDefaultPriority(
+        change,
+        sourceContent,
+        sourceStats,
+      );
 
       await fs.mkdir(path.dirname(priorityPath), { recursive: true });
       await fs.writeFile(priorityPath, JSON.stringify(defaultPriority, null, 2));
@@ -351,6 +401,196 @@ export class SyncDocsCommand {
       console.warn(`⚠️  Warning: Could not process priority.json for ${change.documentId}:`, error instanceof Error ? error.message : error);
       return null;
     }
+  }
+
+  /** Build the complete enhanced-schema shape for a newly discovered document. */
+  private buildDefaultPriority(
+    change: DocumentChange,
+    sourceContent: string,
+    sourceStats: { mtime: Date; size: number },
+  ) {
+    const rawTitle = this.extractTitle(sourceContent)
+      || path.basename(change.filePath, '.md');
+    const title = rawTitle.trim().slice(0, 200)
+      || path.basename(change.filePath, '.md').slice(0, 200);
+    const category = this.getPriorityDocumentCategory(change.category);
+    const extractedTags = this.extractTags(sourceContent);
+    const titleKeywords = title
+      .toLowerCase()
+      .split(/[^\p{L}\p{N}_-]+/u)
+      .filter(keyword => keyword.length > 1);
+    const primaryKeywords = this.uniqueStrings([
+      change.category,
+      ...extractedTags,
+      ...titleKeywords,
+    ]).slice(0, 5);
+    const technicalKeywords = this.uniqueStrings([
+      ...extractedTags,
+      change.category,
+      'context-action',
+    ]);
+    const functionalKeywords = this.uniqueStrings([
+      category,
+      'documentation',
+      'framework',
+    ]);
+    const now = new Date();
+    const timestamp = now.toISOString();
+    const date = timestamp.slice(0, 10);
+    const score = 50;
+    const description = `${title} is ${category} documentation for the Context-Action framework, covering core concepts and practical usage.`;
+    const characterLimits = Object.fromEntries(
+      [...new Set(change.affectedOutputs.templates)].map(limit => [
+        String(limit),
+        {
+          focus: `Summarize the essential ${category} information from ${title}.`,
+          structure: 'Lead with the main purpose, then preserve actionable details.',
+          must_include: [title, ...primaryKeywords.slice(0, 2)],
+          avoid: ['Unsupported claims', 'Unrelated implementation details'],
+        },
+      ]),
+    );
+
+    return {
+      document: {
+        id: change.documentId,
+        title,
+        category,
+        source_path: change.sourcePath,
+        lastModified: sourceStats.mtime.toISOString(),
+        wordCount: this.countWords(sourceContent),
+      },
+      priority: {
+        score,
+        tier: this.getPriorityTier(score),
+        rationale: 'Default priority assigned during documentation synchronization.',
+        reviewDate: date,
+        autoCalculated: true,
+      },
+      purpose: {
+        primary_goal: `Understand and apply the guidance in ${title}.`,
+        target_audience: ['framework-users'],
+        use_cases: [
+          `Learn the ${category} concepts described in ${title}.`,
+          'Use the document as an implementation reference.',
+        ],
+        learning_objectives: [
+          `Identify the essential ideas and usage guidance in ${title}.`,
+        ],
+      },
+      keywords: {
+        primary: primaryKeywords,
+        technical: technicalKeywords,
+        functional: functionalKeywords,
+      },
+      extraction: {
+        strategy: this.getExtractionStrategy(category),
+        character_limits: characterLimits,
+        emphasis: {
+          must_include: [title, ...primaryKeywords.slice(0, 2)],
+          nice_to_have: technicalKeywords.slice(0, 5),
+          contextual_keywords: primaryKeywords,
+        },
+      },
+      tags: {
+        primary: [this.getPrimaryTag(category)],
+        secondary: primaryKeywords,
+        audience: ['framework-users'],
+        complexity: 'basic',
+        lastUpdated: date,
+      },
+      dependencies: {
+        prerequisites: [],
+        references: [],
+        followups: [],
+        conflicts: [],
+        complements: [],
+      },
+      metadata: {
+        description,
+        language: change.language,
+        created: date,
+        updated: date,
+        version: '1.0.0',
+        original_size: sourceStats.size,
+        created_at: timestamp,
+        source_last_modified: sourceStats.mtime.toISOString(),
+        keywords: {
+          primary: primaryKeywords,
+          technical: technicalKeywords,
+          functional: functionalKeywords,
+        },
+      },
+    };
+  }
+
+  private getPriorityDocumentCategory(category: string): PriorityDocumentCategory {
+    switch (category) {
+      case 'guide':
+      case 'api':
+      case 'concept':
+      case 'example':
+      case 'reference':
+      case 'llms':
+        return category;
+      case 'examples':
+        return 'example';
+      case 'context-layered':
+        return 'concept';
+      default:
+        return 'guide';
+    }
+  }
+
+  private getPriorityTier(score: number): PriorityTier {
+    if (score >= 90) return 'critical';
+    if (score >= 80) return 'essential';
+    if (score >= 60) return 'important';
+    if (score >= 40) return 'reference';
+    return 'supplementary';
+  }
+
+  private getExtractionStrategy(category: PriorityDocumentCategory): ExtractionStrategy {
+    switch (category) {
+      case 'api':
+        return 'api-first';
+      case 'concept':
+        return 'concept-first';
+      case 'example':
+        return 'example-first';
+      case 'guide':
+        return 'tutorial-first';
+      case 'reference':
+      case 'llms':
+        return 'reference-first';
+    }
+  }
+
+  private getPrimaryTag(
+    category: PriorityDocumentCategory,
+  ): 'tutorial' | 'reference' | 'theory' | 'sample' | 'technical' {
+    switch (category) {
+      case 'guide':
+        return 'tutorial';
+      case 'concept':
+        return 'theory';
+      case 'example':
+        return 'sample';
+      case 'api':
+      case 'reference':
+        return 'reference';
+      case 'llms':
+        return 'technical';
+    }
+  }
+
+  private uniqueStrings(values: string[]): string[] {
+    return [...new Set(values.map(value => value.trim()).filter(Boolean))];
+  }
+
+  private countWords(content: string): number {
+    const normalized = content.trim();
+    return normalized.length === 0 ? 0 : normalized.split(/\s+/u).length;
   }
 
   private async updateTemplates(change: DocumentChange, quiet = false): Promise<string[]> {
@@ -406,15 +646,17 @@ export class SyncDocsCommand {
 
   private getPriorityJsonPath(change: DocumentChange): string {
     const llmsDataDir = this.config.paths?.llmContentDir || './llmsData';
-    const fileName = path.basename(change.filePath, '.md');
-    const docDirName = `${change.category}--${fileName}`;
-    return path.join(llmsDataDir, change.language, docDirName, 'priority.json');
+    return path.join(llmsDataDir, change.language, change.documentId, 'priority.json');
   }
   
   private getTemplatePath(change: DocumentChange, characterLimit: number): string {
     const llmsDataDir = this.config.paths?.llmContentDir || './llmsData';
-    const fileName = path.basename(change.filePath, '.md');
-    return path.join(llmsDataDir, change.language, change.category, `${fileName}-${characterLimit}.md`);
+    return path.join(
+      llmsDataDir,
+      change.language,
+      change.documentId,
+      `${change.documentId}-${characterLimit}.md`,
+    );
   }
   
   private extractTitle(content: string): string | null {
@@ -466,7 +708,7 @@ export class SyncDocsCommand {
     const frontmatter = `---
 document_id: ${change.documentId}
 category: ${change.category}
-source_path: ${change.filePath.replace('docs/', '')}
+source_path: ${change.sourcePath}
 character_limit: ${characterLimit}
 last_update: '${new Date().toISOString()}'
 update_status: auto_generated

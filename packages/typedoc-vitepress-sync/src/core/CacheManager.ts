@@ -24,13 +24,13 @@ export class CacheManager {
   private logger: Logger | undefined
 
   constructor(config: CacheConfig, logger?: Logger) {
+    const cacheDir = config.dir || './.typedoc-vitepress-cache'
     this.config = {
-      enabled: true,
-      dir: './.typedoc-vitepress-cache',
-      hashAlgorithm: 'sha256',
-      ttl: 24 * 60 * 60 * 1000, // 24 hours
-      manifestFile: './.typedoc-vitepress-cache/cache-manifest.json',
-      ...config
+      enabled: config.enabled ?? true,
+      dir: cacheDir,
+      hashAlgorithm: config.hashAlgorithm ?? 'sha256',
+      ttl: config.ttl ?? 24 * 60 * 60 * 1000, // 24 hours
+      manifestFile: config.manifestFile || path.join(cacheDir, 'cache-manifest.json')
     }
     this.logger = logger
   }

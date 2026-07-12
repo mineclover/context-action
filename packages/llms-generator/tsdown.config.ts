@@ -6,27 +6,20 @@ export default {
     'cli/index': 'src/cli/index.ts'
   },
   format: ['esm'],
-  target: 'node18',
+  target: 'node24',
   tsconfig: './tsconfig.json',
   clean: true,
+  fixedExtension: false,
+  hash: false,
   dts: true,
   shims: true,
   banner: {
     'cli/index': '#!/usr/bin/env node',
   },
-  esbuildOptions: {
-    conditions: ['node'],
-    // Bundle optimization
-    treeShaking: true,
-    minify: false, // Keep readable for debugging
-    splitting: true, // Enable code splitting
-  },
+  treeshake: true,
+  minify: false,
   // Optimize external dependencies
-  external: [
-    'commander',
-    'yaml',
-    'ajv',
-    'ajv-formats',
-    'gray-matter'
-  ]
+  deps: {
+    neverBundle: ['commander', 'gray-matter'],
+  },
 };

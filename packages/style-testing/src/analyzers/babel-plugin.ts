@@ -7,7 +7,6 @@ import type { PluginObj, PluginPass } from '@babel/core';
 import type * as BabelTypes from '@babel/types';
 
 interface PluginState extends PluginPass {
-  filename?: string;
   componentName?: string;
 }
 

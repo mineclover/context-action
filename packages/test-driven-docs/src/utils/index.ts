@@ -108,7 +108,7 @@ export function isValidApiPattern(code: string): boolean {
  */
 export function extractMeaningfulLines(code: string): string[] {
   return code
-    .split('\\n')
+    .split('\n')
     .map(line => line.trim())
     .filter(line => {
       if (!line) return false;
@@ -128,7 +128,7 @@ export function calculateCodeMetrics(code: string): {
   conditionals: number;
   loops: number;
 } {
-  const lines = code.split('\\n').length;
+  const lines = code.split('\n').length;
   const meaningfulLines = extractMeaningfulLines(code).length;
   const asyncOperations = (code.match(/await|Promise|async/g) || []).length;
   const conditionals = (code.match(/if|else|switch|case|\?/g) || []).length;
@@ -187,7 +187,7 @@ export function generateExampleId(description: string, packageName: string): str
  * Deep merge two objects
  */
 export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
-  const result = { ...target };
+  const result: Record<string, any> = { ...target };
 
   Object.keys(source).forEach(key => {
     const sourceValue = source[key];
@@ -207,5 +207,5 @@ export function deepMerge<T extends Record<string, any>>(target: T, source: Part
     }
   });
 
-  return result;
+  return result as T;
 }

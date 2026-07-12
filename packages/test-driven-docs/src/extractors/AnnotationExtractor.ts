@@ -68,6 +68,7 @@ export class AnnotationExtractor {
       extractId,
       category: 'basic-usage',
       priority: 'medium',
+      description: undefined,
       lineNumber: startLine + 1
     };
 
@@ -78,7 +79,7 @@ export class AnnotationExtractor {
 
       if (line && line.includes('@doc-category:')) {
         const category = line.split('@doc-category:')[1]?.trim() || '';
-        annotation.category = this.mapToValidCategory(category);
+        annotation.category = category || 'basic-usage';
       } else if (line && line.includes('@doc-priority:')) {
         const priority = line.split('@doc-priority:')[1]?.trim() as 'high' | 'medium' | 'low';
         if (priority) annotation.priority = priority;
@@ -163,21 +164,6 @@ export class AnnotationExtractor {
   /**
    * Map category to valid category type
    */
-  private mapToValidCategory(category: string): ExampleCategory {
-    const categoryMap: Record<string, ExampleCategory> = {
-      'getting-started': 'basic-usage',
-      'basic': 'basic-usage',
-      'advanced': 'advanced-patterns',
-      'patterns': 'advanced-patterns',
-      'performance': 'performance',
-      'errors': 'error-handling',
-      'integration': 'integration',
-      'async': 'async-patterns'
-    };
-
-    return categoryMap[category] || 'basic-usage';
-  }
-
   // New method for the updated API
   extractAnnotations(content: string): { annotations: DocAnnotation[]; errors: string[] } {
     const annotations: DocAnnotation[] = [];
@@ -221,7 +207,7 @@ export class AnnotationExtractor {
    */
   private cleanTestCode(testCode: string): string {
     // Extract the test function body
-    const match = testCode.match(/it\([^,]+,\s*(?:async\s+)?\(\)\s*=>\s*\{([\s\S]*)\}\);?$/);
+    const match = testCode.match(/^\s*it\([^,]+,\s*(?:async\s+)?\(\)\s*=>\s*\{([\s\S]*)\}(?:\);?)?\s*$/);
     if (!match || !match[1]) return testCode;
 
     let code = match[1];
@@ -229,6 +215,7 @@ export class AnnotationExtractor {
     // Remove test-specific artifacts
     code = code.replace(/\/\/ @doc-extract:.*\n/g, '');
     code = code.replace(/expect\([^)]*\)[^;]*;?\n?/g, '');
+    code = code.replace(/const\s+\w*mock\w*\s*=\s*jest\.fn\([^;]*;?\n?/gi, '');
     code = code.replace(/const\s+{\s*[^}]*\s*}\s*=\s*render\([^)]*\);?\n?/g, '');
     code = code.replace(/fireEvent\.[^;]*;?\n?/g, '');
     code = code.replace(/await\s+waitFor\([^}]*}\);?\n?/g, '');

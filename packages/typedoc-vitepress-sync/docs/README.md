@@ -2,6 +2,8 @@
 
 Welcome to the comprehensive documentation for `@context-action/typedoc-vitepress-sync`.
 
+Supported development baseline: Node.js 24.11.0 or newer and TypeScript 6.0.3.
+
 ## 📚 Documentation Structure
 
 - **[Getting Started](./getting-started.md)** - Quick start guide and basic setup
@@ -61,4 +63,4 @@ console.log(`Processed ${result.filesProcessed} files in ${result.processingTime
 
 ## 📄 License
 
-MIT © [mineclover](https://github.com/mineclover)
+Apache-2.0 © [mineclover](https://github.com/mineclover)

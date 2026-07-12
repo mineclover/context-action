@@ -78,10 +78,16 @@ export class ConsistencyValidator {
   private testDir: string;
   private docsDir: string;
 
-  constructor(config: { packagesDir: string; packages: string[] }) {
-    this.config = config;
-    this.testDir = config.packagesDir;
-    this.docsDir = './docs';
+  constructor(config: { packagesDir: string; packages: string[] } | string, docsDir = './docs') {
+    if (typeof config === 'string') {
+      this.config = { packagesDir: config, packages: [] };
+      this.testDir = config;
+      this.docsDir = docsDir;
+    } else {
+      this.config = config;
+      this.testDir = config.packagesDir;
+      this.docsDir = docsDir;
+    }
   }
 
   // New methods for the enhanced API
@@ -591,6 +597,19 @@ export class ConsistencyValidator {
 
     await walkDir(this.testDir);
     return files;
+  }
+
+  private extractApiName(testFile: string): string {
+    return path.basename(testFile).replace(/\.usage\.test\.tsx$/, '');
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
 }

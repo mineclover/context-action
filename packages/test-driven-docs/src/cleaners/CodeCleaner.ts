@@ -74,9 +74,14 @@ export class CodeCleaner {
       ''
     );
 
-    // Remove test-specific variables
+    // Remove spies/stubs created by test helpers. Keep jest.fn() mocks so the
+    // realistic conversion below can turn them into executable examples.
     cleaned = cleaned.replace(
-      /const\s+(?:spy|mock|stub)\w*\s*=\s*[^;]+;\s*/g,
+      /const\s+(?:spy|stub)\w*\s*=\s*[^;]+;\s*/g,
+      ''
+    );
+    cleaned = cleaned.replace(
+      /const\s+mock\w*\s*=(?!\s*jest\.fn\(\))\s*[^;]+;\s*/g,
       ''
     );
 
@@ -184,21 +189,21 @@ export class CodeCleaner {
 
     if (code.includes('register(')) {
       commented = commented.replace(
-        /(\\.register\\([^}]+}\\);)/,
+        /(\w+\.register\([^;]+;)/,
         '// Register action handler\n$1'
       );
     }
 
     if (code.includes('dispatch(')) {
       commented = commented.replace(
-        /(\\.dispatch\\([^)]+\\))/,
+        /(\w+\.dispatch\([^;]+;?)/,
         '// Dispatch action\n$1'
       );
     }
 
     if (code.includes('useStoreValue')) {
       commented = commented.replace(
-        /(const\\s+\\w+\\s*=\\s*useStoreValue[^;]+;)/,
+        /(const\s+\w+\s*=\s*useStoreValue[^;]+;)/,
         '// Subscribe to store value\n$1'
       );
     }
@@ -231,7 +236,7 @@ export class CodeCleaner {
     if (interfaces.length > 0) {
       completeExample += '// Type definitions\n';
       interfaces.forEach(interface_ => {
-        completeExample += `${interface_.fullDefinition}\n\n`;
+        completeExample += `${interface_.fullDefinition ?? interface_.definition ?? ''}\n\n`;
       });
     }
 
@@ -259,11 +264,27 @@ export class CodeCleaner {
    * Generate multiple format variations
    */
   generateVariations(code: string, context: ParsedTestData): Record<string, string> {
+    const completeContext = context?.imports && context?.interfaces && context?.setup && context?.examples
+      ? context
+      : this.emptyParsedTestData();
+
     return {
       minimal: this.createMinimalExample(code),
-      complete: this.createCompleteExample(context),
+      complete: this.createCompleteExample(completeContext),
       interactive: this.createInteractiveExample(code),
       copyPaste: this.createCopyPasteExample(code)
+    };
+  }
+
+  private emptyParsedTestData(): ParsedTestData {
+    return {
+      metadata: { fileName: '', mainSuite: null, description: null, testCount: 0, tags: [] },
+      imports: [],
+      interfaces: [],
+      setup: [],
+      examples: [],
+      packageName: '',
+      filePath: ''
     };
   }
 
@@ -309,7 +330,7 @@ export class CodeCleaner {
    * Create copy-paste ready example
    */
   private createCopyPasteExample(code: string): string {
-    let copyPaste = this.cleanCode(code, { realistic: true });
+    let copyPaste = this.cleanCode(code);
 
     // Add helpful variable names
     copyPaste = copyPaste.replace(/actionRegister/g, 'myActionRegister');

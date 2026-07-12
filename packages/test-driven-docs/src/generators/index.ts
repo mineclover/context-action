@@ -7,7 +7,6 @@
 
 export { EnhancedMarkdownGenerator } from './EnhancedMarkdownGenerator.js';
 export type {
-  EnhancedDocumentationResult,
-  CategoryExamples,
-  ExampleMetadata
+  EnhancedDocConfig,
+  LegacyMarkdownExample
 } from './EnhancedMarkdownGenerator.js';

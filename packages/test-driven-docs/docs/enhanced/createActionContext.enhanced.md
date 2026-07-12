@@ -206,14 +206,11 @@
 
 **검증 명령어:**
 ```bash
-# 전체 문서 예제 검증
-pnpm docs:validate-docs
+# Enhanced 문서 재생성 (standalone 도구 빌드 포함)
+npm --prefix packages/test-driven-docs run build && node packages/test-driven-docs/dist/cli/index.js generate --enhanced --packages react
 
-# 특정 API 검증
-pnpm docs:validate-docs --api=createActionContext
-
-# 테스트에서 문서 재생성
-pnpm docs:extract-from-tests
+# 생성된 문서와 테스트의 일관성 검증
+node packages/test-driven-docs/dist/cli/index.js validate --consistency --packages react
 ```
 
 **관련 파일:**
@@ -243,6 +240,6 @@ pnpm docs:extract-from-tests
 
 ---
 
-> 💡 **참고**: 이 문서를 수정하려면 해당 테스트 파일의 어노테이션을 수정하고 `pnpm docs:extract-from-tests`를 실행하세요.
+> 💡 **참고**: 이 문서를 수정하려면 해당 테스트 파일의 어노테이션을 수정하고 `npm --prefix packages/test-driven-docs run build && node packages/test-driven-docs/dist/cli/index.js generate --enhanced --packages react`를 실행하세요.
 
 > 🔧 **생성 도구**: [@context-action/test-driven-docs](https://www.npmjs.com/package/@context-action/test-driven-docs)

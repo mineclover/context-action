@@ -1,16 +1,21 @@
 /** @type {import('jest').Config} */
 /* eslint-env node */
 /* global process */
+const shouldRunSlowTests = process.env.RUN_SLOW_TESTS === '1'
+  || process.env.npm_lifecycle_event === 'test:performance'
+
 module.exports = {
-  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      useESM: true
+    '^.+\\.ts$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'typescript' },
+        target: 'es2020'
+      },
+      module: { type: 'commonjs' }
     }]
   },
   testMatch: [
@@ -27,9 +32,8 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   testTimeout: process.env.CI ? 60000 : 30000, // Longer timeout in CI
   // Skip slow integration tests in CI unless explicitly enabled  
-  testPathIgnorePatterns: process.env.CI && !process.env.RUN_SLOW_TESTS ? [
-    '<rootDir>/__tests__/Performance.test.ts',
-    '<rootDir>/__tests__/ErrorRecovery.test.ts'
+  testPathIgnorePatterns: process.env.CI && !shouldRunSlowTests ? [
+    '<rootDir>/__tests__/Performance.test.ts'
   ] : [],
   verbose: true
 }

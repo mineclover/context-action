@@ -31,7 +31,7 @@ export class ErrorHandler {
       message: 'No space left on device',
       action: () => {
         this.logger?.error('💡 Tip: Free up disk space and try again')
-        process.exit(1)
+        return null
       }
     },
     'EMFILE': {

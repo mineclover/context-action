@@ -33,14 +33,19 @@ export interface TestMetadata {
 export interface ImportInfo {
   module: string;
   isLocal: boolean;
-  isTestFramework: boolean;
+  isTestFramework?: boolean;
+  isTestUtility?: boolean;
+  imported?: string[];
   statement: string;
 }
 
 export interface TypeDefinition {
   type: 'interface' | 'type';
   name: string;
-  definition: string;
+  definition?: string;
+  body?: string;
+  fullDefinition?: string;
+  properties?: string[];
 }
 
 export interface SetupCode {
@@ -176,15 +181,18 @@ export interface ProjectTestMetadata {
 export interface TestSuite {
   name: string;
   startIndex: number;
+  level?: number;
 }
 
 export interface TestCase {
   description: string;
+  name?: string;
   startIndex: number;
   isAsync: boolean;
   bodyLength: number;
   apiCalls: string[];
   hasAssertions: boolean;
+  suitePath?: string[];
 }
 
 export interface ApiUsage {
@@ -200,6 +208,10 @@ export interface FileMetrics {
   suiteCount: number;
   importCount: number;
   typeDefinitionCount: number;
+  testCaseCount?: number;
+  testSuiteCount?: number;
+  interfaceCount?: number;
+  apiUsageCount?: number;
 }
 
 export interface ProjectSummary {

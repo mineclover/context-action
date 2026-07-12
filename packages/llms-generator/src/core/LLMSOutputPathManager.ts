@@ -6,6 +6,7 @@
 
 import path from 'path';
 import { CLIConfig } from '../cli/types/CLITypes.js';
+import { getRelativeSourcePathFromDocumentId } from './DocumentIdentity.js';
 
 export interface OutputPathOptions {
   language: string;
@@ -117,13 +118,14 @@ export class LLMSOutputPathManager {
    * Convert document ID back to source file path
    */
   documentIdToSourcePath(documentId: string, language: string): string {
-    const parts = documentId.split('--');
-    if (parts.length >= 2) {
-      const category = parts[0];
-      if (!category) return '';
-      const fileName = parts.slice(1).join('-');
-      return this.getSourceDocPath(language, category, fileName);
+    const relativeSourcePath = getRelativeSourcePathFromDocumentId(language, documentId);
+    if (relativeSourcePath) {
+      return path.join(
+        this.config.paths.docsDir,
+        ...relativeSourcePath.split('/'),
+      );
     }
+
     // Fallback for simple document IDs
     return path.join(this.config.paths.docsDir, language, `${documentId}.md`);
   }
@@ -132,22 +134,9 @@ export class LLMSOutputPathManager {
    * Get relative source path for document traceability
    */
   getRelativeSourcePath(documentId: string, language: string, characterLimit: number, filePath?: string): string {
-    // Try to reconstruct the source path from document ID
-    const parts = documentId.split('--');
-    if (parts.length >= 2) {
-      const category = parts[0];
-      const pathParts = parts.slice(1);
-      
-      // Convert document ID back to likely file path
-      if (category === 'api') {
-        return `${language}/api/${pathParts.join('-')}.md`;
-      } else if (category === 'guide') {
-        return `${language}/guide/${pathParts.join('-')}.md`;
-      } else if (category === 'concept') {
-        return `${language}/concept/${pathParts.join('-')}.md`;
-      } else if (category === 'examples') {
-        return `${language}/example/${pathParts.join('-')}.md`;
-      }
+    const relativeSourcePath = getRelativeSourcePathFromDocumentId(language, documentId);
+    if (relativeSourcePath) {
+      return relativeSourcePath;
     }
     
     // Fallback: try to convert template file path back to source path
@@ -170,14 +159,6 @@ export class LLMSOutputPathManager {
           return `${lang}/${category}/${pathName}.md`;
         }
       }
-    }
-    
-    // Last resort: construct from document info
-    const docParts = documentId.split('--');
-    if (docParts.length >= 2) {
-      const category = docParts[0];
-      const pathParts = docParts.slice(1).join('-');
-      return `${language}/${category}/${pathParts}.md`;
     }
     
     return `${language}/${documentId}.md`;

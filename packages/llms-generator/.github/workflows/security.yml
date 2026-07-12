@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10.30.3'
 
 jobs:
   # 의존성 보안 스캔

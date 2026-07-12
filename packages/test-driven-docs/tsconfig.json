@@ -9,6 +9,8 @@
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+    "noUncheckedIndexedAccess": false,
     "moduleResolution": "bundler",
     "target": "ES2022",
     "module": "ESNext"

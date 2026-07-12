@@ -741,6 +741,78 @@ Template content here.`;
       expect(llmsContent).toContain('`code examples`');
       expect(llmsContent).toContain('[advanced guide](./advanced.md)');
     });
+
+    it('should use priority source_path for nested document IDs in origin output', async () => {
+      const documentId = 'guide--patterns--action--basic-usage';
+      const documentDir = path.join(testDataDir, 'llmsData', 'en', documentId);
+      const nestedSourceDir = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'patterns',
+        'action',
+      );
+      const flattenedSourceDir = path.join(testDataDir, 'docs', 'en', 'guide');
+
+      await fs.mkdir(documentDir, { recursive: true });
+      await fs.mkdir(nestedSourceDir, { recursive: true });
+      await fs.mkdir(flattenedSourceDir, { recursive: true });
+      await fs.writeFile(
+        path.join(nestedSourceDir, 'basic-usage.md'),
+        '# Nested Action Usage\n\nNESTED_SOURCE_CONTENT',
+      );
+      await fs.writeFile(
+        path.join(flattenedSourceDir, 'patterns-action-basic-usage.md'),
+        '# Flattened Legacy Path\n\nWRONG_FLATTENED_CONTENT',
+      );
+      await fs.writeFile(
+        path.join(documentDir, 'priority.json'),
+        JSON.stringify({
+          document: {
+            id: documentId,
+            title: 'Nested Action Usage',
+            category: 'guide',
+            source_path: 'en/guide/patterns/action/basic-usage.md',
+          },
+          priority: { score: 95, tier: 'critical' },
+        }),
+      );
+      await fs.writeFile(
+        path.join(documentDir, `${documentId}-100.md`),
+        `---
+document_id: ${documentId}
+category: guide
+source_path: en/guide/patterns/action/basic-usage.md
+character_limit: 100
+---
+
+# Nested Action Usage
+
+Nested template content for link generation.`,
+      );
+
+      await llmsGenerateCommand.execute({ pattern: 'origin' });
+
+      const llmsContent = await fs.readFile(
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-origin.txt'),
+        'utf-8',
+      );
+
+      expect(llmsContent).toContain('NESTED_SOURCE_CONTENT');
+      expect(llmsContent).not.toContain('WRONG_FLATTENED_CONTENT');
+
+      await llmsGenerateCommand.execute({ pattern: 'minimum' });
+      const minimumContent = await fs.readFile(
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-minimum.txt'),
+        'utf-8',
+      );
+
+      expect(minimumContent).toContain(
+        '(en/guide/patterns/action/basic-usage.md)',
+      );
+      expect(minimumContent).not.toContain('patterns-action-basic-usage.md');
+    });
   });
 
   describe('multiple category support', () => {

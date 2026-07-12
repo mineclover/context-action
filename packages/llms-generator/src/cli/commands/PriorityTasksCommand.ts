@@ -1,5 +1,12 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import {
+  getCanonicalDocumentIdentity,
+  getCanonicalDocumentKey,
+  getDocumentIdCategory,
+  getRelativeSourcePathFromDocumentId,
+  normalizeDocumentPath,
+} from '../../core/DocumentIdentity.js';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 import { PriorityData } from '../../types/frontmatter.js';
 
@@ -250,8 +257,7 @@ export class PriorityTasksCommand {
     dir: string, 
     language: string, 
     tasks: PriorityTask[], 
-    options: PriorityTasksOptions,
-    category?: string
+    options: PriorityTasksOptions
   ): Promise<void> {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     
@@ -259,27 +265,38 @@ export class PriorityTasksCommand {
       const fullPath = path.join(dir, entry.name);
       
       if (entry.isDirectory()) {
-        // Determine category from directory name
-        const newCategory = category || entry.name;
-        await this.scanSourceDirectory(fullPath, language, tasks, options, newCategory);
+        await this.scanSourceDirectory(fullPath, language, tasks, options);
       } else if (entry.name.endsWith('.md')) {
+        const relativeSourcePath = normalizeDocumentPath(
+          path.relative(this.config.paths.docsDir, fullPath)
+        );
+        const identity = getCanonicalDocumentIdentity(relativeSourcePath);
+
+        if (!identity || identity.language !== language) {
+          continue;
+        }
+
+        const { documentId, category } = identity;
+        if (options.category && category !== options.category) {
+          continue;
+        }
+
         // Check if corresponding priority.json exists
-        const docName = entry.name.replace('.md', '');
-        const documentId = category ? `${category}--${docName}` : docName;
         const priorityDir = path.join(this.config.paths.llmContentDir, language, documentId);
         const priorityPath = path.join(priorityDir, 'priority.json');
         
         if (!(await this.fileExists(priorityPath))) {
           // Check if this document is already in tasks
-          const existingTask = tasks.find(t => 
-            t.documentId === documentId && t.language === language
+          const documentKey = getCanonicalDocumentKey(language, documentId);
+          const existingTask = tasks.find(task =>
+            getCanonicalDocumentKey(task.language, task.documentId) === documentKey
           );
           
           if (!existingTask) {
             tasks.push({
               documentId,
               language,
-              category: category || 'unknown',
+              category,
               taskType: 'missing',
               priority: 100,
               issue: 'No priority.json for source document',
@@ -435,35 +452,98 @@ export class PriorityTasksCommand {
     // Ensure directory exists
     await fs.mkdir(priorityDir, { recursive: true });
     
-    // Create priority data
+    const sourcePath = this.getRelativeSourcePath(task.documentId, task.language);
+    const sourceFilePath = path.join(
+      this.config.paths.docsDir,
+      ...sourcePath.split('/'),
+    );
+    const sourceStats = await fs.stat(sourceFilePath).catch(() => null);
+    const category = this.getPriorityCategory(task.category);
+    const score = this.calculateDefaultPriority(task.category);
+    const title = this.generateTitle(task.documentId);
+    const date = new Date().toISOString().slice(0, 10);
+    const primaryKeywords = [category, 'context-action', 'framework'];
+    const technicalKeywords = ['typescript', 'react', 'context', 'action'];
+    const characterLimits = Object.fromEntries(
+      (this.config.generation?.characterLimits ?? [100, 300, 1000]).map(limit => [
+        String(limit),
+        {
+          focus: `Summarize the essential ${category} information from ${title}.`,
+          structure: 'Lead with the purpose, then preserve actionable details.',
+          must_include: [title, category],
+          avoid: ['Unsupported claims', 'Unrelated implementation details'],
+        },
+      ]),
+    );
+
+    // Create a complete priority record that conforms to the distributed schema.
     const priorityData = {
       document: {
         id: task.documentId,
-        title: this.generateTitle(task.documentId),
-        category: task.category,
-        source_path: `${task.language}/${task.category}/${task.documentId.split('--')[1]}.md`
+        title,
+        category,
+        source_path: sourcePath,
+        ...(sourceStats ? {
+          lastModified: sourceStats.mtime.toISOString(),
+          wordCount: 0,
+        } : {}),
       },
       priority: {
-        score: this.calculateDefaultPriority(task.category),
-        tier: this.getPriorityTier(this.calculateDefaultPriority(task.category))
+        score,
+        tier: this.getPriorityTier(score),
+        rationale: 'Default priority assigned while repairing missing metadata.',
+        reviewDate: date,
+        autoCalculated: true,
       },
       purpose: {
-        primary_goal: `Learn about ${this.generateTitle(task.documentId)}`,
+        primary_goal: `Learn about ${title}`,
         use_cases: [
           'Understanding guide',
           'Implementation reference',
           'Framework learning'
         ],
-        target_audience: ['developers', 'framework-users']
+        target_audience: ['framework-users']
       },
       keywords: {
-        technical: ['typescript', 'react', 'context', 'action'],
-        functional: [task.category, 'framework', 'context-action']
+        primary: primaryKeywords,
+        technical: technicalKeywords,
+        functional: [category, 'framework', 'context-action']
+      },
+      extraction: {
+        strategy: this.getExtractionStrategy(category),
+        character_limits: characterLimits,
+        emphasis: {
+          must_include: [title, category],
+          nice_to_have: technicalKeywords,
+          contextual_keywords: primaryKeywords,
+        },
+      },
+      tags: {
+        primary: [this.getPrimaryTag(category)],
+        secondary: primaryKeywords,
+        audience: ['framework-users'],
+        complexity: 'basic',
+        lastUpdated: date,
+      },
+      dependencies: {
+        prerequisites: [],
+        references: [],
+        followups: [],
+        conflicts: [],
+        complements: [],
       },
       metadata: {
-        description: `Documentation for ${this.generateTitle(task.documentId)} in the Context-Action framework`,
+        description: `Documentation for ${title} in the Context-Action framework`,
         language: task.language,
-        created_at: new Date().toISOString()
+        created: date,
+        updated: date,
+        version: '1.0.0',
+        original_size: sourceStats?.size ?? 0,
+        keywords: {
+          primary: primaryKeywords,
+          technical: technicalKeywords,
+          functional: [category, 'framework', 'context-action'],
+        },
       }
     };
 
@@ -585,25 +665,78 @@ export class PriorityTasksCommand {
 
   private getPriorityTier(score: number): string {
     if (score >= 90) return 'critical';
-    if (score >= 75) return 'high';
-    if (score >= 50) return 'medium';
-    return 'low';
+    if (score >= 80) return 'essential';
+    if (score >= 60) return 'important';
+    if (score >= 40) return 'reference';
+    return 'supplementary';
+  }
+
+  private getPriorityCategory(
+    category: string,
+  ): 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms' {
+    switch (category) {
+      case 'guide':
+      case 'api':
+      case 'concept':
+      case 'example':
+      case 'reference':
+      case 'llms':
+        return category;
+      case 'examples':
+        return 'example';
+      default:
+        return 'guide';
+    }
+  }
+
+  private getExtractionStrategy(
+    category: 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms',
+  ): 'concept-first' | 'example-first' | 'api-first' | 'tutorial-first' | 'reference-first' {
+    switch (category) {
+      case 'api':
+        return 'api-first';
+      case 'concept':
+        return 'concept-first';
+      case 'example':
+        return 'example-first';
+      case 'guide':
+        return 'tutorial-first';
+      case 'reference':
+      case 'llms':
+        return 'reference-first';
+    }
+  }
+
+  private getPrimaryTag(
+    category: 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms',
+  ): 'tutorial' | 'reference' | 'theory' | 'sample' | 'technical' {
+    switch (category) {
+      case 'guide':
+        return 'tutorial';
+      case 'concept':
+        return 'theory';
+      case 'example':
+        return 'sample';
+      case 'api':
+      case 'reference':
+        return 'reference';
+      case 'llms':
+        return 'technical';
+    }
   }
 
   private resolveSourceDocumentPath(documentId: string, language: string): string {
-    const parts = documentId.split('--');
-    if (parts.length >= 2) {
-      const [category, ...nameParts] = parts;
-      if (!category) return '';
-      const fileName = nameParts.join('-') + '.md';
-      return path.join(this.config.paths.docsDir, language, category, fileName);
-    }
-    return path.join(this.config.paths.docsDir, language, documentId + '.md');
+    const relativeSourcePath = this.getRelativeSourcePath(documentId, language);
+    return path.join(this.config.paths.docsDir, ...relativeSourcePath.split('/'));
+  }
+
+  private getRelativeSourcePath(documentId: string, language: string): string {
+    return getRelativeSourcePathFromDocumentId(language, documentId)
+      ?? normalizeDocumentPath(path.join(language, `${documentId}.md`));
   }
 
   private extractCategory(documentId: string): string {
-    const parts = documentId.split('--');
-    return parts[0] || 'unknown';
+    return getDocumentIdCategory(documentId) ?? 'unknown';
   }
 
   private async fileExists(filePath: string): Promise<boolean> {

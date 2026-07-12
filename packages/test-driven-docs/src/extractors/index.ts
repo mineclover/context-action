@@ -8,6 +8,6 @@
 export { AnnotationExtractor } from './AnnotationExtractor.js';
 export type {
   DocAnnotation,
-  AnnotationParsingResult,
-  ExampleCategory
+  AnnotatedTest
 } from './AnnotationExtractor.js';
+export type { ExampleCategory } from '../types/index.js';

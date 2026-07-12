@@ -7,8 +7,10 @@ import { parse } from '@babel/parser';
 import traverseImport from '@babel/traverse';
 import type * as t from '@babel/types';
 
-// @ts-ignore - Handle ESM/CJS interop
-const traverse = traverseImport.default || traverseImport;
+const traverse: typeof traverseImport =
+  (traverseImport as typeof traverseImport & {
+    default?: typeof traverseImport;
+  }).default ?? traverseImport;
 import { resolveTailwindClasses } from '../analyzers/class-resolver.js';
 
 export interface ExtractedElement {

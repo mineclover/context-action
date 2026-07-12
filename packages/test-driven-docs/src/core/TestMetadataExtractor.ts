@@ -41,14 +41,20 @@ export class TestMetadataExtractor {
     const testFiles: TestFileMetadata[] = [];
 
     const scanDir = async (currentPath: string): Promise<void> => {
-      const entries = await fs.readdir(currentPath, { withFileTypes: true });
+      let entries;
+      try {
+        entries = await fs.readdir(currentPath, { withFileTypes: true });
+      } catch (error) {
+        if (currentPath === dirPath) throw error;
+        return;
+      }
 
       for (const entry of entries) {
         const fullPath = path.join(currentPath, entry.name);
 
         if (entry.isDirectory()) {
           await scanDir(fullPath);
-        } else if (entry.isFile() && pattern.test(entry.name)) {
+        } else if ((typeof entry.isFile === 'function' ? entry.isFile() : true) && pattern.test(entry.name)) {
           try {
             const metadata = await this.extractFromFile(fullPath);
             testFiles.push(metadata);
@@ -77,7 +83,7 @@ export class TestMetadataExtractor {
    */
   private extractImports(content: string): ImportInfo[] {
     const imports: ImportInfo[] = [];
-    const importRegex = /import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?['"`]([^'"`]+)['"`]/g;
+    const importRegex = /import\s+(?:type\s+)?(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?['"`]([^'"`]+)['"`]/g;
 
     let match;
     while ((match = importRegex.exec(content)) !== null) {

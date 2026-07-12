@@ -136,8 +136,9 @@ describe('EnhancedMarkdownGenerator', () => {
       const result = generator.generateEnhancedMarkdown('TestAPI', examples);
 
       expect(result).toContain('## Validation');
-      expect(result).toContain('pnpm docs:enhanced --packages react');
-      expect(result).toContain('pnpm docs:validate-docs');
+      expect(result).toContain('npm --prefix packages/test-driven-docs run build');
+      expect(result).toContain('generate --enhanced --packages react');
+      expect(result).toContain('validate --consistency --packages react');
     });
 
     it('should include update instructions', () => {

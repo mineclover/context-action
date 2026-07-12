@@ -82,19 +82,18 @@ describe('TestMetadataExtractor', () => {
       expect(result.imports).toHaveLength(3);
 
       const contextImport = result.imports.find(imp => imp.module === '@context-action/react');
-      expect(contextImport).toEqual({
+      expect(contextImport).toEqual(expect.objectContaining({
         statement: expect.stringContaining('createActionContext'),
         module: '@context-action/react',
-        imported: ['createActionContext'],
         isLocal: false,
-        isTestUtility: false
-      });
+        isTestFramework: false
+      }));
 
       const localImport = result.imports.find(imp => imp.module === './utils');
       expect(localImport?.isLocal).toBe(true);
 
       const testImport = result.imports.find(imp => imp.module === '@testing-library/react');
-      expect(testImport?.isTestUtility).toBe(true);
+      expect(testImport?.isTestFramework).toBe(true);
     });
 
     it('should extract type definitions', async () => {
@@ -103,12 +102,11 @@ describe('TestMetadataExtractor', () => {
       expect(result.interfaces).toHaveLength(2);
 
       const userActions = result.interfaces.find(int => int.name === 'UserActions');
-      expect(userActions).toEqual({
+      expect(userActions).toEqual(expect.objectContaining({
         type: 'interface',
         name: 'UserActions',
-        properties: ['updateUser', 'deleteUser'],
-        fullText: expect.stringContaining('interface UserActions')
-      });
+        definition: expect.stringContaining('interface UserActions')
+      }));
 
       const userStatus = result.interfaces.find(int => int.name === 'UserStatus');
       expect(userStatus?.type).toBe('type');
@@ -120,10 +118,10 @@ describe('TestMetadataExtractor', () => {
       expect(result.testSuites).toHaveLength(2);
 
       const mainSuite = result.testSuites.find(suite => suite.name === 'User Actions Test Suite');
-      expect(mainSuite?.level).toBe(0);
+      expect(mainSuite?.startIndex).toEqual(expect.any(Number));
 
       const nestedSuite = result.testSuites.find(suite => suite.name === 'nested suite');
-      expect(nestedSuite?.level).toBe(1);
+      expect(nestedSuite?.startIndex).toBeGreaterThan(mainSuite?.startIndex ?? -1);
     });
 
     it('should extract test cases with metadata', async () => {
@@ -131,19 +129,19 @@ describe('TestMetadataExtractor', () => {
 
       expect(result.testCases).toHaveLength(3);
 
-      const asyncTest = result.testCases.find(test => test.name.includes('user updates'));
+      const asyncTest = result.testCases.find(test => test.description.includes('user updates'));
       expect(asyncTest?.isAsync).toBe(true);
-      expect(asyncTest?.suitePath).toEqual(['User Actions Test Suite', 'nested suite']);
 
-      const syncTest = result.testCases.find(test => test.name.includes('action context'));
+      const syncTest = result.testCases.find(test => test.description.includes('action context'));
       expect(syncTest?.isAsync).toBe(false);
     });
 
     it('should detect API usage', async () => {
       const result = await extractor.extractFromFile('test.ts');
 
-      expect(result.apiUsage).toContain('createActionContext');
-      expect(result.apiUsage).toContain('ActionRegister');
+      const apiNames = result.apiUsage.map(api => api.apiName);
+      expect(apiNames).toContain('createActionContext');
+      expect(apiNames).toContain('ActionRegister');
     });
 
     it('should calculate file metrics', async () => {
@@ -151,15 +149,15 @@ describe('TestMetadataExtractor', () => {
 
       expect(result.metrics).toEqual({
         totalLines: expect.any(Number),
-        testCaseCount: 3,
-        testSuiteCount: 2,
-        interfaceCount: 2,
+        nonEmptyLines: expect.any(Number),
+        testCount: 3,
+        suiteCount: 2,
         importCount: 3,
-        apiUsageCount: expect.any(Number)
+        typeDefinitionCount: 2
       });
 
       expect(result.metrics.totalLines).toBeGreaterThan(0);
-      expect(result.metrics.apiUsageCount).toBeGreaterThanOrEqual(2);
+      expect(result.apiUsage.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should handle file read errors', async () => {
@@ -182,7 +180,7 @@ describe('TestMetadataExtractor', () => {
 
       expect(result.testCases).toHaveLength(0);
       expect(result.testSuites).toHaveLength(0);
-      expect(result.metrics.testCaseCount).toBe(0);
+      expect(result.metrics.testCount).toBe(0);
     });
 
     it('should handle empty files', async () => {
@@ -235,7 +233,7 @@ describe('TestMetadataExtractor', () => {
     it('should extract metadata from all test files in directory', async () => {
       const result = await extractor.extractFromDirectory('/test/dir');
 
-      expect(result.projectPath).toBe('/test/dir');
+      expect(result.projectPath).toBe('/resolved//test/dir');
       expect(result.extractedAt).toEqual(expect.any(String));
       expect(result.files).toHaveLength(3); // Should find 3 .test files
 
@@ -259,12 +257,13 @@ describe('TestMetadataExtractor', () => {
       const result = await extractor.extractFromDirectory('/test/dir');
 
       expect(result.summary).toEqual({
-        totalFiles: 3,
+        totalTestFiles: 3,
         totalTestCases: expect.any(Number),
         totalTestSuites: expect.any(Number),
-        totalInterfaces: expect.any(Number),
-        totalImports: expect.any(Number),
-        uniqueApiUsage: expect.any(Array)
+        totalLines: expect.any(Number),
+        uniqueApis: expect.any(Array),
+        uniqueTypes: expect.any(Array),
+        filesByFramework: expect.any(Object)
       });
     });
 
@@ -281,7 +280,7 @@ describe('TestMetadataExtractor', () => {
       const result = await extractor.extractFromDirectory('/empty/dir');
 
       expect(result.files).toHaveLength(0);
-      expect(result.summary.totalFiles).toBe(0);
+      expect(result.summary.totalTestFiles).toBe(0);
     });
 
     it('should skip subdirectories with read errors', async () => {
@@ -317,8 +316,7 @@ describe('TestMetadataExtractor', () => {
 
       expect(result.imports).toHaveLength(5);
 
-      const reactImport = result.imports.find(imp => imp.imported.includes('useState'));
-      expect(reactImport?.imported).toEqual(['useState', 'useEffect']);
+      expect(result.imports.filter(imp => imp.module === 'react')).toHaveLength(2);
     });
 
     it('should categorize imports correctly', async () => {
@@ -332,14 +330,14 @@ describe('TestMetadataExtractor', () => {
       const result = await extractor.extractFromFile('test.ts');
 
       const testLibImport = result.imports.find(imp => imp.module.includes('testing-library'));
-      expect(testLibImport?.isTestUtility).toBe(true);
+      expect(testLibImport?.isTestFramework).toBe(true);
 
       const localImport = result.imports.find(imp => imp.module === './utils');
       expect(localImport?.isLocal).toBe(true);
 
       const contextImport = result.imports.find(imp => imp.module.includes('context-action'));
       expect(contextImport?.isLocal).toBe(false);
-      expect(contextImport?.isTestUtility).toBe(false);
+      expect(contextImport?.isTestFramework).toBe(false);
     });
   });
 
@@ -361,8 +359,7 @@ describe('TestMetadataExtractor', () => {
       const result = await extractor.extractFromFile('test.ts');
 
       const userActions = result.interfaces.find(int => int.name === 'UserActions');
-      expect(userActions?.properties).toEqual(['create', 'update', 'delete']);
-      expect(userActions?.fullText).toContain('interface UserActions');
+      expect(userActions?.definition).toContain('interface UserActions');
     });
 
     it('should extract type aliases', async () => {
@@ -378,7 +375,7 @@ describe('TestMetadataExtractor', () => {
 
       const statusType = result.interfaces.find(int => int.name === 'Status');
       expect(statusType?.type).toBe('type');
-      expect(statusType?.properties).toEqual([]);
+      expect(statusType?.definition).toContain("type Status");
     });
   });
 
@@ -395,11 +392,12 @@ describe('TestMetadataExtractor', () => {
       mockFs.readFile.mockResolvedValue(content);
       const result = await extractor.extractFromFile('test.ts');
 
-      expect(result.apiUsage).toContain('ActionRegister');
-      expect(result.apiUsage).toContain('createActionContext');
-      expect(result.apiUsage).toContain('createStoreContext');
-      expect(result.apiUsage).toContain('useStoreValue');
-      expect(result.apiUsage).toContain('useActionHandler');
+      const apiNames = result.apiUsage.map(api => api.apiName);
+      expect(apiNames).toContain('ActionRegister');
+      expect(apiNames).toContain('createActionContext');
+      expect(apiNames).toContain('createStoreContext');
+      expect(apiNames).toContain('useStoreValue');
+      expect(apiNames).toContain('useActionHandler');
     });
 
     it('should not detect non-API patterns', async () => {

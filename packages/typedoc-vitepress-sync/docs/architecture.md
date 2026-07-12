@@ -528,76 +528,29 @@ interface ErrorContext {
 
 ---
 
-## Performance Optimizations
+## Performance and Resource Boundaries
 
-### Multi-Level Optimization
+### Current Implementation
 
-**1. Algorithm Level:**
-- Efficient hash computation (streaming SHA256)
-- Parallel processing with optimal batching
-- Lazy evaluation of expensive operations
-- Memory-mapped file access for large files
+- Files are read, transformed, hashed, and written as whole files with synchronous
+  Node.js file-system operations.
+- File work can be grouped into configurable promise batches. This is concurrency
+  within the current process, not worker-thread execution.
+- The disk cache uses configurable SHA-256, SHA-1, or MD5 hashes and a TTL-based
+  manifest.
+- Markdown files larger than 8 MiB are rejected before reading or regex processing
+  with an `EFBIG` error event. This keeps memory and processing time bounded.
+- Transient write failures (`EAGAIN`, `EBUSY`, `EMFILE`, `ENFILE`, `ETXTBSY`) are
+  retried up to three times. Other write errors are reported with file context.
+- Performance and error-recovery suites are available through the package test
+  scripts, including the opt-in `test:performance` suite.
 
-**2. I/O Level:**
-- Batch file system operations
-- Async I/O with proper backpressure
-- Stream processing for large files
-- Intelligent file watching
+### Not Yet Implemented
 
-**3. Memory Level:**
-- Object pooling for frequent allocations
-- Weak references for caches
-- Garbage collection optimization
-- Memory usage monitoring
+Streaming hashes, backpressure-aware asynchronous I/O, memory-mapped files, worker
+threads, multi-tier cache compression, and memory-pressure monitoring are roadmap
+ideas rather than current runtime capabilities. Supporting Markdown files above the
+8 MiB boundary requires a streaming design before that limit can be raised safely.
 
-**4. Cache Level:**
-- Multi-tier caching (memory + disk)
-- Cache warming strategies
-- Intelligent cache eviction
-- Cache compression
-
-### Performance Monitoring
-
-```typescript
-class PerformanceMonitor {
-  private metrics: Map<string, PerformanceMetric> = new Map()
-  
-  startOperation(name: string): void {
-    this.metrics.set(name, {
-      startTime: performance.now(),
-      memoryBefore: process.memoryUsage()
-    })
-  }
-  
-  endOperation(name: string): PerformanceReport {
-    const metric = this.metrics.get(name)
-    return {
-      duration: performance.now() - metric.startTime,
-      memoryDelta: this.calculateMemoryDelta(metric.memoryBefore),
-      cpuUsage: process.cpuUsage()
-    }
-  }
-}
-```
-
-### Resource Management
-
-**Memory Management:**
-- Streaming for large files (>10MB)
-- Buffer pooling for frequent operations
-- Automatic garbage collection triggers
-- Memory pressure monitoring
-
-**CPU Management:**
-- Worker thread utilization optimization
-- CPU-intensive operation batching
-- Adaptive worker scaling
-- CPU usage throttling
-
-**Disk I/O Management:**
-- Batch write operations
-- Temporary file cleanup
-- Disk space monitoring
-- I/O error recovery
-
-This architecture provides a robust, scalable, and maintainable foundation for TypeDoc VitePress synchronization with advanced performance and quality features.
+This boundary documents the implementation that is currently tested and prevents
+callers from relying on aspirational performance features.

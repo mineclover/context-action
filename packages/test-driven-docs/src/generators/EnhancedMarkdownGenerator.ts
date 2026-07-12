@@ -6,23 +6,93 @@
 import { TestExample, ParsedTestData, ExampleCategory } from '../types/index.js';
 import { AnnotatedTest } from '../extractors/AnnotationExtractor.js';
 
+const enhancedGenerationCommand =
+  'npm --prefix packages/test-driven-docs run build && node packages/test-driven-docs/dist/cli/index.js generate --enhanced --packages react';
+const consistencyValidationCommand =
+  'node packages/test-driven-docs/dist/cli/index.js validate --consistency --packages react';
+
 export interface EnhancedDocConfig {
-  includeOverview: boolean;
-  includeValidationSection: boolean;
-  includeMetadata: boolean;
+  includeOverview?: boolean;
+  includeValidationSection?: boolean;
+  includeMetadata?: boolean;
   githubRepoUrl?: string;
+  githubRepo?: string;
   docsBaseUrl?: string;
+}
+
+export interface LegacyMarkdownExample {
+  id: string;
+  category: string;
+  priority: 'high' | 'medium' | 'low';
+  description?: string;
+  code: string;
+  testFile?: string;
 }
 
 export class EnhancedMarkdownGenerator {
   private config: EnhancedDocConfig;
 
-  constructor(config: EnhancedDocConfig = {
-    includeOverview: true,
-    includeValidationSection: true,
-    includeMetadata: true
-  }) {
-    this.config = config;
+  constructor(config: EnhancedDocConfig = {}) {
+    this.config = {
+      includeOverview: true,
+      includeValidationSection: true,
+      includeMetadata: true,
+      ...config,
+      githubRepoUrl: config.githubRepoUrl ?? config.githubRepo
+    };
+  }
+
+  /**
+   * Backward-compatible formatter used by the package's original public API.
+   * The richer annotation pipeline uses generateApiDocumentation().
+   */
+  generateEnhancedMarkdown(apiName: string, examples: LegacyMarkdownExample[]): string {
+    let content = `# ${apiName}\n\n`;
+
+    if (examples.length === 0) {
+      content += 'No examples found.\n\n';
+    } else {
+      const groups = new Map<string, LegacyMarkdownExample[]>();
+      for (const example of examples) {
+        const group = groups.get(example.category) ?? [];
+        group.push(example);
+        groups.set(example.category, group);
+      }
+
+      for (const [category, categoryExamples] of groups) {
+        content += `## ${this.formatLegacyCategoryName(category)}\n\n`;
+        categoryExamples
+          .sort((a, b) => this.getPriorityScore(a.priority) - this.getPriorityScore(b.priority))
+          .forEach(example => {
+            content += `### ${example.description ?? example.id}\n\n`;
+            content += `\`\`\`typescript\n${example.code}\n\`\`\`\n\n`;
+            const fileName = example.testFile?.split('/').pop();
+            if (fileName && this.config.githubRepoUrl) {
+              content += `**Source:** [${fileName}](${this.config.githubRepoUrl}/blob/main/${example.testFile})\n\n`;
+            } else if (fileName) {
+              content += `**Source:** ${fileName}\n\n`;
+            }
+          });
+      }
+    }
+
+    content += `## Validation\n\n`;
+    content += `\`${enhancedGenerationCommand}\`\n\n`;
+    content += `\`${consistencyValidationCommand}\`\n\n`;
+    content += `## Update Documentation\n\n`;
+    content += 'Update the test annotations: `@doc-extract`, `@doc-category`, and `@doc-priority`.\n\n';
+    if (this.config.githubRepoUrl) {
+      content += `[GitHub repository](${this.config.githubRepoUrl})\n`;
+    }
+
+    return content;
+  }
+
+  private formatLegacyCategoryName(category: string): string {
+    return category
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   /**
@@ -207,14 +277,11 @@ ${this.extractKeyPoints(test.cleanedCode)}
 
 **검증 명령어:**
 \`\`\`bash
-# 전체 문서 예제 검증
-pnpm docs:validate-docs
+# Enhanced 문서 재생성 (standalone 도구 빌드 포함)
+${enhancedGenerationCommand}
 
-# Enhanced 문서 재생성
-pnpm docs:enhanced --packages react
-
-# 검증과 함께 문서 생성
-pnpm docs:enhanced-with-validation
+# 생성된 문서와 테스트의 일관성 검증
+${consistencyValidationCommand}
 \`\`\`
 
 **관련 파일:**
@@ -264,7 +331,7 @@ ${metadata ? `### 테스트 파일 정보
 
 ---
 
-> 💡 **참고**: 이 문서를 수정하려면 해당 테스트 파일의 어노테이션을 수정하고 \`pnpm docs:enhanced --packages react\`를 실행하세요.
+> 💡 **참고**: 이 문서를 수정하려면 해당 테스트 파일의 어노테이션을 수정하고 \`${enhancedGenerationCommand}\`를 실행하세요.
 
 > 🔧 **생성 도구**: [@context-action/test-driven-docs](https://www.npmjs.com/package/@context-action/test-driven-docs)
 `;

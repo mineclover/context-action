@@ -10,7 +10,7 @@ import fs from 'fs/promises';
 const execAsync = promisify(exec);
 
 describe('CLI', () => {
-  const cliPath = path.resolve(__dirname, '../cli/index.js');
+  const cliPath = path.resolve(__dirname, '../../dist/cli/index.js');
   const testOutput = path.resolve(__dirname, '../../../temp-test-output');
 
   beforeEach(async () => {
@@ -153,9 +153,7 @@ describe('CLI', () => {
       try {
         await execAsync(`node ${cliPath} unknown-command`);
       } catch (error: any) {
-        expect(error.stderr).toContain('unknown command') ||
-               expect(error.stderr).toContain('Unknown command') ||
-               expect(error.stdout).toContain('help');
+        expect(`${error.stderr}\n${error.stdout}`).toMatch(/(?:unknown|invalid) command|help/i);
       }
     });
 
@@ -169,7 +167,7 @@ describe('CLI', () => {
   });
 
   describe('extract CLI', () => {
-    const extractCliPath = path.resolve(__dirname, '../cli/extract.js');
+    const extractCliPath = path.resolve(__dirname, '../../dist/cli/index.js');
 
     it('should show extract CLI help', async () => {
       try {

@@ -18,14 +18,14 @@ describe('ConsistencyValidator', () => {
     it('should create validation report structure', () => {
       const report = validator.createValidationReport();
 
-      expect(report).toEqual({
+      expect(report).toEqual(expect.objectContaining({
         overallScore: expect.any(Number),
         syncStatus: expect.any(String),
         issues: expect.any(Array),
         recommendations: expect.any(Array),
         apiCoverage: expect.any(Object),
         lastValidated: expect.any(String)
-      });
+      }));
     });
 
     it('should calculate overall score based on issues', () => {

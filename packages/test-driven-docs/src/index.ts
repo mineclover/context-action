@@ -7,15 +7,20 @@
 
 // Core extractor
 export { TestMetadataExtractor } from './core/TestMetadataExtractor.js';
+import { TestMetadataExtractor } from './core/TestMetadataExtractor.js';
 
 // Enhanced documentation generation
 export { DocumentationGenerator } from './core/DocumentationGenerator.js';
+export { TestParser } from './parsers/TestParser.js';
+export { CodeCleaner } from './cleaners/CodeCleaner.js';
+export * from './utils/index.js';
 export { AnnotationExtractor, type AnnotatedTest, type DocAnnotation } from './extractors/AnnotationExtractor.js';
 export { EnhancedMarkdownGenerator, type EnhancedDocConfig } from './generators/EnhancedMarkdownGenerator.js';
 export { ConsistencyValidator, type ProjectValidationReport, type ApiValidationResult } from './validators/ConsistencyValidator.js';
 
 // Import for internal use
 import { DocumentationGenerator } from './core/DocumentationGenerator.js';
+import type { GeneratorConfig } from './types/index.js';
 
 // Type definitions
 export type {

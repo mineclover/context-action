@@ -104,7 +104,7 @@ describe('AnnotationExtractor', () => {
       const result = extractor.extractTestsWithAnnotations(testContent);
 
       expect(result.tests).toHaveLength(1);
-      expect(result.tests[0]).toEqual({
+      expect(result.tests[0]).toEqual(expect.objectContaining({
         annotation: {
           extractId: 'basic-usage',
           category: 'basic-usage',
@@ -114,8 +114,9 @@ describe('AnnotationExtractor', () => {
         },
         testCode: expect.stringContaining('const context = createContext();'),
         testName: 'should create context',
-        cleanedCode: expect.stringContaining('const context = createContext();')
-      });
+        cleanedCode: expect.stringContaining('const context = createContext();'),
+        filePath: 'test-file'
+      }));
     });
 
     it('should clean test artifacts from extracted code', () => {

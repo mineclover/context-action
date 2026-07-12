@@ -4,16 +4,14 @@ export default defineConfig({
   entry: 'src/index.ts',
   format: ['esm'],
   dts: true,
+  hash: false,
   clean: true,
+  fixedExtension: false,
   outDir: 'dist',
-  target: 'node18',
-  splitting: false,
+  target: 'node24',
   sourcemap: true,
   minify: false,
-  external: [
-    'commander',
-    'chalk',
-    'ora',
-    'picocolors'
-  ]
+  deps: {
+    neverBundle: ['commander', 'chalk', 'ora'],
+  },
 })

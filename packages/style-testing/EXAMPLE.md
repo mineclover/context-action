@@ -51,18 +51,20 @@ STYLE_TEST=true pnpm dev
 
 ## 3. 스타일 테스트 실행
 
+아래 명령은 저장소 루트에서 실행하며, 먼저 `pnpm --dir packages/style-testing build`로 내부 도구를 빌드해야 합니다.
+
 ```bash
 # 기본 테스트
-pnpm style-test
+node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src
 
 # 상세 출력
-pnpm style-test:verbose
+node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src --verbose
 
 # JSON 출력
-pnpm style-test --output json
+node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src --output json
 
 # Markdown 리포트
-pnpm style-test --output markdown > style-report.md
+node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src --output markdown > style-report.md
 ```
 
 ## 4. 예상 결과
@@ -114,14 +116,14 @@ Pass Rate: 95.7%
 현재 상태를 정답으로 저장:
 
 ```bash
-pnpm style-test:snapshot
+node packages/style-testing/dist/cli/index.js snapshot --url http://localhost:4000
 ```
 
 이후 변경사항 비교:
 
 ```bash
 # 향후 구현 예정
-pnpm style-test:compare --baseline ./style-snapshot.json
+style-test compare --baseline ./style-snapshot.json
 ```
 
 ## 6. CI/CD 통합
@@ -139,15 +141,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.30.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        run: pnpm build
+      - name: Build internal style-testing tool
+        run: pnpm --dir packages/style-testing build
 
       - name: Build example (with style test)
         run: STYLE_TEST=true pnpm example:build
@@ -159,7 +166,7 @@ jobs:
         run: sleep 5
 
       - name: Run style tests
-        run: pnpm style-test --output json > style-test-results.json
+        run: node packages/style-testing/dist/cli/index.js test --url http://localhost:4000 --source ./example/src --output json > style-test-results.json
 
       - name: Upload results
         uses: actions/upload-artifact@v3

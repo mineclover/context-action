@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { PriorityTasksCommand } from '../../src/cli/commands/PriorityTasksCommand.js';
@@ -521,6 +523,207 @@ describe('PriorityTasksCommand', () => {
       
       // Should still be invalid JSON (can't be auto-fixed)
       expect(priorityContent).toContain('invalid json content');
+    });
+  });
+
+  describe('canonical nested document identities', () => {
+    it('keeps nested paths distinct from hyphenated filenames and writes canonical source_path values', async () => {
+      await fs.rm(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started'),
+        { recursive: true, force: true }
+      );
+
+      const nestedSource = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'action',
+        'ref',
+        'store.md'
+      );
+      const hyphenatedSource = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'action-ref-store.md'
+      );
+
+      await fs.mkdir(path.dirname(nestedSource), { recursive: true });
+      await Promise.all([
+        fs.writeFile(nestedSource, '# Nested Store\n'),
+        fs.writeFile(hyphenatedSource, '# Hyphenated Store\n'),
+      ]);
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      try {
+        await priorityTasksCommand.execute({
+          language: 'en',
+          taskType: 'missing',
+          verbose: true,
+          fix: true,
+        });
+
+        const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+        expect(output).toContain('guide--action--ref--store');
+        expect(output).toContain('guide--action-ref-store');
+      } finally {
+        consoleSpy.mockRestore();
+      }
+
+      const nestedPriority = JSON.parse(await fs.readFile(
+        path.join(
+          testDataDir,
+          'llmsData',
+          'en',
+          'guide--action--ref--store',
+          'priority.json'
+        ),
+        'utf-8'
+      ));
+      const hyphenatedPriority = JSON.parse(await fs.readFile(
+        path.join(
+          testDataDir,
+          'llmsData',
+          'en',
+          'guide--action-ref-store',
+          'priority.json'
+        ),
+        'utf-8'
+      ));
+
+      expect(nestedPriority.document).toMatchObject({
+        id: 'guide--action--ref--store',
+        source_path: 'en/guide/action/ref/store.md',
+      });
+      expect(hyphenatedPriority.document).toMatchObject({
+        id: 'guide--action-ref-store',
+        source_path: 'en/guide/action-ref-store.md',
+      });
+
+      const schema = JSON.parse(await fs.readFile(
+        path.join(__dirname, '../../data/priority-schema-enhanced.json'),
+        'utf-8',
+      ));
+      const ajv = new Ajv({ allErrors: true, strict: false });
+      addFormats(ajv);
+      const validate = ajv.compile(schema);
+
+      expect(validate(nestedPriority)).toBe(true);
+      expect(validate.errors).toBeNull();
+      expect(validate(hyphenatedPriority)).toBe(true);
+      expect(validate.errors).toBeNull();
+    });
+
+    it('restores the nested source path when checking an existing priority file', async () => {
+      await fs.rm(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started'),
+        { recursive: true, force: true }
+      );
+
+      const nestedDocumentId = 'guide--action--ref--store';
+      const hyphenatedDocumentId = 'guide--action-ref-store';
+      const nestedSource = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'action',
+        'ref',
+        'store.md'
+      );
+      const hyphenatedSource = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'action-ref-store.md'
+      );
+      const nestedPriorityPath = path.join(
+        testDataDir,
+        'llmsData',
+        'en',
+        nestedDocumentId,
+        'priority.json'
+      );
+      const hyphenatedPriorityPath = path.join(
+        testDataDir,
+        'llmsData',
+        'en',
+        hyphenatedDocumentId,
+        'priority.json'
+      );
+
+      await Promise.all([
+        fs.mkdir(path.dirname(nestedSource), { recursive: true }),
+        fs.mkdir(path.dirname(nestedPriorityPath), { recursive: true }),
+        fs.mkdir(path.dirname(hyphenatedPriorityPath), { recursive: true }),
+      ]);
+      await Promise.all([
+        fs.writeFile(nestedSource, '# Nested Store\n'),
+        fs.writeFile(hyphenatedSource, '# Hyphenated Store\n'),
+      ]);
+
+      const createPriorityData = (documentId: string, sourcePath: string) => ({
+        document: {
+          id: documentId,
+          category: 'guide',
+          source_path: sourcePath,
+        },
+        priority: { score: 85, tier: 'high' },
+        metadata: {
+          description: 'A sufficiently detailed description for canonical path regression coverage.',
+          keywords: {
+            technical: ['typescript', 'state-management'],
+            functional: ['guide', 'reference'],
+          },
+        },
+      });
+
+      await Promise.all([
+        fs.writeFile(
+          nestedPriorityPath,
+          JSON.stringify(createPriorityData(
+            nestedDocumentId,
+            'en/guide/action/ref/store.md'
+          ), null, 2)
+        ),
+        fs.writeFile(
+          hyphenatedPriorityPath,
+          JSON.stringify(createPriorityData(
+            hyphenatedDocumentId,
+            'en/guide/action-ref-store.md'
+          ), null, 2)
+        ),
+      ]);
+
+      const oldTime = new Date('2020-01-01T00:00:00.000Z');
+      const priorityTime = new Date('2021-01-01T00:00:00.000Z');
+      const newTime = new Date('2022-01-01T00:00:00.000Z');
+      await Promise.all([
+        fs.utimes(hyphenatedSource, oldTime, oldTime),
+        fs.utimes(nestedPriorityPath, priorityTime, priorityTime),
+        fs.utimes(nestedSource, newTime, newTime),
+      ]);
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      try {
+        await priorityTasksCommand.execute({
+          language: 'en',
+          taskType: 'outdated',
+          verbose: true,
+        });
+
+        const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+        expect(output).toContain(nestedDocumentId);
+        expect(output).not.toContain(hyphenatedDocumentId);
+        expect(output).toContain(nestedSource);
+      } finally {
+        consoleSpy.mockRestore();
+      }
     });
   });
 

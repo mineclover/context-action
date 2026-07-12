@@ -28,10 +28,11 @@
     "build:watch": "tsdown --watch",
     "dev": "tsdown --watch",
     "test": "jest",
+    "test:performance": "jest __tests__/Performance.test.ts --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "lint": "pnpm --workspace-root exec biome lint packages/typedoc-vitepress-sync/src",
+    "lint:fix": "pnpm --workspace-root exec biome lint --write packages/typedoc-vitepress-sync/src",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "pnpm build",
@@ -51,7 +52,7 @@
     "docs-generation"
   ],
   "author": "mineclover",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
   },
@@ -65,39 +66,26 @@
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.11.0"
   },
   "peerDependencies": {
-    "typedoc": ">=0.25.0",
-    "vitepress": ">=1.0.0"
-  },
-  "peerDependenciesMeta": {
-    "typedoc": {
-      "optional": false
-    },
-    "vitepress": {
-      "optional": false
-    }
+    "typedoc": "^0.28.20",
+    "vitepress": "^1.6.4"
   },
   "dependencies": {
     "chalk": "^5.6.2",
-    "commander": "^14.0.3",
-    "ora": "^9.3.0",
-    "picocolors": "^1.1.1"
+    "commander": "15.0.0",
+    "ora": "9.4.1"
   },
   "devDependencies": {
-    "@eslint/js": "9.34.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.5.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "eslint": "^9.34.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.6",
-    "tsdown": "^0.14.2",
-    "typedoc": "^0.28.18",
-    "typescript": "^5.9.2",
-    "vitepress": "^1.6.4"
+    "@swc/core": "1.15.43",
+    "@swc/helpers": "0.5.23",
+    "@swc/jest": "0.2.39",
+    "@types/jest": "30.0.0",
+    "@types/node": "24.13.3",
+    "jest": "30.4.2",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
   },
   "gitHead": "d044f181a22b8f1fc5ad3362afd30d117fedebdd"
 }

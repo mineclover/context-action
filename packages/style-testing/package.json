@@ -1,17 +1,43 @@
 {
   "name": "@context-action/style-testing",
   "version": "0.1.0",
+  "private": true,
   "description": "Automated style testing tool for Context-Action framework",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./babel-plugin": {
+      "types": "./dist/analyzers/babel-plugin.d.ts",
+      "import": "./dist/analyzers/babel-plugin.js",
+      "default": "./dist/analyzers/babel-plugin.js"
+    }
+  },
   "bin": {
     "style-test": "./dist/cli/index.js"
   },
+  "files": [
+    "dist/**",
+    "README.md",
+    "EXAMPLE.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsdown",
+    "postbuild": "pnpm verify:exports",
     "dev": "tsdown --watch",
-    "type-check": "tsc --noEmit"
+    "test": "pnpm run build && node --test test/*.test.mjs",
+    "type-check": "tsc --noEmit",
+    "verify:exports": "node scripts/verify-exports.mjs"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.11.0"
   },
   "dependencies": {
     "@babel/core": "^7.29.0",
@@ -19,13 +45,16 @@
     "@babel/traverse": "^7.29.0",
     "@babel/types": "^7.29.0",
     "chalk": "^5.6.2",
-    "commander": "^14.0.3",
-    "playwright": "^1.58.2",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.2"
+    "commander": "15.0.0",
+    "playwright": "1.61.1",
+    "tailwindcss": "3.4.19"
   },
   "devDependencies": {
-    "tsdown": "^0.15.2"
+    "@types/babel__core": "7.20.5",
+    "@types/babel__traverse": "7.28.0",
+    "@types/node": "24.13.3",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
   },
   "keywords": [
     "style-testing",

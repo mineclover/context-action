@@ -11,13 +11,16 @@ This simplified library extracts structured metadata from TypeScript/JavaScript 
 - **Versatile**: JSON output can be used by any tool or system
 - **Simple**: Focused on data extraction, not document generation
 
-## Installation
+## Repository-internal setup
+
+This package is `private: true` and is not published to the npm registry. From the Context-Action repository root, install and build its standalone package before using it:
 
 ```bash
-npm install @context-action/test-driven-docs
-# or
-pnpm add @context-action/test-driven-docs
+npm --prefix packages/test-driven-docs ci
+npm --prefix packages/test-driven-docs run build
 ```
+
+For a sibling repository package, link it with `"@context-action/test-driven-docs": "file:../test-driven-docs"` rather than requesting a registry version. The package-name imports below assume that local link (or package self-reference).
 
 ## Usage
 
@@ -39,20 +42,19 @@ const extractor = new TestMetadataExtractor();
 const metadata = await extractor.extractFromFile('./example.test.ts');
 ```
 
-### CLI Usage
+### CLI boundary
+
+Metadata extraction in this simplified guide is exposed through the programmatic API above. The package's built CLI currently covers documentation generation and consistency validation:
 
 ```bash
-# Extract from single file
-test-metadata-extractor extract --input ./my-test.test.ts --pretty
+# Generate documentation from repository tests
+node packages/test-driven-docs/dist/cli/index.js generate
 
-# Extract from directory
-test-metadata-extractor extract --input ./tests/ --output metadata.json
+# Generate enhanced documentation with validation
+node packages/test-driven-docs/dist/cli/index.js generate --enhanced --with-validation
 
-# Custom pattern
-test-metadata-extractor extract --input ./src/ --pattern "\.spec\.(ts|js)$" --pretty
-
-# Validate extracted JSON
-test-metadata-extractor validate metadata.json
+# Validate documentation consistency
+node packages/test-driven-docs/dist/cli/index.js validate --consistency
 ```
 
 ## Output Format
@@ -274,7 +276,7 @@ Clean, structured test data for training language models on code patterns.
 
 ## License
 
-MIT - see LICENSE file for details.
+Apache-2.0 - see [LICENSE](./LICENSE) for details.
 
 ---
 

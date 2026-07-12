@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { SyncDocsCommand } from '../../src/cli/commands/SyncDocsCommand.js';
@@ -638,6 +640,141 @@ describe('SyncDocsCommand', () => {
       } finally {
         consoleSpy.mockRestore();
       }
+    });
+
+    it('should keep identical basenames in nested guide paths collision-free', async () => {
+      const nestedContexts = ['action', 'ref', 'store'];
+      const changedFiles: string[] = [];
+
+      for (const context of nestedContexts) {
+        const sourceDir = path.join(
+          testDataDir,
+          'docs',
+          'en',
+          'guide',
+          'patterns',
+          context,
+        );
+        await fs.mkdir(sourceDir, { recursive: true });
+        await fs.writeFile(
+          path.join(sourceDir, 'basic-usage.md'),
+          `# ${context} Basic Usage\n\nUnique ${context} documentation.`,
+        );
+        changedFiles.push(`docs/en/guide/patterns/${context}/basic-usage.md`);
+      }
+
+      const command = new SyncDocsCommand({
+        ...config,
+        generation: {
+          ...config.generation,
+          characterLimits: [100],
+        },
+      });
+
+      await command.execute({ changedFiles, quiet: true });
+
+      const expectedDocumentIds = nestedContexts.map(
+        context => `guide--patterns--${context}--basic-usage`,
+      );
+      const generatedDirectories = await fs.readdir(
+        path.join(testDataDir, 'llmsData', 'en'),
+      );
+
+      for (const context of nestedContexts) {
+        const documentId = `guide--patterns--${context}--basic-usage`;
+        const documentDir = path.join(testDataDir, 'llmsData', 'en', documentId);
+        const priority = JSON.parse(
+          await fs.readFile(path.join(documentDir, 'priority.json'), 'utf-8'),
+        );
+        const template = await fs.readFile(
+          path.join(documentDir, `${documentId}-100.md`),
+          'utf-8',
+        );
+
+        expect(priority.document.id).toBe(documentId);
+        expect(priority.document.source_path).toBe(
+          `en/guide/patterns/${context}/basic-usage.md`,
+        );
+        expect(template).toContain(`document_id: ${documentId}`);
+        expect(template).toContain(
+          `source_path: en/guide/patterns/${context}/basic-usage.md`,
+        );
+      }
+
+      expect(
+        generatedDirectories.filter(directory => expectedDocumentIds.includes(directory)).sort(),
+      ).toEqual([...expectedDocumentIds].sort());
+    });
+
+    it('should generate priority metadata that passes the enhanced schema', async () => {
+      const sourcePath = path.join(
+        testDataDir,
+        'docs',
+        'en',
+        'guide',
+        'schema-valid.md',
+      );
+      await fs.writeFile(
+        sourcePath,
+        [
+          '# Schema Valid Priority Metadata',
+          '',
+          'A practical guide to Context-Action state management and typed action pipelines.',
+          '',
+          '## Keywords: TypeScript, state management, action pipeline',
+          '',
+          '```ts',
+          'const ready = true;',
+          '```',
+        ].join('\n'),
+      );
+
+      const command = new SyncDocsCommand({
+        ...config,
+        generation: {
+          ...config.generation,
+          characterLimits: [100, 500],
+        },
+      });
+      await command.execute({
+        changedFiles: ['docs/en/guide/schema-valid.md'],
+        quiet: true,
+      });
+
+      const priorityPath = path.join(
+        testDataDir,
+        'llmsData',
+        'en',
+        'guide--schema-valid',
+        'priority.json',
+      );
+      const [priority, schema] = await Promise.all([
+        fs.readFile(priorityPath, 'utf-8').then(content => JSON.parse(content)),
+        fs.readFile(
+          path.resolve(__dirname, '../../data/priority-schema-enhanced.json'),
+          'utf-8',
+        ).then(content => JSON.parse(content)),
+      ]);
+      const ajv = new Ajv({ allErrors: true, strict: false });
+      addFormats(ajv);
+      const validate = ajv.compile(schema);
+      const isValid = validate(priority);
+
+      if (!isValid) {
+        throw new Error(
+          `Generated priority metadata failed schema validation:\n${ajv.errorsText(
+            validate.errors,
+            { separator: '\n' },
+          )}`,
+        );
+      }
+
+      expect(priority.document.id).toBe('guide--schema-valid');
+      expect(priority.document.source_path).toBe('en/guide/schema-valid.md');
+      expect(priority.priority.tier).toBe('reference');
+      expect(priority.keywords.primary.length).toBeGreaterThan(0);
+      expect(priority.metadata.description.length).toBeGreaterThanOrEqual(50);
+      expect(isValid).toBe(true);
     });
 
     it('should handle document title extraction', async () => {

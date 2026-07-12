@@ -18,6 +18,17 @@ import { MetricsCollector } from './MetricsCollector.js'
 import { ErrorHandler } from './ErrorHandler.js'
 import { MarkdownProcessor } from '../processors/MarkdownProcessor.js'
 
+const MAX_MARKDOWN_FILE_SIZE_BYTES = 8 * 1024 * 1024
+const MAX_TRANSIENT_WRITE_ATTEMPTS = 3
+const TRANSIENT_WRITE_ERROR_CODES = new Set([
+  'EAGAIN',
+  'EBUSY',
+  'EMFILE',
+  'ENFILE',
+  'ETXTBSY'
+])
+type FileSystemError = Error & { code?: string }
+
 export class FileProcessor {
   private config: Required<ParallelConfig>
   private cache: CacheManager
@@ -64,6 +75,8 @@ export class FileProcessor {
     this.eventEmitter?.('fileStart', sourcePath)
     
     try {
+      this.assertFileSizeWithinLimit(sourcePath)
+
       // Check cache first
       if (!this.cache.shouldProcess(sourcePath, targetPath)) {
         this.logger?.debug(`Cache hit: ${path.basename(sourcePath)}`)
@@ -88,7 +101,7 @@ export class FileProcessor {
       }
 
       // Write processed content
-      fs.writeFileSync(targetPath, content)
+      this.writeFileWithRetry(targetPath, content)
       this.logger?.debug(`Processed: ${path.basename(sourcePath)}`)
 
       // Update cache
@@ -105,14 +118,15 @@ export class FileProcessor {
       return successResult
 
     } catch (error) {
-      this.errorHandler.handleError(
-        error as Error, 
-        `Processing file: ${sourcePath}`
-      )
+      const processingError = error instanceof Error ? error : new Error(String(error))
+      const context = `Processing file: ${sourcePath}`
+
+      this.eventEmitter?.('error', processingError, context)
+      this.errorHandler.handleError(processingError, context)
       const errorResult = { 
         success: false, 
         cached: false, 
-        error: (error as Error).message 
+        error: processingError.message
       }
       this.eventEmitter?.('fileComplete', sourcePath, errorResult)
       return errorResult
@@ -184,10 +198,9 @@ export class FileProcessor {
     options: ProcessorOptions = {}
   ): Promise<FileProcessResult[]> {
     if (!fs.existsSync(sourceDir)) {
-      this.errorHandler.addWarning(
-        `Source directory does not exist: ${sourceDir}`,
-        'processDirectory'
-      )
+      const message = `Source directory does not exist: ${sourceDir}`
+      this.errorHandler.addWarning(message, 'processDirectory')
+      this.eventEmitter?.('warning', message, 'processDirectory')
       return []
     }
 
@@ -229,6 +242,47 @@ export class FileProcessor {
 
     collectRecursive(sourceDir, targetDir)
     return pairs
+  }
+
+  /**
+   * Reject inputs that would require unbounded whole-file string processing.
+   */
+  private assertFileSizeWithinLimit(sourcePath: string): void {
+    const fileSize = fs.statSync(sourcePath).size
+    if (fileSize <= MAX_MARKDOWN_FILE_SIZE_BYTES) {
+      return
+    }
+
+    const error = new Error(
+      `Markdown file exceeds the ${MAX_MARKDOWN_FILE_SIZE_BYTES} byte processing limit: ${sourcePath}`
+    ) as FileSystemError
+    error.code = 'EFBIG'
+    throw error
+  }
+
+  /**
+   * Retry only operating-system errors that are commonly transient.
+   */
+  private writeFileWithRetry(targetPath: string, content: string): void {
+    for (let attempt = 1; attempt <= MAX_TRANSIENT_WRITE_ATTEMPTS; attempt++) {
+      try {
+        fs.writeFileSync(targetPath, content)
+        return
+      } catch (error) {
+        const errorCode = (error as FileSystemError).code
+        const shouldRetry = errorCode !== undefined
+          && TRANSIENT_WRITE_ERROR_CODES.has(errorCode)
+          && attempt < MAX_TRANSIENT_WRITE_ATTEMPTS
+
+        if (!shouldRetry) {
+          throw error
+        }
+
+        this.logger?.warn(
+          `Transient write failure for ${targetPath}; retrying (${attempt}/${MAX_TRANSIENT_WRITE_ATTEMPTS})`
+        )
+      }
+    }
   }
 
   /**
