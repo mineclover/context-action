@@ -233,6 +233,9 @@ const ChatPage = lazy(() =>
 const ToolContextAIDemo = lazy(
   () => import('./pages/integrations/ai/ToolContextAIDemo')
 );
+const ActionLifecycleWorkbenchPage = lazy(
+  () => import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -548,6 +551,7 @@ function AppContent() {
             />
 
             {/* 🧩 INTEGRATIONS - Real-world use cases */}
+            <Route path="/integrations/action-lifecycle" element={<ActionLifecycleWorkbenchPage />} />
             <Route path="/integrations/tool-context-ai" element={<ToolContextAIDemo />} />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route

@@ -22,6 +22,19 @@ interface DemoItem {
 }
 
 const demos: DemoItem[] = [
+  // === Framework Lifecycle ===
+  {
+    path: '/integrations/action-lifecycle',
+    title: 'Action Lifecycle Workbench',
+    emoji: '🧭',
+    description: '검증·정책·비즈니스 작업·감사 기록을 하나의 action pipeline 타임라인으로 확인하는 대표 데모.',
+    tags: ['Action Pipeline', 'Lifecycle', 'Abort', 'Handler Results'],
+    category: 'advanced',
+    complexity: 'Intermediate',
+    features: ['Priority ordering', 'Blocking handlers', 'Abort reason', 'Result collection'],
+    estimatedTime: '5-10분',
+  },
+
   // === AI/LLM Integration ===
   {
     path: '/integrations/tool-context-ai',
@@ -255,9 +268,9 @@ export default function DemosIndexPage() {
                       📋 학습 가이드
                     </h3>
                     <ul className="text-purple-700 space-y-2 text-sm">
-                      <li>• <strong>초급자</strong>: Chat Demo부터 시작</li>
-                      <li>• <strong>중급자</strong>: Action Priority Demo로 성능 학습</li>
-                      <li>• <strong>고급자</strong>: 모든 데모를 통한 심화 학습</li>
+                      <li>• <strong>시작점</strong>: Action Lifecycle Workbench로 pipeline 흐름 확인</li>
+                      <li>• <strong>상태 관리</strong>: Time Travel Context에서 선택 구독과 history 학습</li>
+                      <li>• <strong>업무 흐름</strong>: Implementation Playbook과 ToolContext AI로 심화</li>
                       <li>• <strong>개발자</strong>: 코드 분석과 커스터마이징</li>
                     </ul>
                   </div>
@@ -273,20 +286,20 @@ export default function DemosIndexPage() {
                   Recommended Entry Point
                 </div>
                 <h2 className="text-2xl font-semibold mt-4 text-slate-900">
-                  Start with the Implementation Playbook before deeper demos
+                  Start with the Action Lifecycle Workbench
                 </h2>
                 <p className="mt-2 text-slate-700 max-w-3xl">
-                  If you want one example that ties architecture, runtime flow,
-                  and verification together, begin with the canonical order form
-                  example and then come back to the specialized demos below.
+                  Begin with one action moving through validation, policy, business,
+                  and audit handlers. Then use the canonical order form to see the
+                  same ideas composed into a complete workflow.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  to="/patterns/implementation-playbook"
+                  to="/integrations/action-lifecycle"
                   className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800"
                 >
-                  Open canonical example →
+                  Open lifecycle workbench →
                 </Link>
                 <a
                   href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
