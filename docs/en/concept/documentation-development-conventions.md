@@ -67,6 +67,10 @@ describing it as available.
 or documentation releases; use the narrower commands above during focused
 development to keep feedback fast.
 
+For a repository-wide pre-merge check—including package builds, runtime export
+loading, packed archive contents, linting, tests, the example app,
+documentation, and private tooling—run `pnpm verify:all`.
+
 ## 5. Review and Handoff Record
 
 Each documentation-affecting pull request or handoff should state:

@@ -59,6 +59,10 @@
 `pnpm docs:full`은 전체 문서 파이프라인입니다. 광범위한 API 또는 문서 릴리스에는
 사용하고, 집중 개발 중에는 위의 좁은 명령으로 빠르게 피드백을 받습니다.
 
+패키지 빌드, runtime export 로딩, 배포 archive 내용, lint, 테스트, 예제 앱, 문서,
+private tooling을 모두 포함한 저장소 전체 pre-merge 검증은 `pnpm verify:all`로
+실행합니다.
+
 ## 5. 리뷰 및 handoff 기록
 
 문서에 영향을 주는 PR 또는 handoff에는 다음을 적습니다.

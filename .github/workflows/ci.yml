@@ -68,14 +68,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
           
-      - name: Build packages
-        run: pnpm build
-
-      - name: Verify package exports
-        run: pnpm verify:package-exports
-
-      - name: Verify package tarballs
-        run: pnpm verify:package-tarballs
+      - name: Verify full repository
+        run: pnpm verify:all
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
@@ -85,24 +79,6 @@ jobs:
             packages/*/dist
             packages/*/lib
           retention-days: 1
-        
-      - name: Lint
-        run: pnpm lint
-        
-      - name: Type check
-        run: pnpm type-check
-
-      - name: Build documentation
-        run: pnpm docs:build
-
-      - name: Verify workspace-only tools
-        run: pnpm verify:private-tools
-        
-      - name: Run tests
-        run: pnpm test
-        
-      - name: Build example app
-        run: pnpm example:build
         
       - name: Upload example build artifacts  
         uses: actions/upload-artifact@v6
