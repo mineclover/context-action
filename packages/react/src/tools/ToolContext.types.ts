@@ -13,12 +13,12 @@ import {
   DispatchOptions,
   ExecutionResult,
   ActionSchemaMap,
-  UnifiedAction,
   InferActionPayloadMap,
   MCPToolDefinition,
   OpenAIToolDefinition,
   AnthropicToolDefinition,
 } from '@context-action/core';
+import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
 
 // ============================================
 // Tool Context Configuration
@@ -121,6 +121,7 @@ export interface ToolContextType<TSchema extends ActionSchemaMap> {
   actionRegisterRef: React.RefObject<ActionRegister<InferActionPayloadMap<TSchema>> | null>;
   registry: ToolRegistry<TSchema>;
   dispatch: ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
+  dispatchLifecycle: ProviderDispatchLifecycle;
 }
 
 // ============================================
@@ -170,9 +171,9 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
    * Hook to register tool handlers
    * Similar to useActionHandler but for tool execution
    */
-  useToolHandler: <K extends keyof TSchema>(
+  useToolHandler: <K extends keyof TSchema, R = void>(
     toolName: K,
-    handler: ActionHandler<InferActionPayloadMap<TSchema>[K]>,
+    handler: ActionHandler<InferActionPayloadMap<TSchema>[K], R>,
     config?: HandlerConfig
   ) => void;
 

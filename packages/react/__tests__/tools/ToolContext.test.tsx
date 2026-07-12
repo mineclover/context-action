@@ -81,6 +81,131 @@ describe('createToolContext', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should destroy the action register when the provider unmounts', async () => {
+      const { result, unmount } = renderHook(() => useActionRegister(), { wrapper });
+      const register = result.current;
+      expect(register).not.toBeNull();
+
+      const destroySpy = jest.spyOn(register!, 'destroyAsync');
+
+      unmount();
+
+      await waitFor(() => expect(destroySpy).toHaveBeenCalledTimes(1));
+    });
+
+    it('should preserve handlers through StrictMode replay and clean up once', async () => {
+      const handler = jest.fn();
+      const handlerCleanup = jest.fn();
+      const strictWrapper = ({ children }: { children: React.ReactNode }) => (
+        <React.StrictMode>
+          <ToolProvider>{children}</ToolProvider>
+        </React.StrictMode>
+      );
+
+      const { result, unmount } = renderHook(() => {
+        useToolHandler('addToCart', useCallback(handler, []), { cleanup: handlerCleanup });
+        return {
+          dispatch: useToolDispatch(),
+          register: useActionRegister(),
+        };
+      }, { wrapper: strictWrapper });
+
+      const destroySpy = jest.spyOn(result.current.register!, 'destroyAsync');
+      await act(async () => {});
+      expect(handlerCleanup).not.toHaveBeenCalled();
+      expect(destroySpy).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.dispatch('addToCart', { productId: 'one', quantity: 1 });
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      unmount();
+      await waitFor(() => {
+        expect(handlerCleanup).toHaveBeenCalledTimes(1);
+        expect(destroySpy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should replace a tool handler when its lifecycle config changes', async () => {
+      const handler = jest.fn();
+      const firstCleanup = jest.fn();
+      const secondCleanup = jest.fn();
+
+      const { result, rerender, unmount } = renderHook(
+        ({ cleanup }: { cleanup: () => void }) => {
+          useToolHandler('addToCart', useCallback(handler, []), {
+            id: 'configurable-tool-handler',
+            cleanup,
+          });
+          return useActionRegister();
+        },
+        {
+          wrapper,
+          initialProps: { cleanup: firstCleanup },
+        }
+      );
+
+      expect(result.current?.getHandlerCount('addToCart')).toBe(1);
+
+      rerender({ cleanup: secondCleanup });
+
+      expect(firstCleanup).toHaveBeenCalledTimes(1);
+      expect(result.current?.getHandlerCount('addToCart')).toBe(1);
+
+      unmount();
+      await waitFor(() => expect(secondCleanup).toHaveBeenCalledTimes(1));
+    });
+
+    it('should reject active and queued tool dispatches before cleanup', async () => {
+      const events: string[] = [];
+      const handlerCleanup = jest.fn();
+      let releaseFirst!: () => void;
+      let markFirstStarted!: () => void;
+      const firstStarted = new Promise<void>(resolve => { markFirstStarted = resolve; });
+      const gate = new Promise<void>(resolve => { releaseFirst = resolve; });
+
+      const { result, unmount } = renderHook(() => {
+        useToolHandler('addToCart', useCallback(async ({ productId }) => {
+          events.push(`start:${productId}`);
+          if (productId === 'first') {
+            markFirstStarted();
+            await gate;
+          }
+          events.push(`finish:${productId}`);
+        }, []), { cleanup: handlerCleanup });
+        return {
+          dispatch: useToolDispatch(),
+          register: useActionRegister(),
+        };
+      }, { wrapper });
+
+      const destroySpy = jest.spyOn(result.current.register!, 'destroyAsync');
+      const first = result.current.dispatch(
+        'addToCart',
+        { productId: 'first', quantity: 1 }
+      ).catch(error => error as Error);
+      await firstStarted;
+      const second = result.current.dispatch(
+        'addToCart',
+        { productId: 'second', quantity: 1 }
+      ).catch(error => error as Error);
+
+      unmount();
+      await expect(first).resolves.toMatchObject({ name: 'AbortError' });
+      await expect(second).resolves.toMatchObject({ name: 'AbortError' });
+      expect(events).toEqual(['start:first']);
+      expect(handlerCleanup).not.toHaveBeenCalled();
+      expect(destroySpy).toHaveBeenCalledTimes(1);
+
+      releaseFirst();
+      await waitFor(() => {
+        expect(handlerCleanup).toHaveBeenCalledTimes(1);
+        expect(destroySpy).toHaveBeenCalledTimes(1);
+      });
+      expect(events).toEqual(['start:first', 'finish:first']);
+    });
   });
 
   describe('useToolRegistry', () => {
@@ -297,6 +422,34 @@ describe('createToolContext', () => {
   });
 
   describe('useToolDispatchWithResult', () => {
+    it('should preserve a typed handler result for AI tool adapters', async () => {
+      const { result: dispatchResult } = renderHook(
+        () => {
+          const { dispatchWithResult } = useToolDispatchWithResult();
+
+          useToolHandler(
+            'searchProducts',
+            useCallback(async ({ query }) => ({ query, source: 'catalog' as const }), []),
+            { blocking: true }
+          );
+
+          return dispatchWithResult;
+        },
+        { wrapper }
+      );
+
+      let executionResult: Awaited<ReturnType<typeof dispatchResult.current>>;
+
+      await act(async () => {
+        executionResult = await dispatchResult.current('searchProducts', {
+          query: 'laptop',
+          maxResults: 10,
+        });
+      });
+
+      expect(executionResult!.result).toEqual({ query: 'laptop', source: 'catalog' });
+    });
+
     it('should return execution result', async () => {
       const handlerMock = jest.fn().mockResolvedValue({ items: ['item1'] });
 
@@ -328,6 +481,45 @@ describe('createToolContext', () => {
       });
       // Execution should have succeeded
       expect(executionResult!.aborted).toBeFalsy();
+    });
+
+    it('should validate exactly once and derive validation metadata from core', async () => {
+      let validationCalls = 0;
+      const countedSchema = createActionSchema({
+        counted: defineAction({
+          name: 'counted',
+          parameters: z.object({
+            value: z.string().refine(value => {
+              validationCalls++;
+              return value.length > 0;
+            }),
+          }),
+        }, z),
+      });
+      const CountedTools = createToolContext('CountedTools', {
+        schema: countedSchema,
+        validationMode: 'warn',
+      });
+      const handler = jest.fn();
+
+      const { result } = renderHook(() => {
+        CountedTools.useToolHandler('counted', useCallback(handler, []));
+        return CountedTools.useToolDispatchWithResult().dispatchWithResult;
+      }, {
+        wrapper: ({ children }) => <CountedTools.Provider>{children}</CountedTools.Provider>,
+      });
+
+      let executionResult: Awaited<ReturnType<typeof result.current>>;
+      await act(async () => {
+        executionResult = await result.current('counted', { value: 'valid' });
+      });
+
+      expect(validationCalls).toBe(1);
+      expect(executionResult!).toMatchObject({
+        validationPassed: true,
+        validation: { passed: true, errors: [] },
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('should support abortAll', async () => {
@@ -461,6 +653,39 @@ describe('createToolContext with validation modes', () => {
 
       expect(consoleSpy).toHaveBeenCalled();
       expect(handlerMock).toHaveBeenCalled(); // Handler still runs
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should report failed validation from dispatchWithResult', async () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const handlerMock = jest.fn();
+
+      const { Provider, useToolDispatchWithResult, useToolHandler } = createToolContext(
+        'WarnResultTools',
+        { schema: simpleSchema, validationMode: 'warn' }
+      );
+
+      const { result } = renderHook(
+        () => {
+          const { dispatchWithResult } = useToolDispatchWithResult();
+          useToolHandler('testAction', useCallback(handlerMock, []));
+          return dispatchWithResult;
+        },
+        { wrapper: ({ children }) => <Provider>{children}</Provider> }
+      );
+
+      let executionResult: Awaited<ReturnType<typeof result.current>>;
+      await act(async () => {
+        executionResult = await result.current('testAction', { value: 'ab' });
+      });
+
+      expect(executionResult!).toMatchObject({
+        success: true,
+        validationPassed: false,
+        validationErrors: expect.any(Array),
+      });
+      expect(handlerMock).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });

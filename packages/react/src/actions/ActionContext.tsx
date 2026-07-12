@@ -3,8 +3,142 @@ import {  ActionRegister, ActionHandler, HandlerConfig, DispatchOptions, Executi
 import type {
   ActionContextConfig,
   ActionContextType,
-  ActionContextReturn
+  ActionContextReturn,
+  ProviderDispatchLifecycle
 } from './ActionContext.types';
+
+function createProviderAbortError(): Error {
+  const error = new Error('Action provider unmounted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function mergeAbortSignals(signals: AbortSignal[]): {
+  signal: AbortSignal;
+  cleanup: () => void;
+} {
+  if (signals.length === 1) {
+    return { signal: signals[0]!, cleanup: () => {} };
+  }
+
+  if (typeof AbortSignal.any === 'function') {
+    return { signal: AbortSignal.any(signals), cleanup: () => {} };
+  }
+
+  const controller = new AbortController();
+  const cleanups: Array<() => void> = [];
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      break;
+    }
+    const forwardAbort = () => controller.abort(signal.reason);
+    signal.addEventListener('abort', forwardAbort, { once: true });
+    cleanups.push(() => signal.removeEventListener('abort', forwardAbort));
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup: () => cleanups.forEach(cleanup => cleanup()),
+  };
+}
+
+/** @internal Shared by ActionContext and ToolContext providers. */
+export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle {
+  private accepting = true;
+  private finalized = false;
+  private activeOperations = new Set<Promise<unknown>>();
+  private controllers = new Set<AbortController>();
+  private pendingHandlerCleanups = new Set<() => void>();
+  private shutdownPromise: Promise<void> | null = null;
+
+  run<R>(
+    externalSignals: Array<AbortSignal | undefined>,
+    operation: (signal: AbortSignal) => Promise<R>
+  ): Promise<R> {
+    if (!this.accepting) {
+      const rejectedPromise = Promise.reject<R>(createProviderAbortError());
+      void rejectedPromise.catch(() => {});
+      return rejectedPromise;
+    }
+
+    const controller = new AbortController();
+    const { signal, cleanup: cleanupSignals } = mergeAbortSignals([
+      controller.signal,
+      ...externalSignals.filter((candidate): candidate is AbortSignal => Boolean(candidate)),
+    ]);
+    this.controllers.add(controller);
+
+    let operationPromise: Promise<R>;
+    try {
+      operationPromise = operation(signal);
+    } catch (error) {
+      operationPromise = Promise.reject(error);
+    }
+    this.activeOperations.add(operationPromise);
+
+    const abortPromise = new Promise<never>((_, reject) => {
+      const rejectOnProviderAbort = () => reject(createProviderAbortError());
+      controller.signal.addEventListener('abort', rejectOnProviderAbort, { once: true });
+
+      const finish = () => {
+        controller.signal.removeEventListener('abort', rejectOnProviderAbort);
+        this.controllers.delete(controller);
+        this.activeOperations.delete(operationPromise);
+        cleanupSignals();
+      };
+      void operationPromise.then(finish, finish);
+    });
+
+    const exposedPromise = Promise.race([operationPromise, abortPromise]);
+    void exposedPromise.catch(() => {});
+    return exposedPromise;
+  }
+
+  scheduleHandlerCleanup(cleanup: () => void): void {
+    queueMicrotask(() => {
+      if (this.finalized) {
+        cleanup();
+      } else if (this.accepting) {
+        cleanup();
+      } else {
+        this.pendingHandlerCleanups.add(cleanup);
+      }
+    });
+  }
+
+  shutdown(register: ActionRegister<any>): Promise<void> {
+    if (this.shutdownPromise) return this.shutdownPromise;
+
+    this.accepting = false;
+    this.controllers.forEach(controller => {
+      if (!controller.signal.aborted) controller.abort(createProviderAbortError());
+    });
+    const registerShutdown = register.destroyAsync();
+
+    this.shutdownPromise = Promise.allSettled([...this.activeOperations])
+      .then(() => registerShutdown)
+      .then(() => {
+        this.pendingHandlerCleanups.forEach(cleanup => cleanup());
+        this.pendingHandlerCleanups.clear();
+        this.finalized = true;
+      });
+    return this.shutdownPromise;
+  }
+}
+
+export function withProviderDispatchSignal(
+  options: DispatchOptions | undefined,
+  signal: AbortSignal
+): DispatchOptions {
+  return {
+    ...options,
+    signal,
+    ...(!options?.signal && !options?.autoAbort
+      ? { autoAbort: { enabled: true, allowHandlerAbort: true } }
+      : {}),
+  };
+}
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
@@ -72,13 +206,37 @@ export function createActionContext<T extends {}>(
 
   // Provider component with abort support
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(effectiveConfig));
-    // const abortControllerRef = useRef<AbortController | null>(null);
+    const actionRegisterRef = useRef<ActionRegister<T> | null>(null);
+    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
+    const lifecycleGenerationRef = useRef(0);
+    if (!actionRegisterRef.current) {
+      actionRegisterRef.current = new ActionRegister<T>(effectiveConfig);
+    }
+    if (!dispatchLifecycleRef.current) {
+      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
+    }
+    const dispatchLifecycle = dispatchLifecycleRef.current;
+
+    useEffect(() => {
+      const register = actionRegisterRef.current;
+      const generation = ++lifecycleGenerationRef.current;
+
+      return () => {
+        queueMicrotask(() => {
+          // StrictMode replays setup before this microtask; the latest generation
+          // is intentionally read here to distinguish replay from real unmount.
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          if (lifecycleGenerationRef.current === generation && register) {
+            void dispatchLifecycle.shutdown(register);
+          }
+        });
+      };
+    }, [dispatchLifecycle]);
 
     const contextValue = useMemo(() => ({
       actionRegisterRef,
-      // abortControllerRef,
-    }), []);
+      dispatchLifecycle,
+    }), [dispatchLifecycle]);
 
     return (
       <FactoryActionContext.Provider value={contextValue}>
@@ -107,7 +265,7 @@ export function createActionContext<T extends {}>(
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
    */
   const useActionDispatcher = () => {
-    const { actionRegisterRef } = useFactoryActionContext();
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     
     // Stable dispatch function with useCallback optimization
     const dispatch = useCallback(<K extends keyof T>(
@@ -131,19 +289,15 @@ export function createActionContext<T extends {}>(
         );
       }
       
-      // Use core's autoAbort feature if no signal is provided
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true
-          }
-        })
-      };
-      
-      return register.dispatch(action, payload as T[K], dispatchOptions);
-    }, [actionRegisterRef]); // Include actionRegisterRef dependency
+      return dispatchLifecycle.run(
+        [options?.signal],
+        signal => register.dispatch(
+          action,
+          payload as T[K],
+          withProviderDispatchSignal(options, signal)
+        )
+      );
+    }, [actionRegisterRef, dispatchLifecycle]);
 
     // Stable dispatchWithResult function
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
@@ -156,18 +310,15 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
       
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true
-          }
-        })
-      };
-      
-      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, [actionRegisterRef]);
+      return dispatchLifecycle.run(
+        [options?.signal],
+        signal => register.dispatchWithResult<K, R>(
+          action,
+          payload,
+          withProviderDispatchSignal(options, signal)
+        )
+      );
+    }, [actionRegisterRef, dispatchLifecycle]);
 
     return { dispatch, dispatchWithResult };
   };
@@ -179,13 +330,21 @@ export function createActionContext<T extends {}>(
   };
 
   // Hook to register action handlers with automatic cleanup and ref optimization
-  const useActionHandler = <K extends keyof T>(
+  const useActionHandler = <K extends keyof T, R = void>(
     action: K,
-    handler: ActionHandler<T[K]>,
+    handler: ActionHandler<T[K], R>,
     config?: HandlerConfig
   ): void => {
-    const { actionRegisterRef } = useFactoryActionContext();
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
+    const effectGenerationRef = useRef(0);
+    const registrationRef = useRef<{
+      register: ActionRegister<T>;
+      action: keyof T;
+      config: HandlerConfig;
+      active: boolean;
+      unregister: () => void;
+    } | null>(null);
     
     // Store the latest handler in a ref to avoid re-registrations
     const handlerRef = useRef(handler);
@@ -198,6 +357,9 @@ export function createActionContext<T extends {}>(
     const once = config?.once ?? false;
     const debounce = config?.debounce;
     const throttle = config?.throttle;
+    const cleanup = config?.cleanup;
+    const condition = config?.condition;
+    const replaceExisting = config?.replaceExisting ?? true;
     
     // Memoize config to prevent unnecessary re-registrations
     const stableConfig = useMemo((): HandlerConfig => ({
@@ -205,32 +367,72 @@ export function createActionContext<T extends {}>(
       id,
       blocking,
       once,
-      replaceExisting: true,
+      replaceExisting,
+      ...(cleanup !== undefined && { cleanup }),
+      ...(condition !== undefined && { condition }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, once, debounce, throttle]);
+    }), [priority, id, blocking, once, replaceExisting, cleanup, condition, debounce, throttle]);
 
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
+      const generation = ++effectGenerationRef.current;
+      let lease = registrationRef.current;
 
-      // Create a wrapper handler that always calls the latest handler
-      const wrapperHandler: ActionHandler<T[K]> = (payload, controller) => {
-        return handlerRef.current(payload, controller);
-      };
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Registering handler for '${String(action)}'`);
+      if (lease && (
+        lease.register !== register ||
+        lease.action !== action ||
+        lease.config !== stableConfig
+      )) {
+        lease.active = false;
+        lease.unregister();
+        registrationRef.current = null;
+        lease = null;
       }
 
-      // Register the wrapper handler (not the actual handler)
-      const unregister = register.register(action, wrapperHandler, stableConfig);
+      if (!lease) {
+        const nextLease = {
+          register,
+          action,
+          config: stableConfig,
+          active: true,
+          unregister: () => {},
+        };
+        const wrapperHandler: ActionHandler<T[K], R> = (payload, controller) => {
+          if (!nextLease.active) return;
+          return handlerRef.current(payload, controller);
+        };
 
-      // Cleanup on unmount or config change only
-      return unregister;
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Registering handler for '${String(action)}'`);
+        }
+
+        nextLease.unregister = register.register<K, R>(action, wrapperHandler, stableConfig);
+        registrationRef.current = nextLease;
+        lease = nextLease;
+      } else {
+        lease.active = true;
+      }
+
+      const currentLease = lease;
+      return () => {
+        currentLease.active = false;
+        queueMicrotask(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps -- replay cancellation requires the latest generation
+          if (effectGenerationRef.current !== generation) return;
+          dispatchLifecycle.scheduleHandlerCleanup(() => {
+            if (registrationRef.current === currentLease) {
+              registrationRef.current = null;
+            }
+            currentLease.unregister();
+          });
+        });
+      };
     }, [
       action,
       actionRegisterRef,
+      dispatchLifecycle,
       stableConfig // Only re-register if config actually changes
       // Note: handler is NOT in dependencies - it's accessed via ref
     ]);
@@ -271,6 +473,7 @@ export function createActionContext<T extends {}>(
   const useFactoryActionDispatchWithResult = () => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
+    const cleanupGenerationRef = useRef(0);
 
     // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends keyof T>(
@@ -283,31 +486,22 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
 
-      // 🔧 Performance: Track controller for cleanup after completion
-      let createdController: AbortController | undefined;
+      const scopeController = new AbortController();
+      activeControllersRef.current.add(scopeController);
 
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        // Enable autoAbort if no signal is provided
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true,
-            onControllerCreated: (controller) => {
-              createdController = controller;
-              activeControllersRef.current.add(controller);
-            }
-          }
-        })
-      };
-
-      // 🔧 Performance: Remove controller from Set after dispatch completes
-      return register.dispatch(action, payload as T[K], dispatchOptions).finally(() => {
-        if (createdController) {
-          activeControllersRef.current.delete(createdController);
-        }
+      const trackedPromise = context.dispatchLifecycle.run(
+        [options?.signal, scopeController.signal],
+        signal => register.dispatch(
+          action,
+          payload as T[K],
+          withProviderDispatchSignal(options, signal)
+        )
+      ).finally(() => {
+        activeControllersRef.current.delete(scopeController);
       });
-    }, [context.actionRegisterRef]);
+      void trackedPromise.catch(() => {});
+      return trackedPromise;
+    }, [context.actionRegisterRef, context.dispatchLifecycle]);
 
     // Create wrapped dispatchWithResult using core's autoAbort
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
@@ -320,31 +514,22 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
 
-      // 🔧 Performance: Track controller for cleanup after completion
-      let createdController: AbortController | undefined;
+      const scopeController = new AbortController();
+      activeControllersRef.current.add(scopeController);
 
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        // Enable autoAbort if no signal is provided
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true,
-            onControllerCreated: (controller) => {
-              createdController = controller;
-              activeControllersRef.current.add(controller);
-            }
-          }
-        })
-      };
-
-      // 🔧 Performance: Remove controller from Set after dispatch completes
-      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions).finally(() => {
-        if (createdController) {
-          activeControllersRef.current.delete(createdController);
-        }
+      const trackedPromise = context.dispatchLifecycle.run(
+        [options?.signal, scopeController.signal],
+        signal => register.dispatchWithResult<K, R>(
+          action,
+          payload,
+          withProviderDispatchSignal(options, signal)
+        )
+      ).finally(() => {
+        activeControllersRef.current.delete(scopeController);
       });
-    }, [context.actionRegisterRef]);
+      void trackedPromise.catch(() => {});
+      return trackedPromise;
+    }, [context.actionRegisterRef, context.dispatchLifecycle]);
     
     // Method to manually abort all pending actions
     const abortAll = useCallback(() => {
@@ -363,16 +548,14 @@ export function createActionContext<T extends {}>(
     
     // Cleanup: abort all pending actions on unmount
     useEffect(() => {
-      const controllers = activeControllersRef;
+      const generation = ++cleanupGenerationRef.current;
       return () => {
-        controllers.current.forEach(controller => {
-          if (!controller.signal.aborted) {
-            controller.abort();
-          }
+        queueMicrotask(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps -- replay cancellation requires the latest generation
+          if (cleanupGenerationRef.current === generation) abortAll();
         });
-        controllers.current.clear();
       };
-    }, []);
+    }, [abortAll]);
     
     return {
       dispatch,

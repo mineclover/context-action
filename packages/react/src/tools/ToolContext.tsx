@@ -64,6 +64,10 @@ import type {
   ToolRegistry,
   ToolExecutionResult,
 } from './ToolContext.types';
+import {
+  ProviderDispatchLifecycleImpl,
+  withProviderDispatchSignal,
+} from '../actions/ActionContext';
 
 /**
  * Creates a ToolRegistry from an ActionSchemaMap
@@ -159,6 +163,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // Create singleton ActionRegister instance (only once per Provider mount)
     const actionRegisterRef = useRef<ActionRegister<TPayloadMap> | null>(null);
+    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
+    const lifecycleGenerationRef = useRef(0);
     if (!actionRegisterRef.current) {
       actionRegisterRef.current = new ActionRegister<TPayloadMap>({
         name: contextName,
@@ -169,6 +175,26 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         },
       });
     }
+    if (!dispatchLifecycleRef.current) {
+      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
+    }
+    const dispatchLifecycle = dispatchLifecycleRef.current;
+
+    useEffect(() => {
+      const register = actionRegisterRef.current;
+      const generation = ++lifecycleGenerationRef.current;
+
+      return () => {
+        queueMicrotask(() => {
+          // StrictMode replays setup before this microtask; compare against the
+          // latest generation to distinguish replay from real unmount.
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          if (lifecycleGenerationRef.current === generation && register) {
+            void dispatchLifecycle.shutdown(register);
+          }
+        });
+      };
+    }, [dispatchLifecycle]);
 
     // Create dispatch function (singleton)
     const dispatch = useMemo(() => {
@@ -186,29 +212,27 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           throw new Error(`ActionRegister not initialized in ${contextName}`);
         }
 
-        const dispatchOptions: DispatchOptions = {
-          ...options,
-          ...(options?.signal
-            ? {}
-            : {
-                autoAbort: {
-                  enabled: true,
-                  allowHandlerAbort: true,
-                },
-              }),
-        };
-
-        return register.dispatch(toolName, payload, dispatchOptions);
+        const trackedPromise = dispatchLifecycle.run(
+          [options?.signal],
+          signal => register.dispatch(
+            toolName,
+            payload,
+            withProviderDispatchSignal(options, signal)
+          )
+        );
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
       };
-    }, []);
+    }, [dispatchLifecycle]);
 
     const contextValue = useMemo(
       () => ({
         actionRegisterRef,
         registry,
         dispatch,
+        dispatchLifecycle,
       }),
-      []
+      [dispatch, dispatchLifecycle]
     );
 
     return (
@@ -240,39 +264,108 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * Hook to register tool handlers
    * Handler is kept up-to-date via ref to always call the latest version
    */
-  const useToolHandler = <K extends keyof TSchema>(
+  const useToolHandler = <K extends keyof TSchema, R = void>(
     toolName: K,
-    handler: ActionHandler<TPayloadMap[K]>,
+    handler: ActionHandler<TPayloadMap[K], R>,
     handlerConfig?: HandlerConfig
   ): void => {
-    const { actionRegisterRef } = useToolContext();
+    const { actionRegisterRef, dispatchLifecycle } = useToolContext();
     const handlerId = useId();
+    const effectGenerationRef = useRef(0);
+    const registrationRef = useRef<{
+      register: ActionRegister<TPayloadMap>;
+      toolName: keyof TPayloadMap;
+      config: HandlerConfig;
+      active: boolean;
+      unregister: () => void;
+    } | null>(null);
 
     // Keep handler up-to-date via ref
     const handlerRef = useRef(handler);
     handlerRef.current = handler;
 
+    const priority = handlerConfig?.priority ?? 0;
+    const id = handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`;
+    const blocking = handlerConfig?.blocking ?? false;
+    const once = handlerConfig?.once ?? false;
+    const debounce = handlerConfig?.debounce;
+    const throttle = handlerConfig?.throttle;
+    const cleanup = handlerConfig?.cleanup;
+    const condition = handlerConfig?.condition;
+    const stableHandlerConfig = useMemo((): HandlerConfig => ({
+      priority,
+      id,
+      blocking,
+      once,
+      replaceExisting: true,
+      ...(cleanup !== undefined && { cleanup }),
+      ...(condition !== undefined && { condition }),
+      ...(debounce !== undefined && { debounce }),
+      ...(throttle !== undefined && { throttle }),
+    }), [priority, id, blocking, once, cleanup, condition, debounce, throttle]);
+
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
+      const generation = ++effectGenerationRef.current;
+      const normalizedToolName = toolName as unknown as K & keyof TPayloadMap;
+      let lease = registrationRef.current;
 
-      if (debug) {
-        console.log(`[${contextName}] Registering handler for tool '${String(toolName)}'`);
+      if (lease && (
+        lease.register !== register ||
+        lease.toolName !== normalizedToolName ||
+        lease.config !== stableHandlerConfig
+      )) {
+        lease.active = false;
+        lease.unregister();
+        registrationRef.current = null;
+        lease = null;
       }
 
-      // Register handler with wrapper that always calls latest handler
-      const unregister = register.register(
-        toolName as unknown as keyof TPayloadMap,
-        (payload, controller) => handlerRef.current(payload, controller),
-        {
-          ...handlerConfig,
-          replaceExisting: true,
-          id: handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`,
-        }
-      );
+      if (!lease) {
+        const nextLease = {
+          register,
+          toolName: normalizedToolName,
+          config: stableHandlerConfig,
+          active: true,
+          unregister: () => {},
+        };
 
-      return unregister;
-    }, [toolName]);
+        if (debug) {
+          console.log(`[${contextName}] Registering handler for tool '${String(toolName)}'`);
+        }
+
+        const wrapperHandler: ActionHandler<TPayloadMap[K], R> = (payload, controller) => {
+          if (!nextLease.active) return;
+          return handlerRef.current(payload, controller);
+        };
+
+        nextLease.unregister = register.register(
+          normalizedToolName,
+          wrapperHandler,
+          stableHandlerConfig
+        );
+        registrationRef.current = nextLease;
+        lease = nextLease;
+      } else {
+        lease.active = true;
+      }
+
+      const currentLease = lease;
+      return () => {
+        currentLease.active = false;
+        queueMicrotask(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps -- replay cancellation requires the latest generation
+          if (effectGenerationRef.current !== generation) return;
+          dispatchLifecycle.scheduleHandlerCleanup(() => {
+            if (registrationRef.current === currentLease) {
+              registrationRef.current = null;
+            }
+            currentLease.unregister();
+          });
+        });
+      };
+    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig]);
   };
 
   /**
@@ -287,18 +380,23 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * Hook for dispatch with detailed result
    */
   const useToolDispatchWithResult = () => {
-    const { actionRegisterRef } = useToolContext();
+    const { actionRegisterRef, dispatchLifecycle } = useToolContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
+    const cleanupGenerationRef = useRef(0);
 
     // Cleanup on unmount
     useEffect(() => {
+      const generation = ++cleanupGenerationRef.current;
+      const activeControllers = activeControllersRef.current;
       return () => {
-        activeControllersRef.current.forEach((controller) => {
-          if (!controller.signal.aborted) {
-            controller.abort();
-          }
+        queueMicrotask(() => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps -- replay cancellation requires the latest generation
+          if (cleanupGenerationRef.current !== generation) return;
+          activeControllers.forEach((controller) => {
+            if (!controller.signal.aborted) controller.abort();
+          });
+          activeControllers.clear();
         });
-        activeControllersRef.current.clear();
       };
     }, []);
 
@@ -313,31 +411,23 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           throw new Error(`ActionRegister not initialized in ${contextName}`);
         }
 
-        let createdController: AbortController | undefined;
+        const scopeController = new AbortController();
+        activeControllersRef.current.add(scopeController);
 
-        const dispatchOptions: DispatchOptions = {
-          ...options,
-          ...(options?.signal
-            ? {}
-            : {
-                autoAbort: {
-                  enabled: true,
-                  allowHandlerAbort: true,
-                  onControllerCreated: (controller) => {
-                    createdController = controller;
-                    activeControllersRef.current.add(controller);
-                  },
-                },
-              }),
-        };
-
-        return register.dispatch(toolName, payload, dispatchOptions).finally(() => {
-          if (createdController) {
-            activeControllersRef.current.delete(createdController);
-          }
+        const trackedPromise = dispatchLifecycle.run(
+          [options?.signal, scopeController.signal],
+          signal => register.dispatch(
+            toolName,
+            payload,
+            withProviderDispatchSignal(options, signal)
+          )
+        ).finally(() => {
+          activeControllersRef.current.delete(scopeController);
         });
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
       };
-    }, []);
+    }, [actionRegisterRef, dispatchLifecycle]);
 
     const dispatchWithResult = useMemo(() => {
       return <K extends keyof TPayloadMap, R = void>(
@@ -350,37 +440,35 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           throw new Error(`ActionRegister not initialized in ${contextName}`);
         }
 
-        let createdController: AbortController | undefined;
+        const scopeController = new AbortController();
+        activeControllersRef.current.add(scopeController);
 
-        const dispatchOptions: DispatchOptions = {
-          ...options,
-          ...(options?.signal
-            ? {}
-            : {
-                autoAbort: {
-                  enabled: true,
-                  allowHandlerAbort: true,
-                  onControllerCreated: (controller) => {
-                    createdController = controller;
-                    activeControllersRef.current.add(controller);
-                  },
-                },
-              }),
-        };
-
-        return register
-          .dispatchWithResult<K, R>(toolName, payload, dispatchOptions)
-          .then((result) => ({
-            ...result,
-            validationPassed: true,
-          }))
+        const trackedPromise = dispatchLifecycle
+          .run(
+            [options?.signal, scopeController.signal],
+            signal => register.dispatchWithResult<K, R>(
+              toolName,
+              payload,
+              withProviderDispatchSignal(options, signal)
+            )
+          )
+          .then((result) => {
+            const validationPassed = result.validation?.passed ?? true;
+            return {
+              ...result,
+              validationPassed,
+              ...(!validationPassed && result.validation
+                ? { validationErrors: result.validation.errors }
+                : {}),
+            };
+          })
           .finally(() => {
-            if (createdController) {
-              activeControllersRef.current.delete(createdController);
-            }
+            activeControllersRef.current.delete(scopeController);
           });
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
       };
-    }, []);
+    }, [actionRegisterRef, dispatchLifecycle]);
 
     const abortAll = useMemo(() => {
       return () => {

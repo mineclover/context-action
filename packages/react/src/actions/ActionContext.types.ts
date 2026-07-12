@@ -8,13 +8,23 @@
 import { ReactNode } from 'react';
 import {
   ActionRegister,
-  ActionHandler,
   HandlerConfig,
   ActionRegisterConfig,
   DispatchOptions,
   ExecutionResult,
   ActionSchemaMap,
+  PipelineController,
 } from '@context-action/core';
+
+/**
+ * Inlined handler shape keeps callback contextual typing intact in the
+ * modern compiler releases. The core ActionHandler alias has the same
+ * runtime contract.
+ */
+export type ActionContextHandler<T, R = void> = (
+  payload: T,
+  controller: PipelineController<T, R>
+) => R | Promise<R> | void | Promise<void>;
 
 /**
  * Configuration options for createActionContext
@@ -48,7 +58,18 @@ export interface ActionContextConfig extends ActionRegisterConfig {
  * Context type for ActionRegister with enhanced type safety and abort support
  */
 export interface ActionContextType<T extends {}> {
-  actionRegisterRef: React.RefObject<ActionRegister<T>>;
+  actionRegisterRef: React.RefObject<ActionRegister<T> | null>;
+  dispatchLifecycle: ProviderDispatchLifecycle;
+}
+
+/** Internal Provider-owned dispatch and teardown lifecycle. */
+export interface ProviderDispatchLifecycle {
+  run<R>(
+    externalSignals: Array<AbortSignal | undefined>,
+    operation: (signal: AbortSignal) => Promise<R>
+  ): Promise<R>;
+  scheduleHandlerCleanup(cleanup: () => void): void;
+  shutdown(register: ActionRegister<any>): Promise<void>;
 }
 
 /**
@@ -58,9 +79,9 @@ export interface ActionContextReturn<T extends {}> {
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T>;
   useActionDispatch: () => ActionRegister<T>['dispatch'];
-  useActionHandler: <K extends keyof T>(
+  useActionHandler: <K extends keyof T, R = void>(
     action: K,
-    handler: ActionHandler<T[K]>,
+    handler: ActionContextHandler<T[K], R>,
     config?: HandlerConfig
   ) => void;
   useActionRegister: () => ActionRegister<T> | null;
