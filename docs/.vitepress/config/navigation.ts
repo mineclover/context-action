@@ -22,7 +22,8 @@ export function createNavigation(locale: NavigationLocale) {
           { text: 'Architecture Guide', link: '/en/concept/architecture-guide' },
           { text: 'Context-Layered', link: '/en/context-layered/context-layered-guide' },
           { text: 'Hooks Reference', link: '/en/concept/hooks-reference' },
-          { text: 'Conventions', link: '/en/concept/conventions' }
+          { text: 'Conventions', link: '/en/concept/conventions' },
+          { text: 'Docs & Development', link: '/en/concept/documentation-development-conventions' }
         ]
       },
       {
@@ -49,7 +50,8 @@ export function createNavigation(locale: NavigationLocale) {
           { text: '아키텍처 가이드', link: '/ko/concept/architecture-guide' },
           { text: 'Context-Layered', link: '/ko/context-layered/context-layered-guide' },
           { text: '훅 참조', link: '/ko/concept/hooks-reference' },
-          { text: '컨벤션', link: '/ko/concept/conventions' }
+          { text: '컨벤션', link: '/ko/concept/conventions' },
+          { text: '문서·개발 관리', link: '/ko/concept/documentation-development-conventions' }
         ]
       },
       {

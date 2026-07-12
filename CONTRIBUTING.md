@@ -190,6 +190,9 @@ pnpm test --coverage
 
 ## 📚 Documentation Guidelines
 
+Documentation ownership, change classification, and required verification are
+defined in the [Documentation and Development Management Conventions](docs/en/concept/documentation-development-conventions.md).
+
 ### Code Documentation
 - **JSDoc comments** for all public APIs
 - **Type-first documentation** - types should be self-documenting
@@ -241,7 +244,7 @@ chore(deps): update TypeScript to 6.0.3
 - [ ] Types check without errors (`pnpm type-check`)
 - [ ] Linting passes (`pnpm lint`)
 - [ ] Build succeeds (`pnpm build`)
-- [ ] Documentation updated if needed
+- [ ] Documentation updated and verified according to the documentation-management convention
 - [ ] Example app works if relevant (`pnpm dev`)
 
 ## 🏷️ Release Process

@@ -271,6 +271,10 @@ pnpm type-check    # TypeScript validation
 
 ## 📖 Documentation Workflow
 
+The source-of-truth rules for hand-authored guides, generated API references,
+LLMS artifacts, and proportional verification are in [Documentation and
+Development Management Conventions](docs/en/concept/documentation-development-conventions.md).
+
 ### VitePress Documentation
 ```bash
 # Start documentation dev server
