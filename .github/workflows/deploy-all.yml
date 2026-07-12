@@ -79,7 +79,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Clear npm config before pnpm setup
         run: |
@@ -89,7 +89,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.3
+          version: 10.30.3
           run_install: false
 
       - name: Get pnpm store directory
@@ -111,7 +111,7 @@ jobs:
         id: download-artifacts
         uses: actions/download-artifact@v5
         with:
-          name: build-artifacts-22
+          name: build-artifacts-24
           path: .
         continue-on-error: true
         

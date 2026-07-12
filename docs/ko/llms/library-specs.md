@@ -11,7 +11,7 @@
 
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 18+, @context-action/core
+- **의존성**: React 19+, @context-action/core
 - **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅
 
 ### API 인터페이스
@@ -43,7 +43,7 @@
 
 ### 호환성
 
-- **React**: 18.0.0+
-- **TypeScript**: 4.9.0+
-- **Node.js**: 16.0.0+
+- **React**: 19.0.0+
+- **TypeScript**: 6.0.3
+- **Node.js**: 24.11.0+
 - **번들러**: Vite, Webpack, Rollup

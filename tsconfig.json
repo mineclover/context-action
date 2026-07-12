@@ -22,8 +22,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "composite": true,
-    "preserveSymlinks": true
+    "composite": true
   },
   "references": [
     { "path": "./packages/core" },

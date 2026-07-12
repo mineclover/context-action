@@ -5,8 +5,9 @@ Thank you for your interest in contributing to the Context-Action framework! Thi
 ## 🚀 Quick Start for Contributors
 
 ### Prerequisites
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
+- Node.js >= 24.11.0
+- pnpm >= 10.30.0
+- TypeScript 6.0.3 (provided by the workspace)
 
 ### Development Setup
 ```bash
@@ -223,7 +224,7 @@ feat(store): add computed store selector support
 fix(react): resolve memory leak in action handlers  
 docs(readme): update quick start example
 test(core): add action guard integration tests
-chore(deps): update TypeScript to 5.3.2
+chore(deps): update TypeScript to 6.0.3
 ```
 
 ### Pull Request Process

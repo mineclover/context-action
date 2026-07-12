@@ -11,7 +11,7 @@
 
 #### @context-action/react
 - **Purpose**: React integration with Context API and hooks
-- **Dependencies**: React 18+, @context-action/core
+- **Dependencies**: React 19+, @context-action/core
 - **Key Features**: Store management, action contexts, hooks
 
 ### API Surface
@@ -43,7 +43,7 @@
 
 ### Compatibility
 
-- **React**: 18.0.0+
-- **TypeScript**: 4.9.0+
-- **Node.js**: 16.0.0+
+- **React**: 19.0.0+
+- **TypeScript**: 6.0.3
+- **Node.js**: 24.11.0+
 - **Bundlers**: Vite, Webpack, Rollup

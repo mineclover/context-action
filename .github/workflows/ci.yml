@@ -1,11 +1,10 @@
-name: CI (Disabled)
+name: CI
 
-# CI Workflow temporarily disabled
 on:
-  # push:
-  #   branches: [ main, develop ]
-  # pull_request:
-  #   branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       features:
@@ -23,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false  # 하나 실패해도 다른 버전 테스트 계속 진행
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [24]
     
     steps:
       - name: Checkout
@@ -71,6 +70,12 @@ jobs:
           
       - name: Build packages
         run: pnpm build
+
+      - name: Verify package exports
+        run: pnpm verify:package-exports
+
+      - name: Verify package tarballs
+        run: pnpm verify:package-tarballs
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
@@ -86,14 +91,18 @@ jobs:
         
       - name: Type check
         run: pnpm type-check
+
+      - name: Build documentation
+        run: pnpm docs:build
+
+      - name: Verify workspace-only tools
+        run: pnpm verify:private-tools
         
       - name: Run tests
         run: pnpm test
-        continue-on-error: true
         
       - name: Build example app
         run: pnpm example:build
-        continue-on-error: true
         
       - name: Upload example build artifacts  
         uses: actions/upload-artifact@v6
@@ -114,7 +123,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
         
       - name: Clear npm config before pnpm setup
         run: |
@@ -154,7 +163,8 @@ jobs:
   security:
     runs-on: ubuntu-latest
     needs: [test, setup]
-    if: ${{ !failure() }}  # test job 실패해도 security는 실행
+    # Security is independent from test success, but still requires setup.
+    if: ${{ always() && needs.setup.result == 'success' }}
     
     steps:
       - name: Checkout
@@ -163,7 +173,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
         
       - name: Clear npm config before pnpm setup
         run: |
@@ -203,23 +213,17 @@ jobs:
           echo "🔒 Security Audit Report"
           echo "======================="
           echo ""
-          
-          # Run security check for root
-          echo "📋 Root package audit:"
-          pnpm audit --audit-level high || echo "⚠️ High vulnerabilities found in root"
-          echo ""
-          
-          # Run security check for all packages
-          echo "📋 All packages audit:"
-          pnpm run security:audit:all || echo "⚠️ High vulnerabilities found in packages"
-          echo ""
-          
+
+          # The workspace lockfile is the canonical dependency graph. Preserve
+          # pnpm's non-zero exit code when high-severity findings exist.
+          pnpm audit --audit-level high
+
           echo "✅ Security audit completed"
 
   size-check:
     runs-on: ubuntu-latest
     needs: [test, setup]
-    if: ${{ !failure() }}  # test job 실패해도 size-check는 실행
+    if: ${{ always() && needs.setup.result == 'success' && needs.test.result != 'cancelled' }}
     
     steps:
       - name: Checkout
@@ -228,7 +232,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v5
         with:
-          name: build-artifacts-22
+          name: build-artifacts-24
           path: .
         
       - name: Check bundle sizes
@@ -283,29 +287,29 @@ jobs:
           
           # Test 상태 확인
           if [[ "${{ needs.test.result }}" == "success" ]]; then
-            echo "| Tests | ✅ Passed | 18, 20, 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests | ✅ Passed | 24 |" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.test.result }}" == "failure" ]]; then
-            echo "| Tests | ❌ Failed | 18, 20, 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests | ❌ Failed | 24 |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Tests | ⏭️ Skipped | 18, 20, 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Tests | ⏭️ Skipped | 24 |" >> $GITHUB_STEP_SUMMARY
           fi
           
           # Security 상태 확인
           if [[ "${{ needs.security.result }}" == "success" ]]; then
-            echo "| Security Audit | ✅ Passed | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Security Audit | ✅ Passed | 24 |" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.security.result }}" == "failure" ]]; then
-            echo "| Security Audit | ❌ Failed | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Security Audit | ❌ Failed | 24 |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Security Audit | ⏭️ Skipped | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Security Audit | ⏭️ Skipped | 24 |" >> $GITHUB_STEP_SUMMARY
           fi
           
           # Size Check 상태 확인
           if [[ "${{ needs.size-check.result }}" == "success" ]]; then
-            echo "| Bundle Size Check | ✅ Passed | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Bundle Size Check | ✅ Passed | 24 |" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.size-check.result }}" == "failure" ]]; then
-            echo "| Bundle Size Check | ❌ Failed | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Bundle Size Check | ❌ Failed | 24 |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Bundle Size Check | ⏭️ Skipped | 22 |" >> $GITHUB_STEP_SUMMARY
+            echo "| Bundle Size Check | ⏭️ Skipped | 24 |" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -342,7 +346,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
       
       - name: Clear npm config before pnpm setup
         run: |
@@ -391,7 +395,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
       
       - name: Clear npm config before pnpm setup
         run: |

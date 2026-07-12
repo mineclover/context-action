@@ -279,17 +279,18 @@ appStore.update(draft => {
 ```typescript
 // 🎯 Pattern: Direct mutation + notifyPath
 async function loadUserData() {
-  // Step 1: Notify loading UI (no state change)
+  // Step 1: Change the selected value, then notify its path
+  const state = appStore.getValue();
+  state.ui.loading = true;
   appStore.notifyPath(['ui', 'loading']);
 
   // Step 2: Fetch data
   const userData = await fetchUserData();
 
-  // Step 3: Single update with final data
-  appStore.update(draft => {
-    draft.user = userData;
-    draft.ui.loading = false;
-  });
+  // Step 3: Replace object-valued selections before notifying them
+  state.user = userData;
+  state.ui.loading = false;
+  appStore.notifyPaths([['user'], ['ui', 'loading']]);
 }
 
 // 🎯 Pattern: External mutation + notification
@@ -301,6 +302,12 @@ function setupWebSocket() {
   });
 }
 ```
+
+`notifyPath` is a notification, not a force-render primitive. React subscriptions
+still compare the selected snapshot with `Object.is`. A changed primitive is
+observable directly, but a selected object or array must be replaced with a new
+reference before notification; mutating it with `push`, `splice`, or an in-place
+field write keeps the old snapshot reference and does not re-render that selector.
 
 ### When to Use MutableStore Pattern
 
@@ -322,14 +329,14 @@ userStore.update(draft => {                             // Re-render 2
 });
 // Total: 2 re-renders
 
-// MutableStore Pattern with notifyPath: Single re-render
-userStore.notifyPath(['loading']);                      // UI update (no re-render)
+// MutableStore Pattern: only path subscribers are notified
+const state = userStore.getValue();
+state.loading = true;
+userStore.notifyPath(['loading']);                      // loading subscriber only
 const data = await fetch();
-userStore.update(draft => {                             // Re-render 1
-  draft.data = data;
-  draft.loading = false;
-});
-// Total: 1 re-render (50% reduction)
+state.data = data;                                      // assign a new data reference
+state.loading = false;
+userStore.notifyPaths([['data'], ['loading']]);         // affected subscribers only
 ```
 
 ---
@@ -344,7 +351,7 @@ Manual event control API that decouples state changes from React updates.
 // Notify single path
 store.notifyPath(['nested', 'property']);
 
-// Notify multiple paths (batched in RAF)
+// Notify multiple paths
 store.notifyPaths([
   ['ui', 'loading'],
   ['ui', 'progress']
@@ -358,18 +365,22 @@ Traditional state management:
 State Change → React Re-render
 ```
 
-With notifyPath:
+With notifyPath and an observable value change:
 ```
-State Change (optional) → Manual Notification → Selective React Re-render
+State Change → Manual Notification → Selective React Re-render
 ```
+
+Calling `notifyPath` without changing the selected snapshot can notify patch-aware
+non-React listeners, but it does not force a React render.
 
 ### Use Cases
 
-#### 1. Loading States Without State Change
+#### 1. Selective Loading-State Updates
 
 ```typescript
 async function loadData() {
-  // Notify loading UI (no actual state change)
+  const state = store.getValue();
+  state.loading = true;
   store.notifyPath(['loading']);
 
   const data = await fetchData();
@@ -386,8 +397,8 @@ function setupWebSocket(store: IStore<AppState>) {
   ws.onmessage = (event) => {
     const state = store.getValue();
 
-    // Direct mutation (vanilla JS)
-    state.messages.push(event.data);
+    // Replace the selected array so Object.is observes a new snapshot
+    state.messages = [...state.messages, event.data];
 
     // Notify React
     store.notifyPath(['messages']);
@@ -415,12 +426,14 @@ function updateMultipleMetrics() {
 }
 ```
 
-### RAF Batching Behavior
+### Notification Scheduling
 
-All `notifyPath/notifyPaths` calls are batched in `requestAnimationFrame`:
+Regular `Store` notifications are batched in `requestAnimationFrame`.
+`TimeTravelStore` defaults to immediate notification and batches only when it is
+created with `notificationMode: 'batched'`:
 
 ```typescript
-// These all batch into single RAF frame
+// In batched mode, these share a single RAF frame
 store.notifyPath(['path1']);
 store.notifyPath(['path2']);
 store.notifyPaths([['path3'], ['path4']]);

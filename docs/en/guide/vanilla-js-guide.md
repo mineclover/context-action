@@ -438,7 +438,7 @@ await actions.dispatch('fetchData', { url: '/api/data' }, {
     maxAttempts: 3,
     delay: 1000 // 1 second between retries
   },
-  timeout: 5000 // 5 second timeout per attempt
+  timeout: 5000 // 5 second wall-clock timeout, including queue and retry delays
 });
 ```
 

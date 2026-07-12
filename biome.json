@@ -1,0 +1,53 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+  "files": {
+    "includes": [
+      "packages/core/src/**/*.ts",
+      "packages/react/src/**/*.ts",
+      "packages/react/src/**/*.tsx",
+      "packages/mutative/src/**/*.ts",
+      "packages/llms-generator/src/**/*.ts",
+      "packages/typedoc-vitepress-sync/src/**/*.ts"
+    ]
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "recommended": false
+      },
+      "complexity": {
+        "noBannedTypes": "off",
+        "noExcessiveCognitiveComplexity": "off",
+        "noUselessFragments": "off"
+      },
+      "correctness": {
+        "noEmptyCharacterClassInRegex": "off",
+        "noUnusedFunctionParameters": "off",
+        "useExhaustiveDependencies": "warn",
+        "useUniqueElementIds": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "warn",
+        "noReExportAll": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useFilenamingConvention": "off",
+        "useImportType": "off"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noArrayIndexKey": "off",
+        "noExplicitAny": "warn",
+        "noImplicitAnyLet": "warn",
+        "noTsIgnore": "warn",
+        "useIterableCallbackReturn": "off"
+      }
+    }
+  }
+}

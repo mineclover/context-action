@@ -6,7 +6,7 @@
 
 - React Compiler를 통한 자동 메모이제이션 최적화
 - 라이브러리 사용자에게 즉시 성능 향상 제공
-- React 17+ 호환성 유지
+- React 19 베이스라인 호환성 유지
 
 ## 📦 설치된 의존성
 
@@ -41,14 +41,14 @@ module.exports = {
     production: {
       plugins: [
         ['babel-plugin-react-compiler', {
-          target: '17', // 최소 지원 React 버전
+          target: '19', // 지원 React 베이스라인
         }],
       ],
     },
     development: {
       plugins: [
         ['babel-plugin-react-compiler', {
-          target: '17',
+          target: '19',
           logger: console,
         }],
       ],
@@ -62,7 +62,7 @@ module.exports = {
 module.exports = {
   plugins: [
     ['babel-plugin-react-compiler', {
-      target: '17',
+      target: '19',
       compilationMode: 'annotation', // "use memo" 지시어 기반 컴파일
     }],
   ],
@@ -85,7 +85,7 @@ export default defineConfig({
   babel: {
     plugins: [
       ['babel-plugin-react-compiler', {
-        target: '17',
+        target: '19',
         compilationMode: 'annotation',
       }],
     ],
@@ -99,7 +99,7 @@ react({
   babel: {
     plugins: [
       ['babel-plugin-react-compiler', {
-        target: '17',
+        target: '19',
         compilationMode: 'annotation',
       }],
     ],
@@ -167,7 +167,7 @@ React Compiler를 통해 다음 최적화가 자동으로 적용됩니다:
 
 - **즉시 성능 향상**: 라이브러리 사용자가 별도 설정 없이 성능 향상
 - **자동 최적화**: React Compiler가 자동으로 최적화 적용
-- **호환성**: React 17+ 버전과 완전 호환
+- **호환성**: React 19 베이스라인과 호환
 
 ## 📚 참고 자료
 

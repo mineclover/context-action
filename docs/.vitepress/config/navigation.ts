@@ -47,7 +47,7 @@ export function createNavigation(locale: NavigationLocale) {
         items: [
           { text: '패턴 가이드', link: '/ko/concept/pattern-guide' },
           { text: '아키텍처 가이드', link: '/ko/concept/architecture-guide' },
-          { text: 'Context-Layered', link: '/en/context-layered/context-layered-guide' },
+          { text: 'Context-Layered', link: '/ko/context-layered/context-layered-guide' },
           { text: '훅 참조', link: '/ko/concept/hooks-reference' },
           { text: '컨벤션', link: '/ko/concept/conventions' }
         ]

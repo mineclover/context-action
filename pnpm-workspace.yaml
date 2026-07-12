@@ -8,6 +8,6 @@ packages:
   - example
 
 overrides:
-  esbuild@<=0.24.2: '>=0.25.0'
+  esbuild@<=0.24.2: '0.25.0'
   # Prevent @types/react duplication by forcing single version
-  "@types/react": "18.3.23"
+  "@types/react": "19.2.17"

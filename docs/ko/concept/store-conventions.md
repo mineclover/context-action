@@ -279,17 +279,18 @@ appStore.update(draft => {
 ```typescript
 // 🎯 패턴: 직접 변경 + notifyPath
 async function loadUserData() {
-  // 1단계: 로딩 UI 알림 (상태 변경 없음)
+  // 1단계: 선택 값 변경 후 해당 경로 알림
+  const state = appStore.getValue();
+  state.ui.loading = true;
   appStore.notifyPath(['ui', 'loading']);
 
   // 2단계: 데이터 가져오기
   const userData = await fetchUserData();
 
-  // 3단계: 최종 데이터로 단일 업데이트
-  appStore.update(draft => {
-    draft.user = userData;
-    draft.ui.loading = false;
-  });
+  // 3단계: 객체 선택 값은 새 참조로 교체한 뒤 알림
+  state.user = userData;
+  state.ui.loading = false;
+  appStore.notifyPaths([['user'], ['ui', 'loading']]);
 }
 
 // 🎯 패턴: 외부 변경 + 알림
@@ -301,6 +302,12 @@ function setupWebSocket() {
   });
 }
 ```
+
+`notifyPath`는 강제 렌더링 API가 아니라 알림 API입니다. React 구독은 선택한
+스냅샷을 여전히 `Object.is`로 비교합니다. primitive 값 변경은 바로 감지되지만,
+선택 값이 객체나 배열이면 알림 전에 새 참조로 교체해야 합니다. `push`, `splice`,
+객체 내부 필드의 제자리 변경처럼 기존 참조를 유지하면 해당 selector는 다시
+렌더링되지 않습니다.
 
 ### MutableStore 패턴 사용 시기
 
@@ -322,14 +329,14 @@ userStore.update(draft => {                             // 재렌더 2
 });
 // 총: 2번 재렌더링
 
-// notifyPath를 사용한 MutableStore 패턴: 단일 재렌더링
-userStore.notifyPath(['loading']);                      // UI 업데이트 (재렌더 없음)
+// MutableStore 패턴: 영향받는 경로 구독자만 알림
+const state = userStore.getValue();
+state.loading = true;
+userStore.notifyPath(['loading']);                      // loading 구독자만
 const data = await fetch();
-userStore.update(draft => {                             // 재렌더 1
-  draft.data = data;
-  draft.loading = false;
-});
-// 총: 1번 재렌더링 (50% 감소)
+state.data = data;                                      // 새 data 참조 할당
+state.loading = false;
+userStore.notifyPaths([['data'], ['loading']]);         // 영향받는 구독자만
 ```
 
 ---
@@ -344,7 +351,7 @@ userStore.update(draft => {                             // 재렌더 1
 // 단일 경로 알림
 store.notifyPath(['nested', 'property']);
 
-// 여러 경로 알림 (RAF에서 배치)
+// 여러 경로 알림
 store.notifyPaths([
   ['ui', 'loading'],
   ['ui', 'progress']
@@ -358,18 +365,22 @@ store.notifyPaths([
 상태 변경 → React 재렌더링
 ```
 
-notifyPath 사용:
+관찰 가능한 값 변경과 notifyPath 사용:
 ```
-상태 변경 (선택적) → 수동 알림 → 선택적 React 재렌더링
+상태 변경 → 수동 알림 → 선택적 React 재렌더링
 ```
+
+선택한 스냅샷을 변경하지 않고 `notifyPath`만 호출하면 patch-aware 비 React
+리스너에는 알림을 보낼 수 있지만 React 렌더링을 강제하지는 않습니다.
 
 ### 사용 사례
 
-#### 1. 상태 변경 없는 로딩 상태
+#### 1. 선택적 로딩 상태 업데이트
 
 ```typescript
 async function loadData() {
-  // 로딩 UI 알림 (실제 상태 변경 없음)
+  const state = store.getValue();
+  state.loading = true;
   store.notifyPath(['loading']);
 
   const data = await fetchData();
@@ -386,8 +397,8 @@ function setupWebSocket(store: IStore<AppState>) {
   ws.onmessage = (event) => {
     const state = store.getValue();
 
-    // 직접 변경 (vanilla JS)
-    state.messages.push(event.data);
+    // Object.is가 새 스냅샷을 감지하도록 선택 배열 교체
+    state.messages = [...state.messages, event.data];
 
     // React에 알림
     store.notifyPath(['messages']);
@@ -415,12 +426,14 @@ function updateMultipleMetrics() {
 }
 ```
 
-### RAF 배칭 동작
+### 알림 스케줄링
 
-모든 `notifyPath/notifyPaths` 호출은 `requestAnimationFrame`에서 배치됩니다:
+일반 `Store` 알림은 `requestAnimationFrame`에서 배치됩니다. `TimeTravelStore`는
+기본적으로 즉시 알리며, `notificationMode: 'batched'`로 생성한 경우에만 RAF로
+배치합니다:
 
 ```typescript
-// 이 모든 호출은 단일 RAF 프레임으로 배치됨
+// batched 모드에서는 이 호출들이 단일 RAF 프레임으로 배치됨
 store.notifyPath(['path1']);
 store.notifyPath(['path2']);
 store.notifyPaths([['path3'], ['path4']]);

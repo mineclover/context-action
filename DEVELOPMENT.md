@@ -55,8 +55,9 @@ context-action/
 ## 🚀 Development Setup
 
 ### Prerequisites
-- **Node.js**: >= 18.0.0 (LTS recommended)
-- **pnpm**: >= 8.0.0 (Package manager)
+- **Node.js**: >= 24.11.0
+- **pnpm**: >= 10.30.0 (Package manager)
+- **TypeScript**: 6.0.3 (workspace toolchain)
 - **Git**: Latest version
 
 ### Initial Setup
@@ -373,10 +374,10 @@ VITE_API_URL=http://localhost:3000
 {
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.11.0"
   },
-  "peerDependencies": {
-    "typescript": ">=4.9.0"
+  "devDependencies": {
+    "typescript": "6.0.3"
   }
 }
 ```

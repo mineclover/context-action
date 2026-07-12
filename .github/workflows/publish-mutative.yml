@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Clear npm config before pnpm setup
@@ -32,7 +32,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.3
+          version: 10.30.3
           run_install: false
 
       - name: Get pnpm store directory
@@ -72,13 +72,25 @@ jobs:
             echo "already_published=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build mutative package
+      - name: Build published packages
         if: steps.publish_check.outputs.already_published != 'true'
-        run: pnpm --filter @context-action/mutative build
+        run: pnpm build
+
+      - name: Type check published packages
+        if: steps.publish_check.outputs.already_published != 'true'
+        run: pnpm type-check
+
+      - name: Verify package exports
+        if: steps.publish_check.outputs.already_published != 'true'
+        run: pnpm verify:package-exports
 
       - name: Test mutative package
         if: steps.publish_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative test
+
+      - name: Verify package tarballs
+        if: steps.publish_check.outputs.already_published != 'true'
+        run: pnpm verify:package-tarballs
 
       - name: Publish mutative package
         if: steps.publish_check.outputs.already_published != 'true'

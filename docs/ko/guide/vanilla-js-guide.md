@@ -438,7 +438,7 @@ await actions.dispatch('fetchData', { url: '/api/data' }, {
     maxAttempts: 3,
     delay: 1000 // 재시도 간 1초 대기
   },
-  timeout: 5000 // 시도당 5초 타임아웃
+  timeout: 5000 // 큐 대기와 재시도 지연을 포함한 전체 5초 타임아웃
 });
 ```
 
