@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.7](https://github.com/mineclover/context-action/compare/v0.8.6...v0.8.7) (2026-07-12)
+
+
+### Features
+
+* expand implementation playbook scenarios ([67ae17e](https://github.com/mineclover/context-action/commit/67ae17e4c7242f933835a5b2672b9397cb50b603))
+* **react:** align store APIs with modern runtime ([1364eb9](https://github.com/mineclover/context-action/commit/1364eb91368b830b70ee804566dd3ddb69ea0e68))
+* **react:** stabilize tool handler results and lifecycle ([52b5c44](https://github.com/mineclover/context-action/commit/52b5c44d0734b54626d7407fea8d27d88323f6d9))
+
+
+
+
+
 ## [0.8.6](https://github.com/mineclover/context-action/compare/v0.8.5...v0.8.6) (2026-03-27)
 
 **Note:** Version bump only for package @context-action/react

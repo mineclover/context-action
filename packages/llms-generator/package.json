@@ -1,6 +1,6 @@
 {
   "name": "@context-action/llms-generator",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Enterprise-grade LLM content generation framework with mismatch detection and integrity management",
   "type": "module",
   "main": "./dist/index.js",
