@@ -17,6 +17,7 @@ import {
   ParentActionProvider,
   ParentModelProvider,
 } from './contexts/ParentContext';
+import { ChildHandlerRegistry } from './handlers/ChildHandlerRegistry';
 
 // ⚙️ Handler Layer - Props-based Handler Registration
 import {
@@ -103,17 +104,19 @@ export default function ReactContextPage({
               <ChildAActionProvider>
                 <ChildBModelProvider>
                   <ChildBActionProvider>
-                    {/* Context-Layered Handler Setup with Props-based DI */}
-                    <ContextLayeredHandlers moduleId={moduleId} />
+                    <ChildHandlerRegistry>
+                      {/* Context-Layered Handler Setup with Props-based DI */}
+                      <ContextLayeredHandlers moduleId={moduleId} />
 
-                    {/* View Layer - Pure UI Components */}
-                    <div className="space-y-6">
-                      <ParentView />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ChildAView />
-                        <ChildBView />
+                      {/* View Layer - Pure UI Components */}
+                      <div className="space-y-6">
+                        <ParentView />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <ChildAView />
+                          <ChildBView />
+                        </div>
                       </div>
-                    </div>
+                    </ChildHandlerRegistry>
                   </ChildBActionProvider>
                 </ChildBModelProvider>
               </ChildAActionProvider>
