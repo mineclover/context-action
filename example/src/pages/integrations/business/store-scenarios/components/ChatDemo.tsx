@@ -6,13 +6,15 @@ import type { ChatMessage } from '../types';
 import {
   useChatMessages,
   useChatUIState,
-  useChatUIActionHandlers,
   useChatActions,
   useChatAutoScroll,
-  ChatUIStoreProvider,
-  ChatUIActionProvider,
   ChatRefsContext,
 } from '../hooks';
+import {
+  ChatUIActionProvider,
+  ChatUIStoreProvider,
+} from '../contexts/ChatUIContexts';
+import { ChatUIHandlerRegistry } from '../handlers/ChatUIHandlerRegistry';
 import '../styles/chat-scroll.css';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
@@ -383,15 +385,6 @@ const MessageInput = memo(
 );
 
 /**
- * 채팅 UI 액션 핸들러 등록 컴포넌트
- * 액션과 스토어를 연결하는 역할
- */
-function ChatUIActionHandlerSetup({ children }: { children: React.ReactNode }) {
-  useChatUIActionHandlers();
-  return <>{children}</>;
-}
-
-/**
  * 실시간 채팅 시스템 데모 컴포넌트 (메인 로직)
  * 커스텀 훅으로 분리된 로직을 조합하여 사용
  */
@@ -477,9 +470,9 @@ export function ChatDemo() {
     <ChatUIActionProvider>
       <ChatUIStoreProvider>
         <ChatRefsContext.Provider>
-          <ChatUIActionHandlerSetup>
+          <ChatUIHandlerRegistry>
             <ChatComponent />
-          </ChatUIActionHandlerSetup>
+          </ChatUIHandlerRegistry>
         </ChatRefsContext.Provider>
       </ChatUIStoreProvider>
     </ChatUIActionProvider>
