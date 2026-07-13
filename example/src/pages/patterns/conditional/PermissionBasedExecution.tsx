@@ -1,207 +1,13 @@
 import { useStoreValue } from '@context-action/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mockServices } from './mockServices';
 import {
   ConditionalActionProvider,
   ConditionalStoreProvider,
   useConditionalAction,
-  useConditionalActionHandler,
   useConditionalStore,
-  useConditionalStoreManager,
 } from './stores';
-import { addLog } from './utils';
-
-function PermissionHandlers() {
-  const stores = useConditionalStoreManager();
-
-  // Check Permission Handler
-  useConditionalActionHandler(
-    'checkPermission',
-    async (payload, controller) => {
-      const logsStore = stores.getStore('logs');
-      const userRoleStore = stores.getStore('userRole');
-      const auditLogsStore = stores.getStore('auditLogs');
-
-      const userRole = userRoleStore.getValue();
-
-      // Security Guard Pattern: Permission validation at entry
-      logsStore.update((logs) =>
-        addLog(logs, 'info', '🔒 Permission check started', {
-          action: payload.action,
-          userId: payload.userId,
-          userRole,
-          resourceId: payload.resourceId,
-        })
-      );
-
-      try {
-        // Role hierarchy: guest < user < moderator < admin < superadmin
-        const roleHierarchy: Record<string, number> = {
-          guest: 0,
-          user: 1,
-          moderator: 2,
-          admin: 3,
-          superadmin: 4,
-        };
-
-        const requiredPermissions: Record<string, number> = {
-          read: 0, // Anyone can read
-          create: 1, // User level required
-          update: 1, // User level required
-          delete: 2, // Moderator level required
-          moderate: 2, // Moderator level required
-          admin: 3, // Admin level required
-          'manage-users': 3, // Admin level required
-          'system-config': 4, // Superadmin only
-        };
-
-        const userLevel = roleHierarchy[userRole] || 0;
-        const requiredLevel = requiredPermissions[payload.action] || 0;
-
-        // Create audit log entry
-        const auditEntry = {
-          timestamp: Date.now(),
-          userId: payload.userId,
-          action: payload.action,
-          resourceId: payload.resourceId,
-          userRole,
-          userLevel,
-          requiredLevel,
-          granted: userLevel >= requiredLevel,
-          ip: '192.168.1.100', // Mock IP
-          userAgent: 'Demo Browser',
-        };
-
-        auditLogsStore.update((logs) => [...logs, auditEntry]);
-
-        if (userLevel < requiredLevel) {
-          // Fail-secure by default
-          const errorMsg = `Access denied: ${userRole} (level ${userLevel}) insufficient for ${payload.action} (requires level ${requiredLevel})`;
-          logsStore.update((logs) =>
-            addLog(logs, 'error', '❌ Permission denied', {
-              error: errorMsg,
-              userRole,
-              requiredAction: payload.action,
-            })
-          );
-
-          const permissionResultsStore = stores.getStore('permissionResults');
-          permissionResultsStore.update((results) => [
-            ...results,
-            {
-              action: payload.action,
-              userId: payload.userId,
-              userRole,
-              granted: false,
-              reason: errorMsg,
-              timestamp: Date.now(),
-            },
-          ]);
-
-          controller.abort(errorMsg);
-          return;
-        }
-
-        // Permission granted
-        const permissionResultsStore = stores.getStore('permissionResults');
-        permissionResultsStore.update((results) => [
-          ...results,
-          {
-            action: payload.action,
-            userId: payload.userId,
-            userRole,
-            granted: true,
-            reason: `Permission granted: ${userRole} has sufficient privileges`,
-            timestamp: Date.now(),
-          },
-        ]);
-
-        logsStore.update((logs) =>
-          addLog(logs, 'success', '✅ Permission granted', {
-            action: payload.action,
-            userRole,
-          })
-        );
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        logsStore.update((logs) =>
-          addLog(logs, 'error', '❌ Permission check failed', {
-            error: errorMessage,
-          })
-        );
-        controller.abort(`Permission check failed: ${errorMessage}`);
-      }
-    },
-    {
-      priority: 100,
-      id: 'permission-guard',
-    }
-  );
-
-  // Execute Secure Action Handler
-  useConditionalActionHandler(
-    'executeSecureAction',
-    async (payload, controller) => {
-      const logsStore = stores.getStore('logs');
-
-      // Security Guard Pattern: Execute permission check first
-      logsStore.update((logs) =>
-        addLog(logs, 'info', '🛡️ Secure action initiated', {
-          action: payload.action,
-          userId: payload.userId,
-        })
-      );
-
-      try {
-        // First check permissions
-        await mockServices.checkUserPermissions(payload.userId, payload.action);
-
-        // Permission passed, execute business logic
-        const result = await mockServices.executeSecureOperation(
-          payload.action,
-          payload.payload
-        );
-
-        const permissionResultsStore = stores.getStore('permissionResults');
-        permissionResultsStore.update((results) => [
-          ...results,
-          {
-            action: `secure-${payload.action}`,
-            userId: payload.userId,
-            granted: true,
-            result,
-            executedAt: Date.now(),
-            timestamp: Date.now(),
-          },
-        ]);
-
-        logsStore.update((logs) =>
-          addLog(logs, 'success', '✅ Secure action completed', {
-            action: payload.action,
-            result,
-          })
-        );
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        logsStore.update((logs) =>
-          addLog(logs, 'error', '❌ Secure action failed', {
-            error: errorMessage,
-          })
-        );
-        controller.abort(`Secure action failed: ${errorMessage}`);
-      }
-    },
-    {
-      priority: 90,
-      id: 'secure-executor',
-    }
-  );
-
-  return null;
-}
+import { PermissionHandlerRegistry } from './handlers/PermissionHandlerRegistry';
 
 function PermissionBasedExecutionContent() {
   const dispatch = useConditionalAction();
@@ -255,7 +61,7 @@ function PermissionBasedExecutionContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PermissionHandlers />
+      <PermissionHandlerRegistry />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6 lg:pr-80">
@@ -670,10 +476,10 @@ function PermissionBasedExecutionContent() {
 
 export function PermissionBasedExecution() {
   return (
-    <ConditionalStoreProvider>
-      <ConditionalActionProvider>
+    <ConditionalActionProvider>
+      <ConditionalStoreProvider>
         <PermissionBasedExecutionContent />
-      </ConditionalActionProvider>
-    </ConditionalStoreProvider>
+      </ConditionalStoreProvider>
+    </ConditionalActionProvider>
   );
 }
