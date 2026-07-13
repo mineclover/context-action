@@ -294,7 +294,7 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^0.8.7
+        specifier: ^0.8.8
         version: link:../core
       '@context-action/mutative':
         specifier: ^0.8.7

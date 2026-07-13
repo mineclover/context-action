@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.8](https://github.com/mineclover/context-action/compare/v0.8.7...v0.8.8) (2026-07-13)
+
+
+### Bug Fixes
+
+* **core:** evaluate timing guards before dispatch queue ([4302139](https://github.com/mineclover/context-action/commit/4302139cfa8137d07db1c1c490832041be679018))
+
+
+
+
+
 ## [0.8.7](https://github.com/mineclover/context-action/compare/v0.8.6...v0.8.7) (2026-07-12)
 
 
