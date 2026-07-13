@@ -20,6 +20,8 @@ These five cover:
 
 ### 1. Documents that define the standard
 
+- [Convention Alignment Plan](/en/context-layered/convention-alignment-plan)
+  - current-state classification, fixed provider order, and migration gates
 - [Implementation Convention](/en/context-layered/implementation-convention)
   - the standard implementation-playbook rule set
 - [Folder Structure](/en/context-layered/architecture/folder-structure)

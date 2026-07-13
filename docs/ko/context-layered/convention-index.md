@@ -21,6 +21,8 @@
 
 ### 1. 표준을 고정하는 문서
 
+- [컨벤션 정합성 계획](/ko/context-layered/convention-alignment-plan)
+  - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
 - [Implementation Convention](/ko/context-layered/implementation-convention)
   - implementation-playbook 계열 개발의 표준 규칙
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
