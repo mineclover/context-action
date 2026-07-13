@@ -3,7 +3,7 @@
  * @module LogMonitorHandlerRegistry
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   useLogMonitorActionHandler,
   useLogMonitorStoreManager,
@@ -29,6 +29,7 @@ export function LogMonitorHandlerRegistry({
   pageId,
   fallbackConfig,
 }: LogMonitorHandlerRegistryProps) {
+  const [ready, setReady] = useState(false);
   const storeManager = useLogMonitorStoreManager();
 
   useLogMonitorActionHandler(
@@ -101,6 +102,9 @@ export function LogMonitorHandlerRegistry({
     )
   );
 
-  return <>{children}</>;
-}
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
+  return ready ? <>{children}</> : null;
+}
