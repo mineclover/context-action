@@ -6,19 +6,11 @@
 
 import { Store } from '@context-action/react';
 import { useCallback, useEffect, useRef } from 'react';
-import {
-  createMouseClickHandler,
-  createMouseEnterHandler,
-  createMouseLeaveHandler,
-  createMouseMoveHandler,
-  createMoveEndHandler,
-  createResetHandler,
-} from '../actions/MouseActionHandlers';
 import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEventsView';
+import { MouseActionHandlerRegistry } from '../handlers/MouseActionHandlerRegistry';
 import type { MouseStateData } from '../stores/MouseStoreSchema';
 import {
   useMouseActionDispatch,
-  useMouseActionHandler,
   useMouseStore,
 } from '../stores/MouseStoreSchema';
 
@@ -37,14 +29,6 @@ export const ContextStoreMouseEventsContainer = () => {
   // Action Context Pattern 사용 - 구조 분해 할당 방식
   const mouseStateStore = useMouseStore('mouseState');
   const dispatch = useMouseActionDispatch();
-
-  // 액션 핸들러 등록 - 구조 분해 할당 방식
-  useMouseActionHandler('mouseMove', createMouseMoveHandler(mouseStateStore));
-  useMouseActionHandler('mouseClick', createMouseClickHandler(mouseStateStore));
-  useMouseActionHandler('mouseEnter', createMouseEnterHandler(mouseStateStore));
-  useMouseActionHandler('mouseLeave', createMouseLeaveHandler(mouseStateStore));
-  useMouseActionHandler('moveEnd', createMoveEndHandler(mouseStateStore));
-  useMouseActionHandler('reset', createResetHandler(mouseStateStore));
 
   // DOM 요소 설정 및 이벤트 바인딩
   useEffect(() => {
@@ -83,6 +67,7 @@ export const ContextStoreMouseEventsContainer = () => {
 
   return (
     <div ref={containerRef}>
+      <MouseActionHandlerRegistry mouseStateStore={mouseStateStore} />
       <ContextStoreMouseEventsView onReset={handleReset} />
     </div>
   );
