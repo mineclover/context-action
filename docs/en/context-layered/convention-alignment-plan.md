@@ -66,17 +66,29 @@ The following classification is the baseline for migration.
 
 - `CanonicalOrderHandlers.tsx` already composes an action provider, store provider, ref provider, and handler registry.
 - `LogMonitor` was the first migration target: its boundaries now live under `contexts/`, all five handlers are registered by `handlers/LogMonitorHandlerRegistry.tsx`, and its provider order is canonical.
+- `ChatUI` and the context-store mouse-events container now also keep all handler registration in dedicated Registry modules.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor is complete, and business-logic plus foundation/advanced surfaces remain to be classified or migrated.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, and context-store mouse events are complete, while foundation/advanced surfaces remain to be classified or migrated.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
 6. Run type-check, tests, example builds, docs builds, and package verification.
+
+## Remaining Direct-Registration Inventory
+
+This inventory is intentionally separated from the canonical playbook examples. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
+
+| Group | Remaining surfaces |
+| --- | --- |
+| Foundations and compatibility | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `foundations/react/actions/useChildAActions.ts`, `foundations/react/actions/useChildBActions.ts`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
+| Pattern demonstrations | `patterns/conditional/PermissionBasedExecution.tsx`, `patterns/refs/UseRefMountStateTestPage.tsx` |
+| Integrations | `integrations/advanced/ConcurrentActionsPage.tsx`, `integrations/advanced/canvas/CanvasContext.tsx` |
+| Performance demonstrations | `performance/action-guard/**`, `performance/memoization/**`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/**`, `performance/mouse-events/enhanced-context-store/**`, `performance/priority/DemoPage.tsx` |
 
 ## Completion Gates
 

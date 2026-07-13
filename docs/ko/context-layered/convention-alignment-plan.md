@@ -66,17 +66,29 @@ canonical 중첩 순서는 다음과 같습니다.
 
 - `CanonicalOrderHandlers.tsx`는 이미 Action Provider, Store Provider, Ref Provider, Handler Registry를 조합합니다.
 - `LogMonitor`를 첫 마이그레이션 대상으로 처리했습니다. 경계는 `contexts/`로 분리했고, 5개 handler는 `handlers/LogMonitorHandlerRegistry.tsx`에서 등록하며 Provider 순서도 canonical 기준으로 맞췄습니다.
+- `ChatUI`와 context-store 마우스 이벤트 컨테이너도 전용 Registry 모듈에서만 handler를 등록하도록 정리했습니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor는 완료했고, business-logic과 foundation/advanced 영역은 분류 또는 마이그레이션이 남아 있습니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트는 완료했고, foundation/advanced 영역은 분류 또는 마이그레이션이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
 6. type-check, 테스트, example build, docs build, package verification을 실행합니다.
+
+## 남은 직접 등록 인벤토리
+
+이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
+
+| 그룹 | 남은 표면 |
+| --- | --- |
+| Foundations와 호환성 | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `foundations/react/actions/useChildAActions.ts`, `foundations/react/actions/useChildBActions.ts`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
+| Pattern 데모 | `patterns/conditional/PermissionBasedExecution.tsx`, `patterns/refs/UseRefMountStateTestPage.tsx` |
+| Integrations | `integrations/advanced/ConcurrentActionsPage.tsx`, `integrations/advanced/canvas/CanvasContext.tsx` |
+| Performance 데모 | `performance/action-guard/**`, `performance/memoization/**`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/**`, `performance/mouse-events/enhanced-context-store/**`, `performance/priority/DemoPage.tsx` |
 
 ## 완료 조건
 
