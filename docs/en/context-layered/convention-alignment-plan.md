@@ -66,14 +66,14 @@ The following classification is the baseline for migration.
 
 - `CanonicalOrderHandlers.tsx` already composes an action provider, store provider, ref provider, and handler registry.
 - `LogMonitor` was the first migration target: its boundaries now live under `contexts/`, all five handlers are registered by `handlers/LogMonitorHandlerRegistry.tsx`, and its provider order is canonical.
-- `ChatUI` and the context-store mouse-events container now also keep all handler registration in dedicated Registry modules.
+- `ChatUI`, the context-store mouse-events container, and conditional permission execution now also keep all handler registration in dedicated Registry modules.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, and context-store mouse events are complete, while foundation/advanced surfaces remain to be classified or migrated.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, and conditional permission execution are complete, while foundation/advanced surfaces remain to be classified or migrated.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
