@@ -91,7 +91,7 @@ view가 여러 store를 직접 읽기 시작하면 다시 복잡도가 올라갑
 
 ### 6. 최종적으로 `Page`에서 조립
 
-provider 구성, handler 등록, 외부 의존성 주입은 페이지에서 담당하게 정리합니다.
+provider 구성, Handler Registry 마운트, 외부 의존성 주입은 페이지에서 담당하게 정리합니다. 실제 handler hook 호출은 Registry 내부에 둡니다. 표준 순서는 `Action Provider → Store Provider → Ref Provider → Handler Registry → View`입니다.
 
 ## 마이그레이션 체크리스트
 

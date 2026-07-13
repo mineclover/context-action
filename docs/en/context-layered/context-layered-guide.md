@@ -32,11 +32,11 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 | Layer | Purpose | Key Features |
 |-------|---------|--------------|
 | **Contexts** | Type definitions & context creation | ActionPayloadMap, Store interfaces, Context providers |
-| **Handlers** | Business logic with props-based DI | `useActionHandler` registration, dependency injection |
+| **Handlers** | Business logic with props-based DI | Handler Registry registration, dependency injection |
 | **Actions** | Action dispatching & callbacks | `dispatch` calls, payload mapping, callback creation |
 | **Hooks** | Store value subscriptions | `useStoreValue`, computed values, data transformation |
 | **Views** | Pure UI components | Event handling, rendering, user interactions |
-| **MainPage** | Handler registration & composition | Props injection, context setup, component orchestration |
+| **MainPage** | Registry mounting & composition | Props injection, context setup, component orchestration |
 
 ## 🔄 Data Flow
 
@@ -55,7 +55,7 @@ validate: (data) => dispatch('validate', data)
 
 ### 3. Handler → Store Update
 ```typescript
-// handlers/useCheckoutHandlers.ts
+// handlers/useCheckoutHandlers.ts (mounted by CheckoutHandlerRegistry)
 useActionHandler('validate', async (data) => {
   const result = await apiClient.validate(data);
   checkoutStore.setValue(result);
@@ -92,6 +92,7 @@ useCheckoutValidateHandler({
 
 ### React Context Integration
 - Handler registration within Context boundaries
+- Every handler is registered by the domain Handler Registry, including one-handler features
 - Automatic lifecycle management
 - Type-safe context usage
 
@@ -137,7 +138,7 @@ Set up action dispatching and store subscriptions.
 Create pure UI components that use actions and hooks.
 
 ### 6. Compose in main page
-Register handlers with props and set up context providers.
+Mount the Handler Registry with props and compose `Action Provider → Store Provider → Ref Provider → Handler Registry → View`.
 
 ## 🔗 Related Documentation
 

@@ -15,7 +15,7 @@ Context-Layered Architecture는 Context-Action 프레임워크를 사용하는 R
 3. `actions`는 dispatch API를 view 친화적으로 감싼다
 4. `hooks`는 store 구독과 view용 파생 값을 제공한다
 5. `views`는 렌더링과 사용자 입력 전달에 집중한다
-6. 최상위 페이지는 provider 구성과 handler 등록을 담당한다
+6. 최상위 페이지는 provider 구성과 Handler Registry 마운트를 담당한다
 
 ## 6-Layer 구조
 
@@ -38,7 +38,7 @@ pages/checkout/
 | `actions` | dispatch를 의미 있는 함수로 감싸기 | store 직접 구독 |
 | `hooks` | `useStoreValue` 기반 구독, 파생 값 계산 | handler 등록 |
 | `views` | 렌더링, 이벤트 전달 | 가격 계산, 검증 규칙 작성 |
-| `Page` | provider 구성, handler 등록 | 세부 business rule 구현 |
+| `Page` | provider 구성, Handler Registry 마운트 | 세부 business rule 구현, handler 직접 등록 |
 
 ## 기본 데이터 흐름
 
@@ -57,6 +57,22 @@ sequenceDiagram
 ```
 
 이 흐름의 핵심은 `view`가 business rule을 직접 호출하지 않는다는 점입니다. 사용자의 의도는 action을 통해 전달되고, handler가 현재 상태와 외부 의존성을 바탕으로 실제 실행을 담당합니다.
+
+## Handler Registry와 Provider 조합
+
+모든 handler는 기능 규모와 관계없이 도메인 Handler Registry에서 등록합니다. Page, View, Context에서 handler hook을 직접 호출하지 않습니다. 표준 중첩은 다음과 같습니다.
+
+```tsx
+<DomainActionProvider>
+  <DomainStoreProvider>
+    <DomainRefProvider>
+      <DomainHandlerRegistry>
+        <DomainView />
+      </DomainHandlerRegistry>
+    </DomainRefProvider>
+  </DomainStoreProvider>
+</DomainActionProvider>
+```
 
 ## 왜 이 구조가 유리한가
 

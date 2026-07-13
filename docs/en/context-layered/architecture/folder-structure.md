@@ -108,6 +108,20 @@ export function useCheckoutSubmitHandler(props: CheckoutHandlerProps) {
 - ❌ UI rendering
 - ❌ Direct dispatch calls
 
+Group those handler hooks behind one domain registry. The registry is the only place where a page-level feature registers handlers, even when the feature has only one handler.
+
+```tsx
+// handlers/CheckoutHandlerRegistry.tsx
+export function CheckoutHandlerRegistry({
+  children,
+  ...props
+}: CheckoutHandlerProps & { children: React.ReactNode }) {
+  useCheckoutValidateHandler(props);
+  useCheckoutSubmitHandler(props);
+  return <>{children}</>;
+}
+```
+
 ### 3. `actions/` - Dispatch + Callbacks
 **Purpose**: Action dispatching and payload callback creation
 
@@ -212,7 +226,7 @@ export function CheckoutView() {
 - ❌ Handler registration
 
 ### 6. `MainPage.tsx` - Integration Point
-**Purpose**: Handler registration with props and component composition
+**Purpose**: Provider composition and registry mounting
 
 ```typescript
 // CheckoutPage.tsx
@@ -220,35 +234,28 @@ export default function CheckoutPage({ moduleId = "main" }) {
   const apiClient = useApiClient();
   const validator = useFormValidator();
   
-  // Handler registration with props
-  useCheckoutValidateHandler({ 
-    moduleId, 
-    customPriority: 150,
-    apiClient,
-    validator
-  });
-  
-  useCheckoutSubmitHandler({ 
-    moduleId,
-    apiClient,
-    validator 
-  });
-  
   return (
-    <CheckoutStoreProvider>
-      <CheckoutActionProvider>
+    <CheckoutActionProvider>
+      <CheckoutStoreProvider>
+        <CheckoutHandlerRegistry
+          moduleId={moduleId}
+          customPriority={150}
+          apiClient={apiClient}
+          validator={validator}
+        >
         <div className="checkout-page">
           <h1>Checkout - {moduleId}</h1>
           <CheckoutView />
         </div>
-      </CheckoutActionProvider>
-    </CheckoutStoreProvider>
+        </CheckoutHandlerRegistry>
+      </CheckoutStoreProvider>
+    </CheckoutActionProvider>
   );
 }
 ```
 
 **Responsibilities**:
-- ✅ Handler registration with props
+- ✅ Handler Registry mounting with props
 - ✅ Context provider setup
 - ✅ Component composition
 - ✅ Props dependency injection
@@ -277,12 +284,13 @@ Full TypeScript support with clear interfaces between layers.
 ### Do's ✅
 - Keep each layer focused on its single responsibility
 - Use props for dependency injection in handlers
-- Register handlers in the main page component
+- Register handlers in the domain Handler Registry
+- Use Action Provider → Store Provider → Ref Provider → Handler Registry → View nesting
 - Maintain clear naming conventions across layers
 - Use TypeScript interfaces for all layer boundaries
 
 ### Don'ts ❌
-- Don't register handlers directly in page components
+- Don't register handlers directly in page, view, or context components
 - Don't mix business logic with UI components
 - Don't access stores directly in action hooks
 - Don't put handler logic in action or hook layers

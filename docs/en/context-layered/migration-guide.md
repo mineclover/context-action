@@ -246,30 +246,21 @@ export default function CheckoutPage({ moduleId = "main" }) {
   const apiClient = useApiClient();
   const validator = useFormValidator();
   
-  // Handler registration with props
-  useCheckoutValidateHandler({ 
-    moduleId, 
-    apiClient,
-    validator,
-    onSuccess: (result) => console.log('Validation successful', result),
-    onError: (error) => console.error('Validation failed', error)
-  });
-  
-  useCheckoutSubmitHandler({ 
-    moduleId,
-    apiClient,
-    validator 
-  });
-  
   return (
-    <CheckoutStoreProvider>
-      <CheckoutActionProvider>
+    <CheckoutActionProvider>
+      <CheckoutStoreProvider>
+        <CheckoutHandlerRegistry
+          moduleId={moduleId}
+          apiClient={apiClient}
+          validator={validator}
+        >
         <div className="checkout-page">
           <h1>Checkout - {moduleId}</h1>
           <CheckoutView />
         </div>
-      </CheckoutActionProvider>
-    </CheckoutStoreProvider>
+        </CheckoutHandlerRegistry>
+      </CheckoutStoreProvider>
+    </CheckoutActionProvider>
   );
 }
 ```
@@ -295,7 +286,7 @@ export default function CheckoutPage({ moduleId = "main" }) {
 - [ ] Refactor view components to use new hooks
 
 ### ✅ Integration Phase
-- [ ] Update main page components to register handlers
+- [ ] Update main page components to mount the Handler Registry
 - [ ] Add proper error handling and logging
 - [ ] Set up testing infrastructure for new layers
 - [ ] Update documentation and team guidelines

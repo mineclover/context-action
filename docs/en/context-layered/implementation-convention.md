@@ -12,7 +12,7 @@ Prefer this convention when at least two of these are true:
 - side effects such as activity logs, analytics, or ref focus move with the workflow
 - docs, examples, and tests should all share the same implementation contract
 
-For a very small CRUD form or isolated local state, a lighter structure may be enough.
+Smaller features may use fewer business or view files, but any action handler still follows the Handler Registry rule below.
 
 ## Standard Folder Structure
 
@@ -73,6 +73,8 @@ Split handlers by concern:
 - `useScenarioDraftHandlers`
 - `useScenarioSubmissionHandlers`
 - and later `useScenarioApprovalHandlers`, `useScenarioSyncHandlers`, etc.
+
+Every handler, including a single-handler feature, is registered through the domain Handler Registry. Pages, views, and context files mount or compose the registry; they do not call `use*ActionHandler` directly.
 
 ### `actions/`
 

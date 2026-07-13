@@ -59,6 +59,16 @@ export interface CheckoutActions extends ActionPayloadMap {
 
 즉, “실제로 일이 일어나는 곳”이지만, UI 표현은 하지 않습니다.
 
+모든 handler 등록은 도메인 Handler Registry에서 묶습니다. handler가 하나뿐인 작은 기능도 Page, View, Context에서 `use*ActionHandler`를 직접 호출하지 않습니다.
+
+```tsx
+export function CheckoutHandlerRegistry({ children, ...props }) {
+  useCheckoutValidateHandler(props);
+  useCheckoutSubmitHandler(props);
+  return <>{children}</>;
+}
+```
+
 ### 4. `actions/`
 
 view가 직접 `dispatch('someAction', payload)`를 남발하지 않도록, 의미 있는 함수로 감싸는 레이어입니다.
@@ -101,22 +111,23 @@ export function useCheckoutData() {
 
 ### 7. `Page`
 
-최상위 페이지는 provider 구성과 handler 등록을 담당합니다.
+최상위 페이지는 provider 구성과 Handler Registry 마운트를 담당합니다.
 
 ```tsx
 export default function CheckoutPage() {
-  useCheckoutValidateHandler({ moduleId: 'main', apiClient, validator });
-  useCheckoutSubmitHandler({ moduleId: 'main', apiClient, validator });
-
   return (
-    <CheckoutStoreProvider>
-      <CheckoutActionProvider>
-        <CheckoutView />
-      </CheckoutActionProvider>
-    </CheckoutStoreProvider>
+    <CheckoutActionProvider>
+      <CheckoutStoreProvider>
+        <CheckoutHandlerRegistry moduleId="main" apiClient={apiClient} validator={validator}>
+          <CheckoutView />
+        </CheckoutHandlerRegistry>
+      </CheckoutStoreProvider>
+    </CheckoutActionProvider>
   );
 }
 ```
+
+표준 중첩은 `Action Provider → Store Provider → Ref Provider → Handler Registry → View`입니다.
 
 ## 구조를 이렇게 나누는 이유
 

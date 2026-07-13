@@ -1,6 +1,6 @@
 # Context-Layered 컨벤션 정합성 계획
 
-**상태:** 방향 확정, 마이그레이션 진행 중
+**상태:** 마이그레이션 기준선 정리 완료, 잔여 표면 추적 중
 **최근 검토:** 2026-07-13
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
@@ -70,10 +70,19 @@ canonical 중첩 순서는 다음과 같습니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
+### 2026-07-13 검증 근거
+
+- `pnpm --dir example type-check` 통과.
+- `pnpm --dir example build:fast` 통과.
+- `pnpm test:canonical-example` 통과(1 suite, 4 tests).
+- `pnpm docs:build` 통과.
+- `http://127.0.0.1:4000/` 개발 서버에서 `/react/context`, `/actionguard/conditional/permissions`를 열고 Child A/B 상호작용, 권한 승인, audit 출력을 확인했습니다.
+- LogMonitor Registry readiness gate 추가 후 새 브라우저 로드의 시작 warning/error가 0건이었습니다.
+
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/react Child A/B는 완료했고, foundation/advanced 영역은 분류 또는 마이그레이션이 남아 있습니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/react Child A/B는 완료했습니다. 현재 foundation, integration, pattern, performance 영역에 24개 파일이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
@@ -81,14 +90,14 @@ canonical 중첩 순서는 다음과 같습니다.
 
 ## 남은 직접 등록 인벤토리
 
-이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
+이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 24개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
 
 | 그룹 | 남은 표면 |
 | --- | --- |
-| Foundations와 호환성 | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `foundations/react/actions/useChildAActions.ts`, `foundations/react/actions/useChildBActions.ts`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
-| Pattern 데모 | `patterns/conditional/PermissionBasedExecution.tsx`, `patterns/refs/UseRefMountStateTestPage.tsx` |
+| Foundations와 호환성 | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
+| Pattern 데모 | `patterns/refs/UseRefMountStateTestPage.tsx` |
 | Integrations | `integrations/advanced/ConcurrentActionsPage.tsx`, `integrations/advanced/canvas/CanvasContext.tsx` |
-| Performance 데모 | `performance/action-guard/**`, `performance/memoization/**`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/**`, `performance/mouse-events/enhanced-context-store/**`, `performance/priority/DemoPage.tsx` |
+| Performance 데모 | `performance/action-guard/{ApiBlockingPage,ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
 
 ## 완료 조건
 
@@ -98,3 +107,5 @@ canonical 중첩 순서는 다음과 같습니다.
 - legacy/MVVM 자료가 migration 또는 compatibility 안내로 명시됩니다.
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
+
+다음 재진입 지점은 foundations 두 파일(`foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`)이며, 이후 advanced integration과 performance 그룹을 진행합니다. 24개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.
