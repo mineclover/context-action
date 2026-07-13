@@ -51,6 +51,16 @@ canonical 중첩 순서는 다음과 같습니다.
 
 이는 런타임의 필수 순서라는 뜻이 아니라 저장소 컨벤션입니다. 도메인이 ref 경계를 정의할 때만 Ref Provider를 포함하며, 그렇지 않으면 Registry가 Store Provider 바로 아래에 옵니다. 모든 Registry가 필요한 경계 아래에 위치하도록 보장합니다.
 
+## 린트와 컨벤션 검사
+
+저장소는 2026-07-14 기준 npm `latest`인 Biome `2.5.3`을 사용합니다. 두 Biome 설정은 `biome migrate --write`로 deprecated 된 `linter.rules.recommended`를 `linter.rules.preset`으로 마이그레이션했습니다. 루트 설정은 패키지 소스에 대한 lint-only 정책을 유지하고, example 설정은 formatter를 포함하는 `check` 게이트를 유지합니다.
+
+Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 검사를 담당합니다. Context-Layered 규칙은 저장소 전용 명령인 `pnpm convention:check`와 `scripts/check-context-layered-conventions.mjs`에서 검사합니다. Biome GritQL 플러그인은 한 파일의 문법 패턴에는 적합하지만, Registry 위치, transitional 예외, Provider 순서처럼 파일 경계와 마이그레이션 인벤토리를 알아야 하는 규칙은 별도의 구조 검사기로 두는 편이 안정적입니다.
+
+첫 번째 구조 규칙은 이미 활성화되어 있습니다. 모든 `use*ActionHandler(...)` 호출은 `handlers/` 모듈 또는 `*HandlerRegistry` 파일 안에 있어야 합니다. 현재 알려진 legacy/advanced 파일 23개는 transitional allowlist에 기록되어 검사 결과에 표시되지만 실패시키지는 않습니다. allowlist에 없는 새로운 직접 등록은 즉시 실패합니다. 각 표면을 마이그레이션할 때 allowlist 항목을 제거합니다.
+
+다음 검사 단계는 Provider 순서와 레이어 경로 검사를 추가하고, transitional 인벤토리가 0개가 되거나 남은 파일이 모두 명시적인 compatibility 분류를 갖추면 allowlist를 제거하는 것입니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록은 현재도 CI에서 잡힙니다.
+
 ## 현재 상태 분류
 
 다음 분류를 마이그레이션 기준선으로 사용합니다.
@@ -83,7 +93,7 @@ canonical 중첩 순서는 다음과 같습니다.
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/react Child A/B는 완료했습니다. 현재 foundation, integration, pattern, performance 영역에 24개 파일이 남아 있습니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/react Child A/B, Action Lifecycle Workbench는 완료했습니다. 현재 foundation, integration, pattern, performance 영역에 23개 파일이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
@@ -91,14 +101,14 @@ canonical 중첩 순서는 다음과 같습니다.
 
 ## 남은 직접 등록 인벤토리
 
-이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 24개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
+이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 23개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
 
 | 그룹 | 남은 표면 |
 | --- | --- |
 | Foundations와 호환성 | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
 | Pattern 데모 | `patterns/refs/UseRefMountStateTestPage.tsx` |
 | Integrations | `integrations/advanced/ConcurrentActionsPage.tsx`, `integrations/advanced/canvas/CanvasContext.tsx` |
-| Performance 데모 | `performance/action-guard/{ApiBlockingPage,ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
+| Performance 데모 | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
 
 ## 완료 조건
 
@@ -109,4 +119,4 @@ canonical 중첩 순서는 다음과 같습니다.
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-다음 재진입 지점은 foundations 두 파일(`foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`)이며, 이후 advanced integration과 performance 그룹을 진행합니다. 24개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.
+다음 재진입 지점은 foundations 두 파일(`foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`)이며, 이후 advanced integration과 performance 그룹을 진행합니다. 23개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.

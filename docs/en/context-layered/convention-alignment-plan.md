@@ -51,6 +51,16 @@ The canonical nesting order is:
 
 This is a repository convention, not a claim that the runtime requires one order. Include the Ref Provider when the domain defines a ref boundary; otherwise the registry follows the Store Provider directly. This ensures every registry is below the boundaries it may depend on.
 
+## Lint and convention enforcement
+
+The repository uses Biome `2.5.3`, which is the current npm `latest` as of 2026-07-14. Both Biome configurations were migrated with `biome migrate --write` from the deprecated `linter.rules.recommended` option to `linter.rules.preset`. The root configuration remains lint-only for package source, while the example configuration keeps the formatter-enabled `check` gate.
+
+Biome remains responsible for language-level concerns: parsing, formatting, import organization, and generic lint rules. Context-Layered rules are enforced by the repository-specific `pnpm convention:check` command in `scripts/check-context-layered-conventions.mjs`. This split is intentional: a Biome GritQL plugin can match a local syntax pattern, but registry placement, transitional exceptions, and Provider ordering are repository structure rules that need file-aware analysis and an explicit migration inventory.
+
+The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The current transitional allowlist records 23 known legacy/advanced files; they are reported but do not fail the check. Any new direct registration outside that allowlist fails immediately. The allowlist is reduced as each remaining surface is migrated.
+
+The next enforcement steps are to add Provider-order and layer-path checks, then remove the transitional allowlist when the inventory reaches zero (or every remaining file has an explicit compatibility classification). `convention:check` is already part of `verify:all`, so CI catches new direct registrations today.
+
 ## Current-State Classification
 
 The following classification is the baseline for migration.
@@ -83,7 +93,7 @@ The following classification is the baseline for migration.
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, and foundations/react Child A/B are complete. The current inventory has 24 remaining files in foundation, integration, pattern, and performance surfaces.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/react Child A/B, and Action Lifecycle Workbench are complete. The current inventory has 23 remaining files in foundation, integration, pattern, and performance surfaces.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
@@ -91,14 +101,14 @@ The following classification is the baseline for migration.
 
 ## Remaining Direct-Registration Inventory
 
-This inventory is intentionally separated from the canonical playbook examples. The current search finds 24 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
+This inventory is intentionally separated from the canonical playbook examples. The current search finds 23 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
 
 | Group | Remaining surfaces |
 | --- | --- |
 | Foundations and compatibility | `foundations/core/BasicsPage.tsx`, `foundations/react/ProviderPage.tsx`, `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
 | Pattern demonstrations | `patterns/refs/UseRefMountStateTestPage.tsx` |
 | Integrations | `integrations/advanced/ConcurrentActionsPage.tsx`, `integrations/advanced/canvas/CanvasContext.tsx` |
-| Performance demonstrations | `performance/action-guard/{ApiBlockingPage,ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
+| Performance demonstrations | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
 
 ## Completion Gates
 
@@ -109,4 +119,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The next re-entry point is the foundations pair (`foundations/core/BasicsPage.tsx` and `foundations/react/ProviderPage.tsx`), followed by the advanced integration and performance groups. Do not mark the migration complete until the 24-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
+The next re-entry point is the foundations pair (`foundations/core/BasicsPage.tsx` and `foundations/react/ProviderPage.tsx`), followed by the advanced integration and performance groups. Do not mark the migration complete until the 23-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
