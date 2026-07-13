@@ -49,7 +49,10 @@ iframe은 다음 역할만 담당한다.
 - 문서 revision 수신과 적용 결과 보고
 - 제한된 bridge message 처리
 
-iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. `setDocument`·`applyPatch`·`resetDocument` 같은 도구는 부모에서 검증하고, iframe에는 검증된 revision만 전달한다. 임의 `runScript` 도구는 제공하지 않는다.
+iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는
+`editor.getDocument`, `editor.setDocument`, `editor.setScenario`,
+`editor.resetDocument`만 노출한다. 각 handler는 부모 DocumentManager를 먼저
+변경한 뒤 iframe에 revision을 전달한다. 임의 `runScript` 도구는 제공하지 않는다.
 
 ## 패키지·레포지토리 분리 계획
 
@@ -71,15 +74,18 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 
 분리 순서는 `example 유지 → workspace package → 독립 repository`를 기본 계획으로 한다.
 
-## 권장 editor 도구
+## 현재 showcase editor 도구
 
 | 도구 | 기본 정책 | 목적 |
 | --- | --- | --- |
 | `editor.getDocument` | allow | 현재 문서와 revision 조회 |
-| `editor.getPreviewStatus` | allow | iframe 렌더 상태 조회 |
-| `editor.applyPatch` | ask | 구조화된 변경 적용 |
-| `editor.setDocument` | ask | 전체 문서 교체 |
-| `editor.resetDocument` | ask | 파괴적 초기화 |
+| `editor.setDocument` | local demo allow | controlled source 교체, 실행하지 않음 |
+| `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
+| `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
+
+`editor.applyPatch`와 `editor.getPreviewStatus`는 다음 계약으로 남겨둔다.
+production 연결에서는 파괴적 변경이나 광범위한 mutation을 허용하기 전에
+승인 가능한 `toolPolicy`로 교체해야 한다.
 
 ## 빌드 순서
 

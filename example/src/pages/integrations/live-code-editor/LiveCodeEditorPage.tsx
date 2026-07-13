@@ -8,7 +8,9 @@ import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
 import styles from './LiveCodeEditorPage.module.css';
+import { LiveEditorAIToolbar } from './LiveEditorAIToolbar';
 import { LiveCodeEditorPreviewFrame } from './LiveCodeEditorPreviewFrame';
+import { LiveEditorToolchainProvider } from './LiveEditorToolchain';
 import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
 
@@ -244,7 +246,11 @@ function LiveCodeEditorContent() {
             : '중단됨 · policy guard가 비즈니스 작업 전에 요청을 차단했습니다.';
 
   return (
-    <PageWithLogMonitor pageId="live-code-editor" title="Live Code Editor">
+    <LiveEditorToolchainProvider
+      manager={documentManager}
+      getResetSource={() => currentExample.code}
+    >
+      <PageWithLogMonitor pageId="live-code-editor" title="Live Code Editor">
       <main className={styles.page}>
         <div className={styles.shell}>
           <section className={styles.hero}>
@@ -270,6 +276,8 @@ function LiveCodeEditorContent() {
               <span>Astryx neutral</span>
             </div>
           </section>
+
+          <LiveEditorAIToolbar />
 
           <section
             className={styles.workbench}
@@ -504,7 +512,8 @@ function LiveCodeEditorContent() {
           </section>
         </div>
       </main>
-    </PageWithLogMonitor>
+      </PageWithLogMonitor>
+    </LiveEditorToolchainProvider>
   );
 }
 

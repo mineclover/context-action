@@ -49,7 +49,10 @@ The iframe is limited to:
 - receiving document revisions and reporting apply status
 - handling a restricted bridge message set
 
-The iframe must not own the ToolRegistry or model API key. Parent-owned tools such as `setDocument`, `applyPatch`, and `resetDocument` validate the request before sending a revision to the iframe. Do not expose an arbitrary `runScript` tool.
+The iframe must not own the ToolRegistry or model API key. The current showcase
+exposes `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
+`editor.resetDocument`; each handler updates the parent DocumentManager before
+sending a revision to the iframe. Do not expose an arbitrary `runScript` tool.
 
 ## Package and repository boundary plan
 
@@ -74,15 +77,18 @@ Consider a separate repository only when one or more of these conditions hold:
 
 The default extraction order is `example → workspace package → independent repository`.
 
-## Recommended editor tools
+## Current showcase editor tools
 
 | Tool | Default policy | Purpose |
 | --- | --- | --- |
 | `editor.getDocument` | allow | Read the current document and revision |
-| `editor.getPreviewStatus` | allow | Read iframe render status |
-| `editor.applyPatch` | ask | Apply a structured change |
-| `editor.setDocument` | ask | Replace the full document |
-| `editor.resetDocument` | ask | Destructive reset |
+| `editor.setDocument` | local demo allow | Replace controlled source text; never execute it |
+| `editor.setScenario` | local demo allow | Change the safe runner scenario |
+| `editor.resetDocument` | local demo allow | Reset source to the selected example |
+
+`editor.applyPatch` and `editor.getPreviewStatus` remain planned follow-up
+contracts. A production integration must replace the local demo policy with an
+approval-capable `toolPolicy` before enabling destructive or broad mutations.
 
 ## Build order
 
