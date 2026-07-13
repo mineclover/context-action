@@ -1,6 +1,6 @@
 # Context-Layered Convention Alignment Plan
 
-**Status:** Direction approved; migration not started  
+**Status:** Direction approved; migration in progress
 **Last reviewed:** 2026-07-13
 
 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable.
@@ -65,14 +65,14 @@ The following classification is the baseline for migration.
 ### Evidence recorded on 2026-07-13
 
 - `CanonicalOrderHandlers.tsx` already composes an action provider, store provider, ref provider, and handler registry.
-- `LogMonitor/context.tsx` still registers multiple handlers directly and uses the opposite provider order; it is a migration target.
+- `LogMonitor` was the first migration target: its boundaries now live under `contexts/`, all five handlers are registered by `handlers/LogMonitorHandlerRegistry.tsx`, and its provider order is canonical.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries, starting with canonical-adjacent examples such as LogMonitor and business-logic.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor is complete, and business-logic plus foundation/advanced surfaces remain to be classified or migrated.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
@@ -86,4 +86,3 @@ The following classification is the baseline for migration.
 - Legacy/MVVM material is explicitly labeled as migration or compatibility guidance.
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
-

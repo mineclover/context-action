@@ -1,6 +1,6 @@
 # Context-Layered 컨벤션 정합성 계획
 
-**상태:** 방향 확정, 마이그레이션 시작 전  
+**상태:** 방향 확정, 마이그레이션 진행 중
 **최근 검토:** 2026-07-13
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
@@ -65,14 +65,14 @@ canonical 중첩 순서는 다음과 같습니다.
 ### 2026-07-13 기준 근거
 
 - `CanonicalOrderHandlers.tsx`는 이미 Action Provider, Store Provider, Ref Provider, Handler Registry를 조합합니다.
-- `LogMonitor/context.tsx`는 여러 handler를 직접 등록하고 반대 Provider 순서를 사용하므로 마이그레이션 대상입니다.
+- `LogMonitor`를 첫 마이그레이션 대상으로 처리했습니다. 경계는 `contexts/`로 분리했고, 5개 handler는 `handlers/LogMonitorHandlerRegistry.tsx`에서 등록하며 Provider 순서도 canonical 기준으로 맞췄습니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. LogMonitor와 business-logic 등 직접 handler를 등록하는 도메인부터 Handler Registry로 이동합니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor는 완료했고, business-logic과 foundation/advanced 영역은 분류 또는 마이그레이션이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
@@ -86,4 +86,3 @@ canonical 중첩 순서는 다음과 같습니다.
 - legacy/MVVM 자료가 migration 또는 compatibility 안내로 명시됩니다.
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
-
