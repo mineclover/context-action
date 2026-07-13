@@ -1,32 +1,36 @@
 .page {
-  --editor-ink: #172033;
-  --editor-muted: #6b7280;
-  --editor-border: #dbe2ea;
-  --editor-accent: #5d43e6;
-  --editor-accent-soft: #f0edff;
-  --editor-canvas: #f7f8fa;
+  --editor-ink: #1f2937;
+  --editor-muted: #667085;
+  --editor-border: #dfe4ea;
+  --editor-accent: #635bce;
+  --editor-accent-soft: #eeedff;
+  --editor-canvas: #f6f7f9;
+  --editor-surface: #ffffff;
+  --editor-surface-muted: #f1f3f6;
+  --editor-shadow-low: 0 2px 10px rgba(31, 41, 55, 0.07);
   min-height: calc(100vh - 4rem);
-  background:
-    radial-gradient(circle at 7% 0%, rgba(139, 119, 255, 0.12), transparent 27rem),
-    var(--editor-canvas);
+  background: var(--editor-canvas);
   color: var(--editor-ink);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 }
 
 .shell {
   width: min(1380px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2.5rem 0 4rem;
+  padding: 2rem 0 4rem;
 }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  border: 1px solid #d8d0ff;
-  border-radius: 999px;
+  border: 1px solid #d7d5f3;
+  border-radius: 0.45rem;
   padding: 0.4rem 0.75rem;
-  background: rgba(255, 255, 255, 0.8);
-  color: #4a35b8;
+  background: var(--editor-accent-soft);
+  color: #40388f;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -43,7 +47,7 @@
 
 .hero h1 {
   margin: 0.9rem 0 0.65rem;
-  color: #111827;
+  color: #1f2937;
   font-size: clamp(2rem, 4vw, 3.6rem);
   letter-spacing: -0.055em;
   line-height: 0.98;
@@ -52,7 +56,7 @@
 .hero p {
   max-width: 720px;
   margin: 0;
-  color: #5d6674;
+  color: #5f6b7a;
   font-size: 1.02rem;
   line-height: 1.7;
 }
@@ -67,20 +71,20 @@
 
 .environment span {
   border: 1px solid var(--editor-border);
-  border-radius: 0.65rem;
+  border-radius: 0.45rem;
   padding: 0.5rem 0.65rem;
-  background: rgba(255, 255, 255, 0.75);
-  color: #505b6b;
+  background: var(--editor-surface);
+  color: #5f6b7a;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.72rem;
 }
 
 .workbench {
   overflow: hidden;
-  border: 1px solid #cfd8e3;
-  border-radius: 1.15rem;
-  background: #fff;
-  box-shadow: 0 18px 55px rgba(31, 41, 55, 0.11);
+  border: 1px solid var(--editor-border);
+  border-radius: 0.75rem;
+  background: var(--editor-surface);
+  box-shadow: var(--editor-shadow-low);
 }
 
 .toolbar {
@@ -91,7 +95,7 @@
   gap: 0.75rem;
   border-bottom: 1px solid var(--editor-border);
   padding: 0.85rem 1rem;
-  background: #fff;
+  background: var(--editor-surface);
 }
 
 .toolbarGroup,
@@ -111,9 +115,9 @@
 .select {
   min-width: 12rem;
   border: 1px solid var(--editor-border);
-  border-radius: 0.55rem;
+  border-radius: 0.45rem;
   padding: 0.55rem 0.7rem;
-  background: #fff;
+  background: var(--editor-surface);
   color: #202939;
   font: inherit;
   font-size: 0.8rem;
@@ -122,10 +126,10 @@
 
 .toolbarButton {
   border: 1px solid var(--editor-border);
-  border-radius: 0.55rem;
+  border-radius: 0.45rem;
   padding: 0.55rem 0.75rem;
-  background: #fff;
-  color: #4c5665;
+  background: var(--editor-surface);
+  color: #4f5b6b;
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 700;
@@ -134,6 +138,14 @@
 .toolbarButton:hover {
   border-color: #a99aff;
   color: var(--editor-accent);
+}
+
+.toolbarButton:focus-visible,
+.previewRun:focus-visible,
+.scenarioButton:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--editor-accent);
+  outline-offset: 3px;
 }
 
 .runButton {
@@ -242,7 +254,7 @@
 
 .previewPane {
   min-width: 0;
-  background: #fbfcfe;
+  background: var(--editor-surface-muted);
 }
 
 .previewHeader {
@@ -256,7 +268,7 @@
 
 .previewHeader h2 {
   margin: 0;
-  color: #1b2433;
+  color: #1f2937;
   font-size: 0.95rem;
 }
 
@@ -283,11 +295,11 @@
 }
 
 .previewCard {
-  border: 1px solid #dce3eb;
-  border-radius: 0.9rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 0.6rem;
   padding: 1rem;
-  background: #fff;
-  box-shadow: 0 8px 25px rgba(39, 52, 72, 0.06);
+  background: var(--editor-surface);
+  box-shadow: var(--editor-shadow-low);
 }
 
 .previewCardHeader {
@@ -306,13 +318,13 @@
 
 .previewCard h3 {
   margin: 0;
-  color: #1c2534;
+  color: #263244;
   font-size: 1.1rem;
 }
 
 .previewCard p {
   margin: 0.35rem 0 0;
-  color: #6b7482;
+  color: #667085;
   font-size: 0.78rem;
   line-height: 1.5;
 }
@@ -326,10 +338,10 @@
 
 .scenarioButton {
   border: 1px solid #dce3eb;
-  border-radius: 999px;
+  border-radius: 0.45rem;
   padding: 0.42rem 0.65rem;
-  background: #fff;
-  color: #657083;
+  background: var(--editor-surface);
+  color: #5f6b7a;
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 700;
@@ -338,15 +350,15 @@
 .scenarioButtonActive {
   border-color: #b6aaff;
   background: var(--editor-accent-soft);
-  color: #4a35b8;
+  color: #40388f;
 }
 
 .previewRun {
   width: 100%;
   border: 0;
-  border-radius: 0.65rem;
+  border-radius: 0.45rem;
   padding: 0.72rem 1rem;
-  background: #1e293b;
+  background: #273142;
   color: #fff;
   cursor: pointer;
   font-size: 0.78rem;
@@ -354,14 +366,14 @@
 }
 
 .previewRun:hover {
-  background: #334155;
+  background: #1f2937;
 }
 
 .output {
   margin-top: 1rem;
   border: 1px solid #dce3eb;
-  border-radius: 0.8rem;
-  background: #f7f9fc;
+  border-radius: 0.6rem;
+  background: var(--editor-surface-muted);
 }
 
 .outputHeader {
@@ -421,7 +433,7 @@
 
 .resultBox {
   margin-top: 0.9rem;
-  border-radius: 0.7rem;
+  border-radius: 0.55rem;
   padding: 0.75rem;
   background: #eef8f2;
   color: #17613c;

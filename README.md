@@ -119,9 +119,12 @@ function App() {
 If you want to understand Context-Action through the repository's current standard, start with the **Implementation Playbook path** instead of isolated APIs.
 
 - **Standard convention**: [Implementation Convention](https://mineclover.github.io/context-action/en/context-layered/implementation-convention)
+- **Usecase + Recipe profile**: [Usecase and Recipe Profile](https://mineclover.github.io/context-action/en/context-layered/usecase-recipe-profile)
 - **Canonical example**: [Canonical Order Form](https://mineclover.github.io/context-action/en/examples/canonical-order-form)
 - **Scenario library**: [Playbook Scenario Library](https://mineclover.github.io/context-action/en/examples/implementation-playbook-scenarios)
 - **Live demos**:
+  - [Usecase Boundary Lab](https://mineclover.github.io/context-action/example/integrations/live-code-editor)
+  - [Action Lifecycle Workbench](https://mineclover.github.io/context-action/example/integrations/action-lifecycle)
   - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
   - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)

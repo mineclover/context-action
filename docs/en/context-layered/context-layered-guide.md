@@ -40,6 +40,22 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 | **Views** | Pure UI components | Event handling, rendering, user interactions |
 | **MainPage** | Registry mounting & composition | Props injection, context setup, component orchestration |
 
+## Usecase and Recipe Profile
+
+The six layers above describe the internal Context-Layered Runtime. When that runtime is connected to a design-system-based product UI, add the **Usecase Boundary → Facade → Recipe** profile:
+
+```text
+Product Scope → Recipe → Facade → Context-Layered Runtime → Business
+                    └──── Astryx primitives
+```
+
+- **Usecase Boundary** owns one feature's state and execution contract.
+- **Facade** exposes stable commands and a view model while hiding raw dispatch and store managers.
+- **Recipe** composes Astryx primitives and maps the view model to controlled props.
+- **Primitive** components own visual states, accessibility, and intrinsic interaction.
+
+Read the complete convention in [Usecase and Recipe Profile](./usecase-recipe-profile.md).
+
 ## 🔄 Data Flow
 
 ### 1. User Interaction → Action
@@ -108,6 +124,7 @@ useCheckoutValidateHandler({
 
 ```
 docs/en/context-layered/
+├── usecase-recipe-profile.md     # Facade and design-system Recipe boundary
 ├── architecture/
 │   ├── folder-structure.md      # 6-Layer structure guide
 │   ├── responsibility-separation.md  # Layer responsibilities
@@ -143,11 +160,14 @@ Create pure UI components that use actions and hooks.
 ### 6. Compose in main page
 Mount the Handler Registry with props and compose `Action Provider → Store Provider → Ref Provider (when used) → Handler Registry → View`.
 
+For product-facing features, the recommended composition is `Provider → Handler Registry → Facade → Recipe → Primitive`.
+
 ## 🔗 Related Documentation
 
 - [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 - [Props-based Handler Patterns](./patterns/props-based-handlers.md) - Handler implementation guides
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
+- [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
 - [Traditional MVVM Documentation](../guide/architecture/mvvm.md) - Legacy MVVM patterns (for reference)
 

@@ -40,6 +40,23 @@ const demos: DemoItem[] = [
     ],
     estimatedTime: '5-10분',
   },
+  {
+    path: '/integrations/live-code-editor',
+    title: 'Usecase Boundary Lab',
+    emoji: '🧭',
+    description:
+      'Context-Layered Runtime을 Facade와 Astryx-style Recipe에 연결하는 live editor 데모.',
+    tags: ['Usecase Boundary', 'Facade', 'Recipe', 'Astryx UI'],
+    category: 'advanced',
+    complexity: 'Intermediate',
+    features: [
+      'Contract → Runtime → Facade → Recipe',
+      'Controlled UI props',
+      'Validation abort path',
+      'Activity stream and result',
+    ],
+    estimatedTime: '5-10분',
+  },
 
   // === AI/LLM Integration ===
   {
@@ -395,7 +412,8 @@ export default function DemosIndexPage() {
                         선택 구독과 history 학습
                       </li>
                       <li>
-                        • <strong>업무 흐름</strong>: Implementation Playbook과
+                        • <strong>업무 흐름</strong>: Usecase Boundary Lab에서
+                        Facade·Recipe를 익힌 뒤 Implementation Playbook과
                         ToolContext AI로 심화
                       </li>
                       <li>
@@ -427,11 +445,11 @@ export default function DemosIndexPage() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="font-semibold text-violet-950">
-                        ⌘ Live Code Editor
+                        🧭 Usecase Boundary Lab
                       </h3>
                       <p className="mt-1 text-sm text-violet-800">
-                        코드를 편집하고 action pipeline preview를 바로
-                        실행하세요.
+                        코드를 편집하면서 Contract, Runtime, Facade, Recipe와
+                        Astryx-style controlled UI 연결을 바로 확인하세요.
                       </p>
                     </div>
                     <Link

@@ -49,17 +49,23 @@ export default function IntegrationsOverview() {
           </Link>
         </div>
 
-        <div className="category-card bg-violet-50 border border-violet-200 p-6 rounded-lg shadow-sm md:col-span-2">
-          <h3 className="text-xl font-semibold mb-3">⌘ Live Code Editor</h3>
-          <p className="text-sm text-gray-700 mb-4">
-            현재 예제 환경의 action, tool, store 패턴을 편집 가능한 코드와
-            안전한 브라우저 preview로 함께 확인합니다.
+        <div className="category-card bg-white border border-slate-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <div className="inline-flex rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-800">
+            Usecase + Recipe profile
+          </div>
+          <h3 className="text-xl font-semibold mb-3 mt-3">
+            🧭 Usecase Boundary Lab
+          </h3>
+          <p className="text-sm text-slate-700 mb-4">
+            Context-Layered Runtime을 Facade와 Astryx-style Recipe에 연결합니다.
+            코드를 편집하고 validation abort, handler trace, controlled UI
+            상태를 같은 화면에서 확인합니다.
           </p>
           <Link
             to="/integrations/live-code-editor"
-            className="inline-flex items-center rounded-full bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
+            className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
           >
-            Editor 열기 →
+            Lab 열기 →
           </Link>
         </div>
 

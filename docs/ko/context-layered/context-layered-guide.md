@@ -30,6 +30,22 @@ pages/checkout/
 └── CheckoutPage.tsx  # 통합 지점
 ```
 
+## Usecase 및 Recipe Profile
+
+위의 6-layer는 Context-Layered Runtime의 내부 구조입니다. 이 runtime을 디자인 시스템 기반 product UI에 연결할 때는 **Usecase Boundary → Facade → Recipe** profile을 추가합니다.
+
+```text
+Product Scope → Recipe → Facade → Context-Layered Runtime → Business
+                    └──── Astryx primitive
+```
+
+- **Usecase Boundary**는 하나의 기능에 대한 상태와 실행 계약을 소유합니다.
+- **Facade**는 안정적인 command와 view model을 제공하고 raw dispatch와 store manager를 숨깁니다.
+- **Recipe**는 Astryx primitive를 조합하고 view model을 controlled prop으로 변환합니다.
+- **Primitive**는 시각 상태, 접근성, intrinsic interaction을 소유합니다.
+
+자세한 컨벤션은 [Usecase 및 Recipe Profile](./usecase-recipe-profile.md)을 참고합니다.
+
 ## 레이어별 책임
 
 | 레이어 | 역할 | 하지 말아야 할 일 |
@@ -75,6 +91,8 @@ sequenceDiagram
   </DomainStoreProvider>
 </DomainActionProvider>
 ```
+
+Product-facing 기능의 권장 조합은 `Provider → Handler Registry → Facade → Recipe → Primitive`입니다.
 
 ## 왜 이 구조가 유리한가
 
@@ -131,5 +149,6 @@ handler는 필요할 때 store에서 최신 값을 읽고, 그 결과를 다시 
 
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
+- [Usecase 및 Recipe Profile](./usecase-recipe-profile.md)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)

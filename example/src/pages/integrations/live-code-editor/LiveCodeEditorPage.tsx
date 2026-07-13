@@ -2,7 +2,7 @@ import { type KeyboardEvent, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import styles from './LiveCodeEditorPage.module.css';
-import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlers';
+import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
 
 type ExampleId = 'pipeline' | 'tools' | 'store' | 'usecase';
@@ -224,7 +224,7 @@ function LiveCodeEditorContent() {
           <section className={styles.hero}>
             <div>
               <span className={styles.eyebrow}>
-                Context-Action / playground
+                Context-Action / Astryx baseline
               </span>
               <h1>Live code, visible behavior.</h1>
               <p>
@@ -241,6 +241,7 @@ function LiveCodeEditorContent() {
               <span>Vite 8.1</span>
               <span>pnpm 10.30</span>
               <span>@context-action/react</span>
+              <span>Astryx neutral</span>
             </div>
           </section>
 

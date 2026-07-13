@@ -5,10 +5,11 @@ This document is the central entry point for the implementation-playbook style c
 ## Short Recommended Reading Path
 
 1. [Implementation Convention](/en/context-layered/implementation-convention)
-2. [Canonical Order Form Example](/en/examples/canonical-order-form)
-3. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
-4. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-5. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+2. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
+3. [Canonical Order Form Example](/en/examples/canonical-order-form)
+4. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+5. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+6. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
 These five cover:
 - folder structure
@@ -34,6 +35,7 @@ These five cover:
 - [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
   - how to lock complex async flows as `state + event + transition`
 - [Context-Layered Overview](/en/context-layered/context-layered-guide)
+- [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
   - the high-level architectural picture
 - [Migration Guide](/en/context-layered/migration-guide)
   - how to move older structures into this model

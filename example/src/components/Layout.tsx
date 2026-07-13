@@ -47,39 +47,18 @@ function navItemVariants({
   variant?: 'default' | 'active' | 'disabled';
   category?: string;
 }) {
-  const baseClasses =
-    'block w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200';
+  const baseClasses = 'astryx-nav-item';
 
   const variantClasses = {
-    default: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-    active: 'bg-primary-100 text-primary-900 border-l-4 border-primary-600',
-    disabled: 'text-gray-400 cursor-not-allowed opacity-60',
+    default: 'astryx-nav-item-default',
+    active: 'astryx-nav-item-active',
+    disabled: 'astryx-nav-item-disabled',
   };
 
-  const categoryHoverClasses: Record<string, string> = {
-    main: '',
-    core: 'hover:bg-red-50 hover:text-red-900',
-    store: 'hover:bg-green-50 hover:text-green-900',
-    action: 'hover:bg-blue-50 hover:text-blue-900',
-    async: 'hover:bg-purple-50 hover:text-purple-900',
-    architecture: 'hover:bg-gray-50 hover:text-gray-900',
-    interaction: 'hover:bg-indigo-50 hover:text-indigo-900',
-    pipeline: 'hover:bg-orange-50 hover:text-orange-900',
-    react: 'hover:bg-purple-50 hover:text-purple-900',
-    logger: 'hover:bg-yellow-50 hover:text-yellow-900',
-    actionguard: 'hover:bg-pink-50 hover:text-pink-900',
-    conditional: 'hover:bg-cyan-50 hover:text-cyan-900',
-    examples: 'hover:bg-orange-50 hover:text-orange-900',
-    refs: 'hover:bg-blue-50 hover:text-blue-900',
-    demos: 'hover:bg-emerald-50 hover:text-emerald-900',
-    performance: 'hover:bg-red-50 hover:text-red-900',
-    utilities: 'hover:bg-teal-50 hover:text-teal-900',
-    debug: 'hover:bg-indigo-50 hover:text-indigo-900',
-    dev: 'hover:bg-red-50 hover:text-red-900',
-    'coming-soon': 'bg-gray-50 text-gray-500',
-  };
+  const categoryClass =
+    category === 'coming-soon' ? 'astryx-nav-item-coming-soon' : '';
 
-  return `${baseClasses} ${variantClasses[variant]} ${categoryHoverClasses[category] || ''}`.trim();
+  return `${baseClasses} ${variantClasses[variant]} ${categoryClass}`.trim();
 }
 
 function Layout({
@@ -109,6 +88,20 @@ function Layout({
       category: 'architecture',
       description:
         'Implementation-first canonical example with Action, Store, Ref, and testable boundaries',
+    },
+    {
+      path: '/integrations/live-code-editor',
+      label: '🧭 Usecase Boundary Lab',
+      category: 'architecture',
+      description:
+        'Live editor for Contract, Runtime, Facade, and Recipe boundaries',
+    },
+    {
+      path: '/integrations/action-lifecycle',
+      label: '⚙️ Action Lifecycle Workbench',
+      category: 'architecture',
+      description:
+        'Priority, blocking, result collection, and abort behavior in one trace',
     },
     {
       path: '/patterns/implementation-playbook/scenarios',
@@ -406,10 +399,10 @@ function Layout({
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-gray-50 w-full max-w-full overflow-hidden">
+    <div className="flex min-h-screen bg-[var(--astryx-color-background-canvas)] w-full max-w-full overflow-hidden">
       <nav
         className={cn(
-          'fixed h-full overflow-y-auto bg-white border-r border-gray-200 transition-all duration-200 left-0 top-0 z-40',
+          'fixed h-full overflow-y-auto bg-[var(--astryx-color-background-surface)] border-r border-[var(--astryx-color-border)] transition-all duration-200 left-0 top-0 z-40 shadow-[var(--astryx-shadow-low)]',
           'hidden md:block',
           collapsed
             ? 'w-16'
@@ -423,17 +416,21 @@ function Layout({
         )}
       >
         {/* Logo Section */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-5 border-b border-[var(--astryx-color-border)]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CA</span>
+            <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center">
+              <span className="text-white font-semibold text-xs tracking-tight">
+                CA
+              </span>
             </div>
             {!collapsed && (
               <div>
-                <h2 className="text-lg font-bold text-gray-900">
+                <h2 className="text-base font-semibold tracking-tight text-slate-900">
                   Context-Action
                 </h2>
-                <p className="text-xs text-gray-500">Framework Examples</p>
+                <p className="text-[11px] text-slate-500">
+                  Astryx-neutral examples
+                </p>
               </div>
             )}
           </div>
@@ -442,7 +439,7 @@ function Layout({
         {/* Navigation Section */}
         <div className="p-4">
           {!collapsed && (
-            <h3 className="px-3 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <h3 className="px-3 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-[0.14em]">
               Learning Path
             </h3>
           )}
@@ -450,8 +447,8 @@ function Layout({
             {/* Core Concepts Section */}
             {!collapsed && (
               <div className="px-3 py-2">
-                <h4 className="text-xs font-medium text-blue-600 mb-2">
-                  📚 Core Concepts
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
+                  🧭 Architecture & Runtime
                 </h4>
               </div>
             )}
@@ -471,8 +468,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -500,8 +496,8 @@ function Layout({
 
             {/* Practical Examples Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-green-600 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   🎯 Practical Examples
                 </h4>
               </div>
@@ -518,8 +514,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -547,8 +542,8 @@ function Layout({
 
             {/* Advanced Demos Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-purple-600 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   🚀 Advanced Demos
                 </h4>
               </div>
@@ -567,8 +562,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -596,8 +590,8 @@ function Layout({
 
             {/* Conditional Execution Patterns Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-indigo-600 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   🔄 Conditional Patterns
                 </h4>
                 <p className="text-xs text-gray-500 mb-2 px-1">
@@ -669,8 +663,8 @@ function Layout({
 
             {/* Performance Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-red-600 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   ⚡ Performance
                 </h4>
               </div>
@@ -687,8 +681,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-red-500 bg-red-50 text-red-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -716,8 +709,8 @@ function Layout({
 
             {/* Specialized Features Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-orange-600 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   🔧 Specialized Features
                 </h4>
               </div>
@@ -734,8 +727,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -763,8 +755,8 @@ function Layout({
 
             {/* Utilities & Tools Section */}
             {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-gray-500 mb-2">
+              <div className="px-3 py-2 mt-4 border-t border-[var(--astryx-color-border)]">
+                <h4 className="text-xs font-semibold text-slate-600 mb-2 tracking-wide">
                   🛠️ Utilities & Tools
                 </h4>
               </div>
@@ -781,8 +773,7 @@ function Layout({
                         variant: isActive(item.path) ? 'active' : 'default',
                         category: item.category,
                       }),
-                      item.isIndex &&
-                        'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                      item.isIndex && 'font-semibold'
                     )}
                     title={collapsed ? item.label : undefined}
                   >

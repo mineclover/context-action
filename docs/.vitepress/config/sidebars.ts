@@ -231,6 +231,7 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
             { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+            { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
             { text: 'Convention Alignment Plan', link: '/en/context-layered/convention-alignment-plan' },
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
@@ -259,6 +260,7 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/context-layered/context-layered-guide' },
             { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+            { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
             { text: '컨벤션 정합성 계획', link: '/ko/context-layered/convention-alignment-plan' },
             { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
             { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },

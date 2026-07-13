@@ -13,7 +13,13 @@ function appendActivity(
   activity: UsecaseActivityEvent[],
   event: Omit<UsecaseActivityEvent, 'id'>
 ) {
-  return [...activity.slice(-5), { ...event, id: activity.length + 1 }];
+  const nextId =
+    activity.reduce(
+      (currentMax, currentEvent) => Math.max(currentMax, currentEvent.id),
+      0
+    ) + 1;
+
+  return [...activity.slice(-5), { ...event, id: nextId }];
 }
 
 function LiveUsecaseHandlerRegistry({

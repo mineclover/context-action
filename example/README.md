@@ -37,6 +37,7 @@ The application is organized into **5 specialized catalogs**, each designed for 
 **Target**: Developers building real applications
 - **Business** - Todo lists, shopping carts, chat systems
 - **Advanced** - Canvas drawing, concurrent actions, form builders
+- **Usecase Boundary Lab** - Context-Layered Runtime, Facade, Recipe, and Astryx-style UI composition
 
 ### 🛠️ **Utilities** (`/utilities/`)
 **Target**: Developers improving development workflow
@@ -140,6 +141,18 @@ useActionHandler('updateUser', async (payload) => {
 
 #### **Pattern Composition**
 Combine Action Only + Store Only patterns for complex applications with independent context management per pattern.
+
+### Usecase + Recipe Profile
+
+The recommended product-facing path is:
+
+```text
+Provider → Handler Registry → Facade → Recipe → UI primitive
+```
+
+Start with the live [Usecase Boundary Lab](/integrations/live-code-editor), then
+compare it with the [Action Lifecycle Workbench](/integrations/action-lifecycle)
+and the [Access Request Playbook](/patterns/implementation-playbook/access-request).
 
 ## 📂 Catalog Structure
 

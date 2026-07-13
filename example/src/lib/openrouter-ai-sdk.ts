@@ -32,14 +32,17 @@ function createToolSet<TSchema extends ActionSchemaMap>(
           description: definition.description,
           inputSchema: definition.zodSchema,
           execute: async (input, executionOptions) => {
-            const result = await registry.executeModelToolCall({
-              id: executionOptions.toolCallId,
-              name: String(toolName),
-              arguments: input as Record<string, unknown>,
-            }, {
-              signal: executionOptions.abortSignal,
-              context: { source: 'model' },
-            });
+            const result = await registry.executeModelToolCall(
+              {
+                id: executionOptions.toolCallId,
+                name: String(toolName),
+                arguments: input as Record<string, unknown>,
+              },
+              {
+                signal: executionOptions.abortSignal,
+                context: { source: 'model' },
+              }
+            );
             const resultText = result.content
               .map((block) => block.text)
               .join('\n');
