@@ -1,20 +1,26 @@
-# LogMonitor MVVM Architecture Implementation
+# LogMonitor Context-Layered Architecture
 
-LogMonitor 컴포넌트에 MVVM(Model-View-ViewModel) 아키텍처 패턴을 적용한 구현 가이드입니다.
+LogMonitor 컴포넌트의 현재 Context-Layered 구현과 마이그레이션 기준을 설명합니다.
+
+> **Migration note:** 이 문서는 이전 MVVM 구현을 설명하던 자료를 보존한 것입니다. 신규 구현은 [Context-Layered 정합성 계획](/ko/context-layered/convention-alignment-plan)을 따릅니다. 모든 handler는 기능 규모와 관계없이 `LogMonitorHandlerRegistry`에서 등록하며, 아래의 직접 등록 예시는 legacy 참고용으로만 취급합니다.
 
 ## 🏗️ Architecture Overview
 
 LogMonitor는 Context-Action 프레임워크의 세 가지 핵심 패턴을 사용하여 완벽한 레이어 분리를 구현합니다:
 
 - **Model Layer**: Store Only Pattern (반응형 상태 관리)
-- **ViewModel Layer**: Action Only Pattern (비즈니스 로직 및 조정)
+- **Handler Layer**: Action Only Pattern (비즈니스 로직 orchestration)
 - **View Layer**: Pure React components (UI 표현)
 
 ## 📁 File Structure
 
 ```
 src/components/LogMonitor/
-├── context.tsx          # MVVM 컨텍스트 및 프로바이더
+├── context.tsx          # Provider 조합과 구독/dispatch facade
+├── contexts/
+│   └── LogMonitorContexts.tsx # Context 경계와 타입
+├── handlers/
+│   └── LogMonitorHandlerRegistry.tsx # 모든 handler 등록
 ├── hooks.tsx           # 액션 로거 훅들
 ├── LogMonitor.tsx      # View Layer 컴포넌트
 ├── store-registry.ts   # 스토어 레지스트리 (레거시)
@@ -81,7 +87,7 @@ export function useLogMonitorConfig() {
 }
 ```
 
-## ⚙️ ViewModel Layer (Action Only Pattern)
+## ⚙️ Handler Layer (Action Only Pattern)
 
 ### Action Context 생성
 
@@ -123,7 +129,9 @@ export function useLogMonitorActions() {
 }
 ```
 
-### 액션 핸들러들
+### 액션 핸들러들 (legacy 참고)
+
+아래 직접 등록 형태는 이전 구현의 설명입니다. 현재 코드는 동일한 등록을 `handlers/LogMonitorHandlerRegistry.tsx` 안에서 수행합니다.
 
 ```typescript
 /**
@@ -220,15 +228,16 @@ export function LogMonitorProvider({
   );
 
   return (
-    <LogMonitorStoreProvider>
-      <LogMonitorActionProvider>
-        <LogMonitorActionHandlers 
+    <LogMonitorActionProvider>
+      <LogMonitorStoreProvider>
+        <LogMonitorHandlerRegistry
           pageId={pageId}
           fallbackConfig={fallbackConfig}
-        />
-        {children}
-      </LogMonitorActionProvider>
-    </LogMonitorStoreProvider>
+        >
+          {children}
+        </LogMonitorHandlerRegistry>
+      </LogMonitorStoreProvider>
+    </LogMonitorActionProvider>
   );
 }
 ```

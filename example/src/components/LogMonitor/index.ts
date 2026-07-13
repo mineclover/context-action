@@ -30,6 +30,7 @@ export {
   LogMonitorStoreRegistry,
   logMonitorStoreRegistry,
 } from './store-registry';
+export { LogMonitorHandlerRegistry } from './handlers/LogMonitorHandlerRegistry';
 // 타입 정의
 export type {
   ActionLogOptions,

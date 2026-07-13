@@ -3,62 +3,22 @@
  * @module LogMonitorContext
  */
 
-import type { ActionPayloadMap } from '@context-action/core';
-import {
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
 import React, { useMemo } from 'react';
 import { LogLevel } from '@/utils/logger';
 import { LogMonitor } from './LogMonitor';
 import type {
   LogEntry,
-  LogMonitorConfig,
   LogMonitorContextValue,
+  LogMonitorConfig,
 } from './types';
-import { createLogEntry, maintainMaxLogs } from './utils';
-
-// LogMonitor Store Types 정의
-export interface LogMonitorStores {
-  logs: Array<LogEntry>;
-  logLevel: LogLevel;
-  config: LogMonitorConfig;
-}
-
-// LogMonitor Actions 정의 (Context-Action Action Pattern)
-export interface LogMonitorActions extends ActionPayloadMap {
-  addLog: { entry: Omit<LogEntry, 'id' | 'timestamp'> };
-  clearLogs: void;
-  setLogLevel: { level: LogLevel };
-  updateConfig: { configUpdate: Partial<LogMonitorConfig> };
-  log: { message: string; data?: unknown };
-}
-
-// Context-Action LogMonitor Store Context 생성
-const {
-  Provider: LogMonitorStoreProvider,
-  useStore: useLogMonitorStore,
-  useStoreManager: useLogMonitorStoreManager,
-} = createStoreContext<LogMonitorStores>('LogMonitor', {
-  logs: { initialValue: [] as Array<LogEntry> },
-  logLevel: { initialValue: LogLevel.DEBUG },
-  config: {
-    initialValue: {
-      maxLogs: 50,
-      defaultLogLevel: LogLevel.DEBUG,
-      enableToast: true,
-      enableAutoCleanup: true,
-    } as LogMonitorConfig,
-  },
-});
-
-// Context-Action LogMonitor Action Context 생성
-const {
-  Provider: LogMonitorActionProvider,
-  useActionDispatch: useLogMonitorAction,
-  useActionHandler: useLogMonitorActionHandler,
-} = createActionContext<LogMonitorActions>('LogMonitor');
+import {
+  LogMonitorActionProvider,
+  LogMonitorStoreProvider,
+  useLogMonitorAction,
+  useLogMonitorStore,
+} from './contexts/LogMonitorContexts';
+import { LogMonitorHandlerRegistry } from './handlers/LogMonitorHandlerRegistry';
 
 /**
  * LogMonitor Provider Props
@@ -68,99 +28,6 @@ interface LogMonitorProviderProps {
   pageId: string;
   initialLogLevel?: LogLevel;
   initialConfig?: Partial<LogMonitorConfig>;
-}
-
-/**
- * ViewModel Layer - 액션 핸들러들
- */
-function LogMonitorActionHandlers({
-  pageId,
-  fallbackConfig,
-}: {
-  pageId: string;
-  fallbackConfig: LogMonitorConfig;
-}) {
-  const storeManager = useLogMonitorStoreManager();
-
-  // addLog 핸들러 - 로그 추가
-  useLogMonitorActionHandler(
-    'addLog',
-    React.useCallback(
-      async (payload) => {
-        const logEntry = createLogEntry(pageId, payload.entry);
-        const logsStore = storeManager.getStore('logs');
-        const currentLogs = logsStore.getValue();
-        const updatedLogs = maintainMaxLogs(
-          currentLogs,
-          logEntry,
-          fallbackConfig.maxLogs
-        );
-        logsStore.setValue(updatedLogs);
-      },
-      [pageId, storeManager, fallbackConfig.maxLogs]
-    )
-  );
-
-  // clearLogs 핸들러 - 로그 클리어
-  useLogMonitorActionHandler(
-    'clearLogs',
-    React.useCallback(async () => {
-      const logsStore = storeManager.getStore('logs');
-      logsStore.setValue([]);
-    }, [storeManager])
-  );
-
-  // setLogLevel 핸들러 - 로그 레벨 설정
-  useLogMonitorActionHandler(
-    'setLogLevel',
-    React.useCallback(
-      async (payload) => {
-        const logLevelStore = storeManager.getStore('logLevel');
-        logLevelStore.setValue(payload.level);
-      },
-      [storeManager]
-    )
-  );
-
-  // updateConfig 핸들러 - 설정 업데이트
-  useLogMonitorActionHandler(
-    'updateConfig',
-    React.useCallback(
-      async (payload) => {
-        const configStore = storeManager.getStore('config');
-        const currentConfig = configStore.getValue();
-        const newConfig = { ...currentConfig, ...payload.configUpdate };
-        configStore.setValue(newConfig);
-      },
-      [storeManager]
-    )
-  );
-
-  // log 핸들러 - 시스템 로그
-  useLogMonitorActionHandler(
-    'log',
-    React.useCallback(
-      async (payload) => {
-        const logEntry = createLogEntry(pageId, {
-          level: LogLevel.INFO,
-          type: 'system',
-          message: payload.message,
-          details: payload.data,
-        });
-        const logsStore = storeManager.getStore('logs');
-        const currentLogs = logsStore.getValue();
-        const updatedLogs = maintainMaxLogs(
-          currentLogs,
-          logEntry,
-          fallbackConfig.maxLogs
-        );
-        logsStore.setValue(updatedLogs);
-      },
-      [pageId, storeManager, fallbackConfig.maxLogs]
-    )
-  );
-
-  return null;
 }
 
 /**
@@ -188,15 +55,16 @@ export function LogMonitorProvider({
   );
 
   return (
-    <LogMonitorStoreProvider>
-      <LogMonitorActionProvider>
-        <LogMonitorActionHandlers
+    <LogMonitorActionProvider>
+      <LogMonitorStoreProvider>
+        <LogMonitorHandlerRegistry
           pageId={pageId}
           fallbackConfig={fallbackConfig}
-        />
-        {children}
-      </LogMonitorActionProvider>
-    </LogMonitorStoreProvider>
+        >
+          {children}
+        </LogMonitorHandlerRegistry>
+      </LogMonitorStoreProvider>
+    </LogMonitorActionProvider>
   );
 }
 
