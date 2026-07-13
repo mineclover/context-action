@@ -329,6 +329,36 @@
   line-height: 1.5;
 }
 
+.iframePreview {
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 0.55rem;
+  background: #f8fafc;
+}
+
+.iframePreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--editor-border);
+  padding: 0.55rem 0.7rem;
+  color: #667085;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.previewFrame {
+  display: block;
+  width: 100%;
+  height: 330px;
+  border: 0;
+  background: #f8fafc;
+}
+
 .scenarioBar {
   display: flex;
   flex-wrap: wrap;

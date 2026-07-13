@@ -1,7 +1,14 @@
-import { type KeyboardEvent, useMemo, useState } from 'react';
+import {
+  type KeyboardEvent,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
+import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
 import styles from './LiveCodeEditorPage.module.css';
+import { LiveCodeEditorPreviewFrame } from './LiveCodeEditorPreviewFrame';
 import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
 
@@ -150,9 +157,24 @@ const baseEvents: Record<ScenarioId, PreviewEvent[]> = {
 };
 
 function LiveCodeEditorContent() {
-  const [activeExample, setActiveExample] = useState<ExampleId>('pipeline');
-  const [code, setCode] = useState(examples.pipeline.code);
-  const [scenario, setScenario] = useState<ScenarioId>('success');
+  const documentManager = useMemo(
+    () =>
+      new LiveEditorDocumentManager({
+        exampleId: 'pipeline',
+        file: examples.pipeline.file,
+        source: examples.pipeline.code,
+        scenario: 'success',
+      }),
+    []
+  );
+  const documentSnapshot = useSyncExternalStore(
+    (listener) => documentManager.subscribe(() => listener()),
+    documentManager.getSnapshot,
+    documentManager.getSnapshot
+  );
+  const activeExample = documentSnapshot.exampleId as ExampleId;
+  const code = documentSnapshot.source;
+  const scenario = documentSnapshot.scenario as ScenarioId;
   const [isRunning, setIsRunning] = useState(false);
   const [runState, setRunState] = useState<'ready' | 'running' | ScenarioId>(
     'ready'
@@ -167,8 +189,12 @@ function LiveCodeEditorContent() {
   const events = baseEvents[scenario];
 
   const selectExample = (nextExample: ExampleId) => {
-    setActiveExample(nextExample);
-    setCode(examples[nextExample].code);
+    documentManager.update({
+      exampleId: nextExample,
+      file: examples[nextExample].file,
+      source: examples[nextExample].code,
+      scenario: 'success',
+    });
     setRunState('ready');
   };
 
@@ -182,7 +208,7 @@ function LiveCodeEditorContent() {
   };
 
   const resetCode = () => {
-    setCode(currentExample.code);
+    documentManager.update({ source: currentExample.code });
     setRunState('ready');
   };
 
@@ -199,7 +225,7 @@ function LiveCodeEditorContent() {
     const start = target.selectionStart;
     const end = target.selectionEnd;
     const nextCode = `${code.slice(0, start)}  ${code.slice(end)}`;
-    setCode(nextCode);
+    documentManager.update({ source: nextCode });
     window.requestAnimationFrame(() => {
       target.selectionStart = start + 2;
       target.selectionEnd = start + 2;
@@ -315,7 +341,9 @@ function LiveCodeEditorContent() {
                     className={styles.codeInput}
                     spellCheck={false}
                     value={code}
-                    onChange={(event) => setCode(event.target.value)}
+                    onChange={(event) =>
+                      documentManager.update({ source: event.target.value })
+                    }
                     onKeyDown={handleEditorKeyDown}
                   />
                 </div>
@@ -345,6 +373,9 @@ function LiveCodeEditorContent() {
                           </div>
                           <span>browser demo</span>
                         </div>
+                        <LiveCodeEditorPreviewFrame
+                          document={documentSnapshot}
+                        />
                         <div
                           className={styles.scenarioBar}
                           aria-label="Preview scenarios"
@@ -359,7 +390,11 @@ function LiveCodeEditorContent() {
                                     ? styles.scenarioButtonActive
                                     : ''
                                 }`}
-                                onClick={() => setScenario(candidate)}
+                                onClick={() =>
+                                  documentManager.update({
+                                    scenario: candidate,
+                                  })
+                                }
                               >
                                 {scenarioLabels[candidate]}
                               </button>
