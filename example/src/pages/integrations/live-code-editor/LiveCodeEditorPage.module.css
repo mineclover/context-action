@@ -606,6 +606,60 @@
   opacity: 0.45;
 }
 
+.registryInspector {
+  display: grid;
+  gap: 0.55rem;
+  border-top: 1px solid var(--editor-border);
+  padding-top: 0.75rem;
+  color: #667085;
+  font-size: 0.68rem;
+}
+
+.registryInspector > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.registryInspector strong {
+  color: #40388f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.registryToolNames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.registryToolNames code,
+.localCallResult {
+  border-radius: 0.35rem;
+  padding: 0.28rem 0.4rem;
+  background: #f1f3f6;
+  color: #4f5b6b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+}
+
+.localCallButton {
+  justify-self: start;
+  border: 1px solid var(--editor-border);
+  border-radius: 0.4rem;
+  padding: 0.42rem 0.6rem;
+  background: var(--editor-surface);
+  color: #4f5b6b;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.localCallResult {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
 .aiResult,
 .aiError {
   margin: 0;

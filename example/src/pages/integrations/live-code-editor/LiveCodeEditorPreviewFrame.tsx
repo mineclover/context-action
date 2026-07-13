@@ -41,8 +41,12 @@ const previewSource = `<!doctype html>
     <script>
       const CHANNEL = 'context-action.live-editor';
       const parentWindow = window.parent;
+      let lastRevision = -1;
       const post = (message) => parentWindow.postMessage({ channel: CHANNEL, ...message }, '*');
       const render = (documentSnapshot) => {
+        if (!documentSnapshot || typeof documentSnapshot.revision !== 'number') return;
+        if (documentSnapshot.revision < lastRevision) return;
+        lastRevision = documentSnapshot.revision;
         document.getElementById('title').textContent = documentSnapshot.exampleId + ' preview';
         document.getElementById('description').textContent = 'Rendered from a controlled document projection. Editor code is not executed in this frame.';
         document.getElementById('file').textContent = documentSnapshot.file;
@@ -91,7 +95,9 @@ export function LiveCodeEditorPreviewFrame({
       }
 
       if (event.data.type === 'editor:rendered') {
-        setRenderedRevision(event.data.revision);
+        if (event.data.revision === documentSnapshot.revision) {
+          setRenderedRevision(event.data.revision);
+        }
       }
     };
 

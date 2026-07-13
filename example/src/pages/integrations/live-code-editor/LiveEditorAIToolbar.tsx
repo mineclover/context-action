@@ -20,6 +20,7 @@ export function LiveEditorAIToolbar() {
   const [selectedModel, setSelectedModel] = useState('');
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState('');
+  const [localCallResult, setLocalCallResult] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -97,6 +98,27 @@ export function LiveEditorAIToolbar() {
     }
   };
 
+  const inspectRegistry = async () => {
+    const result = await registry.callTool(
+      {
+        id: `local-inspection-${Date.now()}`,
+        method: 'tools/call',
+        params: {
+          name: 'editor.getDocument',
+          arguments: {},
+        },
+      },
+      { context: { source: 'local' } }
+    );
+    setLocalCallResult(
+      result.isError
+        ? result.error?.message ?? 'Local tools/call failed.'
+        : JSON.stringify(result.structuredContent)
+    );
+  };
+
+  const toolDefinitions = registry.listTools().tools;
+
   return (
     <section className={styles.aiToolbar} aria-label="AI editor toolchain">
       <div className={styles.aiToolbarHeader}>
@@ -135,6 +157,27 @@ export function LiveEditorAIToolbar() {
             ))}
           </select>
         </label>
+      </div>
+      <div className={styles.registryInspector}>
+        <div>
+          <strong>tools/list</strong>
+          <span>{toolDefinitions.length} editor tools registered</span>
+        </div>
+        <div className={styles.registryToolNames}>
+          {toolDefinitions.map((tool) => (
+            <code key={tool.name}>{tool.name}</code>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={styles.localCallButton}
+          onClick={() => void inspectRegistry()}
+        >
+          Run local tools/call
+        </button>
+        {localCallResult && (
+          <code className={styles.localCallResult}>{localCallResult}</code>
+        )}
       </div>
       <form className={styles.aiPromptForm} onSubmit={submit}>
         <input
