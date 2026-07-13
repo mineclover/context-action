@@ -23,12 +23,13 @@
  * ```
  */
 
-import type { z, ZodObject, ZodRawShape, ZodType } from 'zod';
+import type { ZodObject, ZodRawShape, ZodType, z } from 'zod';
 import type {
+  AnthropicToolDefinition,
   JSONSchema,
   MCPToolDefinition,
   OpenAIToolDefinition,
-  AnthropicToolDefinition,
+  ToolAnnotations,
 } from './json-schema';
 
 // ============================================
@@ -58,8 +59,12 @@ export type SafeParseResult<T> =
 export interface DefineActionOptions<TSchema extends ZodRawShape> {
   /** Action 이름 (고유 식별자) */
   name: string;
+  /** Optional human-facing tool title */
+  title?: string;
   /** Action 설명 (LLM 컨텍스트용) */
   description?: string;
+  /** Optional tool-selection and safety hints */
+  annotations?: ToolAnnotations;
   /** Zod 스키마 (payload 검증 및 타입 추론의 Single Source of Truth) */
   parameters: ZodObject<TSchema>;
 }
@@ -80,8 +85,12 @@ export interface UnifiedAction<TPayload = unknown> {
   // ---- Metadata ----
   /** Action 이름 */
   readonly name: string;
+  /** Optional human-facing tool title */
+  readonly title?: string;
   /** Action 설명 */
   readonly description?: string;
+  /** Optional tool-selection and safety hints */
+  readonly annotations?: ToolAnnotations;
   /** 원본 Zod 스키마 */
   readonly zodSchema: ZodObject<ZodRawShape>;
   /** JSON Schema (Tool chain 호환용) */
@@ -208,7 +217,7 @@ export function defineAction<TSchema extends ZodRawShape>(
 ): UnifiedAction<z.infer<ZodObject<TSchema>>> {
   type TPayload = z.infer<ZodObject<TSchema>>;
 
-  const { name, description, parameters } = options;
+  const { name, title, description, annotations, parameters } = options;
 
   // Zod → JSON Schema 변환
   const jsonSchema = zodToJsonSchema(parameters, zodModule);
@@ -216,7 +225,9 @@ export function defineAction<TSchema extends ZodRawShape>(
   const action: UnifiedAction<TPayload> = {
     // ---- Metadata ----
     name,
+    title,
     description,
+    annotations,
     zodSchema: parameters as unknown as ZodObject<ZodRawShape>,
     jsonSchema,
 
@@ -234,8 +245,10 @@ export function defineAction<TSchema extends ZodRawShape>(
 
     toMCP: (): MCPToolDefinition => ({
       name,
+      title,
       description,
       inputSchema: jsonSchema,
+      annotations,
     }),
 
     toOpenAI: (): OpenAIToolDefinition => ({

@@ -71,6 +71,30 @@ For a repository-wide pre-merge check—including package builds, runtime export
 loading, packed archive contents, linting, tests, the example app,
 documentation, and private tooling—run `pnpm verify:all`.
 
+### Workspace Package Build Order
+
+The `example` consumes `@context-action/core` and `@context-action/react`
+through the workspace packages' built declarations and `dist` outputs. After
+changing package source, use this order:
+
+```bash
+# Build library packages (example is separate)
+pnpm build
+pnpm example:build
+
+# Focused verification: core → react → example
+pnpm build:core
+pnpm build:react
+pnpm --filter example type-check
+pnpm --filter example check
+pnpm example:build
+```
+
+Running only `pnpm --filter example type-check` or `cd example && pnpm build`
+after a package source change can read stale declarations from `packages/*/dist`.
+The resulting missing-export or type errors may be caused by build order rather
+than by the source change itself.
+
 ## 5. Review and Handoff Record
 
 Each documentation-affecting pull request or handoff should state:

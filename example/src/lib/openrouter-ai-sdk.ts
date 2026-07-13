@@ -6,14 +6,8 @@
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import type {
-  ActionSchemaMap,
-  InferActionPayloadMap,
-} from '@context-action/core';
-import type {
-  ToolDispatchWithResultReturn,
-  ToolRegistry,
-} from '@context-action/react';
+import type { ActionSchemaMap } from '@context-action/core';
+import type { ToolRegistry } from '@context-action/react';
 import { dynamicTool, generateText, stepCountIs, type ToolSet } from 'ai';
 import type {
   ToolTextGenerationRequest,
@@ -26,10 +20,7 @@ export interface BrowserOpenRouterToolRunnerOptions {
 }
 
 function createToolSet<TSchema extends ActionSchemaMap>(
-  registry: ToolRegistry<TSchema>,
-  dispatchWithResult: ToolDispatchWithResultReturn<
-    InferActionPayloadMap<TSchema>
-  >['dispatchWithResult']
+  registry: ToolRegistry<TSchema>
 ): ToolSet {
   return Object.fromEntries(
     registry.getToolNames().map((toolName) => {
@@ -40,22 +31,36 @@ function createToolSet<TSchema extends ActionSchemaMap>(
         dynamicTool({
           description: definition.description,
           inputSchema: definition.zodSchema,
-          execute: async (input) => {
-            const execution = await dispatchWithResult(
-              toolName,
-              input as InferActionPayloadMap<TSchema>[typeof toolName]
-            );
+          execute: async (input, executionOptions) => {
+            const result = await registry.executeModelToolCall({
+              id: executionOptions.toolCallId,
+              name: String(toolName),
+              arguments: input as Record<string, unknown>,
+            }, {
+              signal: executionOptions.abortSignal,
+              context: { source: 'model' },
+            });
+            const resultText = result.content
+              .map((block) => block.text)
+              .join('\n');
 
-            if (!execution.success) {
-              throw new Error(
-                execution.abortReason ?? `Tool ${String(toolName)} failed`
-              );
+            if (result.isError) {
+              return {
+                tool: String(toolName),
+                status: 'error',
+                error: result.error ?? {
+                  code: 'TOOL_EXECUTION_FAILED',
+                  message: resultText || `Tool ${String(toolName)} failed`,
+                },
+                message: resultText,
+              };
             }
 
             return (
-              execution.result ?? {
+              result.structuredContent ?? {
                 tool: String(toolName),
                 status: 'completed',
+                message: resultText,
               }
             );
           },
@@ -91,7 +96,7 @@ export function createBrowserOpenRouterToolRunner(
       const response = await generateText({
         model: openrouter.chatModel(request.model),
         messages: request.messages,
-        tools: createToolSet(request.registry, request.dispatchWithResult),
+        tools: createToolSet(request.registry),
         maxOutputTokens: 1024,
         stopWhen: stepCountIs(5),
       });

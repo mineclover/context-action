@@ -205,7 +205,7 @@ function App() {
 # Install dependencies
 pnpm install
 
-# Build all packages
+# Build all library packages (example is built separately)
 pnpm build
 
 # Build specific package
@@ -231,6 +231,31 @@ pnpm dev               # Runs example application
 pnpm example:build     # Build example with TypeScript strict checking (default)
 pnpm example:build:fast # Fast build without TypeScript checking
 ```
+
+### Workspace Build Order (Important)
+
+The example consumes `@context-action/core` and `@context-action/react` through
+their workspace package declarations and `dist` outputs. After changing source
+files in a package, rebuild workspace dependencies before type-checking or
+building the example:
+
+```bash
+# Build library packages; Lerna resolves their package dependencies
+pnpm build
+pnpm example:build
+
+# Focused build after core/react source changes
+pnpm build:core
+pnpm build:react
+pnpm --filter example type-check
+pnpm --filter example check
+pnpm example:build
+```
+
+Use the focused sequence in the order `core → react → example`. Running
+`pnpm --filter example type-check` or `cd example && pnpm build` immediately
+after changing a workspace package can read stale declarations from
+`packages/*/dist` and produce misleading missing-export or type errors.
 
 ### Package Management (Lerna)
 ```bash
@@ -572,9 +597,9 @@ useActionHandler('riskyAction', async (payload, controller) => {
 
 1. **Setup**: `pnpm install` from root
 2. **Development**: Use `pnpm dev` for live example app
-3. **Changes**: Make changes in respective `packages/*/src/` directories  
+3. **Changes**: Make changes in respective `packages/*/src/` directories
 4. **Testing**: Run `pnpm test` and `pnpm type-check`
-5. **Building**: Run `pnpm build` before committing
+5. **Building**: Use `pnpm build` for library packages, then `pnpm example:build`; for focused verification, build `core`, then `react`, then `example`
 6. **Documentation**: Update docs if changing public APIs
 
 ### Recommended Development Patterns

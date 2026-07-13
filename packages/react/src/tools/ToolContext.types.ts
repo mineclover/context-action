@@ -5,19 +5,28 @@
  * combining ActionContext patterns with Zod schema-based definitions.
  */
 
-import { ReactNode } from 'react';
 import {
-  ActionRegister,
   ActionHandler,
-  HandlerConfig,
+  ActionRegister,
+  ActionSchemaMap,
+  AnthropicToolDefinition,
   DispatchOptions,
   ExecutionResult,
-  ActionSchemaMap,
+  HandlerConfig,
   InferActionPayloadMap,
   MCPToolDefinition,
+  ModelToolCall,
   OpenAIToolDefinition,
-  AnthropicToolDefinition,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolCallContext,
+  ToolCallObserver,
+  ToolListRequest,
+  ToolListResult,
+  ToolManagementInterface,
 } from '@context-action/core';
+import { ReactNode } from 'react';
 import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
 
 // ============================================
@@ -28,6 +37,18 @@ import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
  * Validation mode for tool execution
  */
 export type ToolValidationMode = 'strict' | 'warn' | 'silent';
+
+export type ToolPolicyDecision = 'allow' | 'ask' | 'deny';
+
+export interface ToolPolicyInput {
+  readonly request: ToolCallRequest;
+  readonly definition: MCPToolDefinition;
+  readonly context?: ToolCallContext;
+}
+
+export type ToolPolicy = (
+  input: ToolPolicyInput
+) => ToolPolicyDecision | Promise<ToolPolicyDecision>;
 
 /**
  * Configuration options for createToolContext
@@ -52,6 +73,15 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
 
   /** Enable debug logging */
   debug?: boolean;
+
+  /** Optional execution allowlist applied to discovery and calls. */
+  allowedToolNames?: readonly string[];
+
+  /** Optional runtime policy for allow/ask/deny decisions. */
+  toolPolicy?: ToolPolicy;
+
+  /** Receives normalized tool lifecycle events for traces and audit UI. */
+  onToolCall?: ToolCallObserver;
 }
 
 // ============================================
@@ -62,15 +92,13 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
  * Tool Registry - provides access to all defined tools
  * and their export methods for LLM integration
  */
-export interface ToolRegistry<TSchema extends ActionSchemaMap> {
+export interface ToolRegistry<TSchema extends ActionSchemaMap>
+  extends ToolManagementInterface<MCPToolDefinition> {
   /** Get all tool definitions */
   readonly tools: TSchema;
 
   /** Get a specific tool by name */
   getTool<K extends keyof TSchema>(name: K): TSchema[K];
-
-  /** Check if a tool exists */
-  hasTool(name: string): boolean;
 
   /** Get all tool names */
   getToolNames(): (keyof TSchema)[];
@@ -94,6 +122,24 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap> {
 
   /** Export specific tools as Anthropic format */
   toAnthropicFiltered<K extends keyof TSchema>(toolNames: K[]): AnthropicToolDefinition[];
+
+  /** Discover tools using the standard tools/list contract */
+  listTools(request?: ToolListRequest): ToolListResult<MCPToolDefinition>;
+
+  /** Resolve a canonical definition for one tool */
+  getToolDefinition(name: string): MCPToolDefinition | undefined;
+
+  /** Execute a canonical tools/call request */
+  callTool(
+    request: ToolCallRequest,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult>;
+
+  /** Normalize and execute a model-side tool call */
+  executeModelToolCall(
+    call: ModelToolCall,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult>;
 }
 
 // ============================================

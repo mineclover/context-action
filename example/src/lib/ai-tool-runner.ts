@@ -6,23 +6,14 @@
  * can therefore share the same ToolContext execution boundary.
  */
 
-import type {
-  ActionSchemaMap,
-  InferActionPayloadMap,
-} from '@context-action/core';
-import type {
-  ToolDispatchWithResultReturn,
-  ToolRegistry,
-} from '@context-action/react';
+import type { ActionSchemaMap } from '@context-action/core';
+import type { ToolRegistry } from '@context-action/react';
 import type { ModelMessage } from 'ai';
 
 export interface ToolTextGenerationRequest<TSchema extends ActionSchemaMap> {
   model: string;
   messages: ModelMessage[];
   registry: ToolRegistry<TSchema>;
-  dispatchWithResult: ToolDispatchWithResultReturn<
-    InferActionPayloadMap<TSchema>
-  >['dispatchWithResult'];
 }
 
 export interface ToolTextGenerationResult {

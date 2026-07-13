@@ -35,10 +35,39 @@ export {
 export type {
   JSONSchema,
   JSONSchemaType,
+  ToolAnnotations,
+  ToolDefinition,
   MCPToolDefinition,
   OpenAIToolDefinition,
   AnthropicToolDefinition,
 } from './json-schema.js';
+
+// Standard tool protocol contracts
+export {
+  createToolCallError,
+  createToolCallSuccess,
+  toToolCallRequest,
+  withToolCallId,
+} from './tool-protocol.js';
+
+export type {
+  ModelToolCall,
+  ToolArguments,
+  ToolCallContext,
+  ToolCallError,
+  ToolCallEvent,
+  ToolCallId,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolListRequest,
+  ToolListResult,
+  ToolManagementInterface,
+  ToolCallObserver,
+  ToolContent,
+  ToolJsonContent,
+  ToolTextContent,
+} from './tool-protocol.js';
 
 // Action Schema (Zod 기반 Action 정의)
 export {

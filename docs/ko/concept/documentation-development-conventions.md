@@ -63,6 +63,30 @@
 private tooling을 모두 포함한 저장소 전체 pre-merge 검증은 `pnpm verify:all`로
 실행합니다.
 
+### 워크스페이스 패키지 빌드 순서
+
+`example`은 `@context-action/core`와 `@context-action/react`를 workspace
+패키지의 `dist` 선언과 출력물을 통해 참조합니다. 따라서 패키지 source를
+변경한 뒤에는 다음 순서를 지킵니다.
+
+```bash
+# 라이브러리 패키지 빌드 (example은 별도)
+pnpm build
+pnpm example:build
+
+# 집중 검증: core → react → example
+pnpm build:core
+pnpm build:react
+pnpm --filter example type-check
+pnpm --filter example check
+pnpm example:build
+```
+
+`pnpm --filter example type-check` 또는 `cd example && pnpm build`만 먼저
+실행하면 `packages/*/dist`의 오래된 선언을 읽을 수 있습니다. 그 경우
+실제 API 문제가 아닌데도 missing export 또는 타입 오류처럼 보이는 실패가
+발생할 수 있습니다.
+
 ## 5. 리뷰 및 handoff 기록
 
 문서에 영향을 주는 PR 또는 handoff에는 다음을 적습니다.

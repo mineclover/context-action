@@ -52,6 +52,20 @@ From the monorepo root:
 pnpm install && pnpm dev
 ```
 
+> **Workspace build order:** The example reads the workspace packages through
+> their built declarations and `dist` files. If you change `packages/core` or
+> `packages/react`, rebuild dependencies before checking the example:
+>
+> ```bash
+> pnpm build:core
+> pnpm build:react
+> pnpm --filter example type-check
+> pnpm example:build
+> ```
+>
+> The order is always `core → react → example`. Running the example build alone
+> after a package source change can use stale declarations.
+
 ### Development Commands
 
 ```bash
@@ -59,11 +73,14 @@ pnpm install && pnpm dev
 pnpm dev                 # Start development server
 pnpm example:dev         # Alternative command
 
-# Build commands  
-pnpm build              # TypeScript strict + production build (default)
-pnpm build:fast         # Fast build without TypeScript checking
-pnpm example:build      # Build with TypeScript strict checking
-pnpm example:build:fast # Fast build without TypeScript checking
+# Build commands from the monorepo root
+pnpm build              # Build library packages; does not build example
+pnpm example:build      # Build example after workspace packages
+pnpm example:build:fast # Fast example build without TypeScript checking
+
+# Build commands from this example directory
+pnpm build              # TypeScript strict + production build (example only)
+pnpm build:fast         # Fast example build without TypeScript checking
 
 # Quality assurance
 pnpm lint               # Biome linting 

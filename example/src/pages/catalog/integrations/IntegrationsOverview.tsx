@@ -33,6 +33,36 @@ export default function IntegrationsOverview() {
       </div>
 
       <div className="categories grid md:grid-cols-2 gap-6">
+        <div className="category-card bg-indigo-50 border border-indigo-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <h3 className="text-xl font-semibold mb-4">
+            🧩 MCP / Function Calling Catalog
+          </h3>
+          <p className="text-sm text-gray-700 mb-4">
+            MCP 도구 발견, 모델 function calling, ToolContext 실행 체인을
+            명령문과 예상 호출 순서로 검증하는 전용 레퍼런스입니다.
+          </p>
+          <Link
+            to="/catalog/integrations/mcp-function-calling"
+            className="inline-flex items-center rounded-full bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800"
+          >
+            카탈로그 열기 →
+          </Link>
+        </div>
+
+        <div className="category-card bg-violet-50 border border-violet-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <h3 className="text-xl font-semibold mb-3">⌘ Live Code Editor</h3>
+          <p className="text-sm text-gray-700 mb-4">
+            현재 예제 환경의 action, tool, store 패턴을 편집 가능한 코드와
+            안전한 브라우저 preview로 함께 확인합니다.
+          </p>
+          <Link
+            to="/integrations/live-code-editor"
+            className="inline-flex items-center rounded-full bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
+          >
+            Editor 열기 →
+          </Link>
+        </div>
+
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">
             🏢 Business Applications

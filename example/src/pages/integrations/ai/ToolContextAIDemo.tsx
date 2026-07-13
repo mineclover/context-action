@@ -14,7 +14,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Link } from 'react-router-dom';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
+import {
+  clearStoredOpenRouterApiKey,
+  getStoredOpenRouterApiKey,
+  saveOpenRouterApiKey,
+} from '../../../lib/openrouter-api-key';
 import {
   formatModelName,
   getFreeModelsWithTools,
@@ -27,7 +33,6 @@ import styles from './ToolContextAIDemo.module.css';
 const {
   Provider: UIToolProvider,
   useToolDispatch,
-  useToolDispatchWithResult,
   useToolHandler,
   useToolRegistry,
 } = createToolContext('UITools', {
@@ -227,7 +232,7 @@ function UIStateManager({ children }: { children: React.ReactNode }) {
  * Main Demo UI Component
  */
 function DemoUI({ uiState }: { uiState: UIState }) {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(getStoredOpenRouterApiKey);
   const [selectedModel, setSelectedModel] = useState('');
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -238,8 +243,16 @@ function DemoUI({ uiState }: { uiState: UIState }) {
   const [input, setInput] = useState('');
   const [executing, setExecuting] = useState(false);
   const dispatch = useToolDispatch();
-  const { dispatchWithResult } = useToolDispatchWithResult();
   const registry = useToolRegistry();
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(saveOpenRouterApiKey(value));
+  };
+
+  const handleClearApiKey = () => {
+    clearStoredOpenRouterApiKey();
+    setApiKey('');
+  };
+
   const toolTextGenerator = useMemo(
     () =>
       apiKey
@@ -294,7 +307,6 @@ function DemoUI({ uiState }: { uiState: UIState }) {
         model: selectedModel,
         messages: requestMessages,
         registry,
-        dispatchWithResult,
       });
 
       const finalContent =
@@ -329,6 +341,12 @@ function DemoUI({ uiState }: { uiState: UIState }) {
       {/* Settings Panel */}
       <div className={styles.settingsPanel}>
         <h2>Configuration</h2>
+        <Link
+          to="/catalog/integrations/mcp-function-calling"
+          className={styles.catalogLink}
+        >
+          🧩 MCP / Function Calling 명령문 카탈로그 보기 →
+        </Link>
 
         <div className={styles.settingGroup}>
           <label htmlFor="apiKey">OpenRouter API Key</label>
@@ -337,13 +355,23 @@ function DemoUI({ uiState }: { uiState: UIState }) {
             type="password"
             placeholder="sk-or-..."
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            onChange={(e) => handleApiKeyChange(e.target.value)}
             className={styles.input}
           />
-          <small>
-            Your key stays in this browser session and is sent directly to
-            OpenRouter.
-          </small>
+          <div className={styles.keyActions}>
+            <small>
+              Saved in this browser and reused by other OpenRouter demos on this
+              origin. Requests still go directly to OpenRouter.
+            </small>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleClearApiKey}
+              disabled={!apiKey || executing}
+            >
+              Clear saved key
+            </button>
+          </div>
         </div>
 
         <div className={styles.settingGroup}>

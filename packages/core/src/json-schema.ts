@@ -102,20 +102,41 @@ export interface JSONSchema {
 // ============================================
 
 /**
+ * Optional behavioral hints for tool selection and safety review.
+ *
+ * Hints are metadata only; the runtime must still enforce authorization and
+ * validation before executing a tool.
+ */
+export interface ToolAnnotations {
+  title?: string;
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+}
+
+/** Canonical tool definition shared by MCP and local tool managers. */
+export interface ToolDefinition {
+  /** Tool name (unique identifier) */
+  name: string;
+  /** Optional human-facing title */
+  title?: string;
+  /** Description used by the model for tool selection */
+  description?: string;
+  /** Input schema in JSON Schema format */
+  inputSchema: JSONSchema;
+  /** Optional structured output schema */
+  outputSchema?: JSONSchema;
+  /** Optional behavioral hints */
+  annotations?: ToolAnnotations;
+}
+
+/**
  * MCP (Model Context Protocol) Tool 정의
  *
  * @see https://modelcontextprotocol.io/docs/concepts/tools
  */
-export interface MCPToolDefinition {
-  /** Tool 이름 (고유 식별자) */
-  name: string;
-  /** Tool 설명 (LLM이 사용 여부를 결정하는 데 사용) */
-  description?: string;
-  /** Input 스키마 (JSON Schema 형식) */
-  inputSchema: JSONSchema;
-  /** Output 스키마 (선택적) */
-  outputSchema?: JSONSchema;
-}
+export interface MCPToolDefinition extends ToolDefinition {}
 
 /**
  * OpenAI API Tool 정의

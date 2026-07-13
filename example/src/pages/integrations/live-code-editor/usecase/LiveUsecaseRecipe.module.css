@@ -1,0 +1,222 @@
+.recipe {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.meta,
+.activityTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.kicker {
+  color: #4a35b8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.phase {
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.phasevalidating,
+.phasepackaging {
+  background: #eef4ff;
+  color: #365da8;
+}
+
+.phaseready {
+  background: #eaf8ef;
+  color: #17613c;
+}
+
+.phaseblocked {
+  background: #fff0f0;
+  color: #a32929;
+}
+
+.boundary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.boundary span {
+  border: 1px solid #ddd8ff;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.25rem;
+  background: #f8f7ff;
+  color: #5946ba;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  color: #4b5563;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.field select,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dce3eb;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  background: #fbfcfe;
+  color: #263244;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.field select:focus,
+.field textarea:focus {
+  border-color: #9b8bff;
+  box-shadow: 0 0 0 3px rgba(139, 119, 255, 0.14);
+}
+
+.field textarea {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.primary,
+.secondary {
+  border: 0;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.primary {
+  flex: 1;
+  background: #1e293b;
+  color: #fff;
+}
+
+.primary:hover {
+  background: #334155;
+}
+
+.primary:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.secondary {
+  border: 1px solid #dce3eb;
+  background: #fff;
+  color: #657083;
+}
+
+.error,
+.success {
+  border-radius: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.error {
+  background: #fff0f0;
+  color: #a32929;
+}
+
+.success {
+  display: grid;
+  gap: 0.2rem;
+  background: #eaf8ef;
+  color: #17613c;
+}
+
+.success span {
+  font-size: 0.68rem;
+}
+
+.activity {
+  border: 1px solid #e0e6ee;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: #f7f9fc;
+}
+
+.activityTitle {
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid #e5eaf0;
+  color: #283448;
+  font-size: 0.72rem;
+}
+
+.activityTitle span {
+  color: #8a94a3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+}
+
+.activityRow {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  padding-top: 0.6rem;
+  color: #465264;
+  font-size: 0.68rem;
+}
+
+.activityRow strong,
+.activityRow small {
+  display: block;
+}
+
+.activityRow small {
+  margin-top: 0.2rem;
+  color: #7b8594;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  background: #64748b;
+}
+
+.dotsuccess {
+  background: #22a06b;
+}
+
+.dotblocked {
+  background: #dc2626;
+}
+
+@media (max-width: 520px) {
+  .boundary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

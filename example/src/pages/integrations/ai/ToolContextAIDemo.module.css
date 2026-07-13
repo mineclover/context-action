@@ -57,6 +57,19 @@
   font-weight: 600;
 }
 
+.catalogLink {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.catalogLink:hover {
+  text-decoration: underline;
+}
+
 .settingGroup {
   margin-bottom: 15px;
 }
@@ -73,6 +86,33 @@
   margin-top: 4px;
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.keyActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.secondaryButton {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .input,

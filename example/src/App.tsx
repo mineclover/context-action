@@ -235,6 +235,9 @@ const ActionLifecycleWorkbenchPage = lazy(
   () =>
     import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
 );
+const LiveCodeEditorPage = lazy(
+  () => import('./pages/integrations/live-code-editor/LiveCodeEditorPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -288,6 +291,9 @@ const PatternsOverview = lazy(
 );
 const IntegrationsOverview = lazy(
   () => import('./pages/catalog/integrations/IntegrationsOverview')
+);
+const McpFunctionCallingCatalog = lazy(
+  () => import('./pages/catalog/integrations/McpFunctionCallingCatalog')
 );
 const UtilitiesOverview = lazy(
   () => import('./pages/catalog/utilities/UtilitiesOverview')
@@ -346,6 +352,10 @@ function AppContent() {
             <Route
               path="/catalog/integrations"
               element={<IntegrationsOverview />}
+            />
+            <Route
+              path="/catalog/integrations/mcp-function-calling"
+              element={<McpFunctionCallingCatalog />}
             />
             <Route path="/catalog/utilities" element={<UtilitiesOverview />} />
 
@@ -553,6 +563,10 @@ function AppContent() {
             <Route
               path="/integrations/action-lifecycle"
               element={<ActionLifecycleWorkbenchPage />}
+            />
+            <Route
+              path="/integrations/live-code-editor"
+              element={<LiveCodeEditorPage />}
             />
             <Route
               path="/integrations/tool-context-ai"

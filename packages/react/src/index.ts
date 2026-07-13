@@ -88,6 +88,8 @@ export {
 export type {
   JSONSchema,
   JSONSchemaType,
+  ToolAnnotations,
+  ToolDefinition,
   MCPToolDefinition,
   OpenAIToolDefinition,
   AnthropicToolDefinition,
@@ -105,6 +107,9 @@ export type {
 export { createToolContext } from './tools/ToolContext';
 export type {
   ToolContextConfig,
+  ToolPolicy,
+  ToolPolicyDecision,
+  ToolPolicyInput,
   ToolContextReturn,
   ToolContextType,
   ToolRegistry,
@@ -113,3 +118,23 @@ export type {
   ToolExecutionResult,
   ToolValidationMode,
 } from './tools/ToolContext.types';
+
+// Standard tool protocol contracts
+export type {
+  ModelToolCall,
+  ToolArguments,
+  ToolCallContext,
+  ToolCallError,
+  ToolCallEvent,
+  ToolCallId,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolListRequest,
+  ToolListResult,
+  ToolManagementInterface,
+  ToolCallObserver,
+  ToolContent,
+  ToolJsonContent,
+  ToolTextContent,
+} from '@context-action/core';

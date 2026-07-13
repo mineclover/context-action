@@ -243,6 +243,136 @@ describe('createToolContext', () => {
     });
   });
 
+  describe('Standard tool protocol management', () => {
+    it('should expose tools/list definitions through the registry', () => {
+      const { result } = renderHook(() => useToolRegistry(), { wrapper });
+
+      const listed = result.current.listTools({ method: 'tools/list' });
+
+      expect(listed.tools.map((tool) => tool.name)).toEqual([
+        'searchProducts',
+        'addToCart',
+        'checkout',
+      ]);
+      expect(result.current.getToolDefinition('searchProducts')).toMatchObject({
+        name: 'searchProducts',
+        inputSchema: expect.objectContaining({ type: 'object' }),
+      });
+    });
+
+    it('should execute tools/call and return structured tool result', async () => {
+      const handler = jest.fn().mockResolvedValue({ items: ['product-1'] });
+      const { result } = renderHook(
+        () => {
+          useToolHandler('searchProducts', useCallback(handler, []));
+          return useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool({
+          method: 'tools/call',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          },
+        })
+      );
+
+      expect(toolResult).toMatchObject({
+        structuredContent: { items: ['product-1'] },
+        content: [{ type: 'text' }],
+      });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'laptop' }),
+        expect.any(Object)
+      );
+    });
+
+    it('should normalize model tool calls and return MCP-style errors', async () => {
+      const { result } = renderHook(() => useToolRegistry(), { wrapper });
+
+      const toolResult = await act(async () =>
+        result.current.executeModelToolCall({
+          id: 'call-1',
+          name: 'unknownTool',
+          arguments: {},
+        })
+      );
+
+      expect(toolResult.isError).toBe(true);
+      expect(toolResult.content[0]?.text).toMatch(/unknownTool/);
+      expect(toolResult.toolCallId).toBe('call-1');
+      expect(toolResult.error).toMatchObject({ code: 'TOOL_NOT_FOUND' });
+    });
+
+    it('should reject prototype names instead of treating them as tools', async () => {
+      const { result } = renderHook(() => useToolRegistry(), { wrapper });
+
+      expect(result.current.hasTool('toString')).toBe(false);
+      const toolResult = await act(async () =>
+        result.current.executeModelToolCall({ name: 'toString', arguments: {} })
+      );
+
+      expect(toolResult.isError).toBe(true);
+      expect(toolResult.error).toMatchObject({ code: 'TOOL_NOT_FOUND' });
+    });
+
+    it('should preserve call identity and emit lifecycle events', async () => {
+      const events: string[] = [];
+      const observedContext = createToolContext('ObservedTools', {
+        schema: testSchema,
+        onToolCall: event => events.push(`${event.type}:${event.name}`),
+      });
+      const observedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <observedContext.Provider>{children}</observedContext.Provider>
+      );
+      const handler = jest.fn().mockResolvedValue({ ok: true });
+      const { result } = renderHook(
+        () => {
+          observedContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return observedContext.useToolRegistry();
+        },
+        { wrapper: observedWrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.executeModelToolCall({
+          id: 'call-observed',
+          name: 'searchProducts',
+          arguments: { query: 'laptop' },
+        })
+      );
+
+      expect(toolResult.toolCallId).toBe('call-observed');
+      expect(events).toEqual(['started:searchProducts', 'completed:searchProducts']);
+    });
+
+    it('should enforce an execution allowlist and policy decision', async () => {
+      const policyContext = createToolContext('PolicyTools', {
+        schema: testSchema,
+        allowedToolNames: ['searchProducts', 'checkout'],
+        toolPolicy: ({ request }) =>
+          request.params.name === 'searchProducts' ? 'allow' : 'deny',
+      });
+      const policyWrapper = ({ children }: { children: React.ReactNode }) => (
+        <policyContext.Provider>{children}</policyContext.Provider>
+      );
+      const { result } = renderHook(() => policyContext.useToolRegistry(), {
+        wrapper: policyWrapper,
+      });
+
+      expect(result.current.getToolNames()).toEqual(['searchProducts', 'checkout']);
+      const denied = await act(async () =>
+        result.current.executeModelToolCall({ name: 'checkout', arguments: {} })
+      );
+
+      expect(denied.isError).toBe(true);
+      expect(denied.error).toMatchObject({ code: 'TOOL_POLICY_DENIED' });
+    });
+  });
+
   describe('Tool Format Export - toMCP', () => {
     it('should export all tools as MCP format', () => {
       const { result } = renderHook(() => useToolRegistry(), { wrapper });

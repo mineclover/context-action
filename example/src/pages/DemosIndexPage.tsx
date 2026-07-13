@@ -404,6 +404,44 @@ export default function DemosIndexPage() {
                     </ul>
                   </div>
                 </div>
+                <div className="mt-6 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-indigo-950">
+                        🧩 MCP / Function Calling Catalog
+                      </h3>
+                      <p className="mt-1 text-sm text-indigo-800">
+                        바로 복사해 테스트할 수 있는 명령문과 예상 툴체인을
+                        확인하세요.
+                      </p>
+                    </div>
+                    <Link
+                      to="/catalog/integrations/mcp-function-calling"
+                      className="inline-flex items-center justify-center rounded-full bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800"
+                    >
+                      카탈로그 열기 →
+                    </Link>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-violet-950">
+                        ⌘ Live Code Editor
+                      </h3>
+                      <p className="mt-1 text-sm text-violet-800">
+                        코드를 편집하고 action pipeline preview를 바로
+                        실행하세요.
+                      </p>
+                    </div>
+                    <Link
+                      to="/integrations/live-code-editor"
+                      className="inline-flex items-center justify-center rounded-full bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
+                    >
+                      Editor 열기 →
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

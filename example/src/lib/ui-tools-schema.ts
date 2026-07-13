@@ -15,6 +15,7 @@ export const toggleThemeTool = defineAction(
   {
     name: 'toggleTheme',
     description: 'Toggle the UI theme between light and dark mode',
+    annotations: { idempotentHint: true },
     parameters: z.object({
       theme: z
         .enum(['light', 'dark'])
@@ -32,6 +33,7 @@ export const updateHeadingTool = defineAction(
   {
     name: 'updateHeading',
     description: 'Update the main heading text on the page',
+    annotations: { idempotentHint: true },
     parameters: z.object({
       text: z.string().min(1).max(100).describe('New heading text'),
     }),
@@ -65,6 +67,7 @@ export const clearListTool = defineAction(
   {
     name: 'clearList',
     description: 'Clear all items from the display list',
+    annotations: { destructiveHint: true },
     parameters: z.object({
       confirm: z
         .boolean()
@@ -122,6 +125,7 @@ export const getUiStateTool = defineAction(
     name: 'getUiState',
     description:
       'Get the current state of the UI (theme, counter, list items, etc)',
+    annotations: { readOnlyHint: true },
     parameters: z.object({
       fields: z
         .array(z.enum(['theme', 'counter', 'listItems', 'heading']))

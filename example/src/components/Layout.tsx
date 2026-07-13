@@ -227,6 +227,12 @@ function Layout({
       description:
         'AI SDK v7 tool loop controls UI through ToolContext and OpenRouter',
     },
+    {
+      path: '/catalog/integrations/mcp-function-calling',
+      label: '🧩 MCP / Function Calling Catalog',
+      category: 'demos',
+      description: 'Reusable prompts and expected ToolContext execution chains',
+    },
 
     // === Advanced Demos (고급 데모) ===
     {

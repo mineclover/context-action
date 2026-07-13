@@ -40,47 +40,77 @@
  * ```
  */
 
+import type {
+  ModelToolCall,
+  ToolCallContext,
+  ToolCallEvent,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+} from '@context-action/core';
+import {
+  ActionHandler,
+  ActionRegister,
+  ActionSchemaMap,
+  createToolCallError,
+  createToolCallSuccess,
+  DispatchOptions,
+  HandlerConfig,
+  InferActionPayloadMap,
+  toToolCallRequest,
+  withToolCallId,
+} from '@context-action/core';
 import React, {
   createContext,
   ReactNode,
   useContext,
-  useRef,
   useEffect,
   useId,
   useMemo,
+  useRef,
 } from 'react';
-import {
-  ActionRegister,
-  ActionHandler,
-  HandlerConfig,
-  DispatchOptions,
-  ActionSchemaMap,
-  InferActionPayloadMap,
-} from '@context-action/core';
-import type {
-  ToolContextConfig,
-  ToolContextType,
-  ToolContextReturn,
-  ToolRegistry,
-  ToolExecutionResult,
-} from './ToolContext.types';
 import {
   ProviderDispatchLifecycleImpl,
   withProviderDispatchSignal,
 } from '../actions/ActionContext';
+import type {
+  ToolContextConfig,
+  ToolContextReturn,
+  ToolContextType,
+  ToolPolicy,
+  ToolExecutionResult,
+  ToolRegistry,
+} from './ToolContext.types';
 
 /**
  * Creates a ToolRegistry from an ActionSchemaMap
  */
+type ToolCallExecutor = (
+  request: ToolCallRequest,
+  options?: ToolCallOptions
+) => Promise<ToolCallResult>;
+
 function createToolRegistry<TSchema extends ActionSchemaMap>(
-  schema: TSchema
+  schema: TSchema,
+  executeToolCall: ToolCallExecutor,
+  allowedToolNames?: readonly string[]
 ): ToolRegistry<TSchema> {
-  const toolNames = Object.keys(schema) as (keyof TSchema)[];
+  const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
+  const toolNames = (Object.keys(schema).filter(name => !allowedNames || allowedNames.has(name))) as (keyof TSchema)[];
+  const hasOwnTool = (name: string): boolean =>
+    Object.prototype.hasOwnProperty.call(schema, name) &&
+    (!allowedNames || allowedNames.has(name));
+  const listTools = () => ({
+    tools: toolNames.map((name) => schema[name]!.toMCP()),
+  });
 
   return {
     tools: schema,
 
     getTool<K extends keyof TSchema>(name: K): TSchema[K] {
+      if (!hasOwnTool(String(name))) {
+        throw new Error(`Tool "${String(name)}" not found in registry`);
+      }
       const tool = schema[name];
       if (!tool) {
         throw new Error(`Tool "${String(name)}" not found in registry`);
@@ -89,7 +119,26 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     },
 
     hasTool(name: string): boolean {
-      return name in schema;
+      return hasOwnTool(name);
+    },
+
+    listTools,
+
+    getToolDefinition(name: string) {
+      if (!hasOwnTool(name)) return undefined;
+      const tool = schema[name];
+      return tool?.toMCP();
+    },
+
+    callTool(request, options) {
+      return executeToolCall(request, options);
+    },
+
+    executeModelToolCall(call: ModelToolCall, options) {
+      return executeToolCall(toToolCallRequest(call), {
+        ...options,
+        context: { ...options?.context, source: 'model' },
+      });
     },
 
     getToolNames(): (keyof TSchema)[] {
@@ -99,7 +148,7 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     // ---- Batch Export Methods ----
 
     toMCP() {
-      return toolNames.map((name) => schema[name]!.toMCP());
+      return listTools().tools;
     },
 
     toOpenAI() {
@@ -151,10 +200,15 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 ): ToolContextReturn<TSchema> {
   type TPayloadMap = InferActionPayloadMap<TSchema>;
 
-  const { schema, validationMode = 'strict', validateOnDispatch = true, debug = false } = config;
-
-  // Create the tool registry
-  const registry = createToolRegistry(schema);
+  const {
+    schema,
+    validationMode = 'strict',
+    validateOnDispatch = true,
+    debug = false,
+    allowedToolNames,
+    toolPolicy,
+    onToolCall,
+  } = config;
 
   // Create the React context
   const ToolReactContext = createContext<ToolContextType<TSchema> | null>(null);
@@ -225,6 +279,152 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
       };
     }, [dispatchLifecycle]);
 
+    // Canonical tools/call bridge used by MCP adapters and model tool calls.
+    const executeToolCall = useMemo<ToolCallExecutor>(() => {
+      return async (request, options) => {
+        const startedAt = Date.now();
+        const context: ToolCallContext = options?.context ?? { source: 'mcp' };
+        const toolName = request.params.name as keyof TPayloadMap;
+        const hasOwnTool = Object.prototype.hasOwnProperty.call(schema, request.params.name);
+        const tool = hasOwnTool ? schema[request.params.name] : undefined;
+
+        const emit = (event: ToolCallEvent): void => {
+          try {
+            onToolCall?.(event);
+          } catch (error) {
+            if (debug) console.warn(`[${contextName}] Tool observer failed`, error);
+          }
+        };
+
+        emit({
+          type: 'started',
+          toolCallId: request.id,
+          name: request.params.name,
+          context,
+          timestamp: startedAt,
+        });
+
+        const finish = (result: ToolCallResult): ToolCallResult => {
+          const normalized = withToolCallId(result, request.id);
+          emit({
+            type: normalized.isError ? 'failed' : 'completed',
+            toolCallId: request.id,
+            name: request.params.name,
+            context,
+            timestamp: Date.now(),
+            durationMs: Date.now() - startedAt,
+            result: normalized,
+          });
+          return normalized;
+        };
+
+        if (!tool) {
+          return finish(createToolCallError(
+            `Tool "${request.params.name}" not found in registry`,
+            { code: 'TOOL_NOT_FOUND', toolCallId: request.id }
+          ));
+        }
+
+        if (allowedToolNames && !allowedToolNames.includes(request.params.name)) {
+          return finish(createToolCallError(
+            `Tool "${request.params.name}" is not allowed in this registry`,
+            { code: 'TOOL_NOT_ALLOWED', toolCallId: request.id }
+          ));
+        }
+
+        if (toolPolicy) {
+          let decision: Awaited<ReturnType<ToolPolicy>>;
+          try {
+            decision = await toolPolicy({
+              request,
+              definition: tool.toMCP(),
+              context,
+            });
+          } catch (error) {
+            return finish(createToolCallError(
+              error instanceof Error ? error.message : String(error),
+              {
+                code: 'TOOL_POLICY_FAILED',
+                toolCallId: request.id,
+                retryable: true,
+              }
+            ));
+          }
+          if (decision !== 'allow') {
+            return finish(createToolCallError(
+              decision === 'ask'
+                ? `Approval required for tool "${request.params.name}"`
+                : `Tool "${request.params.name}" was denied by policy`,
+              {
+                code: decision === 'ask' ? 'TOOL_APPROVAL_REQUIRED' : 'TOOL_POLICY_DENIED',
+                retryable: decision === 'ask',
+                toolCallId: request.id,
+              }
+            ));
+          }
+        }
+
+        const register = actionRegisterRef.current;
+        if (!register) {
+          return finish(createToolCallError(`ActionRegister not initialized in ${contextName}`, {
+            code: 'TOOL_REGISTRY_NOT_READY',
+            toolCallId: request.id,
+            retryable: true,
+          }));
+        }
+
+        try {
+          const payload = (request.params.arguments ?? {}) as TPayloadMap[typeof toolName];
+          const execution = await dispatchLifecycle.run(
+            [options?.signal],
+            signal =>
+              register.dispatchWithResult(
+                toolName,
+                payload,
+                withProviderDispatchSignal({ signal }, signal)
+              )
+          );
+
+          if (!execution.success) {
+            const validationMessage = execution.validation?.errors.join('; ');
+            return finish(createToolCallError(
+              execution.abortReason ??
+                validationMessage ??
+                `Tool "${request.params.name}" failed`,
+              {
+                code: execution.validation ? 'TOOL_VALIDATION_FAILED' : 'TOOL_EXECUTION_ABORTED',
+                toolCallId: request.id,
+              }
+            ));
+          }
+
+          const output =
+            execution.result ??
+            (execution.successResults.length === 0
+              ? undefined
+              : execution.successResults.length === 1
+                ? execution.successResults[0]
+                : execution.successResults);
+
+          return finish(createToolCallSuccess(output, { toolCallId: request.id }));
+        } catch (error) {
+          return finish(createToolCallError(
+            error instanceof Error ? error.message : String(error),
+            {
+              code: options?.signal?.aborted ? 'TOOL_CANCELLED' : 'TOOL_EXECUTION_FAILED',
+              retryable: options?.signal?.aborted,
+              toolCallId: request.id,
+            }
+          ));
+        }
+      };
+    }, [allowedToolNames, debug, dispatchLifecycle, onToolCall, schema, toolPolicy]);
+
+    const registry = useMemo(
+      () => createToolRegistry(schema, executeToolCall, allowedToolNames),
+      [allowedToolNames, executeToolCall, schema]
+    );
+
     const contextValue = useMemo(
       () => ({
         actionRegisterRef,
@@ -232,7 +432,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         dispatch,
         dispatchLifecycle,
       }),
-      [dispatch, dispatchLifecycle]
+      [dispatch, dispatchLifecycle, registry]
     );
 
     return (
