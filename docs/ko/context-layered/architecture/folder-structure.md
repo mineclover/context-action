@@ -118,16 +118,18 @@ export default function CheckoutPage() {
   return (
     <CheckoutActionProvider>
       <CheckoutStoreProvider>
-        <CheckoutHandlerRegistry moduleId="main" apiClient={apiClient} validator={validator}>
-          <CheckoutView />
-        </CheckoutHandlerRegistry>
+        <CheckoutRefProvider>
+          <CheckoutHandlerRegistry moduleId="main" apiClient={apiClient} validator={validator}>
+            <CheckoutView />
+          </CheckoutHandlerRegistry>
+        </CheckoutRefProvider>
       </CheckoutStoreProvider>
     </CheckoutActionProvider>
   );
 }
 ```
 
-표준 중첩은 `Action Provider → Store Provider → Ref Provider → Handler Registry → View`입니다.
+표준 중첩은 `Action Provider → Store Provider → Ref Provider(사용하는 경우) → Handler Registry → View`입니다.
 
 ## 구조를 이렇게 나누는 이유
 

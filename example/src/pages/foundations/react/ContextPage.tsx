@@ -17,51 +17,11 @@ import {
   ParentActionProvider,
   ParentModelProvider,
 } from './contexts/ParentContext';
-import { ChildHandlerRegistry } from './handlers/ChildHandlerRegistry';
-
-// ⚙️ Handler Layer - Props-based Handler Registration
-import {
-  type ParentHandlerProps,
-  useParentControlHandlers,
-  useParentCounterHandlers,
-  useParentDataHandlers,
-} from './handlers/useParentHandlers';
+import { FoundationHandlerRegistry } from './handlers/FoundationHandlerRegistry';
 import { ChildAView } from './views/ChildAView';
 import { ChildBView } from './views/ChildBView';
 // 🖼️ View Layer - Pure UI Components
 import { ParentView } from './views/ParentView';
-
-// ==============================================
-// CONTEXT-LAYERED HANDLERS SETUP
-// ==============================================
-
-/**
- * Context-Layered Handler Setup Component
- * Props 기반 의존성 주입으로 Handler들을 등록
- */
-function ContextLayeredHandlers({ moduleId = 'main' }: { moduleId?: string }) {
-  // Props-based dependency injection for Parent handlers
-  const parentHandlerProps: ParentHandlerProps = {
-    moduleId,
-    enableLogging: true,
-    onCounterChange: (newValue: number) => {
-      console.log(`🔄 [${moduleId}] Counter changed to:`, newValue);
-    },
-    onChildRegistered: (childId: string, childType: string) => {
-      console.log(`🔄 [${moduleId}] Child registered:`, { childId, childType });
-    },
-  };
-
-  // Register Parent handlers with props-based DI
-  useParentCounterHandlers(parentHandlerProps);
-  useParentControlHandlers(parentHandlerProps);
-  useParentDataHandlers(parentHandlerProps);
-
-  // TODO: ChildA and ChildB handlers also need to be converted to Context-Layered pattern
-  // For now, keeping the old pattern for children components
-
-  return null;
-}
 
 // ==============================================
 // MAIN CONTEXT PAGE
@@ -98,16 +58,13 @@ export default function ReactContextPage({
         </div>
 
         {/* 🗄️ Context Layer + ⚙️ Handler Layer + 🖼️ View Layer */}
-        <ParentModelProvider>
-          <ParentActionProvider>
-            <ChildAModelProvider>
-              <ChildAActionProvider>
-                <ChildBModelProvider>
-                  <ChildBActionProvider>
-                    <ChildHandlerRegistry>
-                      {/* Context-Layered Handler Setup with Props-based DI */}
-                      <ContextLayeredHandlers moduleId={moduleId} />
-
+        <ParentActionProvider>
+          <ParentModelProvider>
+            <ChildAActionProvider>
+              <ChildAModelProvider>
+                <ChildBActionProvider>
+                  <ChildBModelProvider>
+                    <FoundationHandlerRegistry moduleId={moduleId}>
                       {/* View Layer - Pure UI Components */}
                       <div className="space-y-6">
                         <ParentView />
@@ -116,13 +73,13 @@ export default function ReactContextPage({
                           <ChildBView />
                         </div>
                       </div>
-                    </ChildHandlerRegistry>
-                  </ChildBActionProvider>
-                </ChildBModelProvider>
-              </ChildAActionProvider>
-            </ChildAModelProvider>
-          </ParentActionProvider>
-        </ParentModelProvider>
+                    </FoundationHandlerRegistry>
+                  </ChildBModelProvider>
+                </ChildBActionProvider>
+              </ChildAModelProvider>
+            </ChildAActionProvider>
+          </ParentModelProvider>
+        </ParentActionProvider>
       </div>
     </PageWithLogMonitor>
   );

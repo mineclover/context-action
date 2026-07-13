@@ -9,6 +9,7 @@ The Context-Layered Architecture provides clear separation of responsibilities w
 ```
 pages/checkout/
 ├── contexts/                    # 🗄️ Context Definitions
+├── business/                    # 🏢 Pure Domain Logic
 ├── handlers/                    # ⚙️ Handler Logic (Props-based)
 ├── actions/                     # 🚀 Dispatch + Callbacks
 ├── hooks/                       # 🔗 Store Subscriptions
@@ -23,7 +24,11 @@ pages/checkout/
 
 ```typescript
 // contexts/CheckoutContext.ts
-import { createActionContext, createStoreContext } from '@context-action/react';
+import {
+  createActionContext,
+  createRefContext,
+  createStoreContext,
+} from '@context-action/react';
 
 export interface CheckoutStores {
   'checkout-data': CheckoutData;
@@ -34,6 +39,10 @@ export interface CheckoutActions extends ActionPayloadMap {
   validate: CheckoutData;
   submit: OrderData;
   reset: void;
+}
+
+export interface CheckoutRefs {
+  emailInput: HTMLInputElement;
 }
 
 export const {
@@ -49,6 +58,11 @@ export const {
   useActionDispatch: useCheckoutDispatch,
   useActionHandler: useCheckoutHandler
 } = createActionContext<CheckoutActions>('CheckoutActions');
+
+export const {
+  Provider: CheckoutRefProvider,
+  useRefHandler: useCheckoutRef,
+} = createRefContext<CheckoutRefs>('CheckoutRefs');
 ```
 
 **Responsibilities**:
@@ -58,7 +72,12 @@ export const {
 - ❌ Business logic
 - ❌ UI components
 
-### 2. `handlers/` - Handler Logic (Props-based)
+### 2. `business/` - Pure Domain Logic
+**Purpose**: Side-effect-free validation, calculations, and state transitions
+
+Keep domain rules in pure functions so they can be tested without React, stores, or external services.
+
+### 3. `handlers/` - Handler Logic (Props-based)
 **Purpose**: Isolated handler registration with props-based dependency injection
 
 ```typescript
@@ -122,7 +141,7 @@ export function CheckoutHandlerRegistry({
 }
 ```
 
-### 3. `actions/` - Dispatch + Callbacks
+### 4. `actions/` - Dispatch + Callbacks
 **Purpose**: Action dispatching and payload callback creation
 
 ```typescript
@@ -154,7 +173,7 @@ export function useCheckoutActions() {
 - ❌ Business logic
 - ❌ Store subscriptions
 
-### 4. `hooks/` - Store Subscriptions
+### 5. `hooks/` - Store Subscriptions
 **Purpose**: Reactive store value subscriptions for views
 
 ```typescript
@@ -183,7 +202,7 @@ export function useCheckoutData() {
 - ❌ Action dispatching
 - ❌ Business logic
 
-### 5. `views/` - Pure UI Components
+### 6. `views/` - Pure UI Components
 **Purpose**: Pure UI rendering without business logic
 
 ```typescript
@@ -225,7 +244,7 @@ export function CheckoutView() {
 - ❌ Direct store manipulation
 - ❌ Handler registration
 
-### 6. `MainPage.tsx` - Integration Point
+### 7. `MainPage.tsx` - Integration Point
 **Purpose**: Provider composition and registry mounting
 
 ```typescript
@@ -237,17 +256,19 @@ export default function CheckoutPage({ moduleId = "main" }) {
   return (
     <CheckoutActionProvider>
       <CheckoutStoreProvider>
-        <CheckoutHandlerRegistry
-          moduleId={moduleId}
-          customPriority={150}
-          apiClient={apiClient}
-          validator={validator}
-        >
-        <div className="checkout-page">
-          <h1>Checkout - {moduleId}</h1>
-          <CheckoutView />
-        </div>
-        </CheckoutHandlerRegistry>
+        <CheckoutRefProvider>
+          <CheckoutHandlerRegistry
+            moduleId={moduleId}
+            customPriority={150}
+            apiClient={apiClient}
+            validator={validator}
+          >
+            <div className="checkout-page">
+              <h1>Checkout - {moduleId}</h1>
+              <CheckoutView />
+            </div>
+          </CheckoutHandlerRegistry>
+        </CheckoutRefProvider>
       </CheckoutStoreProvider>
     </CheckoutActionProvider>
   );
@@ -285,7 +306,7 @@ Full TypeScript support with clear interfaces between layers.
 - Keep each layer focused on its single responsibility
 - Use props for dependency injection in handlers
 - Register handlers in the domain Handler Registry
-- Use Action Provider → Store Provider → Ref Provider → Handler Registry → View nesting
+- Use Action Provider → Store Provider → Ref Provider (when used) → Handler Registry → View nesting
 - Maintain clear naming conventions across layers
 - Use TypeScript interfaces for all layer boundaries
 

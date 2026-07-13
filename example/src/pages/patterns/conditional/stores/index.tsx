@@ -225,8 +225,8 @@ export function ConditionalPatternsProvider({
   children: React.ReactNode;
 }) {
   return (
-    <ConditionalStoreProvider>
-      <ConditionalActionProvider>{children}</ConditionalActionProvider>
-    </ConditionalStoreProvider>
+    <ConditionalActionProvider>
+      <ConditionalStoreProvider>{children}</ConditionalStoreProvider>
+    </ConditionalActionProvider>
   );
 }

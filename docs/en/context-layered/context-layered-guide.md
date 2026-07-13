@@ -20,6 +20,7 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 
 ```
 ├── contexts/     # 🗄️ Context Definitions
+├── business/     # 🏢 Pure Domain Logic
 ├── handlers/     # ⚙️ Handler Logic (Props-based)  
 ├── actions/      # 🚀 Dispatch + Callbacks
 ├── hooks/        # 🔗 Store Subscriptions
@@ -32,6 +33,7 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 | Layer | Purpose | Key Features |
 |-------|---------|--------------|
 | **Contexts** | Type definitions & context creation | ActionPayloadMap, Store interfaces, Context providers |
+| **Business** | Pure domain rules and state transitions | Validation, calculation, event definitions |
 | **Handlers** | Business logic with props-based DI | Handler Registry registration, dependency injection |
 | **Actions** | Action dispatching & callbacks | `dispatch` calls, payload mapping, callback creation |
 | **Hooks** | Store value subscriptions | `useStoreValue`, computed values, data transformation |
@@ -73,6 +75,7 @@ const checkout = useStoreValue(checkoutStore);
 ### Clear Separation of Concerns
 Each layer has a single, well-defined responsibility:
 - **Contexts**: Data structure definition
+- **Business**: Pure domain rules and state transitions
 - **Handlers**: Business logic execution  
 - **Actions**: User action coordination
 - **Hooks**: Data access abstraction
@@ -138,7 +141,7 @@ Set up action dispatching and store subscriptions.
 Create pure UI components that use actions and hooks.
 
 ### 6. Compose in main page
-Mount the Handler Registry with props and compose `Action Provider → Store Provider → Ref Provider → Handler Registry → View`.
+Mount the Handler Registry with props and compose `Action Provider → Store Provider → Ref Provider (when used) → Handler Registry → View`.
 
 ## 🔗 Related Documentation
 

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { mockServices } from '../mockServices';
 import {
   useConditionalActionHandler,
@@ -9,7 +10,11 @@ import { addLog } from '../utils';
  * Registers every permission-related action handler for the conditional
  * execution example.
  */
-export function PermissionHandlerRegistry() {
+export function PermissionHandlerRegistry({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const stores = useConditionalStoreManager();
 
   useConditionalActionHandler(
@@ -170,6 +175,5 @@ export function PermissionHandlerRegistry() {
     { priority: 90, id: 'secure-executor' }
   );
 
-  return null;
+  return <>{children}</>;
 }
-

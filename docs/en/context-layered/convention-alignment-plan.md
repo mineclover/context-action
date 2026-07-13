@@ -49,7 +49,7 @@ The canonical nesting order is:
 </DomainActionProvider>
 ```
 
-This is a repository convention, not a claim that the runtime requires one order. It ensures every registry is below the action, store, and ref boundaries it may depend on.
+This is a repository convention, not a claim that the runtime requires one order. Include the Ref Provider when the domain defines a ref boundary; otherwise the registry follows the Store Provider directly. This ensures every registry is below the boundaries it may depend on.
 
 ## Current-State Classification
 
@@ -67,6 +67,7 @@ The following classification is the baseline for migration.
 - `CanonicalOrderHandlers.tsx` already composes an action provider, store provider, ref provider, and handler registry.
 - `LogMonitor` was the first migration target: its boundaries now live under `contexts/`, all five handlers are registered by `handlers/LogMonitorHandlerRegistry.tsx`, and its provider order is canonical.
 - `ChatUI`, the context-store mouse-events container, conditional permission execution, and the foundations/react Child A/B domain now also keep all handler registration in dedicated Registry modules.
+- The foundations/react parent and child handlers now share `FoundationHandlerRegistry`, and the conditional permission route uses its canonical Action → Store provider wrapper with the Registry around the view.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 

@@ -22,6 +22,7 @@ Context-Layered Architecture는 Context-Action 프레임워크를 사용하는 R
 ```text
 pages/checkout/
 ├── contexts/     # 타입 정의와 context 생성
+├── business/     # 순수 도메인 로직
 ├── handlers/     # 비즈니스 흐름과 side effect orchestration
 ├── actions/      # dispatch helper와 callback
 ├── hooks/        # store subscription
@@ -34,6 +35,7 @@ pages/checkout/
 | 레이어 | 역할 | 하지 말아야 할 일 |
 |-------|------|-------------------|
 | `contexts` | 액션/스토어 타입 정의, provider 생성 | business logic 구현 |
+| `business` | 검증, 계산, 상태 전이 같은 순수 규칙 | React hook, store mutation, UI 표현 |
 | `handlers` | 최신 store 값 읽기, 검증 호출, side effect 실행 | UI 렌더링 |
 | `actions` | dispatch를 의미 있는 함수로 감싸기 | store 직접 구독 |
 | `hooks` | `useStoreValue` 기반 구독, 파생 값 계산 | handler 등록 |
@@ -60,7 +62,7 @@ sequenceDiagram
 
 ## Handler Registry와 Provider 조합
 
-모든 handler는 기능 규모와 관계없이 도메인 Handler Registry에서 등록합니다. Page, View, Context에서 handler hook을 직접 호출하지 않습니다. 표준 중첩은 다음과 같습니다.
+모든 handler는 기능 규모와 관계없이 도메인 Handler Registry에서 등록합니다. Page, View, Context에서 handler hook을 직접 호출하지 않습니다. Ref 경계를 사용하는 도메인은 Ref Provider를 포함하며, 표준 중첩은 다음과 같습니다.
 
 ```tsx
 <DomainActionProvider>

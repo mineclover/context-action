@@ -1,13 +1,12 @@
 import { useStoreValue } from '@context-action/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PermissionHandlerRegistry } from './handlers/PermissionHandlerRegistry';
 import {
-  ConditionalActionProvider,
-  ConditionalStoreProvider,
+  ConditionalPatternsProvider,
   useConditionalAction,
   useConditionalStore,
 } from './stores';
-import { PermissionHandlerRegistry } from './handlers/PermissionHandlerRegistry';
 
 function PermissionBasedExecutionContent() {
   const dispatch = useConditionalAction();
@@ -61,8 +60,6 @@ function PermissionBasedExecutionContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PermissionHandlerRegistry />
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6 lg:pr-80">
         {/* Header */}
@@ -476,10 +473,10 @@ function PermissionBasedExecutionContent() {
 
 export function PermissionBasedExecution() {
   return (
-    <ConditionalActionProvider>
-      <ConditionalStoreProvider>
+    <ConditionalPatternsProvider>
+      <PermissionHandlerRegistry>
         <PermissionBasedExecutionContent />
-      </ConditionalStoreProvider>
-    </ConditionalActionProvider>
+      </PermissionHandlerRegistry>
+    </ConditionalPatternsProvider>
   );
 }

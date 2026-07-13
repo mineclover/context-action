@@ -249,16 +249,18 @@ export default function CheckoutPage({ moduleId = "main" }) {
   return (
     <CheckoutActionProvider>
       <CheckoutStoreProvider>
-        <CheckoutHandlerRegistry
-          moduleId={moduleId}
-          apiClient={apiClient}
-          validator={validator}
-        >
-        <div className="checkout-page">
-          <h1>Checkout - {moduleId}</h1>
-          <CheckoutView />
-        </div>
-        </CheckoutHandlerRegistry>
+        <CheckoutRefProvider>
+          <CheckoutHandlerRegistry
+            moduleId={moduleId}
+            apiClient={apiClient}
+            validator={validator}
+          >
+            <div className="checkout-page">
+              <h1>Checkout - {moduleId}</h1>
+              <CheckoutView />
+            </div>
+          </CheckoutHandlerRegistry>
+        </CheckoutRefProvider>
       </CheckoutStoreProvider>
     </CheckoutActionProvider>
   );
