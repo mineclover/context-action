@@ -6,32 +6,32 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
+import { CodeBlock } from '@/components/ui';
 import {
-  demoCardVariants,
   buttonVariants,
-  textTitleVariants,
-  textHintVariants,
-  optimizationControlsVariants,
+  codeExampleVariants,
   controlGroupVariants,
-  rangeInputVariants,
-  handlerStatusVariants,
-  handlerItemVariants,
-  handlerInfoVariants,
-  handlerControlsVariants,
+  controlLabelVariants,
+  demoCardVariants,
   dynamicHandlersVariants,
+  generalPageHeaderVariants,
+  handlerControlsVariants,
+  handlerInfoVariants,
+  handlerItemVariants,
+  handlerStatusVariants,
+  hooksButtonVariants,
+  hooksDemoCardVariants,
   memoryControlsVariants,
   memoryStatsVariants,
-  statCardVariants,
+  optimizationControlsVariants,
   pageContainerVariants,
-  generalPageHeaderVariants,
-  pageTitleVariants,
   pageDescriptionVariants,
-  codeExampleVariants,
-  hooksDemoCardVariants,
-  hooksButtonVariants,
-  controlLabelVariants,
+  pageTitleVariants,
+  rangeInputVariants,
+  statCardVariants,
+  textHintVariants,
+  textTitleVariants,
 } from '@/components/ui/variants';
 
 // React Hooks 최적화 액션 맵
@@ -149,8 +149,12 @@ function MemoizationDemo() {
 
   return (
     <div className={hooksDemoCardVariants({ type: 'memoization' })}>
-      <h3 className={textTitleVariants({ variant: 'section' })}>React Memoization</h3>
-      <p className={textHintVariants()}>React 컴파일러가 자동으로 메모이제이션하는 성능 최적화 데모</p>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        React Memoization
+      </h3>
+      <p className={textHintVariants()}>
+        React 컴파일러가 자동으로 메모이제이션하는 성능 최적화 데모
+      </p>
 
       <div className={optimizationControlsVariants()}>
         <div className={controlGroupVariants()}>
@@ -167,13 +171,28 @@ function MemoizationDemo() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button onClick={handleCalculation} className={hooksButtonVariants({ variant: 'primary', type: 'memoization' })}>
+          <button
+            onClick={handleCalculation}
+            className={hooksButtonVariants({
+              variant: 'primary',
+              type: 'memoization',
+            })}
+          >
             Run Heavy Calculation
           </button>
-          <button onClick={handleTriggerRerender} className={hooksButtonVariants({ variant: 'secondary', type: 'memoization' })}>
+          <button
+            onClick={handleTriggerRerender}
+            className={hooksButtonVariants({
+              variant: 'secondary',
+              type: 'memoization',
+            })}
+          >
             Trigger Rerender
           </button>
-          <button onClick={handleTriggerRerender} className={buttonVariants({ variant: 'secondary' })}>
+          <button
+            onClick={handleTriggerRerender}
+            className={buttonVariants({ variant: 'secondary' })}
+          >
             Trigger Re-render ({trigger})
           </button>
         </div>
@@ -237,18 +256,30 @@ function ConditionalHandlerDemo() {
 
   return (
     <div className={hooksDemoCardVariants({ type: 'handlers' })}>
-      <h3 className={textTitleVariants({ variant: 'section' })}>Conditional Handler Registration</h3>
-      <p className={textHintVariants()}>필요할 때만 핸들러를 등록하여 메모리와 성능을 최적화</p>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        Conditional Handler Registration
+      </h3>
+      <p className={textHintVariants()}>
+        필요할 때만 핸들러를 등록하여 메모리와 성능을 최적화
+      </p>
 
       <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex justify-between items-center">
           <strong className={controlLabelVariants()}>Handler Enabled:</strong>
-          <span className={handlerEnabled ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+          <span
+            className={
+              handlerEnabled
+                ? 'text-green-600 font-semibold'
+                : 'text-red-600 font-semibold'
+            }
+          >
             {handlerEnabled ? '✅ Yes' : '❌ No'}
           </span>
         </div>
         <div className="flex justify-between items-center">
-          <strong className={controlLabelVariants()}>Handler Registrations:</strong>
+          <strong className={controlLabelVariants()}>
+            Handler Registrations:
+          </strong>
           <span>{handlerRegistrations}</span>
         </div>
         <div className="status-item">
@@ -257,11 +288,23 @@ function ConditionalHandlerDemo() {
         </div>
       </div>
 
-       <div className="flex flex-wrap gap-2">
-         <button onClick={handleToggleHandler} className={hooksButtonVariants({ variant: 'warning', type: 'handlers' })}>
-           {handlerEnabled ? 'Disable Handler' : 'Enable Handler'}
-         </button>
-         <button onClick={handleTriggerAction} className={hooksButtonVariants({ variant: 'primary', type: 'handlers' })}>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={handleToggleHandler}
+          className={hooksButtonVariants({
+            variant: 'warning',
+            type: 'handlers',
+          })}
+        >
+          {handlerEnabled ? 'Disable Handler' : 'Enable Handler'}
+        </button>
+        <button
+          onClick={handleTriggerAction}
+          className={hooksButtonVariants({
+            variant: 'primary',
+            type: 'handlers',
+          })}
+        >
           Trigger Action
         </button>
       </div>
@@ -339,7 +382,9 @@ function DynamicHandlerDemo() {
           return (
             <div key={handlerType} className={handlerItemVariants()}>
               <div className={handlerInfoVariants()}>
-                <span className="text-sm font-medium text-gray-900">{handlerType}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {handlerType}
+                </span>
                 <span className={handlerStatusVariants({ active: isActive })}>
                   {isActive ? '🟢 Active' : '🔴 Inactive'}
                 </span>
@@ -348,13 +393,19 @@ function DynamicHandlerDemo() {
               <div className={handlerControlsVariants()}>
                 <button
                   onClick={() => toggleHandler(handlerType)}
-                  className={hooksButtonVariants({ variant: isActive ? 'warning' : 'primary', type: 'handlers' })}
+                  className={hooksButtonVariants({
+                    variant: isActive ? 'warning' : 'primary',
+                    type: 'handlers',
+                  })}
                 >
                   {isActive ? 'Deactivate' : 'Activate'}
                 </button>
                 <button
                   onClick={() => triggerHandler(handlerType)}
-                  className={hooksButtonVariants({ variant: 'primary', type: 'handlers' })}
+                  className={hooksButtonVariants({
+                    variant: 'primary',
+                    type: 'handlers',
+                  })}
                   disabled={!isActive}
                 >
                   Trigger
@@ -435,8 +486,12 @@ function MemoryOptimizationDemo() {
 
   return (
     <div className={hooksDemoCardVariants({ type: 'memory' })}>
-      <h3 className={textTitleVariants({ variant: 'section' })}>Memory Optimization</h3>
-      <p className={textHintVariants()}>메모리 사용량 모니터링과 자동 정리 시스템</p>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        Memory Optimization
+      </h3>
+      <p className={textHintVariants()}>
+        메모리 사용량 모니터링과 자동 정리 시스템
+      </p>
 
       <div className={memoryControlsVariants()}>
         <div className={controlGroupVariants()}>
@@ -454,18 +509,28 @@ function MemoryOptimizationDemo() {
 
         <div className={controlGroupVariants()}>
           <label className={controlLabelVariants()}>Current Objects:</label>
-          <span className="text-sm text-gray-600">{objectsRef.current.length}</span>
+          <span className="text-sm text-gray-600">
+            {objectsRef.current.length}
+          </span>
         </div>
       </div>
 
       <div className={memoryStatsVariants()}>
         <div className={statCardVariants()}>
-          <strong className={`${controlLabelVariants()} block`}>Total Memory:</strong>
-          <span className="text-lg font-bold text-primary-600">{memoryInfo.allocatedMB} MB</span>
+          <strong className={`${controlLabelVariants()} block`}>
+            Total Memory:
+          </strong>
+          <span className="text-lg font-bold text-primary-600">
+            {memoryInfo.allocatedMB} MB
+          </span>
         </div>
         <div className={statCardVariants()}>
-          <strong className={`${controlLabelVariants()} block`}>Objects Count:</strong>
-          <span className="text-lg font-bold text-primary-600">{memoryInfo.objects}</span>
+          <strong className={`${controlLabelVariants()} block`}>
+            Objects Count:
+          </strong>
+          <span className="text-lg font-bold text-primary-600">
+            {memoryInfo.objects}
+          </span>
         </div>
 
         <div className="control-group">
@@ -492,10 +557,22 @@ function MemoryOptimizationDemo() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button onClick={handleAllocateMemory} className={hooksButtonVariants({ variant: 'primary', type: 'memory' })}>
+        <button
+          onClick={handleAllocateMemory}
+          className={hooksButtonVariants({
+            variant: 'primary',
+            type: 'memory',
+          })}
+        >
           Allocate Memory
         </button>
-        <button onClick={handleCleanupMemory} className={hooksButtonVariants({ variant: 'warning', type: 'memory' })}>
+        <button
+          onClick={handleCleanupMemory}
+          className={hooksButtonVariants({
+            variant: 'warning',
+            type: 'memory',
+          })}
+        >
           Manual Cleanup
         </button>
       </div>
@@ -548,7 +625,9 @@ function ReactHooksPage() {
     >
       <div className={pageContainerVariants()}>
         <header className={generalPageHeaderVariants()}>
-          <h1 className={pageTitleVariants()}>React Hooks Performance Optimization</h1>
+          <h1 className={pageTitleVariants()}>
+            React Hooks Performance Optimization
+          </h1>
           <p className={pageDescriptionVariants()}>
             Learn advanced React hooks patterns for optimizing performance in
             Context-Action applications. Discover memoization, conditional
@@ -610,7 +689,9 @@ function ReactHooksPage() {
 
           {/* 코드 예제 */}
           <div className={codeExampleVariants()}>
-            <h3 className={textTitleVariants({ variant: 'section' })}>React Hooks Optimization Patterns</h3>
+            <h3 className={textTitleVariants({ variant: 'section' })}>
+              React Hooks Optimization Patterns
+            </h3>
             <CodeBlock size="md">
               {`// 1. React 컴파일러가 자동으로 무거운 계산 최적화
 const expensiveValue = heavyComputation(data); // 자동으로 메모이제이션됨

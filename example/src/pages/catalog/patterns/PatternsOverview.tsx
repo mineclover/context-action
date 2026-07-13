@@ -21,8 +21,8 @@ export default function PatternsOverview() {
             </h2>
             <p className="text-gray-700 mt-2 max-w-3xl">
               이 예제는 설계 문서, 실제 구현, 테스트 사이클이 한 번에 연결된
-              canonical example입니다. 패턴을 하나만 먼저 본다면 여기서
-              시작하는 것이 가장 빠릅니다.
+              canonical example입니다. 패턴을 하나만 먼저 본다면 여기서 시작하는
+              것이 가장 빠릅니다.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -58,7 +58,9 @@ export default function PatternsOverview() {
               >
                 Implementation Playbook
               </Link>
-              <p className="text-gray-600">설계와 구현, 테스트를 한 번에 연결해서 보는 canonical example</p>
+              <p className="text-gray-600">
+                설계와 구현, 테스트를 한 번에 연결해서 보는 canonical example
+              </p>
             </div>
           </li>
           <li className="flex items-center">
@@ -72,7 +74,9 @@ export default function PatternsOverview() {
               >
                 Scenario Library
               </Link>
-              <p className="text-gray-600">같은 컨벤션과 skill을 다른 도메인에 적용하는 예제 모음</p>
+              <p className="text-gray-600">
+                같은 컨벤션과 skill을 다른 도메인에 적용하는 예제 모음
+              </p>
             </div>
           </li>
           <li className="flex items-center">
@@ -86,7 +90,9 @@ export default function PatternsOverview() {
               >
                 Access Request Playbook
               </Link>
-              <p className="text-gray-600">같은 skill을 approval/review workflow에 적용한 interactive demo</p>
+              <p className="text-gray-600">
+                같은 skill을 approval/review workflow에 적용한 interactive demo
+              </p>
             </div>
           </li>
           <li className="flex items-center">
@@ -100,7 +106,10 @@ export default function PatternsOverview() {
               >
                 Incident Escalation Playbook
               </Link>
-              <p className="text-gray-600">같은 skill을 incident/escalation workflow에 적용한 interactive demo</p>
+              <p className="text-gray-600">
+                같은 skill을 incident/escalation workflow에 적용한 interactive
+                demo
+              </p>
             </div>
           </li>
           <li className="flex items-center">
@@ -114,7 +123,10 @@ export default function PatternsOverview() {
               >
                 Renewal Risk Review Playbook
               </Link>
-              <p className="text-gray-600">같은 skill을 renewal/customer-success workflow에 적용한 interactive demo</p>
+              <p className="text-gray-600">
+                같은 skill을 renewal/customer-success workflow에 적용한
+                interactive demo
+              </p>
             </div>
           </li>
           <li className="flex items-center">
@@ -170,7 +182,9 @@ export default function PatternsOverview() {
               >
                 Business Logic Separation
               </Link>
-              <p className="text-gray-600">비즈니스 로직 분리와 비동기 프로세스 상태 관리</p>
+              <p className="text-gray-600">
+                비즈니스 로직 분리와 비동기 프로세스 상태 관리
+              </p>
             </div>
           </li>
         </ol>
@@ -352,18 +366,10 @@ export default function PatternsOverview() {
                 Business Logic Separation
               </Link>
             </li>
-            <li className="text-sm text-gray-600">
-              • FileUpload Service
-            </li>
-            <li className="text-sm text-gray-600">
-              • State Machine Pattern
-            </li>
-            <li className="text-sm text-gray-600">
-              • Progress-Only Updates
-            </li>
-            <li className="text-sm text-gray-600">
-              • Modular Integration
-            </li>
+            <li className="text-sm text-gray-600">• FileUpload Service</li>
+            <li className="text-sm text-gray-600">• State Machine Pattern</li>
+            <li className="text-sm text-gray-600">• Progress-Only Updates</li>
+            <li className="text-sm text-gray-600">• Modular Integration</li>
           </ul>
         </div>
       </div>

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
   buildRenewalRiskPacket,
-  transitionRenewalReviewState,
   type RenewalActivityEventInput,
   type RenewalValidationField,
+  transitionRenewalReviewState,
   validateRenewalReviewDraft,
 } from '../business/renewalBusiness';
 import {

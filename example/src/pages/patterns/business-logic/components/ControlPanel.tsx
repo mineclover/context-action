@@ -6,19 +6,31 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore, type UploadStoreState, type FileUploadState } from '../contexts/UploadStoreContext';
 import { useUploadAction } from '../contexts/UploadActionContext';
+import {
+  type FileUploadState,
+  type UploadStoreState,
+  useUploadStore,
+} from '../contexts/UploadStoreContext';
 
 export function ControlPanel() {
   const uploadStore = useUploadStore('upload');
   const dispatch = useUploadAction();
 
   // Selective subscriptions
-  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, ['queue']);
-  const processing = useStorePath<UploadStoreState, boolean>(uploadStore, ['processing']);
-  const failedCount = useStorePath<UploadStoreState, number>(uploadStore, ['failedCount']);
+  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, [
+    'queue',
+  ]);
+  const processing = useStorePath<UploadStoreState, boolean>(uploadStore, [
+    'processing',
+  ]);
+  const failedCount = useStorePath<UploadStoreState, number>(uploadStore, [
+    'failedCount',
+  ]);
 
-  const hasIdleFiles = queue.some((f) => f.state === 'idle' || f.state === 'error');
+  const hasIdleFiles = queue.some(
+    (f) => f.state === 'idle' || f.state === 'error'
+  );
   const hasFiles = queue.length > 0;
 
   return (

@@ -34,7 +34,9 @@ export function Grid({
     gridVariants.base,
     gridVariants.cols[cols],
     gridVariants.gaps[gap],
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cn(classes, className)} {...props}>

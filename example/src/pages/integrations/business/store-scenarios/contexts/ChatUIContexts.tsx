@@ -3,10 +3,7 @@
  * @module ChatUIContexts
  */
 
-import {
-  createActionContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 import type { ChatMessage } from '../types';
 
 export interface ChatUIActions {
@@ -30,4 +27,3 @@ export const {
   useActionDispatch: useChatUIAction,
   useActionHandler: useChatUIActionHandler,
 } = createActionContext<ChatUIActions>('ChatUI');
-

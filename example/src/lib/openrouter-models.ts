@@ -50,8 +50,10 @@ export async function fetchOpenRouterModels(): Promise<OpenRouterModel[]> {
 /**
  * Filter free models that support function calling (tools)
  */
-export function filterFreeModelsWithTools(models: OpenRouterModel[]): OpenRouterModel[] {
-  return models.filter(model => {
+export function filterFreeModelsWithTools(
+  models: OpenRouterModel[]
+): OpenRouterModel[] {
+  return models.filter((model) => {
     // Check if model has :free in the ID or name
     const isFree = model.id.includes(':free') || model.name.includes(':free');
 

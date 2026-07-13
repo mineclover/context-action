@@ -10,10 +10,6 @@ export function useChildBTextActions() {
       (newText: string) => dispatch('updateText', { newText }),
       [dispatch]
     ),
-    clearText: useCallback(
-      () => dispatch('clearText', undefined),
-      [dispatch]
-    ),
+    clearText: useCallback(() => dispatch('clearText', undefined), [dispatch]),
   };
 }
-

@@ -13,8 +13,8 @@ import {
   createResetHandler,
 } from '../actions/MouseActionHandlers';
 import {
-  useMouseActionHandler,
   type MouseStateData,
+  useMouseActionHandler,
 } from '../stores/MouseStoreSchema';
 
 export function MouseActionHandlerRegistry({
@@ -31,4 +31,3 @@ export function MouseActionHandlerRegistry({
 
   return null;
 }
-

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import { createRefContext } from '@context-action/react';
+import { useEffect, useRef } from 'react';
 
 // Chat ref context 정의
 interface ChatRefs {

@@ -104,7 +104,9 @@ export class FileUploadService {
       });
     }
 
-    return { fileId: `file_${Date.now()}_${Math.random().toString(36).slice(2)}` };
+    return {
+      fileId: `file_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    };
   }
 
   /**

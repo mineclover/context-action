@@ -39,10 +39,9 @@ export function CodeExample({
   children,
   ...props
 }: CodeExampleProps) {
-  const classes = [
-    codeExampleVariants.base,
-    codeExampleVariants.sizes[size],
-  ].filter(Boolean).join(' ');
+  const classes = [codeExampleVariants.base, codeExampleVariants.sizes[size]]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cn(classes, className)} {...props}>
@@ -60,10 +59,9 @@ export function CodeBlock({
   children,
   ...props
 }: CodeBlockProps) {
-  const classes = [
-    codeBlockVariants.base,
-    codeBlockVariants.sizes[size],
-  ].filter(Boolean).join(' ');
+  const classes = [codeBlockVariants.base, codeBlockVariants.sizes[size]]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <pre className={cn(classes, className)} {...props}>

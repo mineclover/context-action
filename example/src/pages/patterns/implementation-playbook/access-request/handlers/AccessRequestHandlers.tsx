@@ -1,14 +1,14 @@
 import React from 'react';
 import {
+  type AccessActivityEventInput,
+  createAccessActivityEvent,
+} from '../business/accessBusiness';
+import {
   AccessRequestActionProvider,
   AccessRequestRefProvider,
   AccessRequestStoreProvider,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
-import {
-  createAccessActivityEvent,
-  type AccessActivityEventInput,
-} from '../business/accessBusiness';
 import { useAccessDraftHandlers } from './useAccessDraftHandlers';
 import { useAccessSubmissionHandlers } from './useAccessSubmissionHandlers';
 
@@ -45,7 +45,9 @@ export function AccessRequestProviders({
     <AccessRequestActionProvider>
       <AccessRequestStoreProvider>
         <AccessRequestRefProvider>
-          <AccessRequestHandlerRegistry>{children}</AccessRequestHandlerRegistry>
+          <AccessRequestHandlerRegistry>
+            {children}
+          </AccessRequestHandlerRegistry>
         </AccessRequestRefProvider>
       </AccessRequestStoreProvider>
     </AccessRequestActionProvider>

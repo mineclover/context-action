@@ -36,13 +36,12 @@ export function DemoCard({
     demoCardVariants.base,
     demoCardVariants.variants[variant],
     demoCardVariants.spacings[spacing],
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div
-      className={cn(classes, className)}
-      {...props}
-    >
+    <div className={cn(classes, className)} {...props}>
       {children}
     </div>
   );

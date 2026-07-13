@@ -5,8 +5,8 @@
 
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { pageHeaderVariants, flexVariants } from './variants';
 import { Badge } from './Badge';
+import { flexVariants, pageHeaderVariants } from './variants';
 
 // ================================
 // Types
@@ -14,7 +14,17 @@ import { Badge } from './Badge';
 
 export interface BadgeItem {
   label: string;
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow' | 'gray' | 'pink' | 'cyan' | 'teal';
+  color?:
+    | 'blue'
+    | 'green'
+    | 'purple'
+    | 'orange'
+    | 'red'
+    | 'yellow'
+    | 'gray'
+    | 'pink'
+    | 'cyan'
+    | 'teal';
 }
 
 export interface PageHeaderProps {

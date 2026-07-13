@@ -44,4 +44,3 @@ export function ChatUIHandlerRegistry({
   useChatUIActionHandlers();
   return <>{children}</>;
 }
-

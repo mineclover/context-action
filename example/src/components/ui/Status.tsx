@@ -25,10 +25,9 @@ export function Status({
   children,
   ...props
 }: StatusProps) {
-  const classes = [
-    statusVariants.base,
-    statusVariants.statuses[status],
-  ].filter(Boolean).join(' ');
+  const classes = [statusVariants.base, statusVariants.statuses[status]]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={cn(classes, className)} {...props}>

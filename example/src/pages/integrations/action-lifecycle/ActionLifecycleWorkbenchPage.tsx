@@ -2,7 +2,14 @@ import type { ActionPayloadMap } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
 import { useCallback, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui';
 
 type RunMode = 'success' | 'invalid' | 'blocked';
 
@@ -47,63 +54,69 @@ function ActionLifecycleWorkbenchContent() {
 
   LifecycleContext.useActionHandler<'run', HandlerOutput>(
     'run',
-    useCallback(({ mode: requestedMode }) => {
-      if (requestedMode === 'invalid') {
+    useCallback(
+      ({ mode: requestedMode }) => {
+        if (requestedMode === 'invalid') {
+          const output: HandlerOutput = {
+            handler: 'input-validation',
+            status: 'rejected',
+            detail: '필수 입력이 누락된 요청으로 처리했습니다.',
+          };
+          record({ ...output, priority: 100 });
+          return output;
+        }
+
         const output: HandlerOutput = {
           handler: 'input-validation',
-          status: 'rejected',
-          detail: '필수 입력이 누락된 요청으로 처리했습니다.',
+          status: 'passed',
+          detail: '입력 계약이 유효합니다.',
         };
         record({ ...output, priority: 100 });
         return output;
-      }
-
-      const output: HandlerOutput = {
-        handler: 'input-validation',
-        status: 'passed',
-        detail: '입력 계약이 유효합니다.',
-      };
-      record({ ...output, priority: 100 });
-      return output;
-    }, [record]),
+      },
+      [record]
+    ),
     { id: 'lifecycle-input-validation', priority: 100, blocking: true }
   );
 
   LifecycleContext.useActionHandler<'run', HandlerOutput>(
     'run',
-    useCallback(async ({ mode: requestedMode }, controller) => {
-      await new Promise((resolve) => setTimeout(resolve, 180));
+    useCallback(
+      async ({ mode: requestedMode }, controller) => {
+        await new Promise((resolve) => setTimeout(resolve, 180));
 
-      if (requestedMode === 'invalid') {
+        if (requestedMode === 'invalid') {
+          const output: HandlerOutput = {
+            handler: 'policy-guard',
+            status: 'blocked',
+            detail: '검증 실패 요청은 후속 handler로 전달하지 않습니다.',
+          };
+          record({ ...output, priority: 80 });
+          controller.abort('입력 검증에 실패했습니다.');
+          return output;
+        }
+
+        if (requestedMode === 'blocked') {
+          const output: HandlerOutput = {
+            handler: 'policy-guard',
+            status: 'blocked',
+            detail: '정책 엔진이 이 요청을 차단했습니다.',
+          };
+          record({ ...output, priority: 80 });
+          controller.abort('정책 검사를 통과하지 못했습니다.');
+          return output;
+        }
+
         const output: HandlerOutput = {
           handler: 'policy-guard',
-          status: 'blocked',
-          detail: '검증 실패 요청은 후속 handler로 전달하지 않습니다.',
+          status: 'passed',
+          detail: '정책·권한 검사를 통과했습니다.',
         };
         record({ ...output, priority: 80 });
-        controller.abort('입력 검증에 실패했습니다.');
         return output;
-      }
-
-      if (requestedMode === 'blocked') {
-        const output: HandlerOutput = {
-          handler: 'policy-guard',
-          status: 'blocked',
-          detail: '정책 엔진이 이 요청을 차단했습니다.',
-        };
-        record({ ...output, priority: 80 });
-        controller.abort('정책 검사를 통과하지 못했습니다.');
-        return output;
-      }
-
-      const output: HandlerOutput = {
-        handler: 'policy-guard',
-        status: 'passed',
-        detail: '정책·권한 검사를 통과했습니다.',
-      };
-      record({ ...output, priority: 80 });
-      return output;
-    }, [record]),
+      },
+      [record]
+    ),
     { id: 'lifecycle-policy-guard', priority: 80, blocking: true }
   );
 
@@ -142,7 +155,9 @@ function ActionLifecycleWorkbenchContent() {
     setIsRunning(true);
 
     try {
-      const result = await dispatchWithResult<'run', HandlerOutput>('run', { mode });
+      const result = await dispatchWithResult<'run', HandlerOutput>('run', {
+        mode,
+      });
       const completed = result.successResults.length;
       setSummary(
         result.aborted
@@ -150,21 +165,29 @@ function ActionLifecycleWorkbenchContent() {
           : `완료됨: ${completed}개 handler 결과를 수집했습니다.`
       );
     } catch (error) {
-      setSummary(`실행 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      setSummary(
+        `실행 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
     } finally {
       setIsRunning(false);
     }
   };
 
   return (
-    <PageWithLogMonitor pageId="action-lifecycle-workbench" title="Action Lifecycle Workbench">
+    <PageWithLogMonitor
+      pageId="action-lifecycle-workbench"
+      title="Action Lifecycle Workbench"
+    >
       <div className="page-container max-w-6xl mx-auto p-6 space-y-6">
         <section className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-cyan-50 p-7">
           <Badge variant="primary">대표 데모</Badge>
-          <h1 className="mt-3 text-3xl font-bold text-slate-900">Action Lifecycle Workbench</h1>
+          <h1 className="mt-3 text-3xl font-bold text-slate-900">
+            Action Lifecycle Workbench
+          </h1>
           <p className="mt-3 max-w-3xl text-slate-700">
-            하나의 action이 검증, 정책, 비즈니스 작업, 감사 기록을 우선순위 순서로 통과하는 과정을 확인합니다.
-            각 handler의 반환값과 pipeline 중단 사유를 같은 화면에서 확인할 수 있습니다.
+            하나의 action이 검증, 정책, 비즈니스 작업, 감사 기록을 우선순위
+            순서로 통과하는 과정을 확인합니다. 각 handler의 반환값과 pipeline
+            중단 사유를 같은 화면에서 확인할 수 있습니다.
           </p>
         </section>
 
@@ -196,17 +219,30 @@ function ActionLifecycleWorkbenchContent() {
             </CardHeader>
             <CardContent>
               {trace.length === 0 ? (
-                <p className="text-sm text-slate-500">실행하면 handler 순서와 반환 결과가 표시됩니다.</p>
+                <p className="text-sm text-slate-500">
+                  실행하면 handler 순서와 반환 결과가 표시됩니다.
+                </p>
               ) : (
                 <ol className="space-y-3">
                   {trace.map((entry, index) => (
-                    <li key={`${entry.handler}-${index}`} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <li
+                      key={`${entry.handler}-${index}`}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <strong className="text-slate-900">{index + 1}. {entry.handler}</strong>
-                        <span className="text-xs font-semibold text-indigo-700">priority {entry.priority}</span>
+                        <strong className="text-slate-900">
+                          {index + 1}. {entry.handler}
+                        </strong>
+                        <span className="text-xs font-semibold text-indigo-700">
+                          priority {entry.priority}
+                        </span>
                       </div>
-                      <p className="mt-1 text-sm text-slate-700">{entry.detail}</p>
-                      <p className="mt-2 text-xs text-slate-500">결과: {entry.status}</p>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {entry.detail}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        결과: {entry.status}
+                      </p>
                     </li>
                   ))}
                 </ol>
@@ -219,7 +255,9 @@ function ActionLifecycleWorkbenchContent() {
               <CardTitle>3. Dispatch 결과</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-xl bg-slate-900 p-4 text-sm text-slate-100">{summary}</div>
+              <div className="rounded-xl bg-slate-900 p-4 text-sm text-slate-100">
+                {summary}
+              </div>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li>• `dispatchWithResult`로 handler 결과를 수집</li>
                 <li>• `blocking: true`로 순서가 보장되는 pipeline 구성</li>

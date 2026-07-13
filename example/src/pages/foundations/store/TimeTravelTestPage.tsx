@@ -1,7 +1,10 @@
-import { createTimeTravelStore, useStoreValue, useTimeTravelControls } from '@context-action/react';
-import { useState, useCallback } from 'react';
-import { CodeBlock } from '@/components/ui';
-import { Button, DemoCard } from '@/components/ui';
+import {
+  createTimeTravelStore,
+  useStoreValue,
+  useTimeTravelControls,
+} from '@context-action/react';
+import { useCallback, useState } from 'react';
+import { Button, CodeBlock, DemoCard } from '@/components/ui';
 
 // Counter state type
 interface CounterState {
@@ -36,7 +39,8 @@ const todoStore = createTimeTravelStore<TodoState>(
 
 function CounterDemo() {
   const { count, history } = useStoreValue(counterStore);
-  const { canUndo, canRedo, undo, redo, reset, position, historyLength } = useTimeTravelControls(counterStore);
+  const { canUndo, canRedo, undo, redo, reset, position, historyLength } =
+    useTimeTravelControls(counterStore);
 
   const increment = useCallback(() => {
     counterStore.setValue({
@@ -87,24 +91,13 @@ function CounterDemo() {
 
         {/* Undo/Redo Controls */}
         <div className="flex justify-center gap-2 pt-4 border-t">
-          <Button
-            onClick={() => undo()}
-            disabled={!canUndo}
-            variant="outline"
-          >
+          <Button onClick={() => undo()} disabled={!canUndo} variant="outline">
             Undo
           </Button>
-          <Button
-            onClick={() => redo()}
-            disabled={!canRedo}
-            variant="outline"
-          >
+          <Button onClick={() => redo()} disabled={!canRedo} variant="outline">
             Redo
           </Button>
-          <Button
-            onClick={() => reset()}
-            variant="danger"
-          >
+          <Button onClick={() => reset()} variant="danger">
             Reset
           </Button>
         </div>
@@ -126,7 +119,8 @@ function CounterDemo() {
 
 function TodoDemo() {
   const { todos, nextId } = useStoreValue(todoStore);
-  const { canUndo, canRedo, undo, redo, reset, position, historyLength } = useTimeTravelControls(todoStore);
+  const { canUndo, canRedo, undo, redo, reset, position, historyLength } =
+    useTimeTravelControls(todoStore);
   const [newTodoText, setNewTodoText] = useState('');
 
   const addTodo = useCallback(() => {
@@ -139,21 +133,27 @@ function TodoDemo() {
     setNewTodoText('');
   }, [todos, nextId, newTodoText]);
 
-  const toggleTodo = useCallback((id: number) => {
-    todoStore.setValue({
-      todos: todos.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      ),
-      nextId,
-    });
-  }, [todos, nextId]);
+  const toggleTodo = useCallback(
+    (id: number) => {
+      todoStore.setValue({
+        todos: todos.map((t) =>
+          t.id === id ? { ...t, completed: !t.completed } : t
+        ),
+        nextId,
+      });
+    },
+    [todos, nextId]
+  );
 
-  const deleteTodo = useCallback((id: number) => {
-    todoStore.setValue({
-      todos: todos.filter((t) => t.id !== id),
-      nextId,
-    });
-  }, [todos, nextId]);
+  const deleteTodo = useCallback(
+    (id: number) => {
+      todoStore.setValue({
+        todos: todos.filter((t) => t.id !== id),
+        nextId,
+      });
+    },
+    [todos, nextId]
+  );
 
   return (
     <DemoCard title="Todo List with Time Travel">
@@ -191,11 +191,7 @@ function TodoDemo() {
           >
             Redo
           </Button>
-          <Button
-            onClick={() => reset()}
-            variant="danger"
-            size="sm"
-          >
+          <Button onClick={() => reset()} variant="danger" size="sm">
             Reset
           </Button>
           <span className="text-sm text-gray-500 self-center ml-2">
@@ -245,7 +241,9 @@ function TodoDemo() {
 }
 
 function HistoryViewer() {
-  const [selectedStore, setSelectedStore] = useState<'counter' | 'todo'>('counter');
+  const [selectedStore, setSelectedStore] = useState<'counter' | 'todo'>(
+    'counter'
+  );
 
   // Subscribe to both stores to trigger re-renders
   const counterControls = useTimeTravelControls(counterStore);
@@ -335,7 +333,7 @@ function TimeTravelTestPage() {
         <DemoCard title="TimeTravelStore API">
           <div className="prose dark:prose-invert max-w-none text-sm">
             <CodeBlock size="sm">
-{`// Create a time travel store
+              {`// Create a time travel store
 const store = createTimeTravelStore('name', initialValue, {
   maxHistory: 50,  // Maximum undo steps
   mutable: false,  // For observable state (MobX, Vue)

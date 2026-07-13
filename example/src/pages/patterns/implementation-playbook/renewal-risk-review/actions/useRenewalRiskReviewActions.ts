@@ -1,9 +1,9 @@
 import React from 'react';
-import { useRenewalRiskReviewDispatch } from '../contexts/RenewalRiskReviewContexts';
 import type {
   RenewalReviewDraft,
   RenewalWindow,
 } from '../business/renewalBusiness';
+import { useRenewalRiskReviewDispatch } from '../contexts/RenewalRiskReviewContexts';
 
 type DraftStringField = 'accountName' | 'riskNotes';
 
@@ -31,7 +31,8 @@ export function useRenewalRiskReviewActions() {
   );
 
   const setExecutiveSponsor = React.useCallback(
-    (executiveSponsor: boolean) => dispatch('updateDraft', { executiveSponsor }),
+    (executiveSponsor: boolean) =>
+      dispatch('updateDraft', { executiveSponsor }),
     [dispatch]
   );
 
@@ -45,10 +46,7 @@ export function useRenewalRiskReviewActions() {
     [dispatch]
   );
 
-  const resetDemo = React.useCallback(
-    () => dispatch('resetDemo'),
-    [dispatch]
-  );
+  const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
   return {
     updateTextField,

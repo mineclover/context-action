@@ -237,7 +237,10 @@ export interface ValidationViewProps {
   history?: Array<ValidationResult & { timestamp: number }>;
 }
 
-export function ValidationView({ validation, history = [] }: ValidationViewProps) {
+export function ValidationView({
+  validation,
+  history = [],
+}: ValidationViewProps) {
   if (!validation) return null;
 
   return (
@@ -279,33 +282,36 @@ export function ValidationView({ validation, history = [] }: ValidationViewProps
             Validation History ({history.length})
           </h4>
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {history.slice().reverse().map((item, index) => (
-              <div
-                key={index}
-                className={`p-3 rounded-lg border text-xs ${
-                  item.isValid
-                    ? 'bg-green-50/50 border-green-200/50 text-green-700'
-                    : 'bg-red-50/50 border-red-200/50 text-red-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium">
-                    {item.isValid ? '✅ Valid' : '❌ Invalid'}
-                  </span>
-                  <span className="text-gray-500">
-                    {new Date(item.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-                {!item.isValid && item.errors.length > 0 && (
-                  <div className="text-xs opacity-75">
-                    {item.errors.join(', ')}
+            {history
+              .slice()
+              .reverse()
+              .map((item, index) => (
+                <div
+                  key={index}
+                  className={`p-3 rounded-lg border text-xs ${
+                    item.isValid
+                      ? 'bg-green-50/50 border-green-200/50 text-green-700'
+                      : 'bg-red-50/50 border-red-200/50 text-red-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium">
+                      {item.isValid ? '✅ Valid' : '❌ Invalid'}
+                    </span>
+                    <span className="text-gray-500">
+                      {new Date(item.timestamp).toLocaleTimeString()}
+                    </span>
                   </div>
-                )}
-                <div className="text-xs opacity-60 mt-1">
-                  by: {item.validatedBy}
+                  {!item.isValid && item.errors.length > 0 && (
+                    <div className="text-xs opacity-75">
+                      {item.errors.join(', ')}
+                    </div>
+                  )}
+                  <div className="text-xs opacity-60 mt-1">
+                    by: {item.validatedBy}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

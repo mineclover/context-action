@@ -1,14 +1,14 @@
 import React from 'react';
 import {
+  createRenewalActivityEvent,
+  type RenewalActivityEventInput,
+} from '../business/renewalBusiness';
+import {
   RenewalRiskReviewActionProvider,
   RenewalRiskReviewRefProvider,
   RenewalRiskReviewStoreProvider,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
-import {
-  createRenewalActivityEvent,
-  type RenewalActivityEventInput,
-} from '../business/renewalBusiness';
 import { useRenewalDraftHandlers } from './useRenewalDraftHandlers';
 import { useRenewalSubmissionHandlers } from './useRenewalSubmissionHandlers';
 

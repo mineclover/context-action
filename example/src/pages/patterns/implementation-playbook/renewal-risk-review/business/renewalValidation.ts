@@ -40,7 +40,11 @@ export function validateRenewalReviewDraft(
     });
   }
 
-  if (!Number.isFinite(draft.usageScore) || draft.usageScore < 0 || draft.usageScore > 100) {
+  if (
+    !Number.isFinite(draft.usageScore) ||
+    draft.usageScore < 0 ||
+    draft.usageScore > 100
+  ) {
     issues.push({
       field: 'usageScore',
       code: 'usage_score_range',

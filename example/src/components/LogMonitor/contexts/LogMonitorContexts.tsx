@@ -4,10 +4,7 @@
  */
 
 import type { ActionPayloadMap } from '@context-action/core';
-import {
-  createActionContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 import { LogLevel } from '@/utils/logger';
 import type { LogEntry, LogMonitorConfig } from '../types';
 
@@ -47,4 +44,3 @@ export const {
   useActionDispatch: useLogMonitorAction,
   useActionHandler: useLogMonitorActionHandler,
 } = createActionContext<LogMonitorActions>('LogMonitor');
-

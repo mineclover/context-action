@@ -48,7 +48,8 @@ export const initialIncidentValidationState: IncidentEscalationStores['validatio
     fieldErrors: {},
     focusField: null,
     hasAttemptedSubmit: false,
-    summary: '입력 후 escalation packet 생성을 눌러 incident workflow를 확인해 보세요.',
+    summary:
+      '입력 후 escalation packet 생성을 눌러 incident workflow를 확인해 보세요.',
   };
 
 export const initialIncidentEscalationState: IncidentEscalationStores['escalation'] =

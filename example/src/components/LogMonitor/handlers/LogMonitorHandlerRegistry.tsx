@@ -4,13 +4,13 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { LogLevel } from '@/utils/logger';
 import {
   useLogMonitorActionHandler,
   useLogMonitorStoreManager,
 } from '../contexts/LogMonitorContexts';
-import { LogLevel } from '@/utils/logger';
-import { createLogEntry, maintainMaxLogs } from '../utils';
 import type { LogMonitorConfig } from '../types';
+import { createLogEntry, maintainMaxLogs } from '../utils';
 
 interface LogMonitorHandlerRegistryProps {
   children?: React.ReactNode;

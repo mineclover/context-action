@@ -1,10 +1,10 @@
 import React from 'react';
-import { useIncidentEscalationDispatch } from '../contexts/IncidentEscalationContexts';
 import type {
   CommunicationChannel,
   IncidentDraft,
   IncidentSeverity,
 } from '../business/incidentBusiness';
+import { useIncidentEscalationDispatch } from '../contexts/IncidentEscalationContexts';
 
 type DraftStringField = 'incidentTitle' | 'summary';
 
@@ -51,10 +51,7 @@ export function useIncidentEscalationActions() {
     [dispatch]
   );
 
-  const resetDemo = React.useCallback(
-    () => dispatch('resetDemo'),
-    [dispatch]
-  );
+  const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
   return {
     updateTextField,

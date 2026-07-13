@@ -1,6 +1,5 @@
 // import React from 'react';
-import { CodeBlock } from '@/components/ui';
-import { Card } from '@/components/ui';
+import { Card, CodeBlock } from '@/components/ui';
 
 interface ResultsDisplayProps {
   executionResults: any[];
@@ -13,10 +12,7 @@ export function ResultsDisplay({ executionResults }: ResultsDisplayProps) {
       {executionResults.length > 0 ? (
         <div className="space-y-3">
           {executionResults.map((result, index) => (
-            <CodeBlock
-              key={index}
-              size="xs"
-            >
+            <CodeBlock key={index} size="xs">
               {JSON.stringify(result, null, 2)}
             </CodeBlock>
           ))}

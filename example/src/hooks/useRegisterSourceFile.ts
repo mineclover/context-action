@@ -107,7 +107,9 @@ export function useRegisterSourceFile(
       const entry = entries[filePath];
 
       if (entry) {
-        const updatedInstances = entry.instances.filter((id) => id !== instanceId);
+        const updatedInstances = entry.instances.filter(
+          (id) => id !== instanceId
+        );
 
         if (updatedInstances.length === 0) {
           // 마지막 인스턴스가 언마운트되면 엔트리 제거

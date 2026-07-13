@@ -1,8 +1,7 @@
-
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
-import { buildAccessReviewPacket } from '../business/accessBusiness';
 import { useAccessRequestActions } from '../actions/useAccessRequestActions';
+import { buildAccessReviewPacket } from '../business/accessBusiness';
 import {
   useAccessRequestData,
   useAccessRequestRefs,
@@ -63,8 +62,8 @@ export function AccessRequestView() {
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               주문 견적 예제와 같은 skill을 access review 시나리오에 적용한
-              인터랙티브 데모입니다. 위에서는 요청과 리뷰 패키지를 보고,
-              아래쪽 링크로 구조와 테스트를 따라갈 수 있습니다.
+              인터랙티브 데모입니다. 위에서는 요청과 리뷰 패키지를 보고, 아래쪽
+              링크로 구조와 테스트를 따라갈 수 있습니다.
             </p>
           </div>
 
@@ -118,8 +117,8 @@ export function AccessRequestView() {
                 Workspace Access Request
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                입력 검증, 권한 범위 체크, review packet 조립, 성공 후 draft 변경
-                무효화까지 한 흐름으로 보여줍니다.
+                입력 검증, 권한 범위 체크, review packet 조립, 성공 후 draft
+                변경 무효화까지 한 흐름으로 보여줍니다.
               </p>
             </div>
             <div className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -150,7 +149,10 @@ export function AccessRequestView() {
                   value={draft.requesterName}
                 />
                 {validation.fieldErrors.requesterName && (
-                  <p className="text-sm text-red-600" data-testid="requester-name-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="requester-name-error"
+                  >
                     {validation.fieldErrors.requesterName}
                   </p>
                 )}
@@ -171,7 +173,10 @@ export function AccessRequestView() {
                   value={draft.email}
                 />
                 {validation.fieldErrors.email && (
-                  <p className="text-sm text-red-600" data-testid="access-email-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="access-email-error"
+                  >
                     {validation.fieldErrors.email}
                   </p>
                 )}
@@ -188,7 +193,9 @@ export function AccessRequestView() {
                   className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:bg-white"
                   data-testid="access-scope-select"
                   onChange={(event) =>
-                    void updateScope(event.target.value as 'viewer' | 'editor' | 'admin')
+                    void updateScope(
+                      event.target.value as 'viewer' | 'editor' | 'admin'
+                    )
                   }
                   value={draft.scope}
                 >
@@ -197,7 +204,10 @@ export function AccessRequestView() {
                   <option value="admin">admin</option>
                 </select>
                 {validation.fieldErrors.scope && (
-                  <p className="text-sm text-red-600" data-testid="access-scope-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="access-scope-error"
+                  >
                     {validation.fieldErrors.scope}
                   </p>
                 )}
@@ -231,7 +241,10 @@ export function AccessRequestView() {
                 value={draft.justification}
               />
               {validation.fieldErrors.justification && (
-                <p className="text-sm text-red-600" data-testid="justification-error">
+                <p
+                  className="text-sm text-red-600"
+                  data-testid="justification-error"
+                >
                   {validation.fieldErrors.justification}
                 </p>
               )}
@@ -277,7 +290,9 @@ export function AccessRequestView() {
             <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-2xl bg-slate-50 p-3">
                 <dt className="text-slate-500">Scope</dt>
-                <dd className="mt-2 font-semibold text-slate-900">{draft.scope}</dd>
+                <dd className="mt-2 font-semibold text-slate-900">
+                  {draft.scope}
+                </dd>
               </div>
               <div className="rounded-2xl bg-slate-50 p-3">
                 <dt className="text-slate-500">프로덕션</dt>
@@ -312,7 +327,10 @@ export function AccessRequestView() {
               리뷰 상태
             </div>
             <p className="mt-3 text-lg font-semibold">{reviewView.message}</p>
-            <p className="mt-2 text-sm opacity-80" data-testid="access-validation-summary">
+            <p
+              className="mt-2 text-sm opacity-80"
+              data-testid="access-validation-summary"
+            >
               {validation.summary}
             </p>
 
@@ -348,7 +366,9 @@ export function AccessRequestView() {
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">실행 로그</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                실행 로그
+              </h2>
               <a
                 className="text-sm font-medium text-slate-500 transition hover:text-slate-700"
                 href="https://mineclover.github.io/context-action/ko/context-layered/patterns/explicit-state-machine"
@@ -365,7 +385,9 @@ export function AccessRequestView() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-900">{entry.step}</div>
+                    <div className="font-medium text-slate-900">
+                      {entry.step}
+                    </div>
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
                       {entry.tone}
                     </div>

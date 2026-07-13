@@ -1,20 +1,18 @@
-
 import React, { memo, useCallback } from 'react';
 import { buttonVariants } from '@/components/ui/variants';
-
-import type { ChatMessage } from '../types';
-import {
-  useChatMessages,
-  useChatUIState,
-  useChatActions,
-  useChatAutoScroll,
-  ChatRefsContext,
-} from '../hooks';
 import {
   ChatUIActionProvider,
   ChatUIStoreProvider,
 } from '../contexts/ChatUIContexts';
 import { ChatUIHandlerRegistry } from '../handlers/ChatUIHandlerRegistry';
+import {
+  ChatRefsContext,
+  useChatActions,
+  useChatAutoScroll,
+  useChatMessages,
+  useChatUIState,
+} from '../hooks';
+import type { ChatMessage } from '../types';
 import '../styles/chat-scroll.css';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
@@ -61,7 +59,9 @@ const ChatHeader = memo(({ messageCount, onClearChat }: ChatHeaderProps) => (
   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-t-xl">
     <div className="flex items-center gap-2">
       <h3>💬 실시간 채팅 데모</h3>
-      <span className="px-2 py-1 bg-white/20 rounded-full text-xs font-medium">{messageCount} 메시지</span>
+      <span className="px-2 py-1 bg-white/20 rounded-full text-xs font-medium">
+        {messageCount} 메시지
+      </span>
     </div>
     <div className="flex gap-2">
       <button
@@ -93,8 +93,8 @@ const UserSelector = memo(
     );
 
     return (
-  <div className="flex items-center gap-2 mb-4">
-    <span className="text-sm font-medium text-gray-700">현재 사용자:</span>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm font-medium text-gray-700">현재 사용자:</span>
         {CHAT_USERS.map((user) => (
           <button
             key={user}
@@ -141,7 +141,9 @@ const MessageItem = memo(
       <div
         className={`message ${message.sender === currentUser ? 'own' : 'other'}`}
       >
-        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm">{getUserAvatar(message.sender)}</div>
+        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm">
+          {getUserAvatar(message.sender)}
+        </div>
         <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-1">
             <span
@@ -159,7 +161,9 @@ const MessageItem = memo(
               </span>
             )}
           </div>
-          <div className="text-sm text-gray-900 leading-relaxed">{message.message}</div>
+          <div className="text-sm text-gray-900 leading-relaxed">
+            {message.message}
+          </div>
           {message.sender === currentUser && (
             <button
               onClick={handleDelete}
@@ -179,12 +183,20 @@ const MessageItem = memo(
 // 타이핑 인디케이터
 const TypingIndicator = memo(() => (
   <div className="flex gap-3 max-w-md">
-    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm">💭</div>
+    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm">
+      💭
+    </div>
     <div className="bg-gray-100 p-3 rounded-2xl">
       <div className="flex space-x-1">
         <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
-        <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></span>
-        <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+        <span
+          className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
+          style={{ animationDelay: '0.1s' }}
+        ></span>
+        <span
+          className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
+          style={{ animationDelay: '0.2s' }}
+        ></span>
       </div>
     </div>
   </div>
@@ -242,7 +254,10 @@ const MessagesList = memo(
     messagesContainerRef,
     messagesEndRef,
   }: MessagesListProps) => (
-    <div ref={messagesContainerRef.setRef} className="flex-1 p-4 space-y-4 overflow-y-auto max-h-96 bg-gray-50 rounded-b-xl">
+    <div
+      ref={messagesContainerRef.setRef}
+      className="flex-1 p-4 space-y-4 overflow-y-auto max-h-96 bg-gray-50 rounded-b-xl"
+    >
       {messages?.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-4xl mb-2">💬</div>

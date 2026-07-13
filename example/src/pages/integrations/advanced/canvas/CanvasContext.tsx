@@ -428,8 +428,8 @@ export function useCanvas() {
 
 // 개별 Store 접근을 위한 편의 훅들
 export {
-  useCanvasStore,
-  useCanvasStoreManager,
   useCanvasAction,
   useCanvasActionHandler,
+  useCanvasStore,
+  useCanvasStoreManager,
 };

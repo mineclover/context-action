@@ -1,14 +1,14 @@
 import React from 'react';
 import {
+  createOrderActivityEvent,
+  type OrderActivityEventInput,
+} from '../business/orderBusiness';
+import {
   CanonicalOrderActionProvider,
   CanonicalOrderRefProvider,
   CanonicalOrderStoreProvider,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
-import {
-  createOrderActivityEvent,
-  type OrderActivityEventInput,
-} from '../business/orderBusiness';
 import { useCanonicalOrderDraftHandlers } from './useCanonicalOrderDraftHandlers';
 import { useCanonicalOrderSubmissionHandlers } from './useCanonicalOrderSubmissionHandlers';
 
@@ -45,7 +45,9 @@ export function CanonicalOrderProviders({
     <CanonicalOrderActionProvider>
       <CanonicalOrderStoreProvider>
         <CanonicalOrderRefProvider>
-          <CanonicalOrderHandlerRegistry>{children}</CanonicalOrderHandlerRegistry>
+          <CanonicalOrderHandlerRegistry>
+            {children}
+          </CanonicalOrderHandlerRegistry>
         </CanonicalOrderRefProvider>
       </CanonicalOrderStoreProvider>
     </CanonicalOrderActionProvider>

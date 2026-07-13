@@ -1,6 +1,6 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { cardVariants, type CardVariants } from './variants';
+import { type CardVariants, cardVariants } from './variants';
 
 export type CardProps = React.HTMLAttributes<HTMLDivElement> & CardVariants;
 
@@ -15,7 +15,10 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={cn(cardVariants({ variant, size, hover, category }), className)}
+      className={cn(
+        cardVariants({ variant, size, hover, category }),
+        className
+      )}
       {...props}
     >
       {children}

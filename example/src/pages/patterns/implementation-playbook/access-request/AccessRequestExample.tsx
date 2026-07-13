@@ -1,4 +1,3 @@
-
 import { AccessRequestProviders } from './handlers/AccessRequestHandlers';
 import { AccessRequestView } from './views/AccessRequestView';
 

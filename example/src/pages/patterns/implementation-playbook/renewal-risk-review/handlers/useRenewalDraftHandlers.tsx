@@ -3,9 +3,9 @@ import {
   createEmptyRenewalReviewDraft,
   createExampleRenewalReviewDraft,
   createRenewalActivityEvent,
-  transitionRenewalReviewState,
   type RenewalActivityEventInput,
   type RenewalDraftField,
+  transitionRenewalReviewState,
 } from '../business/renewalBusiness';
 import {
   initialRenewalActivityState,
@@ -43,9 +43,13 @@ export function useRenewalDraftHandlers({
 
         validationStore.update((current) => ({
           ...current,
-          fieldErrors: removeResolvedFieldErrors(current.fieldErrors, changedKeys),
+          fieldErrors: removeResolvedFieldErrors(
+            current.fieldErrors,
+            changedKeys
+          ),
           focusField:
-            current.focusField !== null && changedKeys.includes(current.focusField)
+            current.focusField !== null &&
+            changedKeys.includes(current.focusField)
               ? null
               : current.focusField,
           summary: changedKeys.length
@@ -69,7 +73,9 @@ export function useRenewalDraftHandlers({
   useRenewalRiskReviewActionHandler(
     'prefillExample',
     React.useCallback(async () => {
-      storeManager.getStore('draft').setValue(createExampleRenewalReviewDraft());
+      storeManager
+        .getStore('draft')
+        .setValue(createExampleRenewalReviewDraft());
       storeManager.getStore('validation').setValue({
         ...initialRenewalValidationState,
         summary:
@@ -88,16 +94,20 @@ export function useRenewalDraftHandlers({
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyRenewalReviewDraft());
-      storeManager.getStore('validation').setValue(initialRenewalValidationState);
+      storeManager
+        .getStore('validation')
+        .setValue(initialRenewalValidationState);
       storeManager.getStore('review').setValue(
         transitionRenewalReviewState(initialRenewalReviewState, {
           type: 'reset',
         })
       );
-      storeManager.getStore('activity').setValue([
-        ...initialRenewalActivityState,
-        createRenewalActivityEvent({ type: 'demo_reset' }),
-      ]);
+      storeManager
+        .getStore('activity')
+        .setValue([
+          ...initialRenewalActivityState,
+          createRenewalActivityEvent({ type: 'demo_reset' }),
+        ]);
 
       accountNameRef.executeIfMounted((target) => {
         target.focus();

@@ -10,48 +10,47 @@
  * NOTE: This demo is disabled pending implementation of createMutableStore
  */
 
-import { useCallback, useRef, memo } from 'react';
 import {
   createMutableStore,
-  useStorePath,
   type StorePath,
+  useStorePath,
 } from '@context-action/react';
+import { memo, useCallback, useRef } from 'react';
 import { CodeBlock } from '@/components/ui';
 import {
+  controlPanelButtonGroupVariants,
+  controlPanelHeaderVariants,
+  controlPanelHintVariants,
+  controlPanelTitleVariants,
+  controlPanelVariants,
+  keyFeaturesCardVariants,
+  keyFeaturesItemTextVariants,
+  keyFeaturesItemTitleVariants,
+  keyFeaturesTitleVariants,
+  mutableStoreButtonVariants,
+  mutableStorePageHeaderVariants,
+  mutableStorePageTitleVariants,
+  pageContainerVariants,
+  pageDescriptionVariants,
+  pageGridVariants,
+  patternButtonGroupVariants,
+  patternCardHeaderVariants,
+  patternCardVariants,
+  patternIconVariants,
+  patternTitleVariants,
+  performanceGridVariants,
+  performanceHeaderVariants,
+  performanceHintVariants,
+  performanceIconVariants,
+  performanceSectionVariants,
+  performanceTitleVariants,
+  renderCountBadgeVariants,
   storeSubscriberVariants,
   subscriberHeaderVariants,
   subscriberLabelVariants,
-  renderCountBadgeVariants,
-  subscriberValueVariants,
   subscriberPathVariants,
-  mutableStoreButtonVariants,
-  controlPanelVariants,
-  controlPanelHeaderVariants,
-  controlPanelTitleVariants,
-  controlPanelHintVariants,
-  controlPanelButtonGroupVariants,
-  patternCardVariants,
-  patternCardHeaderVariants,
-  patternIconVariants,
-  patternTitleVariants,
-  patternButtonGroupVariants,
-  pageContainerVariants,
-  mutableStorePageHeaderVariants,
-  mutableStorePageTitleVariants,
-  pageDescriptionVariants,
-  pageGridVariants,
-  performanceSectionVariants,
-  performanceHeaderVariants,
-  performanceIconVariants,
-  performanceTitleVariants,
-  performanceHintVariants,
-  performanceGridVariants,
-  keyFeaturesCardVariants,
-  keyFeaturesTitleVariants,
-  keyFeaturesItemTitleVariants,
-  keyFeaturesItemTextVariants,
+  subscriberValueVariants,
 } from '@/components/ui/variants';
-
 
 // ============================================================================
 // Deep State Structure for Structural Sharing Demo
@@ -144,7 +143,11 @@ const PathSubscriber = memo(function PathSubscriber({
     <div className={storeSubscriberVariants()}>
       <div className={subscriberHeaderVariants()}>
         <span className={subscriberLabelVariants()}>{label}</span>
-        <span className={renderCountBadgeVariants({ isRendered: renderCount.current > 1 })}>
+        <span
+          className={renderCountBadgeVariants({
+            isRendered: renderCount.current > 1,
+          })}
+        >
           {renderCount.current}
         </span>
       </div>
@@ -164,7 +167,9 @@ const FullStateSubscriber = memo(function FullStateSubscriber() {
   return (
     <div className={storeSubscriberVariants({ type: 'fullState' })}>
       <div className={subscriberHeaderVariants()}>
-        <span className={subscriberLabelVariants({ type: 'fullState' })}>Full State</span>
+        <span className={subscriberLabelVariants({ type: 'fullState' })}>
+          Full State
+        </span>
         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white">
           {renderCount.current}
         </span>
@@ -192,7 +197,8 @@ function ControlPanel() {
 
   const toggleTheme = useCallback(() => {
     appStore.update((draft) => {
-      draft.user.preferences.theme = draft.user.preferences.theme === 'light' ? 'dark' : 'light';
+      draft.user.preferences.theme =
+        draft.user.preferences.theme === 'light' ? 'dark' : 'light';
     });
   }, []);
 
@@ -200,7 +206,8 @@ function ControlPanel() {
     const names = ['John Doe', 'Jane Smith', 'Bob Wilson', 'Alice Brown'];
     appStore.update((draft) => {
       const currentIndex = names.indexOf(draft.user.profile.name);
-      draft.user.profile.name = names[(currentIndex + 1) % names.length] ?? 'John Doe';
+      draft.user.profile.name =
+        names[(currentIndex + 1) % names.length] ?? 'John Doe';
     });
   }, []);
 
@@ -221,7 +228,8 @@ function ControlPanel() {
     const avatars = ['👤', '🧑‍💻', '👨‍🎨', '👩‍🔬', '🧙‍♂️', '🦸‍♀️'];
     appStore.update((draft) => {
       const currentIndex = avatars.indexOf(draft.user.profile.avatar);
-      draft.user.profile.avatar = avatars[(currentIndex + 1) % avatars.length] ?? '👤';
+      draft.user.profile.avatar =
+        avatars[(currentIndex + 1) % avatars.length] ?? '👤';
     });
   }, []);
 
@@ -233,28 +241,51 @@ function ControlPanel() {
     <div className={controlPanelVariants()}>
       <div className={controlPanelHeaderVariants()}>
         <h3 className={controlPanelTitleVariants()}>Control Panel</h3>
-        <span className={controlPanelHintVariants()}>각 버튼 클릭 시 해당 경로만 업데이트</span>
+        <span className={controlPanelHintVariants()}>
+          각 버튼 클릭 시 해당 경로만 업데이트
+        </span>
       </div>
       <div className={controlPanelButtonGroupVariants()}>
-        <button onClick={incrementCounter} className={mutableStoreButtonVariants({ color: 'blue' })}>
+        <button
+          onClick={incrementCounter}
+          className={mutableStoreButtonVariants({ color: 'blue' })}
+        >
           Counter++
         </button>
-        <button onClick={toggleTheme} className={mutableStoreButtonVariants({ color: 'violet' })}>
+        <button
+          onClick={toggleTheme}
+          className={mutableStoreButtonVariants({ color: 'violet' })}
+        >
           Theme
         </button>
-        <button onClick={updateName} className={mutableStoreButtonVariants({ color: 'green' })}>
+        <button
+          onClick={updateName}
+          className={mutableStoreButtonVariants({ color: 'green' })}
+        >
           Name
         </button>
-        <button onClick={toggleSidebar} className={mutableStoreButtonVariants({ color: 'teal' })}>
+        <button
+          onClick={toggleSidebar}
+          className={mutableStoreButtonVariants({ color: 'teal' })}
+        >
           Sidebar
         </button>
-        <button onClick={updateLoginStats} className={mutableStoreButtonVariants({ color: 'orange' })}>
+        <button
+          onClick={updateLoginStats}
+          className={mutableStoreButtonVariants({ color: 'orange' })}
+        >
           Login Stats
         </button>
-        <button onClick={cycleAvatar} className={mutableStoreButtonVariants({ color: 'pink' })}>
+        <button
+          onClick={cycleAvatar}
+          className={mutableStoreButtonVariants({ color: 'pink' })}
+        >
           Avatar
         </button>
-        <button onClick={resetState} className={mutableStoreButtonVariants({ color: 'gray' })}>
+        <button
+          onClick={resetState}
+          className={mutableStoreButtonVariants({ color: 'gray' })}
+        >
           Reset
         </button>
       </div>
@@ -291,7 +322,9 @@ function ComplexOperationsPanel() {
     });
     // Log after RAF completes
     requestAnimationFrame(() => {
-      console.log(`[Batched] update() calls: ${updateCallCount}, notifications: ${notificationCount}`);
+      console.log(
+        `[Batched] update() calls: ${updateCallCount}, notifications: ${notificationCount}`
+      );
     });
   }, []);
 
@@ -304,7 +337,8 @@ function ComplexOperationsPanel() {
 
     // Step 2: Compute all new values based on current state
     const newLoginCount = current.user.stats.loginCount + 5;
-    const newTheme = current.user.preferences.theme === 'light' ? 'dark' : 'light';
+    const newTheme =
+      current.user.preferences.theme === 'light' ? 'dark' : 'light';
     const newWidth = current.ui.sidebar.width + 50;
 
     // Step 3: Apply all changes in single update
@@ -315,7 +349,9 @@ function ComplexOperationsPanel() {
       draft.ui.sidebar.width = Math.min(newWidth, 500); // cap at 500
     });
     requestAnimationFrame(() => {
-      console.log(`[Read-Compute-Write] update() calls: ${updateCallCount}, notifications: ${notificationCount}`);
+      console.log(
+        `[Read-Compute-Write] update() calls: ${updateCallCount}, notifications: ${notificationCount}`
+      );
     });
   }, []);
 
@@ -326,14 +362,24 @@ function ComplexOperationsPanel() {
     updateCallCount = 0;
     notificationCount = 0;
     updateCallCount++;
-    appStore.update((draft) => { draft.counter++; });
+    appStore.update((draft) => {
+      draft.counter++;
+    });
     updateCallCount++;
-    appStore.update((draft) => { draft.user.stats.loginCount++; });
+    appStore.update((draft) => {
+      draft.user.stats.loginCount++;
+    });
     updateCallCount++;
-    appStore.update((draft) => { draft.ui.sidebar.isOpen = !draft.ui.sidebar.isOpen; });
+    appStore.update((draft) => {
+      draft.ui.sidebar.isOpen = !draft.ui.sidebar.isOpen;
+    });
     requestAnimationFrame(() => {
-      console.log(`[Anti-pattern] update() calls: ${updateCallCount}, notifications: ${notificationCount}`);
-      console.log('  -> 3 separate patches generated, 3 structural sharing operations');
+      console.log(
+        `[Anti-pattern] update() calls: ${updateCallCount}, notifications: ${notificationCount}`
+      );
+      console.log(
+        '  -> 3 separate patches generated, 3 structural sharing operations'
+      );
     });
   }, []);
 
@@ -348,7 +394,8 @@ function ComplexOperationsPanel() {
         // Different logic when counter >= 10
         draft.counter = 0;
         draft.user.stats.lastLogin = 'Counter reset!';
-        draft.user.preferences.notifications = !draft.user.preferences.notifications;
+        draft.user.preferences.notifications =
+          !draft.user.preferences.notifications;
       }
     });
   }, []);
@@ -365,21 +412,32 @@ function ComplexOperationsPanel() {
         <div className={patternCardVariants({ type: 'good' })}>
           <div className={patternCardHeaderVariants()}>
             <span className={patternIconVariants({ type: 'good' })}>✓</span>
-            <span className={patternTitleVariants({ type: 'good' })}>권장 패턴</span>
+            <span className={patternTitleVariants({ type: 'good' })}>
+              권장 패턴
+            </span>
           </div>
           <div className={patternButtonGroupVariants()}>
-            <button onClick={batchedProfileUpdate} className={mutableStoreButtonVariants({ color: 'green' })}>
+            <button
+              onClick={batchedProfileUpdate}
+              className={mutableStoreButtonVariants({ color: 'green' })}
+            >
               Batched
             </button>
-            <button onClick={computedUpdate} className={mutableStoreButtonVariants({ color: 'teal' })}>
+            <button
+              onClick={computedUpdate}
+              className={mutableStoreButtonVariants({ color: 'teal' })}
+            >
               Read-Compute-Write
             </button>
-            <button onClick={conditionalUpdate} className={mutableStoreButtonVariants({ color: 'violet' })}>
+            <button
+              onClick={conditionalUpdate}
+              className={mutableStoreButtonVariants({ color: 'violet' })}
+            >
               Conditional
             </button>
           </div>
           <CodeBlock size="xs">
-{`// 1번의 update()로 모든 변경 처리
+            {`// 1번의 update()로 모든 변경 처리
 store.update((draft) => {
   draft.counter++;
   draft.user.stats.loginCount++;
@@ -392,10 +450,15 @@ store.update((draft) => {
         <div className={patternCardVariants({ type: 'bad' })}>
           <div className={patternCardHeaderVariants()}>
             <span className={patternIconVariants({ type: 'bad' })}>⚠</span>
-            <span className={patternTitleVariants({ type: 'bad' })}>안티패턴</span>
+            <span className={patternTitleVariants({ type: 'bad' })}>
+              안티패턴
+            </span>
           </div>
           <div className={patternButtonGroupVariants()}>
-            <button onClick={separateUpdates} className="px-2 py-1 text-xs font-medium rounded cursor-pointer border-none bg-amber-500 text-black hover:bg-amber-600">
+            <button
+              onClick={separateUpdates}
+              className="px-2 py-1 text-xs font-medium rounded cursor-pointer border-none bg-amber-500 text-black hover:bg-amber-600"
+            >
               Separate Updates
             </button>
             <span className="text-[10px] text-amber-600 dark:text-amber-400 align-self-center ml-1">
@@ -403,7 +466,7 @@ store.update((draft) => {
             </span>
           </div>
           <CodeBlock size="xs">
-{`// 3번의 update() - 비효율적
+            {`// 3번의 update() - 비효율적
 store.update((d) => { d.counter++; });
 store.update((d) => { d.user.stats.loginCount++; });
 store.update((d) => { d.ui.sidebar.isOpen = !d.ui.sidebar.isOpen; });
@@ -429,7 +492,9 @@ function PatchesDisplay() {
 
   return (
     <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mt-3">
-      <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">Last Patches</h4>
+      <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
+        Last Patches
+      </h4>
       {patches && patches.length > 0 ? (
         <CodeBlock size="xs">{JSON.stringify(patches, null, 2)}</CodeBlock>
       ) : (
@@ -451,10 +516,15 @@ function MutableStoreDemoPage() {
         <h1 className={mutableStorePageTitleVariants()}>MutableStore Demo</h1>
         <p className={pageDescriptionVariants()}>
           Structural sharing via{' '}
-          <a href="https://github.com/unadlib/mutative" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a
+            href="https://github.com/unadlib/mutative"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
             mutative
-          </a>
-          {' '}— unchanged parts keep same reference
+          </a>{' '}
+          — unchanged parts keep same reference
         </p>
       </div>
 
@@ -473,15 +543,41 @@ function MutableStoreDemoPage() {
             <h3 className={performanceTitleVariants({ type: 'good' })}>
               Path-based Subscribers
             </h3>
-            <span className={performanceHintVariants()}>(green = 1 render)</span>
+            <span className={performanceHintVariants()}>
+              (green = 1 render)
+            </span>
           </div>
           <div className={performanceGridVariants({ cols: 'auto' })}>
-            <PathSubscriber label="Counter" path={['counter']} renderValue={(v: number) => `${v}`} />
-            <PathSubscriber label="Name" path={['user', 'profile', 'name']} renderValue={(v: string) => v} />
-            <PathSubscriber label="Avatar" path={['user', 'profile', 'avatar']} renderValue={(v: string) => v} />
-            <PathSubscriber label="Theme" path={['user', 'preferences', 'theme']} renderValue={(v: string) => v} />
-            <PathSubscriber label="Sidebar" path={['ui', 'sidebar', 'isOpen']} renderValue={(v: boolean) => (v ? 'Open' : 'Closed')} />
-            <PathSubscriber label="Logins" path={['user', 'stats', 'loginCount']} renderValue={(v: number) => `${v}`} />
+            <PathSubscriber
+              label="Counter"
+              path={['counter']}
+              renderValue={(v: number) => `${v}`}
+            />
+            <PathSubscriber
+              label="Name"
+              path={['user', 'profile', 'name']}
+              renderValue={(v: string) => v}
+            />
+            <PathSubscriber
+              label="Avatar"
+              path={['user', 'profile', 'avatar']}
+              renderValue={(v: string) => v}
+            />
+            <PathSubscriber
+              label="Theme"
+              path={['user', 'preferences', 'theme']}
+              renderValue={(v: string) => v}
+            />
+            <PathSubscriber
+              label="Sidebar"
+              path={['ui', 'sidebar', 'isOpen']}
+              renderValue={(v: boolean) => (v ? 'Open' : 'Closed')}
+            />
+            <PathSubscriber
+              label="Logins"
+              path={['user', 'stats', 'loginCount']}
+              renderValue={(v: number) => `${v}`}
+            />
           </div>
         </div>
 
@@ -503,16 +599,26 @@ function MutableStoreDemoPage() {
         <h3 className={keyFeaturesTitleVariants()}>Key Features</h3>
         <div className={keyFeaturesGridVariants()}>
           <div>
-            <span className={keyFeaturesItemTitleVariants()}>Structural Sharing</span>
-            <p className={keyFeaturesItemTextVariants()}>unchanged parts keep same reference</p>
+            <span className={keyFeaturesItemTitleVariants()}>
+              Structural Sharing
+            </span>
+            <p className={keyFeaturesItemTextVariants()}>
+              unchanged parts keep same reference
+            </p>
           </div>
           <div>
             <span className={keyFeaturesItemTitleVariants()}>RAF Batching</span>
-            <p className={keyFeaturesItemTextVariants()}>multiple updates → single notification</p>
+            <p className={keyFeaturesItemTextVariants()}>
+              multiple updates → single notification
+            </p>
           </div>
           <div>
-            <span className={keyFeaturesItemTitleVariants()}>Concurrency Safe</span>
-            <p className={keyFeaturesItemTextVariants()}>update queue prevents race conditions</p>
+            <span className={keyFeaturesItemTitleVariants()}>
+              Concurrency Safe
+            </span>
+            <p className={keyFeaturesItemTextVariants()}>
+              update queue prevents race conditions
+            </p>
           </div>
         </div>
       </div>

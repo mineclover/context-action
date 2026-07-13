@@ -13,6 +13,7 @@ export {
   useLogMonitorContext,
   useLogMonitorLogs,
 } from './context';
+export { LogMonitorHandlerRegistry } from './handlers/LogMonitorHandlerRegistry';
 // 훅들
 export {
   type ToastSystem,
@@ -30,7 +31,6 @@ export {
   LogMonitorStoreRegistry,
   logMonitorStoreRegistry,
 } from './store-registry';
-export { LogMonitorHandlerRegistry } from './handlers/LogMonitorHandlerRegistry';
 // 타입 정의
 export type {
   ActionLogOptions,

@@ -17,8 +17,6 @@
  * - Utilities: Generic utility variants for common styling needs
  */
 
-
-
 // ================================
 // 1. CORE COMPONENTS
 // Basic building blocks for UI
@@ -28,21 +26,23 @@ export const cardVariants = ({
   variant = 'default',
   size = 'md',
   hover = false,
-  category = 'default'
+  category = 'default',
 }: {
   variant?: 'default' | 'elevated' | 'outlined' | 'bordered' | 'glass';
   size?: 'sm' | 'md' | 'lg';
   hover?: boolean;
   category?: string;
 } = {}) => {
-  const baseClasses = 'bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl transition-all duration-300';
+  const baseClasses =
+    'bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl transition-all duration-300';
 
   const variantClasses = {
     default: 'shadow-lg shadow-gray-200/50',
     elevated: 'shadow-2xl shadow-gray-300/50',
     outlined: 'shadow-none border-2 border-gray-200/50',
     bordered: 'border-2 border-gray-300/50 shadow-none',
-    glass: 'bg-white/60 backdrop-blur-md border-white/30 shadow-xl shadow-gray-200/30',
+    glass:
+      'bg-white/60 backdrop-blur-md border-white/30 shadow-xl shadow-gray-200/30',
   };
 
   const sizeClasses = {
@@ -51,7 +51,9 @@ export const cardVariants = ({
     lg: 'p-8',
   };
 
-  const hoverClasses = hover ? 'hover:shadow-2xl hover:shadow-gray-300/60 hover:-translate-y-1 hover:bg-white/90' : '';
+  const hoverClasses = hover
+    ? 'hover:shadow-2xl hover:shadow-gray-300/60 hover:-translate-y-1 hover:bg-white/90'
+    : '';
 
   const categoryBorderClasses: Record<string, string> = {
     core: 'border-l-4 border-l-red-400',
@@ -75,22 +77,38 @@ export const cardVariants = ({
 
 export const buttonVariants = ({
   variant = 'primary',
-  size = 'md'
+  size = 'md',
 }: {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'outline' | 'ghost';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'info'
+    | 'outline'
+    | 'ghost';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2';
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2';
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 border border-blue-400/20',
-    secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-    success: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
-    warning: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
-    danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 border border-red-400/20',
+    primary:
+      'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 border border-blue-400/20',
+    secondary:
+      'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+    success:
+      'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
+    warning:
+      'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
+    danger:
+      'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 border border-red-400/20',
     info: 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 focus:ring-cyan-500 border border-cyan-400/20',
-    outline: 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-blue-500 shadow-md',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-blue-500 border border-transparent',
+    outline:
+      'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-blue-500 shadow-md',
+    ghost:
+      'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-blue-500 border border-transparent',
   };
 
   const sizeClasses = {
@@ -106,7 +124,7 @@ export const buttonVariants = ({
 
 export const gridVariants = ({
   cols = 'auto',
-  gap = 'md'
+  gap = 'md',
 }: {
   cols?: 1 | 2 | 3 | 4 | 'auto';
   gap?: 'sm' | 'md' | 'lg';
@@ -137,17 +155,21 @@ export const gridVariants = ({
 
 export const inputVariants = ({
   variant = 'default',
-  size = 'md'
+  size = 'md',
 }: {
   variant?: 'default' | 'error' | 'success';
   size?: 'sm' | 'md' | 'lg';
 } = {}) => {
-  const baseClasses = 'block w-full rounded-xl border-2 bg-white/60 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 shadow-sm hover:shadow-md';
+  const baseClasses =
+    'block w-full rounded-xl border-2 bg-white/60 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 shadow-sm hover:shadow-md';
 
   const variantClasses = {
-    default: 'border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-gray-400',
-    error: 'border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-300',
-    success: 'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 placeholder:text-emerald-300',
+    default:
+      'border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-gray-400',
+    error:
+      'border-red-200 focus:border-red-400 focus:ring-red-400/20 placeholder:text-red-300',
+    success:
+      'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 placeholder:text-emerald-300',
   };
 
   const sizeClasses = {
@@ -160,11 +182,18 @@ export const inputVariants = ({
 };
 
 export const badgeVariants = ({
-  variant = 'default'
+  variant = 'default',
 }: {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'outline';
+  variant?:
+    | 'default'
+    | 'primary'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'outline';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
+  const baseClasses =
+    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
 
   const variantClasses = {
     default: 'bg-gray-100 text-gray-800',
@@ -179,11 +208,12 @@ export const badgeVariants = ({
 };
 
 export const statusVariants = ({
-  status = 'neutral'
+  status = 'neutral',
 }: {
   status?: 'safe' | 'warning' | 'danger' | 'info' | 'neutral';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium';
+  const baseClasses =
+    'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium';
 
   const statusClasses = {
     safe: 'bg-success-50 text-success-700 border border-success-200',
@@ -199,12 +229,13 @@ export const statusVariants = ({
 // Select variants
 export const selectVariants = ({
   size = 'md',
-  variant = 'default'
+  variant = 'default',
 }: {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'error';
 } = {}) => {
-  const baseClasses = 'block w-full rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white';
+  const baseClasses =
+    'block w-full rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white';
 
   const variantClasses = {
     default: 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
@@ -223,17 +254,20 @@ export const selectVariants = ({
 // Checkbox variants
 export const checkboxVariants = ({
   size = 'md',
-  color = 'primary'
+  color = 'primary',
 }: {
   size?: 'sm' | 'md' | 'lg';
   color?: 'primary' | 'success' | 'warning' | 'danger';
 } = {}) => {
-  const baseClasses = 'rounded border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+  const baseClasses =
+    'rounded border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
 
   const colorClasses = {
     primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
-    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
-    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    success:
+      'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning:
+      'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
     danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
   };
 
@@ -249,17 +283,20 @@ export const checkboxVariants = ({
 // Radio variants
 export const radioVariants = ({
   size = 'md',
-  color = 'primary'
+  color = 'primary',
 }: {
   size?: 'sm' | 'md' | 'lg';
   color?: 'primary' | 'success' | 'warning' | 'danger';
 } = {}) => {
-  const baseClasses = 'rounded-full border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
+  const baseClasses =
+    'rounded-full border-2 border-gray-300 text-white focus:ring-2 focus:ring-offset-2 transition-colors cursor-pointer';
 
   const colorClasses = {
     primary: 'checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500',
-    success: 'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
-    warning: 'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
+    success:
+      'checked:bg-green-600 checked:border-green-600 focus:ring-green-500',
+    warning:
+      'checked:bg-yellow-600 checked:border-yellow-600 focus:ring-yellow-500',
     danger: 'checked:bg-red-600 checked:border-red-600 focus:ring-red-500',
   };
 
@@ -273,7 +310,7 @@ export const radioVariants = ({
 };
 
 export const pageVariants = ({
-  variant = 'default'
+  variant = 'default',
 }: {
   variant?: 'default' | 'withSidebar';
 } = {}) => {
@@ -288,7 +325,7 @@ export const pageVariants = ({
 };
 
 export const layoutContainerVariants = ({
-  size = 'large'
+  size = 'large',
 }: {
   size?: 'default' | 'large';
 } = {}) => {
@@ -303,10 +340,11 @@ export const layoutContainerVariants = ({
 };
 
 // Stat Card variants
-export const statTitleVariants = () => 'font-semibold text-sm text-gray-600 mb-2';
+export const statTitleVariants = () =>
+  'font-semibold text-sm text-gray-600 mb-2';
 
 export const statValueVariants = ({
-  color = 'blue'
+  color = 'blue',
 }: {
   color?: 'blue' | 'green' | 'red' | 'orange' | 'purple' | 'gray';
 } = {}) => {
@@ -326,7 +364,7 @@ export const statValueVariants = ({
 
 export const statValueSizeVariants = ({
   size = 'default',
-  color = 'blue'
+  color = 'blue',
 }: {
   size?: 'default' | 'lg' | 'mono';
   color?: 'blue' | 'green' | 'red' | 'orange' | 'purple' | 'gray';
@@ -354,10 +392,11 @@ export const statValueSizeVariants = ({
 export const statHintVariants = () => 'text-xs text-gray-500 mt-1';
 
 // Tech Section variants
-export const techSectionGridVariants = () => 'grid grid-cols-1 gap-6 lg:grid-cols-2';
+export const techSectionGridVariants = () =>
+  'grid grid-cols-1 gap-6 lg:grid-cols-2';
 
 export const techTitleVariants = ({
-  color = 'blue'
+  color = 'blue',
 }: {
   color?: 'blue' | 'green';
 } = {}) => {
@@ -375,12 +414,13 @@ export const techListVariants = () => 'space-y-2 text-sm text-gray-700';
 
 export const metricsDisplayVariants = ({
   variant = 'default',
-  size = 'md'
+  size = 'md',
 }: {
   variant?: 'default' | 'success' | 'warning' | 'danger';
   size?: 'sm' | 'md' | 'lg';
 } = {}) => {
-  const baseClasses = 'bg-white p-4 rounded-lg border border-gray-200 transition-all duration-200';
+  const baseClasses =
+    'bg-white p-4 rounded-lg border border-gray-200 transition-all duration-200';
 
   const variantClasses = {
     default: 'text-gray-700',
@@ -405,18 +445,22 @@ export const metricsDisplayVariants = ({
 
 // Demo Card variants (modern glassmorphism design)
 export const demoCardVariants = ({
-  variant = 'default'
+  variant = 'default',
 }: {
   variant?: 'default' | 'info' | 'success' | 'warning' | 'glass';
 } = {}) => {
-  const baseClasses = 'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
+  const baseClasses =
+    'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
 
   const variantClasses = {
     default: 'bg-white/80 backdrop-blur-sm border border-white/20',
     info: 'bg-gradient-to-br from-blue-50 to-blue-100/80 backdrop-blur-sm border border-blue-200/30',
-    success: 'bg-gradient-to-br from-emerald-50 to-emerald-100/80 backdrop-blur-sm border border-emerald-200/30',
-    warning: 'bg-gradient-to-br from-amber-50 to-amber-100/80 backdrop-blur-sm border border-amber-200/30',
-    glass: 'bg-white/60 backdrop-blur-md border border-white/30 shadow-xl shadow-gray-200/30',
+    success:
+      'bg-gradient-to-br from-emerald-50 to-emerald-100/80 backdrop-blur-sm border border-emerald-200/30',
+    warning:
+      'bg-gradient-to-br from-amber-50 to-amber-100/80 backdrop-blur-sm border border-amber-200/30',
+    glass:
+      'bg-white/60 backdrop-blur-md border border-white/30 shadow-xl shadow-gray-200/30',
   };
 
   return `${baseClasses} ${variantClasses[variant]}`;
@@ -424,7 +468,7 @@ export const demoCardVariants = ({
 
 // Store state subscriber variants (for MutableStore demo)
 export const storeSubscriberVariants = ({
-  type = 'normal'
+  type = 'normal',
 }: {
   type?: 'normal' | 'fullState';
 } = {}) => {
@@ -438,10 +482,11 @@ export const storeSubscriberVariants = ({
   return `${baseClasses} ${typeClasses[type]}`;
 };
 
-export const subscriberHeaderVariants = () => 'flex justify-between items-center';
+export const subscriberHeaderVariants = () =>
+  'flex justify-between items-center';
 
 export const subscriberLabelVariants = ({
-  type = 'normal'
+  type = 'normal',
 }: {
   type?: 'normal' | 'fullState';
 } = {}) => {
@@ -456,7 +501,7 @@ export const subscriberLabelVariants = ({
 };
 
 export const renderCountBadgeVariants = ({
-  isRendered = false
+  isRendered = false,
 }: {
   isRendered?: boolean;
 } = {}) => {
@@ -469,17 +514,20 @@ export const renderCountBadgeVariants = ({
   return `${baseClasses} ${renderClasses}`;
 };
 
-export const subscriberValueVariants = () => 'text-lg font-medium text-gray-900 dark:text-white mt-1';
+export const subscriberValueVariants = () =>
+  'text-lg font-medium text-gray-900 dark:text-white mt-1';
 
-export const subscriberPathVariants = () => 'text-[9px] font-mono text-gray-400 mt-0.5';
+export const subscriberPathVariants = () =>
+  'text-[9px] font-mono text-gray-400 mt-0.5';
 
 // MutableStore demo button variants
 export const mutableStoreButtonVariants = ({
-  color = 'blue'
+  color = 'blue',
 }: {
   color?: 'blue' | 'violet' | 'green' | 'teal' | 'orange' | 'pink' | 'gray';
 } = {}) => {
-  const baseClasses = 'px-2 py-1 text-xs font-medium rounded cursor-pointer border-none text-white';
+  const baseClasses =
+    'px-2 py-1 text-xs font-medium rounded cursor-pointer border-none text-white';
 
   const colorClasses = {
     blue: 'bg-blue-600 hover:bg-blue-700',
@@ -496,7 +544,7 @@ export const mutableStoreButtonVariants = ({
 
 // Control panel variants
 export const controlPanelVariants = ({
-  theme = 'light'
+  theme = 'light',
 }: {
   theme?: 'light' | 'dark';
 } = {}) => {
@@ -511,7 +559,7 @@ export const controlPanelVariants = ({
 };
 
 export const controlPanelHeaderVariants = ({
-  theme = 'light'
+  theme = 'light',
 }: {
   theme?: 'light' | 'dark';
 } = {}) => {
@@ -526,7 +574,7 @@ export const controlPanelHeaderVariants = ({
 };
 
 export const controlPanelTitleVariants = ({
-  theme = 'light'
+  theme = 'light',
 }: {
   theme?: 'light' | 'dark';
 } = {}) => {
@@ -546,7 +594,7 @@ export const controlPanelButtonGroupVariants = () => 'flex flex-wrap gap-1';
 
 // Pattern comparison variants
 export const patternCardVariants = ({
-  type = 'good'
+  type = 'good',
 }: {
   type?: 'good' | 'bad';
 } = {}) => {
@@ -563,7 +611,7 @@ export const patternCardVariants = ({
 export const patternCardHeaderVariants = () => 'flex items-center gap-2 mb-2';
 
 export const patternIconVariants = ({
-  type = 'good'
+  type = 'good',
 }: {
   type?: 'good' | 'bad';
 } = {}) => {
@@ -576,7 +624,7 @@ export const patternIconVariants = ({
 };
 
 export const patternTitleVariants = ({
-  type = 'good'
+  type = 'good',
 }: {
   type?: 'good' | 'bad';
 } = {}) => {
@@ -594,16 +642,12 @@ export const patternButtonGroupVariants = () => 'flex flex-wrap gap-1 mb-3';
 
 // Page layout variants
 
-
 export const mutableStorePageHeaderVariants = () => 'mb-4';
 
-export const mutableStorePageTitleVariants = () => 'text-xl font-bold text-gray-900 dark:text-white';
+export const mutableStorePageTitleVariants = () =>
+  'text-xl font-bold text-gray-900 dark:text-white';
 
-export const pageGridVariants = ({
-  cols = 2
-}: {
-  cols?: 1 | 2 | 3;
-} = {}) => {
+export const pageGridVariants = ({ cols = 2 }: { cols?: 1 | 2 | 3 } = {}) => {
   const baseClasses = 'grid gap-4 mb-4';
 
   const colClasses = {
@@ -615,15 +659,18 @@ export const pageGridVariants = ({
   return `${baseClasses} ${colClasses[cols]}`;
 };
 
-export const keyFeaturesVariants = () => 'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3';
+export const keyFeaturesVariants = () =>
+  'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3';
 
-export const keyFeaturesTitleVariants = () => 'text-xs font-semibold text-blue-800 dark:text-blue-300 mb-2';
+export const keyFeaturesTitleVariants = () =>
+  'text-xs font-semibold text-blue-800 dark:text-blue-300 mb-2';
 
-export const keyFeaturesGridVariants = () => 'grid grid-cols-3 gap-3 text-[11px]';
+export const keyFeaturesGridVariants = () =>
+  'grid grid-cols-3 gap-3 text-[11px]';
 
 // Performance section variants
 export const performanceSectionVariants = ({
-  span = false
+  span = false,
 }: {
   span?: boolean;
 } = {}) => {
@@ -637,7 +684,7 @@ export const performanceSectionVariants = ({
 export const performanceHeaderVariants = () => 'flex items-center gap-2 mb-2';
 
 export const performanceIconVariants = ({
-  type = 'good'
+  type = 'good',
 }: {
   type?: 'good' | 'bad';
 } = {}) => {
@@ -650,7 +697,7 @@ export const performanceIconVariants = ({
 };
 
 export const performanceTitleVariants = ({
-  type = 'good'
+  type = 'good',
 }: {
   type?: 'good' | 'bad';
 } = {}) => {
@@ -667,7 +714,7 @@ export const performanceTitleVariants = ({
 export const performanceHintVariants = () => 'text-[10px] text-gray-500';
 
 export const performanceGridVariants = ({
-  cols = 'auto'
+  cols = 'auto',
 }: {
   cols?: '2' | '3' | 'auto';
 } = {}) => {
@@ -683,25 +730,31 @@ export const performanceGridVariants = ({
 };
 
 // Key features section variants
-export const keyFeaturesCardVariants = () => 'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3';
+export const keyFeaturesCardVariants = () =>
+  'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3';
 
-export const keyFeaturesItemTitleVariants = () => 'font-medium text-blue-700 dark:text-blue-400';
+export const keyFeaturesItemTitleVariants = () =>
+  'font-medium text-blue-700 dark:text-blue-400';
 
-export const keyFeaturesItemTextVariants = () => 'text-blue-600 dark:text-blue-300';
+export const keyFeaturesItemTextVariants = () =>
+  'text-blue-600 dark:text-blue-300';
 
 // Chat demo variants
-export const chatHeaderVariants = () => 'flex items-center justify-between p-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-t-xl';
+export const chatHeaderVariants = () =>
+  'flex items-center justify-between p-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-t-xl';
 
 export const chatTitleVariants = () => 'flex items-center gap-2';
 
-export const chatBadgeVariants = () => 'px-2 py-1 bg-white/20 rounded-full text-xs font-medium';
+export const chatBadgeVariants = () =>
+  'px-2 py-1 bg-white/20 rounded-full text-xs font-medium';
 
 export const chatActionsVariants = () => 'flex gap-2';
 
-export const chatMessagesVariants = () => 'flex-1 p-4 space-y-4 overflow-y-auto max-h-96 bg-gray-50 rounded-b-xl';
+export const chatMessagesVariants = () =>
+  'flex-1 p-4 space-y-4 overflow-y-auto max-h-96 bg-gray-50 rounded-b-xl';
 
 export const chatMessageVariants = ({
-  isOwn = false
+  isOwn = false,
 }: {
   isOwn?: boolean;
 } = {}) => {
@@ -710,14 +763,16 @@ export const chatMessageVariants = ({
   return `${baseClasses} ${positionClasses}`;
 };
 
-export const chatMessageAvatarVariants = () => 'w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm';
+export const chatMessageAvatarVariants = () =>
+  'w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm';
 
-export const chatMessageContentVariants = () => 'bg-white p-3 rounded-2xl shadow-sm border border-gray-100';
+export const chatMessageContentVariants = () =>
+  'bg-white p-3 rounded-2xl shadow-sm border border-gray-100';
 
 export const chatMessageHeaderVariants = () => 'flex items-center gap-2 mb-1';
 
 export const chatMessageSenderVariants = ({
-  isOwn = false
+  isOwn = false,
 }: {
   isOwn?: boolean;
 } = {}) => {
@@ -728,18 +783,21 @@ export const chatMessageSenderVariants = ({
 
 export const chatMessageTimeVariants = () => 'text-xs text-gray-500';
 
-export const chatMessageTextVariants = () => 'text-sm text-gray-900 leading-relaxed';
+export const chatMessageTextVariants = () =>
+  'text-sm text-gray-900 leading-relaxed';
 
-export const chatInputAreaVariants = () => 'p-4 bg-white border-t border-gray-200 rounded-b-xl';
+export const chatInputAreaVariants = () =>
+  'p-4 bg-white border-t border-gray-200 rounded-b-xl';
 
-export const chatInputVariants = () => 'flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none';
+export const chatInputVariants = () =>
+  'flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none';
 
 export const userSelectorVariants = () => 'flex items-center gap-2 mb-4';
 
 export const userLabelVariants = () => 'text-sm font-medium text-gray-700';
 
 export const userBtnVariants = ({
-  active = false
+  active = false,
 }: {
   active?: boolean;
 } = {}) => {
@@ -754,20 +812,25 @@ export const quickMessagesVariants = () => 'mb-4';
 
 export const quickMessageListVariants = () => 'flex flex-wrap gap-2';
 
-export const quickMessageBtnVariants = () => 'px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors';
+export const quickMessageBtnVariants = () =>
+  'px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors';
 
 // LoggerPage specific variants - enhanced theme
 export const loggerDemoCardVariants = ({
-  type = 'default'
+  type = 'default',
 }: {
   type?: 'default' | 'memory' | 'factory';
 } = {}) => {
-  const baseClasses = 'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
+  const baseClasses =
+    'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
 
   const typeClasses = {
-    default: 'bg-gradient-to-br from-blue-50 to-blue-100/80 backdrop-blur-sm border border-blue-200/30',
-    memory: 'bg-gradient-to-br from-purple-50 to-purple-100/80 backdrop-blur-sm border border-purple-200/30',
-    factory: 'bg-gradient-to-br from-emerald-50 to-emerald-100/80 backdrop-blur-sm border border-emerald-200/30',
+    default:
+      'bg-gradient-to-br from-blue-50 to-blue-100/80 backdrop-blur-sm border border-blue-200/30',
+    memory:
+      'bg-gradient-to-br from-purple-50 to-purple-100/80 backdrop-blur-sm border border-purple-200/30',
+    factory:
+      'bg-gradient-to-br from-emerald-50 to-emerald-100/80 backdrop-blur-sm border border-emerald-200/30',
   };
 
   return `${baseClasses} ${typeClasses[type]}`;
@@ -775,28 +838,38 @@ export const loggerDemoCardVariants = ({
 
 export const loggerButtonVariants = ({
   variant = 'primary',
-  type = 'console'
+  type = 'console',
 }: {
   variant?: 'primary' | 'secondary' | 'success';
   type?: 'console' | 'memory' | 'factory';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2 px-4 py-2.5 text-sm';
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2 px-4 py-2.5 text-sm';
 
   const typeColors = {
     console: {
-      primary: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 border border-blue-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      success: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
+      primary:
+        'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 border border-blue-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      success:
+        'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
     },
     memory: {
-      primary: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 focus:ring-purple-500 border border-purple-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      success: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
+      primary:
+        'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 focus:ring-purple-500 border border-purple-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      success:
+        'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
     },
     factory: {
-      primary: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      success: 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 focus:ring-green-500 border border-green-400/20',
+      primary:
+        'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 border border-emerald-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      success:
+        'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 focus:ring-green-500 border border-green-400/20',
     },
   };
 
@@ -804,16 +877,20 @@ export const loggerButtonVariants = ({
 };
 
 export const loggerInputVariants = ({
-  type = 'console'
+  type = 'console',
 }: {
   type?: 'console' | 'memory' | 'factory';
 } = {}) => {
-  const baseClasses = 'block w-full rounded-xl border-2 bg-white/60 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 shadow-sm hover:shadow-md px-3 py-2 text-sm';
+  const baseClasses =
+    'block w-full rounded-xl border-2 bg-white/60 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 shadow-sm hover:shadow-md px-3 py-2 text-sm';
 
   const typeClasses = {
-    console: 'border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400',
-    memory: 'border-purple-200 focus:border-purple-400 focus:ring-purple-400/20 placeholder:text-purple-400',
-    factory: 'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 placeholder:text-emerald-400',
+    console:
+      'border-blue-200 focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-blue-400',
+    memory:
+      'border-purple-200 focus:border-purple-400 focus:ring-purple-400/20 placeholder:text-purple-400',
+    factory:
+      'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20 placeholder:text-emerald-400',
   };
 
   return `${baseClasses} ${typeClasses[type]}`;
@@ -821,17 +898,22 @@ export const loggerInputVariants = ({
 
 // HooksPage specific variants - performance theme
 export const hooksDemoCardVariants = ({
-  type = 'default'
+  type = 'default',
 }: {
   type?: 'default' | 'memoization' | 'handlers' | 'memory';
 } = {}) => {
-  const baseClasses = 'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
+  const baseClasses =
+    'rounded-2xl p-6 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/60 hover:-translate-y-0.5';
 
   const typeClasses = {
-    default: 'bg-gradient-to-br from-cyan-50 to-cyan-100/80 backdrop-blur-sm border border-cyan-200/30',
-    memoization: 'bg-gradient-to-br from-indigo-50 to-indigo-100/80 backdrop-blur-sm border border-indigo-200/30',
-    handlers: 'bg-gradient-to-br from-pink-50 to-pink-100/80 backdrop-blur-sm border border-pink-200/30',
-    memory: 'bg-gradient-to-br from-orange-50 to-orange-100/80 backdrop-blur-sm border border-orange-200/30',
+    default:
+      'bg-gradient-to-br from-cyan-50 to-cyan-100/80 backdrop-blur-sm border border-cyan-200/30',
+    memoization:
+      'bg-gradient-to-br from-indigo-50 to-indigo-100/80 backdrop-blur-sm border border-indigo-200/30',
+    handlers:
+      'bg-gradient-to-br from-pink-50 to-pink-100/80 backdrop-blur-sm border border-pink-200/30',
+    memory:
+      'bg-gradient-to-br from-orange-50 to-orange-100/80 backdrop-blur-sm border border-orange-200/30',
   };
 
   return `${baseClasses} ${typeClasses[type]}`;
@@ -839,28 +921,38 @@ export const hooksDemoCardVariants = ({
 
 export const hooksButtonVariants = ({
   variant = 'primary',
-  type = 'memoization'
+  type = 'memoization',
 }: {
   variant?: 'primary' | 'secondary' | 'warning';
   type?: 'memoization' | 'handlers' | 'memory';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2 px-4 py-2.5 text-sm';
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-lg hover:shadow-xl gap-2 px-4 py-2.5 text-sm';
 
   const typeColors = {
     memoization: {
-      primary: 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 focus:ring-indigo-500 border border-indigo-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      warning: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
+      primary:
+        'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 focus:ring-indigo-500 border border-indigo-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      warning:
+        'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
     },
     handlers: {
-      primary: 'bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 focus:ring-pink-500 border border-pink-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      warning: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
+      primary:
+        'bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 focus:ring-pink-500 border border-pink-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      warning:
+        'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 border border-amber-400/20',
     },
     memory: {
-      primary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 border border-orange-400/20',
-      secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
-      warning: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 border border-red-400/20',
+      primary:
+        'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 border border-orange-400/20',
+      secondary:
+        'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 focus:ring-slate-500 border border-slate-500/20',
+      warning:
+        'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 border border-red-400/20',
     },
   };
 
@@ -869,12 +961,13 @@ export const hooksButtonVariants = ({
 
 export const hooksStatusVariants = ({
   active = false,
-  type = 'handlers'
+  type = 'handlers',
 }: {
   active?: boolean;
   type?: 'handlers' | 'memory';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200';
+  const baseClasses =
+    'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200';
 
   const activeClasses = active
     ? {
@@ -890,11 +983,12 @@ export const hooksStatusVariants = ({
 };
 
 export const hooksMetricVariants = ({
-  type = 'memory'
+  type = 'memory',
 }: {
   type?: 'memory' | 'performance';
 } = {}) => {
-  const baseClasses = 'p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg shadow-gray-200/50 text-center';
+  const baseClasses =
+    'p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg shadow-gray-200/50 text-center';
 
   const typeClasses = {
     memory: 'border-orange-200/30',
@@ -905,13 +999,16 @@ export const hooksMetricVariants = ({
 };
 
 // Page layout variants
-export const pageContainerVariants = () => 'max-w-full w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden';
+export const pageContainerVariants = () =>
+  'max-w-full w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden';
 
 export const generalPageHeaderVariants = () => 'mb-8';
 
-export const pageTitleVariants = () => 'text-xl font-bold text-gray-900 dark:text-white';
+export const pageTitleVariants = () =>
+  'text-xl font-bold text-gray-900 dark:text-white';
 
-export const pageDescriptionVariants = () => 'text-lg text-gray-600 leading-relaxed';
+export const pageDescriptionVariants = () =>
+  'text-lg text-gray-600 leading-relaxed';
 
 // Form controls variants
 
@@ -920,7 +1017,8 @@ export const controlGroupVariants = () => 'flex gap-2';
 
 export const controlLabelVariants = () => 'text-sm font-medium text-gray-700';
 
-export const rangeInputVariants = () => 'flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+export const rangeInputVariants = () =>
+  'flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 
 // Button group variants
 export const buttonGroupVariants = () => 'flex flex-wrap gap-2';
@@ -928,22 +1026,25 @@ export const buttonGroupVariants = () => 'flex flex-wrap gap-2';
 // Logger specific variants
 export const logLevelSelectorVariants = () => 'mb-4 flex gap-2 items-center';
 
-export const memoryLogContainerVariants = () => 'max-h-48 overflow-y-auto bg-gray-50 rounded-lg border border-gray-200 p-3';
+export const memoryLogContainerVariants = () =>
+  'max-h-48 overflow-y-auto bg-gray-50 rounded-lg border border-gray-200 p-3';
 
 export const loggerInfoVariants = () => 'space-y-4';
 
 export const factoryControlsVariants = () => 'space-y-4';
 
 // Code example variants
-export const codeExampleVariants = () => 'mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm';
+export const codeExampleVariants = () =>
+  'mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm';
 
-export const codeExampleTitleVariants = () => 'text-lg font-bold text-gray-900 mb-4';
+export const codeExampleTitleVariants = () =>
+  'text-lg font-bold text-gray-900 mb-4';
 
 // Optimization controls variants
 export const optimizationControlsVariants = () => 'space-y-4';
 
 export const handlerStatusVariants = ({
-  active = false
+  active = false,
 }: {
   active?: boolean;
 } = {}) => {
@@ -955,7 +1056,8 @@ export const handlerStatusVariants = ({
   return `${baseClasses} ${activeClasses}`;
 };
 
-export const handlerItemVariants = () => 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200';
+export const handlerItemVariants = () =>
+  'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200';
 
 export const handlerInfoVariants = () => 'flex-1';
 
@@ -968,23 +1070,27 @@ export const memoryControlsVariants = () => 'space-y-4';
 
 export const memoryStatsVariants = () => 'grid grid-cols-2 gap-4 mt-4';
 
-export const statCardVariants = () => 'p-4 bg-white rounded-lg border border-gray-200 shadow-sm text-center';
+export const statCardVariants = () =>
+  'p-4 bg-white rounded-lg border border-gray-200 shadow-sm text-center';
 
 // Range controls variants
 export const rangeControlVariants = () => 'flex items-center gap-4';
 
-export const rangeLabelVariants = () => 'text-sm font-medium text-gray-700 min-w-[100px]';
+export const rangeLabelVariants = () =>
+  'text-sm font-medium text-gray-700 min-w-[100px]';
 
 // Select input variants
-export const selectInputVariants = () => 'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+export const selectInputVariants = () =>
+  'px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 
 // Text input variants
 export const textInputVariants = ({
-  size = 'default'
+  size = 'default',
 }: {
   size?: 'default' | 'small';
 } = {}) => {
-  const baseClasses = 'border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+  const baseClasses =
+    'border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
   const sizeClasses = size === 'small' ? 'px-3 py-1 text-sm' : 'px-3 py-2';
 
   return `${baseClasses} ${sizeClasses}`;
@@ -993,23 +1099,28 @@ export const textInputVariants = ({
 // Concept list variants
 export const conceptListVariants = () => 'space-y-3 text-sm text-gray-700';
 
-export const bestPracticesListVariants = () => 'space-y-2 text-sm text-gray-700';
+export const bestPracticesListVariants = () =>
+  'space-y-2 text-sm text-gray-700';
 
 // List variants
-export const logLevelListVariants = () => 'space-y-2 text-sm text-gray-700 list-disc list-inside';
+export const logLevelListVariants = () =>
+  'space-y-2 text-sm text-gray-700 list-disc list-inside';
 
-export const demoDisplayVariants = () => 'p-6 bg-gray-50 border border-gray-200 rounded-lg';
+export const demoDisplayVariants = () =>
+  'p-6 bg-gray-50 border border-gray-200 rounded-lg';
 
-export const storeDisplayVariants = () => 'p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4';
+export const storeDisplayVariants = () =>
+  'p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4';
 
-export const demoValueVariants = () => 'text-2xl font-bold text-primary-600 text-center block';
+export const demoValueVariants = () =>
+  'text-2xl font-bold text-primary-600 text-center block';
 
 // ================================
 
 // Info Box variants
 export const infoBoxVariants = ({
   variant = 'info',
-  size = 'md'
+  size = 'md',
 }: {
   variant?: 'info' | 'success' | 'warning' | 'error';
   size?: 'sm' | 'md' | 'lg';
@@ -1033,7 +1144,7 @@ export const infoBoxVariants = ({
 };
 
 export const infoBoxItemVariants = ({
-  variant = 'box'
+  variant = 'box',
 }: {
   variant?: 'box' | 'title' | 'text';
 } = {}) => {
@@ -1051,7 +1162,7 @@ export const infoBoxItemVariants = ({
 // Page Header variants
 export const pageHeaderVariants = ({
   size = 'md',
-  align = 'left'
+  align = 'left',
 }: {
   size?: 'sm' | 'md' | 'lg';
   align?: 'left' | 'center' | 'right';
@@ -1076,7 +1187,7 @@ export const pageHeaderVariants = ({
 // Section variants
 export const sectionVariants = ({
   spacing = 'md',
-  divider = false
+  divider = false,
 }: {
   spacing?: 'sm' | 'md' | 'lg' | 'xl';
   divider?: boolean;
@@ -1097,7 +1208,7 @@ export const sectionVariants = ({
 
 // Empty state variants
 export const emptyStateVariants = ({
-  size = 'md'
+  size = 'md',
 }: {
   size?: 'sm' | 'md' | 'lg';
 } = {}) => {
@@ -1113,7 +1224,7 @@ export const emptyStateVariants = ({
 };
 
 export const emptyStateIconVariants = ({
-  size = 'md'
+  size = 'md',
 }: {
   size?: 'sm' | 'md' | 'lg';
 } = {}) => {
@@ -1129,7 +1240,7 @@ export const emptyStateIconVariants = ({
 };
 
 export const emptyStateTextVariants = ({
-  size = 'md'
+  size = 'md',
 }: {
   size?: 'sm' | 'md' | 'lg';
 } = {}) => {
@@ -1149,7 +1260,7 @@ export const emptyStateHintVariants = () => 'text-sm text-gray-500';
 // Log Monitor variants
 export const logEntryVariants = ({
   type = 'system',
-  level = 'info'
+  level = 'info',
 }: {
   type?: 'action' | 'system' | 'performance' | 'error';
   level?: 'debug' | 'info' | 'warn' | 'error' | 'trace';
@@ -1177,7 +1288,7 @@ export const logEntryVariants = ({
 };
 
 export const logLevelBadgeVariants = ({
-  level = 'info'
+  level = 'info',
 }: {
   level?: 'debug' | 'info' | 'warn' | 'error' | 'trace';
 } = {}) => {
@@ -1197,9 +1308,15 @@ export const logLevelBadgeVariants = ({
 // Toast variants
 export const toastContainerVariants = ({
   position = 'top-right',
-  width = 'sm'
+  width = 'sm',
 }: {
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  position?:
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-center'
+    | 'bottom-center';
   width?: 'sm' | 'md' | 'lg';
 } = {}) => {
   const baseClasses = 'fixed z-50 flex flex-col gap-2 p-4 pointer-events-none';
@@ -1226,13 +1343,14 @@ export const toastContainerVariants = ({
 export const toastVariants = ({
   type = 'info',
   phase = 'entering',
-  executionStep
+  executionStep,
 }: {
   type?: 'info' | 'success' | 'error' | 'warning' | 'action';
   phase?: 'entering' | 'visible' | 'exiting' | 'exited';
   executionStep?: number;
 } = {}) => {
-  const baseClasses = 'relative transition-all duration-200 pointer-events-auto';
+  const baseClasses =
+    'relative transition-all duration-200 pointer-events-auto';
 
   // Type-based styling
   const typeClasses = {
@@ -1252,11 +1370,18 @@ export const toastVariants = ({
   };
 
   // Execution step styling for action toasts
-  const executionClasses = executionStep !== undefined
-    ? `border-l-4 ${executionStep === 0 ? 'border-l-green-400' :
-                     executionStep === 1 ? 'border-l-blue-400' :
-                     executionStep === 2 ? 'border-l-purple-400' : 'border-l-gray-400'}`
-    : '';
+  const executionClasses =
+    executionStep !== undefined
+      ? `border-l-4 ${
+          executionStep === 0
+            ? 'border-l-green-400'
+            : executionStep === 1
+              ? 'border-l-blue-400'
+              : executionStep === 2
+                ? 'border-l-purple-400'
+                : 'border-l-gray-400'
+        }`
+      : '';
 
   return `${baseClasses} ${typeClasses[type]} ${phaseClasses[phase]} ${executionClasses}`.trim();
 };
@@ -1269,7 +1394,7 @@ export const toastVariants = ({
 // Spacing variants
 export const spacingVariants = ({
   size = 'md',
-  direction = 'vertical'
+  direction = 'vertical',
 }: {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   direction?: 'vertical' | 'horizontal';
@@ -1288,7 +1413,7 @@ export const spacingVariants = ({
 
 // Typography variants - improved hierarchy
 export const textTitleVariants = ({
-  variant = 'section'
+  variant = 'section',
 }: {
   variant?: 'section' | 'card' | 'subsection' | 'hero';
 } = {}) => {
@@ -1298,14 +1423,15 @@ export const textTitleVariants = ({
     hero: 'text-4xl lg:text-5xl text-gray-900 mb-6 leading-tight',
     section: 'text-2xl lg:text-3xl text-gray-900 mb-4 leading-tight',
     card: 'text-xl lg:text-2xl text-gray-900 mb-3 leading-snug',
-    subsection: 'text-lg lg:text-xl text-gray-800 mb-3 leading-snug font-semibold',
+    subsection:
+      'text-lg lg:text-xl text-gray-800 mb-3 leading-snug font-semibold',
   };
 
   return `${baseClasses} ${variantClasses[variant]}`;
 };
 
 export const textHintVariants = ({
-  size = 'default'
+  size = 'default',
 }: {
   size?: 'default' | 'xs';
 } = {}) => {
@@ -1323,7 +1449,7 @@ export const textMonoVariants = () => 'font-mono';
 
 // List variants
 export const listVariants = ({
-  variant = 'spaced'
+  variant = 'spaced',
 }: {
   variant?: 'spaced' | 'spacedSm' | 'disc';
 } = {}) => {
@@ -1344,7 +1470,7 @@ export const flexVariants = ({
   align = 'center',
   justify = 'start',
   wrap = false,
-  gap = 'md'
+  gap = 'md',
 }: {
   direction?: 'row' | 'col';
   align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
@@ -1393,7 +1519,7 @@ export const flexVariants = ({
 export const gridUtilityVariants = ({
   cols = 'auto',
   gap = 'md',
-  responsive = true
+  responsive = true,
 }: {
   cols?: 'auto' | 1 | 2 | 3 | 4 | 6 | 12;
   gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -1402,13 +1528,19 @@ export const gridUtilityVariants = ({
   const baseClasses = 'grid';
 
   const colsClasses = {
-    auto: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-4',
+    auto: responsive
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+      : 'grid-cols-4',
     1: 'grid-cols-1',
     2: responsive ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2',
     3: responsive ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-3',
     4: responsive ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-4',
-    6: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-6',
-    12: responsive ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12' : 'grid-cols-12',
+    6: responsive
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+      : 'grid-cols-6',
+    12: responsive
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12'
+      : 'grid-cols-12',
   };
 
   const gapClasses = {
@@ -1426,7 +1558,7 @@ export const gridUtilityVariants = ({
 export const animationVariants = ({
   type = 'fade',
   duration = 'normal',
-  easing = 'ease'
+  easing = 'ease',
 }: {
   type?: 'fade' | 'slide' | 'scale' | 'bounce' | 'spin' | 'ping';
   duration?: 'fast' | 'normal' | 'slow';
@@ -1461,7 +1593,7 @@ export const animationVariants = ({
 // Shadow variants
 export const shadowVariants = ({
   size = 'md',
-  color = 'gray'
+  color = 'gray',
 }: {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'inner';
   color?: 'gray' | 'blue' | 'green' | 'red' | 'yellow' | 'purple';
@@ -1493,7 +1625,7 @@ export const borderVariants = ({
   width = 'default',
   style = 'solid',
   color = 'gray',
-  radius = 'md'
+  radius = 'md',
 }: {
   width?: 'thin' | 'default' | 'thick' | 'extra';
   style?: 'solid' | 'dashed' | 'dotted' | 'double';
@@ -1560,7 +1692,9 @@ export type SidebarVariants = any;
 export type MainContentVariants = any;
 export type LogMonitorVariants = any;
 export type PageVariants = Parameters<typeof pageVariants>[0];
-export type LayoutContainerVariants = Parameters<typeof layoutContainerVariants>[0];
+export type LayoutContainerVariants = Parameters<
+  typeof layoutContainerVariants
+>[0];
 export type TextTitleVariants = Parameters<typeof textTitleVariants>[0];
 export type TextHintVariants = Parameters<typeof textHintVariants>[0];
 export type TextMonoVariants = {};
@@ -1578,6 +1712,8 @@ export type PageHeaderVariants = Parameters<typeof pageHeaderVariants>[0];
 export type SectionVariants = Parameters<typeof sectionVariants>[0];
 export type LogEntryVariants = Parameters<typeof logEntryVariants>[0];
 export type LogLevelBadgeVariants = Parameters<typeof logLevelBadgeVariants>[0];
-export type ToastContainerVariants = Parameters<typeof toastContainerVariants>[0];
+export type ToastContainerVariants = Parameters<
+  typeof toastContainerVariants
+>[0];
 export type ToastVariants = Parameters<typeof toastVariants>[0];
 export type DemoCardVariants = Parameters<typeof demoCardVariants>[0];

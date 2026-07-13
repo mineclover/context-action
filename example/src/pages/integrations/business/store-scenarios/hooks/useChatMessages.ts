@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef } from 'react';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { ChatMessage } from '../types';

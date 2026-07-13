@@ -1,8 +1,7 @@
-
 import { SourceLink } from '../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../constants/github';
-import { buildOrderQuote } from '../business/orderBusiness';
 import { useCanonicalOrderActions } from '../actions/useCanonicalOrderActions';
+import { buildOrderQuote } from '../business/orderBusiness';
 import {
   useCanonicalOrderData,
   useCanonicalOrderRefs,
@@ -31,7 +30,10 @@ const specSections = [
 
 const codeLayers = [
   ['contexts/', 'Action, Store, Ref 경계를 정의합니다.'],
-  ['business/', 'draft 기본값, validation, quote, state machine을 순수 함수로 둡니다.'],
+  [
+    'business/',
+    'draft 기본값, validation, quote, state machine을 순수 함수로 둡니다.',
+  ],
   ['handlers/', '최신 상태 읽기, 상태 전이, side effect를 조율합니다.'],
   ['actions/', 'view가 쓰는 dispatch helper를 제공합니다.'],
   ['hooks/', '구독과 파생 값을 화면용으로 정리합니다.'],
@@ -104,8 +106,7 @@ export function CanonicalOrderView() {
     activity,
     isBusy,
     hasErrors,
-  } =
-    useCanonicalOrderData();
+  } = useCanonicalOrderData();
   const {
     updatePlan,
     updateQuantity,
@@ -175,7 +176,6 @@ export function CanonicalOrderView() {
             </a>
           </div>
         </div>
-
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
@@ -418,8 +418,13 @@ export function CanonicalOrderView() {
             <div className="text-sm font-semibold uppercase tracking-[0.16em]">
               제출 상태
             </div>
-            <p className="mt-3 text-lg font-semibold">{submissionView.message}</p>
-            <p className="mt-2 text-sm opacity-80" data-testid="validation-summary">
+            <p className="mt-3 text-lg font-semibold">
+              {submissionView.message}
+            </p>
+            <p
+              className="mt-2 text-sm opacity-80"
+              data-testid="validation-summary"
+            >
               {validation.summary}
             </p>
 
@@ -487,7 +492,9 @@ export function CanonicalOrderView() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="font-medium text-slate-900">{entry.step}</div>
+                      <div className="font-medium text-slate-900">
+                        {entry.step}
+                      </div>
                       <div className="mt-1 text-xs text-slate-500">
                         {formatOccurredAt(entry.occurredAt)}
                       </div>
@@ -531,8 +538,12 @@ export function CanonicalOrderView() {
                   {index + 1}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-slate-900">{name}</div>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{detail}</p>
+                  <div className="text-sm font-semibold text-slate-900">
+                    {name}
+                  </div>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {detail}
+                  </p>
                 </div>
               </div>
             ))}
@@ -576,13 +587,17 @@ export function CanonicalOrderView() {
                 <div className="font-mono text-sm font-semibold text-slate-900">
                   {name}
                 </div>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{detail}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  {detail}
+                </p>
               </div>
             ))}
           </div>
 
           <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-sm font-semibold text-slate-900">읽는 순서</div>
+            <div className="text-sm font-semibold text-slate-900">
+              읽는 순서
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {readingOrder.map((filePath, index) => (
                 <span

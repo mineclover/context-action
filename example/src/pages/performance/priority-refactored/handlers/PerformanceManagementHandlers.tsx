@@ -148,7 +148,9 @@ export function PerformanceManagementHandlers({
       async ({ instanceId }, controller) => {
         performanceStore.update((state) => ({
           ...state,
-          runningInstances: state.runningInstances.filter((id) => id !== instanceId),
+          runningInstances: state.runningInstances.filter(
+            (id) => id !== instanceId
+          ),
         }));
 
         console.log(`✅ Stopped execution for instance: ${instanceId}`);

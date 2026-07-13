@@ -6,13 +6,19 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore, type UploadStoreState } from '../contexts/UploadStoreContext';
+import {
+  type UploadStoreState,
+  useUploadStore,
+} from '../contexts/UploadStoreContext';
 
 export function ActiveUploadPanel() {
   const uploadStore = useUploadStore('upload');
 
   // Subscribe only to activeUpload path
-  const activeUpload = useStorePath<UploadStoreState, UploadStoreState['activeUpload']>(uploadStore, ['activeUpload']);
+  const activeUpload = useStorePath<
+    UploadStoreState,
+    UploadStoreState['activeUpload']
+  >(uploadStore, ['activeUpload']);
 
   if (!activeUpload) {
     return null;
@@ -101,7 +107,9 @@ export function ActiveUploadPanel() {
         {/* Status message */}
         {activeUpload.status && (
           <div className="bg-white border border-gray-200 rounded p-3">
-            <p className="text-sm text-gray-700 italic">{activeUpload.status}</p>
+            <p className="text-sm text-gray-700 italic">
+              {activeUpload.status}
+            </p>
           </div>
         )}
       </div>
@@ -109,7 +117,8 @@ export function ActiveUploadPanel() {
       {/* Performance indicator */}
       <div className="mt-4 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-500">
-          ⚡ Progress updates use <code className="bg-gray-200 px-1 rounded">notifyPath</code>
+          ⚡ Progress updates use{' '}
+          <code className="bg-gray-200 px-1 rounded">notifyPath</code>
           for zero-cost re-rendering
         </p>
       </div>

@@ -6,20 +6,42 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore } from '../contexts/UploadStoreContext';
 import { useUploadAction } from '../contexts/UploadActionContext';
-import type { FileUploadState, UploadStoreState } from '../contexts/UploadStoreContext';
-import type { ProcessState, UploadProgress } from '../services/FileUploadService';
+import type {
+  FileUploadState,
+  UploadStoreState,
+} from '../contexts/UploadStoreContext';
+import { useUploadStore } from '../contexts/UploadStoreContext';
+import type {
+  ProcessState,
+  UploadProgress,
+} from '../services/FileUploadService';
 
 function QueueItem({ item, index }: { item: FileUploadState; index: number }) {
   const dispatch = useUploadAction();
   const uploadStore = useUploadStore('upload');
 
   // Selective subscriptions - only re-render when specific paths change
-  const state = useStorePath<UploadStoreState, ProcessState>(uploadStore, ['queue', index, 'state']);
-  const progress = useStorePath<UploadStoreState, UploadProgress>(uploadStore, ['queue', index, 'progress']);
-  const status = useStorePath<UploadStoreState, string>(uploadStore, ['queue', index, 'status']);
-  const error = useStorePath<UploadStoreState, string | null>(uploadStore, ['queue', index, 'error']);
+  const state = useStorePath<UploadStoreState, ProcessState>(uploadStore, [
+    'queue',
+    index,
+    'state',
+  ]);
+  const progress = useStorePath<UploadStoreState, UploadProgress>(uploadStore, [
+    'queue',
+    index,
+    'progress',
+  ]);
+  const status = useStorePath<UploadStoreState, string>(uploadStore, [
+    'queue',
+    index,
+    'status',
+  ]);
+  const error = useStorePath<UploadStoreState, string | null>(uploadStore, [
+    'queue',
+    index,
+    'error',
+  ]);
 
   const getStateColor = () => {
     switch (state) {
@@ -59,7 +81,7 @@ function QueueItem({ item, index }: { item: FileUploadState; index: number }) {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Math.round(bytes / k ** i * 100) / 100} ${sizes[i]}`;
+    return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`;
   };
 
   return (
@@ -101,7 +123,8 @@ function QueueItem({ item, index }: { item: FileUploadState; index: number }) {
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>{progress.percentage}%</span>
             <span>
-              {formatBytes(progress.bytesUploaded)} / {formatBytes(progress.totalBytes)}
+              {formatBytes(progress.bytesUploaded)} /{' '}
+              {formatBytes(progress.totalBytes)}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -138,7 +161,9 @@ export function UploadQueue() {
   const dispatch = useUploadAction();
 
   // Subscribe to queue array
-  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, ['queue']);
+  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, [
+    'queue',
+  ]);
 
   if (queue.length === 0) {
     return (

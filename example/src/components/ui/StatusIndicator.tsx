@@ -37,7 +37,9 @@ export function StatusIndicator({
   };
 
   return (
-    <div className={cn(flexVariants({ align: 'center', gap: 'sm' }), className)}>
+    <div
+      className={cn(flexVariants({ align: 'center', gap: 'sm' }), className)}
+    >
       <div
         className={cn('rounded-full', sizeClasses[size], statusClasses[status])}
       />

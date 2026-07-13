@@ -2,7 +2,13 @@ import type React from 'react';
 import { cn } from '../../lib/utils';
 
 export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'outline';
+  variant?:
+    | 'default'
+    | 'primary'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'outline';
 };
 
 // Direct Tailwind classes for maximum reusability
@@ -24,10 +30,9 @@ export function Badge({
   children,
   ...props
 }: BadgeProps) {
-  const classes = [
-    badgeVariants.base,
-    badgeVariants.variants[variant],
-  ].filter(Boolean).join(' ');
+  const classes = [badgeVariants.base, badgeVariants.variants[variant]]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <span className={cn(classes, className)} {...props}>

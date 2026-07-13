@@ -2,7 +2,22 @@ import type React from 'react';
 import { cn } from '../../lib/utils';
 
 type PatternBadgeProps = {
-  pattern?: 'hoc' | 'provider' | 'context' | 'hook' | 'unified' | 'store' | 'action' | 'async' | 'ref' | 'integration' | 'performance' | 'api' | 'search' | 'interaction' | 'custom';
+  pattern?:
+    | 'hoc'
+    | 'provider'
+    | 'context'
+    | 'hook'
+    | 'unified'
+    | 'store'
+    | 'action'
+    | 'async'
+    | 'ref'
+    | 'integration'
+    | 'performance'
+    | 'api'
+    | 'search'
+    | 'interaction'
+    | 'custom';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   icon?: string;
@@ -47,7 +62,9 @@ export function PatternBadge({
     patternBadgeVariants.base,
     patternBadgeVariants.patterns[pattern],
     patternBadgeVariants.sizes[size],
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <span className={cn(classes, className)}>

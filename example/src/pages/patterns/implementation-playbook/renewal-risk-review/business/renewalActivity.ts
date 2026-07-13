@@ -1,7 +1,4 @@
-import type {
-  RenewalDraftField,
-  RenewalWindow,
-} from './renewalDraft';
+import type { RenewalDraftField, RenewalWindow } from './renewalDraft';
 import type { RenewalRiskBand } from './renewalRiskPacket';
 import type { RenewalValidationIssue } from './renewalValidation';
 

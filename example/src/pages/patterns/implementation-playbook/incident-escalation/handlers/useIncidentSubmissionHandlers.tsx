@@ -1,9 +1,9 @@
 import React from 'react';
 import {
   buildIncidentEscalationPacket,
-  transitionIncidentEscalationState,
   type IncidentActivityEventInput,
   type IncidentValidationField,
+  transitionIncidentEscalationState,
   validateIncidentDraft,
 } from '../business/incidentBusiness';
 import {

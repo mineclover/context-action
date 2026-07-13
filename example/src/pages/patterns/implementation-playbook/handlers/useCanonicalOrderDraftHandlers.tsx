@@ -1,5 +1,13 @@
 import React from 'react';
 import {
+  createEmptyOrderDraft,
+  createExampleOrderDraft,
+  createOrderActivityEvent,
+  type OrderActivityEventInput,
+  type OrderDraftField,
+  transitionOrderSubmissionState,
+} from '../business/orderBusiness';
+import {
   initialActivityState,
   initialSubmissionState,
   initialValidationState,
@@ -7,17 +15,7 @@ import {
   useCanonicalOrderRef,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
-import {
-  createOrderActivityEvent,
-  createEmptyOrderDraft,
-  createExampleOrderDraft,
-  transitionOrderSubmissionState,
-  type OrderActivityEventInput,
-  type OrderDraftField,
-} from '../business/orderBusiness';
-import {
-  removeResolvedFieldErrors,
-} from './orderHandlerSupport';
+import { removeResolvedFieldErrors } from './orderHandlerSupport';
 
 interface DraftHandlerOptions {
   appendActivity: (event: OrderActivityEventInput) => void;
@@ -45,9 +43,13 @@ export function useCanonicalOrderDraftHandlers({
 
         validationStore.update((current) => ({
           ...current,
-          fieldErrors: removeResolvedFieldErrors(current.fieldErrors, changedKeys),
+          fieldErrors: removeResolvedFieldErrors(
+            current.fieldErrors,
+            changedKeys
+          ),
           focusField:
-            current.focusField !== null && changedKeys.includes(current.focusField)
+            current.focusField !== null &&
+            changedKeys.includes(current.focusField)
               ? null
               : current.focusField,
           summary: changedKeys.length
@@ -74,7 +76,8 @@ export function useCanonicalOrderDraftHandlers({
       storeManager.getStore('draft').setValue(createExampleOrderDraft());
       storeManager.getStore('validation').setValue({
         ...initialValidationState,
-        summary: '샘플 입력을 불러왔습니다. 바로 견적 흐름을 확인할 수 있습니다.',
+        summary:
+          '샘플 입력을 불러왔습니다. 바로 견적 흐름을 확인할 수 있습니다.',
       });
       storeManager.getStore('submission').setValue(
         transitionOrderSubmissionState(initialSubmissionState, {
@@ -97,10 +100,12 @@ export function useCanonicalOrderDraftHandlers({
           type: 'reset',
         })
       );
-      storeManager.getStore('activity').setValue([
-        ...initialActivityState,
-        createOrderActivityEvent({ type: 'demo_reset' }),
-      ]);
+      storeManager
+        .getStore('activity')
+        .setValue([
+          ...initialActivityState,
+          createOrderActivityEvent({ type: 'demo_reset' }),
+        ]);
 
       customerNameRef.executeIfMounted((target) => {
         target.focus();

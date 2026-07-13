@@ -6,19 +6,35 @@
  */
 
 import { useStorePath } from '@context-action/react';
-import { useUploadStore, type UploadStoreState, type FileUploadState } from '../contexts/UploadStoreContext';
+import {
+  type FileUploadState,
+  type UploadStoreState,
+  useUploadStore,
+} from '../contexts/UploadStoreContext';
 
 export function StatisticsPanel() {
   const uploadStore = useUploadStore('upload');
 
   // Selective subscriptions - each component re-renders independently
-  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, ['queue']);
+  const queue = useStorePath<UploadStoreState, FileUploadState[]>(uploadStore, [
+    'queue',
+  ]);
   const queueLength = queue.length;
-  const processing = useStorePath<UploadStoreState, boolean>(uploadStore, ['processing']);
-  const completedCount = useStorePath<UploadStoreState, number>(uploadStore, ['completedCount']);
-  const failedCount = useStorePath<UploadStoreState, number>(uploadStore, ['failedCount']);
-  const totalBytes = useStorePath<UploadStoreState, number>(uploadStore, ['totalBytes']);
-  const uploadedBytes = useStorePath<UploadStoreState, number>(uploadStore, ['uploadedBytes']);
+  const processing = useStorePath<UploadStoreState, boolean>(uploadStore, [
+    'processing',
+  ]);
+  const completedCount = useStorePath<UploadStoreState, number>(uploadStore, [
+    'completedCount',
+  ]);
+  const failedCount = useStorePath<UploadStoreState, number>(uploadStore, [
+    'failedCount',
+  ]);
+  const totalBytes = useStorePath<UploadStoreState, number>(uploadStore, [
+    'totalBytes',
+  ]);
+  const uploadedBytes = useStorePath<UploadStoreState, number>(uploadStore, [
+    'uploadedBytes',
+  ]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -37,7 +53,9 @@ export function StatisticsPanel() {
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-2xl">📋</span>
-          <span className="text-2xl font-bold text-gray-800">{queueLength}</span>
+          <span className="text-2xl font-bold text-gray-800">
+            {queueLength}
+          </span>
         </div>
         <p className="text-sm text-gray-600">In Queue</p>
       </div>

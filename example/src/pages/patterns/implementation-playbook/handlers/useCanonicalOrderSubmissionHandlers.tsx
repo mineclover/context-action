@@ -1,19 +1,17 @@
 import React from 'react';
 import {
+  buildOrderQuote,
+  type OrderActivityEventInput,
+  type OrderFieldErrors,
+  transitionOrderSubmissionState,
+  validateOrderDraft,
+} from '../business/orderBusiness';
+import {
   useCanonicalOrderActionHandler,
   useCanonicalOrderRef,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
-import {
-  buildOrderQuote,
-  transitionOrderSubmissionState,
-  type OrderActivityEventInput,
-  type OrderFieldErrors,
-  validateOrderDraft,
-} from '../business/orderBusiness';
-import {
-  toValidationViewState,
-} from './orderHandlerSupport';
+import { toValidationViewState } from './orderHandlerSupport';
 
 interface SubmissionHandlerOptions {
   appendActivity: (event: OrderActivityEventInput) => void;

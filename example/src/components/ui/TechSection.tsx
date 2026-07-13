@@ -6,9 +6,9 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
 import {
+  techListVariants,
   techSectionGridVariants,
   techTitleVariants,
-  techListVariants,
   textTitleVariants,
 } from './variants';
 
@@ -35,7 +35,9 @@ export interface TechSectionProps {
 export function TechColumn({ title, color = 'blue', items }: TechColumnProps) {
   return (
     <div>
-      <h4 className={cn(techTitleVariants({ color: color as 'blue' | 'green' }))}>
+      <h4
+        className={cn(techTitleVariants({ color: color as 'blue' | 'green' }))}
+      >
         {title}
       </h4>
       <ul className={cn(techListVariants())}>

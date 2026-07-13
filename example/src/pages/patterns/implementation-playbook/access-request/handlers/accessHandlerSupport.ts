@@ -14,7 +14,8 @@ const validationMessages: Record<AccessValidationCode, string> = {
   email_invalid: '올바른 업무용 이메일 형식으로 입력해 주세요.',
   justification_required: '접근 목적을 적어 주세요.',
   justification_too_short: '접근 목적은 최소 24자 이상으로 적어 주세요.',
-  production_requires_admin: '프로덕션 접근은 관리자 권한에서만 요청할 수 있습니다.',
+  production_requires_admin:
+    '프로덕션 접근은 관리자 권한에서만 요청할 수 있습니다.',
 };
 
 const fieldOrder: Array<keyof AccessRequestFieldErrors> = [
@@ -184,7 +185,8 @@ export function toActivityEntry(event: AccessActivityEvent) {
       return {
         id: event.id,
         step: '리뷰 패키지 조립',
-        detail: '검증이 통과되어 business 레이어에서 review packet 조립을 시작했습니다.',
+        detail:
+          '검증이 통과되어 business 레이어에서 review packet 조립을 시작했습니다.',
         tone: 'info' as const,
       };
     case 'packet_ready':

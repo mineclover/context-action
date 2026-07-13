@@ -7,10 +7,9 @@
  * - Zero React re-renders with RefContext pattern
  */
 
+import { CodeBlock } from '@/components/ui';
 import { NonReactiveView } from './components/NonReactiveView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
-
-import { CodeBlock } from '@/components/ui';
 /**
  * Non-Reactive Context Store 페이지
  *

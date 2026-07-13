@@ -1,4 +1,3 @@
-
 import { CanonicalOrderProviders } from './handlers/CanonicalOrderHandlers';
 import { CanonicalOrderView } from './views/CanonicalOrderView';
 

@@ -47,7 +47,8 @@ export const initialRenewalValidationState: RenewalRiskReviewStores['validation'
     fieldErrors: {},
     focusField: null,
     hasAttemptedSubmit: false,
-    summary: '입력 후 renewal review packet 생성을 눌러 lifecycle 흐름을 확인해 보세요.',
+    summary:
+      '입력 후 renewal review packet 생성을 눌러 lifecycle 흐름을 확인해 보세요.',
   };
 
 export const initialRenewalReviewState: RenewalRiskReviewStores['review'] =

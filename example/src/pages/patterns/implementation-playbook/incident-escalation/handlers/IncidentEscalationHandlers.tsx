@@ -1,14 +1,14 @@
 import React from 'react';
 import {
+  createIncidentActivityEvent,
+  type IncidentActivityEventInput,
+} from '../business/incidentBusiness';
+import {
   IncidentEscalationActionProvider,
   IncidentEscalationRefProvider,
   IncidentEscalationStoreProvider,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
-import {
-  createIncidentActivityEvent,
-  type IncidentActivityEventInput,
-} from '../business/incidentBusiness';
 import { useIncidentDraftHandlers } from './useIncidentDraftHandlers';
 import { useIncidentSubmissionHandlers } from './useIncidentSubmissionHandlers';
 

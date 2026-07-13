@@ -182,9 +182,7 @@ function LogDetails({ details }: LogDetailsProps) {
       <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">
         Details
       </summary>
-      <CodeBlock size="sm">
-        {JSON.stringify(details, null, 2)}
-      </CodeBlock>
+      <CodeBlock size="sm">{JSON.stringify(details, null, 2)}</CodeBlock>
     </details>
   );
 }

@@ -20,7 +20,10 @@ function HomePage() {
       title="Context-Action Framework Examples"
       description="Interactive examples demonstrating the Context-Action framework's capabilities. Learn through hands-on experience with action pipelines, store management, and React integration."
     >
-      <Card variant="elevated" className="mb-8 border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50">
+      <Card
+        variant="elevated"
+        className="mb-8 border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50"
+      >
         <CardContent>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">

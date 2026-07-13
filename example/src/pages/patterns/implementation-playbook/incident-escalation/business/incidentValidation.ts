@@ -60,7 +60,10 @@ export function validateIncidentDraft(
     });
   }
 
-  if (draft.severity === 'sev1' && draft.communicationChannel !== 'statuspage') {
+  if (
+    draft.severity === 'sev1' &&
+    draft.communicationChannel !== 'statuspage'
+  ) {
     issues.push({
       field: 'communicationChannel',
       code: 'sev1_requires_statuspage',

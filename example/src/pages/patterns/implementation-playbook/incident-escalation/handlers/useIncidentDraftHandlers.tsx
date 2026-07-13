@@ -3,9 +3,9 @@ import {
   createEmptyIncidentDraft,
   createExampleIncidentDraft,
   createIncidentActivityEvent,
-  transitionIncidentEscalationState,
   type IncidentActivityEventInput,
   type IncidentDraftField,
+  transitionIncidentEscalationState,
 } from '../business/incidentBusiness';
 import {
   initialIncidentActivityState,
@@ -43,9 +43,13 @@ export function useIncidentDraftHandlers({
 
         validationStore.update((current) => ({
           ...current,
-          fieldErrors: removeResolvedFieldErrors(current.fieldErrors, changedKeys),
+          fieldErrors: removeResolvedFieldErrors(
+            current.fieldErrors,
+            changedKeys
+          ),
           focusField:
-            current.focusField !== null && changedKeys.includes(current.focusField)
+            current.focusField !== null &&
+            changedKeys.includes(current.focusField)
               ? null
               : current.focusField,
           summary: changedKeys.length
@@ -90,16 +94,20 @@ export function useIncidentDraftHandlers({
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyIncidentDraft());
-      storeManager.getStore('validation').setValue(initialIncidentValidationState);
+      storeManager
+        .getStore('validation')
+        .setValue(initialIncidentValidationState);
       storeManager.getStore('escalation').setValue(
         transitionIncidentEscalationState(initialIncidentEscalationState, {
           type: 'reset',
         })
       );
-      storeManager.getStore('activity').setValue([
-        ...initialIncidentActivityState,
-        createIncidentActivityEvent({ type: 'demo_reset' }),
-      ]);
+      storeManager
+        .getStore('activity')
+        .setValue([
+          ...initialIncidentActivityState,
+          createIncidentActivityEvent({ type: 'demo_reset' }),
+        ]);
 
       incidentTitleRef.executeIfMounted((target) => {
         target.focus();

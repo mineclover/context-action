@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { CodeBlock } from '@/components/ui';
+import { useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
 } from '@/components/LogMonitor';
-import { Button, DemoCard, Input } from '@/components/ui';
+import { Button, CodeBlock, DemoCard, Input } from '@/components/ui';
 
 /**
  * config.enableToast 명시적 설정 예제 페이지

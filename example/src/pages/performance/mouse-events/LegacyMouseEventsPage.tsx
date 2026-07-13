@@ -5,9 +5,8 @@
 
 import { createActionContext } from '@context-action/react';
 import React, { useCallback, useRef, useState } from 'react';
-import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { Badge, Card, CardContent } from '@/components/ui';
+import { Badge, Card, CardContent, CodeBlock } from '@/components/ui';
 
 // Mouse Events 관련 액션 타입 정의
 interface BasicMouseActions {

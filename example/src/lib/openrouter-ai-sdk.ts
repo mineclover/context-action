@@ -6,8 +6,14 @@
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import type { ActionSchemaMap, InferActionPayloadMap } from '@context-action/core';
-import type { ToolDispatchWithResultReturn, ToolRegistry } from '@context-action/react';
+import type {
+  ActionSchemaMap,
+  InferActionPayloadMap,
+} from '@context-action/core';
+import type {
+  ToolDispatchWithResultReturn,
+  ToolRegistry,
+} from '@context-action/react';
 import { dynamicTool, generateText, stepCountIs, type ToolSet } from 'ai';
 import type {
   ToolTextGenerationRequest,
@@ -21,7 +27,9 @@ export interface BrowserOpenRouterToolRunnerOptions {
 
 function createToolSet<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
-  dispatchWithResult: ToolDispatchWithResultReturn<InferActionPayloadMap<TSchema>>['dispatchWithResult']
+  dispatchWithResult: ToolDispatchWithResultReturn<
+    InferActionPayloadMap<TSchema>
+  >['dispatchWithResult']
 ): ToolSet {
   return Object.fromEntries(
     registry.getToolNames().map((toolName) => {
@@ -39,13 +47,17 @@ function createToolSet<TSchema extends ActionSchemaMap>(
             );
 
             if (!execution.success) {
-              throw new Error(execution.abortReason ?? `Tool ${String(toolName)} failed`);
+              throw new Error(
+                execution.abortReason ?? `Tool ${String(toolName)} failed`
+              );
             }
 
-            return execution.result ?? {
-              tool: String(toolName),
-              status: 'completed',
-            };
+            return (
+              execution.result ?? {
+                tool: String(toolName),
+                status: 'completed',
+              }
+            );
           },
         }),
       ];

@@ -127,7 +127,6 @@ export function useCartActions() {
           };
         }
 
-
         // NOTE: clearCart is intentionally NOT called here
         // This allows the user to see the final validation, calculation, and order results
         // Users can manually clear the cart using the "Clear Cart" button
@@ -304,7 +303,6 @@ export function useCartActionCallbacks() {
         // NOTE: clearCart is intentionally NOT called here
         // This allows the user to see the final validation, calculation, and order results
         // Users can manually clear the cart using the "Clear Cart" button
-
 
         callbacks?.onSuccess?.();
         return { success: true, step: 'completed' };

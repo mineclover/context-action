@@ -1,11 +1,11 @@
 import React from 'react';
 import {
+  type AccessActivityEventInput,
+  type AccessRequestField,
   createAccessActivityEvent,
   createEmptyAccessRequestDraft,
   createExampleAccessRequestDraft,
   transitionAccessReviewState,
-  type AccessActivityEventInput,
-  type AccessRequestField,
 } from '../business/accessBusiness';
 import {
   initialAccessActivityState,
@@ -21,7 +21,9 @@ interface DraftHandlerOptions {
   appendActivity: (event: AccessActivityEventInput) => void;
 }
 
-export function useAccessDraftHandlers({ appendActivity }: DraftHandlerOptions) {
+export function useAccessDraftHandlers({
+  appendActivity,
+}: DraftHandlerOptions) {
   const storeManager = useAccessRequestStoreManager();
   const requesterNameRef = useAccessRequestRef('requesterNameInput');
 
@@ -41,9 +43,13 @@ export function useAccessDraftHandlers({ appendActivity }: DraftHandlerOptions) 
 
         validationStore.update((current) => ({
           ...current,
-          fieldErrors: removeResolvedFieldErrors(current.fieldErrors, changedKeys),
+          fieldErrors: removeResolvedFieldErrors(
+            current.fieldErrors,
+            changedKeys
+          ),
           focusField:
-            current.focusField !== null && changedKeys.includes(current.focusField)
+            current.focusField !== null &&
+            changedKeys.includes(current.focusField)
               ? null
               : current.focusField,
           summary: changedKeys.length
@@ -67,7 +73,9 @@ export function useAccessDraftHandlers({ appendActivity }: DraftHandlerOptions) 
   useAccessRequestActionHandler(
     'prefillExample',
     React.useCallback(async () => {
-      storeManager.getStore('draft').setValue(createExampleAccessRequestDraft());
+      storeManager
+        .getStore('draft')
+        .setValue(createExampleAccessRequestDraft());
       storeManager.getStore('validation').setValue({
         ...initialAccessValidationState,
         summary:
@@ -86,16 +94,20 @@ export function useAccessDraftHandlers({ appendActivity }: DraftHandlerOptions) 
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyAccessRequestDraft());
-      storeManager.getStore('validation').setValue(initialAccessValidationState);
+      storeManager
+        .getStore('validation')
+        .setValue(initialAccessValidationState);
       storeManager.getStore('review').setValue(
         transitionAccessReviewState(initialAccessReviewState, {
           type: 'reset',
         })
       );
-      storeManager.getStore('activity').setValue([
-        ...initialAccessActivityState,
-        createAccessActivityEvent({ type: 'demo_reset' }),
-      ]);
+      storeManager
+        .getStore('activity')
+        .setValue([
+          ...initialAccessActivityState,
+          createAccessActivityEvent({ type: 'demo_reset' }),
+        ]);
 
       requesterNameRef.executeIfMounted((target) => {
         target.focus();

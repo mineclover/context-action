@@ -150,12 +150,12 @@ function UseActionWithResultUI() {
   // 🎯 Track validation history
   useEffect(() => {
     if (validation && validation.validatedBy !== 'initial') {
-      setValidationHistory(prev => [
+      setValidationHistory((prev) => [
         ...prev,
         {
           ...validation,
           timestamp: Date.now(),
-        }
+        },
       ]);
     }
   }, [validation]);
@@ -443,7 +443,10 @@ function UseActionWithResultUI() {
           {/* Validation Status */}
           {validation && (
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-              <ValidationView validation={validation} history={validationHistory} />
+              <ValidationView
+                validation={validation}
+                history={validationHistory}
+              />
             </div>
           )}
         </div>

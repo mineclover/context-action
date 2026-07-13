@@ -1,7 +1,5 @@
 import { useCallback } from 'react';
-import {
-  useChildAActionDispatch,
-} from '../contexts/ChildAContext';
+import { useChildAActionDispatch } from '../contexts/ChildAContext';
 
 /** View-facing dispatch helpers for Child A. */
 export function useChildACounterActions() {
@@ -23,4 +21,3 @@ export function useChildACounterActions() {
 export function useChildARemoteControlActions() {
   return { childId: 'child-a-counter' };
 }
-

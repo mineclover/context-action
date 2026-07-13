@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 // Comparison Strategy Variants - Direct Tailwind classes
 export const comparisonStrategyVariants = ({
   strategy = 'default',
-  throttled = false
+  throttled = false,
 }: {
   strategy?: 'reference' | 'shallow' | 'deep' | 'default';
   throttled?: boolean;
@@ -23,11 +23,12 @@ export const comparisonStrategyVariants = ({
 
 // Render Status Variants - Direct Tailwind classes
 export const renderStatusVariants = ({
-  status = 'safe'
+  status = 'safe',
 }: {
   status?: 'safe' | 'watch' | 'high' | 'danger';
 } = {}) => {
-  const baseClasses = 'inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium text-xs';
+  const baseClasses =
+    'inline-flex items-center gap-1 px-2 py-1 rounded-md font-medium text-xs';
   const statusClasses = {
     safe: 'text-green-600 bg-green-100',
     watch: 'text-yellow-600 bg-yellow-100',
@@ -40,7 +41,7 @@ export const renderStatusVariants = ({
 
 // Performance Card Variants - Direct Tailwind classes
 export const performanceCardVariants = ({
-  type = 'info'
+  type = 'info',
 }: {
   type?: 'info' | 'warning' | 'success' | 'error';
 } = {}) => {

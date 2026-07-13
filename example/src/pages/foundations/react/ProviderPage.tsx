@@ -5,13 +5,12 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
-import { CodeBlock } from '@/components/ui';
 import { useCallback, useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
 } from '@/components/LogMonitor';
-import { Badge, Button, Card, CardContent } from '@/components/ui';
+import { Badge, Button, Card, CardContent, CodeBlock } from '@/components/ui';
 
 // 액션 타입 정의
 interface ProviderActions extends ActionPayloadMap {

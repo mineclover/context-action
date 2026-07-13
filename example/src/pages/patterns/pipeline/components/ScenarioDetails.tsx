@@ -1,6 +1,5 @@
 import React from 'react';
-import { CodeBlock } from '@/components/ui';
-import { Badge, Card } from '@/components/ui';
+import { Badge, Card, CodeBlock } from '@/components/ui';
 import type { ScenarioConfig } from '../scenarios/types';
 
 interface ScenarioDetailsProps {

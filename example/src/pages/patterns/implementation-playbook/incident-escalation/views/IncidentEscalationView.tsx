@@ -1,8 +1,7 @@
-
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
-import { buildIncidentEscalationPacket } from '../business/incidentBusiness';
 import { useIncidentEscalationActions } from '../actions/useIncidentEscalationActions';
+import { buildIncidentEscalationPacket } from '../business/incidentBusiness';
 import {
   useIncidentEscalationData,
   useIncidentEscalationRefs,
@@ -159,7 +158,10 @@ export function IncidentEscalationView() {
                   value={draft.incidentTitle}
                 />
                 {validation.fieldErrors.incidentTitle && (
-                  <p className="text-sm text-red-600" data-testid="incident-title-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="incident-title-error"
+                  >
                     {validation.fieldErrors.incidentTitle}
                   </p>
                 )}
@@ -174,7 +176,9 @@ export function IncidentEscalationView() {
                   className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:bg-white"
                   data-testid="incident-severity-select"
                   onChange={(event) =>
-                    void updateSeverity(event.target.value as 'sev3' | 'sev2' | 'sev1')
+                    void updateSeverity(
+                      event.target.value as 'sev3' | 'sev2' | 'sev1'
+                    )
                   }
                   value={draft.severity}
                 >
@@ -202,7 +206,10 @@ export function IncidentEscalationView() {
                   value={draft.affectedUsers}
                 />
                 {validation.fieldErrors.affectedUsers && (
-                  <p className="text-sm text-red-600" data-testid="affected-users-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="affected-users-error"
+                  >
                     {validation.fieldErrors.affectedUsers}
                   </p>
                 )}
@@ -265,7 +272,10 @@ export function IncidentEscalationView() {
                 value={draft.summary}
               />
               {validation.fieldErrors.summary && (
-                <p className="text-sm text-red-600" data-testid="incident-summary-error">
+                <p
+                  className="text-sm text-red-600"
+                  data-testid="incident-summary-error"
+                >
                   {validation.fieldErrors.summary}
                 </p>
               )}
@@ -278,7 +288,9 @@ export function IncidentEscalationView() {
                 disabled={isBusy}
                 type="submit"
               >
-                {isBusy ? 'escalation packet 생성 중...' : 'escalation packet 생성'}
+                {isBusy
+                  ? 'escalation packet 생성 중...'
+                  : 'escalation packet 생성'}
               </button>
               <div className="self-center text-sm text-slate-500">
                 {hasErrors
@@ -300,7 +312,8 @@ export function IncidentEscalationView() {
                   {livePacket.priority}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  {draft.severity} · targets {livePacket.escalationTargets.length}명
+                  {draft.severity} · targets{' '}
+                  {livePacket.escalationTargets.length}명
                 </p>
               </div>
               <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
@@ -347,8 +360,13 @@ export function IncidentEscalationView() {
             <div className="text-sm font-semibold uppercase tracking-[0.16em]">
               escalation 상태
             </div>
-            <p className="mt-3 text-lg font-semibold">{escalationView.message}</p>
-            <p className="mt-2 text-sm opacity-80" data-testid="incident-validation-summary">
+            <p className="mt-3 text-lg font-semibold">
+              {escalationView.message}
+            </p>
+            <p
+              className="mt-2 text-sm opacity-80"
+              data-testid="incident-validation-summary"
+            >
               {validation.summary}
             </p>
 
@@ -383,7 +401,9 @@ export function IncidentEscalationView() {
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">실행 로그</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                실행 로그
+              </h2>
               <a
                 className="text-sm font-medium text-slate-500 transition hover:text-slate-700"
                 href="https://mineclover.github.io/context-action/ko/context-layered/patterns/explicit-state-machine"
@@ -400,7 +420,9 @@ export function IncidentEscalationView() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-900">{entry.step}</div>
+                    <div className="font-medium text-slate-900">
+                      {entry.step}
+                    </div>
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
                       {entry.tone}
                     </div>

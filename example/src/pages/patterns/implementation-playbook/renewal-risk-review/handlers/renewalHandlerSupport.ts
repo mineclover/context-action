@@ -152,7 +152,8 @@ export function toActivityEntry(event: RenewalActivityEvent) {
       return {
         id: event.id,
         step: '샘플 불러오기',
-        detail: 'renewal review 경로를 바로 볼 수 있도록 예시 입력을 채웠습니다.',
+        detail:
+          'renewal review 경로를 바로 볼 수 있도록 예시 입력을 채웠습니다.',
         tone: 'info' as const,
       };
     case 'demo_reset':
@@ -182,7 +183,8 @@ export function toActivityEntry(event: RenewalActivityEvent) {
       return {
         id: event.id,
         step: '리스크 점수 계산',
-        detail: '검증이 통과되어 business 레이어에서 renewal review packet 계산을 시작했습니다.',
+        detail:
+          '검증이 통과되어 business 레이어에서 renewal review packet 계산을 시작했습니다.',
         tone: 'info' as const,
       };
     case 'packet_ready':

@@ -7,10 +7,9 @@
  * - Traditional React rendering with Store-based state management
  */
 
+import { CodeBlock } from '@/components/ui';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
-
-import { CodeBlock } from '@/components/ui';
 /**
  * Enhanced Context Store - Reactive Pattern 페이지
  *

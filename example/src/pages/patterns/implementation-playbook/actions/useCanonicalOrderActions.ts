@@ -1,6 +1,6 @@
 import React from 'react';
-import { useCanonicalOrderDispatch } from '../contexts/CanonicalOrderContexts';
 import type { OrderDraft, OrderPlan } from '../business/orderBusiness';
+import { useCanonicalOrderDispatch } from '../contexts/CanonicalOrderContexts';
 
 type DraftStringField = 'customerName' | 'email' | 'notes';
 
@@ -39,10 +39,7 @@ export function useCanonicalOrderActions() {
     [dispatch]
   );
 
-  const resetDemo = React.useCallback(
-    () => dispatch('resetDemo'),
-    [dispatch]
-  );
+  const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
   return {
     updateTextField,

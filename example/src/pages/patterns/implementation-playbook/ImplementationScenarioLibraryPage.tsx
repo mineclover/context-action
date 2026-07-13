@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { GITHUB_CONFIG } from '../../../constants/github';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
@@ -94,9 +93,9 @@ export default function ImplementationScenarioLibraryPage() {
               같은 스킬로 다른 도메인 예제를 설계하는 기준
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              canonical order form에서 정리한 표준 컨벤션과 skill을
-              access request, incident escalation, renewal review 시나리오에
-              어떻게 옮길지 한 화면에서 확인합니다.
+              canonical order form에서 정리한 표준 컨벤션과 skill을 access
+              request, incident escalation, renewal review 시나리오에 어떻게
+              옮길지 한 화면에서 확인합니다.
             </p>
           </div>
 
@@ -142,7 +141,10 @@ export default function ImplementationScenarioLibraryPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {[
               ['contexts/', 'Action, Store, Ref 경계 정의'],
-              ['business/', 'draft, validation, result, activity, state machine'],
+              [
+                'business/',
+                'draft, validation, result, activity, state machine',
+              ],
               ['handlers/', 'draft 흐름과 submission 흐름 분리'],
               ['actions/', 'view-facing dispatch helper'],
               ['hooks/', '구독과 view용 파생값'],
@@ -167,7 +169,9 @@ export default function ImplementationScenarioLibraryPage() {
             <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
               <li>invalid submit에서 field error와 focus 이동</li>
               <li>valid submit에서 결과 계산과 success 전이</li>
-              <li>success 이후 draft 변경 시 idle 또는 fresh waiting 상태 복귀</li>
+              <li>
+                success 이후 draft 변경 시 idle 또는 fresh waiting 상태 복귀
+              </li>
               <li>reset 시 baseline 상태 복원</li>
             </ul>
           </div>

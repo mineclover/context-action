@@ -1,4 +1,3 @@
-
 import { IncidentEscalationProviders } from './handlers/IncidentEscalationHandlers';
 import { IncidentEscalationView } from './views/IncidentEscalationView';
 

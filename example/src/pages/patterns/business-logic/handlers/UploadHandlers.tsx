@@ -10,16 +10,19 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { FileUploadService } from '../services/FileUploadService';
+import { useUploadActionHandler } from '../contexts/UploadActionContext';
 import {
-  useUploadStore,
-  useUploadStoreManager,
   addFilesToQueue,
   clearProcessedUploads,
   resetUploadStore,
+  useUploadStore,
+  useUploadStoreManager,
 } from '../contexts/UploadStoreContext';
-import { useUploadActionHandler } from '../contexts/UploadActionContext';
-import type { ProcessState, UploadProgress } from '../services/FileUploadService';
+import type {
+  ProcessState,
+  UploadProgress,
+} from '../services/FileUploadService';
+import { FileUploadService } from '../services/FileUploadService';
 
 export function UploadHandlers({ children }: { children: React.ReactNode }) {
   const uploadStore = useUploadStore('upload');
@@ -96,11 +99,9 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
       }
 
       // Create File object (simulated)
-      const file = new File(
-        [new ArrayBuffer(fileState.size)],
-        fileState.name,
-        { type: 'application/octet-stream' }
-      );
+      const file = new File([new ArrayBuffer(fileState.size)], fileState.name, {
+        type: 'application/octet-stream',
+      });
 
       // Set current index
       state.currentIndex = i;
@@ -111,7 +112,11 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
         fileId: fileState.id,
         name: fileState.name,
         state: 'idle' as ProcessState,
-        progress: { bytesUploaded: 0, totalBytes: fileState.size, percentage: 0 },
+        progress: {
+          bytesUploaded: 0,
+          totalBytes: fileState.size,
+          percentage: 0,
+        },
         status: '',
       };
       uploadStore.notifyPath(['activeUpload']);
@@ -250,7 +255,11 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
       if (file.state === 'error') {
         file.state = 'idle';
         file.error = null;
-        file.progress = { bytesUploaded: 0, totalBytes: file.size, percentage: 0 };
+        file.progress = {
+          bytesUploaded: 0,
+          totalBytes: file.size,
+          percentage: 0,
+        };
         uploadStore.notifyPaths([
           ['queue', index, 'state'],
           ['queue', index, 'error'],

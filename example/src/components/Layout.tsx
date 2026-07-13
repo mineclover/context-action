@@ -2,7 +2,6 @@ import type React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
-
 interface NavItem {
   path: string;
   label: string;
@@ -43,12 +42,13 @@ interface LayoutProps {
 // Direct Tailwind classes for maximum style reusability
 function navItemVariants({
   variant = 'default',
-  category = 'main'
+  category = 'main',
 }: {
   variant?: 'default' | 'active' | 'disabled';
   category?: string;
 }) {
-  const baseClasses = 'block w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200';
+  const baseClasses =
+    'block w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200';
 
   const variantClasses = {
     default: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
@@ -224,7 +224,8 @@ function Layout({
       path: '/integrations/tool-context-ai',
       label: '🤖 ToolContext + AI SDK',
       category: 'demos',
-      description: 'AI SDK v7 tool loop controls UI through ToolContext and OpenRouter',
+      description:
+        'AI SDK v7 tool loop controls UI through ToolContext and OpenRouter',
     },
 
     // === Advanced Demos (고급 데모) ===

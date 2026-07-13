@@ -6,11 +6,11 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
 import {
-  textTitleVariants,
-  textHintVariants,
+  flexVariants,
   gridVariants,
   spacingVariants,
-  flexVariants,
+  textHintVariants,
+  textTitleVariants,
 } from './variants';
 
 // ================================
@@ -46,29 +46,47 @@ export interface RangeControlProps {
 export function ControlSection({ title, children }: ControlSectionProps) {
   return (
     <div>
-      <h4 className={cn(textTitleVariants({ variant: 'subsection' }))}>{title}</h4>
+      <h4 className={cn(textTitleVariants({ variant: 'subsection' }))}>
+        {title}
+      </h4>
       {children}
     </div>
   );
 }
 
-export function ControlButtonGroup({ children }: { children: React.ReactNode }) {
-  return <div className={cn(spacingVariants({ size: 'sm', direction: 'vertical' }))}>{children}</div>;
+export function ControlButtonGroup({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn(spacingVariants({ size: 'sm', direction: 'vertical' }))}>
+      {children}
+    </div>
+  );
 }
 
-export function ControlSettingsRow({ children }: { children: React.ReactNode }) {
+export function ControlSettingsRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn(
-      flexVariants({ align: 'center', gap: 'md' }),
-      'p-3 bg-gray-50 rounded-lg'
-    )}>
+    <div
+      className={cn(
+        flexVariants({ align: 'center', gap: 'md' }),
+        'p-3 bg-gray-50 rounded-lg'
+      )}
+    >
       {children}
     </div>
   );
 }
 
 export function ControlLabel({ children }: { children: React.ReactNode }) {
-  return <label className="text-sm font-medium text-gray-700">{children}</label>;
+  return (
+    <label className="text-sm font-medium text-gray-700">{children}</label>
+  );
 }
 
 export function RangeControl({
@@ -83,7 +101,8 @@ export function RangeControl({
   return (
     <div>
       <label className={cn(textHintVariants({ size: 'xs' }), 'block mb-1')}>
-        {label}: {value}{unit}
+        {label}: {value}
+        {unit}
       </label>
       <input
         type="range"

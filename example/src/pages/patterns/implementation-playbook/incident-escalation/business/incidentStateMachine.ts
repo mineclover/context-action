@@ -1,5 +1,5 @@
-import type { IncidentEscalationPacket } from './incidentEscalationPacket';
 import type { IncidentSeverity } from './incidentDraft';
+import type { IncidentEscalationPacket } from './incidentEscalationPacket';
 
 export type IncidentEscalationPhase =
   | 'idle'

@@ -1,5 +1,5 @@
-import type { AccessReviewPacket } from './accessReviewPacket';
 import type { AccessScope } from './accessDraft';
+import type { AccessReviewPacket } from './accessReviewPacket';
 
 export type AccessReviewPhase =
   | 'idle'

@@ -5,8 +5,6 @@ export function cn(...inputs: (string | undefined | null | false)[]): string {
   return clsx(...inputs);
 }
 
-
-
 export function formatTimestamp(timestamp: number): string {
   return new Intl.DateTimeFormat('ko-KR', {
     hour: '2-digit',

@@ -16,14 +16,14 @@
  * 5. UI Layer: Components (pure presentation)
  */
 
-import { UploadStoreProvider } from './contexts/UploadStoreContext';
-import { UploadActionProvider } from './contexts/UploadActionContext';
-import { UploadHandlers } from './handlers/UploadHandlers';
-import { FileUploadZone } from './components/FileUploadZone';
-import { StatisticsPanel } from './components/StatisticsPanel';
 import { ActiveUploadPanel } from './components/ActiveUploadPanel';
 import { ControlPanel } from './components/ControlPanel';
+import { FileUploadZone } from './components/FileUploadZone';
+import { StatisticsPanel } from './components/StatisticsPanel';
 import { UploadQueue } from './components/UploadQueue';
+import { UploadActionProvider } from './contexts/UploadActionContext';
+import { UploadStoreProvider } from './contexts/UploadStoreContext';
+import { UploadHandlers } from './handlers/UploadHandlers';
 
 export default function BusinessLogicPage() {
   return (
@@ -37,8 +37,9 @@ export default function BusinessLogicPage() {
                 🏗️ Business Logic Separation Pattern
               </h1>
               <p className="text-lg text-gray-700 mb-4">
-                A comprehensive demonstration of modular business logic with async
-                process state management using the Context-Action framework.
+                A comprehensive demonstration of modular business logic with
+                async process state management using the Context-Action
+                framework.
               </p>
 
               {/* Architecture Overview */}
@@ -52,7 +53,8 @@ export default function BusinessLogicPage() {
                       Business Logic
                     </span>
                     <span className="text-gray-700">
-                      FileUploadService - Pure functions (no React/store dependencies)
+                      FileUploadService - Pure functions (no React/store
+                      dependencies)
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
@@ -84,7 +86,8 @@ export default function BusinessLogicPage() {
                       UI Layer
                     </span>
                     <span className="text-gray-700">
-                      Components - Pure presentation with selective subscriptions
+                      Components - Pure presentation with selective
+                      subscriptions
                     </span>
                   </div>
                 </div>
@@ -127,7 +130,8 @@ export default function BusinessLogicPage() {
                     🎯 Selective Re-rendering
                   </h3>
                   <p className="text-sm text-pink-700">
-                    useStorePath subscriptions only re-render affected components
+                    useStorePath subscriptions only re-render affected
+                    components
                   </p>
                 </div>
               </div>

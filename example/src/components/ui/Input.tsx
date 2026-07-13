@@ -18,7 +18,8 @@ const inputVariants = {
   variants: {
     default: 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
     error: 'border-danger-300 focus:border-danger-500 focus:ring-danger-500',
-    success: 'border-success-300 focus:border-success-500 focus:ring-success-500',
+    success:
+      'border-success-300 focus:border-success-500 focus:ring-success-500',
   },
   sizes: {
     sm: 'px-3 py-2 text-sm',
@@ -45,7 +46,9 @@ export function Input({
     inputVariants.base,
     inputVariants.variants[errorVariant],
     inputVariants.sizes[size],
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="space-y-1">
@@ -57,11 +60,7 @@ export function Input({
           {label}
         </label>
       )}
-      <input
-        id={inputId}
-        className={cn(classes, className)}
-        {...props}
-      />
+      <input id={inputId} className={cn(classes, className)} {...props} />
       {error && <p className="text-sm text-danger-600">{error}</p>}
       {helper && !error && <p className="text-sm text-gray-500">{helper}</p>}
     </div>
@@ -98,7 +97,9 @@ export function Textarea({
     inputVariants.variants[errorVariant],
     inputVariants.sizes[size],
     'min-h-[80px]',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="space-y-1">
@@ -110,11 +111,7 @@ export function Textarea({
           {label}
         </label>
       )}
-      <textarea
-        id={textareaId}
-        className={cn(classes, className)}
-        {...props}
-      />
+      <textarea id={textareaId} className={cn(classes, className)} {...props} />
       {error && <p className="text-sm text-danger-600">{error}</p>}
       {helper && !error && <p className="text-sm text-gray-500">{helper}</p>}
     </div>

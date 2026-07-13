@@ -4,7 +4,11 @@
  */
 
 import { cn } from '../../lib/utils';
-import { metricsDisplayVariants, gridUtilityVariants, flexVariants } from './variants';
+import {
+  flexVariants,
+  gridUtilityVariants,
+  metricsDisplayVariants,
+} from './variants';
 
 export interface Metric {
   label: string;
@@ -43,7 +47,8 @@ export function MetricsDisplay({
     }
   };
 
-  const gridClasses = layout === 'grid' ? gridUtilityVariants({ cols: 2, gap: 'md' }) : '';
+  const gridClasses =
+    layout === 'grid' ? gridUtilityVariants({ cols: 2, gap: 'md' }) : '';
   const listClasses = layout === 'list' ? 'space-y-2' : '';
 
   return (
@@ -54,7 +59,10 @@ export function MetricsDisplay({
       <div className={cn(gridClasses, listClasses)}>
         {Array.isArray(metrics) ? (
           metrics.map((metric, index) => (
-            <div key={index} className={flexVariants({ justify: 'between', align: 'center' })}>
+            <div
+              key={index}
+              className={flexVariants({ justify: 'between', align: 'center' })}
+            >
               <span className="text-sm text-gray-600">{metric.label}:</span>
               <div className={flexVariants({ align: 'center', gap: 'xs' })}>
                 <span className="font-medium">
@@ -69,7 +77,10 @@ export function MetricsDisplay({
           ))
         ) : metrics && typeof metrics === 'object' ? (
           Object.entries(metrics).map(([key, value], index) => (
-            <div key={index} className={flexVariants({ justify: 'between', align: 'center' })}>
+            <div
+              key={index}
+              className={flexVariants({ justify: 'between', align: 'center' })}
+            >
               <span className="text-sm text-gray-600">{key}:</span>
               <span className="font-medium">{value}</span>
             </div>

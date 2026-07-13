@@ -1,8 +1,7 @@
-
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
-import { buildRenewalRiskPacket } from '../business/renewalBusiness';
 import { useRenewalRiskReviewActions } from '../actions/useRenewalRiskReviewActions';
+import { buildRenewalRiskPacket } from '../business/renewalBusiness';
 import {
   useRenewalRiskReviewData,
   useRenewalRiskReviewRefs,
@@ -118,8 +117,8 @@ export function RenewalRiskReviewView() {
                 Renewal Risk Review
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                validation, scoring, sponsor rule, success 이후 draft 변경 무효화까지
-                review workflow 한 흐름으로 보여줍니다.
+                validation, scoring, sponsor rule, success 이후 draft 변경
+                무효화까지 review workflow 한 흐름으로 보여줍니다.
               </p>
             </div>
             <div className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -150,7 +149,10 @@ export function RenewalRiskReviewView() {
                   value={draft.accountName}
                 />
                 {validation.fieldErrors.accountName && (
-                  <p className="text-sm text-red-600" data-testid="renewal-account-name-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="renewal-account-name-error"
+                  >
                     {validation.fieldErrors.accountName}
                   </p>
                 )}
@@ -165,7 +167,9 @@ export function RenewalRiskReviewView() {
                   className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:bg-white"
                   data-testid="renewal-window-select"
                   onChange={(event) =>
-                    void updateRenewalWindow(event.target.value as '30d' | '60d' | '90d')
+                    void updateRenewalWindow(
+                      event.target.value as '30d' | '60d' | '90d'
+                    )
                   }
                   value={draft.renewalWindow}
                 >
@@ -174,7 +178,10 @@ export function RenewalRiskReviewView() {
                   <option value="30d">30d</option>
                 </select>
                 {validation.fieldErrors.renewalWindow && (
-                  <p className="text-sm text-red-600" data-testid="renewal-window-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="renewal-window-error"
+                  >
                     {validation.fieldErrors.renewalWindow}
                   </p>
                 )}
@@ -199,7 +206,10 @@ export function RenewalRiskReviewView() {
                   value={draft.usageScore}
                 />
                 {validation.fieldErrors.usageScore && (
-                  <p className="text-sm text-red-600" data-testid="usage-score-error">
+                  <p
+                    className="text-sm text-red-600"
+                    data-testid="usage-score-error"
+                  >
                     {validation.fieldErrors.usageScore}
                   </p>
                 )}
@@ -233,7 +243,10 @@ export function RenewalRiskReviewView() {
                 value={draft.riskNotes}
               />
               {validation.fieldErrors.riskNotes && (
-                <p className="text-sm text-red-600" data-testid="risk-notes-error">
+                <p
+                  className="text-sm text-red-600"
+                  data-testid="risk-notes-error"
+                >
                   {validation.fieldErrors.riskNotes}
                 </p>
               )}
@@ -316,7 +329,10 @@ export function RenewalRiskReviewView() {
               review 상태
             </div>
             <p className="mt-3 text-lg font-semibold">{reviewView.message}</p>
-            <p className="mt-2 text-sm opacity-80" data-testid="renewal-validation-summary">
+            <p
+              className="mt-2 text-sm opacity-80"
+              data-testid="renewal-validation-summary"
+            >
               {validation.summary}
             </p>
 
@@ -351,7 +367,9 @@ export function RenewalRiskReviewView() {
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">실행 로그</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                실행 로그
+              </h2>
               <a
                 className="text-sm font-medium text-slate-500 transition hover:text-slate-700"
                 href="https://mineclover.github.io/context-action/ko/context-layered/patterns/explicit-state-machine"
@@ -368,7 +386,9 @@ export function RenewalRiskReviewView() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-900">{entry.step}</div>
+                    <div className="font-medium text-slate-900">
+                      {entry.step}
+                    </div>
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
                       {entry.tone}
                     </div>

@@ -1,4 +1,3 @@
-
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import CanonicalOrderExample from './CanonicalOrderExample';
 

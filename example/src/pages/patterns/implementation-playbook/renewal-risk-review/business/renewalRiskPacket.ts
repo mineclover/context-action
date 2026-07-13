@@ -1,7 +1,4 @@
-import type {
-  RenewalReviewDraft,
-  RenewalWindow,
-} from './renewalDraft';
+import type { RenewalReviewDraft, RenewalWindow } from './renewalDraft';
 
 export type RenewalRiskBand = 'healthy' | 'watch' | 'critical';
 

@@ -29,7 +29,10 @@ export function Section({
   contentClassName,
 }: SectionProps) {
   return (
-    <section className={cn(sectionVariants({ spacing, divider }), className)} id={id}>
+    <section
+      className={cn(sectionVariants({ spacing, divider }), className)}
+      id={id}
+    >
       {title && (
         <h2
           className={cn('text-2xl font-semibold text-gray-900', titleClassName)}
@@ -37,7 +40,12 @@ export function Section({
           {title}
         </h2>
       )}
-      <div className={cn(spacingVariants({ size: spacing, direction: 'vertical' }), contentClassName)}>
+      <div
+        className={cn(
+          spacingVariants({ size: spacing, direction: 'vertical' }),
+          contentClassName
+        )}
+      >
         {children}
       </div>
     </section>

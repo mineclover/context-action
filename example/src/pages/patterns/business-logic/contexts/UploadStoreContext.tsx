@@ -6,7 +6,11 @@
  */
 
 import { createTimeTravelStoreContext } from '@context-action/react';
-import type { ProcessState, UploadProgress, FileUploadResult } from '../services/FileUploadService';
+import type {
+  FileUploadResult,
+  ProcessState,
+  UploadProgress,
+} from '../services/FileUploadService';
 
 /**
  * Single file upload state
@@ -132,9 +136,5 @@ export function clearProcessedUploads(
   state.completedCount = 0;
   state.failedCount = 0;
 
-  store.notifyPaths([
-    ['queue'],
-    ['completedCount'],
-    ['failedCount'],
-  ]);
+  store.notifyPaths([['queue'], ['completedCount'], ['failedCount']]);
 }

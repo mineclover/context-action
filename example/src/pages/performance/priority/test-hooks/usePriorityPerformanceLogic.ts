@@ -108,7 +108,9 @@ export function usePriorityPerformanceLogic() {
       ({ instanceId }, controller) => {
         performanceStore.update((state) => ({
           ...state,
-          runningInstances: state.runningInstances.filter((id) => id !== instanceId),
+          runningInstances: state.runningInstances.filter(
+            (id) => id !== instanceId
+          ),
         }));
       }
     );
@@ -151,7 +153,9 @@ export function usePriorityPerformanceLogic() {
     // Computed values
     canOperate: !!register && !!dispatch,
     canModifyInstances:
-      !!register && !!dispatch && performanceState.runningInstances.length === 0,
+      !!register &&
+      !!dispatch &&
+      performanceState.runningInstances.length === 0,
     instanceCount: performanceState.instances.length,
     canRemove:
       performanceState.instances.length > 1 &&

@@ -6,10 +6,10 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
 import {
-  emptyStateVariants,
+  emptyStateHintVariants,
   emptyStateIconVariants,
   emptyStateTextVariants,
-  emptyStateHintVariants,
+  emptyStateVariants,
 } from './variants';
 
 // ================================

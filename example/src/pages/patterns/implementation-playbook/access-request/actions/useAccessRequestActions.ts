@@ -1,9 +1,9 @@
 import React from 'react';
-import { useAccessRequestDispatch } from '../contexts/AccessRequestContexts';
 import type {
   AccessRequestDraft,
   AccessScope,
 } from '../business/accessBusiness';
+import { useAccessRequestDispatch } from '../contexts/AccessRequestContexts';
 
 type DraftStringField = 'requesterName' | 'email' | 'justification';
 
@@ -25,7 +25,8 @@ export function useAccessRequestActions() {
   );
 
   const setProductionAccess = React.useCallback(
-    (productionAccess: boolean) => dispatch('updateDraft', { productionAccess }),
+    (productionAccess: boolean) =>
+      dispatch('updateDraft', { productionAccess }),
     [dispatch]
   );
 
@@ -39,10 +40,7 @@ export function useAccessRequestActions() {
     [dispatch]
   );
 
-  const resetDemo = React.useCallback(
-    () => dispatch('resetDemo'),
-    [dispatch]
-  );
+  const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
   return {
     updateTextField,

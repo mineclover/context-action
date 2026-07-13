@@ -1,4 +1,3 @@
-
 import { useRegisterSourceFile } from '../../../../hooks/useRegisterSourceFile';
 import AccessRequestExample from './AccessRequestExample';
 
@@ -37,7 +36,8 @@ function useAccessRequestSourceRegistration() {
     'pages/patterns/implementation-playbook/access-request/business/accessBusiness.ts',
     {
       name: 'accessBusiness',
-      description: 'Barrel export for the split access request business modules.',
+      description:
+        'Barrel export for the split access request business modules.',
       tags: ['business', 'implementation-playbook', 'access-request'],
       priority: 8,
     }

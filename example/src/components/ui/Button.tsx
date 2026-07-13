@@ -1,6 +1,6 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
-import { buttonVariants, type ButtonVariants } from './variants';
+import { type ButtonVariants, buttonVariants } from './variants';
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   ButtonVariants & {

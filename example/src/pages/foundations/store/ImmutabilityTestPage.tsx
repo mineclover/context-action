@@ -1,9 +1,8 @@
 import { createStore } from '@context-action/react';
 import { produce } from 'immer';
 import { useState } from 'react';
-import { CodeBlock } from '@/components/ui';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { Button, DemoCard } from '@/components/ui';
+import { Button, CodeBlock, DemoCard } from '@/components/ui';
 
 // 테스트용 객체 타입
 interface User {

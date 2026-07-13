@@ -105,4 +105,4 @@ export function useUserFormData() {
 }
 
 // Export types for other layers
-export type { User, UserValidationResult, UserOperationResult };
+export type { User, UserOperationResult, UserValidationResult };

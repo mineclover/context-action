@@ -278,4 +278,3 @@ export function useCartItemData(itemId?: string) {
     sortedItems: sortedCart,
   };
 }
-

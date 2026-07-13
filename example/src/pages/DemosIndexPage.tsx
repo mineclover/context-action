@@ -1,6 +1,6 @@
 /**
  * @fileoverview Demos Index Page - Interactive demonstrations hub
- * 
+ *
  * Comprehensive showcase of Context-Action framework capabilities through
  * interactive demonstrations and real-world use cases.
  */
@@ -27,11 +27,17 @@ const demos: DemoItem[] = [
     path: '/integrations/action-lifecycle',
     title: 'Action Lifecycle Workbench',
     emoji: '🧭',
-    description: '검증·정책·비즈니스 작업·감사 기록을 하나의 action pipeline 타임라인으로 확인하는 대표 데모.',
+    description:
+      '검증·정책·비즈니스 작업·감사 기록을 하나의 action pipeline 타임라인으로 확인하는 대표 데모.',
     tags: ['Action Pipeline', 'Lifecycle', 'Abort', 'Handler Results'],
     category: 'advanced',
     complexity: 'Intermediate',
-    features: ['Priority ordering', 'Blocking handlers', 'Abort reason', 'Result collection'],
+    features: [
+      'Priority ordering',
+      'Blocking handlers',
+      'Abort reason',
+      'Result collection',
+    ],
     estimatedTime: '5-10분',
   },
 
@@ -40,11 +46,17 @@ const demos: DemoItem[] = [
     path: '/integrations/tool-context-ai',
     title: 'ToolContext + AI SDK',
     emoji: '🤖',
-    description: 'AI SDK v7의 다단계 tool loop로 AI가 ToolContext를 통해 UI를 제어하는 브라우저 데모.',
+    description:
+      'AI SDK v7의 다단계 tool loop로 AI가 ToolContext를 통해 UI를 제어하는 브라우저 데모.',
     tags: ['AI SDK v7', 'Function Calling', 'Tools', 'Real-time UI Control'],
     category: 'advanced',
     complexity: 'Advanced',
-    features: ['ToolContext integration', 'OpenRouter API', 'AI SDK v7 tool loop', 'Real-time UI updates'],
+    features: [
+      'ToolContext integration',
+      'OpenRouter API',
+      'AI SDK v7 tool loop',
+      'Real-time UI updates',
+    ],
     estimatedTime: '10-15분',
   },
 
@@ -53,33 +65,56 @@ const demos: DemoItem[] = [
     path: '/foundations/store/time-travel',
     title: 'Time Travel Store',
     emoji: '🕰️',
-    description: 'Undo/Redo 기능을 갖춘 타임 트래블 스토어. 상태 히스토리 관리와 시간 여행 기능.',
+    description:
+      'Undo/Redo 기능을 갖춘 타임 트래블 스토어. 상태 히스토리 관리와 시간 여행 기능.',
     tags: ['Store', 'Undo/Redo', 'Time Travel', 'State History'],
     category: 'interaction',
     complexity: 'Intermediate',
-    features: ['Undo/Redo support', 'History management', 'State snapshots', 'Position tracking'],
+    features: [
+      'Undo/Redo support',
+      'History management',
+      'State snapshots',
+      'Position tracking',
+    ],
     estimatedTime: '5-10분',
   },
   {
     path: '/foundations/store/time-travel-context',
     title: 'Time Travel Context Pattern',
     emoji: '⏪',
-    description: 'createTimeTravelStoreContext를 사용한 컨텍스트 패턴. Patch 기반 최적화 포함.',
-    tags: ['Store', 'Context Pattern', 'Patch Optimization', 'Selective Subscription'],
+    description:
+      'createTimeTravelStoreContext를 사용한 컨텍스트 패턴. Patch 기반 최적화 포함.',
+    tags: [
+      'Store',
+      'Context Pattern',
+      'Patch Optimization',
+      'Selective Subscription',
+    ],
     category: 'advanced',
     complexity: 'Advanced',
-    features: ['Context pattern', 'useStorePath hook', 'Patch-based optimization', 'Render count reduction'],
+    features: [
+      'Context pattern',
+      'useStorePath hook',
+      'Patch-based optimization',
+      'Render count reduction',
+    ],
     estimatedTime: '10-15분',
   },
   {
     path: '/foundations/store/basics',
     title: 'Store Basics',
     emoji: '📦',
-    description: '스토어 시스템의 기본 사용법. createStore, useStoreValue 등 핵심 API.',
+    description:
+      '스토어 시스템의 기본 사용법. createStore, useStoreValue 등 핵심 API.',
     tags: ['Store', 'Basics', 'State Management', 'Subscription'],
     category: 'interaction',
     complexity: 'Beginner',
-    features: ['Store creation', 'Value subscription', 'State updates', 'Selector usage'],
+    features: [
+      'Store creation',
+      'Value subscription',
+      'State updates',
+      'Selector usage',
+    ],
     estimatedTime: '3-5분',
   },
 
@@ -88,22 +123,34 @@ const demos: DemoItem[] = [
     path: '/demos/chat',
     title: 'Real-time Chat',
     emoji: '💬',
-    description: '실시간 채팅 시스템 with auto-scroll, message history, and user management',
+    description:
+      '실시간 채팅 시스템 with auto-scroll, message history, and user management',
     tags: ['Real-time', 'Chat', 'Auto-scroll', 'Store Management'],
     category: 'business',
     complexity: 'Intermediate',
-    features: ['Real-time messaging', 'Auto-scroll', 'Message history', 'User management'],
+    features: [
+      'Real-time messaging',
+      'Auto-scroll',
+      'Message history',
+      'User management',
+    ],
     estimatedTime: '5-10분',
   },
   {
     path: '/integrations/advanced/form-builder',
     title: 'Dynamic Form Builder',
     emoji: '📝',
-    description: '동적 폼 빌더 with validation, conditional fields, and complex state management',
+    description:
+      '동적 폼 빌더 with validation, conditional fields, and complex state management',
     tags: ['Form', 'Validation', 'Dynamic Fields', 'Complex State'],
     category: 'business',
     complexity: 'Advanced',
-    features: ['Dynamic field generation', 'Real-time validation', 'Conditional logic', 'Form state management'],
+    features: [
+      'Dynamic field generation',
+      'Real-time validation',
+      'Conditional logic',
+      'Form state management',
+    ],
     estimatedTime: '10-15분',
   },
 
@@ -116,29 +163,51 @@ const demos: DemoItem[] = [
     tags: ['Priority', 'Performance', 'Metrics', 'Queue Management'],
     category: 'performance',
     complexity: 'Advanced',
-    features: ['Priority-based execution', 'Performance tracking', 'Queue management', 'Metrics visualization'],
+    features: [
+      'Priority-based execution',
+      'Performance tracking',
+      'Queue management',
+      'Metrics visualization',
+    ],
     estimatedTime: '10-15분',
   },
   {
     path: '/performance/mouse-events',
     title: 'High-Frequency Mouse Events',
     emoji: '🖱️',
-    description: '120fps 마우스 이벤트 처리 with Context-Action. 성능 비교 및 최적화.',
+    description:
+      '120fps 마우스 이벤트 처리 with Context-Action. 성능 비교 및 최적화.',
     tags: ['Mouse Events', 'High-Frequency', 'Performance', 'Real-time'],
     category: 'performance',
     complexity: 'Advanced',
-    features: ['120fps event handling', 'Context Store pattern', 'Non-reactive updates', 'Performance comparison'],
+    features: [
+      '120fps event handling',
+      'Context Store pattern',
+      'Non-reactive updates',
+      'Performance comparison',
+    ],
     estimatedTime: '10-15분',
   },
   {
     path: '/performance/memoization',
     title: 'Memoization Patterns',
     emoji: '🧠',
-    description: '메모이제이션을 통한 성능 최적화. useMemo, useCallback 활용 패턴.',
-    tags: ['Memoization', 'Performance', 'React Optimization', 'Re-render Prevention'],
+    description:
+      '메모이제이션을 통한 성능 최적화. useMemo, useCallback 활용 패턴.',
+    tags: [
+      'Memoization',
+      'Performance',
+      'React Optimization',
+      'Re-render Prevention',
+    ],
     category: 'performance',
     complexity: 'Intermediate',
-    features: ['useMemo patterns', 'useCallback optimization', 'Selector memoization', 'Component memoization'],
+    features: [
+      'useMemo patterns',
+      'useCallback optimization',
+      'Selector memoization',
+      'Component memoization',
+    ],
     estimatedTime: '5-10분',
   },
 
@@ -147,11 +216,17 @@ const demos: DemoItem[] = [
     path: '/patterns/layered-architecture',
     title: 'Layered Architecture (6-Layer)',
     emoji: '🏗️',
-    description: '6레이어 아키텍처 패턴. Handler Injection과 순수 비즈니스 로직 분리.',
+    description:
+      '6레이어 아키텍처 패턴. Handler Injection과 순수 비즈니스 로직 분리.',
     tags: ['Architecture', '6-Layer', 'Clean Code', 'Separation of Concerns'],
     category: 'advanced',
     complexity: 'Advanced',
-    features: ['6-layer separation', 'Handler injection', 'Pure business logic', 'Props-based DI'],
+    features: [
+      '6-layer separation',
+      'Handler injection',
+      'Pure business logic',
+      'Props-based DI',
+    ],
     estimatedTime: '15-20분',
   },
   {
@@ -162,7 +237,12 @@ const demos: DemoItem[] = [
     tags: ['Pipeline', 'Flow Control', 'Async', 'Workflow'],
     category: 'advanced',
     complexity: 'Advanced',
-    features: ['Pipeline execution', 'Flow control', 'Abort handling', 'Result collection'],
+    features: [
+      'Pipeline execution',
+      'Flow control',
+      'Abort handling',
+      'Result collection',
+    ],
     estimatedTime: '10-15분',
   },
   {
@@ -173,7 +253,12 @@ const demos: DemoItem[] = [
     tags: ['Conditional', 'Permission', 'Validation', 'Feature Toggle'],
     category: 'interaction',
     complexity: 'Intermediate',
-    features: ['Permission-based execution', 'Form validation', 'Workflow steps', 'Feature toggles'],
+    features: [
+      'Permission-based execution',
+      'Form validation',
+      'Workflow steps',
+      'Feature toggles',
+    ],
     estimatedTime: '10-15분',
   },
 
@@ -182,22 +267,34 @@ const demos: DemoItem[] = [
     path: '/react/useActionWithResult',
     title: 'useActionWithResult Hook',
     emoji: '✨',
-    description: 'Action 결과를 직접 반환받는 훅. 비동기 결과 처리와 상태 관리.',
+    description:
+      'Action 결과를 직접 반환받는 훅. 비동기 결과 처리와 상태 관리.',
     tags: ['React Hook', 'Action Result', 'Async', 'Type Safety'],
     category: 'interaction',
     complexity: 'Intermediate',
-    features: ['Result return', 'Async handling', 'Error management', 'Type-safe actions'],
+    features: [
+      'Result return',
+      'Async handling',
+      'Error management',
+      'Type-safe actions',
+    ],
     estimatedTime: '5-10분',
   },
   {
     path: '/react/imperativeRef',
     title: 'Imperative Ref Pattern',
     emoji: '🎯',
-    description: 'useImperativeHandle과 Ref Context 통합. 명령형 컴포넌트 제어.',
+    description:
+      'useImperativeHandle과 Ref Context 통합. 명령형 컴포넌트 제어.',
     tags: ['Ref', 'Imperative Handle', 'Component Control', 'Context'],
     category: 'interaction',
     complexity: 'Advanced',
-    features: ['Imperative handle', 'Ref context', 'Component methods', 'Cross-component control'],
+    features: [
+      'Imperative handle',
+      'Ref context',
+      'Component methods',
+      'Cross-component control',
+    ],
     estimatedTime: '10-15분',
   },
 
@@ -210,7 +307,12 @@ const demos: DemoItem[] = [
     tags: ['Logger', 'Dev Tools', 'Debugging', 'Structured Logging'],
     category: 'interaction',
     complexity: 'Beginner',
-    features: ['Structured logging', 'Log filtering', 'Log levels', 'Console integration'],
+    features: [
+      'Structured logging',
+      'Log filtering',
+      'Log levels',
+      'Console integration',
+    ],
     estimatedTime: '3-5분',
   },
 ];
@@ -218,7 +320,12 @@ const demos: DemoItem[] = [
 const categories = [
   { key: 'business', label: '비즈니스 로직', emoji: '🏢', color: 'blue' },
   { key: 'performance', label: '성능 최적화', emoji: '⚡', color: 'green' },
-  { key: 'interaction', label: '사용자 인터랙션', emoji: '🎯', color: 'purple' },
+  {
+    key: 'interaction',
+    label: '사용자 인터랙션',
+    emoji: '🎯',
+    color: 'purple',
+  },
   { key: 'advanced', label: '고급 기능', emoji: '🚀', color: 'orange' },
 ];
 
@@ -230,10 +337,7 @@ const complexityColors = {
 
 export default function DemosIndexPage() {
   return (
-    <PageWithLogMonitor
-      pageId="demos-index"
-      title="🎭 Context-Action Demos"
-    >
+    <PageWithLogMonitor pageId="demos-index" title="🎭 Context-Action Demos">
       <div className="page-container">
         <div className="max-w-6xl mx-auto p-6">
           {/* Hero Section */}
@@ -245,8 +349,9 @@ export default function DemosIndexPage() {
                   Context-Action Interactive Demos
                 </h1>
                 <p className="text-purple-800 text-lg mb-6">
-                  Context-Action 프레임워크의 실용적인 데모들을 통해 실제 사용 사례를 학습하세요.
-                  각 데모는 특정 기능이나 패턴을 집중적으로 보여주며, 실제 프로젝트에서 바로 적용할 수 있습니다.
+                  Context-Action 프레임워크의 실용적인 데모들을 통해 실제 사용
+                  사례를 학습하세요. 각 데모는 특정 기능이나 패턴을 집중적으로
+                  보여주며, 실제 프로젝트에서 바로 적용할 수 있습니다.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -255,11 +360,24 @@ export default function DemosIndexPage() {
                       🚀 주요 특징
                     </h3>
                     <ul className="text-purple-700 space-y-2 text-sm">
-                      <li>• <strong>실시간 데모</strong>: 즉시 실행 가능한 인터랙티브 예제</li>
-                      <li>• <strong>실용적 사례</strong>: 실제 프로젝트에서 사용되는 패턴</li>
-                      <li>• <strong>단계별 학습</strong>: 초급부터 고급까지 체계적 학습</li>
-                      <li>• <strong>성능 최적화</strong>: 최적화 기법과 모범 사례</li>
-                      <li>• <strong>코드 예제</strong>: 복사 가능한 실제 코드</li>
+                      <li>
+                        • <strong>실시간 데모</strong>: 즉시 실행 가능한
+                        인터랙티브 예제
+                      </li>
+                      <li>
+                        • <strong>실용적 사례</strong>: 실제 프로젝트에서
+                        사용되는 패턴
+                      </li>
+                      <li>
+                        • <strong>단계별 학습</strong>: 초급부터 고급까지 체계적
+                        학습
+                      </li>
+                      <li>
+                        • <strong>성능 최적화</strong>: 최적화 기법과 모범 사례
+                      </li>
+                      <li>
+                        • <strong>코드 예제</strong>: 복사 가능한 실제 코드
+                      </li>
                     </ul>
                   </div>
 
@@ -268,10 +386,21 @@ export default function DemosIndexPage() {
                       📋 학습 가이드
                     </h3>
                     <ul className="text-purple-700 space-y-2 text-sm">
-                      <li>• <strong>시작점</strong>: Action Lifecycle Workbench로 pipeline 흐름 확인</li>
-                      <li>• <strong>상태 관리</strong>: Time Travel Context에서 선택 구독과 history 학습</li>
-                      <li>• <strong>업무 흐름</strong>: Implementation Playbook과 ToolContext AI로 심화</li>
-                      <li>• <strong>개발자</strong>: 코드 분석과 커스터마이징</li>
+                      <li>
+                        • <strong>시작점</strong>: Action Lifecycle Workbench로
+                        pipeline 흐름 확인
+                      </li>
+                      <li>
+                        • <strong>상태 관리</strong>: Time Travel Context에서
+                        선택 구독과 history 학습
+                      </li>
+                      <li>
+                        • <strong>업무 흐름</strong>: Implementation Playbook과
+                        ToolContext AI로 심화
+                      </li>
+                      <li>
+                        • <strong>개발자</strong>: 코드 분석과 커스터마이징
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -289,9 +418,9 @@ export default function DemosIndexPage() {
                   Start with the Action Lifecycle Workbench
                 </h2>
                 <p className="mt-2 text-slate-700 max-w-3xl">
-                  Begin with one action moving through validation, policy, business,
-                  and audit handlers. Then use the canonical order form to see the
-                  same ideas composed into a complete workflow.
+                  Begin with one action moving through validation, policy,
+                  business, and audit handlers. Then use the canonical order
+                  form to see the same ideas composed into a complete workflow.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -318,7 +447,9 @@ export default function DemosIndexPage() {
             <h2 className="text-2xl font-bold mb-6">📂 카테고리별 데모</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {categories.map((category) => {
-                const categoryDemos = demos.filter(demo => demo.category === category.key);
+                const categoryDemos = demos.filter(
+                  (demo) => demo.category === category.key
+                );
                 return (
                   <div
                     key={category.key}
@@ -326,7 +457,9 @@ export default function DemosIndexPage() {
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">{category.emoji}</span>
-                      <h3 className="font-semibold text-gray-800">{category.label}</h3>
+                      <h3 className="font-semibold text-gray-800">
+                        {category.label}
+                      </h3>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
                       {categoryDemos.length}개 데모
@@ -377,7 +510,7 @@ export default function DemosIndexPage() {
                           {demo.complexity}
                         </Badge>
                       </div>
-                      
+
                       <p className="text-gray-600 text-sm mb-4">
                         {demo.description}
                       </p>
@@ -395,14 +528,16 @@ export default function DemosIndexPage() {
 
                       <div className="space-y-2">
                         <div className="text-sm">
-                          <span className="font-medium text-gray-700">주요 기능:</span>
+                          <span className="font-medium text-gray-700">
+                            주요 기능:
+                          </span>
                           <ul className="text-gray-600 text-xs mt-1 space-y-1">
                             {demo.features.map((feature, index) => (
                               <li key={index}>• {feature}</li>
                             ))}
                           </ul>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500">
                             예상 시간: {demo.estimatedTime}
@@ -508,13 +643,22 @@ export default function DemosIndexPage() {
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h2 className="text-xl font-bold mb-4">🔗 추가 자료</h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a href="/foundations" className="text-blue-600 hover:text-blue-800 text-sm hover:underline">
+              <a
+                href="/foundations"
+                className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
+              >
                 📖 기초 개념
               </a>
-              <a href="/performance" className="text-blue-600 hover:text-blue-800 text-sm hover:underline">
+              <a
+                href="/performance"
+                className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
+              >
                 ⚡ 성능 최적화
               </a>
-              <a href="/patterns" className="text-blue-600 hover:text-blue-800 text-sm hover:underline">
+              <a
+                href="/patterns"
+                className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
+              >
                 🎨 패턴 가이드
               </a>
             </div>

@@ -171,9 +171,7 @@ const LayeredArchitecturePage = lazy(
 );
 const CanonicalOrderExamplePage = lazy(
   () =>
-    import(
-      './pages/patterns/implementation-playbook/CanonicalOrderExamplePage'
-    )
+    import('./pages/patterns/implementation-playbook/CanonicalOrderExamplePage')
 );
 const ImplementationScenarioLibraryPage = lazy(
   () =>
@@ -234,7 +232,8 @@ const ToolContextAIDemo = lazy(
   () => import('./pages/integrations/ai/ToolContextAIDemo')
 );
 const ActionLifecycleWorkbenchPage = lazy(
-  () => import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
+  () =>
+    import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
 );
 
 // Integrations - Advanced (separate chunk for advanced features)
@@ -551,8 +550,14 @@ function AppContent() {
             />
 
             {/* 🧩 INTEGRATIONS - Real-world use cases */}
-            <Route path="/integrations/action-lifecycle" element={<ActionLifecycleWorkbenchPage />} />
-            <Route path="/integrations/tool-context-ai" element={<ToolContextAIDemo />} />
+            <Route
+              path="/integrations/action-lifecycle"
+              element={<ActionLifecycleWorkbenchPage />}
+            />
+            <Route
+              path="/integrations/tool-context-ai"
+              element={<ToolContextAIDemo />}
+            />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route
               path="/integrations/advanced/form-builder"
@@ -691,7 +696,7 @@ function AppContent() {
             <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
             {/* 🛡️ ACTION GUARD - Performance optimization demos */}
             <Route path="/action-guard" element={<ActionGuardIndexPage />} />
-            
+
             {/* 🎭 DEMOS - Interactive demonstrations */}
             <Route path="/demos" element={<DemosIndexPage />} />
             <Route path="/demos/chat" element={<ChatPage />} />

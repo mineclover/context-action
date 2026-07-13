@@ -38,7 +38,9 @@ export function useIncidentEscalationRefs() {
     incidentTitleRef: useIncidentEscalationRef('incidentTitleInput'),
     severityRef: useIncidentEscalationRef('severitySelect'),
     affectedUsersRef: useIncidentEscalationRef('affectedUsersInput'),
-    communicationChannelRef: useIncidentEscalationRef('communicationChannelSelect'),
+    communicationChannelRef: useIncidentEscalationRef(
+      'communicationChannelSelect'
+    ),
     summaryRef: useIncidentEscalationRef('summaryInput'),
     statusPanelRef: useIncidentEscalationRef('statusPanel'),
   };

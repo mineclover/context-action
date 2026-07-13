@@ -5,8 +5,8 @@
  * These tools can be called by AI models to interact with the UI
  */
 
+import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
-import { defineAction, createActionSchema } from '@context-action/react';
 
 /**
  * Toggle theme between light and dark
@@ -16,7 +16,10 @@ export const toggleThemeTool = defineAction(
     name: 'toggleTheme',
     description: 'Toggle the UI theme between light and dark mode',
     parameters: z.object({
-      theme: z.enum(['light', 'dark']).optional().describe('Target theme (if not provided, toggles current)'),
+      theme: z
+        .enum(['light', 'dark'])
+        .optional()
+        .describe('Target theme (if not provided, toggles current)'),
     }),
   },
   z
@@ -45,7 +48,11 @@ export const addListItemTool = defineAction(
     description: 'Add an item to the display list',
     parameters: z.object({
       item: z.string().min(1).max(100).describe('Item text to add'),
-      priority: z.enum(['low', 'medium', 'high']).optional().default('medium').describe('Priority level of the item'),
+      priority: z
+        .enum(['low', 'medium', 'high'])
+        .optional()
+        .default('medium')
+        .describe('Priority level of the item'),
     }),
   },
   z
@@ -59,7 +66,11 @@ export const clearListTool = defineAction(
     name: 'clearList',
     description: 'Clear all items from the display list',
     parameters: z.object({
-      confirm: z.boolean().optional().default(true).describe('Confirm clearing the list'),
+      confirm: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe('Confirm clearing the list'),
     }),
   },
   z
@@ -74,8 +85,16 @@ export const showNotificationTool = defineAction(
     description: 'Show a notification message to the user',
     parameters: z.object({
       message: z.string().min(1).max(200).describe('Notification message'),
-      type: z.enum(['info', 'success', 'warning', 'error']).optional().default('info').describe('Notification type'),
-      duration: z.number().optional().default(3000).describe('Duration in milliseconds'),
+      type: z
+        .enum(['info', 'success', 'warning', 'error'])
+        .optional()
+        .default('info')
+        .describe('Notification type'),
+      duration: z
+        .number()
+        .optional()
+        .default(3000)
+        .describe('Duration in milliseconds'),
     }),
   },
   z
@@ -101,7 +120,8 @@ export const updateCounterTool = defineAction(
 export const getUiStateTool = defineAction(
   {
     name: 'getUiState',
-    description: 'Get the current state of the UI (theme, counter, list items, etc)',
+    description:
+      'Get the current state of the UI (theme, counter, list items, etc)',
     parameters: z.object({
       fields: z
         .array(z.enum(['theme', 'counter', 'listItems', 'heading']))

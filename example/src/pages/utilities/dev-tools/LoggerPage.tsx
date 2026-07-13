@@ -1,35 +1,35 @@
 import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
 import { useCallback, useEffect, useState } from 'react';
-import { CodeBlock } from '@/components/ui';
 import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
   useLogMonitor,
 } from '@/components/LogMonitor';
+import { CodeBlock } from '@/components/ui';
 import {
-  demoCardVariants,
-  buttonVariants,
-  textTitleVariants,
-  textHintVariants,
-  logLevelSelectorVariants,
-  controlGroupVariants,
-  selectInputVariants,
   buttonGroupVariants,
-  memoryLogContainerVariants,
-  factoryControlsVariants,
-  loggerInfoVariants,
-  pageContainerVariants,
-  generalPageHeaderVariants,
-  pageTitleVariants,
-  pageDescriptionVariants,
-  codeExampleVariants,
+  buttonVariants,
   codeExampleTitleVariants,
-  textInputVariants,
-  loggerDemoCardVariants,
-  loggerButtonVariants,
-  loggerInputVariants,
+  codeExampleVariants,
+  controlGroupVariants,
   controlLabelVariants,
+  demoCardVariants,
+  factoryControlsVariants,
+  generalPageHeaderVariants,
+  loggerButtonVariants,
+  loggerDemoCardVariants,
+  loggerInfoVariants,
+  loggerInputVariants,
+  logLevelSelectorVariants,
+  memoryLogContainerVariants,
+  pageContainerVariants,
+  pageDescriptionVariants,
+  pageTitleVariants,
+  selectInputVariants,
+  textHintVariants,
+  textInputVariants,
+  textTitleVariants,
 } from '@/components/ui/variants';
 import {
   ConsoleLogger,
@@ -302,37 +302,95 @@ function ConsoleLoggerDemo() {
 
   return (
     <div className={loggerDemoCardVariants({ type: 'default' })}>
-      <h3 className={textTitleVariants({ variant: 'section' })}>Console Logger Demo</h3>
-      <p className={textHintVariants()}>Check your browser console for log output</p>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        Console Logger Demo
+      </h3>
+      <p className={textHintVariants()}>
+        Check your browser console for log output
+      </p>
 
       <LogLevelSelector level={logLevel} onChange={setLogLevel} />
 
       <div className="flex flex-wrap gap-2">
-        <button onClick={testActions} className={loggerButtonVariants({ variant: 'primary', type: 'console' })}>
+        <button
+          onClick={testActions}
+          className={loggerButtonVariants({
+            variant: 'primary',
+            type: 'console',
+          })}
+        >
           Test All Levels
         </button>
-        <button onClick={dispatchAction} className={loggerButtonVariants({ variant: 'secondary', type: 'console' })}>
+        <button
+          onClick={dispatchAction}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'console',
+          })}
+        >
           Dispatch Action
         </button>
-        <button onClick={dispatchAsync} className={loggerButtonVariants({ variant: 'secondary', type: 'console' })}>
+        <button
+          onClick={dispatchAsync}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'console',
+          })}
+        >
           Async Action
         </button>
-        <button onClick={dispatchError} className={loggerButtonVariants({ variant: 'success', type: 'console' })}>
+        <button
+          onClick={dispatchError}
+          className={loggerButtonVariants({
+            variant: 'success',
+            type: 'console',
+          })}
+        >
           Throw Error
         </button>
-        <button onClick={dispatchAction} className={loggerButtonVariants({ variant: 'secondary', type: 'console' })}>
+        <button
+          onClick={dispatchAction}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'console',
+          })}
+        >
           Dispatch Action
         </button>
-        <button onClick={dispatchAsync} className={loggerButtonVariants({ variant: 'secondary', type: 'console' })}>
+        <button
+          onClick={dispatchAsync}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'console',
+          })}
+        >
           Async Action
         </button>
-        <button onClick={dispatchError} className={loggerButtonVariants({ variant: 'success', type: 'console' })}>
+        <button
+          onClick={dispatchError}
+          className={loggerButtonVariants({
+            variant: 'success',
+            type: 'console',
+          })}
+        >
           Throw Error
         </button>
-        <button onClick={dispatchAsync} className={loggerButtonVariants({ variant: 'secondary', type: 'console' })}>
+        <button
+          onClick={dispatchAsync}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'console',
+          })}
+        >
           Async Action
         </button>
-        <button onClick={dispatchError} className={loggerButtonVariants({ variant: 'success', type: 'console' })}>
+        <button
+          onClick={dispatchError}
+          className={loggerButtonVariants({
+            variant: 'success',
+            type: 'console',
+          })}
+        >
           Trigger Error
         </button>
       </div>
@@ -425,24 +483,44 @@ function MemoryLoggerDemo() {
   return (
     <div className={loggerDemoCardVariants({ type: 'memory' })}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={textTitleVariants({ variant: 'section' })}>Memory Logger Demo</h3>
-        <button onClick={clearLogs} className={loggerButtonVariants({ variant: 'secondary', type: 'memory' })}>
+        <h3 className={textTitleVariants({ variant: 'section' })}>
+          Memory Logger Demo
+        </h3>
+        <button
+          onClick={clearLogs}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'memory',
+          })}
+        >
           Clear
         </button>
       </div>
 
       <LogLevelSelector level={logLevel} onChange={setLogLevel} />
 
-       <div className="flex flex-wrap gap-2">
-         <button onClick={testLogger} className={loggerButtonVariants({ variant: 'primary', type: 'memory' })}>
-           Test Logger
-         </button>
-         <button onClick={batchLog} className={loggerButtonVariants({ variant: 'secondary', type: 'memory' })}>
-           Batch Log (5)
-         </button>
-       </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={testLogger}
+          className={loggerButtonVariants({
+            variant: 'primary',
+            type: 'memory',
+          })}
+        >
+          Test Logger
+        </button>
+        <button
+          onClick={batchLog}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'memory',
+          })}
+        >
+          Batch Log (5)
+        </button>
+      </div>
 
-       <div className={memoryLogContainerVariants()}>
+      <div className={memoryLogContainerVariants()}>
         {logs.length === 0 ? (
           <div className="log-empty">No logs yet...</div>
         ) : (
@@ -508,16 +586,18 @@ function LoggerFactoryDemo() {
 
   return (
     <div className={loggerDemoCardVariants({ type: 'factory' })}>
-      <h3 className={textTitleVariants({ variant: 'section' })}>Logger Factory Demo</h3>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        Logger Factory Demo
+      </h3>
 
-       <div className={factoryControlsVariants()}>
-         <div className={controlGroupVariants()}>
-            <label className={controlLabelVariants()}>Environment Level:</label>
-            <select
-              value={envLevel}
-              onChange={(e) => setEnvLevel(e.target.value)}
-              className={loggerInputVariants({ type: 'factory' })}
-           >
+      <div className={factoryControlsVariants()}>
+        <div className={controlGroupVariants()}>
+          <label className={controlLabelVariants()}>Environment Level:</label>
+          <select
+            value={envLevel}
+            onChange={(e) => setEnvLevel(e.target.value)}
+            className={loggerInputVariants({ type: 'factory' })}
+          >
             <option value="TRACE">TRACE</option>
             <option value="DEBUG">DEBUG</option>
             <option value="INFO">INFO</option>
@@ -528,23 +608,29 @@ function LoggerFactoryDemo() {
         </div>
 
         <div className={controlGroupVariants()}>
-            <label className={controlLabelVariants()}>Prefix:</label>
-           <input
-             type="text"
-             value={customPrefix}
-             onChange={(e) => setCustomPrefix(e.target.value)}
-             className={textInputVariants({ size: 'small' })}
-           />
-         </div>
-       </div>
+          <label className={controlLabelVariants()}>Prefix:</label>
+          <input
+            type="text"
+            value={customPrefix}
+            onChange={(e) => setCustomPrefix(e.target.value)}
+            className={textInputVariants({ size: 'small' })}
+          />
+        </div>
+      </div>
 
-       <div className={buttonGroupVariants()}>
-         <button onClick={createCustomLogger} className={buttonVariants({ variant: 'primary' })}>
+      <div className={buttonGroupVariants()}>
+        <button
+          onClick={createCustomLogger}
+          className={buttonVariants({ variant: 'primary' })}
+        >
           Create Logger
         </button>
         <button
           onClick={testLogger}
-          className={loggerButtonVariants({ variant: 'secondary', type: 'factory' })}
+          className={loggerButtonVariants({
+            variant: 'secondary',
+            type: 'factory',
+          })}
           disabled={!logger}
         >
           Test Logger
@@ -553,8 +639,8 @@ function LoggerFactoryDemo() {
 
       {logger && (
         <div className={loggerInfoVariants()}>
-           <p>Logger created! Check console for output.</p>
-         </div>
+          <p>Logger created! Check console for output.</p>
+        </div>
       )}
     </div>
   );
@@ -846,7 +932,10 @@ export function useChildARemoteControlActions() {
             <h4 className="font-semibold mb-2 text-red-900">
               ❌ 위험한 패턴 (무한루프 발생)
             </h4>
-            <CodeBlock size="sm" className="bg-red-900 text-red-100 border-red-300">
+            <CodeBlock
+              size="sm"
+              className="bg-red-900 text-red-100 border-red-300"
+            >
               {`// 위험! actionLogger를 의존성에 포함하면 무한루프 발생
 function MyComponent() {
   const actionLogger = useActionLogger();
@@ -871,7 +960,10 @@ function MyComponent() {
             <h4 className="font-semibold mb-2 text-green-900">
               ✅ 안전한 패턴 (권장)
             </h4>
-            <CodeBlock size="sm" className="bg-green-900 text-green-100 border-green-300">
+            <CodeBlock
+              size="sm"
+              className="bg-green-900 text-green-100 border-green-300"
+            >
               {`// 안전! 의존성에서 제외하여 무한루프 방지
 function MyComponent() {
   const actionLogger = useActionLogger();
