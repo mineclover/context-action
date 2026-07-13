@@ -55,15 +55,18 @@ describe('ActionRegister - Advanced Features', () => {
       });
 
       // Rapid successive calls
-      actionRegister.dispatch('debounceAction', { value: 'call1' });
-      actionRegister.dispatch('debounceAction', { value: 'call2' });
-      actionRegister.dispatch('debounceAction', { value: 'call3' });
+      const dispatches = [
+        actionRegister.dispatch('debounceAction', { value: 'call1' }),
+        actionRegister.dispatch('debounceAction', { value: 'call2' }),
+        actionRegister.dispatch('debounceAction', { value: 'call3' })
+      ];
 
       // Should not execute yet
       expect(executionCount).toBe(0);
 
-      // Wait for debounce to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for every debounced dispatch to settle. Superseded dispatches
+      // resolve without running the handler, while the final call executes.
+      await Promise.all(dispatches);
 
       expect(executionCount).toBe(1); // Only executed once despite 3 calls
     });

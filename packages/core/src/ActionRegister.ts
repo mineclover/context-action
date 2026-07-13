@@ -692,10 +692,22 @@ export class ActionRegister<
       }, timeoutScope.options, attemptState, undefined, () => this.getHandlerCount(action) > 0);
     };
 
+    const hasTimingGuard = (
+      options?.debounce !== undefined ||
+      options?.throttle !== undefined ||
+      this.pipelines.get(action)?.some(handler => (
+        handler.config.debounce !== undefined ||
+        handler.config.throttle !== undefined
+      )) === true
+    );
+
     let dispatchPromise: Promise<void>;
     this.dispatchConstructionDepth += 1;
     try {
-      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+      // Timing guards must observe rapid calls when they are dispatched. If
+      // they enter the serial queue first, each debounce window completes
+      // before the next call starts and every call is executed.
+      if (timeoutScope.options?.immediate || hasTimingGuard || !this.dispatchQueue) {
         dispatchPromise = operation();
       } else {
         const queued = this.dispatchQueue.enqueueWithHandle(
