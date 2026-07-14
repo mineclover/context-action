@@ -1,5 +1,6 @@
 import {
   type KeyboardEvent,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -7,9 +8,14 @@ import {
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
+import {
+  BrowserFileSystemWorkspaceAdapter,
+  createWorkspaceFile,
+  LiveEditorWorkspaceManager,
+} from '../../../lib/live-code-editor-workspace';
 import styles from './LiveCodeEditorPage.module.css';
-import { LiveEditorAIToolbar } from './LiveEditorAIToolbar';
 import { LiveCodeEditorPreviewFrame } from './LiveCodeEditorPreviewFrame';
+import { LiveEditorAIToolbar } from './LiveEditorAIToolbar';
 import { LiveEditorToolchainProvider } from './LiveEditorToolchain';
 import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
@@ -122,6 +128,10 @@ const vm = useAccessRequestFacade();
   },
 };
 
+const defaultWorkspaceFiles = (
+  Object.values(examples) as ExampleDefinition[]
+).map((example) => createWorkspaceFile(example.file, example.code));
+
 const scenarioLabels: Record<ScenarioId, string> = {
   success: 'happy path',
   invalid: 'invalid input',
@@ -159,6 +169,18 @@ const baseEvents: Record<ScenarioId, PreviewEvent[]> = {
 };
 
 function LiveCodeEditorContent() {
+  const workspaceManager = useMemo(
+    () =>
+      new LiveEditorWorkspaceManager(defaultWorkspaceFiles, {
+        activePath: examples.pipeline.file,
+      }),
+    []
+  );
+  const workspaceSnapshot = useSyncExternalStore(
+    (listener) => workspaceManager.subscribe(() => listener()),
+    workspaceManager.getSnapshot,
+    workspaceManager.getSnapshot
+  );
   const documentManager = useMemo(
     () =>
       new LiveEditorDocumentManager({
@@ -169,12 +191,21 @@ function LiveCodeEditorContent() {
       }),
     []
   );
+  const filesystemAdapter = useMemo(
+    () => new BrowserFileSystemWorkspaceAdapter(),
+    []
+  );
   const documentSnapshot = useSyncExternalStore(
     (listener) => documentManager.subscribe(() => listener()),
     documentManager.getSnapshot,
     documentManager.getSnapshot
   );
-  const activeExample = documentSnapshot.exampleId as ExampleId;
+  const activeExample =
+    workspaceSnapshot.storageMode === 'memory'
+      ? (Object.keys(examples) as ExampleId[]).find(
+          (exampleId) => examples[exampleId].file === documentSnapshot.file
+        )
+      : undefined;
   const code = documentSnapshot.source;
   const scenario = documentSnapshot.scenario as ScenarioId;
   const [isRunning, setIsRunning] = useState(false);
@@ -182,22 +213,98 @@ function LiveCodeEditorContent() {
     'ready'
   );
   const [copied, setCopied] = useState(false);
+  const [workspaceMessage, setWorkspaceMessage] = useState('Memory workspace');
 
-  const currentExample = examples[activeExample];
+  const activeWorkspaceFile = workspaceManager.getActiveFile();
+  const currentExample: ExampleDefinition = activeExample
+    ? examples[activeExample]
+    : {
+        label: documentSnapshot.file,
+        file: documentSnapshot.file,
+        description: 'File loaded from the browser workspace.',
+        code: activeWorkspaceFile?.initialSource ?? code,
+      };
   const lineNumbers = useMemo(
     () => code.split('\n').map((_, index) => index + 1),
     [code]
   );
   const events = baseEvents[scenario];
 
-  const selectExample = (nextExample: ExampleId) => {
-    documentManager.update({
-      exampleId: nextExample,
-      file: examples[nextExample].file,
-      source: examples[nextExample].code,
-      scenario: 'success',
+  useEffect(() => {
+    const unsubscribe = documentManager.subscribe((snapshot) => {
+      const file = workspaceManager
+        .getSnapshot()
+        .files.find((candidate) => candidate.path === snapshot.file);
+      if (!file || file.source !== snapshot.source) {
+        workspaceManager.updateFile(snapshot.file, snapshot.source);
+      }
     });
+    return unsubscribe;
+  }, [documentManager, workspaceManager]);
+
+  useEffect(() => {
+    const activeFile = workspaceSnapshot.files.find(
+      (file) => file.path === workspaceSnapshot.activePath
+    );
+    if (!activeFile) return;
+    const snapshot = documentManager.getSnapshot();
+    const nextExampleId =
+      workspaceSnapshot.storageMode === 'memory'
+        ? ((Object.keys(examples) as ExampleId[]).find(
+            (exampleId) => examples[exampleId].file === activeFile.path
+          ) ?? 'workspace')
+        : 'workspace';
+    if (
+      snapshot.file !== activeFile.path ||
+      snapshot.source !== activeFile.source ||
+      snapshot.exampleId !== nextExampleId
+    ) {
+      documentManager.update({
+        exampleId: nextExampleId,
+        file: activeFile.path,
+        source: activeFile.source,
+      });
+    }
+  }, [documentManager, workspaceManager, workspaceSnapshot]);
+
+  const selectExample = (nextExample: ExampleId) => {
+    workspaceManager.setActivePath(examples[nextExample].file);
+    documentManager.update({ scenario: 'success' });
     setRunState('ready');
+  };
+
+  const openWorkspace = async () => {
+    try {
+      const result = await filesystemAdapter.openDirectory();
+      workspaceManager.replaceFiles(result.files, {
+        rootName: result.rootName,
+        storageMode: 'file-system',
+      });
+      setWorkspaceMessage(
+        `${result.rootName} opened · ${result.files.length} files`
+      );
+      setRunState('ready');
+    } catch (error) {
+      setWorkspaceMessage(
+        error instanceof Error
+          ? error.message
+          : 'Workspace could not be opened.'
+      );
+    }
+  };
+
+  const saveWorkspaceFile = async () => {
+    const activeFile = workspaceManager.getActiveFile();
+    if (!activeFile) return;
+    try {
+      await filesystemAdapter.saveFile(activeFile.path, activeFile.source);
+      workspaceManager.markSaved(activeFile.path, activeFile.source);
+      setWorkspaceMessage(`${activeFile.path} saved`);
+    } catch (error) {
+      setWorkspaceMessage(
+        error instanceof Error ? error.message : 'File could not be saved.'
+      );
+    }
   };
 
   const runPreview = () => {
@@ -210,7 +317,9 @@ function LiveCodeEditorContent() {
   };
 
   const resetCode = () => {
-    documentManager.update({ source: currentExample.code });
+    documentManager.update({
+      source: workspaceManager.getInitialSource(documentSnapshot.file),
+    });
     setRunState('ready');
   };
 
@@ -248,271 +357,341 @@ function LiveCodeEditorContent() {
   return (
     <LiveEditorToolchainProvider
       manager={documentManager}
-      getResetSource={() => currentExample.code}
+      getResetSource={() =>
+        workspaceManager.getInitialSource(documentSnapshot.file)
+      }
     >
       <PageWithLogMonitor pageId="live-code-editor" title="Live Code Editor">
-      <main className={styles.page}>
-        <div className={styles.shell}>
-          <section className={styles.hero}>
-            <div>
-              <span className={styles.eyebrow}>
-                Context-Action / Astryx baseline
-              </span>
-              <h1>Live code, visible behavior.</h1>
-              <p>
-                현재 예제 환경의 action, tool, store 계약을 작은 브라우저
-                workbench로 옮겼습니다. 코드를 편집하고, scenario를 바꾸고, 같은
-                화면에서 실행 trace를 확인하세요.
-              </p>
-            </div>
-            <div
-              className={styles.environment}
-              aria-label="Current environment"
+        <main className={styles.page}>
+          <div className={styles.shell}>
+            <section className={styles.hero}>
+              <div>
+                <span className={styles.eyebrow}>
+                  Context-Action / Astryx baseline
+                </span>
+                <h1>Live code, visible behavior.</h1>
+                <p>
+                  현재 예제 환경의 action, tool, store 계약을 작은 브라우저
+                  workbench로 옮겼습니다. 코드를 편집하고, scenario를 바꾸고,
+                  같은 화면에서 실행 trace를 확인하세요.
+                </p>
+              </div>
+              <div
+                className={styles.environment}
+                aria-label="Current environment"
+              >
+                <span>React 19.2</span>
+                <span>Vite 8.1</span>
+                <span>pnpm 10.30</span>
+                <span>@context-action/react</span>
+                <span>Astryx neutral</span>
+              </div>
+            </section>
+
+            <LiveEditorAIToolbar />
+
+            <section
+              className={styles.workbench}
+              aria-label="Live code editor workbench"
             >
-              <span>React 19.2</span>
-              <span>Vite 8.1</span>
-              <span>pnpm 10.30</span>
-              <span>@context-action/react</span>
-              <span>Astryx neutral</span>
-            </div>
-          </section>
-
-          <LiveEditorAIToolbar />
-
-          <section
-            className={styles.workbench}
-            aria-label="Live code editor workbench"
-          >
-            <div className={styles.toolbar}>
-              <div className={styles.toolbarGroup}>
-                <label htmlFor="example-select">Example</label>
-                <select
-                  id="example-select"
-                  className={styles.select}
-                  value={activeExample}
-                  onChange={(event) =>
-                    selectExample(event.target.value as ExampleId)
-                  }
-                >
-                  {Object.entries(examples).map(([id, example]) => (
-                    <option key={id} value={id}>
-                      {example.label} · {example.file}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles.toolbarActions}>
-                <button
-                  type="button"
-                  className={styles.toolbarButton}
-                  onClick={resetCode}
-                >
-                  Reset
-                </button>
-                <button
-                  type="button"
-                  className={styles.toolbarButton}
-                  onClick={copyCode}
-                >
-                  {copied ? 'Copied' : 'Copy code'}
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.toolbarButton} ${styles.runButton}`}
-                  onClick={runPreview}
-                  disabled={isRunning}
-                >
-                  {isRunning ? 'Running…' : '▶ Run preview'}
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.body}>
-              <section className={styles.editorPane} aria-label="Code editor">
-                <div className={styles.tabs}>
+              <div className={styles.toolbar}>
+                <div className={styles.toolbarGroup}>
+                  <label htmlFor="example-select">Example</label>
+                  <select
+                    id="example-select"
+                    className={styles.select}
+                    value={activeExample ?? ''}
+                    onChange={(event) =>
+                      selectExample(event.target.value as ExampleId)
+                    }
+                  >
+                    {!activeExample && (
+                      <option value="" disabled>
+                        Filesystem workspace file
+                      </option>
+                    )}
+                    {Object.entries(examples).map(([id, example]) => (
+                      <option key={id} value={id}>
+                        {example.label} · {example.file}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.toolbarActions}>
                   <button
                     type="button"
-                    className={`${styles.tab} ${styles.activeTab}`}
+                    className={styles.toolbarButton}
+                    onClick={resetCode}
                   >
-                    {currentExample.file}
+                    Reset
                   </button>
-                  <span className={styles.tab}>TypeScript</span>
+                  <button
+                    type="button"
+                    className={styles.toolbarButton}
+                    onClick={copyCode}
+                  >
+                    {copied ? 'Copied' : 'Copy code'}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.toolbarButton} ${styles.runButton}`}
+                    onClick={runPreview}
+                    disabled={isRunning}
+                  >
+                    {isRunning ? 'Running…' : '▶ Run preview'}
+                  </button>
                 </div>
-                <div className={styles.editor}>
-                  <div className={styles.lineNumbers} aria-hidden="true">
-                    {lineNumbers.map((line) => (
-                      <div key={line}>{line}</div>
-                    ))}
-                  </div>
-                  <textarea
-                    aria-label={`${currentExample.file} source editor`}
-                    className={styles.codeInput}
-                    spellCheck={false}
-                    value={code}
-                    onChange={(event) =>
-                      documentManager.update({ source: event.target.value })
-                    }
-                    onKeyDown={handleEditorKeyDown}
-                  />
-                </div>
-                <div className={styles.statusbar}>
-                  <span>UTF-8 · LF</span>
-                  <span>{code.split('\n').length} lines · editable</span>
-                </div>
-              </section>
+              </div>
 
-              <section className={styles.previewPane} aria-label="Live preview">
-                <div className={styles.previewHeader}>
-                  <h2>Live preview</h2>
-                  <span className={styles.liveBadge}>safe runner</span>
-                </div>
-                <div className={styles.previewContent}>
-                  <div className={styles.previewCard}>
-                    {activeExample === 'usecase' ? (
-                      <LiveUsecaseProviders>
-                        <LiveUsecaseRecipe />
-                      </LiveUsecaseProviders>
-                    ) : (
-                      <>
-                        <div className={styles.previewCardHeader}>
-                          <div>
-                            <h3>{currentExample.label}</h3>
-                            <p>{currentExample.description}</p>
-                          </div>
-                          <span>browser demo</span>
-                        </div>
-                        <LiveCodeEditorPreviewFrame
-                          document={documentSnapshot}
-                          onRendered={documentManager.markRendered}
-                        />
-                        <div
-                          className={styles.scenarioBar}
-                          aria-label="Preview scenarios"
-                        >
-                          {(Object.keys(scenarioLabels) as ScenarioId[]).map(
-                            (candidate) => (
-                              <button
-                                type="button"
-                                key={candidate}
-                                className={`${styles.scenarioButton} ${
-                                  scenario === candidate
-                                    ? styles.scenarioButtonActive
-                                    : ''
-                                }`}
-                                onClick={() =>
-                                  documentManager.update({
-                                    scenario: candidate,
-                                  })
-                                }
-                              >
-                                {scenarioLabels[candidate]}
-                              </button>
-                            )
-                          )}
-                        </div>
+              <div className={styles.body}>
+                <section className={styles.editorPane} aria-label="Code editor">
+                  <div className={styles.workspaceBar}>
+                    <div className={styles.workspaceHeader}>
+                      <strong>Code workspace</strong>
+                      <span>{workspaceSnapshot.storageMode}</span>
+                    </div>
+                    <div className={styles.workspaceActions}>
+                      <button
+                        type="button"
+                        className={styles.workspaceButton}
+                        onClick={() => void openWorkspace()}
+                        disabled={!filesystemAdapter.isSupported}
+                      >
+                        Open folder
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.workspaceButton}
+                        onClick={() => void saveWorkspaceFile()}
+                        disabled={
+                          workspaceSnapshot.storageMode !== 'file-system' ||
+                          !workspaceSnapshot.dirtyPaths.includes(
+                            workspaceSnapshot.activePath
+                          )
+                        }
+                      >
+                        Save file
+                      </button>
+                    </div>
+                    <div className={styles.workspaceMessage}>
+                      {workspaceMessage}
+                    </div>
+                    <div
+                      className={styles.fileTree}
+                      aria-label="Workspace files"
+                    >
+                      {workspaceSnapshot.files.map((file) => (
                         <button
                           type="button"
-                          className={styles.previewRun}
-                          onClick={runPreview}
-                          disabled={isRunning}
+                          key={file.path}
+                          className={`${styles.fileTreeItem} ${
+                            file.path === workspaceSnapshot.activePath
+                              ? styles.fileTreeItemActive
+                              : ''
+                          }`}
+                          onClick={() =>
+                            workspaceManager.setActivePath(file.path)
+                          }
                         >
-                          {isRunning
-                            ? 'Dispatching action…'
-                            : 'Run current scenario'}
+                          <span>{file.path}</span>
+                          {workspaceSnapshot.dirtyPaths.includes(file.path) && (
+                            <span aria-label="unsaved changes">●</span>
+                          )}
                         </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.tabs}>
+                    <button
+                      type="button"
+                      className={`${styles.tab} ${styles.activeTab}`}
+                    >
+                      {currentExample.file}
+                    </button>
+                    <span className={styles.tab}>TypeScript</span>
+                  </div>
+                  <div className={styles.editor}>
+                    <div className={styles.lineNumbers} aria-hidden="true">
+                      {lineNumbers.map((line) => (
+                        <div key={line}>{line}</div>
+                      ))}
+                    </div>
+                    <textarea
+                      aria-label={`${currentExample.file} source editor`}
+                      className={styles.codeInput}
+                      spellCheck={false}
+                      value={code}
+                      onChange={(event) =>
+                        documentManager.update({ source: event.target.value })
+                      }
+                      onKeyDown={handleEditorKeyDown}
+                    />
+                  </div>
+                  <div className={styles.statusbar}>
+                    <span>UTF-8 · LF</span>
+                    <span>{code.split('\n').length} lines · editable</span>
+                  </div>
+                </section>
 
-                        <div className={styles.output}>
-                          <div className={styles.outputHeader}>
-                            <span>dispatch output</span>
-                            <span className={styles.outputState}>
-                              {runState}
-                            </span>
+                <section
+                  className={styles.previewPane}
+                  aria-label="Live preview"
+                >
+                  <div className={styles.previewHeader}>
+                    <h2>Live preview</h2>
+                    <span className={styles.liveBadge}>safe runner</span>
+                  </div>
+                  <div className={styles.previewContent}>
+                    <div className={styles.previewCard}>
+                      {activeExample === 'usecase' ? (
+                        <LiveUsecaseProviders>
+                          <LiveUsecaseRecipe />
+                        </LiveUsecaseProviders>
+                      ) : (
+                        <>
+                          <div className={styles.previewCardHeader}>
+                            <div>
+                              <h3>{currentExample.label}</h3>
+                              <p>{currentExample.description}</p>
+                            </div>
+                            <span>browser demo</span>
                           </div>
-                          <div className={styles.eventList}>
-                            {runState === 'ready' || runState === 'running' ? (
-                              <div className={styles.event}>
-                                <span className={styles.eventDot} />
-                                <span>
-                                  {runState === 'running'
-                                    ? 'dispatching…'
-                                    : 'waiting for run'}
-                                </span>
-                                <span className={styles.eventTime}>—</span>
-                              </div>
-                            ) : (
-                              events.map((event) => (
-                                <div className={styles.event} key={event.label}>
-                                  <span
-                                    className={`${styles.eventDot} ${
-                                      event.status === 'blocked'
-                                        ? styles.eventDotBlocked
-                                        : event.status === 'error'
-                                          ? styles.eventDotError
-                                          : ''
-                                    }`}
-                                  />
-                                  <span>{event.label}</span>
-                                  <span className={styles.eventTime}>
-                                    {event.time}
-                                  </span>
-                                </div>
-                              ))
+                          <LiveCodeEditorPreviewFrame
+                            document={documentSnapshot}
+                            onRendered={documentManager.markRendered}
+                          />
+                          <div
+                            className={styles.scenarioBar}
+                            aria-label="Preview scenarios"
+                          >
+                            {(Object.keys(scenarioLabels) as ScenarioId[]).map(
+                              (candidate) => (
+                                <button
+                                  type="button"
+                                  key={candidate}
+                                  className={`${styles.scenarioButton} ${
+                                    scenario === candidate
+                                      ? styles.scenarioButtonActive
+                                      : ''
+                                  }`}
+                                  onClick={() =>
+                                    documentManager.update({
+                                      scenario: candidate,
+                                    })
+                                  }
+                                >
+                                  {scenarioLabels[candidate]}
+                                </button>
+                              )
                             )}
                           </div>
-                        </div>
-                        <div
-                          className={`${styles.resultBox} ${
-                            runState === 'blocked'
-                              ? styles.resultBoxBlocked
-                              : runState === 'invalid'
-                                ? styles.resultBoxError
-                                : ''
-                          }`}
-                        >
-                          {resultMessage}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                          <button
+                            type="button"
+                            className={styles.previewRun}
+                            onClick={runPreview}
+                            disabled={isRunning}
+                          >
+                            {isRunning
+                              ? 'Dispatching action…'
+                              : 'Run current scenario'}
+                          </button>
 
-                  <div className={styles.notes}>
-                    <div className={styles.note}>
-                      <strong>Action pipeline</strong>
-                      <span>
-                        priority + blocking으로 실행 경계를 확인합니다.
-                      </span>
+                          <div className={styles.output}>
+                            <div className={styles.outputHeader}>
+                              <span>dispatch output</span>
+                              <span className={styles.outputState}>
+                                {runState}
+                              </span>
+                            </div>
+                            <div className={styles.eventList}>
+                              {runState === 'ready' ||
+                              runState === 'running' ? (
+                                <div className={styles.event}>
+                                  <span className={styles.eventDot} />
+                                  <span>
+                                    {runState === 'running'
+                                      ? 'dispatching…'
+                                      : 'waiting for run'}
+                                  </span>
+                                  <span className={styles.eventTime}>—</span>
+                                </div>
+                              ) : (
+                                events.map((event) => (
+                                  <div
+                                    className={styles.event}
+                                    key={event.label}
+                                  >
+                                    <span
+                                      className={`${styles.eventDot} ${
+                                        event.status === 'blocked'
+                                          ? styles.eventDotBlocked
+                                          : event.status === 'error'
+                                            ? styles.eventDotError
+                                            : ''
+                                      }`}
+                                    />
+                                    <span>{event.label}</span>
+                                    <span className={styles.eventTime}>
+                                      {event.time}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            className={`${styles.resultBox} ${
+                              runState === 'blocked'
+                                ? styles.resultBoxBlocked
+                                : runState === 'invalid'
+                                  ? styles.resultBoxError
+                                  : ''
+                            }`}
+                          >
+                            {resultMessage}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className={styles.note}>
-                      <strong>Typed result</strong>
-                      <span>
-                        dispatch 결과와 abort reason을 함께 노출합니다.
-                      </span>
+
+                    <div className={styles.notes}>
+                      <div className={styles.note}>
+                        <strong>Action pipeline</strong>
+                        <span>
+                          priority + blocking으로 실행 경계를 확인합니다.
+                        </span>
+                      </div>
+                      <div className={styles.note}>
+                        <strong>Typed result</strong>
+                        <span>
+                          dispatch 결과와 abort reason을 함께 노출합니다.
+                        </span>
+                      </div>
+                      <div className={styles.note}>
+                        <strong>Local only</strong>
+                        <span>
+                          이 데모는 외부 API 없이 브라우저에서 동작합니다.
+                        </span>
+                      </div>
                     </div>
-                    <div className={styles.note}>
-                      <strong>Local only</strong>
-                      <span>
-                        이 데모는 외부 API 없이 브라우저에서 동작합니다.
-                      </span>
-                    </div>
+                    <p className={styles.footnote}>
+                      코드는 편집 가능한 예제 계약이고 preview는 안전한 시나리오
+                      runner입니다. 실제 애플리케이션에서는 handler를 서비스
+                      로직에 연결해 사용합니다.{' '}
+                      <Link to="/integrations/action-lifecycle">
+                        Lifecycle workbench 보기 →
+                      </Link>{' '}
+                      ·{' '}
+                      <Link to="/patterns/implementation-playbook/access-request">
+                        전체 playbook 보기 →
+                      </Link>
+                    </p>
                   </div>
-                  <p className={styles.footnote}>
-                    코드는 편집 가능한 예제 계약이고 preview는 안전한 시나리오
-                    runner입니다. 실제 애플리케이션에서는 handler를 서비스
-                    로직에 연결해 사용합니다.{' '}
-                    <Link to="/integrations/action-lifecycle">
-                      Lifecycle workbench 보기 →
-                    </Link>{' '}
-                    ·{' '}
-                    <Link to="/patterns/implementation-playbook/access-request">
-                      전체 playbook 보기 →
-                    </Link>
-                  </p>
-                </div>
-              </section>
-            </div>
-          </section>
-        </div>
-      </main>
+                </section>
+              </div>
+            </section>
+          </div>
+        </main>
       </PageWithLogMonitor>
     </LiveEditorToolchainProvider>
   );

@@ -30,7 +30,8 @@ export const setEditorDocumentTool = defineAction(
 export const getEditorPreviewStatusTool = defineAction(
   {
     name: 'editor.getPreviewStatus',
-    description: 'Read whether the current document revision is rendered in the iframe.',
+    description:
+      'Read whether the current document revision is rendered in the iframe.',
     annotations: { readOnlyHint: true },
     parameters: z.object({}),
   },

@@ -93,6 +93,26 @@ The default extraction order is `example → workspace package → independent r
 integration must replace the local demo policy with an approval-capable
 `toolPolicy` before enabling destructive or broad mutations.
 
+## Code workspace boundary
+
+The Live Code Editor now has a parent-owned workspace manager in addition to
+the document manager:
+
+```text
+Open folder → BrowserFileSystemWorkspaceAdapter
+           → WorkspaceManager (files, activePath, dirtyPaths)
+           → DocumentManager (active source + revision)
+           → ToolContext / iframe preview
+```
+
+- `Open folder` uses the browser File System Access API from a user gesture.
+- Only text extensions are imported, with file-count and file-size limits.
+- File-system handles stay in the parent adapter and never enter tool payloads
+  or iframe messages.
+- `Save file` writes only the active dirty file back to the opened directory.
+- Unsupported browsers retain the memory workspace instead of silently sending
+  files to a server.
+
 ## Build order
 
 1. Preserve tool IDs, error codes, and source context.

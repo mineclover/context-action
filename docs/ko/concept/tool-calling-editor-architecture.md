@@ -89,6 +89,26 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 변경이나 광범위한 mutation을 허용하기 전에 승인 가능한 `toolPolicy`로
 교체해야 한다.
 
+## Code workspace 경계
+
+Live Code Editor는 document manager와 함께 부모가 소유하는 workspace
+manager를 갖는다.
+
+```text
+Open folder → BrowserFileSystemWorkspaceAdapter
+           → WorkspaceManager (files, activePath, dirtyPaths)
+           → DocumentManager (active source + revision)
+           → ToolContext / iframe preview
+```
+
+- `Open folder`는 사용자 제스처에서 브라우저 File System Access API를 사용한다.
+- text extension만 읽으며 file 수와 file 크기 제한을 둔다.
+- filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
+  넣지 않는다.
+- `Save file`은 열린 directory의 현재 dirty active file만 기록한다.
+- 미지원 브라우저에서는 파일을 서버로 몰래 전송하지 않고 memory workspace를
+  유지한다.
+
 ## 빌드 순서
 
 1. Tool ID·오류 코드·source context를 유지한다.

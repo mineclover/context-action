@@ -114,7 +114,7 @@ export function LiveEditorAIToolbar() {
     );
     setLocalCallResult(
       result.isError
-        ? result.error?.message ?? 'Local tools/call failed.'
+        ? (result.error?.message ?? 'Local tools/call failed.')
         : JSON.stringify(result.structuredContent)
     );
   };
@@ -133,7 +133,7 @@ export function LiveEditorAIToolbar() {
     );
     setLocalMutationResult(
       result.isError
-        ? result.error?.message ?? 'Local mutation failed.'
+        ? (result.error?.message ?? 'Local mutation failed.')
         : JSON.stringify(result.structuredContent)
     );
   };
@@ -149,7 +149,7 @@ export function LiveEditorAIToolbar() {
     );
     setModelShapedResult(
       result.isError
-        ? result.error?.message ?? 'Model-shaped call failed.'
+        ? (result.error?.message ?? 'Model-shaped call failed.')
         : JSON.stringify(result.structuredContent)
     );
   };
@@ -174,7 +174,9 @@ export function LiveEditorAIToolbar() {
             type="password"
             value={apiKey}
             placeholder="sk-or-..."
-            onChange={(event) => setApiKey(saveOpenRouterApiKey(event.target.value))}
+            onChange={(event) =>
+              setApiKey(saveOpenRouterApiKey(event.target.value))
+            }
           />
         </label>
         <label>

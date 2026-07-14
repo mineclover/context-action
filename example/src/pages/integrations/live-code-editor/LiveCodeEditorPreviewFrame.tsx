@@ -120,7 +120,11 @@ export function LiveCodeEditorPreviewFrame({
     <div className={styles.iframePreview}>
       <div className={styles.iframePreviewHeader}>
         <span>preview bridge</span>
-        <span>{renderedRevision === documentSnapshot.revision ? 'synced' : 'syncing…'}</span>
+        <span>
+          {renderedRevision === documentSnapshot.revision
+            ? 'synced'
+            : 'syncing…'}
+        </span>
       </div>
       <iframe
         ref={iframeRef}

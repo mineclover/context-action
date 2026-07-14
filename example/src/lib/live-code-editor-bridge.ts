@@ -71,7 +71,8 @@ export class LiveEditorDocumentManager {
   };
 
   getPreviewStatus = (): LiveEditorPreviewStatus => ({
-    state: this.renderedRevision >= this.snapshot.revision ? 'rendered' : 'pending',
+    state:
+      this.renderedRevision >= this.snapshot.revision ? 'rendered' : 'pending',
     revision: this.renderedRevision,
   });
 
@@ -92,7 +93,10 @@ export class LiveEditorDocumentManager {
     timeoutMs = 2_000
   ): Promise<LiveEditorPreviewStatus> => {
     if (this.renderedRevision >= revision) {
-      return Promise.resolve({ state: 'rendered', revision: this.renderedRevision });
+      return Promise.resolve({
+        state: 'rendered',
+        revision: this.renderedRevision,
+      });
     }
 
     return new Promise((resolve) => {
@@ -147,7 +151,8 @@ export function isLiveEditorChildMessage(
   if (candidate.type === 'editor:error') {
     return (
       typeof candidate.message === 'string' &&
-      (candidate.revision === undefined || typeof candidate.revision === 'number')
+      (candidate.revision === undefined ||
+        typeof candidate.revision === 'number')
     );
   }
   return false;

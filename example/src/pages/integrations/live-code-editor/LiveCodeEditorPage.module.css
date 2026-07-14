@@ -172,6 +172,90 @@
   background: #111827;
 }
 
+.workspaceBar {
+  display: grid;
+  gap: 0.55rem;
+  border-bottom: 1px solid #283348;
+  padding: 0.75rem;
+  background: #172033;
+}
+
+.workspaceHeader,
+.workspaceActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.workspaceHeader strong {
+  color: #f2f5fa;
+  font-size: 0.74rem;
+}
+
+.workspaceHeader span,
+.workspaceMessage {
+  color: #8c98ad;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+}
+
+.workspaceButton {
+  border: 1px solid #3a4760;
+  border-radius: 0.35rem;
+  padding: 0.38rem 0.52rem;
+  background: #202d43;
+  color: #d9e1ee;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.workspaceButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.fileTree {
+  display: grid;
+  gap: 0.18rem;
+  max-height: 8.5rem;
+  overflow: auto;
+}
+
+.fileTreeItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+  border: 0;
+  border-radius: 0.3rem;
+  padding: 0.38rem 0.45rem;
+  background: transparent;
+  color: #9ca9bd;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.65rem;
+  text-align: left;
+}
+
+.fileTreeItem span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileTreeItem:hover,
+.fileTreeItemActive {
+  background: #26344b;
+  color: #fff;
+}
+
+.fileTreeItemActive {
+  box-shadow: inset 2px 0 0 #9b8bff;
+}
+
 .tabs {
   display: flex;
   align-items: center;

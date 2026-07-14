@@ -30,7 +30,9 @@ function LiveEditorToolHandlers({
     manager.getPreviewStatus()
   );
 
-  const updateAndWait = async (patch: Parameters<LiveEditorDocumentManager['update']>[0]) => {
+  const updateAndWait = async (
+    patch: Parameters<LiveEditorDocumentManager['update']>[0]
+  ) => {
     const snapshot = manager.update(patch);
     const preview = await manager.waitForRendered(snapshot.revision);
     return { ...snapshot, preview };
@@ -49,7 +51,10 @@ function LiveEditorToolHandlers({
 
   useLiveEditorToolHandler('editor.resetDocument', () => {
     const snapshot: LiveEditorDocumentSnapshot = manager.getSnapshot();
-    return updateAndWait({ source: getResetSource(), scenario: snapshot.scenario });
+    return updateAndWait({
+      source: getResetSource(),
+      scenario: snapshot.scenario,
+    });
   });
 
   return <>{children}</>;
