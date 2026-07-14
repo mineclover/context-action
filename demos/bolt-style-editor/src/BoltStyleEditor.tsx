@@ -1,5 +1,12 @@
 import { createToolContext, type ToolRegistry } from '@context-action/react';
 import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  DEFAULT_OPENROUTER_SETTINGS,
+  type OpenRouterSettings,
+  readOpenRouterSettings,
+  runOpenRouterAgent,
+  saveOpenRouterSettings,
+} from './openrouter';
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import {
   BrowserWorkspace,
@@ -56,6 +63,138 @@ function resultText(result: {
 }): string {
   if (result.isError) return result.error?.message ?? 'Tool call failed.';
   return JSON.stringify(result.structuredContent ?? {}, null, 2);
+}
+
+function OpenRouterSettingsDialog({
+  initialSettings,
+  onClose,
+  onSave,
+}: {
+  initialSettings: OpenRouterSettings;
+  onClose: () => void;
+  onSave: (settings: OpenRouterSettings) => void;
+}) {
+  const [draft, setDraft] = useState(initialSettings);
+  const [showKey, setShowKey] = useState(false);
+
+  return (
+    <div className="settings-backdrop" role="presentation">
+      <section
+        aria-labelledby="openrouter-settings-title"
+        aria-modal="true"
+        className="settings-dialog"
+        role="dialog"
+      >
+        <div className="settings-heading">
+          <div>
+            <span className="panel-label">Provider settings</span>
+            <h2 id="openrouter-settings-title">OpenRouter API</h2>
+          </div>
+          <button
+            aria-label="Close OpenRouter settings"
+            className="settings-close"
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+
+        <p className="settings-intro">
+          Save a user-owned key for direct browser requests. The local agent
+          remains available when no key is configured.
+        </p>
+
+        <label className="settings-field">
+          <span>OpenRouter API key</span>
+          <div className="secret-input-wrap">
+            <input
+              autoFocus
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  apiKey: event.target.value,
+                }))
+              }
+              placeholder="sk-or-v1-…"
+              type={showKey ? 'text' : 'password'}
+              value={draft.apiKey}
+            />
+            <button
+              className="reveal-button"
+              onClick={() => setShowKey((current) => !current)}
+              type="button"
+            >
+              {showKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        </label>
+
+        <label className="settings-field">
+          <span>Model ID</span>
+          <input
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                model: event.target.value,
+              }))
+            }
+            placeholder="openai/gpt-4o-mini"
+            value={draft.model}
+          />
+        </label>
+
+        <label className="settings-field">
+          <span>Chat completions endpoint</span>
+          <input
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                endpoint: event.target.value,
+              }))
+            }
+            value={draft.endpoint}
+          />
+        </label>
+
+        <div className="settings-note">
+          <span className="status-dot" />
+          Stored in this browser origin and sent directly to the configured
+          endpoint. It is not committed to the repository.
+        </div>
+
+        <div className="settings-actions">
+          <button
+            className="settings-reset"
+            onClick={() =>
+              setDraft({
+                ...DEFAULT_OPENROUTER_SETTINGS,
+                apiKey: '',
+              })
+            }
+            type="button"
+          >
+            Clear key
+          </button>
+          <div>
+            <button className="settings-cancel" onClick={onClose} type="button">
+              Cancel
+            </button>
+            <button
+              className="settings-save"
+              onClick={() => {
+                onSave(draft);
+                onClose();
+              }}
+              type="button"
+            >
+              Save settings
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function promptToToolCalls(prompt: string): ToolCall[] {
@@ -244,6 +383,10 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       text: 'Describe a change and I will turn it into visible workspace tool calls.',
     },
   ]);
+  const [openRouterSettings, setOpenRouterSettings] = useState(
+    readOpenRouterSettings
+  );
+  const [showSettings, setShowSettings] = useState(false);
 
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
@@ -261,10 +404,20 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     setMessages((current) => [...current, { role: 'user', text: trimmed }]);
     setRunning(true);
     try {
-      const result = await runLocalAgent(registry, trimmed);
+      const result = openRouterSettings.apiKey
+        ? await runOpenRouterAgent(registry, trimmed, openRouterSettings)
+        : await runLocalAgent(registry, trimmed);
       setMessages((current) => [
         ...current,
         { role: 'assistant', text: result.response, tools: result.toolNames },
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text: error instanceof Error ? error.message : 'Request failed.',
+        },
       ]);
     } finally {
       setRunning(false);
@@ -310,11 +463,20 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         <div className="topbar-center">
           <span className="workspace-name">canvas-landing</span>
           <span className="mode-chip">
-            <span className="status-dot" /> Local agent
+            <span className="status-dot" />
+            {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
           <span className="contract-chip">tools/list · {toolNames.length}</span>
         </div>
         <div className="topbar-actions">
+          <button
+            aria-label="Open OpenRouter settings"
+            className="settings-trigger"
+            onClick={() => setShowSettings(true)}
+            type="button"
+          >
+            ⚙ Settings
+          </button>
           <a
             href="https://github.com/mineclover/context-action"
             target="_blank"
@@ -547,11 +709,24 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         <span>
           <span className="status-dot" /> Ready
         </span>
-        <span>Context-Action ToolContext</span>
+        <span>
+          {openRouterSettings.apiKey
+            ? `OpenRouter · ${openRouterSettings.model}`
+            : 'Context-Action ToolContext'}
+        </span>
         <span>Browser-local workspace</span>
         <span className="statusbar-spacer" />
         <span>HTML · CSS · JS</span>
       </footer>
+      {showSettings ? (
+        <OpenRouterSettingsDialog
+          initialSettings={openRouterSettings}
+          onClose={() => setShowSettings(false)}
+          onSave={(settings) =>
+            setOpenRouterSettings(saveOpenRouterSettings(settings))
+          }
+        />
+      ) : null}
     </div>
   );
 }

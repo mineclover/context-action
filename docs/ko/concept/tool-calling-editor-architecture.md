@@ -47,6 +47,14 @@ API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` →
 Dexie/File System Access workspace는 persistence와 adapter 계약이 안정될 때까지
 기존 example에 유지한다.
 
+standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
+completions endpoint를 관리한다. API key는 example 데모와 공유하는
+`context-action.openrouter.api-key` browser key에 저장하므로 같은 origin의 다른
+OpenRouter 위치에서 재사용할 수 있다. 키가 있으면 chat이 OpenRouter native
+tool-call loop를 사용하고, 없으면 동일한 화면에서 결정적인 local agent fallback을
+사용한다. 키는 브라우저에서 설정된 endpoint로 직접 전송되며 Context-Action 서버로
+전달하거나 번들에 포함하지 않는다.
+
 ## 표준 계약
 
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.

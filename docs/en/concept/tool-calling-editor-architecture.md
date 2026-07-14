@@ -48,6 +48,14 @@ model/local agent → `tools/call` → tool result → preview flow without an A
 key. The full Dexie/File System Access workspace remains in the example until
 the persistence and adapter contracts stabilize.
 
+The standalone top-bar settings dialog stores the user-owned API key under the
+shared `context-action.openrouter.api-key` browser key used by the example
+demos. It also persists the selected model and chat-completions endpoint. When
+the key is present, chat requests use OpenRouter's native tool-call loop; when
+it is absent, the same surface uses the deterministic local agent. The key is
+sent directly from the browser to the configured endpoint and is never bundled
+or sent to a Context-Action server.
+
 ## Standard contract
 
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:
