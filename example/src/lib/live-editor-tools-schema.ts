@@ -27,6 +27,16 @@ export const setEditorDocumentTool = defineAction(
   z
 );
 
+export const getEditorPreviewStatusTool = defineAction(
+  {
+    name: 'editor.getPreviewStatus',
+    description: 'Read whether the current document revision is rendered in the iframe.',
+    annotations: { readOnlyHint: true },
+    parameters: z.object({}),
+  },
+  z
+);
+
 export const setEditorScenarioTool = defineAction(
   {
     name: 'editor.setScenario',
@@ -50,6 +60,7 @@ export const resetEditorDocumentTool = defineAction(
 export const liveEditorToolsSchema = createActionSchema({
   'editor.getDocument': getEditorDocumentTool,
   'editor.setDocument': setEditorDocumentTool,
+  'editor.getPreviewStatus': getEditorPreviewStatusTool,
   'editor.setScenario': setEditorScenarioTool,
   'editor.resetDocument': resetEditorDocumentTool,
 });

@@ -21,6 +21,7 @@ export function LiveEditorAIToolbar() {
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
+  const [localMutationResult, setLocalMutationResult] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -117,6 +118,25 @@ export function LiveEditorAIToolbar() {
     );
   };
 
+  const runLocalMutation = async () => {
+    const result = await registry.callTool(
+      {
+        id: `local-mutation-${Date.now()}`,
+        method: 'tools/call',
+        params: {
+          name: 'editor.setScenario',
+          arguments: { scenario: 'invalid' },
+        },
+      },
+      { context: { source: 'local' } }
+    );
+    setLocalMutationResult(
+      result.isError
+        ? result.error?.message ?? 'Local mutation failed.'
+        : JSON.stringify(result.structuredContent)
+    );
+  };
+
   const toolDefinitions = registry.listTools().tools;
 
   return (
@@ -175,8 +195,18 @@ export function LiveEditorAIToolbar() {
         >
           Run local tools/call
         </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
+          onClick={() => void runLocalMutation()}
+        >
+          Run local mutation + iframe acknowledgement
+        </button>
         {localCallResult && (
           <code className={styles.localCallResult}>{localCallResult}</code>
+        )}
+        {localMutationResult && (
+          <code className={styles.localCallResult}>{localMutationResult}</code>
         )}
       </div>
       <form className={styles.aiPromptForm} onSubmit={submit}>

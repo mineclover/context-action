@@ -8,6 +8,7 @@ import styles from './LiveCodeEditorPage.module.css';
 
 interface LiveCodeEditorPreviewFrameProps {
   document: LiveEditorDocumentSnapshot;
+  onRendered?: (revision: number) => void;
 }
 
 const previewSource = `<!doctype html>
@@ -74,6 +75,7 @@ const previewSource = `<!doctype html>
 
 export function LiveCodeEditorPreviewFrame({
   document: documentSnapshot,
+  onRendered,
 }: LiveCodeEditorPreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -97,13 +99,14 @@ export function LiveCodeEditorPreviewFrame({
       if (event.data.type === 'editor:rendered') {
         if (event.data.revision === documentSnapshot.revision) {
           setRenderedRevision(event.data.revision);
+          onRendered?.(event.data.revision);
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [documentSnapshot]);
+  }, [documentSnapshot, onRendered]);
 
   useEffect(() => {
     if (!isReady) return;

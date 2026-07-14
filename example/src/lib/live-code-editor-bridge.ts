@@ -18,6 +18,11 @@ export interface LiveEditorDocumentSnapshot extends LiveEditorDocument {
   readonly revision: number;
 }
 
+export interface LiveEditorPreviewStatus {
+  readonly state: 'pending' | 'rendered' | 'timeout';
+  readonly revision: number;
+}
+
 export type LiveEditorParentMessage = {
   readonly channel: typeof LIVE_EDITOR_BRIDGE_CHANNEL;
   readonly type: 'editor:init' | 'editor:document';
@@ -47,7 +52,12 @@ export type LiveEditorDocumentListener = (
 
 export class LiveEditorDocumentManager {
   private snapshot: LiveEditorDocumentSnapshot;
+  private renderedRevision = -1;
   private readonly listeners = new Set<LiveEditorDocumentListener>();
+  private readonly renderWaiters = new Map<
+    number,
+    Set<(status: LiveEditorPreviewStatus) => void>
+  >();
 
   constructor(initialDocument: LiveEditorDocument) {
     this.snapshot = { ...initialDocument, revision: 0 };
@@ -58,6 +68,47 @@ export class LiveEditorDocumentManager {
   subscribe = (listener: LiveEditorDocumentListener): (() => void) => {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  };
+
+  getPreviewStatus = (): LiveEditorPreviewStatus => ({
+    state: this.renderedRevision >= this.snapshot.revision ? 'rendered' : 'pending',
+    revision: this.renderedRevision,
+  });
+
+  markRendered = (revision: number): void => {
+    if (revision < this.renderedRevision) return;
+    this.renderedRevision = revision;
+    for (const [requestedRevision, waiters] of this.renderWaiters) {
+      if (requestedRevision > revision) continue;
+      for (const resolve of waiters) {
+        resolve({ state: 'rendered', revision });
+      }
+      this.renderWaiters.delete(requestedRevision);
+    }
+  };
+
+  waitForRendered = (
+    revision: number,
+    timeoutMs = 2_000
+  ): Promise<LiveEditorPreviewStatus> => {
+    if (this.renderedRevision >= revision) {
+      return Promise.resolve({ state: 'rendered', revision: this.renderedRevision });
+    }
+
+    return new Promise((resolve) => {
+      const waiters = this.renderWaiters.get(revision) ?? new Set();
+      this.renderWaiters.set(revision, waiters);
+      const waiter = (status: LiveEditorPreviewStatus) => {
+        clearTimeout(timeout);
+        resolve(status);
+      };
+      const timeout = setTimeout(() => {
+        waiters.delete(waiter);
+        if (waiters.size === 0) this.renderWaiters.delete(revision);
+        resolve({ state: 'timeout', revision: this.renderedRevision });
+      }, timeoutMs);
+      waiters.add(waiter);
+    });
   };
 
   update(patch: Partial<LiveEditorDocument>): LiveEditorDocumentSnapshot {

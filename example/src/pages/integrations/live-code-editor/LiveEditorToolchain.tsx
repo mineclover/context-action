@@ -26,20 +26,30 @@ function LiveEditorToolHandlers({
 }) {
   useLiveEditorToolHandler('editor.getDocument', () => manager.getSnapshot());
 
+  useLiveEditorToolHandler('editor.getPreviewStatus', () =>
+    manager.getPreviewStatus()
+  );
+
+  const updateAndWait = async (patch: Parameters<LiveEditorDocumentManager['update']>[0]) => {
+    const snapshot = manager.update(patch);
+    const preview = await manager.waitForRendered(snapshot.revision);
+    return { ...snapshot, preview };
+  };
+
   useLiveEditorToolHandler('editor.setDocument', ({ source, scenario }) => {
-    return manager.update({
+    return updateAndWait({
       source,
       ...(scenario === undefined ? {} : { scenario }),
     });
   });
 
   useLiveEditorToolHandler('editor.setScenario', ({ scenario }) =>
-    manager.update({ scenario })
+    updateAndWait({ scenario })
   );
 
   useLiveEditorToolHandler('editor.resetDocument', () => {
     const snapshot: LiveEditorDocumentSnapshot = manager.getSnapshot();
-    return manager.update({ source: getResetSource(), scenario: snapshot.scenario });
+    return updateAndWait({ source: getResetSource(), scenario: snapshot.scenario });
   });
 
   return <>{children}</>;

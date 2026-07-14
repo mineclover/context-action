@@ -383,6 +383,7 @@ function LiveCodeEditorContent() {
                         </div>
                         <LiveCodeEditorPreviewFrame
                           document={documentSnapshot}
+                          onRendered={documentManager.markRendered}
                         />
                         <div
                           className={styles.scenarioBar}
