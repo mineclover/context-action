@@ -1,0 +1,29 @@
+{
+  "name": "@context-action/web-coding-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone static Bolt-style web coding demo powered by Context-Action",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:fast": "vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "check": "biome check src"
+  },
+  "dependencies": {
+    "@context-action/react": "workspace:*",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "typescript": "6.0.3",
+    "vite": "8.1.4"
+  }
+}

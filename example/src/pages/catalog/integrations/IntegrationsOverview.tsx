@@ -86,6 +86,14 @@ export default function IntegrationsOverview() {
           >
             Web coding 열기 →
           </Link>
+          <a
+            href="https://mineclover.github.io/context-action/web-coding/"
+            target="_blank"
+            rel="noreferrer"
+            className="ml-2 inline-flex items-center rounded-md border border-cyan-300 px-4 py-2 text-sm font-medium text-cyan-800 hover:bg-cyan-50"
+          >
+            Standalone Studio ↗
+          </a>
         </div>
 
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">

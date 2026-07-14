@@ -39,6 +39,15 @@ preview, and MCP integration. It is not a dependency or a target architecture
 for this showcase; browser-local persistence and the parent-owned ToolContext
 remain the current boundary.
 
+The Bolt-style standalone studio is published at `/web-coding/` from the
+`demos/bolt-style-editor` workspace package. It is independent of the example
+application route and imports only the framework package plus its own editor
+surface. Its first slice uses an in-memory browser workspace and a deterministic
+local agent so GitHub Pages can demonstrate the complete `tools/list` →
+model/local agent → `tools/call` → tool result → preview flow without an API
+key. The full Dexie/File System Access workspace remains in the example until
+the persistence and adapter contracts stabilize.
+
 ## Standard contract
 
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:
@@ -73,10 +82,12 @@ acknowledgement before returning its tool result. Do not expose an arbitrary
 
 ## Package and repository boundary plan
 
-The current Live Code Editor remains inside `example` because it is a showcase
-surface, not framework runtime. `@context-action/core` continues to own the
-provider-neutral tool protocol, while `@context-action/react` owns ToolContext
-and the registry.
+The full Live Code Editor remains inside `example` because it is a showcase
+surface, not framework runtime. The Bolt-style visual shell is isolated in
+`demos/bolt-style-editor` so it can be deployed as a static page without
+coupling its route to the example application. `@context-action/core` continues
+to own the provider-neutral tool protocol, while `@context-action/react` owns
+ToolContext and the registry.
 
 When the iframe sandbox, revision protocol, `postMessage` bridge,
 DocumentManager, and editor adapters have independent tests and public
@@ -92,7 +103,7 @@ Consider a separate repository only when one or more of these conditions hold:
   or a sandbox service become substantial; or
 - framework and editor teams need separate ownership or security operations.
 
-The default extraction order is `example → workspace package → independent repository`.
+The default extraction order is `example → standalone demo/workspace package → independent repository`.
 
 ## Current showcase editor tools
 

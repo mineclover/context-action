@@ -6,7 +6,9 @@ on:
     paths:
       - 'docs/**'
       - 'example/**'
+      - 'demos/**'
       - 'packages/*/src/**'
+      - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-all.yml'
       - 'package.json'
   workflow_dispatch:
@@ -47,7 +49,7 @@ jobs:
           # 관련 파일들이 변경되었는지 확인
           RELEVANT_CHANGES=false
           
-          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|packages/.*/src/|package\.json)"; then
+          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|demos/|packages/.*/src/|package\.json|pnpm-workspace\.yaml)"; then
             RELEVANT_CHANGES=true
           fi
           
@@ -134,6 +136,10 @@ jobs:
           cd example
           NODE_ENV=production pnpm build
 
+      # Build the standalone Bolt-style web coding studio
+      - name: Build standalone web coding demo
+        run: NODE_ENV=production pnpm --filter @context-action/web-coding-demo build
+
       # Combine both builds
       - name: Combine builds for deployment
         run: |
@@ -155,12 +161,18 @@ jobs:
           if [ -f example/dist/404.html ]; then
             cp example/dist/404.html deploy-dist/example/404.html
           fi
+
+          # Add the standalone web coding studio at /web-coding/
+          mkdir -p deploy-dist/web-coding
+          cp -r demos/bolt-style-editor/dist/* deploy-dist/web-coding/
           
           # Verify structure
           echo "📁 Deployment structure:"
           ls -la deploy-dist/
           echo "📁 Example subdirectory:"
           ls -la deploy-dist/example/
+          echo "📁 Standalone web coding subdirectory:"
+          ls -la deploy-dist/web-coding/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

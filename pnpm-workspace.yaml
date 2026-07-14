@@ -6,6 +6,7 @@ packages:
   - packages/typedoc-vitepress-sync
   - packages/style-testing
   - example
+  - demos/*
 
 overrides:
   esbuild@<=0.24.2: '0.25.0'

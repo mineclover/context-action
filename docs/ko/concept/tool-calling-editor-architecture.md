@@ -39,6 +39,14 @@ tool 계약과 preview 동기화를 오프라인에서 검증할 수 있다.
 않으며, 현재 경계는 browser-local persistence와 부모 문서가 소유하는
 ToolContext로 유지한다.
 
+Bolt 스타일 standalone studio는 `demos/bolt-style-editor` workspace package에서
+빌드해 `/web-coding/`으로 배포한다. example 애플리케이션의 route와 분리된 독립
+정적 페이지이며, framework package와 자체 editor surface만 사용한다. 첫 slice는
+API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` → tool result
+→ preview 흐름을 확인할 수 있도록 memory workspace와 결정적 local agent를 사용한다.
+Dexie/File System Access workspace는 persistence와 adapter 계약이 안정될 때까지
+기존 example에 유지한다.
+
 ## 표준 계약
 
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.
@@ -72,9 +80,11 @@ iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는
 
 ## 패키지·레포지토리 분리 계획
 
-현재 Live Code Editor는 framework runtime이 아니라 `example`의 showcase
-surface이므로 example 내부에 유지한다. Tool protocol은 `@context-action/core`,
-ToolContext와 registry는 `@context-action/react`가 계속 소유한다.
+전체 Live Code Editor는 framework runtime이 아니라 `example`의 showcase
+surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
+`demos/bolt-style-editor`로 격리해 example route와 결합하지 않고 정적 페이지로
+배포한다. Tool protocol은 `@context-action/core`, ToolContext와 registry는
+`@context-action/react`가 계속 소유한다.
 
 다음 단계에서 iframe sandbox, revision protocol, `postMessage` bridge,
 DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되면
@@ -88,7 +98,8 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 - Monaco/Codemirror, bundler, worker, sandbox service 등 editor 전용 의존성이 커진다.
 - framework 팀과 editor 팀의 개발 경계 또는 보안 운영 경계가 분리된다.
 
-분리 순서는 `example 유지 → workspace package → 독립 repository`를 기본 계획으로 한다.
+분리 순서는 `example 유지 → standalone demo/workspace package → 독립 repository`를
+기본 계획으로 한다.
 
 ## 현재 showcase editor 도구
 
