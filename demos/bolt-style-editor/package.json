@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Standalone static Bolt-style web coding demo powered by Context-Action",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 0",
+    "dev": "vite --host 127.0.0.1 --port 43127",
     "build": "tsc && vite build",
     "build:fast": "vite build",
     "preview": "vite preview",
