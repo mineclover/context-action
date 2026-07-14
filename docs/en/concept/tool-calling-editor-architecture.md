@@ -95,21 +95,32 @@ integration must replace the local demo policy with an approval-capable
 
 ## Code workspace boundary
 
-The Live Code Editor now has a parent-owned workspace manager in addition to
-the document manager:
+The Live Code Editor now has a parent-owned workspace manager and a Dexie
+repository in addition to the document manager:
 
 ```text
-Open folder → BrowserFileSystemWorkspaceAdapter
-           → WorkspaceManager (files, activePath, dirtyPaths)
+Open folder → generic FileSystemAdapter
+           → Dexie (metadata + Blob files)
+           → WorkspaceManager (text projection, activePath, dirtyPaths)
            → DocumentManager (active source + revision)
            → ToolContext / iframe preview
 ```
 
-- `Open folder` uses the browser File System Access API from a user gesture.
-- Only text extensions are imported, with file-count and file-size limits.
+- Dexie is the canonical browser-local store for workspace metadata and file
+  Blobs. Text source in the editor is a derived projection of the stored Blob.
+- `Open folder` uses a generic file-system adapter. The current browser adapter
+  uses the File System Access API from a user gesture and imports the folder
+  into Dexie rather than making the directory handle the workspace owner.
+- Text and binary files are imported with file-count, per-file, and total-size
+  limits. Binary files remain in the file tree and are available as short-lived
+  Blob URLs for preview assets, while only text files are editable.
 - File-system handles stay in the parent adapter and never enter tool payloads
   or iframe messages.
-- `Save file` writes only the active dirty file back to the opened directory.
+- Text edits are persisted to Dexie immediately; `Save file` writes the active
+  dirty text file back through the generic file-system adapter when a directory
+  is open.
+- Object URLs are derived handles only and must be revoked when the workspace
+  or preview is replaced.
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.
@@ -125,9 +136,10 @@ Open folder → BrowserFileSystemWorkspaceAdapter
 2. Apply allowlist and policy to discovery and execution.
 3. Record parallel calls and failures through the lifecycle observer.
 4. Implement the parent-owned DocumentManager.
-5. Add a revision-aware preview bridge to the iframe.
-6. Forward `toolCallId` and abort signals from the model adapter to the Registry.
-7. Add browser proof for `tools/list → call → result`.
+5. Add the Dexie workspace repository and Blob/file-system adapter boundary.
+6. Add a revision-aware preview bridge to the iframe.
+7. Forward `toolCallId` and abort signals from the model adapter to the Registry.
+8. Add browser proof for `tools/list → call → result` and workspace reload.
 
 ## Acceptance criteria
 

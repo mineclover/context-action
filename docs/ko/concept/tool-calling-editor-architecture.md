@@ -92,20 +92,29 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 ## Code workspace 경계
 
 Live Code Editor는 document manager와 함께 부모가 소유하는 workspace
-manager를 갖는다.
+manager와 Dexie repository를 갖는다.
 
 ```text
-Open folder → BrowserFileSystemWorkspaceAdapter
-           → WorkspaceManager (files, activePath, dirtyPaths)
+Open folder → generic FileSystemAdapter
+           → Dexie (metadata + Blob files)
+           → WorkspaceManager (text projection, activePath, dirtyPaths)
            → DocumentManager (active source + revision)
            → ToolContext / iframe preview
 ```
 
-- `Open folder`는 사용자 제스처에서 브라우저 File System Access API를 사용한다.
-- text extension만 읽으며 file 수와 file 크기 제한을 둔다.
+- Dexie가 workspace metadata와 파일 Blob의 브라우저 로컬 canonical store다.
+  에디터의 text source는 저장된 Blob에서 파생되는 projection이다.
+- `Open folder`는 범용 filesystem adapter를 사용한다. 현재 browser adapter는
+  사용자 제스처의 File System Access API로 폴더를 읽은 뒤 Dexie로 import하며,
+  directory handle이 workspace의 소유자가 되지 않는다.
+- text와 binary 파일을 file 수·개별 크기·전체 크기 제한과 함께 가져온다.
+  binary 파일은 파일 트리에 남기고 preview용 단기 Blob URL을 만들 수 있지만,
+  편집 대상은 text 파일로 제한한다.
 - filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
   넣지 않는다.
-- `Save file`은 열린 directory의 현재 dirty active file만 기록한다.
+- text 편집은 Dexie에 즉시 저장하고, `Save file`은 열린 directory가 있을 때
+  generic filesystem adapter를 통해 현재 dirty text 파일을 반영한다.
+- Object URL은 파생된 임시 연결값일 뿐이므로 workspace나 preview 교체 시 revoke한다.
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
@@ -121,9 +130,10 @@ Open folder → BrowserFileSystemWorkspaceAdapter
 2. allowlist와 policy를 discovery/execution 양쪽에 적용한다.
 3. lifecycle observer로 병렬 호출과 실패 결과를 기록한다.
 4. DocumentManager를 부모에 구현한다.
-5. iframe에는 revision-aware preview bridge를 추가한다.
-6. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달한다.
-7. `tools/list → call → result`의 브라우저 검증을 추가한다.
+5. Dexie workspace repository와 Blob/filesystem adapter 경계를 추가한다.
+6. iframe에는 revision-aware preview bridge를 추가한다.
+7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달한다.
+8. `tools/list → call → result`와 workspace reload의 브라우저 검증을 추가한다.
 
 ## 검증 기준
 

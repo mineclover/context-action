@@ -8,8 +8,13 @@ import {
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
+import { BrowserFileSystemWorkspaceAdapter } from '../../../lib/live-code-editor-filesystem';
 import {
-  BrowserFileSystemWorkspaceAdapter,
+  LIVE_EDITOR_WORKSPACE_ID,
+  LIVE_EDITOR_WORKSPACE_ROOT,
+  LiveEditorWorkspaceRepository,
+} from '../../../lib/live-code-editor-storage';
+import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
@@ -134,9 +139,9 @@ const defaultWorkspaceFiles = (
 
 function findWorkspaceEntryPath(
   files: readonly { path: string }[],
-  storageMode: 'memory' | 'file-system'
+  storageMode: 'memory' | 'indexed-db'
 ): string | undefined {
-  if (storageMode !== 'file-system') return undefined;
+  if (storageMode !== 'indexed-db') return undefined;
   const htmlFiles = files.filter((file) =>
     file.path.toLowerCase().endsWith('.html')
   );
@@ -210,17 +215,23 @@ function LiveCodeEditorContent() {
     () => new BrowserFileSystemWorkspaceAdapter(),
     []
   );
+  const workspaceRepository = useMemo(
+    () => new LiveEditorWorkspaceRepository(),
+    []
+  );
   const documentSnapshot = useSyncExternalStore(
     (listener) => documentManager.subscribe(() => listener()),
     documentManager.getSnapshot,
     documentManager.getSnapshot
   );
-  const activeExample =
-    workspaceSnapshot.storageMode === 'memory'
-      ? (Object.keys(examples) as ExampleId[]).find(
-          (exampleId) => examples[exampleId].file === documentSnapshot.file
-        )
-      : undefined;
+  const isShowcaseWorkspace =
+    workspaceSnapshot.storageMode === 'memory' ||
+    workspaceSnapshot.rootName === LIVE_EDITOR_WORKSPACE_ROOT;
+  const activeExample = isShowcaseWorkspace
+    ? (Object.keys(examples) as ExampleId[]).find(
+        (exampleId) => examples[exampleId].file === documentSnapshot.file
+      )
+    : undefined;
   const code = documentSnapshot.source;
   const scenario = documentSnapshot.scenario as ScenarioId;
   const workspaceEntryPath = findWorkspaceEntryPath(
@@ -232,7 +243,9 @@ function LiveCodeEditorContent() {
     'ready'
   );
   const [copied, setCopied] = useState(false);
-  const [workspaceMessage, setWorkspaceMessage] = useState('Memory workspace');
+  const [workspaceMessage, setWorkspaceMessage] = useState(
+    'Loading IndexedDB workspace…'
+  );
 
   const activeWorkspaceFile = workspaceManager.getActiveFile();
   const currentExample: ExampleDefinition = activeExample
@@ -240,7 +253,9 @@ function LiveCodeEditorContent() {
     : {
         label: documentSnapshot.file,
         file: documentSnapshot.file,
-        description: 'File loaded from the browser workspace.',
+        description: activeWorkspaceFile?.isText
+          ? 'File loaded from the persistent browser workspace.'
+          : 'Binary asset stored in the workspace; select a text file to edit.',
         code: activeWorkspaceFile?.initialSource ?? code,
       };
   const lineNumbers = useMemo(
@@ -250,16 +265,56 @@ function LiveCodeEditorContent() {
   const events = baseEvents[scenario];
 
   useEffect(() => {
+    let cancelled = false;
+    void workspaceRepository
+      .ensureWorkspace(
+        LIVE_EDITOR_WORKSPACE_ID,
+        defaultWorkspaceFiles,
+        LIVE_EDITOR_WORKSPACE_ROOT
+      )
+      .then((persisted) => {
+        if (cancelled) return;
+        workspaceManager.replaceFiles(persisted.files, {
+          rootName: persisted.metadata.rootName,
+          storageMode: 'indexed-db',
+          activePath: persisted.metadata.activePath,
+        });
+        setWorkspaceMessage(
+          `${persisted.metadata.rootName} · ${persisted.files.length} files persisted`
+        );
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setWorkspaceMessage(
+          error instanceof Error
+            ? error.message
+            : 'IndexedDB workspace could not be opened.'
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceManager, workspaceRepository]);
+
+  useEffect(() => {
     const unsubscribe = documentManager.subscribe((snapshot) => {
       const file = workspaceManager
         .getSnapshot()
         .files.find((candidate) => candidate.path === snapshot.file);
       if (!file || file.source !== snapshot.source) {
         workspaceManager.updateFile(snapshot.file, snapshot.source);
+        void workspaceRepository
+          .saveTextFile(
+            LIVE_EDITOR_WORKSPACE_ID,
+            snapshot.file,
+            snapshot.source,
+            file?.mimeType
+          )
+          .catch(() => undefined);
       }
     });
     return unsubscribe;
-  }, [documentManager, workspaceManager]);
+  }, [documentManager, workspaceManager, workspaceRepository]);
 
   useEffect(() => {
     const activeFile = workspaceSnapshot.files.find(
@@ -267,12 +322,11 @@ function LiveCodeEditorContent() {
     );
     if (!activeFile) return;
     const snapshot = documentManager.getSnapshot();
-    const nextExampleId =
-      workspaceSnapshot.storageMode === 'memory'
-        ? ((Object.keys(examples) as ExampleId[]).find(
-            (exampleId) => examples[exampleId].file === activeFile.path
-          ) ?? 'workspace')
-        : 'workspace';
+    const nextExampleId = isShowcaseWorkspace
+      ? ((Object.keys(examples) as ExampleId[]).find(
+          (exampleId) => examples[exampleId].file === activeFile.path
+        ) ?? 'workspace')
+      : 'workspace';
     if (
       snapshot.file !== activeFile.path ||
       snapshot.source !== activeFile.source ||
@@ -284,7 +338,18 @@ function LiveCodeEditorContent() {
         source: activeFile.source,
       });
     }
-  }, [documentManager, workspaceManager, workspaceSnapshot]);
+    if (workspaceSnapshot.storageMode === 'indexed-db') {
+      void workspaceRepository.setActivePath(
+        LIVE_EDITOR_WORKSPACE_ID,
+        activeFile.path
+      );
+    }
+  }, [
+    documentManager,
+    workspaceManager,
+    workspaceRepository,
+    workspaceSnapshot,
+  ]);
 
   const selectExample = (nextExample: ExampleId) => {
     workspaceManager.setActivePath(examples[nextExample].file);
@@ -295,13 +360,19 @@ function LiveCodeEditorContent() {
   const openWorkspace = async () => {
     try {
       const result = await filesystemAdapter.openDirectory();
-      workspaceManager.replaceFiles(result.files, {
-        rootName: result.rootName,
-        storageMode: 'file-system',
+      const persisted = await workspaceRepository.replaceWorkspace(
+        LIVE_EDITOR_WORKSPACE_ID,
+        result.files,
+        { rootName: result.rootName }
+      );
+      workspaceManager.replaceFiles(persisted.files, {
+        rootName: persisted.metadata.rootName,
+        activePath: persisted.metadata.activePath,
+        storageMode: 'indexed-db',
       });
-      const entryPath = findWorkspaceEntryPath(result.files, 'file-system');
+      const entryPath = findWorkspaceEntryPath(persisted.files, 'indexed-db');
       setWorkspaceMessage(
-        `${result.rootName} opened · ${result.files.length} files${
+        `${persisted.metadata.rootName} imported · ${persisted.files.length} files${
           entryPath ? ` · ${entryPath} ready` : ''
         }`
       );
@@ -317,11 +388,18 @@ function LiveCodeEditorContent() {
 
   const saveWorkspaceFile = async () => {
     const activeFile = workspaceManager.getActiveFile();
-    if (!activeFile) return;
+    if (!activeFile?.isText || !filesystemAdapter.isWritable) return;
     try {
-      await filesystemAdapter.saveFile(activeFile.path, activeFile.source);
+      const blob = new Blob([activeFile.source], { type: activeFile.mimeType });
+      await workspaceRepository.saveTextFile(
+        LIVE_EDITOR_WORKSPACE_ID,
+        activeFile.path,
+        activeFile.source,
+        activeFile.mimeType
+      );
+      await filesystemAdapter.saveFile(activeFile.path, blob);
       workspaceManager.markSaved(activeFile.path, activeFile.source);
-      setWorkspaceMessage(`${activeFile.path} saved`);
+      setWorkspaceMessage(`${activeFile.path} saved to filesystem`);
     } catch (error) {
       setWorkspaceMessage(
         error instanceof Error ? error.message : 'File could not be saved.'
@@ -486,7 +564,9 @@ function LiveCodeEditorContent() {
                         className={styles.workspaceButton}
                         onClick={() => void saveWorkspaceFile()}
                         disabled={
-                          workspaceSnapshot.storageMode !== 'file-system' ||
+                          workspaceSnapshot.storageMode !== 'indexed-db' ||
+                          !filesystemAdapter.isWritable ||
+                          !activeWorkspaceFile?.isText ||
                           !workspaceSnapshot.dirtyPaths.includes(
                             workspaceSnapshot.activePath
                           )
@@ -530,7 +610,11 @@ function LiveCodeEditorContent() {
                     >
                       {currentExample.file}
                     </button>
-                    <span className={styles.tab}>TypeScript</span>
+                    <span className={styles.tab}>
+                      {activeWorkspaceFile?.isText
+                        ? activeWorkspaceFile.mimeType
+                        : 'binary'}
+                    </span>
                   </div>
                   <div className={styles.editor}>
                     <div className={styles.lineNumbers} aria-hidden="true">
@@ -543,6 +627,7 @@ function LiveCodeEditorContent() {
                       className={styles.codeInput}
                       spellCheck={false}
                       value={code}
+                      disabled={activeWorkspaceFile?.isText === false}
                       onChange={(event) =>
                         documentManager.update({ source: event.target.value })
                       }

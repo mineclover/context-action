@@ -27,6 +27,8 @@ export interface LiveEditorPreviewStatus {
 export interface LiveEditorPreviewFile {
   readonly path: string;
   readonly source: string;
+  readonly mimeType?: string;
+  readonly url?: string;
 }
 
 export interface LiveEditorPreviewPayload {

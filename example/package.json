@@ -24,11 +24,12 @@
     "bundle-report": "vite build --mode analyze"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.7",
     "@context-action/core": "workspace:*",
     "@context-action/react": "workspace:*",
-    "@ai-sdk/openai-compatible": "3.0.7",
     "ai": "7.0.22",
     "clsx": "2.1.1",
+    "dexie": "4.4.4",
     "immer": "11.1.11",
     "react": "19.2.7",
     "react-dom": "19.2.7",

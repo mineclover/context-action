@@ -3,14 +3,14 @@ import {
   createLiveEditorDocumentMessage,
   isLiveEditorChildMessage,
   type LiveEditorDocumentSnapshot,
-  type LiveEditorPreviewFile,
   type LiveEditorPreviewPayload,
 } from '../../../lib/live-code-editor-bridge';
+import type { LiveEditorWorkspaceFile } from '../../../lib/live-code-editor-workspace';
 import styles from './LiveCodeEditorPage.module.css';
 
 interface LiveCodeEditorPreviewFrameProps {
   document: LiveEditorDocumentSnapshot;
-  workspaceFiles: readonly LiveEditorPreviewFile[];
+  workspaceFiles: readonly LiveEditorWorkspaceFile[];
   entryPath?: string;
   onRendered?: (revision: number) => void;
 }
@@ -20,6 +20,7 @@ const previewSource = `<!doctype html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' blob:; script-src 'unsafe-inline' blob:; img-src data: blob:; font-src data: blob:; connect-src 'none';" />
     <style>
       :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
       body { margin: 0; min-width: 0; background: #f8fafc; color: #1f2937; }
@@ -80,13 +81,27 @@ const previewSource = `<!doctype html>
         const element = node;
         if (element.tagName === 'SCRIPT') {
           if (!isJavaScriptType(element.getAttribute('type'))) return null;
-          const source = element.getAttribute('src')
-            ? files.get(resolvePath(element.getAttribute('src'), ownerPath))
-            : element.textContent || '';
+          const scriptPath = element.getAttribute('src')
+            ? resolvePath(element.getAttribute('src'), ownerPath)
+            : null;
+          const scriptFile = scriptPath ? files.get(scriptPath) : undefined;
+          const source = scriptPath ? scriptFile && scriptFile.source : element.textContent || '';
           if (source === undefined) return null;
           return createScript(element, source);
         }
         const clone = element.cloneNode(false);
+        const resourceAttribute = element.hasAttribute('src')
+          ? 'src'
+          : element.hasAttribute('href')
+            ? 'href'
+            : null;
+        if (resourceAttribute) {
+          const resourcePath = resolvePath(element.getAttribute(resourceAttribute), ownerPath);
+          const resourceFile = resourcePath ? files.get(resourcePath) : undefined;
+          if (resourceFile && resourceFile.url) {
+            clone.setAttribute(resourceAttribute, resourceFile.url);
+          }
+        }
         for (const child of Array.from(element.childNodes)) {
           const materialized = materializeNode(child, ownerPath, files);
           if (materialized) clone.appendChild(materialized);
@@ -96,19 +111,19 @@ const previewSource = `<!doctype html>
       const renderWorkspace = (documentSnapshot, preview) => {
         if (!preview.entryPath) throw new Error('Workspace runtime has no HTML entry file.');
         const files = new Map(preview.files.map((file) => [file.path, file.source]));
-        const entrySource = files.get(preview.entryPath);
-        if (entrySource === undefined) throw new Error('HTML entry file is not in the workspace.');
-        const parsed = new DOMParser().parseFromString(entrySource, 'text/html');
+        const entryFile = files.get(preview.entryPath);
+        if (!entryFile) throw new Error('HTML entry file is not in the workspace.');
+        const parsed = new DOMParser().parseFromString(entryFile.source, 'text/html');
         const bridgeScript = document.querySelector('script[data-bridge-runtime]');
         const nextHead = document.createElement('head');
         for (const child of Array.from(parsed.head.children)) {
           if (child.tagName === 'LINK' && (child.getAttribute('rel') || '').toLowerCase() === 'stylesheet') {
             const cssPath = resolvePath(child.getAttribute('href') || '', preview.entryPath);
-            const css = cssPath ? files.get(cssPath) : undefined;
-            if (css !== undefined) {
+            const cssFile = cssPath ? files.get(cssPath) : undefined;
+            if (cssFile) {
               const style = document.createElement('style');
               style.dataset.workspacePath = cssPath;
-              style.textContent = css;
+              style.textContent = cssFile.source;
               nextHead.appendChild(style);
             }
             continue;
@@ -190,7 +205,12 @@ export function LiveCodeEditorPreviewFrame({
     () => ({
       execute: Boolean(entryPath),
       ...(entryPath ? { entryPath } : {}),
-      files: workspaceFiles.map(({ path, source }) => ({ path, source })),
+      files: workspaceFiles.map(({ path, source, mimeType, previewUrl }) => ({
+        path,
+        source,
+        ...(mimeType ? { mimeType } : {}),
+        ...(previewUrl ? { url: previewUrl } : {}),
+      })),
     }),
     [entryPath, workspaceFiles]
   );
