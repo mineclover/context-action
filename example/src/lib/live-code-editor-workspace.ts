@@ -57,7 +57,9 @@ export type FileSystemEntryHandleLike =
   | FileSystemDirectoryHandleLike;
 
 interface FileSystemWindow extends Window {
-  showDirectoryPicker?: () => Promise<FileSystemDirectoryHandleLike>;
+  showDirectoryPicker?: (options?: {
+    readonly mode?: 'read' | 'readwrite';
+  }) => Promise<FileSystemDirectoryHandleLike>;
 }
 
 const TEXT_FILE_EXTENSIONS = new Set([
@@ -232,7 +234,7 @@ export class BrowserFileSystemWorkspaceAdapter {
         'This browser does not support the File System Access API.'
       );
     }
-    this.directoryHandle = await picker();
+    this.directoryHandle = await picker({ mode: 'readwrite' });
     const files: LiveEditorWorkspaceFile[] = [];
     await this.readDirectory(this.directoryHandle, '', files);
     if (files.length === 0) {

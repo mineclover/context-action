@@ -132,6 +132,21 @@ const defaultWorkspaceFiles = (
   Object.values(examples) as ExampleDefinition[]
 ).map((example) => createWorkspaceFile(example.file, example.code));
 
+function findWorkspaceEntryPath(
+  files: readonly { path: string }[],
+  storageMode: 'memory' | 'file-system'
+): string | undefined {
+  if (storageMode !== 'file-system') return undefined;
+  const htmlFiles = files.filter((file) =>
+    file.path.toLowerCase().endsWith('.html')
+  );
+  return (
+    htmlFiles.find(
+      (file) => file.path.split('/').pop()?.toLowerCase() === 'index.html'
+    )?.path ?? htmlFiles[0]?.path
+  );
+}
+
 const scenarioLabels: Record<ScenarioId, string> = {
   success: 'happy path',
   invalid: 'invalid input',
@@ -208,6 +223,10 @@ function LiveCodeEditorContent() {
       : undefined;
   const code = documentSnapshot.source;
   const scenario = documentSnapshot.scenario as ScenarioId;
+  const workspaceEntryPath = findWorkspaceEntryPath(
+    workspaceSnapshot.files,
+    workspaceSnapshot.storageMode
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [runState, setRunState] = useState<'ready' | 'running' | ScenarioId>(
     'ready'
@@ -280,8 +299,11 @@ function LiveCodeEditorContent() {
         rootName: result.rootName,
         storageMode: 'file-system',
       });
+      const entryPath = findWorkspaceEntryPath(result.files, 'file-system');
       setWorkspaceMessage(
-        `${result.rootName} opened · ${result.files.length} files`
+        `${result.rootName} opened · ${result.files.length} files${
+          entryPath ? ` · ${entryPath} ready` : ''
+        }`
       );
       setRunState('ready');
     } catch (error) {
@@ -558,6 +580,8 @@ function LiveCodeEditorContent() {
                           </div>
                           <LiveCodeEditorPreviewFrame
                             document={documentSnapshot}
+                            workspaceFiles={workspaceSnapshot.files}
+                            entryPath={workspaceEntryPath}
                             onRendered={documentManager.markRendered}
                           />
                           <div

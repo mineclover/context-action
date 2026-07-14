@@ -1,8 +1,9 @@
 /**
  * Parent/iframe contracts for the Live Code Editor preview.
  *
- * The parent owns the editable document and revision. The iframe receives a
- * controlled projection and only renders it; it never evaluates editor code.
+ * The parent owns the editable document, revision, and workspace projection.
+ * The iframe only evaluates an explicitly selected workspace HTML entry inside
+ * its sandbox; regular editor documents remain text-only projections.
  */
 
 export const LIVE_EDITOR_BRIDGE_CHANNEL = 'context-action.live-editor';
@@ -23,10 +24,22 @@ export interface LiveEditorPreviewStatus {
   readonly revision: number;
 }
 
+export interface LiveEditorPreviewFile {
+  readonly path: string;
+  readonly source: string;
+}
+
+export interface LiveEditorPreviewPayload {
+  readonly execute: boolean;
+  readonly entryPath?: string;
+  readonly files: readonly LiveEditorPreviewFile[];
+}
+
 export type LiveEditorParentMessage = {
   readonly channel: typeof LIVE_EDITOR_BRIDGE_CHANNEL;
   readonly type: 'editor:init' | 'editor:document';
   readonly document: LiveEditorDocumentSnapshot;
+  readonly preview?: LiveEditorPreviewPayload;
 };
 
 export type LiveEditorChildMessage =
@@ -128,12 +141,14 @@ export class LiveEditorDocumentManager {
 
 export function createLiveEditorDocumentMessage(
   snapshot: LiveEditorDocumentSnapshot,
-  type: LiveEditorParentMessage['type'] = 'editor:document'
+  type: LiveEditorParentMessage['type'] = 'editor:document',
+  preview?: LiveEditorPreviewPayload
 ): LiveEditorParentMessage {
   return {
     channel: LIVE_EDITOR_BRIDGE_CHANNEL,
     type,
     document: snapshot,
+    ...(preview ? { preview } : {}),
   };
 }
 

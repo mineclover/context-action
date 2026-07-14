@@ -106,6 +106,12 @@ Open folder → BrowserFileSystemWorkspaceAdapter
 - filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
   넣지 않는다.
 - `Save file`은 열린 directory의 현재 dirty active file만 기록한다.
+- 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
+  첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
+  안에 주입해 실행한다.
+- 외부 CSS/JS URL과 임의의 `runScript` 요청은 preview 경계에서 차단한다. 아직
+  binary asset은 가져오지 않으므로 이미지와 폰트는 data URL 또는 후속 asset
+  adapter가 필요하다.
 - 미지원 브라우저에서는 파일을 서버로 몰래 전송하지 않고 memory workspace를
   유지한다.
 

@@ -110,6 +110,12 @@ Open folder → BrowserFileSystemWorkspaceAdapter
 - File-system handles stay in the parent adapter and never enter tool payloads
   or iframe messages.
 - `Save file` writes only the active dirty file back to the opened directory.
+- For a runnable workspace, `index.html` is preferred; otherwise the first
+  `.html` file becomes the entry point. Relative local `.css` and `.js`
+  references are inlined and executed inside the sandboxed iframe.
+- External CSS/JS URLs and arbitrary `runScript` requests are blocked by the
+  preview boundary. Binary assets are not imported yet, so data URLs or a
+  later asset adapter are required for images and fonts.
 - Unsupported browsers retain the memory workspace instead of silently sending
   files to a server.
 
