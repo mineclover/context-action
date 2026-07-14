@@ -24,6 +24,21 @@ Orca는 여러 coding agent를 worktree, 터미널, embedded browser와 연결�
 
 참고 clone: `architecture-references/orca` (MIT, 조사 기준 commit `9a23792`)
 
+## 실시간 웹 코딩 showcase
+
+집중 showcase 경로는 `/integrations/live-web-coding`이다. 첫 slice는 범위를
+작게 유지하기 위해 HTML/CSS/JS 3개 파일 workspace, 화면에 보이는 `web.*`
+tool palette, 선택적인 OpenRouter model loop, sandbox iframe preview로
+구성한다. API 키가 없어도 동일한 `tools/list` → model/local agent →
+`tools/call` → tool result 흐름을 결정적인 local fallback으로 실행하므로
+tool 계약과 preview 동기화를 오프라인에서 검증할 수 있다.
+
+[bolt.diy](https://github.com/stackblitz-labs/bolt.diy)는 provider 선택, 파일
+기반 편집, preview, MCP 통합을 포함한 더 큰 browser coding-agent 형태를
+참고하기 위한 레퍼런스다. 이 showcase의 의존성이나 목표 아키텍처로 가져오지
+않으며, 현재 경계는 browser-local persistence와 부모 문서가 소유하는
+ToolContext로 유지한다.
+
 ## 표준 계약
 
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.

@@ -24,6 +24,21 @@ Orca is an ADE that connects multiple coding agents with worktrees, terminals, a
 
 Reference clone: `architecture-references/orca` (MIT, inspected at commit `9a23792`)
 
+## Realtime web-coding showcase
+
+The focused showcase route is `/integrations/live-web-coding`. It intentionally
+keeps the first slice small: a three-file HTML/CSS/JS workspace, a visible
+`web.*` tool palette, an optional OpenRouter model loop, and a sandboxed iframe
+preview. Without an API key, the same `tools/list` → model/local agent →
+`tools/call` → tool result path runs through a deterministic local fallback, so
+the tool contract and preview synchronization can be tested offline.
+
+[bolt.diy](https://github.com/stackblitz-labs/bolt.diy) is a reference for the
+larger browser coding-agent shape—provider selection, file-oriented editing,
+preview, and MCP integration. It is not a dependency or a target architecture
+for this showcase; browser-local persistence and the parent-owned ToolContext
+remain the current boundary.
+
 ## Standard contract
 
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:

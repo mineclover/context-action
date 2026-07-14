@@ -57,6 +57,23 @@ const demos: DemoItem[] = [
     ],
     estimatedTime: '5-10분',
   },
+  {
+    path: '/integrations/live-web-coding',
+    title: 'Realtime Web Coding',
+    emoji: '⚡',
+    description:
+      'AI chat과 web tools가 HTML/CSS/JS workspace를 수정하고 sandbox preview에 즉시 반영하는 작은 실험실.',
+    tags: ['AI Chat', 'Tool Calling', 'HTML/CSS/JS', 'Live Preview'],
+    category: 'advanced',
+    complexity: 'Intermediate',
+    features: [
+      'Visible web tool palette',
+      'Local demo agent fallback',
+      'Dexie workspace persistence',
+      'Iframe revision acknowledgement',
+    ],
+    estimatedTime: '5-10분',
+  },
 
   // === AI/LLM Integration ===
   {

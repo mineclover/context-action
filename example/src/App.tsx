@@ -238,6 +238,9 @@ const ActionLifecycleWorkbenchPage = lazy(
 const LiveCodeEditorPage = lazy(
   () => import('./pages/integrations/live-code-editor/LiveCodeEditorPage')
 );
+const LiveWebCodingPage = lazy(
+  () => import('./pages/integrations/live-web-coding/LiveWebCodingPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -567,6 +570,10 @@ function AppContent() {
             <Route
               path="/integrations/live-code-editor"
               element={<LiveCodeEditorPage />}
+            />
+            <Route
+              path="/integrations/live-web-coding"
+              element={<LiveWebCodingPage />}
             />
             <Route
               path="/integrations/tool-context-ai"

@@ -97,6 +97,13 @@ function Layout({
         'Live editor for Contract, Runtime, Facade, and Recipe boundaries',
     },
     {
+      path: '/integrations/live-web-coding',
+      label: '⚡ Realtime Web Coding',
+      category: 'architecture',
+      description:
+        'AI chat and visible web tools update a browser-local HTML/CSS/JS workspace',
+    },
+    {
       path: '/integrations/action-lifecycle',
       label: '⚙️ Action Lifecycle Workbench',
       category: 'architecture',

@@ -183,19 +183,30 @@ export class LiveEditorWorkspaceRepository {
       .where('[workspaceId+path]')
       .equals([workspaceId, normalizedPath])
       .first();
-    if (!existing) return;
     const resolvedMimeType = inferWorkspaceMimeType(
       normalizedPath,
-      mimeType ?? existing.mimeType
+      mimeType ?? existing?.mimeType
     );
     const blob = new Blob([source], { type: resolvedMimeType });
-    await this.database.files.put({
-      ...existing,
-      blob,
-      mimeType: resolvedMimeType,
-      size: blob.size,
-      updatedAt: Date.now(),
-    });
+    await this.database.files.put(
+      existing
+        ? {
+            ...existing,
+            blob,
+            mimeType: resolvedMimeType,
+            size: blob.size,
+            updatedAt: Date.now(),
+          }
+        : {
+            id: `${workspaceId}:${normalizedPath}`,
+            workspaceId,
+            path: normalizedPath,
+            blob,
+            mimeType: resolvedMimeType,
+            size: blob.size,
+            updatedAt: Date.now(),
+          }
+    );
     await this.touchWorkspace(workspaceId);
   }
 

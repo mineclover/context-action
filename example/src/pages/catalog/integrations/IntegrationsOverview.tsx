@@ -69,6 +69,25 @@ export default function IntegrationsOverview() {
           </Link>
         </div>
 
+        <div className="category-card bg-white border border-cyan-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <div className="inline-flex rounded-md border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-800">
+            AI chat + web tools
+          </div>
+          <h3 className="text-xl font-semibold text-slate-900 mb-3 mt-3">
+            ⚡ Realtime Web Coding
+          </h3>
+          <p className="text-sm text-slate-700 mb-4">
+            채팅이 web tool을 호출해 HTML/CSS/JS workspace를 수정하고 sandbox
+            iframe에 즉시 반영하는 작은 Bolt.diy-inspired 흐름입니다.
+          </p>
+          <Link
+            to="/integrations/live-web-coding"
+            className="inline-flex items-center rounded-md bg-cyan-700 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-800"
+          >
+            Web coding 열기 →
+          </Link>
+        </div>
+
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">
             🏢 Business Applications
