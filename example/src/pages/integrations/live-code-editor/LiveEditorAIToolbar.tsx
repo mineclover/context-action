@@ -22,6 +22,7 @@ export function LiveEditorAIToolbar() {
   const [result, setResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
   const [localMutationResult, setLocalMutationResult] = useState('');
+  const [modelShapedResult, setModelShapedResult] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -137,6 +138,22 @@ export function LiveEditorAIToolbar() {
     );
   };
 
+  const runModelShapedCall = async () => {
+    const result = await registry.executeModelToolCall(
+      {
+        id: `model-shaped-${Date.now()}`,
+        name: 'editor.setScenario',
+        arguments: { scenario: 'blocked' },
+      },
+      { context: { source: 'model' } }
+    );
+    setModelShapedResult(
+      result.isError
+        ? result.error?.message ?? 'Model-shaped call failed.'
+        : JSON.stringify(result.structuredContent)
+    );
+  };
+
   const toolDefinitions = registry.listTools().tools;
 
   return (
@@ -202,11 +219,21 @@ export function LiveEditorAIToolbar() {
         >
           Run local mutation + iframe acknowledgement
         </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
+          onClick={() => void runModelShapedCall()}
+        >
+          Run model-shaped call (no network)
+        </button>
         {localCallResult && (
           <code className={styles.localCallResult}>{localCallResult}</code>
         )}
         {localMutationResult && (
           <code className={styles.localCallResult}>{localMutationResult}</code>
+        )}
+        {modelShapedResult && (
+          <code className={styles.localCallResult}>{modelShapedResult}</code>
         )}
       </div>
       <form className={styles.aiPromptForm} onSubmit={submit}>
