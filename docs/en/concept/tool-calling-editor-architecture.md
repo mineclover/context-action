@@ -420,6 +420,17 @@ Open folder → generic FileSystemAdapter
   instead of being overwritten.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
+- The source editor keeps syntax highlighting and editing in one overlay surface.
+  `⌘/Ctrl+F` opens in-file search, `Enter`/`Shift+Enter` move through
+  case-insensitive matches, `⌘/Ctrl+G` also moves between matches, and `Esc`
+  returns focus to the source. The editor header exposes the current line,
+  column, and total line count.
+- Direct source editing is temporarily disabled while an agent/tool chain is
+  running. The approved expected revision remains authoritative during that
+  interval, preventing manual edits from racing an approved mutation.
+- The chat history uses a bounded scroll region and follows the latest entry,
+  keeping approval, error, retry, and tool-result feedback visible without
+  expanding the editor indefinitely.
 - `Download` exports the active text source or Blob asset as a browser download,
   so upload-only folder imports can still be taken back to local files.
 - The Explorer's New file dialog similarly routes through

@@ -1340,6 +1340,32 @@ function formatTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
 }
 
+function getCursorPosition(source: string, offset: number) {
+  const safeOffset = Math.max(0, Math.min(offset, source.length));
+  const beforeCursor = source.slice(0, safeOffset);
+  const lines = beforeCursor.split('\n');
+  return {
+    line: lines.length,
+    column: (lines.at(-1)?.length ?? 0) + 1,
+  };
+}
+
+function findTextMatches(source: string, query: string): number[] {
+  const normalizedQuery = query.toLocaleLowerCase();
+  if (!normalizedQuery) return [];
+
+  const normalizedSource = source.toLocaleLowerCase();
+  const matches: number[] = [];
+  let cursor = 0;
+  while (cursor <= normalizedSource.length - normalizedQuery.length) {
+    const index = normalizedSource.indexOf(normalizedQuery, cursor);
+    if (index < 0) break;
+    matches.push(index);
+    cursor = index + Math.max(normalizedQuery.length, 1);
+  }
+  return matches;
+}
+
 function CodeEditor({
   file,
   disabled = false,
@@ -1351,6 +1377,11 @@ function CodeEditor({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const highlightRef = useRef<HTMLPreElement>(null);
+  const findInputRef = useRef<HTMLInputElement>(null);
+  const [findOpen, setFindOpen] = useState(false);
+  const [findQuery, setFindQuery] = useState('');
+  const [findIndex, setFindIndex] = useState(0);
+  const [cursorOffset, setCursorOffset] = useState(0);
   const highlightedSource = useMemo(
     () =>
       file.source
@@ -1367,7 +1398,48 @@ function CodeEditor({
     textarea.scrollLeft = 0;
     highlight.scrollTop = 0;
     highlight.scrollLeft = 0;
+    textarea.setSelectionRange(0, 0);
+    setCursorOffset(0);
+    setFindOpen(false);
+    setFindQuery('');
   }, [file.path]);
+
+  const matches = useMemo(
+    () => findTextMatches(file.source, findQuery),
+    [file.source, findQuery]
+  );
+  const cursorPosition = getCursorPosition(file.source, cursorOffset);
+
+  const updateCursor = (textarea: HTMLTextAreaElement) => {
+    setCursorOffset(textarea.selectionStart);
+  };
+
+  const selectMatch = (requestedIndex: number) => {
+    if (!matches.length) return;
+    const nextIndex = (requestedIndex + matches.length) % matches.length;
+    const start = matches[nextIndex];
+    const end = start + findQuery.length;
+    setFindIndex(nextIndex);
+    textareaRef.current?.focus();
+    textareaRef.current?.setSelectionRange(start, end);
+    if (textareaRef.current) updateCursor(textareaRef.current);
+  };
+
+  const openFind = () => {
+    const textarea = textareaRef.current;
+    const selectedText = textarea
+      ? textarea.value.slice(textarea.selectionStart, textarea.selectionEnd)
+      : '';
+    setFindQuery(selectedText.length <= 80 ? selectedText : '');
+    setFindIndex(0);
+    setFindOpen(true);
+    window.requestAnimationFrame(() => findInputRef.current?.focus());
+  };
+
+  const closeFind = () => {
+    setFindOpen(false);
+    textareaRef.current?.focus();
+  };
 
   const syncScroll = (event: UIEvent<HTMLTextAreaElement>) => {
     const textarea = event.currentTarget;
@@ -1378,6 +1450,22 @@ function CodeEditor({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    const modifierKey = event.metaKey || event.ctrlKey;
+    if (modifierKey && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      openFind();
+      return;
+    }
+    if (modifierKey && event.key.toLowerCase() === 'g' && findOpen) {
+      event.preventDefault();
+      selectMatch(findIndex + (event.shiftKey ? -1 : 1));
+      return;
+    }
+    if (event.key === 'Escape' && findOpen) {
+      event.preventDefault();
+      closeFind();
+      return;
+    }
     if (event.key !== 'Tab') return;
     event.preventDefault();
     const textarea = event.currentTarget;
@@ -1385,47 +1473,115 @@ function CodeEditor({
     const end = textarea.selectionEnd;
     const nextSource = `${file.source.slice(0, start)}  ${file.source.slice(end)}`;
     onChange(nextSource);
+    setCursorOffset(start + 2);
     window.requestAnimationFrame(() => {
       textareaRef.current?.setSelectionRange(start + 2, start + 2);
     });
   };
 
   return (
-    <div className="code-scroll">
-      <pre ref={highlightRef} aria-hidden="true" className="code-highlight">
-        {highlightedSource.map((line, index) => (
-          <span className="code-line" key={`${file.path}-highlight-${index}`}>
-            <span className="line-number">
-              {String(index + 1).padStart(2, '0')}
+    <>
+      <div className="code-header">
+        <span>{file.language}</span>
+        <span>
+          Ln {cursorPosition.line}, Col {cursorPosition.column} ·{' '}
+          {file.source.split('\n').length} lines
+        </span>
+      </div>
+      <div className="code-scroll">
+        <pre ref={highlightRef} aria-hidden="true" className="code-highlight">
+          {highlightedSource.map((line, index) => (
+            <span className="code-line" key={`${file.path}-highlight-${index}`}>
+              <span className="line-number">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <code>
+                {line.length > 0
+                  ? line.map((token, tokenIndex) => (
+                      <span
+                        className={token.className}
+                        key={`${file.path}-${index}-${tokenIndex}`}
+                      >
+                        {token.value}
+                      </span>
+                    ))
+                  : ' '}
+              </code>
             </span>
-            <code>
-              {line.length > 0
-                ? line.map((token, tokenIndex) => (
-                    <span
-                      className={token.className}
-                      key={`${file.path}-${index}-${tokenIndex}`}
-                    >
-                      {token.value}
-                    </span>
-                  ))
-                : ' '}
-            </code>
-          </span>
-        ))}
-      </pre>
-      <textarea
-        ref={textareaRef}
-        aria-label="Editable workspace source"
-        className="code-input"
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleKeyDown}
-        onScroll={syncScroll}
-        spellCheck={false}
-        value={file.source}
-        wrap="off"
-      />
-    </div>
+          ))}
+        </pre>
+        <textarea
+          ref={textareaRef}
+          aria-label={`Edit ${file.path}`}
+          aria-keyshortcuts="Control+F Meta+F Control+G Meta+G"
+          className="code-input"
+          disabled={disabled}
+          onChange={(event) => {
+            updateCursor(event.currentTarget);
+            onChange(event.target.value);
+          }}
+          onClick={(event) => updateCursor(event.currentTarget)}
+          onKeyDown={handleKeyDown}
+          onKeyUp={(event) => updateCursor(event.currentTarget)}
+          onSelect={(event) => updateCursor(event.currentTarget)}
+          onScroll={syncScroll}
+          spellCheck={false}
+          value={file.source}
+          wrap="off"
+        />
+        {findOpen ? (
+          <div className="code-find-bar" role="search">
+            <span className="code-find-icon" aria-hidden="true">
+              /
+            </span>
+            <input
+              ref={findInputRef}
+              aria-label="Find in file"
+              onChange={(event) => {
+                setFindQuery(event.target.value);
+                setFindIndex(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  selectMatch(findIndex + (event.shiftKey ? -1 : 1));
+                }
+                if (event.key === 'Escape') {
+                  event.preventDefault();
+                  closeFind();
+                }
+              }}
+              placeholder="Find"
+              value={findQuery}
+            />
+            <span className="code-find-count">
+              {findQuery
+                ? `${matches.length ? findIndex + 1 : 0}/${matches.length}`
+                : 'Find'}
+            </span>
+            <button
+              aria-label="Find previous"
+              disabled={!matches.length}
+              onClick={() => selectMatch(findIndex - 1)}
+              type="button"
+            >
+              ↑
+            </button>
+            <button
+              aria-label="Find next"
+              disabled={!matches.length}
+              onClick={() => selectMatch(findIndex + 1)}
+              type="button"
+            >
+              ↓
+            </button>
+            <button aria-label="Close find" onClick={closeFind} type="button">
+              ×
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }
 
@@ -1473,12 +1629,18 @@ function EditorWorkbench({
   );
   const [running, setRunning] = useState(false);
   const executionControllerRef = useRef<AbortController | null>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
       text: 'Describe a change and I will turn it into visible workspace tool calls.',
     },
   ]);
+  useEffect(() => {
+    const messageList = messageListRef.current;
+    if (!messageList) return;
+    messageList.scrollTop = messageList.scrollHeight;
+  }, [messages.length, running]);
   const [openRouterSettings, setOpenRouterSettings] = useState(
     readOpenRouterSettings
   );
@@ -1567,6 +1729,22 @@ function EditorWorkbench({
       : snapshot.preview.status === 'error'
         ? 'runtime error'
         : 'waiting';
+  const studioStatus = running
+    ? 'Running tool chain'
+    : snapshot.storageMode === 'loading'
+      ? 'Loading workspace'
+      : snapshot.preview.status === 'error'
+        ? 'Preview error'
+        : dirtyPaths.size > 0 || workspace.getDeletedPaths().length > 0
+          ? 'Unsaved changes'
+          : 'Ready';
+  const studioStatusTone = running
+    ? 'running'
+    : snapshot.preview.status === 'error'
+      ? 'error'
+      : dirtyPaths.size > 0 || workspace.getDeletedPaths().length > 0
+        ? 'dirty'
+        : 'ready';
 
   const refreshPreview = () => {
     if (!isStorageReady) return;
@@ -2389,30 +2567,29 @@ function EditorWorkbench({
             </div>
           </div>
           <section className="code-editor" aria-label="Workspace source">
-            <div className="code-header">
-              <span>{activeFile.language}</span>
-              <span>
-                {activeFile.kind === 'asset'
-                  ? 'preview asset · read-only'
-                  : 'editable source · auto-sync preview'}
-              </span>
-            </div>
             {activeFile.kind === 'asset' ? (
-              <div className="asset-placeholder">
-                <div className="asset-placeholder-icon">◇</div>
-                <strong>{activeFile.path}</strong>
-                <span>
-                  {activeFile.mimeType ?? 'binary asset'} ·{' '}
-                  {formatFileSize(activeFile.blob?.size ?? 0)}
-                </span>
-                <p>
-                  This Blob is preserved in the browser workspace and available
-                  to the sandbox preview. Binary assets are not edited as text.
-                </p>
-              </div>
+              <>
+                <div className="code-header">
+                  <span>{activeFile.language}</span>
+                  <span>preview asset · read-only</span>
+                </div>
+                <div className="asset-placeholder">
+                  <div className="asset-placeholder-icon">◇</div>
+                  <strong>{activeFile.path}</strong>
+                  <span>
+                    {activeFile.mimeType ?? 'binary asset'} ·{' '}
+                    {formatFileSize(activeFile.blob?.size ?? 0)}
+                  </span>
+                  <p>
+                    This Blob is preserved in the browser workspace and
+                    available to the sandbox preview. Binary assets are not
+                    edited as text.
+                  </p>
+                </div>
+              </>
             ) : (
               <CodeEditor
-                disabled={!isStorageReady}
+                disabled={!isStorageReady || running}
                 file={activeFile}
                 onChange={(source) =>
                   workspace.updateFile(activeFile.path, source)
@@ -2478,7 +2655,7 @@ function EditorWorkbench({
                 ))}
               </section>
             ) : null}
-            <div className="message-list">
+            <div className="message-list" ref={messageListRef}>
               {messages.map((message, index) => (
                 <div
                   className={`message message-${message.role}${message.tone ? ` message-${message.tone}` : ''}`}
@@ -2622,8 +2799,8 @@ function EditorWorkbench({
       </div>
 
       <footer className="studio-statusbar">
-        <span>
-          <span className="status-dot" /> Ready
+        <span className={`statusbar-state statusbar-state-${studioStatusTone}`}>
+          <span className="status-dot" /> {studioStatus}
         </span>
         <span>
           {openRouterSettings.apiKey

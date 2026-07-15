@@ -398,6 +398,17 @@ Open folder → generic FileSystemAdapter
   대기 중 source가 바뀌면 덮어쓰지 않고 거부한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
+- source editor는 syntax highlighting과 편집을 하나의 overlay surface에서
+  유지한다. `⌘/Ctrl+F`로 파일 검색을 열고 `Enter`/`Shift+Enter`로
+  대소문자를 구분하지 않는 match를 이동하며, `⌘/Ctrl+G`로도 다음·이전
+  match를 이동할 수 있다. `Esc`는 source로 focus를 돌려주고, editor header는
+  현재 line·column과 전체 line 수를 표시한다.
+- agent/tool chain이 실행 중일 때는 source 직접 편집을 잠시 잠근다. 승인된
+  expected revision을 그동안 authoritative하게 유지해, 수동 편집과 승인된
+  mutation이 서로 경합하지 않게 한다.
+- chat history는 높이가 제한된 scroll region을 사용하고 최신 항목으로
+  자동 이동한다. 따라서 approval·error·retry·tool result 피드백을 계속
+  확인하면서 editor 영역이 끝없이 커지지 않는다.
 - `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
   내보내므로, directory-upload fallback에서도 편집 결과를 다시 로컬 파일로
   가져갈 수 있다.
