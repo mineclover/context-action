@@ -281,6 +281,79 @@ function resultText(result: {
   );
 }
 
+function toolSuccessMessage(
+  name: string,
+  result: { structuredContent?: unknown }
+): string {
+  const value = result.structuredContent;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return `Executed ${name}.`;
+  }
+
+  const structured = value as Record<string, unknown>;
+  const revision =
+    typeof structured.revision === 'number'
+      ? ` Revision ${structured.revision}.`
+      : '';
+
+  if (name === 'workspace.getStatus') {
+    const fileCount =
+      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
+    const filesystem =
+      structured.filesystem &&
+      typeof structured.filesystem === 'object' &&
+      !Array.isArray(structured.filesystem)
+        ? (structured.filesystem as Record<string, unknown>)
+        : undefined;
+    const storage = filesystem?.folderLinked
+      ? 'local folder connected'
+      : 'browser-only workspace';
+    return `Workspace status: ${fileCount} file(s), ${storage}.${revision}`;
+  }
+
+  if (name === 'workspace.listFiles' && Array.isArray(structured.files)) {
+    return `Listed ${structured.files.length} workspace file(s).${revision}`;
+  }
+
+  if (name === 'workspace.readFile' && typeof structured.path === 'string') {
+    const source =
+      typeof structured.source === 'string' ? structured.source : '';
+    return `Read ${structured.path} (${source.split('\n').length} lines).${revision}`;
+  }
+
+  if (name === 'workspace.applyPatch') {
+    const replacements =
+      typeof structured.replacements === 'number' ? structured.replacements : 0;
+    return `Patched ${String(structured.path ?? 'the file')} (${replacements} replacement${replacements === 1 ? '' : 's'}).${revision}`;
+  }
+
+  if (name === 'workspace.saveAll') {
+    const savedCount = Array.isArray(structured.savedPaths)
+      ? structured.savedPaths.length
+      : 0;
+    const deletedCount = Array.isArray(structured.deletedPaths)
+      ? structured.deletedPaths.length
+      : 0;
+    return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${revision}`;
+  }
+
+  if (name === 'workspace.disconnectFolder') {
+    return 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.';
+  }
+
+  if (typeof structured.path === 'string') {
+    return `Updated ${structured.path}. Preview revision acknowledged.${revision}`;
+  }
+  if (typeof structured.theme === 'string') {
+    return `Applied the ${structured.theme} theme. Preview revision acknowledged.${revision}`;
+  }
+  if (typeof structured.title === 'string') {
+    return `Updated the preview content. Preview revision acknowledged.${revision}`;
+  }
+
+  return `Executed ${name}. Preview revision acknowledged.${revision}`;
+}
+
 function throwIfAborted(signal?: AbortSignal): void {
   if (!signal?.aborted) return;
   const reason = signal.reason;
@@ -2339,9 +2412,7 @@ function EditorWorkbench({
       throwIfAborted(controller.signal);
       const message = result.isError
         ? resultText(result)
-        : call.name === 'workspace.disconnectFolder'
-          ? 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.'
-          : `Executed ${call.name}. Preview revision acknowledged.`;
+        : toolSuccessMessage(call.name, result);
       setMessages((current) => [
         ...current,
         {
@@ -2975,7 +3046,11 @@ function EditorWorkbench({
                 <span className="panel-label">Agent</span>
                 <strong>What should we change?</strong>
               </div>
-              <span className="agent-badge">LOCAL / TOOL CALLING</span>
+              <span className="agent-badge">
+                {openRouterSettings.apiKey
+                  ? 'OPENROUTER / TOOL CALLING'
+                  : 'LOCAL / TOOL CALLING'}
+              </span>
             </div>
             {pendingApprovals.length ? (
               <section
