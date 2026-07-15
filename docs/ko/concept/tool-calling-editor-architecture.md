@@ -89,7 +89,10 @@ standalone OpenRouter bridge는 response body를 먼저 text로 읽은 뒤 JSON�
 endpoint 설정이 잘못되어도 브라우저의 `Response.json()` 내부 예외가 chat에 그대로
 노출되지 않는다. 401/403은 재시도할 수 없는 인증·접근 오류로, 429와 5xx는 재시도 가능한
 provider 오류로, network failure는 재시도 가능한 오류로 분류한다. 각 provider 실패는
-사용자에게 `OPENROUTER_*` 명시 code와 함께 표시한다.
+사용자에게 `OPENROUTER_*` 명시 code와 함께 표시한다. model이
+`function.arguments`에 잘못된 JSON이나 object가 아닌 JSON을 반환하면 registry
+실행 전에 거부하고 재시도 가능한 `OPENROUTER_INVALID_TOOL_CALL`로 표시한다.
+따라서 payload를 조용히 `{}`로 바꿔 인자가 없는 tool이 실행되는 경로가 없다.
 
 ## 표준 계약
 

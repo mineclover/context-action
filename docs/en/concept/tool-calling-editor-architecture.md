@@ -94,7 +94,10 @@ decoding, so a misconfigured endpoint cannot leak a browser `Response.json()`
 exception into the chat. It classifies 401/403 as non-retryable authentication or
 access errors, 429 and 5xx responses as retryable provider errors, and network
 failures as retryable. Each provider failure carries an explicit
-`OPENROUTER_*` code in the user-visible message.
+`OPENROUTER_*` code in the user-visible message. If a model returns malformed
+or non-object JSON in `function.arguments`, the bridge rejects it before
+registry execution as retryable `OPENROUTER_INVALID_TOOL_CALL`; it never
+silently converts the payload to `{}` where a no-argument tool could run.
 
 ## Standard contract
 

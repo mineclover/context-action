@@ -28,6 +28,7 @@ export type OpenRouterErrorCode =
   | 'OPENROUTER_PROVIDER_ERROR'
   | 'OPENROUTER_NETWORK_ERROR'
   | 'OPENROUTER_INVALID_RESPONSE'
+  | 'OPENROUTER_INVALID_TOOL_CALL'
   | 'OPENROUTER_NO_ASSISTANT_MESSAGE'
   | 'OPENROUTER_TOOL_LOOP_LIMIT';
 
@@ -314,12 +315,20 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
       throwIfAborted(signal);
       let argumentsValue: Record<string, unknown>;
       try {
-        argumentsValue = JSON.parse(toolCall.function.arguments) as Record<
-          string,
-          unknown
-        >;
-      } catch {
-        argumentsValue = {};
+        const parsed: unknown = JSON.parse(toolCall.function.arguments);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('Tool arguments must be a JSON object.');
+        }
+        argumentsValue = parsed as Record<string, unknown>;
+      } catch (error) {
+        throw new OpenRouterRequestError(
+          `Model returned invalid JSON arguments for tool "${toolCall.function.name}".`,
+          {
+            code: 'OPENROUTER_INVALID_TOOL_CALL',
+            retryable: true,
+            cause: error,
+          }
+        );
       }
 
       const result = await registry.executeModelToolCall(
