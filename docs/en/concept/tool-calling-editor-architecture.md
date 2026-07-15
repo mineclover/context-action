@@ -48,7 +48,10 @@ complete `tools/list` → model/local agent → `tools/call` → tool result →
 flow without an API key. If IndexedDB is unavailable, it falls back to the
 memory workspace. `Open folder` now uses a parent-owned browser adapter: it
 prefers the File System Access API and falls back to a directory-upload input,
-then replaces the Dexie workspace with the imported text files.
+then replaces the Dexie workspace with the imported text files. When the user
+grants read/write access, the adapter retains the directory handle only in the
+parent and `Save to folder` writes dirty files back to that directory; the
+directory-upload fallback remains browser-workspace-only.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared `context-action.openrouter.api-key` browser key used by the example
@@ -153,9 +156,9 @@ Open folder → generic FileSystemAdapter
   source.
 - File-system handles stay in the parent adapter and never enter tool payloads
   or iframe messages.
-- Text edits are persisted to Dexie immediately. The current standalone demo is
-  an import-and-edit surface; it does not write changes back to the selected
-  operating-system directory.
+- Text edits are persisted to Dexie immediately. With a read/write directory
+  handle, `Save to folder` writes the dirty text files back to the selected
+  operating-system directory; upload-only imports remain browser-workspace-only.
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.

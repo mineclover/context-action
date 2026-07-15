@@ -10,18 +10,42 @@ type FileSystemFileHandleLike = {
   kind: 'file';
   name: string;
   getFile(): Promise<File>;
+  createWritable?: () => Promise<FileSystemWritableFileStreamLike>;
 };
+
+type FileSystemWritableFileStreamLike = {
+  write(data: string): Promise<void>;
+  close(): Promise<void>;
+};
+
+type DirectoryHandleOptions = { create?: boolean };
 
 type FileSystemDirectoryHandleLike = {
   kind: 'directory';
   name: string;
+  getDirectoryHandle(
+    name: string,
+    options?: DirectoryHandleOptions
+  ): Promise<FileSystemDirectoryHandleLike>;
+  getFileHandle(
+    name: string,
+    options?: DirectoryHandleOptions
+  ): Promise<FileSystemFileHandleLike>;
   entries(): AsyncIterableIterator<
     [string, FileSystemFileHandleLike | FileSystemDirectoryHandleLike]
   >;
+  queryPermission?: (descriptor?: {
+    mode?: 'read' | 'readwrite';
+  }) => Promise<'granted' | 'prompt' | 'denied'>;
+  requestPermission?: (descriptor?: {
+    mode?: 'read' | 'readwrite';
+  }) => Promise<'granted' | 'prompt' | 'denied'>;
 };
 
 type WindowWithDirectoryPicker = Window & {
-  showDirectoryPicker?: () => Promise<FileSystemDirectoryHandleLike>;
+  showDirectoryPicker?: (options?: {
+    mode?: 'read' | 'readwrite';
+  }) => Promise<FileSystemDirectoryHandleLike>;
 };
 
 const MAX_FILES = 200;
@@ -90,6 +114,12 @@ function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
 }
 
 export class BrowserWorkspaceFileSystemAdapter {
+  private directoryHandle: FileSystemDirectoryHandleLike | null = null;
+
+  get hasWritableFolder(): boolean {
+    return this.directoryHandle !== null;
+  }
+
   async pickFolder(): Promise<ImportedFolder> {
     const picker = (window as WindowWithDirectoryPicker).showDirectoryPicker;
     if (!picker) {
@@ -97,12 +127,20 @@ export class BrowserWorkspaceFileSystemAdapter {
         'Directory picker is not available. Use the folder upload fallback.'
       );
     }
-    return this.importDirectoryHandle(await picker());
+    const handle = await picker({ mode: 'readwrite' });
+    this.directoryHandle = handle;
+    try {
+      return await this.importDirectoryHandle(handle);
+    } catch (error) {
+      this.directoryHandle = null;
+      throw error;
+    }
   }
 
   async importDirectoryHandle(
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder> {
+    this.directoryHandle = handle;
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;
@@ -139,6 +177,7 @@ export class BrowserWorkspaceFileSystemAdapter {
   }
 
   async importFileList(fileList: FileList): Promise<ImportedFolder> {
+    this.directoryHandle = null;
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;
@@ -161,6 +200,60 @@ export class BrowserWorkspaceFileSystemAdapter {
     }
 
     return { rootName, files: sortFiles(files), skipped };
+  }
+
+  async writeFiles(files: readonly WorkspaceFile[]): Promise<number> {
+    const directory = this.directoryHandle;
+    if (!directory) {
+      throw new Error('This workspace was imported without a writable folder.');
+    }
+
+    const permission = await this.ensureWritePermission(directory);
+    if (permission !== 'granted') {
+      throw new Error(
+        'Write permission for the selected folder was not granted.'
+      );
+    }
+
+    for (const file of files) {
+      await this.writeFile(directory, file);
+    }
+    return files.length;
+  }
+
+  private async ensureWritePermission(
+    directory: FileSystemDirectoryHandleLike
+  ): Promise<'granted' | 'prompt' | 'denied'> {
+    const descriptor = { mode: 'readwrite' as const };
+    const current = await directory.queryPermission?.(descriptor);
+    if (current === 'granted') return current;
+    if (!directory.requestPermission) return current ?? 'granted';
+    return directory.requestPermission(descriptor);
+  }
+
+  private async writeFile(
+    root: FileSystemDirectoryHandleLike,
+    file: WorkspaceFile
+  ): Promise<void> {
+    const path = normalizePath(file.path);
+    const parts = path.split('/').filter(Boolean);
+    const filename = parts.pop();
+    if (!filename) throw new Error(`Invalid workspace path: ${file.path}`);
+
+    let directory = root;
+    for (const segment of parts) {
+      directory = await directory.getDirectoryHandle(segment, { create: true });
+    }
+
+    const fileHandle = await directory.getFileHandle(filename, {
+      create: true,
+    });
+    if (!fileHandle.createWritable) {
+      throw new Error('The selected browser does not support folder writes.');
+    }
+    const writable = await fileHandle.createWritable();
+    await writable.write(file.source);
+    await writable.close();
   }
 
   private async readFile(

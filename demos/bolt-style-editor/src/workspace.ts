@@ -275,7 +275,11 @@ export class BrowserWorkspace {
   }
 
   isDirty(): boolean {
-    return this.snapshot.files.some((file) => {
+    return this.getDirtyFiles().length > 0;
+  }
+
+  getDirtyFiles(): WorkspaceFile[] {
+    return this.snapshot.files.filter((file) => {
       const savedFile = this.savedFiles.find(
         (candidate) => candidate.path === file.path
       );

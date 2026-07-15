@@ -601,6 +601,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   );
   const [showSettings, setShowSettings] = useState(false);
   const [openingFolder, setOpeningFolder] = useState(false);
+  const [saving, setSaving] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const fileSystemAdapter = useMemo(
     () => new BrowserWorkspaceFileSystemAdapter(),
@@ -636,11 +637,14 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     const skippedMessage = imported.skipped.length
       ? ` Skipped ${imported.skipped.length} unsupported or oversized file(s).`
       : '';
+    const syncMessage = fileSystemAdapter.hasWritableFolder
+      ? ' Folder sync is enabled for Save.'
+      : ' Changes are saved to the browser workspace.';
     setMessages((current) => [
       ...current,
       {
         role: 'assistant',
-        text: `Opened ${imported.rootName} with ${imported.files.length} file(s).${skippedMessage}`,
+        text: `Opened ${imported.rootName} with ${imported.files.length} file(s).${syncMessage}${skippedMessage}`,
       },
     ]);
   };
@@ -692,6 +696,37 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       ]);
     } finally {
       setOpeningFolder(false);
+    }
+  };
+
+  const saveWorkspace = async () => {
+    if (saving || !isStorageReady || !workspace.isDirty()) return;
+    const dirtyFiles = workspace.getDirtyFiles();
+    setSaving(true);
+    try {
+      if (fileSystemAdapter.hasWritableFolder) {
+        await fileSystemAdapter.writeFiles(dirtyFiles);
+        workspace.markSaved();
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'assistant',
+            text: `Saved ${dirtyFiles.length} file(s) to the selected folder and browser workspace.`,
+          },
+        ]);
+      } else {
+        workspace.markSaved();
+      }
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text: error instanceof Error ? error.message : 'Save failed.',
+        },
+      ]);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -800,6 +835,9 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
           <span className="storage-chip">{storageLabel}</span>
+          {fileSystemAdapter.hasWritableFolder ? (
+            <span className="folder-sync-chip">folder sync</span>
+          ) : null}
           <span className="contract-chip">tools/list · {toolNames.length}</span>
         </div>
         <div className="topbar-actions">
@@ -930,11 +968,20 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               </button>
               <button
                 className="editor-save"
-                disabled={!isStorageReady || !workspace.isDirty()}
-                onClick={() => workspace.markSaved()}
+                disabled={!isStorageReady || saving || !workspace.isDirty()}
+                onClick={() => void saveWorkspace()}
+                title={
+                  fileSystemAdapter.hasWritableFolder
+                    ? 'Write dirty files to the selected folder and IndexedDB'
+                    : 'Mark the current browser workspace checkpoint as saved'
+                }
                 type="button"
               >
-                Save
+                {saving
+                  ? 'Saving…'
+                  : fileSystemAdapter.hasWritableFolder
+                    ? 'Save to folder'
+                    : 'Save'}
               </button>
               <span
                 className={`save-status ${workspace.isDirty() ? 'save-status-dirty' : ''}`}

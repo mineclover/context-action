@@ -47,7 +47,10 @@ API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` →
 결정적 local agent를 사용한다. IndexedDB를 사용할 수 없으면 memory workspace로
 fallback한다. `Open folder`는 부모가 소유하는 browser adapter를 사용하며 File
 System Access API를 우선하고, 지원하지 않는 브라우저에서는 directory-upload
-input으로 fallback한 뒤 가져온 text 파일로 Dexie workspace를 교체한다.
+input으로 fallback한 뒤 가져온 text 파일로 Dexie workspace를 교체한다. 사용자가
+read/write 권한을 허용하면 adapter는 directory handle을 부모 안에만 유지하고
+`Save to folder`로 dirty 파일을 선택한 directory에 다시 쓴다. upload fallback은
+browser workspace에만 저장한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
@@ -148,8 +151,9 @@ Open folder → generic FileSystemAdapter
   편집 가능한 source로 저장하지 않고 chat에 건너뛴 항목으로 표시한다.
 - filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
   넣지 않는다.
-- text 편집은 Dexie에 즉시 저장한다. 현재 standalone demo는 가져오기 후 편집
-  surface이며, 선택한 운영체제 directory에 변경 내용을 다시 쓰지는 않는다.
+- text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
+  `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
+  upload-only import는 browser workspace에만 저장한다.
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
