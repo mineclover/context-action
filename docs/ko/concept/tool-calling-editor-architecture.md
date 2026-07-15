@@ -435,6 +435,9 @@ Open folder → generic FileSystemAdapter
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
   entry가 유효하도록 유지한다. pending deletion path도 Dexie metadata에
   저장하므로 reload 후에도 운영체제 폴더 삭제 의도를 잃지 않는다.
+  filesystem delete 경계는 멱등적이다. 외부 변경으로 대상 파일이나 부모
+  directory가 이미 사라진 경우에도 `NotFoundError`로 save를 실패시키지 않고
+  현재 browser workspace와 실제 folder 상태를 수렴시킨다.
 - `workspace.renameFile`은 source와 Blob asset을 유지한 채 canonical path를
   바꾸고 active tab을 갱신한다. 저장된 source path는 `workspace.saveAll`이
   연결된 folder에 rename을 반영할 때까지 pending deletion과 새 dirty path로

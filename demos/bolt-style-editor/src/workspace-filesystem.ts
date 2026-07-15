@@ -135,6 +135,13 @@ function selectActivePath(files: readonly WorkspaceFile[]): string {
   );
 }
 
+function isNotFoundFileSystemError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  return (
+    'name' in error && (error as { name?: unknown }).name === 'NotFoundError'
+  );
+}
+
 function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
   return files.sort((left, right) => {
     const leftRank =
@@ -433,18 +440,25 @@ export class BrowserWorkspaceFileSystemAdapter {
     root: FileSystemDirectoryHandleLike,
     filePath: string
   ): Promise<void> {
-    const parts = normalizePath(filePath).split('/').filter(Boolean);
-    const filename = parts.pop();
-    if (!filename) throw new Error(`Invalid workspace path: ${filePath}`);
+    try {
+      const parts = normalizePath(filePath).split('/').filter(Boolean);
+      const filename = parts.pop();
+      if (!filename) throw new Error(`Invalid workspace path: ${filePath}`);
 
-    let directory = root;
-    for (const segment of parts) {
-      directory = await directory.getDirectoryHandle(segment);
+      let directory = root;
+      for (const segment of parts) {
+        directory = await directory.getDirectoryHandle(segment);
+      }
+      if (!directory.removeEntry) {
+        throw new Error(
+          'The selected browser does not support folder deletes.'
+        );
+      }
+      await directory.removeEntry(filename);
+    } catch (error) {
+      if (isNotFoundFileSystemError(error)) return;
+      throw error;
     }
-    if (!directory.removeEntry) {
-      throw new Error('The selected browser does not support folder deletes.');
-    }
-    await directory.removeEntry(filename);
   }
 
   private async readFile(

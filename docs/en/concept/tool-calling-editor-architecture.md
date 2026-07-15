@@ -460,6 +460,9 @@ Open folder → generic FileSystemAdapter
   `Save to folder`, and keep undo/redo and the active preview entry valid.
   Pending deletion paths are stored in Dexie metadata, so a reload does not
   silently lose the later operating-system folder deletion.
+  The filesystem delete boundary is idempotent: if an external change already
+  removed the target file or one of its parent directories, the save converges
+  without failing on `NotFoundError`.
 - `workspace.renameFile` preserves the source and Blob asset, changes the
   canonical path, updates the active tab when needed, and treats a saved source
   path as a pending deletion plus a new dirty path until `workspace.saveAll`
