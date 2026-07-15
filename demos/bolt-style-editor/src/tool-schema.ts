@@ -5,6 +5,16 @@ const filePath = z.string().min(1).max(160);
 const expectedRevision = z.number().int().nonnegative().optional();
 
 export const boltStyleToolSchema = createActionSchema({
+  'workspace.getStatus': defineAction(
+    {
+      name: 'workspace.getStatus',
+      description:
+        'Read workspace revision, persistence, preview, dirty-file, and local-folder connection status.',
+      annotations: { readOnlyHint: true },
+      parameters: z.object({}),
+    },
+    z
+  ),
   'workspace.listFiles': defineAction(
     {
       name: 'workspace.listFiles',

@@ -214,6 +214,27 @@ The default extraction order is `example → standalone demo/workspace package �
 | `editor.setScenario` | local demo allow | Change the safe runner scenario |
 | `editor.resetDocument` | local demo allow | Reset source to the selected example |
 
+## Standalone Web Studio workspace catalog
+
+| Tool | Policy | Purpose |
+| --- | --- | --- |
+| `workspace.getStatus` | allow | Read revision, persistence, preview, dirty paths, and folder connection |
+| `workspace.listFiles` | allow | List files and per-file dirty state |
+| `workspace.readFile` | allow | Read one text file with its current revision |
+| `workspace.createFile` | local demo allow | Create a normalized text file |
+| `workspace.writeFile` | local demo allow | Replace one text file and refresh preview |
+| `workspace.applyPatch` | local demo allow | Apply a bounded literal text replacement |
+| `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
+| `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
+| `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
+
+For the standalone surface, the status-aware sequence is:
+
+```text
+tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
+workspace mutation → iframe acknowledgement → workspace.saveAll (when requested)
+```
+
 The standard browser workspace call sequence is:
 
 ```text
@@ -302,6 +323,10 @@ Open folder → generic FileSystemAdapter
   checkpoint is revision-guarded, so edits made while the folder write is in
   flight remain dirty instead of being overwritten by a stale clean state.
   Without a writable folder it returns a failed tool result.
+- `workspace.getStatus` is the read-only status boundary for the standalone
+  catalog. It reports the current revision, persistence mode, preview state,
+  dirty/deleted paths, and whether `workspace.saveAll` has a linked local-folder
+  target; this lets a model inspect the save boundary before mutating it.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
   (`createFile`, `deleteFile`, `writeFile`, `applyPatch`, or `revertFile`); a stale

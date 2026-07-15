@@ -53,6 +53,14 @@ function resultSummary(
     return `${value.path}${replacementSuffix}${revision}`;
   }
   if (typeof value.theme === 'string') return `theme ${value.theme}${revision}`;
+  if (
+    value.filesystem &&
+    typeof value.filesystem === 'object' &&
+    !Array.isArray(value.filesystem)
+  ) {
+    const filesystem = value.filesystem as Record<string, unknown>;
+    return `${String(filesystem.mode ?? 'filesystem')}${revision}`;
+  }
   if (typeof value.status === 'string')
     return `status ${value.status}${revision}`;
   if (typeof value.preview === 'string') {

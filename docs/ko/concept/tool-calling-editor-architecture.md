@@ -203,6 +203,27 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
 | `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
 
+## Standalone Web Studio workspace catalog
+
+| 도구 | 정책 | 목적 |
+| --- | --- | --- |
+| `workspace.getStatus` | allow | revision·persistence·preview·dirty path·folder 연결 상태 조회 |
+| `workspace.listFiles` | allow | 파일과 파일별 dirty 상태 조회 |
+| `workspace.readFile` | allow | 현재 revision과 함께 text file 하나 읽기 |
+| `workspace.createFile` | local demo allow | 정규화된 text file 생성 |
+| `workspace.writeFile` | local demo allow | text file 하나 교체 후 preview 갱신 |
+| `workspace.applyPatch` | local demo allow | 제한된 literal text replacement 적용 |
+| `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
+| `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
+| `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
+
+standalone surface의 status-aware 호출 순서는 다음과 같다.
+
+```text
+tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
+workspace mutation → iframe acknowledgement → workspace.saveAll (요청된 경우)
+```
+
 browser workspace의 표준 호출 순서는 다음과 같다.
 
 ```text
@@ -285,6 +306,10 @@ Open folder → generic FileSystemAdapter
   만든다. 저장 중 새 편집이 발생하면 revision guard가 stale checkpoint 처리를
   막아 새 변경을 dirty 상태로 유지한다. writable folder가 없으면 실패한 tool
   result를 반환한다.
+- `workspace.getStatus`는 standalone catalog의 read-only 상태 경계다. 현재
+  revision·persistence mode·preview 상태·dirty/deleted path와 함께
+  `workspace.saveAll`을 사용할 local-folder target이 연결됐는지 반환하므로,
+  모델이 mutation 전에 저장 경계를 확인할 수 있다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`createFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를

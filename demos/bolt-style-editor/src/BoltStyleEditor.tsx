@@ -573,8 +573,14 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const saveRequest = /(save|persist|저장|폴더에 반영|파일시스템)/i.test(
     prompt
   );
+  const statusRequest =
+    /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
+
+  if (statusRequest && !textPatch && !saveRequest) {
+    return [{ name: 'workspace.getStatus', arguments: {} }];
+  }
 
   if (textPatch) {
     calls.push({
@@ -715,6 +721,27 @@ function ToolHandlers({
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
   children: ReactNode;
 }) {
+  useBoltStyleToolHandler('workspace.getStatus', () => {
+    const snapshot = workspace.getSnapshot();
+    const dirtyPaths = workspace.getDirtyFiles().map((file) => file.path);
+    const folderLinked = fileSystemAdapter.hasWritableFolder;
+    return {
+      rootName: snapshot.rootName,
+      activePath: snapshot.activePath,
+      revision: snapshot.revision,
+      storageMode: snapshot.storageMode,
+      preview: snapshot.preview,
+      fileCount: snapshot.files.length,
+      dirtyPaths,
+      deletedPaths: workspace.getDeletedPaths(),
+      filesystem: {
+        mode: folderLinked ? 'local-folder' : 'browser-only',
+        folderLinked,
+        saveAllAvailable: folderLinked,
+      },
+    };
+  });
+
   useBoltStyleToolHandler('workspace.listFiles', () => {
     const snapshot = workspace.getSnapshot();
     const dirtyPaths = new Set(
@@ -1701,6 +1728,7 @@ function EditorWorkbench({
 
   const paletteCallFor = (name: string): ToolCall | null => {
     switch (name) {
+      case 'workspace.getStatus':
       case 'workspace.listFiles':
       case 'preview.getStatus':
         return { name, arguments: {} };
