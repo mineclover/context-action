@@ -638,16 +638,38 @@ async function runBrowserProof(url) {
       .waitFor();
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByLabel('Edit renamed-persisted.md').waitFor();
+    const persistedRenameEditor = page.getByLabel('Edit renamed-persisted.md');
+    const writeFileTrace = page
+      .locator('#trace-list .trace-row')
+      .filter({ hasText: 'workspace.writeFile' });
+    const writeFileTraceCount = await writeFileTrace.count();
+    await persistedRenameEditor.fill('# changed after reload\n');
+    await page.getByText('Unsaved changes', { exact: true }).waitFor();
+    await page.waitForFunction(
+      (expectedCount) =>
+        document.querySelectorAll('#trace-list .trace-row').length > 0 &&
+        Array.from(document.querySelectorAll('#trace-list .trace-row')).filter(
+          (row) => row.textContent?.includes('workspace.writeFile')
+        ).length > expectedCount,
+      writeFileTraceCount
+    );
+    await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
     await page
       .getByRole('button', { name: 'Revert renamed-persisted.md' })
       .click();
     const persistedRevertDialog = page.getByRole('dialog', {
       name: 'Revert active file?',
     });
+    await persistedRevertDialog.waitFor();
     await persistedRevertDialog
       .getByRole('button', { name: 'Revert file' })
       .click();
     await page.getByLabel('Edit notes.md').waitFor();
+    if ((await page.getByLabel('Edit notes.md').inputValue()) !== '# API folder proof') {
+      throw new Error(
+        'Reverting a persisted rename did not restore the saved source at the original path.'
+      );
+    }
     await page.getByRole('tab', { name: /index\.html/ }).click();
 
     await page

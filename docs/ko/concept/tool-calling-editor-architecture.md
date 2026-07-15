@@ -495,7 +495,7 @@ Open folder → generic FileSystemAdapter
   preview entry를 없애는 이름 변경은 거부한다.
 - `workspace.revertFile`은 active file을 마지막 saved browser workspace
   checkpoint로 복원한다. rename된 file은 origin metadata를 유지하므로 현재
-  workspace session 안에서는 원래 path와 source까지 되돌릴 수 있다. 저장되지
+  workspace를 reload한 뒤에도 원래 path와 source까지 되돌릴 수 있다. 저장되지
   않은 새 파일이면 해당 파일을 제거하며, model 호출은 destructive
   policy·approval 경계를 통과해야 한다.
 - `workspace.undo`와 `workspace.redo`는 editor 버튼과 local/model call이

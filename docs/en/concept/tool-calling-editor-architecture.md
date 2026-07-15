@@ -524,8 +524,8 @@ Open folder → generic FileSystemAdapter
   last HTML preview entry.
 - `workspace.revertFile` restores the active file to the last saved browser
   workspace checkpoint. A renamed file retains its origin metadata so revert
-  can restore the original path and source during the current workspace
-  session. For an unsaved new file it removes that file; model calls remain
+  can restore the original path and source even after the browser workspace is
+  reloaded. For an unsaved new file it removes that file; model calls remain
   behind the destructive policy and approval boundary.
 - `workspace.undo` and `workspace.redo` are the canonical edit-history boundaries
   for the editor buttons and local/model calls. They require the current

@@ -562,18 +562,17 @@ export class BrowserWorkspace {
       const originalSavedFile = this.savedFiles.find(
         (file) => file.path === currentFile.renamedFrom
       );
+      const sourceToRestore = originalSavedFile?.source ?? savedFile?.source;
+      const restoredFile = restored.files.find(
+        (file) => file.path === currentFile.renamedFrom
+      );
       if (
-        originalSavedFile &&
-        restored.files.find((file) => file.path === originalSavedFile.path)
-          ?.source !== originalSavedFile.source
+        sourceToRestore !== undefined &&
+        restoredFile?.source !== sourceToRestore
       ) {
-        return this.updateFile(
-          originalSavedFile.path,
-          originalSavedFile.source,
-          {
-            coalesce: false,
-          }
-        );
+        return this.updateFile(currentFile.renamedFrom, sourceToRestore, {
+          coalesce: false,
+        });
       }
       return restored;
     }
