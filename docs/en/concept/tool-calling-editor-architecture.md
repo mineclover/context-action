@@ -528,7 +528,8 @@ Open folder → generic FileSystemAdapter
   only for a browser-only workspace, replaces the Dexie projection with the
   four-file seed, waits for the matching preview acknowledgement, and refuses
   to run while a writable folder is linked so it cannot accidentally stage the
-  seed for a filesystem save.
+  seed for a filesystem save. Once the user confirms the discard, the editor
+  skips its pending draft flush and replaces the browser workspace directly.
 - When a writable folder is linked, the Explorer `Save to folder` button and
   `⌘/Ctrl+S` shortcut call this same `workspace.saveAll` registry path, so the
   UI save, model call, approval policy, trace, and structured result stay

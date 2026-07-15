@@ -2973,6 +2973,12 @@ function EditorWorkbench({
           : hasUnsavedChanges
             ? 'dirty'
             : 'ready';
+  const persistenceFooterLabel =
+    snapshot.storageMode === 'indexed-db'
+      ? 'Persistent browser workspace'
+      : snapshot.storageMode === 'memory'
+        ? 'Session-only memory workspace'
+        : 'Preparing browser workspace';
 
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
@@ -3198,10 +3204,13 @@ function EditorWorkbench({
     }
 
     setEditorDrafts({});
-    await executeQuickTool({
-      name: 'workspace.reset',
-      arguments: { expectedRevision: workspace.getSnapshot().revision },
-    });
+    await executeQuickTool(
+      {
+        name: 'workspace.reset',
+        arguments: { expectedRevision: workspace.getSnapshot().revision },
+      },
+      { skipDraftFlush: true }
+    );
   };
 
   const saveWorkspace = async () => {
@@ -4771,7 +4780,7 @@ function EditorWorkbench({
             ? `OpenRouter · ${openRouterSettings.model}`
             : `Context-Action ToolContext · ${storageLabel}`}
         </span>
-        <span>Persistent browser workspace</span>
+        <span>{persistenceFooterLabel}</span>
         <span className="statusbar-spacer" />
         <span>HTML · CSS · JS</span>
       </footer>

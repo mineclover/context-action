@@ -495,7 +495,9 @@ Open folder → generic FileSystemAdapter
 - `workspace.reset`은 반복 가능한 데모를 위한 복구 경계다. browser-only
   workspace에서만 사용할 수 있고 Dexie projection을 네 파일 seed로 교체한 뒤
   일치하는 preview acknowledgement를 기다린다. writable folder가 연결된 동안에는
-  filesystem save에 seed가 실수로 반영될 수 있으므로 실행을 거부한다.
+  filesystem save에 seed가 실수로 반영될 수 있으므로 실행을 거부한다. 사용자가
+  discard를 확인하면 pending editor draft를 flush하지 않고 browser workspace를
+  바로 교체한다.
 - writable folder가 연결된 경우 Explorer의 `Save to folder` 버튼과 `⌘/Ctrl+S`
   단축키도 같은 `workspace.saveAll` registry 경로를 호출한다. 따라서 UI save,
   model call, approval policy, trace, structured result가 같은 계약을 공유한다.
