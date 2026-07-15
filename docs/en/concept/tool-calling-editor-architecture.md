@@ -144,8 +144,12 @@ The iframe is limited to:
 - handling a restricted bridge message set
 
 The iframe must not own the ToolRegistry or model API key. The current showcase
-exposes `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
-`editor.resetDocument`, plus `editor.getPreviewStatus`; each mutating handler
+exposes `editor.listFiles` and `editor.openFile` for the browser workspace,
+alongside `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
+`editor.resetDocument`, plus `editor.getPreviewStatus`. `editor.listFiles` is
+read-only and returns the active path, storage mode, dirty paths, and file
+metadata. `editor.openFile` selects a text file and waits until the matching
+preview revision is rendered; binary files are rejected. Each mutating handler
 updates the parent DocumentManager and waits for the matching iframe revision
 acknowledgement before returning its tool result. Do not expose an arbitrary
 `runScript` tool.
@@ -186,12 +190,27 @@ The default extraction order is `example → standalone demo/workspace package �
 
 | Tool | Default policy | Purpose |
 | --- | --- | --- |
+| `editor.listFiles` | allow | List workspace files, active path, storage mode, and dirty paths |
+| `editor.openFile` | local demo allow | Select a text file and await its matching preview revision |
 | `editor.getDocument` | allow | Read the current document and revision |
 | `editor.getPreviewStatus` | allow | Read the latest iframe acknowledgement |
 | `editor.setDocument` | local demo allow | Replace controlled source text; never execute it |
 | `editor.applyPatch` | local demo allow | Apply a bounded literal text patch and await the matching preview revision |
 | `editor.setScenario` | local demo allow | Change the safe runner scenario |
 | `editor.resetDocument` | local demo allow | Reset source to the selected example |
+
+The standard browser workspace call sequence is:
+
+```text
+tools/list → editor.listFiles → editor.openFile → editor.setDocument →
+iframe acknowledgement
+```
+
+The model discovers the available tools first, lists the workspace before
+choosing a path, opens the selected text file, and only then performs a
+bounded source mutation. `editor.openFile` and every mutation return the
+resulting active path and preview revision so the caller can verify that the
+parent workspace and iframe are synchronized.
 
 The realtime web-coding route exposes the parallel workspace contract:
 

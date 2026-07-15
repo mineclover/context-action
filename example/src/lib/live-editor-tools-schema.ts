@@ -4,6 +4,29 @@ import { z } from 'zod';
 const scenarioSchema = z.enum(['success', 'invalid', 'blocked']);
 const expectedRevisionSchema = z.number().int().nonnegative().optional();
 
+export const listEditorFilesTool = defineAction(
+  {
+    name: 'editor.listFiles',
+    description:
+      'List the files in the current browser workspace, including the active path, storage mode, and filesystem-dirty paths.',
+    annotations: { readOnlyHint: true },
+    parameters: z.object({}),
+  },
+  z
+);
+
+export const openEditorFileTool = defineAction(
+  {
+    name: 'editor.openFile',
+    description:
+      'Select a text file in the current browser workspace and wait for its preview revision. Use editor.listFiles before choosing a path.',
+    parameters: z.object({
+      path: z.string().min(1).max(2_000),
+    }),
+  },
+  z
+);
+
 export const getEditorDocumentTool = defineAction(
   {
     name: 'editor.getDocument',
@@ -75,6 +98,8 @@ export const resetEditorDocumentTool = defineAction(
 );
 
 export const liveEditorToolsSchema = createActionSchema({
+  'editor.listFiles': listEditorFilesTool,
+  'editor.openFile': openEditorFileTool,
   'editor.getDocument': getEditorDocumentTool,
   'editor.setDocument': setEditorDocumentTool,
   'editor.getPreviewStatus': getEditorPreviewStatusTool,

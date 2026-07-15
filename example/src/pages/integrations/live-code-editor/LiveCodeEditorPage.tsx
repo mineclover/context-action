@@ -2,6 +2,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
   type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -396,6 +397,15 @@ function LiveCodeEditorContent() {
         (exampleId) => examples[exampleId].file === documentSnapshot.file
       )
     : undefined;
+  const getExampleIdForPath = useCallback(
+    (path: string): string =>
+      isShowcaseWorkspace
+        ? ((Object.keys(examples) as ExampleId[]).find(
+            (exampleId) => examples[exampleId].file === path
+          ) ?? 'workspace')
+        : 'workspace',
+    [isShowcaseWorkspace]
+  );
   const code = documentSnapshot.source;
   const scenario = documentSnapshot.scenario as ScenarioId;
   const workspaceEntryPath = findWorkspaceEntryPath(
@@ -581,11 +591,7 @@ function LiveCodeEditorContent() {
     );
     if (!activeFile) return;
     const snapshot = documentManager.getSnapshot();
-    const nextExampleId = isShowcaseWorkspace
-      ? ((Object.keys(examples) as ExampleId[]).find(
-          (exampleId) => examples[exampleId].file === activeFile.path
-        ) ?? 'workspace')
-      : 'workspace';
+    const nextExampleId = getExampleIdForPath(activeFile.path);
     if (
       snapshot.file !== activeFile.path ||
       snapshot.source !== activeFile.source ||
@@ -605,6 +611,7 @@ function LiveCodeEditorContent() {
     }
   }, [
     documentManager,
+    getExampleIdForPath,
     workspaceManager,
     workspaceRepository,
     workspaceSnapshot,
@@ -816,6 +823,8 @@ function LiveCodeEditorContent() {
   return (
     <LiveEditorToolchainProvider
       manager={documentManager}
+      workspaceManager={workspaceManager}
+      getExampleIdForPath={getExampleIdForPath}
       getResetSource={() =>
         workspaceManager.getInitialSource(documentSnapshot.file)
       }

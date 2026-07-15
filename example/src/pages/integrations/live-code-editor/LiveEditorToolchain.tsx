@@ -4,6 +4,7 @@ import {
   LiveEditorDocumentManager,
   type LiveEditorDocumentSnapshot,
 } from '../../../lib/live-code-editor-bridge';
+import { LiveEditorWorkspaceManager } from '../../../lib/live-code-editor-workspace';
 import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
 import { recordLiveEditorToolCall } from '../../../lib/live-editor-trace';
@@ -20,13 +21,33 @@ export const {
 
 function LiveEditorToolHandlers({
   manager,
+  workspaceManager,
+  getExampleIdForPath,
   getResetSource,
   children,
 }: {
   manager: LiveEditorDocumentManager;
+  workspaceManager: LiveEditorWorkspaceManager;
+  getExampleIdForPath: (path: string) => string;
   getResetSource: () => string;
   children: ReactNode;
 }) {
+  useLiveEditorToolHandler('editor.listFiles', () => {
+    const snapshot = workspaceManager.getSnapshot();
+    return {
+      activePath: snapshot.activePath,
+      dirtyPaths: snapshot.dirtyPaths,
+      rootName: snapshot.rootName,
+      storageMode: snapshot.storageMode,
+      files: snapshot.files.map((file) => ({
+        isText: file.isText,
+        mimeType: file.mimeType,
+        path: file.path,
+        size: file.size,
+      })),
+    };
+  });
+
   useLiveEditorToolHandler('editor.getDocument', () => manager.getSnapshot());
 
   useLiveEditorToolHandler('editor.getPreviewStatus', () =>
@@ -56,6 +77,32 @@ function LiveEditorToolHandlers({
     }
     return { ...snapshot, preview };
   };
+
+  useLiveEditorToolHandler<'editor.openFile', unknown>(
+    'editor.openFile',
+    ({ path }, controller) => {
+      const file = workspaceManager
+        .getSnapshot()
+        .files.find((candidate) => candidate.path === path);
+      if (!file) {
+        throw new Error(`Workspace file not found: ${path}`);
+      }
+      if (!file.isText) {
+        throw new Error(
+          `Workspace file is binary and cannot be opened: ${path}`
+        );
+      }
+      workspaceManager.setActivePath(file.path);
+      return updateAndWait(
+        {
+          exampleId: getExampleIdForPath(file.path),
+          file: file.path,
+          source: file.source,
+        },
+        controller.signal
+      );
+    }
+  );
 
   useLiveEditorToolHandler<'editor.setDocument', unknown>(
     'editor.setDocument',
@@ -125,16 +172,25 @@ function LiveEditorToolHandlers({
 
 export function LiveEditorToolchainProvider({
   manager,
+  workspaceManager,
+  getExampleIdForPath,
   getResetSource,
   children,
 }: {
   manager: LiveEditorDocumentManager;
+  workspaceManager: LiveEditorWorkspaceManager;
+  getExampleIdForPath: (path: string) => string;
   getResetSource: () => string;
   children: ReactNode;
 }) {
   return (
     <LiveEditorToolProvider>
-      <LiveEditorToolHandlers manager={manager} getResetSource={getResetSource}>
+      <LiveEditorToolHandlers
+        manager={manager}
+        workspaceManager={workspaceManager}
+        getExampleIdForPath={getExampleIdForPath}
+        getResetSource={getResetSource}
+      >
         {children}
       </LiveEditorToolHandlers>
     </LiveEditorToolProvider>

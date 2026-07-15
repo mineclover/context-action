@@ -138,11 +138,15 @@ iframe은 다음 역할만 담당한다.
 - 문서 revision 수신과 적용 결과 보고
 - 제한된 bridge message 처리
 
-iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는
+iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는 browser
+workspace를 위한 `editor.listFiles`, `editor.openFile`과 함께
 `editor.getDocument`, `editor.setDocument`, `editor.setScenario`,
-`editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. mutation handler는
-부모 DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement를
-받은 뒤 tool result를 반환한다. 임의 `runScript` 도구는 제공하지 않는다.
+`editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. `editor.listFiles`는
+read-only 도구로 active path, storage mode, dirty paths, 파일 metadata를 반환한다.
+`editor.openFile`은 text file을 선택하고 일치하는 preview revision이 렌더링될
+때까지 기다리며 binary file은 거부한다. mutation handler는 부모
+DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement를 받은
+뒤 tool result를 반환한다. 임의 `runScript` 도구는 제공하지 않는다.
 
 standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sandbox는
 문서 revision을 포함한 `context-action.preview.ready` 또는
@@ -177,12 +181,26 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 
 | 도구 | 기본 정책 | 목적 |
 | --- | --- | --- |
+| `editor.listFiles` | allow | workspace 파일·active path·storage mode·dirty paths 조회 |
+| `editor.openFile` | local demo allow | text file을 선택하고 일치하는 preview revision 대기 |
 | `editor.getDocument` | allow | 현재 문서와 revision 조회 |
 | `editor.getPreviewStatus` | allow | 최신 iframe acknowledgement 조회 |
 | `editor.setDocument` | local demo allow | controlled source 교체, 실행하지 않음 |
 | `editor.applyPatch` | local demo allow | 제한된 literal text patch 적용 후 해당 preview revision 대기 |
 | `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
 | `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
+
+browser workspace의 표준 호출 순서는 다음과 같다.
+
+```text
+tools/list → editor.listFiles → editor.openFile → editor.setDocument →
+iframe acknowledgement
+```
+
+model은 먼저 사용 가능한 도구를 확인하고 workspace 파일을 조회한 뒤 경로를
+선택한다. 그 다음 text file을 열고 제한된 source mutation을 실행한다.
+`editor.openFile`과 mutation 도구는 결과에 active path와 preview revision을 함께
+반환하므로 부모 workspace와 iframe이 동기화됐는지 검증할 수 있다.
 
 realtime web-coding route는 대응하는 workspace 계약도 노출한다.
 

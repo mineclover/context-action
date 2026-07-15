@@ -38,6 +38,7 @@ export function LiveEditorAIToolbar() {
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
+  const [localOpenResult, setLocalOpenResult] = useState('');
   const [localMutationResult, setLocalMutationResult] = useState('');
   const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
@@ -152,7 +153,7 @@ export function LiveEditorAIToolbar() {
         id: `local-inspection-${Date.now()}`,
         method: 'tools/call',
         params: {
-          name: 'editor.getDocument',
+          name: 'editor.listFiles',
           arguments: {},
         },
       },
@@ -163,6 +164,31 @@ export function LiveEditorAIToolbar() {
         ? (result.error?.message ?? 'Local tools/call failed.')
         : JSON.stringify(result.structuredContent)
     );
+  };
+
+  const openWorkspaceFile = async () => {
+    try {
+      const result = await registry.callTool(
+        {
+          id: `local-open-file-${Date.now()}`,
+          method: 'tools/call',
+          params: {
+            name: 'editor.openFile',
+            arguments: { path: 'script.js' },
+          },
+        },
+        { context: { source: 'local' } }
+      );
+      setLocalOpenResult(
+        result.isError
+          ? (result.error?.message ?? 'Local editor.openFile failed.')
+          : JSON.stringify(result.structuredContent)
+      );
+    } catch (error) {
+      setLocalOpenResult(
+        error instanceof Error ? error.message : 'Local editor.openFile failed.'
+      );
+    }
   };
 
   const runLocalMutation = async () => {
@@ -320,7 +346,14 @@ export function LiveEditorAIToolbar() {
           className={styles.localCallButton}
           onClick={() => void inspectRegistry()}
         >
-          Run local tools/call
+          Run local tools/call · editor.listFiles
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
+          onClick={() => void openWorkspaceFile()}
+        >
+          Run local editor.openFile · script.js
         </button>
         <button
           type="button"
@@ -345,6 +378,9 @@ export function LiveEditorAIToolbar() {
         </button>
         {localCallResult && (
           <code className={styles.localCallResult}>{localCallResult}</code>
+        )}
+        {localOpenResult && (
+          <code className={styles.localCallResult}>{localOpenResult}</code>
         )}
         {localMutationResult && (
           <code className={styles.localCallResult}>{localMutationResult}</code>
