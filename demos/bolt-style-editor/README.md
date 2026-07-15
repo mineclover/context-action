@@ -49,6 +49,10 @@ tool definition, or a `tools/call` request as JSON. The trace panel exports
 bounded, redacted execution entries as JSON; use `All` in the trace header to
 inspect entries older than the recent eight.
 
+The registry schema, approval policy, and lifecycle observer are isolated in
+`src/bolt-style-tool-context.ts`; the editor surface consumes that contract
+without owning provider setup.
+
 The editor also includes IDE-style file navigation: use the `Quick open`
 button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and
 `Enter` to open a workspace file. `Esc` closes the palette and restores the

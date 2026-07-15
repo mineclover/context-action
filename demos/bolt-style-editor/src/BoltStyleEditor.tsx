@@ -1,4 +1,3 @@
-import { createToolContext, type ToolRegistry } from '@context-action/react';
 import {
   type KeyboardEvent,
   type ReactNode,
@@ -10,6 +9,12 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import {
+  type BoltStyleRegistry,
+  BoltStyleToolProvider,
+  useBoltStyleToolHandler,
+  useBoltStyleToolRegistry,
+} from './bolt-style-tool-context';
 import {
   buildFileTree,
   collectDirectoryPaths,
@@ -36,16 +41,13 @@ import {
 } from './openrouter';
 import {
   denyPendingToolApprovals,
-  requestToolApproval,
   resolveToolApproval,
   toolApprovalStore,
 } from './tool-approval';
-import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import {
   clearToolTrace,
   createToolSessionId,
   finishAgentTrace,
-  recordToolCall,
   recordToolList,
   startAgentTrace,
   toolTraceStore,
@@ -64,28 +66,6 @@ import {
   type ImportedFolder,
 } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
-
-const {
-  Provider: BoltStyleToolProvider,
-  useToolHandler: useBoltStyleToolHandler,
-  useToolRegistry: useBoltStyleToolRegistry,
-} = createToolContext('BoltStyleWebEditor', {
-  schema: boltStyleToolSchema,
-  debug: true,
-  onToolCall: recordToolCall,
-  toolPolicy: ({ context, definition, request, signal }) => {
-    const isPromptAgentCall = context?.metadata?.interaction === 'prompt';
-    if (
-      definition.annotations?.readOnlyHint === true ||
-      (context?.source === 'local' && !isPromptAgentCall)
-    ) {
-      return 'allow';
-    }
-    return requestToolApproval({ request, definition, context, signal });
-  },
-});
-
-type BoltStyleRegistry = ToolRegistry<BoltStyleToolSchema>;
 
 type Message = {
   role: 'user' | 'assistant';
