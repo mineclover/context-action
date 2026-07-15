@@ -27,6 +27,8 @@ a { color: inherit; text-decoration: none; }
 .folder-sync-chip { border: 1px solid #28523e; border-radius: 999px; color: #79d7a4; font-size: 10px; padding: 5px 9px; white-space: nowrap; }
 .folder-sync-chip.folder-sync-prompt, .folder-sync-chip.folder-sync-unknown { border-color: #66502a; color: #e6bd71; }
 .folder-sync-chip.folder-sync-denied { border-color: #713746; color: #f09aa8; }
+.folder-sync-chip.folder-sync-restore-restoring { border-color: #66502a; color: #e6bd71; }
+.folder-sync-chip.folder-sync-restore-unavailable { border-color: #713746; color: #f09aa8; }
 .contract-chip { color: #b6a8ff; }
 .status-dot, .pulse-dot { background: #42d990; border-radius: 999px; display: inline-block; height: 6px; width: 6px; }
 .pulse-dot { animation: pulse 1s ease-in-out infinite; }

@@ -60,6 +60,11 @@ The adapter exposes restored write permission as `granted`, `prompt`, `denied`,
 `unknown`, or `disconnected`; the header and `workspace.getStatus` surface the
 same state, while `Grant access` requests permission without replacing the
 browser workspace.
+Initial hydration restores the persisted folder link after the Dexie workspace
+is loaded. During that short boundary the editor and tool controls remain
+disabled; if the handle cannot be restored, the browser workspace stays
+available and the header explicitly reports that the folder link is unavailable
+so the user can open the folder again.
 An empty or unsupported folder is rejected during both open and reload, so it
 cannot replace the current workspace or leave a misleading folder connection.
 The standalone Vite config resolves the workspace `core`, `react`, and

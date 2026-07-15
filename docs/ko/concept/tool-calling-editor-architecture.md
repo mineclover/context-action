@@ -59,6 +59,10 @@ workspace를 유지한다. 지원 가능한 파일이 없는 folder는 open과 r
 adapter는 복원된 write permission을 `granted`, `prompt`, `denied`, `unknown`,
 `disconnected` 상태로 노출한다. header와 `workspace.getStatus`는 같은 상태를
 표시하며, `Grant access`는 browser workspace를 교체하지 않고 권한만 다시 요청한다.
+초기 hydration은 Dexie workspace를 먼저 읽은 뒤 persisted folder link를 복원한다.
+짧은 복원 구간에는 editor와 tool control을 비활성화하며, handle 복원에 실패해도
+browser workspace는 유지한다. header에는 folder link unavailable 상태를 명시해
+사용자가 folder를 다시 열어 연결을 복구할 수 있다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.

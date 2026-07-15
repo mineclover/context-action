@@ -194,6 +194,8 @@ type ToolExecutionOptions = {
   skipDraftFlush?: boolean;
 };
 
+type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
+
 const themeTokens = {
   violet: { accent: '#8b5cf6', soft: '#f0eaff' },
   emerald: { accent: '#10b981', soft: '#e7fbf3' },
@@ -2782,10 +2784,12 @@ function EditorWorkbench({
   workspace,
   fileSystemAdapter,
   previewRefreshToken,
+  folderRestoreState,
 }: {
   workspace: BrowserWorkspace;
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
   previewRefreshToken: number;
+  folderRestoreState: FolderRestoreState;
 }) {
   const registry = useBoltStyleToolRegistry();
   const snapshot = useSyncExternalStore(
@@ -3024,7 +3028,8 @@ function EditorWorkbench({
   const selectedToolDefinition = selectedToolName
     ? registry.getToolDefinition(selectedToolName)
     : undefined;
-  const isStorageReady = snapshot.storageMode !== 'loading';
+  const isStorageReady =
+    snapshot.storageMode !== 'loading' && folderRestoreState !== 'restoring';
   const storageLabel =
     snapshot.storageMode === 'indexed-db'
       ? 'Dexie · IndexedDB'
@@ -3039,46 +3044,66 @@ function EditorWorkbench({
         : 'waiting';
   const folderPermissionNeedsAction =
     hasWritableFolder && folderPermission !== 'granted';
-  const folderPermissionLabel =
-    folderPermission === 'denied'
+  const folderRestoreUnavailable =
+    folderRestoreState === 'unavailable' && !hasWritableFolder;
+  const folderPermissionLabel = hasWritableFolder
+    ? folderPermission === 'denied'
       ? 'folder access denied'
       : folderPermission === 'prompt'
         ? 'folder access needed'
         : folderPermission === 'unknown'
           ? 'folder access unknown'
-          : 'folder sync';
+          : 'folder sync'
+    : folderRestoreState === 'restoring'
+      ? 'restoring folder'
+      : folderRestoreUnavailable
+        ? 'folder link unavailable'
+        : 'folder sync';
   const studioStatus = running
     ? 'Running tool chain'
     : snapshot.storageMode === 'loading'
       ? 'Loading workspace'
-      : snapshot.preview.status === 'error'
-        ? 'Preview error'
-        : hasWritableFolder && folderPermission === 'denied'
-          ? 'Folder access denied'
-          : folderPermissionNeedsAction
-            ? 'Folder access needed'
-            : hasUnsavedChanges
-              ? hasWritableFolder
-                ? 'Unsaved folder changes'
-                : 'Unsaved browser changes'
-              : 'Ready';
-  const studioStatusTone = running
-    ? 'running'
-    : snapshot.preview.status === 'error'
-      ? 'error'
-      : hasWritableFolder && folderPermission === 'denied'
-        ? 'error'
-        : folderPermissionNeedsAction
-          ? 'dirty'
-          : hasUnsavedChanges
-            ? 'dirty'
-            : 'ready';
+      : folderRestoreState === 'restoring'
+        ? 'Restoring folder link'
+        : folderRestoreUnavailable
+          ? 'Folder link unavailable'
+          : snapshot.preview.status === 'error'
+            ? 'Preview error'
+            : hasWritableFolder && folderPermission === 'denied'
+              ? 'Folder access denied'
+              : folderPermissionNeedsAction
+                ? 'Folder access needed'
+                : hasUnsavedChanges
+                  ? hasWritableFolder
+                    ? 'Unsaved folder changes'
+                    : 'Unsaved browser changes'
+                  : 'Ready';
+  const studioStatusTone =
+    running ||
+    snapshot.storageMode === 'loading' ||
+    folderRestoreState === 'restoring'
+      ? 'running'
+      : folderRestoreUnavailable
+        ? 'dirty'
+        : snapshot.preview.status === 'error'
+          ? 'error'
+          : hasWritableFolder && folderPermission === 'denied'
+            ? 'error'
+            : folderPermissionNeedsAction
+              ? 'dirty'
+              : hasUnsavedChanges
+                ? 'dirty'
+                : 'ready';
   const persistenceFooterLabel =
-    snapshot.storageMode === 'indexed-db'
-      ? 'Persistent browser workspace'
-      : snapshot.storageMode === 'memory'
-        ? 'Session-only memory workspace'
-        : 'Preparing browser workspace';
+    folderRestoreState === 'restoring'
+      ? 'Restoring local folder link'
+      : folderRestoreUnavailable
+        ? 'Browser workspace · folder link unavailable'
+        : snapshot.storageMode === 'indexed-db'
+          ? 'Persistent browser workspace'
+          : snapshot.storageMode === 'memory'
+            ? 'Session-only memory workspace'
+            : 'Preparing browser workspace';
 
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
@@ -3977,10 +4002,18 @@ function EditorWorkbench({
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
           <span className="storage-chip">{storageLabel}</span>
-          {hasWritableFolder ? (
+          {hasWritableFolder ||
+          folderRestoreState === 'restoring' ||
+          folderRestoreUnavailable ? (
             <span
-              className={`folder-sync-chip folder-sync-${folderPermission}`}
-              title="Writable folder permission status"
+              className={`folder-sync-chip folder-sync-${folderPermission} folder-sync-restore-${folderRestoreState}`}
+              title={
+                folderRestoreState === 'restoring'
+                  ? 'Restoring the persisted folder connection'
+                  : folderRestoreUnavailable
+                    ? 'The browser workspace is available; open the folder again to reconnect'
+                    : 'Writable folder permission status'
+              }
             >
               {folderPermissionLabel}
             </span>
@@ -4954,6 +4987,8 @@ function EditorWorkbench({
 function ToolRuntime() {
   const [repository] = useState(() => new WebCodingWorkspaceRepository());
   const [workspace] = useState(() => new BrowserWorkspace(repository));
+  const [folderRestoreState, setFolderRestoreState] =
+    useState<FolderRestoreState>('restoring');
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const requestPreviewRefresh = useCallback(() => {
     setPreviewRefreshToken((current) => current + 1);
@@ -4967,13 +5002,33 @@ function ToolRuntime() {
       })
   );
   useEffect(() => {
+    let disposed = false;
     void (async () => {
       await workspace.hydrate();
+      if (disposed) return;
       if (workspace.getSnapshot().storageMode === 'indexed-db') {
-        await fileSystemAdapter.restorePersistedFolder();
+        try {
+          const persistedHandle = await repository.getDirectoryHandle();
+          if (disposed) return;
+          if (!persistedHandle) {
+            if (!disposed) setFolderRestoreState('idle');
+            return;
+          }
+          const restored = await fileSystemAdapter.restorePersistedFolder();
+          if (!disposed) {
+            setFolderRestoreState(restored ? 'restored' : 'unavailable');
+          }
+        } catch {
+          if (!disposed) setFolderRestoreState('unavailable');
+        }
+      } else if (!disposed) {
+        setFolderRestoreState('idle');
       }
     })();
-  }, [fileSystemAdapter, workspace]);
+    return () => {
+      disposed = true;
+    };
+  }, [fileSystemAdapter, repository, workspace]);
   return (
     <ToolHandlers
       workspace={workspace}
@@ -4981,6 +5036,7 @@ function ToolRuntime() {
       onPreviewRefresh={requestPreviewRefresh}
     >
       <EditorWorkbench
+        folderRestoreState={folderRestoreState}
         workspace={workspace}
         fileSystemAdapter={fileSystemAdapter}
         previewRefreshToken={previewRefreshToken}
