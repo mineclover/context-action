@@ -189,8 +189,9 @@ input function projection을 사용하지만, provider 호출 뒤 structured res
 registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
 따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
-filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지
-않는다.
+검색과 scope filter는 동일한 canonical list만 좁혀 보며 discovery나 execution
+policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace에서
+계산하며 all·read-only·workspace·preview 범위를 제공한다.
 
 standalone demo에서는 model·MCP source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. 명시적인 non-prompt local palette action만 이

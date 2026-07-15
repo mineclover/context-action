@@ -89,6 +89,18 @@ type ToolCall = {
   arguments: Record<string, unknown>;
 };
 
+type ToolCatalogFilter = 'all' | 'read' | 'workspace' | 'preview';
+
+const toolCatalogFilterOptions: Array<{
+  value: ToolCatalogFilter;
+  label: string;
+}> = [
+  { value: 'all', label: 'All' },
+  { value: 'read', label: 'Read' },
+  { value: 'workspace', label: 'Workspace' },
+  { value: 'preview', label: 'Preview' },
+];
+
 const revisionGuardedWorkspaceTools = new Set([
   'workspace.createFile',
   'workspace.deleteFile',
@@ -2062,17 +2074,44 @@ function EditorWorkbench({
     () => toolNames[0] ?? ''
   );
   const [toolFilter, setToolFilter] = useState('');
+  const [toolCatalogFilter, setToolCatalogFilter] =
+    useState<ToolCatalogFilter>('all');
   const [toolArgumentsText, setToolArgumentsText] = useState('{}');
   const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
     null
   );
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
+  const toolCatalogCounts = useMemo(() => {
+    const counts: Record<ToolCatalogFilter, number> = {
+      all: toolNames.length,
+      read: 0,
+      workspace: 0,
+      preview: 0,
+    };
+    for (const name of toolNames) {
+      if (
+        registry.getToolDefinition(name)?.annotations?.readOnlyHint === true
+      ) {
+        counts.read += 1;
+      }
+      if (name.startsWith('workspace.')) counts.workspace += 1;
+      if (name.startsWith('preview.')) counts.preview += 1;
+    }
+    return counts;
+  }, [registry, toolNames]);
   const visibleToolNames = useMemo(() => {
     const query = toolFilter.trim().toLowerCase();
-    return query
-      ? toolNames.filter((name) => name.toLowerCase().includes(query))
-      : toolNames;
-  }, [toolFilter, toolNames]);
+    return toolNames.filter((name) => {
+      const definition = registry.getToolDefinition(name);
+      const matchesCatalog =
+        toolCatalogFilter === 'all' ||
+        (toolCatalogFilter === 'read' &&
+          definition?.annotations?.readOnlyHint === true) ||
+        (toolCatalogFilter === 'workspace' && name.startsWith('workspace.')) ||
+        (toolCatalogFilter === 'preview' && name.startsWith('preview.'));
+      return matchesCatalog && (!query || name.toLowerCase().includes(query));
+    });
+  }, [registry, toolCatalogFilter, toolFilter, toolNames]);
   useEffect(() => {
     if (visibleToolNames.includes(selectedToolName)) return;
     setSelectedToolName(visibleToolNames[0] ?? '');
@@ -2777,6 +2816,21 @@ function EditorWorkbench({
               </button>
             ) : null}
           </label>
+          <div aria-label="Tool capability filter" className="tool-scope-tabs">
+            {toolCatalogFilterOptions.map((option) => (
+              <button
+                aria-pressed={toolCatalogFilter === option.value}
+                className={`tool-scope-tab ${toolCatalogFilter === option.value ? 'tool-scope-tab-active' : ''}`}
+                disabled={!isStorageReady}
+                key={option.value}
+                onClick={() => setToolCatalogFilter(option.value)}
+                type="button"
+              >
+                {option.label}
+                <span>{toolCatalogCounts[option.value]}</span>
+              </button>
+            ))}
+          </div>
           <div className="tool-palette">
             {visibleToolNames.length ? (
               visibleToolNames.map((name) => (

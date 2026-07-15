@@ -85,6 +85,12 @@ a { color: inherit; text-decoration: none; }
 .tool-filter input::-webkit-search-cancel-button { display: none; }
 .tool-filter button { background: transparent; color: #737d90; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
 .tool-filter button:hover { color: #edeaff; }
+.tool-scope-tabs { display: grid; gap: 3px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 4px 7px; }
+.tool-scope-tab { align-items: center; background: #11151d; border: 1px solid #222937; border-radius: 5px; color: #697386; cursor: pointer; display: flex; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; gap: 3px; justify-content: center; min-width: 0; padding: 5px 3px; }
+.tool-scope-tab span { color: #9a91d5; }
+.tool-scope-tab:hover { border-color: #4a416f; color: #d0c9ff; }
+.tool-scope-tab-active { background: #1c1b30; border-color: #6557ba; color: #ddd8ff; }
+.tool-scope-tab:disabled { cursor: default; opacity: .45; }
 .tool-filter-empty { color: #626c7d; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; padding: 8px 6px; }
 .sr-only { height: 1px; margin: -1px; overflow: hidden; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); }
 .tool-row { background: transparent; border-radius: 6px; color: #848c9e; cursor: pointer; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; gap: 7px; overflow: hidden; padding: 8px 8px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
