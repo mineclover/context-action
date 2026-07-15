@@ -304,6 +304,34 @@ async function runBrowserProof(url) {
       await blockedStoragePage.close();
     }
 
+    const mobilePage = await page.context().browser().newPage({
+      viewport: { width: 390, height: 844 },
+    });
+    try {
+      await mobilePage.goto(url, { waitUntil: 'networkidle' });
+      await mobilePage.getByText('Ready', { exact: true }).waitFor();
+      const mobileLayout = await mobilePage.evaluate(() => ({
+        bodyClientWidth: document.body.clientWidth,
+        bodyScrollWidth: document.body.scrollWidth,
+        sidebarHeight:
+          document.querySelector('.studio-sidebar')?.getBoundingClientRect()
+            .height ?? 0,
+        editorTop:
+          document.querySelector('.studio-main')?.getBoundingClientRect().top ??
+          0,
+      }));
+      if (mobileLayout.bodyScrollWidth > mobileLayout.bodyClientWidth) {
+        throw new Error('The mobile studio introduced horizontal page overflow.');
+      }
+      if (mobileLayout.sidebarHeight > 560 || mobileLayout.editorTop > 850) {
+        throw new Error(
+          `The mobile editor is pushed below the first viewport: ${JSON.stringify(mobileLayout)}`
+        );
+      }
+    } finally {
+      await mobilePage.close();
+    }
+
     if (consoleErrors.length) {
       throw new Error(`Browser console errors: ${consoleErrors.join(' | ')}`);
     }
