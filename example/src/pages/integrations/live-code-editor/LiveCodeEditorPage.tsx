@@ -3,6 +3,7 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -410,6 +411,13 @@ function LiveCodeEditorContent() {
   const [workspaceMessage, setWorkspaceMessage] = useState(
     'Loading IndexedDB workspace…'
   );
+  const pendingPersistenceRef = useRef<{
+    path: string;
+    source: string;
+    mimeType?: string;
+  } | null>(null);
+  const persistenceTimerRef = useRef<number | null>(null);
+  const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const activeWorkspaceFile = workspaceManager.getActiveFile();
   const currentExample: ExampleDefinition = activeExample
@@ -448,7 +456,7 @@ function LiveCodeEditorContent() {
           activePath: persisted.metadata.activePath,
         });
         setWorkspaceMessage(
-          `${persisted.metadata.rootName} · ${persisted.files.length} files persisted`
+          `${persisted.metadata.rootName} · ${persisted.files.length} files persisted · IndexedDB auto-save`
         );
       })
       .catch((error: unknown) => {
@@ -464,6 +472,87 @@ function LiveCodeEditorContent() {
     };
   }, [workspaceManager, workspaceRepository]);
 
+  const enqueueTextPersistence = (pending: {
+    path: string;
+    source: string;
+    mimeType?: string;
+  }) => {
+    persistenceQueueRef.current = persistenceQueueRef.current
+      .catch(() => undefined)
+      .then(() =>
+        workspaceRepository.saveTextFile(
+          LIVE_EDITOR_WORKSPACE_ID,
+          pending.path,
+          pending.source,
+          pending.mimeType
+        )
+      )
+      .catch((error: unknown) => {
+        const current = documentManager.getSnapshot();
+        if (
+          current.file === pending.path &&
+          current.source === pending.source
+        ) {
+          setWorkspaceMessage(
+            error instanceof Error
+              ? `IndexedDB save failed: ${error.message}`
+              : 'IndexedDB save failed.'
+          );
+        }
+      });
+    return persistenceQueueRef.current;
+  };
+
+  const scheduleTextPersistence = (pending: {
+    path: string;
+    source: string;
+    mimeType?: string;
+  }) => {
+    pendingPersistenceRef.current = pending;
+    if (persistenceTimerRef.current !== null) {
+      window.clearTimeout(persistenceTimerRef.current);
+    }
+    persistenceTimerRef.current = window.setTimeout(() => {
+      persistenceTimerRef.current = null;
+      const nextPending = pendingPersistenceRef.current;
+      pendingPersistenceRef.current = null;
+      if (nextPending) void enqueueTextPersistence(nextPending);
+    }, 220);
+  };
+
+  const flushPendingPersistence = async () => {
+    if (persistenceTimerRef.current !== null) {
+      window.clearTimeout(persistenceTimerRef.current);
+      persistenceTimerRef.current = null;
+    }
+    const pending = pendingPersistenceRef.current;
+    pendingPersistenceRef.current = null;
+    if (pending) await enqueueTextPersistence(pending);
+    await persistenceQueueRef.current;
+  };
+
+  useEffect(
+    () => () => {
+      void flushPendingPersistence();
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (
+      !filesystemAdapter.isWritable ||
+      workspaceSnapshot.dirtyPaths.length === 0
+    ) {
+      return;
+    }
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [filesystemAdapter, workspaceSnapshot.dirtyPaths.length]);
+
   useEffect(() => {
     const unsubscribe = documentManager.subscribe((snapshot) => {
       const file = workspaceManager
@@ -471,14 +560,11 @@ function LiveCodeEditorContent() {
         .files.find((candidate) => candidate.path === snapshot.file);
       if (!file || file.source !== snapshot.source) {
         workspaceManager.updateFile(snapshot.file, snapshot.source);
-        void workspaceRepository
-          .saveTextFile(
-            LIVE_EDITOR_WORKSPACE_ID,
-            snapshot.file,
-            snapshot.source,
-            file?.mimeType
-          )
-          .catch(() => undefined);
+        scheduleTextPersistence({
+          path: snapshot.file,
+          source: snapshot.source,
+          ...(file?.mimeType ? { mimeType: file.mimeType } : {}),
+        });
       }
     });
     return unsubscribe;
@@ -527,6 +613,7 @@ function LiveCodeEditorContent() {
 
   const openWorkspace = async () => {
     try {
+      await flushPendingPersistence();
       const result = await filesystemAdapter.openDirectory();
       const persisted = await workspaceRepository.replaceWorkspace(
         LIVE_EDITOR_WORKSPACE_ID,
@@ -542,7 +629,7 @@ function LiveCodeEditorContent() {
       setWorkspaceMessage(
         `${persisted.metadata.rootName} imported · ${persisted.files.length} files${
           entryPath ? ` · ${entryPath} ready` : ''
-        }`
+        } · folder writable`
       );
       setRunState('ready');
     } catch (error) {
@@ -572,6 +659,7 @@ function LiveCodeEditorContent() {
 
     setIsResetting(true);
     try {
+      await flushPendingPersistence();
       const persisted = await workspaceRepository.replaceWorkspace(
         LIVE_EDITOR_WORKSPACE_ID,
         createDefaultWorkspaceBlobFiles(),
@@ -598,7 +686,7 @@ function LiveCodeEditorContent() {
       }
       setRunState('ready');
       setWorkspaceMessage(
-        `${persisted.metadata.rootName} restored · ${persisted.files.length} example files`
+        `${persisted.metadata.rootName} restored · ${persisted.files.length} example files · IndexedDB auto-save`
       );
     } catch (error) {
       setWorkspaceMessage(
@@ -613,8 +701,18 @@ function LiveCodeEditorContent() {
 
   const saveWorkspaceFile = async () => {
     const activeFile = workspaceManager.getActiveFile();
-    if (!activeFile?.isText || !filesystemAdapter.isWritable) return;
+    if (!activeFile?.isText) {
+      setWorkspaceMessage('Binary files cannot be edited or saved here.');
+      return;
+    }
+    if (!filesystemAdapter.isWritable) {
+      setWorkspaceMessage(
+        `${activeFile.path} is already saved in IndexedDB · open a folder to write it back`
+      );
+      return;
+    }
     try {
+      await flushPendingPersistence();
       const blob = new Blob([activeFile.source], { type: activeFile.mimeType });
       await workspaceRepository.saveTextFile(
         LIVE_EDITOR_WORKSPACE_ID,
@@ -655,6 +753,11 @@ function LiveCodeEditorContent() {
   };
 
   const handleEditorKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      void saveWorkspaceFile();
+      return;
+    }
     if (event.key !== 'Tab') return;
     event.preventDefault();
     const target = event.currentTarget;
@@ -773,7 +876,12 @@ function LiveCodeEditorContent() {
                   <div className={styles.workspaceBar}>
                     <div className={styles.workspaceHeader}>
                       <strong>Code workspace</strong>
-                      <span>{workspaceSnapshot.storageMode}</span>
+                      <span>
+                        {workspaceSnapshot.storageMode} ·{' '}
+                        {filesystemAdapter.isWritable
+                          ? 'folder writable'
+                          : 'IndexedDB auto-save'}
+                      </span>
                     </div>
                     <div className={styles.workspaceActions}>
                       <button
@@ -809,6 +917,7 @@ function LiveCodeEditorContent() {
                             workspaceSnapshot.activePath
                           )
                         }
+                        title="Write the active file back to the opened folder (Ctrl/Cmd+S)"
                       >
                         Save file
                       </button>
@@ -834,9 +943,17 @@ function LiveCodeEditorContent() {
                           }
                         >
                           <span>{file.path}</span>
-                          {workspaceSnapshot.dirtyPaths.includes(file.path) && (
-                            <span aria-label="unsaved changes">●</span>
-                          )}
+                          {filesystemAdapter.isWritable &&
+                            workspaceSnapshot.dirtyPaths.includes(
+                              file.path
+                            ) && (
+                              <span
+                                aria-label="not saved to filesystem"
+                                title="Not saved to the opened folder"
+                              >
+                                ●
+                              </span>
+                            )}
                         </button>
                       ))}
                     </div>
@@ -873,6 +990,7 @@ function LiveCodeEditorContent() {
                         aria-label={`${currentExample.file} source editor`}
                         className={styles.codeInput}
                         spellCheck={false}
+                        aria-keyshortcuts="Control+S Meta+S"
                         value={code}
                         disabled={activeWorkspaceFile?.isText === false}
                         onChange={(event) =>
@@ -884,7 +1002,15 @@ function LiveCodeEditorContent() {
                   </div>
                   <div className={styles.statusbar}>
                     <span>UTF-8 · LF</span>
-                    <span>{code.split('\n').length} lines · editable</span>
+                    <span>
+                      {code.split('\n').length} lines · editable ·{' '}
+                      {filesystemAdapter.isWritable &&
+                      workspaceSnapshot.dirtyPaths.includes(
+                        workspaceSnapshot.activePath
+                      )
+                        ? 'folder pending'
+                        : 'IndexedDB saved'}
+                    </span>
                   </div>
                 </section>
 
