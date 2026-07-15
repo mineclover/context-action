@@ -93,11 +93,20 @@ const assetMimeTypeByExtension: Record<string, string> = {
 };
 
 function normalizePath(path: string): string {
-  return path
-    .replaceAll('\\', '/')
-    .split('/')
-    .filter((segment) => segment && segment !== '.' && segment !== '..')
-    .join('/');
+  if (path.includes('\0')) {
+    throw new Error('Workspace path cannot contain NUL.');
+  }
+  const segments = path.replaceAll('\\', '/').split('/');
+  if (segments.some((segment) => segment === '..')) {
+    throw new Error('Workspace path cannot traverse a parent directory.');
+  }
+  const normalized = segments.filter(
+    (segment) => segment.length > 0 && segment !== '.'
+  );
+  if (normalized.length === 0) {
+    throw new Error('Workspace path is required.');
+  }
+  return normalized.join('/');
 }
 
 function languageForPath(path: string): string | null {
@@ -220,7 +229,14 @@ export class BrowserWorkspaceFileSystemAdapter {
       prefix: string
     ): Promise<void> => {
       for await (const [name, entry] of directory.entries()) {
-        const path = normalizePath(`${prefix}/${name}`);
+        const rawPath = `${prefix}/${name}`;
+        let path: string;
+        try {
+          path = normalizePath(rawPath);
+        } catch {
+          skipped.push(`${rawPath} · invalid workspace path`);
+          continue;
+        }
         if (entry.kind === 'directory') {
           await visit(entry, path);
           continue;
@@ -258,7 +274,14 @@ export class BrowserWorkspaceFileSystemAdapter {
       const relativePath = file.webkitRelativePath || file.name;
       const segments = relativePath.split('/');
       if (segments.length > 1 && segments[0]) rootName = segments[0];
-      const path = normalizePath(segments.slice(1).join('/') || file.name);
+      const rawPath = segments.slice(1).join('/') || file.name;
+      let path: string;
+      try {
+        path = normalizePath(rawPath);
+      } catch {
+        skipped.push(`${rawPath} · invalid workspace path`);
+        continue;
+      }
       const accepted = await this.readFile(
         file,
         path,

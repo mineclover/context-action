@@ -390,6 +390,9 @@ Open folder → generic FileSystemAdapter
   imported with file-count, per-file, and total-size limits. Supported images,
   fonts, and WASM files are retained as Blob-backed, preview-only assets;
   unsupported files are reported in the chat.
+- Imported paths containing NUL bytes or parent traversal segments are rejected
+  as invalid entries instead of being silently rewritten to another workspace
+  path.
 - File-system handles stay behind the parent adapter and never enter tool
   payloads or iframe messages. Where supported, the adapter stores a handle in
   workspace metadata only so it can reconnect after reload.

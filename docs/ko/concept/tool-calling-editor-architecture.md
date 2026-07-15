@@ -375,6 +375,8 @@ Open folder → generic FileSystemAdapter
   크기·전체 크기 제한과 함께 가져온다. 지원되는 image·font·WASM 파일은
   Blob 기반 preview-only asset으로 보존하고, 지원하지 않는 파일은 chat에
   건너뛴 항목으로 표시한다.
+- NUL byte나 parent traversal segment가 포함된 import path는 다른 workspace
+  path로 조용히 바꾸지 않고 invalid entry로 거부한다.
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
   전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
   metadata에만 handle을 저장한다.
