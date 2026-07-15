@@ -351,6 +351,43 @@ async function runBrowserProof(url) {
       )
       .waitFor();
     await preview.getByText('Inspectable tools', { exact: true }).waitFor();
+
+    const completedThemeTraceBeforeCancel = await page
+      .locator('#trace-list .trace-row-completed')
+      .filter({ hasText: 'preview.setTheme' })
+      .count();
+    await prompt.fill('Make it amber');
+    await send.click();
+    await page
+      .getByRole('button', { name: 'Approve preview.setTheme' })
+      .waitFor();
+    const cancelExecutionButton = page.getByRole('button', {
+      name: /^Cancel/,
+    });
+    await cancelExecutionButton.click();
+    await page.getByText('Execution cancelled.', { exact: true }).waitFor();
+    if (await page.getByRole('button', { name: 'Approve preview.setTheme' }).count()) {
+      throw new Error('Cancelling an agent run left a pending tool approval behind.');
+    }
+    const completedThemeTraceAfterCancel = await page
+      .locator('#trace-list .trace-row-completed')
+      .filter({ hasText: 'preview.setTheme' })
+      .count();
+    if (completedThemeTraceAfterCancel !== completedThemeTraceBeforeCancel) {
+      throw new Error('Cancelling before approval executed the preview theme tool.');
+    }
+
+    await prompt.fill('Make it amber');
+    await send.click();
+    await page
+      .getByRole('button', { name: 'Approve preview.setTheme' })
+      .click();
+    await page
+      .getByText(
+        /Local agent inspected the workspace, called workspace\.getStatus, preview\.setTheme/
+      )
+      .last()
+      .waitFor();
     const showAllTrace = page.getByRole('button', {
       name: 'Show all execution trace',
     });
@@ -376,7 +413,7 @@ async function runBrowserProof(url) {
     const stylesEditor = page.getByLabel('Edit styles.css');
     await stylesEditor.waitFor();
     const restoredStyles = await stylesEditor.inputValue();
-    if (!restoredStyles.includes('--accent: #10b981')) {
+    if (!restoredStyles.includes('--accent: #f59e0b')) {
       throw new Error(
         'The persisted styles.css source did not restore after a browser reload.'
       );
