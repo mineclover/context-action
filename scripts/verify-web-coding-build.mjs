@@ -54,6 +54,61 @@ for (const reference of assetReferences) {
   verifyAssetReference(reference, 'index.html');
 }
 
+function resolveJavaScriptAssetReference(reference, source) {
+  const cleanReference = reference.split(/[?#]/, 1)[0];
+  if (cleanReference.startsWith(expectedBase)) return cleanReference;
+  if (cleanReference.startsWith('assets/')) {
+    return `${expectedBase}${cleanReference}`;
+  }
+  if (cleanReference.startsWith('/')) {
+    return new URL(cleanReference, 'https://pages.invalid').pathname;
+  }
+  const sourceDirectory = path.posix.dirname(source.replaceAll(path.sep, '/'));
+  const baseDirectory =
+    sourceDirectory === '.'
+      ? expectedBase
+      : `${expectedBase}${sourceDirectory}/`;
+  return new URL(cleanReference, `https://pages.invalid${baseDirectory}`).pathname;
+}
+
+const transitiveAssetReferences = new Set();
+const javascriptQueue = assetReferences
+  .filter((reference) => reference.endsWith('.js'))
+  .map((reference) => ({
+    reference,
+    filePath: path.resolve(distDirectory, reference.slice(expectedBase.length)),
+  }));
+const javascriptAssetPattern = /["'`]((?:\.\.?\/|assets\/|\/)[^"'`]*?\.(?:js|css)(?:\?[^"'`]*)?)["'`]/g;
+
+while (javascriptQueue.length > 0) {
+  const current = javascriptQueue.shift();
+  if (!current || transitiveAssetReferences.has(current.reference)) continue;
+  transitiveAssetReferences.add(current.reference);
+  const source = path.relative(distDirectory, current.filePath);
+  if (!fs.existsSync(current.filePath)) {
+    throw new Error(
+      `Standalone JavaScript asset is missing from the build: ${current.filePath}`
+    );
+  }
+  const javascript = fs.readFileSync(current.filePath, 'utf8');
+  for (const match of javascript.matchAll(javascriptAssetPattern)) {
+    const resolvedReference = resolveJavaScriptAssetReference(match[1], source);
+    verifyAssetReference(resolvedReference, source);
+    if (
+      resolvedReference.endsWith('.js') &&
+      !transitiveAssetReferences.has(resolvedReference)
+    ) {
+      javascriptQueue.push({
+        reference: resolvedReference,
+        filePath: path.resolve(
+          distDirectory,
+          resolvedReference.slice(expectedBase.length)
+        ),
+      });
+    }
+  }
+}
+
 const cssReferences = [];
 for (const reference of assetReferences.filter((reference) =>
   reference.endsWith('.css')
@@ -83,5 +138,5 @@ for (const reference of assetReferences.filter((reference) =>
 }
 
 console.log(
-  `Verified standalone web-coding build: ${assetReferences.length} entry asset(s), ${cssReferences.length} CSS asset(s) under ${expectedBase}`
+  `Verified standalone web-coding build: ${assetReferences.length} entry asset(s), ${transitiveAssetReferences.size} transitive JS asset(s), ${cssReferences.length} CSS asset(s) under ${expectedBase}`
 );

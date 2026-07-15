@@ -90,8 +90,8 @@ resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중�
 준비하지 않아도 dev server가 시작된다.
 production build는 `scripts/verify-web-coding-build.mjs`로 build 직후와 GitHub Pages의
 `/web-coding/` directory로 복사한 직후 두 번 검증한다. 이 검사는 base path, 컴파일된
-entry asset, CSS asset reference, build directory 밖으로 벗어나지 않는 파일 존재 여부를
-확인한다.
+entry asset, compiled JavaScript transitive chunk reference, CSS asset reference,
+build directory 밖으로 벗어나지 않는 파일 존재 여부를 확인한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
