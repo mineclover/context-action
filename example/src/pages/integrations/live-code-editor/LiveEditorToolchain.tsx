@@ -64,6 +64,11 @@ function LiveEditorToolHandlers({
         replace,
         occurrence
       );
+      if (patch.source.length > 100_000) {
+        throw new Error(
+          'Patched document exceeds the 100,000 character limit.'
+        );
+      }
       return updateAndWait({ source: patch.source }).then((snapshot) => ({
         ...snapshot,
         replacements: patch.replacements,
