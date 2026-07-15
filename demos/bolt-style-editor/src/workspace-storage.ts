@@ -10,6 +10,7 @@ type WorkspaceMetadataRecord = {
   id: string;
   rootName: string;
   activePath: string;
+  deletedPaths?: string[];
   updatedAt: number;
   schemaVersion: number;
 };
@@ -43,6 +44,7 @@ export type PersistedWorkspace = {
   rootName: string;
   activePath: string;
   files: WorkspaceFile[];
+  deletedPaths: string[];
 };
 
 function mimeTypeForLanguage(language: string): string {
@@ -100,13 +102,15 @@ export class WebCodingWorkspaceRepository {
   async replaceWorkspace(
     files: readonly WorkspaceFile[],
     activePath: string,
-    rootName: string
+    rootName: string,
+    deletedPaths: readonly string[] = []
   ): Promise<PersistedWorkspace> {
     const now = Date.now();
     const metadata: WorkspaceMetadataRecord = {
       id: this.workspaceId,
       rootName: rootName || 'workspace',
       activePath,
+      deletedPaths: [...new Set(deletedPaths)],
       updatedAt: now,
       schemaVersion: DATABASE_VERSION,
     };
@@ -144,23 +148,66 @@ export class WebCodingWorkspaceRepository {
   async saveFile(file: WorkspaceFile): Promise<void> {
     const now = Date.now();
     const blob = blobForFile(file);
-    await this.database.files.put({
-      id: `${this.workspaceId}:${file.path}`,
-      workspaceId: this.workspaceId,
-      path: file.path,
-      language: file.language,
-      kind: file.kind ?? 'text',
-      mimeType: blob.type,
-      size: blob.size,
-      blob,
-      updatedAt: now,
-    });
-    await this.touchMetadata(now);
+    await this.database.transaction(
+      'rw',
+      this.database.workspaces,
+      this.database.files,
+      async () => {
+        await this.database.files.put({
+          id: `${this.workspaceId}:${file.path}`,
+          workspaceId: this.workspaceId,
+          path: file.path,
+          language: file.language,
+          kind: file.kind ?? 'text',
+          mimeType: blob.type,
+          size: blob.size,
+          blob,
+          updatedAt: now,
+        });
+        const metadata = await this.database.workspaces.get(this.workspaceId);
+        if (metadata) {
+          await this.database.workspaces.put({
+            ...metadata,
+            deletedPaths: (metadata.deletedPaths ?? []).filter(
+              (path) => path !== file.path
+            ),
+            updatedAt: now,
+          });
+        }
+      }
+    );
   }
 
   async deleteFile(path: string): Promise<void> {
-    await this.database.files.delete(`${this.workspaceId}:${path}`);
-    await this.touchMetadata(Date.now());
+    const now = Date.now();
+    await this.database.transaction(
+      'rw',
+      this.database.workspaces,
+      this.database.files,
+      async () => {
+        await this.database.files.delete(`${this.workspaceId}:${path}`);
+        const metadata = await this.database.workspaces.get(this.workspaceId);
+        if (metadata) {
+          await this.database.workspaces.put({
+            ...metadata,
+            deletedPaths: [
+              ...new Set([...(metadata.deletedPaths ?? []), path]),
+            ],
+            updatedAt: now,
+          });
+        }
+      }
+    );
+  }
+
+  async clearDeletedPaths(): Promise<void> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    if (!metadata) return;
+    await this.database.workspaces.put({
+      ...metadata,
+      deletedPaths: [],
+      updatedAt: Date.now(),
+    });
   }
 
   async setActivePath(activePath: string): Promise<void> {
@@ -185,12 +232,6 @@ export class WebCodingWorkspaceRepository {
       .equals(this.workspaceId)
       .sortBy('path');
     return this.toWorkspace(metadata, records);
-  }
-
-  private async touchMetadata(updatedAt: number): Promise<void> {
-    const metadata = await this.database.workspaces.get(this.workspaceId);
-    if (!metadata) return;
-    await this.database.workspaces.put({ ...metadata, updatedAt });
   }
 
   private async toWorkspace(
@@ -223,6 +264,7 @@ export class WebCodingWorkspaceRepository {
       files: files.sort(
         (left, right) => displayOrder(left.path) - displayOrder(right.path)
       ),
+      deletedPaths: [...(metadata.deletedPaths ?? [])],
     };
   }
 }

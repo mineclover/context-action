@@ -237,7 +237,7 @@ export class BrowserWorkspace {
         revision,
         storageMode: 'indexed-db',
       };
-      this.deletedPaths = [];
+      this.deletedPaths = [...(persisted.deletedPaths ?? [])];
       this.history = [this.createCheckpoint()];
       this.historyIndex = 0;
       this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
@@ -599,7 +599,8 @@ export class BrowserWorkspace {
           .replaceWorkspace(
             this.snapshot.files,
             this.snapshot.activePath,
-            this.snapshot.rootName
+            this.snapshot.rootName,
+            this.deletedPaths
           )
           .then(() => undefined)
       );
@@ -619,7 +620,8 @@ export class BrowserWorkspace {
           .replaceWorkspace(
             this.snapshot.files,
             this.snapshot.activePath,
-            this.snapshot.rootName
+            this.snapshot.rootName,
+            this.deletedPaths
           )
           .then(() => undefined)
       );
@@ -632,6 +634,9 @@ export class BrowserWorkspace {
     this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
     this.deletedPaths = [];
     this.snapshot = { ...this.snapshot };
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() => this.repository.clearDeletedPaths());
+    }
     this.notify();
   }
 
@@ -647,7 +652,9 @@ export class BrowserWorkspace {
     const revision = this.snapshot.revision + 1;
     this.deletedPaths = [...checkpoint.deletedPaths];
     this.snapshot = {
-      ...checkpoint,
+      ...this.snapshot,
+      files: checkpoint.files,
+      activePath: checkpoint.activePath,
       rootName: this.snapshot.rootName,
       storageMode: this.snapshot.storageMode,
       preview: { revision, status: 'waiting' },

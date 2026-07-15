@@ -197,6 +197,8 @@ Open folder → generic FileSystemAdapter
   records, and included in the next folder save. Deletions remove the
   browser-local record immediately, retain a deleted-path checkpoint for
   `Save to folder`, and keep undo/redo and the active preview entry valid.
+  Pending deletion paths are stored in Dexie metadata, so a reload does not
+  silently lose the later operating-system folder deletion.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.
