@@ -10,6 +10,16 @@ export interface MCPCommandReference {
   difficulty: MCPCommandDifficulty;
 }
 
+export interface MCPStandaloneCommandReference {
+  id: string;
+  title: string;
+  description: string;
+  prompt: string;
+  tools: string[];
+  expectedChain: string[];
+  difficulty: MCPCommandDifficulty;
+}
+
 export const mcpExecutionStages = [
   {
     label: 'Discover',
@@ -143,6 +153,95 @@ export const mcpFunctionCallingCommands = [
     difficulty: 'Advanced',
   },
 ] satisfies MCPCommandReference[];
+
+export const mcpStandaloneCommands = [
+  {
+    id: 'standalone-theme-chain',
+    title: 'Preview 테마 변경',
+    description:
+      'workspace 상태를 먼저 확인한 뒤 preview mutation과 iframe acknowledgement를 확인합니다.',
+    prompt: '현재 workspace 상태를 확인하고 emerald 테마로 바꿔줘.',
+    tools: ['workspace.getStatus', 'preview.setTheme'],
+    expectedChain: [
+      'workspace.getStatus',
+      'preview.setTheme',
+      'iframe acknowledgement',
+    ],
+    difficulty: 'Starter',
+  },
+  {
+    id: 'standalone-bounded-patch',
+    title: '정확한 source patch',
+    description:
+      '현재 파일을 읽은 revision을 mutation guard로 넘겨 bounded literal patch를 실행합니다.',
+    prompt: 'app.js에서 "Interaction received"를 "Clicked!"로 바꿔줘.',
+    tools: [
+      'workspace.getStatus',
+      'workspace.listFiles',
+      'workspace.readFile',
+      'workspace.applyPatch',
+    ],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.listFiles',
+      'workspace.readFile',
+      'workspace.applyPatch',
+      'iframe acknowledgement',
+    ],
+    difficulty: 'Workflow',
+  },
+  {
+    id: 'standalone-browser-save',
+    title: '파일 생성 후 browser checkpoint 저장',
+    description:
+      '새 파일을 만들고 local folder가 없는 경우 saveAll 대신 browser-only checkpoint 경계를 사용합니다.',
+    prompt: '파일 notes.md를 만들고 저장해줘.',
+    tools: [
+      'workspace.getStatus',
+      'workspace.createFile',
+      'workspace.saveCheckpoint',
+    ],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.createFile',
+      'iframe acknowledgement',
+      'workspace.saveCheckpoint',
+    ],
+    difficulty: 'Advanced',
+  },
+  {
+    id: 'standalone-download-approval',
+    title: '현재 파일 다운로드 승인',
+    description:
+      '읽기 preflight 후 browser download가 approval boundary를 통과하는지 확인합니다.',
+    prompt: '현재 파일을 다운로드해줘.',
+    tools: [
+      'workspace.getStatus',
+      'workspace.listFiles',
+      'workspace.downloadFile',
+    ],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.listFiles',
+      'workspace.downloadFile → approval',
+    ],
+    difficulty: 'Advanced',
+  },
+  {
+    id: 'standalone-reset-recovery',
+    title: '데모 workspace 복구',
+    description:
+      '반복 테스트 중 남은 IndexedDB 상태를 destructive reset으로 초기 seed에 되돌립니다.',
+    prompt: '브라우저 데모 workspace를 초기화해줘.',
+    tools: ['workspace.getStatus', 'workspace.reset'],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.reset → approval',
+      'iframe acknowledgement',
+    ],
+    difficulty: 'Advanced',
+  },
+] satisfies MCPStandaloneCommandReference[];
 
 export type MCPFunctionCallingCommand =
   (typeof mcpFunctionCallingCommands)[number];

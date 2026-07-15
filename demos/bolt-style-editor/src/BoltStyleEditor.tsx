@@ -996,8 +996,9 @@ function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
   const resetRequest =
-    /(reset|start over|restore demo|초기화|처음부터|기본 예제)/i.test(prompt) &&
-    /(workspace|demo|작업공간|프로젝트|상태|처음|기본)/i.test(prompt);
+    /초기화해?줘?|처음부터\s*(다시|시작)|기본\s*예제/i.test(prompt) ||
+    (/(reset|start over|restore demo)/i.test(prompt) &&
+      /(workspace|demo|작업공간|프로젝트|상태)/i.test(prompt));
   const deleteRequest =
     /(delete|remove|삭제|지워)/i.test(prompt) && /(file|파일)/i.test(prompt);
   const saveRequest = /(save|persist|저장|폴더에 반영|파일시스템)/i.test(
