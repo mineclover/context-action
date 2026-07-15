@@ -94,6 +94,17 @@ type ToolCall = {
 
 type ToolCatalogFilter = 'all' | 'read' | 'workspace' | 'preview';
 
+type ToolAnnotations = {
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  openWorldHint?: boolean;
+};
+
+function toolPolicySummary(annotations?: ToolAnnotations): string {
+  if (annotations?.readOnlyHint === true) return 'allow · read-only';
+  return 'approval · local direct allow';
+}
+
 const toolCatalogFilterOptions: Array<{
   value: ToolCatalogFilter;
   label: string;
@@ -3659,21 +3670,29 @@ function EditorWorkbench({
           </div>
           <div className="tool-palette">
             {visibleToolNames.length ? (
-              visibleToolNames.map((name) => (
-                <button
-                  className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
-                  data-tool-name={name}
-                  disabled={!isStorageReady || running}
-                  key={name}
-                  onClick={() => setSelectedToolName(name)}
-                  type="button"
-                >
-                  <span className="tool-glyph">
-                    {name.startsWith('preview') ? '◈' : '◇'}
-                  </span>
-                  <span>{name}</span>
-                </button>
-              ))
+              visibleToolNames.map((name) => {
+                const definition = registry.getToolDefinition(name);
+                return (
+                  <button
+                    className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
+                    data-tool-name={name}
+                    disabled={!isStorageReady || running}
+                    key={name}
+                    onClick={() => setSelectedToolName(name)}
+                    type="button"
+                  >
+                    <span className="tool-row-name">
+                      <span className="tool-glyph">
+                        {name.startsWith('preview') ? '◈' : '◇'}
+                      </span>
+                      <span>{name}</span>
+                    </span>
+                    <span className="tool-policy-label">
+                      {toolPolicySummary(definition?.annotations)}
+                    </span>
+                  </button>
+                );
+              })
             ) : (
               <div className="tool-filter-empty">No matching tools</div>
             )}
@@ -3689,6 +3708,10 @@ function EditorWorkbench({
               </div>
               <strong>{selectedToolDefinition.name}</strong>
               <p>{selectedToolDefinition.description}</p>
+              <div className="tool-policy-summary">
+                Model/MCP:{' '}
+                {toolPolicySummary(selectedToolDefinition.annotations)}
+              </div>
               <div className="tool-annotations">
                 {Object.entries(selectedToolDefinition.annotations ?? {})
                   .filter(([, value]) => Boolean(value))

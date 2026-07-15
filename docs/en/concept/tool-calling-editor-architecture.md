@@ -207,9 +207,10 @@ same approval policy as provider model calls. Direct palette samples remain
 explicit local actions.
 
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
-directly, so the displayed description, annotations, JSON input schema, and
-optional structured `outputSchema` are the same canonical contract exported to
-MCP and enforced at the result boundary. OpenAI-compatible/OpenRouter payloads
+directly, so the displayed description, default model/MCP policy summary,
+annotations, JSON input schema, and optional structured `outputSchema` are the
+same canonical contract exported to MCP and enforced at the result boundary.
+OpenAI-compatible/OpenRouter payloads
 use their provider-specific input-function projection; the registry still
 validates the structured result after every provider call. Selecting a catalog
 row only inspects that definition; a separate `Run sample` control is required
