@@ -553,7 +553,10 @@ Open folder → generic FileSystemAdapter
 - `workspace.undo` and `workspace.redo` are the canonical edit-history boundaries
   for the editor buttons and local/model calls. They require the current
   `expectedRevision`, move the browser workspace checkpoint, persist the
-  resulting projection, and wait for the matching iframe acknowledgement.
+  resulting projection, and wait for the matching iframe acknowledgement. The
+  in-memory history is bounded to the latest 100 checkpoints; source-edit
+  navigation preserves the active tab while structural checkpoints restore the
+  path required by the resulting file set.
 - `preview.refresh` is the canonical preview-remount boundary for the Refresh
   button, tool palette, and explicit agent request. It keeps the workspace
   revision unchanged while resetting the iframe and waiting for the same

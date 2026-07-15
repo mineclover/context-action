@@ -519,7 +519,9 @@ Open folder → generic FileSystemAdapter
 - `workspace.undo`와 `workspace.redo`는 editor 버튼과 local/model call이
   공유하는 edit-history canonical boundary다. 현재 `expectedRevision`을
   확인한 뒤 browser workspace checkpoint를 이동하고, 결과 projection을
-  저장하며, 일치하는 iframe acknowledgement를 기다린다.
+  저장하며, 일치하는 iframe acknowledgement를 기다린다. 메모리 history는
+  최신 100개 checkpoint로 제한하고, source edit navigation에서는 active tab을
+  유지하며 구조 변경 checkpoint는 결과 file set에 필요한 path를 복원한다.
 - `preview.refresh`는 Refresh 버튼, tool palette, 명시적인 agent 요청이
   공유하는 preview-remount canonical boundary다. workspace revision은
   유지한 채 iframe을 초기화하고 같은 revision이 다시 acknowledged될 때까지
