@@ -3469,11 +3469,15 @@ function EditorWorkbench({
   useEffect(() => {
     const handleSaveShortcut = (event: globalThis.KeyboardEvent) => {
       if (
+        event.defaultPrevented ||
         !(event.metaKey || event.ctrlKey) ||
         event.key.toLowerCase() !== 's' ||
         showSettings ||
         showCreateFile ||
-        showRenameFile
+        showRenameFile ||
+        confirmationRequest ||
+        quickOpenOpen ||
+        workspaceSearchOpen
       ) {
         return;
       }
@@ -3490,19 +3494,24 @@ function EditorWorkbench({
     showCreateFile,
     showRenameFile,
     showSettings,
+    confirmationRequest,
+    quickOpenOpen,
+    workspaceSearchOpen,
     workspace,
   ]);
 
   useEffect(() => {
     const handleQuickOpenShortcut = (event: globalThis.KeyboardEvent) => {
       if (
+        event.defaultPrevented ||
         !(event.metaKey || event.ctrlKey) ||
         event.altKey ||
         event.key.toLowerCase() !== 'p' ||
         showSettings ||
         showCreateFile ||
         showRenameFile ||
-        confirmationRequest
+        confirmationRequest ||
+        workspaceSearchOpen
       ) {
         return;
       }
@@ -3512,7 +3521,13 @@ function EditorWorkbench({
 
     window.addEventListener('keydown', handleQuickOpenShortcut);
     return () => window.removeEventListener('keydown', handleQuickOpenShortcut);
-  }, [confirmationRequest, showCreateFile, showRenameFile, showSettings]);
+  }, [
+    confirmationRequest,
+    showCreateFile,
+    showRenameFile,
+    showSettings,
+    workspaceSearchOpen,
+  ]);
 
   const cancelExecution = useCallback(() => {
     denyPendingToolApprovals();

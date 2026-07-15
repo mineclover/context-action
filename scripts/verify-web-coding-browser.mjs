@@ -252,7 +252,16 @@ async function runBrowserProof(url) {
       () => document.activeElement?.getAttribute('aria-label') === 'Edit index.html'
     );
     await page.getByRole('button', { name: 'Search workspace' }).click();
-    await page.getByLabel('Search workspace files').press('Escape');
+    const openSearchInput = page.getByLabel('Search workspace files');
+    await openSearchInput.press('Control+S');
+    if (!(await page.locator('#workspace-search-panel').isVisible())) {
+      throw new Error('Save shortcut unexpectedly closed the workspace search.');
+    }
+    await openSearchInput.press('Control+P');
+    if (await page.getByRole('dialog', { name: 'Quick open file' }).count()) {
+      throw new Error('Quick open shortcut unexpectedly opened over workspace search.');
+    }
+    await openSearchInput.press('Escape');
     await page.waitForFunction(
       () => document.activeElement?.getAttribute('aria-label') === 'Search workspace'
     );
