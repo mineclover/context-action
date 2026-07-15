@@ -293,8 +293,10 @@ Open folder → generic FileSystemAdapter
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
   parent-owned adapter used by the Save to folder button, then marks the
-  IndexedDB checkpoint clean only after every operation succeeds. Without a
-  writable folder it returns a failed tool result.
+  IndexedDB checkpoint clean only after every operation succeeds. The
+  checkpoint is revision-guarded, so edits made while the folder write is in
+  flight remain dirty instead of being overwritten by a stale clean state.
+  Without a writable folder it returns a failed tool result.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
   (`createFile`, `deleteFile`, `writeFile`, `applyPatch`, or `revertFile`); a stale

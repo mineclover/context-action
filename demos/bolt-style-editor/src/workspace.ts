@@ -666,6 +666,20 @@ export class BrowserWorkspace {
     this.notify();
   }
 
+  async markSavedIfRevision(expectedRevision: number): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    if (this.snapshot.storageMode === 'indexed-db') {
+      await this.repository.clearDeletedPaths();
+    }
+    if (this.snapshot.revision !== expectedRevision) return false;
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.deletedPaths = [];
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
   private createCheckpoint(): WorkspaceCheckpoint {
     return {
       activePath: this.snapshot.activePath,

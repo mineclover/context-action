@@ -826,6 +826,7 @@ function ToolHandlers({
         );
       }
       if (controller.signal?.aborted) throw new Error('Save cancelled.');
+      const saveRevision = workspace.getSnapshot().revision;
       const dirtyFiles = workspace.getDirtyFiles();
       const deletedPaths = workspace.getDeletedPaths();
       if (dirtyFiles.length === 0 && deletedPaths.length === 0) {
@@ -840,11 +841,13 @@ function ToolHandlers({
       if (controller.signal?.aborted) throw new Error('Save cancelled.');
       await fileSystemAdapter.removeFiles(deletedPaths);
       if (controller.signal?.aborted) throw new Error('Save cancelled.');
-      await workspace.markSaved();
+      const checkpointUpdated =
+        await workspace.markSavedIfRevision(saveRevision);
       return {
         savedPaths: dirtyFiles.map((file) => file.path),
         deletedPaths,
         revision: workspace.getSnapshot().revision,
+        checkpointUpdated,
       };
     },
     { blocking: true }
@@ -1481,14 +1484,18 @@ function EditorWorkbench({
     setSaving(true);
     try {
       if (fileSystemAdapter.hasWritableFolder) {
+        const saveRevision = workspace.getSnapshot().revision;
         await fileSystemAdapter.writeFiles(dirtyFiles);
         await fileSystemAdapter.removeFiles(deletedPaths);
-        await workspace.markSaved();
+        const checkpointUpdated =
+          await workspace.markSavedIfRevision(saveRevision);
         setMessages((current) => [
           ...current,
           {
             role: 'assistant',
-            text: `Saved ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} in the selected folder and browser workspace.`,
+            text: checkpointUpdated
+              ? `Saved ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} in the selected folder and browser workspace.`
+              : `Wrote ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} to the selected folder, but newer editor changes remain pending.`,
           },
         ]);
       } else {

@@ -277,7 +277,9 @@ Open folder → generic FileSystemAdapter
 - `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
   `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
   deletion을 기록하고, 모든 작업이 성공한 뒤에만 IndexedDB checkpoint를 clean으로
-  만든다. writable folder가 없으면 실패한 tool result를 반환한다.
+  만든다. 저장 중 새 편집이 발생하면 revision guard가 stale checkpoint 처리를
+  막아 새 변경을 dirty 상태로 유지한다. writable folder가 없으면 실패한 tool
+  result를 반환한다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`createFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
