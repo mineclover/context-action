@@ -6,7 +6,11 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { liveEditorTraceStore } from '../../../lib/live-editor-trace';
+import {
+  clearLiveEditorTrace,
+  formatLiveEditorTraceId,
+  liveEditorTraceStore,
+} from '../../../lib/live-editor-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   getStoredOpenRouterApiKey,
@@ -325,7 +329,18 @@ export function LiveEditorAIToolbar() {
         <div className={styles.tracePanel} aria-label="Editor execution trace">
           <div className={styles.traceHeader}>
             <strong>Execution trace</strong>
-            <span>{trace.length} recent events</span>
+            <div className={styles.traceHeaderActions}>
+              <button
+                type="button"
+                className={styles.traceClearButton}
+                aria-label="Clear editor execution trace"
+                disabled={!trace.length}
+                onClick={clearLiveEditorTrace}
+              >
+                Clear
+              </button>
+              <span>{trace.length} recent events</span>
+            </div>
           </div>
           {trace.length === 0 ? (
             <span className={styles.traceEmpty}>
@@ -354,7 +369,7 @@ export function LiveEditorAIToolbar() {
                   </span>
                   <code>{entry.name}</code>
                   <span>
-                    {entry.source}
+                    {formatLiveEditorTraceId(entry.id)} · {entry.source}
                     {entry.durationMs !== undefined
                       ? ` · ${entry.durationMs}ms`
                       : ''}

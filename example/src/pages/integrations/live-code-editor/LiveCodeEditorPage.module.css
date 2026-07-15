@@ -770,6 +770,31 @@
   font-size: 0.62rem;
 }
 
+.traceHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.traceClearButton {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #8a94a6;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.62rem;
+}
+
+.traceClearButton:hover {
+  color: #40388f;
+}
+
+.traceClearButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
 .traceRows {
   display: grid;
   gap: 0.28rem;

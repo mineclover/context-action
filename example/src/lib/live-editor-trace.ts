@@ -10,6 +10,10 @@ export type LiveEditorTraceEntry = {
   summary?: string;
 };
 
+export function formatLiveEditorTraceId(id: string): string {
+  return id.length > 18 ? `…${id.slice(-17)}` : id;
+}
+
 const MAX_TRACE_ENTRIES = 16;
 let entries: LiveEditorTraceEntry[] = [];
 const listeners = new Set<() => void>();
@@ -106,6 +110,12 @@ export function recordLiveEditorToolCall(event: ToolCallEvent): void {
         : [nextEntry, ...entries]
     );
   }
+  notify();
+}
+
+export function clearLiveEditorTrace(): void {
+  if (!entries.length) return;
+  entries = [];
   notify();
 }
 
