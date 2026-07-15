@@ -283,6 +283,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
 | `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
 | `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
+| `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
 
 standalone surface의 status-aware 호출 순서는 다음과 같다.
 

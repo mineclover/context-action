@@ -99,6 +99,7 @@ const revisionGuardedWorkspaceTools = new Set([
 const localMutationToolNames = new Set([
   ...revisionGuardedWorkspaceTools,
   'workspace.saveAll',
+  'workspace.disconnectFolder',
   'preview.setTheme',
   'preview.addFeature',
   'preview.updateHero',
@@ -687,6 +688,9 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const saveRequest = /(save|persist|저장|폴더에 반영|파일시스템)/i.test(
     prompt
   );
+  const disconnectRequest =
+    /(disconnect|unlink|연결 해제|연결을 해제|폴더 해제)/i.test(prompt) &&
+    /(folder|directory|폴더|디렉터리)/i.test(prompt);
   const statusRequest =
     /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
@@ -766,6 +770,10 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
   if (saveRequest) {
     calls.push({ name: 'workspace.saveAll', arguments: {} });
+  }
+
+  if (disconnectRequest) {
+    calls.push({ name: 'workspace.disconnectFolder', arguments: {} });
   }
 
   return calls.length > 0
@@ -872,7 +880,7 @@ async function runLocalAgent(
       /(file|파일)/i.test(prompt) &&
       !inferWorkspacePath(prompt)
         ? 'Which file should I delete? Include a path such as README.md.'
-        : `Local agent inspected the workspace, called ${toolNames.join(', ')} and refreshed the sandbox preview.`,
+        : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionGuardedWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
   };
 }
 
@@ -1051,6 +1059,26 @@ function ToolHandlers({
         activePath: workspace.getSnapshot().activePath,
         revision: workspace.getSnapshot().revision,
         checkpointUpdated,
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.disconnectFolder', unknown>(
+    'workspace.disconnectFolder',
+    async () => {
+      await fileSystemAdapter.disconnectFolder();
+      const snapshot = workspace.getSnapshot();
+      return {
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        storageMode:
+          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
+        filesystem: {
+          mode: 'browser-only' as const,
+          folderLinked: false as const,
+          saveAllAvailable: false as const,
+        },
       };
     },
     { blocking: true }
@@ -1954,30 +1982,10 @@ function EditorWorkbench({
       return;
     }
 
-    setOpeningFolder(true);
-    try {
-      await fileSystemAdapter.disconnectFolder();
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.',
-        },
-      ]);
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text:
-            error instanceof Error
-              ? error.message
-              : 'Folder disconnect failed.',
-        },
-      ]);
-    } finally {
-      setOpeningFolder(false);
-    }
+    await executeQuickTool({
+      name: 'workspace.disconnectFolder',
+      arguments: {},
+    });
   };
 
   const saveWorkspace = async () => {
@@ -2166,7 +2174,9 @@ function EditorWorkbench({
       throwIfAborted(controller.signal);
       const message = result.isError
         ? resultText(result)
-        : `Executed ${call.name}. Preview revision acknowledged.`;
+        : call.name === 'workspace.disconnectFolder'
+          ? 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.'
+          : `Executed ${call.name}. Preview revision acknowledged.`;
       setMessages((current) => [
         ...current,
         {
@@ -2265,6 +2275,8 @@ function EditorWorkbench({
           arguments: { path: activeFile.path, source: activeFile.source },
         };
       case 'workspace.saveAll':
+        return { name, arguments: {} };
+      case 'workspace.disconnectFolder':
         return { name, arguments: {} };
       case 'workspace.applyPatch': {
         if (activeFile.kind === 'asset') return null;

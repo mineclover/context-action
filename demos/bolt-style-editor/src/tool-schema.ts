@@ -40,6 +40,16 @@ const workspaceSaveAllOutputSchema = z.object({
   revision: z.number().int().nonnegative(),
   checkpointUpdated: z.boolean().optional(),
 });
+const workspaceDisconnectFolderOutputSchema = z.object({
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  storageMode: z.enum(['indexed-db', 'memory']),
+  filesystem: z.object({
+    mode: z.literal('browser-only'),
+    folderLinked: z.literal(false),
+    saveAllAvailable: z.literal(false),
+  }),
+});
 const workspacePatchOutputSchema = syncedWorkspaceMutationOutputSchema.extend({
   replacements: z.number().int().positive(),
 });
@@ -161,6 +171,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({}),
       outputSchema: workspaceSaveAllOutputSchema,
+    },
+    z
+  ),
+  'workspace.disconnectFolder': defineAction(
+    {
+      name: 'workspace.disconnectFolder',
+      description:
+        'Disconnect the linked local folder while keeping the browser workspace and its files intact.',
+      annotations: { idempotentHint: true },
+      parameters: z.object({}),
+      outputSchema: workspaceDisconnectFolderOutputSchema,
     },
     z
   ),

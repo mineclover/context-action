@@ -297,6 +297,7 @@ The default extraction order is `example â†’ standalone demo/workspace package â
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
 | `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
 | `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
+| `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
 
 For the standalone surface, the status-aware sequence is:
 
