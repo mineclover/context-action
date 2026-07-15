@@ -137,6 +137,23 @@ async function runBrowserProof(url) {
     ) {
       throw new Error('The selected tool did not expose aria-pressed.');
     }
+    const editorTabs = page.getByRole('tab');
+    await editorTabs.filter({ hasText: 'index.html' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await page.getByLabel('Edit styles.css').waitFor();
+    if (
+      (await page
+        .getByRole('tab', { name: /styles\.css/ })
+        .getAttribute('aria-selected')) !== 'true'
+    ) {
+      throw new Error('Arrow-key tab navigation did not select styles.css.');
+    }
+    await page.getByRole('tab', { name: /styles\.css/ }).focus();
+    await page.keyboard.press('End');
+    await page.getByLabel('Edit README.md').waitFor();
+    await page.getByRole('tab', { name: /README\.md/ }).focus();
+    await page.keyboard.press('Home');
+    await page.getByLabel('Edit index.html').waitFor();
     await editor.fill(`${initialSource}\n<!-- browser editing proof -->\n`);
     await page.getByText('Unsaved changes', { exact: true }).waitFor();
     await page.waitForFunction(

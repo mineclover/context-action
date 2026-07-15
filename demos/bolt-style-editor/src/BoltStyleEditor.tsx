@@ -2480,6 +2480,7 @@ function EditorWorkbench({
     workspace.getSnapshot
   );
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const editorTabsRef = useRef<HTMLDivElement>(null);
   const expectedPreviewRevisionRef = useRef(snapshot.revision);
   useEffect(() => {
     expectedPreviewRevisionRef.current = snapshot.revision;
@@ -3374,6 +3375,35 @@ function EditorWorkbench({
       arguments: { path },
     });
 
+  const handleEditorTabKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) => {
+    if (!snapshot.files.length) return;
+    let nextIndex = index;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (index + 1) % snapshot.files.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (index - 1 + snapshot.files.length) % snapshot.files.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = snapshot.files.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    const nextFile = snapshot.files[nextIndex];
+    if (!nextFile) return;
+    void openWorkspaceFile(nextFile.path).then(() => {
+      editorTabsRef.current
+        ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+        .item(nextIndex)
+        ?.focus();
+    });
+  };
+
   const renameWorkspaceFile = (fromPath: string, toPath: string) =>
     executeQuickTool({
       name: 'workspace.renameFile',
@@ -4176,16 +4206,21 @@ function EditorWorkbench({
             <div
               aria-label="Open workspace files"
               className="editor-tabs"
+              ref={editorTabsRef}
               role="tablist"
             >
-              {snapshot.files.map((file) => (
+              {snapshot.files.map((file, index) => (
                 <button
                   aria-selected={file.path === snapshot.activePath}
+                  aria-controls="workspace-source-panel"
                   className={`editor-tab ${file.path === snapshot.activePath ? 'editor-tab-active' : ''}`}
                   disabled={!isStorageReady || running}
+                  id={`workspace-tab-${index}`}
                   key={file.path}
                   onClick={() => void openWorkspaceFile(file.path)}
+                  onKeyDown={(event) => handleEditorTabKeyDown(event, index)}
                   role="tab"
+                  tabIndex={file.path === snapshot.activePath ? 0 : -1}
                   type="button"
                 >
                   <FileIcon file={file} />
@@ -4351,7 +4386,19 @@ function EditorWorkbench({
               query={workspaceSearchQuery}
             />
           ) : null}
-          <section className="code-editor" aria-label="Workspace source">
+          <section
+            aria-label="Workspace source"
+            aria-labelledby={`workspace-tab-${Math.max(
+              0,
+              snapshot.files.findIndex(
+                (file) => file.path === snapshot.activePath
+              )
+            )}`}
+            className="code-editor"
+            id="workspace-source-panel"
+            role="tabpanel"
+            tabIndex={0}
+          >
             {activeFile.kind === 'asset' ? (
               <>
                 <div className="code-header">
