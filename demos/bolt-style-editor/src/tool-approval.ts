@@ -5,6 +5,7 @@ import type {
 
 export type PendingToolApproval = {
   id: string;
+  sessionId?: string;
   name: string;
   description: string;
   source: string;
@@ -53,6 +54,7 @@ export function requestToolApproval(
     : baseId;
   const approval: PendingToolApproval = {
     id,
+    ...(input.context?.sessionId ? { sessionId: input.context.sessionId } : {}),
     name: input.request.params.name,
     description: input.definition.description ?? 'No description provided.',
     source: input.context?.source ?? 'model',

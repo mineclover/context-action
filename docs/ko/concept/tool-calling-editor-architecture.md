@@ -181,6 +181,8 @@ standalone의 `agent.request` row는 같은 실행을 감싸며 running·complet
 `toolCallId`와 실행 단위의 session correlation을 구분할 수 있으며, 축약 row의
 tooltip과 복사한 trace JSON에서도 session 식별자를 확인할 수 있다. local fallback과
 OpenRouter는 같은 correlation 계약을 사용한다.
+승인 대기 항목도 같은 session marker를 표시하며, 직접 실행하는 palette call도
+자체 session을 생성한다. 따라서 agent row가 없는 수동 실행도 trace에서 감사할 수 있다.
 call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
 있다. trace panel의 `Copy` action은 같은 bounded·redacted entry를 JSON으로 내보내므로,
 workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부

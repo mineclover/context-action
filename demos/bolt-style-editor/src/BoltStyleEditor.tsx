@@ -34,6 +34,7 @@ import {
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import {
   clearToolTrace,
+  createToolSessionId,
   finishAgentTrace,
   recordToolCall,
   recordToolList,
@@ -3193,6 +3194,7 @@ function EditorWorkbench({
     }
     const controller = new AbortController();
     executionControllerRef.current = controller;
+    const sessionId = createToolSessionId();
     setRunning(true);
     try {
       const result = await registry.callTool(
@@ -3201,7 +3203,10 @@ function EditorWorkbench({
           method: 'tools/call',
           params: { name: call.name, arguments: call.arguments },
         },
-        { context: { source: 'local' }, signal: controller.signal }
+        {
+          context: { source: 'local', sessionId },
+          signal: controller.signal,
+        }
       );
       throwIfAborted(controller.signal);
       const message = result.isError
@@ -4251,6 +4256,9 @@ function EditorWorkbench({
                         ? `arguments · ${approval.argumentKeys.join(', ')}`
                         : 'no arguments'}{' '}
                       · {approval.source}
+                      {approval.sessionId
+                        ? ` · session ${formatTraceId(approval.sessionId)}`
+                        : ''}
                     </small>
                     {approval.safeArgumentPreview ? (
                       <code className="approval-argument-preview">

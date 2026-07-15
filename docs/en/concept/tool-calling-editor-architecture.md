@@ -187,6 +187,8 @@ every `executeModelToolCall()` context. The trace therefore separates the
 per-call `toolCallId` from the run-level session correlation, which remains
 available in the compact row tooltip and copied trace JSON. Local fallback and
 OpenRouter use the same correlation contract.
+Approval requests expose the same session marker, and direct palette calls create
+their own session so manual execution is still auditable without an agent row.
 Call rows expose a bounded `tools/call` detail view with the canonical arguments
 and result. File-like `source`, `search`, and `replace` values are redacted to a
 character count, so the trace can explain the call without copying file contents

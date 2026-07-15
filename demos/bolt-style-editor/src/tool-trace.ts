@@ -29,6 +29,10 @@ export type AgentTraceHandle = {
   startedAt: number;
 };
 
+export function createToolSessionId(): string {
+  return `session-${Date.now()}-${sequence++}`;
+}
+
 function notify(): void {
   for (const listener of listeners) listener();
 }
@@ -238,7 +242,7 @@ export function startAgentTrace(source: string): AgentTraceHandle {
   const startedAt = Date.now();
   const handle = {
     id: `agent-${startedAt}-${sequence++}`,
-    sessionId: `session-${startedAt}-${sequence++}`,
+    sessionId: createToolSessionId(),
     source,
     startedAt,
   };
