@@ -1464,13 +1464,125 @@ function findTextMatches(source: string, query: string): number[] {
   return matches;
 }
 
+type WorkspaceSearchMatch = {
+  path: string;
+  line: number;
+  preview: string;
+};
+
+function findWorkspaceMatches(
+  files: readonly WorkspaceFile[],
+  query: string
+): WorkspaceSearchMatch[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  if (!normalizedQuery) return [];
+
+  const matches: WorkspaceSearchMatch[] = [];
+  for (const file of files) {
+    if (file.kind === 'asset') continue;
+    for (const [index, sourceLine] of file.source.split('\n').entries()) {
+      if (!sourceLine.toLocaleLowerCase().includes(normalizedQuery)) continue;
+      matches.push({
+        path: file.path,
+        line: index + 1,
+        preview: sourceLine.trim().slice(0, 120) || '(blank line)',
+      });
+      if (matches.length >= 80) return matches;
+    }
+  }
+  return matches;
+}
+
+function WorkspaceSearchPanel({
+  files,
+  onClose,
+  onQueryChange,
+  onSelect,
+  query,
+}: {
+  files: readonly WorkspaceFile[];
+  onClose: () => void;
+  onQueryChange: (query: string) => void;
+  onSelect: (match: WorkspaceSearchMatch) => void;
+  query: string;
+}) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const matches = useMemo(
+    () => findWorkspaceMatches(files, query),
+    [files, query]
+  );
+
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
+  return (
+    <section aria-label="Search workspace" className="workspace-search-panel">
+      <div className="workspace-search-toolbar">
+        <span className="workspace-search-icon" aria-hidden="true">
+          ⌕
+        </span>
+        <input
+          ref={searchInputRef}
+          aria-label="Search workspace files"
+          onChange={(event) => onQueryChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              onClose();
+            }
+          }}
+          placeholder="Search all workspace files…"
+          type="search"
+          value={query}
+        />
+        <span className="workspace-search-count">
+          {query.trim()
+            ? `${matches.length}${matches.length === 80 ? '+' : ''}`
+            : 'Type to search'}
+        </span>
+        <button
+          aria-label="Close workspace search"
+          onClick={onClose}
+          type="button"
+        >
+          ×
+        </button>
+      </div>
+      {query.trim() ? (
+        <div className="workspace-search-results">
+          {matches.length ? (
+            matches.map((match, index) => (
+              <button
+                className="workspace-search-result"
+                key={`${match.path}-${match.line}-${index}`}
+                onClick={() => onSelect(match)}
+                type="button"
+              >
+                <span>
+                  {match.path}:{match.line}
+                </span>
+                <code>{match.preview}</code>
+              </button>
+            ))
+          ) : (
+            <div className="workspace-search-empty">No matching lines</div>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function CodeEditor({
   file,
   disabled = false,
+  onOpenWorkspaceSearch,
   onChange,
 }: {
   file: WorkspaceFile;
   disabled?: boolean;
+  onOpenWorkspaceSearch?: () => void;
   onChange: (source: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1549,6 +1661,16 @@ function CodeEditor({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const modifierKey = event.metaKey || event.ctrlKey;
+    if (
+      modifierKey &&
+      event.shiftKey &&
+      event.key.toLowerCase() === 'f' &&
+      onOpenWorkspaceSearch
+    ) {
+      event.preventDefault();
+      onOpenWorkspaceSearch();
+      return;
+    }
     if (modifierKey && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       openFind();
@@ -1611,7 +1733,7 @@ function CodeEditor({
         <textarea
           ref={textareaRef}
           aria-label={`Edit ${file.path}`}
-          aria-keyshortcuts="Control+F Meta+F Control+G Meta+G"
+          aria-keyshortcuts="Control+F Meta+F Control+G Meta+G Control+Shift+F Meta+Shift+F"
           className="code-input"
           disabled={disabled}
           onChange={(event) => {
@@ -1744,6 +1866,8 @@ function EditorWorkbench({
   );
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
+  const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
+  const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -2333,6 +2457,11 @@ function EditorWorkbench({
     await executeQuickTool(call);
   };
 
+  const closeWorkspaceSearch = () => {
+    setWorkspaceSearchOpen(false);
+    setWorkspaceSearchQuery('');
+  };
+
   return (
     <div className="studio-shell">
       <header className="studio-topbar">
@@ -2717,6 +2846,18 @@ function EditorWorkbench({
               </span>
             </div>
           </div>
+          {workspaceSearchOpen ? (
+            <WorkspaceSearchPanel
+              files={snapshot.files}
+              onClose={closeWorkspaceSearch}
+              onQueryChange={setWorkspaceSearchQuery}
+              onSelect={(match) => {
+                workspace.setActivePath(match.path);
+                closeWorkspaceSearch();
+              }}
+              query={workspaceSearchQuery}
+            />
+          ) : null}
           <section className="code-editor" aria-label="Workspace source">
             {activeFile.kind === 'asset' ? (
               <>
@@ -2742,6 +2883,10 @@ function EditorWorkbench({
               <CodeEditor
                 disabled={!isStorageReady || running}
                 file={activeFile}
+                onOpenWorkspaceSearch={() => {
+                  setWorkspaceSearchOpen(true);
+                  setWorkspaceSearchQuery('');
+                }}
                 onChange={(source) =>
                   workspace.updateFile(activeFile.path, source)
                 }

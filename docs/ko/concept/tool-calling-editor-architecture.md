@@ -411,6 +411,9 @@ Open folder → generic FileSystemAdapter
   대소문자를 구분하지 않는 match를 이동하며, `⌘/Ctrl+G`로도 다음·이전
   match를 이동할 수 있다. `Esc`는 source로 focus를 돌려주고, editor header는
   현재 line·column과 전체 line 수를 표시한다.
+- `⌘/Ctrl+Shift+F`는 text file 전체를 검색하는 workspace-wide search를 연다.
+  결과는 최대 80개 line으로 제한하고 `path:line`과 짧은 preview를 표시하며,
+  결과를 선택하면 source를 변경하지 않고 해당 file을 active tab으로 연다.
 - agent/tool chain이 실행 중일 때는 source 직접 편집을 잠시 잠근다. 승인된
   expected revision을 그동안 authoritative하게 유지해, 수동 편집과 승인된
   mutation이 서로 경합하지 않게 한다.

@@ -433,6 +433,9 @@ Open folder → generic FileSystemAdapter
   case-insensitive matches, `⌘/Ctrl+G` also moves between matches, and `Esc`
   returns focus to the source. The editor header exposes the current line,
   column, and total line count.
+- `⌘/Ctrl+Shift+F` opens workspace-wide search across text files. Results are
+  capped at 80 lines, show `path:line` plus a compact preview, and selecting a
+  result activates that file without changing its source.
 - Direct source editing is temporarily disabled while an agent/tool chain is
   running. The approved expected revision remains authoritative during that
   interval, preventing manual edits from racing an approved mutation.
