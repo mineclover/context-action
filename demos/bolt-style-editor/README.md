@@ -9,6 +9,9 @@ the parent document; the sandboxed iframe only renders the current workspace.
 From the repository root:
 
 ```bash
+pnpm --filter @context-action/web-coding-demo verify
+
+# Or run individual stages:
 pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo build
@@ -21,6 +24,11 @@ node scripts/verify-web-coding-openrouter.mjs
 node scripts/verify-web-coding-browser.mjs
 pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
+
+`verify` runs formatting, type-checking, the production build, the GitHub Pages
+artifact check, all standalone tool/preview/filesystem/OpenRouter/trace
+contract checks, and the isolated Playwright browser proof in the same order
+used for a local release check.
 
 The browser proof starts an isolated Vite server and exercises source editing,
 syntax highlighting, directory-upload fallback, local-agent discovery,
@@ -50,8 +58,11 @@ bounded, redacted execution entries as JSON; use `All` in the trace header to
 inspect entries older than the recent eight.
 
 The registry schema, approval policy, and lifecycle observer are isolated in
-`src/bolt-style-tool-context.ts`; the editor surface consumes that contract
-without owning provider setup.
+`src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in
+`src/tool-handlers.tsx`, and browser-only helpers such as revision guards,
+patching, escaping, cancellation, and downloads live in
+`src/tool-runtime-utils.ts`. The editor surface consumes these contracts
+without owning provider setup or mutation orchestration.
 
 The editor also includes IDE-style file navigation: use the `Quick open`
 button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and

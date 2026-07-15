@@ -78,6 +78,13 @@ OpenRouter response/error transport 계약은
 `demos/bolt-style-editor/src/openrouter-protocol.ts`로 분리한다. `openrouter.ts`는
 provider tool loop를 소유하고 protocol 모듈은 status 분류, body decoding,
 cancellation, structured tool-result serialization을 소유한다.
+registry provider 경계는
+`demos/bolt-style-editor/src/bolt-style-tool-context.ts`에 유지한다. workspace와
+preview mutation handler는 `src/tool-handlers.tsx`로 분리하고, revision guard,
+text patch, escaping, cancellation, download 같은 browser 전용 runtime helper는
+`src/tool-runtime-utils.ts`에 둔다. 따라서 React editor orchestration, tool
+등록, workspace mutation 계약을 별도 public package를 성급하게 만들지 않고
+독립적으로 검토할 수 있다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.
