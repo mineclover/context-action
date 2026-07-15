@@ -987,6 +987,10 @@ function formatFileSize(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function formatTraceId(id: string): string {
+  return id.length > 18 ? `…${id.slice(-17)}` : id;
+}
+
 function CodeEditor({
   file,
   disabled = false,
@@ -1761,6 +1765,11 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                   <div
                     className={`trace-row trace-row-${entry.status}`}
                     key={entry.id}
+                    title={
+                      entry.kind === 'call'
+                        ? `toolCallId ${entry.id}`
+                        : 'tools/list discovery'
+                    }
                   >
                     <span className="trace-mark" aria-hidden="true">
                       {entry.status === 'running'
@@ -1775,6 +1784,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                         {entry.kind === 'discovery'
                           ? entry.summary
                           : [
+                              formatTraceId(entry.id),
                               entry.source,
                               `${entry.durationMs ?? 0}ms`,
                               entry.summary,

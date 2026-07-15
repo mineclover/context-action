@@ -95,6 +95,8 @@ trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델�
 `Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
 trace view만 초기화한다. call row에는 파일 수·path·theme·revision 같은 안전한
 result summary만 표시하고 파일 source 자체는 trace UI에 복사하지 않는다.
+call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
+있다.
 local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
 `local` source를 보존한다. prompt에서 발생한 local mutation은
 `interaction: prompt` metadata를 전달해 model call과 같은 approval 경계를 따른다.
