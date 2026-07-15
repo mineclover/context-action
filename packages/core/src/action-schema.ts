@@ -67,6 +67,8 @@ export interface DefineActionOptions<TSchema extends ZodRawShape> {
   annotations?: ToolAnnotations;
   /** Zod 스키마 (payload 검증 및 타입 추론의 Single Source of Truth) */
   parameters: ZodObject<TSchema>;
+  /** Optional structured result schema advertised by tool transports */
+  outputSchema?: ZodTypeAny;
 }
 
 // ============================================
@@ -95,6 +97,8 @@ export interface UnifiedAction<TPayload = unknown> {
   readonly zodSchema: ZodObject<ZodRawShape>;
   /** JSON Schema (Tool chain 호환용) */
   readonly jsonSchema: JSONSchema;
+  /** Optional structured result JSON Schema (Tool chain 호환용) */
+  readonly outputSchema?: JSONSchema;
 
   // ---- Validation Functions ----
   /**
@@ -217,10 +221,20 @@ export function defineAction<TSchema extends ZodRawShape>(
 ): UnifiedAction<z.infer<ZodObject<TSchema>>> {
   type TPayload = z.infer<ZodObject<TSchema>>;
 
-  const { name, title, description, annotations, parameters } = options;
+  const {
+    name,
+    title,
+    description,
+    annotations,
+    parameters,
+    outputSchema,
+  } = options;
 
   // Zod → JSON Schema 변환
   const jsonSchema = zodToJsonSchema(parameters, zodModule);
+  const outputJsonSchema = outputSchema
+    ? zodToJsonSchema(outputSchema, zodModule)
+    : undefined;
 
   const action: UnifiedAction<TPayload> = {
     // ---- Metadata ----
@@ -230,6 +244,7 @@ export function defineAction<TSchema extends ZodRawShape>(
     annotations,
     zodSchema: parameters as unknown as ZodObject<ZodRawShape>,
     jsonSchema,
+    ...(outputJsonSchema ? { outputSchema: outputJsonSchema } : {}),
 
     // ---- Validation Functions ----
     validate: (payload: unknown): TPayload => {
@@ -248,6 +263,7 @@ export function defineAction<TSchema extends ZodRawShape>(
       title,
       description,
       inputSchema: jsonSchema,
+      ...(outputJsonSchema ? { outputSchema: outputJsonSchema } : {}),
       annotations,
     }),
 

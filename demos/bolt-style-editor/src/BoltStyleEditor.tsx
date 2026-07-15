@@ -2003,9 +2003,22 @@ function EditorWorkbench({
                   ? 'Run destructive sample'
                   : 'Run sample'}
               </button>
+              <div className="tool-schema-label">Input schema</div>
               <pre>
                 {JSON.stringify(selectedToolDefinition.inputSchema, null, 2)}
               </pre>
+              {selectedToolDefinition.outputSchema ? (
+                <>
+                  <div className="tool-schema-label">Output schema</div>
+                  <pre>
+                    {JSON.stringify(
+                      selectedToolDefinition.outputSchema,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </>
+              ) : null}
             </section>
           ) : null}
           <div className="trace-section">

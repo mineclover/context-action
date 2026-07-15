@@ -80,6 +80,29 @@ describe('Action Schema', () => {
       expect(jsonSchema.required).toContain('active');
       expect(jsonSchema.required).not.toContain('age');
     });
+
+    it('should advertise an optional structured output schema', () => {
+      const action = defineAction(
+        {
+          name: 'outputSchemaTest',
+          parameters: z.object({ query: z.string() }),
+          outputSchema: z.object({
+            ok: z.boolean(),
+            revision: z.number().int().nonnegative(),
+          }),
+        },
+        z
+      );
+
+      expect(action.outputSchema).toMatchObject({
+        type: 'object',
+        properties: expect.objectContaining({
+          ok: expect.any(Object),
+          revision: expect.any(Object),
+        }),
+      });
+      expect(action.toMCP().outputSchema).toEqual(action.outputSchema);
+    });
   });
 
   describe('validate', () => {

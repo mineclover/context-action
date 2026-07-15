@@ -117,8 +117,9 @@ local agent와 palette action은 canonical `registry.callTool()` bridge를 사�
 call은 `executeModelToolCall()`을 사용하며 model approval policy의 대상이 된다.
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
-화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
-export되는 contract와 동일하다. catalog 행을 선택하는 동작은 정의를 확인하는
+화면에 표시되는 description·annotation·JSON input schema와 선택적인 structured
+`outputSchema`는 MCP와 OpenRouter에 export되는 contract와 동일하다. catalog 행을 선택하는
+동작은 정의를 확인하는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
 따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
 filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지

@@ -3,6 +3,27 @@ import { z } from 'zod';
 
 const scenarioSchema = z.enum(['success', 'invalid', 'blocked']);
 const expectedRevisionSchema = z.number().int().nonnegative().optional();
+const editorStatusOutputSchema = z.object({
+  activePath: z.string(),
+  documentPath: z.string(),
+  documentExampleId: z.string(),
+  rootName: z.string(),
+  workspaceRevision: z.number().int().nonnegative(),
+  documentRevision: z.number().int().nonnegative(),
+  storageMode: z.enum(['memory', 'indexed-db']),
+  fileCount: z.number().int().nonnegative(),
+  dirtyPaths: z.array(z.string()),
+  filesystem: z.object({
+    mode: z.enum(['local-folder', 'browser-only']),
+    folderLinked: z.boolean(),
+    saveAllAvailable: z.boolean(),
+  }),
+  preview: z.object({
+    state: z.enum(['pending', 'rendered', 'timeout', 'error']),
+    revision: z.number().int(),
+    message: z.string().optional(),
+  }),
+});
 
 export const getEditorStatusTool = defineAction(
   {
@@ -11,6 +32,7 @@ export const getEditorStatusTool = defineAction(
       'Read editor and workspace revision, persistence, preview, dirty-file, and local-folder connection status.',
     annotations: { readOnlyHint: true },
     parameters: z.object({}),
+    outputSchema: editorStatusOutputSchema,
   },
   z
 );

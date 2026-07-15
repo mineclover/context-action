@@ -3,6 +3,25 @@ import { z } from 'zod';
 
 const filePath = z.string().min(1).max(160);
 const expectedRevision = z.number().int().nonnegative().optional();
+const workspaceStatusOutputSchema = z.object({
+  rootName: z.string(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  storageMode: z.enum(['loading', 'indexed-db', 'memory']),
+  preview: z.object({
+    revision: z.number().int(),
+    status: z.enum(['waiting', 'synced', 'error']),
+    message: z.string().optional(),
+  }),
+  fileCount: z.number().int().nonnegative(),
+  dirtyPaths: z.array(z.string()),
+  deletedPaths: z.array(z.string()),
+  filesystem: z.object({
+    mode: z.enum(['local-folder', 'browser-only']),
+    folderLinked: z.boolean(),
+    saveAllAvailable: z.boolean(),
+  }),
+});
 
 export const boltStyleToolSchema = createActionSchema({
   'workspace.getStatus': defineAction(
@@ -12,6 +31,7 @@ export const boltStyleToolSchema = createActionSchema({
         'Read workspace revision, persistence, preview, dirty-file, and local-folder connection status.',
       annotations: { readOnlyHint: true },
       parameters: z.object({}),
+      outputSchema: workspaceStatusOutputSchema,
     },
     z
   ),
