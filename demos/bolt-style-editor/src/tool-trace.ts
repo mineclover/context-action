@@ -98,6 +98,17 @@ function resultSummary(
     typeof value.revision === 'number' ? ` · revision ${value.revision}` : '';
   if (Array.isArray(value.files))
     return `${value.files.length} files${revision}`;
+  if (Array.isArray(value.savedPaths)) {
+    const deletedCount = Array.isArray(value.deletedPaths)
+      ? value.deletedPaths.length
+      : 0;
+    const pendingSuffix =
+      value.checkpointUpdated === false ? ' · newer changes pending' : '';
+    return `${value.savedPaths.length} saved${deletedCount ? ` · ${deletedCount} deleted` : ''}${pendingSuffix}${revision}`;
+  }
+  if (typeof value.fileCount === 'number' && Array.isArray(value.skipped)) {
+    return `${value.fileCount} files reloaded · ${value.skipped.length} skipped${revision}`;
+  }
   if (typeof value.path === 'string') {
     const replacementSuffix =
       typeof value.replacements === 'number'

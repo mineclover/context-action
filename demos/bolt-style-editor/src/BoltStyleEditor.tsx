@@ -418,13 +418,23 @@ function toolSuccessMessage(
     const deletedCount = Array.isArray(structured.deletedPaths)
       ? structured.deletedPaths.length
       : 0;
-    return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${revision}`;
+    const pendingChanges = structured.checkpointUpdated === false;
+    const pendingSuffix = pendingChanges
+      ? ' Newer editor changes remain unsaved.'
+      : '';
+    return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${pendingSuffix}${revision}`;
   }
 
   if (name === 'workspace.reloadFolder') {
     const fileCount =
       typeof structured.fileCount === 'number' ? structured.fileCount : 0;
-    return `Reloaded the connected folder with ${fileCount} file(s).${revision}`;
+    const skippedCount = Array.isArray(structured.skipped)
+      ? structured.skipped.length
+      : 0;
+    const skippedSuffix = skippedCount
+      ? ` Skipped ${skippedCount} invalid, unsupported, or oversized file(s).`
+      : '';
+    return `Reloaded the connected folder with ${fileCount} file(s).${skippedSuffix}${revision}`;
   }
 
   if (name === 'workspace.disconnectFolder') {
