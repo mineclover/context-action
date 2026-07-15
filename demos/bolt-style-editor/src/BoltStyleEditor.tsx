@@ -5064,6 +5064,30 @@ function EditorWorkbench({
               key={previewRefreshToken}
             />
           </div>
+          {snapshot.preview.status === 'error' ? (
+            <div
+              aria-label="Preview runtime error"
+              aria-live="assertive"
+              className="preview-error-panel"
+              role="alert"
+            >
+              <div className="preview-error-heading">
+                <strong>Preview runtime error</strong>
+                <button
+                  aria-label="Refresh preview after runtime error"
+                  className="preview-error-refresh"
+                  disabled={!isStorageReady || running}
+                  onClick={refreshPreview}
+                  type="button"
+                >
+                  Refresh
+                </button>
+              </div>
+              <code>
+                {snapshot.preview.message ?? 'The preview failed to load.'}
+              </code>
+            </div>
+          ) : null}
           <div className="preview-footer">
             <div>
               <span className="panel-label">Runtime</span>

@@ -239,6 +239,21 @@ async function runBrowserProof(url) {
     await page.waitForFunction(
       () => document.activeElement?.getAttribute('aria-label') === 'Search workspace'
     );
+    await page.getByRole('tab', { name: /app\.js/ }).click();
+    const appEditor = page.getByLabel('Edit app.js');
+    const initialAppSource = await appEditor.inputValue();
+    await appEditor.fill("throw new Error('browser preview proof');\n");
+    const previewError = page.getByRole('alert', {
+      name: 'Preview runtime error',
+    });
+    await previewError.waitFor();
+    if (!(await previewError.textContent())?.includes('browser preview proof')) {
+      throw new Error('The preview runtime error message was not surfaced.');
+    }
+    await appEditor.fill(initialAppSource);
+    await page.locator('.preview-status-synced').waitFor();
+    await page.getByRole('tab', { name: /index\.html/ }).click();
+    await page.getByLabel('Edit index.html').waitFor();
     await editor.fill(`${initialSource}\n<!-- browser editing proof -->\n`);
     await page.getByText('Unsaved changes', { exact: true }).waitFor();
     await page.waitForFunction(
@@ -486,8 +501,13 @@ async function runBrowserProof(url) {
       await mobilePage.close();
     }
 
-    if (consoleErrors.length) {
-      throw new Error(`Browser console errors: ${consoleErrors.join(' | ')}`);
+    const unexpectedConsoleErrors = consoleErrors.filter(
+      (message) => message !== 'browser preview proof'
+    );
+    if (unexpectedConsoleErrors.length) {
+      throw new Error(
+        `Browser console errors: ${unexpectedConsoleErrors.join(' | ')}`
+      );
     }
   } catch (error) {
     const bodyText = await page.locator('body').innerText();

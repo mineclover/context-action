@@ -60,6 +60,9 @@ The Explorer is a keyboard tree: `↑↓` move between visible entries, `←→`
 collapse or expand directories, and `Home/End` move to the first or last
 entry.
 
+Preview runtime exceptions are reported back from the sandboxed iframe as a
+visible diagnostic panel with the error text and a refresh action.
+
 ## Workspace boundaries
 
 - Text files and Blob assets are stored in Dexie/IndexedDB.
