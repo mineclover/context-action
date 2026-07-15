@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
+import os from 'node:os';
 import path from 'node:path';
 
 const rootDirectory = path.resolve(import.meta.dirname, '..');
@@ -86,6 +88,7 @@ async function runBrowserProof(url) {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 1000 },
   });
+  let folderFixture;
   const consoleErrors = [];
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text());
@@ -169,6 +172,32 @@ async function runBrowserProof(url) {
       .locator('#hero-title')
       .waitFor();
 
+    folderFixture = await mkdtemp(
+      path.join(os.tmpdir(), 'context-action-web-coding-')
+    );
+    await writeFile(
+      path.join(folderFixture, 'index.html'),
+      `<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><link rel="stylesheet" href="styles.css" /></head>
+  <body><h1 id="folder-proof">Folder import works</h1><script src="app.js"></script></body>
+</html>`
+    );
+    await writeFile(
+      path.join(folderFixture, 'styles.css'),
+      ':root { --accent: #10b981; --accent-soft: #e7fbf3; } body { color: var(--accent); }'
+    );
+    await writeFile(
+      path.join(folderFixture, 'app.js'),
+      "document.body.dataset.folderImport = 'ok';"
+    );
+    await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);
+    await page.getByText(/Opened .* with 3 file\(s\)/).waitFor();
+    await page
+      .frameLocator('iframe[title="Live generated web preview"]')
+      .locator('#folder-proof')
+      .waitFor();
+
     if (consoleErrors.length) {
       throw new Error(`Browser console errors: ${consoleErrors.join(' | ')}`);
     }
@@ -178,6 +207,9 @@ async function runBrowserProof(url) {
       `${error instanceof Error ? error.message : String(error)}\n--- page tail ---\n${bodyText.slice(-4000)}`
     );
   } finally {
+    if (folderFixture) {
+      await rm(folderFixture, { recursive: true, force: true });
+    }
     await page.context().browser()?.close();
   }
 }

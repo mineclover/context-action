@@ -18,8 +18,9 @@ pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
 
 The browser proof starts an isolated Vite server and exercises source editing,
-syntax highlighting, local-agent discovery, approval, preview mutation, and
-the Dexie-backed source/preview restore path after a browser reload. Set
+syntax highlighting, directory-upload fallback, local-agent discovery,
+approval, preview mutation, and the Dexie-backed source/preview restore path
+after a browser reload. Set
 `WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
 The development server defaults to `http://127.0.0.1:43127/`. The port can be
