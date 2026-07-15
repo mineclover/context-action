@@ -194,9 +194,24 @@ export class BrowserWorkspaceFileSystemAdapter {
     const handle = await picker({ mode: 'readwrite' });
     this.directoryHandle = handle;
     try {
-      return await this.importDirectoryHandle(handle);
+      const imported = await this.importDirectoryHandle(handle);
+      if (imported.files.length === 0) {
+        throw new Error(
+          'No supported HTML, CSS, JS, text, or preview asset files were found.'
+        );
+      }
+      return imported;
     } catch (error) {
       this.directoryHandle = previousHandle;
+      try {
+        if (previousHandle) {
+          await this.persistence?.setDirectoryHandle(previousHandle);
+        } else {
+          await this.persistence?.clearDirectoryHandle();
+        }
+      } catch {
+        // Keep the in-memory handle consistent even if persistence recovery fails.
+      }
       this.notify();
       throw error;
     }

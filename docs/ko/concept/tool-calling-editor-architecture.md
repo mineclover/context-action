@@ -371,6 +371,8 @@ Open folder → generic FileSystemAdapter
 - `Open folder`는 범용 filesystem adapter를 사용한다. 현재 browser adapter는
   사용자 제스처의 File System Access API로 폴더를 읽은 뒤 Dexie로 import하며,
   directory handle이 workspace의 소유자가 되지 않는다.
+- 선택한 folder에 지원 파일이 하나도 없으면 import를 실패시키되 현재 Dexie
+  workspace와 기존에 연결된 directory handle을 교체하지 않는다.
 - HTML, CSS, JavaScript, JSON, Markdown, TypeScript, text 파일은 file 수·개별
   크기·전체 크기 제한과 함께 가져온다. 지원되는 image·font·WASM 파일은
   Blob 기반 preview-only asset으로 보존하고, 지원하지 않는 파일은 chat에
