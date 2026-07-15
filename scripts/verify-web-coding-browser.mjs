@@ -375,7 +375,8 @@ async function runBrowserProof(url) {
     const cancelExecutionButton = page.getByRole('button', {
       name: /^Cancel/,
     });
-    await cancelExecutionButton.click();
+    await cancelExecutionButton.waitFor();
+    await page.keyboard.press('Escape');
     await page.getByText('Execution cancelled.', { exact: true }).waitFor();
     if (await page.getByRole('button', { name: 'Approve preview.setTheme' }).count()) {
       throw new Error('Cancelling an agent run left a pending tool approval behind.');

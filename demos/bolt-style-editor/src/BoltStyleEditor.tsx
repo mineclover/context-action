@@ -3514,11 +3514,41 @@ function EditorWorkbench({
     return () => window.removeEventListener('keydown', handleQuickOpenShortcut);
   }, [confirmationRequest, showCreateFile, showRenameFile, showSettings]);
 
-  const cancelExecution = () => {
+  const cancelExecution = useCallback(() => {
     denyPendingToolApprovals();
     const controller = executionControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
-  };
+  }, []);
+
+  useEffect(() => {
+    if (
+      !running ||
+      showSettings ||
+      showCreateFile ||
+      showRenameFile ||
+      confirmationRequest ||
+      quickOpenOpen ||
+      workspaceSearchOpen
+    ) {
+      return;
+    }
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      cancelExecution();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [
+    cancelExecution,
+    confirmationRequest,
+    quickOpenOpen,
+    running,
+    showCreateFile,
+    showRenameFile,
+    showSettings,
+    workspaceSearchOpen,
+  ]);
 
   const executePrompt = async (value: string) => {
     const trimmed = value.trim();
@@ -5083,10 +5113,16 @@ function EditorWorkbench({
                 value={prompt}
               />
               <button
+                aria-keyshortcuts={running ? 'Escape' : undefined}
                 className={`send-button ${running ? 'send-button-cancel' : ''}`}
                 disabled={!isStorageReady}
                 onClick={() =>
                   running ? cancelExecution() : void executePrompt(prompt)
+                }
+                title={
+                  running
+                    ? 'Cancel current agent execution (Escape)'
+                    : undefined
                 }
                 type="button"
               >
