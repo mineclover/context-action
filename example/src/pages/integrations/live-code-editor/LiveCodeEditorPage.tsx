@@ -1,5 +1,6 @@
 import {
   type KeyboardEvent,
+  type ReactNode,
   useEffect,
   useMemo,
   useState,
@@ -137,6 +138,49 @@ const defaultWorkspaceFiles = (
   Object.values(examples) as ExampleDefinition[]
 ).map((example) => createWorkspaceFile(example.file, example.code));
 
+function getEditorTokenClass(token: string): string {
+  if (/^(?:<!--|\/\*|\/\/)/.test(token)) return 'comment';
+  if (/^<\/?[A-Za-z]/.test(token)) return 'tag';
+  if (/^["'`]/.test(token)) return 'string';
+  if (/^\d/.test(token)) return 'number';
+  return 'keyword';
+}
+
+function highlightEditorSource(source: string, filePath: string): ReactNode {
+  const extension = filePath.split('.').pop()?.toLowerCase();
+  if (
+    !extension ||
+    !['html', 'htm', 'css', 'js', 'jsx', 'ts', 'tsx', 'json'].includes(
+      extension
+    )
+  ) {
+    return source;
+  }
+
+  const tokenPattern =
+    /<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|\/\/[^\n]*|<\/?[A-Za-z][^>]*>|`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:async|await|class|const|constructor|else|export|extends|function|from|if|import|interface|new|null|return|throw|true|false|type|typeof|undefined|let|var|while|for|in|of|this|interface|implements|public|private|readonly)\b|\b\d+(?:\.\d+)?\b/g;
+  const output: ReactNode[] = [];
+  let cursor = 0;
+  let tokenIndex = 0;
+  for (const match of source.matchAll(tokenPattern)) {
+    const token = match[0];
+    const start = match.index ?? cursor;
+    if (start > cursor) output.push(source.slice(cursor, start));
+    output.push(
+      <span
+        key={`token-${tokenIndex}`}
+        className={`token-${getEditorTokenClass(token)}`}
+      >
+        {token}
+      </span>
+    );
+    tokenIndex += 1;
+    cursor = start + token.length;
+  }
+  if (cursor < source.length) output.push(source.slice(cursor));
+  return output;
+}
+
 function findWorkspaceEntryPath(
   files: readonly { path: string }[],
   storageMode: 'memory' | 'indexed-db'
@@ -258,6 +302,10 @@ function LiveCodeEditorContent() {
           : 'Binary asset stored in the workspace; select a text file to edit.',
         code: activeWorkspaceFile?.initialSource ?? code,
       };
+  const highlightedCode = useMemo(
+    () => highlightEditorSource(code, currentExample.file),
+    [code, currentExample.file]
+  );
   const lineNumbers = useMemo(
     () => code.split('\n').map((_, index) => index + 1),
     [code]
@@ -622,17 +670,27 @@ function LiveCodeEditorContent() {
                         <div key={line}>{line}</div>
                       ))}
                     </div>
-                    <textarea
-                      aria-label={`${currentExample.file} source editor`}
-                      className={styles.codeInput}
-                      spellCheck={false}
-                      value={code}
-                      disabled={activeWorkspaceFile?.isText === false}
-                      onChange={(event) =>
-                        documentManager.update({ source: event.target.value })
-                      }
-                      onKeyDown={handleEditorKeyDown}
-                    />
+                    <div
+                      className={styles.codeSurface}
+                      style={{
+                        minHeight: `${Math.max(470, lineNumbers.length * 21)}px`,
+                      }}
+                    >
+                      <pre className={styles.highlightLayer} aria-hidden="true">
+                        {highlightedCode || '\u00a0'}
+                      </pre>
+                      <textarea
+                        aria-label={`${currentExample.file} source editor`}
+                        className={styles.codeInput}
+                        spellCheck={false}
+                        value={code}
+                        disabled={activeWorkspaceFile?.isText === false}
+                        onChange={(event) =>
+                          documentManager.update({ source: event.target.value })
+                        }
+                        onKeyDown={handleEditorKeyDown}
+                      />
+                    </div>
                   </div>
                   <div className={styles.statusbar}>
                     <span>UTF-8 · LF</span>

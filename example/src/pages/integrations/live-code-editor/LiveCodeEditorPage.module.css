@@ -287,6 +287,7 @@
   display: grid;
   grid-template-columns: 3.25rem minmax(0, 1fr);
   min-height: 470px;
+  max-height: 530px;
   padding: 1.25rem 0;
   overflow: auto;
 }
@@ -301,22 +302,64 @@
   user-select: none;
 }
 
+.codeSurface {
+  position: relative;
+  min-width: max-content;
+}
+
+.highlightLayer,
 .codeInput {
   width: 100%;
+  height: 100%;
   min-height: 470px;
+  margin: 0;
   resize: none;
   border: 0;
   outline: 0;
   padding: 0;
-  overflow: hidden;
-  background: transparent;
-  color: #d9e1ee;
-  caret-color: #a99aff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.78rem;
   line-height: 1.75;
   tab-size: 2;
   white-space: pre;
+}
+
+.highlightLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #d9e1ee;
+  pointer-events: none;
+}
+
+.highlightLayer :global(.token-comment) {
+  color: #718096;
+}
+
+.highlightLayer :global(.token-tag) {
+  color: #70c8ff;
+}
+
+.highlightLayer :global(.token-string) {
+  color: #b8e986;
+}
+
+.highlightLayer :global(.token-number) {
+  color: #f6c177;
+}
+
+.highlightLayer :global(.token-keyword) {
+  color: #c7a6ff;
+}
+
+.codeInput {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: #a99aff;
+  -webkit-text-fill-color: transparent;
 }
 
 .codeInput::selection {
