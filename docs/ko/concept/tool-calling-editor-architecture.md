@@ -74,6 +74,12 @@ local tool 오류와 재시도 가능한 palette 샘플 실패에는 원래 prom
 재사용하는 `Retry` 동작을 표시한다. 재시도할 수 없는 execution·policy 오류에는 오해를
 만드는 Retry를 표시하지 않으며, 취소는 failed가 아닌 cancelled 상태로 구분한다.
 
+standalone OpenRouter bridge는 response body를 먼저 text로 읽은 뒤 JSON을 해석하므로,
+endpoint 설정이 잘못되어도 브라우저의 `Response.json()` 내부 예외가 chat에 그대로
+노출되지 않는다. 401/403은 재시도할 수 없는 인증·접근 오류로, 429와 5xx는 재시도 가능한
+provider 오류로, network failure는 재시도 가능한 오류로 분류한다. 각 provider 실패는
+사용자에게 `OPENROUTER_*` 명시 code와 함께 표시한다.
+
 ## 표준 계약
 
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.

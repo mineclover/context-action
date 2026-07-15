@@ -17,6 +17,7 @@ import {
 import {
   type AgentRunResult,
   DEFAULT_OPENROUTER_SETTINGS,
+  OpenRouterRequestError,
   type OpenRouterSettings,
   readOpenRouterSettings,
   runOpenRouterAgent,
@@ -1695,6 +1696,8 @@ function EditorWorkbench({
         },
       ]);
     } catch (error) {
+      const retryable =
+        !(error instanceof OpenRouterRequestError) || error.retryable;
       setMessages((current) => [
         ...current,
         {
@@ -1705,7 +1708,9 @@ function EditorWorkbench({
               ? error.message
               : 'Request failed.',
           tone: controller.signal.aborted ? 'cancelled' : 'error',
-          ...(controller.signal.aborted ? {} : { retryPrompt: trimmed }),
+          ...(controller.signal.aborted || !retryable
+            ? {}
+            : { retryPrompt: trimmed }),
         },
       ]);
     } finally {

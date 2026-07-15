@@ -77,6 +77,13 @@ retryable result show a `Retry` action that reuses the original prompt or tool
 arguments. Non-retryable execution and policy errors do not offer a misleading
 retry, while cancellation is shown as cancelled rather than failed.
 
+The standalone OpenRouter bridge parses the response body as text before JSON
+decoding, so a misconfigured endpoint cannot leak a browser `Response.json()`
+exception into the chat. It classifies 401/403 as non-retryable authentication or
+access errors, 429 and 5xx responses as retryable provider errors, and network
+failures as retryable. Each provider failure carries an explicit
+`OPENROUTER_*` code in the user-visible message.
+
 ## Standard contract
 
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:

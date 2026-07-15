@@ -18,6 +18,39 @@ export type AgentRunResult = {
   retryable?: boolean;
 };
 
+export type OpenRouterErrorCode =
+  | 'OPENROUTER_CONFIGURATION_ERROR'
+  | 'OPENROUTER_AUTHENTICATION_FAILED'
+  | 'OPENROUTER_ACCESS_DENIED'
+  | 'OPENROUTER_RATE_LIMITED'
+  | 'OPENROUTER_PROVIDER_ERROR'
+  | 'OPENROUTER_NETWORK_ERROR'
+  | 'OPENROUTER_INVALID_RESPONSE'
+  | 'OPENROUTER_NO_ASSISTANT_MESSAGE'
+  | 'OPENROUTER_TOOL_LOOP_LIMIT';
+
+export class OpenRouterRequestError extends Error {
+  readonly code: OpenRouterErrorCode;
+  readonly retryable: boolean;
+  readonly status?: number;
+
+  constructor(
+    message: string,
+    options: {
+      code: OpenRouterErrorCode;
+      retryable: boolean;
+      status?: number;
+      cause?: unknown;
+    }
+  ) {
+    super(`[${options.code}] ${message}`, { cause: options.cause });
+    this.name = 'OpenRouterRequestError';
+    this.code = options.code;
+    this.retryable = options.retryable;
+    this.status = options.status;
+  }
+}
+
 export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
   apiKey: '',
   model: 'openai/gpt-4o-mini',
@@ -86,6 +119,54 @@ type OpenRouterResponse = {
   error?: { message?: string };
 };
 
+function responseErrorCode(status: number): {
+  code: OpenRouterErrorCode;
+  retryable: boolean;
+} {
+  if (status === 401) {
+    return {
+      code: 'OPENROUTER_AUTHENTICATION_FAILED',
+      retryable: false,
+    };
+  }
+  if (status === 403) {
+    return { code: 'OPENROUTER_ACCESS_DENIED', retryable: false };
+  }
+  if (status === 429) {
+    return { code: 'OPENROUTER_RATE_LIMITED', retryable: true };
+  }
+  if (status >= 500) {
+    return { code: 'OPENROUTER_PROVIDER_ERROR', retryable: true };
+  }
+  return { code: 'OPENROUTER_CONFIGURATION_ERROR', retryable: false };
+}
+
+function compactResponseText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim().slice(0, 240);
+}
+
+async function readOpenRouterResponse(
+  response: Response
+): Promise<OpenRouterResponse> {
+  const body = await response.text();
+  if (!body.trim()) return {};
+  try {
+    return JSON.parse(body) as OpenRouterResponse;
+  } catch (error) {
+    throw new OpenRouterRequestError(
+      response.ok
+        ? `Endpoint returned an invalid JSON response (HTTP ${response.status}). Check the chat-completions endpoint.`
+        : `Request failed with a non-JSON response (HTTP ${response.status})${compactResponseText(body) ? `: ${compactResponseText(body)}` : '.'}`,
+      {
+        code: 'OPENROUTER_INVALID_RESPONSE',
+        retryable: false,
+        status: response.status,
+        cause: error,
+      }
+    );
+  }
+}
+
 function toolResultContent(result: {
   isError?: boolean;
   error?: {
@@ -136,7 +217,10 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   signal?: AbortSignal
 ): Promise<AgentRunResult> {
   if (!settings.apiKey) {
-    throw new Error('OpenRouter API key is not configured.');
+    throw new OpenRouterRequestError('API key is not configured.', {
+      code: 'OPENROUTER_CONFIGURATION_ERROR',
+      retryable: false,
+    });
   }
 
   const messages: ChatMessage[] = [
@@ -153,34 +237,61 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
 
   for (let turn = 0; turn < 5; turn += 1) {
     throwIfAborted(signal);
-    const response = await fetch(settings.endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${settings.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Context-Action Web Coding Studio',
-      },
-      signal,
-      body: JSON.stringify({
-        model: settings.model,
-        messages,
-        tools: registry.toOpenAI(),
-        tool_choice: 'auto',
-        max_tokens: 1200,
-      }),
-    });
-    const payload = (await response.json()) as OpenRouterResponse;
+    let response: Response;
+    try {
+      response = await fetch(settings.endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${settings.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Context-Action Web Coding Studio',
+        },
+        signal,
+        body: JSON.stringify({
+          model: settings.model,
+          messages,
+          tools: registry.toOpenAI(),
+          tool_choice: 'auto',
+          max_tokens: 1200,
+        }),
+      });
+    } catch (error) {
+      throwIfAborted(signal);
+      throw new OpenRouterRequestError(
+        error instanceof Error
+          ? `Network request failed: ${error.message}`
+          : 'Network request failed.',
+        {
+          code: 'OPENROUTER_NETWORK_ERROR',
+          retryable: true,
+          cause: error,
+        }
+      );
+    }
+    const payload = await readOpenRouterResponse(response);
 
     if (!response.ok) {
-      throw new Error(
-        payload.error?.message ||
-          `OpenRouter request failed (${response.status}).`
+      const errorType = responseErrorCode(response.status);
+      throw new OpenRouterRequestError(
+        payload.error?.message || `Request failed (HTTP ${response.status}).`,
+        {
+          ...errorType,
+          status: response.status,
+        }
       );
     }
 
     const message = payload.choices?.[0]?.message;
-    if (!message) throw new Error('OpenRouter returned no assistant message.');
+    if (!message) {
+      throw new OpenRouterRequestError(
+        'Provider returned no assistant message.',
+        {
+          code: 'OPENROUTER_NO_ASSISTANT_MESSAGE',
+          retryable: true,
+        }
+      );
+    }
 
     if (!message.tool_calls?.length) {
       return {
@@ -227,5 +338,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     }
   }
 
-  throw new Error('OpenRouter tool loop reached the five-step limit.');
+  throw new OpenRouterRequestError('Tool loop reached the five-step limit.', {
+    code: 'OPENROUTER_TOOL_LOOP_LIMIT',
+    retryable: false,
+  });
 }
