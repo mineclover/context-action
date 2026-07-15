@@ -95,6 +95,8 @@ observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends
 file contents or filesystem handles to the model. `Clear` resets that local trace
 view without changing workspace files, tool registry state, or provider history.
+Call rows expose only safe result summaries such as file count, path, theme, or
+revision; file source is never copied into the trace UI.
 
 Local agent and palette actions use the canonical `registry.callTool()` bridge
 so their `local` source is preserved. Prompt-originated local mutations carry an

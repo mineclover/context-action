@@ -31,6 +31,27 @@ function resultSummary(
   if (event.type === 'failed' || event.result.isError) {
     return event.result.error?.code ?? 'tool error';
   }
+  const structured = event.result.structuredContent;
+  if (
+    !structured ||
+    typeof structured !== 'object' ||
+    Array.isArray(structured)
+  ) {
+    return 'tool result received';
+  }
+
+  const value = structured as Record<string, unknown>;
+  const revision =
+    typeof value.revision === 'number' ? ` · revision ${value.revision}` : '';
+  if (Array.isArray(value.files))
+    return `${value.files.length} files${revision}`;
+  if (typeof value.path === 'string') return `${value.path}${revision}`;
+  if (typeof value.theme === 'string') return `theme ${value.theme}${revision}`;
+  if (typeof value.status === 'string')
+    return `status ${value.status}${revision}`;
+  if (typeof value.preview === 'string') {
+    return `preview ${value.preview}${revision}`;
+  }
   return 'tool result received';
 }
 

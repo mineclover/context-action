@@ -1774,7 +1774,13 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                       <small>
                         {entry.kind === 'discovery'
                           ? entry.summary
-                          : `${entry.source} · ${entry.durationMs ?? 0}ms`}
+                          : [
+                              entry.source,
+                              `${entry.durationMs ?? 0}ms`,
+                              entry.summary,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                       </small>
                     </span>
                   </div>
