@@ -1080,6 +1080,49 @@ async function runBrowserProof(url) {
       await mobilePage.close();
     }
 
+    const failedChunkContext = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const failedChunkPage = await failedChunkContext.newPage();
+    let blockedEditorModuleRequest = false;
+    const failedChunkModuleRequests = [];
+    failedChunkPage.on('request', (request) => {
+      if (request.url().includes('/src/')) {
+        failedChunkModuleRequests.push(request.url());
+      }
+    });
+    await failedChunkPage.route('**/*', async (route) => {
+      if (!route.request().url().includes('/src/BoltStyleEditor.tsx')) {
+        await route.continue();
+        return;
+      }
+      blockedEditorModuleRequest = true;
+      await route.abort('failed');
+    });
+    try {
+      await failedChunkPage.goto(url, { waitUntil: 'networkidle' });
+      try {
+        await failedChunkPage
+          .locator('main[role="alert"]')
+          .waitFor({ timeout: 3_000 });
+      } catch (error) {
+        const failedChunkBody = await failedChunkPage.locator('body').innerText();
+        throw new Error(
+          `The editor load-failure UI did not appear. blocked=${blockedEditorModuleRequest}; requests=${failedChunkModuleRequests.join(' | ')}; body=${failedChunkBody}; ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      await failedChunkPage
+        .getByRole('button', { name: 'Reload studio' })
+        .waitFor();
+      if (!blockedEditorModuleRequest) {
+        throw new Error(
+          `The lazy editor module was not intercepted in the load-failure proof. Requests: ${failedChunkModuleRequests.join(' | ')}`
+        );
+      }
+    } finally {
+      await failedChunkContext.close();
+    }
+
     const unexpectedConsoleErrors = consoleErrors.filter(
       (message) => message !== 'browser preview proof'
     );
