@@ -339,6 +339,12 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.saveCheckpoint` | local demo allow | Mark a browser-only checkpoint clean without writing to the local folder |
 | `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace |
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
+| `workspace.reset` | approval required | Restore the browser-only demo workspace to its four-file seed; unavailable while a folder is linked |
+| `preview.setTheme` | approval required | Change the controlled preview accent theme |
+| `preview.addFeature` | approval required | Add a feature card through the preview contract |
+| `preview.updateHero` | approval required | Update the controlled preview hero copy |
+| `preview.getStatus` | allow | Read the latest sandbox preview acknowledgement |
+| `preview.refresh` | approval required | Remount the sandbox iframe and await the current revision acknowledgement |
 | `preview.refresh` | local demo allow | Remount the sandbox iframe and await the current revision acknowledgement |
 
 `workspace.downloadFile` is also marked with the MCP `openWorldHint` because it
@@ -350,7 +356,7 @@ For the standalone surface, the status-aware sequence is:
 ```text
 tools/list → workspace.getStatus → workspace.listFiles →
 workspace.openFile (when a tab is requested) → workspace.readFile →
-workspace mutation, workspace.undo/redo, or preview.refresh → iframe acknowledgement → workspace.saveAll/saveCheckpoint (when requested)
+workspace.reset, workspace mutation, workspace.undo/redo, or preview.refresh → iframe acknowledgement → workspace.saveAll/saveCheckpoint (when requested)
 ```
 
 When the user explicitly asks to refresh an already connected folder, the
@@ -446,7 +452,7 @@ Open folder → generic FileSystemAdapter
 - The standalone registry separates `workspace.openFile`, `workspace.downloadFile`, `workspace.createFile`,
   `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
   `workspace.revertFile`, `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.saveCheckpoint`, and
-  `workspace.reloadFolder`:
+  `workspace.reloadFolder`, and `workspace.reset`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
   records, and included in the next folder save. Deletions remove the
@@ -495,6 +501,11 @@ Open folder → generic FileSystemAdapter
   browser workspace, waits for the new preview revision, and reports skipped
   files plus the resulting local-folder status. It fails when no writable
   folder is connected.
+- `workspace.reset` is the repeatable-demo recovery boundary. It is available
+  only for a browser-only workspace, replaces the Dexie projection with the
+  four-file seed, waits for the matching preview acknowledgement, and refuses
+  to run while a writable folder is linked so it cannot accidentally stage the
+  seed for a filesystem save.
 - When a writable folder is linked, the Explorer `Save to folder` button and
   `⌘/Ctrl+S` shortcut call this same `workspace.saveAll` registry path, so the
   UI save, model call, approval policy, trace, and structured result stay
@@ -506,7 +517,7 @@ Open folder → generic FileSystemAdapter
   inspect the local-folder and edit-history boundaries before mutating them.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
-  (`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
+  (`reset`, `createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`, or `saveCheckpoint`); a stale
   revision is rejected before the source is changed, requiring the caller to
   read again.

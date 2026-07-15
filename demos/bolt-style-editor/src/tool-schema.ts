@@ -147,6 +147,14 @@ const workspaceStatusOutputSchema = z.object({
     reloadAvailable: z.boolean(),
   }),
 });
+const workspaceResetOutputSchema = z.object({
+  rootName: z.string(),
+  activePath: z.string(),
+  fileCount: z.number().int().nonnegative(),
+  revision: z.number().int().nonnegative(),
+  storageMode: z.enum(['indexed-db', 'memory']),
+  preview: z.literal('synced'),
+});
 
 export const boltStyleToolSchema = createActionSchema({
   'workspace.getStatus': defineAction(
@@ -157,6 +165,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { readOnlyHint: true },
       parameters: z.object({}),
       outputSchema: workspaceStatusOutputSchema,
+    },
+    z
+  ),
+  'workspace.reset': defineAction(
+    {
+      name: 'workspace.reset',
+      description:
+        'Restore the browser-only demo workspace to its initial HTML, CSS, JS, and README files, optionally guarded by a workspace revision.',
+      annotations: { destructiveHint: true, idempotentHint: true },
+      parameters: z.object({ expectedRevision }),
+      outputSchema: workspaceResetOutputSchema,
     },
     z
   ),

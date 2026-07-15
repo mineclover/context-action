@@ -129,6 +129,19 @@ export const mcpFunctionCallingCommands = [
     expectedChain: ['getUiState'],
     difficulty: 'Starter',
   },
+  {
+    id: 'reset-demo-workspace',
+    title: '데모 workspace 복구',
+    description:
+      '반복 테스트 중 남은 IndexedDB 상태를 초기 seed로 되돌리는 destructive 관리 호출입니다.',
+    prompt: '현재 브라우저 데모 workspace를 처음 상태로 초기화해줘.',
+    tools: ['workspace.getStatus', 'workspace.reset'],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.reset → iframe acknowledgement',
+    ],
+    difficulty: 'Advanced',
+  },
 ] satisfies MCPCommandReference[];
 
 export type MCPFunctionCallingCommand =

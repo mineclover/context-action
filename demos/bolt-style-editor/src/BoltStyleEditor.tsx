@@ -116,6 +116,7 @@ const toolCatalogFilterOptions: Array<{
 ];
 
 const revisionGuardedWorkspaceTools = new Set([
+  'workspace.reset',
   'workspace.createFile',
   'workspace.renameFile',
   'workspace.deleteFile',
@@ -135,6 +136,7 @@ const revisionProducingWorkspaceTools = new Set(
 revisionProducingWorkspaceTools.add('workspace.reloadFolder');
 
 const localMutationToolNames = new Set([
+  'workspace.reset',
   ...revisionGuardedWorkspaceTools,
   'workspace.saveAll',
   'workspace.reloadFolder',
@@ -424,6 +426,12 @@ function toolSuccessMessage(
       ? 'local folder connected'
       : 'browser-only workspace';
     return `Workspace status: ${fileCount} file(s), ${storage}.${revision}`;
+  }
+
+  if (name === 'workspace.reset') {
+    const fileCount =
+      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
+    return `Reset the browser workspace to the demo seed (${fileCount} file(s)). Preview revision acknowledged.${revision}`;
   }
 
   if (name === 'workspace.listFiles' && Array.isArray(structured.files)) {
@@ -987,6 +995,9 @@ function inferQuotedTextPatch(
 function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
+  const resetRequest =
+    /(reset|start over|restore demo|초기화|처음부터|기본 예제)/i.test(prompt) &&
+    /(workspace|demo|작업공간|프로젝트|상태|처음|기본)/i.test(prompt);
   const deleteRequest =
     /(delete|remove|삭제|지워)/i.test(prompt) && /(file|파일)/i.test(prompt);
   const saveRequest = /(save|persist|저장|폴더에 반영|파일시스템)/i.test(
@@ -1012,6 +1023,10 @@ function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
   );
   const redoRequest = /(\bredo\b|재실행|다시\s*실행)/i.test(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
+
+  if (resetRequest) {
+    return [{ name: 'workspace.reset', arguments: {} }];
+  }
 
   if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
     return [{ name: 'workspace.getStatus', arguments: {} }];
@@ -1336,6 +1351,38 @@ function ToolHandlers({
       },
     };
   });
+
+  useBoltStyleToolHandler<'workspace.reset', unknown>(
+    'workspace.reset',
+    async ({ expectedRevision }, controller) => {
+      if (fileSystemAdapter.hasWritableFolder) {
+        throw new Error(
+          'A writable folder is connected. Disconnect the folder before resetting the browser demo workspace.'
+        );
+      }
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      throwIfAborted(controller.signal);
+      await fileSystemAdapter.disconnectFolder();
+      throwIfAborted(controller.signal);
+      await workspace.resetToSeed();
+      const snapshot = workspace.getSnapshot();
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        rootName: snapshot.rootName,
+        activePath: snapshot.activePath,
+        fileCount: snapshot.files.length,
+        revision: snapshot.revision,
+        storageMode:
+          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
+        preview: 'synced' as const,
+      };
+    },
+    { blocking: true }
+  );
 
   useBoltStyleToolHandler('workspace.listFiles', () => {
     const snapshot = workspace.getSnapshot();
@@ -2939,6 +2986,26 @@ function EditorWorkbench({
     });
   };
 
+  const resetDemoWorkspace = async () => {
+    if (
+      running ||
+      !isStorageReady ||
+      hasWritableFolder ||
+      (hasUnsavedChanges &&
+        !window.confirm(
+          'Reset the browser workspace to the demo seed and discard its current changes?'
+        ))
+    ) {
+      return;
+    }
+
+    setEditorDrafts({});
+    await executeQuickTool({
+      name: 'workspace.reset',
+      arguments: { expectedRevision: workspace.getSnapshot().revision },
+    });
+  };
+
   const saveWorkspace = async () => {
     if (saving || running || !isStorageReady) return;
     if (!(await flushEditorDrafts()) || !workspace.isDirty()) return;
@@ -3561,6 +3628,21 @@ function EditorWorkbench({
                 type="button"
               >
                 + New
+              </button>
+              <button
+                aria-label="Reset browser demo workspace"
+                className="reset-workspace-button"
+                disabled={
+                  openingFolder ||
+                  !isStorageReady ||
+                  running ||
+                  hasWritableFolder
+                }
+                onClick={() => void resetDemoWorkspace()}
+                title="Restore the browser workspace to the demo seed"
+                type="button"
+              >
+                Reset
               </button>
               {hasWritableFolder ? (
                 <>
@@ -4263,6 +4345,7 @@ function EditorWorkbench({
                 'Save to folder',
                 'Reload folder',
                 'Disconnect folder',
+                'Reset demo workspace',
               ].map((example) => (
                 <button
                   disabled={!isStorageReady || running}

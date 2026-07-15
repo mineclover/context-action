@@ -302,6 +302,14 @@ export class BrowserWorkspace {
     this.notify();
   }
 
+  async resetToSeed(): Promise<void> {
+    await this.importFolder({
+      rootName: 'canvas-landing',
+      files: createInitialFiles(),
+      skipped: [],
+    });
+  }
+
   getFile(path: string): WorkspaceFile {
     const normalizedPath = normalizeWorkspacePath(path);
     const file = this.snapshot.files.find(
