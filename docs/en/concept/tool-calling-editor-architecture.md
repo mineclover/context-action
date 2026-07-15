@@ -149,7 +149,8 @@ silently converts the payload to `{}` where a no-argument tool could run.
 The bridge retries transient 429/5xx responses and network failures at most
 twice with a bounded, abortable backoff; authentication/access errors,
 malformed successful responses, and tool execution failures are surfaced
-immediately for explicit user recovery.
+immediately for explicit user recovery. The running status exposes the current
+retry attempt while that backoff is active.
 
 ## Standard contract
 

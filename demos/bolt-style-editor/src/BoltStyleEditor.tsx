@@ -27,6 +27,7 @@ import {
   type AgentRunResult,
   DEFAULT_OPENROUTER_SETTINGS,
   OpenRouterRequestError,
+  type OpenRouterRetryEvent,
   type OpenRouterSettings,
   readOpenRouterSettings,
   runOpenRouterAgent,
@@ -2862,6 +2863,8 @@ function EditorWorkbench({
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
   const [running, setRunning] = useState(false);
+  const [providerRetry, setProviderRetry] =
+    useState<OpenRouterRetryEvent | null>(null);
   const executionControllerRef = useRef<AbortController | null>(null);
   const copyFeedbackTimerRef = useRef<number | null>(null);
   useEffect(() => {
@@ -3173,11 +3176,13 @@ function EditorWorkbench({
   );
   const executionStatusLabel = pendingApprovals.length
     ? `approval required · ${pendingApprovals[0].name}`
-    : runningTraceEntry?.kind === 'call'
-      ? `calling ${runningTraceEntry.name}`
-      : runningTraceEntry?.kind === 'agent'
-        ? 'waiting for model response'
-        : 'executing typed tool call';
+    : providerRetry
+      ? `retrying ${providerRetry.reason} request ${providerRetry.attempt}/${providerRetry.maxAttempts}`
+      : runningTraceEntry?.kind === 'call'
+        ? `calling ${runningTraceEntry.name}`
+        : runningTraceEntry?.kind === 'agent'
+          ? 'waiting for model response'
+          : 'executing typed tool call';
 
   useEffect(() => {
     if (
@@ -3521,6 +3526,7 @@ function EditorWorkbench({
     if (!(await flushEditorDrafts())) return;
     const controller = new AbortController();
     executionControllerRef.current = controller;
+    setProviderRetry(null);
     const agentTrace = startAgentTrace(
       openRouterSettings.apiKey ? 'openrouter' : 'local'
     );
@@ -3534,7 +3540,8 @@ function EditorWorkbench({
             trimmed,
             openRouterSettings,
             controller.signal,
-            agentTrace.sessionId
+            agentTrace.sessionId,
+            setProviderRetry
           )
         : await runLocalAgent(
             registry,
@@ -3605,6 +3612,7 @@ function EditorWorkbench({
       if (executionControllerRef.current === controller) {
         executionControllerRef.current = null;
       }
+      setProviderRetry(null);
       setRunning(false);
     }
   };

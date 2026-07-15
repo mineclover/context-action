@@ -66,6 +66,13 @@ export type AgentRunResult = {
   retryable?: boolean;
 };
 
+export type OpenRouterRetryEvent = {
+  attempt: number;
+  maxAttempts: number;
+  delayMs: number;
+  reason: 'network' | 'provider';
+};
+
 export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
   apiKey: '',
   model: 'openai/gpt-4o-mini',
@@ -170,7 +177,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   prompt: string,
   settings: OpenRouterSettings,
   signal?: AbortSignal,
-  sessionId?: string
+  sessionId?: string,
+  onRetry?: (event: OpenRouterRetryEvent) => void
 ): Promise<AgentRunResult> {
   if (!settings.apiKey) {
     throw new OpenRouterRequestError('API key is not configured.', {
@@ -218,10 +226,14 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
       } catch (error) {
         throwIfAborted(signal);
         if (transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES) {
-          await waitForRetry(
-            openRouterRetryDelayMs(transientRetryCount),
-            signal
-          );
+          const delayMs = openRouterRetryDelayMs(transientRetryCount);
+          onRetry?.({
+            attempt: transientRetryCount + 1,
+            maxAttempts: OPENROUTER_MAX_TRANSIENT_RETRIES,
+            delayMs,
+            reason: 'network',
+          });
+          await waitForRetry(delayMs, signal);
           transientRetryCount += 1;
           continue;
         }
@@ -244,13 +256,17 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
         transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES
       ) {
         await response.body?.cancel().catch(() => undefined);
-        await waitForRetry(
-          openRouterRetryDelayMs(
-            transientRetryCount,
-            response.headers.get('retry-after')
-          ),
-          signal
+        const delayMs = openRouterRetryDelayMs(
+          transientRetryCount,
+          response.headers.get('retry-after')
         );
+        onRetry?.({
+          attempt: transientRetryCount + 1,
+          maxAttempts: OPENROUTER_MAX_TRANSIENT_RETRIES,
+          delayMs,
+          reason: 'provider',
+        });
+        await waitForRetry(delayMs, signal);
         transientRetryCount += 1;
         continue;
       }

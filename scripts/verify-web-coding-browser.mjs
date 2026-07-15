@@ -977,6 +977,9 @@ async function runBrowserProof(url) {
       if (retryRequestCount !== 1) {
         throw new Error('The OpenRouter retry proof did not start its request.');
       }
+      await retryPage
+        .getByText(/retrying provider request 1\/2/)
+        .waitFor();
       await retryPage.getByRole('button', { name: /^Cancel/ }).click();
       await retryPage.getByText('Execution cancelled.', { exact: true }).waitFor();
       if (retryRequestCount !== 1) {
