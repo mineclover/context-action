@@ -543,6 +543,97 @@ export class BrowserWorkspace {
     return this.getSnapshot();
   }
 
+  renameFile(fromPath: string, toPath: string): WorkspaceSnapshot {
+    const normalizedFromPath = normalizeWorkspacePath(fromPath);
+    const normalizedToPath = normalizeWorkspacePath(toPath);
+    if (normalizedFromPath === normalizedToPath) {
+      throw new Error('The new workspace path must be different.');
+    }
+    const file = this.getFile(normalizedFromPath);
+    if (
+      this.snapshot.files.some(
+        (candidate) => candidate.path === normalizedToPath
+      )
+    ) {
+      throw new Error(`Workspace file already exists: ${normalizedToPath}`);
+    }
+
+    const targetExtension = `.${normalizedToPath.split('.').pop()?.toLowerCase() ?? ''}`;
+    const targetIsBinary = binaryWorkspaceExtensions.has(targetExtension);
+    if (file.kind === 'asset' && !targetIsBinary) {
+      throw new Error(
+        `Binary assets must keep a supported asset extension: ${normalizedToPath}`
+      );
+    }
+    if (file.kind !== 'asset' && targetIsBinary) {
+      throw new Error(
+        `Text files cannot be renamed to a binary asset path: ${normalizedToPath}`
+      );
+    }
+
+    const nextLanguage =
+      file.kind === 'asset'
+        ? 'asset'
+        : languageForWorkspacePath(normalizedToPath);
+    if (
+      file.language === 'html' &&
+      nextLanguage !== 'html' &&
+      !this.snapshot.files.some(
+        (candidate) =>
+          candidate.path !== normalizedFromPath && candidate.language === 'html'
+      )
+    ) {
+      throw new Error('The workspace must keep an HTML preview entry.');
+    }
+
+    const renamedFile: WorkspaceFile = {
+      ...file,
+      path: normalizedToPath,
+      language: nextLanguage,
+      ...(file.kind === 'asset'
+        ? {}
+        : { mimeType: mimeTypeForWorkspaceLanguage(nextLanguage) }),
+    };
+    const nextFiles = this.snapshot.files.map((candidate) =>
+      candidate.path === normalizedFromPath ? renamedFile : candidate
+    );
+    const nextActivePath =
+      this.snapshot.activePath === normalizedFromPath
+        ? normalizedToPath
+        : this.snapshot.activePath;
+    const wasSaved = this.savedFiles.some(
+      (savedFile) => savedFile.path === normalizedFromPath
+    );
+    const nextDeletedPaths = this.deletedPaths.filter(
+      (deletedPath) => deletedPath !== normalizedToPath
+    );
+    if (wasSaved) nextDeletedPaths.push(normalizedFromPath);
+
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: nextActivePath,
+      files: nextFiles,
+      deletedPaths: [...new Set(nextDeletedPaths)],
+    };
+    this.history = [
+      ...this.history.slice(0, this.historyIndex + 1),
+      checkpoint,
+    ];
+    this.historyIndex += 1;
+    this.lastEdit = null;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.deleteFile(normalizedFromPath, {
+          trackPendingDeletion: wasSaved,
+        });
+        await this.repository.saveFile(renamedFile);
+        await this.repository.setActivePath(nextActivePath);
+      });
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
   deleteFile(path: string): WorkspaceSnapshot {
     const normalizedPath = normalizeWorkspacePath(path);
     const file = this.getFile(normalizedPath);
@@ -583,7 +674,9 @@ export class BrowserWorkspace {
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
       this.enqueuePersistence(async () => {
-        await this.repository.deleteFile(file.path);
+        await this.repository.deleteFile(file.path, {
+          trackPendingDeletion: wasPersisted,
+        });
         await this.repository.setActivePath(nextActivePath);
       });
     }

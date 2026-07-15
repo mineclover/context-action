@@ -302,6 +302,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.listFiles` | allow | 파일과 파일별 dirty 상태 조회 |
 | `workspace.readFile` | allow | 현재 revision과 함께 text file 하나 읽기 |
 | `workspace.createFile` | local demo allow | 정규화된 text file 생성 |
+| `workspace.renameFile` | local demo allow | source와 preview 계약을 유지하면서 파일 이름 변경 |
 | `workspace.writeFile` | local demo allow | text file 하나 교체 후 preview 갱신 |
 | `workspace.applyPatch` | local demo allow | 제한된 literal text replacement 적용 |
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
@@ -400,14 +401,20 @@ Open folder → generic FileSystemAdapter
   handle을 structured-clone할 수 있으면 handle도 workspace metadata와 함께
   저장해 다음 load에서 복원하며, 실제 write permission은 저장 경계에서 다시
   확인한다.
-- standalone registry는 `workspace.createFile`, `workspace.writeFile`,
-  `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`,
-  `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
+- standalone registry는 `workspace.createFile`, `workspace.renameFile`,
+  `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
+  `workspace.deleteFile`, `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
   entry가 유효하도록 유지한다. pending deletion path도 Dexie metadata에
   저장하므로 reload 후에도 운영체제 폴더 삭제 의도를 잃지 않는다.
+- `workspace.renameFile`은 source와 Blob asset을 유지한 채 canonical path를
+  바꾸고 active tab을 갱신한다. 저장된 source path는 `workspace.saveAll`이
+  연결된 folder에 rename을 반영할 때까지 pending deletion과 새 dirty path로
+  관리하며, browser-only로 만든 파일은 잘못된 pending deletion을 만들지 않는다.
+  지원되는 HTML/CSS/JS와 asset 확장자는 type-safe하게 유지하고 마지막 HTML
+  preview entry를 없애는 이름 변경은 거부한다.
 - `workspace.revertFile`은 active file을 마지막 saved browser workspace
   checkpoint로 복원한다. 저장되지 않은 새 파일이면 해당 파일을 제거하며,
   model 호출은 destructive policy·approval 경계를 통과해야 한다.
@@ -436,7 +443,7 @@ Open folder → generic FileSystemAdapter
   filesystem capability(`saveAllAvailable`, `reloadAvailable`)를 반환하므로,
   모델이 mutation 전에 local-folder 경계를 확인할 수 있다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
-  workspace mutation(`createFile`, `deleteFile`, `writeFile`, `applyPatch`,
+  workspace mutation(`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
   변경하기 전에 거부되어 다시 읽기를 요구한다.
 - 모든 workspace file lookup은 tool boundary에서 slash 방향과 불필요한 `.` segment를
@@ -448,8 +455,8 @@ Open folder → generic FileSystemAdapter
   conflict만 `Re-read & retry`로 표시하며, 현재 revision을 다시 inspection한 뒤
   approval을 다시 요청한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
-  settings·New file modal 입력 중에는 동작하지 않는다.
-- OpenRouter와 New file dialog는 keyboard-modal로 동작한다. `Escape`는 현재
+  settings·New file·Rename file modal 입력 중에는 동작하지 않는다.
+- OpenRouter, New file, Rename file dialog는 keyboard-modal로 동작한다. `Escape`는 현재
   dialog를 닫고, `Tab`은 dialog 내부 control 사이에서 순환하며, 열린 동안
   body scroll을 잠근다. 닫히면 열기 trigger로 focus를 복귀하고 backdrop 클릭도
   dialog를 닫는다.
@@ -478,6 +485,9 @@ Open folder → generic FileSystemAdapter
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
   선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별
   unsaved 표시를 보여준다.
+- Explorer의 Rename action도 `workspace.renameFile`을 호출한다. source는
+  유지하고 duplicate·호환되지 않는 path는 tool result로 거부하며, 경로를
+  수정할 수 있도록 dialog를 유지한다.
 - Explorer에서 연결된 folder를 명시적으로 disconnect할 수 있다. 이 동작은
   browser workspace를 버리지 않고 persisted directory handle만 제거하므로,
   stale하거나 잘못 연결된 folder를 browser-only mode로 전환한 뒤 다른 folder를

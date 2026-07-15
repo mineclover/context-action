@@ -185,8 +185,12 @@ export class WebCodingWorkspaceRepository {
     );
   }
 
-  async deleteFile(path: string): Promise<void> {
+  async deleteFile(
+    path: string,
+    options: { trackPendingDeletion?: boolean } = {}
+  ): Promise<void> {
     const now = Date.now();
+    const trackPendingDeletion = options.trackPendingDeletion ?? true;
     await this.database.transaction(
       'rw',
       this.database.workspaces,
@@ -197,9 +201,11 @@ export class WebCodingWorkspaceRepository {
         if (metadata) {
           await this.database.workspaces.put({
             ...metadata,
-            deletedPaths: [
-              ...new Set([...(metadata.deletedPaths ?? []), path]),
-            ],
+            deletedPaths: trackPendingDeletion
+              ? [...new Set([...(metadata.deletedPaths ?? []), path])]
+              : (metadata.deletedPaths ?? []).filter(
+                  (deletedPath) => deletedPath !== path
+                ),
             updatedAt: now,
           });
         }

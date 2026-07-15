@@ -116,6 +116,9 @@ function resultSummary(
         : '';
     return `${value.path}${replacementSuffix}${revision}`;
   }
+  if (typeof value.fromPath === 'string' && typeof value.toPath === 'string') {
+    return `${value.fromPath} → ${value.toPath}${revision}`;
+  }
   if (typeof value.theme === 'string') return `theme ${value.theme}${revision}`;
   if (
     value.filesystem &&

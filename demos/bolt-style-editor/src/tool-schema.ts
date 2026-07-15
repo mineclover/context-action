@@ -33,6 +33,13 @@ const workspaceCreateFileOutputSchema =
   syncedWorkspaceMutationOutputSchema.extend({
     language: z.string(),
   });
+const workspaceRenameFileOutputSchema = z.object({
+  fromPath: z.string(),
+  toPath: z.string(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+});
 const workspaceSaveAllOutputSchema = z.object({
   savedPaths: z.array(z.string()),
   deletedPaths: z.array(z.string()),
@@ -150,6 +157,21 @@ export const boltStyleToolSchema = createActionSchema({
         expectedRevision,
       }),
       outputSchema: workspaceCreateFileOutputSchema,
+    },
+    z
+  ),
+  'workspace.renameFile': defineAction(
+    {
+      name: 'workspace.renameFile',
+      description:
+        'Rename one workspace file, preserving its content and refreshing the live preview, optionally guarded by a workspace revision.',
+      annotations: { idempotentHint: true },
+      parameters: z.object({
+        fromPath: filePath,
+        toPath: filePath,
+        expectedRevision,
+      }),
+      outputSchema: workspaceRenameFileOutputSchema,
     },
     z
   ),

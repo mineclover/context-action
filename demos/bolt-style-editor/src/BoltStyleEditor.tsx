@@ -43,6 +43,7 @@ import {
   buildPreviewDocument,
   findPreviewHtmlFile,
   findPreviewStylesheetFile,
+  normalizeWorkspacePath,
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
@@ -103,6 +104,7 @@ const toolCatalogFilterOptions: Array<{
 
 const revisionGuardedWorkspaceTools = new Set([
   'workspace.createFile',
+  'workspace.renameFile',
   'workspace.deleteFile',
   'workspace.writeFile',
   'workspace.applyPatch',
@@ -126,6 +128,7 @@ const localMutationToolNames = new Set([
 
 const localFileListingToolNames = new Set([
   'workspace.applyPatch',
+  'workspace.renameFile',
   'workspace.deleteFile',
   'workspace.writeFile',
   'workspace.revertFile',
@@ -409,6 +412,14 @@ function toolSuccessMessage(
     const replacements =
       typeof structured.replacements === 'number' ? structured.replacements : 0;
     return `Patched ${String(structured.path ?? 'the file')} (${replacements} replacement${replacements === 1 ? '' : 's'}).${revision}`;
+  }
+
+  if (
+    name === 'workspace.renameFile' &&
+    typeof structured.fromPath === 'string' &&
+    typeof structured.toPath === 'string'
+  ) {
+    return `Renamed ${structured.fromPath} → ${structured.toPath}. Preview revision acknowledged.${revision}`;
   }
 
   if (name === 'workspace.saveAll') {
@@ -867,6 +878,22 @@ function inferWorkspacePath(prompt: string): string | null {
   return null;
 }
 
+function inferRenamePaths(
+  prompt: string
+): { fromPath: string; toPath: string } | null {
+  if (!/(?:rename|move|이름\s*(?:변경|바꾸|바꿔)|파일\s*이름)/i.test(prompt)) {
+    return null;
+  }
+  const pathPattern =
+    /(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:html?|css|m?js|json|md|txt|tsx?|jsx?)/gi;
+  const paths = Array.from(prompt.matchAll(pathPattern), (match) => match[0]);
+  const uniquePaths = paths.filter(
+    (path, index) => paths.indexOf(path) === index
+  );
+  if (uniquePaths.length < 2) return null;
+  return { fromPath: uniquePaths[0], toPath: uniquePaths[1] };
+}
+
 function inferQuotedTextPatch(
   prompt: string,
   requestedPath: string | null
@@ -905,6 +932,7 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const statusRequest =
     /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
+  const renamePaths = inferRenamePaths(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
 
   if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
@@ -915,6 +943,13 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     calls.push({
       name: 'workspace.applyPatch',
       arguments: { ...textPatch, occurrence: 'first' },
+    });
+  }
+
+  if (renamePaths) {
+    calls.push({
+      name: 'workspace.renameFile',
+      arguments: renamePaths,
     });
   }
 
@@ -968,7 +1003,11 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     });
   }
 
-  if (/(hero|title|landing|제목|랜딩)/i.test(prompt)) {
+  if (
+    /(hero|headline|hero\s+copy|landing\s+page|update\s+(?:the\s+)?title|제목|랜딩\s*페이지|히어로)/i.test(
+      prompt
+    )
+  ) {
     calls.push({
       name: 'preview.updateHero',
       arguments: {
@@ -993,7 +1032,12 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
   return calls.length > 0
     ? calls
-    : [{ name: 'workspace.listFiles', arguments: {} }];
+    : [
+        {
+          name: 'workspace.listFiles',
+          arguments: {},
+        },
+      ];
 }
 
 function buildLocalAgentPlan(prompt: string): ToolCall[] {
@@ -1009,7 +1053,13 @@ function buildLocalAgentPlan(prompt: string): ToolCall[] {
   const fileCall = mutationCalls.find((call) =>
     localFileListingToolNames.has(call.name)
   );
-  const path = fileCall?.arguments.path;
+  const path =
+    typeof fileCall?.arguments.path === 'string'
+      ? fileCall.arguments.path
+      : fileCall?.name === 'workspace.renameFile' &&
+          typeof fileCall.arguments.fromPath === 'string'
+        ? fileCall.arguments.fromPath
+        : undefined;
   if (typeof path === 'string' && path.trim()) {
     preflightCalls.push({ name: 'workspace.listFiles', arguments: {} });
     if (fileCall && localTextInspectionToolNames.has(fileCall.name)) {
@@ -1198,6 +1248,32 @@ function ToolHandlers({
         path: snapshot.activePath,
         activePath: snapshot.activePath,
         language: workspace.getFile(snapshot.activePath).language,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.renameFile', unknown>(
+    'workspace.renameFile',
+    async ({ fromPath, toPath, expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      const normalizedFromPath = normalizeWorkspacePath(fromPath);
+      const normalizedToPath = normalizeWorkspacePath(toPath);
+      const snapshot = workspace.renameFile(
+        normalizedFromPath,
+        normalizedToPath
+      );
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        fromPath: normalizedFromPath,
+        toPath: normalizedToPath,
+        activePath: snapshot.activePath,
         revision: snapshot.revision,
         preview: 'synced',
       };
@@ -2107,6 +2183,112 @@ function CodeEditor({
   );
 }
 
+function RenameWorkspaceFileDialog({
+  initialPath,
+  onClose,
+  onRename,
+}: {
+  initialPath: string;
+  onClose: () => void;
+  onRename: (fromPath: string, toPath: string) => Promise<ToolExecutionOutcome>;
+}) {
+  const filename = initialPath.split('/').pop() ?? initialPath;
+  const [toPath, setToPath] = useState(`renamed-${filename}`);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dialogRef = useModalDialog<HTMLFormElement>(onClose);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting || !toPath.trim()) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const outcome = await onRename(initialPath, toPath);
+      if (outcome.ok) onClose();
+      else setErrorMessage(outcome.message?.trim() || 'Rename failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="settings-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <form
+        aria-labelledby="rename-file-title"
+        aria-modal="true"
+        className="settings-dialog create-file-dialog"
+        onSubmit={(event) => void handleSubmit(event)}
+        ref={dialogRef}
+        role="dialog"
+      >
+        <div className="settings-heading">
+          <div>
+            <span className="panel-label">Workspace</span>
+            <h2 id="rename-file-title">Rename file</h2>
+          </div>
+          <button
+            aria-label="Close rename file dialog"
+            className="settings-close"
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <p className="settings-intro">
+          Rename the active file while preserving its source. A folder save
+          writes the new path and removes the old path when appropriate.
+        </p>
+        <div className="rename-file-from">
+          <span>Current path</span>
+          <code>{initialPath}</code>
+        </div>
+        <label className="settings-field">
+          <span>New file path</span>
+          <input
+            autoFocus
+            aria-label="New file path"
+            onChange={(event) => setToPath(event.target.value)}
+            placeholder="src/page.html"
+            value={toPath}
+          />
+        </label>
+        {errorMessage ? (
+          <p className="create-file-error" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
+        <div className="settings-note">
+          <span className="status-dot" />
+          Existing paths are rejected · preview files keep their supported type.
+        </div>
+        <div className="settings-actions">
+          <span />
+          <div>
+            <button className="settings-cancel" onClick={onClose} type="button">
+              Cancel
+            </button>
+            <button
+              className="settings-save"
+              disabled={submitting || !toPath.trim()}
+              type="submit"
+            >
+              {submitting ? 'Renaming…' : 'Rename file'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function EditorWorkbench({
   workspace,
   fileSystemAdapter,
@@ -2178,6 +2360,7 @@ function EditorWorkbench({
   );
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
+  const [showRenameFile, setShowRenameFile] = useState(false);
   const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
   const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
   const workspaceSearchRequestRef = useRef(0);
@@ -2525,7 +2708,8 @@ function EditorWorkbench({
         !(event.metaKey || event.ctrlKey) ||
         event.key.toLowerCase() !== 's' ||
         showSettings ||
-        showCreateFile
+        showCreateFile ||
+        showRenameFile
       ) {
         return;
       }
@@ -2540,6 +2724,7 @@ function EditorWorkbench({
     running,
     saving,
     showCreateFile,
+    showRenameFile,
     showSettings,
     workspace,
   ]);
@@ -2707,6 +2892,16 @@ function EditorWorkbench({
       arguments: { path, source },
     });
 
+  const renameWorkspaceFile = (fromPath: string, toPath: string) =>
+    executeQuickTool({
+      name: 'workspace.renameFile',
+      arguments: {
+        fromPath,
+        toPath,
+        expectedRevision: snapshot.revision,
+      },
+    });
+
   const deleteActiveFile = () => {
     if (!canDeleteActiveFile || running) return;
     if (!window.confirm(`Delete ${activeFile.path} from this workspace?`)) {
@@ -2749,6 +2944,17 @@ function EditorWorkbench({
             source: '# Created from the tool palette\n',
           },
         };
+      case 'workspace.renameFile': {
+        const filename = activeFile.path.split('/').pop() ?? activeFile.path;
+        return {
+          name,
+          arguments: {
+            fromPath: activeFile.path,
+            toPath: `renamed-${filename}`,
+            expectedRevision: snapshot.revision,
+          },
+        };
+      }
       case 'workspace.deleteFile':
         return { name, arguments: { path: 'README.md' } };
       case 'workspace.writeFile':
@@ -3332,6 +3538,16 @@ function EditorWorkbench({
                 ↷ Redo
               </button>
               <button
+                aria-label={`Rename ${activeFile.path}`}
+                className="editor-action"
+                disabled={!isStorageReady || running}
+                onClick={() => setShowRenameFile(true)}
+                title="Rename the active file through workspace.renameFile"
+                type="button"
+              >
+                Rename
+              </button>
+              <button
                 aria-label={`Delete ${activeFile.path}`}
                 className="editor-delete"
                 disabled={!isStorageReady || running || !canDeleteActiveFile}
@@ -3593,6 +3809,7 @@ function EditorWorkbench({
                 'Update the hero',
                 'Show workspace status',
                 'Create notes.md',
+                'Rename index.html to landing.html',
                 'Save to folder',
                 'Reload folder',
                 'Disconnect folder',
@@ -3695,6 +3912,13 @@ function EditorWorkbench({
         <CreateWorkspaceFileDialog
           onClose={() => setShowCreateFile(false)}
           onCreate={createWorkspaceFile}
+        />
+      ) : null}
+      {showRenameFile ? (
+        <RenameWorkspaceFileDialog
+          initialPath={activeFile.path}
+          onClose={() => setShowRenameFile(false)}
+          onRename={renameWorkspaceFile}
         />
       ) : null}
     </div>

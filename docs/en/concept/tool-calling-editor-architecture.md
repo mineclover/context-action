@@ -317,6 +317,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.listFiles` | allow | List files and per-file dirty state |
 | `workspace.readFile` | allow | Read one text file with its current revision |
 | `workspace.createFile` | local demo allow | Create a normalized text file |
+| `workspace.renameFile` | local demo allow | Rename a file while preserving its source and preview contract |
 | `workspace.writeFile` | local demo allow | Replace one text file and refresh preview |
 | `workspace.applyPatch` | local demo allow | Apply a bounded literal text replacement |
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
@@ -421,8 +422,9 @@ Open folder → generic FileSystemAdapter
   with workspace metadata and restored on the next load; write permission is
   still checked at the save boundary.
 - The standalone registry separates `workspace.createFile`,
-  `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
-  `workspace.deleteFile`, `workspace.saveAll`, and `workspace.reloadFolder`:
+  `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
+  `workspace.revertFile`, `workspace.deleteFile`, `workspace.saveAll`, and
+  `workspace.reloadFolder`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
   records, and included in the next folder save. Deletions remove the
@@ -430,6 +432,13 @@ Open folder → generic FileSystemAdapter
   `Save to folder`, and keep undo/redo and the active preview entry valid.
   Pending deletion paths are stored in Dexie metadata, so a reload does not
   silently lose the later operating-system folder deletion.
+- `workspace.renameFile` preserves the source and Blob asset, changes the
+  canonical path, updates the active tab when needed, and treats a saved source
+  path as a pending deletion plus a new dirty path until `workspace.saveAll`
+  commits the rename to the linked folder. Renaming an unsaved browser-only
+  file does not create a false pending deletion. Supported HTML/CSS/JS and
+  asset extensions remain type-safe, and the workspace cannot rename away its
+  last HTML preview entry.
 - `workspace.revertFile` restores the active file to the last saved browser
   workspace checkpoint. For an unsaved new file it removes that file; model
   calls remain behind the destructive policy and approval boundary.
@@ -463,7 +472,8 @@ Open folder → generic FileSystemAdapter
   local-folder boundaries before mutating them.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
-  (`createFile`, `deleteFile`, `writeFile`, `applyPatch`, or `revertFile`); a stale
+  (`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`, or
+  `revertFile`); a stale
   revision is rejected before the source is changed, requiring the caller to
   read again.
 - All workspace file lookups canonicalize slash direction and harmless `.`
@@ -476,8 +486,9 @@ Open folder → generic FileSystemAdapter
   conflict as `Re-read & retry`, which runs the inspection preflight again before
   asking for approval on the current workspace revision.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
-  shortcut is disabled while the settings or New file modal is being edited.
-- The OpenRouter and New file dialogs are keyboard-modal: `Escape` closes the
+  shortcut is disabled while the settings, New file, or Rename file modal is
+  being edited.
+- The OpenRouter, New file, and Rename file dialogs are keyboard-modal: `Escape` closes the
   active dialog, `Tab` wraps within its controls, body scrolling is locked while
   it is open, and closing restores focus to the trigger. Clicking the backdrop
   also dismisses the dialog.
@@ -507,6 +518,9 @@ Open folder → generic FileSystemAdapter
   remain visible inside the dialog and do not close it, while successful creation
   selects the new tab. The Explorer and editor tabs also show per-file unsaved
   markers.
+- The Explorer's Rename action similarly routes through `workspace.renameFile`,
+  keeps the source intact, rejects duplicate or incompatible paths in the tool
+  result, and keeps the dialog open so the path can be corrected.
 - A linked folder can be explicitly disconnected from the Explorer. This clears
   the persisted directory handle without discarding the browser workspace, so
   a stale or unintended folder can be left in browser-only mode before another
