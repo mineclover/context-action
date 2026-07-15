@@ -212,7 +212,8 @@ local과 OpenRouter 요청은 provider별 tool serialization 전에 `registry.li
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
 `Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
-trace view만 초기화한다. call row를 펼치면 canonical `tools/call` arguments와
+trace view만 초기화한다. 실행 중에는 in-flight lifecycle이 화면에서 사라지지
+않도록 `Clear`가 비활성화된다. call row를 펼치면 canonical `tools/call` arguments와
 result를 제한된 길이로 확인할 수 있다. 파일성 `source`, `search`, `replace`
 값은 문자 수만 남기고 redact하므로 파일 내용을 trace UI에 복사하지 않으면서
 호출 구조를 확인할 수 있다. 접힌 row에는 파일 수·path·theme·revision 같은
@@ -221,14 +222,18 @@ standalone의 `agent.request` row는 같은 실행을 감싸며 running·complet
 상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
 확인할 수 있다.
 각 agent 실행은 하나의 `sessionId`를 만들고 `tools/list`와 모든
-`executeModelToolCall()` context에 전달한다. 따라서 trace에서는 개별 호출의
-`toolCallId`와 실행 단위의 session correlation을 구분할 수 있으며, 축약 row의
-tooltip과 복사한 trace JSON에서도 session 식별자를 확인할 수 있다. local fallback과
-OpenRouter는 같은 correlation 계약을 사용한다.
+`executeModelToolCall()` context에 전달한다. 따라서 trace에서는 provider가 전달한
+개별 호출의 `toolCallId`와 실행 단위의 session correlation을 구분할 수 있다.
+lifecycle마다 unique한 내부 `traceId`도 생성하여 canonical request object와 session
+queue로 `started`/`completed`를 연결하므로, provider가 model turn 사이에서 ID를
+재사용하거나 ID를 생략해도 다른 row를 덮어쓰지 않는다. 축약 row의 tooltip과 복사한
+trace JSON에서 full correlation 값을 확인할 수 있으며, local fallback과 OpenRouter는
+같은 correlation 계약을 사용한다.
 승인 대기 항목도 같은 session marker를 표시하며, 직접 실행하는 palette call도
 자체 session을 생성한다. 따라서 agent row가 없는 수동 실행도 trace에서 감사할 수 있다.
-call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
-있다. trace panel의 `Copy` action은 같은 bounded·redacted entry를 JSON으로 내보내므로,
+call row에는 provider `toolCallId`가 있으면 그것과 내부 `traceId`를 함께 표시하고 full
+value는 row tooltip에서 확인할 수 있다. trace panel의 `Copy` action은 같은
+bounded·redacted entry를 JSON으로 내보내므로,
 workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부
 테스트에서 재사용할 수 있다.
 

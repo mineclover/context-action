@@ -2,6 +2,7 @@ import type { ToolCallEvent } from '@context-action/react';
 
 export type ToolTraceEntry = {
   id: string;
+  toolCallId?: string;
   sessionId?: string;
   kind: 'discovery' | 'call' | 'agent';
   name: string;
@@ -21,6 +22,8 @@ const REDACTED_TRACE_KEYS = new Set(['source', 'search', 'replace']);
 let sequence = 0;
 let entries: ToolTraceEntry[] = [];
 const listeners = new Set<() => void>();
+const activeTraceIdsByRequest = new WeakMap<object, string>();
+const activeTraceIdsByCorrelation = new Map<string, string[]>();
 
 export type AgentTraceHandle = {
   id: string;
@@ -39,6 +42,62 @@ function notify(): void {
 
 function trimEntries(nextEntries: ToolTraceEntry[]): ToolTraceEntry[] {
   return nextEntries.slice(0, MAX_TRACE_ENTRIES);
+}
+
+function nextTraceId(): string {
+  return `trace-${Date.now()}-${sequence++}`;
+}
+
+function protocolToolCallId(event: ToolCallEvent): string | undefined {
+  return event.toolCallId === undefined ? undefined : String(event.toolCallId);
+}
+
+function correlationKey(
+  event: ToolCallEvent,
+  toolCallId: string | undefined
+): string {
+  return `${event.context?.sessionId ?? 'no-session'}:${event.name}:${toolCallId ?? 'anonymous'}`;
+}
+
+function addActiveTraceId(key: string, traceId: string): void {
+  const activeIds = activeTraceIdsByCorrelation.get(key) ?? [];
+  activeIds.push(traceId);
+  activeTraceIdsByCorrelation.set(key, activeIds);
+}
+
+function removeActiveTraceId(key: string, traceId: string): void {
+  const activeIds = activeTraceIdsByCorrelation.get(key);
+  if (!activeIds) return;
+  const remaining = activeIds.filter((id) => id !== traceId);
+  if (remaining.length) activeTraceIdsByCorrelation.set(key, remaining);
+  else activeTraceIdsByCorrelation.delete(key);
+}
+
+function resolveTraceId(event: ToolCallEvent): {
+  traceId: string;
+  toolCallId?: string;
+} {
+  const toolCallId = protocolToolCallId(event);
+  const key = correlationKey(event, toolCallId);
+  if (event.type === 'started') {
+    const traceId = nextTraceId();
+    activeTraceIdsByRequest.set(event.request, traceId);
+    addActiveTraceId(key, traceId);
+    return {
+      traceId,
+      ...(toolCallId !== undefined ? { toolCallId } : {}),
+    };
+  }
+
+  const requestTraceId = activeTraceIdsByRequest.get(event.request);
+  const fallbackTraceId = activeTraceIdsByCorrelation.get(key)?.[0];
+  const traceId = requestTraceId ?? fallbackTraceId ?? nextTraceId();
+  activeTraceIdsByRequest.delete(event.request);
+  removeActiveTraceId(key, traceId);
+  return {
+    traceId,
+    ...(toolCallId !== undefined ? { toolCallId } : {}),
+  };
 }
 
 function redactTraceValue(value: unknown, key?: string): unknown {
@@ -174,7 +233,8 @@ export function recordToolList(
 }
 
 export function recordToolCall(event: ToolCallEvent): void {
-  const id = String(event.toolCallId ?? `${event.name}-${sequence++}`);
+  const traceIdentity = resolveTraceId(event);
+  const id = traceIdentity.traceId;
   const source = event.context?.source ?? 'mcp';
   const sessionId = event.context?.sessionId;
   const existingIndex = entries.findIndex(
@@ -184,6 +244,9 @@ export function recordToolCall(event: ToolCallEvent): void {
   if (event.type === 'started') {
     const nextEntry: ToolTraceEntry = {
       id,
+      ...(traceIdentity.toolCallId !== undefined
+        ? { toolCallId: traceIdentity.toolCallId }
+        : {}),
       ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       name: event.name,
@@ -202,6 +265,9 @@ export function recordToolCall(event: ToolCallEvent): void {
   } else {
     const nextEntry: ToolTraceEntry = {
       id,
+      ...(traceIdentity.toolCallId !== undefined
+        ? { toolCallId: traceIdentity.toolCallId }
+        : {}),
       ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       name: event.name,

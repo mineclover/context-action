@@ -4644,7 +4644,7 @@ function EditorWorkbench({
                       key={entry.id}
                       title={
                         entry.kind === 'call'
-                          ? `toolCallId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
+                          ? `${entry.toolCallId ? `toolCallId ${entry.toolCallId}` : `traceId ${entry.id}`} · traceId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
                           : entry.kind === 'agent'
                             ? `agent request · ${entry.source}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
                             : 'tools/list discovery'

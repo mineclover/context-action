@@ -227,23 +227,30 @@ before provider-specific tool serialization. The ToolContext `onToolCall`
 observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends
 file contents or filesystem handles to the model. `Clear` resets that local trace
-view without changing workspace files, tool registry state, or provider history.
+view without changing workspace files, tool registry state, or provider history;
+it is disabled while an execution is active so the in-flight lifecycle remains
+visible.
 The standalone `agent.request` row now surrounds the same run and records
 running, completed, failed, or cancelled status, so a provider failure remains
 visible even when no `tools/call` was reached.
 Each agent run creates one `sessionId` and forwards it through `tools/list` and
 every `executeModelToolCall()` context. The trace therefore separates the
-per-call `toolCallId` from the run-level session correlation, which remains
-available in the compact row tooltip and copied trace JSON. Local fallback and
-OpenRouter use the same correlation contract.
+provider per-call `toolCallId` from the run-level session correlation, which
+remains available in the compact row tooltip and copied trace JSON. It also
+assigns every lifecycle a unique internal `traceId`, correlating
+`started`/`completed` events by the canonical request object and session queue;
+provider IDs may therefore be reused across model turns or omitted without
+overwriting another row. Local fallback and OpenRouter use the same correlation
+contract.
 Approval requests expose the same session marker, and direct palette calls create
 their own session so manual execution is still auditable without an agent row.
 Call rows expose a bounded `tools/call` detail view with the canonical arguments
 and result. File-like `source`, `search`, and `replace` values are redacted to a
 character count, so the trace can explain the call without copying file contents
 into the UI. The compact row still shows safe result summaries such as file
-count, path, theme, or revision, and its shortened `toolCallId` has the full
-value available as the row tooltip. The trace panel's `Copy` action exports the
+count, path, theme, or revision, and shows both the provider `toolCallId` (when
+present) and internal `traceId`; the full values are available as the row
+tooltip. The trace panel's `Copy` action exports the
 same bounded, already-redacted entries as JSON, making a `tools/list` → call →
 result example reusable in documentation or external tests without exposing
 workspace source.
