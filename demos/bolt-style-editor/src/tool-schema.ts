@@ -137,6 +137,7 @@ const workspaceStatusOutputSchema = z.object({
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   storageMode: z.enum(['loading', 'indexed-db', 'memory']),
+  storageError: z.string().optional(),
   preview: z.object({
     revision: z.number().int(),
     status: z.enum(['waiting', 'synced', 'error']),

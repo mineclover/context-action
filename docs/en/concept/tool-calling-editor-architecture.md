@@ -60,6 +60,11 @@ The adapter exposes restored write permission as `granted`, `prompt`, `denied`,
 `unknown`, or `disconnected`; the header and `workspace.getStatus` surface the
 same state, while `Grant access` requests permission without replacing the
 browser workspace.
+If IndexedDB becomes unavailable during hydration or a later workspace write,
+the editor keeps the current in-memory files but exposes the bounded storage
+error in `workspace.getStatus` and the status bar. The UI labels the session as
+memory-only so a failed browser persistence write cannot look like a durable
+save.
 Initial hydration restores the persisted folder link after the Dexie workspace
 is loaded. During that short boundary the editor and tool controls remain
 disabled; if the handle cannot be restored, the browser workspace stays

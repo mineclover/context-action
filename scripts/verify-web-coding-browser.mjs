@@ -651,6 +651,64 @@ async function runBrowserProof(url) {
       await blockedStoragePage.close();
     }
 
+    const blockedIndexedDbPage = await page.context().browser().newPage();
+    const blockedIndexedDbErrors = [];
+    blockedIndexedDbPage.on('console', (message) => {
+      if (message.type() === 'error') blockedIndexedDbErrors.push(message.text());
+    });
+    blockedIndexedDbPage.on('pageerror', (error) =>
+      blockedIndexedDbErrors.push(error.message)
+    );
+    await blockedIndexedDbPage.addInitScript(() => {
+      Object.defineProperty(window, 'indexedDB', {
+        configurable: true,
+        get() {
+          throw new DOMException('IndexedDB blocked for proof.', 'SecurityError');
+        },
+      });
+    });
+    try {
+      await blockedIndexedDbPage.goto(url, { waitUntil: 'networkidle' });
+      const storageErrorChip = blockedIndexedDbPage.getByRole('status', {
+        name: /browser persistence unavailable/i,
+      });
+      await storageErrorChip.waitFor();
+      const storageErrorLabel = await storageErrorChip.getAttribute('aria-label');
+      if (!storageErrorLabel?.includes('MissingAPIError')) {
+        throw new Error(
+          `The IndexedDB failure reason was not exposed in the storage status: ${storageErrorLabel ?? 'missing label'}`
+        );
+      }
+      await blockedIndexedDbPage
+        .locator('[data-tool-name="workspace.getStatus"]')
+        .click();
+      await blockedIndexedDbPage
+        .getByRole('button', { name: 'Run with arguments' })
+        .click();
+      const statusTrace = blockedIndexedDbPage
+        .locator('#trace-list .trace-row')
+        .filter({ hasText: 'workspace.getStatus' })
+        .first();
+      await statusTrace.waitFor();
+      await statusTrace.getByText('Inspect tools/call').click();
+      const statusResultText = await statusTrace
+        .locator('.trace-detail-block')
+        .last()
+        .innerText();
+      if (!statusResultText.includes('storageError')) {
+        throw new Error(
+          'workspace.getStatus did not return the browser persistence error.'
+        );
+      }
+      if (blockedIndexedDbErrors.length) {
+        throw new Error(
+          `Blocked IndexedDB browser errors: ${blockedIndexedDbErrors.join(' | ')}`
+        );
+      }
+    } finally {
+      await blockedIndexedDbPage.close();
+    }
+
     const mobilePage = await page.context().browser().newPage({
       viewport: { width: 390, height: 844 },
     });

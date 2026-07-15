@@ -59,6 +59,10 @@ workspace를 유지한다. 지원 가능한 파일이 없는 folder는 open과 r
 adapter는 복원된 write permission을 `granted`, `prompt`, `denied`, `unknown`,
 `disconnected` 상태로 노출한다. header와 `workspace.getStatus`는 같은 상태를
 표시하며, `Grant access`는 browser workspace를 교체하지 않고 권한만 다시 요청한다.
+hydration 중이거나 이후 workspace 쓰기에서 IndexedDB가 실패하면 현재 메모리
+파일은 유지하되, 제한된 오류 메시지를 `workspace.getStatus`와 상태바에 노출한다.
+UI는 세션이 메모리 전용임을 표시하므로 브라우저 저장 실패가 영속 저장 성공처럼
+보이지 않는다.
 초기 hydration은 Dexie workspace를 먼저 읽은 뒤 persisted folder link를 복원한다.
 짧은 복원 구간에는 editor와 tool control을 비활성화하며, handle 복원에 실패해도
 browser workspace는 유지한다. header에는 folder link unavailable 상태를 명시해

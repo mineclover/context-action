@@ -31,6 +31,7 @@ export type WorkspaceSnapshot = {
   revision: number;
   preview: PreviewSnapshot;
   storageMode: WorkspaceStorageMode;
+  storageError?: string;
 };
 
 export type WorkspaceStorageMode = 'loading' | 'indexed-db' | 'memory';
@@ -106,6 +107,11 @@ function assertExpectedRevision(
   throw new Error(
     `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
   );
+}
+
+function storageErrorMessage(error: unknown, fallback: string): string {
+  const message = error instanceof Error ? error.message.trim() : '';
+  return (message || fallback).slice(0, 240);
 }
 
 export function languageForWorkspacePath(path: string): string {
@@ -263,13 +269,21 @@ export class BrowserWorkspace {
         preview: { revision, status: 'waiting' },
         revision,
         storageMode: 'indexed-db',
+        storageError: undefined,
       };
       this.deletedPaths = [...(persisted.deletedPaths ?? [])];
       this.history = [this.createCheckpoint()];
       this.historyIndex = 0;
       this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
-    } catch {
-      this.snapshot = { ...this.snapshot, storageMode: 'memory' };
+    } catch (error) {
+      this.snapshot = {
+        ...this.snapshot,
+        storageMode: 'memory',
+        storageError: storageErrorMessage(
+          error,
+          'IndexedDB could not restore the browser workspace.'
+        ),
+      };
     }
     this.notify();
   }
@@ -309,8 +323,9 @@ export class BrowserWorkspace {
           revision: this.snapshot.revision + 1,
           status: 'waiting',
         },
+        storageError: undefined,
       };
-    } catch {
+    } catch (error) {
       this.snapshot = {
         ...this.snapshot,
         rootName: folder.rootName || 'workspace',
@@ -322,6 +337,10 @@ export class BrowserWorkspace {
           revision: this.snapshot.revision + 1,
           status: 'waiting',
         },
+        storageError: storageErrorMessage(
+          error,
+          'IndexedDB could not persist the imported workspace.'
+        ),
       };
     }
 
@@ -848,7 +867,15 @@ export class BrowserWorkspace {
     await this.persistQueue;
     if (this.snapshot.revision !== expectedRevision) return false;
     if (this.snapshot.storageMode === 'indexed-db') {
-      await this.repository.clearDeletedPaths();
+      try {
+        await this.repository.clearDeletedPaths();
+      } catch (error) {
+        this.markStorageUnavailable(
+          error,
+          'IndexedDB could not update the browser checkpoint.'
+        );
+        throw error;
+      }
     }
     if (this.snapshot.revision !== expectedRevision) return false;
     this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
@@ -881,12 +908,23 @@ export class BrowserWorkspace {
   }
 
   private enqueuePersistence(task: () => Promise<void>): void {
-    this.persistQueue = this.persistQueue.then(task).catch(() => {
+    this.persistQueue = this.persistQueue.then(task).catch((error) => {
       if (this.snapshot.storageMode === 'indexed-db') {
-        this.snapshot = { ...this.snapshot, storageMode: 'memory' };
-        this.notify();
+        this.markStorageUnavailable(
+          error,
+          'IndexedDB could not persist the latest browser workspace change.'
+        );
       }
     });
+  }
+
+  private markStorageUnavailable(error: unknown, fallback: string): void {
+    this.snapshot = {
+      ...this.snapshot,
+      storageMode: 'memory',
+      storageError: storageErrorMessage(error, fallback),
+    };
+    this.notify();
   }
 
   private notify(): void {

@@ -68,6 +68,9 @@ visible diagnostic panel with the error text and a refresh action.
 
 - Text files and Blob assets are stored in Dexie/IndexedDB.
 - Without IndexedDB, the workspace falls back to memory for the current tab.
+- If IndexedDB fails during hydration or a later write, the workspace exposes
+  the bounded storage error through `workspace.getStatus` and marks the
+  session as memory-only so a persistence failure is not silent.
 - `Open` uses the File System Access API when available and a directory-upload
   fallback otherwise.
 - `Save to folder` is the explicit operating-system filesystem boundary.

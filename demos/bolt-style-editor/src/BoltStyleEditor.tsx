@@ -1119,6 +1119,7 @@ function ToolHandlers({
       activePath: snapshot.activePath,
       revision: snapshot.revision,
       storageMode: snapshot.storageMode,
+      ...(snapshot.storageError ? { storageError: snapshot.storageError } : {}),
       preview: snapshot.preview,
       fileCount: snapshot.files.length,
       dirtyPaths,
@@ -3049,6 +3050,9 @@ function EditorWorkbench({
       : snapshot.storageMode === 'loading'
         ? 'Loading workspace'
         : 'Memory fallback';
+  const storageErrorLabel = snapshot.storageError
+    ? 'browser persistence unavailable'
+    : null;
   const previewStatusLabel =
     snapshot.preview.status === 'synced'
       ? 'synced'
@@ -3078,45 +3082,51 @@ function EditorWorkbench({
       ? 'Loading workspace'
       : folderRestoreState === 'restoring'
         ? 'Restoring folder link'
-        : folderRestoreUnavailable
-          ? 'Folder link unavailable'
-          : snapshot.preview.status === 'error'
-            ? 'Preview error'
-            : hasWritableFolder && folderPermission === 'denied'
-              ? 'Folder access denied'
-              : folderPermissionNeedsAction
-                ? 'Folder access needed'
-                : hasUnsavedChanges
-                  ? hasWritableFolder
-                    ? 'Unsaved folder changes'
-                    : 'Unsaved browser changes'
-                  : 'Ready';
+        : snapshot.storageError
+          ? 'Browser persistence unavailable'
+          : folderRestoreUnavailable
+            ? 'Folder link unavailable'
+            : snapshot.preview.status === 'error'
+              ? 'Preview error'
+              : hasWritableFolder && folderPermission === 'denied'
+                ? 'Folder access denied'
+                : folderPermissionNeedsAction
+                  ? 'Folder access needed'
+                  : hasUnsavedChanges
+                    ? hasWritableFolder
+                      ? 'Unsaved folder changes'
+                      : 'Unsaved browser changes'
+                    : 'Ready';
   const studioStatusTone =
     running ||
     snapshot.storageMode === 'loading' ||
     folderRestoreState === 'restoring'
       ? 'running'
-      : folderRestoreUnavailable
-        ? 'dirty'
-        : snapshot.preview.status === 'error'
-          ? 'error'
-          : hasWritableFolder && folderPermission === 'denied'
+      : snapshot.storageError
+        ? 'error'
+        : folderRestoreUnavailable
+          ? 'dirty'
+          : snapshot.preview.status === 'error'
             ? 'error'
-            : folderPermissionNeedsAction
-              ? 'dirty'
-              : hasUnsavedChanges
+            : hasWritableFolder && folderPermission === 'denied'
+              ? 'error'
+              : folderPermissionNeedsAction
                 ? 'dirty'
-                : 'ready';
+                : hasUnsavedChanges
+                  ? 'dirty'
+                  : 'ready';
   const persistenceFooterLabel =
     folderRestoreState === 'restoring'
       ? 'Restoring local folder link'
-      : folderRestoreUnavailable
-        ? 'Browser workspace · folder link unavailable'
-        : snapshot.storageMode === 'indexed-db'
-          ? 'Persistent browser workspace'
-          : snapshot.storageMode === 'memory'
-            ? 'Session-only memory workspace'
-            : 'Preparing browser workspace';
+      : snapshot.storageError
+        ? 'Session-only workspace · download changes before leaving'
+        : folderRestoreUnavailable
+          ? 'Browser workspace · folder link unavailable'
+          : snapshot.storageMode === 'indexed-db'
+            ? 'Persistent browser workspace'
+            : snapshot.storageMode === 'memory'
+              ? 'Session-only memory workspace'
+              : 'Preparing browser workspace';
 
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
@@ -4088,7 +4098,22 @@ function EditorWorkbench({
             <span className="status-dot" />
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
-          <span className="storage-chip">{storageLabel}</span>
+          <span
+            className="storage-chip"
+            title={snapshot.storageError ?? undefined}
+          >
+            {storageLabel}
+          </span>
+          {storageErrorLabel ? (
+            <span
+              aria-label={`${storageErrorLabel}: ${snapshot.storageError}`}
+              className="storage-error-chip"
+              role="status"
+              title={snapshot.storageError}
+            >
+              {storageErrorLabel}
+            </span>
+          ) : null}
           {hasWritableFolder ||
           folderRestoreState === 'restoring' ||
           folderRestoreUnavailable ? (

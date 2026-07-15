@@ -24,6 +24,7 @@ a { color: inherit; text-decoration: none; }
 .workspace-name { color: #f1f2f5; font-size: 13px; font-weight: 600; }
 .mode-chip, .contract-chip { border: 1px solid #2a303c; border-radius: 999px; color: #aab0be; font-size: 11px; gap: 6px; padding: 5px 9px; }
 .storage-chip { border: 1px solid #263646; border-radius: 999px; color: #8eb6d1; font-size: 10px; padding: 5px 9px; white-space: nowrap; }
+.storage-error-chip { border: 1px solid #713746; border-radius: 999px; color: #f09aa8; font-size: 10px; max-width: 240px; overflow: hidden; padding: 5px 9px; text-overflow: ellipsis; white-space: nowrap; }
 .folder-sync-chip { border: 1px solid #28523e; border-radius: 999px; color: #79d7a4; font-size: 10px; padding: 5px 9px; white-space: nowrap; }
 .folder-sync-chip.folder-sync-prompt, .folder-sync-chip.folder-sync-unknown { border-color: #66502a; color: #e6bd71; }
 .folder-sync-chip.folder-sync-denied { border-color: #713746; color: #f09aa8; }
