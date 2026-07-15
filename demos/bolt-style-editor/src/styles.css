@@ -39,7 +39,7 @@ a { color: inherit; text-decoration: none; }
 
 .studio-workspace { display: grid; flex: 1; grid-template-columns: 218px minmax(550px, 1fr) minmax(390px, 0.88fr); min-height: calc(100vh - 88px); }
 .studio-sidebar, .preview-panel { background: #0d1016; }
-.studio-sidebar { border-right: 1px solid #20242e; padding: 20px 12px; }
+.studio-sidebar { border-right: 1px solid #20242e; max-height: calc(100vh - 88px); overflow-y: auto; padding: 20px 12px; }
 .preview-panel { border-left: 1px solid #20242e; padding: 20px 16px; }
 .explorer-heading { align-items: center; display: flex; gap: 6px; justify-content: space-between; margin: 0 9px 4px; }
 .explorer-heading .panel-label { margin-bottom: 0; }

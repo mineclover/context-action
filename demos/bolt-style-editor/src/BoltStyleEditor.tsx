@@ -3002,6 +3002,7 @@ function EditorWorkbench({
     null
   );
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [showAllTrace, setShowAllTrace] = useState(false);
   const toolCatalogCounts = useMemo(() => {
     const counts: Record<ToolCatalogFilter, number> = {
       all: toolNames.length,
@@ -4485,77 +4486,101 @@ function EditorWorkbench({
                 >
                   Download
                 </button>
+                {traceEntries.length > 8 ? (
+                  <button
+                    aria-controls="trace-list"
+                    aria-expanded={showAllTrace}
+                    aria-label={
+                      showAllTrace
+                        ? 'Show recent execution trace'
+                        : 'Show all execution trace'
+                    }
+                    className="trace-copy-button"
+                    onClick={() => setShowAllTrace((current) => !current)}
+                    type="button"
+                  >
+                    {showAllTrace ? 'Recent' : 'All'}
+                  </button>
+                ) : null}
                 <span className="count-badge">{traceEntries.length}</span>
               </span>
             </div>
-            <div aria-label="Tool execution trace" className="trace-list">
+            <div
+              aria-label="Tool execution trace"
+              aria-live="polite"
+              className="trace-list"
+              id="trace-list"
+              role="log"
+            >
               {traceEntries.length ? (
-                traceEntries.slice(0, 8).map((entry) => (
-                  <div
-                    className={`trace-row trace-row-${entry.status}`}
-                    key={entry.id}
-                    title={
-                      entry.kind === 'call'
-                        ? `toolCallId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
-                        : entry.kind === 'agent'
-                          ? `agent request · ${entry.source}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
-                          : 'tools/list discovery'
-                    }
-                  >
-                    <span className="trace-mark" aria-hidden="true">
-                      {entry.status === 'running'
-                        ? '…'
-                        : entry.status === 'failed'
-                          ? '!'
-                          : entry.status === 'cancelled'
-                            ? '↶'
-                            : '✓'}
-                    </span>
-                    <span className="trace-copy">
-                      <strong>{entry.name}</strong>
-                      <small>
-                        {entry.kind === 'discovery'
-                          ? [
-                              entry.summary,
-                              entry.sessionId
-                                ? `session ${formatTraceId(entry.sessionId)}`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')
-                          : [
-                              entry.kind === 'agent'
-                                ? 'agent'
-                                : formatTraceId(entry.id),
-                              entry.source,
-                              entry.sessionId
-                                ? `session ${formatTraceId(entry.sessionId)}`
-                                : null,
-                              `${entry.durationMs ?? 0}ms`,
-                              entry.summary,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')}
-                      </small>
-                      {entry.kind === 'call' &&
-                      (entry.argumentsText || entry.resultText) ? (
-                        <details className="trace-details">
-                          <summary>Inspect tools/call</summary>
-                          <div className="trace-detail-block">
-                            <span>arguments</span>
-                            <pre>{entry.argumentsText ?? '{}'}</pre>
-                          </div>
-                          {entry.resultText ? (
+                traceEntries
+                  .slice(0, showAllTrace ? traceEntries.length : 8)
+                  .map((entry) => (
+                    <div
+                      className={`trace-row trace-row-${entry.status}`}
+                      key={entry.id}
+                      title={
+                        entry.kind === 'call'
+                          ? `toolCallId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
+                          : entry.kind === 'agent'
+                            ? `agent request · ${entry.source}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
+                            : 'tools/list discovery'
+                      }
+                    >
+                      <span className="trace-mark" aria-hidden="true">
+                        {entry.status === 'running'
+                          ? '…'
+                          : entry.status === 'failed'
+                            ? '!'
+                            : entry.status === 'cancelled'
+                              ? '↶'
+                              : '✓'}
+                      </span>
+                      <span className="trace-copy">
+                        <strong>{entry.name}</strong>
+                        <small>
+                          {entry.kind === 'discovery'
+                            ? [
+                                entry.summary,
+                                entry.sessionId
+                                  ? `session ${formatTraceId(entry.sessionId)}`
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')
+                            : [
+                                entry.kind === 'agent'
+                                  ? 'agent'
+                                  : formatTraceId(entry.id),
+                                entry.source,
+                                entry.sessionId
+                                  ? `session ${formatTraceId(entry.sessionId)}`
+                                  : null,
+                                `${entry.durationMs ?? 0}ms`,
+                                entry.summary,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </small>
+                        {entry.kind === 'call' &&
+                        (entry.argumentsText || entry.resultText) ? (
+                          <details className="trace-details">
+                            <summary>Inspect tools/call</summary>
                             <div className="trace-detail-block">
-                              <span>tool result</span>
-                              <pre>{entry.resultText}</pre>
+                              <span>arguments</span>
+                              <pre>{entry.argumentsText ?? '{}'}</pre>
                             </div>
-                          ) : null}
-                        </details>
-                      ) : null}
-                    </span>
-                  </div>
-                ))
+                            {entry.resultText ? (
+                              <div className="trace-detail-block">
+                                <span>tool result</span>
+                                <pre>{entry.resultText}</pre>
+                              </div>
+                            ) : null}
+                          </details>
+                        ) : null}
+                      </span>
+                    </div>
+                  ))
               ) : (
                 <div className="trace-empty">
                   tools/list ready · waiting for a call

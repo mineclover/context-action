@@ -334,6 +334,24 @@ async function runBrowserProof(url) {
       )
       .waitFor();
     await preview.getByText('Inspectable tools', { exact: true }).waitFor();
+    const showAllTrace = page.getByRole('button', {
+      name: 'Show all execution trace',
+    });
+    await showAllTrace.waitFor();
+    await showAllTrace.click();
+    if ((await page.locator('#trace-list .trace-row').count()) <= 8) {
+      throw new Error('The execution trace did not reveal older entries.');
+    }
+    const showRecentTrace = page.getByRole('button', {
+      name: 'Show recent execution trace',
+    });
+    if ((await showRecentTrace.getAttribute('aria-expanded')) !== 'true') {
+      throw new Error('The full execution trace state was not announced.');
+    }
+    await showRecentTrace.click();
+    if ((await page.locator('#trace-list .trace-row').count()) > 8) {
+      throw new Error('The recent execution trace limit was not restored.');
+    }
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
