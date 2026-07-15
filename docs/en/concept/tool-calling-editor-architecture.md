@@ -420,6 +420,10 @@ Open folder → generic FileSystemAdapter
   instead of being overwritten.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
+- The OpenRouter and New file dialogs are keyboard-modal: `Escape` closes the
+  active dialog, `Tab` wraps within its controls, body scrolling is locked while
+  it is open, and closing restores focus to the trigger. Clicking the backdrop
+  also dismisses the dialog.
 - The source editor keeps syntax highlighting and editing in one overlay surface.
   `⌘/Ctrl+F` opens in-file search, `Enter`/`Shift+Enter` move through
   case-insensitive matches, `⌘/Ctrl+G` also moves between matches, and `Esc`

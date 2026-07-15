@@ -398,6 +398,10 @@ Open folder → generic FileSystemAdapter
   대기 중 source가 바뀌면 덮어쓰지 않고 거부한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
+- OpenRouter와 New file dialog는 keyboard-modal로 동작한다. `Escape`는 현재
+  dialog를 닫고, `Tab`은 dialog 내부 control 사이에서 순환하며, 열린 동안
+  body scroll을 잠근다. 닫히면 열기 trigger로 focus를 복귀하고 backdrop 클릭도
+  dialog를 닫는다.
 - source editor는 syntax highlighting과 편집을 하나의 overlay surface에서
   유지한다. `⌘/Ctrl+F`로 파일 검색을 열고 `Enter`/`Shift+Enter`로
   대소문자를 구분하지 않는 match를 이동하며, `⌘/Ctrl+G`로도 다음·이전

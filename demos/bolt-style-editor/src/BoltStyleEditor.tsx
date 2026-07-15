@@ -341,6 +341,60 @@ function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
   );
 }
 
+function useModalDialog<T extends HTMLElement>(onClose: () => void) {
+  const dialogRef = useRef<T>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const previousActiveElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    const focusableSelector =
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    const getFocusableElements = () =>
+      Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector));
+
+    getFocusableElements()[0]?.focus();
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = getFocusableElements();
+      if (!focusableElements.length) return;
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      if (previousActiveElement?.isConnected) previousActiveElement.focus();
+    };
+  }, []);
+
+  return dialogRef;
+}
+
 function OpenRouterSettingsDialog({
   initialSettings,
   onClose,
@@ -352,13 +406,21 @@ function OpenRouterSettingsDialog({
 }) {
   const [draft, setDraft] = useState(initialSettings);
   const [showKey, setShowKey] = useState(false);
+  const dialogRef = useModalDialog<HTMLElement>(onClose);
 
   return (
-    <div className="settings-backdrop" role="presentation">
+    <div
+      className="settings-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
       <section
         aria-labelledby="openrouter-settings-title"
         aria-modal="true"
         className="settings-dialog"
+        ref={dialogRef}
         role="dialog"
       >
         <div className="settings-heading">
@@ -484,6 +546,7 @@ function CreateWorkspaceFileDialog({
   const [source, setSource] = useState('# New workspace file\n');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dialogRef = useModalDialog<HTMLFormElement>(onClose);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -500,12 +563,19 @@ function CreateWorkspaceFileDialog({
   };
 
   return (
-    <div className="settings-backdrop" role="presentation">
+    <div
+      className="settings-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
       <form
         aria-labelledby="create-file-title"
         aria-modal="true"
         className="settings-dialog create-file-dialog"
         onSubmit={(event) => void handleSubmit(event)}
+        ref={dialogRef}
         role="dialog"
       >
         <div className="settings-heading">
