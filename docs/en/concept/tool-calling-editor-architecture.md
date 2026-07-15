@@ -581,6 +581,9 @@ Open folder → generic FileSystemAdapter
   misleading filesystem warning; linked-folder edits still install a
   `beforeunload` guard so the explicit `Save to folder` boundary cannot be
   silently skipped.
+- Workspace search overlays any draft still held by the editor over the
+  persisted snapshot, so a search performed during the debounce window sees
+  exactly the source currently visible in the editor.
 - The editor `Download` action routes through `workspace.downloadFile`, so text
   sources and Blob assets share the same trace, approval, and structured result
   contract while upload-only imports can still be taken back to local files.

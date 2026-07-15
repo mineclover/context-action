@@ -2267,6 +2267,18 @@ function WorkspaceSearchPanel({
   );
 }
 
+function overlayEditorDrafts(
+  files: readonly WorkspaceFile[],
+  editorDrafts: Readonly<Record<string, string>>
+): WorkspaceFile[] {
+  return files.map((file) => {
+    if (file.kind === 'asset' || editorDrafts[file.path] === undefined) {
+      return file;
+    }
+    return { ...file, source: editorDrafts[file.path] };
+  });
+}
+
 function CodeEditor({
   file,
   source,
@@ -2805,6 +2817,10 @@ function EditorWorkbench({
   const previewDocument = useMemo(
     () => buildPreviewDocument(snapshot.files, assetUrls, snapshot.revision),
     [assetUrls, snapshot.files, snapshot.revision]
+  );
+  const searchableFiles = useMemo(
+    () => overlayEditorDrafts(snapshot.files, editorDrafts),
+    [editorDrafts, snapshot.files]
   );
   const toolNames = registry.getToolNames().map(String);
   const [selectedToolName, setSelectedToolName] = useState(
@@ -4389,7 +4405,7 @@ function EditorWorkbench({
           </div>
           {workspaceSearchOpen ? (
             <WorkspaceSearchPanel
-              files={snapshot.files}
+              files={searchableFiles}
               onClose={closeWorkspaceSearch}
               onQueryChange={setWorkspaceSearchQuery}
               onSelect={(match) => {

@@ -542,6 +542,9 @@ Open folder → generic FileSystemAdapter
   editor draft도 guard한다. browser-only draft가 저장된 뒤에는 불필요한
   filesystem 경고를 표시하지 않으며, linked-folder 변경은 명시적인
   `Save to folder` 경계를 조용히 건너뛰지 않도록 `beforeunload` guard를 유지한다.
+- workspace search는 debounce window 안에 editor 메모리에만 있는 draft를
+  persisted snapshot 위에 덮어 검색한다. 따라서 검색 결과도 현재 editor에
+  보이는 source와 일치한다.
 - editor `Download` action은 `workspace.downloadFile`을 호출하므로 text source와
   Blob asset이 같은 trace·approval·structured result contract를 공유한다. 따라서
   directory-upload fallback에서도 편집 결과를 다시 로컬 파일로 가져갈 수 있다.
