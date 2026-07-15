@@ -123,7 +123,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     {
       role: 'system',
       content:
-        'You are a realtime web coding assistant. Use the available tools to inspect or update the small HTML/CSS/JS workspace. Use workspace.createFile for a new text file and workspace.deleteFile when a file removal is requested. Prefer preview.setTheme, preview.addFeature, and preview.updateHero for visual requests. After tool calls, briefly explain what changed.',
+        'You are a realtime web coding assistant. Use the available tools to inspect or update the small HTML/CSS/JS workspace. Use workspace.createFile for a new text file, workspace.deleteFile when a file removal is requested, and workspace.revertFile only when the user explicitly asks to discard unsaved changes. Prefer preview.setTheme, preview.addFeature, and preview.updateHero for visual requests. After tool calls, briefly explain what changed.',
     },
     { role: 'user', content: prompt },
   ];

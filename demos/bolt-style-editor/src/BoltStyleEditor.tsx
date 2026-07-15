@@ -673,6 +673,25 @@ function ToolHandlers({
     { blocking: true }
   );
 
+  useBoltStyleToolHandler<'workspace.revertFile', unknown>(
+    'workspace.revertFile',
+    async ({ path }, controller) => {
+      const snapshot = workspace.revertFile(path);
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        path,
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
+    },
+    { blocking: true }
+  );
+
   useBoltStyleToolHandler<'preview.setTheme', unknown>(
     'preview.setTheme',
     async ({ theme }, controller) => {
@@ -1098,6 +1117,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     () => new Set(workspace.getDirtyFiles().map((file) => file.path)),
     [snapshot, workspace]
   );
+  const canRevertActiveFile = dirtyPaths.has(activeFile.path);
   const canDeleteActiveFile =
     snapshot.files.length > 1 &&
     (activeFile.language !== 'html' ||
@@ -1391,6 +1411,21 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     });
   };
 
+  const revertActiveFile = () => {
+    if (!canRevertActiveFile || running) return;
+    if (
+      !window.confirm(
+        `Discard unsaved changes in ${activeFile.path}? Undo can restore this session's edit.`
+      )
+    ) {
+      return;
+    }
+    void executeQuickTool({
+      name: 'workspace.revertFile',
+      arguments: { path: activeFile.path },
+    });
+  };
+
   const paletteCallFor = (name: string): ToolCall | null => {
     switch (name) {
       case 'workspace.listFiles':
@@ -1413,6 +1448,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           name,
           arguments: { path: activeFile.path, source: activeFile.source },
         };
+      case 'workspace.revertFile':
+        return { name, arguments: { path: activeFile.path } };
       case 'preview.setTheme':
         return { name, arguments: { theme: 'violet' } };
       case 'preview.addFeature':
@@ -1666,6 +1703,16 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 type="button"
               >
                 Delete
+              </button>
+              <button
+                aria-label={`Revert ${activeFile.path}`}
+                className="editor-revert"
+                disabled={!isStorageReady || running || !canRevertActiveFile}
+                onClick={revertActiveFile}
+                title="Discard active file changes through workspace.revertFile"
+                type="button"
+              >
+                Revert
               </button>
               <button
                 aria-keyshortcuts="Control+S Meta+S"

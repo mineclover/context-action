@@ -197,13 +197,17 @@ Open folder → generic FileSystemAdapter
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
 - The standalone registry separates `workspace.createFile`,
-  `workspace.writeFile`, and `workspace.deleteFile`: new text files are
+  `workspace.writeFile`, `workspace.revertFile`, and `workspace.deleteFile`:
+  new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
   records, and included in the next folder save. Deletions remove the
   browser-local record immediately, retain a deleted-path checkpoint for
   `Save to folder`, and keep undo/redo and the active preview entry valid.
   Pending deletion paths are stored in Dexie metadata, so a reload does not
   silently lose the later operating-system folder deletion.
+- `workspace.revertFile` restores the active file to the last saved browser
+  workspace checkpoint. For an unsaved new file it removes that file; model
+  calls remain behind the destructive policy and approval boundary.
 - The editor's active-file Delete action routes through the same
   `workspace.deleteFile` registry contract as the palette and model loop;
   it does not introduce a second mutation path.

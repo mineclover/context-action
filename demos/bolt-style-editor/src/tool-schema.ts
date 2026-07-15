@@ -47,6 +47,16 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.revertFile': defineAction(
+    {
+      name: 'workspace.revertFile',
+      description:
+        'Restore one file to its last saved browser workspace state.',
+      annotations: { destructiveHint: true, idempotentHint: true },
+      parameters: z.object({ path: filePath }),
+    },
+    z
+  ),
   'preview.setTheme': defineAction(
     {
       name: 'preview.setTheme',

@@ -189,12 +189,15 @@ Open folder → generic FileSystemAdapter
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
 - standalone registry는 `workspace.createFile`, `workspace.writeFile`,
-  `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.revertFile`, `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
   entry가 유효하도록 유지한다. pending deletion path도 Dexie metadata에
   저장하므로 reload 후에도 운영체제 폴더 삭제 의도를 잃지 않는다.
+- `workspace.revertFile`은 active file을 마지막 saved browser workspace
+  checkpoint로 복원한다. 저장되지 않은 새 파일이면 해당 파일을 제거하며,
+  model 호출은 destructive policy·approval 경계를 통과해야 한다.
 - 에디터의 active-file Delete action도 palette와 model loop가 사용하는
   동일한 `workspace.deleteFile` registry contract를 호출하므로 별도 mutation
   경로를 만들지 않는다.

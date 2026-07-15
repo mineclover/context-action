@@ -472,6 +472,18 @@ export class BrowserWorkspace {
     return this.getSnapshot();
   }
 
+  revertFile(path: string): WorkspaceSnapshot {
+    const currentFile = this.getFile(path);
+    const savedFile = this.savedFiles.find((file) => file.path === path);
+    if (!savedFile) {
+      return this.deleteFile(path);
+    }
+    if (currentFile.source === savedFile.source) {
+      return this.getSnapshot();
+    }
+    return this.updateFile(path, savedFile.source, { coalesce: false });
+  }
+
   createFile(path: string, source: string): WorkspaceSnapshot {
     const normalizedPath = normalizeWorkspacePath(path);
     const extension = `.${normalizedPath.split('.').pop()?.toLowerCase() ?? ''}`;
