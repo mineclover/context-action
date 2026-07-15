@@ -2076,6 +2076,138 @@ function WorkspaceSearchPanel({
   );
 }
 
+function QuickOpenPanel({
+  files,
+  onClose,
+  onSelect,
+}: {
+  files: readonly WorkspaceFile[];
+  onClose: () => void;
+  onSelect: (path: string) => void | Promise<void>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const dialogRef = useModalDialog<HTMLElement>(onClose);
+  const results = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    return files
+      .filter(
+        (file) =>
+          !normalizedQuery ||
+          file.path.toLocaleLowerCase().includes(normalizedQuery)
+      )
+      .slice(0, 40);
+  }, [files, query]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    setActiveIndex((current) =>
+      Math.min(current, Math.max(results.length - 1, 0))
+    );
+  }, [results.length]);
+
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        results.length ? (current + 1) % results.length : 0
+      );
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        results.length ? (current - 1 + results.length) % results.length : 0
+      );
+      return;
+    }
+    if (event.key === 'Enter' && results[activeIndex]) {
+      event.preventDefault();
+      void onSelect(results[activeIndex].path);
+    }
+  };
+
+  return (
+    <div
+      className="settings-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <section
+        aria-labelledby="quick-open-title"
+        aria-modal="true"
+        className="settings-dialog quick-open-dialog"
+        ref={dialogRef}
+        role="dialog"
+      >
+        <div className="settings-heading">
+          <div>
+            <span className="panel-label">Workspace</span>
+            <h2 id="quick-open-title">Quick open file</h2>
+          </div>
+          <button
+            aria-label="Close quick open"
+            className="settings-close"
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <label className="settings-field">
+          <span>File path</span>
+          <input
+            ref={inputRef}
+            aria-label="Quick open workspace file"
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActiveIndex(0);
+            }}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Search workspace files…"
+            type="search"
+            value={query}
+          />
+        </label>
+        <div aria-live="polite" className="quick-open-count" role="status">
+          {results.length
+            ? `${results.length}${results.length === 40 ? '+' : ''} file${results.length === 1 ? '' : 's'}`
+            : 'No matching files'}
+        </div>
+        <div aria-label="Quick open results" className="quick-open-results">
+          {results.length ? (
+            results.map((file, index) => (
+              <button
+                aria-current={index === activeIndex ? 'true' : undefined}
+                className={`quick-open-result ${index === activeIndex ? 'quick-open-result-active' : ''}`}
+                key={file.path}
+                onClick={() => void onSelect(file.path)}
+                onMouseEnter={() => setActiveIndex(index)}
+                type="button"
+              >
+                <FileIcon file={file} />
+                <span>{file.path}</span>
+                {file.kind === 'asset' ? <small>asset</small> : null}
+              </button>
+            ))
+          ) : (
+            <div className="quick-open-empty">Try a different file name.</div>
+          )}
+        </div>
+        <p className="quick-open-hint">
+          ↑↓ to navigate · Enter to open · Esc to close
+        </p>
+      </section>
+    </div>
+  );
+}
+
 function overlayEditorDrafts(
   files: readonly WorkspaceFile[],
   editorDrafts: Readonly<Record<string, string>>
@@ -2580,6 +2712,7 @@ function EditorWorkbench({
   const workspaceSearchRequestRef = useRef(0);
   const [workspaceSearchFocus, setWorkspaceSearchFocus] =
     useState<WorkspaceSearchFocusRequest | null>(null);
+  const [quickOpenOpen, setQuickOpenOpen] = useState(false);
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editorDrafts, setEditorDrafts] = useState<Record<string, string>>({});
@@ -3119,6 +3252,27 @@ function EditorWorkbench({
     showSettings,
     workspace,
   ]);
+
+  useEffect(() => {
+    const handleQuickOpenShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.altKey ||
+        event.key.toLowerCase() !== 'p' ||
+        showSettings ||
+        showCreateFile ||
+        showRenameFile ||
+        confirmationRequest
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setQuickOpenOpen(true);
+    };
+
+    window.addEventListener('keydown', handleQuickOpenShortcut);
+    return () => window.removeEventListener('keydown', handleQuickOpenShortcut);
+  }, [confirmationRequest, showCreateFile, showRenameFile, showSettings]);
 
   const cancelExecution = () => {
     denyPendingToolApprovals();
@@ -3720,6 +3874,15 @@ function EditorWorkbench({
     setWorkspaceSearchQuery('');
   };
 
+  const closeQuickOpen = () => {
+    setQuickOpenOpen(false);
+  };
+
+  const selectQuickOpenFile = async (path: string) => {
+    const outcome = await openWorkspaceFile(path);
+    if (outcome.ok) closeQuickOpen();
+  };
+
   return (
     <div className="studio-shell">
       <header className="studio-topbar">
@@ -4251,6 +4414,17 @@ function EditorWorkbench({
             </div>
             <div className="editor-controls">
               <button
+                aria-keyshortcuts="Control+P Meta+P"
+                aria-label="Quick open workspace file"
+                className="editor-action"
+                disabled={!isStorageReady || running}
+                onClick={() => setQuickOpenOpen(true)}
+                title="Quick open a workspace file (⌘/Ctrl+P)"
+                type="button"
+              >
+                Quick open
+              </button>
+              <button
                 aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
                 aria-label={
                   workspaceSearchOpen
@@ -4379,6 +4553,13 @@ function EditorWorkbench({
               </span>
             </div>
           </div>
+          {quickOpenOpen ? (
+            <QuickOpenPanel
+              files={snapshot.files}
+              onClose={closeQuickOpen}
+              onSelect={selectQuickOpenFile}
+            />
+          ) : null}
           {workspaceSearchOpen ? (
             <WorkspaceSearchPanel
               files={searchableFiles}

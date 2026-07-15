@@ -143,6 +143,40 @@ async function runBrowserProof(url) {
     ) {
       throw new Error('The selected tool did not expose aria-pressed.');
     }
+    await page
+      .getByRole('button', { name: 'Quick open workspace file' })
+      .click();
+    const quickOpenDialog = page.getByRole('dialog', {
+      name: 'Quick open file',
+    });
+    const quickOpenInput = quickOpenDialog.getByLabel(
+      'Quick open workspace file'
+    );
+    await quickOpenInput.waitFor();
+    if (
+      !(await quickOpenInput.evaluate(
+        (element) => document.activeElement === element
+      ))
+    ) {
+      throw new Error('Quick open did not focus its file input.');
+    }
+    await quickOpenInput.press('ArrowDown');
+    await quickOpenInput.press('Enter');
+    await page.getByLabel('Edit styles.css').waitFor();
+    if (
+      (await page
+        .getByRole('tab', { name: /styles\.css/ })
+        .getAttribute('aria-selected')) !== 'true'
+    ) {
+      throw new Error('Quick open did not select the requested workspace file.');
+    }
+    await page.getByRole('tab', { name: /index\.html/ }).click();
+    await page.getByLabel('Edit index.html').waitFor();
+    await page.getByLabel('Edit index.html').focus();
+    await page.keyboard.press('Control+P');
+    await quickOpenDialog.waitFor();
+    await page.keyboard.press('Escape');
+    await quickOpenDialog.waitFor({ state: 'detached' });
     const editorTabs = page.getByRole('tab');
     await editorTabs.filter({ hasText: 'index.html' }).focus();
     await page.keyboard.press('ArrowRight');

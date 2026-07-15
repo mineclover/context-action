@@ -47,6 +47,11 @@ workspace and preview tools. The catalog can export `tools/list`, a selected
 tool definition, or a `tools/call` request as JSON. The trace panel exports
 bounded, redacted execution entries as JSON.
 
+The editor also includes IDE-style file navigation: use the `Quick open`
+button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and
+`Enter` to open a workspace file. `Esc` closes the palette and restores the
+previous focus.
+
 ## Workspace boundaries
 
 - Text files and Blob assets are stored in Dexie/IndexedDB.
