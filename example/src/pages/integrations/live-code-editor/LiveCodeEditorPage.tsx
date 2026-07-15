@@ -138,6 +138,15 @@ const defaultWorkspaceFiles = (
   Object.values(examples) as ExampleDefinition[]
 ).map((example) => createWorkspaceFile(example.file, example.code));
 
+function createDefaultWorkspaceBlobFiles() {
+  return defaultWorkspaceFiles.map((file) => ({
+    path: file.path,
+    blob: new Blob([file.source], { type: file.mimeType }),
+    mimeType: file.mimeType,
+    size: file.size,
+  }));
+}
+
 function getEditorTokenClass(token: string): string {
   if (/^(?:<!--|\/\*|\/\/)/.test(token)) return 'comment';
   if (/^<\/?[A-Za-z]/.test(token)) return 'tag';
@@ -287,6 +296,7 @@ function LiveCodeEditorContent() {
     'ready'
   );
   const [copied, setCopied] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [workspaceMessage, setWorkspaceMessage] = useState(
     'Loading IndexedDB workspace…'
   );
@@ -431,6 +441,59 @@ function LiveCodeEditorContent() {
           ? error.message
           : 'Workspace could not be opened.'
       );
+    }
+  };
+
+  const resetWorkspace = async () => {
+    if (
+      !isShowcaseWorkspace ||
+      workspaceSnapshot.storageMode !== 'indexed-db' ||
+      isResetting
+    ) {
+      return;
+    }
+    if (
+      !window.confirm(
+        'Reset the showcase workspace to the built-in examples? Current browser edits will be replaced.'
+      )
+    ) {
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const persisted = await workspaceRepository.replaceWorkspace(
+        LIVE_EDITOR_WORKSPACE_ID,
+        createDefaultWorkspaceBlobFiles(),
+        { rootName: LIVE_EDITOR_WORKSPACE_ROOT }
+      );
+      workspaceManager.replaceFiles(persisted.files, {
+        rootName: persisted.metadata.rootName,
+        activePath: persisted.metadata.activePath,
+        storageMode: 'indexed-db',
+      });
+      const entryPath = persisted.metadata.activePath;
+      const entryFile = persisted.files.find((file) => file.path === entryPath);
+      if (entryFile) {
+        documentManager.update({
+          exampleId: 'pipeline',
+          file: entryFile.path,
+          source: entryFile.source,
+          scenario: 'success',
+        });
+      }
+      setRunState('ready');
+      setWorkspaceMessage(
+        `${persisted.metadata.rootName} restored · ${persisted.files.length} example files`
+      );
+    } catch (error) {
+      setWorkspaceMessage(
+        error instanceof Error
+          ? error.message
+          : 'Showcase workspace could not be restored.'
+      );
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -606,6 +669,19 @@ function LiveCodeEditorContent() {
                         disabled={!filesystemAdapter.isSupported}
                       >
                         Open folder
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.workspaceButton}
+                        onClick={() => void resetWorkspace()}
+                        disabled={
+                          !isShowcaseWorkspace ||
+                          workspaceSnapshot.storageMode !== 'indexed-db' ||
+                          isResetting
+                        }
+                        title="Restore the built-in examples in IndexedDB"
+                      >
+                        {isResetting ? 'Resetting…' : 'Reset examples'}
                       </button>
                       <button
                         type="button"
