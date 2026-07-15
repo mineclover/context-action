@@ -32,8 +32,10 @@ import {
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import {
   clearToolTrace,
+  finishAgentTrace,
   recordToolCall,
   recordToolList,
+  startAgentTrace,
   toolTraceStore,
 } from './tool-trace';
 import {
@@ -1668,6 +1670,9 @@ function EditorWorkbench({
     if (!trimmed || running) return;
     const controller = new AbortController();
     executionControllerRef.current = controller;
+    const agentTrace = startAgentTrace(
+      openRouterSettings.apiKey ? 'openrouter' : 'local'
+    );
     setPrompt('');
     setMessages((current) => [...current, { role: 'user', text: trimmed }]);
     setRunning(true);
@@ -1681,6 +1686,13 @@ function EditorWorkbench({
           )
         : await runLocalAgent(registry, workspace, trimmed, controller.signal);
       throwIfAborted(controller.signal);
+      finishAgentTrace(
+        agentTrace,
+        result.failed ? 'failed' : 'completed',
+        result.failed
+          ? 'tool call failed'
+          : `${result.toolNames.length} tool call(s)`
+      );
       setMessages((current) => [
         ...current,
         {
@@ -1696,6 +1708,15 @@ function EditorWorkbench({
         },
       ]);
     } catch (error) {
+      finishAgentTrace(
+        agentTrace,
+        controller.signal.aborted ? 'cancelled' : 'failed',
+        controller.signal.aborted
+          ? 'cancelled'
+          : error instanceof OpenRouterRequestError
+            ? error.code
+            : 'agent request failed'
+      );
       const retryable =
         !(error instanceof OpenRouterRequestError) || error.retryable;
       setMessages((current) => [
@@ -2116,7 +2137,9 @@ function EditorWorkbench({
                     title={
                       entry.kind === 'call'
                         ? `toolCallId ${entry.id}`
-                        : 'tools/list discovery'
+                        : entry.kind === 'agent'
+                          ? `agent request · ${entry.source}`
+                          : 'tools/list discovery'
                     }
                   >
                     <span className="trace-mark" aria-hidden="true">
@@ -2124,7 +2147,9 @@ function EditorWorkbench({
                         ? '…'
                         : entry.status === 'failed'
                           ? '!'
-                          : '✓'}
+                          : entry.status === 'cancelled'
+                            ? '↶'
+                            : '✓'}
                     </span>
                     <span className="trace-copy">
                       <strong>{entry.name}</strong>
@@ -2132,7 +2157,9 @@ function EditorWorkbench({
                         {entry.kind === 'discovery'
                           ? entry.summary
                           : [
-                              formatTraceId(entry.id),
+                              entry.kind === 'agent'
+                                ? 'agent'
+                                : formatTraceId(entry.id),
                               entry.source,
                               `${entry.durationMs ?? 0}ms`,
                               entry.summary,

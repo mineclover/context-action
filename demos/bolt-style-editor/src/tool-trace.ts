@@ -2,10 +2,10 @@ import type { ToolCallEvent } from '@context-action/react';
 
 export type ToolTraceEntry = {
   id: string;
-  kind: 'discovery' | 'call';
+  kind: 'discovery' | 'call' | 'agent';
   name: string;
   source: string;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
   startedAt: number;
   durationMs?: number;
   toolCount?: number;
@@ -16,6 +16,12 @@ const MAX_TRACE_ENTRIES = 24;
 let sequence = 0;
 let entries: ToolTraceEntry[] = [];
 const listeners = new Set<() => void>();
+
+export type AgentTraceHandle = {
+  id: string;
+  source: string;
+  startedAt: number;
+};
 
 function notify(): void {
   for (const listener of listeners) listener();
@@ -130,6 +136,55 @@ export function recordToolCall(event: ToolCallEvent): void {
     );
   }
   notify();
+}
+
+function upsertAgentTrace(entry: ToolTraceEntry): void {
+  const existingIndex = entries.findIndex(
+    (candidate) => candidate.kind === 'agent' && candidate.id === entry.id
+  );
+  entries = trimEntries(
+    existingIndex >= 0
+      ? entries.map((candidate, index) =>
+          index === existingIndex ? entry : candidate
+        )
+      : [entry, ...entries]
+  );
+  notify();
+}
+
+export function startAgentTrace(source: string): AgentTraceHandle {
+  const startedAt = Date.now();
+  const handle = {
+    id: `agent-${startedAt}-${sequence++}`,
+    source,
+    startedAt,
+  };
+  upsertAgentTrace({
+    id: handle.id,
+    kind: 'agent',
+    name: 'agent.request',
+    source,
+    status: 'running',
+    startedAt,
+  });
+  return handle;
+}
+
+export function finishAgentTrace(
+  handle: AgentTraceHandle,
+  status: Exclude<ToolTraceEntry['status'], 'running'>,
+  summary: string
+): void {
+  upsertAgentTrace({
+    id: handle.id,
+    kind: 'agent',
+    name: 'agent.request',
+    source: handle.source,
+    status,
+    startedAt: handle.startedAt,
+    durationMs: Math.max(0, Date.now() - handle.startedAt),
+    summary,
+  });
 }
 
 export function clearToolTrace(): void {

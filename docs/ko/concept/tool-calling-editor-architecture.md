@@ -146,6 +146,9 @@ trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델�
 `Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
 trace view만 초기화한다. call row에는 파일 수·path·theme·revision 같은 안전한
 result summary만 표시하고 파일 source 자체는 trace UI에 복사하지 않는다.
+standalone의 `agent.request` row는 같은 실행을 감싸며 running·completed·failed·cancelled
+상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
+확인할 수 있다.
 call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
 있다.
 
