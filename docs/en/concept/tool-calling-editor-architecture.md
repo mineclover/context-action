@@ -337,6 +337,10 @@ The default extraction order is `example â†’ standalone demo/workspace package â
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
 | `preview.refresh` | local demo allow | Remount the sandbox iframe and await the current revision acknowledgement |
 
+`workspace.downloadFile` is also marked with the MCP `openWorldHint` because it
+crosses the browser workspace boundary and creates a user-visible local
+download; the approval policy remains the authoritative execution gate.
+
 For the standalone surface, the status-aware sequence is:
 
 ```text

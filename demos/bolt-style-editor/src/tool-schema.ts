@@ -185,6 +185,7 @@ export const boltStyleToolSchema = createActionSchema({
       name: 'workspace.downloadFile',
       description:
         'Download one workspace text file or Blob asset through the browser, requiring a path.',
+      annotations: { openWorldHint: true },
       parameters: z.object({ path: filePath }),
       outputSchema: workspaceDownloadOutputSchema,
     },

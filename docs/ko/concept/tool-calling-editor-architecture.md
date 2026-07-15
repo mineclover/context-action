@@ -321,6 +321,10 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
 | `preview.refresh` | local demo allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
 
+`workspace.downloadFile`은 browser workspace 경계를 넘어 사용자에게 보이는
+local download를 만들기 때문에 MCP `openWorldHint`도 표시한다. 실제 실행을
+허용하는 최종 경계는 여전히 approval policy다.
+
 standalone surface의 status-aware 호출 순서는 다음과 같다.
 
 ```text
