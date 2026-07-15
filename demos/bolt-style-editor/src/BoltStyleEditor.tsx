@@ -2933,14 +2933,6 @@ function EditorWorkbench({
   }, []);
 
   const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(
-        `Open ${imported.rootName || 'this folder'} and discard unsaved browser workspace changes?`
-      )
-    ) {
-      return;
-    }
     await workspace.importFolder(imported);
     setEditorDrafts({});
     const skippedMessage = imported.skipped.length
@@ -2960,6 +2952,15 @@ function EditorWorkbench({
 
   const handleFolderInput = async (fileList: FileList | null) => {
     if (!fileList) return;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(
+        'Open the selected folder and discard unsaved browser workspace changes?'
+      )
+    ) {
+      if (folderInputRef.current) folderInputRef.current.value = '';
+      return;
+    }
     setOpeningFolder(true);
     try {
       await importFolder(await fileSystemAdapter.importFileList(fileList));
@@ -2980,6 +2981,14 @@ function EditorWorkbench({
 
   const handleOpenFolder = async () => {
     if (openingFolder || !isStorageReady) return;
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(
+        'Open a new folder and discard unsaved browser workspace changes?'
+      )
+    ) {
+      return;
+    }
     const picker = (
       window as Window & {
         showDirectoryPicker?: unknown;
