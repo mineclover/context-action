@@ -102,6 +102,9 @@ The composer also exposes prompt recipes for visual changes, workspace status,
 file creation, the explicit folder save and reload boundaries, and folder
 disconnection; each recipe enters the same local-agent planning and approval
 path as free-form text.
+The example ToolContext AI demo keeps provider failures inline as an alert,
+restores the failed prompt in the composer, and leaves the saved key and model
+controls available so a corrected configuration can be submitted again.
 
 The standalone OpenRouter bridge parses the response body as text before JSON
 decoding, so a misconfigured endpoint cannot leak a browser `Response.json()`
@@ -357,8 +360,7 @@ The default extraction order is `example â†’ standalone demo/workspace package â
 | `preview.addFeature` | approval required | Add a feature card through the preview contract |
 | `preview.updateHero` | approval required | Update the controlled preview hero copy |
 | `preview.getStatus` | allow | Read the latest sandbox preview acknowledgement |
-| `preview.refresh` | approval required | Remount the sandbox iframe and await the current revision acknowledgement |
-| `preview.refresh` | local demo allow | Remount the sandbox iframe and await the current revision acknowledgement |
+| `preview.refresh` | approval for model/prompt calls; local direct allow for palette calls | Remount the sandbox iframe and await the current revision acknowledgement |
 
 `workspace.downloadFile` is also marked with the MCP `openWorldHint` because it
 crosses the browser workspace boundary and creates a user-visible local

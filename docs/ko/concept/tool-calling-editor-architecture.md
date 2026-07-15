@@ -95,6 +95,9 @@ local tool 오류와 재시도 가능한 palette 샘플 실패에는 원래 prom
 composer에는 visual 변경·workspace status·파일 생성·명시적인 folder save와
 reload 경계·folder disconnect를 위한 prompt recipe도 제공한다. 각 recipe는
 자유 입력과 동일한 local-agent planning 및 approval 경로로 들어간다.
+example의 ToolContext AI 데모는 provider 오류를 alert로 채팅 영역에 유지하고,
+실패한 prompt를 composer에 복원하며, 저장된 key와 model control을 그대로
+사용할 수 있게 한다. 따라서 설정을 수정한 뒤 같은 요청을 다시 제출할 수 있다.
 
 standalone OpenRouter bridge는 response body를 먼저 text로 읽은 뒤 JSON을 해석하므로,
 endpoint 설정이 잘못되어도 브라우저의 `Response.json()` 내부 예외가 chat에 그대로
@@ -340,8 +343,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `preview.addFeature` | approval required | preview 계약을 통해 feature card 추가 |
 | `preview.updateHero` | approval required | 제어된 preview hero copy 변경 |
 | `preview.getStatus` | allow | 최신 sandbox preview acknowledgement 조회 |
-| `preview.refresh` | approval required | sandbox iframe 재마운트 후 현재 revision acknowledgement 대기 |
-| `preview.refresh` | local demo allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
+| `preview.refresh` | model/prompt 호출은 approval, palette 호출은 local direct allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
 
 `workspace.downloadFile`은 browser workspace 경계를 넘어 사용자에게 보이는
 local download를 만들기 때문에 MCP `openWorldHint`도 표시한다. 실제 실행을
