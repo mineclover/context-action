@@ -2811,6 +2811,28 @@ function EditorWorkbench({
             </div>
             <div className="editor-controls">
               <button
+                aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
+                aria-label={
+                  workspaceSearchOpen
+                    ? 'Close workspace search'
+                    : 'Search workspace'
+                }
+                className={`editor-action editor-search ${workspaceSearchOpen ? 'editor-search-active' : ''}`}
+                disabled={!isStorageReady || running}
+                onClick={() => {
+                  if (workspaceSearchOpen) {
+                    closeWorkspaceSearch();
+                  } else {
+                    setWorkspaceSearchOpen(true);
+                    setWorkspaceSearchQuery('');
+                  }
+                }}
+                title="Search all workspace files (⌘/Ctrl+Shift+F)"
+                type="button"
+              >
+                {workspaceSearchOpen ? 'Close search' : 'Search'}
+              </button>
+              <button
                 aria-label="Undo last edit"
                 className="editor-action"
                 disabled={!isStorageReady || !workspace.canUndo()}
