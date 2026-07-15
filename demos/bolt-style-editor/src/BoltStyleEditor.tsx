@@ -127,6 +127,7 @@ const localMutationToolNames = new Set([
   'workspace.saveAll',
   'workspace.reloadFolder',
   'workspace.disconnectFolder',
+  'workspace.downloadFile',
   'workspace.undo',
   'workspace.redo',
   'preview.refresh',
@@ -141,6 +142,7 @@ const localFileListingToolNames = new Set([
   'workspace.deleteFile',
   'workspace.writeFile',
   'workspace.revertFile',
+  'workspace.downloadFile',
 ]);
 
 const localTextInspectionToolNames = new Set([
@@ -422,6 +424,14 @@ function toolSuccessMessage(
     return `Read ${structured.path} (${source.split('\n').length} lines).${revision}`;
   }
 
+  if (
+    name === 'workspace.downloadFile' &&
+    typeof structured.path === 'string'
+  ) {
+    const size = typeof structured.size === 'number' ? structured.size : 0;
+    return `Downloaded ${structured.path} (${size} bytes).`;
+  }
+
   if (name === 'workspace.openFile' && typeof structured.path === 'string') {
     return `Opened ${structured.path} in the editor.${revision}`;
   }
@@ -491,6 +501,25 @@ function toolSuccessMessage(
   }
 
   return `Executed ${name}. Preview revision acknowledged.${revision}`;
+}
+
+function downloadWorkspaceFile(file: WorkspaceFile): number {
+  const blob =
+    file.kind === 'asset' && file.blob
+      ? file.blob
+      : new Blob([file.source], { type: file.mimeType ?? 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = file.path.split('/').pop() ?? file.path;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  window.setTimeout(() => {
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, 0);
+  return blob.size;
 }
 
 function throwIfAborted(signal?: AbortSignal): void {
@@ -963,6 +992,9 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const renamePaths = inferRenamePaths(prompt);
   const openRequest =
     /(open|show|view|열어|열기|보여|파일을\s*(?:선택|열))/i.test(prompt);
+  const downloadRequest = /(download|export|다운로드|내려받|받아\s*줘)/i.test(
+    prompt
+  );
   const undoRequest = /(\bundo\b|실행\s*취소|되돌리(?:기|어|줘|고))/i.test(
     prompt
   );
@@ -992,6 +1024,17 @@ function promptToToolCalls(prompt: string): ToolCall[] {
       name: 'workspace.openFile',
       arguments: { path: requestedPath },
     });
+  }
+
+  if (downloadRequest && requestedPath) {
+    calls.push({
+      name: 'workspace.downloadFile',
+      arguments: { path: requestedPath },
+    });
+  }
+
+  if (downloadRequest && !requestedPath) {
+    return [{ name: 'workspace.listFiles', arguments: {} }];
   }
 
   if (undoRequest) {
@@ -1307,6 +1350,19 @@ function ToolHandlers({
       revision: workspace.getSnapshot().revision,
     };
   });
+
+  useBoltStyleToolHandler<'workspace.downloadFile', unknown>(
+    'workspace.downloadFile',
+    ({ path }) => {
+      const file = workspace.getFile(path);
+      const size = downloadWorkspaceFile(file);
+      return {
+        path: file.path,
+        kind: file.kind === 'asset' ? ('asset' as const) : ('text' as const),
+        size,
+      };
+    }
+  );
 
   useBoltStyleToolHandler('workspace.openFile', ({ path }) => {
     const normalizedPath = normalizeWorkspacePath(path);
@@ -2887,28 +2943,10 @@ function EditorWorkbench({
   };
 
   const downloadActiveFile = () => {
-    const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
-    const blob =
-      activeFile.kind === 'asset' && activeFile.blob
-        ? activeFile.blob
-        : new Blob([activeSource], {
-            type: activeFile.mimeType ?? 'text/plain',
-          });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = activeFile.path.split('/').pop() ?? 'workspace-file';
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    window.setTimeout(() => {
-      anchor.remove();
-      URL.revokeObjectURL(url);
-    }, 0);
-    setMessages((current) => [
-      ...current,
-      { role: 'assistant', text: `Downloaded ${activeFile.path}.` },
-    ]);
+    void executeQuickTool({
+      name: 'workspace.downloadFile',
+      arguments: { path: activeFile.path },
+    });
   };
 
   useEffect(() => {
@@ -3249,6 +3287,8 @@ function EditorWorkbench({
       case 'preview.refresh':
         return { name, arguments: {} };
       case 'workspace.readFile':
+        return { name, arguments: { path: activeFile.path } };
+      case 'workspace.downloadFile':
         return { name, arguments: { path: activeFile.path } };
       case 'workspace.openFile':
         return { name, arguments: { path: activeFile.path } };

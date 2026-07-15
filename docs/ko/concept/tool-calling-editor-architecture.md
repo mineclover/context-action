@@ -304,6 +304,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.getStatus` | allow | revision·persistence·preview·dirty path·folder 연결 상태 조회 |
 | `workspace.listFiles` | allow | 파일과 파일별 dirty 상태 조회 |
 | `workspace.readFile` | allow | 현재 revision과 함께 text file 하나 읽기 |
+| `workspace.downloadFile` | approval required | browser에서 text file 또는 Blob asset 하나 다운로드 |
 | `workspace.openFile` | allow | editor에서 workspace file을 선택하고 active path 저장 |
 | `workspace.createFile` | local demo allow | 정규화된 text file 생성 |
 | `workspace.renameFile` | local demo allow | source와 preview 계약을 유지하면서 파일 이름 변경 |
@@ -410,7 +411,7 @@ Open folder → generic FileSystemAdapter
   handle을 structured-clone할 수 있으면 handle도 workspace metadata와 함께
   저장해 다음 load에서 복원하며, 실제 write permission은 저장 경계에서 다시
   확인한다.
-- standalone registry는 `workspace.openFile`, `workspace.createFile`, `workspace.renameFile`,
+- standalone registry는 `workspace.openFile`, `workspace.downloadFile`, `workspace.createFile`, `workspace.renameFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
   `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.saveCheckpoint`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
@@ -502,9 +503,9 @@ Open folder → generic FileSystemAdapter
 - status bar는 browser에 보존된 변경과 연결된 local folder에 아직 기록하지
   않은 변경을 구분한다. 후자가 있으면 `beforeunload` guard를 설치해 tab을
   닫을 때 명시적인 `Save to folder` 경계를 조용히 건너뛰지 않게 한다.
-- `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
-  내보내므로, directory-upload fallback에서도 편집 결과를 다시 로컬 파일로
-  가져갈 수 있다.
+- editor `Download` action은 `workspace.downloadFile`을 호출하므로 text source와
+  Blob asset이 같은 trace·approval·structured result contract를 공유한다. 따라서
+  directory-upload fallback에서도 편집 결과를 다시 로컬 파일로 가져갈 수 있다.
 - Explorer의 New file dialog도 `workspace.createFile`을 호출한다. validation
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
   선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별

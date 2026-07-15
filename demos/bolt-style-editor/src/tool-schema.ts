@@ -23,6 +23,11 @@ const workspaceReadFileOutputSchema = z.object({
   source: z.string(),
   revision: z.number().int().nonnegative(),
 });
+const workspaceDownloadOutputSchema = z.object({
+  path: z.string(),
+  kind: z.enum(['text', 'asset']),
+  size: z.number().int().nonnegative(),
+});
 const workspaceOpenFileOutputSchema = z.object({
   path: z.string(),
   activePath: z.string(),
@@ -172,6 +177,16 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { readOnlyHint: true },
       parameters: z.object({ path: filePath }),
       outputSchema: workspaceReadFileOutputSchema,
+    },
+    z
+  ),
+  'workspace.downloadFile': defineAction(
+    {
+      name: 'workspace.downloadFile',
+      description:
+        'Download one workspace text file or Blob asset through the browser, requiring a path.',
+      parameters: z.object({ path: filePath }),
+      outputSchema: workspaceDownloadOutputSchema,
     },
     z
   ),

@@ -319,6 +319,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.getStatus` | allow | Read revision, persistence, preview, dirty paths, and folder connection |
 | `workspace.listFiles` | allow | List files and per-file dirty state |
 | `workspace.readFile` | allow | Read one text file with its current revision |
+| `workspace.downloadFile` | approval required | Download one text file or Blob asset through the browser |
 | `workspace.openFile` | allow | Select a workspace file in the editor and persist the active path |
 | `workspace.createFile` | local demo allow | Create a normalized text file |
 | `workspace.renameFile` | local demo allow | Rename a file while preserving its source and preview contract |
@@ -431,7 +432,7 @@ Open folder → generic FileSystemAdapter
   When the browser can structured-clone a directory handle, the handle is stored
   with workspace metadata and restored on the next load; write permission is
   still checked at the save boundary.
-- The standalone registry separates `workspace.openFile`, `workspace.createFile`,
+- The standalone registry separates `workspace.openFile`, `workspace.downloadFile`, `workspace.createFile`,
   `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
   `workspace.revertFile`, `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.saveCheckpoint`, and
   `workspace.reloadFolder`:
@@ -536,8 +537,9 @@ Open folder → generic FileSystemAdapter
   need to be written to a linked local folder. When the latter exists, the
   page installs a `beforeunload` guard so closing the tab cannot silently skip
   the explicit `Save to folder` boundary.
-- `Download` exports the active text source or Blob asset as a browser download,
-  so upload-only folder imports can still be taken back to local files.
+- The editor `Download` action routes through `workspace.downloadFile`, so text
+  sources and Blob assets share the same trace, approval, and structured result
+  contract while upload-only imports can still be taken back to local files.
 - The Explorer's New file dialog similarly routes through
   `workspace.createFile`; validation failures stay in the tool result path and
   remain visible inside the dialog and do not close it, while successful creation
