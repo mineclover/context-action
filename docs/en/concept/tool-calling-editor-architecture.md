@@ -94,8 +94,9 @@ only a generic `Tool call failed` response.
 file deletion and revert samples so the palette asks for explicit confirmation.
 Authorization must still be enforced by `toolPolicy`.
 
-The standalone studio renders the same boundary as an execution trace. Local
-and OpenRouter requests call `registry.listTools({ method: 'tools/list' })`
+The standalone studio and realtime web-coding route render the same boundary as
+an execution trace. Local and OpenRouter requests call
+`registry.listTools({ method: 'tools/list' })`
 before provider-specific tool serialization. The ToolContext `onToolCall`
 observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends

@@ -18,6 +18,12 @@ import {
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
 import { liveWebCodingToolsSchema } from '../../../lib/live-web-coding-tools-schema';
+import {
+  clearLiveWebCodingTrace,
+  formatLiveWebCodingTraceId,
+  liveWebCodingTraceStore,
+  recordLiveWebCodingToolCall,
+} from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   getStoredOpenRouterApiKey,
@@ -134,6 +140,7 @@ const {
 } = createToolContext('LiveWebCodingTools', {
   schema: liveWebCodingToolsSchema,
   debug: true,
+  onToolCall: recordLiveWebCodingToolCall,
 });
 
 type WebToolRegistry = ReturnType<typeof useLiveWebCodingToolRegistry>;
@@ -346,13 +353,13 @@ async function runLocalPrompt(
   const toolNames: string[] = [];
   for (const call of calls) {
     if (signal?.aborted) throw new Error('Execution cancelled.');
-    const result = await registry.executeModelToolCall(
+    const result = await registry.callTool(
       {
         id: `local-${Date.now()}-${call.name}`,
-        name: call.name,
-        arguments: call.arguments,
+        method: 'tools/call',
+        params: { name: call.name, arguments: call.arguments },
       },
-      { context: { source: 'model' }, signal }
+      { context: { source: 'local' }, signal }
     );
     if (signal?.aborted) throw new Error('Execution cancelled.');
     toolNames.push(call.name);
@@ -376,6 +383,11 @@ function LiveWebCodingWorkbench({
   repository: LiveEditorWorkspaceRepository;
 }) {
   const registry = useLiveWebCodingToolRegistry();
+  const trace = useSyncExternalStore(
+    liveWebCodingTraceStore.subscribe,
+    liveWebCodingTraceStore.getSnapshot,
+    liveWebCodingTraceStore.getSnapshot
+  );
   const workspaceSnapshot = useSyncExternalStore(
     (listener) => manager.subscribe(() => listener()),
     manager.getSnapshot,
@@ -571,9 +583,13 @@ function LiveWebCodingWorkbench({
     setLoading(true);
     setError('');
     try {
-      const result = await registry.executeModelToolCall(
-        { id: `palette-${Date.now()}`, name, arguments: args },
-        { context: { source: 'model' }, signal: controller.signal }
+      const result = await registry.callTool(
+        {
+          id: `palette-${Date.now()}`,
+          method: 'tools/call',
+          params: { name, arguments: args },
+        },
+        { context: { source: 'local' }, signal: controller.signal }
       );
       if (controller.signal.aborted) {
         throw new Error('Execution cancelled.');
@@ -733,6 +749,70 @@ function LiveWebCodingWorkbench({
                     ))}
                   </div>
                 ))}
+              </div>
+
+              <div
+                className={styles.toolTrace}
+                aria-label="Web coding tool execution trace"
+              >
+                <div className={styles.toolTraceHeader}>
+                  <strong>Tool execution trace</strong>
+                  <div className={styles.toolTraceActions}>
+                    <button
+                      type="button"
+                      className={styles.toolTraceClear}
+                      aria-label="Clear web coding tool trace"
+                      disabled={!trace.length}
+                      onClick={clearLiveWebCodingTrace}
+                    >
+                      Clear
+                    </button>
+                    <span>{trace.length}</span>
+                  </div>
+                </div>
+                <div className={styles.toolTraceRows}>
+                  {trace.length === 0 ? (
+                    <span className={styles.toolTraceEmpty}>
+                      tools/list ready · waiting for a tools/call event
+                    </span>
+                  ) : (
+                    trace.slice(0, 6).map((entry) => (
+                      <div
+                        className={`${styles.toolTraceRow} ${
+                          entry.status === 'failed'
+                            ? styles.toolTraceRowFailed
+                            : entry.status === 'running'
+                              ? styles.toolTraceRowRunning
+                              : ''
+                        }`}
+                        key={entry.id}
+                        title={`toolCallId: ${entry.id}`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={styles.toolTraceMark}
+                        >
+                          {entry.status === 'failed'
+                            ? '×'
+                            : entry.status === 'running'
+                              ? '…'
+                              : '✓'}
+                        </span>
+                        <span className={styles.toolTraceCopy}>
+                          <code>{entry.name}</code>
+                          <small>
+                            {formatLiveWebCodingTraceId(entry.id)} ·{' '}
+                            {entry.source}
+                            {entry.durationMs !== undefined
+                              ? ` · ${entry.durationMs}ms`
+                              : ''}
+                            {entry.summary ? ` · ${entry.summary}` : ''}
+                          </small>
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               <form className={styles.chatForm} onSubmit={sendPrompt}>
