@@ -105,6 +105,12 @@ async function runBrowserProof(url) {
     if ((await page.getByTitle('Live generated web preview').count()) !== 1) {
       throw new Error('The sandbox preview iframe is missing.');
     }
+    if (
+      (await page.locator('.save-status[role="status"]').count()) !== 1 ||
+      (await page.locator('.preview-status[role="status"]').count()) !== 1
+    ) {
+      throw new Error('Workspace save and preview states are not live regions.');
+    }
     if (await page.getByLabel('Edit index.html').isDisabled()) {
       throw new Error('The source editor remained disabled after hydration.');
     }
@@ -175,6 +181,11 @@ async function runBrowserProof(url) {
       name: 'Approve preview.setTheme',
     });
     await approval.waitFor();
+    await page.waitForFunction(
+      () =>
+        document.activeElement?.getAttribute('aria-label') ===
+        'Approve preview.setTheme'
+    );
     await approval.click();
     await page
       .getByText(

@@ -2525,6 +2525,8 @@ function EditorWorkbench({
     };
   }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
+  const focusedApprovalIdRef = useRef<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -2596,6 +2598,16 @@ function EditorWorkbench({
     toolApprovalStore.getSnapshot,
     toolApprovalStore.getSnapshot
   );
+  useEffect(() => {
+    const firstApproval = pendingApprovals[0];
+    if (!firstApproval) {
+      focusedApprovalIdRef.current = null;
+      return;
+    }
+    if (focusedApprovalIdRef.current === firstApproval.id) return;
+    focusedApprovalIdRef.current = firstApproval.id;
+    window.requestAnimationFrame(() => firstApprovalButtonRef.current?.focus());
+  }, [pendingApprovals]);
   const hasWritableFolder = useSyncExternalStore(
     fileSystemAdapter.subscribe,
     () => fileSystemAdapter.hasWritableFolder,
@@ -4355,7 +4367,9 @@ function EditorWorkbench({
                     : 'Save'}
               </button>
               <span
+                aria-live="polite"
                 className={`save-status ${hasUnsavedChanges ? 'save-status-dirty' : ''}`}
+                role="status"
               >
                 <span className="status-dot" />
                 {hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}
@@ -4457,7 +4471,9 @@ function EditorWorkbench({
             {pendingApprovals.length ? (
               <section
                 aria-label="Pending tool approvals"
+                aria-live="assertive"
                 className="approval-panel"
+                role="region"
               >
                 <div className="approval-heading">
                   <span className="approval-dot" />
@@ -4494,6 +4510,11 @@ function EditorWorkbench({
                       <button
                         aria-label={`Approve ${approval.name}`}
                         className="approval-allow"
+                        ref={
+                          approval.id === pendingApprovals[0]?.id
+                            ? firstApprovalButtonRef
+                            : undefined
+                        }
                         onClick={() =>
                           resolveToolApproval(approval.id, 'allow')
                         }
@@ -4633,7 +4654,9 @@ function EditorWorkbench({
               <strong>localhost · sandbox</strong>
             </div>
             <span
+              aria-live="polite"
               className={`preview-status preview-status-${snapshot.preview.status}`}
+              role="status"
             >
               <span className="status-dot" /> {previewStatusLabel}
             </span>
