@@ -198,6 +198,8 @@ Open folder → generic FileSystemAdapter
 - 에디터의 active-file Delete action도 palette와 model loop가 사용하는
   동일한 `workspace.deleteFile` registry contract를 호출하므로 별도 mutation
   경로를 만들지 않는다.
+- `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
+  settings·New file modal 입력 중에는 동작하지 않는다.
 - Explorer의 New file dialog도 `workspace.createFile`을 호출한다. validation
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
   선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별

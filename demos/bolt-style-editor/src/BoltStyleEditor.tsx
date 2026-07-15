@@ -1251,6 +1251,24 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
+  useEffect(() => {
+    const handleSaveShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.key.toLowerCase() !== 's' ||
+        showSettings ||
+        showCreateFile
+      ) {
+        return;
+      }
+      event.preventDefault();
+      void saveWorkspace();
+    };
+
+    window.addEventListener('keydown', handleSaveShortcut);
+    return () => window.removeEventListener('keydown', handleSaveShortcut);
+  }, [isStorageReady, saving, showCreateFile, showSettings, workspace]);
+
   const cancelExecution = () => {
     denyPendingToolApprovals();
     const controller = executionControllerRef.current;
@@ -1650,6 +1668,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 Delete
               </button>
               <button
+                aria-keyshortcuts="Control+S Meta+S"
                 className="editor-save"
                 disabled={!isStorageReady || saving || !workspace.isDirty()}
                 onClick={() => void saveWorkspace()}

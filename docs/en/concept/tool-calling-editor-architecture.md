@@ -207,6 +207,8 @@ Open folder → generic FileSystemAdapter
 - The editor's active-file Delete action routes through the same
   `workspace.deleteFile` registry contract as the palette and model loop;
   it does not introduce a second mutation path.
+- The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
+  shortcut is disabled while the settings or New file modal is being edited.
 - The Explorer's New file dialog similarly routes through
   `workspace.createFile`; validation failures stay in the tool result path and
   remain visible inside the dialog and do not close it, while successful creation
