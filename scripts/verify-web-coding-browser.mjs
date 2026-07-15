@@ -208,6 +208,14 @@ async function runBrowserProof(url) {
     await editorTabs.filter({ hasText: 'index.html' }).focus();
     await page.keyboard.press('ArrowRight');
     await page.getByLabel('Edit styles.css').waitFor();
+    await page.waitForFunction(
+      () =>
+        Array.from(document.querySelectorAll('button[role="tab"]')).some(
+          (button) =>
+            button.textContent?.includes('styles.css') &&
+            !(button instanceof HTMLButtonElement && button.disabled)
+        )
+    );
     if (
       (await page
         .getByRole('tab', { name: /styles\.css/ })
@@ -218,6 +226,14 @@ async function runBrowserProof(url) {
     await page.getByRole('tab', { name: /styles\.css/ }).focus();
     await page.keyboard.press('End');
     await page.getByLabel('Edit README.md').waitFor();
+    await page.waitForFunction(
+      () =>
+        Array.from(document.querySelectorAll('button[role="tab"]')).some(
+          (button) =>
+            button.textContent?.includes('README.md') &&
+            !(button instanceof HTMLButtonElement && button.disabled)
+        )
+    );
     await page.getByRole('tab', { name: /README\.md/ }).focus();
     await page.keyboard.press('Home');
     await page.getByLabel('Edit index.html').waitFor();
@@ -557,6 +573,25 @@ async function runBrowserProof(url) {
       .locator('#api-folder-proof')
       .waitFor();
 
+    await page.getByRole('tab', { name: /notes\.md/ }).click();
+    await page.getByRole('button', { name: 'Rename notes.md' }).click();
+    const renameDialog = page.getByRole('dialog', { name: 'Rename file' });
+    await renameDialog.getByLabel('New file path').fill('renamed.md');
+    await renameDialog
+      .getByRole('button', { name: 'Rename file', exact: true })
+      .click();
+    await page.getByLabel('Edit renamed.md').waitFor();
+    await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
+    await page.getByRole('button', { name: 'Revert renamed.md' }).click();
+    const revertDialog = page.getByRole('dialog', {
+      name: 'Revert active file?',
+    });
+    await revertDialog.getByRole('button', { name: 'Revert file' }).click();
+    await page.getByLabel('Edit notes.md').waitFor();
+    if (await page.getByRole('tab', { name: /renamed\.md/ }).count()) {
+      throw new Error('Reverting a renamed file did not restore its original path.');
+    }
+
     await page.getByRole('tab', { name: /app\.js/ }).click();
     const apiFolderEditor = page.getByLabel('Edit app.js');
     await apiFolderEditor.fill("document.body.dataset.apiFolder = 'saved';");
@@ -586,6 +621,33 @@ async function runBrowserProof(url) {
     if (await page.getByRole('button', { name: 'Disconnect linked workspace folder' }).count()) {
       throw new Error('Disconnect did not remove the local folder sync controls.');
     }
+    await page.getByRole('tab', { name: /notes\.md/ }).click();
+    await page.getByRole('button', { name: 'Rename notes.md' }).click();
+    const persistedRenameDialog = page.getByRole('dialog', {
+      name: 'Rename file',
+    });
+    await persistedRenameDialog
+      .getByLabel('New file path')
+      .fill('renamed-persisted.md');
+    await persistedRenameDialog
+      .getByRole('button', { name: 'Rename file', exact: true })
+      .click();
+    await page.getByLabel('Edit renamed-persisted.md').waitFor();
+    await page
+      .locator('.statusbar-state:not(.statusbar-state-running)')
+      .waitFor();
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByLabel('Edit renamed-persisted.md').waitFor();
+    await page
+      .getByRole('button', { name: 'Revert renamed-persisted.md' })
+      .click();
+    const persistedRevertDialog = page.getByRole('dialog', {
+      name: 'Revert active file?',
+    });
+    await persistedRevertDialog
+      .getByRole('button', { name: 'Revert file' })
+      .click();
+    await page.getByLabel('Edit notes.md').waitFor();
     await page.getByRole('tab', { name: /index\.html/ }).click();
 
     await page

@@ -106,6 +106,9 @@ acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로
 `workspace.getStatus`를 호출하고, file target을 알고 있으면
 `workspace.listFiles`를 호출한다. text mutation이면 `workspace.readFile`도 호출한
 뒤 mutation을 실행한다.
+mutation tool 결과는 preview acknowledgement 이후 Dexie write queue가 끝날
+때까지 기다린다. 따라서 rename, source write, undo, redo 직후 browser를
+새로고침해도 오래된 workspace 상태가 복원되는 race를 피할 수 있다.
 다운로드 요청에 path가 없으면 현재 `activePath`를 `workspace.downloadFile`의
 대상으로 사용하며, active workspace file 자체가 없을 때만 path를 다시 요청한다.
 example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter request가 실행 중이면
@@ -491,8 +494,10 @@ Open folder → generic FileSystemAdapter
   지원되는 HTML/CSS/JS와 asset 확장자는 type-safe하게 유지하고 마지막 HTML
   preview entry를 없애는 이름 변경은 거부한다.
 - `workspace.revertFile`은 active file을 마지막 saved browser workspace
-  checkpoint로 복원한다. 저장되지 않은 새 파일이면 해당 파일을 제거하며,
-  model 호출은 destructive policy·approval 경계를 통과해야 한다.
+  checkpoint로 복원한다. rename된 file은 origin metadata를 유지하므로 현재
+  workspace session 안에서는 원래 path와 source까지 되돌릴 수 있다. 저장되지
+  않은 새 파일이면 해당 파일을 제거하며, model 호출은 destructive
+  policy·approval 경계를 통과해야 한다.
 - `workspace.undo`와 `workspace.redo`는 editor 버튼과 local/model call이
   공유하는 edit-history canonical boundary다. 현재 `expectedRevision`을
   확인한 뒤 browser workspace checkpoint를 이동하고, 결과 projection을

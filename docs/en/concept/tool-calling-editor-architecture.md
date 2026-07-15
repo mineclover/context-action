@@ -111,6 +111,9 @@ The deterministic local fallback follows the same inspection boundary for
 mutations: it calls `workspace.getStatus`, then `workspace.listFiles` and
 `workspace.readFile` for text mutations when a file target is known, before
 applying the mutation.
+Mutation tool results wait for the queued Dexie write after the preview
+acknowledgement, so an immediate browser reload cannot race a rename, source
+write, undo, or redo and restore stale workspace state.
 For a download request without an explicit path, it resolves the current
 `activePath` to `workspace.downloadFile`; it asks for a path only when no active
 workspace file exists.
@@ -520,8 +523,10 @@ Open folder → generic FileSystemAdapter
   asset extensions remain type-safe, and the workspace cannot rename away its
   last HTML preview entry.
 - `workspace.revertFile` restores the active file to the last saved browser
-  workspace checkpoint. For an unsaved new file it removes that file; model
-  calls remain behind the destructive policy and approval boundary.
+  workspace checkpoint. A renamed file retains its origin metadata so revert
+  can restore the original path and source during the current workspace
+  session. For an unsaved new file it removes that file; model calls remain
+  behind the destructive policy and approval boundary.
 - `workspace.undo` and `workspace.redo` are the canonical edit-history boundaries
   for the editor buttons and local/model calls. They require the current
   `expectedRevision`, move the browser workspace checkpoint, persist the

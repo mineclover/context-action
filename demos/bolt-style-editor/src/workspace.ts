@@ -17,6 +17,7 @@ export {
 
 export type WorkspaceFile = {
   path: string;
+  renamedFrom?: string;
   language: string;
   source: string;
   kind?: 'text' | 'asset';
@@ -247,6 +248,10 @@ export class BrowserWorkspace {
   }
 
   getSnapshot = (): WorkspaceSnapshot => this.snapshot;
+
+  async waitForPersistence(): Promise<void> {
+    await this.persistQueue;
+  }
 
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -549,6 +554,29 @@ export class BrowserWorkspace {
     const savedFile = this.savedFiles.find(
       (file) => file.path === normalizedPath
     );
+    if (
+      currentFile.renamedFrom &&
+      !this.snapshot.files.some((file) => file.path === currentFile.renamedFrom)
+    ) {
+      const restored = this.renameFile(normalizedPath, currentFile.renamedFrom);
+      const originalSavedFile = this.savedFiles.find(
+        (file) => file.path === currentFile.renamedFrom
+      );
+      if (
+        originalSavedFile &&
+        restored.files.find((file) => file.path === originalSavedFile.path)
+          ?.source !== originalSavedFile.source
+      ) {
+        return this.updateFile(
+          originalSavedFile.path,
+          originalSavedFile.source,
+          {
+            coalesce: false,
+          }
+        );
+      }
+      return restored;
+    }
     if (!savedFile) {
       return this.deleteFile(normalizedPath);
     }
@@ -651,6 +679,10 @@ export class BrowserWorkspace {
       ...file,
       path: normalizedToPath,
       language: nextLanguage,
+      renamedFrom:
+        file.renamedFrom === normalizedToPath
+          ? undefined
+          : (file.renamedFrom ?? normalizedFromPath),
       ...(file.kind === 'asset'
         ? {}
         : { mimeType: mimeTypeForWorkspaceLanguage(nextLanguage) }),

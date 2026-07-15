@@ -1220,9 +1220,10 @@ function ToolHandlers({
     }
   );
 
-  useBoltStyleToolHandler('workspace.openFile', ({ path }) => {
+  useBoltStyleToolHandler('workspace.openFile', async ({ path }) => {
     const normalizedPath = normalizeWorkspacePath(path);
     workspace.setActivePath(normalizedPath);
+    await workspace.waitForPersistence();
     const snapshot = workspace.getSnapshot();
     return {
       path: normalizedPath,
@@ -1241,6 +1242,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         path: snapshot.activePath,
         activePath: snapshot.activePath,
@@ -1267,6 +1269,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         fromPath: normalizedFromPath,
         toPath: normalizedToPath,
@@ -1289,6 +1292,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         path: file.path,
         activePath: snapshot.activePath,
@@ -1317,6 +1321,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         path: file.path,
         revision: snapshot.revision,
@@ -1469,6 +1474,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         rootName: snapshot.rootName,
         activePath: snapshot.activePath,
@@ -1533,6 +1539,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         path: file.path,
         replacements: patch.replacements,
@@ -1555,6 +1562,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         path: file.path,
         activePath: snapshot.activePath,
@@ -1578,6 +1586,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         direction: 'undo' as const,
         changed: true,
@@ -1602,6 +1611,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         direction: 'redo' as const,
         changed: true,
@@ -1655,6 +1665,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         theme,
         ...workspaceResultMeta(snapshot),
@@ -1688,6 +1699,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         title,
         ...workspaceResultMeta(snapshot),
@@ -1732,6 +1744,7 @@ function ToolHandlers({
         2500,
         controller.signal
       );
+      await workspace.waitForPersistence();
       return {
         title,
         ...workspaceResultMeta(snapshot),
@@ -2961,7 +2974,12 @@ function EditorWorkbench({
       file && file.kind !== 'asset' && file.source !== editorDrafts[path]
     );
   });
-  const canRevertActiveFile = dirtyPaths.has(activeFile.path);
+  const canRevertActiveFile =
+    dirtyPaths.has(activeFile.path) ||
+    Boolean(
+      activeFile.renamedFrom &&
+        !snapshot.files.some((file) => file.path === activeFile.renamedFrom)
+    );
   const canDeleteActiveFile =
     snapshot.files.length > 1 &&
     (activeFile.language !== 'html' ||

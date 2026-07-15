@@ -21,6 +21,7 @@ type WorkspaceFileRecord = {
   id: string;
   workspaceId: string;
   path: string;
+  renamedFrom?: string;
   language: string;
   kind?: 'text' | 'asset';
   mimeType: string;
@@ -137,6 +138,7 @@ export class WebCodingWorkspaceRepository {
         id: `${this.workspaceId}:${file.path}`,
         workspaceId: this.workspaceId,
         path: file.path,
+        renamedFrom: file.renamedFrom,
         language: file.language,
         kind: file.kind ?? 'text',
         mimeType: blob.type,
@@ -174,6 +176,7 @@ export class WebCodingWorkspaceRepository {
           id: `${this.workspaceId}:${file.path}`,
           workspaceId: this.workspaceId,
           path: file.path,
+          renamedFrom: file.renamedFrom,
           language: file.language,
           kind: file.kind ?? 'text',
           mimeType: blob.type,
@@ -295,6 +298,7 @@ export class WebCodingWorkspaceRepository {
         record.kind === 'asset' || record.language === 'asset'
           ? {
               path: record.path,
+              renamedFrom: record.renamedFrom,
               language: 'asset',
               source: '',
               kind: 'asset' as const,
@@ -303,6 +307,7 @@ export class WebCodingWorkspaceRepository {
             }
           : {
               path: record.path,
+              renamedFrom: record.renamedFrom,
               language: record.language,
               source: await record.blob.text(),
               kind: 'text' as const,
