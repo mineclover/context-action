@@ -92,6 +92,12 @@ The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, and JSON input schema are
 the same contract exported to MCP and OpenRouter.
 
+For the standalone demo, model-originated non-read-only calls pause at the
+`toolPolicy` boundary until the user approves or denies them. The approval card
+shows only the tool name, description, source, and argument keys; it never
+echoes the file source. Local agent and palette calls use the local source and
+remain deterministic without an approval round trip.
+
 ## iframe rules
 
 The iframe is limited to:
@@ -218,3 +224,5 @@ Open folder → generic FileSystemAdapter
 - Validation and policy failures return structured errors the model can read.
 - The iframe rejects stale document revisions.
 - Destructive tools cannot run without policy approval.
+- Model-originated mutation calls cannot pass the policy boundary without an
+  explicit approval or denial.

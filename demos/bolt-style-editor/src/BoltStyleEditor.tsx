@@ -21,6 +21,12 @@ import {
   runOpenRouterAgent,
   saveOpenRouterSettings,
 } from './openrouter';
+import {
+  denyPendingToolApprovals,
+  requestToolApproval,
+  resolveToolApproval,
+  toolApprovalStore,
+} from './tool-approval';
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import { recordToolCall, recordToolList, toolTraceStore } from './tool-trace';
 import {
@@ -41,6 +47,15 @@ const {
   schema: boltStyleToolSchema,
   debug: true,
   onToolCall: recordToolCall,
+  toolPolicy: ({ context, definition, request }) => {
+    if (
+      context?.source !== 'model' ||
+      definition.annotations?.readOnlyHint === true
+    ) {
+      return 'allow';
+    }
+    return requestToolApproval({ request, definition, context });
+  },
 });
 
 type BoltStyleRegistry = ToolRegistry<BoltStyleToolSchema>;
@@ -414,7 +429,7 @@ async function runLocalAgent(
         name: call.name,
         arguments: call.arguments,
       },
-      { context: { source: 'model' }, signal }
+      { context: { source: 'local' }, signal }
     );
     throwIfAborted(signal);
     toolNames.push(call.name);
@@ -870,6 +885,11 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     toolTraceStore.getSnapshot,
     toolTraceStore.getSnapshot
   );
+  const pendingApprovals = useSyncExternalStore(
+    toolApprovalStore.subscribe,
+    toolApprovalStore.getSnapshot,
+    toolApprovalStore.getSnapshot
+  );
 
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
@@ -1020,6 +1040,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   };
 
   const cancelExecution = () => {
+    denyPendingToolApprovals();
     const controller = executionControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
   };
@@ -1415,6 +1436,50 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               </div>
               <span className="agent-badge">LOCAL / TOOL CALLING</span>
             </div>
+            {pendingApprovals.length ? (
+              <section
+                aria-label="Pending tool approvals"
+                className="approval-panel"
+              >
+                <div className="approval-heading">
+                  <span className="approval-dot" />
+                  <strong>Approval required</strong>
+                  <span>{pendingApprovals.length}</span>
+                </div>
+                {pendingApprovals.map((approval) => (
+                  <div className="approval-request" key={approval.id}>
+                    <strong>{approval.name}</strong>
+                    <p>{approval.description}</p>
+                    <small>
+                      {approval.argumentKeys.length
+                        ? `arguments · ${approval.argumentKeys.join(', ')}`
+                        : 'no arguments'}{' '}
+                      · {approval.source}
+                    </small>
+                    <div className="approval-actions">
+                      <button
+                        aria-label={`Deny ${approval.name}`}
+                        className="approval-deny"
+                        onClick={() => resolveToolApproval(approval.id, 'deny')}
+                        type="button"
+                      >
+                        Deny
+                      </button>
+                      <button
+                        aria-label={`Approve ${approval.name}`}
+                        className="approval-allow"
+                        onClick={() =>
+                          resolveToolApproval(approval.id, 'allow')
+                        }
+                        type="button"
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </section>
+            ) : null}
             <div className="message-list">
               {messages.map((message, index) => (
                 <div

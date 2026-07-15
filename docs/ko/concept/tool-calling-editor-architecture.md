@@ -90,6 +90,11 @@ sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는�
 화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
 export되는 contract와 동일하다.
 
+standalone demo에서는 model source의 non-read-only call이 `toolPolicy` 경계에서
+사용자 승인 또는 거부를 기다린다. approval card에는 tool name·description·source·
+argument key만 표시하고 파일 source 자체는 다시 보여주지 않는다. local agent와
+palette call은 local source를 사용하므로 승인 왕복 없이 결정적으로 실행된다.
+
 ## iframe 규칙
 
 iframe은 다음 역할만 담당한다.
@@ -212,3 +217,5 @@ Open folder → generic FileSystemAdapter
 - validation/policy 오류는 모델이 읽을 수 있는 structured error로 돌아간다.
 - iframe revision이 오래된 patch를 거부한다.
 - destructive tool은 policy 승인 없이 실행되지 않는다.
+- model source의 mutation call은 명시적인 승인 또는 거부 없이는 policy 경계를
+  통과하지 못한다.

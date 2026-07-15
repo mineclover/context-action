@@ -131,6 +131,20 @@ a { color: inherit; text-decoration: none; }
 .chat-heading, .preview-toolbar, .preview-footer { align-items: end; display: flex; justify-content: space-between; }
 .chat-heading strong, .preview-toolbar strong, .preview-footer strong { color: #ebedf2; display: block; font-size: 13px; font-weight: 600; }
 .agent-badge { color: #8e80e9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; }
+.approval-panel { background: #211c28; border: 1px solid #6a4c76; border-radius: 8px; margin-top: 12px; padding: 10px; }
+.approval-heading { align-items: center; color: #f0c2ff; display: flex; font-size: 10px; gap: 6px; letter-spacing: .08em; text-transform: uppercase; }
+.approval-heading > span:last-child { background: #3a2a45; border-radius: 999px; color: #d8a9eb; font-size: 9px; margin-left: auto; padding: 3px 6px; }
+.approval-dot { background: #d891f1; border-radius: 999px; height: 6px; width: 6px; }
+.approval-request { border-top: 1px solid #45314d; margin-top: 9px; padding-top: 9px; }
+.approval-request > strong { color: #f4e8f8; display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.approval-request p { color: #c9b7cd; font-size: 11px; line-height: 1.4; margin: 5px 0; }
+.approval-request small { color: #957f9b; display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.approval-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.approval-actions button { border-radius: 5px; cursor: pointer; font-size: 10px; padding: 5px 9px; }
+.approval-deny { background: transparent; border: 1px solid #65404b; color: #e3a0ab; }
+.approval-deny:hover { background: #3a252c; }
+.approval-allow { background: #a875c1; color: #1c1221; font-weight: 750; }
+.approval-allow:hover { background: #c28bd8; }
 .message-list { max-height: 125px; overflow: auto; padding: 10px 0 4px; }
 .message { display: flex; font-size: 12px; gap: 9px; line-height: 1.45; margin-bottom: 9px; }
 .message p { color: #acb3c1; margin: 0; }
