@@ -456,9 +456,10 @@ Open folder → generic FileSystemAdapter
   model call, approval policy, trace, structured result가 같은 계약을 공유한다.
   browser-only `Save`는 browser checkpoint만 전진시킨다.
 - `workspace.getStatus`는 standalone catalog의 read-only 상태 경계다. 현재
-  revision·persistence mode·preview 상태·dirty/deleted path와 함께 명시적인
-  filesystem capability(`saveAllAvailable`, `reloadAvailable`)를 반환하므로,
-  모델이 mutation 전에 local-folder 경계를 확인할 수 있다.
+  revision·persistence mode·preview 상태·dirty/deleted path·undo/redo 가능
+  여부와 함께 명시적인 filesystem capability(`saveAllAvailable`,
+  `reloadAvailable`)를 반환하므로, 모델이 mutation 전에 local-folder와
+  edit-history 경계를 확인할 수 있다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`, `saveCheckpoint`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를

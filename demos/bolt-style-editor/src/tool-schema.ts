@@ -131,6 +131,10 @@ const workspaceStatusOutputSchema = z.object({
   fileCount: z.number().int().nonnegative(),
   dirtyPaths: z.array(z.string()),
   deletedPaths: z.array(z.string()),
+  history: z.object({
+    canUndo: z.boolean(),
+    canRedo: z.boolean(),
+  }),
   filesystem: z.object({
     mode: z.enum(['local-folder', 'browser-only']),
     folderLinked: z.boolean(),

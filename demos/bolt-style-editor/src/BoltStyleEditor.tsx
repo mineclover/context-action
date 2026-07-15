@@ -1260,6 +1260,10 @@ function ToolHandlers({
       fileCount: snapshot.files.length,
       dirtyPaths,
       deletedPaths: workspace.getDeletedPaths(),
+      history: {
+        canUndo: workspace.canUndo(),
+        canRedo: workspace.canRedo(),
+      },
       filesystem: {
         mode: folderLinked ? 'local-folder' : 'browser-only',
         folderLinked,
