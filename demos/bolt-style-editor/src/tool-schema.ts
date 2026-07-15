@@ -80,6 +80,13 @@ const workspaceDisconnectFolderOutputSchema = z.object({
 const workspacePatchOutputSchema = syncedWorkspaceMutationOutputSchema.extend({
   replacements: z.number().int().positive(),
 });
+const workspaceHistoryOutputSchema = z.object({
+  direction: z.enum(['undo', 'redo']),
+  changed: z.boolean(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+});
 const previewThemeOutputSchema = z.object({
   theme: z.enum(['violet', 'emerald', 'amber', 'rose']),
   activePath: z.string(),
@@ -97,6 +104,11 @@ const previewStatusOutputSchema = z.object({
   status: z.enum(['waiting', 'synced', 'error']),
   message: z.string().optional(),
   runtime: z.literal('sandbox iframe'),
+});
+const previewRefreshOutputSchema = z.object({
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
 });
 const workspaceStatusOutputSchema = z.object({
   rootName: z.string(),
@@ -277,6 +289,28 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.undo': defineAction(
+    {
+      name: 'workspace.undo',
+      description:
+        'Undo the latest workspace edit and refresh the live preview, optionally guarded by a workspace revision.',
+      annotations: { destructiveHint: true },
+      parameters: z.object({ expectedRevision }),
+      outputSchema: workspaceHistoryOutputSchema,
+    },
+    z
+  ),
+  'workspace.redo': defineAction(
+    {
+      name: 'workspace.redo',
+      description:
+        'Redo the next workspace edit and refresh the live preview, optionally guarded by a workspace revision.',
+      annotations: { destructiveHint: true },
+      parameters: z.object({ expectedRevision }),
+      outputSchema: workspaceHistoryOutputSchema,
+    },
+    z
+  ),
   'preview.setTheme': defineAction(
     {
       name: 'preview.setTheme',
@@ -321,6 +355,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { readOnlyHint: true },
       parameters: z.object({}),
       outputSchema: previewStatusOutputSchema,
+    },
+    z
+  ),
+  'preview.refresh': defineAction(
+    {
+      name: 'preview.refresh',
+      description:
+        'Remount the sandbox iframe for the current workspace revision and wait for its acknowledgement.',
+      annotations: { idempotentHint: true },
+      parameters: z.object({}),
+      outputSchema: previewRefreshOutputSchema,
     },
     z
   ),

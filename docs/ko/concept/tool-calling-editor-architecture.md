@@ -306,18 +306,20 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.renameFile` | local demo allow | source와 preview 계약을 유지하면서 파일 이름 변경 |
 | `workspace.writeFile` | local demo allow | text file 하나 교체 후 preview 갱신 |
 | `workspace.applyPatch` | local demo allow | 제한된 literal text replacement 적용 |
+| `workspace.undo`, `workspace.redo` | local demo allow | revision guard와 함께 workspace edit history 이동 |
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
 | `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
 | `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
 | `workspace.reloadFolder` | approval required | 연결된 folder를 다시 읽어 browser workspace 교체 |
 | `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
+| `preview.refresh` | local demo allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
 
 standalone surface의 status-aware 호출 순서는 다음과 같다.
 
 ```text
 tools/list → workspace.getStatus → workspace.listFiles →
 workspace.openFile (tab 선택이 필요한 경우) → workspace.readFile →
-workspace mutation → iframe acknowledgement → workspace.saveAll (요청된 경우)
+workspace mutation, workspace.undo/redo 또는 preview.refresh → iframe acknowledgement → workspace.saveAll (요청된 경우)
 ```
 
 사용자가 이미 연결된 folder의 새 내용을 명시적으로 요청하면
@@ -405,7 +407,7 @@ Open folder → generic FileSystemAdapter
   확인한다.
 - standalone registry는 `workspace.openFile`, `workspace.createFile`, `workspace.renameFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
-  `workspace.deleteFile`, `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
@@ -420,6 +422,14 @@ Open folder → generic FileSystemAdapter
 - `workspace.revertFile`은 active file을 마지막 saved browser workspace
   checkpoint로 복원한다. 저장되지 않은 새 파일이면 해당 파일을 제거하며,
   model 호출은 destructive policy·approval 경계를 통과해야 한다.
+- `workspace.undo`와 `workspace.redo`는 editor 버튼과 local/model call이
+  공유하는 edit-history canonical boundary다. 현재 `expectedRevision`을
+  확인한 뒤 browser workspace checkpoint를 이동하고, 결과 projection을
+  저장하며, 일치하는 iframe acknowledgement를 기다린다.
+- `preview.refresh`는 Refresh 버튼, tool palette, 명시적인 agent 요청이
+  공유하는 preview-remount canonical boundary다. workspace revision은
+  유지한 채 iframe을 초기화하고 같은 revision이 다시 acknowledged될 때까지
+  기다린다.
 - 에디터의 active-file Delete action도 palette와 model loop가 사용하는
   동일한 `workspace.deleteFile` registry contract를 호출하므로 별도 mutation
   경로를 만들지 않는다.

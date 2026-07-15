@@ -321,18 +321,20 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.renameFile` | local demo allow | Rename a file while preserving its source and preview contract |
 | `workspace.writeFile` | local demo allow | Replace one text file and refresh preview |
 | `workspace.applyPatch` | local demo allow | Apply a bounded literal text replacement |
+| `workspace.undo`, `workspace.redo` | local demo allow | Move through the workspace edit history with a revision guard |
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
 | `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
 | `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
 | `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace |
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
+| `preview.refresh` | local demo allow | Remount the sandbox iframe and await the current revision acknowledgement |
 
 For the standalone surface, the status-aware sequence is:
 
 ```text
 tools/list → workspace.getStatus → workspace.listFiles →
 workspace.openFile (when a tab is requested) → workspace.readFile →
-workspace mutation → iframe acknowledgement → workspace.saveAll (when requested)
+workspace mutation, workspace.undo/redo, or preview.refresh → iframe acknowledgement → workspace.saveAll (when requested)
 ```
 
 When the user explicitly asks to refresh an already connected folder, the
@@ -425,7 +427,7 @@ Open folder → generic FileSystemAdapter
   still checked at the save boundary.
 - The standalone registry separates `workspace.openFile`, `workspace.createFile`,
   `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
-  `workspace.revertFile`, `workspace.deleteFile`, `workspace.saveAll`, and
+  `workspace.revertFile`, `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, and
   `workspace.reloadFolder`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
@@ -444,6 +446,14 @@ Open folder → generic FileSystemAdapter
 - `workspace.revertFile` restores the active file to the last saved browser
   workspace checkpoint. For an unsaved new file it removes that file; model
   calls remain behind the destructive policy and approval boundary.
+- `workspace.undo` and `workspace.redo` are the canonical edit-history boundaries
+  for the editor buttons and local/model calls. They require the current
+  `expectedRevision`, move the browser workspace checkpoint, persist the
+  resulting projection, and wait for the matching iframe acknowledgement.
+- `preview.refresh` is the canonical preview-remount boundary for the Refresh
+  button, tool palette, and explicit agent request. It keeps the workspace
+  revision unchanged while resetting the iframe and waiting for the same
+  revision to become acknowledged again.
 - The editor's active-file Delete action routes through the same
   `workspace.deleteFile` registry contract as the palette and model loop;
   it does not introduce a second mutation path.

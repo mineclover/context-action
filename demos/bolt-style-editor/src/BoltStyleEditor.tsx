@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type UIEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -109,6 +110,8 @@ const revisionGuardedWorkspaceTools = new Set([
   'workspace.writeFile',
   'workspace.applyPatch',
   'workspace.revertFile',
+  'workspace.undo',
+  'workspace.redo',
 ]);
 
 const revisionProducingWorkspaceTools = new Set([
@@ -121,6 +124,9 @@ const localMutationToolNames = new Set([
   'workspace.saveAll',
   'workspace.reloadFolder',
   'workspace.disconnectFolder',
+  'workspace.undo',
+  'workspace.redo',
+  'preview.refresh',
   'preview.setTheme',
   'preview.addFeature',
   'preview.updateHero',
@@ -944,6 +950,10 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const renamePaths = inferRenamePaths(prompt);
   const openRequest =
     /(open|show|view|열어|열기|보여|파일을\s*(?:선택|열))/i.test(prompt);
+  const undoRequest = /(\bundo\b|실행\s*취소|되돌리(?:기|어|줘|고))/i.test(
+    prompt
+  );
+  const redoRequest = /(\bredo\b|재실행|다시\s*실행)/i.test(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
 
   if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
@@ -969,6 +979,22 @@ function promptToToolCalls(prompt: string): ToolCall[] {
       name: 'workspace.openFile',
       arguments: { path: requestedPath },
     });
+  }
+
+  if (undoRequest) {
+    calls.push({ name: 'workspace.undo', arguments: {} });
+  }
+
+  if (redoRequest) {
+    calls.push({ name: 'workspace.redo', arguments: {} });
+  }
+
+  if (
+    /(refresh|reload|새로고침|갱신)/i.test(prompt) &&
+    /(preview|미리보기)/i.test(prompt) &&
+    !reloadRequest
+  ) {
+    calls.push({ name: 'preview.refresh', arguments: {} });
   }
 
   if (deleteRequest && requestedPath) {
@@ -1182,10 +1208,12 @@ async function runLocalAgent(
 function ToolHandlers({
   workspace,
   fileSystemAdapter,
+  onPreviewRefresh,
   children,
 }: {
   workspace: BrowserWorkspace;
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  onPreviewRefresh: () => void;
   children: ReactNode;
 }) {
   const workspaceResultMeta = (snapshot = workspace.getSnapshot()) => {
@@ -1508,6 +1536,54 @@ function ToolHandlers({
     { blocking: true }
   );
 
+  useBoltStyleToolHandler<'workspace.undo', unknown>(
+    'workspace.undo',
+    async ({ expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      if (!workspace.canUndo()) {
+        throw new Error('No workspace edit is available to undo.');
+      }
+      const snapshot = workspace.undo();
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        direction: 'undo' as const,
+        changed: true,
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        preview: 'synced' as const,
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.redo', unknown>(
+    'workspace.redo',
+    async ({ expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      if (!workspace.canRedo()) {
+        throw new Error('No workspace edit is available to redo.');
+      }
+      const snapshot = workspace.redo();
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        direction: 'redo' as const,
+        changed: true,
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        preview: 'synced' as const,
+      };
+    },
+    { blocking: true }
+  );
+
   useBoltStyleToolHandler<'preview.setTheme', unknown>(
     'preview.setTheme',
     async ({ theme }, controller) => {
@@ -1645,6 +1721,26 @@ function ToolHandlers({
       runtime: 'sandbox iframe',
     };
   });
+
+  useBoltStyleToolHandler<'preview.refresh', unknown>(
+    'preview.refresh',
+    async (_, controller) => {
+      const snapshot = workspace.getSnapshot();
+      workspace.setPreviewStatus(snapshot.revision, 'waiting');
+      onPreviewRefresh();
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        preview: 'synced' as const,
+      };
+    },
+    { blocking: true }
+  );
 
   return <>{children}</>;
 }
@@ -2326,9 +2422,11 @@ function RenameWorkspaceFileDialog({
 function EditorWorkbench({
   workspace,
   fileSystemAdapter,
+  previewRefreshToken,
 }: {
   workspace: BrowserWorkspace;
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  previewRefreshToken: number;
 }) {
   const registry = useBoltStyleToolRegistry();
   const snapshot = useSyncExternalStore(
@@ -2482,7 +2580,6 @@ function EditorWorkbench({
     null
   );
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const toolCatalogCounts = useMemo(() => {
     const counts: Record<ToolCatalogFilter, number> = {
       all: toolNames.length,
@@ -2566,8 +2663,7 @@ function EditorWorkbench({
 
   const refreshPreview = () => {
     if (!isStorageReady) return;
-    workspace.setPreviewStatus(snapshot.revision, 'waiting');
-    setPreviewRefreshToken((current) => current + 1);
+    void executeQuickTool({ name: 'preview.refresh', arguments: {} });
   };
 
   useEffect(() => {
@@ -3029,7 +3125,7 @@ function EditorWorkbench({
   const createWorkspaceFile = (path: string, source: string) =>
     executeQuickTool({
       name: 'workspace.createFile',
-      arguments: { path, source },
+      arguments: { path, source, expectedRevision: snapshot.revision },
     });
 
   const openWorkspaceFile = (path: string) =>
@@ -3055,7 +3151,10 @@ function EditorWorkbench({
     }
     void executeQuickTool({
       name: 'workspace.deleteFile',
-      arguments: { path: activeFile.path },
+      arguments: {
+        path: activeFile.path,
+        expectedRevision: snapshot.revision,
+      },
     });
   };
 
@@ -3070,7 +3169,10 @@ function EditorWorkbench({
     }
     void executeQuickTool({
       name: 'workspace.revertFile',
-      arguments: { path: activeFile.path },
+      arguments: {
+        path: activeFile.path,
+        expectedRevision: snapshot.revision,
+      },
     });
   };
 
@@ -3080,6 +3182,7 @@ function EditorWorkbench({
       case 'workspace.getStatus':
       case 'workspace.listFiles':
       case 'preview.getStatus':
+      case 'preview.refresh':
         return { name, arguments: {} };
       case 'workspace.readFile':
         return { name, arguments: { path: activeFile.path } };
@@ -3091,6 +3194,7 @@ function EditorWorkbench({
           arguments: {
             path: 'notes.md',
             source: '# Created from the tool palette\n',
+            expectedRevision: snapshot.revision,
           },
         };
       case 'workspace.renameFile': {
@@ -3105,11 +3209,18 @@ function EditorWorkbench({
         };
       }
       case 'workspace.deleteFile':
-        return { name, arguments: { path: 'README.md' } };
+        return {
+          name,
+          arguments: { path: 'README.md', expectedRevision: snapshot.revision },
+        };
       case 'workspace.writeFile':
         return {
           name,
-          arguments: { path: activeFile.path, source: activeSource },
+          arguments: {
+            path: activeFile.path,
+            source: activeSource,
+            expectedRevision: snapshot.revision,
+          },
         };
       case 'workspace.saveAll':
         return { name, arguments: {} };
@@ -3133,7 +3244,16 @@ function EditorWorkbench({
         };
       }
       case 'workspace.revertFile':
-        return { name, arguments: { path: activeFile.path } };
+        return {
+          name,
+          arguments: {
+            path: activeFile.path,
+            expectedRevision: snapshot.revision,
+          },
+        };
+      case 'workspace.undo':
+      case 'workspace.redo':
+        return { name, arguments: { expectedRevision: snapshot.revision } };
       case 'preview.setTheme':
         return { name, arguments: { theme: 'violet' } };
       case 'preview.addFeature':
@@ -3165,7 +3285,7 @@ function EditorWorkbench({
 
   useEffect(() => {
     resetSelectedToolArguments();
-  }, [selectedToolName, activeFile.path]);
+  }, [selectedToolName, activeFile.path, snapshot.revision]);
 
   const parseToolArguments = (): Record<string, unknown> | null => {
     try {
@@ -3670,8 +3790,18 @@ function EditorWorkbench({
               <button
                 aria-label="Undo last edit"
                 className="editor-action"
-                disabled={!isStorageReady || !workspace.canUndo()}
-                onClick={() => workspace.undo()}
+                disabled={
+                  !isStorageReady ||
+                  running ||
+                  (!workspace.canUndo() && !hasUnsavedChanges)
+                }
+                onClick={() =>
+                  void executeQuickTool({
+                    name: 'workspace.undo',
+                    arguments: { expectedRevision: snapshot.revision },
+                  })
+                }
+                title="Undo through workspace.undo"
                 type="button"
               >
                 ↶ Undo
@@ -3679,8 +3809,14 @@ function EditorWorkbench({
               <button
                 aria-label="Redo last edit"
                 className="editor-action"
-                disabled={!isStorageReady || !workspace.canRedo()}
-                onClick={() => workspace.redo()}
+                disabled={!isStorageReady || running || !workspace.canRedo()}
+                onClick={() =>
+                  void executeQuickTool({
+                    name: 'workspace.redo',
+                    arguments: { expectedRevision: snapshot.revision },
+                  })
+                }
+                title="Redo through workspace.redo"
                 type="button"
               >
                 ↷ Redo
@@ -4005,7 +4141,7 @@ function EditorWorkbench({
               <button
                 aria-label="Refresh preview"
                 className="refresh-button"
-                disabled={!isStorageReady}
+                disabled={!isStorageReady || running}
                 onClick={refreshPreview}
                 title="Reload the current workspace revision"
                 type="button"
@@ -4081,6 +4217,10 @@ function EditorWorkbench({
 function ToolRuntime() {
   const [repository] = useState(() => new WebCodingWorkspaceRepository());
   const [workspace] = useState(() => new BrowserWorkspace(repository));
+  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
+  const requestPreviewRefresh = useCallback(() => {
+    setPreviewRefreshToken((current) => current + 1);
+  }, []);
   const [fileSystemAdapter] = useState(
     () =>
       new BrowserWorkspaceFileSystemAdapter({
@@ -4098,10 +4238,15 @@ function ToolRuntime() {
     })();
   }, [fileSystemAdapter, workspace]);
   return (
-    <ToolHandlers workspace={workspace} fileSystemAdapter={fileSystemAdapter}>
+    <ToolHandlers
+      workspace={workspace}
+      fileSystemAdapter={fileSystemAdapter}
+      onPreviewRefresh={requestPreviewRefresh}
+    >
       <EditorWorkbench
         workspace={workspace}
         fileSystemAdapter={fileSystemAdapter}
+        previewRefreshToken={previewRefreshToken}
       />
     </ToolHandlers>
   );
