@@ -744,6 +744,79 @@
   white-space: pre-wrap;
 }
 
+.tracePanel {
+  display: grid;
+  gap: 0.45rem;
+  border-top: 1px solid var(--editor-border);
+  padding-top: 0.7rem;
+}
+
+.traceHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.traceHeader strong {
+  color: #40388f;
+  font-size: 0.7rem;
+}
+
+.traceHeader span,
+.traceEmpty {
+  color: #8a94a6;
+  font-size: 0.62rem;
+}
+
+.traceRows {
+  display: grid;
+  gap: 0.28rem;
+  max-height: 10rem;
+  overflow: auto;
+}
+
+.traceRow {
+  display: grid;
+  grid-template-columns: 0.9rem minmax(8.5rem, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  border-radius: 0.3rem;
+  padding: 0.28rem 0.4rem;
+  background: #f5f6f8;
+  color: #667085;
+  font-size: 0.6rem;
+}
+
+.traceRow code,
+.traceRow > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.traceRow code {
+  color: #4f5b6b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.traceRowFailed {
+  background: #fff0f0;
+  color: #a32929;
+}
+
+.traceRowFailed code {
+  color: #a32929;
+}
+
+.traceRowRunning {
+  background: #fff8e8;
+  color: #8a6400;
+}
+
 .aiResult,
 .aiError {
   margin: 0;

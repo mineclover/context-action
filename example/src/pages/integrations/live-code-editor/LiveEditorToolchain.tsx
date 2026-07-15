@@ -6,6 +6,7 @@ import {
 } from '../../../lib/live-code-editor-bridge';
 import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
+import { recordLiveEditorToolCall } from '../../../lib/live-editor-trace';
 
 export const {
   Provider: LiveEditorToolProvider,
@@ -14,6 +15,7 @@ export const {
 } = createToolContext('LiveEditorTools', {
   schema: liveEditorToolsSchema,
   debug: true,
+  onToolCall: recordLiveEditorToolCall,
 });
 
 function LiveEditorToolHandlers({

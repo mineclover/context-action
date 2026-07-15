@@ -1,5 +1,12 @@
 import type { ModelMessage } from 'ai';
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import {
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { liveEditorTraceStore } from '../../../lib/live-editor-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   getStoredOpenRouterApiKey,
@@ -15,6 +22,11 @@ import { useLiveEditorToolRegistry } from './LiveEditorToolchain';
 
 export function LiveEditorAIToolbar() {
   const registry = useLiveEditorToolRegistry();
+  const trace = useSyncExternalStore(
+    liveEditorTraceStore.subscribe,
+    liveEditorTraceStore.getSnapshot,
+    liveEditorTraceStore.getSnapshot
+  );
   const [apiKey, setApiKey] = useState(getStoredOpenRouterApiKey);
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
@@ -310,6 +322,49 @@ export function LiveEditorAIToolbar() {
         {modelShapedResult && (
           <code className={styles.localCallResult}>{modelShapedResult}</code>
         )}
+        <div className={styles.tracePanel} aria-label="Editor execution trace">
+          <div className={styles.traceHeader}>
+            <strong>Execution trace</strong>
+            <span>{trace.length} recent events</span>
+          </div>
+          {trace.length === 0 ? (
+            <span className={styles.traceEmpty}>
+              tools/list → waiting for a tools/call event
+            </span>
+          ) : (
+            <div className={styles.traceRows}>
+              {trace.slice(0, 8).map((entry) => (
+                <div
+                  className={`${styles.traceRow} ${
+                    entry.status === 'failed'
+                      ? styles.traceRowFailed
+                      : entry.status === 'running'
+                        ? styles.traceRowRunning
+                        : ''
+                  }`}
+                  key={entry.id}
+                  title={`toolCallId: ${entry.id}`}
+                >
+                  <span aria-hidden="true">
+                    {entry.status === 'failed'
+                      ? '×'
+                      : entry.status === 'running'
+                        ? '…'
+                        : '✓'}
+                  </span>
+                  <code>{entry.name}</code>
+                  <span>
+                    {entry.source}
+                    {entry.durationMs !== undefined
+                      ? ` · ${entry.durationMs}ms`
+                      : ''}
+                    {entry.summary ? ` · ${entry.summary}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <form className={styles.aiPromptForm} onSubmit={submit}>
         <input
