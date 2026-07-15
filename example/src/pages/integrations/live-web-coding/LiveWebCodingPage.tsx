@@ -114,6 +114,15 @@ button?.addEventListener('click', () => {
   ),
 ];
 
+function createDefaultWebWorkspaceBlobFiles() {
+  return defaultWebFiles.map((file) => ({
+    path: file.path,
+    blob: new Blob([file.source], { type: file.mimeType }),
+    mimeType: file.mimeType,
+    size: file.size,
+  }));
+}
+
 const themeTokens = {
   violet: { accent: '#6d5dfc', soft: '#eeedff' },
   emerald: { accent: '#0f9f78', soft: '#e7f8f2' },
@@ -641,6 +650,7 @@ function LiveWebCodingWorkbench({
     Array<{ role: 'user' | 'assistant'; text: string; tools?: string[] }>
   >([]);
   const [loading, setLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
   const executionControllerRef = useRef<AbortController | null>(null);
@@ -870,6 +880,58 @@ function LiveWebCodingWorkbench({
     documentManager.update({ file: path, source: file.source });
   };
 
+  const resetDemoWorkspace = async () => {
+    if (
+      loading ||
+      isResetting ||
+      workspaceSnapshot.storageMode !== 'indexed-db'
+    ) {
+      return;
+    }
+    if (
+      !window.confirm(
+        'Reset the live web coding demo to its built-in files? Current demo edits will be replaced.'
+      )
+    ) {
+      return;
+    }
+
+    setIsResetting(true);
+    setError('');
+    try {
+      const persisted = await repository.replaceWorkspace(
+        WEB_WORKSPACE_ID,
+        createDefaultWebWorkspaceBlobFiles(),
+        { rootName: WEB_WORKSPACE_ROOT }
+      );
+      manager.replaceFiles(persisted.files, {
+        rootName: persisted.metadata.rootName,
+        storageMode: 'indexed-db',
+        activePath: 'index.html',
+      });
+      const entry = persisted.files.find((file) => file.path === 'index.html');
+      if (entry) {
+        documentManager.update({
+          file: entry.path,
+          source: entry.source,
+          exampleId: 'realtime-web-coding',
+          scenario: 'success',
+        });
+      }
+      clearLiveWebCodingTrace();
+      setMessages([]);
+      setStatus(`${persisted.files.length} demo files restored · iframe ready`);
+    } catch (resetError) {
+      setError(
+        resetError instanceof Error
+          ? resetError.message
+          : 'Demo workspace reset failed.'
+      );
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const activeFile = workspaceSnapshot.files.find(
     (file) => file.path === workspaceSnapshot.activePath
   );
@@ -1079,7 +1141,22 @@ function LiveWebCodingWorkbench({
                   <span className={styles.panelKicker}>Tool palette</span>
                   <h2>작은 명령을 직접 실행</h2>
                 </div>
-                <span className={styles.workspaceStatus}>{status}</span>
+                <div className={styles.workspaceHeaderActions}>
+                  <button
+                    type="button"
+                    className={styles.workspaceResetButton}
+                    onClick={() => void resetDemoWorkspace()}
+                    disabled={
+                      loading ||
+                      isResetting ||
+                      workspaceSnapshot.storageMode !== 'indexed-db'
+                    }
+                    title="Restore the built-in live web coding files"
+                  >
+                    {isResetting ? 'Resetting…' : 'Reset demo workspace'}
+                  </button>
+                  <span className={styles.workspaceStatus}>{status}</span>
+                </div>
               </div>
               <div className={styles.toolGrid}>
                 {toolDefinitions.map((tool) => (

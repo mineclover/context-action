@@ -130,6 +130,37 @@
   font-size: 0.95rem;
 }
 
+.workspaceHeaderActions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.workspaceResetButton {
+  border: 1px solid #c9c4ff;
+  border-radius: 0.35rem;
+  padding: 0.38rem 0.5rem;
+  background: #f4f2ff;
+  color: #5147b7;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.workspaceResetButton:hover {
+  border-color: #9d91ff;
+  background: #ebe8ff;
+}
+
+.workspaceResetButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .statusDot {
   border-color: #c8c2ff;
   background: #f0efff;
