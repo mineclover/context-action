@@ -56,6 +56,10 @@ browser-workspace-only. When a writable folder remains linked, `Reload` reads
 the directory again and replaces the browser workspace; dirty changes require
 explicit confirmation before they are discarded. Opening a different folder uses
 the same confirmation boundary, and cancelling preserves the current workspace.
+The adapter exposes restored write permission as `granted`, `prompt`, `denied`,
+`unknown`, or `disconnected`; the header and `workspace.getStatus` surface the
+same state, while `Grant access` requests permission without replacing the
+browser workspace.
 An empty or unsupported folder is rejected during both open and reload, so it
 cannot replace the current workspace or leave a misleading folder connection.
 The standalone Vite config resolves the workspace `core`, `react`, and
@@ -227,7 +231,9 @@ canonical list without changing discovery or execution policy. Scope counts are
 derived from canonical annotations and namespaces: all, read-only, workspace,
 and preview. `Copy list` serializes the complete `tools` array returned by
 `registry.listTools({ method: 'tools/list' })`, so the catalog can be pasted into
-an MCP/provider test without reconstructing definitions by hand. The sample
+an MCP/provider test without reconstructing definitions by hand. `Download list`,
+`Download definition`, and `Download tools/call` provide the same contracts as
+JSON files when browser Clipboard permissions are unavailable. The sample
 argument editor refreshes only untouched generated samples when selection or
 workspace revision changes; once the user edits the JSON, custom arguments are
 preserved so stale-revision and validation cases can be tested deliberately.
@@ -523,8 +529,9 @@ Open folder → generic FileSystemAdapter
 - `workspace.getStatus` is the read-only status boundary for the standalone
   catalog. It reports the current revision, persistence mode, preview state,
   dirty/deleted paths, undo/redo capabilities, and explicit filesystem
-  capabilities (`saveAllAvailable` and `reloadAvailable`); this lets a model
-  inspect the local-folder and edit-history boundaries before mutating them.
+  capabilities (`permission`, `saveAllAvailable`, and `reloadAvailable`); this
+  lets a model inspect the local-folder permission and edit-history boundaries
+  before mutating them.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
   (`reset`, `createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,

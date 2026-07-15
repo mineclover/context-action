@@ -56,6 +56,9 @@ browser workspace를 교체하며, dirty 변경은 버리기 전에 명시적인
 다른 folder를 여는 경우에도 같은 확인 경계를 사용하며, 취소하면 현재
 workspace를 유지한다. 지원 가능한 파일이 없는 folder는 open과 reload 모두에서
 거부되어 현재 workspace를 교체하거나 잘못된 folder 연결 상태를 남기지 않는다.
+adapter는 복원된 write permission을 `granted`, `prompt`, `denied`, `unknown`,
+`disconnected` 상태로 노출한다. header와 `workspace.getStatus`는 같은 상태를
+표시하며, `Grant access`는 browser workspace를 교체하지 않고 권한만 다시 요청한다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.
@@ -215,7 +218,9 @@ policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace�
 계산하며 all·read-only·workspace·preview 범위를 제공한다.
 `Copy list`는 `registry.listTools({ method: 'tools/list' })`가 반환한 전체 `tools`
 array를 serialize하므로 definition을 수동으로 다시 만들지 않고 MCP/provider
-테스트에 붙여 넣을 수 있다. sample argument editor는 selection이나 workspace
+테스트에 붙여 넣을 수 있다. `Download list`, `Download definition`,
+`Download tools/call`은 Clipboard 권한이 없는 환경에서도 같은 계약을 JSON 파일로
+가져가게 한다. sample argument editor는 selection이나 workspace
 revision 변경 시 수정하지 않은 generated sample만 갱신하며, 사용자가 JSON을
 직접 편집한 뒤에는 custom arguments를 보존한다. 따라서 stale revision과
 validation case도 의도적으로 테스트할 수 있다.
@@ -491,9 +496,9 @@ Open folder → generic FileSystemAdapter
   browser-only `Save`는 browser checkpoint만 전진시킨다.
 - `workspace.getStatus`는 standalone catalog의 read-only 상태 경계다. 현재
   revision·persistence mode·preview 상태·dirty/deleted path·undo/redo 가능
-  여부와 함께 명시적인 filesystem capability(`saveAllAvailable`,
-  `reloadAvailable`)를 반환하므로, 모델이 mutation 전에 local-folder와
-  edit-history 경계를 확인할 수 있다.
+  여부와 함께 명시적인 filesystem capability(`permission`,
+  `saveAllAvailable`, `reloadAvailable`)를 반환하므로, 모델이 mutation 전에
+  local-folder permission과 edit-history 경계를 확인할 수 있다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`reset`, `createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`, `saveCheckpoint`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
