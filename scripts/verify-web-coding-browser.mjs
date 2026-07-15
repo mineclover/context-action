@@ -560,7 +560,6 @@ async function runBrowserProof(url) {
     await page.getByRole('tab', { name: /app\.js/ }).click();
     const apiFolderEditor = page.getByLabel('Edit app.js');
     await apiFolderEditor.fill("document.body.dataset.apiFolder = 'saved';");
-    await page.locator('#trace-list').getByText('workspace.writeFile').waitFor();
     await page.locator('.editor-save').click();
     await page.getByText('Saved', { exact: true }).waitFor();
     const savedFolderSource = await page.evaluate(

@@ -4766,21 +4766,29 @@ function EditorWorkbench({
                 aria-keyshortcuts="Control+S Meta+S"
                 className="editor-save"
                 disabled={
-                  !isStorageReady || running || saving || !hasUnsavedChanges
+                  !isStorageReady ||
+                  running ||
+                  saving ||
+                  !hasUnsavedChanges ||
+                  hasUnpersistedEditorDrafts
                 }
                 onClick={() => void saveWorkspace()}
                 title={
-                  hasWritableFolder
-                    ? 'Write dirty files to the selected folder and IndexedDB'
-                    : 'Mark the current browser workspace checkpoint as saved'
+                  hasUnpersistedEditorDrafts
+                    ? 'Syncing the editor draft before saving'
+                    : hasWritableFolder
+                      ? 'Write dirty files to the selected folder and IndexedDB'
+                      : 'Mark the current browser workspace checkpoint as saved'
                 }
                 type="button"
               >
                 {saving
                   ? 'Saving…'
-                  : hasWritableFolder
-                    ? 'Save to folder'
-                    : 'Save'}
+                  : hasUnpersistedEditorDrafts
+                    ? 'Syncing…'
+                    : hasWritableFolder
+                      ? 'Save to folder'
+                      : 'Save'}
               </button>
               <span
                 aria-live="polite"
