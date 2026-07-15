@@ -604,6 +604,58 @@ async function runBrowserProof(url) {
       throw new Error('Save to folder did not write through the File System Access boundary.');
     }
 
+    await page.getByRole('tab', { name: /notes\.md/ }).click();
+    await page.getByRole('button', { name: 'Rename notes.md' }).click();
+    const folderRenameDialog = page.getByRole('dialog', { name: 'Rename file' });
+    await folderRenameDialog.getByLabel('New file path').fill('renamed-folder.md');
+    await folderRenameDialog
+      .getByRole('button', { name: 'Rename file', exact: true })
+      .click();
+    await page.getByLabel('Edit renamed-folder.md').waitFor();
+    await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
+    await page.locator('.editor-save').click();
+    await page
+      .getByText(/Saved 1 file\(s\) and deleted 1 file\(s\)/)
+      .last()
+      .waitFor();
+    const renamedFolderState = await page.evaluate(async () => {
+      const root = window.__webCodingFolderProof;
+      const renamed = root.children.get('renamed-folder.md');
+      return {
+        notesPresent: root.children.has('notes.md'),
+        renamedSource: renamed ? await renamed.file.text() : null,
+      };
+    });
+    if (
+      renamedFolderState.notesPresent ||
+      renamedFolderState.renamedSource !== '# API folder proof'
+    ) {
+      throw new Error('Save to folder did not converge the renamed file and deletion.');
+    }
+
+    await page.getByRole('button', { name: 'Revert renamed-folder.md' }).click();
+    const folderRevertDialog = page.getByRole('dialog', {
+      name: 'Revert active file?',
+    });
+    await folderRevertDialog.getByRole('button', { name: 'Revert file' }).click();
+    await page.getByLabel('Edit notes.md').waitFor();
+    await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
+    await page.locator('.editor-save').click();
+    await page
+      .getByText(/Saved 1 file\(s\) and deleted 1 file\(s\)/)
+      .last()
+      .waitFor();
+    const restoredFolderState = await page.evaluate(() => {
+      const root = window.__webCodingFolderProof;
+      return {
+        notesPresent: root.children.has('notes.md'),
+        renamedPresent: root.children.has('renamed-folder.md'),
+      };
+    });
+    if (!restoredFolderState.notesPresent || restoredFolderState.renamedPresent) {
+      throw new Error('Reverting and saving the renamed folder file did not restore notes.md.');
+    }
+
     await page.evaluate(() => {
       const handle = window.__webCodingFolderProof.children.get('app.js');
       handle.file = new File(["document.body.dataset.apiFolder = 'reloaded';"], 'app.js', {
