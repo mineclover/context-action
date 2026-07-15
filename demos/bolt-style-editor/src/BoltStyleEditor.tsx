@@ -4580,8 +4580,13 @@ function EditorWorkbench({
                 <button
                   aria-label="Clear execution trace"
                   className="trace-clear-button"
-                  disabled={!traceEntries.length}
+                  disabled={!traceEntries.length || running}
                   onClick={clearToolTrace}
+                  title={
+                    running
+                      ? 'Finish the current execution before clearing the trace'
+                      : 'Clear execution trace'
+                  }
                   type="button"
                 >
                   Clear

@@ -381,6 +381,9 @@ async function runBrowserProof(url) {
     await page
       .getByRole('button', { name: 'Approve preview.setTheme' })
       .waitFor();
+    if (!(await page.getByRole('button', { name: 'Clear execution trace' }).isDisabled())) {
+      throw new Error('The execution trace could be cleared during a running tool call.');
+    }
     const cancelExecutionButton = page.getByRole('button', {
       name: /^Cancel/,
     });
