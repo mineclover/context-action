@@ -795,6 +795,33 @@ function appendPreviewBridge(html: string, revision: number): string {
   return `${bridge}${html}`;
 }
 
+function buildMissingPreviewDocument(): string {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML entry required</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+      body { display: grid; min-height: 100vh; margin: 0; place-items: center; background: #0d1016; color: #e7e9ef; }
+      main { max-width: 420px; padding: 28px; border: 1px solid #3b315f; border-radius: 16px; background: #171326; box-shadow: 0 18px 48px rgb(0 0 0 / 28%); }
+      span { color: #b9a9ff; font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; }
+      h1 { margin: 12px 0 8px; font-size: 22px; letter-spacing: -.03em; }
+      p { margin: 0; color: #a4aabd; font-size: 13px; line-height: 1.6; }
+      code { color: #e4dfff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span>Preview waiting</span>
+      <h1>Add an HTML entry file</h1>
+      <p>The workspace has no HTML file to render. Add <code>index.html</code> or another <code>.html</code> file, then refresh the preview.</p>
+    </main>
+  </body>
+</html>`;
+}
+
 export function findPreviewHtmlFile(
   files: readonly WorkspaceFile[]
 ): WorkspaceFile | undefined {
@@ -907,7 +934,12 @@ export function buildPreviewDocument(
   previewRevision?: number
 ): string {
   const htmlFile = findPreviewHtmlFile(files);
-  if (!htmlFile) return '';
+  if (!htmlFile) {
+    const diagnostic = buildMissingPreviewDocument();
+    return previewRevision === undefined
+      ? diagnostic
+      : appendPreviewBridge(diagnostic, previewRevision);
+  }
 
   const withStyles = inlineStylesheets(
     htmlFile.source,
