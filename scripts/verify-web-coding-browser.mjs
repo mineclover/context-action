@@ -85,9 +85,10 @@ async function stopServer() {
 async function runBrowserProof(url) {
   const { chromium } = resolvePlaywright();
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({
+  const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
   });
+  const page = await context.newPage();
   let folderFixture;
   const consoleErrors = [];
   page.on('console', (message) => {
@@ -428,6 +429,165 @@ async function runBrowserProof(url) {
           .querySelector('button[role="treeitem"][aria-label$="src"]')
           ?.getAttribute('aria-expanded') === 'true'
     );
+
+    await page.evaluate(() => {
+      class ProofWritable {
+        constructor(handle) {
+          this.handle = handle;
+          this.chunks = [];
+        }
+
+        async write(data) {
+          this.chunks.push(data);
+        }
+
+        async close() {
+          const values = [];
+          for (const chunk of this.chunks) {
+            values.push(typeof chunk === 'string' ? chunk : await chunk.text());
+          }
+          this.handle.file = new File(values, this.handle.name, {
+            type: this.handle.type,
+          });
+        }
+      }
+
+      class ProofFile {
+        kind = 'file';
+
+        constructor(name, source, type = 'text/plain') {
+          this.name = name;
+          this.type = type;
+          this.file = new File([source], name, { type });
+        }
+
+        async getFile() {
+          return this.file;
+        }
+
+        async createWritable() {
+          return new ProofWritable(this);
+        }
+      }
+
+      class ProofDirectory {
+        kind = 'directory';
+        children = new Map();
+        permission = 'granted';
+
+        constructor(name) {
+          this.name = name;
+        }
+
+        addFile(relativePath, source, type = 'text/plain') {
+          const parts = relativePath.split('/').filter(Boolean);
+          const name = parts.pop();
+          let directory = this;
+          for (const part of parts) {
+            let child = directory.children.get(part);
+            if (!child) {
+              child = new ProofDirectory(part);
+              directory.children.set(part, child);
+            }
+            directory = child;
+          }
+          directory.children.set(name, new ProofFile(name, source, type));
+        }
+
+        async *entries() {
+          for (const entry of this.children.entries()) yield entry;
+        }
+
+        async getDirectoryHandle(name, options = {}) {
+          const existing = this.children.get(name);
+          if (existing?.kind === 'directory') return existing;
+          if (existing) throw new Error(`Expected directory: ${name}`);
+          if (!options.create) {
+            throw Object.assign(new Error(`Missing directory: ${name}`), {
+              name: 'NotFoundError',
+            });
+          }
+          const directory = new ProofDirectory(name);
+          this.children.set(name, directory);
+          return directory;
+        }
+
+        async getFileHandle(name, options = {}) {
+          const existing = this.children.get(name);
+          if (existing?.kind === 'file') return existing;
+          if (existing) throw new Error(`Expected file: ${name}`);
+          if (!options.create) {
+            throw Object.assign(new Error(`Missing file: ${name}`), {
+              name: 'NotFoundError',
+            });
+          }
+          const file = new ProofFile(name, '');
+          this.children.set(name, file);
+          return file;
+        }
+
+        async removeEntry(name) {
+          this.children.delete(name);
+        }
+
+        async queryPermission() {
+          return this.permission;
+        }
+
+        async requestPermission() {
+          return this.permission;
+        }
+      }
+
+      const root = new ProofDirectory('folder-api-proof');
+      root.addFile(
+        'index.html',
+        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script></body></html>',
+        'text/html'
+      );
+      root.addFile('app.js', "document.body.dataset.apiFolder = 'ready';", 'text/javascript');
+      root.addFile('notes.md', '# API folder proof', 'text/markdown');
+      window.__webCodingFolderProof = root;
+      window.showDirectoryPicker = async () => root;
+    });
+    await page.getByRole('button', { name: /^Open$/ }).click();
+    await page.getByText(/Opened folder-api-proof with 3 file\(s\)/).waitFor();
+    await page
+      .frameLocator('iframe[title="Live generated web preview"]')
+      .locator('#api-folder-proof')
+      .waitFor();
+
+    await page.getByRole('tab', { name: /app\.js/ }).click();
+    const apiFolderEditor = page.getByLabel('Edit app.js');
+    await apiFolderEditor.fill("document.body.dataset.apiFolder = 'saved';");
+    await page.locator('#trace-list').getByText('workspace.writeFile').waitFor();
+    await page.locator('.editor-save').click();
+    await page.getByText('Saved', { exact: true }).waitFor();
+    const savedFolderSource = await page.evaluate(
+      () => window.__webCodingFolderProof.children.get('app.js')?.file.text()
+    );
+    if ((await savedFolderSource) !== "document.body.dataset.apiFolder = 'saved';") {
+      throw new Error('Save to folder did not write through the File System Access boundary.');
+    }
+
+    await page.evaluate(() => {
+      const handle = window.__webCodingFolderProof.children.get('app.js');
+      handle.file = new File(["document.body.dataset.apiFolder = 'reloaded';"], 'app.js', {
+        type: 'text/javascript',
+      });
+    });
+    await page.getByRole('button', { name: 'Reload connected workspace folder' }).click();
+    await page.getByText(/Reloaded the connected folder with 3 file\(s\)/).waitFor();
+    await page.getByRole('tab', { name: /app\.js/ }).click();
+    if ((await page.getByLabel('Edit app.js').inputValue()) !== "document.body.dataset.apiFolder = 'reloaded';") {
+      throw new Error('Reload did not replace the browser workspace with folder contents.');
+    }
+    await page.getByRole('button', { name: 'Disconnect linked workspace folder' }).click();
+    await page.getByRole('button', { name: /^Save$/ }).waitFor();
+    if (await page.getByRole('button', { name: 'Disconnect linked workspace folder' }).count()) {
+      throw new Error('Disconnect did not remove the local folder sync controls.');
+    }
+    await page.getByRole('tab', { name: /index\.html/ }).click();
 
     await page
       .getByRole('button', { name: 'Open OpenRouter settings' })
