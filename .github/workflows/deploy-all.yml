@@ -145,6 +145,11 @@ jobs:
       - name: Verify standalone static artifact
         run: node scripts/verify-web-coding-build.mjs demos/bolt-style-editor/dist
 
+      - name: Verify standalone browser flow
+        run: |
+          pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+          node scripts/verify-web-coding-browser.mjs
+
       # Combine both builds
       - name: Combine builds for deployment
         run: |

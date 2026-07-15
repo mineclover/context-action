@@ -13,8 +13,13 @@ pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo build
 node scripts/verify-web-coding-build.mjs
+node scripts/verify-web-coding-browser.mjs
 pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
+
+The browser proof starts an isolated Vite server and exercises the local
+agent's discovery, approval, preview mutation, and result path. Set
+`WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
 The development server defaults to `http://127.0.0.1:43127/`. The port can be
 overridden for parallel local apps.
