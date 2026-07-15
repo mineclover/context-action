@@ -435,6 +435,10 @@ Open folder → generic FileSystemAdapter
 - The chat history uses a bounded scroll region and follows the latest entry,
   keeping approval, error, retry, and tool-result feedback visible without
   expanding the editor indefinitely.
+- The status bar distinguishes browser-persisted edits from edits that still
+  need to be written to a linked local folder. When the latter exists, the
+  page installs a `beforeunload` guard so closing the tab cannot silently skip
+  the explicit `Save to folder` boundary.
 - `Download` exports the active text source or Blob asset as a browser download,
   so upload-only folder imports can still be taken back to local files.
 - The Explorer's New file dialog similarly routes through

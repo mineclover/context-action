@@ -1742,6 +1742,11 @@ function EditorWorkbench({
     () => new Set(workspace.getDirtyFiles().map((file) => file.path)),
     [snapshot, workspace]
   );
+  const deletedPaths = useMemo(
+    () => workspace.getDeletedPaths(),
+    [snapshot, workspace]
+  );
+  const hasUnsavedChanges = dirtyPaths.size > 0 || deletedPaths.length > 0;
   const canRevertActiveFile = dirtyPaths.has(activeFile.path);
   const canDeleteActiveFile =
     snapshot.files.length > 1 &&
@@ -1805,16 +1810,29 @@ function EditorWorkbench({
       ? 'Loading workspace'
       : snapshot.preview.status === 'error'
         ? 'Preview error'
-        : dirtyPaths.size > 0 || workspace.getDeletedPaths().length > 0
-          ? 'Unsaved changes'
+        : hasUnsavedChanges
+          ? hasWritableFolder
+            ? 'Unsaved folder changes'
+            : 'Unsaved browser changes'
           : 'Ready';
   const studioStatusTone = running
     ? 'running'
     : snapshot.preview.status === 'error'
       ? 'error'
-      : dirtyPaths.size > 0 || workspace.getDeletedPaths().length > 0
+      : hasUnsavedChanges
         ? 'dirty'
         : 'ready';
+
+  useEffect(() => {
+    if (!hasWritableFolder || !hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges, hasWritableFolder]);
 
   const refreshPreview = () => {
     if (!isStorageReady) return;

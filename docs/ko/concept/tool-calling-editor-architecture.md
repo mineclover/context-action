@@ -413,6 +413,9 @@ Open folder → generic FileSystemAdapter
 - chat history는 높이가 제한된 scroll region을 사용하고 최신 항목으로
   자동 이동한다. 따라서 approval·error·retry·tool result 피드백을 계속
   확인하면서 editor 영역이 끝없이 커지지 않는다.
+- status bar는 browser에 보존된 변경과 연결된 local folder에 아직 기록하지
+  않은 변경을 구분한다. 후자가 있으면 `beforeunload` guard를 설치해 tab을
+  닫을 때 명시적인 `Save to folder` 경계를 조용히 건너뛰지 않게 한다.
 - `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
   내보내므로, directory-upload fallback에서도 편집 결과를 다시 로컬 파일로
   가져갈 수 있다.
