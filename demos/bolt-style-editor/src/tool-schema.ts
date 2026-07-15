@@ -28,6 +28,13 @@ const workspaceDownloadOutputSchema = z.object({
   kind: z.enum(['text', 'asset']),
   size: z.number().int().nonnegative(),
 });
+const fileSystemPermissionSchema = z.enum([
+  'granted',
+  'prompt',
+  'denied',
+  'unknown',
+  'disconnected',
+]);
 const workspaceOpenFileOutputSchema = z.object({
   path: z.string(),
   activePath: z.string(),
@@ -75,6 +82,7 @@ const workspaceReloadFolderOutputSchema = z.object({
   filesystem: z.object({
     mode: z.literal('local-folder'),
     folderLinked: z.literal(true),
+    permission: fileSystemPermissionSchema,
     saveAllAvailable: z.literal(true),
     reloadAvailable: z.literal(true),
   }),
@@ -86,6 +94,7 @@ const workspaceDisconnectFolderOutputSchema = z.object({
   filesystem: z.object({
     mode: z.literal('browser-only'),
     folderLinked: z.literal(false),
+    permission: z.literal('disconnected'),
     saveAllAvailable: z.literal(false),
     reloadAvailable: z.literal(false),
   }),
@@ -143,6 +152,7 @@ const workspaceStatusOutputSchema = z.object({
   filesystem: z.object({
     mode: z.enum(['local-folder', 'browser-only']),
     folderLinked: z.boolean(),
+    permission: fileSystemPermissionSchema,
     saveAllAvailable: z.boolean(),
     reloadAvailable: z.boolean(),
   }),

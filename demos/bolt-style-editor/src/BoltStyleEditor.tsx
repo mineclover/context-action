@@ -426,7 +426,11 @@ function toolSuccessMessage(
     const storage = filesystem?.folderLinked
       ? 'local folder connected'
       : 'browser-only workspace';
-    return `Workspace status: ${fileCount} file(s), ${storage}.${revision}`;
+    const permission =
+      typeof filesystem?.permission === 'string'
+        ? `, write access ${filesystem.permission}`
+        : '';
+    return `Workspace status: ${fileCount} file(s), ${storage}${permission}.${revision}`;
   }
 
   if (name === 'workspace.reset') {
@@ -1370,6 +1374,9 @@ function ToolHandlers({
       filesystem: {
         mode: folderLinked ? 'local-folder' : 'browser-only',
         folderLinked,
+        permission: folderLinked
+          ? fileSystemAdapter.folderPermission
+          : ('disconnected' as const),
         saveAllAvailable: folderLinked,
         reloadAvailable: folderLinked,
       },
@@ -1654,6 +1661,7 @@ function ToolHandlers({
         filesystem: {
           mode: 'local-folder' as const,
           folderLinked: true as const,
+          permission: fileSystemAdapter.folderPermission,
           saveAllAvailable: true as const,
           reloadAvailable: true as const,
         },
@@ -1675,6 +1683,7 @@ function ToolHandlers({
         filesystem: {
           mode: 'browser-only' as const,
           folderLinked: false as const,
+          permission: 'disconnected' as const,
           saveAllAvailable: false as const,
           reloadAvailable: false as const,
         },
@@ -2731,6 +2740,11 @@ function EditorWorkbench({
     () => fileSystemAdapter.hasWritableFolder,
     () => false
   );
+  const folderPermission = useSyncExternalStore(
+    fileSystemAdapter.subscribe,
+    () => fileSystemAdapter.folderPermission,
+    () => 'disconnected' as const
+  );
 
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
@@ -2839,24 +2853,42 @@ function EditorWorkbench({
       : snapshot.preview.status === 'error'
         ? 'runtime error'
         : 'waiting';
+  const folderPermissionNeedsAction =
+    hasWritableFolder && folderPermission !== 'granted';
+  const folderPermissionLabel =
+    folderPermission === 'denied'
+      ? 'folder access denied'
+      : folderPermission === 'prompt'
+        ? 'folder access needed'
+        : folderPermission === 'unknown'
+          ? 'folder access unknown'
+          : 'folder sync';
   const studioStatus = running
     ? 'Running tool chain'
     : snapshot.storageMode === 'loading'
       ? 'Loading workspace'
       : snapshot.preview.status === 'error'
         ? 'Preview error'
-        : hasUnsavedChanges
-          ? hasWritableFolder
-            ? 'Unsaved folder changes'
-            : 'Unsaved browser changes'
-          : 'Ready';
+        : hasWritableFolder && folderPermission === 'denied'
+          ? 'Folder access denied'
+          : folderPermissionNeedsAction
+            ? 'Folder access needed'
+            : hasUnsavedChanges
+              ? hasWritableFolder
+                ? 'Unsaved folder changes'
+                : 'Unsaved browser changes'
+              : 'Ready';
   const studioStatusTone = running
     ? 'running'
     : snapshot.preview.status === 'error'
       ? 'error'
-      : hasUnsavedChanges
-        ? 'dirty'
-        : 'ready';
+      : hasWritableFolder && folderPermission === 'denied'
+        ? 'error'
+        : folderPermissionNeedsAction
+          ? 'dirty'
+          : hasUnsavedChanges
+            ? 'dirty'
+            : 'ready';
 
   useEffect(() => {
     if (!hasWritableFolder || !hasUnsavedChanges) return;
@@ -3008,6 +3040,37 @@ function EditorWorkbench({
       name: 'workspace.disconnectFolder',
       arguments: {},
     });
+  };
+
+  const handleGrantFolderAccess = async () => {
+    if (openingFolder || !isStorageReady || !hasWritableFolder) return;
+    setOpeningFolder(true);
+    try {
+      const permission = await fileSystemAdapter.requestWritePermission();
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            permission === 'granted'
+              ? 'Write access restored for the connected folder.'
+              : `Folder write access is ${permission}. Use the browser permission prompt to continue saving.`,
+        },
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            error instanceof Error
+              ? error.message
+              : 'Folder permission request failed.',
+        },
+      ]);
+    } finally {
+      setOpeningFolder(false);
+    }
   };
 
   const resetDemoWorkspace = async () => {
@@ -3620,7 +3683,12 @@ function EditorWorkbench({
           </span>
           <span className="storage-chip">{storageLabel}</span>
           {hasWritableFolder ? (
-            <span className="folder-sync-chip">folder sync</span>
+            <span
+              className={`folder-sync-chip folder-sync-${folderPermission}`}
+              title="Writable folder permission status"
+            >
+              {folderPermissionLabel}
+            </span>
           ) : null}
           <span className="contract-chip">tools/list · {toolNames.length}</span>
         </div>
@@ -3689,6 +3757,20 @@ function EditorWorkbench({
               </button>
               {hasWritableFolder ? (
                 <>
+                  {folderPermissionNeedsAction ? (
+                    <button
+                      aria-label="Grant connected folder write access"
+                      className="grant-folder-button"
+                      disabled={openingFolder || !isStorageReady || running}
+                      onClick={() => void handleGrantFolderAccess()}
+                      title="Request write permission for the connected folder"
+                      type="button"
+                    >
+                      {folderPermission === 'denied'
+                        ? 'Retry access'
+                        : 'Grant access'}
+                    </button>
+                  ) : null}
                   <button
                     aria-label="Reload connected workspace folder"
                     className="refresh-folder-button"

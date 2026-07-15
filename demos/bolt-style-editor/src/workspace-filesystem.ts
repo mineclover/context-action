@@ -6,6 +6,13 @@ export type ImportedFolder = {
   skipped: string[];
 };
 
+export type FileSystemPermissionStatus =
+  | 'granted'
+  | 'prompt'
+  | 'denied'
+  | 'unknown'
+  | 'disconnected';
+
 type FileSystemFileHandleLike = {
   kind: 'file';
   name: string;
@@ -166,6 +173,7 @@ function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
 
 export class BrowserWorkspaceFileSystemAdapter {
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
+  private writePermission: FileSystemPermissionStatus = 'disconnected';
   private readonly listeners = new Set<() => void>();
 
   constructor(private readonly persistence?: DirectoryHandlePersistence) {}
@@ -179,6 +187,10 @@ export class BrowserWorkspaceFileSystemAdapter {
     return this.directoryHandle !== null;
   }
 
+  get folderPermission(): FileSystemPermissionStatus {
+    return this.writePermission;
+  }
+
   async restorePersistedFolder(): Promise<boolean> {
     let handle: FileSystemDirectoryHandleLike | undefined;
     try {
@@ -188,6 +200,7 @@ export class BrowserWorkspaceFileSystemAdapter {
     }
     if (!handle) return false;
     this.directoryHandle = handle;
+    await this.refreshWritePermission();
     this.notify();
     return true;
   }
@@ -207,9 +220,13 @@ export class BrowserWorkspaceFileSystemAdapter {
       if (imported.files.length === 0) {
         throw new Error(EMPTY_FOLDER_ERROR);
       }
+      await this.refreshWritePermission();
       return imported;
     } catch (error) {
       this.directoryHandle = previousHandle;
+      this.writePermission = previousHandle
+        ? await this.readWritePermission(previousHandle)
+        : 'disconnected';
       try {
         if (previousHandle) {
           await this.persistence?.setDirectoryHandle(previousHandle);
@@ -234,9 +251,11 @@ export class BrowserWorkspaceFileSystemAdapter {
       if (imported.files.length === 0) {
         throw new Error(EMPTY_FOLDER_ERROR);
       }
+      await this.refreshWritePermission();
       return imported;
     } catch (error) {
       this.directoryHandle = previousHandle;
+      this.writePermission = await this.readWritePermission(previousHandle);
       try {
         await this.persistence?.setDirectoryHandle(previousHandle);
       } catch {
@@ -250,7 +269,47 @@ export class BrowserWorkspaceFileSystemAdapter {
   async disconnectFolder(): Promise<void> {
     await this.persistence?.clearDirectoryHandle();
     this.directoryHandle = null;
+    this.writePermission = 'disconnected';
     this.notify();
+  }
+
+  async refreshWritePermission(): Promise<FileSystemPermissionStatus> {
+    const directory = this.directoryHandle;
+    if (!directory) {
+      this.writePermission = 'disconnected';
+      this.notify();
+      return this.writePermission;
+    }
+
+    const permission = await this.readWritePermission(directory);
+    this.writePermission = permission;
+    this.notify();
+    return permission;
+  }
+
+  async requestWritePermission(): Promise<FileSystemPermissionStatus> {
+    const directory = this.directoryHandle;
+    if (!directory) {
+      this.writePermission = 'disconnected';
+      this.notify();
+      return this.writePermission;
+    }
+
+    try {
+      const descriptor = { mode: 'readwrite' as const };
+      const current = await directory.queryPermission?.(descriptor);
+      if (current === 'granted') {
+        this.writePermission = current;
+      } else if (directory.requestPermission) {
+        this.writePermission = await directory.requestPermission(descriptor);
+      } else {
+        this.writePermission = current ?? 'unknown';
+      }
+    } catch {
+      this.writePermission = 'denied';
+    }
+    this.notify();
+    return this.writePermission;
   }
 
   async importDirectoryHandle(
@@ -356,6 +415,7 @@ export class BrowserWorkspaceFileSystemAdapter {
     if (imported.files.length === 0) return imported;
 
     this.directoryHandle = null;
+    this.writePermission = 'disconnected';
     this.notify();
     await this.persistence?.clearDirectoryHandle();
     return imported;
@@ -402,11 +462,40 @@ export class BrowserWorkspaceFileSystemAdapter {
   private async ensureWritePermission(
     directory: FileSystemDirectoryHandleLike
   ): Promise<'granted' | 'prompt' | 'denied'> {
-    const descriptor = { mode: 'readwrite' as const };
-    const current = await directory.queryPermission?.(descriptor);
-    if (current === 'granted') return current;
-    if (!directory.requestPermission) return current ?? 'granted';
-    return directory.requestPermission(descriptor);
+    try {
+      const descriptor = { mode: 'readwrite' as const };
+      const current = await directory.queryPermission?.(descriptor);
+      if (current === 'granted') {
+        this.writePermission = current;
+        this.notify();
+        return current;
+      }
+      if (!directory.requestPermission) {
+        this.writePermission = current ?? 'unknown';
+        this.notify();
+        return current ?? 'granted';
+      }
+      const requested = await directory.requestPermission(descriptor);
+      this.writePermission = requested;
+      this.notify();
+      return requested;
+    } catch (error) {
+      this.writePermission = 'denied';
+      this.notify();
+      throw error;
+    }
+  }
+
+  private async readWritePermission(
+    directory: FileSystemDirectoryHandleLike
+  ): Promise<FileSystemPermissionStatus> {
+    try {
+      return (
+        (await directory.queryPermission?.({ mode: 'readwrite' })) ?? 'unknown'
+      );
+    } catch {
+      return 'unknown';
+    }
   }
 
   private async writeFile(
