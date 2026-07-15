@@ -268,7 +268,9 @@ handler는 blocking pipeline step으로 등록되므로 validation·filesystem·
 throw된 오류가 성공한 no-op 호출이 아니라 실패한 `tools/call` 결과로 전달된다.
 `editor.saveAll`은 같은 경계를 모든 dirty text path에 순서대로 적용한다. 뒤의
 파일에서 실패해도 이미 기록된 파일은 clean으로 유지하고 남은 path는 dirty로
-남겨 재시도할 수 있다.
+남겨 재시도할 수 있다. standalone workspace는 각 파일 또는 삭제 작업이
+filesystem에서 성공한 직후 해당 항목을 clean으로 표시하고, 실패 메시지에
+완료된 path를 포함해 남은 변경만 다시 시도할 수 있게 한다.
 
 standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sandbox는
 문서 revision을 포함한 `context-action.preview.ready` 또는

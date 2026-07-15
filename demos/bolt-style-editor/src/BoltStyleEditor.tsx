@@ -1602,19 +1602,70 @@ function ToolHandlers({
         };
       }
 
-      await fileSystemAdapter.writeFiles(dirtyFiles);
-      if (controller.signal?.aborted) throw new Error('Save cancelled.');
-      await fileSystemAdapter.removeFiles(deletedPaths);
-      if (controller.signal?.aborted) throw new Error('Save cancelled.');
-      const checkpointUpdated =
-        await workspace.markSavedIfRevision(saveRevision);
-      return {
-        savedPaths: dirtyFiles.map((file) => file.path),
-        deletedPaths,
-        activePath: workspace.getSnapshot().activePath,
-        revision: workspace.getSnapshot().revision,
-        checkpointUpdated,
-      };
+      const savedPaths: string[] = [];
+      const removedPaths: string[] = [];
+      try {
+        for (const file of dirtyFiles) {
+          if (workspace.getSnapshot().revision !== saveRevision) {
+            throw new Error(
+              'The workspace changed while saving. Retry to write the remaining changes.'
+            );
+          }
+          await fileSystemAdapter.writeFiles([file]);
+          if (controller.signal?.aborted) throw new Error('Save cancelled.');
+          if (
+            !(await workspace.markFileSavedIfRevision(file.path, saveRevision))
+          ) {
+            throw new Error(
+              'The workspace changed while saving. Retry to write the remaining changes.'
+            );
+          }
+          savedPaths.push(file.path);
+        }
+
+        for (const path of deletedPaths) {
+          if (workspace.getSnapshot().revision !== saveRevision) {
+            throw new Error(
+              'The workspace changed while saving. Retry to apply the remaining deletions.'
+            );
+          }
+          await fileSystemAdapter.removeFiles([path]);
+          if (controller.signal?.aborted) throw new Error('Save cancelled.');
+          if (
+            !(await workspace.markDeletedPathSavedIfRevision(
+              path,
+              saveRevision
+            ))
+          ) {
+            throw new Error(
+              'The workspace changed while saving. Retry to apply the remaining deletions.'
+            );
+          }
+          removedPaths.push(path);
+        }
+
+        const checkpointUpdated =
+          await workspace.markSavedIfRevision(saveRevision);
+        if (!checkpointUpdated) {
+          throw new Error(
+            'The workspace changed while saving. Retry to write the remaining changes.'
+          );
+        }
+        return {
+          savedPaths,
+          deletedPaths: removedPaths,
+          activePath: workspace.getSnapshot().activePath,
+          revision: workspace.getSnapshot().revision,
+          checkpointUpdated,
+        };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Folder save failed.';
+        const completed = [...savedPaths, ...removedPaths];
+        throw new Error(
+          `${completed.length ? `Folder save completed ${completed.length} item(s): ${completed.join(', ')}. ` : ''}Remaining changes stay in the browser workspace. ${message}`
+        );
+      }
     },
     { blocking: true }
   );

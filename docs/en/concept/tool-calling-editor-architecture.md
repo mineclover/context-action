@@ -283,7 +283,9 @@ failed `tools/call` results instead of being reported as successful no-op calls.
 `editor.saveAll` applies the same boundary to every dirty text path in a
 deterministic sequence. If a later file fails, already-written files stay clean
 and the remaining paths stay dirty so the caller can retry without losing the
-partial-save state.
+partial-save state. The standalone workspace marks each successful file or
+deletion immediately after its filesystem operation, and the failure message
+lists the completed paths so a retry can be scoped to the remaining changes.
 
 The standalone editor implements the same boundary with a small injected
 bridge. The sandbox posts `context-action.preview.ready` or

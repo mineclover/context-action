@@ -774,6 +774,42 @@ export class BrowserWorkspace {
     this.notify();
   }
 
+  async markFileSavedIfRevision(
+    path: string,
+    expectedRevision: number
+  ): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    const file = this.getFile(path);
+    const savedIndex = this.savedFiles.findIndex(
+      (candidate) => candidate.path === file.path
+    );
+    this.savedFiles =
+      savedIndex >= 0
+        ? this.savedFiles.map((candidate, index) =>
+            index === savedIndex ? { ...file } : candidate
+          )
+        : [...this.savedFiles, { ...file }];
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
+  async markDeletedPathSavedIfRevision(
+    path: string,
+    expectedRevision: number
+  ): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    if (!this.deletedPaths.includes(path)) return true;
+    this.deletedPaths = this.deletedPaths.filter(
+      (deletedPath) => deletedPath !== path
+    );
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
   async markSavedIfRevision(expectedRevision: number): Promise<boolean> {
     await this.persistQueue;
     if (this.snapshot.revision !== expectedRevision) return false;
