@@ -78,6 +78,13 @@ React ToolContext adds runtime scope:
 
 `destructiveHint` is metadata for model and UI guidance. Authorization must still be enforced by `toolPolicy`.
 
+The standalone studio renders the same boundary as an execution trace. Local
+and OpenRouter requests call `registry.listTools({ method: 'tools/list' })`
+before provider-specific tool serialization. The ToolContext `onToolCall`
+observer then records each `started`, `completed`, and `failed` event with its
+source, duration, and result status. The trace is UI state only; it never sends
+file contents or filesystem handles to the model.
+
 ## iframe rules
 
 The iframe is limited to:

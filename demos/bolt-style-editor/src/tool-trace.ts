@@ -1,0 +1,106 @@
+import type { ToolCallEvent } from '@context-action/react';
+
+export type ToolTraceEntry = {
+  id: string;
+  kind: 'discovery' | 'call';
+  name: string;
+  source: string;
+  status: 'running' | 'completed' | 'failed';
+  startedAt: number;
+  durationMs?: number;
+  toolCount?: number;
+  summary?: string;
+};
+
+const MAX_TRACE_ENTRIES = 24;
+let sequence = 0;
+let entries: ToolTraceEntry[] = [];
+const listeners = new Set<() => void>();
+
+function notify(): void {
+  for (const listener of listeners) listener();
+}
+
+function trimEntries(nextEntries: ToolTraceEntry[]): ToolTraceEntry[] {
+  return nextEntries.slice(0, MAX_TRACE_ENTRIES);
+}
+
+function resultSummary(
+  event: Extract<ToolCallEvent, { type: 'completed' | 'failed' }>
+): string {
+  if (event.type === 'failed' || event.result.isError) {
+    return event.result.error?.code ?? 'tool error';
+  }
+  return 'tool result received';
+}
+
+export function recordToolList(toolCount: number, source = 'local'): void {
+  entries = trimEntries([
+    {
+      id: `list-${Date.now()}-${sequence++}`,
+      kind: 'discovery',
+      name: 'tools/list',
+      source,
+      status: 'completed',
+      startedAt: Date.now(),
+      durationMs: 0,
+      toolCount,
+      summary: `${toolCount} tools available`,
+    },
+    ...entries,
+  ]);
+  notify();
+}
+
+export function recordToolCall(event: ToolCallEvent): void {
+  const id = String(event.toolCallId ?? `${event.name}-${sequence++}`);
+  const source = event.context?.source ?? 'mcp';
+  const existingIndex = entries.findIndex(
+    (entry) => entry.kind === 'call' && entry.id === id
+  );
+
+  if (event.type === 'started') {
+    const nextEntry: ToolTraceEntry = {
+      id,
+      kind: 'call',
+      name: event.name,
+      source,
+      status: 'running',
+      startedAt: event.timestamp,
+    };
+    entries = trimEntries(
+      existingIndex >= 0
+        ? entries.map((entry, index) =>
+            index === existingIndex ? nextEntry : entry
+          )
+        : [nextEntry, ...entries]
+    );
+  } else {
+    const nextEntry: ToolTraceEntry = {
+      id,
+      kind: 'call',
+      name: event.name,
+      source,
+      status: event.type === 'failed' ? 'failed' : 'completed',
+      startedAt: event.timestamp - event.durationMs,
+      durationMs: event.durationMs,
+      summary: resultSummary(event),
+    };
+    entries = trimEntries(
+      existingIndex >= 0
+        ? entries.map((entry, index) =>
+            index === existingIndex ? nextEntry : entry
+          )
+        : [nextEntry, ...entries]
+    );
+  }
+  notify();
+}
+
+export const toolTraceStore = {
+  getSnapshot: (): ToolTraceEntry[] => entries,
+  subscribe: (listener: () => void): (() => void) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  },
+};

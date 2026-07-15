@@ -1,4 +1,5 @@
 import type { ActionSchemaMap, ToolRegistry } from '@context-action/react';
+import { recordToolList } from './tool-trace';
 
 const API_KEY_STORAGE_KEY = 'context-action.openrouter.api-key';
 const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
@@ -117,6 +118,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     },
     { role: 'user', content: prompt },
   ];
+  const listedTools = registry.listTools({ method: 'tools/list' });
+  recordToolList(listedTools.tools.length, 'local');
   const toolNames: string[] = [];
 
   for (let turn = 0; turn < 5; turn += 1) {

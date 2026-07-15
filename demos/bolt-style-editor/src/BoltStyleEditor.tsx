@@ -17,6 +17,7 @@ import {
   saveOpenRouterSettings,
 } from './openrouter';
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
+import { recordToolCall, recordToolList, toolTraceStore } from './tool-trace';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
@@ -31,6 +32,7 @@ const {
 } = createToolContext('BoltStyleWebEditor', {
   schema: boltStyleToolSchema,
   debug: true,
+  onToolCall: recordToolCall,
 });
 
 type BoltStyleRegistry = ToolRegistry<BoltStyleToolSchema>;
@@ -367,6 +369,8 @@ async function runLocalAgent(
   registry: BoltStyleRegistry,
   prompt: string
 ): Promise<{ toolNames: string[]; response: string }> {
+  const listedTools = registry.listTools({ method: 'tools/list' });
+  recordToolList(listedTools.tools.length, 'local');
   const calls = promptToToolCalls(prompt);
   const toolNames: string[] = [];
 
@@ -606,6 +610,11 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const fileSystemAdapter = useMemo(
     () => new BrowserWorkspaceFileSystemAdapter(),
     []
+  );
+  const traceEntries = useSyncExternalStore(
+    toolTraceStore.subscribe,
+    toolTraceStore.getSnapshot,
+    toolTraceStore.getSnapshot
   );
 
   const activeFile =
@@ -929,6 +938,42 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 <span>{name}</span>
               </button>
             ))}
+          </div>
+          <div className="trace-section">
+            <div className="sidebar-section-heading">
+              <span>Execution trace</span>
+              <span className="count-badge">{traceEntries.length}</span>
+            </div>
+            <div aria-label="Tool execution trace" className="trace-list">
+              {traceEntries.length ? (
+                traceEntries.slice(0, 8).map((entry) => (
+                  <div
+                    className={`trace-row trace-row-${entry.status}`}
+                    key={entry.id}
+                  >
+                    <span className="trace-mark" aria-hidden="true">
+                      {entry.status === 'running'
+                        ? '…'
+                        : entry.status === 'failed'
+                          ? '!'
+                          : '✓'}
+                    </span>
+                    <span className="trace-copy">
+                      <strong>{entry.name}</strong>
+                      <small>
+                        {entry.kind === 'discovery'
+                          ? entry.summary
+                          : `${entry.source} · ${entry.durationMs ?? 0}ms`}
+                      </small>
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="trace-empty">
+                  tools/list ready · waiting for a call
+                </div>
+              )}
+            </div>
           </div>
         </aside>
 
