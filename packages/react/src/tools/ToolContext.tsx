@@ -77,8 +77,8 @@ import type {
   ToolContextConfig,
   ToolContextReturn,
   ToolContextType,
-  ToolPolicy,
   ToolExecutionResult,
+  ToolPolicy,
   ToolRegistry,
 } from './ToolContext.types';
 
@@ -100,6 +100,17 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
   const hasOwnTool = (name: string): boolean =>
     Object.prototype.hasOwnProperty.call(schema, name) &&
     (!allowedNames || allowedNames.has(name));
+  const getExportableTool = <K extends keyof TSchema>(name: K): TSchema[K] => {
+    if (!hasOwnTool(String(name))) {
+      throw new Error(`Tool "${String(name)}" is not available in registry`);
+    }
+
+    const tool = schema[name];
+    if (!tool) {
+      throw new Error(`Tool "${String(name)}" is not available in registry`);
+    }
+    return tool;
+  };
   const listTools = () => ({
     tools: toolNames.map((name) => schema[name]!.toMCP()),
   });
@@ -108,14 +119,10 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     tools: schema,
 
     getTool<K extends keyof TSchema>(name: K): TSchema[K] {
-      if (!hasOwnTool(String(name))) {
+      if (!Object.prototype.hasOwnProperty.call(schema, String(name))) {
         throw new Error(`Tool "${String(name)}" not found in registry`);
       }
-      const tool = schema[name];
-      if (!tool) {
-        throw new Error(`Tool "${String(name)}" not found in registry`);
-      }
-      return tool;
+      return getExportableTool(name);
     },
 
     hasTool(name: string): boolean {
@@ -160,15 +167,15 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     },
 
     toMCPFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => schema[name]!.toMCP());
+      return names.map((name) => getExportableTool(name).toMCP());
     },
 
     toOpenAIFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => schema[name]!.toOpenAI());
+      return names.map((name) => getExportableTool(name).toOpenAI());
     },
 
     toAnthropicFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => schema[name]!.toAnthropic());
+      return names.map((name) => getExportableTool(name).toAnthropic());
     },
   };
 }

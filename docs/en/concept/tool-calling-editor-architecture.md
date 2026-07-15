@@ -93,6 +93,11 @@ React ToolContext adds runtime scope:
 - `toolPolicy`: an `allow`, `ask`, or `deny` decision
 - `onToolCall`: lifecycle observer for traces and audit UI
 
+Provider-specific filtered exports (`toMCPFiltered`, `toOpenAIFiltered`, and
+`toAnthropicFiltered`) use the same allowlist boundary. A tool that is hidden
+from `tools/list` cannot be reintroduced into a provider payload by selecting
+its name directly.
+
 When a blocking handler fails, ToolContext preserves its error message and
 handler ID in the `tools/call` structured error message/details. The UI and
 model therefore receive the concrete validation or workspace cause instead of

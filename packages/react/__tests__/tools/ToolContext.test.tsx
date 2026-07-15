@@ -440,12 +440,26 @@ describe('createToolContext', () => {
       });
 
       expect(result.current.getToolNames()).toEqual(['searchProducts', 'checkout']);
+      expect(result.current.listTools().tools.map((tool) => tool.name)).toEqual([
+        'searchProducts',
+        'checkout',
+      ]);
       const denied = await act(async () =>
         result.current.executeModelToolCall({ name: 'checkout', arguments: {} })
       );
 
       expect(denied.isError).toBe(true);
       expect(denied.error).toMatchObject({ code: 'TOOL_POLICY_DENIED' });
+
+      expect(() => result.current.toMCPFiltered(['addToCart'])).toThrow(
+        /not available in registry/
+      );
+      expect(() => result.current.toOpenAIFiltered(['addToCart'])).toThrow(
+        /not available in registry/
+      );
+      expect(() => result.current.toAnthropicFiltered(['addToCart'])).toThrow(
+        /not available in registry/
+      );
     });
   });
 

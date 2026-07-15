@@ -90,6 +90,10 @@ React ToolContext는 여기에 실행 범위를 추가한다.
 - `toolPolicy`: `allow`, `ask`, `deny` 결정
 - `onToolCall`: trace와 audit UI를 위한 lifecycle observer
 
+provider별 filtered export(`toMCPFiltered`, `toOpenAIFiltered`,
+`toAnthropicFiltered`)도 같은 allowlist 경계를 사용한다. `tools/list`에서
+숨겨진 도구는 이름을 직접 선택해 provider payload에 다시 넣을 수 없다.
+
 blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 handler ID를
 `tools/call`의 structured error message/details에 보존한다. 따라서 UI와 model이
 `Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace 원인을
