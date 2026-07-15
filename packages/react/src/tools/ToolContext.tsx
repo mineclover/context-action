@@ -47,6 +47,7 @@ import type {
   ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
+  ToolListRequest,
 } from '@context-action/core';
 import {
   ActionHandler,
@@ -134,11 +135,36 @@ function awaitWithAbort<T>(
   });
 }
 
+const TOOL_LIST_CURSOR_PREFIX = 'offset:';
+
+function encodeToolListCursor(offset: number): string {
+  return `${TOOL_LIST_CURSOR_PREFIX}${offset}`;
+}
+
+function parseToolListCursor(cursor: string, toolCount: number): number {
+  if (!cursor.startsWith(TOOL_LIST_CURSOR_PREFIX)) {
+    throw new Error('Invalid tools/list cursor.');
+  }
+  const offset = Number(cursor.slice(TOOL_LIST_CURSOR_PREFIX.length));
+  if (!Number.isInteger(offset) || offset < 0 || offset > toolCount) {
+    throw new Error('Invalid tools/list cursor.');
+  }
+  return offset;
+}
+
 function createToolRegistry<TSchema extends ActionSchemaMap>(
   schema: TSchema,
   executeToolCall: ToolCallExecutor,
-  allowedToolNames?: readonly string[]
+  allowedToolNames?: readonly string[],
+  toolListPageSize?: number
 ): ToolRegistry<TSchema> {
+  if (
+    toolListPageSize !== undefined &&
+    (!Number.isInteger(toolListPageSize) || toolListPageSize <= 0)
+  ) {
+    throw new Error('toolListPageSize must be a positive integer.');
+  }
+
   const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
   const toolNames = (Object.keys(schema).filter(name => !allowedNames || allowedNames.has(name))) as (keyof TSchema)[];
   const hasOwnTool = (name: string): boolean =>
@@ -155,9 +181,22 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     }
     return tool;
   };
-  const listTools = () => ({
-    tools: toolNames.map((name) => schema[name]!.toMCP()),
-  });
+  const listTools = (request?: ToolListRequest) => {
+    // A direct registry call without a protocol request remains the complete
+    // catalog. Canonical tools/list requests can opt into cursor pagination.
+    if (!request || toolListPageSize === undefined) {
+      return { tools: toolNames.map((name) => schema[name]!.toMCP()) };
+    }
+
+    const start = request.params?.cursor
+      ? parseToolListCursor(request.params.cursor, toolNames.length)
+      : 0;
+    const end = Math.min(start + toolListPageSize, toolNames.length);
+    return {
+      tools: toolNames.slice(start, end).map((name) => schema[name]!.toMCP()),
+      ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
+    };
+  };
 
   return {
     tools: schema,
@@ -257,6 +296,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     validateOnDispatch = true,
     debug = false,
     allowedToolNames,
+    toolListPageSize,
     toolPolicy,
     onToolCall,
   } = config;
@@ -565,8 +605,13 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     ]);
 
     const registry = useMemo(
-      () => createToolRegistry(schema, executeToolCall, allowedToolNames),
-      [allowedToolNames, executeToolCall, schema]
+      () => createToolRegistry(
+        schema,
+        executeToolCall,
+        allowedToolNames,
+        toolListPageSize
+      ),
+      [allowedToolNames, executeToolCall, schema, toolListPageSize]
     );
 
     const contextValue = useMemo(

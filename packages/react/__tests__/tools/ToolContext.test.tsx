@@ -260,6 +260,36 @@ describe('createToolContext', () => {
       });
     });
 
+    it('should paginate canonical tools/list discovery without truncating provider exports', () => {
+      const PaginatedTools = createToolContext('PaginatedTools', {
+        schema: testSchema,
+        toolListPageSize: 2,
+      });
+      const paginatedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <PaginatedTools.Provider>{children}</PaginatedTools.Provider>
+      );
+      const { result } = renderHook(
+        () => PaginatedTools.useToolRegistry(),
+        { wrapper: paginatedWrapper }
+      );
+
+      const firstPage = result.current.listTools({ method: 'tools/list' });
+      expect(firstPage.tools.map((tool) => tool.name)).toEqual([
+        'searchProducts',
+        'addToCart',
+      ]);
+      expect(firstPage.nextCursor).toBe('offset:2');
+
+      const secondPage = result.current.listTools({
+        method: 'tools/list',
+        params: { cursor: firstPage.nextCursor },
+      });
+      expect(secondPage.tools.map((tool) => tool.name)).toEqual(['checkout']);
+      expect(secondPage.nextCursor).toBeUndefined();
+      expect(result.current.toMCP()).toHaveLength(3);
+      expect(result.current.toOpenAI()).toHaveLength(3);
+    });
+
     it('should execute tools/call and return structured tool result', async () => {
       const handler = jest.fn().mockResolvedValue({ items: ['product-1'] });
       const { result } = renderHook(

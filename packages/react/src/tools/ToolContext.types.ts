@@ -79,6 +79,9 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
   /** Optional execution allowlist applied to discovery and calls. */
   allowedToolNames?: readonly string[];
 
+  /** Optional page size for canonical tools/list discovery. Defaults to all tools. */
+  toolListPageSize?: number;
+
   /** Optional runtime policy for allow/ask/deny decisions. */
   toolPolicy?: ToolPolicy;
 

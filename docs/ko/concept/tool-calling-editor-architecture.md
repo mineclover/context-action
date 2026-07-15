@@ -84,6 +84,11 @@ Core는 표준 managed-call code를 재사용할 수 있도록
 `TOOL_CALL_ERROR_CODES`와 `ToolCallErrorCode`를 export한다. handler가 workspace나
 제품 도메인의 구체적인 실패를 보고해야 하는 경우에는 custom code도 추가할 수 있다.
 
+대규모 catalog는 `createToolContext`의 `toolListPageSize`로 discovery page 크기를
+지정할 수 있다. 이때 canonical `listTools({ method: 'tools/list' })` 요청은 opaque
+`nextCursor`를 반환하며, 인자가 없는 `listTools()`와 provider batch export는 전체
+catalog를 유지한다.
+
 standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
 계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
 보낼 입력과 다음 단계가 안전하게 소비할 결과를 함께 정의한다.
