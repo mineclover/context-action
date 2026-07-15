@@ -504,14 +504,16 @@ Open folder → generic FileSystemAdapter
   편집은 dirty 상태로 남는다.
 - `workspace.reloadFolder`는 외부 refresh의 명시적인 경계다. parent adapter로 연결된
   folder를 다시 읽고 Dexie browser workspace를 교체한 뒤 새 preview revision을
-  기다리며 skipped file과 local-folder 상태를 반환한다. 연결된 writable folder가
-  없으면 실패한다.
+  기다린다. adapter read 이후 import 경계에서도 캡처한 revision을 다시 확인하며,
+  skipped file과 local-folder 상태를 반환한다. 연결된 writable folder가 없으면
+  실패한다.
 - `workspace.reset`은 반복 가능한 데모를 위한 복구 경계다. browser-only
   workspace에서만 사용할 수 있고 Dexie projection을 네 파일 seed로 교체한 뒤
   일치하는 preview acknowledgement를 기다린다. writable folder가 연결된 동안에는
   filesystem save에 seed가 실수로 반영될 수 있으므로 실행을 거부한다. 사용자가
   discard를 확인하면 pending editor draft를 flush하지 않고 browser workspace를
-  바로 교체한다.
+  바로 교체하며, pending persistence가 끝난 뒤 import 경계에서 캡처한 revision을
+  다시 확인한다.
 - writable folder가 연결된 경우 Explorer의 `Save to folder` 버튼과 `⌘/Ctrl+S`
   단축키도 같은 `workspace.saveAll` registry 경로를 호출한다. 따라서 UI save,
   model call, approval policy, trace, structured result가 같은 계약을 공유한다.

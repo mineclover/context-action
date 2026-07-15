@@ -38,6 +38,10 @@ type UpdateFileOptions = {
   coalesce?: boolean;
 };
 
+type WorkspaceImportOptions = {
+  expectedRevision?: number;
+};
+
 const languageByWorkspaceExtension: Record<string, string> = {
   '.css': 'css',
   '.htm': 'html',
@@ -79,6 +83,18 @@ export function normalizeWorkspacePath(path: string): string {
   );
   if (normalized.length === 0) throw new Error('Workspace path is required.');
   return normalized.join('/');
+}
+
+function assertExpectedRevision(
+  currentRevision: number,
+  expectedRevision?: number
+): void {
+  if (expectedRevision === undefined || expectedRevision === currentRevision) {
+    return;
+  }
+  throw new Error(
+    `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
+  );
 }
 
 export function languageForWorkspacePath(path: string): string {
@@ -247,7 +263,10 @@ export class BrowserWorkspace {
     this.notify();
   }
 
-  async importFolder(folder: ImportedFolder): Promise<void> {
+  async importFolder(
+    folder: ImportedFolder,
+    options: WorkspaceImportOptions = {}
+  ): Promise<void> {
     if (folder.files.length === 0) {
       throw new Error(
         'No supported HTML, CSS, JS, text, or preview asset files were found.'
@@ -255,6 +274,7 @@ export class BrowserWorkspace {
     }
 
     await this.persistQueue;
+    assertExpectedRevision(this.snapshot.revision, options.expectedRevision);
     const activePath =
       folder.files.find((file) => file.path === 'index.html')?.path ??
       folder.files.find((file) => file.language === 'html')?.path ??
@@ -302,12 +322,15 @@ export class BrowserWorkspace {
     this.notify();
   }
 
-  async resetToSeed(): Promise<void> {
-    await this.importFolder({
-      rootName: 'canvas-landing',
-      files: createInitialFiles(),
-      skipped: [],
-    });
+  async resetToSeed(options: WorkspaceImportOptions = {}): Promise<void> {
+    await this.importFolder(
+      {
+        rootName: 'canvas-landing',
+        files: createInitialFiles(),
+        skipped: [],
+      },
+      options
+    );
   }
 
   getFile(path: string): WorkspaceFile {

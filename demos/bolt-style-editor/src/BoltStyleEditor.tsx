@@ -1484,7 +1484,7 @@ function ToolHandlers({
       throwIfAborted(controller.signal);
       await fileSystemAdapter.disconnectFolder();
       throwIfAborted(controller.signal);
-      await workspace.resetToSeed();
+      await workspace.resetToSeed({ expectedRevision });
       const snapshot = workspace.getSnapshot();
       await workspace.waitForPreviewRevision(
         snapshot.revision,
@@ -1794,7 +1794,7 @@ function ToolHandlers({
       if (controller.signal?.aborted) throw new Error('Reload cancelled.');
       const imported = await fileSystemAdapter.reloadFolder();
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
-      await workspace.importFolder(imported);
+      await workspace.importFolder(imported, { expectedRevision });
       const snapshot = workspace.getSnapshot();
       await workspace.waitForPreviewRevision(
         snapshot.revision,

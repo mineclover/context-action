@@ -536,15 +536,18 @@ Open folder → generic FileSystemAdapter
   dirty.
 - `workspace.reloadFolder` is the explicit external-refresh boundary. It reads
   the connected folder through the parent adapter, replaces the Dexie-backed
-  browser workspace, waits for the new preview revision, and reports skipped
-  files plus the resulting local-folder status. It fails when no writable
-  folder is connected.
+  browser workspace, re-checking the captured revision after the adapter read
+  and before the import boundary, waits for the new preview revision, and
+  reports skipped files plus the resulting local-folder status. It fails when
+  no writable folder is connected.
 - `workspace.reset` is the repeatable-demo recovery boundary. It is available
   only for a browser-only workspace, replaces the Dexie projection with the
   four-file seed, waits for the matching preview acknowledgement, and refuses
   to run while a writable folder is linked so it cannot accidentally stage the
   seed for a filesystem save. Once the user confirms the discard, the editor
-  skips its pending draft flush and replaces the browser workspace directly.
+  skips its pending draft flush and replaces the browser workspace directly;
+  the import boundary re-checks the captured revision after pending persistence
+  work has drained.
 - When a writable folder is linked, the Explorer `Save to folder` button and
   `⌘/Ctrl+S` shortcut call this same `workspace.saveAll` registry path, so the
   UI save, model call, approval policy, trace, and structured result stay
