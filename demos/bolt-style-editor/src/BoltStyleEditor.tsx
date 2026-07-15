@@ -3537,6 +3537,13 @@ function EditorWorkbench({
           >
             Full demo ↗
           </a>
+          <a
+            href="https://mineclover.github.io/context-action/example/catalog/integrations/mcp-function-calling"
+            target="_blank"
+            rel="noreferrer"
+          >
+            MCP catalog ↗
+          </a>
         </div>
       </header>
 

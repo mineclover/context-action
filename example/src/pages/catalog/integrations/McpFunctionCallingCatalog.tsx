@@ -42,12 +42,22 @@ export default function McpFunctionCallingCatalog() {
                 검증하는 전용 레퍼런스입니다.
               </p>
             </div>
-            <Link
-              to="/integrations/tool-context-ai"
-              className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              쇼케이스 열기 →
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/integrations/tool-context-ai"
+                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                쇼케이스 열기 →
+              </Link>
+              <a
+                href="https://mineclover.github.io/context-action/web-coding/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-full border border-cyan-300 bg-white px-5 py-3 text-sm font-semibold text-cyan-900 hover:bg-cyan-50"
+              >
+                Standalone Studio ↗
+              </a>
+            </div>
           </div>
         </header>
 
