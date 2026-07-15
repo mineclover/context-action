@@ -341,36 +341,100 @@ export class BrowserWorkspace {
   }
 }
 
+function attributeValue(tag: string, name: string): string | null {
+  const match = tag.match(
+    new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i')
+  );
+  return match?.[1] ?? match?.[2] ?? match?.[3] ?? null;
+}
+
+function resolveLocalPath(
+  fromPath: string,
+  requestedPath: string
+): string | null {
+  const path = requestedPath.trim().split(/[?#]/, 1)[0];
+  if (!path || /^(?:[a-z][a-z\d+.-]*:|\/\/|#|data:)/i.test(path)) {
+    return null;
+  }
+
+  const base = fromPath.split('/');
+  base.pop();
+  const segments = (path.startsWith('/') ? [] : base).concat(path.split('/'));
+  const normalized: string[] = [];
+  for (const segment of segments) {
+    if (!segment || segment === '.') continue;
+    if (segment === '..') {
+      normalized.pop();
+    } else {
+      normalized.push(segment);
+    }
+  }
+  return normalized.join('/') || null;
+}
+
+function findReferencedFile(
+  files: readonly WorkspaceFile[],
+  fromPath: string,
+  requestedPath: string,
+  language: WorkspaceFile['language']
+): WorkspaceFile | undefined {
+  const resolvedPath = resolveLocalPath(fromPath, requestedPath);
+  return resolvedPath
+    ? files.find(
+        (file) => file.path === resolvedPath && file.language === language
+      )
+    : undefined;
+}
+
+function inlineStylesheets(
+  html: string,
+  htmlPath: string,
+  files: readonly WorkspaceFile[]
+): string {
+  return html.replace(/<link\b[^>]*>/gi, (tag) => {
+    const href = attributeValue(tag, 'href');
+    const rel = attributeValue(tag, 'rel')?.toLowerCase() ?? '';
+    if (
+      !href ||
+      (!rel.includes('stylesheet') && !/\.css(?:[?#]|$)/i.test(href))
+    ) {
+      return tag;
+    }
+
+    const css = findReferencedFile(files, htmlPath, href, 'css');
+    return css
+      ? `<style data-workspace-source="${css.path}">${css.source}</style>`
+      : '';
+  });
+}
+
+function inlineScripts(
+  html: string,
+  htmlPath: string,
+  files: readonly WorkspaceFile[]
+): string {
+  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) => {
+    const src = attributeValue(tag, 'src');
+    if (!src) return tag;
+
+    const javascript = findReferencedFile(files, htmlPath, src, 'javascript');
+    if (!javascript) return '';
+
+    const openingTag = tag.match(/^<script\b([^>]*)>/i)?.[1] ?? '';
+    const attributes = openingTag.replace(
+      /\s+src\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i,
+      ''
+    );
+    return `<script${attributes}>${javascript.source}</script>`;
+  });
+}
+
 export function buildPreviewDocument(files: WorkspaceFile[]): string {
   const htmlFile =
     files.find((file) => file.path === 'index.html') ??
     files.find((file) => file.language === 'html');
-  const html = htmlFile?.source ?? '';
-  const directory = htmlFile?.path.includes('/')
-    ? htmlFile.path.slice(0, htmlFile.path.lastIndexOf('/'))
-    : '';
-  const css =
-    files.find((file) => file.path === 'styles.css') ??
-    files.find(
-      (file) =>
-        file.language === 'css' && file.path === `${directory}/styles.css`
-    ) ??
-    files.find((file) => file.language === 'css');
-  const javascript =
-    files.find((file) => file.path === 'app.js') ??
-    files.find(
-      (file) =>
-        file.language === 'javascript' && file.path === `${directory}/app.js`
-    ) ??
-    files.find((file) => file.language === 'javascript');
+  if (!htmlFile) return '';
 
-  return html
-    .replace(
-      /<link\s+[^>]*href=["'][^"']+["'][^>]*>/i,
-      css ? `<style>${css.source}</style>` : ''
-    )
-    .replace(
-      /<script\s+[^>]*src=["'][^"']+["'][^>]*><\/script>/i,
-      javascript ? `<script>${javascript.source}</script>` : ''
-    );
+  const withStyles = inlineStylesheets(htmlFile.source, htmlFile.path, files);
+  return inlineScripts(withStyles, htmlFile.path, files);
 }
