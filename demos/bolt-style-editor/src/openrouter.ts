@@ -14,6 +14,7 @@ export type OpenRouterSettings = {
 export type AgentRunResult = {
   toolNames: string[];
   response: string;
+  failedTool?: string;
   failed?: boolean;
   retryable?: boolean;
 };

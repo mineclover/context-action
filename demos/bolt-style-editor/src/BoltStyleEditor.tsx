@@ -931,11 +931,16 @@ async function runLocalAgent(
     throwIfAborted(signal);
     toolNames.push(call.name);
     if (result.isError) {
+      const completedSummary =
+        toolNames.length > 1
+          ? `Completed ${toolNames.slice(0, -1).join(', ')} before the failure. `
+          : '';
       return {
         toolNames,
-        response: resultText(result),
+        response: `${completedSummary}${call.name} failed: ${resultText(result)}`,
+        failedTool: call.name,
         failed: true,
-        retryable: result.error?.retryable,
+        retryable: result.error?.retryable ?? false,
       };
     }
     plannedRevision = readResultRevision(
@@ -2342,7 +2347,7 @@ function EditorWorkbench({
         agentTrace,
         result.failed ? 'failed' : 'completed',
         result.failed
-          ? 'tool call failed'
+          ? `${result.failedTool ?? 'tool call'} failed`
           : `${result.toolNames.length} tool call(s)`
       );
       setMessages((current) => [
