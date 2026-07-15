@@ -557,6 +557,53 @@ describe('createToolContext', () => {
         error: { code: 'TOOL_CANCELLED', retryable: true },
       });
     });
+
+    it('should use the same cancellation result when a handler is running', async () => {
+      const cancellationContext = createToolContext('AbortHandlerTools', {
+        schema: testSchema,
+      });
+      const cancellationWrapper = ({ children }: { children: React.ReactNode }) => (
+        <cancellationContext.Provider>{children}</cancellationContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          cancellationContext.useToolHandler(
+            'searchProducts',
+            useCallback(async (_payload, controller) => {
+              await new Promise<void>((resolve) => {
+                if (controller.signal?.aborted) {
+                  resolve();
+                  return;
+                }
+                controller.signal?.addEventListener('abort', () => resolve(), {
+                  once: true,
+                });
+              });
+            }, [])
+          );
+          return cancellationContext.useToolRegistry();
+        },
+        { wrapper: cancellationWrapper }
+      );
+      const controller = new AbortController();
+      const pendingCall = result.current.executeModelToolCall(
+        {
+          id: 'abort-handler',
+          name: 'searchProducts',
+          arguments: { query: 'laptop' },
+        },
+        { signal: controller.signal }
+      );
+
+      controller.abort();
+      const toolResult = await act(async () => pendingCall);
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'abort-handler',
+        error: { code: 'TOOL_CANCELLED', retryable: true },
+      });
+    });
   });
 
   describe('Tool Format Export - toMCP', () => {

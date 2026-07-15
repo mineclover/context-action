@@ -221,7 +221,12 @@ function highlightSourceLine(
 
 function resultText(result: {
   isError?: boolean;
-  error?: { message?: string };
+  error?: {
+    code?: string;
+    message?: string;
+    retryable?: boolean;
+    details?: unknown;
+  };
   content?: Array<{ text?: string }>;
   structuredContent?: unknown;
 }): string {
@@ -231,9 +236,17 @@ function resultText(result: {
       result.content
         ?.map((block) => block.text?.trim())
         .find((text): text is string => Boolean(text));
-    return message || 'Tool call failed.';
+    const code = result.error?.code ? `[${result.error.code}] ` : '';
+    const details = result.error?.details;
+    const detailText =
+      details === undefined ? '' : `\n${JSON.stringify(details, null, 2)}`;
+    return `${code}${message || 'Tool call failed.'}${detailText}`;
   }
-  return JSON.stringify(result.structuredContent ?? {}, null, 2);
+  return JSON.stringify(
+    result.structuredContent !== undefined ? result.structuredContent : {},
+    null,
+    2
+  );
 }
 
 function throwIfAborted(signal?: AbortSignal): void {

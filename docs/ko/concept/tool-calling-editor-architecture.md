@@ -96,7 +96,8 @@ strict 모드에서는 `tools/call` arguments를 `toolPolicy` 실행 전에 검�
 기존의 permissive dispatch 동작을 유지한다.
 
 `toolPolicy`에도 call의 `AbortSignal`을 전달하므로 provider request가 취소된 뒤
-approval·policy 대기가 남지 않는다. 이 경계에서 취소되면 재시도 가능한
+approval·policy 대기가 남지 않는다. 같은 signal은 registry handler와 preview
+대기까지 전달되며, 어느 경계에서 취소되어도 재시도 가능한
 `TOOL_CANCELLED` 표준 오류 결과를 반환한다.
 
 provider별 filtered export(`toMCPFiltered`, `toOpenAIFiltered`,
@@ -106,6 +107,11 @@ provider별 filtered export(`toMCPFiltered`, `toOpenAIFiltered`,
 blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 handler ID를
 `tools/call`의 structured error message/details에 보존한다. 따라서 UI와 model이
 `Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace 원인을
+확인할 수 있다.
+
+standalone OpenRouter bridge는 canonical error의 `code`, `retryable`, `details`를
+다음 model message로 전달한다. local fallback 실행에서는 같은 code와 details를
+assistant transcript에 표시하므로 provider 사용 여부와 관계없이 오류 원인을
 확인할 수 있다.
 
 annotation의 `destructiveHint`는 모델과 UI를 위한 힌트다. 이 데모에서는 파일 삭제와

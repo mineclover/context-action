@@ -487,16 +487,19 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               failedHandler?.error.message ??
               lifecycleError?.error.message ??
               `Tool "${request.params.name}" failed`;
+            const externallyCancelled = options?.signal?.aborted === true;
             return finish(createToolCallError(
               executionMessage,
               {
-                code: execution.validation && !execution.validation.passed
-                  ? 'TOOL_VALIDATION_FAILED'
-                  : execution.aborted
-                    ? 'TOOL_EXECUTION_ABORTED'
-                    : 'TOOL_EXECUTION_FAILED',
+                code: externallyCancelled
+                  ? 'TOOL_CANCELLED'
+                  : execution.validation && !execution.validation.passed
+                    ? 'TOOL_VALIDATION_FAILED'
+                    : execution.aborted
+                      ? 'TOOL_EXECUTION_ABORTED'
+                      : 'TOOL_EXECUTION_FAILED',
                 toolCallId: request.id,
-                retryable: execution.aborted,
+                retryable: externallyCancelled || execution.aborted,
                 details: failedHandler
                   ? {
                       handlerId: failedHandler.handlerId,

@@ -81,7 +81,12 @@ type OpenRouterResponse = {
 
 function toolResultContent(result: {
   isError?: boolean;
-  error?: { code?: string; message?: string };
+  error?: {
+    code?: string;
+    message?: string;
+    retryable?: boolean;
+    details?: unknown;
+  };
   content?: Array<{ text: string }>;
   structuredContent?: unknown;
 }): string {
@@ -90,14 +95,22 @@ function toolResultContent(result: {
       status: 'error',
       code: result.error?.code,
       message: result.error?.message,
+      ...(result.error?.retryable === undefined
+        ? {}
+        : { retryable: result.error.retryable }),
+      ...(result.error?.details === undefined
+        ? {}
+        : { details: result.error.details }),
     });
   }
 
   return JSON.stringify(
-    result.structuredContent ?? {
-      status: 'completed',
-      content: result.content?.map((block) => block.text).join('\n'),
-    }
+    result.structuredContent !== undefined
+      ? result.structuredContent
+      : {
+          status: 'completed',
+          content: result.content?.map((block) => block.text).join('\n'),
+        }
   );
 }
 

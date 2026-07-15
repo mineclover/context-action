@@ -99,8 +99,9 @@ never opens an approval prompt or reaches a handler. `warn` and `silent` modes
 retain the existing permissive dispatch behavior.
 
 `toolPolicy` also receives the call `AbortSignal`, so an approval or policy
-wait cannot outlive a cancelled provider request. The canonical result is a
-retryable `TOOL_CANCELLED` error when cancellation happens at that boundary.
+wait cannot outlive a cancelled provider request. The same signal is forwarded
+through registry handlers and preview waits; cancellation at any of those
+boundaries returns the retryable `TOOL_CANCELLED` result.
 
 Provider-specific filtered exports (`toMCPFiltered`, `toOpenAIFiltered`, and
 `toAnthropicFiltered`) use the same allowlist boundary. A tool that is hidden
@@ -111,6 +112,11 @@ When a blocking handler fails, ToolContext preserves its error message and
 handler ID in the `tools/call` structured error message/details. The UI and
 model therefore receive the concrete validation or workspace cause instead of
 only a generic `Tool call failed` response.
+
+The standalone OpenRouter bridge forwards the canonical error `code`,
+`retryable` flag, and `details` into the next model message. A local run shows
+the same code and details in the assistant transcript, keeping provider and
+offline fallback behavior aligned.
 
 `destructiveHint` is metadata for model and UI guidance. In this demo it marks
 file deletion and revert samples so the palette asks for explicit confirmation.
