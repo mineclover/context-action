@@ -134,10 +134,12 @@ calls use `executeModelToolCall()` and are subject to the model approval policy.
 
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, JSON input schema, and
-optional structured `outputSchema` are the same contract exported to MCP and
-OpenRouter and enforced at the result boundary. Selecting a catalog row only
-inspects that definition; a separate `Run sample` control is required to
-execute its demo arguments, so browsing a destructive tool cannot mutate the
+optional structured `outputSchema` are the same canonical contract exported to
+MCP and enforced at the result boundary. OpenAI-compatible/OpenRouter payloads
+use their provider-specific input-function projection; the registry still
+validates the structured result after every provider call. Selecting a catalog
+row only inspects that definition; a separate `Run sample` control is required
+to execute its demo arguments, so browsing a destructive tool cannot mutate the
 workspace accidentally. The catalog filter narrows the same canonical list
 without changing discovery or execution policy.
 

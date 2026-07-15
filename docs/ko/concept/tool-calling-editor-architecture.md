@@ -128,8 +128,10 @@ call은 `executeModelToolCall()`을 사용하며 model approval policy의 대상
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
 화면에 표시되는 description·annotation·JSON input schema와 선택적인 structured
-`outputSchema`는 MCP와 OpenRouter에 export되는 contract와 동일하며 result boundary에서도
-같은 계약을 강제한다. catalog 행을 선택하는
+`outputSchema`는 MCP로 export되는 canonical contract와 동일하며 result boundary에서도
+같은 계약을 강제한다. OpenAI-compatible/OpenRouter payload는 provider가 허용하는
+input function projection을 사용하지만, provider 호출 뒤 structured result 검증은
+registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
 따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
 filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지
