@@ -86,6 +86,7 @@ type Message = {
   retryPrompt?: string;
   retryLabel?: string;
   retryTool?: ToolCall;
+  openSettings?: boolean;
 };
 
 type ToolCall = {
@@ -104,6 +105,16 @@ type ToolAnnotations = {
 function toolPolicySummary(annotations?: ToolAnnotations): string {
   if (annotations?.readOnlyHint === true) return 'allow · read-only';
   return 'approval · local direct allow';
+}
+
+function shouldOpenProviderSettings(error: unknown): boolean {
+  if (!(error instanceof OpenRouterRequestError)) return false;
+  return (
+    error.code === 'OPENROUTER_CONFIGURATION_ERROR' ||
+    error.code === 'OPENROUTER_AUTHENTICATION_FAILED' ||
+    error.code === 'OPENROUTER_ACCESS_DENIED' ||
+    error.code === 'OPENROUTER_INVALID_RESPONSE'
+  );
 }
 
 const toolCatalogFilterOptions: Array<{
@@ -3256,6 +3267,7 @@ function EditorWorkbench({
           ...(controller.signal.aborted || !retryable
             ? {}
             : { retryPrompt: trimmed }),
+          ...(shouldOpenProviderSettings(error) ? { openSettings: true } : {}),
         },
       ]);
     } finally {
@@ -4519,6 +4531,15 @@ function EditorWorkbench({
                         type="button"
                       >
                         {message.retryLabel ?? 'Retry'}
+                      </button>
+                    ) : null}
+                    {!running && message.openSettings ? (
+                      <button
+                        className="message-settings"
+                        onClick={() => setShowSettings(true)}
+                        type="button"
+                      >
+                        Open provider settings
                       </button>
                     ) : null}
                   </div>
