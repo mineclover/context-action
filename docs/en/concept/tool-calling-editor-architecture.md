@@ -171,6 +171,9 @@ Open folder → generic FileSystemAdapter
 - Text edits are persisted to Dexie immediately. With a read/write directory
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
+- The Explorer derives a sorted nested tree from each normalized file path.
+  Directory rows can be collapsed or expanded without changing workspace data,
+  while file selection continues to resolve to the full `activePath`.
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.

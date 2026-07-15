@@ -10,6 +10,11 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
+  buildFileTree,
+  collectDirectoryPaths,
+  type FileTreeEntry,
+} from './file-tree';
+import {
   DEFAULT_OPENROUTER_SETTINGS,
   type OpenRouterSettings,
   readOpenRouterSettings,
@@ -492,6 +497,127 @@ function ToolHandlers({
   return <>{children}</>;
 }
 
+function FileTreeEntryView({
+  entry,
+  depth,
+  expandedPaths,
+  activePath,
+  disabled,
+  onToggle,
+  onSelect,
+}: {
+  entry: FileTreeEntry;
+  depth: number;
+  expandedPaths: ReadonlySet<string>;
+  activePath: string;
+  disabled: boolean;
+  onToggle: (path: string) => void;
+  onSelect: (path: string) => void;
+}) {
+  const indentation = { paddingLeft: `${12 + depth * 15}px` };
+
+  if (entry.kind === 'directory') {
+    const expanded = expandedPaths.has(entry.path);
+    return (
+      <div key={entry.path}>
+        <button
+          aria-expanded={expanded}
+          className="directory-row"
+          disabled={disabled}
+          onClick={() => onToggle(entry.path)}
+          style={indentation}
+          type="button"
+        >
+          <span className="directory-chevron" aria-hidden="true">
+            {expanded ? '⌄' : '›'}
+          </span>
+          <span className="directory-icon" aria-hidden="true">
+            ▱
+          </span>
+          <span>{entry.name}</span>
+        </button>
+        {expanded
+          ? entry.children.map((child) => (
+              <FileTreeEntryView
+                activePath={activePath}
+                depth={depth + 1}
+                disabled={disabled}
+                entry={child}
+                expandedPaths={expandedPaths}
+                key={child.path}
+                onSelect={onSelect}
+                onToggle={onToggle}
+              />
+            ))
+          : null}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      className={`file-row ${entry.path === activePath ? 'file-row-active' : ''}`}
+      disabled={disabled}
+      onClick={() => onSelect(entry.path)}
+      style={indentation}
+      title={entry.path}
+      type="button"
+    >
+      <FileIcon file={entry.file} />
+      <span>{entry.name}</span>
+    </button>
+  );
+}
+
+function FileTree({
+  files,
+  activePath,
+  disabled,
+  onSelect,
+}: {
+  files: readonly WorkspaceFile[];
+  activePath: string;
+  disabled: boolean;
+  onSelect: (path: string) => void;
+}) {
+  const entries = useMemo(() => buildFileTree(files), [files]);
+  const directoryPaths = collectDirectoryPaths(entries);
+  const directorySignature = directoryPaths.join('\u0000');
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(
+    () => new Set(directoryPaths)
+  );
+
+  useEffect(() => {
+    setExpandedPaths(new Set(directoryPaths));
+  }, [directorySignature]);
+
+  const toggleDirectory = (path: string) => {
+    setExpandedPaths((current) => {
+      const next = new Set(current);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  return (
+    <div className="file-tree">
+      {entries.map((entry) => (
+        <FileTreeEntryView
+          activePath={activePath}
+          depth={0}
+          disabled={disabled}
+          entry={entry}
+          expandedPaths={expandedPaths}
+          key={entry.path}
+          onSelect={onSelect}
+          onToggle={toggleDirectory}
+        />
+      ))}
+    </div>
+  );
+}
+
 function FileIcon({ file }: { file: WorkspaceFile }) {
   const color =
     file.language === 'html'
@@ -936,20 +1062,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <div className="tree-root">
             <span>⌄</span> {snapshot.rootName}
           </div>
-          <div className="file-tree">
-            {snapshot.files.map((file) => (
-              <button
-                className={`file-row ${file.path === snapshot.activePath ? 'file-row-active' : ''}`}
-                disabled={!isStorageReady}
-                key={file.path}
-                onClick={() => workspace.setActivePath(file.path)}
-                type="button"
-              >
-                <FileIcon file={file} />
-                <span>{file.path}</span>
-              </button>
-            ))}
-          </div>
+          <FileTree
+            activePath={snapshot.activePath}
+            disabled={!isStorageReady}
+            files={snapshot.files}
+            onSelect={(path) => workspace.setActivePath(path)}
+          />
 
           <div className="sidebar-section-heading">
             <span>Tools</span>

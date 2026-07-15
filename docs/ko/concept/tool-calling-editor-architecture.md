@@ -166,6 +166,9 @@ Open folder → generic FileSystemAdapter
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
+- Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
+  directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
+  파일 선택은 전체 `activePath`를 그대로 유지한다.
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
