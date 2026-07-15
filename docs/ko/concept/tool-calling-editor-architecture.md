@@ -64,7 +64,9 @@ acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로
 사용자에게 assistant message로 표시한다.
 example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter request가 실행 중이면
 `Run editor toolchain`이 `Cancel editor toolchain`으로 바뀌고, provider-neutral
-runner contract를 통해 abort signal을 전달한다.
+runner contract를 통해 abort signal을 전달한다. realtime web-coding showcase도
+local agent·model request·palette tool 경로에 같은 signal을 사용하며, 두 route를
+이동할 때 진행 중인 실행을 함께 abort한다.
 
 ## 표준 계약
 

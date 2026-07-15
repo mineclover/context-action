@@ -255,6 +255,14 @@
   font-weight: 800;
 }
 
+.chatFormCancelButton {
+  background: #a32929 !important;
+}
+
+.chatFormCancelButton:hover {
+  background: #8b2424 !important;
+}
+
 .chatForm button:disabled,
 .toolCard:disabled {
   cursor: not-allowed;

@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -298,7 +299,8 @@ function callToolResultText(result: {
 
 async function runLocalPrompt(
   registry: WebToolRegistry,
-  prompt: string
+  prompt: string,
+  signal?: AbortSignal
 ): Promise<{ toolNames: string[]; response: string }> {
   const normalized = prompt.toLowerCase();
   const calls: Array<{
@@ -343,14 +345,16 @@ async function runLocalPrompt(
 
   const toolNames: string[] = [];
   for (const call of calls) {
+    if (signal?.aborted) throw new Error('Execution cancelled.');
     const result = await registry.executeModelToolCall(
       {
         id: `local-${Date.now()}-${call.name}`,
         name: call.name,
         arguments: call.arguments,
       },
-      { context: { source: 'model' } }
+      { context: { source: 'model' }, signal }
     );
+    if (signal?.aborted) throw new Error('Execution cancelled.');
     toolNames.push(call.name);
     if (result.isError) {
       return { toolNames, response: callToolResultText(result) };
@@ -394,6 +398,14 @@ function LiveWebCodingWorkbench({
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
+  const executionControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      executionControllerRef.current?.abort();
+    },
+    []
+  );
 
   useEffect(() => {
     let active = true;
@@ -463,10 +475,29 @@ function LiveWebCodingWorkbench({
     [apiKey]
   );
 
+  const beginExecution = () => {
+    const controller = new AbortController();
+    executionControllerRef.current = controller;
+    return controller;
+  };
+
+  const finishExecution = (controller: AbortController) => {
+    if (executionControllerRef.current === controller) {
+      executionControllerRef.current = null;
+    }
+    setLoading(false);
+  };
+
+  const cancelExecution = () => {
+    const controller = executionControllerRef.current;
+    if (controller && !controller.signal.aborted) controller.abort();
+  };
+
   const sendPrompt = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextPrompt = prompt.trim();
     if (!nextPrompt || loading) return;
+    const controller = beginExecution();
     setLoading(true);
     setError('');
     setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
@@ -483,7 +514,11 @@ function LiveWebCodingWorkbench({
             { role: 'user', content: nextPrompt },
           ] satisfies ModelMessage[],
           registry,
+          signal: controller.signal,
         });
+        if (controller.signal.aborted) {
+          throw new Error('Execution cancelled.');
+        }
         setMessages((current) => [
           ...current,
           {
@@ -495,32 +530,54 @@ function LiveWebCodingWorkbench({
           },
         ]);
       } else {
-        const local = await runLocalPrompt(registry, nextPrompt);
+        const local = await runLocalPrompt(
+          registry,
+          nextPrompt,
+          controller.signal
+        );
         setMessages((current) => [
           ...current,
           { role: 'assistant', text: local.response, tools: local.toolNames },
         ]);
       }
+      if (controller.signal.aborted) {
+        throw new Error('Execution cancelled.');
+      }
       setPrompt('');
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'Realtime web coding request failed.'
-      );
+      if (controller.signal.aborted) {
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'assistant',
+            text: 'Execution cancelled. No toolchain success was reported.',
+          },
+        ]);
+        setError('');
+      } else {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : 'Realtime web coding request failed.'
+        );
+      }
     } finally {
-      setLoading(false);
+      finishExecution(controller);
     }
   };
 
   const runTool = async (name: string, args: Record<string, unknown>) => {
+    const controller = beginExecution();
     setLoading(true);
     setError('');
     try {
       const result = await registry.executeModelToolCall(
         { id: `palette-${Date.now()}`, name, arguments: args },
-        { context: { source: 'model' } }
+        { context: { source: 'model' }, signal: controller.signal }
       );
+      if (controller.signal.aborted) {
+        throw new Error('Execution cancelled.');
+      }
       setMessages((current) => [
         ...current,
         {
@@ -532,9 +589,22 @@ function LiveWebCodingWorkbench({
         },
       ]);
     } catch (toolError) {
-      setError(toolError instanceof Error ? toolError.message : 'Tool failed.');
+      if (controller.signal.aborted) {
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'assistant',
+            text: 'Execution cancelled. No tool success was reported.',
+          },
+        ]);
+        setError('');
+      } else {
+        setError(
+          toolError instanceof Error ? toolError.message : 'Tool failed.'
+        );
+      }
     } finally {
-      setLoading(false);
+      finishExecution(controller);
     }
   };
 
@@ -674,8 +744,13 @@ function LiveWebCodingWorkbench({
                   disabled={loading}
                   onChange={(event) => setPrompt(event.target.value)}
                 />
-                <button type="submit" disabled={loading || !prompt.trim()}>
-                  {loading ? 'Calling tools…' : 'Send to agent'}
+                <button
+                  className={loading ? styles.chatFormCancelButton : undefined}
+                  type={loading ? 'button' : 'submit'}
+                  disabled={loading ? false : !prompt.trim()}
+                  onClick={loading ? cancelExecution : undefined}
+                >
+                  {loading ? 'Cancel execution' : 'Send to agent'}
                 </button>
               </form>
               {error && <p className={styles.error}>{error}</p>}

@@ -66,7 +66,9 @@ user-visible assistant message instead of a misleading tool success.
 The example live editor exposes the same boundary: its `Run editor toolchain`
 control becomes `Cancel editor toolchain` while the browser-side OpenRouter
 request is active and forwards the abort signal through the provider-neutral
-runner contract.
+runner contract. The realtime web-coding showcase uses the same signal for its
+local agent, model request, and palette tool paths; leaving either route also
+aborts an in-flight execution.
 
 ## Standard contract
 

@@ -46,6 +46,13 @@ export function LiveEditorAIToolbar() {
   const [loadingModels, setLoadingModels] = useState(false);
   const executionControllerRef = useRef<AbortController | null>(null);
 
+  useEffect(
+    () => () => {
+      executionControllerRef.current?.abort();
+    },
+    []
+  );
+
   useEffect(() => {
     let active = true;
     setLoadingModels(true);
