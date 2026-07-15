@@ -363,6 +363,99 @@ function OpenRouterSettingsDialog({
   );
 }
 
+function CreateWorkspaceFileDialog({
+  onClose,
+  onCreate,
+}: {
+  onClose: () => void;
+  onCreate: (path: string, source: string) => Promise<boolean>;
+}) {
+  const [path, setPath] = useState('notes.md');
+  const [source, setSource] = useState('# New workspace file\n');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting || !path.trim()) return;
+    setSubmitting(true);
+    try {
+      if (await onCreate(path, source)) onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="settings-backdrop" role="presentation">
+      <form
+        aria-labelledby="create-file-title"
+        aria-modal="true"
+        className="settings-dialog create-file-dialog"
+        onSubmit={(event) => void handleSubmit(event)}
+        role="dialog"
+      >
+        <div className="settings-heading">
+          <div>
+            <span className="panel-label">Workspace</span>
+            <h2 id="create-file-title">New file</h2>
+          </div>
+          <button
+            aria-label="Close new file dialog"
+            className="settings-close"
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <p className="settings-intro">
+          Create a text file in the browser workspace. The new file becomes the
+          active tab and is included in the next folder save.
+        </p>
+        <label className="settings-field">
+          <span>File path</span>
+          <input
+            autoFocus
+            aria-label="New file path"
+            onChange={(event) => setPath(event.target.value)}
+            placeholder="src/notes.md"
+            value={path}
+          />
+        </label>
+        <label className="settings-field">
+          <span>Initial source</span>
+          <textarea
+            aria-label="Initial file source"
+            className="create-file-source"
+            onChange={(event) => setSource(event.target.value)}
+            rows={8}
+            value={source}
+          />
+        </label>
+        <div className="settings-note">
+          <span className="status-dot" />
+          Text files only · paths are normalized by workspace.createFile.
+        </div>
+        <div className="settings-actions">
+          <span />
+          <div>
+            <button className="settings-cancel" onClick={onClose} type="button">
+              Cancel
+            </button>
+            <button
+              className="settings-save"
+              disabled={submitting || !path.trim()}
+              type="submit"
+            >
+              {submitting ? 'Creating…' : 'Create file'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function promptToToolCalls(prompt: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
@@ -514,7 +607,8 @@ function ToolHandlers({
         revision: snapshot.revision,
         preview: 'synced',
       };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler<'workspace.deleteFile', unknown>(
@@ -532,7 +626,8 @@ function ToolHandlers({
         revision: snapshot.revision,
         preview: 'synced',
       };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler<'workspace.writeFile', unknown>(
@@ -548,7 +643,8 @@ function ToolHandlers({
         controller.signal
       );
       return { path, revision: snapshot.revision, preview: 'synced' };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler<'preview.setTheme', unknown>(
@@ -573,7 +669,8 @@ function ToolHandlers({
         controller.signal
       );
       return { theme, revision: snapshot.revision, preview: 'synced' };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler<'preview.addFeature', unknown>(
@@ -601,7 +698,8 @@ function ToolHandlers({
         controller.signal
       );
       return { title, revision: snapshot.revision, preview: 'synced' };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler<'preview.updateHero', unknown>(
@@ -640,7 +738,8 @@ function ToolHandlers({
         controller.signal
       );
       return { title, revision: snapshot.revision, preview: 'synced' };
-    }
+    },
+    { blocking: true }
   );
 
   useBoltStyleToolHandler('preview.getStatus', () => {
@@ -932,6 +1031,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     readOpenRouterSettings
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [showCreateFile, setShowCreateFile] = useState(false);
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -1154,8 +1254,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
-  const executeQuickTool = async (call: ToolCall) => {
-    if (running) return;
+  const executeQuickTool = async (call: ToolCall): Promise<boolean> => {
+    if (running) return false;
     const controller = new AbortController();
     executionControllerRef.current = controller;
     setRunning(true);
@@ -1179,6 +1279,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           tools: [call.name],
         },
       ]);
+      if (result.isError) return false;
+      return true;
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -1192,6 +1294,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           tools: [call.name],
         },
       ]);
+      return false;
     } finally {
       if (executionControllerRef.current === controller) {
         executionControllerRef.current = null;
@@ -1199,6 +1302,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       setRunning(false);
     }
   };
+
+  const createWorkspaceFile = (path: string, source: string) =>
+    executeQuickTool({
+      name: 'workspace.createFile',
+      arguments: { path, source },
+    });
 
   const deleteActiveFile = () => {
     if (!canDeleteActiveFile || running) return;
@@ -1307,14 +1416,26 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         <aside className="studio-sidebar">
           <div className="explorer-heading">
             <div className="panel-label">Explorer</div>
-            <button
-              className="open-folder-button"
-              disabled={openingFolder || !isStorageReady}
-              onClick={() => void handleOpenFolder()}
-              type="button"
-            >
-              {openingFolder ? 'Opening…' : 'Open folder'}
-            </button>
+            <div className="explorer-actions">
+              <button
+                aria-label="Create new workspace file"
+                className="new-file-button"
+                disabled={openingFolder || !isStorageReady || running}
+                onClick={() => setShowCreateFile(true)}
+                title="Create a new text file"
+                type="button"
+              >
+                + New
+              </button>
+              <button
+                className="open-folder-button"
+                disabled={openingFolder || !isStorageReady || running}
+                onClick={() => void handleOpenFolder()}
+                type="button"
+              >
+                {openingFolder ? 'Opening…' : 'Open'}
+              </button>
+            </div>
             <input
               ref={folderInputRef}
               accept=".avif,.css,.gif,.htm,.html,.ico,.jpeg,.jpg,.js,.json,.mjs,.md,.otf,.png,.svg,.ts,.tsx,.ttf,.txt,.wasm,.webp,.woff,.woff2"
@@ -1716,6 +1837,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           onSave={(settings) =>
             setOpenRouterSettings(saveOpenRouterSettings(settings))
           }
+        />
+      ) : null}
+      {showCreateFile ? (
+        <CreateWorkspaceFileDialog
+          onClose={() => setShowCreateFile(false)}
+          onCreate={createWorkspaceFile}
         />
       ) : null}
     </div>

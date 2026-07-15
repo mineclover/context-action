@@ -202,6 +202,9 @@ Open folder → generic FileSystemAdapter
 - The editor's active-file Delete action routes through the same
   `workspace.deleteFile` registry contract as the palette and model loop;
   it does not introduce a second mutation path.
+- The Explorer's New file dialog similarly routes through
+  `workspace.createFile`; validation failures stay in the tool result path and
+  do not close the dialog, while successful creation selects the new tab.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.
