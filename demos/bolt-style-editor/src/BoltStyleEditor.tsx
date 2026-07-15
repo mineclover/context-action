@@ -3097,6 +3097,15 @@ function EditorWorkbench({
                 >
                   Clear
                 </button>
+                <button
+                  aria-label="Copy execution trace"
+                  className="trace-copy-button"
+                  disabled={!traceEntries.length || running}
+                  onClick={() => void copyJson('Execution trace', traceEntries)}
+                  type="button"
+                >
+                  Copy
+                </button>
                 <span className="count-badge">{traceEntries.length}</span>
               </span>
             </div>

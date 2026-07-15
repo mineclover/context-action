@@ -177,7 +177,10 @@ and result. File-like `source`, `search`, and `replace` values are redacted to a
 character count, so the trace can explain the call without copying file contents
 into the UI. The compact row still shows safe result summaries such as file
 count, path, theme, or revision, and its shortened `toolCallId` has the full
-value available as the row tooltip.
+value available as the row tooltip. The trace panel's `Copy` action exports the
+same bounded, already-redacted entries as JSON, making a `tools/list` → call →
+result example reusable in documentation or external tests without exposing
+workspace source.
 
 The realtime web-coding workspace exposes a monotonic workspace revision from
 `web.getWorkspace` and `web.readFile`. All mutating `web.*` tools accept the

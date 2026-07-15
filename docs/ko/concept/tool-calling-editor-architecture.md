@@ -169,7 +169,9 @@ standalone의 `agent.request` row는 같은 실행을 감싸며 running·complet
 상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
 확인할 수 있다.
 call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
-있다.
+있다. trace panel의 `Copy` action은 같은 bounded·redacted entry를 JSON으로 내보내므로,
+workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부
+테스트에서 재사용할 수 있다.
 
 realtime web-coding workspace는 `web.getWorkspace`와 `web.readFile`에서
 monotonic workspace revision을 노출한다. 모든 mutation `web.*` tool은 선택적인
