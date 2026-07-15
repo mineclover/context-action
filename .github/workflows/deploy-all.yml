@@ -9,6 +9,7 @@ on:
       - 'demos/**'
       - 'packages/*/src/**'
       - 'scripts/verify-web-coding-build.mjs'
+      - 'scripts/verify-web-coding-*.mjs'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-all.yml'
       - 'package.json'
@@ -51,7 +52,7 @@ jobs:
           # 관련 파일들이 변경되었는지 확인
           RELEVANT_CHANGES=false
           
-          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|demos/|packages/.*/src/|scripts/verify-web-coding-build\.mjs|package\.json|pnpm-workspace\.yaml)"; then
+          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|demos/|packages/.*/src/|scripts/verify-web-coding-.*\.mjs|package\.json|pnpm-workspace\.yaml)"; then
             RELEVANT_CHANGES=true
           fi
           
@@ -150,6 +151,9 @@ jobs:
 
       - name: Verify standalone preview document contracts
         run: node scripts/verify-web-coding-preview.mjs
+
+      - name: Verify standalone filesystem adapter contracts
+        run: node scripts/verify-web-coding-filesystem.mjs
 
       - name: Verify standalone browser flow
         run: |

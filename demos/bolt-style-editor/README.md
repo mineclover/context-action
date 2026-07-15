@@ -15,6 +15,7 @@ pnpm --filter @context-action/web-coding-demo build
 node scripts/verify-web-coding-build.mjs
 node scripts/verify-web-coding-plan.mjs
 node scripts/verify-web-coding-preview.mjs
+node scripts/verify-web-coding-filesystem.mjs
 node scripts/verify-web-coding-browser.mjs
 pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
