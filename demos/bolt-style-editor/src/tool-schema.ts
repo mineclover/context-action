@@ -52,6 +52,14 @@ const workspaceSaveAllOutputSchema = z.object({
   revision: z.number().int().nonnegative(),
   checkpointUpdated: z.boolean().optional(),
 });
+const workspaceSaveCheckpointOutputSchema = z.object({
+  savedPaths: z.array(z.string()),
+  deletedPaths: z.array(z.string()),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  storageMode: z.enum(['indexed-db', 'memory']),
+  checkpointUpdated: z.literal(true),
+});
 const workspaceReloadFolderOutputSchema = z.object({
   rootName: z.string(),
   activePath: z.string(),
@@ -237,6 +245,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({}),
       outputSchema: workspaceSaveAllOutputSchema,
+    },
+    z
+  ),
+  'workspace.saveCheckpoint': defineAction(
+    {
+      name: 'workspace.saveCheckpoint',
+      description:
+        'Mark the browser-only workspace checkpoint clean without writing to an operating-system folder. Requires no linked writable folder and may be guarded by a workspace revision.',
+      annotations: { destructiveHint: true, idempotentHint: true },
+      parameters: z.object({ expectedRevision }),
+      outputSchema: workspaceSaveCheckpointOutputSchema,
     },
     z
   ),

@@ -112,12 +112,15 @@ const revisionGuardedWorkspaceTools = new Set([
   'workspace.revertFile',
   'workspace.undo',
   'workspace.redo',
+  'workspace.saveCheckpoint',
 ]);
 
-const revisionProducingWorkspaceTools = new Set([
-  ...revisionGuardedWorkspaceTools,
-  'workspace.reloadFolder',
-]);
+const revisionProducingWorkspaceTools = new Set(
+  [...revisionGuardedWorkspaceTools].filter(
+    (name) => name !== 'workspace.saveCheckpoint'
+  )
+);
+revisionProducingWorkspaceTools.add('workspace.reloadFolder');
 
 const localMutationToolNames = new Set([
   ...revisionGuardedWorkspaceTools,
@@ -449,6 +452,16 @@ function toolSuccessMessage(
       ? ' Newer editor changes remain unsaved.'
       : '';
     return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${pendingSuffix}${revision}`;
+  }
+
+  if (name === 'workspace.saveCheckpoint') {
+    const savedCount = Array.isArray(structured.savedPaths)
+      ? structured.savedPaths.length
+      : 0;
+    const deletedCount = Array.isArray(structured.deletedPaths)
+      ? structured.deletedPaths.length
+      : 0;
+    return `Saved the browser checkpoint for ${savedCount} file(s)${deletedCount ? ` and cleared ${deletedCount} deletion marker(s)` : ''}.${revision}`;
   }
 
   if (name === 'workspace.reloadFolder') {
@@ -1084,8 +1097,15 @@ function promptToToolCalls(prompt: string): ToolCall[] {
       ];
 }
 
-function buildLocalAgentPlan(prompt: string): ToolCall[] {
-  const requestedCalls = promptToToolCalls(prompt);
+function buildLocalAgentPlan(
+  prompt: string,
+  browserOnlyWorkspace = false
+): ToolCall[] {
+  const requestedCalls = promptToToolCalls(prompt).map((call) =>
+    browserOnlyWorkspace && call.name === 'workspace.saveAll'
+      ? { name: 'workspace.saveCheckpoint', arguments: call.arguments }
+      : call
+  );
   const mutationCalls = requestedCalls.filter((call) =>
     localMutationToolNames.has(call.name)
   );
@@ -1135,12 +1155,16 @@ function readResultRevision(
 async function runLocalAgent(
   registry: BoltStyleRegistry,
   workspace: BrowserWorkspace,
+  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter,
   prompt: string,
   signal?: AbortSignal
 ): Promise<AgentRunResult> {
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
-  const calls = buildLocalAgentPlan(prompt);
+  const calls = buildLocalAgentPlan(
+    prompt,
+    !fileSystemAdapter.hasWritableFolder
+  );
   let plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
 
@@ -1420,6 +1444,32 @@ function ToolHandlers({
         activePath: workspace.getSnapshot().activePath,
         revision: workspace.getSnapshot().revision,
         checkpointUpdated,
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.saveCheckpoint', unknown>(
+    'workspace.saveCheckpoint',
+    async ({ expectedRevision }) => {
+      if (fileSystemAdapter.hasWritableFolder) {
+        throw new Error(
+          'A writable folder is connected. Use workspace.saveAll to persist filesystem changes.'
+        );
+      }
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      const dirtyFiles = workspace.getDirtyFiles();
+      const deletedPaths = workspace.getDeletedPaths();
+      await workspace.markSaved();
+      const snapshot = workspace.getSnapshot();
+      return {
+        savedPaths: dirtyFiles.map((file) => file.path),
+        deletedPaths,
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+        storageMode:
+          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
+        checkpointUpdated: true as const,
       };
     },
     { blocking: true }
@@ -2813,7 +2863,10 @@ function EditorWorkbench({
           arguments: {},
         });
       } else {
-        await workspace.markSaved();
+        await executeQuickTool({
+          name: 'workspace.saveCheckpoint',
+          arguments: { expectedRevision: workspace.getSnapshot().revision },
+        });
       }
     } catch (error) {
       setMessages((current) => [
@@ -2906,7 +2959,13 @@ function EditorWorkbench({
             openRouterSettings,
             controller.signal
           )
-        : await runLocalAgent(registry, workspace, trimmed, controller.signal);
+        : await runLocalAgent(
+            registry,
+            workspace,
+            fileSystemAdapter,
+            trimmed,
+            controller.signal
+          );
       throwIfAborted(controller.signal);
       finishAgentTrace(
         agentTrace,
@@ -3224,6 +3283,11 @@ function EditorWorkbench({
         };
       case 'workspace.saveAll':
         return { name, arguments: {} };
+      case 'workspace.saveCheckpoint':
+        return {
+          name,
+          arguments: { expectedRevision: snapshot.revision },
+        };
       case 'workspace.reloadFolder':
         return { name, arguments: {} };
       case 'workspace.disconnectFolder':

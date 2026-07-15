@@ -325,6 +325,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
 | `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
 | `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
+| `workspace.saveCheckpoint` | local demo allow | Mark a browser-only checkpoint clean without writing to the local folder |
 | `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace |
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
 | `preview.refresh` | local demo allow | Remount the sandbox iframe and await the current revision acknowledgement |
@@ -334,7 +335,7 @@ For the standalone surface, the status-aware sequence is:
 ```text
 tools/list → workspace.getStatus → workspace.listFiles →
 workspace.openFile (when a tab is requested) → workspace.readFile →
-workspace mutation, workspace.undo/redo, or preview.refresh → iframe acknowledgement → workspace.saveAll (when requested)
+workspace mutation, workspace.undo/redo, or preview.refresh → iframe acknowledgement → workspace.saveAll/saveCheckpoint (when requested)
 ```
 
 When the user explicitly asks to refresh an already connected folder, the
@@ -358,7 +359,9 @@ that the parent workspace and iframe are synchronized.
 Standalone workspace mutations use the corresponding single-clock result
 contract: preview-aware results include `activePath`, `revision`, and
 `preview`; `workspace.saveAll` includes `activePath`, the resulting `revision`,
-and the saved/deleted path lists.
+and the saved/deleted path lists. Browser-only `workspace.saveCheckpoint` returns
+the same path lists plus its storage mode and checkpoint status without claiming
+an iframe refresh.
 
 The realtime web-coding route exposes the parallel workspace contract:
 
@@ -427,7 +430,7 @@ Open folder → generic FileSystemAdapter
   still checked at the save boundary.
 - The standalone registry separates `workspace.openFile`, `workspace.createFile`,
   `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
-  `workspace.revertFile`, `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, and
+  `workspace.revertFile`, `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.saveCheckpoint`, and
   `workspace.reloadFolder`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
@@ -468,6 +471,10 @@ Open folder → generic FileSystemAdapter
   checkpoint is revision-guarded, so edits made while the folder write is in
   flight remain dirty instead of being overwritten by a stale clean state.
   Without a writable folder it returns a failed tool result.
+- `workspace.saveCheckpoint` is the browser-only save boundary. It marks the
+  current IndexedDB checkpoint clean without writing an operating-system folder
+  and fails while a writable folder is linked, so the two save semantics cannot
+  silently cross.
 - `workspace.reloadFolder` is the explicit external-refresh boundary. It reads
   the connected folder through the parent adapter, replaces the Dexie-backed
   browser workspace, waits for the new preview revision, and reports skipped
@@ -484,8 +491,8 @@ Open folder → generic FileSystemAdapter
   local-folder boundaries before mutating them.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
-  (`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`, or
-  `revertFile`); a stale
+  (`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
+  `revertFile`, or `saveCheckpoint`); a stale
   revision is rejected before the source is changed, requiring the caller to
   read again.
 - All workspace file lookups canonicalize slash direction and harmless `.`

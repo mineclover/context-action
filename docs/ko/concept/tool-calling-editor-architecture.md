@@ -310,6 +310,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
 | `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
 | `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
+| `workspace.saveCheckpoint` | local demo allow | local folder에는 쓰지 않고 browser-only checkpoint를 clean으로 표시 |
 | `workspace.reloadFolder` | approval required | 연결된 folder를 다시 읽어 browser workspace 교체 |
 | `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
 | `preview.refresh` | local demo allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
@@ -319,7 +320,7 @@ standalone surface의 status-aware 호출 순서는 다음과 같다.
 ```text
 tools/list → workspace.getStatus → workspace.listFiles →
 workspace.openFile (tab 선택이 필요한 경우) → workspace.readFile →
-workspace mutation, workspace.undo/redo 또는 preview.refresh → iframe acknowledgement → workspace.saveAll (요청된 경우)
+workspace mutation, workspace.undo/redo 또는 preview.refresh → iframe acknowledgement → workspace.saveAll/saveCheckpoint (요청된 경우)
 ```
 
 사용자가 이미 연결된 folder의 새 내용을 명시적으로 요청하면
@@ -343,7 +344,8 @@ acknowledgement를 함께 반환하므로 부모 workspace와 iframe이 동기�
 standalone workspace mutation은 단일 clock 계약을 사용한다. preview-aware
 결과는 `activePath`, `revision`, `preview`를 반환하고,
 `workspace.saveAll`은 `activePath`, 결과 `revision`, 저장·삭제된 path 목록을
-반환한다.
+반환한다. browser-only `workspace.saveCheckpoint`는 iframe refresh를 주장하지
+않고 같은 path 목록과 storage mode·checkpoint 상태를 반환한다.
 
 realtime web-coding route는 대응하는 workspace 계약도 노출한다.
 
@@ -407,7 +409,7 @@ Open folder → generic FileSystemAdapter
   확인한다.
 - standalone registry는 `workspace.openFile`, `workspace.createFile`, `workspace.renameFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
-  `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.undo`, `workspace.redo`, `workspace.deleteFile`, `workspace.saveAll`, `workspace.saveCheckpoint`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
@@ -442,6 +444,9 @@ Open folder → generic FileSystemAdapter
   만든다. 저장 중 새 편집이 발생하면 revision guard가 stale checkpoint 처리를
   막아 새 변경을 dirty 상태로 유지한다. writable folder가 없으면 실패한 tool
   result를 반환한다.
+- `workspace.saveCheckpoint`는 browser-only save 경계다. 운영체제 folder에는
+  쓰지 않고 현재 IndexedDB checkpoint만 clean으로 표시하며, writable folder가
+  연결된 동안에는 실패하므로 두 save 의미가 조용히 섞이지 않는다.
 - `workspace.reloadFolder`는 외부 refresh의 명시적인 경계다. parent adapter로 연결된
   folder를 다시 읽고 Dexie browser workspace를 교체한 뒤 새 preview revision을
   기다리며 skipped file과 local-folder 상태를 반환한다. 연결된 writable folder가
@@ -456,7 +461,7 @@ Open folder → generic FileSystemAdapter
   모델이 mutation 전에 local-folder 경계를 확인할 수 있다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
-  `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
+  `revertFile`, `saveCheckpoint`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
   변경하기 전에 거부되어 다시 읽기를 요구한다.
 - 모든 workspace file lookup은 tool boundary에서 slash 방향과 불필요한 `.` segment를
   canonical path로 정규화하며, parent traversal과 빈 path는 거부한다.
