@@ -65,6 +65,10 @@ cannot replace the current workspace or leave a misleading folder connection.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.
+Production builds are checked with `scripts/verify-web-coding-build.mjs` both
+before and after they are copied into the GitHub Pages `/web-coding/` directory;
+the check validates the base path, compiled entry assets, CSS asset references,
+and path-safe file existence.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared, same-origin `context-action.openrouter.api-key` browser key used by the

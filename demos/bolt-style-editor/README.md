@@ -12,6 +12,7 @@ From the repository root:
 pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo build
+node scripts/verify-web-coding-build.mjs
 pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
 

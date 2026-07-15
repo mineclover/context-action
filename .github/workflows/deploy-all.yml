@@ -8,6 +8,7 @@ on:
       - 'example/**'
       - 'demos/**'
       - 'packages/*/src/**'
+      - 'scripts/verify-web-coding-build.mjs'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-all.yml'
       - 'package.json'
@@ -31,6 +32,7 @@ env:
 
 jobs:
   check-changes:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       has-changes: ${{ steps.check.outputs.has-changes }}
@@ -49,7 +51,7 @@ jobs:
           # 관련 파일들이 변경되었는지 확인
           RELEVANT_CHANGES=false
           
-          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|demos/|packages/.*/src/|package\.json|pnpm-workspace\.yaml)"; then
+          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|demos/|packages/.*/src/|scripts/verify-web-coding-build\.mjs|package\.json|pnpm-workspace\.yaml)"; then
             RELEVANT_CHANGES=true
           fi
           
@@ -168,6 +170,9 @@ jobs:
           # Add the standalone web coding studio at /web-coding/
           mkdir -p deploy-dist/web-coding
           cp -r demos/bolt-style-editor/dist/* deploy-dist/web-coding/
+
+          # Verify the exact directory that will be uploaded to Pages.
+          node scripts/verify-web-coding-build.mjs deploy-dist/web-coding
           
           # Verify structure
           echo "📁 Deployment structure:"
