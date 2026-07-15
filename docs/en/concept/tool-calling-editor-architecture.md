@@ -446,6 +446,10 @@ Open folder → generic FileSystemAdapter
   remain visible inside the dialog and do not close it, while successful creation
   selects the new tab. The Explorer and editor tabs also show per-file unsaved
   markers.
+- A linked folder can be explicitly disconnected from the Explorer. This clears
+  the persisted directory handle without discarding the browser workspace, so
+  a stale or unintended folder can be left in browser-only mode before another
+  folder is opened.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.

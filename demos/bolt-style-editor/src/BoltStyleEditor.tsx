@@ -1941,6 +1941,45 @@ function EditorWorkbench({
     }
   };
 
+  const handleDisconnectFolder = async () => {
+    if (
+      openingFolder ||
+      !isStorageReady ||
+      !hasWritableFolder ||
+      (workspace.isDirty() &&
+        !window.confirm(
+          'Disconnect the folder and keep changes only in the browser workspace?'
+        ))
+    ) {
+      return;
+    }
+
+    setOpeningFolder(true);
+    try {
+      await fileSystemAdapter.disconnectFolder();
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text: 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.',
+        },
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            error instanceof Error
+              ? error.message
+              : 'Folder disconnect failed.',
+        },
+      ]);
+    } finally {
+      setOpeningFolder(false);
+    }
+  };
+
   const saveWorkspace = async () => {
     if (saving || !isStorageReady || !workspace.isDirty()) return;
     const dirtyFiles = workspace.getDirtyFiles();
@@ -2345,16 +2384,28 @@ function EditorWorkbench({
                 + New
               </button>
               {hasWritableFolder ? (
-                <button
-                  aria-label="Reload connected workspace folder"
-                  className="refresh-folder-button"
-                  disabled={openingFolder || !isStorageReady || running}
-                  onClick={() => void handleReloadFolder()}
-                  title="Re-read files from the connected folder"
-                  type="button"
-                >
-                  {openingFolder ? 'Reloading…' : 'Reload'}
-                </button>
+                <>
+                  <button
+                    aria-label="Reload connected workspace folder"
+                    className="refresh-folder-button"
+                    disabled={openingFolder || !isStorageReady || running}
+                    onClick={() => void handleReloadFolder()}
+                    title="Re-read files from the connected folder"
+                    type="button"
+                  >
+                    {openingFolder ? 'Reloading…' : 'Reload'}
+                  </button>
+                  <button
+                    aria-label="Disconnect linked workspace folder"
+                    className="disconnect-folder-button"
+                    disabled={openingFolder || !isStorageReady || running}
+                    onClick={() => void handleDisconnectFolder()}
+                    title="Keep the browser workspace but stop local folder sync"
+                    type="button"
+                  >
+                    Disconnect
+                  </button>
+                </>
               ) : null}
               <button
                 className="open-folder-button"

@@ -423,6 +423,10 @@ Open folder → generic FileSystemAdapter
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
   선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별
   unsaved 표시를 보여준다.
+- Explorer에서 연결된 folder를 명시적으로 disconnect할 수 있다. 이 동작은
+  browser workspace를 버리지 않고 persisted directory handle만 제거하므로,
+  stale하거나 잘못 연결된 folder를 browser-only mode로 전환한 뒤 다른 folder를
+  열 수 있다.
 - Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
   directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
   파일 선택은 전체 `activePath`를 그대로 유지한다.

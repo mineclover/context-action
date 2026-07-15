@@ -200,6 +200,12 @@ export class BrowserWorkspaceFileSystemAdapter {
     return this.importDirectoryHandle(this.directoryHandle);
   }
 
+  async disconnectFolder(): Promise<void> {
+    await this.persistence?.clearDirectoryHandle();
+    this.directoryHandle = null;
+    this.notify();
+  }
+
   async importDirectoryHandle(
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder> {
