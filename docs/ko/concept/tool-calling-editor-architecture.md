@@ -190,6 +190,9 @@ Open folder → generic FileSystemAdapter
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
   entry가 유효하도록 유지한다. pending deletion path도 Dexie metadata에
   저장하므로 reload 후에도 운영체제 폴더 삭제 의도를 잃지 않는다.
+- 에디터의 active-file Delete action도 palette와 model loop가 사용하는
+  동일한 `workspace.deleteFile` registry contract를 호출하므로 별도 mutation
+  경로를 만들지 않는다.
 - Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
   directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
   파일 선택은 전체 `activePath`를 그대로 유지한다.

@@ -199,6 +199,9 @@ Open folder → generic FileSystemAdapter
   `Save to folder`, and keep undo/redo and the active preview entry valid.
   Pending deletion paths are stored in Dexie metadata, so a reload does not
   silently lose the later operating-system folder deletion.
+- The editor's active-file Delete action routes through the same
+  `workspace.deleteFile` registry contract as the palette and model loop;
+  it does not introduce a second mutation path.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.

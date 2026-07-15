@@ -477,6 +477,8 @@ function ToolHandlers({
     return {
       activePath: snapshot.activePath,
       revision: snapshot.revision,
+      dirty: workspace.isDirty(),
+      deletedPaths: workspace.getDeletedPaths(),
       files: snapshot.files.map(
         ({ path, language, source, kind, mimeType, blob }) => ({
           path,
@@ -951,6 +953,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];
+  const canDeleteActiveFile =
+    snapshot.files.length > 1 &&
+    (activeFile.language !== 'html' ||
+      snapshot.files.some(
+        (file) => file.path !== activeFile.path && file.language === 'html'
+      ));
   const assetUrls = useMemo(() => {
     const urls: Record<string, string> = {};
     for (const file of snapshot.files) {
@@ -1190,6 +1198,17 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       }
       setRunning(false);
     }
+  };
+
+  const deleteActiveFile = () => {
+    if (!canDeleteActiveFile || running) return;
+    if (!window.confirm(`Delete ${activeFile.path} from this workspace?`)) {
+      return;
+    }
+    void executeQuickTool({
+      name: 'workspace.deleteFile',
+      arguments: { path: activeFile.path },
+    });
   };
 
   const paletteCallFor = (name: string): ToolCall | null => {
@@ -1435,6 +1454,16 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 type="button"
               >
                 ↷ Redo
+              </button>
+              <button
+                aria-label={`Delete ${activeFile.path}`}
+                className="editor-delete"
+                disabled={!isStorageReady || running || !canDeleteActiveFile}
+                onClick={deleteActiveFile}
+                title="Delete the active file through workspace.deleteFile"
+                type="button"
+              >
+                Delete
               </button>
               <button
                 className="editor-save"
