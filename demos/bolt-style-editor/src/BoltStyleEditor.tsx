@@ -145,14 +145,16 @@ const revisionGuardedWorkspaceTools = new Set([
   'workspace.undo',
   'workspace.redo',
   'workspace.saveCheckpoint',
+  'workspace.saveAll',
+  'workspace.reloadFolder',
 ]);
 
 const revisionProducingWorkspaceTools = new Set(
   [...revisionGuardedWorkspaceTools].filter(
-    (name) => name !== 'workspace.saveCheckpoint'
+    (name) =>
+      name !== 'workspace.saveCheckpoint' && name !== 'workspace.saveAll'
   )
 );
-revisionProducingWorkspaceTools.add('workspace.reloadFolder');
 
 const localMutationToolNames = new Set([
   'workspace.reset',
@@ -1659,7 +1661,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.saveAll', unknown>(
     'workspace.saveAll',
-    async (_, controller) => {
+    async ({ expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!fileSystemAdapter.hasWritableFolder) {
         throw new Error(
           'No writable folder is open. Open a local folder before saving files.'
@@ -1774,7 +1777,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.reloadFolder', unknown>(
     'workspace.reloadFolder',
-    async (_, controller) => {
+    async ({ expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!fileSystemAdapter.hasWritableFolder) {
         throw new Error(
           'No writable folder is open. Open a local folder before reloading it.'
@@ -1782,6 +1786,7 @@ function ToolHandlers({
       }
       if (controller.signal?.aborted) throw new Error('Reload cancelled.');
       const imported = await fileSystemAdapter.reloadFolder();
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       await workspace.importFolder(imported);
       const snapshot = workspace.getSnapshot();
       await workspace.waitForPreviewRevision(
@@ -3259,7 +3264,9 @@ function EditorWorkbench({
       await executeQuickTool(
         {
           name: 'workspace.reloadFolder',
-          arguments: {},
+          arguments: {
+            expectedRevision: workspace.getSnapshot().revision,
+          },
         },
         { skipDraftFlush: true }
       );
@@ -3366,7 +3373,9 @@ function EditorWorkbench({
       if (fileSystemAdapter.hasWritableFolder) {
         await executeQuickTool({
           name: 'workspace.saveAll',
-          arguments: {},
+          arguments: {
+            expectedRevision: workspace.getSnapshot().revision,
+          },
         });
       } else {
         await executeQuickTool({
@@ -3789,7 +3798,10 @@ function EditorWorkbench({
           },
         };
       case 'workspace.saveAll':
-        return { name, arguments: {} };
+        return {
+          name,
+          arguments: { expectedRevision: snapshot.revision },
+        };
       case 'workspace.saveCheckpoint':
         return {
           name,
@@ -3801,7 +3813,10 @@ function EditorWorkbench({
           arguments: { expectedRevision: snapshot.revision },
         };
       case 'workspace.reloadFolder':
-        return { name, arguments: {} };
+        return {
+          name,
+          arguments: { expectedRevision: snapshot.revision },
+        };
       case 'workspace.disconnectFolder':
         return { name, arguments: {} };
       case 'workspace.applyPatch': {

@@ -362,9 +362,9 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.undo`, `workspace.redo` | local demo allow | Move through the workspace edit history with a revision guard |
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
 | `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
-| `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
+| `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder, guarded by the current workspace revision |
 | `workspace.saveCheckpoint` | local demo allow | Mark a browser-only checkpoint clean without writing to the local folder |
-| `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace |
+| `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace, guarded before and after the filesystem read |
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
 | `workspace.reset` | approval required | Restore the browser-only demo workspace to its four-file seed; unavailable while a folder is linked |
 | `preview.setTheme` | approval required | Change the controlled preview accent theme |
@@ -556,7 +556,7 @@ Open folder → generic FileSystemAdapter
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
   (`reset`, `createFile`, `renameFile`, `deleteFile`, `writeFile`, `applyPatch`,
-  `revertFile`, or `saveCheckpoint`); a stale
+  `revertFile`, `saveCheckpoint`, `saveAll`, or `reloadFolder`); a stale
   revision is rejected before the source is changed, requiring the caller to
   read again.
 - All workspace file lookups canonicalize slash direction and harmless `.`

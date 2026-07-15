@@ -344,9 +344,9 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.undo`, `workspace.redo` | local demo allow | revision guard와 함께 workspace edit history 이동 |
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
 | `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
-| `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
+| `workspace.saveAll` | approval required | 현재 workspace revision으로 guard하며 연결된 folder에 dirty file과 pending deletion 기록 |
 | `workspace.saveCheckpoint` | local demo allow | local folder에는 쓰지 않고 browser-only checkpoint를 clean으로 표시 |
-| `workspace.reloadFolder` | approval required | 연결된 folder를 다시 읽어 browser workspace 교체 |
+| `workspace.reloadFolder` | approval required | filesystem read 전후 revision으로 guard하며 연결된 folder를 다시 읽어 browser workspace 교체 |
 | `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
 | `workspace.reset` | approval required | folder가 연결되지 않은 경우 browser-only demo workspace를 네 파일 seed로 복구 |
 | `preview.setTheme` | approval required | 제어된 preview accent theme 변경 |

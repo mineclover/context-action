@@ -292,7 +292,7 @@ export const boltStyleToolSchema = createActionSchema({
       description:
         'Write every dirty workspace file and pending deletion to the user-opened local folder. Requires a writable folder workspace.',
       annotations: { destructiveHint: true, idempotentHint: true },
-      parameters: z.object({}),
+      parameters: z.object({ expectedRevision }),
       outputSchema: workspaceSaveAllOutputSchema,
     },
     z
@@ -314,7 +314,7 @@ export const boltStyleToolSchema = createActionSchema({
       description:
         'Re-read the connected local folder into the browser workspace and refresh the preview. Requires a writable folder workspace.',
       annotations: { destructiveHint: true, idempotentHint: true },
-      parameters: z.object({}),
+      parameters: z.object({ expectedRevision }),
       outputSchema: workspaceReloadFolderOutputSchema,
     },
     z
