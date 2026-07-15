@@ -477,6 +477,27 @@ export default function DemosIndexPage() {
                     </Link>
                   </div>
                 </div>
+                <div className="mt-4 rounded-lg border border-cyan-200 bg-cyan-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-cyan-950">
+                        ⚡ Standalone Web Coding Studio
+                      </h3>
+                      <p className="mt-1 text-sm text-cyan-800">
+                        Bolt.diy 스타일의 독립 정적 데모에서 HTML, CSS, JS
+                        편집과 iframe preview, tool calling 흐름을 확인하세요.
+                      </p>
+                    </div>
+                    <a
+                      href="https://mineclover.github.io/context-action/web-coding/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-full border border-cyan-300 bg-white px-4 py-2 text-sm font-medium text-cyan-900 hover:bg-cyan-100"
+                    >
+                      Studio 열기 ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
