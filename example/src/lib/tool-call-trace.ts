@@ -4,6 +4,7 @@ export type ToolTraceEntry = {
   id: string;
   name: string;
   source: string;
+  sessionId?: string;
   status: 'running' | 'completed' | 'failed';
   durationMs?: number;
   startedAt: number;
@@ -19,6 +20,12 @@ export type ToolCallTraceStore = {
 
 export function formatToolTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
+}
+
+let sessionSequence = 0;
+
+export function createToolCallSessionId(): string {
+  return `session-${Date.now()}-${sessionSequence++}`;
 }
 
 function trimSummary(value: string): string {
@@ -92,6 +99,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
   const record = (event: ToolCallEvent): void => {
     const id = String(event.toolCallId ?? `${event.name}-${Date.now()}`);
     const source = event.context?.source ?? 'mcp';
+    const sessionId = event.context?.sessionId;
     const existingIndex = entries.findIndex((entry) => entry.id === id);
     const nextEntry: ToolTraceEntry =
       event.type === 'started'
@@ -99,6 +107,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
             id,
             name: event.name,
             source,
+            ...(sessionId ? { sessionId } : {}),
             status: 'running',
             startedAt: event.timestamp,
           }
@@ -106,6 +115,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
             id,
             name: event.name,
             source,
+            ...(sessionId ? { sessionId } : {}),
             status: event.type === 'failed' ? 'failed' : 'completed',
             startedAt: event.timestamp - event.durationMs,
             durationMs: event.durationMs,

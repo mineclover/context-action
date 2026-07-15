@@ -27,6 +27,7 @@ import {
   recordLiveWebCodingToolCall,
 } from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
+import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import {
   saveOpenRouterApiKey,
   useStoredOpenRouterApiKey,
@@ -488,9 +489,29 @@ function callToolResultText(result: {
 async function runLocalPrompt(
   registry: WebToolRegistry,
   prompt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  sessionId?: string
 ): Promise<{ toolNames: string[]; response: string }> {
   registry.listTools({ method: 'tools/list' });
+  const executeLocalModelCall = (
+    name: string,
+    argumentsValue: Record<string, unknown>
+  ) =>
+    registry.executeModelToolCall(
+      {
+        id: `local-model-${Date.now()}-${name}`,
+        name,
+        arguments: argumentsValue,
+      },
+      {
+        context: {
+          source: 'model',
+          ...(sessionId ? { sessionId } : {}),
+          metadata: { interaction: 'prompt', provider: 'local-fallback' },
+        },
+        signal,
+      }
+    );
   const normalized = prompt.toLowerCase();
   const calls: Array<{
     name: string;
@@ -542,14 +563,7 @@ async function runLocalPrompt(
 
   const toolNames: string[] = [];
   let plannedRevision: number | undefined;
-  const workspaceResult = await registry.callTool(
-    {
-      id: `local-${Date.now()}-web.getWorkspace`,
-      method: 'tools/call',
-      params: { name: 'web.getWorkspace', arguments: {} },
-    },
-    { context: { source: 'local' }, signal }
-  );
+  const workspaceResult = await executeLocalModelCall('web.getWorkspace', {});
   if (!workspaceResult.isError) {
     const workspace = workspaceResult.structuredContent;
     if (
@@ -569,34 +583,14 @@ async function runLocalPrompt(
       plannedRevision !== undefined
         ? { ...call.arguments, expectedRevision: plannedRevision }
         : call.arguments;
-    const result = await registry.callTool(
-      {
-        id: `local-${Date.now()}-${call.name}`,
-        method: 'tools/call',
-        params: { name: call.name, arguments: argumentsValue },
-      },
-      {
-        context: { source: 'local', metadata: { interaction: 'prompt' } },
-        signal,
-      }
-    );
+    const result = await executeLocalModelCall(call.name, argumentsValue);
     if (signal?.aborted) throw new Error('Execution cancelled.');
     toolNames.push(call.name);
     if (result.isError) {
       return { toolNames, response: callToolResultText(result) };
     }
     if (revisionGuardedWebTools.has(call.name)) {
-      const nextWorkspace = await registry.callTool(
-        {
-          id: `local-${Date.now()}-web.getWorkspace`,
-          method: 'tools/call',
-          params: { name: 'web.getWorkspace', arguments: {} },
-        },
-        {
-          context: { source: 'local', metadata: { interaction: 'prompt' } },
-          signal,
-        }
-      );
+      const nextWorkspace = await executeLocalModelCall('web.getWorkspace', {});
       const nextRevision = nextWorkspace.structuredContent;
       if (
         !nextWorkspace.isError &&
@@ -753,6 +747,7 @@ function LiveWebCodingWorkbench({
     const nextPrompt = prompt.trim();
     if (!nextPrompt || loading) return;
     const controller = beginExecution();
+    const sessionId = createToolCallSessionId();
     setLoading(true);
     setError('');
     setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
@@ -770,6 +765,7 @@ function LiveWebCodingWorkbench({
           ] satisfies ModelMessage[],
           registry,
           signal: controller.signal,
+          sessionId,
         });
         if (controller.signal.aborted) {
           throw new Error('Execution cancelled.');
@@ -788,7 +784,8 @@ function LiveWebCodingWorkbench({
         const local = await runLocalPrompt(
           registry,
           nextPrompt,
-          controller.signal
+          controller.signal,
+          sessionId
         );
         setMessages((current) => [
           ...current,
@@ -823,6 +820,7 @@ function LiveWebCodingWorkbench({
 
   const runTool = async (name: string, args: Record<string, unknown>) => {
     const controller = beginExecution();
+    const sessionId = createToolCallSessionId();
     setLoading(true);
     setError('');
     try {
@@ -836,7 +834,10 @@ function LiveWebCodingWorkbench({
           method: 'tools/call',
           params: { name, arguments: guardedArgs },
         },
-        { context: { source: 'local' }, signal: controller.signal }
+        {
+          context: { source: 'local', sessionId },
+          signal: controller.signal,
+        }
       );
       if (controller.signal.aborted) {
         throw new Error('Execution cancelled.');
@@ -1085,7 +1086,7 @@ function LiveWebCodingWorkbench({
                               : ''
                         }`}
                         key={entry.id}
-                        title={`toolCallId: ${entry.id}`}
+                        title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
                       >
                         <span
                           aria-hidden="true"
@@ -1102,6 +1103,9 @@ function LiveWebCodingWorkbench({
                           <small>
                             {formatLiveWebCodingTraceId(entry.id)} ·{' '}
                             {entry.source}
+                            {entry.sessionId
+                              ? ` · ${formatLiveWebCodingTraceId(entry.sessionId)}`
+                              : ''}
                             {entry.durationMs !== undefined
                               ? ` · ${entry.durationMs}ms`
                               : ''}

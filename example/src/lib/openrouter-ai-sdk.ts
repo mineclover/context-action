@@ -13,6 +13,7 @@ import type {
   ToolTextGenerationRequest,
   ToolTextGenerator,
 } from './ai-tool-runner';
+import { createToolCallSessionId } from './tool-call-trace';
 
 export interface BrowserOpenRouterToolRunnerOptions {
   apiKey: string;
@@ -20,7 +21,8 @@ export interface BrowserOpenRouterToolRunnerOptions {
 }
 
 function createToolSet<TSchema extends ActionSchemaMap>(
-  registry: ToolRegistry<TSchema>
+  registry: ToolRegistry<TSchema>,
+  sessionId: string
 ): ToolSet {
   registry.listTools({ method: 'tools/list' });
   return Object.fromEntries(
@@ -41,7 +43,7 @@ function createToolSet<TSchema extends ActionSchemaMap>(
               },
               {
                 signal: executionOptions.abortSignal,
-                context: { source: 'model' },
+                context: { source: 'model', sessionId },
               }
             );
             const resultText = result.content
@@ -97,10 +99,11 @@ export function createBrowserOpenRouterToolRunner(
     async generate<TSchema extends ActionSchemaMap>(
       request: ToolTextGenerationRequest<TSchema>
     ) {
+      const sessionId = request.sessionId ?? createToolCallSessionId();
       const response = await generateText({
         model: openrouter.chatModel(request.model),
         messages: request.messages,
-        tools: createToolSet(request.registry),
+        tools: createToolSet(request.registry, sessionId),
         maxOutputTokens: 1024,
         stopWhen: stepCountIs(5),
         abortSignal: request.signal,
