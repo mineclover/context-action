@@ -507,10 +507,13 @@ Open folder → generic FileSystemAdapter
   workspace mutations.
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
-  parent-owned adapter used by the Save to folder button, then marks the
-  IndexedDB checkpoint clean only after every operation succeeds. The
-  checkpoint is revision-guarded, so edits made while the folder write is in
-  flight remain dirty instead of being overwritten by a stale clean state.
+  parent-owned adapter used by the Save to folder button. Each successful
+  operation is marked clean immediately, while the full IndexedDB checkpoint
+  is marked clean only after every operation succeeds. The checkpoint is
+  revision-guarded, so edits made while the folder write is in flight remain
+  dirty instead of being overwritten by a stale clean state. If the linked
+  folder disappears during a write, the adapter clears the persisted handle
+  and keeps the browser workspace available for opening another folder.
   Without a writable folder it returns a failed tool result.
 - `workspace.saveCheckpoint` is the browser-only save boundary. It marks the
   current IndexedDB checkpoint clean without writing an operating-system folder

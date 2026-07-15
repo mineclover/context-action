@@ -267,10 +267,13 @@ export class BrowserWorkspaceFileSystemAdapter {
   }
 
   async disconnectFolder(): Promise<void> {
-    await this.persistence?.clearDirectoryHandle();
-    this.directoryHandle = null;
-    this.writePermission = 'disconnected';
-    this.notify();
+    try {
+      await this.persistence?.clearDirectoryHandle();
+    } finally {
+      this.directoryHandle = null;
+      this.writePermission = 'disconnected';
+      this.notify();
+    }
   }
 
   async refreshWritePermission(): Promise<FileSystemPermissionStatus> {
@@ -434,8 +437,23 @@ export class BrowserWorkspaceFileSystemAdapter {
       );
     }
 
-    for (const file of files) {
-      await this.writeFile(directory, file);
+    try {
+      for (const file of files) {
+        await this.writeFile(directory, file);
+      }
+    } catch (error) {
+      if (isNotFoundFileSystemError(error)) {
+        try {
+          await this.disconnectFolder();
+        } catch {
+          // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
+        }
+        throw new Error(
+          'The connected folder is no longer available. Open the folder again to continue saving.',
+          { cause: error }
+        );
+      }
+      throw error;
     }
     return files.length;
   }
