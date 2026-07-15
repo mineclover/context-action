@@ -88,6 +88,8 @@ visible diagnostic panel with the error text and a refresh action.
 - Destructive UI actions use an in-app keyboard-modal confirmation surface;
   folder replacement, reset, delete/revert, and destructive tool samples never
   depend on a native `window.confirm`.
+- In-memory workspace edit history is bounded to the latest 100 checkpoints;
+  new edits also discard the redo branch, matching normal editor history.
 - Restored folder handles expose `granted`, `prompt`, `denied`, `unknown`, or
   `disconnected` write-permission state; `Grant access` re-requests permission
   without replacing the browser workspace.

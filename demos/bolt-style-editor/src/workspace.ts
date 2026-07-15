@@ -84,6 +84,7 @@ const binaryWorkspaceExtensions = new Set([
   '.woff',
   '.woff2',
 ]);
+const MAX_HISTORY_CHECKPOINTS = 100;
 
 export function normalizeWorkspacePath(path: string): string {
   if (path.includes('\0'))
@@ -529,11 +530,7 @@ export class BrowserWorkspace {
     if (shouldCoalesce) {
       this.history[this.historyIndex] = checkpoint;
     } else {
-      this.history = [
-        ...this.history.slice(0, this.historyIndex + 1),
-        checkpoint,
-      ];
-      this.historyIndex += 1;
+      this.pushHistoryCheckpoint(checkpoint);
     }
 
     this.lastEdit = { path: normalizedPath, timestamp: now };
@@ -616,11 +613,7 @@ export class BrowserWorkspace {
         (deletedPath) => deletedPath !== normalizedPath
       ),
     };
-    this.history = [
-      ...this.history.slice(0, this.historyIndex + 1),
-      checkpoint,
-    ];
-    this.historyIndex += 1;
+    this.pushHistoryCheckpoint(checkpoint);
     this.lastEdit = { path: normalizedPath, timestamp: Date.now() };
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
@@ -708,11 +701,7 @@ export class BrowserWorkspace {
       files: nextFiles,
       deletedPaths: [...new Set(nextDeletedPaths)],
     };
-    this.history = [
-      ...this.history.slice(0, this.historyIndex + 1),
-      checkpoint,
-    ];
-    this.historyIndex += 1;
+    this.pushHistoryCheckpoint(checkpoint);
     this.lastEdit = null;
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
@@ -759,11 +748,7 @@ export class BrowserWorkspace {
           )
         : this.deletedPaths.filter((deletedPath) => deletedPath !== file.path),
     };
-    this.history = [
-      ...this.history.slice(0, this.historyIndex + 1),
-      checkpoint,
-    ];
-    this.historyIndex += 1;
+    this.pushHistoryCheckpoint(checkpoint);
     this.lastEdit = null;
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
@@ -928,6 +913,16 @@ export class BrowserWorkspace {
       files: this.snapshot.files,
       deletedPaths: [...this.deletedPaths],
     };
+  }
+
+  private pushHistoryCheckpoint(checkpoint: WorkspaceCheckpoint): void {
+    const nextHistory = [
+      ...this.history.slice(0, this.historyIndex + 1),
+      checkpoint,
+    ];
+    const overflow = Math.max(0, nextHistory.length - MAX_HISTORY_CHECKPOINTS);
+    this.history = overflow ? nextHistory.slice(overflow) : nextHistory;
+    this.historyIndex = this.history.length - 1;
   }
 
   private resolveHistoryCheckpoint(
