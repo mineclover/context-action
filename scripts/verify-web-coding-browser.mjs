@@ -299,7 +299,11 @@ async function runBrowserProof(url) {
       return button instanceof HTMLButtonElement && !button.disabled;
     });
     await page.keyboard.press('Control+Z');
-    await page.getByLabel('Edit app.js').waitFor();
+    await page.getByLabel('Edit index.html').waitFor();
+    await page.waitForFunction(
+      (expectedSource) => document.querySelector('textarea[aria-label="Edit index.html"]')?.value === expectedSource,
+      initialSource
+    );
     await page.getByRole('button', { name: /^Send/ }).waitFor();
     await page.keyboard.press('Control+Shift+Z');
     await page.getByLabel('Edit index.html').waitFor();

@@ -45,6 +45,7 @@ export type PreviewSnapshot = {
 
 type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'> & {
   deletedPaths: string[];
+  preserveActivePath?: boolean;
 };
 
 type UpdateFileOptions = {
@@ -517,6 +518,7 @@ export class BrowserWorkspace {
       activePath: this.snapshot.activePath,
       files: nextFiles,
       deletedPaths: [...this.deletedPaths],
+      preserveActivePath: true,
     };
     const now = Date.now();
     const shouldCoalesce =
@@ -805,7 +807,9 @@ export class BrowserWorkspace {
     if (!this.canUndo()) return this.getSnapshot();
     this.historyIndex -= 1;
     this.lastEdit = null;
-    const checkpoint = this.history[this.historyIndex];
+    const checkpoint = this.resolveHistoryCheckpoint(
+      this.history[this.historyIndex]
+    );
     const rootName = this.snapshot.rootName;
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
@@ -828,7 +832,9 @@ export class BrowserWorkspace {
     if (!this.canRedo()) return this.getSnapshot();
     this.historyIndex += 1;
     this.lastEdit = null;
-    const checkpoint = this.history[this.historyIndex];
+    const checkpoint = this.resolveHistoryCheckpoint(
+      this.history[this.historyIndex]
+    );
     const rootName = this.snapshot.rootName;
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
@@ -922,6 +928,17 @@ export class BrowserWorkspace {
       files: this.snapshot.files,
       deletedPaths: [...this.deletedPaths],
     };
+  }
+
+  private resolveHistoryCheckpoint(
+    checkpoint: WorkspaceCheckpoint
+  ): WorkspaceCheckpoint {
+    if (!checkpoint.preserveActivePath) return checkpoint;
+    const currentActivePath = this.snapshot.activePath;
+    if (!checkpoint.files.some((file) => file.path === currentActivePath)) {
+      return checkpoint;
+    }
+    return { ...checkpoint, activePath: currentActivePath };
   }
 
   private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {

@@ -61,7 +61,9 @@ trigger focus.
 Use `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z` (or `Ctrl+Y`) outside editable fields
 to route workspace history through `workspace.undo` and `workspace.redo`.
 Inside the source and argument editors, native text editing history remains
-in control.
+in control. Source-edit undo/redo keeps the current editor tab; structural
+history such as create, rename, and delete restores the path required by the
+workspace checkpoint.
 
 The Explorer is a keyboard tree: `↑↓` move between visible entries, `←→`
 collapse or expand directories, and `Home/End` move to the first or last
