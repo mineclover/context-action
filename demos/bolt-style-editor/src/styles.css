@@ -56,11 +56,19 @@ a { color: inherit; text-decoration: none; }
 .tool-glyph { color: #9e8cff; font-size: 12px; }
 
 .studio-main { background: #10131a; display: flex; min-width: 0; flex-direction: column; }
-.editor-toolbar { align-items: stretch; border-bottom: 1px solid #20242e; display: flex; height: 45px; justify-content: space-between; }
-.editor-tabs { display: flex; min-width: 0; overflow: hidden; }
+.editor-toolbar { align-items: stretch; border-bottom: 1px solid #20242e; display: flex; flex-wrap: wrap; min-height: 45px; justify-content: space-between; }
+.editor-tabs { display: flex; flex: 1; min-width: 0; overflow: hidden; }
 .editor-tab { background: #10131a; border-right: 1px solid #20242e; color: #737b8c; cursor: pointer; font-size: 11px; gap: 7px; padding: 0 14px; white-space: nowrap; }
 .editor-tab:hover { color: #dde1e8; }
 .editor-tab-active { background: #171b24; box-shadow: inset 0 -2px #9a84ff; color: #f2f0ff; }
+.editor-controls { align-items: center; display: flex; gap: 5px; padding-right: 9px; }
+.editor-action, .editor-save { background: transparent; border: 1px solid #2a303c; border-radius: 5px; color: #9098a9; cursor: pointer; font-size: 10px; padding: 5px 7px; white-space: nowrap; }
+.editor-action:hover, .editor-save:hover { border-color: #7566d4; color: #e7e2ff; }
+.editor-action:disabled, .editor-save:disabled { cursor: default; opacity: .4; }
+.editor-save { background: #27213f; border-color: #4c3e82; color: #c9c0ff; }
+.save-status { align-items: center; color: #78cf9c; display: flex; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; gap: 5px; white-space: nowrap; }
+.save-status-dirty { color: #e9b26c; }
+.save-status-dirty .status-dot { background: #e9b26c; }
 .revision-label { align-self: center; color: #626b7c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; padding: 0 15px; white-space: nowrap; }
 .code-editor { display: flex; min-height: 370px; flex: 1; flex-direction: column; }
 .code-header { align-items: center; border-bottom: 1px solid #1c2029; color: #6d7586; display: flex; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; justify-content: space-between; padding: 9px 17px; }
@@ -166,6 +174,9 @@ a { color: inherit; text-decoration: none; }
   .studio-sidebar { border-bottom: 1px solid #20242e; border-right: 0; }
   .studio-main { min-height: 680px; }
   .preview-panel { grid-column: auto; }
+  .editor-toolbar { align-items: stretch; }
+  .editor-tabs { flex: 1 1 100%; min-width: 100%; overflow-x: auto; }
+  .editor-controls { border-top: 1px solid #20242e; justify-content: flex-end; min-height: 38px; padding: 5px 9px; width: 100%; }
   .editor-tabs { overflow-x: auto; }
   .studio-statusbar { flex-wrap: wrap; height: auto; min-height: 30px; padding: 8px 12px; }
 }

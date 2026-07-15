@@ -416,7 +416,7 @@ function ToolHandlers({
   });
 
   useBoltStyleToolHandler('workspace.writeFile', ({ path, source }) => {
-    const snapshot = workspace.updateFile(path, source);
+    const snapshot = workspace.updateFile(path, source, { coalesce: false });
     return { path, revision: snapshot.revision, preview: 'synced' };
   });
 
@@ -429,7 +429,9 @@ function ToolHandlers({
         /--accent-soft:\s*#[0-9a-f]+;/i,
         `--accent-soft: ${tokens.soft};`
       );
-    const snapshot = workspace.updateFile('styles.css', source);
+    const snapshot = workspace.updateFile('styles.css', source, {
+      coalesce: false,
+    });
     return { theme, revision: snapshot.revision, preview: 'synced' };
   });
 
@@ -440,7 +442,9 @@ function ToolHandlers({
       '<!-- feature-slot -->',
       `${card}\n        <!-- feature-slot -->`
     );
-    const snapshot = workspace.updateFile('index.html', source);
+    const snapshot = workspace.updateFile('index.html', source, {
+      coalesce: false,
+    });
     return { title, revision: snapshot.revision, preview: 'synced' };
   });
 
@@ -455,7 +459,9 @@ function ToolHandlers({
         /(<p id="hero-subtitle">)[\s\S]*?(<\/p>)/,
         `$1${escapeHtml(subtitle)}$2`
       );
-    const snapshot = workspace.updateFile('index.html', source);
+    const snapshot = workspace.updateFile('index.html', source, {
+      coalesce: false,
+    });
     return { title, revision: snapshot.revision, preview: 'synced' };
   });
 
@@ -792,7 +798,43 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 </button>
               ))}
             </div>
-            <span className="revision-label">revision {snapshot.revision}</span>
+            <div className="editor-controls">
+              <button
+                aria-label="Undo last edit"
+                className="editor-action"
+                disabled={!workspace.canUndo()}
+                onClick={() => workspace.undo()}
+                type="button"
+              >
+                ↶ Undo
+              </button>
+              <button
+                aria-label="Redo last edit"
+                className="editor-action"
+                disabled={!workspace.canRedo()}
+                onClick={() => workspace.redo()}
+                type="button"
+              >
+                ↷ Redo
+              </button>
+              <button
+                className="editor-save"
+                disabled={!workspace.isDirty()}
+                onClick={() => workspace.markSaved()}
+                type="button"
+              >
+                Save
+              </button>
+              <span
+                className={`save-status ${workspace.isDirty() ? 'save-status-dirty' : ''}`}
+              >
+                <span className="status-dot" />
+                {workspace.isDirty() ? 'Unsaved changes' : 'Saved'}
+              </span>
+              <span className="revision-label">
+                revision {snapshot.revision}
+              </span>
+            </div>
           </div>
           <section className="code-editor" aria-label="Workspace source">
             <div className="code-header">

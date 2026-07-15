@@ -10,6 +10,12 @@ export type WorkspaceSnapshot = {
   revision: number;
 };
 
+type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'>;
+
+type UpdateFileOptions = {
+  coalesce?: boolean;
+};
+
 const initialFiles: WorkspaceFile[] = [
   {
     path: 'index.html',
@@ -99,6 +105,10 @@ export class BrowserWorkspace {
   };
 
   private listeners = new Set<() => void>();
+  private history: WorkspaceCheckpoint[] = [this.createCheckpoint()];
+  private historyIndex = 0;
+  private savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+  private lastEdit: { path: string; timestamp: number } | null = null;
 
   getSnapshot = (): WorkspaceSnapshot => this.snapshot;
 
@@ -121,20 +131,96 @@ export class BrowserWorkspace {
     this.notify();
   }
 
-  updateFile(path: string, source: string): WorkspaceSnapshot {
+  updateFile(
+    path: string,
+    source: string,
+    options: UpdateFileOptions = {}
+  ): WorkspaceSnapshot {
     const nextFiles = this.snapshot.files.map((file) =>
       file.path === path ? { ...file, source } : file
     );
     if (!nextFiles.some((file) => file.path === path)) {
       throw new Error(`Workspace file not found: ${path}`);
     }
-    this.snapshot = {
-      ...this.snapshot,
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: this.snapshot.activePath,
       files: nextFiles,
-      revision: this.snapshot.revision + 1,
     };
+    const now = Date.now();
+    const shouldCoalesce =
+      options.coalesce !== false &&
+      this.lastEdit?.path === path &&
+      now - this.lastEdit.timestamp < 750;
+
+    if (shouldCoalesce) {
+      this.history[this.historyIndex] = checkpoint;
+    } else {
+      this.history = [
+        ...this.history.slice(0, this.historyIndex + 1),
+        checkpoint,
+      ];
+      this.historyIndex += 1;
+    }
+
+    this.lastEdit = { path, timestamp: now };
+    this.applyCheckpoint(checkpoint);
     this.notify();
     return this.getSnapshot();
+  }
+
+  canUndo(): boolean {
+    return this.historyIndex > 0;
+  }
+
+  canRedo(): boolean {
+    return this.historyIndex < this.history.length - 1;
+  }
+
+  isDirty(): boolean {
+    return this.snapshot.files.some((file) => {
+      const savedFile = this.savedFiles.find(
+        (candidate) => candidate.path === file.path
+      );
+      return !savedFile || savedFile.source !== file.source;
+    });
+  }
+
+  undo(): WorkspaceSnapshot {
+    if (!this.canUndo()) return this.getSnapshot();
+    this.historyIndex -= 1;
+    this.lastEdit = null;
+    this.applyCheckpoint(this.history[this.historyIndex]);
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  redo(): WorkspaceSnapshot {
+    if (!this.canRedo()) return this.getSnapshot();
+    this.historyIndex += 1;
+    this.lastEdit = null;
+    this.applyCheckpoint(this.history[this.historyIndex]);
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  markSaved(): void {
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+  }
+
+  private createCheckpoint(): WorkspaceCheckpoint {
+    return {
+      activePath: this.snapshot.activePath,
+      files: this.snapshot.files,
+    };
+  }
+
+  private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
+    this.snapshot = {
+      ...checkpoint,
+      revision: this.snapshot.revision + 1,
+    };
   }
 
   private notify(): void {
