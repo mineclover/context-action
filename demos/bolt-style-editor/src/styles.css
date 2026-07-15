@@ -267,7 +267,8 @@ a { color: inherit; text-decoration: none; }
 .message-tools span { background: #1d1a31; border: 1px solid #39325b; border-radius: 4px; color: #b4a8ff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; padding: 3px 5px; }
 .message-retry { background: transparent; border: 1px solid #4d4377; border-radius: 4px; color: #bdb3ff; cursor: pointer; font-size: 10px; margin-top: 7px; padding: 4px 8px; }
 .message-retry:hover { background: #211c38; border-color: #8473d3; color: #f0edff; }
-.running-line { color: #8f98a8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; padding: 3px 0; }
+.running-line { align-items: baseline; color: #8f98a8; display: flex; flex-wrap: wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; gap: 6px; padding: 3px 0; }
+.running-hint { color: #c9a2d5; font-size: 9px; }
 .composer-wrap { align-items: end; background: #0b0e14; border: 1px solid #2a303c; border-radius: 9px; display: flex; gap: 9px; padding: 8px; }
 .composer-wrap textarea { background: transparent; border: 0; color: #e5e8ee; font-size: 12px; line-height: 1.45; min-height: 34px; outline: none; resize: none; width: 100%; }
 .composer-wrap textarea::placeholder { color: #646c7d; }

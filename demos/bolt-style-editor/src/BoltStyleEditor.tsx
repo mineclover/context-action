@@ -2890,6 +2890,17 @@ function EditorWorkbench({
             ? 'dirty'
             : 'ready';
 
+  const runningTraceEntry = traceEntries.find(
+    (entry) => entry.status === 'running'
+  );
+  const executionStatusLabel = pendingApprovals.length
+    ? `approval required · ${pendingApprovals[0].name}`
+    : runningTraceEntry?.kind === 'call'
+      ? `calling ${runningTraceEntry.name}`
+      : runningTraceEntry?.kind === 'agent'
+        ? 'waiting for model response'
+        : 'executing typed tool call';
+
   useEffect(() => {
     if (!hasWritableFolder || !hasUnsavedChanges) return;
 
@@ -4471,7 +4482,13 @@ function EditorWorkbench({
                 ))}
               </section>
             ) : null}
-            <div className="message-list" ref={messageListRef}>
+            <div
+              aria-label="Agent conversation"
+              aria-live="polite"
+              className="message-list"
+              ref={messageListRef}
+              role="log"
+            >
               {messages.map((message, index) => (
                 <div
                   className={`message message-${message.role}${message.tone ? ` message-${message.tone}` : ''}`}
@@ -4508,8 +4525,13 @@ function EditorWorkbench({
                 </div>
               ))}
               {running ? (
-                <div className="running-line">
-                  <span className="pulse-dot" /> executing typed tool call…
+                <div aria-live="polite" className="running-line" role="status">
+                  <span className="pulse-dot" /> {executionStatusLabel}…
+                  {pendingApprovals.length ? (
+                    <span className="running-hint">
+                      Choose Approve or Deny above
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
             </div>
