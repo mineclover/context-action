@@ -48,6 +48,20 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.applyPatch': defineAction(
+    {
+      name: 'workspace.applyPatch',
+      description:
+        'Replace a bounded text match in one workspace file and refresh the live preview.',
+      parameters: z.object({
+        path: filePath,
+        search: z.string().min(1).max(20_000),
+        replace: z.string().max(20_000),
+        occurrence: z.enum(['first', 'all']),
+      }),
+    },
+    z
+  ),
   'workspace.revertFile': defineAction(
     {
       name: 'workspace.revertFile',

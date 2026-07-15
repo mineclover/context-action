@@ -45,7 +45,13 @@ function resultSummary(
     typeof value.revision === 'number' ? ` · revision ${value.revision}` : '';
   if (Array.isArray(value.files))
     return `${value.files.length} files${revision}`;
-  if (typeof value.path === 'string') return `${value.path}${revision}`;
+  if (typeof value.path === 'string') {
+    const replacementSuffix =
+      typeof value.replacements === 'number'
+        ? ` · ${value.replacements} replacements`
+        : '';
+    return `${value.path}${replacementSuffix}${revision}`;
+  }
   if (typeof value.theme === 'string') return `theme ${value.theme}${revision}`;
   if (typeof value.status === 'string')
     return `status ${value.status}${revision}`;

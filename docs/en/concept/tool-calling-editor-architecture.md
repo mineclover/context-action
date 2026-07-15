@@ -178,8 +178,9 @@ The default extraction order is `example → standalone demo/workspace package �
 | `editor.setScenario` | local demo allow | Change the safe runner scenario |
 | `editor.resetDocument` | local demo allow | Reset source to the selected example |
 
-`editor.applyPatch` remains a planned follow-up contract. A production
-integration must replace the local demo policy with an approval-capable
+The reusable `editor.applyPatch` contract remains a separate package follow-up;
+the standalone workspace uses the bounded `workspace.applyPatch` contract
+described below. A production integration must use an approval-capable
 `toolPolicy` before enabling destructive or broad mutations.
 
 ## Code workspace boundary
@@ -211,7 +212,8 @@ Open folder → generic FileSystemAdapter
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
 - The standalone registry separates `workspace.createFile`,
-  `workspace.writeFile`, `workspace.revertFile`, and `workspace.deleteFile`:
+  `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`, and
+  `workspace.deleteFile`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
   records, and included in the next folder save. Deletions remove the
@@ -225,6 +227,10 @@ Open folder → generic FileSystemAdapter
 - The editor's active-file Delete action routes through the same
   `workspace.deleteFile` registry contract as the palette and model loop;
   it does not introduce a second mutation path.
+- `workspace.applyPatch` performs a literal bounded search/replace on a text file,
+  supports `first` or `all` occurrence mode, rejects missing matches and oversized
+  output, then waits for the same preview revision acknowledgement as other
+  workspace mutations.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
 - `Download` exports the active text source or Blob asset as a browser download,

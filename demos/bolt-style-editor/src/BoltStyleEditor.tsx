@@ -235,6 +235,31 @@ function throwIfAborted(signal?: AbortSignal): void {
     : new DOMException('Execution cancelled.', 'AbortError');
 }
 
+function applyTextPatch(
+  source: string,
+  search: string,
+  replace: string,
+  occurrence: 'first' | 'all'
+): { source: string; replacements: number } {
+  if (occurrence === 'all') {
+    const parts = source.split(search);
+    const replacements = parts.length - 1;
+    if (!replacements) {
+      throw new Error('Patch search text was not found in the file.');
+    }
+    return { source: parts.join(replace), replacements };
+  }
+
+  const index = source.indexOf(search);
+  if (index < 0) {
+    throw new Error('Patch search text was not found in the file.');
+  }
+  return {
+    source: `${source.slice(0, index)}${replace}${source.slice(index + search.length)}`,
+    replacements: 1,
+  };
+}
+
 function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as {
@@ -702,6 +727,35 @@ function ToolHandlers({
         controller.signal
       );
       return { path, revision: snapshot.revision, preview: 'synced' };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.applyPatch', unknown>(
+    'workspace.applyPatch',
+    async ({ path, search, replace, occurrence }, controller) => {
+      const file = workspace.getFile(path);
+      if (file.kind === 'asset') {
+        throw new Error(`Binary asset cannot be patched as text: ${path}`);
+      }
+      const patch = applyTextPatch(file.source, search, replace, occurrence);
+      if (patch.source.length > 80_000) {
+        throw new Error('Patched source exceeds the 80,000 character limit.');
+      }
+      const snapshot = workspace.updateFile(path, patch.source, {
+        coalesce: false,
+      });
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        path,
+        replacements: patch.replacements,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
     },
     { blocking: true }
   );
@@ -1527,6 +1581,22 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           name,
           arguments: { path: activeFile.path, source: activeFile.source },
         };
+      case 'workspace.applyPatch': {
+        if (activeFile.kind === 'asset') return null;
+        const line = activeFile.source
+          .split('\n')
+          .find((value) => value.trim());
+        if (!line) return null;
+        return {
+          name,
+          arguments: {
+            path: activeFile.path,
+            search: line,
+            replace: `${line}  `,
+            occurrence: 'first',
+          },
+        };
+      }
       case 'workspace.revertFile':
         return { name, arguments: { path: activeFile.path } };
       case 'preview.setTheme':

@@ -171,9 +171,10 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
 | `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
 
-`editor.applyPatch`는 다음 계약으로 남겨둔다. production 연결에서는 파괴적
-변경이나 광범위한 mutation을 허용하기 전에 승인 가능한 `toolPolicy`로
-교체해야 한다.
+재사용 가능한 `editor.applyPatch` 계약은 별도 package 후속 과제로 남겨두며,
+standalone workspace는 아래에서 설명하는 제한된 `workspace.applyPatch` 계약을
+사용한다. production 연결에서는 파괴적 변경이나 광범위한 mutation을 허용하기
+전에 승인 가능한 `toolPolicy`를 사용해야 한다.
 
 ## Code workspace 경계
 
@@ -204,7 +205,7 @@ Open folder → generic FileSystemAdapter
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
 - standalone registry는 `workspace.createFile`, `workspace.writeFile`,
-  `workspace.revertFile`, `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
@@ -216,6 +217,9 @@ Open folder → generic FileSystemAdapter
 - 에디터의 active-file Delete action도 palette와 model loop가 사용하는
   동일한 `workspace.deleteFile` registry contract를 호출하므로 별도 mutation
   경로를 만들지 않는다.
+- `workspace.applyPatch`는 text file에 literal search/replace를 수행한다. `first`와
+  `all` occurrence mode를 지원하고, match 실패와 결과 source 크기 초과를 거부한 뒤
+  다른 workspace mutation과 같은 preview revision acknowledgement를 기다린다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
 - `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
