@@ -83,13 +83,15 @@ export async function readOpenRouterResponse(
   try {
     return JSON.parse(body) as OpenRouterResponse;
   } catch (error) {
+    const errorType = response.ok
+      ? { code: 'OPENROUTER_INVALID_RESPONSE' as const, retryable: false }
+      : responseErrorCode(response.status);
     throw new OpenRouterRequestError(
       response.ok
         ? `Endpoint returned an invalid JSON response (HTTP ${response.status}). Check the chat-completions endpoint.`
         : `Request failed with a non-JSON response (HTTP ${response.status})${compactResponseText(body) ? `: ${compactResponseText(body)}` : '.'}`,
       {
-        code: 'OPENROUTER_INVALID_RESPONSE',
-        retryable: false,
+        ...errorType,
         status: response.status,
         cause: error,
       }

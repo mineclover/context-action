@@ -104,11 +104,11 @@ expectEqual(
     status: invalidResponseError?.status,
   },
   {
-    code: 'OPENROUTER_INVALID_RESPONSE',
-    retryable: false,
+    code: 'OPENROUTER_PROVIDER_ERROR',
+    retryable: true,
     status: 502,
   },
-  'Invalid provider responses must preserve code, retryability, and status.'
+  'Non-JSON 5xx provider responses must preserve retryable classification and status.'
 );
 
 expectEqual(
