@@ -404,6 +404,10 @@ Open folder → generic FileSystemAdapter
   만든다. 저장 중 새 편집이 발생하면 revision guard가 stale checkpoint 처리를
   막아 새 변경을 dirty 상태로 유지한다. writable folder가 없으면 실패한 tool
   result를 반환한다.
+- writable folder가 연결된 경우 Explorer의 `Save to folder` 버튼과 `⌘/Ctrl+S`
+  단축키도 같은 `workspace.saveAll` registry 경로를 호출한다. 따라서 UI save,
+  model call, approval policy, trace, structured result가 같은 계약을 공유한다.
+  browser-only `Save`는 browser checkpoint만 전진시킨다.
 - `workspace.getStatus`는 standalone catalog의 read-only 상태 경계다. 현재
   revision·persistence mode·preview 상태·dirty/deleted path와 함께
   `workspace.saveAll`을 사용할 local-folder target이 연결됐는지 반환하므로,

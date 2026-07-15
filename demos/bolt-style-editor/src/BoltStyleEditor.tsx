@@ -2394,26 +2394,14 @@ function EditorWorkbench({
   };
 
   const saveWorkspace = async () => {
-    if (saving || !isStorageReady || !workspace.isDirty()) return;
-    const dirtyFiles = workspace.getDirtyFiles();
-    const deletedPaths = workspace.getDeletedPaths();
+    if (saving || running || !isStorageReady || !workspace.isDirty()) return;
     setSaving(true);
     try {
       if (fileSystemAdapter.hasWritableFolder) {
-        const saveRevision = workspace.getSnapshot().revision;
-        await fileSystemAdapter.writeFiles(dirtyFiles);
-        await fileSystemAdapter.removeFiles(deletedPaths);
-        const checkpointUpdated =
-          await workspace.markSavedIfRevision(saveRevision);
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: checkpointUpdated
-              ? `Saved ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} in the selected folder and browser workspace.`
-              : `Wrote ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} to the selected folder, but newer editor changes remain pending.`,
-          },
-        ]);
+        await executeQuickTool({
+          name: 'workspace.saveAll',
+          arguments: {},
+        });
       } else {
         await workspace.markSaved();
       }
@@ -2470,7 +2458,14 @@ function EditorWorkbench({
 
     window.addEventListener('keydown', handleSaveShortcut);
     return () => window.removeEventListener('keydown', handleSaveShortcut);
-  }, [isStorageReady, saving, showCreateFile, showSettings, workspace]);
+  }, [
+    isStorageReady,
+    running,
+    saving,
+    showCreateFile,
+    showSettings,
+    workspace,
+  ]);
 
   const cancelExecution = () => {
     denyPendingToolApprovals();
@@ -3290,7 +3285,9 @@ function EditorWorkbench({
               <button
                 aria-keyshortcuts="Control+S Meta+S"
                 className="editor-save"
-                disabled={!isStorageReady || saving || !workspace.isDirty()}
+                disabled={
+                  !isStorageReady || running || saving || !workspace.isDirty()
+                }
                 onClick={() => void saveWorkspace()}
                 title={
                   hasWritableFolder

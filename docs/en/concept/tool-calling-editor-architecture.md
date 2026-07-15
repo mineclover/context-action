@@ -424,6 +424,10 @@ Open folder → generic FileSystemAdapter
   checkpoint is revision-guarded, so edits made while the folder write is in
   flight remain dirty instead of being overwritten by a stale clean state.
   Without a writable folder it returns a failed tool result.
+- When a writable folder is linked, the Explorer `Save to folder` button and
+  `⌘/Ctrl+S` shortcut call this same `workspace.saveAll` registry path, so the
+  UI save, model call, approval policy, trace, and structured result stay
+  aligned. Browser-only `Save` only advances the local browser checkpoint.
 - `workspace.getStatus` is the read-only status boundary for the standalone
   catalog. It reports the current revision, persistence mode, preview state,
   dirty/deleted paths, and whether `workspace.saveAll` has a linked local-folder
