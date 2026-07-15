@@ -143,8 +143,9 @@ to execute its demo arguments, so browsing a destructive tool cannot mutate the
 workspace accidentally. The catalog filter narrows the same canonical list
 without changing discovery or execution policy.
 
-For the standalone demo, model-originated non-read-only calls pause at the
-`toolPolicy` boundary until the user approves or denies them. The approval card
+For the standalone demo, model- and MCP-originated non-read-only calls pause at
+the `toolPolicy` boundary until the user approves or denies them. Only an
+explicit non-prompt local palette action bypasses that gate. The approval card
 shows the tool name, description, source, and argument keys; it never
 echoes the file source. It may show a safe argument preview such as a target
 `path` or `theme`, but never the file `source`. Prompt-originated local mutations

@@ -137,8 +137,9 @@ registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지
 않는다.
 
-standalone demo에서는 model source의 non-read-only call이 `toolPolicy` 경계에서
-사용자 승인 또는 거부를 기다린다. approval card에는 tool name·description·source·
+standalone demo에서는 model·MCP source의 non-read-only call이 `toolPolicy` 경계에서
+사용자 승인 또는 거부를 기다린다. 명시적인 non-prompt local palette action만 이
+경계를 우회한다. approval card에는 tool name·description·source·
 argument key를 표시하고 파일 source 자체는 다시 보여주지 않는다. 필요하면 대상
 `path`나 `theme` 같은 안전한 argument preview만 표시한다. prompt-originated local
 mutation은 approval 왕복을 거치고, 직접 실행하는 palette call은 결정적인 local

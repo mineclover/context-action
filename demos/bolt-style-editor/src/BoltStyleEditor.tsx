@@ -56,8 +56,8 @@ const {
   toolPolicy: ({ context, definition, request }) => {
     const isPromptAgentCall = context?.metadata?.interaction === 'prompt';
     if (
-      (!isPromptAgentCall && context?.source !== 'model') ||
-      definition.annotations?.readOnlyHint === true
+      definition.annotations?.readOnlyHint === true ||
+      (context?.source === 'local' && !isPromptAgentCall)
     ) {
       return 'allow';
     }
