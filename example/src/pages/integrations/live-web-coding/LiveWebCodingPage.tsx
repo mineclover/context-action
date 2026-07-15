@@ -12,11 +12,13 @@ import {
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
+import { normalizeWorkspacePath } from '../../../lib/live-code-editor-filesystem';
 import { LiveEditorWorkspaceRepository } from '../../../lib/live-code-editor-storage';
 import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
+import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveWebCodingToolsSchema } from '../../../lib/live-web-coding-tools-schema';
 import {
   clearLiveWebCodingTrace,
@@ -65,7 +67,7 @@ const defaultWebFiles = [
       </section>
       <section id="feature-grid" class="feature-grid">
         <article class="feature-card"><strong>1. Discover</strong><span>web.getWorkspace lists the editable files.</span></article>
-        <article class="feature-card"><strong>2. Mutate</strong><span>web.writeFile applies a controlled change.</span></article>
+        <article class="feature-card"><strong>2. Mutate</strong><span>web.applyPatch applies a bounded change.</span></article>
         <article class="feature-card"><strong>3. Render</strong><span>The parent waits for iframe acknowledgement.</span></article>
       </section>
       <section class="cta"><strong id="cta-title">The preview is the result.</strong><span id="cta-copy">Try a quick tool from the panel.</span></section>
@@ -145,17 +147,69 @@ const {
 
 type WebToolRegistry = ReturnType<typeof useLiveWebCodingToolRegistry>;
 
+const revisionGuardedWebTools = new Set([
+  'web.writeFile',
+  'web.applyPatch',
+  'web.setTheme',
+  'web.addFeature',
+  'web.updateHero',
+]);
+
 function serializeWorkspace(manager: LiveEditorWorkspaceManager) {
   const snapshot = manager.getSnapshot();
   return {
     activePath: snapshot.activePath,
     rootName: snapshot.rootName,
+    revision: snapshot.revision,
     files: snapshot.files.map((file) => ({
       path: file.path,
       isText: file.isText,
       size: file.size,
     })),
   };
+}
+
+function inferWebWorkspacePath(prompt: string): string | null {
+  const explicitPath = prompt.match(
+    /(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:html?|css|m?js|json|md|txt)(?=\b|[^A-Za-z0-9_.-])/i
+  )?.[0];
+  if (explicitPath) return explicitPath;
+  if (/\bstyle/i.test(prompt)) return 'style.css';
+  if (/\bscript/i.test(prompt)) return 'script.js';
+  return 'index.html';
+}
+
+function inferQuotedWebPatch(
+  prompt: string
+): { path: string; search: string; replace: string } | null {
+  if (!/(replace|change|edit|update|바꾸|바꿔|변경|수정|교체)/i.test(prompt)) {
+    return null;
+  }
+  const quotedValues = Array.from(
+    prompt.matchAll(/["“]([^"”]+)["”]/g),
+    (match) => match[1]?.trim()
+  ).filter((value): value is string => Boolean(value));
+  if (quotedValues.length < 2) return null;
+  const [search, replace] = quotedValues;
+  if (!search || !replace) return null;
+  return {
+    path: inferWebWorkspacePath(prompt) ?? 'index.html',
+    search,
+    replace,
+  };
+}
+
+function assertExpectedWebRevision(
+  manager: LiveEditorWorkspaceManager,
+  expectedRevision?: number
+): void {
+  if (expectedRevision === undefined) return;
+  const currentRevision = manager.getSnapshot().revision;
+  if (expectedRevision !== currentRevision) {
+    throw new Error(
+      `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
+    );
+  }
 }
 
 function WebCodingToolHandlers({
@@ -172,34 +226,40 @@ function WebCodingToolHandlers({
   const updateFileAndWait = async (
     path: string,
     source: string,
-    signal?: AbortSignal
+    options?: { expectedRevision?: number; signal?: AbortSignal }
   ) => {
-    if (signal?.aborted) throw new Error('Workspace update cancelled.');
+    if (options?.signal?.aborted)
+      throw new Error('Workspace update cancelled.');
+    assertExpectedWebRevision(manager, options?.expectedRevision);
+    const normalizedPath = normalizeWorkspacePath(path);
     const current = manager
       .getSnapshot()
-      .files.find((file) => file.path === path);
+      .files.find((file) => file.path === normalizedPath);
     if (current && !current.isText) {
-      throw new Error(`${path} is binary and cannot be edited as text.`);
+      throw new Error(
+        `${normalizedPath} is binary and cannot be edited as text.`
+      );
     }
 
-    manager.updateFile(path, source);
+    const nextWorkspace = manager.updateFile(normalizedPath, source);
     await repository.saveTextFile(
       WEB_WORKSPACE_ID,
-      path,
+      normalizedPath,
       source,
       current?.mimeType
     );
-    if (signal?.aborted) throw new Error('Workspace update cancelled.');
+    if (options?.signal?.aborted)
+      throw new Error('Workspace update cancelled.');
     const activeDocument = documentManager.getSnapshot();
     const nextDocument = documentManager.update(
-      activeDocument.file === path ? { source } : {}
+      activeDocument.file === normalizedPath ? { source } : {}
     );
     const preview = await documentManager.waitForRendered(
       nextDocument.revision,
       2_000,
-      signal
+      options?.signal
     );
-    return { path, revision: nextDocument.revision, preview };
+    return { path: normalizedPath, revision: nextWorkspace.revision, preview };
   };
 
   useLiveWebCodingToolHandler('web.getWorkspace', () =>
@@ -209,22 +269,67 @@ function WebCodingToolHandlers({
   useLiveWebCodingToolHandler('web.readFile', ({ path }) => {
     const file = manager
       .getSnapshot()
-      .files.find((candidate) => candidate.path === path);
+      .files.find(
+        (candidate) => candidate.path === normalizeWorkspacePath(path)
+      );
     if (!file) throw new Error(`Workspace file not found: ${path}`);
     if (!file.isText)
       throw new Error(`${path} is binary and cannot be read as text.`);
-    return { path, source: file.source };
+    return {
+      path: file.path,
+      source: file.source,
+      revision: manager.getSnapshot().revision,
+    };
   });
 
   useLiveWebCodingToolHandler<'web.writeFile', unknown>(
     'web.writeFile',
-    ({ path, source }, controller) =>
-      updateFileAndWait(path, source, controller.signal)
+    ({ path, source, expectedRevision }, controller) =>
+      updateFileAndWait(path, source, {
+        expectedRevision,
+        signal: controller.signal,
+      })
+  );
+
+  useLiveWebCodingToolHandler<'web.applyPatch', unknown>(
+    'web.applyPatch',
+    async (
+      { path, search, replace, occurrence, expectedRevision },
+      controller
+    ) => {
+      assertExpectedWebRevision(manager, expectedRevision);
+      const normalizedPath = normalizeWorkspacePath(path);
+      const file = manager
+        .getSnapshot()
+        .files.find((candidate) => candidate.path === normalizedPath);
+      if (!file) throw new Error(`Workspace file not found: ${normalizedPath}`);
+      if (!file.isText)
+        throw new Error(
+          `${normalizedPath} is binary and cannot be patched as text.`
+        );
+      const patch = applyLiveEditorTextPatch(
+        file.source,
+        search,
+        replace,
+        occurrence
+      );
+      if (patch.source.length > 100_000) {
+        throw new Error('Patched source exceeds the 100,000 character limit.');
+      }
+      return {
+        replacements: patch.replacements,
+        ...(await updateFileAndWait(normalizedPath, patch.source, {
+          expectedRevision,
+          signal: controller.signal,
+        })),
+      };
+    }
   );
 
   useLiveWebCodingToolHandler<'web.setTheme', unknown>(
     'web.setTheme',
-    async ({ theme }, controller) => {
+    async ({ theme, expectedRevision }, controller) => {
+      assertExpectedWebRevision(manager, expectedRevision);
       const cssFile = manager
         .getSnapshot()
         .files.find((file) => file.path === 'style.css');
@@ -238,14 +343,18 @@ function WebCodingToolHandlers({
         );
       return {
         theme,
-        ...(await updateFileAndWait('style.css', source, controller.signal)),
+        ...(await updateFileAndWait('style.css', source, {
+          expectedRevision,
+          signal: controller.signal,
+        })),
       };
     }
   );
 
   useLiveWebCodingToolHandler<'web.addFeature', unknown>(
     'web.addFeature',
-    async ({ title, description }, controller) => {
+    async ({ title, description, expectedRevision }, controller) => {
+      assertExpectedWebRevision(manager, expectedRevision);
       const htmlFile = manager
         .getSnapshot()
         .files.find((file) => file.path === 'index.html');
@@ -258,14 +367,18 @@ function WebCodingToolHandlers({
       );
       return {
         title,
-        ...(await updateFileAndWait('index.html', source, controller.signal)),
+        ...(await updateFileAndWait('index.html', source, {
+          expectedRevision,
+          signal: controller.signal,
+        })),
       };
     }
   );
 
   useLiveWebCodingToolHandler<'web.updateHero', unknown>(
     'web.updateHero',
-    async ({ title, subtitle }, controller) => {
+    async ({ title, subtitle, expectedRevision }, controller) => {
+      assertExpectedWebRevision(manager, expectedRevision);
       const htmlFile = manager
         .getSnapshot()
         .files.find((file) => file.path === 'index.html');
@@ -282,7 +395,10 @@ function WebCodingToolHandlers({
         );
       return {
         title,
-        ...(await updateFileAndWait('index.html', source, controller.signal)),
+        ...(await updateFileAndWait('index.html', source, {
+          expectedRevision,
+          signal: controller.signal,
+        })),
       };
     }
   );
@@ -309,11 +425,20 @@ async function runLocalPrompt(
   prompt: string,
   signal?: AbortSignal
 ): Promise<{ toolNames: string[]; response: string }> {
+  registry.listTools({ method: 'tools/list' });
   const normalized = prompt.toLowerCase();
   const calls: Array<{
     name: string;
     arguments: Record<string, unknown>;
   }> = [];
+  const textPatch = inferQuotedWebPatch(prompt);
+
+  if (textPatch) {
+    calls.push({
+      name: 'web.applyPatch',
+      arguments: { ...textPatch, occurrence: 'first' },
+    });
+  }
 
   if (/(보라|purple|violet)/i.test(normalized)) {
     calls.push({ name: 'web.setTheme', arguments: { theme: 'violet' } });
@@ -351,13 +476,39 @@ async function runLocalPrompt(
   }
 
   const toolNames: string[] = [];
+  let plannedRevision: number | undefined;
+  const workspaceResult = await registry.callTool(
+    {
+      id: `local-${Date.now()}-web.getWorkspace`,
+      method: 'tools/call',
+      params: { name: 'web.getWorkspace', arguments: {} },
+    },
+    { context: { source: 'local' }, signal }
+  );
+  if (!workspaceResult.isError) {
+    const workspace = workspaceResult.structuredContent;
+    if (
+      workspace &&
+      typeof workspace === 'object' &&
+      !Array.isArray(workspace) &&
+      typeof (workspace as { revision?: unknown }).revision === 'number'
+    ) {
+      plannedRevision = (workspace as { revision: number }).revision;
+    }
+  }
   for (const call of calls) {
     if (signal?.aborted) throw new Error('Execution cancelled.');
+    const argumentsValue =
+      revisionGuardedWebTools.has(call.name) &&
+      call.arguments.expectedRevision === undefined &&
+      plannedRevision !== undefined
+        ? { ...call.arguments, expectedRevision: plannedRevision }
+        : call.arguments;
     const result = await registry.callTool(
       {
         id: `local-${Date.now()}-${call.name}`,
         method: 'tools/call',
-        params: { name: call.name, arguments: call.arguments },
+        params: { name: call.name, arguments: argumentsValue },
       },
       { context: { source: 'local' }, signal }
     );
@@ -365,6 +516,26 @@ async function runLocalPrompt(
     toolNames.push(call.name);
     if (result.isError) {
       return { toolNames, response: callToolResultText(result) };
+    }
+    if (revisionGuardedWebTools.has(call.name)) {
+      const nextWorkspace = await registry.callTool(
+        {
+          id: `local-${Date.now()}-web.getWorkspace`,
+          method: 'tools/call',
+          params: { name: 'web.getWorkspace', arguments: {} },
+        },
+        { context: { source: 'local' }, signal }
+      );
+      const nextRevision = nextWorkspace.structuredContent;
+      if (
+        !nextWorkspace.isError &&
+        nextRevision &&
+        typeof nextRevision === 'object' &&
+        !Array.isArray(nextRevision) &&
+        typeof (nextRevision as { revision?: unknown }).revision === 'number'
+      ) {
+        plannedRevision = (nextRevision as { revision: number }).revision;
+      }
     }
   }
   return {
@@ -521,7 +692,7 @@ function LiveWebCodingWorkbench({
             {
               role: 'system',
               content:
-                'You are a realtime web coding assistant. Inspect the workspace before editing. Use web.setTheme, web.addFeature, web.updateHero, or web.writeFile to make the requested change. The user expects a visible HTML/CSS/JS preview update.',
+                'You are a realtime web coding assistant. Inspect the workspace before editing. Use web.setTheme, web.addFeature, web.updateHero, web.applyPatch, or web.writeFile to make the requested change. When read results include a workspace revision, pass it as expectedRevision for mutations. The user expects a visible HTML/CSS/JS preview update.',
             },
             { role: 'user', content: nextPrompt },
           ] satisfies ModelMessage[],
@@ -583,11 +754,15 @@ function LiveWebCodingWorkbench({
     setLoading(true);
     setError('');
     try {
+      const guardedArgs =
+        revisionGuardedWebTools.has(name) && args.expectedRevision === undefined
+          ? { ...args, expectedRevision: workspaceSnapshot.revision }
+          : args;
       const result = await registry.callTool(
         {
           id: `palette-${Date.now()}`,
           method: 'tools/call',
-          params: { name, arguments: args },
+          params: { name, arguments: guardedArgs },
         },
         { context: { source: 'local' }, signal: controller.signal }
       );
@@ -871,6 +1046,23 @@ function LiveWebCodingWorkbench({
                         void runTool(tool.name, {});
                       if (tool.name === 'web.readFile')
                         void runTool(tool.name, { path: 'index.html' });
+                      if (
+                        tool.name === 'web.applyPatch' &&
+                        activeFile?.isText
+                      ) {
+                        const search = activeFile.source
+                          .split('\n')
+                          .find((line) => line.trim().length > 0);
+                        if (search) {
+                          void runTool(tool.name, {
+                            path: activeFile.path,
+                            search,
+                            replace: `${search} `,
+                            occurrence: 'first',
+                            expectedRevision: workspaceSnapshot.revision,
+                          });
+                        }
+                      }
                     }}
                   >
                     <code>{tool.name}</code>

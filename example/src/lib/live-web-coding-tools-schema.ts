@@ -2,6 +2,7 @@ import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
 
 const workspacePath = z.string().min(1).max(240);
+const expectedRevision = z.number().int().nonnegative().optional();
 
 export const getWebWorkspaceTool = defineAction(
   {
@@ -33,6 +34,23 @@ export const writeWebFileTool = defineAction(
     parameters: z.object({
       path: workspacePath,
       source: z.string().max(100_000),
+      expectedRevision,
+    }),
+  },
+  z
+);
+
+export const applyWebPatchTool = defineAction(
+  {
+    name: 'web.applyPatch',
+    description:
+      'Apply a bounded literal text replacement to one realtime web workspace file and wait for the sandbox preview revision. An optional expectedRevision rejects stale edits.',
+    parameters: z.object({
+      path: workspacePath,
+      search: z.string().min(1).max(20_000),
+      replace: z.string().max(20_000),
+      occurrence: z.enum(['first', 'all']),
+      expectedRevision,
     }),
   },
   z
@@ -46,6 +64,7 @@ export const setWebThemeTool = defineAction(
     annotations: { idempotentHint: true },
     parameters: z.object({
       theme: z.enum(['violet', 'emerald', 'amber', 'rose', 'sky']),
+      expectedRevision,
     }),
   },
   z
@@ -59,6 +78,7 @@ export const addWebFeatureTool = defineAction(
     parameters: z.object({
       title: z.string().min(1).max(80),
       description: z.string().min(1).max(180),
+      expectedRevision,
     }),
   },
   z
@@ -72,6 +92,7 @@ export const updateWebHeroTool = defineAction(
     parameters: z.object({
       title: z.string().min(1).max(100),
       subtitle: z.string().min(1).max(220),
+      expectedRevision,
     }),
   },
   z
@@ -92,6 +113,7 @@ export const liveWebCodingToolsSchema = createActionSchema({
   'web.getWorkspace': getWebWorkspaceTool,
   'web.readFile': readWebFileTool,
   'web.writeFile': writeWebFileTool,
+  'web.applyPatch': applyWebPatchTool,
   'web.setTheme': setWebThemeTool,
   'web.addFeature': addWebFeatureTool,
   'web.updateHero': updateWebHeroTool,

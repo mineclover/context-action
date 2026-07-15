@@ -22,6 +22,7 @@ export interface BrowserOpenRouterToolRunnerOptions {
 function createToolSet<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>
 ): ToolSet {
+  registry.listTools({ method: 'tools/list' });
   return Object.fromEntries(
     registry.getToolNames().map((toolName) => {
       const definition = registry.getTool(toolName);

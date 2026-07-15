@@ -28,6 +28,7 @@ export interface LiveEditorWorkspaceSnapshot {
   readonly files: LiveEditorWorkspaceFile[];
   readonly activePath: string;
   readonly dirtyPaths: string[];
+  readonly revision: number;
   readonly storageMode: WorkspaceStorageMode;
   readonly rootName: string;
 }
@@ -69,6 +70,7 @@ export class LiveEditorWorkspaceManager {
           ? options.activePath
           : selectActivePath(normalizedFiles),
       dirtyPaths: [],
+      revision: 1,
       storageMode: options?.storageMode ?? 'memory',
       rootName: options?.rootName ?? 'context-action-workspace',
     };
@@ -117,7 +119,12 @@ export class LiveEditorWorkspaceManager {
     const dirtyPaths = this.snapshot.dirtyPaths.includes(normalizedPath)
       ? this.snapshot.dirtyPaths
       : [...this.snapshot.dirtyPaths, normalizedPath];
-    this.snapshot = { ...this.snapshot, files, dirtyPaths };
+    this.snapshot = {
+      ...this.snapshot,
+      files,
+      dirtyPaths,
+      revision: this.snapshot.revision + 1,
+    };
     this.emit();
     return this.snapshot;
   }
@@ -143,6 +150,7 @@ export class LiveEditorWorkspaceManager {
       files: normalizedFiles,
       activePath,
       dirtyPaths: [],
+      revision: this.snapshot.revision + 1,
       rootName: options.rootName,
       storageMode: options.storageMode,
     };

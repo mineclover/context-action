@@ -27,7 +27,7 @@ Orca는 여러 coding agent를 worktree, 터미널, embedded browser와 연결�
 ## 실시간 웹 코딩 showcase
 
 집중 showcase 경로는 `/integrations/live-web-coding`이다. 첫 slice는 범위를
-작게 유지하기 위해 HTML/CSS/JS 3개 파일 workspace, 화면에 보이는 `web.*`
+작게 유지하기 위해 HTML/CSS/JS 3개 파일 workspace, bounded `web.applyPatch`를 포함한 화면에 보이는 `web.*`
 tool palette, 선택적인 OpenRouter model loop, sandbox iframe preview로
 구성한다. API 키가 없어도 동일한 `tools/list` → model/local agent →
 `tools/call` → tool result 흐름을 결정적인 local fallback으로 실행하므로
@@ -102,6 +102,13 @@ trace view만 초기화한다. call row에는 파일 수·path·theme·revision 
 result summary만 표시하고 파일 source 자체는 trace UI에 복사하지 않는다.
 call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
 있다.
+
+realtime web-coding workspace는 `web.getWorkspace`와 `web.readFile`에서
+monotonic workspace revision을 노출한다. 모든 mutation `web.*` tool은 선택적인
+`expectedRevision`을 받아 source를 바꾸기 전에 오래된 edit를 거부하고, preview
+acknowledgement 후 새 workspace revision을 반환한다. 따라서 full-file write,
+visual helper, bounded `web.applyPatch`가 하나의 optimistic-concurrency 계약을
+공유한다.
 local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
 `local` source를 보존한다. prompt에서 발생한 local mutation은
 `interaction: prompt` metadata를 전달해 model call과 같은 approval 경계를 따른다.
@@ -176,6 +183,16 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `editor.applyPatch` | local demo allow | 제한된 literal text patch 적용 후 해당 preview revision 대기 |
 | `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
 | `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
+
+realtime web-coding route는 대응하는 workspace 계약도 노출한다.
+
+| 도구 | 기본 정책 | 목적 |
+| --- | --- | --- |
+| `web.getWorkspace` | allow | 파일·active entry point·workspace revision 조회 |
+| `web.readFile` | allow | text file과 현재 workspace revision 조회 |
+| `web.applyPatch` | local demo allow | 선택적 revision guard와 함께 제한된 literal patch 적용 |
+| `web.writeFile` | local demo allow | 선택적 revision guard와 함께 text file 교체 |
+| `web.setTheme`, `web.addFeature`, `web.updateHero` | local demo allow | 동일 revision guard를 사용하는 제어된 visual mutation |
 
 example과 standalone workspace가 모두 제한된 patch 계약을 노출한다. example은
 현재 부모 소유 document에 patch를 적용하고 standalone workspace는 지정된 file에

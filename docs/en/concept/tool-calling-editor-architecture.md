@@ -28,7 +28,7 @@ Reference clone: `architecture-references/orca` (MIT, inspected at commit `9a237
 
 The focused showcase route is `/integrations/live-web-coding`. It intentionally
 keeps the first slice small: a three-file HTML/CSS/JS workspace, a visible
-`web.*` tool palette, an optional OpenRouter model loop, and a sandboxed iframe
+`web.*` tool palette including bounded `web.applyPatch`, an optional OpenRouter model loop, and a sandboxed iframe
 preview. Without an API key, the same `tools/list` → model/local agent →
 `tools/call` → tool result path runs through a deterministic local fallback, so
 the tool contract and preview synchronization can be tested offline.
@@ -105,6 +105,13 @@ view without changing workspace files, tool registry state, or provider history.
 Call rows expose only safe result summaries such as file count, path, theme, or
 revision; file source is never copied into the trace UI. Call rows also show a
 shortened `toolCallId` with the full value available as the row tooltip.
+
+The realtime web-coding workspace exposes a monotonic workspace revision from
+`web.getWorkspace` and `web.readFile`. All mutating `web.*` tools accept the
+optional `expectedRevision`, reject stale edits before changing source, and
+return the new workspace revision after the preview acknowledgement. This
+keeps full-file writes, visual helpers, and bounded `web.applyPatch` on one
+optimistic-concurrency contract.
 
 Local agent and palette actions use the canonical `registry.callTool()` bridge
 so their `local` source is preserved. Prompt-originated local mutations carry an
@@ -185,6 +192,16 @@ The default extraction order is `example → standalone demo/workspace package �
 | `editor.applyPatch` | local demo allow | Apply a bounded literal text patch and await the matching preview revision |
 | `editor.setScenario` | local demo allow | Change the safe runner scenario |
 | `editor.resetDocument` | local demo allow | Reset source to the selected example |
+
+The realtime web-coding route exposes the parallel workspace contract:
+
+| Tool | Default policy | Purpose |
+| --- | --- | --- |
+| `web.getWorkspace` | allow | Read files, active entry point, and workspace revision |
+| `web.readFile` | allow | Read one text file and the current workspace revision |
+| `web.applyPatch` | local demo allow | Apply a bounded literal patch with an optional revision guard |
+| `web.writeFile` | local demo allow | Replace one text file with an optional revision guard |
+| `web.setTheme`, `web.addFeature`, `web.updateHero` | local demo allow | Run controlled visual mutations with the same revision guard |
 
 The example and standalone workspace now expose bounded patch contracts. The
 example applies the patch to the current parent-owned document; the standalone
