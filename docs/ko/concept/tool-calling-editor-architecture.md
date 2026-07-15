@@ -45,8 +45,9 @@ Bolt 스타일 standalone studio는 `demos/bolt-style-editor` workspace package�
 API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` → tool result
 → preview 흐름을 확인할 수 있도록 Dexie 기반 browser workspace, Blob file record와
 결정적 local agent를 사용한다. IndexedDB를 사용할 수 없으면 memory workspace로
-fallback한다. File System Access 폴더 adapter는 persistence와 adapter 계약이
-안정될 때까지 기존 example에 유지한다.
+fallback한다. `Open folder`는 부모가 소유하는 browser adapter를 사용하며 File
+System Access API를 우선하고, 지원하지 않는 브라우저에서는 directory-upload
+input으로 fallback한 뒤 가져온 text 파일로 Dexie workspace를 교체한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
@@ -142,22 +143,22 @@ Open folder → generic FileSystemAdapter
 - `Open folder`는 범용 filesystem adapter를 사용한다. 현재 browser adapter는
   사용자 제스처의 File System Access API로 폴더를 읽은 뒤 Dexie로 import하며,
   directory handle이 workspace의 소유자가 되지 않는다.
-- text와 binary 파일을 file 수·개별 크기·전체 크기 제한과 함께 가져온다.
-  binary 파일은 파일 트리에 남기고 preview용 단기 Blob URL을 만들 수 있지만,
-  편집 대상은 text 파일로 제한한다.
+- HTML, CSS, JavaScript, JSON, Markdown, TypeScript, text 파일만 file 수·개별
+  크기·전체 크기 제한과 함께 가져온다. 지원하지 않는 파일이나 binary 파일은
+  편집 가능한 source로 저장하지 않고 chat에 건너뛴 항목으로 표시한다.
 - filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
   넣지 않는다.
-- text 편집은 Dexie에 즉시 저장하고, `Save file`은 열린 directory가 있을 때
-  generic filesystem adapter를 통해 현재 dirty text 파일을 반영한다.
-- Object URL은 파생된 임시 연결값일 뿐이므로 workspace나 preview 교체 시 revoke한다.
+- text 편집은 Dexie에 즉시 저장한다. 현재 standalone demo는 가져오기 후 편집
+  surface이며, 선택한 운영체제 directory에 변경 내용을 다시 쓰지는 않는다.
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
 - 외부 CSS/JS URL과 임의의 `runScript` 요청은 preview 경계에서 차단한다. 아직
-  binary asset은 가져오지 않으므로 이미지와 폰트는 data URL 또는 후속 asset
-  adapter가 필요하다.
-- 미지원 브라우저에서는 파일을 서버로 몰래 전송하지 않고 memory workspace를
-  유지한다.
+  binary asset은 건너뛰므로 이미지와 폰트는 data URL 또는 후속 asset adapter가
+  필요하다.
+- folder picker를 지원하지 않는 브라우저에서는 directory-upload fallback을
+  사용한다. IndexedDB 자체를 사용할 수 없을 때도 파일을 서버로 몰래 전송하지
+  않고 memory workspace를 유지한다.
 
 ## 빌드 순서
 

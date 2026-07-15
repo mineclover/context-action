@@ -39,6 +39,7 @@ export class WebCodingWorkspaceDatabase extends Dexie {
 }
 
 export type PersistedWorkspace = {
+  rootName: string;
   activePath: string;
   files: WorkspaceFile[];
 };
@@ -82,10 +83,55 @@ export class WebCodingWorkspaceRepository {
       : [];
 
     if (!metadata || records.length === 0) {
-      await this.replaceWorkspace(seedFiles, 'index.html');
+      await this.replaceWorkspace(seedFiles, 'index.html', 'canvas-landing');
       return this.loadWorkspace();
     }
     return this.toWorkspace(metadata, records);
+  }
+
+  async replaceWorkspace(
+    files: readonly WorkspaceFile[],
+    activePath: string,
+    rootName: string
+  ): Promise<PersistedWorkspace> {
+    const now = Date.now();
+    const metadata: WorkspaceMetadataRecord = {
+      id: this.workspaceId,
+      rootName: rootName || 'workspace',
+      activePath,
+      updatedAt: now,
+      schemaVersion: DATABASE_VERSION,
+    };
+    const records = files.map<WorkspaceFileRecord>((file) => {
+      const blob = new Blob([file.source], {
+        type: mimeTypeForLanguage(file.language),
+      });
+      return {
+        id: `${this.workspaceId}:${file.path}`,
+        workspaceId: this.workspaceId,
+        path: file.path,
+        language: file.language,
+        mimeType: blob.type,
+        size: blob.size,
+        blob,
+        updatedAt: now,
+      };
+    });
+
+    await this.database.transaction(
+      'rw',
+      this.database.workspaces,
+      this.database.files,
+      async () => {
+        await this.database.files
+          .where('workspaceId')
+          .equals(this.workspaceId)
+          .delete();
+        await this.database.files.bulkPut(records);
+        await this.database.workspaces.put(metadata);
+      }
+    );
+    return this.loadWorkspace();
   }
 
   async saveFile(file: WorkspaceFile): Promise<void> {
@@ -120,49 +166,6 @@ export class WebCodingWorkspaceRepository {
     this.database.close();
   }
 
-  private async replaceWorkspace(
-    files: readonly WorkspaceFile[],
-    activePath: string
-  ): Promise<void> {
-    const now = Date.now();
-    const metadata: WorkspaceMetadataRecord = {
-      id: this.workspaceId,
-      rootName: 'canvas-landing',
-      activePath,
-      updatedAt: now,
-      schemaVersion: DATABASE_VERSION,
-    };
-    const records = files.map<WorkspaceFileRecord>((file) => {
-      const blob = new Blob([file.source], {
-        type: mimeTypeForLanguage(file.language),
-      });
-      return {
-        id: `${this.workspaceId}:${file.path}`,
-        workspaceId: this.workspaceId,
-        path: file.path,
-        language: file.language,
-        mimeType: blob.type,
-        size: blob.size,
-        blob,
-        updatedAt: now,
-      };
-    });
-
-    await this.database.transaction(
-      'rw',
-      this.database.workspaces,
-      this.database.files,
-      async () => {
-        await this.database.files
-          .where('workspaceId')
-          .equals(this.workspaceId)
-          .delete();
-        await this.database.files.bulkPut(records);
-        await this.database.workspaces.put(metadata);
-      }
-    );
-  }
-
   private async loadWorkspace(): Promise<PersistedWorkspace> {
     const metadata = await this.database.workspaces.get(this.workspaceId);
     if (!metadata) throw new Error('Workspace metadata was not created.');
@@ -191,6 +194,7 @@ export class WebCodingWorkspaceRepository {
       }))
     );
     return {
+      rootName: metadata.rootName,
       activePath: metadata.activePath,
       files: files.sort(
         (left, right) => displayOrder(left.path) - displayOrder(right.path)

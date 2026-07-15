@@ -46,8 +46,9 @@ surface. Its first slice uses a Dexie-backed browser workspace, Blob file
 records, and a deterministic local agent so GitHub Pages can demonstrate the
 complete `tools/list` → model/local agent → `tools/call` → tool result → preview
 flow without an API key. If IndexedDB is unavailable, it falls back to the
-memory workspace. The File System Access folder adapter remains in the example
-until the persistence and adapter contracts stabilize.
+memory workspace. `Open folder` now uses a parent-owned browser adapter: it
+prefers the File System Access API and falls back to a directory-upload input,
+then replaces the Dexie workspace with the imported text files.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared `context-action.openrouter.api-key` browser key used by the example
@@ -146,24 +147,24 @@ Open folder → generic FileSystemAdapter
 - `Open folder` uses a generic file-system adapter. The current browser adapter
   uses the File System Access API from a user gesture and imports the folder
   into Dexie rather than making the directory handle the workspace owner.
-- Text and binary files are imported with file-count, per-file, and total-size
-  limits. Binary files remain in the file tree and are available as short-lived
-  Blob URLs for preview assets, while only text files are editable.
+- Supported HTML, CSS, JavaScript, JSON, Markdown, TypeScript, and text files are
+  imported with file-count, per-file, and total-size limits. Unsupported or
+  binary files are reported in the chat instead of being stored as editable
+  source.
 - File-system handles stay in the parent adapter and never enter tool payloads
   or iframe messages.
-- Text edits are persisted to Dexie immediately; `Save file` writes the active
-  dirty text file back through the generic file-system adapter when a directory
-  is open.
-- Object URLs are derived handles only and must be revoked when the workspace
-  or preview is replaced.
+- Text edits are persisted to Dexie immediately. The current standalone demo is
+  an import-and-edit surface; it does not write changes back to the selected
+  operating-system directory.
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.
 - External CSS/JS URLs and arbitrary `runScript` requests are blocked by the
-  preview boundary. Binary assets are not imported yet, so data URLs or a
-  later asset adapter are required for images and fonts.
-- Unsupported browsers retain the memory workspace instead of silently sending
-  files to a server.
+  preview boundary. Binary assets are skipped for now, so data URLs or a later
+  asset adapter are required for images and fonts.
+- Unsupported folder-picker browsers use the directory-upload fallback; if
+  IndexedDB itself is unavailable, the imported workspace remains in memory
+  instead of being sent to a server.
 
 ## Build order
 

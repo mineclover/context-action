@@ -22,6 +22,7 @@ import {
   buildPreviewDocument,
   type WorkspaceFile,
 } from './workspace';
+import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 
 const {
   Provider: BoltStyleToolProvider,
@@ -599,6 +600,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     readOpenRouterSettings
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [openingFolder, setOpeningFolder] = useState(false);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const fileSystemAdapter = useMemo(
+    () => new BrowserWorkspaceFileSystemAdapter(),
+    []
+  );
 
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
@@ -615,6 +622,78 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       : snapshot.storageMode === 'loading'
         ? 'Loading workspace'
         : 'Memory fallback';
+
+  useEffect(() => {
+    folderInputRef.current?.setAttribute('webkitdirectory', '');
+  }, []);
+
+  const importFolder = async (
+    imported: Awaited<
+      ReturnType<BrowserWorkspaceFileSystemAdapter['importFileList']>
+    >
+  ) => {
+    await workspace.importFolder(imported);
+    const skippedMessage = imported.skipped.length
+      ? ` Skipped ${imported.skipped.length} unsupported or oversized file(s).`
+      : '';
+    setMessages((current) => [
+      ...current,
+      {
+        role: 'assistant',
+        text: `Opened ${imported.rootName} with ${imported.files.length} file(s).${skippedMessage}`,
+      },
+    ]);
+  };
+
+  const handleFolderInput = async (fileList: FileList | null) => {
+    if (!fileList) return;
+    setOpeningFolder(true);
+    try {
+      await importFolder(await fileSystemAdapter.importFileList(fileList));
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            error instanceof Error ? error.message : 'Folder import failed.',
+        },
+      ]);
+    } finally {
+      setOpeningFolder(false);
+      if (folderInputRef.current) folderInputRef.current.value = '';
+    }
+  };
+
+  const handleOpenFolder = async () => {
+    if (openingFolder || !isStorageReady) return;
+    const picker = (
+      window as Window & {
+        showDirectoryPicker?: unknown;
+      }
+    ).showDirectoryPicker;
+    if (!picker) {
+      folderInputRef.current?.click();
+      return;
+    }
+
+    setOpeningFolder(true);
+    try {
+      await importFolder(await fileSystemAdapter.pickFolder());
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            error instanceof Error ? error.message : 'Folder import failed.',
+        },
+      ]);
+    } finally {
+      setOpeningFolder(false);
+    }
+  };
 
   const executePrompt = async (value: string) => {
     const trimmed = value.trim();
@@ -715,7 +794,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <strong>Web Studio</strong>
         </div>
         <div className="topbar-center">
-          <span className="workspace-name">canvas-landing</span>
+          <span className="workspace-name">{snapshot.rootName}</span>
           <span className="mode-chip">
             <span className="status-dot" />
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
@@ -751,9 +830,28 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
 
       <div className="studio-workspace">
         <aside className="studio-sidebar">
-          <div className="panel-label">Explorer</div>
+          <div className="explorer-heading">
+            <div className="panel-label">Explorer</div>
+            <button
+              className="open-folder-button"
+              disabled={openingFolder || !isStorageReady}
+              onClick={() => void handleOpenFolder()}
+              type="button"
+            >
+              {openingFolder ? 'Opening…' : 'Open folder'}
+            </button>
+            <input
+              ref={folderInputRef}
+              accept=".css,.htm,.html,.js,.json,.mjs,.md,.ts,.tsx,.txt"
+              aria-label="Choose workspace folder"
+              className="folder-input"
+              multiple
+              onChange={(event) => void handleFolderInput(event.target.files)}
+              type="file"
+            />
+          </div>
           <div className="tree-root">
-            <span>⌄</span> canvas-landing
+            <span>⌄</span> {snapshot.rootName}
           </div>
           <div className="file-tree">
             {snapshot.files.map((file) => (
@@ -956,7 +1054,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 <span />
               </div>
               <div className="address-bar">
-                preview://canvas-landing/index.html
+                preview://{snapshot.rootName}/{activeFile.path}
               </div>
               <span className="refresh-icon">↻</span>
             </div>

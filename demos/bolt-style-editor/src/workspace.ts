@@ -1,3 +1,4 @@
+import type { ImportedFolder } from './workspace-filesystem';
 import {
   DEMO_WORKSPACE_ID,
   WebCodingWorkspaceRepository,
@@ -10,6 +11,7 @@ export type WorkspaceFile = {
 };
 
 export type WorkspaceSnapshot = {
+  rootName: string;
   files: WorkspaceFile[];
   activePath: string;
   revision: number;
@@ -122,6 +124,7 @@ export class BrowserWorkspace {
     )
   ) {
     this.snapshot = {
+      rootName: 'canvas-landing',
       files: createInitialFiles(),
       activePath: 'index.html',
       revision: 1,
@@ -147,6 +150,7 @@ export class BrowserWorkspace {
       );
       this.snapshot = {
         ...this.snapshot,
+        rootName: persisted.rootName,
         files: persisted.files,
         activePath: persisted.activePath,
         storageMode: 'indexed-db',
@@ -157,6 +161,49 @@ export class BrowserWorkspace {
     } catch {
       this.snapshot = { ...this.snapshot, storageMode: 'memory' };
     }
+    this.notify();
+  }
+
+  async importFolder(folder: ImportedFolder): Promise<void> {
+    if (folder.files.length === 0) {
+      throw new Error('No supported HTML, CSS, JS, or text files were found.');
+    }
+
+    await this.persistQueue;
+    const activePath =
+      folder.files.find((file) => file.path === 'index.html')?.path ??
+      folder.files.find((file) => file.language === 'html')?.path ??
+      folder.files[0].path;
+
+    try {
+      const persisted = await this.repository.replaceWorkspace(
+        folder.files,
+        activePath,
+        folder.rootName
+      );
+      this.snapshot = {
+        ...this.snapshot,
+        rootName: persisted.rootName,
+        files: persisted.files,
+        activePath: persisted.activePath,
+        storageMode: 'indexed-db',
+        revision: this.snapshot.revision + 1,
+      };
+    } catch {
+      this.snapshot = {
+        ...this.snapshot,
+        rootName: folder.rootName || 'workspace',
+        files: folder.files.map((file) => ({ ...file })),
+        activePath,
+        storageMode: 'memory',
+        revision: this.snapshot.revision + 1,
+      };
+    }
+
+    this.history = [this.createCheckpoint()];
+    this.historyIndex = 0;
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.lastEdit = null;
     this.notify();
   }
 
@@ -270,6 +317,7 @@ export class BrowserWorkspace {
   private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
     this.snapshot = {
       ...checkpoint,
+      rootName: this.snapshot.rootName,
       storageMode: this.snapshot.storageMode,
       revision: this.snapshot.revision + 1,
     };
@@ -290,17 +338,35 @@ export class BrowserWorkspace {
 }
 
 export function buildPreviewDocument(files: WorkspaceFile[]): string {
-  const html = files.find((file) => file.path === 'index.html')?.source ?? '';
-  const css = files.find((file) => file.path === 'styles.css')?.source ?? '';
-  const javascript = files.find((file) => file.path === 'app.js')?.source ?? '';
+  const htmlFile =
+    files.find((file) => file.path === 'index.html') ??
+    files.find((file) => file.language === 'html');
+  const html = htmlFile?.source ?? '';
+  const directory = htmlFile?.path.includes('/')
+    ? htmlFile.path.slice(0, htmlFile.path.lastIndexOf('/'))
+    : '';
+  const css =
+    files.find((file) => file.path === 'styles.css') ??
+    files.find(
+      (file) =>
+        file.language === 'css' && file.path === `${directory}/styles.css`
+    ) ??
+    files.find((file) => file.language === 'css');
+  const javascript =
+    files.find((file) => file.path === 'app.js') ??
+    files.find(
+      (file) =>
+        file.language === 'javascript' && file.path === `${directory}/app.js`
+    ) ??
+    files.find((file) => file.language === 'javascript');
 
   return html
     .replace(
-      '<link rel="stylesheet" href="styles.css" />',
-      `<style>${css}</style>`
+      /<link\s+[^>]*href=["'][^"']+["'][^>]*>/i,
+      css ? `<style>${css.source}</style>` : ''
     )
     .replace(
-      '<script src="app.js"></script>',
-      `<script>${javascript}</script>`
+      /<script\s+[^>]*src=["'][^"']+["'][^>]*><\/script>/i,
+      javascript ? `<script>${javascript.source}</script>` : ''
     );
 }
