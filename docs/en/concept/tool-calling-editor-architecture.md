@@ -173,6 +173,10 @@ The standalone workspace, realtime web-coding, and Live Code Editor catalogs use
 this same output contract for file reads, mutations, preview acknowledgements,
 and save results. Their catalog definitions therefore describe both what a
 model may send and what the next model step may safely consume.
+The standalone Web Studio mutation and preview results also carry the current
+`storageMode` and optional bounded `storageError`. A model can therefore tell
+whether a successful preview is backed by IndexedDB or is session-only memory
+without making a second status call.
 
 React ToolContext adds runtime scope:
 
@@ -394,6 +398,11 @@ The default extraction order is `example â†’ standalone demo/workspace package â
 | `preview.updateHero` | approval required | Update the controlled preview hero copy |
 | `preview.getStatus` | allow | Read the latest sandbox preview acknowledgement |
 | `preview.refresh` | approval for model/prompt calls; local direct allow for palette calls | Remount the sandbox iframe and await the current revision acknowledgement |
+
+Every workspace mutation, preview acknowledgement, and save result includes
+`storageMode` plus an optional bounded `storageError`, alongside its revision
+and preview fields. This keeps a successful in-memory fallback explicit rather
+than allowing a model to infer durable storage from a successful tool call.
 
 `workspace.downloadFile` is also marked with the MCP `openWorldHint` because it
 crosses the browser workspace boundary and creates a user-visible local

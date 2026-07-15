@@ -162,6 +162,9 @@ catalog를 유지한다.
 standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
 계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
 보낼 입력과 다음 단계가 안전하게 소비할 결과를 함께 정의한다.
+standalone Web Studio의 mutation·preview 결과에는 현재 `storageMode`와
+bounded `storageError`도 포함된다. 따라서 모델은 별도 status 호출 없이도
+성공한 preview가 IndexedDB 기반인지 session-only memory 기반인지 구분할 수 있다.
 
 React ToolContext는 여기에 실행 범위를 추가한다.
 
@@ -375,6 +378,10 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `preview.updateHero` | approval required | 제어된 preview hero copy 변경 |
 | `preview.getStatus` | allow | 최신 sandbox preview acknowledgement 조회 |
 | `preview.refresh` | model/prompt 호출은 approval, palette 호출은 local direct allow | sandbox iframe을 다시 마운트하고 현재 revision acknowledgement 대기 |
+
+모든 workspace mutation, preview acknowledgement, save 결과는 revision·preview
+필드와 함께 `storageMode` 및 optional bounded `storageError`를 반환한다. 따라서
+성공한 in-memory fallback을 durable storage 성공으로 추론하지 않는다.
 
 `workspace.downloadFile`은 browser workspace 경계를 넘어 사용자에게 보이는
 local download를 만들기 때문에 MCP `openWorldHint`도 표시한다. 실제 실행을

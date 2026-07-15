@@ -783,6 +783,39 @@ async function runBrowserProof(url) {
           'workspace.getStatus did not return the browser persistence error.'
         );
       }
+      const blockedEditor = blockedIndexedDbPage.getByLabel('Edit index.html');
+      const blockedWriteTrace = blockedIndexedDbPage
+        .locator('#trace-list .trace-row')
+        .filter({ hasText: 'workspace.writeFile' });
+      const blockedWriteTraceCount = await blockedWriteTrace.count();
+      await blockedEditor.fill('<!doctype html><title>memory proof</title>');
+      await blockedIndexedDbPage
+        .getByText('Unsaved changes', { exact: true })
+        .waitFor();
+      await blockedIndexedDbPage.waitForFunction(
+        (expectedCount) =>
+          Array.from(document.querySelectorAll('#trace-list .trace-row')).filter(
+            (row) => row.textContent?.includes('workspace.writeFile')
+          ).length > expectedCount,
+        blockedWriteTraceCount
+      );
+      await blockedIndexedDbPage
+        .locator('.statusbar-state:not(.statusbar-state-running)')
+        .waitFor();
+      const blockedWriteEntry = blockedIndexedDbPage
+        .locator('#trace-list .trace-row')
+        .filter({ hasText: 'workspace.writeFile' })
+        .last();
+      await blockedWriteEntry.getByText('Inspect tools/call').click();
+      const blockedWriteResult = await blockedWriteEntry
+        .locator('.trace-detail-block')
+        .last()
+        .innerText();
+      if (!blockedWriteResult.includes('"storageMode": "memory"')) {
+        throw new Error(
+          'A memory-only workspace mutation did not expose storageMode in its tool result.'
+        );
+      }
       if (blockedIndexedDbErrors.length) {
         throw new Error(
           `Blocked IndexedDB browser errors: ${blockedIndexedDbErrors.join(' | ')}`

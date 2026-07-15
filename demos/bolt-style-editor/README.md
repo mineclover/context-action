@@ -71,6 +71,9 @@ visible diagnostic panel with the error text and a refresh action.
 - If IndexedDB fails during hydration or a later write, the workspace exposes
   the bounded storage error through `workspace.getStatus` and marks the
   session as memory-only so a persistence failure is not silent.
+- Workspace mutation, preview, and save tool results also include `storageMode`
+  and an optional bounded `storageError`, so model tool chains can distinguish
+  durable IndexedDB state from a session-only fallback without a second status call.
 - `Open` uses the File System Access API when available and a directory-upload
   fallback otherwise.
 - `Save to folder` is the explicit operating-system filesystem boundary.

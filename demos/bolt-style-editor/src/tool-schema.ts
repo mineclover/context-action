@@ -35,87 +35,95 @@ const fileSystemPermissionSchema = z.enum([
   'unknown',
   'disconnected',
 ]);
-const workspaceOpenFileOutputSchema = z.object({
+const workspacePersistenceOutputSchema = z.object({
+  storageMode: z.enum(['loading', 'indexed-db', 'memory']),
+  storageError: z.string().optional(),
+});
+const workspaceOpenFileOutputSchema = workspacePersistenceOutputSchema.extend({
   path: z.string(),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
 });
-const syncedWorkspaceMutationOutputSchema = z.object({
-  path: z.string(),
-  activePath: z.string(),
-  revision: z.number().int().nonnegative(),
-  preview: z.literal('synced'),
-});
+const syncedWorkspaceMutationOutputSchema =
+  workspacePersistenceOutputSchema.extend({
+    path: z.string(),
+    activePath: z.string(),
+    revision: z.number().int().nonnegative(),
+    preview: z.literal('synced'),
+  });
 const workspaceCreateFileOutputSchema =
   syncedWorkspaceMutationOutputSchema.extend({
     language: z.string(),
   });
-const workspaceRenameFileOutputSchema = z.object({
-  fromPath: z.string(),
-  toPath: z.string(),
-  activePath: z.string(),
-  revision: z.number().int().nonnegative(),
-  preview: z.literal('synced'),
-});
-const workspaceSaveAllOutputSchema = z.object({
+const workspaceRenameFileOutputSchema = workspacePersistenceOutputSchema.extend(
+  {
+    fromPath: z.string(),
+    toPath: z.string(),
+    activePath: z.string(),
+    revision: z.number().int().nonnegative(),
+    preview: z.literal('synced'),
+  }
+);
+const workspaceSaveAllOutputSchema = workspacePersistenceOutputSchema.extend({
   savedPaths: z.array(z.string()),
   deletedPaths: z.array(z.string()),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   checkpointUpdated: z.boolean().optional(),
 });
-const workspaceSaveCheckpointOutputSchema = z.object({
-  savedPaths: z.array(z.string()),
-  deletedPaths: z.array(z.string()),
-  activePath: z.string(),
-  revision: z.number().int().nonnegative(),
-  storageMode: z.enum(['indexed-db', 'memory']),
-  checkpointUpdated: z.literal(true),
-});
-const workspaceReloadFolderOutputSchema = z.object({
-  rootName: z.string(),
-  activePath: z.string(),
-  fileCount: z.number().int().nonnegative(),
-  skipped: z.array(z.string()),
-  revision: z.number().int().nonnegative(),
-  preview: z.literal('synced'),
-  filesystem: z.object({
-    mode: z.literal('local-folder'),
-    folderLinked: z.literal(true),
-    permission: fileSystemPermissionSchema,
-    saveAllAvailable: z.literal(true),
-    reloadAvailable: z.literal(true),
-  }),
-});
-const workspaceDisconnectFolderOutputSchema = z.object({
-  activePath: z.string(),
-  revision: z.number().int().nonnegative(),
-  storageMode: z.enum(['indexed-db', 'memory']),
-  filesystem: z.object({
-    mode: z.literal('browser-only'),
-    folderLinked: z.literal(false),
-    permission: z.literal('disconnected'),
-    saveAllAvailable: z.literal(false),
-    reloadAvailable: z.literal(false),
-  }),
-});
+const workspaceSaveCheckpointOutputSchema =
+  workspacePersistenceOutputSchema.extend({
+    savedPaths: z.array(z.string()),
+    deletedPaths: z.array(z.string()),
+    activePath: z.string(),
+    revision: z.number().int().nonnegative(),
+    checkpointUpdated: z.literal(true),
+  });
+const workspaceReloadFolderOutputSchema =
+  workspacePersistenceOutputSchema.extend({
+    rootName: z.string(),
+    activePath: z.string(),
+    fileCount: z.number().int().nonnegative(),
+    skipped: z.array(z.string()),
+    revision: z.number().int().nonnegative(),
+    preview: z.literal('synced'),
+    filesystem: z.object({
+      mode: z.literal('local-folder'),
+      folderLinked: z.literal(true),
+      permission: fileSystemPermissionSchema,
+      saveAllAvailable: z.literal(true),
+      reloadAvailable: z.literal(true),
+    }),
+  });
+const workspaceDisconnectFolderOutputSchema =
+  workspacePersistenceOutputSchema.extend({
+    activePath: z.string(),
+    revision: z.number().int().nonnegative(),
+    filesystem: z.object({
+      mode: z.literal('browser-only'),
+      folderLinked: z.literal(false),
+      permission: z.literal('disconnected'),
+      saveAllAvailable: z.literal(false),
+      reloadAvailable: z.literal(false),
+    }),
+  });
 const workspacePatchOutputSchema = syncedWorkspaceMutationOutputSchema.extend({
   replacements: z.number().int().positive(),
 });
-const workspaceHistoryOutputSchema = z.object({
+const workspaceHistoryOutputSchema = workspacePersistenceOutputSchema.extend({
   direction: z.enum(['undo', 'redo']),
   changed: z.boolean(),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   preview: z.literal('synced'),
 });
-const previewThemeOutputSchema = z.object({
+const previewThemeOutputSchema = workspacePersistenceOutputSchema.extend({
   theme: z.enum(['violet', 'emerald', 'amber', 'rose']),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   preview: z.literal('synced'),
 });
-const previewFeatureOutputSchema = z.object({
+const previewFeatureOutputSchema = workspacePersistenceOutputSchema.extend({
   title: z.string(),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
@@ -127,7 +135,7 @@ const previewStatusOutputSchema = z.object({
   message: z.string().optional(),
   runtime: z.literal('sandbox iframe'),
 });
-const previewRefreshOutputSchema = z.object({
+const previewRefreshOutputSchema = workspacePersistenceOutputSchema.extend({
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   preview: z.literal('synced'),
@@ -158,12 +166,11 @@ const workspaceStatusOutputSchema = z.object({
     reloadAvailable: z.boolean(),
   }),
 });
-const workspaceResetOutputSchema = z.object({
+const workspaceResetOutputSchema = workspacePersistenceOutputSchema.extend({
   rootName: z.string(),
   activePath: z.string(),
   fileCount: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
-  storageMode: z.enum(['indexed-db', 'memory']),
   preview: z.literal('synced'),
 });
 

@@ -1103,10 +1103,17 @@ function ToolHandlers({
   onPreviewRefresh: () => void;
   children: ReactNode;
 }) {
+  const workspacePersistenceMeta = (snapshot = workspace.getSnapshot()) => {
+    return {
+      storageMode: snapshot.storageMode,
+      ...(snapshot.storageError ? { storageError: snapshot.storageError } : {}),
+    };
+  };
   const workspaceResultMeta = (snapshot = workspace.getSnapshot()) => {
     return {
       activePath: snapshot.activePath,
       revision: snapshot.revision,
+      ...workspacePersistenceMeta(),
     };
   };
 
@@ -1160,12 +1167,11 @@ function ToolHandlers({
         controller.signal
       );
       return {
+        ...workspacePersistenceMeta(),
         rootName: snapshot.rootName,
         activePath: snapshot.activePath,
         fileCount: snapshot.files.length,
         revision: snapshot.revision,
-        storageMode:
-          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
         preview: 'synced' as const,
       };
     },
@@ -1226,6 +1232,7 @@ function ToolHandlers({
     await workspace.waitForPersistence();
     const snapshot = workspace.getSnapshot();
     return {
+      ...workspacePersistenceMeta(),
       path: normalizedPath,
       activePath: snapshot.activePath,
       revision: snapshot.revision,
@@ -1244,6 +1251,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         path: snapshot.activePath,
         activePath: snapshot.activePath,
         language: workspace.getFile(snapshot.activePath).language,
@@ -1271,6 +1279,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         fromPath: normalizedFromPath,
         toPath: normalizedToPath,
         activePath: snapshot.activePath,
@@ -1294,6 +1303,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         path: file.path,
         activePath: snapshot.activePath,
         revision: snapshot.revision,
@@ -1323,6 +1333,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         path: file.path,
         revision: snapshot.revision,
         activePath: snapshot.activePath,
@@ -1347,6 +1358,7 @@ function ToolHandlers({
       const deletedPaths = workspace.getDeletedPaths();
       if (dirtyFiles.length === 0 && deletedPaths.length === 0) {
         return {
+          ...workspacePersistenceMeta(),
           savedPaths: [],
           deletedPaths: [],
           activePath: workspace.getSnapshot().activePath,
@@ -1404,6 +1416,7 @@ function ToolHandlers({
           );
         }
         return {
+          ...workspacePersistenceMeta(),
           savedPaths,
           deletedPaths: removedPaths,
           activePath: workspace.getSnapshot().activePath,
@@ -1443,12 +1456,11 @@ function ToolHandlers({
       }
       const snapshot = workspace.getSnapshot();
       return {
+        ...workspacePersistenceMeta(),
         savedPaths: dirtyFiles.map((file) => file.path),
         deletedPaths,
         activePath: snapshot.activePath,
         revision: snapshot.revision,
-        storageMode:
-          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
         checkpointUpdated: true as const,
       };
     },
@@ -1476,6 +1488,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         rootName: snapshot.rootName,
         activePath: snapshot.activePath,
         fileCount: imported.files.length,
@@ -1500,10 +1513,9 @@ function ToolHandlers({
       await fileSystemAdapter.disconnectFolder();
       const snapshot = workspace.getSnapshot();
       return {
+        ...workspacePersistenceMeta(),
         activePath: snapshot.activePath,
         revision: snapshot.revision,
-        storageMode:
-          snapshot.storageMode === 'loading' ? 'memory' : snapshot.storageMode,
         filesystem: {
           mode: 'browser-only' as const,
           folderLinked: false as const,
@@ -1541,6 +1553,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         path: file.path,
         replacements: patch.replacements,
         revision: snapshot.revision,
@@ -1564,6 +1577,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         path: file.path,
         activePath: snapshot.activePath,
         revision: snapshot.revision,
@@ -1588,6 +1602,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         direction: 'undo' as const,
         changed: true,
         activePath: snapshot.activePath,
@@ -1613,6 +1628,7 @@ function ToolHandlers({
       );
       await workspace.waitForPersistence();
       return {
+        ...workspacePersistenceMeta(),
         direction: 'redo' as const,
         changed: true,
         activePath: snapshot.activePath,
@@ -1776,6 +1792,7 @@ function ToolHandlers({
         controller.signal
       );
       return {
+        ...workspacePersistenceMeta(),
         activePath: snapshot.activePath,
         revision: snapshot.revision,
         preview: 'synced' as const,
