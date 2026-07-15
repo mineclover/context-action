@@ -44,6 +44,7 @@ export type {
 
 // Standard tool protocol contracts
 export {
+  TOOL_CALL_ERROR_CODES,
   createToolCallError,
   createToolCallSuccess,
   toToolCallRequest,
@@ -51,6 +52,7 @@ export {
 } from './tool-protocol.js';
 
 export type {
+  ToolCallErrorCode,
   ModelToolCall,
   ToolArguments,
   ToolCallContext,

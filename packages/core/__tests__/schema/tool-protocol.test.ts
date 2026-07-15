@@ -1,4 +1,9 @@
-import type { ToolCallContext } from '../../src/tool-protocol';
+import {
+  TOOL_CALL_ERROR_CODES,
+  createToolCallError,
+  type ToolCallContext,
+  type ToolCallErrorCode,
+} from '../../src/tool-protocol';
 
 describe('tool protocol context', () => {
   it('accepts numeric browser workspace revisions', () => {
@@ -8,5 +13,22 @@ describe('tool protocol context', () => {
     };
 
     expect(context.revision).toBe(12);
+  });
+
+  it('exposes stable canonical tool-call error codes', () => {
+    const cancellation: ToolCallErrorCode = TOOL_CALL_ERROR_CODES.CANCELLED;
+
+    expect(cancellation).toBe('TOOL_CANCELLED');
+    expect(TOOL_CALL_ERROR_CODES).toMatchObject({
+      NOT_FOUND: 'TOOL_NOT_FOUND',
+      VALIDATION_FAILED: 'TOOL_VALIDATION_FAILED',
+      OUTPUT_VALIDATION_FAILED: 'TOOL_OUTPUT_VALIDATION_FAILED',
+      POLICY_DENIED: 'TOOL_POLICY_DENIED',
+      APPROVAL_REQUIRED: 'TOOL_APPROVAL_REQUIRED',
+      EXECUTION_FAILED: 'TOOL_EXECUTION_FAILED',
+    });
+    expect(createToolCallError('failed').error?.code).toBe(
+      TOOL_CALL_ERROR_CODES.EXECUTION_FAILED
+    );
   });
 });

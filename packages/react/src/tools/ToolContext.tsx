@@ -57,6 +57,7 @@ import {
   DispatchOptions,
   HandlerConfig,
   InferActionPayloadMap,
+  TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
   withToolCallId,
 } from '@context-action/core';
@@ -371,14 +372,14 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         if (!tool) {
           return finish(createToolCallError(
             `Tool "${request.params.name}" not found in registry`,
-            { code: 'TOOL_NOT_FOUND', toolCallId: request.id }
+            { code: TOOL_CALL_ERROR_CODES.NOT_FOUND, toolCallId: request.id }
           ));
         }
 
         if (allowedToolNames && !allowedToolNames.includes(request.params.name)) {
           return finish(createToolCallError(
             `Tool "${request.params.name}" is not allowed in this registry`,
-            { code: 'TOOL_NOT_ALLOWED', toolCallId: request.id }
+            { code: TOOL_CALL_ERROR_CODES.NOT_ALLOWED, toolCallId: request.id }
           ));
         }
 
@@ -393,7 +394,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             return finish(createToolCallError(
               `Tool "${request.params.name}" arguments failed validation`,
               {
-                code: 'TOOL_VALIDATION_FAILED',
+                code: TOOL_CALL_ERROR_CODES.VALIDATION_FAILED,
                 toolCallId: request.id,
                 details: { issues: validation.error.issues },
               }
@@ -420,7 +421,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               return finish(createToolCallError(
                 'Tool call cancelled while waiting for policy.',
                 {
-                  code: 'TOOL_CANCELLED',
+                  code: TOOL_CALL_ERROR_CODES.CANCELLED,
                   retryable: true,
                   toolCallId: request.id,
                 }
@@ -429,7 +430,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             return finish(createToolCallError(
               error instanceof Error ? error.message : String(error),
               {
-                code: 'TOOL_POLICY_FAILED',
+                code: TOOL_CALL_ERROR_CODES.POLICY_FAILED,
                 toolCallId: request.id,
                 retryable: true,
               }
@@ -441,7 +442,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
                 ? `Approval required for tool "${request.params.name}"`
                 : `Tool "${request.params.name}" was denied by policy`,
               {
-                code: decision === 'ask' ? 'TOOL_APPROVAL_REQUIRED' : 'TOOL_POLICY_DENIED',
+                code: decision === 'ask'
+                  ? TOOL_CALL_ERROR_CODES.APPROVAL_REQUIRED
+                  : TOOL_CALL_ERROR_CODES.POLICY_DENIED,
                 retryable: decision === 'ask',
                 toolCallId: request.id,
               }
@@ -452,7 +455,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         const register = actionRegisterRef.current;
         if (!register) {
           return finish(createToolCallError(`ActionRegister not initialized in ${contextName}`, {
-            code: 'TOOL_REGISTRY_NOT_READY',
+            code: TOOL_CALL_ERROR_CODES.REGISTRY_NOT_READY,
             toolCallId: request.id,
             retryable: true,
           }));
@@ -492,12 +495,12 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               executionMessage,
               {
                 code: externallyCancelled
-                  ? 'TOOL_CANCELLED'
+                  ? TOOL_CALL_ERROR_CODES.CANCELLED
                   : execution.validation && !execution.validation.passed
-                    ? 'TOOL_VALIDATION_FAILED'
+                    ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
                     : execution.aborted
-                      ? 'TOOL_EXECUTION_ABORTED'
-                      : 'TOOL_EXECUTION_FAILED',
+                      ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                      : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
                 toolCallId: request.id,
                 retryable: externallyCancelled || execution.aborted,
                 details: failedHandler
@@ -523,7 +526,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             return finish(createToolCallError(
               `Tool "${request.params.name}" returned an invalid result`,
               {
-                code: 'TOOL_OUTPUT_VALIDATION_FAILED',
+                code: TOOL_CALL_ERROR_CODES.OUTPUT_VALIDATION_FAILED,
                 toolCallId: request.id,
                 details: {
                   issues: outputValidation.error.issues,
@@ -541,7 +544,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           return finish(createToolCallError(
             error instanceof Error ? error.message : String(error),
             {
-              code: options?.signal?.aborted ? 'TOOL_CANCELLED' : 'TOOL_EXECUTION_FAILED',
+              code: options?.signal?.aborted
+                ? TOOL_CALL_ERROR_CODES.CANCELLED
+                : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
               retryable: options?.signal?.aborted,
               toolCallId: request.id,
             }

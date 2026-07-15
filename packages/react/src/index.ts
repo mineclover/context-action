@@ -121,6 +121,7 @@ export type {
 
 // Standard tool protocol contracts
 export type {
+  ToolCallErrorCode,
   ModelToolCall,
   ToolArguments,
   ToolCallContext,
@@ -138,3 +139,4 @@ export type {
   ToolJsonContent,
   ToolTextContent,
 } from '@context-action/core';
+export { TOOL_CALL_ERROR_CODES } from '@context-action/core';

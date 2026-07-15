@@ -10,6 +10,24 @@
 
 import type { JSONSchema, ToolDefinition } from './json-schema';
 
+/** Canonical error codes emitted by the managed tool-call boundary. */
+export const TOOL_CALL_ERROR_CODES = {
+  NOT_FOUND: 'TOOL_NOT_FOUND',
+  NOT_ALLOWED: 'TOOL_NOT_ALLOWED',
+  VALIDATION_FAILED: 'TOOL_VALIDATION_FAILED',
+  OUTPUT_VALIDATION_FAILED: 'TOOL_OUTPUT_VALIDATION_FAILED',
+  POLICY_FAILED: 'TOOL_POLICY_FAILED',
+  POLICY_DENIED: 'TOOL_POLICY_DENIED',
+  APPROVAL_REQUIRED: 'TOOL_APPROVAL_REQUIRED',
+  CANCELLED: 'TOOL_CANCELLED',
+  EXECUTION_ABORTED: 'TOOL_EXECUTION_ABORTED',
+  EXECUTION_FAILED: 'TOOL_EXECUTION_FAILED',
+  REGISTRY_NOT_READY: 'TOOL_REGISTRY_NOT_READY',
+} as const;
+
+export type ToolCallErrorCode =
+  (typeof TOOL_CALL_ERROR_CODES)[keyof typeof TOOL_CALL_ERROR_CODES];
+
 /** Arguments passed to a tool call after provider-specific normalization. */
 export type ToolArguments = Record<string, unknown>;
 
@@ -29,6 +47,7 @@ export interface ToolCallContext {
 
 /** Structured error returned to the model instead of leaking an exception. */
 export interface ToolCallError {
+  /** Canonical codes are listed in TOOL_CALL_ERROR_CODES; applications may add their own. */
   readonly code: string;
   readonly message: string;
   readonly retryable?: boolean;
@@ -187,7 +206,7 @@ export function createToolCallError(
     ...(options?.toolCallId === undefined ? {} : { toolCallId: options.toolCallId }),
     content: [{ type: 'text', text: message }],
     error: {
-      code: options?.code ?? 'TOOL_EXECUTION_FAILED',
+      code: options?.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
       message,
       ...(options?.details === undefined ? {} : { details: options.details }),
       ...(options?.retryable === undefined ? {} : { retryable: options.retryable }),
