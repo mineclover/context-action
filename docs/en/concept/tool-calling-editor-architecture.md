@@ -42,11 +42,12 @@ remain the current boundary.
 The Bolt-style standalone studio is published at `/web-coding/` from the
 `demos/bolt-style-editor` workspace package. It is independent of the example
 application route and imports only the framework package plus its own editor
-surface. Its first slice uses an in-memory browser workspace and a deterministic
-local agent so GitHub Pages can demonstrate the complete `tools/list` →
-model/local agent → `tools/call` → tool result → preview flow without an API
-key. The full Dexie/File System Access workspace remains in the example until
-the persistence and adapter contracts stabilize.
+surface. Its first slice uses a Dexie-backed browser workspace, Blob file
+records, and a deterministic local agent so GitHub Pages can demonstrate the
+complete `tools/list` → model/local agent → `tools/call` → tool result → preview
+flow without an API key. If IndexedDB is unavailable, it falls back to the
+memory workspace. The File System Access folder adapter remains in the example
+until the persistence and adapter contracts stabilize.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared `context-action.openrouter.api-key` browser key used by the example

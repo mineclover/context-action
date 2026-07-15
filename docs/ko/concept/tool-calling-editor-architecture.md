@@ -43,9 +43,10 @@ Bolt 스타일 standalone studio는 `demos/bolt-style-editor` workspace package�
 빌드해 `/web-coding/`으로 배포한다. example 애플리케이션의 route와 분리된 독립
 정적 페이지이며, framework package와 자체 editor surface만 사용한다. 첫 slice는
 API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` → tool result
-→ preview 흐름을 확인할 수 있도록 memory workspace와 결정적 local agent를 사용한다.
-Dexie/File System Access workspace는 persistence와 adapter 계약이 안정될 때까지
-기존 example에 유지한다.
+→ preview 흐름을 확인할 수 있도록 Dexie 기반 browser workspace, Blob file record와
+결정적 local agent를 사용한다. IndexedDB를 사용할 수 없으면 memory workspace로
+fallback한다. File System Access 폴더 adapter는 persistence와 adapter 계약이
+안정될 때까지 기존 example에 유지한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는

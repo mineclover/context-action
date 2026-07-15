@@ -110,6 +110,9 @@ importers:
       '@context-action/react':
         specifier: workspace:*
         version: link:../../packages/react
+      dexie:
+        specifier: 4.4.4
+        version: 4.4.4
       react:
         specifier: 19.2.7
         version: 19.2.7

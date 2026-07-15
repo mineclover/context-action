@@ -1,3 +1,8 @@
+import {
+  DEMO_WORKSPACE_ID,
+  WebCodingWorkspaceRepository,
+} from './workspace-storage';
+
 export type WorkspaceFile = {
   path: string;
   language: string;
@@ -8,7 +13,10 @@ export type WorkspaceSnapshot = {
   files: WorkspaceFile[];
   activePath: string;
   revision: number;
+  storageMode: WorkspaceStorageMode;
 };
+
+export type WorkspaceStorageMode = 'loading' | 'indexed-db' | 'memory';
 
 type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'>;
 
@@ -98,17 +106,30 @@ export function createInitialFiles(): WorkspaceFile[] {
 }
 
 export class BrowserWorkspace {
-  private snapshot: WorkspaceSnapshot = {
-    files: createInitialFiles(),
-    activePath: 'index.html',
-    revision: 1,
-  };
-
+  private snapshot: WorkspaceSnapshot;
   private listeners = new Set<() => void>();
-  private history: WorkspaceCheckpoint[] = [this.createCheckpoint()];
+  private history: WorkspaceCheckpoint[];
   private historyIndex = 0;
-  private savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+  private savedFiles: WorkspaceFile[];
   private lastEdit: { path: string; timestamp: number } | null = null;
+  private persistQueue = Promise.resolve();
+  private hydrated = false;
+
+  constructor(
+    private readonly repository = new WebCodingWorkspaceRepository(
+      undefined,
+      DEMO_WORKSPACE_ID
+    )
+  ) {
+    this.snapshot = {
+      files: createInitialFiles(),
+      activePath: 'index.html',
+      revision: 1,
+      storageMode: 'loading',
+    };
+    this.history = [this.createCheckpoint()];
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+  }
 
   getSnapshot = (): WorkspaceSnapshot => this.snapshot;
 
@@ -116,6 +137,28 @@ export class BrowserWorkspace {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
+
+  async hydrate(): Promise<void> {
+    if (this.hydrated) return;
+    this.hydrated = true;
+    try {
+      const persisted = await this.repository.ensureWorkspace(
+        createInitialFiles()
+      );
+      this.snapshot = {
+        ...this.snapshot,
+        files: persisted.files,
+        activePath: persisted.activePath,
+        storageMode: 'indexed-db',
+      };
+      this.history = [this.createCheckpoint()];
+      this.historyIndex = 0;
+      this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    } catch {
+      this.snapshot = { ...this.snapshot, storageMode: 'memory' };
+    }
+    this.notify();
+  }
 
   getFile(path: string): WorkspaceFile {
     const file = this.snapshot.files.find(
@@ -128,6 +171,9 @@ export class BrowserWorkspace {
   setActivePath(path: string): void {
     this.getFile(path);
     this.snapshot = { ...this.snapshot, activePath: path };
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() => this.repository.setActivePath(path));
+    }
     this.notify();
   }
 
@@ -164,6 +210,11 @@ export class BrowserWorkspace {
 
     this.lastEdit = { path, timestamp: now };
     this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository.saveFile(this.getFile(path))
+      );
+    }
     this.notify();
     return this.getSnapshot();
   }
@@ -219,8 +270,18 @@ export class BrowserWorkspace {
   private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
     this.snapshot = {
       ...checkpoint,
+      storageMode: this.snapshot.storageMode,
       revision: this.snapshot.revision + 1,
     };
+  }
+
+  private enqueuePersistence(task: () => Promise<void>): void {
+    this.persistQueue = this.persistQueue.then(task).catch(() => {
+      if (this.snapshot.storageMode === 'indexed-db') {
+        this.snapshot = { ...this.snapshot, storageMode: 'memory' };
+        this.notify();
+      }
+    });
   }
 
   private notify(): void {

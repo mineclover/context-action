@@ -491,9 +491,11 @@ function FileIcon({ file }: { file: WorkspaceFile }) {
 
 function CodeEditor({
   file,
+  disabled = false,
   onChange,
 }: {
   file: WorkspaceFile;
+  disabled?: boolean;
   onChange: (source: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -564,6 +566,7 @@ function CodeEditor({
         ref={textareaRef}
         aria-label="Editable workspace source"
         className="code-input"
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
         onScroll={syncScroll}
@@ -605,6 +608,13 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     [snapshot.files]
   );
   const toolNames = registry.getToolNames().map(String);
+  const isStorageReady = snapshot.storageMode !== 'loading';
+  const storageLabel =
+    snapshot.storageMode === 'indexed-db'
+      ? 'Dexie · IndexedDB'
+      : snapshot.storageMode === 'loading'
+        ? 'Loading workspace'
+        : 'Memory fallback';
 
   const executePrompt = async (value: string) => {
     const trimmed = value.trim();
@@ -710,6 +720,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             <span className="status-dot" />
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
+          <span className="storage-chip">{storageLabel}</span>
           <span className="contract-chip">tools/list · {toolNames.length}</span>
         </div>
         <div className="topbar-actions">
@@ -748,6 +759,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             {snapshot.files.map((file) => (
               <button
                 className={`file-row ${file.path === snapshot.activePath ? 'file-row-active' : ''}`}
+                disabled={!isStorageReady}
                 key={file.path}
                 onClick={() => workspace.setActivePath(file.path)}
                 type="button"
@@ -767,6 +779,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <button
                 className="tool-row"
                 data-tool-name={name}
+                disabled={!isStorageReady || running}
                 key={name}
                 onClick={() => {
                   const call = paletteCallFor(name);
@@ -802,7 +815,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <button
                 aria-label="Undo last edit"
                 className="editor-action"
-                disabled={!workspace.canUndo()}
+                disabled={!isStorageReady || !workspace.canUndo()}
                 onClick={() => workspace.undo()}
                 type="button"
               >
@@ -811,7 +824,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <button
                 aria-label="Redo last edit"
                 className="editor-action"
-                disabled={!workspace.canRedo()}
+                disabled={!isStorageReady || !workspace.canRedo()}
                 onClick={() => workspace.redo()}
                 type="button"
               >
@@ -819,7 +832,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               </button>
               <button
                 className="editor-save"
-                disabled={!workspace.isDirty()}
+                disabled={!isStorageReady || !workspace.isDirty()}
                 onClick={() => workspace.markSaved()}
                 type="button"
               >
@@ -842,6 +855,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <span>editable source · auto-sync preview</span>
             </div>
             <CodeEditor
+              disabled={!isStorageReady}
               file={activeFile}
               onChange={(source) =>
                 workspace.updateFile(activeFile.path, source)
@@ -887,6 +901,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             <div className="composer-wrap">
               <textarea
                 aria-label="Web studio prompt"
+                disabled={!isStorageReady}
                 onChange={(event) => setPrompt(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && !event.shiftKey) {
@@ -899,7 +914,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               />
               <button
                 className="send-button"
-                disabled={running}
+                disabled={running || !isStorageReady}
                 onClick={() => void executePrompt(prompt)}
                 type="button"
               >
@@ -910,6 +925,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               {['Make it emerald', 'Add a feature card', 'Update the hero'].map(
                 (example) => (
                   <button
+                    disabled={!isStorageReady || running}
                     key={example}
                     onClick={() => setPrompt(example)}
                     type="button"
@@ -971,9 +987,9 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         <span>
           {openRouterSettings.apiKey
             ? `OpenRouter · ${openRouterSettings.model}`
-            : 'Context-Action ToolContext'}
+            : `Context-Action ToolContext · ${storageLabel}`}
         </span>
-        <span>Browser-local workspace</span>
+        <span>Persistent browser workspace</span>
         <span className="statusbar-spacer" />
         <span>HTML · CSS · JS</span>
       </footer>
@@ -992,6 +1008,9 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
 
 function ToolRuntime() {
   const [workspace] = useState(() => new BrowserWorkspace());
+  useEffect(() => {
+    void workspace.hydrate();
+  }, [workspace]);
   return (
     <ToolHandlers workspace={workspace}>
       <EditorWorkbench workspace={workspace} />
