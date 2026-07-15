@@ -382,6 +382,25 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           ));
         }
 
+        // Canonical tools/call requests must fail before policy/approval when
+        // strict validation rejects their arguments. This keeps malformed
+        // model input out of the approval UI and gives every transport the
+        // same structured validation result. warn/silent modes intentionally
+        // preserve ActionRegister's existing permissive dispatch behavior.
+        if (validateOnDispatch && validationMode === 'strict') {
+          const validation = tool.safeParse(request.params.arguments ?? {});
+          if (!validation.success) {
+            return finish(createToolCallError(
+              `Tool "${request.params.name}" arguments failed validation`,
+              {
+                code: 'TOOL_VALIDATION_FAILED',
+                toolCallId: request.id,
+                details: { issues: validation.error.issues },
+              }
+            ));
+          }
+        }
+
         if (toolPolicy) {
           let decision: Awaited<ReturnType<ToolPolicy>>;
           try {
@@ -526,7 +545,16 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           ));
         }
       };
-    }, [allowedToolNames, debug, dispatchLifecycle, onToolCall, schema, toolPolicy]);
+    }, [
+      allowedToolNames,
+      debug,
+      dispatchLifecycle,
+      onToolCall,
+      schema,
+      toolPolicy,
+      validateOnDispatch,
+      validationMode,
+    ]);
 
     const registry = useMemo(
       () => createToolRegistry(schema, executeToolCall, allowedToolNames),

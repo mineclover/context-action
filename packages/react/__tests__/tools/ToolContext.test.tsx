@@ -335,6 +335,47 @@ describe('createToolContext', () => {
       });
     });
 
+    it('should reject invalid tools/call arguments before policy and handlers', async () => {
+      const policy = jest.fn().mockReturnValue('allow');
+      const handler = jest.fn();
+      const ValidationTools = createToolContext('CallValidationTools', {
+        schema: testSchema,
+        toolPolicy: policy,
+      });
+      const validationWrapper = ({ children }: { children: React.ReactNode }) => (
+        <ValidationTools.Provider>{children}</ValidationTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          ValidationTools.useToolHandler('searchProducts', useCallback(handler, []));
+          return ValidationTools.useToolRegistry();
+        },
+        { wrapper: validationWrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool({
+          method: 'tools/call',
+          id: 'invalid-call',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: '' },
+          },
+        })
+      );
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'invalid-call',
+        error: {
+          code: 'TOOL_VALIDATION_FAILED',
+          details: { issues: expect.any(Array) },
+        },
+      });
+      expect(policy).not.toHaveBeenCalled();
+      expect(handler).not.toHaveBeenCalled();
+    });
+
     it('should preserve a blocking handler error in the tools/call result', async () => {
       const handler = jest.fn().mockRejectedValue(new Error('workspace conflict'));
       const { result } = renderHook(
@@ -445,7 +486,17 @@ describe('createToolContext', () => {
         'checkout',
       ]);
       const denied = await act(async () =>
-        result.current.executeModelToolCall({ name: 'checkout', arguments: {} })
+        result.current.executeModelToolCall({
+          name: 'checkout',
+          arguments: {
+            paymentMethod: 'credit_card',
+            shippingAddress: {
+              street: '1 Main St',
+              city: 'Seoul',
+              country: 'KR',
+            },
+          },
+        })
       );
 
       expect(denied.isError).toBe(true);

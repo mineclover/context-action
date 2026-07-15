@@ -93,6 +93,11 @@ React ToolContext adds runtime scope:
 - `toolPolicy`: an `allow`, `ask`, or `deny` decision
 - `onToolCall`: lifecycle observer for traces and audit UI
 
+In strict mode, `tools/call` arguments are validated before `toolPolicy` runs.
+Invalid model input returns `TOOL_VALIDATION_FAILED` with schema issues and
+never opens an approval prompt or reaches a handler. `warn` and `silent` modes
+retain the existing permissive dispatch behavior.
+
 `toolPolicy` also receives the call `AbortSignal`, so an approval or policy
 wait cannot outlive a cancelled provider request. The canonical result is a
 retryable `TOOL_CANCELLED` error when cancellation happens at that boundary.

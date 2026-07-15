@@ -90,6 +90,11 @@ React ToolContext는 여기에 실행 범위를 추가한다.
 - `toolPolicy`: `allow`, `ask`, `deny` 결정
 - `onToolCall`: trace와 audit UI를 위한 lifecycle observer
 
+strict 모드에서는 `tools/call` arguments를 `toolPolicy` 실행 전에 검증한다.
+잘못된 model 입력은 schema issue를 포함한 `TOOL_VALIDATION_FAILED` 결과로
+돌아가며 approval prompt나 handler까지 도달하지 않는다. `warn`과 `silent` 모드는
+기존의 permissive dispatch 동작을 유지한다.
+
 `toolPolicy`에도 call의 `AbortSignal`을 전달하므로 provider request가 취소된 뒤
 approval·policy 대기가 남지 않는다. 이 경계에서 취소되면 재시도 가능한
 `TOOL_CANCELLED` 표준 오류 결과를 반환한다.
