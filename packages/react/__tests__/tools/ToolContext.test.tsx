@@ -468,9 +468,17 @@ describe('createToolContext', () => {
 
     it('should preserve call identity and emit lifecycle events', async () => {
       const events: string[] = [];
+      const contexts: Array<{
+        source?: string;
+        sessionId?: string;
+        revision?: string | number;
+      }> = [];
       const observedContext = createToolContext('ObservedTools', {
         schema: testSchema,
-        onToolCall: event => events.push(`${event.type}:${event.name}`),
+        onToolCall: event => {
+          events.push(`${event.type}:${event.name}`);
+          contexts.push(event.context ?? {});
+        },
       });
       const observedWrapper = ({ children }: { children: React.ReactNode }) => (
         <observedContext.Provider>{children}</observedContext.Provider>
@@ -489,11 +497,20 @@ describe('createToolContext', () => {
           id: 'call-observed',
           name: 'searchProducts',
           arguments: { query: 'laptop' },
+        }, {
+          context: {
+            sessionId: 'session-observed',
+            revision: 7,
+          },
         })
       );
 
       expect(toolResult.toolCallId).toBe('call-observed');
       expect(events).toEqual(['started:searchProducts', 'completed:searchProducts']);
+      expect(contexts).toEqual([
+        { source: 'model', sessionId: 'session-observed', revision: 7 },
+        { source: 'model', sessionId: 'session-observed', revision: 7 },
+      ]);
     });
 
     it('includes the canonical tools/call request in lifecycle events', async () => {
