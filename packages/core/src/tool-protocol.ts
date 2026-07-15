@@ -22,7 +22,8 @@ export type ToolCallSource = 'model' | 'mcp' | 'iframe' | 'local';
 export interface ToolCallContext {
   readonly source?: ToolCallSource;
   readonly sessionId?: string;
-  readonly revision?: string;
+  /** Provider/session revision token; browser workspaces commonly use a number. */
+  readonly revision?: string | number;
   readonly metadata?: Record<string, unknown>;
 }
 
