@@ -44,6 +44,16 @@ function LiveEditorToolHandlers({
       2_000,
       signal
     );
+    if (preview.state === 'error') {
+      throw new Error(
+        `Preview execution failed: ${preview.message ?? 'unknown runtime error.'}`
+      );
+    }
+    if (preview.state === 'timeout') {
+      throw new Error(
+        'Preview did not acknowledge the requested revision within 2 seconds.'
+      );
+    }
     return { ...snapshot, preview };
   };
 

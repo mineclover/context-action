@@ -479,6 +479,27 @@
   text-transform: uppercase;
 }
 
+.previewSyncError {
+  color: #b42318;
+}
+
+.iframePreviewError {
+  display: grid;
+  gap: 0.25rem;
+  border-bottom: 1px solid #f3c4c0;
+  padding: 0.65rem 0.7rem;
+  background: #fff2f0;
+  color: #8f2118;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.iframePreviewError strong {
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+
 .previewFrame {
   display: block;
   width: 100%;

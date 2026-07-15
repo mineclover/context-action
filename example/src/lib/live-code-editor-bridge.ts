@@ -20,8 +20,9 @@ export interface LiveEditorDocumentSnapshot extends LiveEditorDocument {
 }
 
 export interface LiveEditorPreviewStatus {
-  readonly state: 'pending' | 'rendered' | 'timeout';
+  readonly state: 'pending' | 'rendered' | 'timeout' | 'error';
   readonly revision: number;
+  readonly message?: string;
 }
 
 function createAbortError(signal?: AbortSignal): Error {
@@ -79,6 +80,7 @@ export type LiveEditorDocumentListener = (
 export class LiveEditorDocumentManager {
   private snapshot: LiveEditorDocumentSnapshot;
   private renderedRevision = -1;
+  private previewError: { revision: number; message: string } | null = null;
   private readonly listeners = new Set<LiveEditorDocumentListener>();
   private readonly renderWaiters = new Map<
     number,
@@ -97,14 +99,32 @@ export class LiveEditorDocumentManager {
   };
 
   getPreviewStatus = (): LiveEditorPreviewStatus => ({
-    state:
-      this.renderedRevision >= this.snapshot.revision ? 'rendered' : 'pending',
-    revision: this.renderedRevision,
+    ...(this.previewError?.revision === this.snapshot.revision
+      ? { state: 'error' as const, message: this.previewError.message }
+      : {
+          state:
+            this.renderedRevision >= this.snapshot.revision
+              ? ('rendered' as const)
+              : ('pending' as const),
+        }),
+    revision:
+      this.previewError?.revision === this.snapshot.revision
+        ? this.previewError.revision
+        : this.renderedRevision,
   });
 
   markRendered = (revision: number): void => {
     if (revision < this.renderedRevision) return;
+    const hasMatchingError = this.previewError?.revision === revision;
     this.renderedRevision = revision;
+    if (
+      !hasMatchingError &&
+      this.previewError &&
+      this.previewError.revision <= revision
+    ) {
+      this.previewError = null;
+    }
+    if (hasMatchingError) return;
     for (const [requestedRevision, waiters] of this.renderWaiters) {
       if (requestedRevision > revision) continue;
       for (const resolve of waiters) {
@@ -114,12 +134,32 @@ export class LiveEditorDocumentManager {
     }
   };
 
+  markError = (revision: number, message: string): void => {
+    if (revision < this.snapshot.revision) return;
+    this.previewError = { revision, message };
+    for (const [requestedRevision, waiters] of this.renderWaiters) {
+      if (requestedRevision > revision) continue;
+      for (const resolve of waiters) {
+        resolve({ state: 'error', revision, message });
+      }
+      this.renderWaiters.delete(requestedRevision);
+    }
+    for (const listener of this.listeners) listener(this.snapshot);
+  };
+
   waitForRendered = (
     revision: number,
     timeoutMs = 2_000,
     signal?: AbortSignal
   ): Promise<LiveEditorPreviewStatus> => {
     if (signal?.aborted) return Promise.reject(createAbortError(signal));
+    if (this.previewError && this.previewError.revision >= revision) {
+      return Promise.resolve({
+        state: 'error',
+        revision: this.previewError.revision,
+        message: this.previewError.message,
+      });
+    }
     if (this.renderedRevision >= revision) {
       return Promise.resolve({
         state: 'rendered',
@@ -169,6 +209,12 @@ export class LiveEditorDocumentManager {
       ...patch,
       revision: this.snapshot.revision + 1,
     };
+    if (
+      this.previewError &&
+      this.previewError.revision < this.snapshot.revision
+    ) {
+      this.previewError = null;
+    }
     for (const listener of this.listeners) listener(this.snapshot);
     return this.snapshot;
   }

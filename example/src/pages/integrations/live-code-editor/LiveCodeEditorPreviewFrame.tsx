@@ -13,6 +13,7 @@ interface LiveCodeEditorPreviewFrameProps {
   workspaceFiles: readonly LiveEditorWorkspaceFile[];
   entryPath?: string;
   onRendered?: (revision: number) => void;
+  onError?: (revision: number, message: string) => void;
 }
 
 const previewSource = `<!doctype html>
@@ -48,7 +49,23 @@ const previewSource = `<!doctype html>
       const CHANNEL = 'context-action.live-editor';
       const parentWindow = window.parent;
       let lastRevision = -1;
+      let renderHadError = false;
       const post = (message) => parentWindow.postMessage({ channel: CHANNEL, ...message }, '*');
+      const postError = (error, revision = lastRevision) => {
+        renderHadError = true;
+        const message = error instanceof Error ? error.message : String(error);
+        post({
+          type: 'editor:error',
+          message,
+          ...(typeof revision === 'number' && revision >= 0 ? { revision } : {}),
+        });
+      };
+      window.addEventListener('error', (event) => {
+        postError(event.error || event.message || 'Workspace script error.');
+      });
+      window.addEventListener('unhandledrejection', (event) => {
+        postError(event.reason || 'Workspace promise rejected.');
+      });
       const isExternalReference = (value) => /^(?:[a-z][a-z0-9+.-]*:|\\/\\/)/i.test(value.trim());
       const normalizePath = (path) => {
         const segments = path.split('/');
@@ -73,7 +90,13 @@ const previewSource = `<!doctype html>
           if (attribute.name === 'src' || attribute.name === 'integrity' || attribute.name === 'crossorigin') continue;
           script.setAttribute(attribute.name, attribute.value);
         }
-        script.textContent = source;
+        script.textContent = [
+          'try {',
+          source,
+          '} catch (error) {',
+          '  window.__contextActionPreviewError?.(error);',
+          '}',
+        ].join('\\n');
         return script;
       };
       const materializeNode = (node, ownerPath, files) => {
@@ -85,7 +108,9 @@ const previewSource = `<!doctype html>
             ? resolvePath(element.getAttribute('src'), ownerPath)
             : null;
           const scriptFile = scriptPath ? files.get(scriptPath) : undefined;
-          const source = scriptPath ? scriptFile && scriptFile.source : element.textContent || '';
+          const source = scriptPath
+            ? scriptFile?.source
+            : element.textContent || '';
           if (source === undefined) return null;
           return createScript(element, source);
         }
@@ -110,10 +135,17 @@ const previewSource = `<!doctype html>
       };
       const renderWorkspace = (documentSnapshot, preview) => {
         if (!preview.entryPath) throw new Error('Workspace runtime has no HTML entry file.');
-        const files = new Map(preview.files.map((file) => [file.path, file.source]));
+        const files = new Map(preview.files.map((file) => [file.path, file]));
         const entryFile = files.get(preview.entryPath);
-        if (!entryFile) throw new Error('HTML entry file is not in the workspace.');
-        const parsed = new DOMParser().parseFromString(entryFile.source, 'text/html');
+        const entrySource =
+          typeof entryFile?.source === 'string'
+            ? entryFile.source
+            : documentSnapshot.file === preview.entryPath
+              ? documentSnapshot.source
+              : '';
+        if (!entrySource) throw new Error('HTML entry file has no readable source.');
+        const parsed = new DOMParser().parseFromString(entrySource, 'text/html');
+        window.__contextActionPreviewError = (error) => postError(error, documentSnapshot.revision);
         const bridgeScript = document.querySelector('script[data-bridge-runtime]');
         const nextHead = document.createElement('head');
         for (const child of Array.from(parsed.head.children)) {
@@ -131,14 +163,32 @@ const previewSource = `<!doctype html>
           const materialized = materializeNode(child, preview.entryPath, files);
           if (materialized) nextHead.appendChild(materialized);
         }
-        document.head.replaceChildren(...Array.from(nextHead.childNodes));
+        const mountNodes = (parent, nodes) => {
+          parent.replaceChildren();
+          for (const node of nodes) parent.appendChild(node);
+        };
+        const executeScripts = (root) => {
+          for (const currentScript of Array.from(
+            root.querySelectorAll('script:not([data-bridge-runtime])')
+          )) {
+            const executableScript = document.createElement('script');
+            for (const attribute of Array.from(currentScript.attributes)) {
+              executableScript.setAttribute(attribute.name, attribute.value);
+            }
+            executableScript.textContent = currentScript.textContent || '';
+            currentScript.replaceWith(executableScript);
+          }
+        };
+        mountNodes(document.head, Array.from(nextHead.childNodes));
         const nextBody = [];
         for (const child of Array.from(parsed.body.childNodes)) {
           const materialized = materializeNode(child, preview.entryPath, files);
           if (materialized) nextBody.push(materialized);
         }
         if (bridgeScript) nextBody.push(bridgeScript);
-        document.body.replaceChildren(...nextBody);
+        mountNodes(document.body, nextBody);
+        executeScripts(document.head);
+        executeScripts(document.body);
         document.documentElement.lang = parsed.documentElement.lang || 'en';
         document.title = parsed.title || preview.entryPath;
         return 'Executed ' + preview.entryPath + ' with local CSS/JS in the sandbox.';
@@ -147,8 +197,10 @@ const previewSource = `<!doctype html>
         if (!documentSnapshot || typeof documentSnapshot.revision !== 'number') return;
         if (documentSnapshot.revision < lastRevision) return;
         lastRevision = documentSnapshot.revision;
+        renderHadError = false;
         if (preview && preview.execute && preview.entryPath) {
           const message = renderWorkspace(documentSnapshot, preview);
+          if (renderHadError) return message;
           post({ type: 'editor:rendered', revision: documentSnapshot.revision });
           return message;
         }
@@ -182,7 +234,7 @@ const previewSource = `<!doctype html>
               status.dataset.state = 'blocked';
               status.textContent = 'Workspace runtime error: ' + String(error);
             }
-            post({ type: 'editor:error', message: String(error), revision: message.document && message.document.revision });
+            postError(error, message.document && message.document.revision);
           }
         }
       });
@@ -196,10 +248,13 @@ export function LiveCodeEditorPreviewFrame({
   workspaceFiles,
   entryPath,
   onRendered,
+  onError,
 }: LiveCodeEditorPreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const previewErrorRef = useRef<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [renderedRevision, setRenderedRevision] = useState<number | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const srcDoc = useMemo(() => previewSource, []);
   const preview = useMemo<LiveEditorPreviewPayload>(
     () => ({
@@ -214,6 +269,14 @@ export function LiveCodeEditorPreviewFrame({
     }),
     [entryPath, workspaceFiles]
   );
+  const previewModeKey = `${preview.execute ? 'workspace' : 'bridge'}:${preview.entryPath ?? ''}`;
+
+  useEffect(() => {
+    setIsReady(false);
+    setRenderedRevision(null);
+    previewErrorRef.current = null;
+    setPreviewError(null);
+  }, [previewModeKey]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -222,6 +285,9 @@ export function LiveCodeEditorPreviewFrame({
 
       if (event.data.type === 'editor:ready') {
         setIsReady(true);
+        setRenderedRevision(null);
+        previewErrorRef.current = null;
+        setPreviewError(null);
         iframeRef.current?.contentWindow?.postMessage(
           createLiveEditorDocumentMessage(
             documentSnapshot,
@@ -235,15 +301,32 @@ export function LiveCodeEditorPreviewFrame({
 
       if (event.data.type === 'editor:rendered') {
         if (event.data.revision === documentSnapshot.revision) {
+          if (previewErrorRef.current) return;
+          setPreviewError(null);
           setRenderedRevision(event.data.revision);
           onRendered?.(event.data.revision);
         }
+        return;
+      }
+
+      if (event.data.type === 'editor:error') {
+        const revision = event.data.revision ?? documentSnapshot.revision;
+        if (revision < documentSnapshot.revision) return;
+        previewErrorRef.current = event.data.message;
+        setPreviewError(event.data.message);
+        onError?.(revision, event.data.message);
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [documentSnapshot, onRendered, preview]);
+  }, [documentSnapshot, onError, onRendered, preview]);
+
+  useEffect(() => {
+    previewErrorRef.current = null;
+    setPreviewError(null);
+    setRenderedRevision(null);
+  }, [documentSnapshot.revision]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -265,12 +348,23 @@ export function LiveCodeEditorPreviewFrame({
         <span>
           {isWorkspaceRuntime ? 'workspace runtime' : 'preview bridge'}
         </span>
-        <span>
-          {renderedRevision === documentSnapshot.revision
-            ? 'synced'
-            : 'syncing…'}
+        <span
+          className={previewError ? styles.previewSyncError : undefined}
+          aria-live="polite"
+        >
+          {previewError
+            ? 'error'
+            : renderedRevision === documentSnapshot.revision
+              ? 'synced'
+              : 'syncing…'}
         </span>
       </div>
+      {previewError && (
+        <div className={styles.iframePreviewError} role="alert">
+          <strong>Preview execution failed</strong>
+          <span>{previewError}</span>
+        </div>
+      )}
       <iframe
         ref={iframeRef}
         key={isWorkspaceRuntime ? 'workspace-runtime' : 'bridge-preview'}

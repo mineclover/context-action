@@ -26,7 +26,7 @@ import { LiveEditorToolchainProvider } from './LiveEditorToolchain';
 import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
 
-type ExampleId = 'pipeline' | 'tools' | 'store' | 'usecase';
+type ExampleId = 'pipeline' | 'tools' | 'store' | 'usecase' | 'web';
 type ScenarioId = 'success' | 'invalid' | 'blocked';
 
 interface ExampleDefinition {
@@ -130,13 +130,119 @@ const vm = useAccessRequestFacade();
     onChange={vm.commands.changeReason}
   />
   <Button isLoading={vm.isBusy} onClick={vm.commands.submit} />
-</Drawer>`,
+    </Drawer>`,
+  },
+  web: {
+    label: 'Web starter',
+    file: 'index.html',
+    description:
+      'HTML, CSS, JS를 한 workspace에서 편집하고 sandbox iframe으로 실행합니다.',
+    code: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Context-Action workspace</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="card">
+      <span class="eyebrow">live workspace</span>
+      <h1>Build in the browser.</h1>
+      <p>Edit index.html, style.css, or script.js and watch the sandbox update.</p>
+      <button id="counter" type="button">Clicked 0 times</button>
+    </main>
+    <script src="./script.js"></script>
+  </body>
+</html>`,
   },
 };
 
 const defaultWorkspaceFiles = (
   Object.values(examples) as ExampleDefinition[]
 ).map((example) => createWorkspaceFile(example.file, example.code));
+
+defaultWorkspaceFiles.push(
+  createWorkspaceFile(
+    'style.css',
+    `:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #eef0ff;
+  color: #20263a;
+}
+
+body {
+  display: grid;
+  min-height: 100vh;
+  margin: 0;
+  place-items: center;
+  background: radial-gradient(circle at top, #ffffff, #eef0ff 70%);
+}
+
+.card {
+  display: grid;
+  gap: 0.9rem;
+  width: min(100% - 2rem, 28rem);
+  padding: 2rem;
+  border: 1px solid #d9dcf5;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 55px rgba(76, 67, 160, 0.14);
+}
+
+.eyebrow {
+  color: #635bce;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.65rem, 5vw, 2.4rem);
+  letter-spacing: -0.05em;
+}
+
+p {
+  color: #667085;
+  line-height: 1.6;
+}
+
+button {
+  width: fit-content;
+  border: 0;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
+  background: #635bce;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+button:hover {
+  background: #4d45ad;
+}`
+  ),
+  createWorkspaceFile(
+    'script.js',
+    `const counter = document.querySelector('#counter');
+let count = 0;
+
+counter?.addEventListener('click', () => {
+  count += 1;
+  if (counter) counter.textContent = \`Clicked \${count} times\`;
+});`
+  )
+);
+
+const webStarterPaths = new Set(['index.html', 'style.css', 'script.js']);
 
 function createDefaultWorkspaceBlobFiles() {
   return defaultWorkspaceFiles.map((file) => ({
@@ -291,6 +397,10 @@ function LiveCodeEditorContent() {
     workspaceSnapshot.files,
     workspaceSnapshot.storageMode
   );
+  const previewEntryPath =
+    isShowcaseWorkspace && !webStarterPaths.has(documentSnapshot.file)
+      ? undefined
+      : workspaceEntryPath;
   const [isRunning, setIsRunning] = useState(false);
   const [runState, setRunState] = useState<'ready' | 'running' | ScenarioId>(
     'ready'
@@ -421,7 +531,7 @@ function LiveCodeEditorContent() {
       const persisted = await workspaceRepository.replaceWorkspace(
         LIVE_EDITOR_WORKSPACE_ID,
         result.files,
-        { rootName: result.rootName }
+        { rootName: result.rootName, kind: 'filesystem' }
       );
       workspaceManager.replaceFiles(persisted.files, {
         rootName: persisted.metadata.rootName,
@@ -465,7 +575,7 @@ function LiveCodeEditorContent() {
       const persisted = await workspaceRepository.replaceWorkspace(
         LIVE_EDITOR_WORKSPACE_ID,
         createDefaultWorkspaceBlobFiles(),
-        { rootName: LIVE_EDITOR_WORKSPACE_ROOT }
+        { rootName: LIVE_EDITOR_WORKSPACE_ROOT, kind: 'showcase' }
       );
       workspaceManager.replaceFiles(persisted.files, {
         rootName: persisted.metadata.rootName,
@@ -475,8 +585,12 @@ function LiveCodeEditorContent() {
       const entryPath = persisted.metadata.activePath;
       const entryFile = persisted.files.find((file) => file.path === entryPath);
       if (entryFile) {
+        const exampleId =
+          (Object.keys(examples) as ExampleId[]).find(
+            (candidate) => examples[candidate].file === entryFile.path
+          ) ?? 'web';
         documentManager.update({
-          exampleId: 'pipeline',
+          exampleId,
           file: entryFile.path,
           source: entryFile.source,
           scenario: 'success',
@@ -618,7 +732,7 @@ function LiveCodeEditorContent() {
                   >
                     {!activeExample && (
                       <option value="" disabled>
-                        Filesystem workspace file
+                        Workspace file (select from tree)
                       </option>
                     )}
                     {Object.entries(examples).map(([id, example]) => (
@@ -800,8 +914,9 @@ function LiveCodeEditorContent() {
                           <LiveCodeEditorPreviewFrame
                             document={documentSnapshot}
                             workspaceFiles={workspaceSnapshot.files}
-                            entryPath={workspaceEntryPath}
+                            entryPath={previewEntryPath}
                             onRendered={documentManager.markRendered}
+                            onError={documentManager.markError}
                           />
                           <div
                             className={styles.scenarioBar}

@@ -26,6 +26,7 @@ const SCHEMA_VERSION = 1;
 export interface WorkspaceMetadataRecord {
   readonly id: string;
   readonly rootName: string;
+  readonly kind?: 'showcase' | 'filesystem';
   readonly activePath: string;
   readonly entryPath?: string;
   readonly createdAt: number;
@@ -109,8 +110,14 @@ export class LiveEditorWorkspaceRepository {
           mimeType: file.mimeType,
           size: file.size,
         })),
-        { rootName }
+        { rootName, kind: 'showcase' }
       );
+    }
+    const isShowcaseWorkspace =
+      metadata.kind === 'showcase' ||
+      (metadata.kind === undefined && metadata.rootName === rootName);
+    if (isShowcaseWorkspace) {
+      await this.addMissingSeedFiles(workspaceId, metadata, seedFiles);
     }
     return this.loadWorkspace(workspaceId);
   }
@@ -118,7 +125,10 @@ export class LiveEditorWorkspaceRepository {
   async replaceWorkspace(
     workspaceId: string,
     files: readonly WorkspaceBlobFile[],
-    options: { readonly rootName: string }
+    options: {
+      readonly rootName: string;
+      readonly kind?: 'showcase' | 'filesystem';
+    }
   ): Promise<PersistedWorkspaceSnapshot> {
     const now = Date.now();
     const normalizedFiles = files.map((file) => ({
@@ -137,6 +147,7 @@ export class LiveEditorWorkspaceRepository {
     const metadata: WorkspaceMetadataRecord = {
       id: workspaceId,
       rootName: options.rootName,
+      ...(options.kind ? { kind: options.kind } : {}),
       activePath,
       ...(entryPathForFiles(normalizedFiles)
         ? { entryPath: entryPathForFiles(normalizedFiles) }
@@ -263,6 +274,54 @@ export class LiveEditorWorkspaceRepository {
       ...metadata,
       updatedAt: Date.now(),
     });
+  }
+
+  private async addMissingSeedFiles(
+    workspaceId: string,
+    metadata: WorkspaceMetadataRecord,
+    seedFiles: readonly LiveEditorWorkspaceFile[]
+  ): Promise<void> {
+    const existingRecords = await this.database.files
+      .where('workspaceId')
+      .equals(workspaceId)
+      .toArray();
+    const existingPaths = new Set(existingRecords.map((record) => record.path));
+    const missingFiles = seedFiles.filter(
+      (file) => !existingPaths.has(normalizeWorkspacePath(file.path))
+    );
+    if (!missingFiles.length) return;
+
+    const now = Date.now();
+    const records = missingFiles.map<WorkspaceFileRecord>((file) => {
+      const path = normalizeWorkspacePath(file.path);
+      const blob = new Blob([file.source], { type: file.mimeType });
+      return {
+        id: `${workspaceId}:${path}`,
+        workspaceId,
+        path,
+        blob,
+        mimeType: file.mimeType,
+        size: blob.size,
+        updatedAt: now,
+      };
+    });
+    const nextEntryPath =
+      metadata.entryPath ??
+      entryPathForFiles([...existingRecords, ...records].map((file) => file));
+
+    await this.database.transaction(
+      'rw',
+      this.database.workspaces,
+      this.database.files,
+      async () => {
+        await this.database.files.bulkPut(records);
+        await this.database.workspaces.put({
+          ...metadata,
+          ...(nextEntryPath ? { entryPath: nextEntryPath } : {}),
+          updatedAt: now,
+        });
+      }
+    );
   }
 
   private revokeObjectUrls(): void {
