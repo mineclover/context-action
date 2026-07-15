@@ -2898,6 +2898,22 @@ function EditorWorkbench({
                               .filter(Boolean)
                               .join(' · ')}
                       </small>
+                      {entry.kind === 'call' &&
+                      (entry.argumentsText || entry.resultText) ? (
+                        <details className="trace-details">
+                          <summary>Inspect tools/call</summary>
+                          <div className="trace-detail-block">
+                            <span>arguments</span>
+                            <pre>{entry.argumentsText ?? '{}'}</pre>
+                          </div>
+                          {entry.resultText ? (
+                            <div className="trace-detail-block">
+                              <span>tool result</span>
+                              <pre>{entry.resultText}</pre>
+                            </div>
+                          ) : null}
+                        </details>
+                      ) : null}
                     </span>
                   </div>
                 ))

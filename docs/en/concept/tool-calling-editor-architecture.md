@@ -104,6 +104,8 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
 - `ToolCallContext` carries `source`, `sessionId`, and `revision`
 - `ToolCallError` provides stable `code`, `message`, `retryable`, and `details`
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
+- Each `ToolCallEvent` carries the canonical `tools/call` request so an audit
+  observer can correlate arguments with the eventual result
 - An action's optional `outputSchema` validates structured handler results before
   they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
 
@@ -167,9 +169,12 @@ view without changing workspace files, tool registry state, or provider history.
 The standalone `agent.request` row now surrounds the same run and records
 running, completed, failed, or cancelled status, so a provider failure remains
 visible even when no `tools/call` was reached.
-Call rows expose only safe result summaries such as file count, path, theme, or
-revision; file source is never copied into the trace UI. Call rows also show a
-shortened `toolCallId` with the full value available as the row tooltip.
+Call rows expose a bounded `tools/call` detail view with the canonical arguments
+and result. File-like `source`, `search`, and `replace` values are redacted to a
+character count, so the trace can explain the call without copying file contents
+into the UI. The compact row still shows safe result summaries such as file
+count, path, theme, or revision, and its shortened `toolCallId` has the full
+value available as the row tooltip.
 
 The realtime web-coding workspace exposes a monotonic workspace revision from
 `web.getWorkspace` and `web.readFile`. All mutating `web.*` tools accept the

@@ -10,9 +10,13 @@ export type ToolTraceEntry = {
   durationMs?: number;
   toolCount?: number;
   summary?: string;
+  argumentsText?: string;
+  resultText?: string;
 };
 
 const MAX_TRACE_ENTRIES = 24;
+const MAX_TRACE_DETAIL_LENGTH = 2_400;
+const REDACTED_TRACE_KEYS = new Set(['source', 'search', 'replace']);
 let sequence = 0;
 let entries: ToolTraceEntry[] = [];
 const listeners = new Set<() => void>();
@@ -29,6 +33,49 @@ function notify(): void {
 
 function trimEntries(nextEntries: ToolTraceEntry[]): ToolTraceEntry[] {
   return nextEntries.slice(0, MAX_TRACE_ENTRIES);
+}
+
+function redactTraceValue(value: unknown, key?: string): unknown {
+  if (typeof value === 'string' && key && REDACTED_TRACE_KEYS.has(key)) {
+    return `[${key} omitted · ${value.length} chars]`;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => redactTraceValue(item));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        redactTraceValue(entryValue, entryKey),
+      ])
+    );
+  }
+  return value;
+}
+
+function formatTraceJson(value: unknown): string {
+  let text: string;
+  try {
+    text = JSON.stringify(redactTraceValue(value), null, 2) ?? String(value);
+  } catch {
+    text = '[unserializable value]';
+  }
+  return text.length > MAX_TRACE_DETAIL_LENGTH
+    ? `${text.slice(0, MAX_TRACE_DETAIL_LENGTH)}\n… truncated`
+    : text;
+}
+
+function resultTraceValue(
+  event: Extract<ToolCallEvent, { type: 'completed' | 'failed' }>
+): unknown {
+  if (event.result.isError) {
+    return {
+      isError: true,
+      error: event.result.error,
+      content: event.result.content,
+    };
+  }
+  return event.result.structuredContent ?? event.result.content;
 }
 
 function resultSummary(
@@ -108,6 +155,7 @@ export function recordToolCall(event: ToolCallEvent): void {
       source,
       status: 'running',
       startedAt: event.timestamp,
+      argumentsText: formatTraceJson(event.request.params.arguments ?? {}),
     };
     entries = trimEntries(
       existingIndex >= 0
@@ -126,6 +174,8 @@ export function recordToolCall(event: ToolCallEvent): void {
       startedAt: event.timestamp - event.durationMs,
       durationMs: event.durationMs,
       summary: resultSummary(event),
+      argumentsText: formatTraceJson(event.request.params.arguments ?? {}),
+      resultText: formatTraceJson(resultTraceValue(event)),
     };
     entries = trimEntries(
       existingIndex >= 0

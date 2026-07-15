@@ -99,6 +99,8 @@ Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한�
 - `ToolCallContext`: `source`, `sessionId`, `revision`
 - `ToolCallError`: 안정적인 `code`, `message`, `retryable`, `details`
 - `ToolCallEvent`: `started`, `completed`, `failed`
+- 각 `ToolCallEvent`는 canonical `tools/call` request를 함께 전달하므로 audit
+  observer가 arguments와 최종 result를 연결할 수 있다.
 - action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
   검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
 
@@ -155,8 +157,11 @@ local과 OpenRouter 요청은 provider별 tool serialization 전에 `registry.li
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
 `Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
-trace view만 초기화한다. call row에는 파일 수·path·theme·revision 같은 안전한
-result summary만 표시하고 파일 source 자체는 trace UI에 복사하지 않는다.
+trace view만 초기화한다. call row를 펼치면 canonical `tools/call` arguments와
+result를 제한된 길이로 확인할 수 있다. 파일성 `source`, `search`, `replace`
+값은 문자 수만 남기고 redact하므로 파일 내용을 trace UI에 복사하지 않으면서
+호출 구조를 확인할 수 있다. 접힌 row에는 파일 수·path·theme·revision 같은
+안전한 result summary만 표시한다.
 standalone의 `agent.request` row는 같은 실행을 감싸며 running·completed·failed·cancelled
 상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
 확인할 수 있다.

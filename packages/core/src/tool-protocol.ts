@@ -121,6 +121,8 @@ export type ToolCallEvent =
       readonly type: 'started';
       readonly toolCallId?: ToolCallId;
       readonly name: string;
+      /** Canonical tools/call request correlated with this lifecycle event. */
+      readonly request: ToolCallRequest;
       readonly context?: ToolCallContext;
       readonly timestamp: number;
     }
@@ -128,6 +130,8 @@ export type ToolCallEvent =
       readonly type: 'completed' | 'failed';
       readonly toolCallId?: ToolCallId;
       readonly name: string;
+      /** Canonical tools/call request correlated with this lifecycle event. */
+      readonly request: ToolCallRequest;
       readonly context?: ToolCallContext;
       readonly timestamp: number;
       readonly durationMs: number;

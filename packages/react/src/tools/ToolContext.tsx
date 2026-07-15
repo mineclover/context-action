@@ -391,6 +391,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           type: 'started',
           toolCallId: request.id,
           name: request.params.name,
+          request,
           context,
           timestamp: startedAt,
         });
@@ -401,6 +402,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             type: normalized.isError ? 'failed' : 'completed',
             toolCallId: request.id,
             name: request.params.name,
+            request,
             context,
             timestamp: Date.now(),
             durationMs: Date.now() - startedAt,

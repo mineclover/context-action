@@ -116,14 +116,20 @@ a { color: inherit; text-decoration: none; }
 .trace-clear-button:hover { color: #d0c9ff; }
 .trace-clear-button:disabled { cursor: default; opacity: .35; }
 .trace-list { display: grid; gap: 4px; max-height: 176px; overflow: auto; padding: 0 4px; }
-.trace-row { align-items: center; background: #11151d; border: 1px solid #222937; border-radius: 5px; display: flex; gap: 7px; min-width: 0; padding: 6px; }
+.trace-row { align-items: flex-start; background: #11151d; border: 1px solid #222937; border-radius: 5px; display: flex; gap: 7px; min-width: 0; padding: 6px; }
 .trace-mark { align-items: center; background: #1c3b2d; border-radius: 999px; color: #78d6a1; display: inline-flex; flex: 0 0 auto; font-size: 9px; height: 15px; justify-content: center; width: 15px; }
 .trace-row-running .trace-mark { background: #3d321d; color: #e9b26c; }
 .trace-row-failed .trace-mark { background: #42252d; color: #ed8d9a; }
 .trace-row-cancelled .trace-mark { background: #3d321d; color: #e1bd7f; }
-.trace-copy { display: grid; gap: 2px; min-width: 0; }
+.trace-copy { display: grid; flex: 1; gap: 2px; min-width: 0; }
 .trace-copy strong { color: #b8b0e9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trace-copy small { color: #626c7d; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trace-details { color: #7d8798; font-size: 8px; margin-top: 2px; }
+.trace-details summary { color: #9d94d8; cursor: pointer; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; list-style-position: inside; }
+.trace-details summary:hover { color: #d0c9ff; }
+.trace-detail-block { margin-top: 5px; }
+.trace-detail-block > span { color: #626c7d; display: block; font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.trace-detail-block pre { background: #0a0d12; border: 1px solid #202633; color: #98a3b7; font-size: 8px; line-height: 1.4; margin: 3px 0 0; max-height: 92px; overflow: auto; padding: 5px; white-space: pre-wrap; word-break: break-word; }
 .trace-empty { color: #626c7d; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; line-height: 1.45; padding: 7px 4px; }
 
 .studio-main { background: #10131a; display: flex; min-width: 0; flex-direction: column; }

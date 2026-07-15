@@ -496,6 +496,60 @@ describe('createToolContext', () => {
       expect(events).toEqual(['started:searchProducts', 'completed:searchProducts']);
     });
 
+    it('includes the canonical tools/call request in lifecycle events', async () => {
+      const requests: Array<{
+        type: string;
+        name: string;
+        arguments?: Record<string, unknown>;
+      }> = [];
+      const observedContext = createToolContext('ObservedRequestTools', {
+        schema: testSchema,
+        onToolCall: event =>
+          requests.push({
+            type: event.type,
+            name: event.name,
+            arguments: event.request.params.arguments,
+          }),
+      });
+      const observedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <observedContext.Provider>{children}</observedContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          observedContext.useToolHandler(
+            'searchProducts',
+            useCallback(async () => ({ ok: true }), [])
+          );
+          return observedContext.useToolRegistry();
+        },
+        { wrapper: observedWrapper }
+      );
+
+      await act(async () =>
+        result.current.callTool({
+          method: 'tools/call',
+          id: 'request-1',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: 'keyboard' },
+          },
+        })
+      );
+
+      expect(requests).toEqual([
+        {
+          type: 'started',
+          name: 'searchProducts',
+          arguments: { query: 'keyboard' },
+        },
+        {
+          type: 'completed',
+          name: 'searchProducts',
+          arguments: { query: 'keyboard' },
+        },
+      ]);
+    });
+
     it('should enforce an execution allowlist and policy decision', async () => {
       const policyContext = createToolContext('PolicyTools', {
         schema: testSchema,
