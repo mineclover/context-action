@@ -92,6 +92,8 @@ standalone studio는 같은 경계를 execution trace로 표시한다. local과 
 'tools/list' })`를 호출한다. 이후 ToolContext의 `onToolCall` observer가
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
+`Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
+trace view만 초기화한다.
 local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
 `local` source를 보존한다. prompt에서 발생한 local mutation은
 `interaction: prompt` metadata를 전달해 model call과 같은 approval 경계를 따른다.

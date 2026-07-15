@@ -97,6 +97,12 @@ export function recordToolCall(event: ToolCallEvent): void {
   notify();
 }
 
+export function clearToolTrace(): void {
+  if (!entries.length) return;
+  entries = [];
+  notify();
+}
+
 export const toolTraceStore = {
   getSnapshot: (): ToolTraceEntry[] => entries,
   subscribe: (listener: () => void): (() => void) => {

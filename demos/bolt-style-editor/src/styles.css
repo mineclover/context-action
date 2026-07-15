@@ -97,6 +97,10 @@ a { color: inherit; text-decoration: none; }
 .tool-run-button:disabled { cursor: default; opacity: .45; }
 .tool-inspector pre { background: #0a0d12; border: 1px solid #202633; color: #78869d; font-size: 8px; line-height: 1.45; margin: 8px 0 0; max-height: 118px; overflow: auto; padding: 7px; white-space: pre-wrap; }
 .trace-section { border-top: 1px solid #20242e; margin-top: 18px; padding-top: 2px; }
+.trace-heading-actions { align-items: center; display: flex; gap: 6px; }
+.trace-clear-button { background: transparent; color: #697386; cursor: pointer; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; padding: 2px 0; }
+.trace-clear-button:hover { color: #d0c9ff; }
+.trace-clear-button:disabled { cursor: default; opacity: .35; }
 .trace-list { display: grid; gap: 4px; max-height: 176px; overflow: auto; padding: 0 4px; }
 .trace-row { align-items: center; background: #11151d; border: 1px solid #222937; border-radius: 5px; display: flex; gap: 7px; min-width: 0; padding: 6px; }
 .trace-mark { align-items: center; background: #1c3b2d; border-radius: 999px; color: #78d6a1; display: inline-flex; flex: 0 0 auto; font-size: 9px; height: 15px; justify-content: center; width: 15px; }

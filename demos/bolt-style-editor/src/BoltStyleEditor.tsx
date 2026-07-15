@@ -28,7 +28,12 @@ import {
   toolApprovalStore,
 } from './tool-approval';
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
-import { recordToolCall, recordToolList, toolTraceStore } from './tool-trace';
+import {
+  clearToolTrace,
+  recordToolCall,
+  recordToolList,
+  toolTraceStore,
+} from './tool-trace';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
@@ -1737,7 +1742,18 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <div className="trace-section">
             <div className="sidebar-section-heading">
               <span>Execution trace</span>
-              <span className="count-badge">{traceEntries.length}</span>
+              <span className="trace-heading-actions">
+                <button
+                  aria-label="Clear execution trace"
+                  className="trace-clear-button"
+                  disabled={!traceEntries.length}
+                  onClick={clearToolTrace}
+                  type="button"
+                >
+                  Clear
+                </button>
+                <span className="count-badge">{traceEntries.length}</span>
+              </span>
             </div>
             <div aria-label="Tool execution trace" className="trace-list">
               {traceEntries.length ? (
