@@ -655,6 +655,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     [assetUrls, snapshot.files]
   );
   const toolNames = registry.getToolNames().map(String);
+  const [selectedToolName, setSelectedToolName] = useState(
+    () => toolNames[0] ?? ''
+  );
+  const selectedToolDefinition = selectedToolName
+    ? registry.getToolDefinition(selectedToolName)
+    : undefined;
   const isStorageReady = snapshot.storageMode !== 'loading';
   const storageLabel =
     snapshot.storageMode === 'indexed-db'
@@ -952,11 +958,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <div className="tool-palette">
             {toolNames.map((name) => (
               <button
-                className="tool-row"
+                className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
                 data-tool-name={name}
                 disabled={!isStorageReady || running}
                 key={name}
                 onClick={() => {
+                  setSelectedToolName(name);
                   const call = paletteCallFor(name);
                   if (call) void executeQuickTool(call);
                 }}
@@ -969,6 +976,29 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               </button>
             ))}
           </div>
+          {selectedToolDefinition ? (
+            <section
+              aria-label="Selected tool definition"
+              className="tool-inspector"
+            >
+              <div className="tool-inspector-heading">
+                <span>Definition</span>
+                <span className="tool-inspector-format">MCP</span>
+              </div>
+              <strong>{selectedToolDefinition.name}</strong>
+              <p>{selectedToolDefinition.description}</p>
+              <div className="tool-annotations">
+                {Object.entries(selectedToolDefinition.annotations ?? {})
+                  .filter(([, value]) => Boolean(value))
+                  .map(([key]) => (
+                    <span key={key}>{key}</span>
+                  ))}
+              </div>
+              <pre>
+                {JSON.stringify(selectedToolDefinition.inputSchema, null, 2)}
+              </pre>
+            </section>
+          ) : null}
           <div className="trace-section">
             <div className="sidebar-section-heading">
               <span>Execution trace</span>

@@ -83,6 +83,10 @@ standalone studio는 같은 경계를 execution trace로 표시한다. local과 
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
 
+sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
+화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
+export되는 contract와 동일하다.
+
 ## iframe 규칙
 
 iframe은 다음 역할만 담당한다.

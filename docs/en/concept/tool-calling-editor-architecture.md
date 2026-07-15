@@ -85,6 +85,10 @@ observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends
 file contents or filesystem handles to the model.
 
+The sidebar tool catalog reads each canonical `getToolDefinition()` result
+directly, so the displayed description, annotations, and JSON input schema are
+the same contract exported to MCP and OpenRouter.
+
 ## iframe rules
 
 The iframe is limited to:
