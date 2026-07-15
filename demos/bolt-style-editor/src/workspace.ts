@@ -779,7 +779,7 @@ export type PreviewBridgeMessage =
     };
 
 function appendPreviewBridge(html: string, revision: number): string {
-  const bridge = `<script>(function(){const revision=${revision};const send=function(message){window.parent.postMessage(Object.assign({revision:revision},message),'*')};window.addEventListener('error',function(event){send({type:'context-action.preview.error',message:event.message||'Preview runtime error'})});window.addEventListener('unhandledrejection',function(event){const reason=event.reason;send({type:'context-action.preview.error',message:reason&&reason.message?String(reason.message):String(reason||'Unhandled preview rejection')})});window.addEventListener('DOMContentLoaded',function(){send({type:'context-action.preview.ready'})})})();</script>`;
+  const bridge = `<script>(function(){const revision=${revision};let failed=false;const send=function(message){window.parent.postMessage(Object.assign({revision:revision},message),'*')};const reportError=function(message){if(failed)return;failed=true;send({type:'context-action.preview.error',message:message||'Preview runtime error'})};window.addEventListener('error',function(event){reportError(event.message||'Preview runtime error')});window.addEventListener('unhandledrejection',function(event){const reason=event.reason;reportError(reason&&reason.message?String(reason.message):String(reason||'Unhandled preview rejection'))});window.addEventListener('DOMContentLoaded',function(){if(!failed)send({type:'context-action.preview.ready'})})})();</script>`;
   if (/<head\b[^>]*>/i.test(html)) {
     return html.replace(
       /<head\b[^>]*>/i,

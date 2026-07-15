@@ -243,6 +243,9 @@ standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sa
 `context-action.preview.error` message를 부모로 보낸다. 부모는 현재 iframe
 window에서 온 message만 허용하고 오래된 revision은 무시하며, visual mutation
 tool은 일치하는 acknowledgement를 받은 뒤에만 성공한 tool result를 반환한다.
+해당 revision에서 runtime error나 unhandled rejection이 한 번 발생하면
+bridge는 ready message를 억제하므로, 이후 `DOMContentLoaded` event가 오류 난
+문서를 synchronized 상태로 덮어쓸 수 없다.
 
 ## 패키지·레포지토리 분리 계획
 

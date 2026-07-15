@@ -255,7 +255,9 @@ bridge. The sandbox posts `context-action.preview.ready` or
 `context-action.preview.error` with the document revision. The parent accepts
 messages only from the current iframe window, ignores stale revisions, and
 visual mutation tools wait for the matching acknowledgement before reporting
-success.
+success. The bridge suppresses the ready message after the first runtime or
+unhandled-rejection error for that revision, so an errored document cannot be
+reported as synchronized by a later `DOMContentLoaded` event.
 
 ## Package and repository boundary plan
 
