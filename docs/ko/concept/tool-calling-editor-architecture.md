@@ -81,9 +81,9 @@ standalone chat은 실패와 취소를 typed UI 상태로 보존한다. 재시�
 local tool 오류와 재시도 가능한 palette 샘플 실패에는 원래 prompt 또는 tool arguments를
 재사용하는 `Retry` 동작을 표시한다. 재시도할 수 없는 execution·policy 오류에는 오해를
 만드는 Retry를 표시하지 않으며, 취소는 failed가 아닌 cancelled 상태로 구분한다.
-composer에는 visual 변경·workspace status·파일 생성·명시적인 folder save
-경계·folder disconnect를 위한 prompt recipe도 제공한다. 각 recipe는 자유 입력과
-동일한 local-agent planning 및 approval 경로로 들어간다.
+composer에는 visual 변경·workspace status·파일 생성·명시적인 folder save와
+reload 경계·folder disconnect를 위한 prompt recipe도 제공한다. 각 recipe는
+자유 입력과 동일한 local-agent planning 및 approval 경로로 들어간다.
 
 standalone OpenRouter bridge는 response body를 먼저 text로 읽은 뒤 JSON을 해석하므로,
 endpoint 설정이 잘못되어도 브라우저의 `Response.json()` 내부 예외가 chat에 그대로

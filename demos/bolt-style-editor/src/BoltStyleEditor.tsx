@@ -3576,6 +3576,7 @@ function EditorWorkbench({
                 'Show workspace status',
                 'Create notes.md',
                 'Save to folder',
+                'Reload folder',
                 'Disconnect folder',
               ].map((example) => (
                 <button
