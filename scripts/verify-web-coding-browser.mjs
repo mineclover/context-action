@@ -156,6 +156,43 @@ async function runBrowserProof(url) {
       throw new Error(`The preview did not apply the emerald theme: ${accent}`);
     }
 
+    await prompt.fill(
+      'Update the hero title to "Ship from context" with subtitle "Typed tools keep the preview honest."'
+    );
+    await send.click();
+    const heroApproval = page.getByRole('button', {
+      name: 'Approve preview.updateHero',
+    });
+    await heroApproval.waitFor();
+    await heroApproval.click();
+    await page
+      .getByText(
+        /Local agent inspected the workspace, called workspace\.getStatus, preview\.updateHero/
+      )
+      .waitFor();
+    if (
+      (await preview.locator('#hero-title').textContent())?.trim() !==
+      'Ship from context'
+    ) {
+      throw new Error('The local agent did not pass the quoted hero title.');
+    }
+
+    await prompt.fill(
+      'Add a feature card "Inspectable tools" "Every call leaves a trace."'
+    );
+    await send.click();
+    const featureApproval = page.getByRole('button', {
+      name: 'Approve preview.addFeature',
+    });
+    await featureApproval.waitFor();
+    await featureApproval.click();
+    await page
+      .getByText(
+        /Local agent inspected the workspace, called workspace\.getStatus, preview\.addFeature/
+      )
+      .waitFor();
+    await preview.getByText('Inspectable tools', { exact: true }).waitFor();
+
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
     await page.locator('button[title="styles.css"]').click();
@@ -165,6 +202,13 @@ async function runBrowserProof(url) {
     if (!restoredStyles.includes('--accent: #10b981')) {
       throw new Error(
         'The persisted styles.css source did not restore after a browser reload.'
+      );
+    }
+    await page.locator('button[title="index.html"]').click();
+    const restoredIndex = await page.getByLabel('Edit index.html').inputValue();
+    if (!restoredIndex.includes('Ship from context')) {
+      throw new Error(
+        'The persisted index.html source did not restore after a browser reload.'
       );
     }
     await page

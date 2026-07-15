@@ -1105,6 +1105,53 @@ function inferQuotedTextPatch(
   };
 }
 
+function inferPromptQuotedValues(
+  prompt: string,
+  requestedPath: string | null
+): string[] {
+  return Array.from(
+    prompt.matchAll(/"([^"]+)"|“([^”]+)”|'([^']+)'|「([^」]+)」/g),
+    (match) =>
+      match[1]?.trim() ??
+      match[2]?.trim() ??
+      match[3]?.trim() ??
+      match[4]?.trim() ??
+      ''
+  ).filter((value) => value && value !== requestedPath);
+}
+
+function inferHeroCopy(
+  prompt: string,
+  requestedPath: string | null
+): { title: string; subtitle: string } | null {
+  if (!/(hero|headline|title|subtitle|제목|부제목|히어로)/i.test(prompt)) {
+    return null;
+  }
+  const values = inferPromptQuotedValues(prompt, requestedPath);
+  if (!values.length) return null;
+  return {
+    title: values[0],
+    subtitle:
+      values[1] ??
+      'The agent selected a typed preview tool and updated the hero copy.',
+  };
+}
+
+function inferFeatureCopy(
+  prompt: string,
+  requestedPath: string | null
+): { title: string; description: string } | null {
+  if (!/(feature|card|section|기능|카드|섹션)/i.test(prompt)) return null;
+  const values = inferPromptQuotedValues(prompt, requestedPath);
+  if (!values.length) return null;
+  return {
+    title: values[0],
+    description:
+      values[1] ??
+      'Added from the conversation through a typed preview.addFeature call.',
+  };
+}
+
 function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
@@ -1136,7 +1183,16 @@ function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
     prompt
   );
   const redoRequest = /(\bredo\b|재실행|다시\s*실행)/i.test(prompt);
-  const textPatch = inferQuotedTextPatch(prompt, requestedPath);
+  const visualCopyRequest =
+    /(hero|headline|title|subtitle|feature|card|section|제목|부제목|히어로|기능|카드|섹션)/i.test(
+      prompt
+    );
+  const textPatch =
+    visualCopyRequest && !requestedPath
+      ? null
+      : inferQuotedTextPatch(prompt, requestedPath);
+  const heroCopy = inferHeroCopy(prompt, requestedPath);
+  const featureCopy = inferFeatureCopy(prompt, requestedPath);
 
   if (resetRequest) {
     return [{ name: 'workspace.reset', arguments: {} }];
@@ -1239,8 +1295,9 @@ function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
     calls.push({
       name: 'preview.addFeature',
       arguments: {
-        title: 'Conversation-driven feature',
+        title: featureCopy?.title ?? 'Conversation-driven feature',
         description:
+          featureCopy?.description ??
           'A new card was added through a typed Context-Action tool call.',
       },
     });
@@ -1254,8 +1311,9 @@ function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
     calls.push({
       name: 'preview.updateHero',
       arguments: {
-        title: 'A page shaped by conversation.',
+        title: heroCopy?.title ?? 'A page shaped by conversation.',
         subtitle:
+          heroCopy?.subtitle ??
           'The agent selected tools, changed the workspace, and refreshed the preview.',
       },
     });

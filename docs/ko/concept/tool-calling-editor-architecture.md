@@ -535,6 +535,10 @@ Open folder → generic FileSystemAdapter
   대기 중 source가 바뀌면 덮어쓰지 않고 거부한다. standalone chat은 이 revision
   conflict만 `Re-read & retry`로 표시하며, 현재 revision을 다시 inspection한 뒤
   approval을 다시 요청한다.
+- visual 요청에서는 같은 local fallback이 quoted hero 제목·부제목과 feature-card
+  제목·설명을 인식해 typed `preview.updateHero` 또는 `preview.addFeature` call의
+  argument로 전달한다. prompt가 workspace path를 명시하지 않은 경우에는 이 copy를
+  exact source patch로 잘못 해석하지 않는다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file·Rename file modal 입력 중에는 동작하지 않는다.
 - OpenRouter, New file, Rename file과 destructive action 확인 dialog는

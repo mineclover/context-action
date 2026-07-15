@@ -573,6 +573,10 @@ Open folder → generic FileSystemAdapter
   instead of being overwritten. The standalone chat labels this specific revision
   conflict as `Re-read & retry`, which runs the inspection preflight again before
   asking for approval on the current workspace revision.
+- For visual requests, the same local fallback recognizes quoted hero title/subtitle
+  and feature-card title/description values and passes them to the typed
+  `preview.updateHero` or `preview.addFeature` call; it does not confuse those copy
+  values with an exact source patch unless the prompt names a workspace path.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings, New file, or Rename file modal is
   being edited.
