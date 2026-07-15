@@ -14,6 +14,7 @@ export interface ToolTextGenerationRequest<TSchema extends ActionSchemaMap> {
   model: string;
   messages: ModelMessage[];
   registry: ToolRegistry<TSchema>;
+  signal?: AbortSignal;
 }
 
 export interface ToolTextGenerationResult {

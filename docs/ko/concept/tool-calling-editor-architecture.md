@@ -62,6 +62,9 @@ tool-call loop를 사용하고, 없으면 동일한 화면에서 결정적인 lo
 agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
 acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
 사용자에게 assistant message로 표시한다.
+example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter request가 실행 중이면
+`Run editor toolchain`이 `Cancel editor toolchain`으로 바뀌고, provider-neutral
+runner contract를 통해 abort signal을 전달한다.
 
 ## 표준 계약
 

@@ -34,23 +34,34 @@ function LiveEditorToolHandlers({
   );
 
   const updateAndWait = async (
-    patch: Parameters<LiveEditorDocumentManager['update']>[0]
+    patch: Parameters<LiveEditorDocumentManager['update']>[0],
+    signal?: AbortSignal
   ) => {
+    if (signal?.aborted) throw new Error('Editor update cancelled.');
     const snapshot = manager.update(patch);
-    const preview = await manager.waitForRendered(snapshot.revision);
+    const preview = await manager.waitForRendered(
+      snapshot.revision,
+      2_000,
+      signal
+    );
     return { ...snapshot, preview };
   };
 
-  useLiveEditorToolHandler('editor.setDocument', ({ source, scenario }) => {
-    return updateAndWait({
-      source,
-      ...(scenario === undefined ? {} : { scenario }),
-    });
-  });
+  useLiveEditorToolHandler<'editor.setDocument', unknown>(
+    'editor.setDocument',
+    ({ source, scenario }, controller) =>
+      updateAndWait(
+        {
+          source,
+          ...(scenario === undefined ? {} : { scenario }),
+        },
+        controller.signal
+      )
+  );
 
-  useLiveEditorToolHandler(
+  useLiveEditorToolHandler<'editor.applyPatch', unknown>(
     'editor.applyPatch',
-    ({ search, replace, occurrence, expectedRevision }) => {
+    ({ search, replace, occurrence, expectedRevision }, controller) => {
       const current = manager.getSnapshot();
       if (
         expectedRevision !== undefined &&
@@ -71,24 +82,33 @@ function LiveEditorToolHandlers({
           'Patched document exceeds the 100,000 character limit.'
         );
       }
-      return updateAndWait({ source: patch.source }).then((snapshot) => ({
-        ...snapshot,
-        replacements: patch.replacements,
-      }));
+      return updateAndWait({ source: patch.source }, controller.signal).then(
+        (snapshot) => ({
+          ...snapshot,
+          replacements: patch.replacements,
+        })
+      );
     }
   );
 
-  useLiveEditorToolHandler('editor.setScenario', ({ scenario }) =>
-    updateAndWait({ scenario })
+  useLiveEditorToolHandler<'editor.setScenario', unknown>(
+    'editor.setScenario',
+    ({ scenario }, controller) => updateAndWait({ scenario }, controller.signal)
   );
 
-  useLiveEditorToolHandler('editor.resetDocument', () => {
-    const snapshot: LiveEditorDocumentSnapshot = manager.getSnapshot();
-    return updateAndWait({
-      source: getResetSource(),
-      scenario: snapshot.scenario,
-    });
-  });
+  useLiveEditorToolHandler<'editor.resetDocument', unknown>(
+    'editor.resetDocument',
+    (_, controller) => {
+      const snapshot: LiveEditorDocumentSnapshot = manager.getSnapshot();
+      return updateAndWait(
+        {
+          source: getResetSource(),
+          scenario: snapshot.scenario,
+        },
+        controller.signal
+      );
+    }
+  );
 
   return <>{children}</>;
 }

@@ -161,7 +161,12 @@ function WebCodingToolHandlers({
   repository: LiveEditorWorkspaceRepository;
   children: ReactNode;
 }) {
-  const updateFileAndWait = async (path: string, source: string) => {
+  const updateFileAndWait = async (
+    path: string,
+    source: string,
+    signal?: AbortSignal
+  ) => {
+    if (signal?.aborted) throw new Error('Workspace update cancelled.');
     const current = manager
       .getSnapshot()
       .files.find((file) => file.path === path);
@@ -176,12 +181,15 @@ function WebCodingToolHandlers({
       source,
       current?.mimeType
     );
+    if (signal?.aborted) throw new Error('Workspace update cancelled.');
     const activeDocument = documentManager.getSnapshot();
     const nextDocument = documentManager.update(
       activeDocument.file === path ? { source } : {}
     );
     const preview = await documentManager.waitForRendered(
-      nextDocument.revision
+      nextDocument.revision,
+      2_000,
+      signal
     );
     return { path, revision: nextDocument.revision, preview };
   };
@@ -200,28 +208,36 @@ function WebCodingToolHandlers({
     return { path, source: file.source };
   });
 
-  useLiveWebCodingToolHandler('web.writeFile', ({ path, source }) =>
-    updateFileAndWait(path, source)
+  useLiveWebCodingToolHandler<'web.writeFile', unknown>(
+    'web.writeFile',
+    ({ path, source }, controller) =>
+      updateFileAndWait(path, source, controller.signal)
   );
 
-  useLiveWebCodingToolHandler('web.setTheme', async ({ theme }) => {
-    const cssFile = manager
-      .getSnapshot()
-      .files.find((file) => file.path === 'style.css');
-    if (!cssFile) throw new Error('style.css is required for theme changes.');
-    const tokens = themeTokens[theme];
-    const source = cssFile.source
-      .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
-      .replace(
-        /--accent-soft:\s*#[0-9a-f]+;/i,
-        `--accent-soft: ${tokens.soft};`
-      );
-    return { theme, ...(await updateFileAndWait('style.css', source)) };
-  });
+  useLiveWebCodingToolHandler<'web.setTheme', unknown>(
+    'web.setTheme',
+    async ({ theme }, controller) => {
+      const cssFile = manager
+        .getSnapshot()
+        .files.find((file) => file.path === 'style.css');
+      if (!cssFile) throw new Error('style.css is required for theme changes.');
+      const tokens = themeTokens[theme];
+      const source = cssFile.source
+        .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
+        .replace(
+          /--accent-soft:\s*#[0-9a-f]+;/i,
+          `--accent-soft: ${tokens.soft};`
+        );
+      return {
+        theme,
+        ...(await updateFileAndWait('style.css', source, controller.signal)),
+      };
+    }
+  );
 
-  useLiveWebCodingToolHandler(
+  useLiveWebCodingToolHandler<'web.addFeature', unknown>(
     'web.addFeature',
-    async ({ title, description }) => {
+    async ({ title, description }, controller) => {
       const htmlFile = manager
         .getSnapshot()
         .files.find((file) => file.path === 'index.html');
@@ -232,26 +248,36 @@ function WebCodingToolHandlers({
         /(<section id="feature-grid" class="feature-grid">[\s\S]*?)(<\/section>)/,
         `$1${card}$2`
       );
-      return { title, ...(await updateFileAndWait('index.html', source)) };
+      return {
+        title,
+        ...(await updateFileAndWait('index.html', source, controller.signal)),
+      };
     }
   );
 
-  useLiveWebCodingToolHandler('web.updateHero', async ({ title, subtitle }) => {
-    const htmlFile = manager
-      .getSnapshot()
-      .files.find((file) => file.path === 'index.html');
-    if (!htmlFile) throw new Error('index.html is required for hero changes.');
-    const source = htmlFile.source
-      .replace(
-        /(<h1 id="hero-title">)[\s\S]*?(<\/h1>)/,
-        `$1${escapeHtml(title)}$2`
-      )
-      .replace(
-        /(<p id="hero-subtitle">)[\s\S]*?(<\/p>)/,
-        `$1${escapeHtml(subtitle)}$2`
-      );
-    return { title, ...(await updateFileAndWait('index.html', source)) };
-  });
+  useLiveWebCodingToolHandler<'web.updateHero', unknown>(
+    'web.updateHero',
+    async ({ title, subtitle }, controller) => {
+      const htmlFile = manager
+        .getSnapshot()
+        .files.find((file) => file.path === 'index.html');
+      if (!htmlFile)
+        throw new Error('index.html is required for hero changes.');
+      const source = htmlFile.source
+        .replace(
+          /(<h1 id="hero-title">)[\s\S]*?(<\/h1>)/,
+          `$1${escapeHtml(title)}$2`
+        )
+        .replace(
+          /(<p id="hero-subtitle">)[\s\S]*?(<\/p>)/,
+          `$1${escapeHtml(subtitle)}$2`
+        );
+      return {
+        title,
+        ...(await updateFileAndWait('index.html', source, controller.signal)),
+      };
+    }
+  );
 
   useLiveWebCodingToolHandler('web.runPreview', () => ({
     workspace: serializeWorkspace(manager),

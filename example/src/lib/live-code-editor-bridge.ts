@@ -24,6 +24,17 @@ export interface LiveEditorPreviewStatus {
   readonly revision: number;
 }
 
+function createAbortError(signal?: AbortSignal): Error {
+  const reason = signal?.reason;
+  if (reason instanceof Error) return reason;
+  if (typeof DOMException !== 'undefined') {
+    return new DOMException('Preview wait cancelled.', 'AbortError');
+  }
+  const error = new Error('Preview wait cancelled.');
+  error.name = 'AbortError';
+  return error;
+}
+
 export interface LiveEditorPreviewFile {
   readonly path: string;
   readonly source: string;
@@ -105,8 +116,10 @@ export class LiveEditorDocumentManager {
 
   waitForRendered = (
     revision: number,
-    timeoutMs = 2_000
+    timeoutMs = 2_000,
+    signal?: AbortSignal
   ): Promise<LiveEditorPreviewStatus> => {
+    if (signal?.aborted) return Promise.reject(createAbortError(signal));
     if (this.renderedRevision >= revision) {
       return Promise.resolve({
         state: 'rendered',
@@ -114,19 +127,39 @@ export class LiveEditorDocumentManager {
       });
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const waiters = this.renderWaiters.get(revision) ?? new Set();
       this.renderWaiters.set(revision, waiters);
-      const waiter = (status: LiveEditorPreviewStatus) => {
+      let settled = false;
+      const cleanup = () => {
         clearTimeout(timeout);
+        signal?.removeEventListener('abort', abort);
+      };
+      const waiter = (status: LiveEditorPreviewStatus) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         resolve(status);
       };
       const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
         waiters.delete(waiter);
         if (waiters.size === 0) this.renderWaiters.delete(revision);
+        signal?.removeEventListener('abort', abort);
         resolve({ state: 'timeout', revision: this.renderedRevision });
       }, timeoutMs);
+      const abort = () => {
+        if (settled) return;
+        settled = true;
+        waiters.delete(waiter);
+        if (waiters.size === 0) this.renderWaiters.delete(revision);
+        cleanup();
+        reject(createAbortError(signal));
+      };
       waiters.add(waiter);
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) abort();
     });
   };
 

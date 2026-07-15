@@ -102,6 +102,7 @@ export function createBrowserOpenRouterToolRunner(
         tools: createToolSet(request.registry),
         maxOutputTokens: 1024,
         stopWhen: stepCountIs(5),
+        abortSignal: request.signal,
       });
 
       return {

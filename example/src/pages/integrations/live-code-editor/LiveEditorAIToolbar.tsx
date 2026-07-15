@@ -3,6 +3,7 @@ import {
   type FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -43,6 +44,7 @@ export function LiveEditorAIToolbar() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
+  const executionControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -88,6 +90,8 @@ export function LiveEditorAIToolbar() {
     setLoading(true);
     setError('');
     setResult('');
+    const controller = new AbortController();
+    executionControllerRef.current = controller;
     const messages: ModelMessage[] = [
       {
         role: 'user',
@@ -100,21 +104,39 @@ export function LiveEditorAIToolbar() {
         model: selectedModel,
         messages,
         registry,
+        signal: controller.signal,
       });
+      if (controller.signal.aborted) {
+        setResult('Execution cancelled. No toolchain success was reported.');
+        return;
+      }
       setResult(
         response.text ||
           `Toolchain completed ${response.toolCallCount} editor tool call(s).`
       );
       setPrompt('');
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'AI editor request failed.'
-      );
+      if (controller.signal.aborted) {
+        setResult('Execution cancelled. No toolchain success was reported.');
+        setError('');
+      } else {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : 'AI editor request failed.'
+        );
+      }
     } finally {
+      if (executionControllerRef.current === controller) {
+        executionControllerRef.current = null;
+      }
       setLoading(false);
     }
+  };
+
+  const cancelExecution = () => {
+    const controller = executionControllerRef.current;
+    if (controller && !controller.signal.aborted) controller.abort();
   };
 
   const inspectRegistry = async () => {
@@ -390,10 +412,14 @@ export function LiveEditorAIToolbar() {
           onChange={(event) => setPrompt(event.target.value)}
         />
         <button
-          type="submit"
-          disabled={!apiKey || !selectedModel || loading || !prompt.trim()}
+          className={loading ? styles.aiCancelButton : undefined}
+          type={loading ? 'button' : 'submit'}
+          disabled={
+            loading ? false : !apiKey || !selectedModel || !prompt.trim()
+          }
+          onClick={loading ? cancelExecution : undefined}
         >
-          {loading ? 'Calling tools…' : 'Run editor toolchain'}
+          {loading ? 'Cancel editor toolchain' : 'Run editor toolchain'}
         </button>
       </form>
       {result && <p className={styles.aiResult}>{result}</p>}

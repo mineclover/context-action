@@ -63,6 +63,10 @@ or sent to a Context-Action server.
 While an agent run is active, `Cancel` aborts the provider request, registry
 execution, and any preview acknowledgement wait. Cancellation is shown as a
 user-visible assistant message instead of a misleading tool success.
+The example live editor exposes the same boundary: its `Run editor toolchain`
+control becomes `Cancel editor toolchain` while the browser-side OpenRouter
+request is active and forwards the abort signal through the provider-neutral
+runner contract.
 
 ## Standard contract
 
