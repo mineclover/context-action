@@ -1,4 +1,5 @@
 import {
+  type ChangeEvent,
   type KeyboardEvent,
   type ReactNode,
   useEffect,
@@ -10,7 +11,10 @@ import {
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
-import { BrowserFileSystemWorkspaceAdapter } from '../../../lib/live-code-editor-filesystem';
+import {
+  BrowserFileSystemWorkspaceAdapter,
+  type WorkspaceBlobFile,
+} from '../../../lib/live-code-editor-filesystem';
 import {
   LIVE_EDITOR_WORKSPACE_ID,
   LIVE_EDITOR_WORKSPACE_ROOT,
@@ -418,6 +422,7 @@ function LiveCodeEditorContent() {
   } | null>(null);
   const persistenceTimerRef = useRef<number | null>(null);
   const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const directoryInputRef = useRef<HTMLInputElement>(null);
 
   const activeWorkspaceFile = workspaceManager.getActiveFile();
   const currentExample: ExampleDefinition = activeExample
@@ -611,32 +616,58 @@ function LiveCodeEditorContent() {
     setRunState('ready');
   };
 
+  const importWorkspace = async (result: {
+    readonly files: readonly WorkspaceBlobFile[];
+    readonly rootName: string;
+  }) => {
+    const persisted = await workspaceRepository.replaceWorkspace(
+      LIVE_EDITOR_WORKSPACE_ID,
+      result.files,
+      { rootName: result.rootName, kind: 'filesystem' }
+    );
+    workspaceManager.replaceFiles(persisted.files, {
+      rootName: persisted.metadata.rootName,
+      activePath: persisted.metadata.activePath,
+      storageMode: 'indexed-db',
+    });
+    const entryPath = findWorkspaceEntryPath(persisted.files, 'indexed-db');
+    setWorkspaceMessage(
+      `${persisted.metadata.rootName} imported · ${persisted.files.length} files${
+        entryPath ? ` · ${entryPath} ready` : ''
+      } · folder writable`
+    );
+    setRunState('ready');
+  };
+
   const openWorkspace = async () => {
     try {
       await flushPendingPersistence();
       const result = await filesystemAdapter.openDirectory();
-      const persisted = await workspaceRepository.replaceWorkspace(
-        LIVE_EDITOR_WORKSPACE_ID,
-        result.files,
-        { rootName: result.rootName, kind: 'filesystem' }
-      );
-      workspaceManager.replaceFiles(persisted.files, {
-        rootName: persisted.metadata.rootName,
-        activePath: persisted.metadata.activePath,
-        storageMode: 'indexed-db',
-      });
-      const entryPath = findWorkspaceEntryPath(persisted.files, 'indexed-db');
-      setWorkspaceMessage(
-        `${persisted.metadata.rootName} imported · ${persisted.files.length} files${
-          entryPath ? ` · ${entryPath} ready` : ''
-        } · folder writable`
-      );
-      setRunState('ready');
+      await importWorkspace(result);
     } catch (error) {
       setWorkspaceMessage(
         error instanceof Error
           ? error.message
           : 'Workspace could not be opened.'
+      );
+    }
+  };
+
+  const handleDirectoryInputChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.currentTarget.files ?? []);
+    event.currentTarget.value = '';
+    if (files.length === 0) return;
+    try {
+      await flushPendingPersistence();
+      const result = await filesystemAdapter.openFileList(files);
+      await importWorkspace(result);
+    } catch (error) {
+      setWorkspaceMessage(
+        error instanceof Error
+          ? error.message
+          : 'Workspace could not be imported.'
       );
     }
   };
@@ -887,10 +918,18 @@ function LiveCodeEditorContent() {
                       <button
                         type="button"
                         className={styles.workspaceButton}
-                        onClick={() => void openWorkspace()}
+                        onClick={() => {
+                          if (filesystemAdapter.supportsDirectoryPicker) {
+                            void openWorkspace();
+                          } else {
+                            directoryInputRef.current?.click();
+                          }
+                        }}
                         disabled={!filesystemAdapter.isSupported}
                       >
-                        Open folder
+                        {filesystemAdapter.supportsDirectoryPicker
+                          ? 'Open folder'
+                          : 'Import folder'}
                       </button>
                       <button
                         type="button"
@@ -921,6 +960,20 @@ function LiveCodeEditorContent() {
                       >
                         Save file
                       </button>
+                      <input
+                        ref={(node) => {
+                          directoryInputRef.current = node;
+                          node?.setAttribute('webkitdirectory', '');
+                          node?.setAttribute('directory', '');
+                        }}
+                        className={styles.hiddenFileInput}
+                        type="file"
+                        multiple
+                        aria-label="Import workspace folder"
+                        onChange={(event) =>
+                          void handleDirectoryInputChange(event)
+                        }
+                      />
                     </div>
                     <div className={styles.workspaceMessage}>
                       {workspaceMessage}

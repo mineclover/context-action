@@ -15,7 +15,12 @@ export interface WorkspaceBlobFile {
 export interface WorkspaceFileSystemAdapter {
   readonly isSupported: boolean;
   readonly isWritable: boolean;
+  readonly supportsDirectoryPicker: boolean;
   openDirectory(): Promise<{
+    readonly files: WorkspaceBlobFile[];
+    readonly rootName: string;
+  }>;
+  openFileList(files: readonly File[]): Promise<{
     readonly files: WorkspaceBlobFile[];
     readonly rootName: string;
   }>;
@@ -119,11 +124,15 @@ export class BrowserFileSystemWorkspaceAdapter
 {
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
 
-  get isSupported(): boolean {
+  get supportsDirectoryPicker(): boolean {
     return (
       typeof window !== 'undefined' &&
       typeof (window as FileSystemWindow).showDirectoryPicker === 'function'
     );
+  }
+
+  get isSupported(): boolean {
+    return this.supportsDirectoryPicker || typeof document !== 'undefined';
   }
 
   get isWritable(): boolean {
@@ -151,6 +160,53 @@ export class BrowserFileSystemWorkspaceAdapter
       throw new Error('No supported files were found in this directory.');
     }
     return { files, rootName: this.directoryHandle.name };
+  }
+
+  async openFileList(fileList: readonly File[]): Promise<{
+    readonly files: WorkspaceBlobFile[];
+    readonly rootName: string;
+  }> {
+    if (fileList.length === 0) {
+      throw new Error('No files were selected from the workspace folder.');
+    }
+
+    const firstFile = fileList[0] as File & {
+      readonly webkitRelativePath?: string;
+    };
+    const firstPath = firstFile.webkitRelativePath || firstFile.name;
+    const firstSegments = firstPath.split('/').filter(Boolean);
+    const rootName = firstSegments[0] || 'imported-workspace';
+    const files: WorkspaceBlobFile[] = [];
+    let totalSize = 0;
+
+    for (const entry of fileList) {
+      if (files.length >= MAX_FILES) break;
+      const inputFile = entry as File & {
+        readonly webkitRelativePath?: string;
+      };
+      const rawPath = inputFile.webkitRelativePath || inputFile.name;
+      const segments = rawPath.split('/').filter(Boolean);
+      const path = normalizeWorkspacePath(
+        segments[0] === rootName ? segments.slice(1).join('/') : rawPath
+      );
+      if (!path || entry.size > MAX_FILE_SIZE) continue;
+      totalSize += entry.size;
+      if (totalSize > MAX_TOTAL_SIZE) continue;
+      const blob = new Blob([await entry.arrayBuffer()], {
+        type: inferWorkspaceMimeType(path, entry.type),
+      });
+      files.push({
+        path,
+        blob,
+        mimeType: blob.type,
+        size: entry.size,
+      });
+    }
+
+    if (files.length === 0) {
+      throw new Error('No supported files were found in this directory.');
+    }
+    return { files, rootName };
   }
 
   async saveFile(path: string, blob: Blob): Promise<void> {

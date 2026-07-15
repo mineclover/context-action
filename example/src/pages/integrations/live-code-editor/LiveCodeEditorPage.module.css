@@ -217,6 +217,10 @@
   opacity: 0.45;
 }
 
+.hiddenFileInput {
+  display: none;
+}
+
 .fileTree {
   display: grid;
   gap: 0.18rem;
