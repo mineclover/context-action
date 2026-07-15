@@ -182,6 +182,11 @@ view without changing workspace files, tool registry state, or provider history.
 The standalone `agent.request` row now surrounds the same run and records
 running, completed, failed, or cancelled status, so a provider failure remains
 visible even when no `tools/call` was reached.
+Each agent run creates one `sessionId` and forwards it through `tools/list` and
+every `executeModelToolCall()` context. The trace therefore separates the
+per-call `toolCallId` from the run-level session correlation, which remains
+available in the compact row tooltip and copied trace JSON. Local fallback and
+OpenRouter use the same correlation contract.
 Call rows expose a bounded `tools/call` detail view with the canonical arguments
 and result. File-like `source`, `search`, and `replace` values are redacted to a
 character count, so the trace can explain the call without copying file contents

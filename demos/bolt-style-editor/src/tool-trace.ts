@@ -2,6 +2,7 @@ import type { ToolCallEvent } from '@context-action/react';
 
 export type ToolTraceEntry = {
   id: string;
+  sessionId?: string;
   kind: 'discovery' | 'call' | 'agent';
   name: string;
   source: string;
@@ -23,6 +24,7 @@ const listeners = new Set<() => void>();
 
 export type AgentTraceHandle = {
   id: string;
+  sessionId: string;
   source: string;
   startedAt: number;
 };
@@ -144,10 +146,15 @@ function resultSummary(
   return 'tool result received';
 }
 
-export function recordToolList(toolCount: number, source = 'local'): void {
+export function recordToolList(
+  toolCount: number,
+  source = 'local',
+  sessionId?: string
+): void {
   entries = trimEntries([
     {
       id: `list-${Date.now()}-${sequence++}`,
+      ...(sessionId ? { sessionId } : {}),
       kind: 'discovery',
       name: 'tools/list',
       source,
@@ -165,6 +172,7 @@ export function recordToolList(toolCount: number, source = 'local'): void {
 export function recordToolCall(event: ToolCallEvent): void {
   const id = String(event.toolCallId ?? `${event.name}-${sequence++}`);
   const source = event.context?.source ?? 'mcp';
+  const sessionId = event.context?.sessionId;
   const existingIndex = entries.findIndex(
     (entry) => entry.kind === 'call' && entry.id === id
   );
@@ -172,6 +180,7 @@ export function recordToolCall(event: ToolCallEvent): void {
   if (event.type === 'started') {
     const nextEntry: ToolTraceEntry = {
       id,
+      ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       name: event.name,
       source,
@@ -189,6 +198,7 @@ export function recordToolCall(event: ToolCallEvent): void {
   } else {
     const nextEntry: ToolTraceEntry = {
       id,
+      ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       name: event.name,
       source,
@@ -228,11 +238,13 @@ export function startAgentTrace(source: string): AgentTraceHandle {
   const startedAt = Date.now();
   const handle = {
     id: `agent-${startedAt}-${sequence++}`,
+    sessionId: `session-${startedAt}-${sequence++}`,
     source,
     startedAt,
   };
   upsertAgentTrace({
     id: handle.id,
+    sessionId: handle.sessionId,
     kind: 'agent',
     name: 'agent.request',
     source,
@@ -249,6 +261,7 @@ export function finishAgentTrace(
 ): void {
   upsertAgentTrace({
     id: handle.id,
+    sessionId: handle.sessionId,
     kind: 'agent',
     name: 'agent.request',
     source: handle.source,

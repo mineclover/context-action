@@ -1231,10 +1231,11 @@ async function runLocalAgent(
   workspace: BrowserWorkspace,
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter,
   prompt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  sessionId?: string
 ): Promise<AgentRunResult> {
   const listedTools = registry.listTools({ method: 'tools/list' });
-  recordToolList(listedTools.tools.length, 'local');
+  recordToolList(listedTools.tools.length, 'local', sessionId);
   const calls = buildLocalAgentPlan(
     prompt,
     !fileSystemAdapter.hasWritableFolder,
@@ -1258,6 +1259,8 @@ async function runLocalAgent(
       },
       {
         context: {
+          source: 'local',
+          ...(sessionId ? { sessionId } : {}),
           metadata: { interaction: 'prompt', provider: 'local-fallback' },
         },
         signal,
@@ -3094,14 +3097,16 @@ function EditorWorkbench({
             registry,
             trimmed,
             openRouterSettings,
-            controller.signal
+            controller.signal,
+            agentTrace.sessionId
           )
         : await runLocalAgent(
             registry,
             workspace,
             fileSystemAdapter,
             trimmed,
-            controller.signal
+            controller.signal,
+            agentTrace.sessionId
           );
       throwIfAborted(controller.signal);
       finishAgentTrace(
@@ -3928,9 +3933,9 @@ function EditorWorkbench({
                     key={entry.id}
                     title={
                       entry.kind === 'call'
-                        ? `toolCallId ${entry.id}`
+                        ? `toolCallId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
                         : entry.kind === 'agent'
-                          ? `agent request · ${entry.source}`
+                          ? `agent request · ${entry.source}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
                           : 'tools/list discovery'
                     }
                   >
@@ -3947,12 +3952,22 @@ function EditorWorkbench({
                       <strong>{entry.name}</strong>
                       <small>
                         {entry.kind === 'discovery'
-                          ? entry.summary
+                          ? [
+                              entry.summary,
+                              entry.sessionId
+                                ? `session ${formatTraceId(entry.sessionId)}`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')
                           : [
                               entry.kind === 'agent'
                                 ? 'agent'
                                 : formatTraceId(entry.id),
                               entry.source,
+                              entry.sessionId
+                                ? `session ${formatTraceId(entry.sessionId)}`
+                                : null,
                               `${entry.durationMs ?? 0}ms`,
                               entry.summary,
                             ]

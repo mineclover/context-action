@@ -176,6 +176,11 @@ result를 제한된 길이로 확인할 수 있다. 파일성 `source`, `search`
 standalone의 `agent.request` row는 같은 실행을 감싸며 running·completed·failed·cancelled
 상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
 확인할 수 있다.
+각 agent 실행은 하나의 `sessionId`를 만들고 `tools/list`와 모든
+`executeModelToolCall()` context에 전달한다. 따라서 trace에서는 개별 호출의
+`toolCallId`와 실행 단위의 session correlation을 구분할 수 있으며, 축약 row의
+tooltip과 복사한 trace JSON에서도 session 식별자를 확인할 수 있다. local fallback과
+OpenRouter는 같은 correlation 계약을 사용한다.
 call row에는 축약된 `toolCallId`를 표시하고 full value는 row tooltip에서 확인할 수
 있다. trace panel의 `Copy` action은 같은 bounded·redacted entry를 JSON으로 내보내므로,
 workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부

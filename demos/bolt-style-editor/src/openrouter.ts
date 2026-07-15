@@ -249,7 +249,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
   prompt: string,
   settings: OpenRouterSettings,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  sessionId?: string
 ): Promise<AgentRunResult> {
   if (!settings.apiKey) {
     throw new OpenRouterRequestError('API key is not configured.', {
@@ -267,7 +268,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     { role: 'user', content: prompt },
   ];
   const listedTools = registry.listTools({ method: 'tools/list' });
-  recordToolList(listedTools.tools.length, 'openrouter');
+  recordToolList(listedTools.tools.length, 'openrouter', sessionId);
   const toolNames: string[] = [];
 
   for (let turn = 0; turn < 5; turn += 1) {
@@ -369,7 +370,13 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
           name: toolCall.function.name,
           arguments: argumentsValue,
         },
-        { context: { source: 'model' }, signal }
+        {
+          context: {
+            source: 'model',
+            ...(sessionId ? { sessionId } : {}),
+          },
+          signal,
+        }
       );
       throwIfAborted(signal);
       toolNames.push(toolCall.function.name);
