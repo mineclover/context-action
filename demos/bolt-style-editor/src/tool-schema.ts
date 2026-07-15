@@ -3,6 +3,10 @@ import { z } from 'zod';
 
 const filePath = z.string().min(1).max(160);
 const expectedRevision = z.number().int().nonnegative().optional();
+const workspacePersistenceOutputSchema = z.object({
+  storageMode: z.enum(['loading', 'indexed-db', 'memory']),
+  storageError: z.string().optional(),
+});
 const workspaceFileSummarySchema = z.object({
   path: z.string(),
   language: z.string(),
@@ -11,19 +15,19 @@ const workspaceFileSummarySchema = z.object({
   mimeType: z.string().optional(),
   dirty: z.boolean(),
 });
-const workspaceListFilesOutputSchema = z.object({
+const workspaceListFilesOutputSchema = workspacePersistenceOutputSchema.extend({
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
   dirty: z.boolean(),
   deletedPaths: z.array(z.string()),
   files: z.array(workspaceFileSummarySchema),
 });
-const workspaceReadFileOutputSchema = z.object({
+const workspaceReadFileOutputSchema = workspacePersistenceOutputSchema.extend({
   path: z.string(),
   source: z.string(),
   revision: z.number().int().nonnegative(),
 });
-const workspaceDownloadOutputSchema = z.object({
+const workspaceDownloadOutputSchema = workspacePersistenceOutputSchema.extend({
   path: z.string(),
   kind: z.enum(['text', 'asset']),
   size: z.number().int().nonnegative(),
@@ -35,10 +39,6 @@ const fileSystemPermissionSchema = z.enum([
   'unknown',
   'disconnected',
 ]);
-const workspacePersistenceOutputSchema = z.object({
-  storageMode: z.enum(['loading', 'indexed-db', 'memory']),
-  storageError: z.string().optional(),
-});
 const workspaceOpenFileOutputSchema = workspacePersistenceOutputSchema.extend({
   path: z.string(),
   activePath: z.string(),
@@ -129,7 +129,7 @@ const previewFeatureOutputSchema = workspacePersistenceOutputSchema.extend({
   revision: z.number().int().nonnegative(),
   preview: z.literal('synced'),
 });
-const previewStatusOutputSchema = z.object({
+const previewStatusOutputSchema = workspacePersistenceOutputSchema.extend({
   revision: z.number().int().nonnegative(),
   status: z.enum(['waiting', 'synced', 'error']),
   message: z.string().optional(),
@@ -140,12 +140,10 @@ const previewRefreshOutputSchema = workspacePersistenceOutputSchema.extend({
   revision: z.number().int().nonnegative(),
   preview: z.literal('synced'),
 });
-const workspaceStatusOutputSchema = z.object({
+const workspaceStatusOutputSchema = workspacePersistenceOutputSchema.extend({
   rootName: z.string(),
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
-  storageMode: z.enum(['loading', 'indexed-db', 'memory']),
-  storageError: z.string().optional(),
   preview: z.object({
     revision: z.number().int(),
     status: z.enum(['waiting', 'synced', 'error']),

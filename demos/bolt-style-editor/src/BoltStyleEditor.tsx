@@ -1125,8 +1125,7 @@ function ToolHandlers({
       rootName: snapshot.rootName,
       activePath: snapshot.activePath,
       revision: snapshot.revision,
-      storageMode: snapshot.storageMode,
-      ...(snapshot.storageError ? { storageError: snapshot.storageError } : {}),
+      ...workspacePersistenceMeta(snapshot),
       preview: snapshot.preview,
       fileCount: snapshot.files.length,
       dirtyPaths,
@@ -1184,6 +1183,7 @@ function ToolHandlers({
       workspace.getDirtyFiles().map((file) => file.path)
     );
     return {
+      ...workspacePersistenceMeta(),
       activePath: snapshot.activePath,
       revision: snapshot.revision,
       dirty: workspace.isDirty(),
@@ -1206,10 +1206,12 @@ function ToolHandlers({
     if (file.kind === 'asset') {
       throw new Error(`Binary asset cannot be returned as text: ${file.path}`);
     }
+    const snapshot = workspace.getSnapshot();
     return {
+      ...workspacePersistenceMeta(snapshot),
       path: file.path,
       source: file.source,
-      revision: workspace.getSnapshot().revision,
+      revision: snapshot.revision,
     };
   });
 
@@ -1218,7 +1220,9 @@ function ToolHandlers({
     ({ path }) => {
       const file = workspace.getFile(path);
       const size = downloadWorkspaceFile(file);
+      const snapshot = workspace.getSnapshot();
       return {
+        ...workspacePersistenceMeta(snapshot),
         path: file.path,
         kind: file.kind === 'asset' ? ('asset' as const) : ('text' as const),
         size,
@@ -1773,6 +1777,7 @@ function ToolHandlers({
   useBoltStyleToolHandler('preview.getStatus', () => {
     const snapshot = workspace.getSnapshot();
     return {
+      ...workspacePersistenceMeta(snapshot),
       revision: snapshot.revision,
       status: snapshot.preview.status,
       message: snapshot.preview.message,
