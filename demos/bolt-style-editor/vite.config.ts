@@ -26,5 +26,30 @@ export default defineConfig({
   build: {
     sourcemap: false,
     minify: 'esbuild',
+    rolldownOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes('/node_modules/react/') ||
+            id.includes('/node_modules/react-dom/') ||
+            id.includes('/node_modules/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+          if (id.includes('/node_modules/dexie/')) return 'storage-vendor';
+          if (id.includes('/node_modules/mutative/')) return 'mutative-vendor';
+          if (id.includes('/node_modules/zod/')) return 'schema-vendor';
+          if (id.includes('/node_modules/')) return 'vendor';
+          if (
+            id.includes('/packages/core/src/') ||
+            id.includes('/packages/react/src/') ||
+            id.includes('/packages/mutative/src/')
+          ) {
+            return 'context-action';
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

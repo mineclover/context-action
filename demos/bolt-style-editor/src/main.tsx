@@ -1,10 +1,25 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BoltStyleEditor } from './BoltStyleEditor';
 import './styles.css';
+
+const BoltStyleEditor = lazy(() =>
+  import('./BoltStyleEditor').then(({ BoltStyleEditor: Editor }) => ({
+    default: Editor,
+  }))
+);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BoltStyleEditor />
+    <Suspense
+      fallback={
+        <main className="studio-loading" role="status">
+          <span className="brand-mark">✦</span>
+          <strong>Loading Web Studio</strong>
+          <span>Preparing the editor and tool registry…</span>
+        </main>
+      }
+    >
+      <BoltStyleEditor />
+    </Suspense>
   </StrictMode>
 );
