@@ -101,6 +101,12 @@ iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는
 부모 DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement를
 받은 뒤 tool result를 반환한다. 임의 `runScript` 도구는 제공하지 않는다.
 
+standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sandbox는
+문서 revision을 포함한 `context-action.preview.ready` 또는
+`context-action.preview.error` message를 부모로 보낸다. 부모는 현재 iframe
+window에서 온 message만 허용하고 오래된 revision은 무시하며, visual mutation
+tool은 일치하는 acknowledgement를 받은 뒤에만 성공한 tool result를 반환한다.
+
 ## 패키지·레포지토리 분리 계획
 
 전체 Live Code Editor는 framework runtime이 아니라 `example`의 showcase
@@ -190,7 +196,8 @@ Open folder → generic FileSystemAdapter
 3. lifecycle observer로 병렬 호출과 실패 결과를 기록한다.
 4. DocumentManager를 부모에 구현한다.
 5. Dexie workspace repository와 Blob/filesystem adapter 경계를 추가한다.
-6. iframe에는 revision-aware preview bridge를 추가한다.
+6. DocumentManager와 revision-aware preview bridge 및 acknowledgement 계약을
+   계속 일치시킨다.
 7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달한다.
 8. `tools/list → call → result`와 workspace reload의 브라우저 검증을 추가한다.
 

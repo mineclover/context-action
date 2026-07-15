@@ -18,10 +18,17 @@ export type WorkspaceSnapshot = {
   files: WorkspaceFile[];
   activePath: string;
   revision: number;
+  preview: PreviewSnapshot;
   storageMode: WorkspaceStorageMode;
 };
 
 export type WorkspaceStorageMode = 'loading' | 'indexed-db' | 'memory';
+
+export type PreviewSnapshot = {
+  revision: number;
+  status: 'waiting' | 'synced' | 'error';
+  message?: string;
+};
 
 type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'>;
 
@@ -131,6 +138,7 @@ export class BrowserWorkspace {
       files: createInitialFiles(),
       activePath: 'index.html',
       revision: 1,
+      preview: { revision: 1, status: 'waiting' },
       storageMode: 'loading',
     };
     this.history = [this.createCheckpoint()];
@@ -151,11 +159,14 @@ export class BrowserWorkspace {
       const persisted = await this.repository.ensureWorkspace(
         createInitialFiles()
       );
+      const revision = this.snapshot.revision + 1;
       this.snapshot = {
         ...this.snapshot,
         rootName: persisted.rootName,
         files: persisted.files,
         activePath: persisted.activePath,
+        preview: { revision, status: 'waiting' },
+        revision,
         storageMode: 'indexed-db',
       };
       this.history = [this.createCheckpoint()];
@@ -194,6 +205,10 @@ export class BrowserWorkspace {
         activePath: persisted.activePath,
         storageMode: 'indexed-db',
         revision: this.snapshot.revision + 1,
+        preview: {
+          revision: this.snapshot.revision + 1,
+          status: 'waiting',
+        },
       };
     } catch {
       this.snapshot = {
@@ -203,6 +218,10 @@ export class BrowserWorkspace {
         activePath,
         storageMode: 'memory',
         revision: this.snapshot.revision + 1,
+        preview: {
+          revision: this.snapshot.revision + 1,
+          status: 'waiting',
+        },
       };
     }
 
@@ -219,6 +238,87 @@ export class BrowserWorkspace {
     );
     if (!file) throw new Error(`Workspace file not found: ${path}`);
     return file;
+  }
+
+  setPreviewStatus(
+    revision: number,
+    status: PreviewSnapshot['status'],
+    message?: string
+  ): void {
+    if (
+      revision !== this.snapshot.revision ||
+      revision < this.snapshot.preview.revision
+    ) {
+      return;
+    }
+    this.snapshot = {
+      ...this.snapshot,
+      preview: { revision, status, ...(message ? { message } : {}) },
+    };
+    this.notify();
+  }
+
+  waitForPreviewRevision(
+    revision: number,
+    timeoutMs = 2500
+  ): Promise<PreviewSnapshot> {
+    const current = this.snapshot.preview;
+    if (current.revision === revision && current.status === 'synced') {
+      return Promise.resolve(current);
+    }
+    if (current.revision === revision && current.status === 'error') {
+      return Promise.reject(
+        new Error(current.message ?? `Preview revision ${revision} failed.`)
+      );
+    }
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      let unsubscribe = () => {};
+      const finish = (callback: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) clearTimeout(timeoutId);
+        unsubscribe();
+        callback();
+      };
+      const inspect = () => {
+        const preview = this.snapshot.preview;
+        if (preview.revision > revision) {
+          finish(() =>
+            reject(
+              new Error(
+                `Preview revision ${revision} was superseded by ${preview.revision}.`
+              )
+            )
+          );
+        } else if (preview.revision === revision) {
+          if (preview.status === 'synced') finish(() => resolve(preview));
+          if (preview.status === 'error') {
+            finish(() =>
+              reject(
+                new Error(
+                  preview.message ?? `Preview revision ${revision} failed.`
+                )
+              )
+            );
+          }
+        }
+      };
+
+      unsubscribe = this.subscribe(inspect);
+      timeoutId = setTimeout(() => {
+        finish(() =>
+          reject(
+            new Error(
+              `Preview revision ${revision} was not acknowledged within ${timeoutMs}ms.`
+            )
+          )
+        );
+      }, timeoutMs);
+      inspect();
+    });
   }
 
   setActivePath(path: string): void {
@@ -328,11 +428,13 @@ export class BrowserWorkspace {
   }
 
   private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
+    const revision = this.snapshot.revision + 1;
     this.snapshot = {
       ...checkpoint,
       rootName: this.snapshot.rootName,
       storageMode: this.snapshot.storageMode,
-      revision: this.snapshot.revision + 1,
+      preview: { revision, status: 'waiting' },
+      revision,
     };
   }
 
@@ -396,6 +498,31 @@ function findReferencedFile(
 }
 
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
+
+export type PreviewBridgeMessage =
+  | { type: 'context-action.preview.ready'; revision: number }
+  | {
+      type: 'context-action.preview.error';
+      revision: number;
+      message: string;
+    };
+
+function appendPreviewBridge(html: string, revision: number): string {
+  const bridge = `<script>(function(){const revision=${revision};const send=function(message){window.parent.postMessage(Object.assign({revision:revision},message),'*')};window.addEventListener('error',function(event){send({type:'context-action.preview.error',message:event.message||'Preview runtime error'})});window.addEventListener('unhandledrejection',function(event){const reason=event.reason;send({type:'context-action.preview.error',message:reason&&reason.message?String(reason.message):String(reason||'Unhandled preview rejection')})});window.addEventListener('DOMContentLoaded',function(){send({type:'context-action.preview.ready'})})})();</script>`;
+  if (/<head\b[^>]*>/i.test(html)) {
+    return html.replace(
+      /<head\b[^>]*>/i,
+      (openingTag) => `${openingTag}${bridge}`
+    );
+  }
+  if (/<body\b[^>]*>/i.test(html)) {
+    return html.replace(
+      /<body\b[^>]*>/i,
+      (openingTag) => `${bridge}${openingTag}`
+    );
+  }
+  return `${bridge}${html}`;
+}
 
 export function findPreviewHtmlFile(
   files: readonly WorkspaceFile[]
@@ -505,7 +632,8 @@ function rewriteHtmlAssetReferences(
 
 export function buildPreviewDocument(
   files: WorkspaceFile[],
-  assetUrls: WorkspaceAssetUrls = {}
+  assetUrls: WorkspaceAssetUrls = {},
+  previewRevision?: number
 ): string {
   const htmlFile = findPreviewHtmlFile(files);
   if (!htmlFile) return '';
@@ -517,5 +645,12 @@ export function buildPreviewDocument(
     assetUrls
   );
   const withScripts = inlineScripts(withStyles, htmlFile.path, files);
-  return rewriteHtmlAssetReferences(withScripts, htmlFile.path, assetUrls);
+  const withAssets = rewriteHtmlAssetReferences(
+    withScripts,
+    htmlFile.path,
+    assetUrls
+  );
+  return previewRevision === undefined
+    ? withAssets
+    : appendPreviewBridge(withAssets, previewRevision);
 }

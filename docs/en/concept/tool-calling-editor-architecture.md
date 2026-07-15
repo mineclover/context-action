@@ -104,6 +104,13 @@ updates the parent DocumentManager and waits for the matching iframe revision
 acknowledgement before returning its tool result. Do not expose an arbitrary
 `runScript` tool.
 
+The standalone editor implements the same boundary with a small injected
+bridge. The sandbox posts `context-action.preview.ready` or
+`context-action.preview.error` with the document revision. The parent accepts
+messages only from the current iframe window, ignores stale revisions, and
+visual mutation tools wait for the matching acknowledgement before reporting
+success.
+
 ## Package and repository boundary plan
 
 The full Live Code Editor remains inside `example` because it is a showcase
@@ -195,7 +202,8 @@ Open folder → generic FileSystemAdapter
 3. Record parallel calls and failures through the lifecycle observer.
 4. Implement the parent-owned DocumentManager.
 5. Add the Dexie workspace repository and Blob/file-system adapter boundary.
-6. Add a revision-aware preview bridge to the iframe.
+6. Keep the revision-aware preview bridge and acknowledgement contract aligned
+   with the DocumentManager.
 7. Forward `toolCallId` and abort signals from the model adapter to the Registry.
 8. Add browser proof for `tools/list → call → result` and workspace reload.
 

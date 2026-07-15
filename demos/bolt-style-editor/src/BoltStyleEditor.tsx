@@ -28,6 +28,7 @@ import {
   buildPreviewDocument,
   findPreviewHtmlFile,
   findPreviewStylesheetFile,
+  type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
@@ -190,6 +191,21 @@ function resultText(result: {
 }): string {
   if (result.isError) return result.error?.message ?? 'Tool call failed.';
   return JSON.stringify(result.structuredContent ?? {}, null, 2);
+}
+
+function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
+  if (!value || typeof value !== 'object') return false;
+  const message = value as {
+    type?: unknown;
+    revision?: unknown;
+    message?: unknown;
+  };
+  return (
+    typeof message.revision === 'number' &&
+    (message.type === 'context-action.preview.ready' ||
+      (message.type === 'context-action.preview.error' &&
+        typeof message.message === 'string'))
+  );
 }
 
 function OpenRouterSettingsDialog({
@@ -434,15 +450,16 @@ function ToolHandlers({
     return { path, source: file.source };
   });
 
-  useBoltStyleToolHandler('workspace.writeFile', ({ path, source }) => {
+  useBoltStyleToolHandler('workspace.writeFile', async ({ path, source }) => {
     if (workspace.getFile(path).kind === 'asset') {
       throw new Error(`Binary asset cannot be replaced as text: ${path}`);
     }
     const snapshot = workspace.updateFile(path, source, { coalesce: false });
+    await workspace.waitForPreviewRevision(snapshot.revision);
     return { path, revision: snapshot.revision, preview: 'synced' };
   });
 
-  useBoltStyleToolHandler('preview.setTheme', ({ theme }) => {
+  useBoltStyleToolHandler('preview.setTheme', async ({ theme }) => {
     const file = findPreviewStylesheetFile(workspace.getSnapshot().files);
     if (!file) throw new Error('No CSS stylesheet was found in the workspace.');
     const tokens = themeTokens[theme];
@@ -452,33 +469,38 @@ function ToolHandlers({
         /--accent-soft:\s*#[0-9a-f]+;/i,
         `--accent-soft: ${tokens.soft};`
       );
-    const snapshot = workspace.updateFile('styles.css', source, {
+    const snapshot = workspace.updateFile(file.path, source, {
       coalesce: false,
     });
+    await workspace.waitForPreviewRevision(snapshot.revision);
     return { theme, revision: snapshot.revision, preview: 'synced' };
   });
 
-  useBoltStyleToolHandler('preview.addFeature', ({ title, description }) => {
-    const file = findPreviewHtmlFile(workspace.getSnapshot().files);
-    if (!file)
-      throw new Error('No HTML entry file was found in the workspace.');
-    const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
-    if (!file.source.includes('<!-- feature-slot -->')) {
-      throw new Error(
-        `The HTML entry file does not expose a feature slot: ${file.path}`
+  useBoltStyleToolHandler(
+    'preview.addFeature',
+    async ({ title, description }) => {
+      const file = findPreviewHtmlFile(workspace.getSnapshot().files);
+      if (!file)
+        throw new Error('No HTML entry file was found in the workspace.');
+      const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
+      if (!file.source.includes('<!-- feature-slot -->')) {
+        throw new Error(
+          `The HTML entry file does not expose a feature slot: ${file.path}`
+        );
+      }
+      const source = file.source.replace(
+        '<!-- feature-slot -->',
+        () => `${card}\n        <!-- feature-slot -->`
       );
+      const snapshot = workspace.updateFile(file.path, source, {
+        coalesce: false,
+      });
+      await workspace.waitForPreviewRevision(snapshot.revision);
+      return { title, revision: snapshot.revision, preview: 'synced' };
     }
-    const source = file.source.replace(
-      '<!-- feature-slot -->',
-      `${card}\n        <!-- feature-slot -->`
-    );
-    const snapshot = workspace.updateFile('index.html', source, {
-      coalesce: false,
-    });
-    return { title, revision: snapshot.revision, preview: 'synced' };
-  });
+  );
 
-  useBoltStyleToolHandler('preview.updateHero', ({ title, subtitle }) => {
+  useBoltStyleToolHandler('preview.updateHero', async ({ title, subtitle }) => {
     const file = findPreviewHtmlFile(workspace.getSnapshot().files);
     if (!file)
       throw new Error('No HTML entry file was found in the workspace.');
@@ -494,16 +516,18 @@ function ToolHandlers({
     }
     const source = file.source
       .replace(
-        /(<h1 id="hero-title">)[\s\S]*?(<\/h1>)/,
-        `$1${escapeHtml(title)}$2`
+        /(<h1\b[^>]*id=["']hero-title["'][^>]*>)[\s\S]*?(<\/h1>)/i,
+        (_match, opening, closing) => `${opening}${escapeHtml(title)}${closing}`
       )
       .replace(
-        /(<p id="hero-subtitle">)[\s\S]*?(<\/p>)/,
-        `$1${escapeHtml(subtitle)}$2`
+        /(<p\b[^>]*id=["']hero-subtitle["'][^>]*>)[\s\S]*?(<\/p>)/i,
+        (_match, opening, closing) =>
+          `${opening}${escapeHtml(subtitle)}${closing}`
       );
-    const snapshot = workspace.updateFile('index.html', source, {
+    const snapshot = workspace.updateFile(file.path, source, {
       coalesce: false,
     });
+    await workspace.waitForPreviewRevision(snapshot.revision);
     return { title, revision: snapshot.revision, preview: 'synced' };
   });
 
@@ -511,7 +535,8 @@ function ToolHandlers({
     const snapshot = workspace.getSnapshot();
     return {
       revision: snapshot.revision,
-      status: 'synced',
+      status: snapshot.preview.status,
+      message: snapshot.preview.message,
       runtime: 'sandbox iframe',
     };
   });
@@ -754,6 +779,32 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     workspace.getSnapshot,
     workspace.getSnapshot
   );
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const expectedPreviewRevisionRef = useRef(snapshot.revision);
+  useEffect(() => {
+    expectedPreviewRevisionRef.current = snapshot.revision;
+  }, [snapshot.revision]);
+  useEffect(() => {
+    const handlePreviewMessage = (event: MessageEvent<unknown>) => {
+      const iframeWindow = iframeRef.current?.contentWindow;
+      if (!iframeWindow || event.source !== iframeWindow) return;
+      if (!isPreviewBridgeMessage(event.data)) return;
+      if (event.data.revision !== expectedPreviewRevisionRef.current) return;
+
+      if (event.data.type === 'context-action.preview.ready') {
+        workspace.setPreviewStatus(event.data.revision, 'synced');
+      } else {
+        workspace.setPreviewStatus(
+          event.data.revision,
+          'error',
+          event.data.message
+        );
+      }
+    };
+
+    window.addEventListener('message', handlePreviewMessage);
+    return () => window.removeEventListener('message', handlePreviewMessage);
+  }, [workspace]);
   const [prompt, setPrompt] = useState(
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
@@ -799,8 +850,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     };
   }, [assetUrls]);
   const previewDocument = useMemo(
-    () => buildPreviewDocument(snapshot.files, assetUrls),
-    [assetUrls, snapshot.files]
+    () => buildPreviewDocument(snapshot.files, assetUrls, snapshot.revision),
+    [assetUrls, snapshot.files, snapshot.revision]
   );
   const toolNames = registry.getToolNames().map(String);
   const [selectedToolName, setSelectedToolName] = useState(
@@ -816,6 +867,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       : snapshot.storageMode === 'loading'
         ? 'Loading workspace'
         : 'Memory fallback';
+  const previewStatusLabel =
+    snapshot.preview.status === 'synced'
+      ? 'synced'
+      : snapshot.preview.status === 'error'
+        ? 'runtime error'
+        : 'waiting';
 
   useEffect(() => {
     folderInputRef.current?.setAttribute('webkitdirectory', '');
@@ -1353,8 +1410,10 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <span className="panel-label">Preview</span>
               <strong>localhost · sandbox</strong>
             </div>
-            <span className="preview-status">
-              <span className="status-dot" /> synced
+            <span
+              className={`preview-status preview-status-${snapshot.preview.status}`}
+            >
+              <span className="status-dot" /> {previewStatusLabel}
             </span>
           </div>
           <div className="browser-frame">
@@ -1371,6 +1430,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             </div>
             <iframe
               className="preview-iframe"
+              ref={iframeRef}
               sandbox="allow-scripts"
               srcDoc={previewDocument}
               title="Live generated web preview"
@@ -1381,9 +1441,13 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <span className="panel-label">Runtime</span>
               <strong>Parent registry → iframe</strong>
             </div>
-            <div className="sync-row">
+            <div className={`sync-row sync-row-${snapshot.preview.status}`}>
               <span className="status-dot" /> revision {snapshot.revision}{' '}
-              acknowledged
+              {snapshot.preview.status === 'synced'
+                ? 'acknowledged'
+                : snapshot.preview.status === 'error'
+                  ? (snapshot.preview.message ?? 'failed')
+                  : 'pending acknowledgement'}
             </div>
           </div>
         </aside>
