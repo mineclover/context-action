@@ -58,6 +58,11 @@ Use `Search` or `Ctrl/Cmd+Shift+F` to search all text files. Arrow keys and
 `Enter` jump to a matching line; `Esc` closes the search and restores its
 trigger focus.
 
+Use `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z` (or `Ctrl+Y`) outside editable fields
+to route workspace history through `workspace.undo` and `workspace.redo`.
+Inside the source and argument editors, native text editing history remains
+in control.
+
 The Explorer is a keyboard tree: `↑↓` move between visible entries, `←→`
 collapse or expand directories, and `Home/End` move to the first or last
 entry.

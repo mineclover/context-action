@@ -288,6 +288,25 @@ async function runBrowserProof(url) {
         previousRevision,
       initialRevision
     );
+    const dirtySource = await editor.inputValue();
+    const undoButton = page.getByRole('button', { name: 'Undo last edit' });
+    await undoButton.focus();
+    await page.locator('.preview-status-synced').waitFor();
+    await page.waitForFunction(() => {
+      const button = Array.from(document.querySelectorAll('button')).find(
+        (candidate) => candidate.getAttribute('aria-label') === 'Undo last edit'
+      );
+      return button instanceof HTMLButtonElement && !button.disabled;
+    });
+    await page.keyboard.press('Control+Z');
+    await page.getByLabel('Edit app.js').waitFor();
+    await page.getByRole('button', { name: /^Send/ }).waitFor();
+    await page.keyboard.press('Control+Shift+Z');
+    await page.getByLabel('Edit index.html').waitFor();
+    await page.waitForFunction(
+      (expectedSource) => document.querySelector('textarea[aria-label="Edit index.html"]')?.value === expectedSource,
+      dirtySource
+    );
 
     const prompt = page.getByLabel('Web studio prompt');
     const send = page.getByRole('button', { name: /^Send/ });

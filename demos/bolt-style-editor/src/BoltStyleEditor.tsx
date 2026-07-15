@@ -3745,6 +3745,68 @@ function EditorWorkbench({
     }
   };
 
+  useEffect(() => {
+    const handleHistoryShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        !(event.metaKey || event.ctrlKey) ||
+        event.altKey ||
+        showSettings ||
+        showCreateFile ||
+        showRenameFile ||
+        confirmationRequest ||
+        quickOpenOpen ||
+        workspaceSearchOpen ||
+        running ||
+        executionControllerRef.current ||
+        saving ||
+        !isStorageReady
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      const undo = key === 'z' && !event.shiftKey;
+      const redo =
+        (key === 'z' && event.shiftKey) || (key === 'y' && !event.shiftKey);
+      if (!undo && !redo) return;
+      if (undo && !workspace.canUndo() && !hasUnsavedChanges) return;
+      if (redo && !workspace.canRedo()) return;
+
+      event.preventDefault();
+      void executeQuickTool({
+        name: redo ? 'workspace.redo' : 'workspace.undo',
+        arguments: { expectedRevision: workspace.getSnapshot().revision },
+      });
+    };
+
+    window.addEventListener('keydown', handleHistoryShortcut);
+    return () => window.removeEventListener('keydown', handleHistoryShortcut);
+  }, [
+    confirmationRequest,
+    executeQuickTool,
+    hasUnsavedChanges,
+    isStorageReady,
+    quickOpenOpen,
+    running,
+    saving,
+    showCreateFile,
+    showRenameFile,
+    showSettings,
+    workspace,
+    workspaceSearchOpen,
+  ]);
+
   const flushEditorDrafts = async (): Promise<boolean> => {
     if (editorDraftTimerRef.current !== null) {
       window.clearTimeout(editorDraftTimerRef.current);
@@ -4788,6 +4850,7 @@ function EditorWorkbench({
               </button>
               <button
                 aria-label="Undo last edit"
+                aria-keyshortcuts="Control+Z Meta+Z"
                 className="editor-action"
                 disabled={
                   !isStorageReady ||
@@ -4807,6 +4870,7 @@ function EditorWorkbench({
               </button>
               <button
                 aria-label="Redo last edit"
+                aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y Meta+Y"
                 className="editor-action"
                 disabled={!isStorageReady || running || !workspace.canRedo()}
                 onClick={() =>
