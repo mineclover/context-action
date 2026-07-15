@@ -290,6 +290,37 @@ describe('createToolContext', () => {
       );
     });
 
+    it('should preserve a blocking handler error in the tools/call result', async () => {
+      const handler = jest.fn().mockRejectedValue(new Error('workspace conflict'));
+      const { result } = renderHook(
+        () => {
+          useToolHandler('searchProducts', useCallback(handler, []), {
+            blocking: true,
+          });
+          return useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool({
+          method: 'tools/call',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          },
+        })
+      );
+
+      expect(toolResult.isError).toBe(true);
+      expect(toolResult.error).toMatchObject({
+        code: 'TOOL_EXECUTION_FAILED',
+        message: 'workspace conflict',
+        details: { message: 'workspace conflict' },
+      });
+      expect(toolResult.content[0]?.text).toBe('workspace conflict');
+    });
+
     it('should normalize model tool calls and return MCP-style errors', async () => {
       const { result } = renderHook(() => useToolRegistry(), { wrapper });
 

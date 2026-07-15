@@ -79,6 +79,11 @@ React ToolContext adds runtime scope:
 - `toolPolicy`: an `allow`, `ask`, or `deny` decision
 - `onToolCall`: lifecycle observer for traces and audit UI
 
+When a blocking handler fails, ToolContext preserves its error message and
+handler ID in the `tools/call` structured error message/details. The UI and
+model therefore receive the concrete validation or workspace cause instead of
+only a generic `Tool call failed` response.
+
 `destructiveHint` is metadata for model and UI guidance. Authorization must still be enforced by `toolPolicy`.
 
 The standalone studio renders the same boundary as an execution trace. Local
@@ -204,7 +209,9 @@ Open folder → generic FileSystemAdapter
   it does not introduce a second mutation path.
 - The Explorer's New file dialog similarly routes through
   `workspace.createFile`; validation failures stay in the tool result path and
-  do not close the dialog, while successful creation selects the new tab.
+  remain visible inside the dialog and do not close it, while successful creation
+  selects the new tab. The Explorer and editor tabs also show per-file unsaved
+  markers.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.

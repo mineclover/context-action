@@ -386,14 +386,38 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           );
 
           if (!execution.success) {
-            const validationMessage = execution.validation?.errors.join('; ');
-            return finish(createToolCallError(
+            const validationMessage =
+              execution.validation && !execution.validation.passed
+                ? execution.validation.errors.join('; ')
+                : undefined;
+            const failedHandler = execution.failedResults.find(
+              ({ error }) => Boolean(error?.message)
+            );
+            const lifecycleError = execution.errors.find(
+              ({ error }) => Boolean(error?.message)
+            );
+            const executionMessage =
               execution.abortReason ??
-                validationMessage ??
-                `Tool "${request.params.name}" failed`,
+              validationMessage ??
+              failedHandler?.error.message ??
+              lifecycleError?.error.message ??
+              `Tool "${request.params.name}" failed`;
+            return finish(createToolCallError(
+              executionMessage,
               {
-                code: execution.validation ? 'TOOL_VALIDATION_FAILED' : 'TOOL_EXECUTION_ABORTED',
+                code: execution.validation && !execution.validation.passed
+                  ? 'TOOL_VALIDATION_FAILED'
+                  : execution.aborted
+                    ? 'TOOL_EXECUTION_ABORTED'
+                    : 'TOOL_EXECUTION_FAILED',
                 toolCallId: request.id,
+                retryable: execution.aborted,
+                details: failedHandler
+                  ? {
+                      handlerId: failedHandler.handlerId,
+                      message: failedHandler.error.message,
+                    }
+                  : undefined,
               }
             ));
           }

@@ -630,13 +630,14 @@ export class BrowserWorkspace {
     return this.getSnapshot();
   }
 
-  markSaved(): void {
+  async markSaved(): Promise<void> {
+    await this.persistQueue;
+    if (this.snapshot.storageMode === 'indexed-db') {
+      await this.repository.clearDeletedPaths();
+    }
     this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
     this.deletedPaths = [];
     this.snapshot = { ...this.snapshot };
-    if (this.snapshot.storageMode === 'indexed-db') {
-      this.enqueuePersistence(() => this.repository.clearDeletedPaths());
-    }
     this.notify();
   }
 

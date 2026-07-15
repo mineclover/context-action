@@ -71,6 +71,11 @@ type ToolCall = {
   arguments: Record<string, unknown>;
 };
 
+type ToolExecutionOutcome = {
+  ok: boolean;
+  message?: string;
+};
+
 const themeTokens = {
   violet: { accent: '#8b5cf6', soft: '#f0eaff' },
   emerald: { accent: '#10b981', soft: '#e7fbf3' },
@@ -202,9 +207,17 @@ function highlightSourceLine(
 function resultText(result: {
   isError?: boolean;
   error?: { message?: string };
+  content?: Array<{ text?: string }>;
   structuredContent?: unknown;
 }): string {
-  if (result.isError) return result.error?.message ?? 'Tool call failed.';
+  if (result.isError) {
+    const message =
+      result.error?.message?.trim() ||
+      result.content
+        ?.map((block) => block.text?.trim())
+        .find((text): text is string => Boolean(text));
+    return message || 'Tool call failed.';
+  }
   return JSON.stringify(result.structuredContent ?? {}, null, 2);
 }
 
@@ -368,18 +381,22 @@ function CreateWorkspaceFileDialog({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (path: string, source: string) => Promise<boolean>;
+  onCreate: (path: string, source: string) => Promise<ToolExecutionOutcome>;
 }) {
   const [path, setPath] = useState('notes.md');
   const [source, setSource] = useState('# New workspace file\n');
   const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || !path.trim()) return;
     setSubmitting(true);
+    setErrorMessage(null);
     try {
-      if (await onCreate(path, source)) onClose();
+      const outcome = await onCreate(path, source);
+      if (outcome.ok) onClose();
+      else setErrorMessage(outcome.message?.trim() || 'File creation failed.');
     } finally {
       setSubmitting(false);
     }
@@ -432,6 +449,11 @@ function CreateWorkspaceFileDialog({
             value={source}
           />
         </label>
+        {errorMessage ? (
+          <p className="create-file-error" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
         <div className="settings-note">
           <span className="status-dot" />
           Text files only · paths are normalized by workspace.createFile.
@@ -567,6 +589,9 @@ function ToolHandlers({
 }) {
   useBoltStyleToolHandler('workspace.listFiles', () => {
     const snapshot = workspace.getSnapshot();
+    const dirtyPaths = new Set(
+      workspace.getDirtyFiles().map((file) => file.path)
+    );
     return {
       activePath: snapshot.activePath,
       revision: snapshot.revision,
@@ -579,6 +604,7 @@ function ToolHandlers({
           size: blob?.size ?? source.length,
           kind: kind ?? 'text',
           mimeType,
+          dirty: dirtyPaths.has(path),
         })
       ),
     };
@@ -760,6 +786,7 @@ function FileTreeEntryView({
   depth,
   expandedPaths,
   activePath,
+  dirtyPaths,
   disabled,
   onToggle,
   onSelect,
@@ -768,6 +795,7 @@ function FileTreeEntryView({
   depth: number;
   expandedPaths: ReadonlySet<string>;
   activePath: string;
+  dirtyPaths: ReadonlySet<string>;
   disabled: boolean;
   onToggle: (path: string) => void;
   onSelect: (path: string) => void;
@@ -800,6 +828,7 @@ function FileTreeEntryView({
                 activePath={activePath}
                 depth={depth + 1}
                 disabled={disabled}
+                dirtyPaths={dirtyPaths}
                 entry={child}
                 expandedPaths={expandedPaths}
                 key={child.path}
@@ -814,7 +843,7 @@ function FileTreeEntryView({
 
   return (
     <button
-      className={`file-row ${entry.path === activePath ? 'file-row-active' : ''}`}
+      className={`file-row ${entry.path === activePath ? 'file-row-active' : ''} ${dirtyPaths.has(entry.path) ? 'file-row-dirty' : ''}`}
       disabled={disabled}
       onClick={() => onSelect(entry.path)}
       style={indentation}
@@ -823,6 +852,15 @@ function FileTreeEntryView({
     >
       <FileIcon file={entry.file} />
       <span>{entry.name}</span>
+      {dirtyPaths.has(entry.path) ? (
+        <span
+          aria-label="Unsaved changes"
+          className="file-dirty-dot"
+          title="Unsaved changes"
+        >
+          •
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -830,11 +868,13 @@ function FileTreeEntryView({
 function FileTree({
   files,
   activePath,
+  dirtyPaths,
   disabled,
   onSelect,
 }: {
   files: readonly WorkspaceFile[];
   activePath: string;
+  dirtyPaths: ReadonlySet<string>;
   disabled: boolean;
   onSelect: (path: string) => void;
 }) {
@@ -865,6 +905,7 @@ function FileTree({
           activePath={activePath}
           depth={0}
           disabled={disabled}
+          dirtyPaths={dirtyPaths}
           entry={entry}
           expandedPaths={expandedPaths}
           key={entry.path}
@@ -1053,6 +1094,10 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];
+  const dirtyPaths = useMemo(
+    () => new Set(workspace.getDirtyFiles().map((file) => file.path)),
+    [snapshot, workspace]
+  );
   const canDeleteActiveFile =
     snapshot.files.length > 1 &&
     (activeFile.language !== 'html' ||
@@ -1182,7 +1227,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       if (fileSystemAdapter.hasWritableFolder) {
         await fileSystemAdapter.writeFiles(dirtyFiles);
         await fileSystemAdapter.removeFiles(deletedPaths);
-        workspace.markSaved();
+        await workspace.markSaved();
         setMessages((current) => [
           ...current,
           {
@@ -1191,7 +1236,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           },
         ]);
       } else {
-        workspace.markSaved();
+        await workspace.markSaved();
       }
     } catch (error) {
       setMessages((current) => [
@@ -1254,8 +1299,15 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
-  const executeQuickTool = async (call: ToolCall): Promise<boolean> => {
-    if (running) return false;
+  const executeQuickTool = async (
+    call: ToolCall
+  ): Promise<ToolExecutionOutcome> => {
+    if (running) {
+      return {
+        ok: false,
+        message: 'Another tool execution is already running.',
+      };
+    }
     const controller = new AbortController();
     executionControllerRef.current = controller;
     setRunning(true);
@@ -1269,32 +1321,33 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         { context: { source: 'local' }, signal: controller.signal }
       );
       throwIfAborted(controller.signal);
+      const message = result.isError
+        ? resultText(result)
+        : `Executed ${call.name}. Preview revision acknowledged.`;
       setMessages((current) => [
         ...current,
         {
           role: 'assistant',
-          text: result.isError
-            ? resultText(result)
-            : `Executed ${call.name}. Preview revision acknowledged.`,
+          text: message,
           tools: [call.name],
         },
       ]);
-      if (result.isError) return false;
-      return true;
+      return result.isError ? { ok: false, message } : { ok: true };
     } catch (error) {
+      const message = controller.signal.aborted
+        ? 'Execution cancelled.'
+        : error instanceof Error && error.message.trim()
+          ? error.message
+          : 'Tool execution failed.';
       setMessages((current) => [
         ...current,
         {
           role: 'assistant',
-          text: controller.signal.aborted
-            ? 'Execution cancelled.'
-            : error instanceof Error
-              ? error.message
-              : 'Tool execution failed.',
+          text: message,
           tools: [call.name],
         },
       ]);
-      return false;
+      return { ok: false, message };
     } finally {
       if (executionControllerRef.current === controller) {
         executionControllerRef.current = null;
@@ -1452,6 +1505,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <FileTree
             activePath={snapshot.activePath}
             disabled={!isStorageReady}
+            dirtyPaths={dirtyPaths}
             files={snapshot.files}
             onSelect={(path) => workspace.setActivePath(path)}
           />
@@ -1554,6 +1608,15 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 >
                   <FileIcon file={file} />
                   {file.path}
+                  {dirtyPaths.has(file.path) ? (
+                    <span
+                      aria-label="Unsaved changes"
+                      className="tab-dirty-dot"
+                      title="Unsaved changes"
+                    >
+                      •
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>

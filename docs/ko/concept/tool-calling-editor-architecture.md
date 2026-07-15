@@ -78,6 +78,11 @@ React ToolContext는 여기에 실행 범위를 추가한다.
 - `toolPolicy`: `allow`, `ask`, `deny` 결정
 - `onToolCall`: trace와 audit UI를 위한 lifecycle observer
 
+blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 handler ID를
+`tools/call`의 structured error message/details에 보존한다. 따라서 UI와 model이
+`Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace 원인을
+확인할 수 있다.
+
 annotation의 `destructiveHint`는 모델과 UI를 위한 힌트다. 실제 권한 차단은 반드시 `toolPolicy`에서 수행한다.
 
 standalone studio는 같은 경계를 execution trace로 표시한다. local과 OpenRouter
@@ -195,7 +200,8 @@ Open folder → generic FileSystemAdapter
   경로를 만들지 않는다.
 - Explorer의 New file dialog도 `workspace.createFile`을 호출한다. validation
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
-  선택한다.
+  선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별
+  unsaved 표시를 보여준다.
 - Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
   directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
   파일 선택은 전체 `activePath`를 그대로 유지한다.
