@@ -618,8 +618,10 @@ Open folder → generic FileSystemAdapter
 7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달하고,
    사용자가 실행을 취소할 수 있는 경로를 제공한다.
 8. `scripts/verify-web-coding-browser.mjs`로 실제 browser에서 standalone의
-   `tools/list → call → result` 및 approval-to-preview 경로를 검증한다. 이미
-   실행 중인 서버를 검사할 때는 `WEB_CODING_URL`을 전달한다.
+   source 편집·syntax highlighting과 `tools/list → call → result` 및
+   approval-to-preview 경로를 검증한다. 같은 검증에서 페이지를 reload한 뒤
+   Dexie 기반 source와 preview 복원도 확인한다. 이미 실행 중인 서버를 검사할
+   때는 `WEB_CODING_URL`을 전달한다.
 9. 파괴적인 workspace tool은 model 호출에서 approval gate를 유지하고,
    실제 폴더 삭제는 사용자가 실행하는 save 경계에서만 수행한다.
 

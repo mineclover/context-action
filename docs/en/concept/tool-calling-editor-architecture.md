@@ -660,9 +660,11 @@ Open folder → generic FileSystemAdapter
    with the DocumentManager.
 7. Forward `toolCallId` and abort signals from the model adapter to the Registry,
    with a user-visible cancellation path.
-8. Run `scripts/verify-web-coding-browser.mjs` to prove the standalone
-   `tools/list → call → result` and approval-to-preview path in a real browser;
-   pass `WEB_CODING_URL` when checking an already-running server.
+8. Run `scripts/verify-web-coding-browser.mjs` to prove the standalone source
+   editing and syntax-highlighting surface plus the
+   `tools/list → call → result` and approval-to-preview path in a real browser.
+   The same proof reloads the page and checks Dexie-backed source and preview
+   restoration; pass `WEB_CODING_URL` when checking an already-running server.
 9. Keep destructive workspace tools approval-gated for model calls and make
    explicit folder deletion part of the user-triggered save boundary.
 

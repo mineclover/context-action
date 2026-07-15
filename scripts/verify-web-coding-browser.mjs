@@ -106,6 +106,23 @@ async function runBrowserProof(url) {
       throw new Error('The source editor remained disabled after hydration.');
     }
 
+    const editor = page.getByLabel('Edit index.html');
+    const initialRevision = await page
+      .locator('.revision-label')
+      .textContent();
+    const initialSource = await editor.inputValue();
+    if ((await page.locator('.code-highlight .syntax-tag').count()) === 0) {
+      throw new Error('The source editor did not render syntax-highlight tokens.');
+    }
+    await editor.fill(`${initialSource}\n<!-- browser editing proof -->\n`);
+    await page.getByText('Unsaved changes', { exact: true }).waitFor();
+    await page.waitForFunction(
+      (previousRevision) =>
+        document.querySelector('.revision-label')?.textContent !==
+        previousRevision,
+      initialRevision
+    );
+
     const prompt = page.getByLabel('Web studio prompt');
     const send = page.getByRole('button', { name: /^Send/ });
     await prompt.fill('Show workspace status');
@@ -123,6 +140,33 @@ async function runBrowserProof(url) {
       .getByText(
         /Local agent inspected the workspace, called workspace\.getStatus, preview\.setTheme/
       )
+      .waitFor();
+
+    const preview = page.frameLocator(
+      'iframe[title="Live generated web preview"]'
+    );
+    await preview.locator('#hero-title').waitFor();
+    const accent = await preview
+      .locator(':root')
+      .evaluate((element) => getComputedStyle(element).getPropertyValue('--accent').trim());
+    if (accent !== '#10b981') {
+      throw new Error(`The preview did not apply the emerald theme: ${accent}`);
+    }
+
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByText('Ready', { exact: true }).waitFor();
+    await page.locator('button[title="styles.css"]').click();
+    const stylesEditor = page.getByLabel('Edit styles.css');
+    await stylesEditor.waitFor();
+    const restoredStyles = await stylesEditor.inputValue();
+    if (!restoredStyles.includes('--accent: #10b981')) {
+      throw new Error(
+        'The persisted styles.css source did not restore after a browser reload.'
+      );
+    }
+    await page
+      .frameLocator('iframe[title="Live generated web preview"]')
+      .locator('#hero-title')
       .waitFor();
 
     if (consoleErrors.length) {
