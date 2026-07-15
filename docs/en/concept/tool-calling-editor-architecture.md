@@ -427,7 +427,9 @@ Open folder → generic FileSystemAdapter
   and routes it through `workspace.applyPatch`, so the exact-text mutation path can
   be demonstrated without an external model key. It captures the planned workspace
   revision before approval, so edits made while approval is pending are rejected
-  instead of being overwritten.
+  instead of being overwritten. The standalone chat labels this specific revision
+  conflict as `Re-read & retry`, which runs the inspection preflight again before
+  asking for approval on the current workspace revision.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
 - The OpenRouter and New file dialogs are keyboard-modal: `Escape` closes the

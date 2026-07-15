@@ -405,7 +405,9 @@ Open folder → generic FileSystemAdapter
 - local demo agent도 교체 요청 안의 두 quoted string을 인식해
   `workspace.applyPatch`로 전달하므로 external model key 없이도 exact-text mutation
   경로를 시연할 수 있다. 승인 전에 planned workspace revision을 캡처하므로 승인
-  대기 중 source가 바뀌면 덮어쓰지 않고 거부한다.
+  대기 중 source가 바뀌면 덮어쓰지 않고 거부한다. standalone chat은 이 revision
+  conflict만 `Re-read & retry`로 표시하며, 현재 revision을 다시 inspection한 뒤
+  approval을 다시 요청한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
 - OpenRouter와 New file dialog는 keyboard-modal로 동작한다. `Escape`는 현재

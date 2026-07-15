@@ -80,6 +80,7 @@ type Message = {
   tools?: string[];
   tone?: 'error' | 'cancelled';
   retryPrompt?: string;
+  retryLabel?: string;
   retryTool?: ToolCall;
 };
 
@@ -931,16 +932,21 @@ async function runLocalAgent(
     throwIfAborted(signal);
     toolNames.push(call.name);
     if (result.isError) {
+      const errorMessage = resultText(result);
+      const revisionConflict = errorMessage.includes(
+        'Workspace revision mismatch:'
+      );
       const completedSummary =
         toolNames.length > 1
           ? `Completed ${toolNames.slice(0, -1).join(', ')} before the failure. `
           : '';
       return {
         toolNames,
-        response: `${completedSummary}${call.name} failed: ${resultText(result)}`,
+        response: `${completedSummary}${call.name} failed: ${errorMessage}`,
         failedTool: call.name,
+        revisionConflict,
         failed: true,
-        retryable: result.error?.retryable ?? false,
+        retryable: result.error?.retryable === true || revisionConflict,
       };
     }
     plannedRevision = readResultRevision(
@@ -2365,7 +2371,14 @@ function EditorWorkbench({
           ...(result.failed
             ? {
                 tone: 'error' as const,
-                ...(result.retryable === false ? {} : { retryPrompt: trimmed }),
+                ...(result.retryable === false
+                  ? {}
+                  : {
+                      retryPrompt: trimmed,
+                      ...(result.revisionConflict
+                        ? { retryLabel: 'Re-read & retry' }
+                        : {}),
+                    }),
               }
             : {}),
         },
@@ -3214,7 +3227,7 @@ function EditorWorkbench({
                         }}
                         type="button"
                       >
-                        Retry
+                        {message.retryLabel ?? 'Retry'}
                       </button>
                     ) : null}
                   </div>

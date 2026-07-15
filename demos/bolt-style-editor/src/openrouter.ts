@@ -15,6 +15,7 @@ export type AgentRunResult = {
   toolNames: string[];
   response: string;
   failedTool?: string;
+  revisionConflict?: boolean;
   failed?: boolean;
   retryable?: boolean;
 };
