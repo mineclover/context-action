@@ -972,7 +972,7 @@ function inferQuotedTextPatch(
   };
 }
 
-function promptToToolCalls(prompt: string): ToolCall[] {
+function promptToToolCalls(prompt: string, activePath?: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
   const deleteRequest =
@@ -1026,14 +1026,16 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     });
   }
 
-  if (downloadRequest && requestedPath) {
+  const downloadPath = requestedPath ?? activePath ?? null;
+
+  if (downloadRequest && downloadPath) {
     calls.push({
       name: 'workspace.downloadFile',
-      arguments: { path: requestedPath },
+      arguments: { path: downloadPath },
     });
   }
 
-  if (downloadRequest && !requestedPath) {
+  if (downloadRequest && !downloadPath) {
     return [{ name: 'workspace.listFiles', arguments: {} }];
   }
 
@@ -1142,9 +1144,10 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
 function buildLocalAgentPlan(
   prompt: string,
-  browserOnlyWorkspace = false
+  browserOnlyWorkspace = false,
+  activePath?: string
 ): ToolCall[] {
-  const requestedCalls = promptToToolCalls(prompt).map((call) =>
+  const requestedCalls = promptToToolCalls(prompt, activePath).map((call) =>
     browserOnlyWorkspace && call.name === 'workspace.saveAll'
       ? { name: 'workspace.saveCheckpoint', arguments: call.arguments }
       : call
@@ -1206,7 +1209,8 @@ async function runLocalAgent(
   recordToolList(listedTools.tools.length, 'local');
   const calls = buildLocalAgentPlan(
     prompt,
-    !fileSystemAdapter.hasWritableFolder
+    !fileSystemAdapter.hasWritableFolder,
+    workspace.getSnapshot().activePath
   );
   let plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
@@ -1268,7 +1272,12 @@ async function runLocalAgent(
       /(file|파일)/i.test(prompt) &&
       !inferWorkspacePath(prompt)
         ? 'Which file should I delete? Include a path such as README.md.'
-        : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionProducingWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
+        : toolNames.length === 1 &&
+            toolNames[0] === 'workspace.listFiles' &&
+            /(download|export|다운로드|내려받|받아\s*줘)/i.test(prompt) &&
+            !inferWorkspacePath(prompt)
+          ? 'Which file should I download? Include a path such as README.md.'
+          : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionProducingWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
   };
 }
 
@@ -4214,6 +4223,7 @@ function EditorWorkbench({
                 'Show workspace status',
                 'Create notes.md',
                 'Rename index.html to landing.html',
+                'Download current file',
                 'Save to folder',
                 'Reload folder',
                 'Disconnect folder',

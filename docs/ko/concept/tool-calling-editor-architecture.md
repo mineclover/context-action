@@ -74,6 +74,8 @@ acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로
 `workspace.getStatus`를 호출하고, file target을 알고 있으면
 `workspace.listFiles`를 호출한다. text mutation이면 `workspace.readFile`도 호출한
 뒤 mutation을 실행한다.
+다운로드 요청에 path가 없으면 현재 `activePath`를 `workspace.downloadFile`의
+대상으로 사용하며, active workspace file 자체가 없을 때만 path를 다시 요청한다.
 example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter request가 실행 중이면
 `Run editor toolchain`이 `Cancel editor toolchain`으로 바뀌고, provider-neutral
 runner contract를 통해 abort signal을 전달한다. realtime web-coding showcase도

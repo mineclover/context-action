@@ -76,6 +76,9 @@ The deterministic local fallback follows the same inspection boundary for
 mutations: it calls `workspace.getStatus`, then `workspace.listFiles` and
 `workspace.readFile` for text mutations when a file target is known, before
 applying the mutation.
+For a download request without an explicit path, it resolves the current
+`activePath` to `workspace.downloadFile`; it asks for a path only when no active
+workspace file exists.
 The example live editor exposes the same boundary: its `Run editor toolchain`
 control becomes `Cancel editor toolchain` while the browser-side OpenRouter
 request is active and forwards the abort signal through the provider-neutral
