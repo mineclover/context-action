@@ -16,6 +16,10 @@ export default defineConfig({
         __dirname,
         '../../packages/react/src/index.ts'
       ),
+      '@context-action/mutative': path.resolve(
+        __dirname,
+        '../../packages/mutative/src/index.ts'
+      ),
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },

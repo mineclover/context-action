@@ -93,6 +93,27 @@ const revisionGuardedWorkspaceTools = new Set([
   'workspace.revertFile',
 ]);
 
+const localMutationToolNames = new Set([
+  ...revisionGuardedWorkspaceTools,
+  'workspace.saveAll',
+  'preview.setTheme',
+  'preview.addFeature',
+  'preview.updateHero',
+]);
+
+const localFileListingToolNames = new Set([
+  'workspace.applyPatch',
+  'workspace.deleteFile',
+  'workspace.writeFile',
+  'workspace.revertFile',
+]);
+
+const localTextInspectionToolNames = new Set([
+  'workspace.applyPatch',
+  'workspace.writeFile',
+  'workspace.revertFile',
+]);
+
 type ToolExecutionOutcome = {
   ok: boolean;
   message?: string;
@@ -679,6 +700,48 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     : [{ name: 'workspace.listFiles', arguments: {} }];
 }
 
+function buildLocalAgentPlan(prompt: string): ToolCall[] {
+  const requestedCalls = promptToToolCalls(prompt);
+  const mutationCalls = requestedCalls.filter((call) =>
+    localMutationToolNames.has(call.name)
+  );
+  if (!mutationCalls.length) return requestedCalls;
+
+  const preflightCalls: ToolCall[] = [
+    { name: 'workspace.getStatus', arguments: {} },
+  ];
+  const fileCall = mutationCalls.find((call) =>
+    localFileListingToolNames.has(call.name)
+  );
+  const path = fileCall?.arguments.path;
+  if (typeof path === 'string' && path.trim()) {
+    preflightCalls.push({ name: 'workspace.listFiles', arguments: {} });
+    if (fileCall && localTextInspectionToolNames.has(fileCall.name)) {
+      preflightCalls.push({
+        name: 'workspace.readFile',
+        arguments: { path },
+      });
+    }
+  }
+  return [...preflightCalls, ...requestedCalls];
+}
+
+function readResultRevision(
+  result: { structuredContent?: unknown },
+  fallback: number
+): number {
+  const structured = result.structuredContent;
+  if (
+    !structured ||
+    typeof structured !== 'object' ||
+    Array.isArray(structured) ||
+    typeof (structured as { revision?: unknown }).revision !== 'number'
+  ) {
+    return fallback;
+  }
+  return (structured as { revision: number }).revision;
+}
+
 async function runLocalAgent(
   registry: BoltStyleRegistry,
   workspace: BrowserWorkspace,
@@ -687,7 +750,7 @@ async function runLocalAgent(
 ): Promise<AgentRunResult> {
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
-  const calls = promptToToolCalls(prompt);
+  const calls = buildLocalAgentPlan(prompt);
   let plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
 
@@ -719,9 +782,12 @@ async function runLocalAgent(
         retryable: result.error?.retryable,
       };
     }
-    if (revisionGuardedWorkspaceTools.has(call.name)) {
-      plannedRevision = workspace.getSnapshot().revision;
-    }
+    plannedRevision = readResultRevision(
+      result,
+      revisionGuardedWorkspaceTools.has(call.name)
+        ? workspace.getSnapshot().revision
+        : plannedRevision
+    );
   }
 
   return {
@@ -733,7 +799,7 @@ async function runLocalAgent(
       /(file|파일)/i.test(prompt) &&
       !inferWorkspacePath(prompt)
         ? 'Which file should I delete? Include a path such as README.md.'
-        : `Local agent called ${toolNames.join(', ')} and refreshed the sandbox preview.`,
+        : `Local agent inspected the workspace, called ${toolNames.join(', ')} and refreshed the sandbox preview.`,
   };
 }
 

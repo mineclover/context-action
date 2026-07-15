@@ -52,6 +52,9 @@ read/write 권한을 허용하면 `Save to folder`로 dirty 파일을 선택한 
 다시 쓴다. structured-clone을 지원하는 브라우저에서는 다음 load를 위해 handle을
 workspace metadata와 함께 저장할 수 있다. upload fallback은 browser workspace에만
 저장한다.
+standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
+resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
+준비하지 않아도 dev server가 시작된다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
@@ -63,6 +66,10 @@ tool-call loop를 사용하고, 없으면 동일한 화면에서 결정적인 lo
 agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
 acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
 사용자에게 assistant message로 표시한다.
+결정적인 local fallback도 mutation 전에 같은 inspection 경계를 따른다. 먼저
+`workspace.getStatus`를 호출하고, file target을 알고 있으면
+`workspace.listFiles`를 호출한다. text mutation이면 `workspace.readFile`도 호출한
+뒤 mutation을 실행한다.
 example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter request가 실행 중이면
 `Run editor toolchain`이 `Cancel editor toolchain`으로 바뀌고, provider-neutral
 runner contract를 통해 abort signal을 전달한다. realtime web-coding showcase도

@@ -53,6 +53,9 @@ grants read/write access, `Save to folder` writes dirty files back to that
 directory; a structured-clone-capable browser may persist the handle alongside
 workspace metadata for the next load. The directory-upload fallback remains
 browser-workspace-only.
+The standalone Vite config resolves the workspace `core`, `react`, and
+`mutative` packages from source, so its dev server does not require a stale
+intermediate `packages/*/dist` artifact before the page can boot.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared `context-action.openrouter.api-key` browser key used by the example
@@ -64,6 +67,10 @@ or sent to a Context-Action server.
 While an agent run is active, `Cancel` aborts the provider request, registry
 execution, and any preview acknowledgement wait. Cancellation is shown as a
 user-visible assistant message instead of a misleading tool success.
+The deterministic local fallback follows the same inspection boundary for
+mutations: it calls `workspace.getStatus`, then `workspace.listFiles` and
+`workspace.readFile` for text mutations when a file target is known, before
+applying the mutation.
 The example live editor exposes the same boundary: its `Run editor toolchain`
 control becomes `Cancel editor toolchain` while the browser-side OpenRouter
 request is active and forwards the abort signal through the provider-neutral
