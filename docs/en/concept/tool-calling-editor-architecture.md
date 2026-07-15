@@ -207,7 +207,9 @@ to execute its demo arguments, so browsing a destructive tool cannot mutate the
 workspace accidentally. Catalog search and scope filters narrow the same
 canonical list without changing discovery or execution policy. Scope counts are
 derived from canonical annotations and namespaces: all, read-only, workspace,
-and preview.
+and preview. `Copy list` serializes the complete `tools` array returned by
+`registry.listTools({ method: 'tools/list' })`, so the catalog can be pasted into
+an MCP/provider test without reconstructing definitions by hand.
 
 For the standalone demo, model- and MCP-originated non-read-only calls pause at
 the `toolPolicy` boundary until the user approves or denies them. Only an

@@ -197,6 +197,9 @@ registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 검색과 scope filter는 동일한 canonical list만 좁혀 보며 discovery나 execution
 policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace에서
 계산하며 all·read-only·workspace·preview 범위를 제공한다.
+`Copy list`는 `registry.listTools({ method: 'tools/list' })`가 반환한 전체 `tools`
+array를 serialize하므로 definition을 수동으로 다시 만들지 않고 MCP/provider
+테스트에 붙여 넣을 수 있다.
 
 standalone demo에서는 model·MCP source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. 명시적인 non-prompt local palette action만 이

@@ -2924,10 +2924,26 @@ function EditorWorkbench({
 
           <div className="sidebar-section-heading">
             <span>Tools</span>
-            <span className="count-badge">
-              {visibleToolNames.length === toolNames.length
-                ? toolNames.length
-                : `${visibleToolNames.length}/${toolNames.length}`}
+            <span className="tool-heading-actions">
+              <button
+                aria-label="Copy tools/list result"
+                className="tool-list-copy-button"
+                disabled={!isStorageReady || running}
+                onClick={() =>
+                  void copyJson(
+                    'tools/list result',
+                    registry.listTools({ method: 'tools/list' })
+                  )
+                }
+                type="button"
+              >
+                Copy list
+              </button>
+              <span className="count-badge">
+                {visibleToolNames.length === toolNames.length
+                  ? toolNames.length
+                  : `${visibleToolNames.length}/${toolNames.length}`}
+              </span>
             </span>
           </div>
           <label className="tool-filter">
