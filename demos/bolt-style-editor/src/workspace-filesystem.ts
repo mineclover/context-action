@@ -62,6 +62,8 @@ const MAX_FILES = 200;
 const MAX_TEXT_FILE_BYTES = 512 * 1024;
 const MAX_ASSET_BYTES = 4 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 12 * 1024 * 1024;
+const EMPTY_FOLDER_ERROR =
+  'No supported HTML, CSS, JS, text, or preview asset files were found.';
 
 const languageByExtension: Record<string, string> = {
   '.css': 'css',
@@ -196,9 +198,7 @@ export class BrowserWorkspaceFileSystemAdapter {
     try {
       const imported = await this.importDirectoryHandle(handle);
       if (imported.files.length === 0) {
-        throw new Error(
-          'No supported HTML, CSS, JS, text, or preview asset files were found.'
-        );
+        throw new Error(EMPTY_FOLDER_ERROR);
       }
       return imported;
     } catch (error) {
@@ -221,7 +221,23 @@ export class BrowserWorkspaceFileSystemAdapter {
     if (!this.directoryHandle) {
       throw new Error('No writable folder is connected to this workspace.');
     }
-    return this.importDirectoryHandle(this.directoryHandle);
+    const previousHandle = this.directoryHandle;
+    try {
+      const imported = await this.importDirectoryHandle(previousHandle);
+      if (imported.files.length === 0) {
+        throw new Error(EMPTY_FOLDER_ERROR);
+      }
+      return imported;
+    } catch (error) {
+      this.directoryHandle = previousHandle;
+      try {
+        await this.persistence?.setDirectoryHandle(previousHandle);
+      } catch {
+        // Keep the in-memory handle consistent even if persistence recovery fails.
+      }
+      this.notify();
+      throw error;
+    }
   }
 
   async disconnectFolder(): Promise<void> {

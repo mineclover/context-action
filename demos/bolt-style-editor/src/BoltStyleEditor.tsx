@@ -2344,6 +2344,14 @@ function EditorWorkbench({
   }, []);
 
   const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
+    if (
+      workspace.isDirty() &&
+      !window.confirm(
+        `Open ${imported.rootName || 'this folder'} and discard unsaved browser workspace changes?`
+      )
+    ) {
+      return;
+    }
     await workspace.importFolder(imported);
     const skippedMessage = imported.skipped.length
       ? ` Skipped ${imported.skipped.length} unsupported, oversized, or invalid file(s).`

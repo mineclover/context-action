@@ -54,7 +54,10 @@ directory; a structured-clone-capable browser may persist the handle alongside
 workspace metadata for the next load. The directory-upload fallback remains
 browser-workspace-only. When a writable folder remains linked, `Reload` reads
 the directory again and replaces the browser workspace; dirty changes require
-explicit confirmation before they are discarded.
+explicit confirmation before they are discarded. Opening a different folder uses
+the same confirmation boundary, and cancelling preserves the current workspace.
+An empty or unsupported folder is rejected during both open and reload, so it
+cannot replace the current workspace or leave a misleading folder connection.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.
@@ -397,6 +400,10 @@ Open folder → generic FileSystemAdapter
 - Imported paths containing NUL bytes or parent traversal segments are rejected
   as invalid entries instead of being silently rewritten to another workspace
   path.
+- Opening another folder while browser-side edits are dirty requires explicit
+  confirmation; cancelling preserves the current workspace. Reload applies the
+  same empty-folder guard, so an empty connected directory cannot replace the
+  workspace.
 - Directory traversal stops once the file-count or total-byte limit is reached,
   while the import result retains one skipped-entry summary for that limit.
 - File-system handles stay behind the parent adapter and never enter tool

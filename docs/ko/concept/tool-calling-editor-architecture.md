@@ -53,6 +53,9 @@ read/write 권한을 허용하면 `Save to folder`로 dirty 파일을 선택한 
 workspace metadata와 함께 저장할 수 있다. upload fallback은 browser workspace에만
 저장한다. writable folder 연결이 남아 있으면 `Reload`가 directory를 다시 읽어
 browser workspace를 교체하며, dirty 변경은 버리기 전에 명시적인 확인을 요구한다.
+다른 folder를 여는 경우에도 같은 확인 경계를 사용하며, 취소하면 현재
+workspace를 유지한다. 지원 가능한 파일이 없는 folder는 open과 reload 모두에서
+거부되어 현재 workspace를 교체하거나 잘못된 folder 연결 상태를 남기지 않는다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.
@@ -379,6 +382,9 @@ Open folder → generic FileSystemAdapter
   건너뛴 항목으로 표시한다.
 - NUL byte나 parent traversal segment가 포함된 import path는 다른 workspace
   path로 조용히 바꾸지 않고 invalid entry로 거부한다.
+- 다른 folder를 열 때 browser-side edit가 dirty이면 명시적으로 확인하며, 취소하면
+  현재 workspace를 유지한다. Reload에도 같은 빈 folder guard를 적용해 지원 파일이
+  없는 연결 directory가 workspace를 교체하지 못하게 한다.
 - file 수나 전체 byte limit에 도달하면 directory traversal을 중단하며, import
   result에는 해당 limit을 나타내는 skipped summary 하나를 남긴다.
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
