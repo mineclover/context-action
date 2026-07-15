@@ -242,6 +242,7 @@ function DemoUI({ uiState }: { uiState: UIState }) {
   const [modelMessages, setModelMessages] = useState<ModelMessage[]>([]);
   const [input, setInput] = useState('');
   const [executing, setExecuting] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
   const dispatch = useToolDispatch();
   const registry = useToolRegistry();
   const handleApiKeyChange = (value: string) => {
@@ -290,6 +291,7 @@ function DemoUI({ uiState }: { uiState: UIState }) {
 
     const userMessage = input;
     setInput('');
+    setRequestError(null);
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
     setExecuting(true);
 
@@ -325,6 +327,8 @@ function DemoUI({ uiState }: { uiState: UIState }) {
     } catch (error) {
       console.error('AI request failed:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setInput(userMessage);
+      setRequestError(errorMsg);
       dispatch('showNotification', {
         message: `Error: ${errorMsg}`,
         type: 'error',
@@ -427,11 +431,25 @@ function DemoUI({ uiState }: { uiState: UIState }) {
               ))}
             </div>
 
+            {requestError ? (
+              <div className={styles.requestError} role="alert">
+                <strong>AI request failed</strong>
+                <p>{requestError}</p>
+                <small>
+                  Check the saved OpenRouter key and model above, then send the
+                  restored prompt again.
+                </small>
+              </div>
+            ) : null}
+
             <form onSubmit={handleSendMessage} className={styles.inputForm}>
               <input
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (requestError) setRequestError(null);
+                }}
                 placeholder="Ask AI to modify the UI..."
                 disabled={!apiKey || !selectedModel || executing}
                 className={styles.input}

@@ -244,6 +244,41 @@
   border-left: 3px solid var(--success);
 }
 
+.requestError {
+  margin: 0 15px 15px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--error) 35%, var(--border-color));
+  border-left: 3px solid var(--error);
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--error) 8%, var(--bg-primary));
+  color: var(--error);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.requestError strong,
+.requestError p,
+.requestError small {
+  display: block;
+}
+
+.requestError strong {
+  margin-bottom: 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.requestError p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.requestError small {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
 /* Input Form */
 .inputForm {
   display: flex;
