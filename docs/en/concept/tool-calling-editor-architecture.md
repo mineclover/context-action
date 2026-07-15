@@ -150,7 +150,9 @@ The bridge retries transient 429/5xx responses and network failures at most
 twice with a bounded, abortable backoff; authentication/access errors,
 malformed successful responses, and tool execution failures are surfaced
 immediately for explicit user recovery. The running status exposes the current
-retry attempt while that backoff is active.
+retry attempt while that backoff is active. Each provider request also has a
+bounded timeout; timeout failures keep the `OPENROUTER_TIMEOUT` code and use
+the same limited retry path without confusing them with user cancellation.
 
 ## Standard contract
 

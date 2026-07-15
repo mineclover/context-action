@@ -77,6 +77,12 @@ expectEqual(
   2,
   'Transient provider retry count must remain bounded.'
 );
+expect(
+  standaloneSettingsSource.includes('OPENROUTER_REQUEST_TIMEOUT_MS = 20_000') &&
+    standaloneSettingsSource.includes("code: 'OPENROUTER_TIMEOUT'") &&
+    standaloneSettingsSource.includes("reason: 'timeout'"),
+  'Standalone OpenRouter requests must preserve a bounded timeout retry path.'
+);
 expectEqual(
   protocol.openRouterRetryDelayMs(0, '2'),
   2_000,

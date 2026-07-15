@@ -17,6 +17,7 @@ export { OpenRouterRequestError } from './openrouter-protocol';
 const API_KEY_STORAGE_KEY = 'context-action.openrouter.api-key';
 const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
 const ENDPOINT_STORAGE_KEY = 'context-action.openrouter.endpoint';
+export const OPENROUTER_REQUEST_TIMEOUT_MS = 20_000;
 const settingsSubscribers = new Set<() => void>();
 let storageListenerAttached = false;
 const sessionFallback = new Map<string, string>();
@@ -70,7 +71,7 @@ export type OpenRouterRetryEvent = {
   attempt: number;
   maxAttempts: number;
   delayMs: number;
-  reason: 'network' | 'provider';
+  reason: 'network' | 'provider' | 'timeout';
 };
 
 export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
@@ -124,6 +125,51 @@ function waitForRetry(delayMs: number, signal?: AbortSignal): Promise<void> {
     signal?.addEventListener('abort', abort, { once: true });
     if (signal?.aborted) abort();
   });
+}
+
+async function fetchWithTimeout(
+  endpoint: string,
+  init: RequestInit,
+  signal?: AbortSignal
+): Promise<Response> {
+  const requestController = new AbortController();
+  const timeoutId = window.setTimeout(
+    () =>
+      requestController.abort(
+        new DOMException('OpenRouter request timed out.', 'TimeoutError')
+      ),
+    OPENROUTER_REQUEST_TIMEOUT_MS
+  );
+  const forwardAbort = () => requestController.abort(signal?.reason);
+  signal?.addEventListener('abort', forwardAbort, { once: true });
+  if (signal?.aborted) forwardAbort();
+
+  try {
+    return await fetch(endpoint, {
+      ...init,
+      signal: requestController.signal,
+    });
+  } catch (error) {
+    if (signal?.aborted) {
+      throw signal.reason instanceof Error
+        ? signal.reason
+        : new DOMException('Execution cancelled.', 'AbortError');
+    }
+    if (requestController.signal.aborted) {
+      throw new OpenRouterRequestError(
+        'OpenRouter did not respond before the request timeout.',
+        {
+          code: 'OPENROUTER_TIMEOUT',
+          retryable: true,
+          cause: error,
+        }
+      );
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+    signal?.removeEventListener('abort', forwardAbort);
+  }
 }
 
 export function readOpenRouterSettings(): OpenRouterSettings {
@@ -206,25 +252,46 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     while (true) {
       throwIfAborted(signal);
       try {
-        response = await fetch(settings.endpoint, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${settings.apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'Context-Action Web Coding Studio',
+        response = await fetchWithTimeout(
+          settings.endpoint,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${settings.apiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': window.location.origin,
+              'X-Title': 'Context-Action Web Coding Studio',
+            },
+            body: JSON.stringify({
+              model: settings.model,
+              messages,
+              tools: registry.toOpenAI(),
+              tool_choice: 'auto',
+              max_tokens: 1200,
+            }),
           },
-          signal,
-          body: JSON.stringify({
-            model: settings.model,
-            messages,
-            tools: registry.toOpenAI(),
-            tool_choice: 'auto',
-            max_tokens: 1200,
-          }),
-        });
+          signal
+        );
       } catch (error) {
         throwIfAborted(signal);
+        if (error instanceof OpenRouterRequestError) {
+          if (
+            error.code === 'OPENROUTER_TIMEOUT' &&
+            transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES
+          ) {
+            const delayMs = openRouterRetryDelayMs(transientRetryCount);
+            onRetry?.({
+              attempt: transientRetryCount + 1,
+              maxAttempts: OPENROUTER_MAX_TRANSIENT_RETRIES,
+              delayMs,
+              reason: 'timeout',
+            });
+            await waitForRetry(delayMs, signal);
+            transientRetryCount += 1;
+            continue;
+          }
+          throw error;
+        }
         if (transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES) {
           const delayMs = openRouterRetryDelayMs(transientRetryCount);
           onRetry?.({
