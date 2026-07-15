@@ -223,12 +223,34 @@ export class BrowserWorkspaceFileSystemAdapter {
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;
+    let fileLimitReported = false;
+    let totalLimitReported = false;
+
+    const shouldStopTraversal = (prefix: string): boolean => {
+      if (files.length >= MAX_FILES) {
+        if (!fileLimitReported) {
+          skipped.push(`${prefix || '.'} · file limit reached`);
+          fileLimitReported = true;
+        }
+        return true;
+      }
+      if (totalBytes >= MAX_TOTAL_BYTES) {
+        if (!totalLimitReported) {
+          skipped.push(`${prefix || '.'} · workspace limit reached`);
+          totalLimitReported = true;
+        }
+        return true;
+      }
+      return false;
+    };
 
     const visit = async (
       directory: FileSystemDirectoryHandleLike,
       prefix: string
     ): Promise<void> => {
+      if (shouldStopTraversal(prefix)) return;
       for await (const [name, entry] of directory.entries()) {
+        if (shouldStopTraversal(prefix)) return;
         const rawPath = `${prefix}/${name}`;
         let path: string;
         try {
@@ -250,7 +272,6 @@ export class BrowserWorkspaceFileSystemAdapter {
           totalBytes
         );
         totalBytes = accepted.totalBytes;
-        if (files.length >= MAX_FILES) return;
       }
     };
 

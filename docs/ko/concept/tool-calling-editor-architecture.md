@@ -377,6 +377,8 @@ Open folder → generic FileSystemAdapter
   건너뛴 항목으로 표시한다.
 - NUL byte나 parent traversal segment가 포함된 import path는 다른 workspace
   path로 조용히 바꾸지 않고 invalid entry로 거부한다.
+- file 수나 전체 byte limit에 도달하면 directory traversal을 중단하며, import
+  result에는 해당 limit을 나타내는 skipped summary 하나를 남긴다.
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
   전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
   metadata에만 handle을 저장한다.
