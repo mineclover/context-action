@@ -213,6 +213,8 @@ Open folder → generic FileSystemAdapter
   it does not introduce a second mutation path.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
+- `Download` exports the active text source or Blob asset as a browser download,
+  so upload-only folder imports can still be taken back to local files.
 - The Explorer's New file dialog similarly routes through
   `workspace.createFile`; validation failures stay in the tool result path and
   remain visible inside the dialog and do not close it, while successful creation

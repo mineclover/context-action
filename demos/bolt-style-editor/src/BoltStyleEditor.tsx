@@ -1271,6 +1271,30 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
+  const downloadActiveFile = () => {
+    const blob =
+      activeFile.kind === 'asset' && activeFile.blob
+        ? activeFile.blob
+        : new Blob([activeFile.source], {
+            type: activeFile.mimeType ?? 'text/plain',
+          });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = activeFile.path.split('/').pop() ?? 'workspace-file';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    window.setTimeout(() => {
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }, 0);
+    setMessages((current) => [
+      ...current,
+      { role: 'assistant', text: `Downloaded ${activeFile.path}.` },
+    ]);
+  };
+
   useEffect(() => {
     const handleSaveShortcut = (event: globalThis.KeyboardEvent) => {
       if (
@@ -1713,6 +1737,16 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 type="button"
               >
                 Revert
+              </button>
+              <button
+                aria-label={`Download ${activeFile.path}`}
+                className="editor-download"
+                disabled={!isStorageReady || running}
+                onClick={downloadActiveFile}
+                title="Download the active source or Blob asset"
+                type="button"
+              >
+                Download
               </button>
               <button
                 aria-keyshortcuts="Control+S Meta+S"

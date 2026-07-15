@@ -203,6 +203,9 @@ Open folder → generic FileSystemAdapter
   경로를 만들지 않는다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
+- `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
+  내보내므로, directory-upload fallback에서도 편집 결과를 다시 로컬 파일로
+  가져갈 수 있다.
 - Explorer의 New file dialog도 `workspace.createFile`을 호출한다. validation
   실패는 tool result 경로에 남기고 dialog를 유지하며, 생성 성공 시 새 tab을
   선택한다. 실패 메시지는 dialog 안에도 표시하고, Explorer와 tab에는 파일별
