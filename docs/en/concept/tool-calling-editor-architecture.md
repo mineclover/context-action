@@ -231,6 +231,11 @@ Open folder → generic FileSystemAdapter
   supports `first` or `all` occurrence mode, rejects missing matches and oversized
   output, then waits for the same preview revision acknowledgement as other
   workspace mutations.
+- All workspace file lookups canonicalize slash direction and harmless `.`
+  segments at the tool boundary; parent traversal and empty paths are rejected.
+- The local demo agent also recognizes two quoted strings in a replacement request
+  and routes it through `workspace.applyPatch`, so the exact-text mutation path can
+  be demonstrated without an external model key.
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings or New file modal is being edited.
 - `Download` exports the active text source or Blob asset as a browser download,

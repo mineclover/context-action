@@ -303,10 +303,11 @@ export class BrowserWorkspace {
   }
 
   getFile(path: string): WorkspaceFile {
+    const normalizedPath = normalizeWorkspacePath(path);
     const file = this.snapshot.files.find(
-      (candidate) => candidate.path === path
+      (candidate) => candidate.path === normalizedPath
     );
-    if (!file) throw new Error(`Workspace file not found: ${path}`);
+    if (!file) throw new Error(`Workspace file not found: ${normalizedPath}`);
     return file;
   }
 
@@ -418,10 +419,13 @@ export class BrowserWorkspace {
   }
 
   setActivePath(path: string): void {
-    this.getFile(path);
-    this.snapshot = { ...this.snapshot, activePath: path };
+    const normalizedPath = normalizeWorkspacePath(path);
+    this.getFile(normalizedPath);
+    this.snapshot = { ...this.snapshot, activePath: normalizedPath };
     if (this.snapshot.storageMode === 'indexed-db') {
-      this.enqueuePersistence(() => this.repository.setActivePath(path));
+      this.enqueuePersistence(() =>
+        this.repository.setActivePath(normalizedPath)
+      );
     }
     this.notify();
   }
@@ -431,14 +435,17 @@ export class BrowserWorkspace {
     source: string,
     options: UpdateFileOptions = {}
   ): WorkspaceSnapshot {
-    if (this.getFile(path).kind === 'asset') {
-      throw new Error(`Binary asset cannot be edited as text: ${path}`);
+    const normalizedPath = normalizeWorkspacePath(path);
+    if (this.getFile(normalizedPath).kind === 'asset') {
+      throw new Error(
+        `Binary asset cannot be edited as text: ${normalizedPath}`
+      );
     }
     const nextFiles = this.snapshot.files.map((file) =>
-      file.path === path ? { ...file, source } : file
+      file.path === normalizedPath ? { ...file, source } : file
     );
-    if (!nextFiles.some((file) => file.path === path)) {
-      throw new Error(`Workspace file not found: ${path}`);
+    if (!nextFiles.some((file) => file.path === normalizedPath)) {
+      throw new Error(`Workspace file not found: ${normalizedPath}`);
     }
     const checkpoint: WorkspaceCheckpoint = {
       activePath: this.snapshot.activePath,
@@ -448,7 +455,7 @@ export class BrowserWorkspace {
     const now = Date.now();
     const shouldCoalesce =
       options.coalesce !== false &&
-      this.lastEdit?.path === path &&
+      this.lastEdit?.path === normalizedPath &&
       now - this.lastEdit.timestamp < 750;
 
     if (shouldCoalesce) {
@@ -461,11 +468,11 @@ export class BrowserWorkspace {
       this.historyIndex += 1;
     }
 
-    this.lastEdit = { path, timestamp: now };
+    this.lastEdit = { path: normalizedPath, timestamp: now };
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
       this.enqueuePersistence(() =>
-        this.repository.saveFile(this.getFile(path))
+        this.repository.saveFile(this.getFile(normalizedPath))
       );
     }
     this.notify();
@@ -473,15 +480,20 @@ export class BrowserWorkspace {
   }
 
   revertFile(path: string): WorkspaceSnapshot {
-    const currentFile = this.getFile(path);
-    const savedFile = this.savedFiles.find((file) => file.path === path);
+    const normalizedPath = normalizeWorkspacePath(path);
+    const currentFile = this.getFile(normalizedPath);
+    const savedFile = this.savedFiles.find(
+      (file) => file.path === normalizedPath
+    );
     if (!savedFile) {
-      return this.deleteFile(path);
+      return this.deleteFile(normalizedPath);
     }
     if (currentFile.source === savedFile.source) {
       return this.getSnapshot();
     }
-    return this.updateFile(path, savedFile.source, { coalesce: false });
+    return this.updateFile(normalizedPath, savedFile.source, {
+      coalesce: false,
+    });
   }
 
   createFile(path: string, source: string): WorkspaceSnapshot {
@@ -529,7 +541,8 @@ export class BrowserWorkspace {
   }
 
   deleteFile(path: string): WorkspaceSnapshot {
-    const file = this.getFile(path);
+    const normalizedPath = normalizeWorkspacePath(path);
+    const file = this.getFile(normalizedPath);
     if (this.snapshot.files.length <= 1) {
       throw new Error('The workspace must keep at least one file.');
     }

@@ -522,12 +522,41 @@ function inferWorkspacePath(prompt: string): string | null {
   return null;
 }
 
+function inferQuotedTextPatch(
+  prompt: string,
+  requestedPath: string | null
+): { path: string; search: string; replace: string } | null {
+  if (!/(replace|change|edit|update|바꾸|바꿔|변경|수정|교체)/i.test(prompt)) {
+    return null;
+  }
+  const quotedValues = Array.from(
+    prompt.matchAll(/["“]([^"”]+)["”]/g),
+    (match) => match[1]?.trim() ?? ''
+  ).filter(Boolean);
+  const values = quotedValues.filter((value) => value !== requestedPath);
+  if (values.length < 2) return null;
+  const [search, replace] = values;
+  return {
+    path: requestedPath ?? 'index.html',
+    search,
+    replace,
+  };
+}
+
 function promptToToolCalls(prompt: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
   const deleteRequest =
     /(delete|remove|삭제|지워)/i.test(prompt) && /(file|파일)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
+  const textPatch = inferQuotedTextPatch(prompt, requestedPath);
+
+  if (textPatch) {
+    calls.push({
+      name: 'workspace.applyPatch',
+      arguments: { ...textPatch, occurrence: 'first' },
+    });
+  }
 
   if (deleteRequest && requestedPath) {
     calls.push({
@@ -671,9 +700,9 @@ function ToolHandlers({
   useBoltStyleToolHandler('workspace.readFile', ({ path }) => {
     const file = workspace.getFile(path);
     if (file.kind === 'asset') {
-      throw new Error(`Binary asset cannot be returned as text: ${path}`);
+      throw new Error(`Binary asset cannot be returned as text: ${file.path}`);
     }
-    return { path, source: file.source };
+    return { path: file.path, source: file.source };
   });
 
   useBoltStyleToolHandler<'workspace.createFile', unknown>(
@@ -698,14 +727,15 @@ function ToolHandlers({
   useBoltStyleToolHandler<'workspace.deleteFile', unknown>(
     'workspace.deleteFile',
     async ({ path }, controller) => {
-      const snapshot = workspace.deleteFile(path);
+      const file = workspace.getFile(path);
+      const snapshot = workspace.deleteFile(file.path);
       await workspace.waitForPreviewRevision(
         snapshot.revision,
         2500,
         controller.signal
       );
       return {
-        path,
+        path: file.path,
         activePath: snapshot.activePath,
         revision: snapshot.revision,
         preview: 'synced',
@@ -717,16 +747,25 @@ function ToolHandlers({
   useBoltStyleToolHandler<'workspace.writeFile', unknown>(
     'workspace.writeFile',
     async ({ path, source }, controller) => {
-      if (workspace.getFile(path).kind === 'asset') {
-        throw new Error(`Binary asset cannot be replaced as text: ${path}`);
+      const file = workspace.getFile(path);
+      if (file.kind === 'asset') {
+        throw new Error(
+          `Binary asset cannot be replaced as text: ${file.path}`
+        );
       }
-      const snapshot = workspace.updateFile(path, source, { coalesce: false });
+      const snapshot = workspace.updateFile(file.path, source, {
+        coalesce: false,
+      });
       await workspace.waitForPreviewRevision(
         snapshot.revision,
         2500,
         controller.signal
       );
-      return { path, revision: snapshot.revision, preview: 'synced' };
+      return {
+        path: file.path,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
     },
     { blocking: true }
   );
@@ -736,13 +775,13 @@ function ToolHandlers({
     async ({ path, search, replace, occurrence }, controller) => {
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
-        throw new Error(`Binary asset cannot be patched as text: ${path}`);
+        throw new Error(`Binary asset cannot be patched as text: ${file.path}`);
       }
       const patch = applyTextPatch(file.source, search, replace, occurrence);
       if (patch.source.length > 80_000) {
         throw new Error('Patched source exceeds the 80,000 character limit.');
       }
-      const snapshot = workspace.updateFile(path, patch.source, {
+      const snapshot = workspace.updateFile(file.path, patch.source, {
         coalesce: false,
       });
       await workspace.waitForPreviewRevision(
@@ -751,7 +790,7 @@ function ToolHandlers({
         controller.signal
       );
       return {
-        path,
+        path: file.path,
         replacements: patch.replacements,
         revision: snapshot.revision,
         preview: 'synced',
@@ -763,14 +802,15 @@ function ToolHandlers({
   useBoltStyleToolHandler<'workspace.revertFile', unknown>(
     'workspace.revertFile',
     async ({ path }, controller) => {
-      const snapshot = workspace.revertFile(path);
+      const file = workspace.getFile(path);
+      const snapshot = workspace.revertFile(file.path);
       await workspace.waitForPreviewRevision(
         snapshot.revision,
         2500,
         controller.signal
       );
       return {
-        path,
+        path: file.path,
         activePath: snapshot.activePath,
         revision: snapshot.revision,
         preview: 'synced',
