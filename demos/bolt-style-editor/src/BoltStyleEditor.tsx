@@ -3624,23 +3624,39 @@ function EditorWorkbench({
     });
   };
 
+  const showCopyFeedback = (message: string) => {
+    if (copyFeedbackTimerRef.current !== null) {
+      window.clearTimeout(copyFeedbackTimerRef.current);
+    }
+    setCopyFeedback(message);
+    copyFeedbackTimerRef.current = window.setTimeout(() => {
+      copyFeedbackTimerRef.current = null;
+      setCopyFeedback(null);
+    }, 1800);
+  };
+
   const copyJson = async (label: string, value: unknown) => {
-    const showCopyFeedback = (message: string) => {
-      if (copyFeedbackTimerRef.current !== null) {
-        window.clearTimeout(copyFeedbackTimerRef.current);
-      }
-      setCopyFeedback(message);
-      copyFeedbackTimerRef.current = window.setTimeout(() => {
-        copyFeedbackTimerRef.current = null;
-        setCopyFeedback(null);
-      }, 1800);
-    };
     try {
       await writeClipboardText(JSON.stringify(value, null, 2));
       showCopyFeedback(`${label} copied`);
     } catch (error) {
-      showCopyFeedback(error instanceof Error ? error.message : 'Copy failed.');
+      showCopyFeedback(
+        `${error instanceof Error ? error.message : 'Copy failed.'} Use Download instead.`
+      );
     }
+  };
+
+  const downloadJson = (label: string, value: unknown, filename: string) => {
+    downloadTextFile(JSON.stringify(value, null, 2), filename);
+    showCopyFeedback(`${label} downloaded`);
+  };
+
+  const downloadToolList = () => {
+    downloadJson(
+      'tools/list result',
+      registry.listTools({ method: 'tools/list' }),
+      'context-action-tools-list.json'
+    );
   };
 
   const copySelectedToolCall = async () => {
@@ -3651,6 +3667,29 @@ function EditorWorkbench({
       method: 'tools/call',
       params: { name: selectedToolName, arguments: argumentsValue },
     });
+  };
+
+  const downloadSelectedToolDefinition = () => {
+    if (!selectedToolDefinition) return;
+    downloadJson(
+      'Tool definition',
+      selectedToolDefinition,
+      `context-action-${selectedToolDefinition.name.replaceAll('.', '-')}-definition.json`
+    );
+  };
+
+  const downloadSelectedToolCall = () => {
+    if (!selectedToolName) return;
+    const argumentsValue = parseToolArguments();
+    if (!argumentsValue) return;
+    downloadJson(
+      'tools/call request',
+      {
+        method: 'tools/call',
+        params: { name: selectedToolName, arguments: argumentsValue },
+      },
+      `context-action-${selectedToolName.replaceAll('.', '-')}-call.json`
+    );
   };
 
   const downloadExecutionTrace = () => {
@@ -3840,6 +3879,15 @@ function EditorWorkbench({
               >
                 Copy list
               </button>
+              <button
+                aria-label="Download tools/list result"
+                className="tool-list-copy-button"
+                disabled={!isStorageReady || running}
+                onClick={downloadToolList}
+                type="button"
+              >
+                Download list
+              </button>
               <span className="count-badge">
                 {visibleToolNames.length === toolNames.length
                   ? toolNames.length
@@ -3944,11 +3992,27 @@ function EditorWorkbench({
                   Copy definition
                 </button>
                 <button
+                  aria-label="Download tool definition"
+                  disabled={!isStorageReady || running}
+                  onClick={downloadSelectedToolDefinition}
+                  type="button"
+                >
+                  Download definition
+                </button>
+                <button
                   disabled={!isStorageReady || running}
                   onClick={() => void copySelectedToolCall()}
                   type="button"
                 >
                   Copy tools/call
+                </button>
+                <button
+                  aria-label="Download tools/call request"
+                  disabled={!isStorageReady || running}
+                  onClick={downloadSelectedToolCall}
+                  type="button"
+                >
+                  Download tools/call
                 </button>
               </div>
               {copyFeedback ? (
