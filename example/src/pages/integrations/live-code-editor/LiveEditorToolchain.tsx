@@ -37,6 +37,17 @@ function LiveEditorToolHandlers({
 }) {
   const blockingToolHandler = { blocking: true };
 
+  const getDocumentResultContext = (
+    documentRevision = manager.getSnapshot().revision
+  ) => {
+    const workspace = workspaceManager.getSnapshot();
+    return {
+      activePath: workspace.activePath,
+      workspaceRevision: workspace.revision,
+      documentRevision,
+    };
+  };
+
   useLiveEditorToolHandler(
     'editor.getStatus',
     () => {
@@ -45,6 +56,8 @@ function LiveEditorToolHandlers({
       const folderLinked = filesystemAdapter.isWritable;
       return {
         activePath: workspace.activePath,
+        documentPath: document.file,
+        documentExampleId: document.exampleId,
         rootName: workspace.rootName,
         workspaceRevision: workspace.revision,
         documentRevision: document.revision,
@@ -68,6 +81,7 @@ function LiveEditorToolHandlers({
       const snapshot = workspaceManager.getSnapshot();
       return {
         activePath: snapshot.activePath,
+        workspaceRevision: snapshot.revision,
         dirtyPaths: snapshot.dirtyPaths,
         rootName: snapshot.rootName,
         storageMode: snapshot.storageMode,
@@ -84,7 +98,10 @@ function LiveEditorToolHandlers({
 
   useLiveEditorToolHandler(
     'editor.getDocument',
-    () => manager.getSnapshot(),
+    () => ({
+      ...manager.getSnapshot(),
+      ...getDocumentResultContext(),
+    }),
     blockingToolHandler
   );
 
@@ -115,7 +132,11 @@ function LiveEditorToolHandlers({
         'Preview did not acknowledge the requested revision within 2 seconds.'
       );
     }
-    return { ...snapshot, preview };
+    return {
+      ...snapshot,
+      ...getDocumentResultContext(snapshot.revision),
+      preview,
+    };
   };
 
   useLiveEditorToolHandler<'editor.openFile', unknown>(
@@ -173,9 +194,11 @@ function LiveEditorToolHandlers({
       const snapshot = workspaceManager.markSaved(file.path, file.source);
       return {
         path: file.path,
+        activePath: snapshot.activePath,
         savedTo: 'filesystem',
         dirtyPaths: snapshot.dirtyPaths,
         workspaceRevision: snapshot.revision,
+        documentRevision: manager.getSnapshot().revision,
       };
     },
     blockingToolHandler
@@ -220,8 +243,10 @@ function LiveEditorToolHandlers({
       const snapshot = workspaceManager.getSnapshot();
       return {
         savedPaths,
+        activePath: snapshot.activePath,
         dirtyPaths: snapshot.dirtyPaths,
         workspaceRevision: snapshot.revision,
+        documentRevision: manager.getSnapshot().revision,
       };
     },
     blockingToolHandler

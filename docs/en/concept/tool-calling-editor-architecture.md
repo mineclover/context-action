@@ -151,12 +151,14 @@ alongside `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
 `editor.resetDocument`, plus `editor.getPreviewStatus`. `editor.getStatus` is
 read-only and returns separate workspace/document revisions, persistence mode,
 preview state, dirty paths, and local-folder connection status. `editor.listFiles`
-is read-only and returns the active path, storage mode, dirty paths, and file
-metadata. `editor.openFile` selects a text file and waits until the matching
-preview revision is rendered; binary files are rejected. Each mutating handler
-updates the parent DocumentManager and waits for the matching iframe revision
-acknowledgement before returning its tool result. Do not expose an arbitrary
-`runScript` tool.
+is read-only and returns the active path, workspace revision, storage mode, dirty
+paths, and file metadata. `editor.openFile` selects a text file and waits until
+the matching preview revision is rendered; binary files are rejected. Every
+preview-aware editor mutation returns `activePath`, `workspaceRevision`,
+`documentRevision`, and the acknowledged `preview` result. File-save results
+return the same workspace/document revision context together with `dirtyPaths`.
+This keeps the two revision clocks explicit at the tool-result boundary. Do not
+expose an arbitrary `runScript` tool.
 
 `editor.saveFile` is a separate destructive boundary: it writes the selected
 text file through the parent-owned filesystem adapter, requires a writable
@@ -247,9 +249,14 @@ iframe acknowledgement → editor.saveFile/editor.saveAll (when filesystem persi
 
 The model discovers the available tools first, lists the workspace before
 choosing a path, opens the selected text file, and only then performs a
-bounded source mutation. `editor.openFile` and every mutation return the
-resulting active path and preview revision so the caller can verify that the
-parent workspace and iframe are synchronized.
+bounded source mutation. Preview-aware editor results include the active path,
+both revision clocks, and the preview acknowledgement so the caller can verify
+that the parent workspace and iframe are synchronized.
+
+Standalone workspace mutations use the corresponding single-clock result
+contract: preview-aware results include `activePath`, `revision`, and
+`preview`; `workspace.saveAll` includes `activePath`, the resulting `revision`,
+and the saved/deleted path lists.
 
 The realtime web-coding route exposes the parallel workspace contract:
 

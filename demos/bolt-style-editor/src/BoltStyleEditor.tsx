@@ -721,6 +721,13 @@ function ToolHandlers({
   fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
   children: ReactNode;
 }) {
+  const workspaceResultMeta = (snapshot = workspace.getSnapshot()) => {
+    return {
+      activePath: snapshot.activePath,
+      revision: snapshot.revision,
+    };
+  };
+
   useBoltStyleToolHandler('workspace.getStatus', () => {
     const snapshot = workspace.getSnapshot();
     const dirtyPaths = workspace.getDirtyFiles().map((file) => file.path);
@@ -789,6 +796,7 @@ function ToolHandlers({
       );
       return {
         path: snapshot.activePath,
+        activePath: snapshot.activePath,
         language: workspace.getFile(snapshot.activePath).language,
         revision: snapshot.revision,
         preview: 'synced',
@@ -839,6 +847,7 @@ function ToolHandlers({
       return {
         path: file.path,
         revision: snapshot.revision,
+        activePath: snapshot.activePath,
         preview: 'synced',
       };
     },
@@ -861,6 +870,7 @@ function ToolHandlers({
         return {
           savedPaths: [],
           deletedPaths: [],
+          activePath: workspace.getSnapshot().activePath,
           revision: workspace.getSnapshot().revision,
         };
       }
@@ -874,6 +884,7 @@ function ToolHandlers({
       return {
         savedPaths: dirtyFiles.map((file) => file.path),
         deletedPaths,
+        activePath: workspace.getSnapshot().activePath,
         revision: workspace.getSnapshot().revision,
         checkpointUpdated,
       };
@@ -908,6 +919,7 @@ function ToolHandlers({
         path: file.path,
         replacements: patch.replacements,
         revision: snapshot.revision,
+        activePath: snapshot.activePath,
         preview: 'synced',
       };
     },
@@ -956,7 +968,11 @@ function ToolHandlers({
         2500,
         controller.signal
       );
-      return { theme, revision: snapshot.revision, preview: 'synced' };
+      return {
+        theme,
+        ...workspaceResultMeta(snapshot),
+        preview: 'synced',
+      };
     },
     { blocking: true }
   );
@@ -985,7 +1001,11 @@ function ToolHandlers({
         2500,
         controller.signal
       );
-      return { title, revision: snapshot.revision, preview: 'synced' };
+      return {
+        title,
+        ...workspaceResultMeta(snapshot),
+        preview: 'synced',
+      };
     },
     { blocking: true }
   );
@@ -1025,7 +1045,11 @@ function ToolHandlers({
         2500,
         controller.signal
       );
-      return { title, revision: snapshot.revision, preview: 'synced' };
+      return {
+        title,
+        ...workspaceResultMeta(snapshot),
+        preview: 'synced',
+      };
     },
     { blocking: true }
   );

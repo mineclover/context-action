@@ -146,11 +146,15 @@ workspace를 위한 `editor.getStatus`, `editor.listFiles`, `editor.openFile`, `
 `editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. `editor.getStatus`는
 read-only 도구로 workspace/document revision을 구분해 반환하고 preview·persistence·
 dirty path·local-folder 연결 상태를 포함한다. `editor.listFiles`는 active path,
-storage mode, dirty paths, 파일 metadata를 반환한다.
+workspace revision, storage mode, dirty paths, 파일 metadata를 반환한다.
 `editor.openFile`은 text file을 선택하고 일치하는 preview revision이 렌더링될
 때까지 기다리며 binary file은 거부한다. mutation handler는 부모
 DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement를 받은
-뒤 tool result를 반환한다. 임의 `runScript` 도구는 제공하지 않는다.
+뒤 tool result를 반환한다. preview-aware editor mutation 결과는
+`activePath`, `workspaceRevision`, `documentRevision`, acknowledgement된
+`preview`를 함께 반환한다. 파일 저장 결과도 같은 두 revision context와
+`dirtyPaths`를 반환해 두 clock을 tool-result 경계에서 명시한다. 임의
+`runScript` 도구는 제공하지 않는다.
 
 `editor.saveFile`은 별도의 destructive 경계다. 부모가 소유한 filesystem adapter를
 통해 선택한 text file을 기록하며, 사용자가 열어 둔 writable folder가 있어야 한다.
@@ -236,8 +240,14 @@ iframe acknowledgement → editor.saveFile/editor.saveAll (filesystem 저장이 
 
 model은 먼저 사용 가능한 도구를 확인하고 workspace 파일을 조회한 뒤 경로를
 선택한다. 그 다음 text file을 열고 제한된 source mutation을 실행한다.
-`editor.openFile`과 mutation 도구는 결과에 active path와 preview revision을 함께
-반환하므로 부모 workspace와 iframe이 동기화됐는지 검증할 수 있다.
+preview-aware editor 결과는 active path, 두 revision clock, preview
+acknowledgement를 함께 반환하므로 부모 workspace와 iframe이 동기화됐는지
+검증할 수 있다.
+
+standalone workspace mutation은 단일 clock 계약을 사용한다. preview-aware
+결과는 `activePath`, `revision`, `preview`를 반환하고,
+`workspace.saveAll`은 `activePath`, 결과 `revision`, 저장·삭제된 path 목록을
+반환한다.
 
 realtime web-coding route는 대응하는 workspace 계약도 노출한다.
 
