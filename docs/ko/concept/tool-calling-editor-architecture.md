@@ -70,6 +70,10 @@ fallback 계약을 독립적으로 검증할 수 있고, 향후 `packages/live-c
 preview document compiler와 local asset/script rewriting은
 `demos/bolt-style-editor/src/preview-document.ts`로 분리한다. `workspace.ts`는
 state와 revision persistence를 소유하고 compiler는 iframe document 경계를 소유한다.
+OpenRouter response/error transport 계약은
+`demos/bolt-style-editor/src/openrouter-protocol.ts`로 분리한다. `openrouter.ts`는
+provider tool loop를 소유하고 protocol 모듈은 status 분류, body decoding,
+cancellation, structured tool-result serialization을 소유한다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.

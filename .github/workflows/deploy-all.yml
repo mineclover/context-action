@@ -155,6 +155,9 @@ jobs:
       - name: Verify standalone filesystem adapter contracts
         run: node scripts/verify-web-coding-filesystem.mjs
 
+      - name: Verify standalone OpenRouter transport contracts
+        run: node scripts/verify-web-coding-openrouter.mjs
+
       - name: Verify standalone browser flow
         run: |
           pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
