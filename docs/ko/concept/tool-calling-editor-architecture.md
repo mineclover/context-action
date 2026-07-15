@@ -48,9 +48,10 @@ API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` →
 fallback한다. `Open folder`는 부모가 소유하는 browser adapter를 사용하며 File
 System Access API를 우선하고, 지원하지 않는 브라우저에서는 directory-upload
 input으로 fallback한 뒤 가져온 text 파일로 Dexie workspace를 교체한다. 사용자가
-read/write 권한을 허용하면 adapter는 directory handle을 부모 안에만 유지하고
-`Save to folder`로 dirty 파일을 선택한 directory에 다시 쓴다. upload fallback은
-browser workspace에만 저장한다.
+read/write 권한을 허용하면 `Save to folder`로 dirty 파일을 선택한 directory에
+다시 쓴다. structured-clone을 지원하는 브라우저에서는 다음 load를 위해 handle을
+workspace metadata와 함께 저장할 수 있다. upload fallback은 browser workspace에만
+저장한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
@@ -252,8 +253,9 @@ Open folder → generic FileSystemAdapter
   크기·전체 크기 제한과 함께 가져온다. 지원되는 image·font·WASM 파일은
   Blob 기반 preview-only asset으로 보존하고, 지원하지 않는 파일은 chat에
   건너뛴 항목으로 표시한다.
-- filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
-  넣지 않는다.
+- filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
+  전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
+  metadata에만 handle을 저장한다.
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다. 브라우저가 directory
