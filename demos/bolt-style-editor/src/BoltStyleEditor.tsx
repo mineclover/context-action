@@ -626,21 +626,28 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
 async function runLocalAgent(
   registry: BoltStyleRegistry,
+  workspace: BrowserWorkspace,
   prompt: string,
   signal?: AbortSignal
 ): Promise<{ toolNames: string[]; response: string }> {
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
   const calls = promptToToolCalls(prompt);
+  const plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
 
   for (const call of calls) {
     throwIfAborted(signal);
+    const argumentsValue =
+      call.name === 'workspace.applyPatch' &&
+      call.arguments.expectedRevision === undefined
+        ? { ...call.arguments, expectedRevision: plannedRevision }
+        : call.arguments;
     const result = await registry.callTool(
       {
         id: `local-${Date.now()}-${call.name}`,
         method: 'tools/call',
-        params: { name: call.name, arguments: call.arguments },
+        params: { name: call.name, arguments: argumentsValue },
       },
       {
         context: { source: 'local', metadata: { interaction: 'prompt' } },
@@ -702,7 +709,11 @@ function ToolHandlers({
     if (file.kind === 'asset') {
       throw new Error(`Binary asset cannot be returned as text: ${file.path}`);
     }
-    return { path: file.path, source: file.source };
+    return {
+      path: file.path,
+      source: file.source,
+      revision: workspace.getSnapshot().revision,
+    };
   });
 
   useBoltStyleToolHandler<'workspace.createFile', unknown>(
@@ -772,10 +783,22 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.applyPatch', unknown>(
     'workspace.applyPatch',
-    async ({ path, search, replace, occurrence }, controller) => {
+    async (
+      { path, search, replace, occurrence, expectedRevision },
+      controller
+    ) => {
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
         throw new Error(`Binary asset cannot be patched as text: ${file.path}`);
+      }
+      const currentRevision = workspace.getSnapshot().revision;
+      if (
+        expectedRevision !== undefined &&
+        expectedRevision !== currentRevision
+      ) {
+        throw new Error(
+          `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the file before applying the patch.`
+        );
       }
       const patch = applyTextPatch(file.source, search, replace, occurrence);
       if (patch.source.length > 80_000) {
@@ -1484,7 +1507,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             openRouterSettings,
             controller.signal
           )
-        : await runLocalAgent(registry, trimmed, controller.signal);
+        : await runLocalAgent(registry, workspace, trimmed, controller.signal);
       throwIfAborted(controller.signal);
       setMessages((current) => [
         ...current,
@@ -1634,6 +1657,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             search: line,
             replace: `${line}  `,
             occurrence: 'first',
+            expectedRevision: snapshot.revision,
           },
         };
       }

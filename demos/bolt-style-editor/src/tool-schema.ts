@@ -52,12 +52,13 @@ export const boltStyleToolSchema = createActionSchema({
     {
       name: 'workspace.applyPatch',
       description:
-        'Replace a bounded text match in one workspace file and refresh the live preview.',
+        'Replace a bounded text match in one workspace file and refresh the live preview; optionally reject stale workspace revisions.',
       parameters: z.object({
         path: filePath,
         search: z.string().min(1).max(20_000),
         replace: z.string().max(20_000),
         occurrence: z.enum(['first', 'all']),
+        expectedRevision: z.number().int().nonnegative().optional(),
       }),
     },
     z

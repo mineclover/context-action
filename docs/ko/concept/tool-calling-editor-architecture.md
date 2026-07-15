@@ -220,11 +220,15 @@ Open folder → generic FileSystemAdapter
 - `workspace.applyPatch`는 text file에 literal search/replace를 수행한다. `first`와
   `all` occurrence mode를 지원하고, match 실패와 결과 source 크기 초과를 거부한 뒤
   다른 workspace mutation과 같은 preview revision acknowledgement를 기다린다.
+- `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
+  `workspace.applyPatch`의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은
+  source를 변경하기 전에 거부되어 다시 읽기를 요구한다.
 - 모든 workspace file lookup은 tool boundary에서 slash 방향과 불필요한 `.` segment를
   canonical path로 정규화하며, parent traversal과 빈 path는 거부한다.
 - local demo agent도 교체 요청 안의 두 quoted string을 인식해
   `workspace.applyPatch`로 전달하므로 external model key 없이도 exact-text mutation
-  경로를 시연할 수 있다.
+  경로를 시연할 수 있다. 승인 전에 planned workspace revision을 캡처하므로 승인
+  대기 중 source가 바뀌면 덮어쓰지 않고 거부한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file modal 입력 중에는 동작하지 않는다.
 - `Download`는 active text source 또는 Blob asset 하나를 브라우저 다운로드로
