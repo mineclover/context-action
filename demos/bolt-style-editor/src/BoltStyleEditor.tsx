@@ -654,6 +654,41 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
+  const paletteCallFor = (name: string): ToolCall | null => {
+    switch (name) {
+      case 'workspace.listFiles':
+      case 'preview.getStatus':
+        return { name, arguments: {} };
+      case 'workspace.readFile':
+        return { name, arguments: { path: activeFile.path } };
+      case 'workspace.writeFile':
+        return {
+          name,
+          arguments: { path: activeFile.path, source: activeFile.source },
+        };
+      case 'preview.setTheme':
+        return { name, arguments: { theme: 'violet' } };
+      case 'preview.addFeature':
+        return {
+          name,
+          arguments: {
+            title: 'Palette feature',
+            description: 'Added from the visible tool palette.',
+          },
+        };
+      case 'preview.updateHero':
+        return {
+          name,
+          arguments: {
+            title: 'A page shaped by a tool call.',
+            subtitle: 'The visible registry can update the hero copy directly.',
+          },
+        };
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="studio-shell">
       <header className="studio-topbar">
@@ -728,25 +763,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 data-tool-name={name}
                 key={name}
                 onClick={() => {
-                  if (name === 'preview.setTheme') {
-                    void executeQuickTool({
-                      name,
-                      arguments: { theme: 'violet' },
-                    });
-                  } else if (name === 'preview.addFeature') {
-                    void executeQuickTool({
-                      name,
-                      arguments: {
-                        title: 'Palette feature',
-                        description: 'Added from the visible tool palette.',
-                      },
-                    });
-                  } else if (
-                    name === 'preview.getStatus' ||
-                    name === 'workspace.listFiles'
-                  ) {
-                    void executeQuickTool({ name, arguments: {} });
-                  }
+                  const call = paletteCallFor(name);
+                  if (call) void executeQuickTool(call);
                 }}
                 type="button"
               >
