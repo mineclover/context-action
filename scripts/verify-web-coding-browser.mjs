@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -143,6 +143,32 @@ async function runBrowserProof(url) {
     ) {
       throw new Error('The selected tool did not expose aria-pressed.');
     }
+    const fileTree = page.getByRole('tree', { name: 'Workspace files' });
+    if ((await fileTree.getByRole('treeitem').count()) !== 4) {
+      throw new Error('The workspace file tree did not expose its four entries.');
+    }
+    const activeTreeItem = fileTree.getByRole('treeitem', {
+      name: 'Open index.html',
+    });
+    await activeTreeItem.focus();
+    await page.keyboard.press('ArrowDown');
+    const nextTreeItem = fileTree.getByRole('treeitem', {
+      name: 'Open README.md',
+    });
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute('aria-label') === 'Open README.md'
+    );
+    if ((await nextTreeItem.getAttribute('tabindex')) !== '0') {
+      throw new Error('The file tree did not move its roving tabindex.');
+    }
+    await page.keyboard.press('Home');
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute('aria-label') === 'Open app.js'
+    );
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute('aria-label') === 'Open index.html'
+    );
     await page
       .getByRole('button', { name: 'Quick open workspace file' })
       .click();
@@ -336,12 +362,39 @@ async function runBrowserProof(url) {
       path.join(folderFixture, 'app.js'),
       "document.body.dataset.folderImport = 'ok';"
     );
+    await mkdir(path.join(folderFixture, 'src', 'components'), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(folderFixture, 'src', 'components', 'card.js'),
+      "export const card = 'folder tree proof';"
+    );
     await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);
-    await page.getByText(/Opened .* with 3 file\(s\)/).waitFor();
+    await page.getByText(/Opened .* with 4 file\(s\)/).waitFor();
     await page
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#folder-proof')
       .waitFor();
+    const srcDirectory = page
+      .locator('button[role="treeitem"][aria-level="1"]')
+      .filter({ hasText: 'src' })
+      .first();
+    await srcDirectory.waitFor();
+    await srcDirectory.focus();
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('button[role="treeitem"][aria-label$="src"]')
+          ?.getAttribute('aria-expanded') === 'false'
+    );
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('button[role="treeitem"][aria-label$="src"]')
+          ?.getAttribute('aria-expanded') === 'true'
+    );
 
     await page
       .getByRole('button', { name: 'Open OpenRouter settings' })

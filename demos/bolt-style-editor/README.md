@@ -56,6 +56,10 @@ Use `Search` or `Ctrl/Cmd+Shift+F` to search all text files. Arrow keys and
 `Enter` jump to a matching line; `Esc` closes the search and restores its
 trigger focus.
 
+The Explorer is a keyboard tree: `↑↓` move between visible entries, `←→`
+collapse or expand directories, and `Home/End` move to the first or last
+entry.
+
 ## Workspace boundaries
 
 - Text files and Blob assets are stored in Dexie/IndexedDB.
