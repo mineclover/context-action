@@ -106,9 +106,10 @@ export되는 contract와 동일하다. catalog 행을 선택하는 동작은 정
 
 standalone demo에서는 model source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. approval card에는 tool name·description·source·
-argument key만 표시하고 파일 source 자체는 다시 보여주지 않는다. prompt-originated
-local mutation은 approval 왕복을 거치고, 직접 실행하는 palette call은 결정적인
-local action으로 실행된다.
+argument key를 표시하고 파일 source 자체는 다시 보여주지 않는다. 필요하면 대상
+`path`나 `theme` 같은 안전한 argument preview만 표시한다. prompt-originated local
+mutation은 approval 왕복을 거치고, 직접 실행하는 palette call은 결정적인 local
+action으로 실행된다.
 
 ## iframe 규칙
 

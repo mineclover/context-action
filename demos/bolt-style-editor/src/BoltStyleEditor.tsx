@@ -1896,6 +1896,11 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                         : 'no arguments'}{' '}
                       · {approval.source}
                     </small>
+                    {approval.safeArgumentPreview ? (
+                      <code className="approval-argument-preview">
+                        {approval.safeArgumentPreview}
+                      </code>
+                    ) : null}
                     <div className="approval-actions">
                       <button
                         aria-label={`Deny ${approval.name}`}

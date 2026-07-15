@@ -110,9 +110,11 @@ workspace accidentally.
 
 For the standalone demo, model-originated non-read-only calls pause at the
 `toolPolicy` boundary until the user approves or denies them. The approval card
-shows only the tool name, description, source, and argument keys; it never
-echoes the file source. Prompt-originated local mutations use the same approval
-round trip, while direct palette calls remain deterministic local actions.
+shows the tool name, description, source, and argument keys; it never
+echoes the file source. It may show a safe argument preview such as a target
+`path` or `theme`, but never the file `source`. Prompt-originated local mutations
+use the same approval round trip, while direct palette calls remain deterministic
+local actions.
 
 ## iframe rules
 
