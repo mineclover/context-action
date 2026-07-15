@@ -96,6 +96,9 @@ is present, chat requests use OpenRouter's native tool-call loop; when it is
 absent, the same surface uses the deterministic local agent. The key is sent
 directly from the browser to the configured endpoint and is never bundled or
 sent to a Context-Action server.
+If the browser blocks or cannot write `localStorage`, both provider surfaces
+keep a session-only in-memory fallback for the current tab; cross-page key reuse
+still requires browser storage to be available.
 While an agent run is active, `Cancel` aborts the provider request, registry
 execution, and any preview acknowledgement wait. Cancellation is shown as a
 user-visible assistant message instead of a misleading tool success.

@@ -7,6 +7,14 @@ const protocolPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/openrouter-protocol.ts'
 );
+const standaloneSettingsPath = path.join(
+  rootDirectory,
+  'demos/bolt-style-editor/src/openrouter.ts'
+);
+const exampleSettingsPath = path.join(
+  rootDirectory,
+  'example/src/lib/openrouter-api-key.ts'
+);
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
 const source = await readFile(protocolPath, 'utf8');
@@ -19,6 +27,15 @@ const { outputText } = typescript.transpileModule(source, {
 });
 const protocol = await import(
   'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64')
+);
+
+const sharedStorageKey = 'context-action.openrouter.api-key';
+const standaloneSettingsSource = await readFile(standaloneSettingsPath, 'utf8');
+const exampleSettingsSource = await readFile(exampleSettingsPath, 'utf8');
+expect(
+  standaloneSettingsSource.includes(sharedStorageKey) &&
+    exampleSettingsSource.includes(sharedStorageKey),
+  'Standalone and example OpenRouter settings must use the same storage key.'
 );
 
 function expect(condition, message) {

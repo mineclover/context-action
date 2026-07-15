@@ -242,6 +242,68 @@ async function runBrowserProof(url) {
       .locator('#folder-proof')
       .waitFor();
 
+    await page
+      .getByRole('button', { name: 'Open OpenRouter settings' })
+      .click();
+    let settingsDialog = page.getByRole('dialog', { name: 'OpenRouter API' });
+    const settingsKey = settingsDialog.locator('input').first();
+    await settingsKey.fill('sk-or-v1-browser-proof');
+    await settingsDialog
+      .getByRole('button', { name: 'Save settings' })
+      .click();
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByLabel('Edit index.html').waitFor();
+    await page
+      .getByRole('button', { name: 'Open OpenRouter settings' })
+      .click();
+    settingsDialog = page.getByRole('dialog', { name: 'OpenRouter API' });
+    if ((await settingsDialog.locator('input').first().inputValue()) !== 'sk-or-v1-browser-proof') {
+      throw new Error('The OpenRouter key did not persist across a browser reload.');
+    }
+    await settingsDialog.getByRole('button', { name: 'Clear key' }).click();
+    await settingsDialog
+      .getByRole('button', { name: 'Save settings' })
+      .click();
+
+    const blockedStoragePage = await page.context().browser().newPage();
+    const blockedStorageErrors = [];
+    blockedStoragePage.on('console', (message) => {
+      if (message.type() === 'error') blockedStorageErrors.push(message.text());
+    });
+    blockedStoragePage.on('pageerror', (error) =>
+      blockedStorageErrors.push(error.message)
+    );
+    await blockedStoragePage.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        get() {
+          throw new DOMException('Storage blocked for proof.', 'SecurityError');
+        },
+      });
+    });
+    try {
+      await blockedStoragePage.goto(url, { waitUntil: 'networkidle' });
+      await blockedStoragePage.getByText('Ready', { exact: true }).waitFor();
+      await blockedStoragePage
+        .getByRole('button', { name: 'Open OpenRouter settings' })
+        .click();
+      const blockedSettings = blockedStoragePage.getByRole('dialog', {
+        name: 'OpenRouter API',
+      });
+      await blockedSettings.locator('input').first().fill('sk-or-v1-session-proof');
+      await blockedSettings
+        .getByRole('button', { name: 'Save settings' })
+        .click();
+      await blockedStoragePage.getByText('OpenRouter', { exact: true }).waitFor();
+      if (blockedStorageErrors.length) {
+        throw new Error(
+          `Blocked storage browser errors: ${blockedStorageErrors.join(' | ')}`
+        );
+      }
+    } finally {
+      await blockedStoragePage.close();
+    }
+
     if (consoleErrors.length) {
       throw new Error(`Browser console errors: ${consoleErrors.join(' | ')}`);
     }

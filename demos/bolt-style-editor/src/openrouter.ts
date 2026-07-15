@@ -17,6 +17,16 @@ const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
 const ENDPOINT_STORAGE_KEY = 'context-action.openrouter.endpoint';
 const settingsSubscribers = new Set<() => void>();
 let storageListenerAttached = false;
+const sessionFallback = new Map<string, string>();
+
+function getLocalStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 function notifySettingsSubscribers(): void {
   for (const subscriber of settingsSubscribers) subscriber();
@@ -24,13 +34,14 @@ function notifySettingsSubscribers(): void {
 
 function ensureStorageListener(): void {
   if (storageListenerAttached || typeof window === 'undefined') return;
+  const storage = getLocalStorage();
   window.addEventListener('storage', (event) => {
+    if (event.storageArea && event.storageArea !== storage) return;
     if (
-      event.storageArea === window.localStorage &&
-      (event.key === API_KEY_STORAGE_KEY ||
-        event.key === MODEL_STORAGE_KEY ||
-        event.key === ENDPOINT_STORAGE_KEY ||
-        event.key === null)
+      event.key === API_KEY_STORAGE_KEY ||
+      event.key === MODEL_STORAGE_KEY ||
+      event.key === ENDPOINT_STORAGE_KEY ||
+      event.key === null
     ) {
       notifySettingsSubscribers();
     }
@@ -61,7 +72,26 @@ export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
 
 function readStorage(key: string): string {
   if (typeof window === 'undefined') return '';
-  return window.localStorage.getItem(key)?.trim() ?? '';
+  const storage = getLocalStorage();
+  if (!storage) return sessionFallback.get(key) ?? '';
+  try {
+    return storage.getItem(key)?.trim() ?? '';
+  } catch {
+    return sessionFallback.get(key) ?? '';
+  }
+}
+
+function writeStorage(key: string, value: string): void {
+  if (value) sessionFallback.set(key, value);
+  else sessionFallback.delete(key);
+
+  const storage = getLocalStorage();
+  try {
+    if (value) storage?.setItem(key, value);
+    else storage?.removeItem(key);
+  } catch {
+    // Keep the current tab usable when browser storage is blocked or full.
+  }
 }
 
 export function readOpenRouterSettings(): OpenRouterSettings {
@@ -91,13 +121,9 @@ export function saveOpenRouterSettings(
   };
 
   if (typeof window !== 'undefined') {
-    if (next.apiKey) {
-      window.localStorage.setItem(API_KEY_STORAGE_KEY, next.apiKey);
-    } else {
-      window.localStorage.removeItem(API_KEY_STORAGE_KEY);
-    }
-    window.localStorage.setItem(MODEL_STORAGE_KEY, next.model);
-    window.localStorage.setItem(ENDPOINT_STORAGE_KEY, next.endpoint);
+    writeStorage(API_KEY_STORAGE_KEY, next.apiKey);
+    writeStorage(MODEL_STORAGE_KEY, next.model);
+    writeStorage(ENDPOINT_STORAGE_KEY, next.endpoint);
   }
 
   notifySettingsSubscribers();

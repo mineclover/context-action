@@ -92,6 +92,9 @@ server가 서로 다른 port를 사용하면 브라우저 storage도 분리되�
 사용하고, 없으면 동일한 화면에서 결정적인 local agent fallback을 사용한다. 키는
 브라우저에서 설정된 endpoint로 직접 전송되며 Context-Action 서버로 전달하거나
 번들에 포함하지 않는다.
+browser가 `localStorage`를 차단하거나 기록할 수 없는 경우에도 두 provider
+surface는 현재 tab에서 session-only in-memory fallback을 사용한다. 다만 다른
+page와의 key 재사용은 browser storage가 가능해야 한다.
 agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
 acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
 사용자에게 assistant message로 표시한다.

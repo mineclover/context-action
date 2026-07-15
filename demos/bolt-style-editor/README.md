@@ -72,6 +72,9 @@ is supplied, it is stored under the same-origin
 `context-action.openrouter.api-key` local-storage key used by the example demos
 and sent directly from the browser to the configured chat-completions endpoint.
 Keys are not bundled or sent to a Context-Action server.
+If the browser blocks or cannot write `localStorage`, the current tab keeps a
+session-only fallback so the editor remains usable; cross-page reuse then
+requires browser storage to be available.
 
 ## GitHub Pages
 
