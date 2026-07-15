@@ -375,6 +375,41 @@ function throwIfAborted(signal?: AbortSignal): void {
     : new DOMException('Execution cancelled.', 'AbortError');
 }
 
+async function writeClipboardText(value: string): Promise<void> {
+  const clipboard = navigator.clipboard;
+  if (clipboard?.writeText) {
+    try {
+      await Promise.race([
+        clipboard.writeText(value),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(
+            () => reject(new Error('Clipboard access timed out.')),
+            800
+          );
+        }),
+      ]);
+      return;
+    } catch {
+      // Fall through to the synchronous browser copy path.
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } finally {
+    textarea.remove();
+  }
+  if (!copied) throw new Error('Clipboard access is unavailable.');
+}
+
 function assertExpectedWorkspaceRevision(
   workspace: BrowserWorkspace,
   expectedRevision?: number
@@ -1985,10 +2020,14 @@ function EditorWorkbench({
   );
   const [running, setRunning] = useState(false);
   const executionControllerRef = useRef<AbortController | null>(null);
+  const copyFeedbackTimerRef = useRef<number | null>(null);
   useEffect(() => {
     return () => {
       denyPendingToolApprovals();
       executionControllerRef.current?.abort();
+      if (copyFeedbackTimerRef.current !== null) {
+        window.clearTimeout(copyFeedbackTimerRef.current);
+      }
     };
   }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -2080,6 +2119,7 @@ function EditorWorkbench({
   const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
     null
   );
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const toolCatalogCounts = useMemo(() => {
     const counts: Record<ToolCatalogFilter, number> = {
@@ -2667,6 +2707,35 @@ function EditorWorkbench({
     });
   };
 
+  const copyJson = async (label: string, value: unknown) => {
+    const showCopyFeedback = (message: string) => {
+      if (copyFeedbackTimerRef.current !== null) {
+        window.clearTimeout(copyFeedbackTimerRef.current);
+      }
+      setCopyFeedback(message);
+      copyFeedbackTimerRef.current = window.setTimeout(() => {
+        copyFeedbackTimerRef.current = null;
+        setCopyFeedback(null);
+      }, 1800);
+    };
+    try {
+      await writeClipboardText(JSON.stringify(value, null, 2));
+      showCopyFeedback(`${label} copied`);
+    } catch (error) {
+      showCopyFeedback(error instanceof Error ? error.message : 'Copy failed.');
+    }
+  };
+
+  const copySelectedToolCall = async () => {
+    if (!selectedToolName) return;
+    const argumentsValue = parseToolArguments();
+    if (!argumentsValue) return;
+    await copyJson('tools/call request', {
+      method: 'tools/call',
+      params: { name: selectedToolName, arguments: argumentsValue },
+    });
+  };
+
   const closeWorkspaceSearch = () => {
     setWorkspaceSearchOpen(false);
     setWorkspaceSearchQuery('');
@@ -2870,6 +2939,33 @@ function EditorWorkbench({
                     <span key={key}>{key}</span>
                   ))}
               </div>
+              <div className="tool-inspector-actions">
+                <button
+                  disabled={!isStorageReady || running}
+                  onClick={() =>
+                    void copyJson('Tool definition', selectedToolDefinition)
+                  }
+                  type="button"
+                >
+                  Copy definition
+                </button>
+                <button
+                  disabled={!isStorageReady || running}
+                  onClick={() => void copySelectedToolCall()}
+                  type="button"
+                >
+                  Copy tools/call
+                </button>
+              </div>
+              {copyFeedback ? (
+                <div
+                  aria-live="polite"
+                  className="tool-copy-feedback"
+                  role="status"
+                >
+                  {copyFeedback}
+                </div>
+              ) : null}
               <button
                 className="tool-run-button"
                 disabled={!isStorageReady || running || !selectedToolName}
