@@ -1967,6 +1967,12 @@ function EditorWorkbench({
   );
   const [running, setRunning] = useState(false);
   const executionControllerRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    return () => {
+      denyPendingToolApprovals();
+      executionControllerRef.current?.abort();
+    };
+  }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
