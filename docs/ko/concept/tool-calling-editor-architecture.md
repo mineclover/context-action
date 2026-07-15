@@ -172,6 +172,10 @@ Open folder → generic FileSystemAdapter
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
+- visual tool은 workspace 경로에서 HTML entry와 우선 stylesheet를 찾으므로
+  `src/index.html` 구조를 가져와도 root 파일명에 의존하지 않는다. workspace가
+  필요한 target을 제공하지 않으면 false success 대신 명시적인 tool error를
+  반환한다.
 - 외부 CSS/JS URL과 임의의 `runScript` 요청은 preview 경계에서 차단한다. 로컬
   asset 참조는 짧은 수명의 object URL로 바꾸고 workspace preview가 바뀔 때
   URL을 revoke한다.

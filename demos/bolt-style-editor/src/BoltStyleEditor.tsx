@@ -26,6 +26,8 @@ import { recordToolCall, recordToolList, toolTraceStore } from './tool-trace';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
+  findPreviewHtmlFile,
+  findPreviewStylesheetFile,
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
@@ -441,7 +443,8 @@ function ToolHandlers({
   });
 
   useBoltStyleToolHandler('preview.setTheme', ({ theme }) => {
-    const file = workspace.getFile('styles.css');
+    const file = findPreviewStylesheetFile(workspace.getSnapshot().files);
+    if (!file) throw new Error('No CSS stylesheet was found in the workspace.');
     const tokens = themeTokens[theme];
     const source = file.source
       .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
@@ -456,8 +459,15 @@ function ToolHandlers({
   });
 
   useBoltStyleToolHandler('preview.addFeature', ({ title, description }) => {
-    const file = workspace.getFile('index.html');
+    const file = findPreviewHtmlFile(workspace.getSnapshot().files);
+    if (!file)
+      throw new Error('No HTML entry file was found in the workspace.');
     const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
+    if (!file.source.includes('<!-- feature-slot -->')) {
+      throw new Error(
+        `The HTML entry file does not expose a feature slot: ${file.path}`
+      );
+    }
     const source = file.source.replace(
       '<!-- feature-slot -->',
       `${card}\n        <!-- feature-slot -->`
@@ -469,7 +479,19 @@ function ToolHandlers({
   });
 
   useBoltStyleToolHandler('preview.updateHero', ({ title, subtitle }) => {
-    const file = workspace.getFile('index.html');
+    const file = findPreviewHtmlFile(workspace.getSnapshot().files);
+    if (!file)
+      throw new Error('No HTML entry file was found in the workspace.');
+    if (!/<h1\b[^>]*id=["']hero-title["'][^>]*>/i.test(file.source)) {
+      throw new Error(
+        `The HTML entry file has no hero title target: ${file.path}`
+      );
+    }
+    if (!/<p\b[^>]*id=["']hero-subtitle["'][^>]*>/i.test(file.source)) {
+      throw new Error(
+        `The HTML entry file has no hero subtitle target: ${file.path}`
+      );
+    }
     const source = file.source
       .replace(
         /(<h1 id="hero-title">)[\s\S]*?(<\/h1>)/,

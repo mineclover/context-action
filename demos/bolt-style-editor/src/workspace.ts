@@ -397,6 +397,24 @@ function findReferencedFile(
 
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
+export function findPreviewHtmlFile(
+  files: readonly WorkspaceFile[]
+): WorkspaceFile | undefined {
+  return (
+    files.find((file) => file.path === 'index.html') ??
+    files.find((file) => file.language === 'html')
+  );
+}
+
+export function findPreviewStylesheetFile(
+  files: readonly WorkspaceFile[]
+): WorkspaceFile | undefined {
+  return (
+    files.find((file) => file.path === 'styles.css') ??
+    files.find((file) => file.language === 'css')
+  );
+}
+
 function rewriteCssAssetUrls(
   source: string,
   cssPath: string,
@@ -489,9 +507,7 @@ export function buildPreviewDocument(
   files: WorkspaceFile[],
   assetUrls: WorkspaceAssetUrls = {}
 ): string {
-  const htmlFile =
-    files.find((file) => file.path === 'index.html') ??
-    files.find((file) => file.language === 'html');
+  const htmlFile = findPreviewHtmlFile(files);
   if (!htmlFile) return '';
 
   const withStyles = inlineStylesheets(

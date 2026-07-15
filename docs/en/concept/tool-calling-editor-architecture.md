@@ -177,6 +177,10 @@ Open folder → generic FileSystemAdapter
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.
+- Visual tools resolve the selected HTML entry and the preferred stylesheet
+  from the workspace path, so imported `src/index.html` layouts do not depend on
+  root-level filenames. If a workspace does not expose the expected target,
+  the tool returns an explicit error instead of reporting a false success.
 - External CSS/JS URLs and arbitrary `runScript` requests are blocked by the
   preview boundary. Local asset references are rewritten to short-lived object
   URLs, and the URLs are revoked when the workspace preview changes.
