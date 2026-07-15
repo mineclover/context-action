@@ -59,6 +59,9 @@ OpenRouter 위치에서 재사용할 수 있다. 키가 있으면 chat이 OpenRo
 tool-call loop를 사용하고, 없으면 동일한 화면에서 결정적인 local agent fallback을
 사용한다. 키는 브라우저에서 설정된 endpoint로 직접 전송되며 Context-Action 서버로
 전달하거나 번들에 포함하지 않는다.
+agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
+acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
+사용자에게 assistant message로 표시한다.
 
 ## 표준 계약
 
@@ -198,7 +201,8 @@ Open folder → generic FileSystemAdapter
 5. Dexie workspace repository와 Blob/filesystem adapter 경계를 추가한다.
 6. DocumentManager와 revision-aware preview bridge 및 acknowledgement 계약을
    계속 일치시킨다.
-7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달한다.
+7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달하고,
+   사용자가 실행을 취소할 수 있는 경로를 제공한다.
 8. `tools/list → call → result`와 workspace reload의 브라우저 검증을 추가한다.
 
 ## 검증 기준

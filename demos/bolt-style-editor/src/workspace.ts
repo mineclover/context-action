@@ -260,8 +260,16 @@ export class BrowserWorkspace {
 
   waitForPreviewRevision(
     revision: number,
-    timeoutMs = 2500
+    timeoutMs = 2500,
+    signal?: AbortSignal
   ): Promise<PreviewSnapshot> {
+    if (signal?.aborted) {
+      return Promise.reject(
+        signal.reason instanceof Error
+          ? signal.reason
+          : new DOMException('Preview wait cancelled.', 'AbortError')
+      );
+    }
     const current = this.snapshot.preview;
     if (current.revision === revision && current.status === 'synced') {
       return Promise.resolve(current);
@@ -276,11 +284,13 @@ export class BrowserWorkspace {
       let settled = false;
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
       let unsubscribe = () => {};
+      let removeAbortListener = () => {};
       const finish = (callback: () => void) => {
         if (settled) return;
         settled = true;
         if (timeoutId) clearTimeout(timeoutId);
         unsubscribe();
+        removeAbortListener();
         callback();
       };
       const inspect = () => {
@@ -308,6 +318,22 @@ export class BrowserWorkspace {
       };
 
       unsubscribe = this.subscribe(inspect);
+      if (signal) {
+        const abort = () =>
+          finish(() =>
+            reject(
+              signal.reason instanceof Error
+                ? signal.reason
+                : new DOMException('Preview wait cancelled.', 'AbortError')
+            )
+          );
+        signal.addEventListener('abort', abort, { once: true });
+        removeAbortListener = () => signal.removeEventListener('abort', abort);
+        if (signal.aborted) {
+          abort();
+          return;
+        }
+      }
       timeoutId = setTimeout(() => {
         finish(() =>
           reject(

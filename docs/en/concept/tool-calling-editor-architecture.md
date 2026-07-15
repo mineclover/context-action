@@ -60,6 +60,9 @@ the key is present, chat requests use OpenRouter's native tool-call loop; when
 it is absent, the same surface uses the deterministic local agent. The key is
 sent directly from the browser to the configured endpoint and is never bundled
 or sent to a Context-Action server.
+While an agent run is active, `Cancel` aborts the provider request, registry
+execution, and any preview acknowledgement wait. Cancellation is shown as a
+user-visible assistant message instead of a misleading tool success.
 
 ## Standard contract
 
@@ -204,7 +207,8 @@ Open folder → generic FileSystemAdapter
 5. Add the Dexie workspace repository and Blob/file-system adapter boundary.
 6. Keep the revision-aware preview bridge and acknowledgement contract aligned
    with the DocumentManager.
-7. Forward `toolCallId` and abort signals from the model adapter to the Registry.
+7. Forward `toolCallId` and abort signals from the model adapter to the Registry,
+   with a user-visible cancellation path.
 8. Add browser proof for `tools/list → call → result` and workspace reload.
 
 ## Acceptance criteria

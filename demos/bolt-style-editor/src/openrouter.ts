@@ -101,10 +101,19 @@ function toolResultContent(result: {
   );
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (!signal?.aborted) return;
+  const reason = signal.reason;
+  throw reason instanceof Error
+    ? reason
+    : new DOMException('Execution cancelled.', 'AbortError');
+}
+
 export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
   prompt: string,
-  settings: OpenRouterSettings
+  settings: OpenRouterSettings,
+  signal?: AbortSignal
 ): Promise<{ toolNames: string[]; response: string }> {
   if (!settings.apiKey) {
     throw new Error('OpenRouter API key is not configured.');
@@ -119,10 +128,11 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     { role: 'user', content: prompt },
   ];
   const listedTools = registry.listTools({ method: 'tools/list' });
-  recordToolList(listedTools.tools.length, 'local');
+  recordToolList(listedTools.tools.length, 'openrouter');
   const toolNames: string[] = [];
 
   for (let turn = 0; turn < 5; turn += 1) {
+    throwIfAborted(signal);
     const response = await fetch(settings.endpoint, {
       method: 'POST',
       headers: {
@@ -131,6 +141,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
         'HTTP-Referer': window.location.origin,
         'X-Title': 'Context-Action Web Coding Studio',
       },
+      signal,
       body: JSON.stringify({
         model: settings.model,
         messages,
@@ -167,6 +178,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     });
 
     for (const toolCall of message.tool_calls) {
+      throwIfAborted(signal);
       let argumentsValue: Record<string, unknown>;
       try {
         argumentsValue = JSON.parse(toolCall.function.arguments) as Record<
@@ -183,8 +195,9 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
           name: toolCall.function.name,
           arguments: argumentsValue,
         },
-        { context: { source: 'model' } }
+        { context: { source: 'model' }, signal }
       );
+      throwIfAborted(signal);
       toolNames.push(toolCall.function.name);
       messages.push({
         role: 'tool',

@@ -193,6 +193,14 @@ function resultText(result: {
   return JSON.stringify(result.structuredContent ?? {}, null, 2);
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (!signal?.aborted) return;
+  const reason = signal.reason;
+  throw reason instanceof Error
+    ? reason
+    : new DOMException('Execution cancelled.', 'AbortError');
+}
+
 function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
   if (!value || typeof value !== 'object') return false;
   const message = value as {
@@ -390,7 +398,8 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
 async function runLocalAgent(
   registry: BoltStyleRegistry,
-  prompt: string
+  prompt: string,
+  signal?: AbortSignal
 ): Promise<{ toolNames: string[]; response: string }> {
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
@@ -398,14 +407,16 @@ async function runLocalAgent(
   const toolNames: string[] = [];
 
   for (const call of calls) {
+    throwIfAborted(signal);
     const result = await registry.executeModelToolCall(
       {
         id: `local-${Date.now()}-${call.name}`,
         name: call.name,
         arguments: call.arguments,
       },
-      { context: { source: 'model' } }
+      { context: { source: 'model' }, signal }
     );
+    throwIfAborted(signal);
     toolNames.push(call.name);
     if (result.isError) {
       return { toolNames, response: resultText(result) };
@@ -450,35 +461,50 @@ function ToolHandlers({
     return { path, source: file.source };
   });
 
-  useBoltStyleToolHandler('workspace.writeFile', async ({ path, source }) => {
-    if (workspace.getFile(path).kind === 'asset') {
-      throw new Error(`Binary asset cannot be replaced as text: ${path}`);
-    }
-    const snapshot = workspace.updateFile(path, source, { coalesce: false });
-    await workspace.waitForPreviewRevision(snapshot.revision);
-    return { path, revision: snapshot.revision, preview: 'synced' };
-  });
-
-  useBoltStyleToolHandler('preview.setTheme', async ({ theme }) => {
-    const file = findPreviewStylesheetFile(workspace.getSnapshot().files);
-    if (!file) throw new Error('No CSS stylesheet was found in the workspace.');
-    const tokens = themeTokens[theme];
-    const source = file.source
-      .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
-      .replace(
-        /--accent-soft:\s*#[0-9a-f]+;/i,
-        `--accent-soft: ${tokens.soft};`
+  useBoltStyleToolHandler<'workspace.writeFile', unknown>(
+    'workspace.writeFile',
+    async ({ path, source }, controller) => {
+      if (workspace.getFile(path).kind === 'asset') {
+        throw new Error(`Binary asset cannot be replaced as text: ${path}`);
+      }
+      const snapshot = workspace.updateFile(path, source, { coalesce: false });
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
       );
-    const snapshot = workspace.updateFile(file.path, source, {
-      coalesce: false,
-    });
-    await workspace.waitForPreviewRevision(snapshot.revision);
-    return { theme, revision: snapshot.revision, preview: 'synced' };
-  });
+      return { path, revision: snapshot.revision, preview: 'synced' };
+    }
+  );
 
-  useBoltStyleToolHandler(
+  useBoltStyleToolHandler<'preview.setTheme', unknown>(
+    'preview.setTheme',
+    async ({ theme }, controller) => {
+      const file = findPreviewStylesheetFile(workspace.getSnapshot().files);
+      if (!file)
+        throw new Error('No CSS stylesheet was found in the workspace.');
+      const tokens = themeTokens[theme];
+      const source = file.source
+        .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
+        .replace(
+          /--accent-soft:\s*#[0-9a-f]+;/i,
+          `--accent-soft: ${tokens.soft};`
+        );
+      const snapshot = workspace.updateFile(file.path, source, {
+        coalesce: false,
+      });
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return { theme, revision: snapshot.revision, preview: 'synced' };
+    }
+  );
+
+  useBoltStyleToolHandler<'preview.addFeature', unknown>(
     'preview.addFeature',
-    async ({ title, description }) => {
+    async ({ title, description }, controller) => {
       const file = findPreviewHtmlFile(workspace.getSnapshot().files);
       if (!file)
         throw new Error('No HTML entry file was found in the workspace.');
@@ -495,41 +521,53 @@ function ToolHandlers({
       const snapshot = workspace.updateFile(file.path, source, {
         coalesce: false,
       });
-      await workspace.waitForPreviewRevision(snapshot.revision);
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
       return { title, revision: snapshot.revision, preview: 'synced' };
     }
   );
 
-  useBoltStyleToolHandler('preview.updateHero', async ({ title, subtitle }) => {
-    const file = findPreviewHtmlFile(workspace.getSnapshot().files);
-    if (!file)
-      throw new Error('No HTML entry file was found in the workspace.');
-    if (!/<h1\b[^>]*id=["']hero-title["'][^>]*>/i.test(file.source)) {
-      throw new Error(
-        `The HTML entry file has no hero title target: ${file.path}`
+  useBoltStyleToolHandler<'preview.updateHero', unknown>(
+    'preview.updateHero',
+    async ({ title, subtitle }, controller) => {
+      const file = findPreviewHtmlFile(workspace.getSnapshot().files);
+      if (!file)
+        throw new Error('No HTML entry file was found in the workspace.');
+      if (!/<h1\b[^>]*id=["']hero-title["'][^>]*>/i.test(file.source)) {
+        throw new Error(
+          `The HTML entry file has no hero title target: ${file.path}`
+        );
+      }
+      if (!/<p\b[^>]*id=["']hero-subtitle["'][^>]*>/i.test(file.source)) {
+        throw new Error(
+          `The HTML entry file has no hero subtitle target: ${file.path}`
+        );
+      }
+      const source = file.source
+        .replace(
+          /(<h1\b[^>]*id=["']hero-title["'][^>]*>)[\s\S]*?(<\/h1>)/i,
+          (_match, opening, closing) =>
+            `${opening}${escapeHtml(title)}${closing}`
+        )
+        .replace(
+          /(<p\b[^>]*id=["']hero-subtitle["'][^>]*>)[\s\S]*?(<\/p>)/i,
+          (_match, opening, closing) =>
+            `${opening}${escapeHtml(subtitle)}${closing}`
+        );
+      const snapshot = workspace.updateFile(file.path, source, {
+        coalesce: false,
+      });
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
       );
+      return { title, revision: snapshot.revision, preview: 'synced' };
     }
-    if (!/<p\b[^>]*id=["']hero-subtitle["'][^>]*>/i.test(file.source)) {
-      throw new Error(
-        `The HTML entry file has no hero subtitle target: ${file.path}`
-      );
-    }
-    const source = file.source
-      .replace(
-        /(<h1\b[^>]*id=["']hero-title["'][^>]*>)[\s\S]*?(<\/h1>)/i,
-        (_match, opening, closing) => `${opening}${escapeHtml(title)}${closing}`
-      )
-      .replace(
-        /(<p\b[^>]*id=["']hero-subtitle["'][^>]*>)[\s\S]*?(<\/p>)/i,
-        (_match, opening, closing) =>
-          `${opening}${escapeHtml(subtitle)}${closing}`
-      );
-    const snapshot = workspace.updateFile(file.path, source, {
-      coalesce: false,
-    });
-    await workspace.waitForPreviewRevision(snapshot.revision);
-    return { title, revision: snapshot.revision, preview: 'synced' };
-  });
+  );
 
   useBoltStyleToolHandler('preview.getStatus', () => {
     const snapshot = workspace.getSnapshot();
@@ -809,6 +847,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
   const [running, setRunning] = useState(false);
+  const executionControllerRef = useRef<AbortController | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -980,16 +1019,29 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
+  const cancelExecution = () => {
+    const controller = executionControllerRef.current;
+    if (controller && !controller.signal.aborted) controller.abort();
+  };
+
   const executePrompt = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed || running) return;
+    const controller = new AbortController();
+    executionControllerRef.current = controller;
     setPrompt('');
     setMessages((current) => [...current, { role: 'user', text: trimmed }]);
     setRunning(true);
     try {
       const result = openRouterSettings.apiKey
-        ? await runOpenRouterAgent(registry, trimmed, openRouterSettings)
-        : await runLocalAgent(registry, trimmed);
+        ? await runOpenRouterAgent(
+            registry,
+            trimmed,
+            openRouterSettings,
+            controller.signal
+          )
+        : await runLocalAgent(registry, trimmed, controller.signal);
+      throwIfAborted(controller.signal);
       setMessages((current) => [
         ...current,
         { role: 'assistant', text: result.response, tools: result.toolNames },
@@ -999,16 +1051,25 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         ...current,
         {
           role: 'assistant',
-          text: error instanceof Error ? error.message : 'Request failed.',
+          text: controller.signal.aborted
+            ? 'Execution cancelled.'
+            : error instanceof Error
+              ? error.message
+              : 'Request failed.',
         },
       ]);
     } finally {
+      if (executionControllerRef.current === controller) {
+        executionControllerRef.current = null;
+      }
       setRunning(false);
     }
   };
 
   const executeQuickTool = async (call: ToolCall) => {
     if (running) return;
+    const controller = new AbortController();
+    executionControllerRef.current = controller;
     setRunning(true);
     try {
       const result = await registry.executeModelToolCall(
@@ -1017,8 +1078,9 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           name: call.name,
           arguments: call.arguments,
         },
-        { context: { source: 'local' } }
+        { context: { source: 'local' }, signal: controller.signal }
       );
+      throwIfAborted(controller.signal);
       setMessages((current) => [
         ...current,
         {
@@ -1029,7 +1091,23 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           tools: [call.name],
         },
       ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text: controller.signal.aborted
+            ? 'Execution cancelled.'
+            : error instanceof Error
+              ? error.message
+              : 'Tool execution failed.',
+          tools: [call.name],
+        },
+      ]);
     } finally {
+      if (executionControllerRef.current === controller) {
+        executionControllerRef.current = null;
+      }
       setRunning(false);
     }
   };
@@ -1379,12 +1457,14 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 value={prompt}
               />
               <button
-                className="send-button"
-                disabled={running || !isStorageReady}
-                onClick={() => void executePrompt(prompt)}
+                className={`send-button ${running ? 'send-button-cancel' : ''}`}
+                disabled={!isStorageReady}
+                onClick={() =>
+                  running ? cancelExecution() : void executePrompt(prompt)
+                }
                 type="button"
               >
-                {running ? 'Running…' : 'Send'} <span>↗</span>
+                {running ? 'Cancel' : 'Send'} <span>{running ? '×' : '↗'}</span>
               </button>
             </div>
             <div className="prompt-chips">
