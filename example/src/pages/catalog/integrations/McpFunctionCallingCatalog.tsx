@@ -7,6 +7,7 @@ import {
   mcpStandaloneCommands,
   mcpToolManagementMethods,
 } from '@/lib/mcp-function-calling-catalog';
+import { downloadTextFile, writeClipboardText } from '@/lib/tool-call-trace';
 
 const difficultyStyles = {
   Starter: 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -15,16 +16,25 @@ const difficultyStyles = {
 };
 
 export default function McpFunctionCallingCatalog() {
-  const [copiedCommandId, setCopiedCommandId] = useState<string | null>(null);
+  const [commandFeedback, setCommandFeedback] = useState<string | null>(null);
+
+  const showCommandFeedback = (feedback: string) => {
+    setCommandFeedback(feedback);
+    window.setTimeout(() => setCommandFeedback(null), 1600);
+  };
 
   const copyCommand = async (commandId: string, prompt: string) => {
     try {
-      await navigator.clipboard.writeText(prompt);
-      setCopiedCommandId(commandId);
-      window.setTimeout(() => setCopiedCommandId(null), 1600);
+      await writeClipboardText(prompt);
+      showCommandFeedback(`copy:${commandId}`);
     } catch {
-      setCopiedCommandId(null);
+      showCommandFeedback(`copy-failed:${commandId}`);
     }
+  };
+
+  const downloadCommand = (commandId: string, prompt: string) => {
+    downloadTextFile(prompt, `mcp-command-${commandId}.txt`, 'text/plain');
+    showCommandFeedback(`download:${commandId}`);
   };
 
   return (
@@ -151,15 +161,32 @@ export default function McpFunctionCallingCatalog() {
                     <span className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
                       Prompt
                     </span>
-                    <button
-                      className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 hover:border-violet-400"
-                      onClick={() => copyCommand(command.id, command.prompt)}
-                      type="button"
-                    >
-                      {copiedCommandId === command.id
-                        ? '복사됨'
-                        : '명령문 복사'}
-                    </button>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 hover:border-violet-400"
+                        onClick={() =>
+                          void copyCommand(command.id, command.prompt)
+                        }
+                        type="button"
+                      >
+                        {commandFeedback === `copy:${command.id}`
+                          ? '복사됨'
+                          : commandFeedback === `copy-failed:${command.id}`
+                            ? 'Download 사용'
+                            : '명령문 복사'}
+                      </button>
+                      <button
+                        className="rounded-full border border-violet-200 bg-violet-100 px-3 py-1.5 text-xs font-semibold text-violet-800 hover:border-violet-400"
+                        onClick={() =>
+                          downloadCommand(command.id, command.prompt)
+                        }
+                        type="button"
+                      >
+                        {commandFeedback === `download:${command.id}`
+                          ? '다운로드됨'
+                          : '명령문 다운로드'}
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-slate-800">
                     {command.prompt}
@@ -268,19 +295,36 @@ export default function McpFunctionCallingCatalog() {
                 </div>
 
                 <div className="mt-5 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">
                       Prompt
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => copyCommand(command.id, command.prompt)}
-                      className="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:border-indigo-400"
-                    >
-                      {copiedCommandId === command.id
-                        ? '복사됨'
-                        : '명령문 복사'}
-                    </button>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void copyCommand(command.id, command.prompt)
+                        }
+                        className="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:border-indigo-400"
+                      >
+                        {commandFeedback === `copy:${command.id}`
+                          ? '복사됨'
+                          : commandFeedback === `copy-failed:${command.id}`
+                            ? 'Download 사용'
+                            : '명령문 복사'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadCommand(command.id, command.prompt)
+                        }
+                        className="rounded-full border border-indigo-200 bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-800 hover:border-indigo-400"
+                      >
+                        {commandFeedback === `download:${command.id}`
+                          ? '다운로드됨'
+                          : '명령문 다운로드'}
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-3 text-sm leading-7 text-slate-800">
                     {command.prompt}
