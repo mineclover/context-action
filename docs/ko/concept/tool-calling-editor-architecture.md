@@ -418,8 +418,9 @@ Open folder → generic FileSystemAdapter
   dialog를 닫고, `Tab`은 dialog 내부 control 사이에서 순환하며, 열린 동안
   body scroll을 잠근다. 닫히면 열기 trigger로 focus를 복귀하고 backdrop 클릭도
   dialog를 닫는다.
-- source editor는 syntax highlighting과 편집을 하나의 overlay surface에서
-  유지한다. `⌘/Ctrl+F`로 파일 검색을 열고 `Enter`/`Shift+Enter`로
+- source editor는 HTML, CSS, JavaScript, TypeScript, JSON, Markdown 파일의
+  syntax highlighting과 편집을 하나의 overlay surface에서 유지한다.
+  `⌘/Ctrl+F`로 파일 검색을 열고 `Enter`/`Shift+Enter`로
   대소문자를 구분하지 않는 match를 이동하며, `⌘/Ctrl+G`로도 다음·이전
   match를 이동할 수 있다. `Esc`는 source로 focus를 돌려주고, editor header는
   현재 line·column과 전체 line 수를 표시한다.

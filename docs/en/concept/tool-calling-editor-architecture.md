@@ -441,7 +441,8 @@ Open folder → generic FileSystemAdapter
   active dialog, `Tab` wraps within its controls, body scrolling is locked while
   it is open, and closing restores focus to the trigger. Clicking the backdrop
   also dismisses the dialog.
-- The source editor keeps syntax highlighting and editing in one overlay surface.
+- The source editor keeps syntax highlighting and editing in one overlay surface
+  for HTML, CSS, JavaScript, TypeScript, JSON, and Markdown files.
   `⌘/Ctrl+F` opens in-file search, `Enter`/`Shift+Enter` move through
   case-insensitive matches, `⌘/Ctrl+G` also moves between matches, and `Esc`
   returns focus to the source. The editor header exposes the current line,

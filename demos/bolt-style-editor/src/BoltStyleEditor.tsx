@@ -221,11 +221,14 @@ function highlightScriptLine(
   language: WorkspaceFile['language']
 ): SyntaxToken[] {
   const tokens: SyntaxToken[] = [];
+  const isCss = language === 'css';
   let cursor = 0;
-  const parts =
-    language === 'css'
-      ? /(\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:important|from|to|and|or|not)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g
-      : /(\/\*[\s\S]*?\*\/|\/\/.*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g;
+  const parts = isCss
+    ? /(\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:important|from|to|and|or|not)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g
+    : /(\/\*[\s\S]*?\*\/|\/\/.*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export|interface|type|enum|public|private|protected|readonly|implements|extends|as|unknown|never|void|any|string|number|boolean)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g;
+  const keywordPattern = isCss
+    ? /^(important|from|to|and|or|not)$/
+    : /^(const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export|interface|type|enum|public|private|protected|readonly|implements|extends|as|unknown|never|void|any|string|number|boolean)$/;
   let match = parts.exec(line);
 
   while (match) {
@@ -240,12 +243,68 @@ function highlightScriptLine(
           ? 'syntax-string'
           : /^\d/.test(value)
             ? 'syntax-number'
-            : /^(const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export|important|from|to|and|or|not)$/.test(
-                  value
-                )
+            : keywordPattern.test(value)
               ? 'syntax-keyword'
               : 'syntax-function';
     tokens.push({ className, value });
+    cursor = match.index + value.length;
+    match = parts.exec(line);
+  }
+  pushPlainToken(tokens, line.slice(cursor));
+  return tokens;
+}
+
+function highlightJsonLine(line: string): SyntaxToken[] {
+  const tokens: SyntaxToken[] = [];
+  let cursor = 0;
+  const parts =
+    /"(?:\\.|[^"\\])*"(?=\s*:)|"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\b(?:true|false|null)\b/g;
+  let match = parts.exec(line);
+
+  while (match) {
+    pushPlainToken(tokens, line.slice(cursor, match.index));
+    const value = match[0];
+    const isKey =
+      value.startsWith('"') &&
+      /^\s*:/.test(line.slice(match.index + value.length));
+    tokens.push({
+      className: isKey
+        ? 'syntax-attribute'
+        : value.startsWith('"')
+          ? 'syntax-string'
+          : /^(true|false|null)$/.test(value)
+            ? 'syntax-keyword'
+            : 'syntax-number',
+      value,
+    });
+    cursor = match.index + value.length;
+    match = parts.exec(line);
+  }
+  pushPlainToken(tokens, line.slice(cursor));
+  return tokens;
+}
+
+function highlightMarkdownLine(line: string): SyntaxToken[] {
+  if (/^\s*#{1,6}\s/.test(line)) {
+    return [{ className: 'syntax-keyword', value: line }];
+  }
+
+  const tokens: SyntaxToken[] = [];
+  let cursor = 0;
+  const parts = /`[^`]*`|\[[^\]]+\]\([^)]*\)|\*\*[^*]+\*\*|^\s*[-*+]\s+/g;
+  let match = parts.exec(line);
+
+  while (match) {
+    pushPlainToken(tokens, line.slice(cursor, match.index));
+    const value = match[0];
+    tokens.push({
+      className: value.startsWith('`')
+        ? 'syntax-string'
+        : value.startsWith('[')
+          ? 'syntax-attribute'
+          : 'syntax-keyword',
+      value,
+    });
     cursor = match.index + value.length;
     match = parts.exec(line);
   }
@@ -258,9 +317,15 @@ function highlightSourceLine(
   language: WorkspaceFile['language']
 ): SyntaxToken[] {
   if (language === 'html') return highlightHtmlLine(line);
-  if (language === 'css' || language === 'javascript') {
+  if (
+    language === 'css' ||
+    language === 'javascript' ||
+    language === 'typescript'
+  ) {
     return highlightScriptLine(line, language);
   }
+  if (language === 'json') return highlightJsonLine(line);
+  if (language === 'markdown') return highlightMarkdownLine(line);
   return [{ value: line }];
 }
 
