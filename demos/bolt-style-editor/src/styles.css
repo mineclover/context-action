@@ -336,6 +336,15 @@ a { color: inherit; text-decoration: none; }
 .settings-save { background: #947cff; color: #11111b; font-weight: 750; }
 .settings-save:hover { background: #a694ff; }
 .settings-save:disabled { cursor: wait; opacity: .45; }
+.confirmation-dialog { max-width: 480px; }
+.confirmation-dialog-message { color: #c1c7d4; font-size: 13px; line-height: 1.6; margin: 18px 0 0; }
+.confirmation-actions { align-items: center; border-top: 1px solid #262c38; display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; padding-top: 18px; }
+.confirmation-actions button { border-radius: 6px; cursor: pointer; font-size: 11px; padding: 9px 12px; }
+.confirmation-confirm { font-weight: 750; }
+.confirmation-confirm-warning { background: #947cff; color: #11111b; }
+.confirmation-confirm-warning:hover { background: #a694ff; }
+.confirmation-confirm-danger { background: #d35f75; color: #fff6f7; }
+.confirmation-confirm-danger:hover { background: #e47689; }
 .create-file-dialog { max-width: 620px; }
 .rename-file-from { background: #0c0f14; border: 1px solid #262c38; border-radius: 7px; color: #7f899b; display: grid; font-size: 10px; gap: 5px; margin-top: 14px; padding: 10px 11px; }
 .rename-file-from code { color: #d8d2ff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }

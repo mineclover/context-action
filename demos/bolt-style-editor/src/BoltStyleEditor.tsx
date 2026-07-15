@@ -89,6 +89,13 @@ type Message = {
   openSettings?: boolean;
 };
 
+type ConfirmationRequest = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  tone?: 'danger' | 'warning';
+};
+
 type ToolCall = {
   name: string;
   arguments: Record<string, unknown>;
@@ -725,6 +732,73 @@ function useModalDialog<T extends HTMLElement>(onClose: () => void) {
   }, []);
 
   return dialogRef;
+}
+
+function ConfirmationDialog({
+  request,
+  onResolve,
+}: {
+  request: ConfirmationRequest;
+  onResolve: (confirmed: boolean) => void;
+}) {
+  const dialogRef = useModalDialog<HTMLElement>(() => onResolve(false));
+  const tone = request.tone ?? 'warning';
+
+  return (
+    <div
+      className="settings-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onResolve(false);
+      }}
+      role="presentation"
+    >
+      <section
+        aria-describedby="confirmation-dialog-message"
+        aria-labelledby="confirmation-dialog-title"
+        aria-modal="true"
+        className={`settings-dialog confirmation-dialog confirmation-dialog-${tone}`}
+        ref={dialogRef}
+        role="dialog"
+      >
+        <div className="settings-heading">
+          <div>
+            <span className="panel-label">Confirm action</span>
+            <h2 id="confirmation-dialog-title">{request.title}</h2>
+          </div>
+          <button
+            aria-label="Close confirmation dialog"
+            className="settings-close"
+            onClick={() => onResolve(false)}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <p
+          className="confirmation-dialog-message"
+          id="confirmation-dialog-message"
+        >
+          {request.message}
+        </p>
+        <div className="confirmation-actions">
+          <button
+            className="settings-cancel"
+            onClick={() => onResolve(false)}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            className={`confirmation-confirm confirmation-confirm-${tone}`}
+            onClick={() => onResolve(true)}
+            type="button"
+          >
+            {request.confirmLabel}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function OpenRouterSettingsDialog({
@@ -2786,6 +2860,32 @@ function EditorWorkbench({
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
   const [showRenameFile, setShowRenameFile] = useState(false);
+  const [confirmationRequest, setConfirmationRequest] =
+    useState<ConfirmationRequest | null>(null);
+  const confirmationResolverRef = useRef<((confirmed: boolean) => void) | null>(
+    null
+  );
+  const requestConfirmation = useCallback(
+    (request: ConfirmationRequest) =>
+      new Promise<boolean>((resolve) => {
+        confirmationResolverRef.current?.(false);
+        confirmationResolverRef.current = resolve;
+        setConfirmationRequest(request);
+      }),
+    []
+  );
+  const resolveConfirmation = useCallback((confirmed: boolean) => {
+    const resolve = confirmationResolverRef.current;
+    confirmationResolverRef.current = null;
+    setConfirmationRequest(null);
+    resolve?.(confirmed);
+  }, []);
+  useEffect(() => {
+    return () => {
+      confirmationResolverRef.current?.(false);
+      confirmationResolverRef.current = null;
+    };
+  }, []);
   const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
   const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
   const workspaceSearchRequestRef = useRef(0);
@@ -3040,9 +3140,13 @@ function EditorWorkbench({
     if (!fileList) return;
     if (
       hasUnsavedChanges &&
-      !window.confirm(
-        'Open the selected folder and discard unsaved browser workspace changes?'
-      )
+      !(await requestConfirmation({
+        title: 'Open selected folder?',
+        message:
+          'Unsaved browser workspace changes will be discarded before the selected folder is opened.',
+        confirmLabel: 'Open folder',
+        tone: 'warning',
+      }))
     ) {
       if (folderInputRef.current) folderInputRef.current.value = '';
       return;
@@ -3069,9 +3173,13 @@ function EditorWorkbench({
     if (openingFolder || !isStorageReady) return;
     if (
       hasUnsavedChanges &&
-      !window.confirm(
-        'Open a new folder and discard unsaved browser workspace changes?'
-      )
+      !(await requestConfirmation({
+        title: 'Open a new folder?',
+        message:
+          'Unsaved browser workspace changes will be discarded before the new folder is opened.',
+        confirmLabel: 'Open folder',
+        tone: 'warning',
+      }))
     ) {
       return;
     }
@@ -3104,14 +3212,18 @@ function EditorWorkbench({
   };
 
   const handleReloadFolder = async () => {
+    if (openingFolder || !isStorageReady || !hasWritableFolder) {
+      return;
+    }
     if (
-      openingFolder ||
-      !isStorageReady ||
-      !hasWritableFolder ||
-      (hasUnsavedChanges &&
-        !window.confirm(
-          'Reload the connected folder and discard unsaved browser workspace changes?'
-        ))
+      hasUnsavedChanges &&
+      !(await requestConfirmation({
+        title: 'Reload connected folder?',
+        message:
+          'The browser workspace will be replaced with the connected folder contents. Unsaved changes will be discarded.',
+        confirmLabel: 'Reload folder',
+        tone: 'warning',
+      }))
     ) {
       return;
     }
@@ -3141,14 +3253,18 @@ function EditorWorkbench({
   };
 
   const handleDisconnectFolder = async () => {
+    if (openingFolder || !isStorageReady || !hasWritableFolder) {
+      return;
+    }
     if (
-      openingFolder ||
-      !isStorageReady ||
-      !hasWritableFolder ||
-      (hasUnsavedChanges &&
-        !window.confirm(
-          'Disconnect the folder and keep changes only in the browser workspace?'
-        ))
+      hasUnsavedChanges &&
+      !(await requestConfirmation({
+        title: 'Disconnect folder?',
+        message:
+          'The folder connection will be removed. Current changes will remain only in the browser workspace.',
+        confirmLabel: 'Disconnect',
+        tone: 'warning',
+      }))
     ) {
       return;
     }
@@ -3191,14 +3307,18 @@ function EditorWorkbench({
   };
 
   const resetDemoWorkspace = async () => {
+    if (running || !isStorageReady || hasWritableFolder) {
+      return;
+    }
     if (
-      running ||
-      !isStorageReady ||
-      hasWritableFolder ||
-      (hasUnsavedChanges &&
-        !window.confirm(
-          'Reset the browser workspace to the demo seed and discard its current changes?'
-        ))
+      hasUnsavedChanges &&
+      !(await requestConfirmation({
+        title: 'Reset demo workspace?',
+        message:
+          'The browser workspace will return to the demo seed. Current changes will be discarded.',
+        confirmLabel: 'Reset workspace',
+        tone: 'danger',
+      }))
     ) {
       return;
     }
@@ -3553,12 +3673,19 @@ function EditorWorkbench({
       },
     });
 
-  const deleteActiveFile = () => {
+  const deleteActiveFile = async () => {
     if (!canDeleteActiveFile || running) return;
-    if (!window.confirm(`Delete ${activeFile.path} from this workspace?`)) {
+    if (
+      !(await requestConfirmation({
+        title: 'Delete active file?',
+        message: `${activeFile.path} will be removed from this browser workspace. This action can be recovered with Undo during this session.`,
+        confirmLabel: 'Delete file',
+        tone: 'danger',
+      }))
+    ) {
       return;
     }
-    void executeQuickTool({
+    await executeQuickTool({
       name: 'workspace.deleteFile',
       arguments: {
         path: activeFile.path,
@@ -3567,16 +3694,19 @@ function EditorWorkbench({
     });
   };
 
-  const revertActiveFile = () => {
+  const revertActiveFile = async () => {
     if (!canRevertActiveFile || running) return;
     if (
-      !window.confirm(
-        `Discard unsaved changes in ${activeFile.path}? Undo can restore this session's edit.`
-      )
+      !(await requestConfirmation({
+        title: 'Revert active file?',
+        message: `Unsaved changes in ${activeFile.path} will be discarded. Undo can restore this session's edit.`,
+        confirmLabel: 'Revert file',
+        tone: 'warning',
+      }))
     ) {
       return;
     }
-    void executeQuickTool({
+    await executeQuickTool({
       name: 'workspace.revertFile',
       arguments: {
         path: activeFile.path,
@@ -3735,7 +3865,12 @@ function EditorWorkbench({
     if (!argumentsValue) return;
     if (
       selectedToolDefinition.annotations?.destructiveHint === true &&
-      !window.confirm(`Run the destructive sample for ${selectedToolName}?`)
+      !(await requestConfirmation({
+        title: 'Run destructive tool sample?',
+        message: `${selectedToolName} can change or remove workspace data. Review the arguments and confirm before running it.`,
+        confirmLabel: 'Run tool',
+        tone: 'danger',
+      }))
     ) {
       return;
     }
@@ -4406,7 +4541,7 @@ function EditorWorkbench({
                 aria-label={`Delete ${activeFile.path}`}
                 className="editor-delete"
                 disabled={!isStorageReady || running || !canDeleteActiveFile}
-                onClick={deleteActiveFile}
+                onClick={() => void deleteActiveFile()}
                 title="Delete the active file through workspace.deleteFile"
                 type="button"
               >
@@ -4416,7 +4551,7 @@ function EditorWorkbench({
                 aria-label={`Revert ${activeFile.path}`}
                 className="editor-revert"
                 disabled={!isStorageReady || running || !canRevertActiveFile}
-                onClick={revertActiveFile}
+                onClick={() => void revertActiveFile()}
                 title="Discard active file changes through workspace.revertFile"
                 type="button"
               >
@@ -4804,6 +4939,12 @@ function EditorWorkbench({
           initialPath={activeFile.path}
           onClose={() => setShowRenameFile(false)}
           onRename={renameWorkspaceFile}
+        />
+      ) : null}
+      {confirmationRequest ? (
+        <ConfirmationDialog
+          onResolve={resolveConfirmation}
+          request={confirmationRequest}
         />
       ) : null}
     </div>

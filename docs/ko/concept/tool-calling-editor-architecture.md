@@ -521,10 +521,13 @@ Open folder → generic FileSystemAdapter
   approval을 다시 요청한다.
 - `Save` 버튼과 `⌘/Ctrl+S` 단축키는 동일한 save 경계를 사용하며, 단축키는
   settings·New file·Rename file modal 입력 중에는 동작하지 않는다.
-- OpenRouter, New file, Rename file dialog는 keyboard-modal로 동작한다. `Escape`는 현재
-  dialog를 닫고, `Tab`은 dialog 내부 control 사이에서 순환하며, 열린 동안
-  body scroll을 잠근다. 닫히면 열기 trigger로 focus를 복귀하고 backdrop 클릭도
-  dialog를 닫는다.
+- OpenRouter, New file, Rename file과 destructive action 확인 dialog는
+  keyboard-modal로 동작한다. `Escape`는 현재 dialog를 닫고, `Tab`은 dialog 내부
+  control 사이에서 순환하며, 열린 동안 body scroll을 잠근다. 닫히면 열기
+  trigger로 focus를 복귀하고 backdrop 클릭도 dialog를 닫는다. Folder 교체,
+  browser reset, 파일 삭제·revert와 destructive palette sample은 native
+  `window.confirm` 대신 이 앱 내부 확인 surface를 사용해 결정 상태를 화면에
+  남기고 자동화 가능한 경계로 유지한다.
 - source editor는 HTML, CSS, JavaScript, TypeScript, JSON, Markdown 파일의
   syntax highlighting과 편집을 하나의 overlay surface에서 유지한다.
   입력 중에는 반응성 있는 local draft를 유지하고 idle·blur·tool/save 경계에서

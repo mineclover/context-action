@@ -42,6 +42,9 @@ bounded, redacted execution entries as JSON.
 - `Open` uses the File System Access API when available and a directory-upload
   fallback otherwise.
 - `Save to folder` is the explicit operating-system filesystem boundary.
+- Destructive UI actions use an in-app keyboard-modal confirmation surface;
+  folder replacement, reset, delete/revert, and destructive tool samples never
+  depend on a native `window.confirm`.
 - Restored folder handles expose `granted`, `prompt`, `denied`, `unknown`, or
   `disconnected` write-permission state; `Grant access` re-requests permission
   without replacing the browser workspace.

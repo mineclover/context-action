@@ -558,10 +558,13 @@ Open folder → generic FileSystemAdapter
 - The `Save` button and `⌘/Ctrl+S` shortcut use the same save boundary; the
   shortcut is disabled while the settings, New file, or Rename file modal is
   being edited.
-- The OpenRouter, New file, and Rename file dialogs are keyboard-modal: `Escape` closes the
-  active dialog, `Tab` wraps within its controls, body scrolling is locked while
-  it is open, and closing restores focus to the trigger. Clicking the backdrop
-  also dismisses the dialog.
+- The OpenRouter, New file, Rename file, and destructive-action confirmation
+  dialogs are keyboard-modal: `Escape` closes the active dialog, `Tab` wraps
+  within its controls, body scrolling is locked while it is open, and closing
+  restores focus to the trigger. Clicking the backdrop also dismisses the
+  dialog. Folder replacement, browser reset, file deletion/revert, and
+  destructive palette samples all use this in-app confirmation surface rather
+  than a native `window.confirm`, so the decision remains visible and testable.
 - The source editor keeps syntax highlighting and editing in one overlay surface
   for HTML, CSS, JavaScript, TypeScript, JSON, and Markdown files.
   Keystrokes stay in a responsive local draft while the user is typing; idle,
