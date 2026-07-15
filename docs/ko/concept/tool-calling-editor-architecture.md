@@ -174,11 +174,12 @@ monotonic workspace revision을 노출한다. 모든 mutation `web.*` tool은 �
 acknowledgement 후 새 workspace revision을 반환한다. 따라서 full-file write,
 visual helper, bounded `web.applyPatch`가 하나의 optimistic-concurrency 계약을
 공유한다.
-local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
-`local` source를 보존한다. prompt에서 발생한 local mutation은
-`interaction: prompt` metadata를 전달해 model call과 같은 approval 경계를 따른다.
-직접 실행하는 palette sample은 명시적인 local action으로 처리한다. provider model
-call은 `executeModelToolCall()`을 사용하며 model approval policy의 대상이 된다.
+직접 실행하는 palette action은 canonical `registry.callTool()` bridge를 사용해
+`local` source를 보존한다. 결정적인 local agent는 계획한 call을
+`local-fallback` provider marker와 함께 `executeModelToolCall()`로 전달하므로,
+API key가 없어도 offline demo가 provider model과 같은 `model → tools/call` 경계와
+approval policy를 사용한다. 직접 실행하는 palette sample만 명시적인 local action으로
+처리한다.
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
 화면에 표시되는 description·annotation·JSON input schema와 선택적인 structured

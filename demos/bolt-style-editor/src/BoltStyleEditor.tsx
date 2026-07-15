@@ -915,14 +915,16 @@ async function runLocalAgent(
       call.arguments.expectedRevision === undefined
         ? { ...call.arguments, expectedRevision: plannedRevision }
         : call.arguments;
-    const result = await registry.callTool(
+    const result = await registry.executeModelToolCall(
       {
-        id: `local-${Date.now()}-${call.name}`,
-        method: 'tools/call',
-        params: { name: call.name, arguments: argumentsValue },
+        id: `local-model-${Date.now()}-${call.name}`,
+        name: call.name,
+        arguments: argumentsValue,
       },
       {
-        context: { source: 'local', metadata: { interaction: 'prompt' } },
+        context: {
+          metadata: { interaction: 'prompt', provider: 'local-fallback' },
+        },
         signal,
       }
     );

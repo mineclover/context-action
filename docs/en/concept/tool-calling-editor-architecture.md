@@ -183,11 +183,12 @@ return the new workspace revision after the preview acknowledgement. This
 keeps full-file writes, visual helpers, and bounded `web.applyPatch` on one
 optimistic-concurrency contract.
 
-Local agent and palette actions use the canonical `registry.callTool()` bridge
-so their `local` source is preserved. Prompt-originated local mutations carry an
-`interaction: prompt` metadata marker and use the same approval boundary as
-model calls; direct palette samples remain explicit local actions. Provider model
-calls use `executeModelToolCall()` and are subject to the model approval policy.
+Direct palette actions use the canonical `registry.callTool()` bridge so their
+`local` source is preserved. The deterministic local agent routes its planned
+calls through `executeModelToolCall()` with a `local-fallback` provider marker;
+this keeps the offline demo on the same `model → tools/call` boundary and the
+same approval policy as provider model calls. Direct palette samples remain
+explicit local actions.
 
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, JSON input schema, and
