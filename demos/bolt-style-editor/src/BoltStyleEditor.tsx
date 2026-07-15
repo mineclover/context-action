@@ -2935,8 +2935,10 @@ function EditorWorkbench({
   const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
     await workspace.importFolder(imported);
     setEditorDrafts({});
+    const skippedPreview = imported.skipped.slice(0, 3).join(' · ');
+    const skippedOverflow = imported.skipped.length - 3;
     const skippedMessage = imported.skipped.length
-      ? ` Skipped ${imported.skipped.length} unsupported, oversized, or invalid file(s).`
+      ? ` Skipped ${imported.skipped.length} unsupported, oversized, or invalid file(s).${skippedPreview ? ` ${skippedPreview}${skippedOverflow > 0 ? ` · +${skippedOverflow} more` : ''}` : ''}`
       : '';
     const syncMessage = fileSystemAdapter.hasWritableFolder
       ? ' Folder sync is enabled for Save.'
