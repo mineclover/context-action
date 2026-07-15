@@ -60,6 +60,16 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.saveAll': defineAction(
+    {
+      name: 'workspace.saveAll',
+      description:
+        'Write every dirty workspace file and pending deletion to the user-opened local folder. Requires a writable folder workspace.',
+      annotations: { destructiveHint: true, idempotentHint: true },
+      parameters: z.object({}),
+    },
+    z
+  ),
   'workspace.applyPatch': defineAction(
     {
       name: 'workspace.applyPatch',

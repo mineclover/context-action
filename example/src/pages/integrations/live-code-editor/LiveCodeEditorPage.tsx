@@ -759,11 +759,79 @@ function LiveCodeEditorContent() {
         activeFile.mimeType
       );
       await filesystemAdapter.saveFile(activeFile.path, blob);
-      workspaceManager.markSaved(activeFile.path, activeFile.source);
-      setWorkspaceMessage(`${activeFile.path} saved to filesystem`);
+      const latestFile = workspaceManager.getActiveFile();
+      if (latestFile?.source === activeFile.source) {
+        workspaceManager.markSaved(activeFile.path, activeFile.source);
+        setWorkspaceMessage(`${activeFile.path} saved to filesystem`);
+      } else {
+        setWorkspaceMessage(
+          `${activeFile.path} was written, but newer editor changes remain pending`
+        );
+      }
     } catch (error) {
       setWorkspaceMessage(
         error instanceof Error ? error.message : 'File could not be saved.'
+      );
+    }
+  };
+
+  const saveAllWorkspaceFiles = async () => {
+    if (!filesystemAdapter.isWritable) {
+      setWorkspaceMessage(
+        'No writable folder is open. Open a local folder before saving files.'
+      );
+      return;
+    }
+
+    const initialSnapshot = workspaceManager.getSnapshot();
+    const dirtyFiles = initialSnapshot.files.filter(
+      (file) => initialSnapshot.dirtyPaths.includes(file.path) && file.isText
+    );
+    if (dirtyFiles.length === 0) {
+      setWorkspaceMessage('No unsaved text files are pending for the folder.');
+      return;
+    }
+
+    const savedPaths: string[] = [];
+    try {
+      await flushPendingPersistence();
+      for (const file of dirtyFiles) {
+        const latestFile = workspaceManager
+          .getSnapshot()
+          .files.find((candidate) => candidate.path === file.path);
+        if (!latestFile?.isText) continue;
+        await workspaceRepository.saveTextFile(
+          LIVE_EDITOR_WORKSPACE_ID,
+          latestFile.path,
+          latestFile.source,
+          latestFile.mimeType
+        );
+        await filesystemAdapter.saveFile(
+          latestFile.path,
+          new Blob([latestFile.source], { type: latestFile.mimeType })
+        );
+        const currentFile = workspaceManager
+          .getSnapshot()
+          .files.find((candidate) => candidate.path === latestFile.path);
+        if (currentFile?.source === latestFile.source) {
+          workspaceManager.markSaved(latestFile.path, latestFile.source);
+          savedPaths.push(latestFile.path);
+        }
+      }
+      const remaining = workspaceManager.getSnapshot().dirtyPaths;
+      setWorkspaceMessage(
+        `${savedPaths.length} file${savedPaths.length === 1 ? '' : 's'} saved to filesystem${
+          remaining.length ? ` · ${remaining.length} still pending` : ''
+        }`
+      );
+    } catch (error) {
+      const remaining = workspaceManager.getSnapshot().dirtyPaths;
+      setWorkspaceMessage(
+        `${savedPaths.length} file${savedPaths.length === 1 ? '' : 's'} saved before failure${
+          remaining.length ? ` · ${remaining.length} still pending` : ''
+        } · ${
+          error instanceof Error ? error.message : 'File could not be saved.'
+        }`
       );
     }
   };
@@ -969,6 +1037,19 @@ function LiveCodeEditorContent() {
                         title="Write the active file back to the opened folder (Ctrl/Cmd+S)"
                       >
                         Save file
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.workspaceButton}
+                        onClick={() => void saveAllWorkspaceFiles()}
+                        disabled={
+                          workspaceSnapshot.storageMode !== 'indexed-db' ||
+                          !filesystemAdapter.isWritable ||
+                          workspaceSnapshot.dirtyPaths.length === 0
+                        }
+                        title="Write all dirty text files back to the opened folder"
+                      >
+                        Save all
                       </button>
                       <input
                         ref={(node) => {

@@ -40,6 +40,17 @@ export const saveEditorFileTool = defineAction(
   z
 );
 
+export const saveAllEditorFilesTool = defineAction(
+  {
+    name: 'editor.saveAll',
+    description:
+      'Write every dirty text file from the parent-owned browser workspace back to the opened local folder. Requires a writable folder workspace.',
+    annotations: { destructiveHint: true, idempotentHint: true },
+    parameters: z.object({}),
+  },
+  z
+);
+
 export const getEditorDocumentTool = defineAction(
   {
     name: 'editor.getDocument',
@@ -114,6 +125,7 @@ export const liveEditorToolsSchema = createActionSchema({
   'editor.listFiles': listEditorFilesTool,
   'editor.openFile': openEditorFileTool,
   'editor.saveFile': saveEditorFileTool,
+  'editor.saveAll': saveAllEditorFilesTool,
   'editor.getDocument': getEditorDocumentTool,
   'editor.setDocument': setEditorDocumentTool,
   'editor.getPreviewStatus': getEditorPreviewStatusTool,

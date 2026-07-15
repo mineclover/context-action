@@ -65,6 +65,7 @@ export function LiveEditorAIToolbar() {
   const [localCallResult, setLocalCallResult] = useState('');
   const [localOpenResult, setLocalOpenResult] = useState('');
   const [localSaveResult, setLocalSaveResult] = useState('');
+  const [localSaveAllResult, setLocalSaveAllResult] = useState('');
   const [localMutationResult, setLocalMutationResult] = useState('');
   const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
@@ -262,6 +263,29 @@ export function LiveEditorAIToolbar() {
     }
   };
 
+  const saveAllWorkspaceFiles = async () => {
+    try {
+      const result = await registry.callTool(
+        {
+          id: `local-save-all-${Date.now()}`,
+          method: 'tools/call',
+          params: {
+            name: 'editor.saveAll',
+            arguments: {},
+          },
+        },
+        { context: { source: 'local' } }
+      );
+      setLocalSaveAllResult(
+        formatLocalToolResult(result, 'Local editor.saveAll failed.')
+      );
+    } catch (error) {
+      setLocalSaveAllResult(
+        error instanceof Error ? error.message : 'Local editor.saveAll failed.'
+      );
+    }
+  };
+
   const runLocalMutation = async () => {
     const result = await registry.callTool(
       {
@@ -430,6 +454,13 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
+          onClick={() => void saveAllWorkspaceFiles()}
+        >
+          Run local editor.saveAll · dirty paths
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
           onClick={() => void runLocalMutation()}
         >
           Run local mutation + iframe acknowledgement
@@ -456,6 +487,9 @@ export function LiveEditorAIToolbar() {
         )}
         {localSaveResult && (
           <code className={styles.localCallResult}>{localSaveResult}</code>
+        )}
+        {localSaveAllResult && (
+          <code className={styles.localCallResult}>{localSaveAllResult}</code>
         )}
         {localMutationResult && (
           <code className={styles.localCallResult}>{localMutationResult}</code>

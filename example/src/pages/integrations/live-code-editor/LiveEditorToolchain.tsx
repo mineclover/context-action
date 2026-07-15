@@ -156,6 +156,52 @@ function LiveEditorToolHandlers({
     blockingToolHandler
   );
 
+  useLiveEditorToolHandler<'editor.saveAll', unknown>(
+    'editor.saveAll',
+    async (_, controller) => {
+      if (controller.signal?.aborted) throw new Error('File save cancelled.');
+      if (!filesystemAdapter.isWritable) {
+        throw new Error(
+          'No writable folder is open. Open a local folder before saving files.'
+        );
+      }
+
+      const initialSnapshot = workspaceManager.getSnapshot();
+      const dirtyFiles = initialSnapshot.files.filter(
+        (file) => initialSnapshot.dirtyPaths.includes(file.path) && file.isText
+      );
+      const savedPaths: string[] = [];
+
+      for (const file of dirtyFiles) {
+        if (controller.signal?.aborted) {
+          throw new Error('File save cancelled.');
+        }
+        await filesystemAdapter.saveFile(
+          file.path,
+          new Blob([file.source], { type: file.mimeType })
+        );
+        if (controller.signal?.aborted) {
+          throw new Error('File save cancelled.');
+        }
+        const latestFile = workspaceManager
+          .getSnapshot()
+          .files.find((candidate) => candidate.path === file.path);
+        if (latestFile?.source === file.source) {
+          workspaceManager.markSaved(file.path, file.source);
+          savedPaths.push(file.path);
+        }
+      }
+
+      const snapshot = workspaceManager.getSnapshot();
+      return {
+        savedPaths,
+        dirtyPaths: snapshot.dirtyPaths,
+        workspaceRevision: snapshot.revision,
+      };
+    },
+    blockingToolHandler
+  );
+
   useLiveEditorToolHandler<'editor.setDocument', unknown>(
     'editor.setDocument',
     ({ source, scenario }, controller) =>

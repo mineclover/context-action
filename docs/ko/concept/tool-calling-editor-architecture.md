@@ -139,7 +139,8 @@ iframe은 다음 역할만 담당한다.
 - 제한된 bridge message 처리
 
 iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는 browser
-workspace를 위한 `editor.listFiles`, `editor.openFile`, `editor.saveFile`과 함께
+workspace를 위한 `editor.listFiles`, `editor.openFile`, `editor.saveFile`,
+`editor.saveAll`과 함께
 `editor.getDocument`, `editor.setDocument`, `editor.setScenario`,
 `editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. `editor.listFiles`는
 read-only 도구로 active path, storage mode, dirty paths, 파일 metadata를 반환한다.
@@ -153,6 +154,9 @@ DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement
 쓰기 성공 이후에만 해당 경로의 filesystem-dirty 상태를 해제한다. Live Editor
 handler는 blocking pipeline step으로 등록되므로 validation·filesystem·preview에서
 throw된 오류가 성공한 no-op 호출이 아니라 실패한 `tools/call` 결과로 전달된다.
+`editor.saveAll`은 같은 경계를 모든 dirty text path에 순서대로 적용한다. 뒤의
+파일에서 실패해도 이미 기록된 파일은 clean으로 유지하고 남은 path는 dirty로
+남겨 재시도할 수 있다.
 
 standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sandbox는
 문서 revision을 포함한 `context-action.preview.ready` 또는
@@ -190,6 +194,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `editor.listFiles` | allow | workspace 파일·active path·storage mode·dirty paths 조회 |
 | `editor.openFile` | local demo allow | text file을 선택하고 일치하는 preview revision 대기 |
 | `editor.saveFile` | approval required | 사용자가 연 local folder에 text file 저장 |
+| `editor.saveAll` | approval required | 사용자가 연 local folder에 모든 dirty text file 저장 |
 | `editor.getDocument` | allow | 현재 문서와 revision 조회 |
 | `editor.getPreviewStatus` | allow | 최신 iframe acknowledgement 조회 |
 | `editor.setDocument` | local demo allow | controlled source 교체, 실행하지 않음 |
@@ -201,7 +206,7 @@ browser workspace의 표준 호출 순서는 다음과 같다.
 
 ```text
 tools/list → editor.listFiles → editor.openFile → editor.setDocument →
-iframe acknowledgement → editor.saveFile (filesystem 저장이 필요한 경우)
+iframe acknowledgement → editor.saveFile/editor.saveAll (filesystem 저장이 필요한 경우)
 ```
 
 model은 먼저 사용 가능한 도구를 확인하고 workspace 파일을 조회한 뒤 경로를
@@ -253,7 +258,8 @@ Open folder → generic FileSystemAdapter
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
 - standalone registry는 `workspace.createFile`, `workspace.writeFile`,
-  `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`,
+  `workspace.saveAll`을 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
@@ -268,6 +274,10 @@ Open folder → generic FileSystemAdapter
 - `workspace.applyPatch`는 text file에 literal search/replace를 수행한다. `first`와
   `all` occurrence mode를 지원하고, match 실패와 결과 source 크기 초과를 거부한 뒤
   다른 workspace mutation과 같은 preview revision acknowledgement를 기다린다.
+- `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
+  `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
+  deletion을 기록하고, 모든 작업이 성공한 뒤에만 IndexedDB checkpoint를 clean으로
+  만든다. writable folder가 없으면 실패한 tool result를 반환한다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
   workspace mutation(`createFile`, `deleteFile`, `writeFile`, `applyPatch`,
   `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를

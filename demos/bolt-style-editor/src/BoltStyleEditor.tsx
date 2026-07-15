@@ -569,6 +569,9 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const calls: ToolCall[] = [];
   const deleteRequest =
     /(delete|remove|삭제|지워)/i.test(prompt) && /(file|파일)/i.test(prompt);
+  const saveRequest = /(save|persist|저장|폴더에 반영|파일시스템)/i.test(
+    prompt
+  );
   const requestedPath = inferWorkspacePath(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
 
@@ -640,6 +643,10 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     });
   }
 
+  if (saveRequest) {
+    calls.push({ name: 'workspace.saveAll', arguments: {} });
+  }
+
   return calls.length > 0
     ? calls
     : [{ name: 'workspace.listFiles', arguments: {} }];
@@ -700,9 +707,11 @@ async function runLocalAgent(
 
 function ToolHandlers({
   workspace,
+  fileSystemAdapter,
   children,
 }: {
   workspace: BrowserWorkspace;
+  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
   children: ReactNode;
 }) {
   useBoltStyleToolHandler('workspace.listFiles', () => {
@@ -803,6 +812,39 @@ function ToolHandlers({
         path: file.path,
         revision: snapshot.revision,
         preview: 'synced',
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.saveAll', unknown>(
+    'workspace.saveAll',
+    async (_, controller) => {
+      if (!fileSystemAdapter.hasWritableFolder) {
+        throw new Error(
+          'No writable folder is open. Open a local folder before saving files.'
+        );
+      }
+      if (controller.signal?.aborted) throw new Error('Save cancelled.');
+      const dirtyFiles = workspace.getDirtyFiles();
+      const deletedPaths = workspace.getDeletedPaths();
+      if (dirtyFiles.length === 0 && deletedPaths.length === 0) {
+        return {
+          savedPaths: [],
+          deletedPaths: [],
+          revision: workspace.getSnapshot().revision,
+        };
+      }
+
+      await fileSystemAdapter.writeFiles(dirtyFiles);
+      if (controller.signal?.aborted) throw new Error('Save cancelled.');
+      await fileSystemAdapter.removeFiles(deletedPaths);
+      if (controller.signal?.aborted) throw new Error('Save cancelled.');
+      await workspace.markSaved();
+      return {
+        savedPaths: dirtyFiles.map((file) => file.path),
+        deletedPaths,
+        revision: workspace.getSnapshot().revision,
       };
     },
     { blocking: true }
@@ -1217,7 +1259,13 @@ function CodeEditor({
   );
 }
 
-function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
+function EditorWorkbench({
+  workspace,
+  fileSystemAdapter,
+}: {
+  workspace: BrowserWorkspace;
+  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+}) {
   const registry = useBoltStyleToolRegistry();
   const snapshot = useSyncExternalStore(
     workspace.subscribe,
@@ -1269,10 +1317,6 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const fileSystemAdapter = useMemo(
-    () => new BrowserWorkspaceFileSystemAdapter(),
-    []
-  );
   const traceEntries = useSyncExternalStore(
     toolTraceStore.subscribe,
     toolTraceStore.getSnapshot,
@@ -1664,6 +1708,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           name,
           arguments: { path: activeFile.path, source: activeFile.source },
         };
+      case 'workspace.saveAll':
+        return { name, arguments: {} };
       case 'workspace.applyPatch': {
         if (activeFile.kind === 'asset') return null;
         const line = activeFile.source
@@ -2312,12 +2358,18 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
 
 function ToolRuntime() {
   const [workspace] = useState(() => new BrowserWorkspace());
+  const [fileSystemAdapter] = useState(
+    () => new BrowserWorkspaceFileSystemAdapter()
+  );
   useEffect(() => {
     void workspace.hydrate();
   }, [workspace]);
   return (
-    <ToolHandlers workspace={workspace}>
-      <EditorWorkbench workspace={workspace} />
+    <ToolHandlers workspace={workspace} fileSystemAdapter={fileSystemAdapter}>
+      <EditorWorkbench
+        workspace={workspace}
+        fileSystemAdapter={fileSystemAdapter}
+      />
     </ToolHandlers>
   );
 }
