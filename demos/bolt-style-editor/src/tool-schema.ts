@@ -23,6 +23,11 @@ const workspaceReadFileOutputSchema = z.object({
   source: z.string(),
   revision: z.number().int().nonnegative(),
 });
+const workspaceOpenFileOutputSchema = z.object({
+  path: z.string(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+});
 const syncedWorkspaceMutationOutputSchema = z.object({
   path: z.string(),
   activePath: z.string(),
@@ -143,6 +148,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { readOnlyHint: true },
       parameters: z.object({ path: filePath }),
       outputSchema: workspaceReadFileOutputSchema,
+    },
+    z
+  ),
+  'workspace.openFile': defineAction(
+    {
+      name: 'workspace.openFile',
+      description:
+        'Open one workspace file in the editor and persist it as the active path without changing its source.',
+      annotations: { readOnlyHint: true },
+      parameters: z.object({ path: filePath }),
+      outputSchema: workspaceOpenFileOutputSchema,
     },
     z
   ),

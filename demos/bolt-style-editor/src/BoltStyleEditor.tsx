@@ -408,6 +408,10 @@ function toolSuccessMessage(
     return `Read ${structured.path} (${source.split('\n').length} lines).${revision}`;
   }
 
+  if (name === 'workspace.openFile' && typeof structured.path === 'string') {
+    return `Opened ${structured.path} in the editor.${revision}`;
+  }
+
   if (name === 'workspace.applyPatch') {
     const replacements =
       typeof structured.replacements === 'number' ? structured.replacements : 0;
@@ -933,6 +937,8 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
   const renamePaths = inferRenamePaths(prompt);
+  const openRequest =
+    /(open|show|view|열어|열기|보여|파일을\s*(?:선택|열))/i.test(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
 
   if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
@@ -950,6 +956,13 @@ function promptToToolCalls(prompt: string): ToolCall[] {
     calls.push({
       name: 'workspace.renameFile',
       arguments: renamePaths,
+    });
+  }
+
+  if (openRequest && requestedPath && !textPatch && !renamePaths) {
+    calls.push({
+      name: 'workspace.openFile',
+      arguments: { path: requestedPath },
     });
   }
 
@@ -1231,6 +1244,17 @@ function ToolHandlers({
       path: file.path,
       source: file.source,
       revision: workspace.getSnapshot().revision,
+    };
+  });
+
+  useBoltStyleToolHandler('workspace.openFile', ({ path }) => {
+    const normalizedPath = normalizeWorkspacePath(path);
+    workspace.setActivePath(normalizedPath);
+    const snapshot = workspace.getSnapshot();
+    return {
+      path: normalizedPath,
+      activePath: snapshot.activePath,
+      revision: snapshot.revision,
     };
   });
 
@@ -2892,6 +2916,12 @@ function EditorWorkbench({
       arguments: { path, source },
     });
 
+  const openWorkspaceFile = (path: string) =>
+    executeQuickTool({
+      name: 'workspace.openFile',
+      arguments: { path },
+    });
+
   const renameWorkspaceFile = (fromPath: string, toPath: string) =>
     executeQuickTool({
       name: 'workspace.renameFile',
@@ -2935,6 +2965,8 @@ function EditorWorkbench({
       case 'preview.getStatus':
         return { name, arguments: {} };
       case 'workspace.readFile':
+        return { name, arguments: { path: activeFile.path } };
+      case 'workspace.openFile':
         return { name, arguments: { path: activeFile.path } };
       case 'workspace.createFile':
         return {
@@ -3196,10 +3228,10 @@ function EditorWorkbench({
           </div>
           <FileTree
             activePath={snapshot.activePath}
-            disabled={!isStorageReady}
+            disabled={!isStorageReady || running}
             dirtyPaths={dirtyPaths}
             files={snapshot.files}
-            onSelect={(path) => workspace.setActivePath(path)}
+            onSelect={(path) => void openWorkspaceFile(path)}
           />
 
           <div className="sidebar-section-heading">
@@ -3478,8 +3510,9 @@ function EditorWorkbench({
               {snapshot.files.map((file) => (
                 <button
                   className={`editor-tab ${file.path === snapshot.activePath ? 'editor-tab-active' : ''}`}
+                  disabled={!isStorageReady || running}
                   key={file.path}
-                  onClick={() => workspace.setActivePath(file.path)}
+                  onClick={() => void openWorkspaceFile(file.path)}
                   type="button"
                 >
                   <FileIcon file={file} />
@@ -3614,14 +3647,17 @@ function EditorWorkbench({
               onClose={closeWorkspaceSearch}
               onQueryChange={setWorkspaceSearchQuery}
               onSelect={(match) => {
-                workspace.setActivePath(match.path);
-                workspaceSearchRequestRef.current += 1;
-                setWorkspaceSearchFocus({
-                  path: match.path,
-                  line: match.line,
-                  requestId: workspaceSearchRequestRef.current,
-                });
-                closeWorkspaceSearch();
+                void (async () => {
+                  const outcome = await openWorkspaceFile(match.path);
+                  if (!outcome.ok) return;
+                  workspaceSearchRequestRef.current += 1;
+                  setWorkspaceSearchFocus({
+                    path: match.path,
+                    line: match.line,
+                    requestId: workspaceSearchRequestRef.current,
+                  });
+                  closeWorkspaceSearch();
+                })();
               }}
               query={workspaceSearchQuery}
             />

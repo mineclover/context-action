@@ -316,6 +316,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.getStatus` | allow | Read revision, persistence, preview, dirty paths, and folder connection |
 | `workspace.listFiles` | allow | List files and per-file dirty state |
 | `workspace.readFile` | allow | Read one text file with its current revision |
+| `workspace.openFile` | allow | Select a workspace file in the editor and persist the active path |
 | `workspace.createFile` | local demo allow | Create a normalized text file |
 | `workspace.renameFile` | local demo allow | Rename a file while preserving its source and preview contract |
 | `workspace.writeFile` | local demo allow | Replace one text file and refresh preview |
@@ -329,7 +330,8 @@ The default extraction order is `example → standalone demo/workspace package �
 For the standalone surface, the status-aware sequence is:
 
 ```text
-tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
+tools/list → workspace.getStatus → workspace.listFiles →
+workspace.openFile (when a tab is requested) → workspace.readFile →
 workspace mutation → iframe acknowledgement → workspace.saveAll (when requested)
 ```
 
@@ -421,7 +423,7 @@ Open folder → generic FileSystemAdapter
   When the browser can structured-clone a directory handle, the handle is stored
   with workspace metadata and restored on the next load; write permission is
   still checked at the save boundary.
-- The standalone registry separates `workspace.createFile`,
+- The standalone registry separates `workspace.openFile`, `workspace.createFile`,
   `workspace.renameFile`, `workspace.writeFile`, `workspace.applyPatch`,
   `workspace.revertFile`, `workspace.deleteFile`, `workspace.saveAll`, and
   `workspace.reloadFolder`:
@@ -521,6 +523,9 @@ Open folder → generic FileSystemAdapter
 - The Explorer's Rename action similarly routes through `workspace.renameFile`,
   keeps the source intact, rejects duplicate or incompatible paths in the tool
   result, and keeps the dialog open so the path can be corrected.
+- Explorer rows, editor tabs, and workspace-search results route file selection
+  through `workspace.openFile`, so active-path persistence and the visible
+  `tools/call` trace do not depend on a second direct state mutation path.
 - A linked folder can be explicitly disconnected from the Explorer. This clears
   the persisted directory handle without discarding the browser workspace, so
   a stale or unintended folder can be left in browser-only mode before another

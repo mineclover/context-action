@@ -301,6 +301,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.getStatus` | allow | revision·persistence·preview·dirty path·folder 연결 상태 조회 |
 | `workspace.listFiles` | allow | 파일과 파일별 dirty 상태 조회 |
 | `workspace.readFile` | allow | 현재 revision과 함께 text file 하나 읽기 |
+| `workspace.openFile` | allow | editor에서 workspace file을 선택하고 active path 저장 |
 | `workspace.createFile` | local demo allow | 정규화된 text file 생성 |
 | `workspace.renameFile` | local demo allow | source와 preview 계약을 유지하면서 파일 이름 변경 |
 | `workspace.writeFile` | local demo allow | text file 하나 교체 후 preview 갱신 |
@@ -314,7 +315,8 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 standalone surface의 status-aware 호출 순서는 다음과 같다.
 
 ```text
-tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
+tools/list → workspace.getStatus → workspace.listFiles →
+workspace.openFile (tab 선택이 필요한 경우) → workspace.readFile →
 workspace mutation → iframe acknowledgement → workspace.saveAll (요청된 경우)
 ```
 
@@ -401,7 +403,7 @@ Open folder → generic FileSystemAdapter
   handle을 structured-clone할 수 있으면 handle도 workspace metadata와 함께
   저장해 다음 load에서 복원하며, 실제 write permission은 저장 경계에서 다시
   확인한다.
-- standalone registry는 `workspace.createFile`, `workspace.renameFile`,
+- standalone registry는 `workspace.openFile`, `workspace.createFile`, `workspace.renameFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
   `workspace.deleteFile`, `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
@@ -488,6 +490,9 @@ Open folder → generic FileSystemAdapter
 - Explorer의 Rename action도 `workspace.renameFile`을 호출한다. source는
   유지하고 duplicate·호환되지 않는 path는 tool result로 거부하며, 경로를
   수정할 수 있도록 dialog를 유지한다.
+- Explorer row, editor tab, workspace search 결과의 파일 선택도
+  `workspace.openFile`을 호출한다. 따라서 active-path persistence와 표시되는
+  `tools/call` trace가 별도의 직접 state mutation 경로에 의존하지 않는다.
 - Explorer에서 연결된 folder를 명시적으로 disconnect할 수 있다. 이 동작은
   browser workspace를 버리지 않고 persisted directory handle만 제거하므로,
   stale하거나 잘못 연결된 folder를 browser-only mode로 전환한 뒤 다른 folder를
