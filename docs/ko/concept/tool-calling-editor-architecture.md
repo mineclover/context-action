@@ -67,6 +67,9 @@ browser workspace는 유지한다. header에는 folder link unavailable 상태�
 분리해 `demos/bolt-style-editor/src/local-agent-plan.ts`에 둔다. 따라서 local
 fallback 계약을 독립적으로 검증할 수 있고, 향후 `packages/live-code-editor`로
 추출할 때 첫 번째로 좁은 경계가 된다.
+preview document compiler와 local asset/script rewriting은
+`demos/bolt-style-editor/src/preview-document.ts`로 분리한다. `workspace.ts`는
+state와 revision persistence를 소유하고 compiler는 iframe document 경계를 소유한다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.
