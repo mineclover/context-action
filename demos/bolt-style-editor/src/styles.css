@@ -217,7 +217,8 @@ a { color: inherit; text-decoration: none; }
 .send-button-cancel:hover { background: #5a2d37; }
 .send-button:disabled { cursor: default; opacity: .6; }
 .send-button span { font-size: 14px; margin-left: 3px; }
-.prompt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.prompt-recipes-heading { color: #596274; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .08em; margin-top: 10px; text-transform: uppercase; }
+.prompt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .prompt-chips button { background: transparent; border: 1px solid #282e3a; border-radius: 999px; color: #777f91; cursor: pointer; font-size: 10px; padding: 5px 8px; }
 .prompt-chips button:hover { border-color: #6e60c9; color: #c0b9ff; }
 

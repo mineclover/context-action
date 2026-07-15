@@ -2873,19 +2873,31 @@ function EditorWorkbench({
                 {running ? 'Cancel' : 'Send'} <span>{running ? '×' : '↗'}</span>
               </button>
             </div>
-            <div className="prompt-chips">
-              {['Make it emerald', 'Add a feature card', 'Update the hero'].map(
-                (example) => (
-                  <button
-                    disabled={!isStorageReady || running}
-                    key={example}
-                    onClick={() => setPrompt(example)}
-                    type="button"
-                  >
-                    {example}
-                  </button>
-                )
-              )}
+            <div className="prompt-recipes-heading">
+              Try a tool-chain recipe
+            </div>
+            <div
+              aria-label="Tool-chain prompt recipes"
+              className="prompt-chips"
+            >
+              {[
+                'Make it emerald',
+                'Add a feature card',
+                'Update the hero',
+                'Show workspace status',
+                'Create notes.md',
+                'Save to folder',
+                'Disconnect folder',
+              ].map((example) => (
+                <button
+                  disabled={!isStorageReady || running}
+                  key={example}
+                  onClick={() => setPrompt(example)}
+                  type="button"
+                >
+                  {example}
+                </button>
+              ))}
             </div>
           </section>
         </main>
