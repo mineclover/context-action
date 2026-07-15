@@ -4,6 +4,28 @@ import { recordToolList } from './tool-trace';
 const API_KEY_STORAGE_KEY = 'context-action.openrouter.api-key';
 const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
 const ENDPOINT_STORAGE_KEY = 'context-action.openrouter.endpoint';
+const settingsSubscribers = new Set<() => void>();
+let storageListenerAttached = false;
+
+function notifySettingsSubscribers(): void {
+  for (const subscriber of settingsSubscribers) subscriber();
+}
+
+function ensureStorageListener(): void {
+  if (storageListenerAttached || typeof window === 'undefined') return;
+  window.addEventListener('storage', (event) => {
+    if (
+      event.storageArea === window.localStorage &&
+      (event.key === API_KEY_STORAGE_KEY ||
+        event.key === MODEL_STORAGE_KEY ||
+        event.key === ENDPOINT_STORAGE_KEY ||
+        event.key === null)
+    ) {
+      notifySettingsSubscribers();
+    }
+  });
+  storageListenerAttached = true;
+}
 
 export type OpenRouterSettings = {
   apiKey: string;
@@ -74,6 +96,14 @@ export function readOpenRouterSettings(): OpenRouterSettings {
   };
 }
 
+/** Subscribe to same-origin provider setting changes from this or another tab. */
+export function subscribeOpenRouterSettings(listener: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  ensureStorageListener();
+  settingsSubscribers.add(listener);
+  return () => settingsSubscribers.delete(listener);
+}
+
 export function saveOpenRouterSettings(
   settings: OpenRouterSettings
 ): OpenRouterSettings {
@@ -92,6 +122,8 @@ export function saveOpenRouterSettings(
     window.localStorage.setItem(MODEL_STORAGE_KEY, next.model);
     window.localStorage.setItem(ENDPOINT_STORAGE_KEY, next.endpoint);
   }
+
+  notifySettingsSubscribers();
 
   return next;
 }

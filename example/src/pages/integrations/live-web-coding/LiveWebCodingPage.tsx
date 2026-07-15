@@ -28,8 +28,8 @@ import {
 } from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
-  getStoredOpenRouterApiKey,
   saveOpenRouterApiKey,
+  useStoredOpenRouterApiKey,
 } from '../../../lib/openrouter-api-key';
 import {
   formatModelName,
@@ -640,7 +640,7 @@ function LiveWebCodingWorkbench({
     documentManager.getSnapshot,
     documentManager.getSnapshot
   );
-  const [apiKey, setApiKey] = useState(getStoredOpenRouterApiKey);
+  const apiKey = useStoredOpenRouterApiKey();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [prompt, setPrompt] = useState(
@@ -1004,7 +1004,7 @@ function LiveWebCodingWorkbench({
                     value={apiKey}
                     placeholder="없으면 local demo agent"
                     onChange={(event) =>
-                      setApiKey(saveOpenRouterApiKey(event.target.value))
+                      saveOpenRouterApiKey(event.target.value)
                     }
                   />
                 </label>

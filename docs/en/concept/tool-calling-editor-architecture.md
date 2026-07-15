@@ -63,12 +63,15 @@ The standalone Vite config resolves the workspace `core`, `react`, and
 intermediate `packages/*/dist` artifact before the page can boot.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
-shared `context-action.openrouter.api-key` browser key used by the example
-demos. It also persists the selected model and chat-completions endpoint. When
-the key is present, chat requests use OpenRouter's native tool-call loop; when
-it is absent, the same surface uses the deterministic local agent. The key is
-sent directly from the browser to the configured endpoint and is never bundled
-or sent to a Context-Action server.
+shared, same-origin `context-action.openrouter.api-key` browser key used by the
+example demos. Same-origin tabs and locations update their provider controls
+live through the storage subscription; local development servers on different
+ports intentionally have separate browser storage and require separate entry.
+It also persists the selected model and chat-completions endpoint. When the key
+is present, chat requests use OpenRouter's native tool-call loop; when it is
+absent, the same surface uses the deterministic local agent. The key is sent
+directly from the browser to the configured endpoint and is never bundled or
+sent to a Context-Action server.
 While an agent run is active, `Cancel` aborts the provider request, registry
 execution, and any preview acknowledgement wait. Cancellation is shown as a
 user-visible assistant message instead of a misleading tool success.

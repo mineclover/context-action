@@ -63,10 +63,13 @@ resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중�
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
 `context-action.openrouter.api-key` browser key에 저장하므로 같은 origin의 다른
-OpenRouter 위치에서 재사용할 수 있다. 키가 있으면 chat이 OpenRouter native
-tool-call loop를 사용하고, 없으면 동일한 화면에서 결정적인 local agent fallback을
-사용한다. 키는 브라우저에서 설정된 endpoint로 직접 전송되며 Context-Action 서버로
-전달하거나 번들에 포함하지 않는다.
+OpenRouter 위치에서 재사용할 수 있다. 같은 origin의 tab과 위치는 storage
+subscription으로 provider control을 실시간 갱신한다. 반면 local development
+server가 서로 다른 port를 사용하면 브라우저 storage도 분리되므로 각 origin에서
+별도로 입력해야 한다. 키가 있으면 chat이 OpenRouter native tool-call loop를
+사용하고, 없으면 동일한 화면에서 결정적인 local agent fallback을 사용한다. 키는
+브라우저에서 설정된 endpoint로 직접 전송되며 Context-Action 서버로 전달하거나
+번들에 포함하지 않는다.
 agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
 acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
 사용자에게 assistant message로 표시한다.

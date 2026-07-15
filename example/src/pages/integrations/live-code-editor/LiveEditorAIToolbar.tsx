@@ -14,8 +14,8 @@ import {
 } from '../../../lib/live-editor-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
-  getStoredOpenRouterApiKey,
   saveOpenRouterApiKey,
+  useStoredOpenRouterApiKey,
 } from '../../../lib/openrouter-api-key';
 import {
   formatModelName,
@@ -57,7 +57,7 @@ export function LiveEditorAIToolbar() {
     liveEditorTraceStore.getSnapshot,
     liveEditorTraceStore.getSnapshot
   );
-  const [apiKey, setApiKey] = useState(getStoredOpenRouterApiKey);
+  const apiKey = useStoredOpenRouterApiKey();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -415,9 +415,7 @@ export function LiveEditorAIToolbar() {
             type="password"
             value={apiKey}
             placeholder="sk-or-..."
-            onChange={(event) =>
-              setApiKey(saveOpenRouterApiKey(event.target.value))
-            }
+            onChange={(event) => saveOpenRouterApiKey(event.target.value)}
           />
         </label>
         <label>

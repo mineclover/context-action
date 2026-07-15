@@ -23,6 +23,7 @@ import {
   readOpenRouterSettings,
   runOpenRouterAgent,
   saveOpenRouterSettings,
+  subscribeOpenRouterSettings,
 } from './openrouter';
 import {
   denyPendingToolApprovals,
@@ -2612,6 +2613,11 @@ function EditorWorkbench({
   const [openRouterSettings, setOpenRouterSettings] = useState(
     readOpenRouterSettings
   );
+  useEffect(() => {
+    return subscribeOpenRouterSettings(() => {
+      setOpenRouterSettings(readOpenRouterSettings());
+    });
+  }, []);
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
   const [showRenameFile, setShowRenameFile] = useState(false);

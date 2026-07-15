@@ -18,8 +18,8 @@ import { Link } from 'react-router-dom';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   clearStoredOpenRouterApiKey,
-  getStoredOpenRouterApiKey,
   saveOpenRouterApiKey,
+  useStoredOpenRouterApiKey,
 } from '../../../lib/openrouter-api-key';
 import {
   formatModelName,
@@ -232,7 +232,7 @@ function UIStateManager({ children }: { children: React.ReactNode }) {
  * Main Demo UI Component
  */
 function DemoUI({ uiState }: { uiState: UIState }) {
-  const [apiKey, setApiKey] = useState(getStoredOpenRouterApiKey);
+  const apiKey = useStoredOpenRouterApiKey();
   const [selectedModel, setSelectedModel] = useState('');
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -245,12 +245,11 @@ function DemoUI({ uiState }: { uiState: UIState }) {
   const dispatch = useToolDispatch();
   const registry = useToolRegistry();
   const handleApiKeyChange = (value: string) => {
-    setApiKey(saveOpenRouterApiKey(value));
+    saveOpenRouterApiKey(value);
   };
 
   const handleClearApiKey = () => {
     clearStoredOpenRouterApiKey();
-    setApiKey('');
   };
 
   const toolTextGenerator = useMemo(
