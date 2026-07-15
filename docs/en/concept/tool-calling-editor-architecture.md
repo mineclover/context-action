@@ -84,7 +84,9 @@ handler ID in the `tools/call` structured error message/details. The UI and
 model therefore receive the concrete validation or workspace cause instead of
 only a generic `Tool call failed` response.
 
-`destructiveHint` is metadata for model and UI guidance. Authorization must still be enforced by `toolPolicy`.
+`destructiveHint` is metadata for model and UI guidance. In this demo it marks
+file deletion and revert samples so the palette asks for explicit confirmation.
+Authorization must still be enforced by `toolPolicy`.
 
 The standalone studio renders the same boundary as an execution trace. Local
 and OpenRouter requests call `registry.listTools({ method: 'tools/list' })`

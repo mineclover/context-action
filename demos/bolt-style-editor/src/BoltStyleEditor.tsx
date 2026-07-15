@@ -1146,6 +1146,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const [selectedToolName, setSelectedToolName] = useState(
     () => toolNames[0] ?? ''
   );
+  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const selectedToolDefinition = selectedToolName
     ? registry.getToolDefinition(selectedToolName)
     : undefined;
@@ -1162,6 +1163,12 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
       : snapshot.preview.status === 'error'
         ? 'runtime error'
         : 'waiting';
+
+  const refreshPreview = () => {
+    if (!isStorageReady) return;
+    workspace.setPreviewStatus(snapshot.revision, 'waiting');
+    setPreviewRefreshToken((current) => current + 1);
+  };
 
   useEffect(() => {
     folderInputRef.current?.setAttribute('webkitdirectory', '');
@@ -1976,7 +1983,16 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               <div className="address-bar">
                 preview://{snapshot.rootName}/{activeFile.path}
               </div>
-              <span className="refresh-icon">↻</span>
+              <button
+                aria-label="Refresh preview"
+                className="refresh-button"
+                disabled={!isStorageReady}
+                onClick={refreshPreview}
+                title="Reload the current workspace revision"
+                type="button"
+              >
+                ↻
+              </button>
             </div>
             <iframe
               className="preview-iframe"
@@ -1984,6 +2000,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
               sandbox="allow-scripts"
               srcDoc={previewDocument}
               title="Live generated web preview"
+              key={previewRefreshToken}
             />
           </div>
           <div className="preview-footer">

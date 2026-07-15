@@ -83,7 +83,9 @@ blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 h
 `Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace 원인을
 확인할 수 있다.
 
-annotation의 `destructiveHint`는 모델과 UI를 위한 힌트다. 실제 권한 차단은 반드시 `toolPolicy`에서 수행한다.
+annotation의 `destructiveHint`는 모델과 UI를 위한 힌트다. 이 데모에서는 파일 삭제와
+revert 샘플에 표시하여 palette가 명시적 확인을 요청하게 한다. 실제 권한 차단은
+반드시 `toolPolicy`에서 수행한다.
 
 standalone studio는 같은 경계를 execution trace로 표시한다. local과 OpenRouter
 요청은 provider별 tool serialization 전에 `registry.listTools({ method:
