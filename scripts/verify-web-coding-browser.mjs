@@ -117,6 +117,26 @@ async function runBrowserProof(url) {
     if ((await page.locator('.code-highlight .syntax-tag').count()) === 0) {
       throw new Error('The source editor did not render syntax-highlight tokens.');
     }
+    if (
+      (await page
+        .getByRole('tab', { name: /index\.html/ })
+        .getAttribute('aria-selected')) !== 'true'
+    ) {
+      throw new Error('The active workspace tab did not expose aria-selected.');
+    }
+    if (
+      (await page.locator('.file-row-active').getAttribute('aria-current')) !==
+      'page'
+    ) {
+      throw new Error('The active file row did not expose aria-current.');
+    }
+    if (
+      (await page
+        .locator('[data-tool-name="workspace.getStatus"]')
+        .getAttribute('aria-pressed')) !== 'true'
+    ) {
+      throw new Error('The selected tool did not expose aria-pressed.');
+    }
     await editor.fill(`${initialSource}\n<!-- browser editing proof -->\n`);
     await page.getByText('Unsaved changes', { exact: true }).waitFor();
     await page.waitForFunction(

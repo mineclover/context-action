@@ -1800,6 +1800,7 @@ function FileTreeEntryView({
       <div key={entry.path}>
         <button
           aria-expanded={expanded}
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} ${entry.path}`}
           className="directory-row"
           disabled={disabled}
           onClick={() => onToggle(entry.path)}
@@ -1837,6 +1838,8 @@ function FileTreeEntryView({
     <button
       className={`file-row ${entry.path === activePath ? 'file-row-active' : ''} ${dirtyPaths.has(entry.path) ? 'file-row-dirty' : ''}`}
       disabled={disabled}
+      aria-current={entry.path === activePath ? 'page' : undefined}
+      aria-label={`Open ${entry.path}`}
       onClick={() => onSelect(entry.path)}
       style={indentation}
       title={entry.path}
@@ -1891,7 +1894,7 @@ function FileTree({
   };
 
   return (
-    <div className="file-tree">
+    <div aria-label="Workspace files" className="file-tree" role="group">
       {entries.map((entry) => (
         <FileTreeEntryView
           activePath={activePath}
@@ -3914,6 +3917,7 @@ function EditorWorkbench({
                 const definition = registry.getToolDefinition(name);
                 return (
                   <button
+                    aria-pressed={name === selectedToolName}
                     className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
                     data-tool-name={name}
                     disabled={!isStorageReady || running}
@@ -4169,13 +4173,19 @@ function EditorWorkbench({
 
         <main className="studio-main">
           <div className="editor-toolbar">
-            <div className="editor-tabs">
+            <div
+              aria-label="Open workspace files"
+              className="editor-tabs"
+              role="tablist"
+            >
               {snapshot.files.map((file) => (
                 <button
+                  aria-selected={file.path === snapshot.activePath}
                   className={`editor-tab ${file.path === snapshot.activePath ? 'editor-tab-active' : ''}`}
                   disabled={!isStorageReady || running}
                   key={file.path}
                   onClick={() => void openWorkspaceFile(file.path)}
+                  role="tab"
                   type="button"
                 >
                   <FileIcon file={file} />
