@@ -20,7 +20,7 @@ type FileSystemWritableFileStreamLike = {
 
 type DirectoryHandleOptions = { create?: boolean };
 
-type FileSystemDirectoryHandleLike = {
+export type FileSystemDirectoryHandleLike = {
   kind: 'directory';
   name: string;
   getDirectoryHandle(
@@ -50,6 +50,12 @@ type WindowWithDirectoryPicker = Window & {
   showDirectoryPicker?: (options?: {
     mode?: 'read' | 'readwrite';
   }) => Promise<FileSystemDirectoryHandleLike>;
+};
+
+export type DirectoryHandlePersistence = {
+  getDirectoryHandle: () => Promise<FileSystemDirectoryHandleLike | undefined>;
+  setDirectoryHandle: (handle: FileSystemDirectoryHandleLike) => Promise<void>;
+  clearDirectoryHandle: () => Promise<void>;
 };
 
 const MAX_FILES = 200;
@@ -142,9 +148,30 @@ function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
 
 export class BrowserWorkspaceFileSystemAdapter {
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
+  private readonly listeners = new Set<() => void>();
+
+  constructor(private readonly persistence?: DirectoryHandlePersistence) {}
+
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
 
   get hasWritableFolder(): boolean {
     return this.directoryHandle !== null;
+  }
+
+  async restorePersistedFolder(): Promise<boolean> {
+    let handle: FileSystemDirectoryHandleLike | undefined;
+    try {
+      handle = await this.persistence?.getDirectoryHandle();
+    } catch {
+      return false;
+    }
+    if (!handle) return false;
+    this.directoryHandle = handle;
+    this.notify();
+    return true;
   }
 
   async pickFolder(): Promise<ImportedFolder> {
@@ -154,12 +181,14 @@ export class BrowserWorkspaceFileSystemAdapter {
         'Directory picker is not available. Use the folder upload fallback.'
       );
     }
+    const previousHandle = this.directoryHandle;
     const handle = await picker({ mode: 'readwrite' });
     this.directoryHandle = handle;
     try {
       return await this.importDirectoryHandle(handle);
     } catch (error) {
-      this.directoryHandle = null;
+      this.directoryHandle = previousHandle;
+      this.notify();
       throw error;
     }
   }
@@ -168,6 +197,7 @@ export class BrowserWorkspaceFileSystemAdapter {
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder> {
     this.directoryHandle = handle;
+    this.notify();
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;
@@ -196,15 +226,16 @@ export class BrowserWorkspaceFileSystemAdapter {
     };
 
     await visit(handle, '');
-    return {
+    const imported = {
       rootName: handle.name || 'workspace',
       files: sortFiles(files),
       skipped,
     };
+    await this.persistDirectoryHandle(handle);
+    return imported;
   }
 
   async importFileList(fileList: FileList): Promise<ImportedFolder> {
-    this.directoryHandle = null;
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;
@@ -226,7 +257,13 @@ export class BrowserWorkspaceFileSystemAdapter {
       if (files.length >= MAX_FILES) break;
     }
 
-    return { rootName, files: sortFiles(files), skipped };
+    const imported = { rootName, files: sortFiles(files), skipped };
+    if (imported.files.length === 0) return imported;
+
+    this.directoryHandle = null;
+    this.notify();
+    await this.persistence?.clearDirectoryHandle();
+    return imported;
   }
 
   async writeFiles(files: readonly WorkspaceFile[]): Promise<number> {
@@ -379,5 +416,19 @@ export class BrowserWorkspaceFileSystemAdapter {
 
   static activePathFor(files: readonly WorkspaceFile[]): string {
     return selectActivePath(files);
+  }
+
+  private async persistDirectoryHandle(
+    handle: FileSystemDirectoryHandleLike
+  ): Promise<void> {
+    try {
+      await this.persistence?.setDirectoryHandle(handle);
+    } catch {
+      // Keep the current session usable when IndexedDB cannot clone the handle.
+    }
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener();
   }
 }

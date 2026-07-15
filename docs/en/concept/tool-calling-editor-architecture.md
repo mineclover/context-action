@@ -270,6 +270,9 @@ Open folder → generic FileSystemAdapter
 - Text edits are persisted to Dexie immediately. With a read/write directory
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
+  When the browser can structured-clone a directory handle, the handle is stored
+  with workspace metadata and restored on the next load; write permission is
+  still checked at the save boundary.
 - The standalone registry separates `workspace.createFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
   `workspace.deleteFile`, and `workspace.saveAll`:

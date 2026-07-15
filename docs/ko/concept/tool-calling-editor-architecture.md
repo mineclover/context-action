@@ -256,7 +256,10 @@ Open folder → generic FileSystemAdapter
   넣지 않는다.
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
-  upload-only import는 browser workspace에만 저장한다.
+  upload-only import는 browser workspace에만 저장한다. 브라우저가 directory
+  handle을 structured-clone할 수 있으면 handle도 workspace metadata와 함께
+  저장해 다음 load에서 복원하며, 실제 write permission은 저장 경계에서 다시
+  확인한다.
 - standalone registry는 `workspace.createFile`, `workspace.writeFile`,
   `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`,
   `workspace.saveAll`을 분리한다. 새 text 파일은 경로를 정규화하고

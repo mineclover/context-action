@@ -43,6 +43,7 @@ import {
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
+import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 const {
   Provider: BoltStyleToolProvider,
@@ -1330,6 +1331,11 @@ function EditorWorkbench({
     toolApprovalStore.getSnapshot,
     toolApprovalStore.getSnapshot
   );
+  const hasWritableFolder = useSyncExternalStore(
+    fileSystemAdapter.subscribe,
+    () => fileSystemAdapter.hasWritableFolder,
+    () => false
+  );
 
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
@@ -1788,7 +1794,7 @@ function EditorWorkbench({
             {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
           </span>
           <span className="storage-chip">{storageLabel}</span>
-          {fileSystemAdapter.hasWritableFolder ? (
+          {hasWritableFolder ? (
             <span className="folder-sync-chip">folder sync</span>
           ) : null}
           <span className="contract-chip">tools/list · {toolNames.length}</span>
@@ -2090,7 +2096,7 @@ function EditorWorkbench({
                 disabled={!isStorageReady || saving || !workspace.isDirty()}
                 onClick={() => void saveWorkspace()}
                 title={
-                  fileSystemAdapter.hasWritableFolder
+                  hasWritableFolder
                     ? 'Write dirty files to the selected folder and IndexedDB'
                     : 'Mark the current browser workspace checkpoint as saved'
                 }
@@ -2098,7 +2104,7 @@ function EditorWorkbench({
               >
                 {saving
                   ? 'Saving…'
-                  : fileSystemAdapter.hasWritableFolder
+                  : hasWritableFolder
                     ? 'Save to folder'
                     : 'Save'}
               </button>
@@ -2364,13 +2370,24 @@ function EditorWorkbench({
 }
 
 function ToolRuntime() {
-  const [workspace] = useState(() => new BrowserWorkspace());
+  const [repository] = useState(() => new WebCodingWorkspaceRepository());
+  const [workspace] = useState(() => new BrowserWorkspace(repository));
   const [fileSystemAdapter] = useState(
-    () => new BrowserWorkspaceFileSystemAdapter()
+    () =>
+      new BrowserWorkspaceFileSystemAdapter({
+        getDirectoryHandle: () => repository.getDirectoryHandle(),
+        setDirectoryHandle: (handle) => repository.setDirectoryHandle(handle),
+        clearDirectoryHandle: () => repository.clearDirectoryHandle(),
+      })
   );
   useEffect(() => {
-    void workspace.hydrate();
-  }, [workspace]);
+    void (async () => {
+      await workspace.hydrate();
+      if (workspace.getSnapshot().storageMode === 'indexed-db') {
+        await fileSystemAdapter.restorePersistedFolder();
+      }
+    })();
+  }, [fileSystemAdapter, workspace]);
   return (
     <ToolHandlers workspace={workspace} fileSystemAdapter={fileSystemAdapter}>
       <EditorWorkbench

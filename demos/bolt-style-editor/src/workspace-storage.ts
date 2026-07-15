@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 
 import type { WorkspaceFile } from './workspace';
+import type { FileSystemDirectoryHandleLike } from './workspace-filesystem';
 
 const DATABASE_NAME = 'context-action-web-coding-demo';
 const DATABASE_VERSION = 1;
@@ -10,6 +11,7 @@ type WorkspaceMetadataRecord = {
   id: string;
   rootName: string;
   activePath: string;
+  directoryHandle?: FileSystemDirectoryHandleLike;
   deletedPaths?: string[];
   updatedAt: number;
   schemaVersion: number;
@@ -45,6 +47,7 @@ export type PersistedWorkspace = {
   activePath: string;
   files: WorkspaceFile[];
   deletedPaths: string[];
+  directoryHandle?: FileSystemDirectoryHandleLike;
 };
 
 function mimeTypeForLanguage(language: string): string {
@@ -106,10 +109,14 @@ export class WebCodingWorkspaceRepository {
     deletedPaths: readonly string[] = []
   ): Promise<PersistedWorkspace> {
     const now = Date.now();
+    const previousMetadata = await this.database.workspaces.get(
+      this.workspaceId
+    );
     const metadata: WorkspaceMetadataRecord = {
       id: this.workspaceId,
       rootName: rootName || 'workspace',
       activePath,
+      directoryHandle: previousMetadata?.directoryHandle,
       deletedPaths: [...new Set(deletedPaths)],
       updatedAt: now,
       schemaVersion: DATABASE_VERSION,
@@ -210,6 +217,35 @@ export class WebCodingWorkspaceRepository {
     });
   }
 
+  async getDirectoryHandle(): Promise<
+    FileSystemDirectoryHandleLike | undefined
+  > {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    return metadata?.directoryHandle;
+  }
+
+  async setDirectoryHandle(
+    directoryHandle: FileSystemDirectoryHandleLike
+  ): Promise<void> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    if (!metadata) return;
+    await this.database.workspaces.put({
+      ...metadata,
+      directoryHandle,
+      updatedAt: Date.now(),
+    });
+  }
+
+  async clearDirectoryHandle(): Promise<void> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    if (!metadata) return;
+    const { directoryHandle: _directoryHandle, ...withoutHandle } = metadata;
+    await this.database.workspaces.put({
+      ...withoutHandle,
+      updatedAt: Date.now(),
+    });
+  }
+
   async setActivePath(activePath: string): Promise<void> {
     const metadata = await this.database.workspaces.get(this.workspaceId);
     if (!metadata) return;
@@ -265,6 +301,7 @@ export class WebCodingWorkspaceRepository {
         (left, right) => displayOrder(left.path) - displayOrder(right.path)
       ),
       deletedPaths: [...(metadata.deletedPaths ?? [])],
+      directoryHandle: metadata.directoryHandle,
     };
   }
 }
