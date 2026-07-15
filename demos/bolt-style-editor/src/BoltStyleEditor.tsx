@@ -1470,6 +1470,12 @@ type WorkspaceSearchMatch = {
   preview: string;
 };
 
+type WorkspaceSearchFocusRequest = {
+  path: string;
+  line: number;
+  requestId: number;
+};
+
 function findWorkspaceMatches(
   files: readonly WorkspaceFile[],
   query: string
@@ -1577,11 +1583,15 @@ function WorkspaceSearchPanel({
 function CodeEditor({
   file,
   disabled = false,
+  focusRequest,
+  onFocusRequestConsumed,
   onOpenWorkspaceSearch,
   onChange,
 }: {
   file: WorkspaceFile;
   disabled?: boolean;
+  focusRequest?: WorkspaceSearchFocusRequest;
+  onFocusRequestConsumed?: () => void;
   onOpenWorkspaceSearch?: () => void;
   onChange: (source: string) => void;
 }) {
@@ -1613,6 +1623,34 @@ function CodeEditor({
     setFindOpen(false);
     setFindQuery('');
   }, [file.path]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const highlight = highlightRef.current;
+    if (!textarea || !highlight || !focusRequest) return;
+
+    const lines = file.source.split('\n');
+    const lineIndex = Math.max(
+      0,
+      Math.min(focusRequest.line - 1, lines.length - 1)
+    );
+    const lineStart = lines
+      .slice(0, lineIndex)
+      .reduce((offset, line) => offset + line.length + 1, 0);
+    const lineEnd = lineStart + (lines[lineIndex]?.length ?? 0);
+    textarea.focus();
+    textarea.setSelectionRange(lineStart, lineEnd);
+    setCursorOffset(lineStart);
+    const lineHeight = Number.parseFloat(
+      window.getComputedStyle(textarea).lineHeight
+    );
+    textarea.scrollTop = Math.max(
+      0,
+      lineIndex * (Number.isFinite(lineHeight) ? lineHeight : 19) - 38
+    );
+    highlight.scrollTop = textarea.scrollTop;
+    onFocusRequestConsumed?.();
+  }, [file.path, focusRequest?.requestId]);
 
   const matches = useMemo(
     () => findTextMatches(file.source, findQuery),
@@ -1868,6 +1906,9 @@ function EditorWorkbench({
   const [showCreateFile, setShowCreateFile] = useState(false);
   const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
   const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
+  const workspaceSearchRequestRef = useRef(0);
+  const [workspaceSearchFocus, setWorkspaceSearchFocus] =
+    useState<WorkspaceSearchFocusRequest | null>(null);
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -2853,6 +2894,12 @@ function EditorWorkbench({
               onQueryChange={setWorkspaceSearchQuery}
               onSelect={(match) => {
                 workspace.setActivePath(match.path);
+                workspaceSearchRequestRef.current += 1;
+                setWorkspaceSearchFocus({
+                  path: match.path,
+                  line: match.line,
+                  requestId: workspaceSearchRequestRef.current,
+                });
                 closeWorkspaceSearch();
               }}
               query={workspaceSearchQuery}
@@ -2883,6 +2930,12 @@ function EditorWorkbench({
               <CodeEditor
                 disabled={!isStorageReady || running}
                 file={activeFile}
+                focusRequest={
+                  activeFile.path === workspaceSearchFocus?.path
+                    ? workspaceSearchFocus
+                    : undefined
+                }
+                onFocusRequestConsumed={() => setWorkspaceSearchFocus(null)}
                 onOpenWorkspaceSearch={() => {
                   setWorkspaceSearchOpen(true);
                   setWorkspaceSearchQuery('');
