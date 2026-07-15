@@ -135,6 +135,37 @@ function escapeHtml(value: string): string {
   });
 }
 
+function createWebPatchSample(
+  file: ReturnType<LiveEditorWorkspaceManager['getActiveFile']>
+): { search: string; replace: string } | null {
+  if (!file?.isText) return null;
+
+  if (file.path.toLowerCase().endsWith('.html')) {
+    const heroTitle = file.source
+      .match(/<h1\b[^>]*id="hero-title"[^>]*>([^<]+)<\/h1>/i)?.[1]
+      ?.trim();
+    if (heroTitle) {
+      return { search: heroTitle, replace: `${heroTitle} · patched` };
+    }
+  }
+
+  if (file.path.toLowerCase().endsWith('.css')) {
+    const accent = file.source.match(/(--accent:\s*)(#[0-9a-f]+)(;)/i)?.[2];
+    if (accent) {
+      const nextAccent =
+        accent.toLowerCase() === '#6d5dfc' ? '#0f9f78' : '#6d5dfc';
+      return { search: accent, replace: nextAccent };
+    }
+  }
+
+  const fallbackLine = file.source
+    .split('\n')
+    .find((line) => line.trim().length > 0 && !/^<!doctype/i.test(line.trim()));
+  return fallbackLine
+    ? { search: fallbackLine, replace: `${fallbackLine} ` }
+    : null;
+}
+
 const {
   Provider: LiveWebCodingToolProvider,
   useToolHandler: useLiveWebCodingToolHandler,
@@ -335,6 +366,12 @@ function WebCodingToolHandlers({
         .files.find((file) => file.path === 'style.css');
       if (!cssFile) throw new Error('style.css is required for theme changes.');
       const tokens = themeTokens[theme];
+      if (!/--accent:\s*#[0-9a-f]+;/i.test(cssFile.source)) {
+        throw new Error('style.css does not expose an --accent token.');
+      }
+      if (!/--accent-soft:\s*#[0-9a-f]+;/i.test(cssFile.source)) {
+        throw new Error('style.css does not expose an --accent-soft token.');
+      }
       const source = cssFile.source
         .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
         .replace(
@@ -360,9 +397,18 @@ function WebCodingToolHandlers({
         .files.find((file) => file.path === 'index.html');
       if (!htmlFile)
         throw new Error('index.html is required for feature cards.');
+      if (
+        !/<section\s+id="feature-grid"\s+class="feature-grid">[\s\S]*?<\/section>/i.test(
+          htmlFile.source
+        )
+      ) {
+        throw new Error(
+          'index.html does not expose the feature-grid insertion target.'
+        );
+      }
       const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
       const source = htmlFile.source.replace(
-        /(<section id="feature-grid" class="feature-grid">[\s\S]*?)(<\/section>)/,
+        /(<section\s+id="feature-grid"\s+class="feature-grid">[\s\S]*?)(<\/section>)/i,
         `$1${card}$2`
       );
       return {
@@ -384,13 +430,23 @@ function WebCodingToolHandlers({
         .files.find((file) => file.path === 'index.html');
       if (!htmlFile)
         throw new Error('index.html is required for hero changes.');
+      if (
+        !/<h1\b[^>]*id="hero-title"[^>]*>[\s\S]*?<\/h1>/i.test(htmlFile.source)
+      ) {
+        throw new Error('index.html does not expose a hero title target.');
+      }
+      if (
+        !/<p\b[^>]*id="hero-subtitle"[^>]*>[\s\S]*?<\/p>/i.test(htmlFile.source)
+      ) {
+        throw new Error('index.html does not expose a hero subtitle target.');
+      }
       const source = htmlFile.source
         .replace(
-          /(<h1 id="hero-title">)[\s\S]*?(<\/h1>)/,
+          /(<h1\b[^>]*id="hero-title"[^>]*>)[\s\S]*?(<\/h1>)/i,
           `$1${escapeHtml(title)}$2`
         )
         .replace(
-          /(<p id="hero-subtitle">)[\s\S]*?(<\/p>)/,
+          /(<p\b[^>]*id="hero-subtitle"[^>]*>)[\s\S]*?(<\/p>)/i,
           `$1${escapeHtml(subtitle)}$2`
         );
       return {
@@ -510,7 +566,10 @@ async function runLocalPrompt(
         method: 'tools/call',
         params: { name: call.name, arguments: argumentsValue },
       },
-      { context: { source: 'local' }, signal }
+      {
+        context: { source: 'local', metadata: { interaction: 'prompt' } },
+        signal,
+      }
     );
     if (signal?.aborted) throw new Error('Execution cancelled.');
     toolNames.push(call.name);
@@ -524,7 +583,10 @@ async function runLocalPrompt(
           method: 'tools/call',
           params: { name: 'web.getWorkspace', arguments: {} },
         },
-        { context: { source: 'local' }, signal }
+        {
+          context: { source: 'local', metadata: { interaction: 'prompt' } },
+          signal,
+        }
       );
       const nextRevision = nextWorkspace.structuredContent;
       if (
@@ -1050,14 +1112,11 @@ function LiveWebCodingWorkbench({
                         tool.name === 'web.applyPatch' &&
                         activeFile?.isText
                       ) {
-                        const search = activeFile.source
-                          .split('\n')
-                          .find((line) => line.trim().length > 0);
-                        if (search) {
+                        const sample = createWebPatchSample(activeFile);
+                        if (sample) {
                           void runTool(tool.name, {
                             path: activeFile.path,
-                            search,
-                            replace: `${search} `,
+                            ...sample,
                             occurrence: 'first',
                             expectedRevision: workspaceSnapshot.revision,
                           });
