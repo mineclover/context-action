@@ -93,8 +93,10 @@ standalone studio는 같은 경계를 execution trace로 표시한다. local과 
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
 local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
-`local` source를 보존한다. provider model call은 `executeModelToolCall()`을
-사용하며 model approval policy의 대상이 된다.
+`local` source를 보존한다. prompt에서 발생한 local mutation은
+`interaction: prompt` metadata를 전달해 model call과 같은 approval 경계를 따른다.
+직접 실행하는 palette sample은 명시적인 local action으로 처리한다. provider model
+call은 `executeModelToolCall()`을 사용하며 model approval policy의 대상이 된다.
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
 화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
@@ -104,8 +106,9 @@ export되는 contract와 동일하다. catalog 행을 선택하는 동작은 정
 
 standalone demo에서는 model source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. approval card에는 tool name·description·source·
-argument key만 표시하고 파일 source 자체는 다시 보여주지 않는다. local agent와
-palette call은 local source를 사용하므로 승인 왕복 없이 결정적으로 실행된다.
+argument key만 표시하고 파일 source 자체는 다시 보여주지 않는다. prompt-originated
+local mutation은 approval 왕복을 거치고, 직접 실행하는 palette call은 결정적인
+local action으로 실행된다.
 
 ## iframe 규칙
 

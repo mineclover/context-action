@@ -96,8 +96,10 @@ source, duration, and result status. The trace is UI state only; it never sends
 file contents or filesystem handles to the model.
 
 Local agent and palette actions use the canonical `registry.callTool()` bridge
-so their `local` source is preserved; provider model calls use
-`executeModelToolCall()` and are subject to the model approval policy.
+so their `local` source is preserved. Prompt-originated local mutations carry an
+`interaction: prompt` metadata marker and use the same approval boundary as
+model calls; direct palette samples remain explicit local actions. Provider model
+calls use `executeModelToolCall()` and are subject to the model approval policy.
 
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, and JSON input schema are
@@ -109,8 +111,8 @@ workspace accidentally.
 For the standalone demo, model-originated non-read-only calls pause at the
 `toolPolicy` boundary until the user approves or denies them. The approval card
 shows only the tool name, description, source, and argument keys; it never
-echoes the file source. Local agent and palette calls use the local source and
-remain deterministic without an approval round trip.
+echoes the file source. Prompt-originated local mutations use the same approval
+round trip, while direct palette calls remain deterministic local actions.
 
 ## iframe rules
 

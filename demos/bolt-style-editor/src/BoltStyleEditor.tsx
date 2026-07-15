@@ -48,8 +48,9 @@ const {
   debug: true,
   onToolCall: recordToolCall,
   toolPolicy: ({ context, definition, request }) => {
+    const isPromptAgentCall = context?.metadata?.interaction === 'prompt';
     if (
-      context?.source !== 'model' ||
+      (!isPromptAgentCall && context?.source !== 'model') ||
       definition.annotations?.readOnlyHint === true
     ) {
       return 'allow';
@@ -478,25 +479,42 @@ function CreateWorkspaceFileDialog({
   );
 }
 
+function inferWorkspacePath(prompt: string): string | null {
+  const explicitPath = prompt.match(
+    /(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:html?|css|m?js|json|md|txt|tsx?|jsx?)(?=\b|[^A-Za-z0-9_.-])/i
+  )?.[0];
+  if (explicitPath) return explicitPath;
+  if (/\breadme\b/i.test(prompt)) return 'README.md';
+  if (/\bindex\b/i.test(prompt)) return 'index.html';
+  if (/\bstyles?\b/i.test(prompt)) return 'styles.css';
+  if (/\bapp\b/i.test(prompt)) return 'app.js';
+  if (/\bnotes?\b/i.test(prompt)) return 'notes.md';
+  return null;
+}
+
 function promptToToolCalls(prompt: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
+  const deleteRequest =
+    /(delete|remove|삭제|지워)/i.test(prompt) && /(file|파일)/i.test(prompt);
+  const requestedPath = inferWorkspacePath(prompt);
 
-  if (
-    /(delete|remove|삭제|지워)/i.test(prompt) &&
-    /(file|파일)/i.test(prompt)
-  ) {
+  if (deleteRequest && requestedPath) {
     calls.push({
       name: 'workspace.deleteFile',
-      arguments: { path: 'README.md' },
+      arguments: { path: requestedPath },
     });
+  }
+
+  if (deleteRequest && !requestedPath) {
+    return [{ name: 'workspace.listFiles', arguments: {} }];
   }
 
   if (/(create|new|생성|만들)/i.test(prompt) && /(file|파일)/i.test(prompt)) {
     calls.push({
       name: 'workspace.createFile',
       arguments: {
-        path: 'notes.md',
+        path: requestedPath ?? 'notes.md',
         source:
           '# New workspace file\n\nCreated through the typed workspace.createFile tool.\n',
       },
@@ -565,7 +583,10 @@ async function runLocalAgent(
         method: 'tools/call',
         params: { name: call.name, arguments: call.arguments },
       },
-      { context: { source: 'local' }, signal }
+      {
+        context: { source: 'local', metadata: { interaction: 'prompt' } },
+        signal,
+      }
     );
     throwIfAborted(signal);
     toolNames.push(call.name);
@@ -576,7 +597,14 @@ async function runLocalAgent(
 
   return {
     toolNames,
-    response: `Local agent called ${toolNames.join(', ')} and refreshed the sandbox preview.`,
+    response:
+      toolNames.length === 1 &&
+      toolNames[0] === 'workspace.listFiles' &&
+      /(delete|remove|삭제|지워)/i.test(prompt) &&
+      /(file|파일)/i.test(prompt) &&
+      !inferWorkspacePath(prompt)
+        ? 'Which file should I delete? Include a path such as README.md.'
+        : `Local agent called ${toolNames.join(', ')} and refreshed the sandbox preview.`,
   };
 }
 
