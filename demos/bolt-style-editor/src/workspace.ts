@@ -30,7 +30,9 @@ export type PreviewSnapshot = {
   message?: string;
 };
 
-type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'>;
+type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'> & {
+  deletedPaths: string[];
+};
 
 type UpdateFileOptions = {
   coalesce?: boolean;
@@ -188,6 +190,7 @@ export class BrowserWorkspace {
   private history: WorkspaceCheckpoint[];
   private historyIndex = 0;
   private savedFiles: WorkspaceFile[];
+  private deletedPaths: string[] = [];
   private lastEdit: { path: string; timestamp: number } | null = null;
   private persistQueue = Promise.resolve();
   private hydrated = false;
@@ -234,6 +237,7 @@ export class BrowserWorkspace {
         revision,
         storageMode: 'indexed-db',
       };
+      this.deletedPaths = [];
       this.history = [this.createCheckpoint()];
       this.historyIndex = 0;
       this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
@@ -290,6 +294,7 @@ export class BrowserWorkspace {
       };
     }
 
+    this.deletedPaths = [];
     this.history = [this.createCheckpoint()];
     this.historyIndex = 0;
     this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
@@ -438,6 +443,7 @@ export class BrowserWorkspace {
     const checkpoint: WorkspaceCheckpoint = {
       activePath: this.snapshot.activePath,
       files: nextFiles,
+      deletedPaths: [...this.deletedPaths],
     };
     const now = Date.now();
     const shouldCoalesce =
@@ -489,6 +495,9 @@ export class BrowserWorkspace {
     const checkpoint: WorkspaceCheckpoint = {
       activePath: normalizedPath,
       files: [...this.snapshot.files, file],
+      deletedPaths: this.deletedPaths.filter(
+        (deletedPath) => deletedPath !== normalizedPath
+      ),
     };
     this.history = [
       ...this.history.slice(0, this.historyIndex + 1),
@@ -507,6 +516,53 @@ export class BrowserWorkspace {
     return this.getSnapshot();
   }
 
+  deleteFile(path: string): WorkspaceSnapshot {
+    const file = this.getFile(path);
+    if (this.snapshot.files.length <= 1) {
+      throw new Error('The workspace must keep at least one file.');
+    }
+
+    const nextFiles = this.snapshot.files.filter(
+      (candidate) => candidate.path !== file.path
+    );
+    if (file.language === 'html' && !findPreviewHtmlFile(nextFiles)) {
+      throw new Error('The workspace must keep an HTML preview entry.');
+    }
+    const nextActivePath =
+      this.snapshot.activePath === file.path
+        ? (findPreviewHtmlFile(nextFiles)?.path ?? nextFiles[0]?.path)
+        : this.snapshot.activePath;
+    if (!nextActivePath) throw new Error('The workspace has no active file.');
+
+    const wasPersisted = this.savedFiles.some(
+      (savedFile) => savedFile.path === file.path
+    );
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: nextActivePath,
+      files: nextFiles,
+      deletedPaths: wasPersisted
+        ? [...this.deletedPaths, file.path].filter(
+            (deletedPath, index, paths) => paths.indexOf(deletedPath) === index
+          )
+        : this.deletedPaths.filter((deletedPath) => deletedPath !== file.path),
+    };
+    this.history = [
+      ...this.history.slice(0, this.historyIndex + 1),
+      checkpoint,
+    ];
+    this.historyIndex += 1;
+    this.lastEdit = null;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.deleteFile(file.path);
+        await this.repository.setActivePath(nextActivePath);
+      });
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
   canUndo(): boolean {
     return this.historyIndex > 0;
   }
@@ -516,7 +572,7 @@ export class BrowserWorkspace {
   }
 
   isDirty(): boolean {
-    return this.getDirtyFiles().length > 0;
+    return this.getDirtyFiles().length > 0 || this.deletedPaths.length > 0;
   }
 
   getDirtyFiles(): WorkspaceFile[] {
@@ -528,11 +584,26 @@ export class BrowserWorkspace {
     });
   }
 
+  getDeletedPaths(): string[] {
+    return [...this.deletedPaths];
+  }
+
   undo(): WorkspaceSnapshot {
     if (!this.canUndo()) return this.getSnapshot();
     this.historyIndex -= 1;
     this.lastEdit = null;
     this.applyCheckpoint(this.history[this.historyIndex]);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository
+          .replaceWorkspace(
+            this.snapshot.files,
+            this.snapshot.activePath,
+            this.snapshot.rootName
+          )
+          .then(() => undefined)
+      );
+    }
     this.notify();
     return this.getSnapshot();
   }
@@ -542,12 +613,24 @@ export class BrowserWorkspace {
     this.historyIndex += 1;
     this.lastEdit = null;
     this.applyCheckpoint(this.history[this.historyIndex]);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository
+          .replaceWorkspace(
+            this.snapshot.files,
+            this.snapshot.activePath,
+            this.snapshot.rootName
+          )
+          .then(() => undefined)
+      );
+    }
     this.notify();
     return this.getSnapshot();
   }
 
   markSaved(): void {
     this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.deletedPaths = [];
     this.snapshot = { ...this.snapshot };
     this.notify();
   }
@@ -556,11 +639,13 @@ export class BrowserWorkspace {
     return {
       activePath: this.snapshot.activePath,
       files: this.snapshot.files,
+      deletedPaths: [...this.deletedPaths],
     };
   }
 
   private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
     const revision = this.snapshot.revision + 1;
+    this.deletedPaths = [...checkpoint.deletedPaths];
     this.snapshot = {
       ...checkpoint,
       rootName: this.snapshot.rootName,

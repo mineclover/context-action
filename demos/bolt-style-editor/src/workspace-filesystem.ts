@@ -34,6 +34,10 @@ type FileSystemDirectoryHandleLike = {
   entries(): AsyncIterableIterator<
     [string, FileSystemFileHandleLike | FileSystemDirectoryHandleLike]
   >;
+  removeEntry?: (
+    name: string,
+    options?: { recursive?: boolean }
+  ) => Promise<void>;
   queryPermission?: (descriptor?: {
     mode?: 'read' | 'readwrite';
   }) => Promise<'granted' | 'prompt' | 'denied'>;
@@ -244,6 +248,25 @@ export class BrowserWorkspaceFileSystemAdapter {
     return files.length;
   }
 
+  async removeFiles(paths: readonly string[]): Promise<number> {
+    const directory = this.directoryHandle;
+    if (!directory) {
+      throw new Error('This workspace was imported without a writable folder.');
+    }
+
+    const permission = await this.ensureWritePermission(directory);
+    if (permission !== 'granted') {
+      throw new Error(
+        'Write permission for the selected folder was not granted.'
+      );
+    }
+
+    for (const path of paths) {
+      await this.removeFile(directory, path);
+    }
+    return paths.length;
+  }
+
   private async ensureWritePermission(
     directory: FileSystemDirectoryHandleLike
   ): Promise<'granted' | 'prompt' | 'denied'> {
@@ -279,6 +302,24 @@ export class BrowserWorkspaceFileSystemAdapter {
       file.kind === 'asset' && file.blob ? file.blob : file.source
     );
     await writable.close();
+  }
+
+  private async removeFile(
+    root: FileSystemDirectoryHandleLike,
+    filePath: string
+  ): Promise<void> {
+    const parts = normalizePath(filePath).split('/').filter(Boolean);
+    const filename = parts.pop();
+    if (!filename) throw new Error(`Invalid workspace path: ${filePath}`);
+
+    let directory = root;
+    for (const segment of parts) {
+      directory = await directory.getDirectoryHandle(segment);
+    }
+    if (!directory.removeEntry) {
+      throw new Error('The selected browser does not support folder deletes.');
+    }
+    await directory.removeEntry(filename);
   }
 
   private async readFile(

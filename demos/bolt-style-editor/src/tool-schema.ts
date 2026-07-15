@@ -30,6 +30,14 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.deleteFile': defineAction(
+    {
+      name: 'workspace.deleteFile',
+      description: 'Delete one file from the browser-local web workspace.',
+      parameters: z.object({ path: filePath }),
+    },
+    z
+  ),
   'workspace.writeFile': defineAction(
     {
       name: 'workspace.writeFile',

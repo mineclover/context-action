@@ -367,6 +367,16 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
 
+  if (
+    /(delete|remove|삭제|지워)/i.test(prompt) &&
+    /(file|파일)/i.test(prompt)
+  ) {
+    calls.push({
+      name: 'workspace.deleteFile',
+      arguments: { path: 'README.md' },
+    });
+  }
+
   if (/(create|new|생성|만들)/i.test(prompt) && /(file|파일)/i.test(prompt)) {
     calls.push({
       name: 'workspace.createFile',
@@ -499,6 +509,24 @@ function ToolHandlers({
       return {
         path: snapshot.activePath,
         language: workspace.getFile(snapshot.activePath).language,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
+    }
+  );
+
+  useBoltStyleToolHandler<'workspace.deleteFile', unknown>(
+    'workspace.deleteFile',
+    async ({ path }, controller) => {
+      const snapshot = workspace.deleteFile(path);
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        path,
+        activePath: snapshot.activePath,
         revision: snapshot.revision,
         preview: 'synced',
       };
@@ -1040,16 +1068,18 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const saveWorkspace = async () => {
     if (saving || !isStorageReady || !workspace.isDirty()) return;
     const dirtyFiles = workspace.getDirtyFiles();
+    const deletedPaths = workspace.getDeletedPaths();
     setSaving(true);
     try {
       if (fileSystemAdapter.hasWritableFolder) {
         await fileSystemAdapter.writeFiles(dirtyFiles);
+        await fileSystemAdapter.removeFiles(deletedPaths);
         workspace.markSaved();
         setMessages((current) => [
           ...current,
           {
             role: 'assistant',
-            text: `Saved ${dirtyFiles.length} file(s) to the selected folder and browser workspace.`,
+            text: `Saved ${dirtyFiles.length} file(s)${deletedPaths.length ? ` and deleted ${deletedPaths.length} file(s)` : ''} in the selected folder and browser workspace.`,
           },
         ]);
       } else {
@@ -1177,6 +1207,8 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             source: '# Created from the tool palette\n',
           },
         };
+      case 'workspace.deleteFile':
+        return { name, arguments: { path: 'README.md' } };
       case 'workspace.writeFile':
         return {
           name,

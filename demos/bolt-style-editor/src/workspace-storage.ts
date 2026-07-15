@@ -158,6 +158,11 @@ export class WebCodingWorkspaceRepository {
     await this.touchMetadata(now);
   }
 
+  async deleteFile(path: string): Promise<void> {
+    await this.database.files.delete(`${this.workspaceId}:${path}`);
+    await this.touchMetadata(Date.now());
+  }
+
   async setActivePath(activePath: string): Promise<void> {
     const metadata = await this.database.workspaces.get(this.workspaceId);
     if (!metadata) return;

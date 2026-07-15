@@ -191,10 +191,12 @@ Open folder → generic FileSystemAdapter
 - Text edits are persisted to Dexie immediately. With a read/write directory
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
-- The standalone registry separates `workspace.createFile` from
-  `workspace.writeFile`: new text files are normalized, opened as the active
-  editor tab, persisted as Blob-backed records, and included in the next folder
-  save.
+- The standalone registry separates `workspace.createFile`,
+  `workspace.writeFile`, and `workspace.deleteFile`: new text files are
+  normalized, opened as the active editor tab, persisted as Blob-backed
+  records, and included in the next folder save. Deletions remove the
+  browser-local record immediately, retain a deleted-path checkpoint for
+  `Save to folder`, and keep undo/redo and the active preview entry valid.
 - The Explorer derives a sorted nested tree from each normalized file path.
   Directory rows can be collapsed or expanded without changing workspace data,
   while file selection continues to resolve to the full `activePath`.
@@ -224,6 +226,8 @@ Open folder → generic FileSystemAdapter
 7. Forward `toolCallId` and abort signals from the model adapter to the Registry,
    with a user-visible cancellation path.
 8. Add browser proof for `tools/list → call → result` and workspace reload.
+9. Keep destructive workspace tools approval-gated for model calls and make
+   explicit folder deletion part of the user-triggered save boundary.
 
 ## Acceptance criteria
 

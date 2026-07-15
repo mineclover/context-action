@@ -183,9 +183,12 @@ Open folder → generic FileSystemAdapter
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
-- standalone registry는 `workspace.createFile`과 `workspace.writeFile`을
-  분리한다. 새 text 파일은 경로를 정규화하고 active editor tab으로 열며,
-  Blob 기반 record로 저장한 뒤 다음 folder save 대상에 포함한다.
+- standalone registry는 `workspace.createFile`, `workspace.writeFile`,
+  `workspace.deleteFile`을 분리한다. 새 text 파일은 경로를 정규화하고
+  active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
+  local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
+  `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
+  entry가 유효하도록 유지한다.
 - Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
   directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
   파일 선택은 전체 `activePath`를 그대로 유지한다.
@@ -215,6 +218,8 @@ Open folder → generic FileSystemAdapter
 7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달하고,
    사용자가 실행을 취소할 수 있는 경로를 제공한다.
 8. `tools/list → call → result`와 workspace reload의 브라우저 검증을 추가한다.
+9. 파괴적인 workspace tool은 model 호출에서 approval gate를 유지하고,
+   실제 폴더 삭제는 사용자가 실행하는 save 경계에서만 수행한다.
 
 ## 검증 기준
 
