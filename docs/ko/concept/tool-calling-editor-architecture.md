@@ -304,6 +304,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `workspace.deleteFile` | approval required | 파일 삭제 및 pending deletion 보존 |
 | `workspace.revertFile` | approval required | 저장된 browser checkpoint로 파일 복원 |
 | `workspace.saveAll` | approval required | 연결된 folder에 dirty file과 pending deletion 기록 |
+| `workspace.reloadFolder` | approval required | 연결된 folder를 다시 읽어 browser workspace 교체 |
 | `workspace.disconnectFolder` | approval required | browser workspace는 유지한 채 local-folder sync 해제 |
 
 standalone surface의 status-aware 호출 순서는 다음과 같다.
@@ -312,6 +313,11 @@ standalone surface의 status-aware 호출 순서는 다음과 같다.
 tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
 workspace mutation → iframe acknowledgement → workspace.saveAll (요청된 경우)
 ```
+
+사용자가 이미 연결된 folder의 새 내용을 명시적으로 요청하면
+`workspace.getStatus → workspace.reloadFolder → workspace.listFiles` branch를
+사용한다. reload는 browser workspace를 교체하므로 destructive approval policy
+뒤에 둔다.
 
 browser workspace의 표준 호출 순서는 다음과 같다.
 
@@ -372,9 +378,10 @@ Open folder → generic FileSystemAdapter
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
   전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
   metadata에만 handle을 저장한다.
-- Explorer의 `Reload` action은 같은 adapter로 연결된 directory를 다시 읽어 Dexie
-  workspace를 교체한다. browser-side edit가 dirty이면 확인을 요구하므로 외부
-  refresh가 변경을 조용히 버리지 않는다.
+- Explorer의 `Reload` action은 canonical `workspace.reloadFolder` tool을 통해 같은
+  adapter로 연결된 directory를 다시 읽어 Dexie workspace를 교체한다. browser-side
+  edit가 dirty이면 확인을 요구하므로 외부 refresh가 변경을 조용히 버리지 않으며,
+  model call은 destructive approval policy 뒤에 둔다.
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다. 브라우저가 directory
@@ -383,7 +390,7 @@ Open folder → generic FileSystemAdapter
   확인한다.
 - standalone registry는 `workspace.createFile`, `workspace.writeFile`,
   `workspace.applyPatch`, `workspace.revertFile`, `workspace.deleteFile`,
-  `workspace.saveAll`을 분리한다. 새 text 파일은 경로를 정규화하고
+  `workspace.saveAll`, `workspace.reloadFolder`를 분리한다. 새 text 파일은 경로를 정규화하고
   active editor tab으로 열며 Blob 기반 record로 저장한다. 삭제는 browser
   local record에서 즉시 반영하고 deleted-path checkpoint를 보존해 다음
   `Save to folder`에서 실제 파일도 삭제하며, undo/redo와 active preview
@@ -404,6 +411,10 @@ Open folder → generic FileSystemAdapter
   만든다. 저장 중 새 편집이 발생하면 revision guard가 stale checkpoint 처리를
   막아 새 변경을 dirty 상태로 유지한다. writable folder가 없으면 실패한 tool
   result를 반환한다.
+- `workspace.reloadFolder`는 외부 refresh의 명시적인 경계다. parent adapter로 연결된
+  folder를 다시 읽고 Dexie browser workspace를 교체한 뒤 새 preview revision을
+  기다리며 skipped file과 local-folder 상태를 반환한다. 연결된 writable folder가
+  없으면 실패한다.
 - writable folder가 연결된 경우 Explorer의 `Save to folder` 버튼과 `⌘/Ctrl+S`
   단축키도 같은 `workspace.saveAll` registry 경로를 호출한다. 따라서 UI save,
   model call, approval policy, trace, structured result가 같은 계약을 공유한다.

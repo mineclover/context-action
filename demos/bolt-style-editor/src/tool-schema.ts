@@ -40,6 +40,19 @@ const workspaceSaveAllOutputSchema = z.object({
   revision: z.number().int().nonnegative(),
   checkpointUpdated: z.boolean().optional(),
 });
+const workspaceReloadFolderOutputSchema = z.object({
+  rootName: z.string(),
+  activePath: z.string(),
+  fileCount: z.number().int().nonnegative(),
+  skipped: z.array(z.string()),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+  filesystem: z.object({
+    mode: z.literal('local-folder'),
+    folderLinked: z.literal(true),
+    saveAllAvailable: z.literal(true),
+  }),
+});
 const workspaceDisconnectFolderOutputSchema = z.object({
   activePath: z.string(),
   revision: z.number().int().nonnegative(),
@@ -171,6 +184,17 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({}),
       outputSchema: workspaceSaveAllOutputSchema,
+    },
+    z
+  ),
+  'workspace.reloadFolder': defineAction(
+    {
+      name: 'workspace.reloadFolder',
+      description:
+        'Re-read the connected local folder into the browser workspace and refresh the preview. Requires a writable folder workspace.',
+      annotations: { destructiveHint: true, idempotentHint: true },
+      parameters: z.object({}),
+      outputSchema: workspaceReloadFolderOutputSchema,
     },
     z
   ),

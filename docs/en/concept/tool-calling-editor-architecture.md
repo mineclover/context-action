@@ -318,6 +318,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | `workspace.deleteFile` | approval required | Delete one workspace file and retain a pending deletion |
 | `workspace.revertFile` | approval required | Restore one file to its saved browser checkpoint |
 | `workspace.saveAll` | approval required | Write dirty files and pending deletions to the linked folder |
+| `workspace.reloadFolder` | approval required | Re-read the connected folder and replace the browser workspace |
 | `workspace.disconnectFolder` | approval required | Stop local-folder sync while retaining the browser workspace |
 
 For the standalone surface, the status-aware sequence is:
@@ -326,6 +327,11 @@ For the standalone surface, the status-aware sequence is:
 tools/list → workspace.getStatus → workspace.listFiles → workspace.readFile →
 workspace mutation → iframe acknowledgement → workspace.saveAll (when requested)
 ```
+
+When the user explicitly asks to refresh an already connected folder, the
+status-aware branch is `workspace.getStatus → workspace.reloadFolder →
+workspace.listFiles`; the reload replaces the browser workspace and therefore
+remains behind the destructive approval policy.
 
 The standard browser workspace call sequence is:
 
@@ -388,9 +394,10 @@ Open folder → generic FileSystemAdapter
   payloads or iframe messages. Where supported, the adapter stores a handle in
   workspace metadata only so it can reconnect after reload.
 - The Explorer `Reload` action re-reads the connected directory through the
-  same adapter and replaces the Dexie workspace. It asks for confirmation when
-  browser-side edits are dirty, preventing an external refresh from silently
-  discarding them.
+  same adapter and replaces the Dexie workspace through the canonical
+  `workspace.reloadFolder` tool. It asks for confirmation when browser-side
+  edits are dirty, preventing an external refresh from silently discarding
+  them; model calls remain behind the destructive approval policy.
 - Text edits are persisted to Dexie immediately. With a read/write directory
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.
@@ -399,7 +406,7 @@ Open folder → generic FileSystemAdapter
   still checked at the save boundary.
 - The standalone registry separates `workspace.createFile`,
   `workspace.writeFile`, `workspace.applyPatch`, `workspace.revertFile`,
-  `workspace.deleteFile`, and `workspace.saveAll`:
+  `workspace.deleteFile`, `workspace.saveAll`, and `workspace.reloadFolder`:
   new text files are
   normalized, opened as the active editor tab, persisted as Blob-backed
   records, and included in the next folder save. Deletions remove the
@@ -424,6 +431,11 @@ Open folder → generic FileSystemAdapter
   checkpoint is revision-guarded, so edits made while the folder write is in
   flight remain dirty instead of being overwritten by a stale clean state.
   Without a writable folder it returns a failed tool result.
+- `workspace.reloadFolder` is the explicit external-refresh boundary. It reads
+  the connected folder through the parent adapter, replaces the Dexie-backed
+  browser workspace, waits for the new preview revision, and reports skipped
+  files plus the resulting local-folder status. It fails when no writable
+  folder is connected.
 - When a writable folder is linked, the Explorer `Save to folder` button and
   `⌘/Ctrl+S` shortcut call this same `workspace.saveAll` registry path, so the
   UI save, model call, approval policy, trace, and structured result stay

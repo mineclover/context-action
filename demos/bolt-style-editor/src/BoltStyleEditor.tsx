@@ -109,9 +109,15 @@ const revisionGuardedWorkspaceTools = new Set([
   'workspace.revertFile',
 ]);
 
+const revisionProducingWorkspaceTools = new Set([
+  ...revisionGuardedWorkspaceTools,
+  'workspace.reloadFolder',
+]);
+
 const localMutationToolNames = new Set([
   ...revisionGuardedWorkspaceTools,
   'workspace.saveAll',
+  'workspace.reloadFolder',
   'workspace.disconnectFolder',
   'preview.setTheme',
   'preview.addFeature',
@@ -413,6 +419,12 @@ function toolSuccessMessage(
       ? structured.deletedPaths.length
       : 0;
     return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${revision}`;
+  }
+
+  if (name === 'workspace.reloadFolder') {
+    const fileCount =
+      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
+    return `Reloaded the connected folder with ${fileCount} file(s).${revision}`;
   }
 
   if (name === 'workspace.disconnectFolder') {
@@ -877,12 +889,15 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const disconnectRequest =
     /(disconnect|unlink|연결 해제|연결을 해제|폴더 해제)/i.test(prompt) &&
     /(folder|directory|폴더|디렉터리)/i.test(prompt);
+  const reloadRequest =
+    /(reload|re-read|refresh|다시 읽|새로고침|재로드)/i.test(prompt) &&
+    /(folder|directory|폴더|디렉터리)/i.test(prompt);
   const statusRequest =
     /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
   const requestedPath = inferWorkspacePath(prompt);
   const textPatch = inferQuotedTextPatch(prompt, requestedPath);
 
-  if (statusRequest && !textPatch && !saveRequest) {
+  if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
     return [{ name: 'workspace.getStatus', arguments: {} }];
   }
 
@@ -956,6 +971,10 @@ function promptToToolCalls(prompt: string): ToolCall[] {
 
   if (saveRequest) {
     calls.push({ name: 'workspace.saveAll', arguments: {} });
+  }
+
+  if (reloadRequest) {
+    calls.push({ name: 'workspace.reloadFolder', arguments: {} });
   }
 
   if (disconnectRequest) {
@@ -1063,7 +1082,7 @@ async function runLocalAgent(
     }
     plannedRevision = readResultRevision(
       result,
-      revisionGuardedWorkspaceTools.has(call.name)
+      revisionProducingWorkspaceTools.has(call.name)
         ? workspace.getSnapshot().revision
         : plannedRevision
     );
@@ -1078,7 +1097,7 @@ async function runLocalAgent(
       /(file|파일)/i.test(prompt) &&
       !inferWorkspacePath(prompt)
         ? 'Which file should I delete? Include a path such as README.md.'
-        : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionGuardedWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
+        : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionProducingWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
   };
 }
 
@@ -1257,6 +1276,40 @@ function ToolHandlers({
         activePath: workspace.getSnapshot().activePath,
         revision: workspace.getSnapshot().revision,
         checkpointUpdated,
+      };
+    },
+    { blocking: true }
+  );
+
+  useBoltStyleToolHandler<'workspace.reloadFolder', unknown>(
+    'workspace.reloadFolder',
+    async (_, controller) => {
+      if (!fileSystemAdapter.hasWritableFolder) {
+        throw new Error(
+          'No writable folder is open. Open a local folder before reloading it.'
+        );
+      }
+      if (controller.signal?.aborted) throw new Error('Reload cancelled.');
+      const imported = await fileSystemAdapter.reloadFolder();
+      await workspace.importFolder(imported);
+      const snapshot = workspace.getSnapshot();
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        rootName: snapshot.rootName,
+        activePath: snapshot.activePath,
+        fileCount: imported.files.length,
+        skipped: imported.skipped,
+        revision: snapshot.revision,
+        preview: 'synced' as const,
+        filesystem: {
+          mode: 'local-folder' as const,
+          folderLinked: true as const,
+          saveAllAvailable: true as const,
+        },
       };
     },
     { blocking: true }
@@ -2359,7 +2412,10 @@ function EditorWorkbench({
 
     setOpeningFolder(true);
     try {
-      await importFolder(await fileSystemAdapter.reloadFolder(), 'Reloaded');
+      await executeQuickTool({
+        name: 'workspace.reloadFolder',
+        arguments: {},
+      });
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -2680,6 +2736,8 @@ function EditorWorkbench({
           arguments: { path: activeFile.path, source: activeFile.source },
         };
       case 'workspace.saveAll':
+        return { name, arguments: {} };
+      case 'workspace.reloadFolder':
         return { name, arguments: {} };
       case 'workspace.disconnectFolder':
         return { name, arguments: {} };
