@@ -148,6 +148,9 @@ jobs:
       - name: Verify standalone local-agent planning contracts
         run: node scripts/verify-web-coding-plan.mjs
 
+      - name: Verify standalone preview document contracts
+        run: node scripts/verify-web-coding-preview.mjs
+
       - name: Verify standalone browser flow
         run: |
           pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
