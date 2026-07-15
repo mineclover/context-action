@@ -36,7 +36,11 @@ import {
   getFreeModelsWithTools,
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
-import { createToolCallSessionId } from '../../../lib/tool-call-trace';
+import {
+  createToolCallSessionId,
+  serializeToolTrace,
+  writeClipboardText,
+} from '../../../lib/tool-call-trace';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
 import styles from './LiveWebCodingPage.module.css';
 
@@ -645,6 +649,7 @@ function LiveWebCodingWorkbench({
   >([]);
   const [loading, setLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [traceCopied, setTraceCopied] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
   const executionControllerRef = useRef<AbortController | null>(null);
@@ -740,6 +745,17 @@ function LiveWebCodingWorkbench({
   const cancelExecution = () => {
     const controller = executionControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
+  };
+
+  const copyTrace = async () => {
+    if (!trace.length) return;
+    try {
+      await writeClipboardText(serializeToolTrace(trace));
+      setTraceCopied(true);
+      window.setTimeout(() => setTraceCopied(false), 1600);
+    } catch {
+      setError('웹 코딩 trace를 복사하지 못했습니다.');
+    }
   };
 
   const sendPrompt = async (event: FormEvent<HTMLFormElement>) => {
@@ -1066,6 +1082,15 @@ function LiveWebCodingWorkbench({
                       onClick={clearLiveWebCodingTrace}
                     >
                       Clear
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.toolTraceClear}
+                      aria-label="Copy web coding tool trace"
+                      disabled={!trace.length}
+                      onClick={() => void copyTrace()}
+                    >
+                      {traceCopied ? 'Copied' : 'Copy'}
                     </button>
                     <span>{trace.length}</span>
                   </div>

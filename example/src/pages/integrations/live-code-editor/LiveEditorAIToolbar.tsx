@@ -22,7 +22,11 @@ import {
   getFreeModelsWithTools,
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
-import { createToolCallSessionId } from '../../../lib/tool-call-trace';
+import {
+  createToolCallSessionId,
+  serializeToolTrace,
+  writeClipboardText,
+} from '../../../lib/tool-call-trace';
 import styles from './LiveCodeEditorPage.module.css';
 import { useLiveEditorToolRegistry } from './LiveEditorToolchain';
 
@@ -87,6 +91,7 @@ export function LiveEditorAIToolbar() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [traceCopied, setTraceCopied] = useState(false);
   const executionControllerRef = useRef<AbortController | null>(null);
 
   useEffect(
@@ -189,6 +194,17 @@ export function LiveEditorAIToolbar() {
   const cancelExecution = () => {
     const controller = executionControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
+  };
+
+  const copyTrace = async () => {
+    if (!trace.length) return;
+    try {
+      await writeClipboardText(serializeToolTrace(trace));
+      setTraceCopied(true);
+      window.setTimeout(() => setTraceCopied(false), 1600);
+    } catch {
+      setError('Could not copy the editor execution trace.');
+    }
   };
 
   const inspectEditorStatus = async () => {
@@ -483,6 +499,15 @@ export function LiveEditorAIToolbar() {
                 onClick={clearLiveEditorTrace}
               >
                 Clear
+              </button>
+              <button
+                type="button"
+                className={styles.traceClearButton}
+                aria-label="Copy editor execution trace"
+                disabled={!trace.length}
+                onClick={() => void copyTrace()}
+              >
+                {traceCopied ? 'Copied' : 'Copy'}
               </button>
               <span>{trace.length} recent events</span>
             </div>

@@ -22,6 +22,51 @@ export function formatToolTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
 }
 
+export function serializeToolTrace(entries: readonly ToolTraceEntry[]): string {
+  return JSON.stringify(entries, null, 2);
+}
+
+export async function writeClipboardText(value: string): Promise<void> {
+  const clipboard = navigator.clipboard;
+  if (clipboard?.writeText) {
+    try {
+      await Promise.race([
+        clipboard.writeText(value),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(
+            () => reject(new Error('Clipboard access timed out.')),
+            350
+          );
+        }),
+      ]);
+      return;
+    } catch {
+      // Fall through to the synchronous browser copy path.
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '0';
+  textarea.style.width = '1px';
+  textarea.style.height = '1px';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } finally {
+    textarea.remove();
+  }
+  if (!copied) throw new Error('Clipboard access is unavailable.');
+}
+
 let sessionSequence = 0;
 
 export function createToolCallSessionId(): string {
