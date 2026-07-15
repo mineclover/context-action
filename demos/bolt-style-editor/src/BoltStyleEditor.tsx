@@ -1497,6 +1497,19 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     }
   };
 
+  const runSelectedTool = async () => {
+    if (!selectedToolName || !selectedToolDefinition) return;
+    const call = paletteCallFor(selectedToolName);
+    if (!call) return;
+    if (
+      selectedToolDefinition.annotations?.destructiveHint === true &&
+      !window.confirm(`Run the destructive sample for ${selectedToolName}?`)
+    ) {
+      return;
+    }
+    await executeQuickTool(call);
+  };
+
   return (
     <div className="studio-shell">
       <header className="studio-topbar">
@@ -1600,11 +1613,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                 data-tool-name={name}
                 disabled={!isStorageReady || running}
                 key={name}
-                onClick={() => {
-                  setSelectedToolName(name);
-                  const call = paletteCallFor(name);
-                  if (call) void executeQuickTool(call);
-                }}
+                onClick={() => setSelectedToolName(name)}
                 type="button"
               >
                 <span className="tool-glyph">
@@ -1632,6 +1641,20 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
                     <span key={key}>{key}</span>
                   ))}
               </div>
+              <button
+                className="tool-run-button"
+                disabled={
+                  !isStorageReady ||
+                  running ||
+                  !paletteCallFor(selectedToolName)
+                }
+                onClick={() => void runSelectedTool()}
+                type="button"
+              >
+                {selectedToolDefinition.annotations?.destructiveHint
+                  ? 'Run destructive sample'
+                  : 'Run sample'}
+              </button>
               <pre>
                 {JSON.stringify(selectedToolDefinition.inputSchema, null, 2)}
               </pre>

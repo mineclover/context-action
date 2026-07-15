@@ -83,6 +83,9 @@ a { color: inherit; text-decoration: none; }
 .tool-inspector > p { color: #858e9e; font-size: 10px; line-height: 1.45; margin: 7px 0; }
 .tool-annotations { display: flex; flex-wrap: wrap; gap: 4px; }
 .tool-annotations span { background: #211c38; border: 1px solid #443a70; border-radius: 3px; color: #a99dff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; padding: 3px 4px; }
+.tool-run-button { background: #2a2350; border: 1px solid #55478f; border-radius: 5px; color: #d4ccff; cursor: pointer; font-size: 10px; margin-top: 8px; padding: 6px 8px; width: 100%; }
+.tool-run-button:hover { background: #382f67; border-color: #8473d3; color: #f0edff; }
+.tool-run-button:disabled { cursor: default; opacity: .45; }
 .tool-inspector pre { background: #0a0d12; border: 1px solid #202633; color: #78869d; font-size: 8px; line-height: 1.45; margin: 8px 0 0; max-height: 118px; overflow: auto; padding: 7px; white-space: pre-wrap; }
 .trace-section { border-top: 1px solid #20242e; margin-top: 18px; padding-top: 2px; }
 .trace-list { display: grid; gap: 4px; max-height: 176px; overflow: auto; padding: 0 4px; }

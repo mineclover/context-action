@@ -99,7 +99,10 @@ so their `local` source is preserved; provider model calls use
 
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, and JSON input schema are
-the same contract exported to MCP and OpenRouter.
+the same contract exported to MCP and OpenRouter. Selecting a catalog row only
+inspects that definition; a separate `Run sample` control is required to
+execute its demo arguments, so browsing a destructive tool cannot mutate the
+workspace accidentally.
 
 For the standalone demo, model-originated non-read-only calls pause at the
 `toolPolicy` boundary until the user approves or denies them. The approval card
