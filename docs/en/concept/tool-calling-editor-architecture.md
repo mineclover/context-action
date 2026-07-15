@@ -106,7 +106,8 @@ directly, so the displayed description, annotations, and JSON input schema are
 the same contract exported to MCP and OpenRouter. Selecting a catalog row only
 inspects that definition; a separate `Run sample` control is required to
 execute its demo arguments, so browsing a destructive tool cannot mutate the
-workspace accidentally.
+workspace accidentally. The catalog filter narrows the same canonical list
+without changing discovery or execution policy.
 
 For the standalone demo, model-originated non-read-only calls pause at the
 `toolPolicy` boundary until the user approves or denies them. The approval card

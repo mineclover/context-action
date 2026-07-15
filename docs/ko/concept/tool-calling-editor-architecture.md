@@ -102,7 +102,9 @@ sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는�
 화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
 export되는 contract와 동일하다. catalog 행을 선택하는 동작은 정의를 확인하는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
-따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다.
+따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
+filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지
+않는다.
 
 standalone demo에서는 model source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. approval card에는 tool name·description·source·

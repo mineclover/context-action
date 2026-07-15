@@ -1174,7 +1174,18 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const [selectedToolName, setSelectedToolName] = useState(
     () => toolNames[0] ?? ''
   );
+  const [toolFilter, setToolFilter] = useState('');
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
+  const visibleToolNames = useMemo(() => {
+    const query = toolFilter.trim().toLowerCase();
+    return query
+      ? toolNames.filter((name) => name.toLowerCase().includes(query))
+      : toolNames;
+  }, [toolFilter, toolNames]);
+  useEffect(() => {
+    if (visibleToolNames.includes(selectedToolName)) return;
+    setSelectedToolName(visibleToolNames[0] ?? '');
+  }, [selectedToolName, visibleToolNames]);
   const selectedToolDefinition = selectedToolName
     ? registry.getToolDefinition(selectedToolName)
     : undefined;
@@ -1639,24 +1650,52 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
 
           <div className="sidebar-section-heading">
             <span>Tools</span>
-            <span className="count-badge">{toolNames.length}</span>
+            <span className="count-badge">
+              {visibleToolNames.length === toolNames.length
+                ? toolNames.length
+                : `${visibleToolNames.length}/${toolNames.length}`}
+            </span>
           </div>
-          <div className="tool-palette">
-            {toolNames.map((name) => (
+          <label className="tool-filter">
+            <span className="sr-only">Filter tools</span>
+            <input
+              aria-label="Filter tools"
+              disabled={!isStorageReady}
+              onChange={(event) => setToolFilter(event.target.value)}
+              placeholder="Filter tools…"
+              type="search"
+              value={toolFilter}
+            />
+            {toolFilter ? (
               <button
-                className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
-                data-tool-name={name}
-                disabled={!isStorageReady || running}
-                key={name}
-                onClick={() => setSelectedToolName(name)}
+                aria-label="Clear tool filter"
+                onClick={() => setToolFilter('')}
                 type="button"
               >
-                <span className="tool-glyph">
-                  {name.startsWith('preview') ? '◈' : '◇'}
-                </span>
-                <span>{name}</span>
+                ×
               </button>
-            ))}
+            ) : null}
+          </label>
+          <div className="tool-palette">
+            {visibleToolNames.length ? (
+              visibleToolNames.map((name) => (
+                <button
+                  className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
+                  data-tool-name={name}
+                  disabled={!isStorageReady || running}
+                  key={name}
+                  onClick={() => setSelectedToolName(name)}
+                  type="button"
+                >
+                  <span className="tool-glyph">
+                    {name.startsWith('preview') ? '◈' : '◇'}
+                  </span>
+                  <span>{name}</span>
+                </button>
+              ))
+            ) : (
+              <div className="tool-filter-empty">No matching tools</div>
+            )}
           </div>
           {selectedToolDefinition ? (
             <section
