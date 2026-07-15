@@ -2009,6 +2009,7 @@ function WorkspaceSearchPanel({
   query: string;
 }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const matches = useMemo(
     () => findWorkspaceMatches(files, query),
     [files, query]
@@ -2018,8 +2019,44 @@ function WorkspaceSearchPanel({
     searchInputRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    setActiveIndex((current) =>
+      Math.min(current, Math.max(matches.length - 1, 0))
+    );
+  }, [matches.length]);
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        matches.length ? (current + 1) % matches.length : 0
+      );
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        matches.length ? (current - 1 + matches.length) % matches.length : 0
+      );
+      return;
+    }
+    if (event.key === 'Enter' && matches[activeIndex]) {
+      event.preventDefault();
+      onSelect(matches[activeIndex]);
+    }
+  };
+
   return (
-    <section aria-label="Search workspace" className="workspace-search-panel">
+    <section
+      aria-label="Search workspace"
+      className="workspace-search-panel"
+      id="workspace-search-panel"
+    >
       <div className="workspace-search-toolbar">
         <span className="workspace-search-icon" aria-hidden="true">
           ⌕
@@ -2027,18 +2064,20 @@ function WorkspaceSearchPanel({
         <input
           ref={searchInputRef}
           aria-label="Search workspace files"
-          onChange={(event) => onQueryChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              onClose();
-            }
+          onChange={(event) => {
+            setActiveIndex(0);
+            onQueryChange(event.target.value);
           }}
+          onKeyDown={handleSearchKeyDown}
           placeholder="Search all workspace files…"
           type="search"
           value={query}
         />
-        <span className="workspace-search-count">
+        <span
+          aria-live="polite"
+          className="workspace-search-count"
+          role="status"
+        >
           {query.trim()
             ? `${matches.length}${matches.length === 80 ? '+' : ''}`
             : 'Type to search'}
@@ -2052,13 +2091,19 @@ function WorkspaceSearchPanel({
         </button>
       </div>
       {query.trim() ? (
-        <div className="workspace-search-results">
+        <div
+          aria-label="Workspace search results"
+          className="workspace-search-results"
+          id="workspace-search-results"
+        >
           {matches.length ? (
             matches.map((match, index) => (
               <button
-                className="workspace-search-result"
+                aria-current={index === activeIndex ? 'true' : undefined}
+                className={`workspace-search-result ${index === activeIndex ? 'workspace-search-result-active' : ''}`}
                 key={`${match.path}-${match.line}-${index}`}
                 onClick={() => onSelect(match)}
+                onMouseEnter={() => setActiveIndex(index)}
                 type="button"
               >
                 <span>
@@ -2613,6 +2658,7 @@ function EditorWorkbench({
   );
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const editorTabsRef = useRef<HTMLDivElement>(null);
+  const workspaceSearchTriggerRef = useRef<HTMLButtonElement>(null);
   const expectedPreviewRevisionRef = useRef(snapshot.revision);
   useEffect(() => {
     expectedPreviewRevisionRef.current = snapshot.revision;
@@ -3869,9 +3915,14 @@ function EditorWorkbench({
     );
   };
 
-  const closeWorkspaceSearch = () => {
+  const closeWorkspaceSearch = (restoreFocus = true) => {
     setWorkspaceSearchOpen(false);
     setWorkspaceSearchQuery('');
+    if (restoreFocus) {
+      window.requestAnimationFrame(() =>
+        workspaceSearchTriggerRef.current?.focus()
+      );
+    }
   };
 
   const closeQuickOpen = () => {
@@ -4431,6 +4482,8 @@ function EditorWorkbench({
                     ? 'Close workspace search'
                     : 'Search workspace'
                 }
+                aria-controls="workspace-search-panel"
+                aria-expanded={workspaceSearchOpen}
                 className={`editor-action editor-search ${workspaceSearchOpen ? 'editor-search-active' : ''}`}
                 disabled={!isStorageReady || running}
                 onClick={() => {
@@ -4441,6 +4494,7 @@ function EditorWorkbench({
                     setWorkspaceSearchQuery('');
                   }
                 }}
+                ref={workspaceSearchTriggerRef}
                 title="Search all workspace files (⌘/Ctrl+Shift+F)"
                 type="button"
               >
@@ -4575,7 +4629,7 @@ function EditorWorkbench({
                     line: match.line,
                     requestId: workspaceSearchRequestRef.current,
                   });
-                  closeWorkspaceSearch();
+                  closeWorkspaceSearch(false);
                 })();
               }}
               query={workspaceSearchQuery}

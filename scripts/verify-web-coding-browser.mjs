@@ -194,6 +194,25 @@ async function runBrowserProof(url) {
     await page.getByRole('tab', { name: /README\.md/ }).focus();
     await page.keyboard.press('Home');
     await page.getByLabel('Edit index.html').waitFor();
+    const searchTrigger = page.getByRole('button', {
+      name: 'Search workspace',
+    });
+    await searchTrigger.click();
+    const searchInput = page.getByLabel('Search workspace files');
+    await searchInput.fill('hero');
+    await searchInput.press('ArrowDown');
+    await searchInput.press('Enter');
+    await page
+      .locator('#workspace-search-panel')
+      .waitFor({ state: 'detached' });
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute('aria-label') === 'Edit index.html'
+    );
+    await page.getByRole('button', { name: 'Search workspace' }).click();
+    await page.getByLabel('Search workspace files').press('Escape');
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute('aria-label') === 'Search workspace'
+    );
     await editor.fill(`${initialSource}\n<!-- browser editing proof -->\n`);
     await page.getByText('Unsaved changes', { exact: true }).waitFor();
     await page.waitForFunction(

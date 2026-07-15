@@ -52,6 +52,10 @@ button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and
 `Enter` to open a workspace file. `Esc` closes the palette and restores the
 previous focus.
 
+Use `Search` or `Ctrl/Cmd+Shift+F` to search all text files. Arrow keys and
+`Enter` jump to a matching line; `Esc` closes the search and restores its
+trigger focus.
+
 ## Workspace boundaries
 
 - Text files and Blob assets are stored in Dexie/IndexedDB.
