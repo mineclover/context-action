@@ -26,6 +26,25 @@ export function serializeToolTrace(entries: readonly ToolTraceEntry[]): string {
   return JSON.stringify(entries, null, 2);
 }
 
+export function downloadTextFile(
+  value: string,
+  filename: string,
+  mimeType = 'application/json'
+): void {
+  const blob = new Blob([value], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  window.setTimeout(() => {
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, 0);
+}
+
 export async function writeClipboardText(value: string): Promise<void> {
   const clipboard = navigator.clipboard;
   if (clipboard?.writeText) {

@@ -24,6 +24,7 @@ import {
 } from '../../../lib/openrouter-models';
 import {
   createToolCallSessionId,
+  downloadTextFile,
   serializeToolTrace,
   writeClipboardText,
 } from '../../../lib/tool-call-trace';
@@ -203,8 +204,18 @@ export function LiveEditorAIToolbar() {
       setTraceCopied(true);
       window.setTimeout(() => setTraceCopied(false), 1600);
     } catch {
-      setError('Could not copy the editor execution trace.');
+      setError(
+        'Could not copy the editor execution trace. Use Download instead.'
+      );
     }
+  };
+
+  const downloadTrace = () => {
+    if (!trace.length) return;
+    downloadTextFile(
+      serializeToolTrace(trace),
+      'context-action-editor-trace.json'
+    );
   };
 
   const inspectEditorStatus = async () => {
@@ -508,6 +519,15 @@ export function LiveEditorAIToolbar() {
                 onClick={() => void copyTrace()}
               >
                 {traceCopied ? 'Copied' : 'Copy'}
+              </button>
+              <button
+                type="button"
+                className={styles.traceClearButton}
+                aria-label="Download editor execution trace"
+                disabled={!trace.length}
+                onClick={downloadTrace}
+              >
+                Download
               </button>
               <span>{trace.length} recent events</span>
             </div>

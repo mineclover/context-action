@@ -543,6 +543,25 @@ function downloadWorkspaceFile(file: WorkspaceFile): number {
   return blob.size;
 }
 
+function downloadTextFile(
+  value: string,
+  filename: string,
+  mimeType = 'application/json'
+): void {
+  const blob = new Blob([value], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  window.setTimeout(() => {
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, 0);
+}
+
 function throwIfAborted(signal?: AbortSignal): void {
   if (!signal?.aborted) return;
   const reason = signal.reason;
@@ -3571,6 +3590,14 @@ function EditorWorkbench({
     });
   };
 
+  const downloadExecutionTrace = () => {
+    if (!traceEntries.length) return;
+    downloadTextFile(
+      JSON.stringify(traceEntries, null, 2),
+      'context-action-studio-trace.json'
+    );
+  };
+
   const closeWorkspaceSearch = () => {
     setWorkspaceSearchOpen(false);
     setWorkspaceSearchQuery('');
@@ -3926,6 +3953,15 @@ function EditorWorkbench({
                   type="button"
                 >
                   Copy
+                </button>
+                <button
+                  aria-label="Download execution trace"
+                  className="trace-copy-button"
+                  disabled={!traceEntries.length || running}
+                  onClick={downloadExecutionTrace}
+                  type="button"
+                >
+                  Download
                 </button>
                 <span className="count-badge">{traceEntries.length}</span>
               </span>

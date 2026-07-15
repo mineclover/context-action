@@ -38,6 +38,7 @@ import {
 } from '../../../lib/openrouter-models';
 import {
   createToolCallSessionId,
+  downloadTextFile,
   serializeToolTrace,
   writeClipboardText,
 } from '../../../lib/tool-call-trace';
@@ -754,8 +755,16 @@ function LiveWebCodingWorkbench({
       setTraceCopied(true);
       window.setTimeout(() => setTraceCopied(false), 1600);
     } catch {
-      setError('웹 코딩 trace를 복사하지 못했습니다.');
+      setError('웹 코딩 trace를 복사하지 못했습니다. Download를 사용하세요.');
     }
+  };
+
+  const downloadTrace = () => {
+    if (!trace.length) return;
+    downloadTextFile(
+      serializeToolTrace(trace),
+      'context-action-web-trace.json'
+    );
   };
 
   const sendPrompt = async (event: FormEvent<HTMLFormElement>) => {
@@ -1091,6 +1100,15 @@ function LiveWebCodingWorkbench({
                       onClick={() => void copyTrace()}
                     >
                       {traceCopied ? 'Copied' : 'Copy'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.toolTraceClear}
+                      aria-label="Download web coding tool trace"
+                      disabled={!trace.length}
+                      onClick={downloadTrace}
+                    >
+                      Download
                     </button>
                     <span>{trace.length}</span>
                   </div>
