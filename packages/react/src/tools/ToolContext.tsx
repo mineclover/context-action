@@ -430,7 +430,25 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
                 ? execution.successResults[0]
                 : execution.successResults);
 
-          return finish(createToolCallSuccess(output, { toolCallId: request.id }));
+          const outputValidation = tool.safeParseOutput?.(output);
+          if (outputValidation && !outputValidation.success) {
+            return finish(createToolCallError(
+              `Tool "${request.params.name}" returned an invalid result`,
+              {
+                code: 'TOOL_OUTPUT_VALIDATION_FAILED',
+                toolCallId: request.id,
+                details: {
+                  issues: outputValidation.error.issues,
+                },
+              }
+            ));
+          }
+
+          const normalizedOutput = outputValidation?.success
+            ? outputValidation.data
+            : output;
+
+          return finish(createToolCallSuccess(normalizedOutput, { toolCallId: request.id }));
         } catch (error) {
           return finish(createToolCallError(
             error instanceof Error ? error.message : String(error),

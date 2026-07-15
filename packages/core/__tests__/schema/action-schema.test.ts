@@ -102,6 +102,13 @@ describe('Action Schema', () => {
         }),
       });
       expect(action.toMCP().outputSchema).toEqual(action.outputSchema);
+      expect(action.safeParseOutput?.({ ok: true, revision: 3 })).toMatchObject({
+        success: true,
+        data: { ok: true, revision: 3 },
+      });
+      expect(action.safeParseOutput?.({ ok: 'yes', revision: -1 })).toMatchObject({
+        success: false,
+      });
     });
   });
 

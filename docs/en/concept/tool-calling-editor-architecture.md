@@ -79,6 +79,8 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
 - `ToolCallContext` carries `source`, `sessionId`, and `revision`
 - `ToolCallError` provides stable `code`, `message`, `retryable`, and `details`
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
+- An action's optional `outputSchema` validates structured handler results before
+  they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
 
 React ToolContext adds runtime scope:
 
@@ -123,7 +125,7 @@ calls use `executeModelToolCall()` and are subject to the model approval policy.
 The sidebar tool catalog reads each canonical `getToolDefinition()` result
 directly, so the displayed description, annotations, JSON input schema, and
 optional structured `outputSchema` are the same contract exported to MCP and
-OpenRouter. Selecting a catalog row only
+OpenRouter and enforced at the result boundary. Selecting a catalog row only
 inspects that definition; a separate `Run sample` control is required to
 execute its demo arguments, so browsing a destructive tool cannot mutate the
 workspace accidentally. The catalog filter narrows the same canonical list

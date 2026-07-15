@@ -100,6 +100,9 @@ export interface UnifiedAction<TPayload = unknown> {
   /** Optional structured result JSON Schema (Tool chain 호환용) */
   readonly outputSchema?: JSONSchema;
 
+  /** Safely validate a structured tool result when an output schema is defined */
+  readonly safeParseOutput?: (value: unknown) => SafeParseResult<unknown>;
+
   // ---- Validation Functions ----
   /**
    * Payload 검증 (strict mode)
@@ -254,6 +257,13 @@ export function defineAction<TSchema extends ZodRawShape>(
     safeParse: (payload: unknown): SafeParseResult<TPayload> => {
       return parameters.safeParse(payload) as SafeParseResult<TPayload>;
     },
+
+    ...(outputSchema
+      ? {
+          safeParseOutput: (value: unknown): SafeParseResult<unknown> =>
+            outputSchema.safeParse(value) as SafeParseResult<unknown>,
+        }
+      : {}),
 
     // ---- Tool Chain Format Converters ----
     toJSONSchema: () => jsonSchema,

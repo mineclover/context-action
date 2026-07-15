@@ -290,6 +290,51 @@ describe('createToolContext', () => {
       );
     });
 
+    it('should validate structured handler output against the tool contract', async () => {
+      const outputSchema = createActionSchema({
+        getStatus: defineAction({
+          name: 'getStatus',
+          parameters: z.object({}),
+          outputSchema: z.object({
+            ready: z.boolean(),
+          }),
+        }, z),
+      });
+      const OutputTools = createToolContext('OutputTools', {
+        schema: outputSchema,
+      });
+      const outputWrapper = ({ children }: { children: React.ReactNode }) => (
+        <OutputTools.Provider>{children}</OutputTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          OutputTools.useToolHandler(
+            'getStatus',
+            useCallback(async () => ({ ready: 'yes' }), [])
+          );
+          return OutputTools.useToolRegistry();
+        },
+        { wrapper: outputWrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool({
+          method: 'tools/call',
+          id: 'output-check',
+          params: { name: 'getStatus', arguments: {} },
+        })
+      );
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'output-check',
+        error: {
+          code: 'TOOL_OUTPUT_VALIDATION_FAILED',
+          details: { issues: expect.any(Array) },
+        },
+      });
+    });
+
     it('should preserve a blocking handler error in the tools/call result', async () => {
       const handler = jest.fn().mockRejectedValue(new Error('workspace conflict'));
       const { result } = renderHook(

@@ -77,6 +77,8 @@ Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한�
 - `ToolCallContext`: `source`, `sessionId`, `revision`
 - `ToolCallError`: 안정적인 `code`, `message`, `retryable`, `details`
 - `ToolCallEvent`: `started`, `completed`, `failed`
+- action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
+  검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
 
 React ToolContext는 여기에 실행 범위를 추가한다.
 
@@ -118,8 +120,8 @@ call은 `executeModelToolCall()`을 사용하며 model approval policy의 대상
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
 화면에 표시되는 description·annotation·JSON input schema와 선택적인 structured
-`outputSchema`는 MCP와 OpenRouter에 export되는 contract와 동일하다. catalog 행을 선택하는
-동작은 정의를 확인하는
+`outputSchema`는 MCP와 OpenRouter에 export되는 contract와 동일하며 result boundary에서도
+같은 계약을 강제한다. catalog 행을 선택하는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
 따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
 filter는 동일한 canonical list만 좁혀 보며 discovery나 execution policy를 바꾸지
