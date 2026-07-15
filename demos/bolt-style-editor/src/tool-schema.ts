@@ -51,6 +51,7 @@ const workspaceReloadFolderOutputSchema = z.object({
     mode: z.literal('local-folder'),
     folderLinked: z.literal(true),
     saveAllAvailable: z.literal(true),
+    reloadAvailable: z.literal(true),
   }),
 });
 const workspaceDisconnectFolderOutputSchema = z.object({
@@ -61,6 +62,7 @@ const workspaceDisconnectFolderOutputSchema = z.object({
     mode: z.literal('browser-only'),
     folderLinked: z.literal(false),
     saveAllAvailable: z.literal(false),
+    reloadAvailable: z.literal(false),
   }),
 });
 const workspacePatchOutputSchema = syncedWorkspaceMutationOutputSchema.extend({
@@ -101,6 +103,7 @@ const workspaceStatusOutputSchema = z.object({
     mode: z.enum(['local-folder', 'browser-only']),
     folderLinked: z.boolean(),
     saveAllAvailable: z.boolean(),
+    reloadAvailable: z.boolean(),
   }),
 });
 

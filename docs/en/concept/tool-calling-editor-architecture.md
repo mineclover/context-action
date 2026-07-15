@@ -442,8 +442,9 @@ Open folder → generic FileSystemAdapter
   aligned. Browser-only `Save` only advances the local browser checkpoint.
 - `workspace.getStatus` is the read-only status boundary for the standalone
   catalog. It reports the current revision, persistence mode, preview state,
-  dirty/deleted paths, and whether `workspace.saveAll` has a linked local-folder
-  target; this lets a model inspect the save boundary before mutating it.
+  dirty/deleted paths, and explicit filesystem capabilities
+  (`saveAllAvailable` and `reloadAvailable`); this lets a model inspect the
+  local-folder boundaries before mutating them.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
   that value as `expectedRevision` to any workspace mutation
   (`createFile`, `deleteFile`, `writeFile`, `applyPatch`, or `revertFile`); a stale

@@ -1134,6 +1134,7 @@ function ToolHandlers({
         mode: folderLinked ? 'local-folder' : 'browser-only',
         folderLinked,
         saveAllAvailable: folderLinked,
+        reloadAvailable: folderLinked,
       },
     };
   });
@@ -1309,6 +1310,7 @@ function ToolHandlers({
           mode: 'local-folder' as const,
           folderLinked: true as const,
           saveAllAvailable: true as const,
+          reloadAvailable: true as const,
         },
       };
     },
@@ -1329,6 +1331,7 @@ function ToolHandlers({
           mode: 'browser-only' as const,
           folderLinked: false as const,
           saveAllAvailable: false as const,
+          reloadAvailable: false as const,
         },
       };
     },
