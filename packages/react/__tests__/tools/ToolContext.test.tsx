@@ -461,6 +461,51 @@ describe('createToolContext', () => {
         /not available in registry/
       );
     });
+
+    it('should cancel a policy wait when the tool call signal aborts', async () => {
+      const policyContext = createToolContext('AbortPolicyTools', {
+        schema: testSchema,
+        toolPolicy: ({ signal }) =>
+          new Promise((resolve, reject) => {
+            if (!signal) {
+              resolve('allow');
+              return;
+            }
+            signal.addEventListener(
+              'abort',
+              () => reject(new Error('policy wait cancelled')),
+              { once: true }
+            );
+          }),
+      });
+      const policyWrapper = ({ children }: { children: React.ReactNode }) => (
+        <policyContext.Provider>{children}</policyContext.Provider>
+      );
+      const { result } = renderHook(() => policyContext.useToolRegistry(), {
+        wrapper: policyWrapper,
+      });
+      const controller = new AbortController();
+      const pendingCall = result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'abort-policy',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          },
+        },
+        { signal: controller.signal }
+      );
+
+      controller.abort();
+      const toolResult = await act(async () => pendingCall);
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'abort-policy',
+        error: { code: 'TOOL_CANCELLED', retryable: true },
+      });
+    });
   });
 
   describe('Tool Format Export - toMCP', () => {

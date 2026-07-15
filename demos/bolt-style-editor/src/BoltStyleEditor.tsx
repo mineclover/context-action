@@ -53,7 +53,7 @@ const {
   schema: boltStyleToolSchema,
   debug: true,
   onToolCall: recordToolCall,
-  toolPolicy: ({ context, definition, request }) => {
+  toolPolicy: ({ context, definition, request, signal }) => {
     const isPromptAgentCall = context?.metadata?.interaction === 'prompt';
     if (
       definition.annotations?.readOnlyHint === true ||
@@ -61,7 +61,7 @@ const {
     ) {
       return 'allow';
     }
-    return requestToolApproval({ request, definition, context });
+    return requestToolApproval({ request, definition, context, signal });
   },
 });
 

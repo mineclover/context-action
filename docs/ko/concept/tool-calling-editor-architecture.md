@@ -90,6 +90,10 @@ React ToolContext는 여기에 실행 범위를 추가한다.
 - `toolPolicy`: `allow`, `ask`, `deny` 결정
 - `onToolCall`: trace와 audit UI를 위한 lifecycle observer
 
+`toolPolicy`에도 call의 `AbortSignal`을 전달하므로 provider request가 취소된 뒤
+approval·policy 대기가 남지 않는다. 이 경계에서 취소되면 재시도 가능한
+`TOOL_CANCELLED` 표준 오류 결과를 반환한다.
+
 provider별 filtered export(`toMCPFiltered`, `toOpenAIFiltered`,
 `toAnthropicFiltered`)도 같은 allowlist 경계를 사용한다. `tools/list`에서
 숨겨진 도구는 이름을 직접 선택해 provider payload에 다시 넣을 수 없다.

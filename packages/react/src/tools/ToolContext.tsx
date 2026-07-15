@@ -90,6 +90,49 @@ type ToolCallExecutor = (
   options?: ToolCallOptions
 ) => Promise<ToolCallResult>;
 
+function abortError(signal: AbortSignal): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  const error = new Error('Tool call cancelled.');
+  error.name = 'AbortError';
+  return error;
+}
+
+function awaitWithAbort<T>(
+  promise: PromiseLike<T>,
+  signal?: AbortSignal
+): Promise<T> {
+  if (!signal) return Promise.resolve(promise);
+  if (signal.aborted) return Promise.reject(abortError(signal));
+
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => signal.removeEventListener('abort', onAbort);
+    const onAbort = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(abortError(signal));
+    };
+
+    signal.addEventListener('abort', onAbort, { once: true });
+    Promise.resolve(promise).then(
+      value => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(value);
+      },
+      error => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      }
+    );
+  });
+}
+
 function createToolRegistry<TSchema extends ActionSchemaMap>(
   schema: TSchema,
   executeToolCall: ToolCallExecutor,
@@ -342,12 +385,28 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         if (toolPolicy) {
           let decision: Awaited<ReturnType<ToolPolicy>>;
           try {
-            decision = await toolPolicy({
-              request,
-              definition: tool.toMCP(),
-              context,
-            });
+            decision = await awaitWithAbort(
+              Promise.resolve().then(() =>
+                toolPolicy({
+                  request,
+                  definition: tool.toMCP(),
+                  context,
+                  signal: options?.signal,
+                })
+              ),
+              options?.signal
+            );
           } catch (error) {
+            if (options?.signal?.aborted) {
+              return finish(createToolCallError(
+                'Tool call cancelled while waiting for policy.',
+                {
+                  code: 'TOOL_CANCELLED',
+                  retryable: true,
+                  toolCallId: request.id,
+                }
+              ));
+            }
             return finish(createToolCallError(
               error instanceof Error ? error.message : String(error),
               {

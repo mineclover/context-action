@@ -93,6 +93,10 @@ React ToolContext adds runtime scope:
 - `toolPolicy`: an `allow`, `ask`, or `deny` decision
 - `onToolCall`: lifecycle observer for traces and audit UI
 
+`toolPolicy` also receives the call `AbortSignal`, so an approval or policy
+wait cannot outlive a cancelled provider request. The canonical result is a
+retryable `TOOL_CANCELLED` error when cancellation happens at that boundary.
+
 Provider-specific filtered exports (`toMCPFiltered`, `toOpenAIFiltered`, and
 `toAnthropicFiltered`) use the same allowlist boundary. A tool that is hidden
 from `tools/list` cannot be reintroduced into a provider payload by selecting

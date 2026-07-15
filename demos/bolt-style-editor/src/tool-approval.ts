@@ -44,6 +44,7 @@ function notify(): void {
 export function requestToolApproval(
   input: ToolPolicyInput
 ): Promise<ApprovalDecision> {
+  if (input.signal?.aborted) return Promise.resolve('deny');
   const baseId = String(
     input.request.id ?? `approval-${Date.now()}-${sequence++}`
   );
@@ -63,8 +64,20 @@ export function requestToolApproval(
   };
 
   return new Promise((resolve) => {
+    let abortHandler: (() => void) | undefined;
+    const settle = (decision: ApprovalDecision) => {
+      if (abortHandler && input.signal) {
+        input.signal.removeEventListener('abort', abortHandler);
+      }
+      resolve(decision);
+    };
     pending = [approval, ...pending];
-    resolvers.set(id, resolve);
+    resolvers.set(id, settle);
+    if (input.signal) {
+      abortHandler = () => resolveToolApproval(id, 'deny');
+      input.signal.addEventListener('abort', abortHandler, { once: true });
+      if (input.signal.aborted) abortHandler();
+    }
     notify();
   });
 }

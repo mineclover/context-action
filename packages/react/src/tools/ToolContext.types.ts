@@ -17,11 +17,11 @@ import {
   MCPToolDefinition,
   ModelToolCall,
   OpenAIToolDefinition,
+  ToolCallContext,
+  ToolCallObserver,
   ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
-  ToolCallContext,
-  ToolCallObserver,
   ToolListRequest,
   ToolListResult,
   ToolManagementInterface,
@@ -44,6 +44,8 @@ export interface ToolPolicyInput {
   readonly request: ToolCallRequest;
   readonly definition: MCPToolDefinition;
   readonly context?: ToolCallContext;
+  /** Abort signal for approval/policy work that may outlive the provider call. */
+  readonly signal?: AbortSignal;
 }
 
 export type ToolPolicy = (
