@@ -499,7 +499,9 @@ Open folder → generic FileSystemAdapter
   writable folder가 없으면 실패한 tool result를 반환한다.
 - `workspace.saveCheckpoint`는 browser-only save 경계다. 운영체제 folder에는
   쓰지 않고 현재 IndexedDB checkpoint만 clean으로 표시하며, writable folder가
-  연결된 동안에는 실패하므로 두 save 의미가 조용히 섞이지 않는다.
+  연결된 동안에는 실패하므로 두 save 의미가 조용히 섞이지 않는다. 비동기
+  persistence가 끝난 뒤에도 캡처한 revision을 다시 확인하므로, 그 사이 발생한
+  편집은 dirty 상태로 남는다.
 - `workspace.reloadFolder`는 외부 refresh의 명시적인 경계다. parent adapter로 연결된
   folder를 다시 읽고 Dexie browser workspace를 교체한 뒤 새 preview revision을
   기다리며 skipped file과 local-folder 상태를 반환한다. 연결된 writable folder가

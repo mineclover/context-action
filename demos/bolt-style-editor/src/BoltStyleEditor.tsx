@@ -1758,9 +1758,16 @@ function ToolHandlers({
         );
       }
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
+      const checkpointRevision = workspace.getSnapshot().revision;
       const dirtyFiles = workspace.getDirtyFiles();
       const deletedPaths = workspace.getDeletedPaths();
-      await workspace.markSaved();
+      const checkpointUpdated =
+        await workspace.markSavedIfRevision(checkpointRevision);
+      if (!checkpointUpdated) {
+        throw new Error(
+          'The workspace changed while saving the browser checkpoint. Re-read the workspace and retry.'
+        );
+      }
       const snapshot = workspace.getSnapshot();
       return {
         savedPaths: dirtyFiles.map((file) => file.path),

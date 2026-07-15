@@ -531,7 +531,9 @@ Open folder → generic FileSystemAdapter
 - `workspace.saveCheckpoint` is the browser-only save boundary. It marks the
   current IndexedDB checkpoint clean without writing an operating-system folder
   and fails while a writable folder is linked, so the two save semantics cannot
-  silently cross.
+  silently cross. Its asynchronous persistence step re-checks the captured
+  revision before marking the checkpoint clean, so a concurrent edit remains
+  dirty.
 - `workspace.reloadFolder` is the explicit external-refresh boundary. It reads
   the connected folder through the parent adapter, replaces the Dexie-backed
   browser workspace, waits for the new preview revision, and reports skipped
