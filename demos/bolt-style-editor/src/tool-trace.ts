@@ -98,6 +98,14 @@ function resultSummary(
     typeof value.revision === 'number' ? ` · revision ${value.revision}` : '';
   if (Array.isArray(value.files))
     return `${value.files.length} files${revision}`;
+  if (
+    typeof value.rootName === 'string' &&
+    typeof value.fileCount === 'number' &&
+    typeof value.storageMode === 'string' &&
+    value.preview === 'synced'
+  ) {
+    return `reset ${value.rootName} · ${value.fileCount} files${revision}`;
+  }
   if (Array.isArray(value.savedPaths)) {
     const deletedCount = Array.isArray(value.deletedPaths)
       ? value.deletedPaths.length

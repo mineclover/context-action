@@ -3427,6 +3427,11 @@ function EditorWorkbench({
           name,
           arguments: { expectedRevision: snapshot.revision },
         };
+      case 'workspace.reset':
+        return {
+          name,
+          arguments: { expectedRevision: snapshot.revision },
+        };
       case 'workspace.reloadFolder':
         return { name, arguments: {} };
       case 'workspace.disconnectFolder':
