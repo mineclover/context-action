@@ -52,7 +52,9 @@ then replaces the Dexie workspace with the imported text files. When the user
 grants read/write access, `Save to folder` writes dirty files back to that
 directory; a structured-clone-capable browser may persist the handle alongside
 workspace metadata for the next load. The directory-upload fallback remains
-browser-workspace-only.
+browser-workspace-only. When a writable folder remains linked, `Reload` reads
+the directory again and replaces the browser workspace; dirty changes require
+explicit confirmation before they are discarded.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.
@@ -363,6 +365,10 @@ Open folder → generic FileSystemAdapter
 - File-system handles stay behind the parent adapter and never enter tool
   payloads or iframe messages. Where supported, the adapter stores a handle in
   workspace metadata only so it can reconnect after reload.
+- The Explorer `Reload` action re-reads the connected directory through the
+  same adapter and replaces the Dexie workspace. It asks for confirmation when
+  browser-side edits are dirty, preventing an external refresh from silently
+  discarding them.
 - Text edits are persisted to Dexie immediately. With a read/write directory
   handle, `Save to folder` writes the dirty text files back to the selected
   operating-system directory; upload-only imports remain browser-workspace-only.

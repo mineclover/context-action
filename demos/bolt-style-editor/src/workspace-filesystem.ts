@@ -193,6 +193,13 @@ export class BrowserWorkspaceFileSystemAdapter {
     }
   }
 
+  async reloadFolder(): Promise<ImportedFolder> {
+    if (!this.directoryHandle) {
+      throw new Error('No writable folder is connected to this workspace.');
+    }
+    return this.importDirectoryHandle(this.directoryHandle);
+  }
+
   async importDirectoryHandle(
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder> {

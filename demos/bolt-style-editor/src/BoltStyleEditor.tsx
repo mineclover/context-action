@@ -46,7 +46,10 @@ import {
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
-import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
+import {
+  BrowserWorkspaceFileSystemAdapter,
+  type ImportedFolder,
+} from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 const {
@@ -1575,11 +1578,7 @@ function EditorWorkbench({
     folderInputRef.current?.setAttribute('webkitdirectory', '');
   }, []);
 
-  const importFolder = async (
-    imported: Awaited<
-      ReturnType<BrowserWorkspaceFileSystemAdapter['importFileList']>
-    >
-  ) => {
+  const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
     await workspace.importFolder(imported);
     const skippedMessage = imported.skipped.length
       ? ` Skipped ${imported.skipped.length} unsupported or oversized file(s).`
@@ -1591,7 +1590,7 @@ function EditorWorkbench({
       ...current,
       {
         role: 'assistant',
-        text: `Opened ${imported.rootName} with ${imported.files.length} file(s).${syncMessage}${skippedMessage}`,
+        text: `${verb} ${imported.rootName} with ${imported.files.length} file(s).${syncMessage}${skippedMessage}`,
       },
     ]);
   };
@@ -1639,6 +1638,36 @@ function EditorWorkbench({
           role: 'assistant',
           text:
             error instanceof Error ? error.message : 'Folder import failed.',
+        },
+      ]);
+    } finally {
+      setOpeningFolder(false);
+    }
+  };
+
+  const handleReloadFolder = async () => {
+    if (
+      openingFolder ||
+      !isStorageReady ||
+      !hasWritableFolder ||
+      (workspace.isDirty() &&
+        !window.confirm(
+          'Reload the connected folder and discard unsaved browser workspace changes?'
+        ))
+    ) {
+      return;
+    }
+
+    setOpeningFolder(true);
+    try {
+      await importFolder(await fileSystemAdapter.reloadFolder(), 'Reloaded');
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          text:
+            error instanceof Error ? error.message : 'Folder reload failed.',
         },
       ]);
     } finally {
@@ -2049,6 +2078,18 @@ function EditorWorkbench({
               >
                 + New
               </button>
+              {hasWritableFolder ? (
+                <button
+                  aria-label="Reload connected workspace folder"
+                  className="refresh-folder-button"
+                  disabled={openingFolder || !isStorageReady || running}
+                  onClick={() => void handleReloadFolder()}
+                  title="Re-read files from the connected folder"
+                  type="button"
+                >
+                  {openingFolder ? 'Reloading…' : 'Reload'}
+                </button>
+              ) : null}
               <button
                 className="open-folder-button"
                 disabled={openingFolder || !isStorageReady || running}
