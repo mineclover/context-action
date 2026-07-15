@@ -437,6 +437,10 @@ Open folder → generic FileSystemAdapter
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
   전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
   metadata에만 handle을 저장한다.
+- IndexedDB hydration은 stale active path를 우선 HTML entry(없으면 사용 가능한 첫
+  파일)로 복구하고, 현재 파일에 이미 존재하는 deletion marker는 제거한다. 따라서
+  일부만 저장된 workspace도 존재하지 않는 active tab이나 잘못된 pending deletion을
+  노출하지 않는다.
 - Explorer의 `Reload` action은 canonical `workspace.reloadFolder` tool을 통해 같은
   adapter로 연결된 directory를 다시 읽어 Dexie workspace를 교체한다. browser-side
   edit가 dirty이면 확인을 요구하므로 외부 refresh가 변경을 조용히 버리지 않으며,

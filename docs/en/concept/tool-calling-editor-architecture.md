@@ -459,6 +459,10 @@ Open folder → generic FileSystemAdapter
 - File-system handles stay behind the parent adapter and never enter tool
   payloads or iframe messages. Where supported, the adapter stores a handle in
   workspace metadata only so it can reconnect after reload.
+- IndexedDB hydration repairs a stale active path by selecting the preferred
+  HTML entry (or the first available file), and removes deletion markers that
+  point at files already present. A partially persisted workspace therefore
+  does not surface an impossible active tab or false pending deletion.
 - The Explorer `Reload` action re-reads the connected directory through the
   same adapter and replaces the Dexie workspace through the canonical
   `workspace.reloadFolder` tool. It asks for confirmation when browser-side

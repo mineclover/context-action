@@ -78,6 +78,16 @@ function displayOrder(path: string): number {
   );
 }
 
+function selectActivePath(files: readonly WorkspaceFile[]): string {
+  return (
+    files.find((file) => file.path === 'index.html')?.path ??
+    files.find((file) => file.language === 'html')?.path ??
+    files.find((file) => file.kind !== 'asset')?.path ??
+    files[0]?.path ??
+    'index.html'
+  );
+}
+
 export class WebCodingWorkspaceRepository {
   constructor(
     private readonly database = new WebCodingWorkspaceDatabase(),
@@ -300,13 +310,35 @@ export class WebCodingWorkspaceRepository {
             }
       )
     );
+    const sortedFiles = files.sort(
+      (left, right) => displayOrder(left.path) - displayOrder(right.path)
+    );
+    const filePaths = new Set(sortedFiles.map((file) => file.path));
+    const activePath = filePaths.has(metadata.activePath)
+      ? metadata.activePath
+      : selectActivePath(sortedFiles);
+    const deletedPaths = [...new Set(metadata.deletedPaths ?? [])].filter(
+      (path) => !filePaths.has(path)
+    );
+    const storedDeletedPaths = metadata.deletedPaths ?? [];
+    const metadataNeedsRepair =
+      metadata.activePath !== activePath ||
+      storedDeletedPaths.length !== deletedPaths.length ||
+      storedDeletedPaths.some((path, index) => path !== deletedPaths[index]);
+    if (metadataNeedsRepair) {
+      await this.database.workspaces.put({
+        ...metadata,
+        activePath,
+        deletedPaths,
+        updatedAt: Date.now(),
+      });
+    }
+
     return {
       rootName: metadata.rootName,
-      activePath: metadata.activePath,
-      files: files.sort(
-        (left, right) => displayOrder(left.path) - displayOrder(right.path)
-      ),
-      deletedPaths: [...(metadata.deletedPaths ?? [])],
+      activePath,
+      files: sortedFiles,
+      deletedPaths,
       directoryHandle: metadata.directoryHandle,
     };
   }
