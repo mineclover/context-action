@@ -38,6 +38,31 @@ function LiveEditorToolHandlers({
   const blockingToolHandler = { blocking: true };
 
   useLiveEditorToolHandler(
+    'editor.getStatus',
+    () => {
+      const workspace = workspaceManager.getSnapshot();
+      const document = manager.getSnapshot();
+      const folderLinked = filesystemAdapter.isWritable;
+      return {
+        activePath: workspace.activePath,
+        rootName: workspace.rootName,
+        workspaceRevision: workspace.revision,
+        documentRevision: document.revision,
+        storageMode: workspace.storageMode,
+        fileCount: workspace.files.length,
+        dirtyPaths: workspace.dirtyPaths,
+        filesystem: {
+          mode: folderLinked ? 'local-folder' : 'browser-only',
+          folderLinked,
+          saveAllAvailable: folderLinked,
+        },
+        preview: manager.getPreviewStatus(),
+      };
+    },
+    blockingToolHandler
+  );
+
+  useLiveEditorToolHandler(
     'editor.listFiles',
     () => {
       const snapshot = workspaceManager.getSnapshot();

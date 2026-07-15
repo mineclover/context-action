@@ -145,11 +145,13 @@ The iframe is limited to:
 - handling a restricted bridge message set
 
 The iframe must not own the ToolRegistry or model API key. The current showcase
-exposes `editor.listFiles`, `editor.openFile`, `editor.saveFile`, and
+exposes `editor.getStatus`, `editor.listFiles`, `editor.openFile`, `editor.saveFile`, and
 `editor.saveAll` for the browser workspace,
 alongside `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
-`editor.resetDocument`, plus `editor.getPreviewStatus`. `editor.listFiles` is
-read-only and returns the active path, storage mode, dirty paths, and file
+`editor.resetDocument`, plus `editor.getPreviewStatus`. `editor.getStatus` is
+read-only and returns separate workspace/document revisions, persistence mode,
+preview state, dirty paths, and local-folder connection status. `editor.listFiles`
+is read-only and returns the active path, storage mode, dirty paths, and file
 metadata. `editor.openFile` selects a text file and waits until the matching
 preview revision is rendered; binary files are rejected. Each mutating handler
 updates the parent DocumentManager and waits for the matching iframe revision
@@ -203,6 +205,7 @@ The default extraction order is `example → standalone demo/workspace package �
 
 | Tool | Default policy | Purpose |
 | --- | --- | --- |
+| `editor.getStatus` | allow | Read workspace/document revisions, preview, persistence, and folder connection |
 | `editor.listFiles` | allow | List workspace files, active path, storage mode, and dirty paths |
 | `editor.openFile` | local demo allow | Select a text file and await its matching preview revision |
 | `editor.saveFile` | approval required | Write a text file to the user-opened local folder |
@@ -238,7 +241,7 @@ workspace mutation → iframe acknowledgement → workspace.saveAll (when reques
 The standard browser workspace call sequence is:
 
 ```text
-tools/list → editor.listFiles → editor.openFile → editor.setDocument →
+tools/list → editor.getStatus → editor.listFiles → editor.openFile → editor.setDocument →
 iframe acknowledgement → editor.saveFile/editor.saveAll (when filesystem persistence is requested)
 ```
 

@@ -4,6 +4,17 @@ import { z } from 'zod';
 const scenarioSchema = z.enum(['success', 'invalid', 'blocked']);
 const expectedRevisionSchema = z.number().int().nonnegative().optional();
 
+export const getEditorStatusTool = defineAction(
+  {
+    name: 'editor.getStatus',
+    description:
+      'Read editor and workspace revision, persistence, preview, dirty-file, and local-folder connection status.',
+    annotations: { readOnlyHint: true },
+    parameters: z.object({}),
+  },
+  z
+);
+
 export const listEditorFilesTool = defineAction(
   {
     name: 'editor.listFiles',
@@ -122,6 +133,7 @@ export const resetEditorDocumentTool = defineAction(
 );
 
 export const liveEditorToolsSchema = createActionSchema({
+  'editor.getStatus': getEditorStatusTool,
   'editor.listFiles': listEditorFilesTool,
   'editor.openFile': openEditorFileTool,
   'editor.saveFile': saveEditorFileTool,

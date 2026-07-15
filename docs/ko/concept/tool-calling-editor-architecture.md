@@ -140,11 +140,13 @@ iframe은 다음 역할만 담당한다.
 - 제한된 bridge message 처리
 
 iframe에 ToolRegistry나 모델 API 키를 넣지 않는다. 현재 showcase는 browser
-workspace를 위한 `editor.listFiles`, `editor.openFile`, `editor.saveFile`,
+workspace를 위한 `editor.getStatus`, `editor.listFiles`, `editor.openFile`, `editor.saveFile`,
 `editor.saveAll`과 함께
 `editor.getDocument`, `editor.setDocument`, `editor.setScenario`,
-`editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. `editor.listFiles`는
-read-only 도구로 active path, storage mode, dirty paths, 파일 metadata를 반환한다.
+`editor.resetDocument`, `editor.getPreviewStatus`를 노출한다. `editor.getStatus`는
+read-only 도구로 workspace/document revision을 구분해 반환하고 preview·persistence·
+dirty path·local-folder 연결 상태를 포함한다. `editor.listFiles`는 active path,
+storage mode, dirty paths, 파일 metadata를 반환한다.
 `editor.openFile`은 text file을 선택하고 일치하는 preview revision이 렌더링될
 때까지 기다리며 binary file은 거부한다. mutation handler는 부모
 DocumentManager를 먼저 변경하고 iframe의 해당 revision acknowledgement를 받은
@@ -192,6 +194,7 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 
 | 도구 | 기본 정책 | 목적 |
 | --- | --- | --- |
+| `editor.getStatus` | allow | workspace/document revision·preview·persistence·folder 연결 상태 조회 |
 | `editor.listFiles` | allow | workspace 파일·active path·storage mode·dirty paths 조회 |
 | `editor.openFile` | local demo allow | text file을 선택하고 일치하는 preview revision 대기 |
 | `editor.saveFile` | approval required | 사용자가 연 local folder에 text file 저장 |
@@ -227,7 +230,7 @@ workspace mutation → iframe acknowledgement → workspace.saveAll (요청된 �
 browser workspace의 표준 호출 순서는 다음과 같다.
 
 ```text
-tools/list → editor.listFiles → editor.openFile → editor.setDocument →
+tools/list → editor.getStatus → editor.listFiles → editor.openFile → editor.setDocument →
 iframe acknowledgement → editor.saveFile/editor.saveAll (filesystem 저장이 필요한 경우)
 ```
 

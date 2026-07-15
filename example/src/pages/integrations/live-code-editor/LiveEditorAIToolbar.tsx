@@ -62,6 +62,7 @@ export function LiveEditorAIToolbar() {
   const [selectedModel, setSelectedModel] = useState('');
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState('');
+  const [localStatusResult, setLocalStatusResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
   const [localOpenResult, setLocalOpenResult] = useState('');
   const [localSaveResult, setLocalSaveResult] = useState('');
@@ -130,7 +131,7 @@ export function LiveEditorAIToolbar() {
     const messages: ModelMessage[] = [
       {
         role: 'user',
-        content: `You are operating a parent-owned live editor. Use the available editor tools when appropriate. Never invent tool results. User request: ${prompt.trim()}`,
+        content: `You are operating a parent-owned live editor. Use editor.getStatus or editor.listFiles to inspect the current workspace before planning mutations. Use the available editor tools when appropriate. Never invent tool results. User request: ${prompt.trim()}`,
       },
     ];
 
@@ -172,6 +173,23 @@ export function LiveEditorAIToolbar() {
   const cancelExecution = () => {
     const controller = executionControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
+  };
+
+  const inspectEditorStatus = async () => {
+    const result = await registry.callTool(
+      {
+        id: `local-status-${Date.now()}`,
+        method: 'tools/call',
+        params: {
+          name: 'editor.getStatus',
+          arguments: {},
+        },
+      },
+      { context: { source: 'local' } }
+    );
+    setLocalStatusResult(
+      formatLocalToolResult(result, 'Local editor.getStatus failed.')
+    );
   };
 
   const inspectRegistry = async () => {
@@ -433,6 +451,13 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
+          onClick={() => void inspectEditorStatus()}
+        >
+          Run local tools/call · editor.getStatus
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
           onClick={() => void inspectRegistry()}
         >
           Run local tools/call · editor.listFiles
@@ -481,6 +506,9 @@ export function LiveEditorAIToolbar() {
         </button>
         {localCallResult && (
           <code className={styles.localCallResult}>{localCallResult}</code>
+        )}
+        {localStatusResult && (
+          <code className={styles.localCallResult}>{localStatusResult}</code>
         )}
         {localOpenResult && (
           <code className={styles.localCallResult}>{localOpenResult}</code>
