@@ -538,8 +538,10 @@ Open folder → generic FileSystemAdapter
   자동 이동한다. 따라서 approval·error·retry·tool result 피드백을 계속
   확인하면서 editor 영역이 끝없이 커지지 않는다.
 - status bar는 browser에 보존된 변경과 연결된 local folder에 아직 기록하지
-  않은 변경을 구분한다. 후자가 있으면 `beforeunload` guard를 설치해 tab을
-  닫을 때 명시적인 `Save to folder` 경계를 조용히 건너뛰지 않게 한다.
+  않은 변경을 구분한다. debounce window 안에서 아직 Dexie write가 끝나지 않은
+  editor draft도 guard한다. browser-only draft가 저장된 뒤에는 불필요한
+  filesystem 경고를 표시하지 않으며, linked-folder 변경은 명시적인
+  `Save to folder` 경계를 조용히 건너뛰지 않도록 `beforeunload` guard를 유지한다.
 - editor `Download` action은 `workspace.downloadFile`을 호출하므로 text source와
   Blob asset이 같은 trace·approval·structured result contract를 공유한다. 따라서
   directory-upload fallback에서도 편집 결과를 다시 로컬 파일로 가져갈 수 있다.

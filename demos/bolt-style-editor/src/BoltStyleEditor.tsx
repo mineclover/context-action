@@ -2775,6 +2775,12 @@ function EditorWorkbench({
     [snapshot, workspace]
   );
   const hasUnsavedChanges = dirtyPaths.size > 0 || deletedPaths.length > 0;
+  const hasUnpersistedEditorDrafts = Object.keys(editorDrafts).some((path) => {
+    const file = snapshot.files.find((candidate) => candidate.path === path);
+    return Boolean(
+      file && file.kind !== 'asset' && file.source !== editorDrafts[path]
+    );
+  });
   const canRevertActiveFile = dirtyPaths.has(activeFile.path);
   const canDeleteActiveFile =
     snapshot.files.length > 1 &&
@@ -2913,7 +2919,12 @@ function EditorWorkbench({
         : 'executing typed tool call';
 
   useEffect(() => {
-    if (!hasWritableFolder || !hasUnsavedChanges) return;
+    if (
+      !hasUnsavedChanges ||
+      (!hasWritableFolder && !hasUnpersistedEditorDrafts)
+    ) {
+      return;
+    }
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -2921,7 +2932,7 @@ function EditorWorkbench({
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges, hasWritableFolder]);
+  }, [hasUnsavedChanges, hasUnpersistedEditorDrafts, hasWritableFolder]);
 
   const refreshPreview = () => {
     if (!isStorageReady) return;

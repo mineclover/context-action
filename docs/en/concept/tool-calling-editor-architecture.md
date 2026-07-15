@@ -575,9 +575,12 @@ Open folder → generic FileSystemAdapter
   keeping approval, error, retry, and tool-result feedback visible without
   expanding the editor indefinitely.
 - The status bar distinguishes browser-persisted edits from edits that still
-  need to be written to a linked local folder. When the latter exists, the
-  page installs a `beforeunload` guard so closing the tab cannot silently skip
-  the explicit `Save to folder` boundary.
+  need to be written to a linked local folder. It also guards an editor draft
+  that is still inside the debounce window before its Dexie write completes.
+  Once a browser-only draft has been persisted, closing the tab does not show a
+  misleading filesystem warning; linked-folder edits still install a
+  `beforeunload` guard so the explicit `Save to folder` boundary cannot be
+  silently skipped.
 - The editor `Download` action routes through `workspace.downloadFile`, so text
   sources and Blob assets share the same trace, approval, and structured result
   contract while upload-only imports can still be taken back to local files.
