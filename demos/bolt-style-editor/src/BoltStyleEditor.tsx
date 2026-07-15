@@ -1,5 +1,14 @@
 import { createToolContext, type ToolRegistry } from '@context-action/react';
-import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  type UIEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   DEFAULT_OPENROUTER_SETTINGS,
   type OpenRouterSettings,
@@ -54,6 +63,114 @@ function escapeHtml(value: string): string {
     };
     return entities[character] ?? character;
   });
+}
+
+type SyntaxToken = {
+  className?: string;
+  value: string;
+};
+
+function pushPlainToken(tokens: SyntaxToken[], value: string) {
+  if (value) tokens.push({ value });
+}
+
+function tokenizeHtmlTag(tag: string): SyntaxToken[] {
+  const tokens: SyntaxToken[] = [];
+  let tagNameSeen = false;
+  let cursor = 0;
+  const parts = /(<\/?|\/?>|[A-Za-z][\w:-]*|=|"[^"\n]*"|'[^'\n]*')/g;
+  let match = parts.exec(tag);
+
+  while (match) {
+    pushPlainToken(tokens, tag.slice(cursor, match.index));
+    const value = match[0];
+    const className =
+      value.startsWith('"') || value.startsWith("'")
+        ? 'syntax-string'
+        : value.startsWith('<') || value.endsWith('>')
+          ? 'syntax-tag'
+          : !tagNameSeen && value !== '=' && !value.startsWith('/')
+            ? 'syntax-tag'
+            : value === '='
+              ? undefined
+              : 'syntax-attribute';
+    if (className === 'syntax-tag' && /^[A-Za-z]/.test(value)) {
+      tagNameSeen = true;
+    }
+    tokens.push({ className, value });
+    cursor = match.index + value.length;
+    match = parts.exec(tag);
+  }
+  pushPlainToken(tokens, tag.slice(cursor));
+  return tokens;
+}
+
+function highlightHtmlLine(line: string): SyntaxToken[] {
+  const tokens: SyntaxToken[] = [];
+  let cursor = 0;
+  const parts = /<!--[\s\S]*?-->|<\/?[A-Za-z][^>]*>/g;
+  let match = parts.exec(line);
+
+  while (match) {
+    pushPlainToken(tokens, line.slice(cursor, match.index));
+    if (match[0].startsWith('<!--')) {
+      tokens.push({ className: 'syntax-comment', value: match[0] });
+    } else {
+      tokens.push(...tokenizeHtmlTag(match[0]));
+    }
+    cursor = match.index + match[0].length;
+    match = parts.exec(line);
+  }
+  pushPlainToken(tokens, line.slice(cursor));
+  return tokens;
+}
+
+function highlightScriptLine(
+  line: string,
+  language: WorkspaceFile['language']
+): SyntaxToken[] {
+  const tokens: SyntaxToken[] = [];
+  let cursor = 0;
+  const parts =
+    language === 'css'
+      ? /(\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:important|from|to|and|or|not)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g
+      : /(\/\*[\s\S]*?\*\/|\/\/.*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export)\b|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*(?=\())/g;
+  let match = parts.exec(line);
+
+  while (match) {
+    pushPlainToken(tokens, line.slice(cursor, match.index));
+    const value = match[0];
+    const className =
+      value.startsWith('/*') || value.startsWith('//')
+        ? 'syntax-comment'
+        : value.startsWith('"') ||
+            value.startsWith("'") ||
+            value.startsWith('`')
+          ? 'syntax-string'
+          : /^\d/.test(value)
+            ? 'syntax-number'
+            : /^(const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export|important|from|to|and|or|not)$/.test(
+                  value
+                )
+              ? 'syntax-keyword'
+              : 'syntax-function';
+    tokens.push({ className, value });
+    cursor = match.index + value.length;
+    match = parts.exec(line);
+  }
+  pushPlainToken(tokens, line.slice(cursor));
+  return tokens;
+}
+
+function highlightSourceLine(
+  line: string,
+  language: WorkspaceFile['language']
+): SyntaxToken[] {
+  if (language === 'html') return highlightHtmlLine(line);
+  if (language === 'css' || language === 'javascript') {
+    return highlightScriptLine(line, language);
+  }
+  return [{ value: line }];
 }
 
 function resultText(result: {
@@ -366,6 +483,92 @@ function FileIcon({ file }: { file: WorkspaceFile }) {
   return <span className={`file-icon file-icon-${color}`} aria-hidden="true" />;
 }
 
+function CodeEditor({
+  file,
+  onChange,
+}: {
+  file: WorkspaceFile;
+  onChange: (source: string) => void;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const highlightRef = useRef<HTMLPreElement>(null);
+  const highlightedSource = useMemo(
+    () =>
+      file.source
+        .split('\n')
+        .map((line) => highlightSourceLine(line, file.language)),
+    [file.language, file.source]
+  );
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const highlight = highlightRef.current;
+    if (!textarea || !highlight) return;
+    textarea.scrollTop = 0;
+    textarea.scrollLeft = 0;
+    highlight.scrollTop = 0;
+    highlight.scrollLeft = 0;
+  }, [file.path]);
+
+  const syncScroll = (event: UIEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget;
+    const highlight = highlightRef.current;
+    if (!highlight) return;
+    highlight.scrollTop = textarea.scrollTop;
+    highlight.scrollLeft = textarea.scrollLeft;
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Tab') return;
+    event.preventDefault();
+    const textarea = event.currentTarget;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const nextSource = `${file.source.slice(0, start)}  ${file.source.slice(end)}`;
+    onChange(nextSource);
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.setSelectionRange(start + 2, start + 2);
+    });
+  };
+
+  return (
+    <div className="code-scroll">
+      <pre ref={highlightRef} aria-hidden="true" className="code-highlight">
+        {highlightedSource.map((line, index) => (
+          <span className="code-line" key={`${file.path}-highlight-${index}`}>
+            <span className="line-number">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <code>
+              {line.length > 0
+                ? line.map((token, tokenIndex) => (
+                    <span
+                      className={token.className}
+                      key={`${file.path}-${index}-${tokenIndex}`}
+                    >
+                      {token.value}
+                    </span>
+                  ))
+                : ' '}
+            </code>
+          </span>
+        ))}
+      </pre>
+      <textarea
+        ref={textareaRef}
+        aria-label="Editable workspace source"
+        className="code-input"
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={handleKeyDown}
+        onScroll={syncScroll}
+        spellCheck={false}
+        value={file.source}
+        wrap="off"
+      />
+    </div>
+  );
+}
+
 function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const registry = useBoltStyleToolRegistry();
   const snapshot = useSyncExternalStore(
@@ -576,18 +779,14 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <section className="code-editor" aria-label="Workspace source">
             <div className="code-header">
               <span>{activeFile.language}</span>
-              <span>read/write through tools</span>
+              <span>editable source · auto-sync preview</span>
             </div>
-            <div className="code-scroll">
-              {activeFile.source.split('\n').map((line, index) => (
-                <div className="code-line" key={`${activeFile.path}-${index}`}>
-                  <span className="line-number">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <code>{line || ' '}</code>
-                </div>
-              ))}
-            </div>
+            <CodeEditor
+              file={activeFile}
+              onChange={(source) =>
+                workspace.updateFile(activeFile.path, source)
+              }
+            />
           </section>
 
           <section className="chat-panel">
