@@ -63,6 +63,10 @@ adapter는 복원된 write permission을 `granted`, `prompt`, `denied`, `unknown
 짧은 복원 구간에는 editor와 tool control을 비활성화하며, handle 복원에 실패해도
 browser workspace는 유지한다. header에는 folder link unavailable 상태를 명시해
 사용자가 folder를 다시 열어 연결을 복구할 수 있다.
+결정적 prompt planner와 revision-aware preflight는 React editor orchestration과
+분리해 `demos/bolt-style-editor/src/local-agent-plan.ts`에 둔다. 따라서 local
+fallback 계약을 독립적으로 검증할 수 있고, 향후 `packages/live-code-editor`로
+추출할 때 첫 번째로 좁은 경계가 된다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.

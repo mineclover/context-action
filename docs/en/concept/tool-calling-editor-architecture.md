@@ -67,6 +67,10 @@ available and the header explicitly reports that the folder link is unavailable
 so the user can open the folder again.
 An empty or unsupported folder is rejected during both open and reload, so it
 cannot replace the current workspace or leave a misleading folder connection.
+The deterministic prompt planner and revision-aware preflight now live in
+`demos/bolt-style-editor/src/local-agent-plan.ts`, separate from the React
+editor orchestration. This keeps the local fallback contract testable and gives
+the future `packages/live-code-editor` extraction a narrow first seam.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.
