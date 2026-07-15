@@ -3,6 +3,64 @@ import { z } from 'zod';
 
 const filePath = z.string().min(1).max(160);
 const expectedRevision = z.number().int().nonnegative().optional();
+const workspaceFileSummarySchema = z.object({
+  path: z.string(),
+  language: z.string(),
+  size: z.number().int().nonnegative(),
+  kind: z.enum(['text', 'asset']),
+  mimeType: z.string().optional(),
+  dirty: z.boolean(),
+});
+const workspaceListFilesOutputSchema = z.object({
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  dirty: z.boolean(),
+  deletedPaths: z.array(z.string()),
+  files: z.array(workspaceFileSummarySchema),
+});
+const workspaceReadFileOutputSchema = z.object({
+  path: z.string(),
+  source: z.string(),
+  revision: z.number().int().nonnegative(),
+});
+const syncedWorkspaceMutationOutputSchema = z.object({
+  path: z.string(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+});
+const workspaceCreateFileOutputSchema =
+  syncedWorkspaceMutationOutputSchema.extend({
+    language: z.string(),
+  });
+const workspaceSaveAllOutputSchema = z.object({
+  savedPaths: z.array(z.string()),
+  deletedPaths: z.array(z.string()),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  checkpointUpdated: z.boolean().optional(),
+});
+const workspacePatchOutputSchema = syncedWorkspaceMutationOutputSchema.extend({
+  replacements: z.number().int().positive(),
+});
+const previewThemeOutputSchema = z.object({
+  theme: z.enum(['violet', 'emerald', 'amber', 'rose']),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+});
+const previewFeatureOutputSchema = z.object({
+  title: z.string(),
+  activePath: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.literal('synced'),
+});
+const previewStatusOutputSchema = z.object({
+  revision: z.number().int().nonnegative(),
+  status: z.enum(['waiting', 'synced', 'error']),
+  message: z.string().optional(),
+  runtime: z.literal('sandbox iframe'),
+});
 const workspaceStatusOutputSchema = z.object({
   rootName: z.string(),
   activePath: z.string(),
@@ -41,6 +99,7 @@ export const boltStyleToolSchema = createActionSchema({
       description: 'List the files in the browser-local web workspace.',
       annotations: { readOnlyHint: true },
       parameters: z.object({}),
+      outputSchema: workspaceListFilesOutputSchema,
     },
     z
   ),
@@ -50,6 +109,7 @@ export const boltStyleToolSchema = createActionSchema({
       description: 'Read one text file from the web workspace.',
       annotations: { readOnlyHint: true },
       parameters: z.object({ path: filePath }),
+      outputSchema: workspaceReadFileOutputSchema,
     },
     z
   ),
@@ -63,6 +123,7 @@ export const boltStyleToolSchema = createActionSchema({
         source: z.string().max(80_000),
         expectedRevision,
       }),
+      outputSchema: workspaceCreateFileOutputSchema,
     },
     z
   ),
@@ -73,6 +134,7 @@ export const boltStyleToolSchema = createActionSchema({
         'Delete one file from the browser-local web workspace, optionally guarded by a workspace revision.',
       annotations: { destructiveHint: true },
       parameters: z.object({ path: filePath, expectedRevision }),
+      outputSchema: syncedWorkspaceMutationOutputSchema,
     },
     z
   ),
@@ -87,6 +149,7 @@ export const boltStyleToolSchema = createActionSchema({
         source: z.string().max(80_000),
         expectedRevision,
       }),
+      outputSchema: syncedWorkspaceMutationOutputSchema,
     },
     z
   ),
@@ -97,6 +160,7 @@ export const boltStyleToolSchema = createActionSchema({
         'Write every dirty workspace file and pending deletion to the user-opened local folder. Requires a writable folder workspace.',
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({}),
+      outputSchema: workspaceSaveAllOutputSchema,
     },
     z
   ),
@@ -112,6 +176,7 @@ export const boltStyleToolSchema = createActionSchema({
         occurrence: z.enum(['first', 'all']),
         expectedRevision,
       }),
+      outputSchema: workspacePatchOutputSchema,
     },
     z
   ),
@@ -122,6 +187,7 @@ export const boltStyleToolSchema = createActionSchema({
         'Restore one file to its last saved browser workspace state, optionally guarded by a workspace revision.',
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({ path: filePath, expectedRevision }),
+      outputSchema: syncedWorkspaceMutationOutputSchema,
     },
     z
   ),
@@ -133,6 +199,7 @@ export const boltStyleToolSchema = createActionSchema({
       parameters: z.object({
         theme: z.enum(['violet', 'emerald', 'amber', 'rose']),
       }),
+      outputSchema: previewThemeOutputSchema,
     },
     z
   ),
@@ -144,6 +211,7 @@ export const boltStyleToolSchema = createActionSchema({
         title: z.string().min(1).max(70),
         description: z.string().min(1).max(160),
       }),
+      outputSchema: previewFeatureOutputSchema,
     },
     z
   ),
@@ -156,6 +224,7 @@ export const boltStyleToolSchema = createActionSchema({
         title: z.string().min(1).max(90),
         subtitle: z.string().min(1).max(180),
       }),
+      outputSchema: previewFeatureOutputSchema,
     },
     z
   ),
@@ -165,6 +234,7 @@ export const boltStyleToolSchema = createActionSchema({
       description: 'Read the current workspace revision and preview status.',
       annotations: { readOnlyHint: true },
       parameters: z.object({}),
+      outputSchema: previewStatusOutputSchema,
     },
     z
   ),

@@ -82,6 +82,11 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
 - An action's optional `outputSchema` validates structured handler results before
   they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
 
+The standalone workspace, realtime web-coding, and Live Code Editor catalogs use
+this same output contract for file reads, mutations, preview acknowledgements,
+and save results. Their catalog definitions therefore describe both what a
+model may send and what the next model step may safely consume.
+
 React ToolContext adds runtime scope:
 
 - `allowedToolNames`: an allowlist applied to both discovery and execution

@@ -3,6 +3,48 @@ import { z } from 'zod';
 
 const workspacePath = z.string().min(1).max(240);
 const expectedRevision = z.number().int().nonnegative().optional();
+const webWorkspaceFileSchema = z.object({
+  path: z.string(),
+  isText: z.boolean(),
+  size: z.number().int().nonnegative(),
+});
+const webWorkspaceOutputSchema = z.object({
+  activePath: z.string(),
+  rootName: z.string(),
+  revision: z.number().int().nonnegative(),
+  files: z.array(webWorkspaceFileSchema),
+});
+const webReadFileOutputSchema = z.object({
+  path: z.string(),
+  source: z.string(),
+  revision: z.number().int().nonnegative(),
+});
+const webMutationOutputSchema = z.object({
+  path: z.string(),
+  revision: z.number().int().nonnegative(),
+  preview: z.object({
+    state: z.enum(['pending', 'rendered', 'timeout', 'error']),
+    revision: z.number().int(),
+    message: z.string().optional(),
+  }),
+});
+const webPatchOutputSchema = webMutationOutputSchema.extend({
+  replacements: z.number().int().positive(),
+});
+const webThemeOutputSchema = webMutationOutputSchema.extend({
+  theme: z.enum(['violet', 'emerald', 'amber', 'rose', 'sky']),
+});
+const webFeatureOutputSchema = webMutationOutputSchema.extend({
+  title: z.string(),
+});
+const webPreviewOutputSchema = z.object({
+  workspace: webWorkspaceOutputSchema,
+  preview: z.object({
+    state: z.enum(['pending', 'rendered', 'timeout', 'error']),
+    revision: z.number().int(),
+    message: z.string().optional(),
+  }),
+});
 
 export const getWebWorkspaceTool = defineAction(
   {
@@ -11,6 +53,7 @@ export const getWebWorkspaceTool = defineAction(
       'Read the files and active entry point of the parent-owned realtime web workspace.',
     annotations: { readOnlyHint: true },
     parameters: z.object({}),
+    outputSchema: webWorkspaceOutputSchema,
   },
   z
 );
@@ -21,6 +64,7 @@ export const readWebFileTool = defineAction(
     description: 'Read one text file from the realtime web workspace.',
     annotations: { readOnlyHint: true },
     parameters: z.object({ path: workspacePath }),
+    outputSchema: webReadFileOutputSchema,
   },
   z
 );
@@ -36,6 +80,7 @@ export const writeWebFileTool = defineAction(
       source: z.string().max(100_000),
       expectedRevision,
     }),
+    outputSchema: webMutationOutputSchema,
   },
   z
 );
@@ -52,6 +97,7 @@ export const applyWebPatchTool = defineAction(
       occurrence: z.enum(['first', 'all']),
       expectedRevision,
     }),
+    outputSchema: webPatchOutputSchema,
   },
   z
 );
@@ -66,6 +112,7 @@ export const setWebThemeTool = defineAction(
       theme: z.enum(['violet', 'emerald', 'amber', 'rose', 'sky']),
       expectedRevision,
     }),
+    outputSchema: webThemeOutputSchema,
   },
   z
 );
@@ -80,6 +127,7 @@ export const addWebFeatureTool = defineAction(
       description: z.string().min(1).max(180),
       expectedRevision,
     }),
+    outputSchema: webFeatureOutputSchema,
   },
   z
 );
@@ -94,6 +142,7 @@ export const updateWebHeroTool = defineAction(
       subtitle: z.string().min(1).max(220),
       expectedRevision,
     }),
+    outputSchema: webFeatureOutputSchema,
   },
   z
 );
@@ -105,6 +154,7 @@ export const runWebPreviewTool = defineAction(
       'Read the current rendered preview status after workspace edits.',
     annotations: { readOnlyHint: true },
     parameters: z.object({}),
+    outputSchema: webPreviewOutputSchema,
   },
   z
 );

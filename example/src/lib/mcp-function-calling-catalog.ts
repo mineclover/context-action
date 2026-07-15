@@ -41,12 +41,13 @@ export const mcpToolManagementMethods = [
   {
     name: 'listTools',
     protocol: 'tools/list',
-    purpose: '등록된 표준 ToolDefinition 목록과 inputSchema를 조회합니다.',
+    purpose:
+      '등록된 표준 ToolDefinition 목록과 inputSchema·선택적 outputSchema를 조회합니다.',
   },
   {
     name: 'getToolDefinition',
     protocol: 'definition lookup',
-    purpose: '모델·UI·검증기가 동일한 도구 정의를 참조하게 합니다.',
+    purpose: '모델·UI·검증기가 동일한 입력·출력 도구 계약을 참조하게 합니다.',
   },
   {
     name: 'callTool',

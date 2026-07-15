@@ -80,6 +80,10 @@ Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한�
 - action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
   검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
 
+standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
+계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
+보낼 입력과 다음 단계가 안전하게 소비할 결과를 함께 정의한다.
+
 React ToolContext는 여기에 실행 범위를 추가한다.
 
 - `allowedToolNames`: discovery와 execution에 모두 적용되는 allowlist
