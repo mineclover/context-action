@@ -471,9 +471,12 @@ export class BrowserWorkspace {
     this.lastEdit = { path: normalizedPath, timestamp: now };
     this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
-      this.enqueuePersistence(() =>
-        this.repository.saveFile(this.getFile(normalizedPath))
+      const persistedFile = nextFiles.find(
+        (file) => file.path === normalizedPath
       );
+      if (persistedFile) {
+        this.enqueuePersistence(() => this.repository.saveFile(persistedFile));
+      }
     }
     this.notify();
     return this.getSnapshot();
@@ -617,15 +620,17 @@ export class BrowserWorkspace {
     if (!this.canUndo()) return this.getSnapshot();
     this.historyIndex -= 1;
     this.lastEdit = null;
-    this.applyCheckpoint(this.history[this.historyIndex]);
+    const checkpoint = this.history[this.historyIndex];
+    const rootName = this.snapshot.rootName;
+    this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
       this.enqueuePersistence(() =>
         this.repository
           .replaceWorkspace(
-            this.snapshot.files,
-            this.snapshot.activePath,
-            this.snapshot.rootName,
-            this.deletedPaths
+            checkpoint.files,
+            checkpoint.activePath,
+            rootName,
+            checkpoint.deletedPaths
           )
           .then(() => undefined)
       );
@@ -638,15 +643,17 @@ export class BrowserWorkspace {
     if (!this.canRedo()) return this.getSnapshot();
     this.historyIndex += 1;
     this.lastEdit = null;
-    this.applyCheckpoint(this.history[this.historyIndex]);
+    const checkpoint = this.history[this.historyIndex];
+    const rootName = this.snapshot.rootName;
+    this.applyCheckpoint(checkpoint);
     if (this.snapshot.storageMode === 'indexed-db') {
       this.enqueuePersistence(() =>
         this.repository
           .replaceWorkspace(
-            this.snapshot.files,
-            this.snapshot.activePath,
-            this.snapshot.rootName,
-            this.deletedPaths
+            checkpoint.files,
+            checkpoint.activePath,
+            rootName,
+            checkpoint.deletedPaths
           )
           .then(() => undefined)
       );

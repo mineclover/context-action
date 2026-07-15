@@ -954,12 +954,33 @@ function ToolHandlers({
       if (!file)
         throw new Error('No CSS stylesheet was found in the workspace.');
       const tokens = themeTokens[theme];
+      const hasThemeTokens =
+        /--accent:\s*#[0-9a-f]+;/i.test(file.source) ||
+        /--accent-soft:\s*#[0-9a-f]+;/i.test(file.source);
+      if (!hasThemeTokens) {
+        throw new Error(
+          `The stylesheet does not expose supported theme tokens: ${file.path}`
+        );
+      }
       const source = file.source
         .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
         .replace(
           /--accent-soft:\s*#[0-9a-f]+;/i,
           `--accent-soft: ${tokens.soft};`
         );
+      if (source === file.source) {
+        const current = workspace.getSnapshot();
+        await workspace.waitForPreviewRevision(
+          current.revision,
+          2500,
+          controller.signal
+        );
+        return {
+          theme,
+          ...workspaceResultMeta(current),
+          preview: 'synced' as const,
+        };
+      }
       const snapshot = workspace.updateFile(file.path, source, {
         coalesce: false,
       });
