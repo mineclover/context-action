@@ -36,6 +36,71 @@ type UpdateFileOptions = {
   coalesce?: boolean;
 };
 
+const languageByWorkspaceExtension: Record<string, string> = {
+  '.css': 'css',
+  '.htm': 'html',
+  '.html': 'html',
+  '.js': 'javascript',
+  '.json': 'json',
+  '.mjs': 'javascript',
+  '.md': 'markdown',
+  '.ts': 'typescript',
+  '.tsx': 'typescript',
+  '.txt': 'text',
+};
+
+const binaryWorkspaceExtensions = new Set([
+  '.avif',
+  '.gif',
+  '.ico',
+  '.jpeg',
+  '.jpg',
+  '.otf',
+  '.png',
+  '.svg',
+  '.ttf',
+  '.wasm',
+  '.webp',
+  '.woff',
+  '.woff2',
+]);
+
+export function normalizeWorkspacePath(path: string): string {
+  if (path.includes('\0'))
+    throw new Error('Workspace path cannot contain NUL.');
+  const segments = path.replaceAll('\\', '/').split('/');
+  if (segments.some((segment) => segment === '..')) {
+    throw new Error('Workspace path cannot traverse a parent directory.');
+  }
+  const normalized = segments.filter(
+    (segment) => segment.length > 0 && segment !== '.'
+  );
+  if (normalized.length === 0) throw new Error('Workspace path is required.');
+  return normalized.join('/');
+}
+
+export function languageForWorkspacePath(path: string): string {
+  const extension = `.${path.split('.').pop()?.toLowerCase() ?? ''}`;
+  return languageByWorkspaceExtension[extension] ?? 'text';
+}
+
+function mimeTypeForWorkspaceLanguage(language: string): string {
+  switch (language) {
+    case 'html':
+      return 'text/html';
+    case 'css':
+      return 'text/css';
+    case 'javascript':
+      return 'text/javascript';
+    case 'json':
+      return 'application/json';
+    case 'markdown':
+      return 'text/markdown';
+    default:
+      return 'text/plain';
+  }
+}
+
 const initialFiles: WorkspaceFile[] = [
   {
     path: 'index.html',
@@ -396,6 +461,47 @@ export class BrowserWorkspace {
       this.enqueuePersistence(() =>
         this.repository.saveFile(this.getFile(path))
       );
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  createFile(path: string, source: string): WorkspaceSnapshot {
+    const normalizedPath = normalizeWorkspacePath(path);
+    const extension = `.${normalizedPath.split('.').pop()?.toLowerCase() ?? ''}`;
+    if (binaryWorkspaceExtensions.has(extension)) {
+      throw new Error(
+        `Binary assets cannot be created as text files: ${normalizedPath}`
+      );
+    }
+    if (this.snapshot.files.some((file) => file.path === normalizedPath)) {
+      throw new Error(`Workspace file already exists: ${normalizedPath}`);
+    }
+
+    const language = languageForWorkspacePath(normalizedPath);
+    const file: WorkspaceFile = {
+      path: normalizedPath,
+      language,
+      source,
+      kind: 'text',
+      mimeType: mimeTypeForWorkspaceLanguage(language),
+    };
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: normalizedPath,
+      files: [...this.snapshot.files, file],
+    };
+    this.history = [
+      ...this.history.slice(0, this.historyIndex + 1),
+      checkpoint,
+    ];
+    this.historyIndex += 1;
+    this.lastEdit = { path: normalizedPath, timestamp: Date.now() };
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.saveFile(file);
+        await this.repository.setActivePath(normalizedPath);
+      });
     }
     this.notify();
     return this.getSnapshot();

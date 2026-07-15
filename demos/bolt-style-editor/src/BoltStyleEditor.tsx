@@ -367,6 +367,17 @@ function promptToToolCalls(prompt: string): ToolCall[] {
   const normalized = prompt.toLowerCase();
   const calls: ToolCall[] = [];
 
+  if (/(create|new|생성|만들)/i.test(prompt) && /(file|파일)/i.test(prompt)) {
+    calls.push({
+      name: 'workspace.createFile',
+      arguments: {
+        path: 'notes.md',
+        source:
+          '# New workspace file\n\nCreated through the typed workspace.createFile tool.\n',
+      },
+    });
+  }
+
   const theme =
     normalized.includes('emerald') || normalized.includes('green')
       ? 'emerald'
@@ -423,11 +434,11 @@ async function runLocalAgent(
 
   for (const call of calls) {
     throwIfAborted(signal);
-    const result = await registry.executeModelToolCall(
+    const result = await registry.callTool(
       {
         id: `local-${Date.now()}-${call.name}`,
-        name: call.name,
-        arguments: call.arguments,
+        method: 'tools/call',
+        params: { name: call.name, arguments: call.arguments },
       },
       { context: { source: 'local' }, signal }
     );
@@ -475,6 +486,24 @@ function ToolHandlers({
     }
     return { path, source: file.source };
   });
+
+  useBoltStyleToolHandler<'workspace.createFile', unknown>(
+    'workspace.createFile',
+    async ({ path, source }, controller) => {
+      const snapshot = workspace.createFile(path, source);
+      await workspace.waitForPreviewRevision(
+        snapshot.revision,
+        2500,
+        controller.signal
+      );
+      return {
+        path: snapshot.activePath,
+        language: workspace.getFile(snapshot.activePath).language,
+        revision: snapshot.revision,
+        preview: 'synced',
+      };
+    }
+  );
 
   useBoltStyleToolHandler<'workspace.writeFile', unknown>(
     'workspace.writeFile',
@@ -1093,11 +1122,11 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
     executionControllerRef.current = controller;
     setRunning(true);
     try {
-      const result = await registry.executeModelToolCall(
+      const result = await registry.callTool(
         {
           id: `palette-${Date.now()}`,
-          name: call.name,
-          arguments: call.arguments,
+          method: 'tools/call',
+          params: { name: call.name, arguments: call.arguments },
         },
         { context: { source: 'local' }, signal: controller.signal }
       );
@@ -1140,6 +1169,14 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
         return { name, arguments: {} };
       case 'workspace.readFile':
         return { name, arguments: { path: activeFile.path } };
+      case 'workspace.createFile':
+        return {
+          name,
+          arguments: {
+            path: 'notes.md',
+            source: '# Created from the tool palette\n',
+          },
+        };
       case 'workspace.writeFile':
         return {
           name,

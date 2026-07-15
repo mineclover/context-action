@@ -85,6 +85,9 @@ standalone studio는 같은 경계를 execution trace로 표시한다. local과 
 'tools/list' })`를 호출한다. 이후 ToolContext의 `onToolCall` observer가
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
+local agent와 palette action은 canonical `registry.callTool()` bridge를 사용해
+`local` source를 보존한다. provider model call은 `executeModelToolCall()`을
+사용하며 model approval policy의 대상이 된다.
 
 sidebar tool catalog는 canonical `getToolDefinition()` 결과를 직접 읽는다. 따라서
 화면에 표시되는 description·annotation·JSON input schema는 MCP와 OpenRouter에
@@ -180,6 +183,9 @@ Open folder → generic FileSystemAdapter
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
   `Save to folder`가 dirty text 파일을 선택한 운영체제 directory에 다시 쓰며,
   upload-only import는 browser workspace에만 저장한다.
+- standalone registry는 `workspace.createFile`과 `workspace.writeFile`을
+  분리한다. 새 text 파일은 경로를 정규화하고 active editor tab으로 열며,
+  Blob 기반 record로 저장한 뒤 다음 folder save 대상에 포함한다.
 - Explorer는 정규화된 파일 경로를 기준으로 정렬된 nested tree를 만든다.
   directory row는 접거나 펼칠 수 있지만 workspace 데이터는 바뀌지 않으며,
   파일 선택은 전체 `activePath`를 그대로 유지한다.

@@ -22,6 +22,14 @@ export const boltStyleToolSchema = createActionSchema({
     },
     z
   ),
+  'workspace.createFile': defineAction(
+    {
+      name: 'workspace.createFile',
+      description: 'Create a new text file in the browser-local web workspace.',
+      parameters: z.object({ path: filePath, source: z.string().max(80_000) }),
+    },
+    z
+  ),
   'workspace.writeFile': defineAction(
     {
       name: 'workspace.writeFile',
