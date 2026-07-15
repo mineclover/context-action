@@ -351,6 +351,17 @@ async function runBrowserProof(url) {
       )
       .waitFor();
     await preview.getByText('Inspectable tools', { exact: true }).waitFor();
+    const initialTraceToolCallIds = await page
+      .locator('#trace-list .trace-row')
+      .evaluateAll((rows) =>
+        rows
+          .map((row) => row.getAttribute('title') ?? '')
+          .filter((title) => title.startsWith('toolCallId '))
+          .map((title) => title.split(' · ')[0])
+      );
+    if (new Set(initialTraceToolCallIds).size !== initialTraceToolCallIds.length) {
+      throw new Error('Tool call IDs were not unique in the local agent trace.');
+    }
 
     const completedThemeTraceBeforeCancel = await page
       .locator('#trace-list .trace-row-completed')

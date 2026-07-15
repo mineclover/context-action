@@ -1025,7 +1025,7 @@ async function runLocalAgent(
   let plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
 
-  for (const call of calls) {
+  for (const [callIndex, call] of calls.entries()) {
     throwIfAborted(signal);
     const argumentsValue =
       revisionGuardedWorkspaceTools.has(call.name) &&
@@ -1034,7 +1034,7 @@ async function runLocalAgent(
         : call.arguments;
     const result = await registry.executeModelToolCall(
       {
-        id: `local-model-${Date.now()}-${call.name}`,
+        id: `local-model-${sessionId ?? 'run'}-${callIndex}-${call.name}`,
         name: call.name,
         arguments: argumentsValue,
       },
@@ -3643,7 +3643,7 @@ function EditorWorkbench({
     try {
       const result = await registry.callTool(
         {
-          id: `palette-${Date.now()}`,
+          id: `palette-${sessionId}`,
           method: 'tools/call',
           params: { name: call.name, arguments: call.arguments },
         },
