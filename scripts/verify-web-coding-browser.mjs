@@ -914,6 +914,94 @@ async function runBrowserProof(url) {
       await blockedIndexedDbPage.close();
     }
 
+    const retryContext = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const retryPage = await retryContext.newPage();
+    const retryConsoleErrors = [];
+    let retryRequestCount = 0;
+    retryPage.on('console', (message) => {
+      if (message.type() !== 'error') return;
+      const text = message.text();
+      if (
+        text.includes('document is sandboxed and lacks the') ||
+        text.includes('server responded with a status of 503')
+      ) {
+        return;
+      }
+      retryConsoleErrors.push(text);
+    });
+    retryPage.on('pageerror', (error) => {
+      if (error.message.includes('document is sandboxed and lacks the')) return;
+      retryConsoleErrors.push(error.message);
+    });
+    await retryPage.addInitScript((storageKey) => {
+      window.localStorage.setItem(storageKey, 'test-openrouter-key');
+    }, 'context-action.openrouter.api-key');
+    await retryPage.route('**/api/v1/chat/completions', async (route) => {
+      retryRequestCount += 1;
+      if (retryRequestCount <= 2) {
+        await route.fulfill({
+          status: 503,
+          contentType: 'text/plain',
+          body: 'upstream unavailable',
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: 'Transient provider recovery',
+              },
+            },
+          ],
+        }),
+      });
+    });
+    try {
+      await retryPage.goto(url, { waitUntil: 'networkidle' });
+      await retryPage.getByText('Ready', { exact: true }).waitFor();
+      const retryPrompt = retryPage.getByLabel('Web studio prompt');
+      const retrySend = retryPage.getByRole('button', { name: /^Send/ });
+      await retryPrompt.fill('Show workspace status');
+      await retrySend.click();
+      const firstRequestDeadline = Date.now() + 2_000;
+      while (retryRequestCount < 1 && Date.now() < firstRequestDeadline) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      if (retryRequestCount !== 1) {
+        throw new Error('The OpenRouter retry proof did not start its request.');
+      }
+      await retryPage.getByRole('button', { name: /^Cancel/ }).click();
+      await retryPage.getByText('Execution cancelled.', { exact: true }).waitFor();
+      if (retryRequestCount !== 1) {
+        throw new Error('Cancelling during provider backoff allowed another request.');
+      }
+
+      await retryPrompt.fill('Show workspace status');
+      await retrySend.click();
+      await retryPage
+        .getByText('Transient provider recovery', { exact: true })
+        .waitFor();
+      if (retryRequestCount !== 3) {
+        throw new Error(
+          `The OpenRouter retry proof expected two retries, got ${retryRequestCount - 1}.`
+        );
+      }
+      if (retryConsoleErrors.length) {
+        throw new Error(
+          `OpenRouter retry browser errors: ${retryConsoleErrors.join(' | ')}`
+        );
+      }
+    } finally {
+      await retryContext.close();
+    }
+
     const mobilePage = await page.context().browser().newPage({
       viewport: { width: 390, height: 844 },
     });

@@ -72,6 +72,21 @@ expectEqual(
   { code: 'OPENROUTER_PROVIDER_ERROR', retryable: true },
   'HTTP 5xx must remain retryable provider failures.'
 );
+expectEqual(
+  protocol.OPENROUTER_MAX_TRANSIENT_RETRIES,
+  2,
+  'Transient provider retry count must remain bounded.'
+);
+expectEqual(
+  protocol.openRouterRetryDelayMs(0, '2'),
+  2_000,
+  'Retry-After seconds must be respected within the bounded delay.'
+);
+expectEqual(
+  protocol.openRouterRetryDelayMs(1),
+  700,
+  'Transient retry backoff must grow deterministically.'
+);
 
 const validResponse = await protocol.readOpenRouterResponse(
   new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: 'ok' } }] }), {

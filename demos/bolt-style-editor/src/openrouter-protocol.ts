@@ -32,6 +32,28 @@ export class OpenRouterRequestError extends Error {
   }
 }
 
+export const OPENROUTER_MAX_TRANSIENT_RETRIES = 2;
+
+export function openRouterRetryDelayMs(
+  attempt: number,
+  retryAfterHeader?: string | null
+): number {
+  const retryAfter = retryAfterHeader?.trim() ?? '';
+  const seconds = Number(retryAfter);
+  if (retryAfter && Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(seconds * 1000, 4_000);
+  }
+
+  if (retryAfter) {
+    const retryAt = Date.parse(retryAfter);
+    if (Number.isFinite(retryAt)) {
+      return Math.min(Math.max(0, retryAt - Date.now()), 4_000);
+    }
+  }
+
+  return Math.min(350 * 2 ** Math.max(0, attempt), 4_000);
+}
+
 export type OpenRouterToolCall = {
   id: string;
   type: 'function';

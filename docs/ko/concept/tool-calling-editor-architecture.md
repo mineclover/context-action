@@ -136,6 +136,9 @@ provider 오류로, network failure는 재시도 가능한 오류로 분류한�
 `function.arguments`에 잘못된 JSON이나 object가 아닌 JSON을 반환하면 registry
 실행 전에 거부하고 재시도 가능한 `OPENROUTER_INVALID_TOOL_CALL`로 표시한다.
 따라서 payload를 조용히 `{}`로 바꿔 인자가 없는 tool이 실행되는 경로가 없다.
+bridge는 transient 429/5xx 응답과 network failure를 bounded abort 가능한 backoff와
+함께 최대 두 번 자동 재시도한다. 인증·접근 오류, 성공 응답의 malformed JSON,
+tool 실행 오류는 즉시 노출해 사용자가 명시적으로 복구하도록 한다.
 
 ## 표준 계약
 

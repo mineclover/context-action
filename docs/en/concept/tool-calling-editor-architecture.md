@@ -146,6 +146,10 @@ failures as retryable. Each provider failure carries an explicit
 or non-object JSON in `function.arguments`, the bridge rejects it before
 registry execution as retryable `OPENROUTER_INVALID_TOOL_CALL`; it never
 silently converts the payload to `{}` where a no-argument tool could run.
+The bridge retries transient 429/5xx responses and network failures at most
+twice with a bounded, abortable backoff; authentication/access errors,
+malformed successful responses, and tool execution failures are surfaced
+immediately for explicit user recovery.
 
 ## Standard contract
 

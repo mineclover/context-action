@@ -1,7 +1,9 @@
 import type { ActionSchemaMap, ToolRegistry } from '@context-action/react';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
+  OPENROUTER_MAX_TRANSIENT_RETRIES,
   OpenRouterRequestError,
+  openRouterRetryDelayMs,
   readOpenRouterResponse,
   responseErrorCode,
   throwIfAborted,
@@ -94,6 +96,29 @@ function writeStorage(key: string, value: string): void {
   }
 }
 
+function waitForRetry(delayMs: number, signal?: AbortSignal): Promise<void> {
+  throwIfAborted(signal);
+  return new Promise((resolve, reject) => {
+    let timeoutId: number | undefined;
+    const finish = (callback: () => void) => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      signal?.removeEventListener('abort', abort);
+      callback();
+    };
+    const abort = () =>
+      finish(() =>
+        reject(
+          signal?.reason instanceof Error
+            ? signal.reason
+            : new DOMException('Execution cancelled.', 'AbortError')
+        )
+      );
+    timeoutId = window.setTimeout(() => finish(resolve), delayMs);
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+  });
+}
+
 export function readOpenRouterSettings(): OpenRouterSettings {
   return {
     apiKey: readStorage(API_KEY_STORAGE_KEY),
@@ -169,36 +194,67 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   for (let turn = 0; turn < 5; turn += 1) {
     throwIfAborted(signal);
     let response: Response;
-    try {
-      response = await fetch(settings.endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${settings.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'Context-Action Web Coding Studio',
-        },
-        signal,
-        body: JSON.stringify({
-          model: settings.model,
-          messages,
-          tools: registry.toOpenAI(),
-          tool_choice: 'auto',
-          max_tokens: 1200,
-        }),
-      });
-    } catch (error) {
+    let transientRetryCount = 0;
+    while (true) {
       throwIfAborted(signal);
-      throw new OpenRouterRequestError(
-        error instanceof Error
-          ? `Network request failed: ${error.message}`
-          : 'Network request failed.',
-        {
-          code: 'OPENROUTER_NETWORK_ERROR',
-          retryable: true,
-          cause: error,
+      try {
+        response = await fetch(settings.endpoint, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${settings.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'Context-Action Web Coding Studio',
+          },
+          signal,
+          body: JSON.stringify({
+            model: settings.model,
+            messages,
+            tools: registry.toOpenAI(),
+            tool_choice: 'auto',
+            max_tokens: 1200,
+          }),
+        });
+      } catch (error) {
+        throwIfAborted(signal);
+        if (transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES) {
+          await waitForRetry(
+            openRouterRetryDelayMs(transientRetryCount),
+            signal
+          );
+          transientRetryCount += 1;
+          continue;
         }
-      );
+        throw new OpenRouterRequestError(
+          error instanceof Error
+            ? `Network request failed: ${error.message}`
+            : 'Network request failed.',
+          {
+            code: 'OPENROUTER_NETWORK_ERROR',
+            retryable: true,
+            cause: error,
+          }
+        );
+      }
+
+      const responseType = responseErrorCode(response.status);
+      if (
+        !response.ok &&
+        responseType.retryable &&
+        transientRetryCount < OPENROUTER_MAX_TRANSIENT_RETRIES
+      ) {
+        await response.body?.cancel().catch(() => undefined);
+        await waitForRetry(
+          openRouterRetryDelayMs(
+            transientRetryCount,
+            response.headers.get('retry-after')
+          ),
+          signal
+        );
+        transientRetryCount += 1;
+        continue;
+      }
+      break;
     }
     const payload = await readOpenRouterResponse(response);
 
