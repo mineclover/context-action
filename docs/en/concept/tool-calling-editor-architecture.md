@@ -71,6 +71,12 @@ runner contract. The realtime web-coding showcase uses the same signal for its
 local agent, model request, and palette tool paths; leaving either route also
 aborts an in-flight execution.
 
+The standalone chat keeps failed and cancelled executions as typed UI states.
+Retryable provider or local-tool errors and failed palette samples with a
+retryable result show a `Retry` action that reuses the original prompt or tool
+arguments. Non-retryable execution and policy errors do not offer a misleading
+retry, while cancellation is shown as cancelled rather than failed.
+
 ## Standard contract
 
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:

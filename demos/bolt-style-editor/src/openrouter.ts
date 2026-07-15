@@ -11,6 +11,13 @@ export type OpenRouterSettings = {
   endpoint: string;
 };
 
+export type AgentRunResult = {
+  toolNames: string[];
+  response: string;
+  failed?: boolean;
+  retryable?: boolean;
+};
+
 export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
   apiKey: '',
   model: 'openai/gpt-4o-mini',
@@ -127,7 +134,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   prompt: string,
   settings: OpenRouterSettings,
   signal?: AbortSignal
-): Promise<{ toolNames: string[]; response: string }> {
+): Promise<AgentRunResult> {
   if (!settings.apiKey) {
     throw new Error('OpenRouter API key is not configured.');
   }

@@ -15,6 +15,7 @@ import {
   type FileTreeEntry,
 } from './file-tree';
 import {
+  type AgentRunResult,
   DEFAULT_OPENROUTER_SETTINGS,
   type OpenRouterSettings,
   readOpenRouterSettings,
@@ -71,6 +72,9 @@ type Message = {
   role: 'user' | 'assistant';
   text: string;
   tools?: string[];
+  tone?: 'error' | 'cancelled';
+  retryPrompt?: string;
+  retryTool?: ToolCall;
 };
 
 type ToolCall = {
@@ -677,7 +681,7 @@ async function runLocalAgent(
   workspace: BrowserWorkspace,
   prompt: string,
   signal?: AbortSignal
-): Promise<{ toolNames: string[]; response: string }> {
+): Promise<AgentRunResult> {
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
   const calls = promptToToolCalls(prompt);
@@ -705,7 +709,12 @@ async function runLocalAgent(
     throwIfAborted(signal);
     toolNames.push(call.name);
     if (result.isError) {
-      return { toolNames, response: resultText(result) };
+      return {
+        toolNames,
+        response: resultText(result),
+        failed: true,
+        retryable: result.error?.retryable,
+      };
     }
     if (revisionGuardedWorkspaceTools.has(call.name)) {
       plannedRevision = workspace.getSnapshot().revision;
@@ -1673,7 +1682,17 @@ function EditorWorkbench({
       throwIfAborted(controller.signal);
       setMessages((current) => [
         ...current,
-        { role: 'assistant', text: result.response, tools: result.toolNames },
+        {
+          role: 'assistant',
+          text: result.response,
+          tools: result.toolNames,
+          ...(result.failed
+            ? {
+                tone: 'error' as const,
+                ...(result.retryable === false ? {} : { retryPrompt: trimmed }),
+              }
+            : {}),
+        },
       ]);
     } catch (error) {
       setMessages((current) => [
@@ -1685,6 +1704,8 @@ function EditorWorkbench({
             : error instanceof Error
               ? error.message
               : 'Request failed.',
+          tone: controller.signal.aborted ? 'cancelled' : 'error',
+          ...(controller.signal.aborted ? {} : { retryPrompt: trimmed }),
         },
       ]);
     } finally {
@@ -1726,6 +1747,14 @@ function EditorWorkbench({
           role: 'assistant',
           text: message,
           tools: [call.name],
+          ...(result.isError
+            ? {
+                tone: 'error' as const,
+                ...(result.error?.retryable === false
+                  ? {}
+                  : { retryTool: call }),
+              }
+            : {}),
         },
       ]);
       return result.isError ? { ok: false, message } : { ok: true };
@@ -1741,6 +1770,8 @@ function EditorWorkbench({
           role: 'assistant',
           text: message,
           tools: [call.name],
+          tone: controller.signal.aborted ? 'cancelled' : 'error',
+          ...(controller.signal.aborted ? {} : { retryTool: call }),
         },
       ]);
       return { ok: false, message };
@@ -2311,7 +2342,7 @@ function EditorWorkbench({
             <div className="message-list">
               {messages.map((message, index) => (
                 <div
-                  className={`message message-${message.role}`}
+                  className={`message message-${message.role}${message.tone ? ` message-${message.tone}` : ''}`}
                   key={`${message.role}-${index}`}
                 >
                   <span className="message-avatar">
@@ -2325,6 +2356,21 @@ function EditorWorkbench({
                           <span key={tool}>{tool}</span>
                         ))}
                       </div>
+                    ) : null}
+                    {!running && (message.retryPrompt || message.retryTool) ? (
+                      <button
+                        className="message-retry"
+                        onClick={() => {
+                          if (message.retryPrompt) {
+                            void executePrompt(message.retryPrompt);
+                          } else if (message.retryTool) {
+                            void executeQuickTool(message.retryTool);
+                          }
+                        }}
+                        type="button"
+                      >
+                        Retry
+                      </button>
                     ) : null}
                   </div>
                 </div>

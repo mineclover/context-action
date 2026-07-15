@@ -69,6 +69,11 @@ runner contract를 통해 abort signal을 전달한다. realtime web-coding show
 local agent·model request·palette tool 경로에 같은 signal을 사용하며, 두 route를
 이동할 때 진행 중인 실행을 함께 abort한다.
 
+standalone chat은 실패와 취소를 typed UI 상태로 보존한다. 재시도 가능한 provider 또는
+local tool 오류와 재시도 가능한 palette 샘플 실패에는 원래 prompt 또는 tool arguments를
+재사용하는 `Retry` 동작을 표시한다. 재시도할 수 없는 execution·policy 오류에는 오해를
+만드는 Retry를 표시하지 않으며, 취소는 failed가 아닌 cancelled 상태로 구분한다.
+
 ## 표준 계약
 
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.
