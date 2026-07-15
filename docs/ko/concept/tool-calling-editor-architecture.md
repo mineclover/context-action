@@ -202,7 +202,10 @@ policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace�
 계산하며 all·read-only·workspace·preview 범위를 제공한다.
 `Copy list`는 `registry.listTools({ method: 'tools/list' })`가 반환한 전체 `tools`
 array를 serialize하므로 definition을 수동으로 다시 만들지 않고 MCP/provider
-테스트에 붙여 넣을 수 있다.
+테스트에 붙여 넣을 수 있다. sample argument editor는 selection이나 workspace
+revision 변경 시 수정하지 않은 generated sample만 갱신하며, 사용자가 JSON을
+직접 편집한 뒤에는 custom arguments를 보존한다. 따라서 stale revision과
+validation case도 의도적으로 테스트할 수 있다.
 
 standalone demo에서는 model·MCP source의 non-read-only call이 `toolPolicy` 경계에서
 사용자 승인 또는 거부를 기다린다. 명시적인 non-prompt local palette action만 이

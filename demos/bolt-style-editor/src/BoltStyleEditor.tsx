@@ -2630,6 +2630,7 @@ function EditorWorkbench({
   const [toolCatalogFilter, setToolCatalogFilter] =
     useState<ToolCatalogFilter>('all');
   const [toolArgumentsText, setToolArgumentsText] = useState('{}');
+  const toolArgumentsSampleRef = useRef(true);
   const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
     null
   );
@@ -3347,13 +3348,18 @@ function EditorWorkbench({
 
   const resetSelectedToolArguments = () => {
     const sample = selectedToolName ? paletteCallFor(selectedToolName) : null;
+    toolArgumentsSampleRef.current = true;
     setToolArgumentsText(JSON.stringify(sample?.arguments ?? {}, null, 2));
     setToolArgumentsError(null);
   };
 
   useEffect(() => {
     resetSelectedToolArguments();
-  }, [selectedToolName, activeFile.path, snapshot.revision]);
+  }, [selectedToolName, activeFile.path]);
+
+  useEffect(() => {
+    if (toolArgumentsSampleRef.current) resetSelectedToolArguments();
+  }, [snapshot.revision]);
 
   const parseToolArguments = (): Record<string, unknown> | null => {
     try {
@@ -3678,6 +3684,7 @@ function EditorWorkbench({
                 className="tool-arguments-input"
                 disabled={!isStorageReady || running}
                 onChange={(event) => {
+                  toolArgumentsSampleRef.current = false;
                   setToolArgumentsText(event.target.value);
                   if (toolArgumentsError) setToolArgumentsError(null);
                 }}
