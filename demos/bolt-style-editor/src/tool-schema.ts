@@ -2,6 +2,7 @@ import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
 
 const filePath = z.string().min(1).max(160);
+const expectedRevision = z.number().int().nonnegative().optional();
 
 export const boltStyleToolSchema = createActionSchema({
   'workspace.listFiles': defineAction(
@@ -25,26 +26,37 @@ export const boltStyleToolSchema = createActionSchema({
   'workspace.createFile': defineAction(
     {
       name: 'workspace.createFile',
-      description: 'Create a new text file in the browser-local web workspace.',
-      parameters: z.object({ path: filePath, source: z.string().max(80_000) }),
+      description:
+        'Create a new text file in the browser-local web workspace, optionally guarded by a workspace revision.',
+      parameters: z.object({
+        path: filePath,
+        source: z.string().max(80_000),
+        expectedRevision,
+      }),
     },
     z
   ),
   'workspace.deleteFile': defineAction(
     {
       name: 'workspace.deleteFile',
-      description: 'Delete one file from the browser-local web workspace.',
+      description:
+        'Delete one file from the browser-local web workspace, optionally guarded by a workspace revision.',
       annotations: { destructiveHint: true },
-      parameters: z.object({ path: filePath }),
+      parameters: z.object({ path: filePath, expectedRevision }),
     },
     z
   ),
   'workspace.writeFile': defineAction(
     {
       name: 'workspace.writeFile',
-      description: 'Replace one text file and refresh the live preview.',
+      description:
+        'Replace one text file and refresh the live preview, optionally guarded by a workspace revision.',
       annotations: { idempotentHint: true },
-      parameters: z.object({ path: filePath, source: z.string().max(80_000) }),
+      parameters: z.object({
+        path: filePath,
+        source: z.string().max(80_000),
+        expectedRevision,
+      }),
     },
     z
   ),
@@ -58,7 +70,7 @@ export const boltStyleToolSchema = createActionSchema({
         search: z.string().min(1).max(20_000),
         replace: z.string().max(20_000),
         occurrence: z.enum(['first', 'all']),
-        expectedRevision: z.number().int().nonnegative().optional(),
+        expectedRevision,
       }),
     },
     z
@@ -67,9 +79,9 @@ export const boltStyleToolSchema = createActionSchema({
     {
       name: 'workspace.revertFile',
       description:
-        'Restore one file to its last saved browser workspace state.',
+        'Restore one file to its last saved browser workspace state, optionally guarded by a workspace revision.',
       annotations: { destructiveHint: true, idempotentHint: true },
-      parameters: z.object({ path: filePath }),
+      parameters: z.object({ path: filePath, expectedRevision }),
     },
     z
   ),

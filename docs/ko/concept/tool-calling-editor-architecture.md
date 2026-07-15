@@ -221,8 +221,9 @@ Open folder → generic FileSystemAdapter
   `all` occurrence mode를 지원하고, match 실패와 결과 source 크기 초과를 거부한 뒤
   다른 workspace mutation과 같은 preview revision acknowledgement를 기다린다.
 - `workspace.readFile`은 현재 workspace revision을 반환한다. 호출자는 그 값을
-  `workspace.applyPatch`의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은
-  source를 변경하기 전에 거부되어 다시 읽기를 요구한다.
+  workspace mutation(`createFile`, `deleteFile`, `writeFile`, `applyPatch`,
+  `revertFile`)의 `expectedRevision`으로 전달할 수 있으며, 오래된 revision은 source를
+  변경하기 전에 거부되어 다시 읽기를 요구한다.
 - 모든 workspace file lookup은 tool boundary에서 slash 방향과 불필요한 `.` segment를
   canonical path로 정규화하며, parent traversal과 빈 path는 거부한다.
 - local demo agent도 교체 요청 안의 두 quoted string을 인식해

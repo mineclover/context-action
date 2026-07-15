@@ -232,8 +232,10 @@ Open folder → generic FileSystemAdapter
   output, then waits for the same preview revision acknowledgement as other
   workspace mutations.
 - `workspace.readFile` returns the current workspace revision. Callers can pass
-  that value as `expectedRevision` to `workspace.applyPatch`; a stale revision is
-  rejected before the source is changed, requiring the caller to read again.
+  that value as `expectedRevision` to any workspace mutation
+  (`createFile`, `deleteFile`, `writeFile`, `applyPatch`, or `revertFile`); a stale
+  revision is rejected before the source is changed, requiring the caller to
+  read again.
 - All workspace file lookups canonicalize slash direction and harmless `.`
   segments at the tool boundary; parent traversal and empty paths are rejected.
 - The local demo agent also recognizes two quoted strings in a replacement request

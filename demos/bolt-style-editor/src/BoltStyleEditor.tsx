@@ -77,6 +77,14 @@ type ToolCall = {
   arguments: Record<string, unknown>;
 };
 
+const revisionGuardedWorkspaceTools = new Set([
+  'workspace.createFile',
+  'workspace.deleteFile',
+  'workspace.writeFile',
+  'workspace.applyPatch',
+  'workspace.revertFile',
+]);
+
 type ToolExecutionOutcome = {
   ok: boolean;
   message?: string;
@@ -233,6 +241,19 @@ function throwIfAborted(signal?: AbortSignal): void {
   throw reason instanceof Error
     ? reason
     : new DOMException('Execution cancelled.', 'AbortError');
+}
+
+function assertExpectedWorkspaceRevision(
+  workspace: BrowserWorkspace,
+  expectedRevision?: number
+): void {
+  if (expectedRevision === undefined) return;
+  const currentRevision = workspace.getSnapshot().revision;
+  if (expectedRevision !== currentRevision) {
+    throw new Error(
+      `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
+    );
+  }
 }
 
 function applyTextPatch(
@@ -633,13 +654,13 @@ async function runLocalAgent(
   const listedTools = registry.listTools({ method: 'tools/list' });
   recordToolList(listedTools.tools.length, 'local');
   const calls = promptToToolCalls(prompt);
-  const plannedRevision = workspace.getSnapshot().revision;
+  let plannedRevision = workspace.getSnapshot().revision;
   const toolNames: string[] = [];
 
   for (const call of calls) {
     throwIfAborted(signal);
     const argumentsValue =
-      call.name === 'workspace.applyPatch' &&
+      revisionGuardedWorkspaceTools.has(call.name) &&
       call.arguments.expectedRevision === undefined
         ? { ...call.arguments, expectedRevision: plannedRevision }
         : call.arguments;
@@ -658,6 +679,9 @@ async function runLocalAgent(
     toolNames.push(call.name);
     if (result.isError) {
       return { toolNames, response: resultText(result) };
+    }
+    if (revisionGuardedWorkspaceTools.has(call.name)) {
+      plannedRevision = workspace.getSnapshot().revision;
     }
   }
 
@@ -718,7 +742,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.createFile', unknown>(
     'workspace.createFile',
-    async ({ path, source }, controller) => {
+    async ({ path, source, expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const snapshot = workspace.createFile(path, source);
       await workspace.waitForPreviewRevision(
         snapshot.revision,
@@ -737,7 +762,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.deleteFile', unknown>(
     'workspace.deleteFile',
-    async ({ path }, controller) => {
+    async ({ path, expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       const snapshot = workspace.deleteFile(file.path);
       await workspace.waitForPreviewRevision(
@@ -757,7 +783,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.writeFile', unknown>(
     'workspace.writeFile',
-    async ({ path, source }, controller) => {
+    async ({ path, source, expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
         throw new Error(
@@ -787,18 +814,10 @@ function ToolHandlers({
       { path, search, replace, occurrence, expectedRevision },
       controller
     ) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
         throw new Error(`Binary asset cannot be patched as text: ${file.path}`);
-      }
-      const currentRevision = workspace.getSnapshot().revision;
-      if (
-        expectedRevision !== undefined &&
-        expectedRevision !== currentRevision
-      ) {
-        throw new Error(
-          `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the file before applying the patch.`
-        );
       }
       const patch = applyTextPatch(file.source, search, replace, occurrence);
       if (patch.source.length > 80_000) {
@@ -824,7 +843,8 @@ function ToolHandlers({
 
   useBoltStyleToolHandler<'workspace.revertFile', unknown>(
     'workspace.revertFile',
-    async ({ path }, controller) => {
+    async ({ path, expectedRevision }, controller) => {
+      assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       const snapshot = workspace.revertFile(file.path);
       await workspace.waitForPreviewRevision(
