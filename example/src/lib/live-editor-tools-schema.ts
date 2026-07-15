@@ -27,6 +27,19 @@ export const openEditorFileTool = defineAction(
   z
 );
 
+export const saveEditorFileTool = defineAction(
+  {
+    name: 'editor.saveFile',
+    description:
+      'Write one text file from the parent-owned browser workspace back to the opened local folder. Requires a writable folder workspace.',
+    annotations: { destructiveHint: true, idempotentHint: true },
+    parameters: z.object({
+      path: z.string().min(1).max(2_000),
+    }),
+  },
+  z
+);
+
 export const getEditorDocumentTool = defineAction(
   {
     name: 'editor.getDocument',
@@ -100,6 +113,7 @@ export const resetEditorDocumentTool = defineAction(
 export const liveEditorToolsSchema = createActionSchema({
   'editor.listFiles': listEditorFilesTool,
   'editor.openFile': openEditorFileTool,
+  'editor.saveFile': saveEditorFileTool,
   'editor.getDocument': getEditorDocumentTool,
   'editor.setDocument': setEditorDocumentTool,
   'editor.getPreviewStatus': getEditorPreviewStatusTool,

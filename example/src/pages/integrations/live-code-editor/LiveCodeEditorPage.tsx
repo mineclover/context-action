@@ -824,6 +824,7 @@ function LiveCodeEditorContent() {
     <LiveEditorToolchainProvider
       manager={documentManager}
       workspaceManager={workspaceManager}
+      filesystemAdapter={filesystemAdapter}
       getExampleIdForPath={getExampleIdForPath}
       getResetSource={() =>
         workspaceManager.getInitialSource(documentSnapshot.file)

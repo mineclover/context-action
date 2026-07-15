@@ -25,6 +25,31 @@ import {
 import styles from './LiveCodeEditorPage.module.css';
 import { useLiveEditorToolRegistry } from './LiveEditorToolchain';
 
+function formatLocalToolResult(
+  result: {
+    readonly content?: readonly {
+      readonly type: string;
+      readonly text?: string;
+    }[];
+    readonly error?: { readonly message?: string };
+    readonly isError?: boolean;
+    readonly structuredContent?: unknown;
+  },
+  fallback: string
+): string {
+  if (result.error?.message || result.isError) {
+    return result.error?.message ?? fallback;
+  }
+  if (result.structuredContent !== undefined) {
+    return JSON.stringify(result.structuredContent);
+  }
+  const text = result.content
+    ?.filter((item) => item.type === 'text' && item.text)
+    .map((item) => item.text)
+    .join('\n');
+  return text || fallback;
+}
+
 export function LiveEditorAIToolbar() {
   const registry = useLiveEditorToolRegistry();
   const trace = useSyncExternalStore(
@@ -39,6 +64,7 @@ export function LiveEditorAIToolbar() {
   const [result, setResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
   const [localOpenResult, setLocalOpenResult] = useState('');
+  const [localSaveResult, setLocalSaveResult] = useState('');
   const [localMutationResult, setLocalMutationResult] = useState('');
   const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
@@ -160,9 +186,7 @@ export function LiveEditorAIToolbar() {
       { context: { source: 'local' } }
     );
     setLocalCallResult(
-      result.isError
-        ? (result.error?.message ?? 'Local tools/call failed.')
-        : JSON.stringify(result.structuredContent)
+      formatLocalToolResult(result, 'Local tools/call failed.')
     );
   };
 
@@ -180,13 +204,60 @@ export function LiveEditorAIToolbar() {
         { context: { source: 'local' } }
       );
       setLocalOpenResult(
-        result.isError
-          ? (result.error?.message ?? 'Local editor.openFile failed.')
-          : JSON.stringify(result.structuredContent)
+        formatLocalToolResult(result, 'Local editor.openFile failed.')
       );
     } catch (error) {
       setLocalOpenResult(
         error instanceof Error ? error.message : 'Local editor.openFile failed.'
+      );
+    }
+  };
+
+  const saveActiveWorkspaceFile = async () => {
+    try {
+      const listing = await registry.callTool(
+        {
+          id: `local-save-list-${Date.now()}`,
+          method: 'tools/call',
+          params: {
+            name: 'editor.listFiles',
+            arguments: {},
+          },
+        },
+        { context: { source: 'local' } }
+      );
+      if (listing.isError) {
+        setLocalSaveResult(
+          listing.error?.message ?? 'Could not list workspace files.'
+        );
+        return;
+      }
+      const value = listing.structuredContent;
+      const activePath =
+        value && typeof value === 'object' && 'activePath' in value
+          ? value.activePath
+          : undefined;
+      if (typeof activePath !== 'string' || !activePath) {
+        setLocalSaveResult('Workspace did not return an active text path.');
+        return;
+      }
+      const result = await registry.callTool(
+        {
+          id: `local-save-file-${Date.now()}`,
+          method: 'tools/call',
+          params: {
+            name: 'editor.saveFile',
+            arguments: { path: activePath },
+          },
+        },
+        { context: { source: 'local' } }
+      );
+      setLocalSaveResult(
+        formatLocalToolResult(result, 'Local editor.saveFile failed.')
+      );
+    } catch (error) {
+      setLocalSaveResult(
+        error instanceof Error ? error.message : 'Local editor.saveFile failed.'
       );
     }
   };
@@ -204,9 +275,7 @@ export function LiveEditorAIToolbar() {
       { context: { source: 'local' } }
     );
     setLocalMutationResult(
-      result.isError
-        ? (result.error?.message ?? 'Local mutation failed.')
-        : JSON.stringify(result.structuredContent)
+      formatLocalToolResult(result, 'Local mutation failed.')
     );
   };
 
@@ -220,9 +289,7 @@ export function LiveEditorAIToolbar() {
       { context: { source: 'model' } }
     );
     setModelShapedResult(
-      result.isError
-        ? (result.error?.message ?? 'Model-shaped call failed.')
-        : JSON.stringify(result.structuredContent)
+      formatLocalToolResult(result, 'Model-shaped call failed.')
     );
   };
 
@@ -282,9 +349,7 @@ export function LiveEditorAIToolbar() {
       { context: { source: 'local' } }
     );
     setLocalPatchResult(
-      patchResult.isError
-        ? (patchResult.error?.message ?? 'Local patch failed.')
-        : JSON.stringify(patchResult.structuredContent)
+      formatLocalToolResult(patchResult, 'Local patch failed.')
     );
   };
 
@@ -358,6 +423,13 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
+          onClick={() => void saveActiveWorkspaceFile()}
+        >
+          Run local editor.saveFile · active path
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
           onClick={() => void runLocalMutation()}
         >
           Run local mutation + iframe acknowledgement
@@ -381,6 +453,9 @@ export function LiveEditorAIToolbar() {
         )}
         {localOpenResult && (
           <code className={styles.localCallResult}>{localOpenResult}</code>
+        )}
+        {localSaveResult && (
+          <code className={styles.localCallResult}>{localSaveResult}</code>
         )}
         {localMutationResult && (
           <code className={styles.localCallResult}>{localMutationResult}</code>

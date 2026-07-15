@@ -4,6 +4,7 @@ import {
   LiveEditorDocumentManager,
   type LiveEditorDocumentSnapshot,
 } from '../../../lib/live-code-editor-bridge';
+import { type WorkspaceFileSystemAdapter } from '../../../lib/live-code-editor-filesystem';
 import { LiveEditorWorkspaceManager } from '../../../lib/live-code-editor-workspace';
 import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
@@ -22,36 +23,50 @@ export const {
 function LiveEditorToolHandlers({
   manager,
   workspaceManager,
+  filesystemAdapter,
   getExampleIdForPath,
   getResetSource,
   children,
 }: {
   manager: LiveEditorDocumentManager;
   workspaceManager: LiveEditorWorkspaceManager;
+  filesystemAdapter: WorkspaceFileSystemAdapter;
   getExampleIdForPath: (path: string) => string;
   getResetSource: () => string;
   children: ReactNode;
 }) {
-  useLiveEditorToolHandler('editor.listFiles', () => {
-    const snapshot = workspaceManager.getSnapshot();
-    return {
-      activePath: snapshot.activePath,
-      dirtyPaths: snapshot.dirtyPaths,
-      rootName: snapshot.rootName,
-      storageMode: snapshot.storageMode,
-      files: snapshot.files.map((file) => ({
-        isText: file.isText,
-        mimeType: file.mimeType,
-        path: file.path,
-        size: file.size,
-      })),
-    };
-  });
+  const blockingToolHandler = { blocking: true };
 
-  useLiveEditorToolHandler('editor.getDocument', () => manager.getSnapshot());
+  useLiveEditorToolHandler(
+    'editor.listFiles',
+    () => {
+      const snapshot = workspaceManager.getSnapshot();
+      return {
+        activePath: snapshot.activePath,
+        dirtyPaths: snapshot.dirtyPaths,
+        rootName: snapshot.rootName,
+        storageMode: snapshot.storageMode,
+        files: snapshot.files.map((file) => ({
+          isText: file.isText,
+          mimeType: file.mimeType,
+          path: file.path,
+          size: file.size,
+        })),
+      };
+    },
+    blockingToolHandler
+  );
 
-  useLiveEditorToolHandler('editor.getPreviewStatus', () =>
-    manager.getPreviewStatus()
+  useLiveEditorToolHandler(
+    'editor.getDocument',
+    () => manager.getSnapshot(),
+    blockingToolHandler
+  );
+
+  useLiveEditorToolHandler(
+    'editor.getPreviewStatus',
+    () => manager.getPreviewStatus(),
+    blockingToolHandler
   );
 
   const updateAndWait = async (
@@ -101,7 +116,44 @@ function LiveEditorToolHandlers({
         },
         controller.signal
       );
-    }
+    },
+    blockingToolHandler
+  );
+
+  useLiveEditorToolHandler<'editor.saveFile', unknown>(
+    'editor.saveFile',
+    async ({ path }, controller) => {
+      if (controller.signal?.aborted) throw new Error('File save cancelled.');
+      if (!filesystemAdapter.isWritable) {
+        throw new Error(
+          'No writable folder is open. Open a local folder before saving files.'
+        );
+      }
+      const file = workspaceManager
+        .getSnapshot()
+        .files.find((candidate) => candidate.path === path);
+      if (!file) {
+        throw new Error(`Workspace file not found: ${path}`);
+      }
+      if (!file.isText) {
+        throw new Error(
+          `Workspace file is binary and cannot be saved: ${path}`
+        );
+      }
+      await filesystemAdapter.saveFile(
+        file.path,
+        new Blob([file.source], { type: file.mimeType })
+      );
+      if (controller.signal?.aborted) throw new Error('File save cancelled.');
+      const snapshot = workspaceManager.markSaved(file.path, file.source);
+      return {
+        path: file.path,
+        savedTo: 'filesystem',
+        dirtyPaths: snapshot.dirtyPaths,
+        workspaceRevision: snapshot.revision,
+      };
+    },
+    blockingToolHandler
   );
 
   useLiveEditorToolHandler<'editor.setDocument', unknown>(
@@ -113,7 +165,8 @@ function LiveEditorToolHandlers({
           ...(scenario === undefined ? {} : { scenario }),
         },
         controller.signal
-      )
+      ),
+    blockingToolHandler
   );
 
   useLiveEditorToolHandler<'editor.applyPatch', unknown>(
@@ -145,12 +198,15 @@ function LiveEditorToolHandlers({
           replacements: patch.replacements,
         })
       );
-    }
+    },
+    blockingToolHandler
   );
 
   useLiveEditorToolHandler<'editor.setScenario', unknown>(
     'editor.setScenario',
-    ({ scenario }, controller) => updateAndWait({ scenario }, controller.signal)
+    ({ scenario }, controller) =>
+      updateAndWait({ scenario }, controller.signal),
+    blockingToolHandler
   );
 
   useLiveEditorToolHandler<'editor.resetDocument', unknown>(
@@ -164,7 +220,8 @@ function LiveEditorToolHandlers({
         },
         controller.signal
       );
-    }
+    },
+    blockingToolHandler
   );
 
   return <>{children}</>;
@@ -173,12 +230,14 @@ function LiveEditorToolHandlers({
 export function LiveEditorToolchainProvider({
   manager,
   workspaceManager,
+  filesystemAdapter,
   getExampleIdForPath,
   getResetSource,
   children,
 }: {
   manager: LiveEditorDocumentManager;
   workspaceManager: LiveEditorWorkspaceManager;
+  filesystemAdapter: WorkspaceFileSystemAdapter;
   getExampleIdForPath: (path: string) => string;
   getResetSource: () => string;
   children: ReactNode;
@@ -188,6 +247,7 @@ export function LiveEditorToolchainProvider({
       <LiveEditorToolHandlers
         manager={manager}
         workspaceManager={workspaceManager}
+        filesystemAdapter={filesystemAdapter}
         getExampleIdForPath={getExampleIdForPath}
         getResetSource={getResetSource}
       >

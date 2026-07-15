@@ -144,7 +144,7 @@ The iframe is limited to:
 - handling a restricted bridge message set
 
 The iframe must not own the ToolRegistry or model API key. The current showcase
-exposes `editor.listFiles` and `editor.openFile` for the browser workspace,
+exposes `editor.listFiles`, `editor.openFile`, and `editor.saveFile` for the browser workspace,
 alongside `editor.getDocument`, `editor.setDocument`, `editor.setScenario`, and
 `editor.resetDocument`, plus `editor.getPreviewStatus`. `editor.listFiles` is
 read-only and returns the active path, storage mode, dirty paths, and file
@@ -153,6 +153,13 @@ preview revision is rendered; binary files are rejected. Each mutating handler
 updates the parent DocumentManager and waits for the matching iframe revision
 acknowledgement before returning its tool result. Do not expose an arbitrary
 `runScript` tool.
+
+`editor.saveFile` is a separate destructive boundary: it writes the selected
+text file through the parent-owned filesystem adapter, requires a writable
+folder opened by the user, and clears that path's filesystem-dirty state only
+after the write succeeds. Live Editor handlers are registered as blocking
+pipeline steps, so thrown validation, filesystem, and preview errors become
+failed `tools/call` results instead of being reported as successful no-op calls.
 
 The standalone editor implements the same boundary with a small injected
 bridge. The sandbox posts `context-action.preview.ready` or
@@ -192,6 +199,7 @@ The default extraction order is `example → standalone demo/workspace package �
 | --- | --- | --- |
 | `editor.listFiles` | allow | List workspace files, active path, storage mode, and dirty paths |
 | `editor.openFile` | local demo allow | Select a text file and await its matching preview revision |
+| `editor.saveFile` | approval required | Write a text file to the user-opened local folder |
 | `editor.getDocument` | allow | Read the current document and revision |
 | `editor.getPreviewStatus` | allow | Read the latest iframe acknowledgement |
 | `editor.setDocument` | local demo allow | Replace controlled source text; never execute it |
@@ -203,7 +211,7 @@ The standard browser workspace call sequence is:
 
 ```text
 tools/list → editor.listFiles → editor.openFile → editor.setDocument →
-iframe acknowledgement
+iframe acknowledgement → editor.saveFile (when filesystem persistence is requested)
 ```
 
 The model discovers the available tools first, lists the workspace before
