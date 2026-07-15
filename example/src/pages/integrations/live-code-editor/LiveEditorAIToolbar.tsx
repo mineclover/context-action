@@ -22,6 +22,7 @@ import {
   getFreeModelsWithTools,
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
+import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import styles from './LiveCodeEditorPage.module.css';
 import { useLiveEditorToolRegistry } from './LiveEditorToolchain';
 
@@ -52,6 +53,19 @@ function formatLocalToolResult(
 
 export function LiveEditorAIToolbar() {
   const registry = useLiveEditorToolRegistry();
+  const callLocalTool = (
+    name: string,
+    argumentsValue: Record<string, unknown>,
+    sessionId = createToolCallSessionId()
+  ) =>
+    registry.callTool(
+      {
+        id: `local-${Date.now()}-${name}`,
+        method: 'tools/call',
+        params: { name, arguments: argumentsValue },
+      },
+      { context: { source: 'local', sessionId } }
+    );
   const trace = useSyncExternalStore(
     liveEditorTraceStore.subscribe,
     liveEditorTraceStore.getSnapshot,
@@ -127,6 +141,7 @@ export function LiveEditorAIToolbar() {
     setError('');
     setResult('');
     const controller = new AbortController();
+    const sessionId = createToolCallSessionId();
     executionControllerRef.current = controller;
     const messages: ModelMessage[] = [
       {
@@ -141,6 +156,7 @@ export function LiveEditorAIToolbar() {
         messages,
         registry,
         signal: controller.signal,
+        sessionId,
       });
       if (controller.signal.aborted) {
         setResult('Execution cancelled. No toolchain success was reported.');
@@ -176,34 +192,14 @@ export function LiveEditorAIToolbar() {
   };
 
   const inspectEditorStatus = async () => {
-    const result = await registry.callTool(
-      {
-        id: `local-status-${Date.now()}`,
-        method: 'tools/call',
-        params: {
-          name: 'editor.getStatus',
-          arguments: {},
-        },
-      },
-      { context: { source: 'local' } }
-    );
+    const result = await callLocalTool('editor.getStatus', {});
     setLocalStatusResult(
       formatLocalToolResult(result, 'Local editor.getStatus failed.')
     );
   };
 
   const inspectRegistry = async () => {
-    const result = await registry.callTool(
-      {
-        id: `local-inspection-${Date.now()}`,
-        method: 'tools/call',
-        params: {
-          name: 'editor.listFiles',
-          arguments: {},
-        },
-      },
-      { context: { source: 'local' } }
-    );
+    const result = await callLocalTool('editor.listFiles', {});
     setLocalCallResult(
       formatLocalToolResult(result, 'Local tools/call failed.')
     );
@@ -211,17 +207,9 @@ export function LiveEditorAIToolbar() {
 
   const openWorkspaceFile = async () => {
     try {
-      const result = await registry.callTool(
-        {
-          id: `local-open-file-${Date.now()}`,
-          method: 'tools/call',
-          params: {
-            name: 'editor.openFile',
-            arguments: { path: 'script.js' },
-          },
-        },
-        { context: { source: 'local' } }
-      );
+      const result = await callLocalTool('editor.openFile', {
+        path: 'script.js',
+      });
       setLocalOpenResult(
         formatLocalToolResult(result, 'Local editor.openFile failed.')
       );
@@ -234,17 +222,8 @@ export function LiveEditorAIToolbar() {
 
   const saveActiveWorkspaceFile = async () => {
     try {
-      const listing = await registry.callTool(
-        {
-          id: `local-save-list-${Date.now()}`,
-          method: 'tools/call',
-          params: {
-            name: 'editor.listFiles',
-            arguments: {},
-          },
-        },
-        { context: { source: 'local' } }
-      );
+      const sessionId = createToolCallSessionId();
+      const listing = await callLocalTool('editor.listFiles', {}, sessionId);
       if (listing.isError) {
         setLocalSaveResult(
           listing.error?.message ?? 'Could not list workspace files.'
@@ -260,16 +239,10 @@ export function LiveEditorAIToolbar() {
         setLocalSaveResult('Workspace did not return an active text path.');
         return;
       }
-      const result = await registry.callTool(
-        {
-          id: `local-save-file-${Date.now()}`,
-          method: 'tools/call',
-          params: {
-            name: 'editor.saveFile',
-            arguments: { path: activePath },
-          },
-        },
-        { context: { source: 'local' } }
+      const result = await callLocalTool(
+        'editor.saveFile',
+        { path: activePath },
+        sessionId
       );
       setLocalSaveResult(
         formatLocalToolResult(result, 'Local editor.saveFile failed.')
@@ -283,17 +256,7 @@ export function LiveEditorAIToolbar() {
 
   const saveAllWorkspaceFiles = async () => {
     try {
-      const result = await registry.callTool(
-        {
-          id: `local-save-all-${Date.now()}`,
-          method: 'tools/call',
-          params: {
-            name: 'editor.saveAll',
-            arguments: {},
-          },
-        },
-        { context: { source: 'local' } }
-      );
+      const result = await callLocalTool('editor.saveAll', {});
       setLocalSaveAllResult(
         formatLocalToolResult(result, 'Local editor.saveAll failed.')
       );
@@ -305,30 +268,23 @@ export function LiveEditorAIToolbar() {
   };
 
   const runLocalMutation = async () => {
-    const result = await registry.callTool(
-      {
-        id: `local-mutation-${Date.now()}`,
-        method: 'tools/call',
-        params: {
-          name: 'editor.setScenario',
-          arguments: { scenario: 'invalid' },
-        },
-      },
-      { context: { source: 'local' } }
-    );
+    const result = await callLocalTool('editor.setScenario', {
+      scenario: 'invalid',
+    });
     setLocalMutationResult(
       formatLocalToolResult(result, 'Local mutation failed.')
     );
   };
 
   const runModelShapedCall = async () => {
+    const sessionId = createToolCallSessionId();
     const result = await registry.executeModelToolCall(
       {
         id: `model-shaped-${Date.now()}`,
         name: 'editor.setScenario',
         arguments: { scenario: 'blocked' },
       },
-      { context: { source: 'model' } }
+      { context: { source: 'model', sessionId } }
     );
     setModelShapedResult(
       formatLocalToolResult(result, 'Model-shaped call failed.')
@@ -336,16 +292,11 @@ export function LiveEditorAIToolbar() {
   };
 
   const runLocalPatch = async () => {
-    const documentResult = await registry.callTool(
-      {
-        id: `local-patch-read-${Date.now()}`,
-        method: 'tools/call',
-        params: {
-          name: 'editor.getDocument',
-          arguments: {},
-        },
-      },
-      { context: { source: 'local' } }
+    const sessionId = createToolCallSessionId();
+    const documentResult = await callLocalTool(
+      'editor.getDocument',
+      {},
+      sessionId
     );
     if (documentResult.isError) {
       setLocalPatchResult(
@@ -374,21 +325,15 @@ export function LiveEditorAIToolbar() {
       return;
     }
 
-    const patchResult = await registry.callTool(
+    const patchResult = await callLocalTool(
+      'editor.applyPatch',
       {
-        id: `local-patch-${Date.now()}`,
-        method: 'tools/call',
-        params: {
-          name: 'editor.applyPatch',
-          arguments: {
-            search: line,
-            replace: `${line}  `,
-            occurrence: 'first',
-            expectedRevision: revision,
-          },
-        },
+        search: line,
+        replace: `${line}  `,
+        occurrence: 'first',
+        expectedRevision: revision,
       },
-      { context: { source: 'local' } }
+      sessionId
     );
     setLocalPatchResult(
       formatLocalToolResult(patchResult, 'Local patch failed.')
@@ -558,7 +503,7 @@ export function LiveEditorAIToolbar() {
                         : ''
                   }`}
                   key={entry.id}
-                  title={`toolCallId: ${entry.id}`}
+                  title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
                 >
                   <span aria-hidden="true">
                     {entry.status === 'failed'
@@ -570,6 +515,9 @@ export function LiveEditorAIToolbar() {
                   <code>{entry.name}</code>
                   <span>
                     {formatLiveEditorTraceId(entry.id)} · {entry.source}
+                    {entry.sessionId
+                      ? ` · ${formatLiveEditorTraceId(entry.sessionId)}`
+                      : ''}
                     {entry.durationMs !== undefined
                       ? ` · ${entry.durationMs}ms`
                       : ''}

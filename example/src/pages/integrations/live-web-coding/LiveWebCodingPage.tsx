@@ -27,7 +27,6 @@ import {
   recordLiveWebCodingToolCall,
 } from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
-import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import {
   saveOpenRouterApiKey,
   useStoredOpenRouterApiKey,
@@ -37,6 +36,7 @@ import {
   getFreeModelsWithTools,
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
+import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
 import styles from './LiveWebCodingPage.module.css';
 
