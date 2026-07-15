@@ -407,20 +407,30 @@ function ToolHandlers({
     return {
       activePath: snapshot.activePath,
       revision: snapshot.revision,
-      files: snapshot.files.map(({ path, language, source }) => ({
-        path,
-        language,
-        size: source.length,
-      })),
+      files: snapshot.files.map(
+        ({ path, language, source, kind, mimeType, blob }) => ({
+          path,
+          language,
+          size: blob?.size ?? source.length,
+          kind: kind ?? 'text',
+          mimeType,
+        })
+      ),
     };
   });
 
   useBoltStyleToolHandler('workspace.readFile', ({ path }) => {
     const file = workspace.getFile(path);
+    if (file.kind === 'asset') {
+      throw new Error(`Binary asset cannot be returned as text: ${path}`);
+    }
     return { path, source: file.source };
   });
 
   useBoltStyleToolHandler('workspace.writeFile', ({ path, source }) => {
+    if (workspace.getFile(path).kind === 'asset') {
+      throw new Error(`Binary asset cannot be replaced as text: ${path}`);
+    }
     const snapshot = workspace.updateFile(path, source, { coalesce: false });
     return { path, revision: snapshot.revision, preview: 'synced' };
   });
@@ -492,6 +502,12 @@ function FileIcon({ file }: { file: WorkspaceFile }) {
           ? 'yellow'
           : 'gray';
   return <span className={`file-icon file-icon-${color}`} aria-hidden="true" />;
+}
+
+function formatFileSize(size: number): string {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function CodeEditor({
@@ -620,9 +636,23 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];
+  const assetUrls = useMemo(() => {
+    const urls: Record<string, string> = {};
+    for (const file of snapshot.files) {
+      if (file.kind === 'asset' && file.blob) {
+        urls[file.path] = URL.createObjectURL(file.blob);
+      }
+    }
+    return urls;
+  }, [snapshot.files]);
+  useEffect(() => {
+    return () => {
+      for (const url of Object.values(assetUrls)) URL.revokeObjectURL(url);
+    };
+  }, [assetUrls]);
   const previewDocument = useMemo(
-    () => buildPreviewDocument(snapshot.files),
-    [snapshot.files]
+    () => buildPreviewDocument(snapshot.files, assetUrls),
+    [assetUrls, snapshot.files]
   );
   const toolNames = registry.getToolNames().map(String);
   const isStorageReady = snapshot.storageMode !== 'loading';
@@ -889,7 +919,7 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
             </button>
             <input
               ref={folderInputRef}
-              accept=".css,.htm,.html,.js,.json,.mjs,.md,.ts,.tsx,.txt"
+              accept=".avif,.css,.gif,.htm,.html,.ico,.jpeg,.jpg,.js,.json,.mjs,.md,.otf,.png,.svg,.ts,.tsx,.ttf,.txt,.wasm,.webp,.woff,.woff2"
               aria-label="Choose workspace folder"
               className="folder-input"
               multiple
@@ -1042,15 +1072,34 @@ function EditorWorkbench({ workspace }: { workspace: BrowserWorkspace }) {
           <section className="code-editor" aria-label="Workspace source">
             <div className="code-header">
               <span>{activeFile.language}</span>
-              <span>editable source · auto-sync preview</span>
+              <span>
+                {activeFile.kind === 'asset'
+                  ? 'preview asset · read-only'
+                  : 'editable source · auto-sync preview'}
+              </span>
             </div>
-            <CodeEditor
-              disabled={!isStorageReady}
-              file={activeFile}
-              onChange={(source) =>
-                workspace.updateFile(activeFile.path, source)
-              }
-            />
+            {activeFile.kind === 'asset' ? (
+              <div className="asset-placeholder">
+                <div className="asset-placeholder-icon">◇</div>
+                <strong>{activeFile.path}</strong>
+                <span>
+                  {activeFile.mimeType ?? 'binary asset'} ·{' '}
+                  {formatFileSize(activeFile.blob?.size ?? 0)}
+                </span>
+                <p>
+                  This Blob is preserved in the browser workspace and available
+                  to the sandbox preview. Binary assets are not edited as text.
+                </p>
+              </div>
+            ) : (
+              <CodeEditor
+                disabled={!isStorageReady}
+                file={activeFile}
+                onChange={(source) =>
+                  workspace.updateFile(activeFile.path, source)
+                }
+              />
+            )}
           </section>
 
           <section className="chat-panel">

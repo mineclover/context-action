@@ -153,14 +153,15 @@ Open folder → generic FileSystemAdapter
 ```
 
 - Dexie is the canonical browser-local store for workspace metadata and file
-  Blobs. Text source in the editor is a derived projection of the stored Blob.
+  Blobs. Text source in the editor is a derived projection of the stored Blob;
+  binary assets retain their Blob directly for preview.
 - `Open folder` uses a generic file-system adapter. The current browser adapter
   uses the File System Access API from a user gesture and imports the folder
   into Dexie rather than making the directory handle the workspace owner.
 - Supported HTML, CSS, JavaScript, JSON, Markdown, TypeScript, and text files are
-  imported with file-count, per-file, and total-size limits. Unsupported or
-  binary files are reported in the chat instead of being stored as editable
-  source.
+  imported with file-count, per-file, and total-size limits. Supported images,
+  fonts, and WASM files are retained as Blob-backed, preview-only assets;
+  unsupported files are reported in the chat.
 - File-system handles stay in the parent adapter and never enter tool payloads
   or iframe messages.
 - Text edits are persisted to Dexie immediately. With a read/write directory
@@ -170,8 +171,8 @@ Open folder → generic FileSystemAdapter
   `.html` file becomes the entry point. Relative local `.css` and `.js`
   references are inlined and executed inside the sandboxed iframe.
 - External CSS/JS URLs and arbitrary `runScript` requests are blocked by the
-  preview boundary. Binary assets are skipped for now, so data URLs or a later
-  asset adapter are required for images and fonts.
+  preview boundary. Local asset references are rewritten to short-lived object
+  URLs, and the URLs are revoked when the workspace preview changes.
 - Unsupported folder-picker browsers use the directory-upload fallback; if
   IndexedDB itself is unavailable, the imported workspace remains in memory
   instead of being sent to a server.

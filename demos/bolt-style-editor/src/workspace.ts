@@ -8,6 +8,9 @@ export type WorkspaceFile = {
   path: string;
   language: string;
   source: string;
+  kind?: 'text' | 'asset';
+  mimeType?: string;
+  blob?: Blob;
 };
 
 export type WorkspaceSnapshot = {
@@ -166,13 +169,16 @@ export class BrowserWorkspace {
 
   async importFolder(folder: ImportedFolder): Promise<void> {
     if (folder.files.length === 0) {
-      throw new Error('No supported HTML, CSS, JS, or text files were found.');
+      throw new Error(
+        'No supported HTML, CSS, JS, text, or preview asset files were found.'
+      );
     }
 
     await this.persistQueue;
     const activePath =
       folder.files.find((file) => file.path === 'index.html')?.path ??
       folder.files.find((file) => file.language === 'html')?.path ??
+      folder.files.find((file) => file.kind !== 'asset')?.path ??
       folder.files[0].path;
 
     try {
@@ -229,6 +235,9 @@ export class BrowserWorkspace {
     source: string,
     options: UpdateFileOptions = {}
   ): WorkspaceSnapshot {
+    if (this.getFile(path).kind === 'asset') {
+      throw new Error(`Binary asset cannot be edited as text: ${path}`);
+    }
     const nextFiles = this.snapshot.files.map((file) =>
       file.path === path ? { ...file, source } : file
     );
@@ -386,10 +395,28 @@ function findReferencedFile(
     : undefined;
 }
 
+export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
+
+function rewriteCssAssetUrls(
+  source: string,
+  cssPath: string,
+  assetUrls: WorkspaceAssetUrls
+): string {
+  return source.replace(
+    /url\(\s*(["']?)([^)"']+)\1\s*\)/gi,
+    (match, _quote: string, requestedPath: string) => {
+      const resolvedPath = resolveLocalPath(cssPath, requestedPath);
+      const assetUrl = resolvedPath ? assetUrls[resolvedPath] : undefined;
+      return assetUrl ? `url("${assetUrl}")` : match;
+    }
+  );
+}
+
 function inlineStylesheets(
   html: string,
   htmlPath: string,
-  files: readonly WorkspaceFile[]
+  files: readonly WorkspaceFile[],
+  assetUrls: WorkspaceAssetUrls
 ): string {
   return html.replace(/<link\b[^>]*>/gi, (tag) => {
     const href = attributeValue(tag, 'href');
@@ -403,7 +430,7 @@ function inlineStylesheets(
 
     const css = findReferencedFile(files, htmlPath, href, 'css');
     return css
-      ? `<style data-workspace-source="${css.path}">${css.source}</style>`
+      ? `<style data-workspace-source="${css.path}">${rewriteCssAssetUrls(css.source, css.path, assetUrls)}</style>`
       : '';
   });
 }
@@ -429,12 +456,50 @@ function inlineScripts(
   });
 }
 
-export function buildPreviewDocument(files: WorkspaceFile[]): string {
+function rewriteHtmlAssetReferences(
+  html: string,
+  htmlPath: string,
+  assetUrls: WorkspaceAssetUrls
+): string {
+  const assetTags = new Set([
+    'audio',
+    'embed',
+    'image',
+    'img',
+    'link',
+    'object',
+    'source',
+    'track',
+    'video',
+  ]);
+  return html.replace(/<([a-z][\w:-]*)\b[^>]*>/gi, (tag, tagName: string) => {
+    if (!assetTags.has(tagName.toLowerCase())) return tag;
+    return tag.replace(
+      /(\s(?:data|href|poster|src)\s*=\s*)(["']?)([^"'\s>]+)\2/gi,
+      (attribute, prefix: string, quote: string, requestedPath: string) => {
+        const resolvedPath = resolveLocalPath(htmlPath, requestedPath);
+        const assetUrl = resolvedPath ? assetUrls[resolvedPath] : undefined;
+        return assetUrl ? `${prefix}${quote}${assetUrl}${quote}` : attribute;
+      }
+    );
+  });
+}
+
+export function buildPreviewDocument(
+  files: WorkspaceFile[],
+  assetUrls: WorkspaceAssetUrls = {}
+): string {
   const htmlFile =
     files.find((file) => file.path === 'index.html') ??
     files.find((file) => file.language === 'html');
   if (!htmlFile) return '';
 
-  const withStyles = inlineStylesheets(htmlFile.source, htmlFile.path, files);
-  return inlineScripts(withStyles, htmlFile.path, files);
+  const withStyles = inlineStylesheets(
+    htmlFile.source,
+    htmlFile.path,
+    files,
+    assetUrls
+  );
+  const withScripts = inlineScripts(withStyles, htmlFile.path, files);
+  return rewriteHtmlAssetReferences(withScripts, htmlFile.path, assetUrls);
 }

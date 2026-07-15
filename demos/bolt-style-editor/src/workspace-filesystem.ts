@@ -14,7 +14,7 @@ type FileSystemFileHandleLike = {
 };
 
 type FileSystemWritableFileStreamLike = {
-  write(data: string): Promise<void>;
+  write(data: string | Blob): Promise<void>;
   close(): Promise<void>;
 };
 
@@ -49,8 +49,9 @@ type WindowWithDirectoryPicker = Window & {
 };
 
 const MAX_FILES = 200;
-const MAX_FILE_BYTES = 512 * 1024;
-const MAX_TOTAL_BYTES = 5 * 1024 * 1024;
+const MAX_TEXT_FILE_BYTES = 512 * 1024;
+const MAX_ASSET_BYTES = 4 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 12 * 1024 * 1024;
 
 const languageByExtension: Record<string, string> = {
   '.css': 'css',
@@ -63,6 +64,22 @@ const languageByExtension: Record<string, string> = {
   '.ts': 'typescript',
   '.tsx': 'typescript',
   '.txt': 'text',
+};
+
+const assetMimeTypeByExtension: Record<string, string> = {
+  '.avif': 'image/avif',
+  '.gif': 'image/gif',
+  '.ico': 'image/x-icon',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.otf': 'font/otf',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.ttf': 'font/ttf',
+  '.wasm': 'application/wasm',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
 };
 
 function normalizePath(path: string): string {
@@ -78,6 +95,11 @@ function languageForPath(path: string): string | null {
   return languageByExtension[extension] ?? null;
 }
 
+function assetMimeTypeForPath(path: string): string | null {
+  const extension = `.${path.split('.').pop()?.toLowerCase() ?? ''}`;
+  return assetMimeTypeByExtension[extension] ?? null;
+}
+
 function isLikelyText(file: File): boolean {
   return file.type.startsWith('text/') || file.type === 'application/json';
 }
@@ -86,6 +108,7 @@ function selectActivePath(files: readonly WorkspaceFile[]): string {
   return (
     files.find((file) => file.path === 'index.html')?.path ??
     files.find((file) => file.language === 'html')?.path ??
+    files.find((file) => file.kind !== 'asset')?.path ??
     files[0]?.path ??
     'index.html'
   );
@@ -252,7 +275,9 @@ export class BrowserWorkspaceFileSystemAdapter {
       throw new Error('The selected browser does not support folder writes.');
     }
     const writable = await fileHandle.createWritable();
-    await writable.write(file.source);
+    await writable.write(
+      file.kind === 'asset' && file.blob ? file.blob : file.source
+    );
     await writable.close();
   }
 
@@ -264,7 +289,8 @@ export class BrowserWorkspaceFileSystemAdapter {
     totalBytes: number
   ): Promise<{ totalBytes: number }> {
     const language = languageForPath(path);
-    if (!language || !path) {
+    const assetMimeType = assetMimeTypeForPath(path);
+    if ((!language && !assetMimeType) || !path) {
       skipped.push(`${path || file.name} · unsupported file type`);
       return { totalBytes };
     }
@@ -272,20 +298,41 @@ export class BrowserWorkspaceFileSystemAdapter {
       skipped.push(`${path} · file limit reached`);
       return { totalBytes };
     }
-    if (file.size > MAX_FILE_BYTES) {
-      skipped.push(`${path} · larger than 512 KB`);
+    const maxBytes = assetMimeType ? MAX_ASSET_BYTES : MAX_TEXT_FILE_BYTES;
+    if (file.size > maxBytes) {
+      skipped.push(
+        `${path} · larger than ${assetMimeType ? '4 MB' : '512 KB'}`
+      );
       return { totalBytes };
     }
     if (totalBytes + file.size > MAX_TOTAL_BYTES) {
       skipped.push(`${path} · workspace limit reached`);
       return { totalBytes };
     }
-    if (!isLikelyText(file) && file.type !== '') {
+    if (assetMimeType) {
+      files.push({
+        path,
+        language: 'asset',
+        source: '',
+        kind: 'asset',
+        mimeType: file.type || assetMimeType,
+        blob: file,
+      });
+      return { totalBytes: totalBytes + file.size };
+    }
+
+    if (!language || (!isLikelyText(file) && file.type !== '')) {
       skipped.push(`${path} · binary file`);
       return { totalBytes };
     }
 
-    files.push({ path, language, source: await file.text() });
+    files.push({
+      path,
+      language,
+      source: await file.text(),
+      kind: 'text',
+      mimeType: file.type || undefined,
+    });
     return { totalBytes: totalBytes + file.size };
   }
 

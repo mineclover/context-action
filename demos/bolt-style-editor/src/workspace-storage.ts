@@ -19,6 +19,7 @@ type WorkspaceFileRecord = {
   workspaceId: string;
   path: string;
   language: string;
+  kind?: 'text' | 'asset';
   mimeType: string;
   size: number;
   blob: Blob;
@@ -57,6 +58,13 @@ function mimeTypeForLanguage(language: string): string {
     default:
       return 'text/plain';
   }
+}
+
+function blobForFile(file: WorkspaceFile): Blob {
+  if (file.kind === 'asset' && file.blob) return file.blob;
+  return new Blob([file.source], {
+    type: file.mimeType ?? mimeTypeForLanguage(file.language),
+  });
 }
 
 function displayOrder(path: string): number {
@@ -103,14 +111,13 @@ export class WebCodingWorkspaceRepository {
       schemaVersion: DATABASE_VERSION,
     };
     const records = files.map<WorkspaceFileRecord>((file) => {
-      const blob = new Blob([file.source], {
-        type: mimeTypeForLanguage(file.language),
-      });
+      const blob = blobForFile(file);
       return {
         id: `${this.workspaceId}:${file.path}`,
         workspaceId: this.workspaceId,
         path: file.path,
         language: file.language,
+        kind: file.kind ?? 'text',
         mimeType: blob.type,
         size: blob.size,
         blob,
@@ -136,14 +143,13 @@ export class WebCodingWorkspaceRepository {
 
   async saveFile(file: WorkspaceFile): Promise<void> {
     const now = Date.now();
-    const blob = new Blob([file.source], {
-      type: mimeTypeForLanguage(file.language),
-    });
+    const blob = blobForFile(file);
     await this.database.files.put({
       id: `${this.workspaceId}:${file.path}`,
       workspaceId: this.workspaceId,
       path: file.path,
       language: file.language,
+      kind: file.kind ?? 'text',
       mimeType: blob.type,
       size: blob.size,
       blob,
@@ -187,11 +193,24 @@ export class WebCodingWorkspaceRepository {
     records: readonly WorkspaceFileRecord[]
   ): Promise<PersistedWorkspace> {
     const files = await Promise.all(
-      records.map(async (record) => ({
-        path: record.path,
-        language: record.language,
-        source: await record.blob.text(),
-      }))
+      records.map(async (record) =>
+        record.kind === 'asset' || record.language === 'asset'
+          ? {
+              path: record.path,
+              language: 'asset',
+              source: '',
+              kind: 'asset' as const,
+              mimeType: record.mimeType,
+              blob: record.blob,
+            }
+          : {
+              path: record.path,
+              language: record.language,
+              source: await record.blob.text(),
+              kind: 'text' as const,
+              mimeType: record.mimeType,
+            }
+      )
     );
     return {
       rootName: metadata.rootName,

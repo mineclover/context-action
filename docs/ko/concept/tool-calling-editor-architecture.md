@@ -148,13 +148,15 @@ Open folder → generic FileSystemAdapter
 ```
 
 - Dexie가 workspace metadata와 파일 Blob의 브라우저 로컬 canonical store다.
-  에디터의 text source는 저장된 Blob에서 파생되는 projection이다.
+  에디터의 text source는 저장된 Blob에서 파생되고, binary asset은 Blob을
+  직접 유지해 preview에 사용한다.
 - `Open folder`는 범용 filesystem adapter를 사용한다. 현재 browser adapter는
   사용자 제스처의 File System Access API로 폴더를 읽은 뒤 Dexie로 import하며,
   directory handle이 workspace의 소유자가 되지 않는다.
-- HTML, CSS, JavaScript, JSON, Markdown, TypeScript, text 파일만 file 수·개별
-  크기·전체 크기 제한과 함께 가져온다. 지원하지 않는 파일이나 binary 파일은
-  편집 가능한 source로 저장하지 않고 chat에 건너뛴 항목으로 표시한다.
+- HTML, CSS, JavaScript, JSON, Markdown, TypeScript, text 파일은 file 수·개별
+  크기·전체 크기 제한과 함께 가져온다. 지원되는 image·font·WASM 파일은
+  Blob 기반 preview-only asset으로 보존하고, 지원하지 않는 파일은 chat에
+  건너뛴 항목으로 표시한다.
 - filesystem handle은 부모 adapter 안에만 두고 tool payload나 iframe message에
   넣지 않는다.
 - text 편집은 Dexie에 즉시 저장한다. read/write directory handle이 있으면
@@ -163,9 +165,9 @@ Open folder → generic FileSystemAdapter
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
   안에 주입해 실행한다.
-- 외부 CSS/JS URL과 임의의 `runScript` 요청은 preview 경계에서 차단한다. 아직
-  binary asset은 건너뛰므로 이미지와 폰트는 data URL 또는 후속 asset adapter가
-  필요하다.
+- 외부 CSS/JS URL과 임의의 `runScript` 요청은 preview 경계에서 차단한다. 로컬
+  asset 참조는 짧은 수명의 object URL로 바꾸고 workspace preview가 바뀔 때
+  URL을 revoke한다.
 - folder picker를 지원하지 않는 브라우저에서는 directory-upload fallback을
   사용한다. IndexedDB 자체를 사용할 수 없을 때도 파일을 서버로 몰래 전송하지
   않고 memory workspace를 유지한다.
