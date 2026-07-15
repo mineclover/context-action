@@ -496,6 +496,9 @@ Open folder → generic FileSystemAdapter
   also dismisses the dialog.
 - The source editor keeps syntax highlighting and editing in one overlay surface
   for HTML, CSS, JavaScript, TypeScript, JSON, and Markdown files.
+  Keystrokes stay in a responsive local draft while the user is typing; idle,
+  blur, and tool/save boundaries flush that draft through `workspace.writeFile`
+  so source mutation and preview refresh still use the canonical registry path.
   `⌘/Ctrl+F` opens in-file search, `Enter`/`Shift+Enter` move through
   case-insensitive matches, `⌘/Ctrl+G` also moves between matches, and `Esc`
   returns focus to the source. The editor header exposes the current line,

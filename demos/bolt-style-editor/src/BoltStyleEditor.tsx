@@ -145,6 +145,11 @@ type ToolExecutionOutcome = {
   message?: string;
 };
 
+type ToolExecutionOptions = {
+  announce?: boolean;
+  skipDraftFlush?: boolean;
+};
+
 const themeTokens = {
   violet: { accent: '#8b5cf6', soft: '#f0eaff' },
   emerald: { accent: '#10b981', soft: '#e7fbf3' },
@@ -1946,17 +1951,21 @@ function WorkspaceSearchPanel({
 
 function CodeEditor({
   file,
+  source,
   disabled = false,
   focusRequest,
   onFocusRequestConsumed,
   onOpenWorkspaceSearch,
+  onBlur,
   onChange,
 }: {
   file: WorkspaceFile;
+  source: string;
   disabled?: boolean;
   focusRequest?: WorkspaceSearchFocusRequest;
   onFocusRequestConsumed?: () => void;
   onOpenWorkspaceSearch?: () => void;
+  onBlur?: () => void;
   onChange: (source: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1968,10 +1977,10 @@ function CodeEditor({
   const [cursorOffset, setCursorOffset] = useState(0);
   const highlightedSource = useMemo(
     () =>
-      file.source
+      source
         .split('\n')
         .map((line) => highlightSourceLine(line, file.language)),
-    [file.language, file.source]
+    [file.language, source]
   );
 
   useEffect(() => {
@@ -1993,7 +2002,7 @@ function CodeEditor({
     const highlight = highlightRef.current;
     if (!textarea || !highlight || !focusRequest) return;
 
-    const lines = file.source.split('\n');
+    const lines = source.split('\n');
     const lineIndex = Math.max(
       0,
       Math.min(focusRequest.line - 1, lines.length - 1)
@@ -2017,10 +2026,10 @@ function CodeEditor({
   }, [file.path, focusRequest?.requestId]);
 
   const matches = useMemo(
-    () => findTextMatches(file.source, findQuery),
-    [file.source, findQuery]
+    () => findTextMatches(source, findQuery),
+    [source, findQuery]
   );
-  const cursorPosition = getCursorPosition(file.source, cursorOffset);
+  const cursorPosition = getCursorPosition(source, cursorOffset);
 
   const updateCursor = (textarea: HTMLTextAreaElement) => {
     setCursorOffset(textarea.selectionStart);
@@ -2093,7 +2102,7 @@ function CodeEditor({
     const textarea = event.currentTarget;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const nextSource = `${file.source.slice(0, start)}  ${file.source.slice(end)}`;
+    const nextSource = `${source.slice(0, start)}  ${source.slice(end)}`;
     onChange(nextSource);
     setCursorOffset(start + 2);
     window.requestAnimationFrame(() => {
@@ -2107,7 +2116,7 @@ function CodeEditor({
         <span>{file.language}</span>
         <span>
           Ln {cursorPosition.line}, Col {cursorPosition.column} ·{' '}
-          {file.source.split('\n').length} lines
+          {source.split('\n').length} lines
         </span>
       </div>
       <div className="code-scroll">
@@ -2143,12 +2152,13 @@ function CodeEditor({
             onChange(event.target.value);
           }}
           onClick={(event) => updateCursor(event.currentTarget)}
+          onBlur={onBlur}
           onKeyDown={handleKeyDown}
           onKeyUp={(event) => updateCursor(event.currentTarget)}
           onSelect={(event) => updateCursor(event.currentTarget)}
           onScroll={syncScroll}
           spellCheck={false}
-          value={file.source}
+          value={source}
           wrap="off"
         />
         {findOpen ? (
@@ -2365,6 +2375,9 @@ function EditorWorkbench({
       if (copyFeedbackTimerRef.current !== null) {
         window.clearTimeout(copyFeedbackTimerRef.current);
       }
+      if (editorDraftTimerRef.current !== null) {
+        window.clearTimeout(editorDraftTimerRef.current);
+      }
     };
   }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -2392,6 +2405,11 @@ function EditorWorkbench({
     useState<WorkspaceSearchFocusRequest | null>(null);
   const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editorDrafts, setEditorDrafts] = useState<Record<string, string>>({});
+  const editorDraftsRef = useRef(editorDrafts);
+  editorDraftsRef.current = editorDrafts;
+  const editorDraftTimerRef = useRef<number | null>(null);
+  const editorDraftFlushRef = useRef<Promise<boolean> | null>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const traceEntries = useSyncExternalStore(
     toolTraceStore.subscribe,
@@ -2412,10 +2430,16 @@ function EditorWorkbench({
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];
-  const dirtyPaths = useMemo(
-    () => new Set(workspace.getDirtyFiles().map((file) => file.path)),
-    [snapshot, workspace]
-  );
+  const dirtyPaths = useMemo(() => {
+    const paths = new Set(workspace.getDirtyFiles().map((file) => file.path));
+    for (const [path, source] of Object.entries(editorDrafts)) {
+      const file = snapshot.files.find((candidate) => candidate.path === path);
+      if (file && file.kind !== 'asset' && file.source !== source) {
+        paths.add(path);
+      }
+    }
+    return paths;
+  }, [editorDrafts, snapshot, workspace]);
   const deletedPaths = useMemo(
     () => workspace.getDeletedPaths(),
     [snapshot, workspace]
@@ -2552,7 +2576,7 @@ function EditorWorkbench({
 
   const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
     if (
-      workspace.isDirty() &&
+      hasUnsavedChanges &&
       !window.confirm(
         `Open ${imported.rootName || 'this folder'} and discard unsaved browser workspace changes?`
       )
@@ -2560,6 +2584,7 @@ function EditorWorkbench({
       return;
     }
     await workspace.importFolder(imported);
+    setEditorDrafts({});
     const skippedMessage = imported.skipped.length
       ? ` Skipped ${imported.skipped.length} unsupported, oversized, or invalid file(s).`
       : '';
@@ -2630,7 +2655,7 @@ function EditorWorkbench({
       openingFolder ||
       !isStorageReady ||
       !hasWritableFolder ||
-      (workspace.isDirty() &&
+      (hasUnsavedChanges &&
         !window.confirm(
           'Reload the connected folder and discard unsaved browser workspace changes?'
         ))
@@ -2640,10 +2665,14 @@ function EditorWorkbench({
 
     setOpeningFolder(true);
     try {
-      await executeQuickTool({
-        name: 'workspace.reloadFolder',
-        arguments: {},
-      });
+      setEditorDrafts({});
+      await executeQuickTool(
+        {
+          name: 'workspace.reloadFolder',
+          arguments: {},
+        },
+        { skipDraftFlush: true }
+      );
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -2663,7 +2692,7 @@ function EditorWorkbench({
       openingFolder ||
       !isStorageReady ||
       !hasWritableFolder ||
-      (workspace.isDirty() &&
+      (hasUnsavedChanges &&
         !window.confirm(
           'Disconnect the folder and keep changes only in the browser workspace?'
         ))
@@ -2678,7 +2707,8 @@ function EditorWorkbench({
   };
 
   const saveWorkspace = async () => {
-    if (saving || running || !isStorageReady || !workspace.isDirty()) return;
+    if (saving || running || !isStorageReady) return;
+    if (!(await flushEditorDrafts()) || !workspace.isDirty()) return;
     setSaving(true);
     try {
       if (fileSystemAdapter.hasWritableFolder) {
@@ -2703,10 +2733,11 @@ function EditorWorkbench({
   };
 
   const downloadActiveFile = () => {
+    const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
     const blob =
       activeFile.kind === 'asset' && activeFile.blob
         ? activeFile.blob
-        : new Blob([activeFile.source], {
+        : new Blob([activeSource], {
             type: activeFile.mimeType ?? 'text/plain',
           });
     const url = URL.createObjectURL(blob);
@@ -2762,6 +2793,7 @@ function EditorWorkbench({
   const executePrompt = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed || running) return;
+    if (!(await flushEditorDrafts())) return;
     const controller = new AbortController();
     executionControllerRef.current = controller;
     const agentTrace = startAgentTrace(
@@ -2844,13 +2876,23 @@ function EditorWorkbench({
   };
 
   const executeQuickTool = async (
-    call: ToolCall
+    call: ToolCall,
+    options: ToolExecutionOptions = {}
   ): Promise<ToolExecutionOutcome> => {
     if (running) {
       return {
         ok: false,
         message: 'Another tool execution is already running.',
       };
+    }
+    if (!options.skipDraftFlush && call.name !== 'workspace.writeFile') {
+      const draftsFlushed = await flushEditorDrafts();
+      if (!draftsFlushed) {
+        return {
+          ok: false,
+          message: 'Pending editor changes could not be committed.',
+        };
+      }
     }
     const controller = new AbortController();
     executionControllerRef.current = controller;
@@ -2868,22 +2910,24 @@ function EditorWorkbench({
       const message = result.isError
         ? resultText(result)
         : toolSuccessMessage(call.name, result);
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: message,
-          tools: [call.name],
-          ...(result.isError
-            ? {
-                tone: 'error' as const,
-                ...(result.error?.retryable === false
-                  ? {}
-                  : { retryTool: call }),
-              }
-            : {}),
-        },
-      ]);
+      if (options.announce !== false || result.isError) {
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'assistant',
+            text: message,
+            tools: [call.name],
+            ...(result.isError
+              ? {
+                  tone: 'error' as const,
+                  ...(result.error?.retryable === false
+                    ? {}
+                    : { retryTool: call }),
+                }
+              : {}),
+          },
+        ]);
+      }
       return result.isError ? { ok: false, message } : { ok: true };
     } catch (error) {
       const message = controller.signal.aborted
@@ -2908,6 +2952,78 @@ function EditorWorkbench({
       }
       setRunning(false);
     }
+  };
+
+  const flushEditorDrafts = async (): Promise<boolean> => {
+    if (editorDraftTimerRef.current !== null) {
+      window.clearTimeout(editorDraftTimerRef.current);
+      editorDraftTimerRef.current = null;
+    }
+    if (editorDraftFlushRef.current) return editorDraftFlushRef.current;
+
+    const promise = (async () => {
+      let allFlushed = true;
+      const drafts = Object.entries(editorDraftsRef.current);
+      for (const [path, source] of drafts) {
+        if (editorDraftsRef.current[path] !== source) continue;
+        const file = workspace
+          .getSnapshot()
+          .files.find((candidate) => candidate.path === path);
+        if (!file || file.kind === 'asset' || file.source === source) {
+          setEditorDrafts((current) => {
+            if (current[path] !== source) return current;
+            const next = { ...current };
+            delete next[path];
+            return next;
+          });
+          continue;
+        }
+
+        const outcome = await executeQuickTool(
+          {
+            name: 'workspace.writeFile',
+            arguments: {
+              path,
+              source,
+              expectedRevision: workspace.getSnapshot().revision,
+            },
+          },
+          { announce: false, skipDraftFlush: true }
+        );
+        if (!outcome.ok) {
+          allFlushed = false;
+          continue;
+        }
+        setEditorDrafts((current) => {
+          if (current[path] !== source) return current;
+          const next = { ...current };
+          delete next[path];
+          return next;
+        });
+      }
+      return allFlushed;
+    })();
+    const trackedPromise = promise.finally(() => {
+      if (editorDraftFlushRef.current === trackedPromise) {
+        editorDraftFlushRef.current = null;
+      }
+    });
+    editorDraftFlushRef.current = trackedPromise;
+    return trackedPromise;
+  };
+
+  const updateEditorDraft = (path: string, source: string) => {
+    setEditorDrafts((current) => {
+      if (current[path] === source) return current;
+      return { ...current, [path]: source };
+    });
+    if (editorDraftTimerRef.current !== null) {
+      window.clearTimeout(editorDraftTimerRef.current);
+    }
+    editorDraftTimerRef.current = window.setTimeout(() => {
+      editorDraftTimerRef.current = null;
+      void flushEditorDrafts();
+    }, 650);
   };
 
   const createWorkspaceFile = (path: string, source: string) =>
@@ -2959,6 +3075,7 @@ function EditorWorkbench({
   };
 
   const paletteCallFor = (name: string): ToolCall | null => {
+    const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
     switch (name) {
       case 'workspace.getStatus':
       case 'workspace.listFiles':
@@ -2992,7 +3109,7 @@ function EditorWorkbench({
       case 'workspace.writeFile':
         return {
           name,
-          arguments: { path: activeFile.path, source: activeFile.source },
+          arguments: { path: activeFile.path, source: activeSource },
         };
       case 'workspace.saveAll':
         return { name, arguments: {} };
@@ -3002,9 +3119,7 @@ function EditorWorkbench({
         return { name, arguments: {} };
       case 'workspace.applyPatch': {
         if (activeFile.kind === 'asset') return null;
-        const line = activeFile.source
-          .split('\n')
-          .find((value) => value.trim());
+        const line = activeSource.split('\n').find((value) => value.trim());
         if (!line) return null;
         return {
           name,
@@ -3614,7 +3729,7 @@ function EditorWorkbench({
                 aria-keyshortcuts="Control+S Meta+S"
                 className="editor-save"
                 disabled={
-                  !isStorageReady || running || saving || !workspace.isDirty()
+                  !isStorageReady || running || saving || !hasUnsavedChanges
                 }
                 onClick={() => void saveWorkspace()}
                 title={
@@ -3631,10 +3746,10 @@ function EditorWorkbench({
                     : 'Save'}
               </button>
               <span
-                className={`save-status ${workspace.isDirty() ? 'save-status-dirty' : ''}`}
+                className={`save-status ${hasUnsavedChanges ? 'save-status-dirty' : ''}`}
               >
                 <span className="status-dot" />
-                {workspace.isDirty() ? 'Unsaved changes' : 'Saved'}
+                {hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}
               </span>
               <span className="revision-label">
                 revision {snapshot.revision}
@@ -3697,9 +3812,11 @@ function EditorWorkbench({
                   setWorkspaceSearchOpen(true);
                   setWorkspaceSearchQuery('');
                 }}
+                onBlur={() => void flushEditorDrafts()}
                 onChange={(source) =>
-                  workspace.updateFile(activeFile.path, source)
+                  updateEditorDraft(activeFile.path, source)
                 }
+                source={editorDrafts[activeFile.path] ?? activeFile.source}
               />
             )}
           </section>

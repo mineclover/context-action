@@ -464,6 +464,9 @@ Open folder → generic FileSystemAdapter
   dialog를 닫는다.
 - source editor는 HTML, CSS, JavaScript, TypeScript, JSON, Markdown 파일의
   syntax highlighting과 편집을 하나의 overlay surface에서 유지한다.
+  입력 중에는 반응성 있는 local draft를 유지하고 idle·blur·tool/save 경계에서
+  그 draft를 `workspace.writeFile`로 flush하므로 source mutation과 preview 갱신도
+  canonical registry 경로를 사용한다.
   `⌘/Ctrl+F`로 파일 검색을 열고 `Enter`/`Shift+Enter`로
   대소문자를 구분하지 않는 match를 이동하며, `⌘/Ctrl+G`로도 다음·이전
   match를 이동할 수 있다. `Esc`는 source로 focus를 돌려주고, editor header는
