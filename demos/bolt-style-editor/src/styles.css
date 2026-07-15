@@ -101,6 +101,13 @@ a { color: inherit; text-decoration: none; }
 .tool-run-button { background: #2a2350; border: 1px solid #55478f; border-radius: 5px; color: #d4ccff; cursor: pointer; font-size: 10px; margin-top: 8px; padding: 6px 8px; width: 100%; }
 .tool-run-button:hover { background: #382f67; border-color: #8473d3; color: #f0edff; }
 .tool-run-button:disabled { cursor: default; opacity: .45; }
+.tool-arguments-input { background: #0a0d12; border: 1px solid #303746; border-radius: 5px; color: #d7dbe5; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; line-height: 1.45; min-height: 92px; outline: none; padding: 7px; resize: vertical; width: 100%; }
+.tool-arguments-input:focus { border-color: #8875ec; box-shadow: 0 0 0 2px rgb(136 117 236 / 15%); }
+.tool-arguments-input:disabled { cursor: wait; opacity: .55; }
+.tool-arguments-error { background: #3a2029; border: 1px solid #75404d; border-radius: 5px; color: #ffbdc7; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; line-height: 1.4; margin-top: 5px; padding: 6px; }
+.tool-reset-button { background: transparent; color: #7e88a0; cursor: pointer; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; margin-top: 5px; padding: 2px 0; }
+.tool-reset-button:hover { color: #c5bdff; }
+.tool-reset-button:disabled { cursor: default; opacity: .4; }
 .tool-schema-label { color: #657086; font-size: 8px; letter-spacing: .08em; margin: 8px 0 4px; text-transform: uppercase; }
 .tool-inspector pre { background: #0a0d12; border: 1px solid #202633; color: #78869d; font-size: 8px; line-height: 1.45; margin: 8px 0 0; max-height: 118px; overflow: auto; padding: 7px; white-space: pre-wrap; }
 .trace-section { border-top: 1px solid #20242e; margin-top: 18px; padding-top: 2px; }

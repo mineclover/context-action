@@ -2043,6 +2043,10 @@ function EditorWorkbench({
     () => toolNames[0] ?? ''
   );
   const [toolFilter, setToolFilter] = useState('');
+  const [toolArgumentsText, setToolArgumentsText] = useState('{}');
+  const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
+    null
+  );
   const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
   const visibleToolNames = useMemo(() => {
     const query = toolFilter.trim().toLowerCase();
@@ -2556,17 +2560,46 @@ function EditorWorkbench({
     }
   };
 
+  const resetSelectedToolArguments = () => {
+    const sample = selectedToolName ? paletteCallFor(selectedToolName) : null;
+    setToolArgumentsText(JSON.stringify(sample?.arguments ?? {}, null, 2));
+    setToolArgumentsError(null);
+  };
+
+  useEffect(() => {
+    resetSelectedToolArguments();
+  }, [selectedToolName, activeFile.path]);
+
+  const parseToolArguments = (): Record<string, unknown> | null => {
+    try {
+      const parsed: unknown = JSON.parse(toolArgumentsText);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Arguments must be a JSON object.');
+      }
+      setToolArgumentsError(null);
+      return parsed as Record<string, unknown>;
+    } catch (error) {
+      setToolArgumentsError(
+        error instanceof Error ? error.message : 'Invalid JSON arguments.'
+      );
+      return null;
+    }
+  };
+
   const runSelectedTool = async () => {
     if (!selectedToolName || !selectedToolDefinition) return;
-    const call = paletteCallFor(selectedToolName);
-    if (!call) return;
+    const argumentsValue = parseToolArguments();
+    if (!argumentsValue) return;
     if (
       selectedToolDefinition.annotations?.destructiveHint === true &&
       !window.confirm(`Run the destructive sample for ${selectedToolName}?`)
     ) {
       return;
     }
-    await executeQuickTool(call);
+    await executeQuickTool({
+      name: selectedToolName,
+      arguments: argumentsValue,
+    });
   };
 
   const closeWorkspaceSearch = () => {
@@ -2759,17 +2792,38 @@ function EditorWorkbench({
               </div>
               <button
                 className="tool-run-button"
-                disabled={
-                  !isStorageReady ||
-                  running ||
-                  !paletteCallFor(selectedToolName)
-                }
+                disabled={!isStorageReady || running || !selectedToolName}
                 onClick={() => void runSelectedTool()}
                 type="button"
               >
                 {selectedToolDefinition.annotations?.destructiveHint
                   ? 'Run destructive sample'
-                  : 'Run sample'}
+                  : 'Run with arguments'}
+              </button>
+              <div className="tool-schema-label">Arguments (JSON)</div>
+              <textarea
+                aria-label={`Arguments for ${selectedToolDefinition.name}`}
+                className="tool-arguments-input"
+                disabled={!isStorageReady || running}
+                onChange={(event) => {
+                  setToolArgumentsText(event.target.value);
+                  if (toolArgumentsError) setToolArgumentsError(null);
+                }}
+                spellCheck={false}
+                value={toolArgumentsText}
+              />
+              {toolArgumentsError ? (
+                <div className="tool-arguments-error" role="alert">
+                  {toolArgumentsError}
+                </div>
+              ) : null}
+              <button
+                className="tool-reset-button"
+                disabled={!isStorageReady || running}
+                onClick={resetSelectedToolArguments}
+                type="button"
+              >
+                Reset sample arguments
               </button>
               <div className="tool-schema-label">Input schema</div>
               <pre>
