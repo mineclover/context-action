@@ -4,6 +4,7 @@ import {
   LiveEditorDocumentManager,
   type LiveEditorDocumentSnapshot,
 } from '../../../lib/live-code-editor-bridge';
+import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
 
 export const {
@@ -44,6 +45,31 @@ function LiveEditorToolHandlers({
       ...(scenario === undefined ? {} : { scenario }),
     });
   });
+
+  useLiveEditorToolHandler(
+    'editor.applyPatch',
+    ({ search, replace, occurrence, expectedRevision }) => {
+      const current = manager.getSnapshot();
+      if (
+        expectedRevision !== undefined &&
+        expectedRevision !== current.revision
+      ) {
+        throw new Error(
+          `Editor revision mismatch: expected ${expectedRevision}, current ${current.revision}. Re-read the document before applying the patch.`
+        );
+      }
+      const patch = applyLiveEditorTextPatch(
+        current.source,
+        search,
+        replace,
+        occurrence
+      );
+      return updateAndWait({ source: patch.source }).then((snapshot) => ({
+        ...snapshot,
+        replacements: patch.replacements,
+      }));
+    }
+  );
 
   useLiveEditorToolHandler('editor.setScenario', ({ scenario }) =>
     updateAndWait({ scenario })

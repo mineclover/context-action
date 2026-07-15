@@ -2,6 +2,7 @@ import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
 
 const scenarioSchema = z.enum(['success', 'invalid', 'blocked']);
+const expectedRevisionSchema = z.number().int().nonnegative().optional();
 
 export const getEditorDocumentTool = defineAction(
   {
@@ -38,6 +39,21 @@ export const getEditorPreviewStatusTool = defineAction(
   z
 );
 
+export const applyEditorPatchTool = defineAction(
+  {
+    name: 'editor.applyPatch',
+    description:
+      'Replace a bounded literal text match in the current document and wait for the matching iframe revision. An optional expectedRevision rejects stale edits.',
+    parameters: z.object({
+      search: z.string().min(1).max(20_000),
+      replace: z.string().max(20_000),
+      occurrence: z.enum(['first', 'all']),
+      expectedRevision: expectedRevisionSchema,
+    }),
+  },
+  z
+);
+
 export const setEditorScenarioTool = defineAction(
   {
     name: 'editor.setScenario',
@@ -62,6 +78,7 @@ export const liveEditorToolsSchema = createActionSchema({
   'editor.getDocument': getEditorDocumentTool,
   'editor.setDocument': setEditorDocumentTool,
   'editor.getPreviewStatus': getEditorPreviewStatusTool,
+  'editor.applyPatch': applyEditorPatchTool,
   'editor.setScenario': setEditorScenarioTool,
   'editor.resetDocument': resetEditorDocumentTool,
 });

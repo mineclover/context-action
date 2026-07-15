@@ -168,12 +168,13 @@ DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되�
 | `editor.getDocument` | allow | 현재 문서와 revision 조회 |
 | `editor.getPreviewStatus` | allow | 최신 iframe acknowledgement 조회 |
 | `editor.setDocument` | local demo allow | controlled source 교체, 실행하지 않음 |
+| `editor.applyPatch` | local demo allow | 제한된 literal text patch 적용 후 해당 preview revision 대기 |
 | `editor.setScenario` | local demo allow | 안전한 runner 시나리오 변경 |
 | `editor.resetDocument` | local demo allow | 선택한 예제의 source로 초기화 |
 
-재사용 가능한 `editor.applyPatch` 계약은 별도 package 후속 과제로 남겨두며,
-standalone workspace는 아래에서 설명하는 제한된 `workspace.applyPatch` 계약을
-사용한다. production 연결에서는 파괴적 변경이나 광범위한 mutation을 허용하기
+example과 standalone workspace가 모두 제한된 patch 계약을 노출한다. example은
+현재 부모 소유 document에 patch를 적용하고 standalone workspace는 지정된 file에
+적용한다. production 연결에서는 파괴적 변경이나 광범위한 mutation을 허용하기
 전에 승인 가능한 `toolPolicy`를 사용해야 한다.
 
 ## Code workspace 경계

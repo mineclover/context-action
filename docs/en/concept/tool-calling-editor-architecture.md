@@ -175,13 +175,15 @@ The default extraction order is `example â†’ standalone demo/workspace package â
 | `editor.getDocument` | allow | Read the current document and revision |
 | `editor.getPreviewStatus` | allow | Read the latest iframe acknowledgement |
 | `editor.setDocument` | local demo allow | Replace controlled source text; never execute it |
+| `editor.applyPatch` | local demo allow | Apply a bounded literal text patch and await the matching preview revision |
 | `editor.setScenario` | local demo allow | Change the safe runner scenario |
 | `editor.resetDocument` | local demo allow | Reset source to the selected example |
 
-The reusable `editor.applyPatch` contract remains a separate package follow-up;
-the standalone workspace uses the bounded `workspace.applyPatch` contract
-described below. A production integration must use an approval-capable
-`toolPolicy` before enabling destructive or broad mutations.
+The example and standalone workspace now expose bounded patch contracts. The
+example applies the patch to the current parent-owned document; the standalone
+workspace applies it to an addressed workspace file. A production integration
+must use an approval-capable `toolPolicy` before enabling destructive or broad
+mutations.
 
 ## Code workspace boundary
 

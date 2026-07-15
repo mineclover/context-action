@@ -22,6 +22,7 @@ export function LiveEditorAIToolbar() {
   const [result, setResult] = useState('');
   const [localCallResult, setLocalCallResult] = useState('');
   const [localMutationResult, setLocalMutationResult] = useState('');
+  const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -154,6 +155,68 @@ export function LiveEditorAIToolbar() {
     );
   };
 
+  const runLocalPatch = async () => {
+    const documentResult = await registry.callTool(
+      {
+        id: `local-patch-read-${Date.now()}`,
+        method: 'tools/call',
+        params: {
+          name: 'editor.getDocument',
+          arguments: {},
+        },
+      },
+      { context: { source: 'local' } }
+    );
+    if (documentResult.isError) {
+      setLocalPatchResult(
+        documentResult.error?.message ?? 'Could not read the current document.'
+      );
+      return;
+    }
+
+    const documentValue = documentResult.structuredContent;
+    if (!documentValue || typeof documentValue !== 'object') {
+      setLocalPatchResult('Current document result was not structured.');
+      return;
+    }
+    const document = documentValue as {
+      source?: unknown;
+      revision?: unknown;
+    };
+    const source = typeof document.source === 'string' ? document.source : '';
+    const revision =
+      typeof document.revision === 'number' ? document.revision : undefined;
+    const line = source.split('\n').find((value) => value.trim());
+    if (!line || revision === undefined) {
+      setLocalPatchResult(
+        'Current document does not expose a patchable source.'
+      );
+      return;
+    }
+
+    const patchResult = await registry.callTool(
+      {
+        id: `local-patch-${Date.now()}`,
+        method: 'tools/call',
+        params: {
+          name: 'editor.applyPatch',
+          arguments: {
+            search: line,
+            replace: `${line}  `,
+            occurrence: 'first',
+            expectedRevision: revision,
+          },
+        },
+      },
+      { context: { source: 'local' } }
+    );
+    setLocalPatchResult(
+      patchResult.isError
+        ? (patchResult.error?.message ?? 'Local patch failed.')
+        : JSON.stringify(patchResult.structuredContent)
+    );
+  };
+
   const toolDefinitions = registry.listTools().tools;
 
   return (
@@ -224,6 +287,13 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
+          onClick={() => void runLocalPatch()}
+        >
+          Run local editor.applyPatch + acknowledgement
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
           onClick={() => void runModelShapedCall()}
         >
           Run model-shaped call (no network)
@@ -233,6 +303,9 @@ export function LiveEditorAIToolbar() {
         )}
         {localMutationResult && (
           <code className={styles.localCallResult}>{localMutationResult}</code>
+        )}
+        {localPatchResult && (
+          <code className={styles.localCallResult}>{localPatchResult}</code>
         )}
         {modelShapedResult && (
           <code className={styles.localCallResult}>{modelShapedResult}</code>
