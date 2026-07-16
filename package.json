@@ -11,6 +11,7 @@
     "build:llms-generator": "lerna run build --scope=@context-action/llms-generator",
     "build:mutative": "lerna run build --scope=@context-action/mutative",
     "build:live-code-editor": "pnpm --filter @context-action/live-code-editor build",
+    "check:live-code-editor": "pnpm --filter @context-action/live-code-editor check",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
     "verify:all": "pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools",

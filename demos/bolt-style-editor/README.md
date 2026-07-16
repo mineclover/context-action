@@ -11,6 +11,7 @@ From the repository root:
 ```bash
 # Root aliases for the private package and standalone release check:
 pnpm build:live-code-editor
+pnpm check:live-code-editor
 pnpm type-check:live-code-editor
 pnpm test:live-code-editor
 pnpm web-coding:verify
