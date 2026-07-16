@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMouseActionHandler } from '../context/MouseEventsModel';
+import { useMouseActionHandler } from '../contexts/EnhancedContextStoreContexts';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 
 /**

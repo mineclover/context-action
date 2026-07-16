@@ -16,7 +16,7 @@
     "lint:fix": "biome lint --write src",
     "format": "biome format src",
     "format:write": "biome format --write src",
-    "check": "biome check src && pnpm run verify:catalog && pnpm run verify:usecase && pnpm run verify:conditional && pnpm run verify:mouse-action && pnpm run verify:mouse-pattern",
+    "check": "biome check src && pnpm run verify:catalog && pnpm run verify:usecase && pnpm run verify:conditional && pnpm run verify:mouse-action && pnpm run verify:mouse-pattern && pnpm run verify:mouse-enhanced",
     "check:fix": "biome check --write src",
     "type-check": "tsc --noEmit",
     "verify:catalog": "node ../scripts/verify-mcp-function-calling-catalog.mjs",
@@ -24,6 +24,7 @@
     "verify:conditional": "node ../scripts/verify-conditional-permission-conventions.mjs",
     "verify:mouse-action": "node ../scripts/verify-context-store-action-mouse-conventions.mjs",
     "verify:mouse-pattern": "node ../scripts/verify-context-store-pattern-conventions.mjs",
+    "verify:mouse-enhanced": "node ../scripts/verify-enhanced-context-store-conventions.mjs",
     "clean": "rimraf dist",
     "analyze": "vite-bundle-analyzer",
     "bundle-report": "vite build --mode analyze"

@@ -9,7 +9,7 @@
 
 import { CodeBlock } from '@/components/ui';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
-import { MouseEventsModelProvider } from './context/MouseEventsModel';
+import { EnhancedContextStoreProvider } from './providers/EnhancedContextStoreProvider';
 /**
  * Enhanced Context Store - Reactive Pattern 페이지
  *
@@ -45,7 +45,7 @@ export function EnhancedContextStorePage() {
       </div>
 
       {/* Model Layer - Declarative Context Management */}
-      <MouseEventsModelProvider>
+      <EnhancedContextStoreProvider>
         {/* View Layer - Reactive Pattern */}
         <EnhancedContextStoreView />
 
@@ -235,7 +235,7 @@ const useNonReactiveCanvasControl = () => {
             </div>
           </div>
         </div>
-      </MouseEventsModelProvider>
+      </EnhancedContextStoreProvider>
     </div>
   );
 }

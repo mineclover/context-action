@@ -125,19 +125,21 @@ pnpm convention:check
 pnpm --filter example check
 ```
 
-현재 게이트는 canonical root 30곳을 검사하며 레이어 경로·명명 위반은
+현재 게이트는 canonical root 31곳을 검사하며 레이어 경로·명명 위반은
 0건입니다. advanced 및 compatibility root는 마이그레이션 분류가 바뀔
 때까지 이 자동 명명 범위에서 명시적으로 제외합니다.
 
 비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
 `tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는
 모든 비정형 디렉터리가 `advanced` 또는 `compatibility` 중 하나로 등록되어
-있는지 확인합니다. 현재 manifest에는 advanced 비교 표면 1곳과
-compatibility object-context 표면 1곳이 있습니다. conditional permission
-usecase, action-based mouse 비교 데모, context-store mouse 비교 데모는
-canonical `contexts/`와 `handlers/` 표면에 편입되었고, memoization 비교도
-canonical `contexts/`와 `actions/` 경계로 이동했으며 기존 model과 hook
-경로는 compatibility re-export로 유지합니다.
+있는지 확인합니다. 현재 manifest에는 advanced 비교 표면이 없고
+compatibility object-context 표면 1곳이 있습니다. conditional permission,
+action-based mouse, context-store mouse, enhanced context-store mouse
+usecase는 canonical `contexts/`와 `handlers/` 표면에 편입되었습니다.
+enhanced context-store usecase는 semantic command를 `actions/`, 순수 전이를
+`business/`, Provider 조합을 `providers/`에서 분리합니다. memoization 비교도
+canonical `contexts/`와 `actions/` 경계로 이동했으며 기존 model과 hook 경로는
+compatibility re-export로 유지합니다.
 
 ## 명시적 상태 머신 규칙
 

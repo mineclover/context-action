@@ -59,7 +59,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 
 첫 번째 구조 규칙은 이미 활성화되어 있습니다. 모든 `use*ActionHandler(...)` 호출은 `handlers/` 모듈 또는 `*HandlerRegistry` 파일 안에 있어야 합니다. transitional allowlist는 이제 비어 있으며 직접 등록 인벤토리에 남은 예외가 없습니다. Registry 밖의 새로운 직접 등록은 즉시 실패합니다.
 
-직접 등록 규칙과 함께 Provider 순서 및 canonical 레이어 경로·명명 검사도 이제 활성화되었습니다. Action → Store → Ref → Handler Registry 중첩을 강제하고 canonical root 30곳을 식별하며, 현재 Provider 순서와 레이어 경로·명명 위반을 모두 0건으로 보고합니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록과 구조 drift를 CI에서 잡습니다.
+직접 등록 규칙과 함께 Provider 순서 및 canonical 레이어 경로·명명 검사도 이제 활성화되었습니다. Action → Store → Ref → Handler Registry 중첩을 강제하고 canonical root 31곳을 식별하며, 현재 Provider 순서와 레이어 경로·명명 위반을 모두 0건으로 보고합니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록과 구조 drift를 CI에서 잡습니다.
 
 ## 현재 상태 분류
 
@@ -92,7 +92,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - conditional permission usecase는 Context-Action Provider를 `contexts/ConditionalPatternsContexts.tsx`, 순수 role/action 평가를 `business/permission-rules.ts`, 의미 기반 command를 `actions/usePermissionActions.ts`, fail-secure orchestration을 `handlers/PermissionHandlerRegistry.tsx`에 두며 `verify:conditional`이 이 경계를 보호합니다.
 - action-based mouse 비교 데모는 Action/Store 계약과 Provider를 `contexts/MouseActionContexts.tsx`, 순수 path/velocity/activity 계산을 `business/mouse-rules.ts`, 등록을 `handlers/MouseActionHandlerRegistry.tsx`에 두며 기존 `stores/MouseStoreSchema.tsx` 경로는 compatibility re-export로 유지합니다.
 - `EnhancedAbortableSearch`는 Search Store/Action Context, 순수 검색 상태 규칙, 의미 기반 action facade, abort-aware `handlers/EnhancedAbortableSearchHandlerRegistry.tsx`로 분리했습니다. 호환성 컴포넌트는 이제 반응형 View 역할만 담당합니다.
-- enhanced context-store mouse usecase는 ViewModel hook에서 handler 구현을 반환하고, 실제 등록은 `handlers/EnhancedContextStoreHandlerRegistry.tsx`에서만 수행하도록 정리했습니다. Model Provider 순서도 Action → Store → Ref로 맞췄습니다.
+- enhanced context-store mouse usecase는 typed Store/Action/Ref 계약을 `contexts/EnhancedContextStoreContexts.tsx`, 순수 movement/click/activity/metric 전이를 `business/enhanced-mouse-event-rules.ts`, semantic command를 `actions/useEnhancedMouseActions.ts`, 5개 등록을 `handlers/EnhancedContextStoreHandlerRegistry.tsx`에 둡니다. `providers/EnhancedContextStoreProvider.tsx`가 reactive/non-reactive 두 route의 Action → Store → Ref → Registry 조합을 소유합니다.
 - `SearchPageRefactored`는 검색 데이터와 relevance/filter 규칙, typed Action/Store Context, 안정적인 command facade, `handlers/AdvancedSearchHandlerRegistry.tsx`로 분리했습니다. page는 이제 presentation과 Store subscription만 담당합니다.
 - `ApiBlockingPageRefactored`는 요청·rate-limit·metric 전이를 순수 `business/api-blocking-rules.ts`로 분리하고, `actions/useApiBlockingActions.ts`에서 안정적인 command를 제공하며, 요청 lifecycle은 `handlers/ApiBlockingHandlerRegistry.tsx`에서 등록하도록 정리했습니다. 두 API Blocking route 모두 canonical page를 사용합니다.
 - `ScrollPageRefactored`는 결정적인 content/virtualization/metric 규칙, typed Action/Store/Ref Context, 의미 기반 scroll command, `handlers/ScrollHandlerRegistry.tsx`로 분리했습니다. 두 scroll route 모두 canonical page를 사용하며 Registry가 DOM animation loop를 소유합니다.
@@ -104,8 +104,8 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - context-store mouse 비교 데모는 public Context-Action 경계를 `context-store-pattern/contexts/MouseEventsContexts.tsx`로 노출합니다. 6개 handler는 `handlers/MouseEventsHandlerRegistry.tsx`에 남기고, 기존 aggregate helper는 compatibility export 뒤에 격리했습니다.
 - 범용 `createObjectContextHooks` factory는 Action → Manager → Store 동기화를 `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`에 위임합니다. 내부 ActionRegister를 노출하는 대신 `ObjectContextManager.dispatch`를 도메인 경계의 안전한 bridge로 사용합니다.
 - 컨벤션 검사기는 object-context factory, Flow Control, API Blocking, memoization, priority, mouse-event 조합의 Provider 중첩도 검증합니다. `pnpm convention:check` 결과 Provider 순서 위반은 0건입니다.
-- 컨벤션 검사기는 canonical root 30곳의 레이어 경로, 파일 명명, import 경계도 검증합니다. conditional permission, action-based mouse, context-store mouse usecase의 Context-Action 경계를 `contexts/` 아래로 이동했고, implementation-playbook View의 packet·quote는 Data Hook에서 계산하며 레이어 경로·명명 위반은 0건입니다.
-- `tools/context-action-lint/layered-surface-classification.json`에 남은 비정형 `handlers/` 표면 2곳을 기록했습니다. advanced 비교 표면 1곳과 compatibility object-context 표면 1곳이며, 분류되지 않은 추가와 stale 분류는 `convention:check`를 실패시킵니다.
+- 컨벤션 검사기는 canonical root 31곳의 레이어 경로, 파일 명명, import 경계도 검증합니다. conditional permission, action-based mouse, context-store mouse, enhanced context-store mouse usecase의 Context-Action 경계를 `contexts/` 아래로 이동했고, implementation-playbook View의 packet·quote는 Data Hook에서 계산하며 레이어 경로·명명 위반은 0건입니다.
+- `tools/context-action-lint/layered-surface-classification.json`에는 유일하게 남은 비정형 `handlers/` 표면인 compatibility object-context root만 기록했습니다. 분류되지 않은 추가와 stale 분류는 `convention:check`를 실패시킵니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -147,4 +147,4 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-직접 등록, Provider 순서, canonical 레이어 경로·명명, 마이그레이션 분류 게이트는 완료되었습니다. 다음 재진입 지점은 명시적으로 분류한 advanced 표면 하나를 canonical 구조로 옮기는 작업입니다. compatibility export는 문서화하되 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.
+직접 등록, Provider 순서, canonical 레이어 경로·명명, 마이그레이션 분류 게이트는 완료되었습니다. advanced 비교 표면 인벤토리도 비어 있으므로, 남은 compatibility export를 문서화하고 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.

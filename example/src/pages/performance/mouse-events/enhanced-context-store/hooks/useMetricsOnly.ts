@@ -8,7 +8,7 @@
 
 import { useStoreValue } from '@context-action/react';
 import { useMemo } from 'react';
-import { useMouseStore } from '../context/MouseEventsModel';
+import { useMouseStore } from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * 메트릭 전용 Hook - 불필요한 Store 구독 제거

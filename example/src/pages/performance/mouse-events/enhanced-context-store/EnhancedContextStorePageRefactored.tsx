@@ -18,9 +18,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeBlock } from '@/components/ui';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
-import { MouseEventsModelProvider } from './context/MouseEventsModel';
 import { useAdvancedCanvasControl } from './hooks/useAdvancedCanvasControl';
 import { useNonReactiveMetrics } from './hooks/useNonReactiveMetrics';
+import { EnhancedContextStoreProvider } from './providers/EnhancedContextStoreProvider';
 
 // Reactive data interfaces - same as Non-Reactive for comparison
 interface Position {
@@ -479,9 +479,9 @@ const ReactiveVisualization = () => {
  */
 export function EnhancedContextStorePageRefactored() {
   return (
-    <MouseEventsModelProvider>
+    <EnhancedContextStoreProvider>
       <ReactivePageContent />
-    </MouseEventsModelProvider>
+    </EnhancedContextStoreProvider>
   );
 }
 

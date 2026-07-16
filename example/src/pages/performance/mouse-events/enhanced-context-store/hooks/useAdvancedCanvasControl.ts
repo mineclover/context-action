@@ -8,19 +8,20 @@
  * - 모든 시각적 업데이트는 DOM 직접 조작
  */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { useEnhancedMouseActions } from '../actions/useEnhancedMouseActions';
 import {
-  useMouseAction,
   useMouseRef,
   useMouseRefMountState,
-} from '../context/MouseEventsModel';
+} from '../contexts/EnhancedContextStoreContexts';
 import { useStoreDataAccess } from './useStoreDataAccess';
 
 /**
  * 고급 Canvas 직접 제어 Hook - 진짜 반응형 마운트 상태 기반
  */
 export function useAdvancedCanvasControl() {
-  const dispatch = useMouseAction();
+  const { updatePosition, recordClick, enterArea, leaveArea, reset } =
+    useEnhancedMouseActions();
   const storeData = useStoreDataAccess();
 
   // DOM 참조들 (RefContext)
@@ -182,7 +183,7 @@ export function useAdvancedCanvasControl() {
     }
 
     throttleTimeoutRef.current = window.setTimeout(() => {
-      dispatch('updatePosition', { x, y, timestamp });
+      updatePosition({ x, y, timestamp });
     }, 33);
 
     lastPositionRef.current = { x, y };
@@ -203,7 +204,7 @@ export function useAdvancedCanvasControl() {
     clickCounterRef.current++;
 
     // Store는 데이터 저장만
-    dispatch('recordClick', {
+    recordClick({
       x,
       y,
       button: e.button,
@@ -222,7 +223,7 @@ export function useAdvancedCanvasControl() {
     const timestamp = Date.now();
 
     updateCursorDirect(x, y);
-    dispatch('enterArea', { x, y, timestamp });
+    enterArea({ x, y, timestamp });
     lastPositionRef.current = { x, y };
   };
 
@@ -242,7 +243,7 @@ export function useAdvancedCanvasControl() {
       clearTimeout(throttleTimeoutRef.current);
     }
 
-    dispatch('leaveArea', { timestamp: Date.now() });
+    leaveArea({ timestamp: Date.now() });
     pathPointsRef.current = [];
   };
 
@@ -275,7 +276,7 @@ export function useAdvancedCanvasControl() {
     clickCounterRef.current = 0;
 
     // Store 리셋
-    dispatch('reset');
+    reset();
   };
 
   // === Non-Reactive 데이터 조회 ===
@@ -294,25 +295,40 @@ export function useAdvancedCanvasControl() {
   };
 
   // === DOM 참조 설정 함수들 ===
-  const setContainerRef = (el: HTMLDivElement | null) => {
-    containerRef.setRef(el);
-  };
+  const setContainerRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      containerRef.setRef(el);
+    },
+    [containerRef]
+  );
 
-  const setCursorRef = (el: HTMLDivElement | null) => {
-    cursorRef.setRef(el);
-  };
+  const setCursorRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      cursorRef.setRef(el);
+    },
+    [cursorRef]
+  );
 
-  const setPathSvgRef = (el: SVGPathElement | null) => {
-    pathSvgRef.setRef(el);
-  };
+  const setPathSvgRef = useCallback(
+    (el: SVGPathElement | null) => {
+      pathSvgRef.setRef(el);
+    },
+    [pathSvgRef]
+  );
 
-  const setCoordinatesRef = (el: HTMLDivElement | null) => {
-    coordinatesRef.setRef(el);
-  };
+  const setCoordinatesRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      coordinatesRef.setRef(el);
+    },
+    [coordinatesRef]
+  );
 
-  const setClickMarkersRef = (el: HTMLDivElement | null) => {
-    clickMarkersRef.setRef(el);
-  };
+  const setClickMarkersRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      clickMarkersRef.setRef(el);
+    },
+    [clickMarkersRef]
+  );
 
   return {
     // 이벤트 핸들러들

@@ -2,6 +2,27 @@
 
 ## ✅ Implementation Completed
 
+### Context-Action Convention Alignment
+
+The reactive and non-reactive routes now share one canonical composition:
+
+```text
+contexts/EnhancedContextStoreContexts.tsx
+  → providers/EnhancedContextStoreProvider.tsx
+  → actions/useEnhancedMouseActions.ts
+  → business/enhanced-mouse-event-rules.ts
+  → handlers/EnhancedContextStoreHandlerRegistry.tsx
+  → components/* and hooks/*
+```
+
+- Context declarations own the typed Store, Action, and Ref contracts.
+- Semantic commands keep canvas event code from dispatching raw action names.
+- Pure movement, click, activity, and metric transitions stay framework-free.
+- The Registry is the only action-handler registration boundary.
+- `context/MouseEventsModel.tsx` remains a compatibility export for older links.
+
+Run `pnpm --filter example run verify:mouse-enhanced` to verify this boundary.
+
 ### Non-Reactive Pattern Integration
 
 The non-reactive architecture has been successfully implemented with the following components:

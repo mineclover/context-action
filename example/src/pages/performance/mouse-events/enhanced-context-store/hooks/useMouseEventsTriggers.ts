@@ -8,7 +8,8 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useMouseAction, useMouseRef } from '../context/MouseEventsModel';
+import { useEnhancedMouseActions } from '../actions/useEnhancedMouseActions';
+import { useMouseRef } from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * 마우스 이벤트 트리거 함수들을 제공하는 Hook
@@ -20,7 +21,8 @@ import { useMouseAction, useMouseRef } from '../context/MouseEventsModel';
  */
 export function useMouseEventsTriggers() {
   // Action dispatch
-  const dispatch = useMouseAction();
+  const { updatePosition, recordClick, enterArea, leaveArea, reset } =
+    useEnhancedMouseActions();
 
   // DOM 참조
   const containerRef = useMouseRef('container');
@@ -67,11 +69,11 @@ export function useMouseEventsTriggers() {
       }
 
       throttleTimeoutRef.current = window.setTimeout(() => {
-        dispatch('updatePosition', { x, y, timestamp });
+        updatePosition({ x, y, timestamp });
         lastMoveTimeRef.current = timestamp;
       }, 33); // ~30fps for store updates (DOM is still 60fps via direct manipulation)
     },
-    [dispatch, containerRef, cursorRef, coordinatesRef]
+    [updatePosition, containerRef, cursorRef, coordinatesRef]
   );
 
   // === 마우스 클릭 핸들러 ===
@@ -85,14 +87,14 @@ export function useMouseEventsTriggers() {
       const y = Math.round(e.clientY - rect.top);
       const timestamp = Date.now();
 
-      dispatch('recordClick', {
+      recordClick({
         x,
         y,
         button: e.button,
         timestamp,
       });
     },
-    [dispatch, containerRef]
+    [recordClick, containerRef]
   );
 
   // === 마우스 진입 핸들러 ===
@@ -121,9 +123,9 @@ export function useMouseEventsTriggers() {
         coordinates.style.transform = `translate3d(${x + 16}px, ${y - 32}px, 0)`;
       }
 
-      dispatch('enterArea', { x, y, timestamp });
+      enterArea({ x, y, timestamp });
     },
-    [dispatch, containerRef, cursorRef, coordinatesRef]
+    [enterArea, containerRef, cursorRef, coordinatesRef]
   );
 
   // === 마우스 이탈 핸들러 ===
@@ -153,8 +155,8 @@ export function useMouseEventsTriggers() {
       clearTimeout(throttleTimeoutRef.current);
     }
 
-    dispatch('leaveArea', { timestamp });
-  }, [dispatch, cursorRef, coordinatesRef, pathSvgRef]);
+    leaveArea({ timestamp });
+  }, [leaveArea, cursorRef, coordinatesRef, pathSvgRef]);
 
   // === 리셋 핸들러 ===
   const handleReset = useCallback(() => {
@@ -169,8 +171,8 @@ export function useMouseEventsTriggers() {
       clearTimeout(throttleTimeoutRef.current);
     }
 
-    dispatch('reset');
-  }, [dispatch, pathSvgRef]);
+    reset();
+  }, [reset, pathSvgRef]);
 
   // === Path 업데이트 핸들러 (실시간 SVG 그리기) ===
   const updatePath = useCallback(

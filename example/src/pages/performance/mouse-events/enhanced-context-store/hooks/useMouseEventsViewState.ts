@@ -9,7 +9,7 @@
 
 import { useStoreValue } from '@context-action/react';
 import { useMemo } from 'react';
-import { useMouseStore } from '../context/MouseEventsModel';
+import { useMouseStore } from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * 마우스 이벤트 View 상태를 관리하는 Hook

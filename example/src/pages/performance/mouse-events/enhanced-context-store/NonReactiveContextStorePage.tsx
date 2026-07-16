@@ -9,7 +9,7 @@
 
 import { CodeBlock } from '@/components/ui';
 import { NonReactiveView } from './components/NonReactiveView';
-import { MouseEventsModelProvider } from './context/MouseEventsModel';
+import { EnhancedContextStoreProvider } from './providers/EnhancedContextStoreProvider';
 /**
  * Non-Reactive Context Store 페이지
  *
@@ -45,7 +45,7 @@ export function NonReactiveContextStorePage() {
       </div>
 
       {/* Model Layer - Declarative Context Management */}
-      <MouseEventsModelProvider>
+      <EnhancedContextStoreProvider>
         {/* View Layer - Non-Reactive Pattern */}
         <NonReactiveView />
 
@@ -260,7 +260,7 @@ export const useNonReactiveMouseEventsLogic = () => {
             </div>
           </div>
         </div>
-      </MouseEventsModelProvider>
+      </EnhancedContextStoreProvider>
     </div>
   );
 }

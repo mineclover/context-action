@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useMouseStore } from '../context/MouseEventsModel';
+import { useMouseStore } from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * Non-Reactive Store 데이터 접근 Hook

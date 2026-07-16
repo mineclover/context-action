@@ -1,12 +1,7 @@
 {
   "version": 1,
   "base": "example/src",
-  "advanced": [
-    {
-      "path": "pages/performance/mouse-events/enhanced-context-store/handlers",
-      "reason": "Enhanced context-store mouse pattern is retained as an advanced comparison."
-    }
-  ],
+  "advanced": [],
   "compatibility": [
     {
       "path": "lib/patterns/handlers",

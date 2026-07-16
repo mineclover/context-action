@@ -8,7 +8,6 @@
  */
 
 import { useState } from 'react';
-import { EnhancedContextStoreHandlerRegistry } from '../handlers/EnhancedContextStoreHandlerRegistry';
 import { useCanvasDirectControl } from '../hooks/useCanvasDirectControl';
 import { useMetricsOnly } from '../hooks/useMetricsOnly';
 import { MouseEventsCanvas } from './MouseEventsCanvas';
@@ -252,9 +251,5 @@ function EnhancedContextStoreViewContent() {
 }
 
 export function EnhancedContextStoreView() {
-  return (
-    <EnhancedContextStoreHandlerRegistry>
-      <EnhancedContextStoreViewContent />
-    </EnhancedContextStoreHandlerRegistry>
-  );
+  return <EnhancedContextStoreViewContent />;
 }

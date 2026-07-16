@@ -9,15 +9,18 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import {
-  type ActivityStatus,
-  type ComputedMetrics,
+  activityAfterClick,
+  activityAfterMovement,
+  calculateMovement,
+  clicksAfterClick,
+  computedMetricsFromState,
+} from '../business/enhanced-mouse-event-rules';
+import {
   type MouseClick,
-  type MouseMovement,
   type MousePosition,
-  useMouseRef,
   useMouseRefMountState,
   useMouseStore,
-} from '../context/MouseEventsModel';
+} from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * 마우스 이벤트 비즈니스 로직을 관리하는 Hook - 진짜 반응형 마운트 상태 기반
@@ -39,8 +42,6 @@ export function useMouseEventsLogic() {
   const performanceStore = useMouseStore('performance');
 
   // Container 참조 (마운트 상태 확인용)
-  const _containerRef = useMouseRef('container');
-
   // 🎯 진짜 반응형 마운트 상태 - RefContext 기본 제공
   const containerMountState = useMouseRefMountState('container');
   const { isMounted: isContainerMounted, mountedTarget: containerElement } =
@@ -57,42 +58,16 @@ export function useMouseEventsLogic() {
     const movement = movementStore.getValue();
     const activity = activityStore.getValue();
     const clicks = clicksStore.getValue();
-
-    const now = Date.now();
-    const sessionDuration = (now - activity.sessionStartTime) / 1000;
-    const totalEvents = movement.moveCount + clicks.total;
-
-    // 평균 속도 계산
-    const averageVelocity =
-      movement.path.length > 1
-        ? movement.path.reduce((sum, point, index, array) => {
-            if (index === 0) return sum;
-            const prev = array[index - 1];
-            const distance = Math.sqrt(
-              (point.x - prev!.x) ** 2 + (point.y - prev!.y) ** 2
-            );
-            const deltaTime = point.timestamp - prev!.timestamp;
-            return sum + (deltaTime > 0 ? distance / deltaTime : 0);
-          }, 0) /
-          (movement.path.length - 1)
-        : 0;
-
-    // 최대 속도 추적
     const currentComputed = computedStore.getValue();
-    const maxVelocity = Math.max(
-      currentComputed.maxVelocity,
-      movement.velocity
+    computedStore.setValue(
+      computedMetricsFromState(
+        movement,
+        activity,
+        clicks,
+        currentComputed,
+        Date.now()
+      )
     );
-
-    const newComputed: ComputedMetrics = {
-      averageVelocity,
-      maxVelocity,
-      totalDistance: movement.distance,
-      sessionDuration,
-      eventsPerSecond: sessionDuration > 0 ? totalEvents / sessionDuration : 0,
-    };
-
-    computedStore.setValue(newComputed);
   }, [movementStore, activityStore, clicksStore, computedStore]);
 
   const updatePerformanceMetrics = useCallback(() => {
@@ -129,32 +104,22 @@ export function useMouseEventsLogic() {
       positionStore.setValue(newPosition);
 
       // 2. 움직임 계산 및 업데이트
-      if (currentPosition.x !== -999 && currentPosition.y !== -999) {
-        const deltaX = x - currentPosition.x;
-        const deltaY = y - currentPosition.y;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const deltaTime = timestamp - currentPosition.timestamp;
-        const velocity = deltaTime > 0 ? distance / deltaTime : 0;
-
-        const newMovement: MouseMovement = {
-          velocity,
-          distance: currentMovement.distance + distance,
-          isMoving: velocity > 0.1,
-          path: [...currentMovement.path, { x, y, timestamp }].slice(-50),
-          moveCount: currentMovement.moveCount + 1,
-        };
-
+      const newMovement = calculateMovement(
+        currentPosition,
+        currentMovement,
+        newPosition
+      );
+      if (newMovement) {
         movementStore.setValue(newMovement);
 
         // 3. 활동 상태 업데이트
-        const newActivity: ActivityStatus = {
-          ...currentActivity,
-          current: velocity > 0.1 ? 'moving' : 'idle',
-          lastActivity: timestamp,
-          isInsideArea: true,
-        };
-
-        activityStore.setValue(newActivity);
+        activityStore.setValue(
+          activityAfterMovement(
+            currentActivity,
+            timestamp,
+            newMovement.velocity
+          )
+        );
 
         // 4. 계산된 메트릭스 업데이트 (throttled to 500ms for performance)
         const now = Date.now();
@@ -176,25 +141,14 @@ export function useMouseEventsLogic() {
       const currentClicks = clicksStore.getValue();
       const currentActivity = activityStore.getValue();
 
-      const newClicks = {
-        total: currentClicks.total + 1,
-        history: [payload, ...currentClicks.history].slice(0, 100),
-        recent: [
-          payload,
-          ...currentClicks.recent.filter(
-            (click) => payload.timestamp - click.timestamp <= 2000
-          ),
-        ].slice(0, 10),
-      };
+      const newClicks = clicksAfterClick(currentClicks, payload);
 
       clicksStore.setValue(newClicks);
 
       // 활동 상태를 'clicking'으로 변경
-      activityStore.setValue({
-        ...currentActivity,
-        current: 'clicking',
-        lastActivity: payload.timestamp,
-      });
+      activityStore.setValue(
+        activityAfterClick(currentActivity, payload.timestamp)
+      );
 
       // 300ms 후 상태 복원
       setTimeout(() => {

@@ -8,7 +8,8 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useMouseAction, useMouseRef } from '../context/MouseEventsModel';
+import { useEnhancedMouseActions } from '../actions/useEnhancedMouseActions';
+import { useMouseRef } from '../contexts/EnhancedContextStoreContexts';
 import { useStoreDataAccess } from './useStoreDataAccess';
 
 /**
@@ -20,7 +21,8 @@ import { useStoreDataAccess } from './useStoreDataAccess';
  * 3. Store는 데이터 저장용으로만 활용
  */
 export function useCanvasDirectControl() {
-  const dispatch = useMouseAction();
+  const { updatePosition, recordClick, enterArea, leaveArea, reset } =
+    useEnhancedMouseActions();
 
   // Non-reactive Store 데이터 접근
   const _storeData = useStoreDataAccess();
@@ -108,12 +110,12 @@ export function useCanvasDirectControl() {
       }
 
       throttleTimeoutRef.current = window.setTimeout(() => {
-        dispatch('updatePosition', { x, y, timestamp });
+        updatePosition({ x, y, timestamp });
       }, 33);
 
       lastPositionRef.current = { x, y };
     },
-    [containerRef, dispatch, updateCursorDirect, updatePathDirect]
+    [containerRef, updatePosition, updateCursorDirect, updatePathDirect]
   );
 
   // === 마우스 진입 핸들러 ===
@@ -131,10 +133,10 @@ export function useCanvasDirectControl() {
       updateCursorDirect(x, y);
 
       // Store 알림
-      dispatch('enterArea', { x, y, timestamp });
+      enterArea({ x, y, timestamp });
       lastPositionRef.current = { x, y };
     },
-    [containerRef, dispatch, updateCursorDirect]
+    [containerRef, enterArea, updateCursorDirect]
   );
 
   // === 마우스 이탈 핸들러 ===
@@ -154,10 +156,10 @@ export function useCanvasDirectControl() {
     }
 
     // Store 알림 및 상태 정리
-    dispatch('leaveArea', { timestamp: Date.now() });
+    leaveArea({ timestamp: Date.now() });
     pathPointsRef.current = [];
     clickPointsRef.current = [];
-  }, [cursorRef, coordinatesRef, pathSvgRef, dispatch]);
+  }, [cursorRef, coordinatesRef, pathSvgRef, leaveArea]);
 
   // === 마우스 클릭 핸들러 ===
   const handleMouseClick = useCallback(
@@ -171,14 +173,14 @@ export function useCanvasDirectControl() {
       const timestamp = Date.now();
 
       // Store에 클릭 이벤트 전송 (클릭 표시는 React로 처리)
-      dispatch('recordClick', {
+      recordClick({
         x,
         y,
         button: e.button,
         timestamp,
       });
     },
-    [containerRef, dispatch]
+    [containerRef, recordClick]
   );
 
   // === 리셋 핸들러 ===
@@ -203,8 +205,8 @@ export function useCanvasDirectControl() {
     lastPositionRef.current = { x: -999, y: -999 };
 
     // Store 리셋
-    dispatch('reset');
-  }, [pathSvgRef, cursorRef, coordinatesRef, dispatch]);
+    reset();
+  }, [pathSvgRef, cursorRef, coordinatesRef, reset]);
 
   // === DOM 참조 설정 함수들 ===
   const setContainerRef = useCallback(

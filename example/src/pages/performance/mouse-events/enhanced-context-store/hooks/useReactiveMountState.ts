@@ -5,7 +5,12 @@
  */
 
 import { useCallback, useEffect } from 'react';
-import { MouseEventsModel } from '../context/MouseEventsModel';
+import {
+  useMouseOnMountStateChange,
+  useMouseRef,
+  useMouseRefMountChecker,
+  useMouseRefMountState,
+} from '../contexts/EnhancedContextStoreContexts';
 
 /**
  * RefContext의 mount 상태를 구독하는 예시 Hook
@@ -14,8 +19,8 @@ import { MouseEventsModel } from '../context/MouseEventsModel';
  */
 export function useReactiveMountState() {
   // 🆕 새로운 reactive mount state subscription hooks 사용
-  const containerMountState = MouseEventsModel.useRefMountState('container');
-  const cursorMountState = MouseEventsModel.useRefMountState('cursor');
+  const containerMountState = useMouseRefMountState('container');
+  const cursorMountState = useMouseRefMountState('cursor');
 
   // 🎯 mount 상태가 변경되면 이 useEffect가 실행됩니다!
   useEffect(() => {
@@ -84,7 +89,7 @@ export function useReactiveMountState() {
  */
 export function useOnMountCallback() {
   // 기존 방식 - onMount 콜백
-  const containerRef = MouseEventsModel.useRefHandler('container');
+  const containerRef = useMouseRef('container');
 
   useEffect(() => {
     const unregister = containerRef.onMount((target: HTMLDivElement) => {
@@ -102,7 +107,7 @@ export function useOnMountCallback() {
   }, [containerRef]);
 
   // 🆕 새로운 방식 - mount state change 콜백
-  MouseEventsModel.useOnMountStateChange(
+  useMouseOnMountStateChange(
     'container',
     useCallback((mounted: boolean, target: HTMLDivElement | null) => {
       console.log('🔔 [useOnMountCallback] Mount state changed:', {
@@ -129,8 +134,8 @@ export function useOnMountCallback() {
  * Mount checker 함수 예시 - 이벤트 핸들러에서 사용
  */
 export function useMountChecker() {
-  const containerChecker = MouseEventsModel.useRefMountChecker('container');
-  const cursorChecker = MouseEventsModel.useRefMountChecker('cursor');
+  const containerChecker = useMouseRefMountChecker('container');
+  const cursorChecker = useMouseRefMountChecker('cursor');
 
   const handleClick = useCallback(() => {
     // 클릭 시점에 현재 mount 상태 확인

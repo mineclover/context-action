@@ -18,9 +18,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeBlock } from '@/components/ui';
 import { NonReactiveCanvas } from './components/NonReactiveCanvas';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
-import { MouseEventsModelProvider } from './context/MouseEventsModel';
 import { useAdvancedCanvasControl } from './hooks/useAdvancedCanvasControl';
 import { useNonReactiveMetrics } from './hooks/useNonReactiveMetrics';
+import { EnhancedContextStoreProvider } from './providers/EnhancedContextStoreProvider';
 
 // Mock data interfaces for visualization
 interface Position {
@@ -468,9 +468,9 @@ const updateVisuals = (x: number, y: number) => {
  */
 export function NonReactiveContextStorePageRefactored() {
   return (
-    <MouseEventsModelProvider>
+    <EnhancedContextStoreProvider>
       <RefactoredPageContent />
-    </MouseEventsModelProvider>
+    </EnhancedContextStoreProvider>
   );
 }
 
