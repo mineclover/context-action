@@ -52,6 +52,7 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  'demos/bolt-style-editor/src/openrouter.ts',
 ];
 
 for (const relativeFile of requiredFiles) readSource(relativeFile);
@@ -92,6 +93,52 @@ assertContains(
   observableSource,
   /useSyncExternalStore\(/,
   'external store subscriptions'
+);
+
+const localAgentSource = readSource(
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  localAgentSource,
+  /registry\.listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/,
+  'canonical tools/list discovery'
+);
+assertContains(
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  localAgentSource,
+  /registry\.executeModelToolCall\(/,
+  'canonical model tool-call execution'
+);
+
+const openRouterSource = readSource('demos/bolt-style-editor/src/openrouter.ts');
+assertContains(
+  'demos/bolt-style-editor/src/openrouter.ts',
+  openRouterSource,
+  /registry\.listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/,
+  'provider-side tools/list discovery'
+);
+assertContains(
+  'demos/bolt-style-editor/src/openrouter.ts',
+  openRouterSource,
+  /registry\.toOpenAI\(\)/,
+  'canonical provider tool export'
+);
+assertContains(
+  'demos/bolt-style-editor/src/openrouter.ts',
+  openRouterSource,
+  /registry\.executeModelToolCall\(/,
+  'provider-side canonical model tool-call execution'
+);
+
+const executionSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  executionSource,
+  /method:\s*['"]tools\/call['"]|registry\.callTool\(/,
+  'canonical direct tools/call execution'
 );
 
 const editorSource = readSource('demos/bolt-style-editor/src/BoltStyleEditor.tsx');
@@ -136,7 +183,10 @@ const viewBoundaryRules = [
     /\bworkspace\.(?:createFile|updateFile|renameFile|deleteFile|importFolder|setActivePath|setPreviewStatus)\(/,
     'workspace mutation',
   ],
-  [/\bregistry\.(?:callTool|executeModelToolCall)\(/, 'tool execution'],
+  [
+    /\bregistry\.(?:listTools|toOpenAI|toMCP|callTool|executeModelToolCall)\(/,
+    'tool catalog or execution boundary',
+  ],
 ];
 for (const filePath of viewFiles) {
   const relativeFile = relativePath(filePath);
@@ -151,5 +201,6 @@ console.log('- ToolContext creation: bolt-style-tool-context.ts');
 console.log('- canonical tool schema: tool-schema.ts');
 console.log('- handler registrations: tool-handlers.tsx');
 console.log('- external subscriptions: use-editor-observables.ts');
+console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- presentation views checked: ${viewFiles.length}`);
 console.log('- direct runtime/mutation crossings: 0');

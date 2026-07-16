@@ -112,6 +112,14 @@ await registry.executeModelToolCall(
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.
 
+Use the registry boundary for every provider path. Discovery must use
+`registry.listTools({ method: 'tools/list' })`, provider serialization must use
+`registry.toOpenAI()` or another registry export, and model-originated calls must
+enter through `registry.executeModelToolCall()`. A direct provider-specific tool
+array or handler invocation is outside this convention. Palette commands may
+use `registry.callTool()` only inside the action hook that owns the direct
+`tools/call` boundary.
+
 ### 3. Put domain invariants in handlers and framework-neutral managers
 
 Handlers are the orchestration boundary. They must validate or delegate:
@@ -239,8 +247,9 @@ pnpm --filter @context-action/web-coding-demo verify:conventions
 
 It checks that ToolContext creation and handler registration stay in their
 dedicated modules, external subscriptions stay in the observable hook, and
-presentation views do not call workspace mutation or tool execution APIs
-directly.
+the local/provider paths use the canonical discovery, export, and model-call
+boundaries. Presentation views do not call workspace mutation, catalog, or tool
+execution APIs directly.
 
 The development entrypoint is part of that boundary as well. Keep the Vite
 port configurable so the standalone demo can run beside the example app and

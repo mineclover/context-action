@@ -104,6 +104,14 @@ await registry.executeModelToolCall(
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.
 
+모든 provider 경로는 registry boundary를 사용합니다. discovery는
+`registry.listTools({ method: 'tools/list' })`, provider 직렬화는
+`registry.toOpenAI()` 같은 registry export, model-originated call은
+`registry.executeModelToolCall()`로 통일합니다. provider별 tool 배열을 별도로
+만들거나 handler를 직접 호출하는 것은 이 컨벤션에 포함하지 않습니다. palette
+command는 직접 `tools/call` boundary를 소유한 action hook 안에서만
+`registry.callTool()`을 사용할 수 있습니다.
+
 ### 3. Domain invariant는 handler와 framework-neutral manager에 둔다
 
 handler는 normalized path, supported file kind, expected revision conflict,
@@ -218,8 +226,10 @@ pnpm --filter @context-action/web-coding-demo verify:conventions
 ```
 
 이 검사는 ToolContext 생성과 handler 등록이 전용 모듈에 남아 있는지,
-외부 subscription이 observable hook에 모여 있는지, presentation view가
-workspace mutation이나 tool execution API를 직접 호출하지 않는지를 확인합니다.
+외부 subscription이 observable hook에 모여 있는지, local/provider 경로가
+canonical discovery·export·model-call boundary를 사용하는지, presentation
+view가 workspace mutation·catalog·tool execution API를 직접 호출하지 않는지를
+확인합니다.
 
 개발 진입점도 standalone 경계의 일부로 봅니다. example 앱이나 다른 로컬
 도구와 동시에 실행할 수 있도록 Vite 포트를 열어 두고 package launcher 자체를
