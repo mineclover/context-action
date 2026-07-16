@@ -259,6 +259,41 @@ expect(
   'Cyclic module imports must not fall back to data-relative URLs.'
 );
 
+const dynamicModuleDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'app.js',
+      language: 'javascript',
+      source: "const load = () => import('./dynamic.js');",
+      kind: 'text',
+    },
+    {
+      path: 'dynamic.js',
+      language: 'javascript',
+      source: 'export const dynamic = "dynamic proof";',
+      kind: 'text',
+    },
+  ],
+  {},
+  19
+);
+expectIncludes(
+  dynamicModuleDocument,
+  'https://context-action.local/workspace-module/dynamic.js',
+  'Dynamic local module imports must be included in the bootstrap graph.'
+);
+expect(
+  !dynamicModuleDocument.includes("import('./dynamic.js')"),
+  'Dynamic local module imports must not retain relative URLs.'
+);
+
 const inlineModuleDocument = preview.buildPreviewDocument(
   [
     {

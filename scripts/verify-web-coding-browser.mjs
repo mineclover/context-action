@@ -502,7 +502,11 @@ async function runBrowserProof(url) {
     );
     await writeFile(
       path.join(folderFixture, 'app.js'),
-      "import { card } from './src/components/card.js'; import './cycle-a.js'; document.body.dataset.folderImport = card; document.body.dataset.moduleCycle = 'ok';"
+      "import { card } from './src/components/card.js'; import './cycle-a.js'; const { dynamic } = await import('./dynamic.js'); document.body.dataset.folderImport = card; document.body.dataset.moduleCycle = 'ok'; document.body.dataset.dynamicImport = dynamic;"
+    );
+    await writeFile(
+      path.join(folderFixture, 'dynamic.js'),
+      "export const dynamic = 'dynamic module proof';"
     );
     await writeFile(
       path.join(folderFixture, 'cycle-a.js'),
@@ -520,7 +524,7 @@ async function runBrowserProof(url) {
       "export const card = 'folder tree proof';"
     );
     await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);
-    await page.getByText(/Opened .* with 6 file\(s\)/).waitFor();
+    await page.getByText(/Opened .* with 7 file\(s\)/).waitFor();
     await page
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#folder-proof')
@@ -539,6 +543,14 @@ async function runBrowserProof(url) {
     if ((await folderPreviewBody.getAttribute('data-module-cycle')) !== 'ok') {
       throw new Error(
         'Cyclic JavaScript module imports did not execute in the folder preview.'
+      );
+    }
+    if (
+      (await folderPreviewBody.getAttribute('data-dynamic-import')) !==
+      'dynamic module proof'
+    ) {
+      throw new Error(
+        'Nested dynamic JavaScript module imports did not execute in the folder preview.'
       );
     }
     const srcDirectory = page
