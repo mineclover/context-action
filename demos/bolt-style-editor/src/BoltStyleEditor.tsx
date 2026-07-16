@@ -56,6 +56,7 @@ import {
   BrowserWorkspace,
   buildPreviewDocument,
   collectPreviewDiagnostics,
+  MAX_TEXT_SOURCE_LENGTH,
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
@@ -1718,6 +1719,8 @@ function CodeEditor({
     [source, findQuery]
   );
   const cursorPosition = getCursorPosition(source, cursorOffset);
+  const sourceLengthLabel = `${source.length.toLocaleString('en-US')} / ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} chars`;
+  const sourceExceedsLimit = source.length > MAX_TEXT_SOURCE_LENGTH;
 
   const updateCursor = (textarea: HTMLTextAreaElement) => {
     setCursorOffset(textarea.selectionStart);
@@ -1804,7 +1807,22 @@ function CodeEditor({
         <span>{file.language}</span>
         <span>
           Ln {cursorPosition.line}, Col {cursorPosition.column} ·{' '}
-          {source.split('\n').length} lines
+          {source.split('\n').length} lines ·{' '}
+          <span
+            aria-label={
+              sourceExceedsLimit
+                ? `${sourceLengthLabel}; save limit exceeded`
+                : sourceLengthLabel
+            }
+            className={`code-source-length ${sourceExceedsLimit ? 'code-source-length-warning' : ''}`}
+            title={
+              sourceExceedsLimit
+                ? 'Reduce this source below the workspace mutation limit before saving.'
+                : 'Workspace text mutation limit'
+            }
+          >
+            {sourceLengthLabel}
+          </span>
         </span>
       </div>
       <div className="code-scroll">

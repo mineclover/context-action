@@ -563,6 +563,9 @@ Open folder → generic FileSystemAdapter
   history restore가 같은 검사를 통과하며, tool schema도 handler 실행 전에 동일한
   제한을 노출한다. 가져온 text file에는 별도의 filesystem import byte 예산을
   유지한다.
+- standalone code editor header도 같은 예산을 live 문자 수로 표시한다. mutation
+  제한을 넘는 imported text는 조용히 잘라내지 않고 그대로 읽을 수 있게 유지하며,
+  다음 write 전에 줄여야 한다는 over-budget 상태를 표시한다.
 - `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
   `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
   deletion을 기록한다. 각 작업이 성공하면 해당 항목을 즉시 clean으로 표시하고,

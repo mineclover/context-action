@@ -124,6 +124,13 @@ async function runBrowserProof(url) {
     if ((await page.locator('.code-highlight .syntax-tag').count()) === 0) {
       throw new Error('The source editor did not render syntax-highlight tokens.');
     }
+    const sourceLengthStatus = page.locator('.code-source-length');
+    if ((await sourceLengthStatus.count()) !== 1) {
+      throw new Error('The source editor did not expose its text-size budget.');
+    }
+    if (!(await sourceLengthStatus.textContent())?.includes('/ 80,000 chars')) {
+      throw new Error('The source editor text-size budget is not readable.');
+    }
     if (
       (await page
         .getByRole('tab', { name: /index\.html/ })

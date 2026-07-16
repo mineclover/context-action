@@ -66,6 +66,11 @@ patching, escaping, cancellation, and downloads live in
 `src/tool-runtime-utils.ts`. The editor surface consumes these contracts
 without owning provider setup or mutation orchestration.
 
+The code header shows the current text size against the shared 80,000-character
+workspace mutation limit. Imported files may use the separate filesystem import
+byte budget; an oversized imported source remains visible so it can be reduced
+before the next mutation.
+
 The editor also includes IDE-style file navigation: use the `Quick open`
 button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and
 `Enter` to open a workspace file. `Esc` closes the palette and restores the

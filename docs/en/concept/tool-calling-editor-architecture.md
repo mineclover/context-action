@@ -603,6 +603,10 @@ Open folder → generic FileSystemAdapter
   editor updates, and history restores all pass through the same guard, while
   tool schemas expose the same limit before a handler runs. Imported text files
   retain the separate filesystem import byte budget.
+- The standalone code editor surfaces the same budget in its header as a live
+  character count. Imported text that is larger than the mutation limit remains
+  readable and is marked as over budget so it can be reduced before the next
+  write instead of being silently truncated.
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
   parent-owned adapter used by the Save to folder button. Each successful

@@ -224,6 +224,8 @@ a { color: inherit; text-decoration: none; }
 .code-editor { display: flex; min-height: 370px; flex: 1; flex-direction: column; }
 .code-header { align-items: center; border-bottom: 1px solid #1c2029; color: #6d7586; display: flex; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; justify-content: space-between; padding: 9px 17px; }
 .code-header span:last-child { color: #596274; }
+.code-source-length { color: #596274; }
+.code-source-length-warning { color: #ed8d9a; }
 .code-scroll { flex: 1; min-height: 0; overflow: hidden; position: relative; }
 .code-highlight, .code-input { bottom: 0; color: #c6cbd6; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; left: 0; line-height: 1.72; margin: 0; padding: 14px 0 20px; position: absolute; right: 0; top: 0; white-space: pre; }
 .code-highlight { overflow: auto; pointer-events: none; scrollbar-width: none; }
