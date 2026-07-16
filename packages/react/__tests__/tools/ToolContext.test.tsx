@@ -347,6 +347,54 @@ describe('createToolContext', () => {
       );
     });
 
+    it('should connect discovery, model calls, canonical tools/call, and results', async () => {
+      const lifecycleRequests: string[] = [];
+      const protocolContext = createToolContext('ProtocolFlowTools', {
+        schema: testSchema,
+        onToolCall: (event) => {
+          lifecycleRequests.push(`${event.type}:${event.request.method}`);
+        },
+      });
+      const protocolWrapper = ({ children }: { children: React.ReactNode }) => (
+        <protocolContext.Provider>{children}</protocolContext.Provider>
+      );
+      const handler = jest.fn().mockResolvedValue({ items: ['product-1'] });
+      const { result } = renderHook(
+        () => {
+          protocolContext.useToolHandler(
+            'searchProducts',
+            useCallback(handler, [])
+          );
+          return protocolContext.useToolRegistry();
+        },
+        { wrapper: protocolWrapper }
+      );
+
+      const discovery = result.current.listTools(toToolListRequest());
+      const discoveredTool = discovery.tools.find(
+        (tool) => tool.name === 'searchProducts'
+      );
+      expect(discoveredTool).toBeDefined();
+
+      const toolResult = await act(async () =>
+        result.current.executeModelToolCall({
+          id: 'protocol-flow-1',
+          name: discoveredTool!.name,
+          arguments: { query: 'laptop' },
+        })
+      );
+
+      expect(toolResult).toMatchObject({
+        toolCallId: 'protocol-flow-1',
+        structuredContent: { items: ['product-1'] },
+        content: [{ type: 'text' }],
+      });
+      expect(lifecycleRequests).toEqual([
+        'started:tools/call',
+        'completed:tools/call',
+      ]);
+    });
+
     it('should validate structured handler output against the tool contract', async () => {
       const outputSchema = createActionSchema({
         getStatus: defineAction({

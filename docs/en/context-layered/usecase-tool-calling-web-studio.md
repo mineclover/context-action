@@ -239,6 +239,7 @@ pnpm --filter @context-action/live-code-editor type-check
 pnpm --filter @context-action/live-code-editor test
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo type-check
+pnpm --filter @context-action/react test -- __tests__/tools/ToolContext.test.tsx
 pnpm web-coding:verify
 pnpm --filter example check
 ```
