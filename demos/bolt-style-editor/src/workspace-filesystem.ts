@@ -3,6 +3,10 @@ import type {
   ImportedFolder,
   WorkspaceFile,
 } from '@context-action/live-code-editor';
+import {
+  normalizeWorkspacePath,
+  selectWorkspaceActivePath,
+} from '@context-action/live-code-editor';
 import { WorkspaceToolError } from './workspace-errors';
 
 export type {
@@ -101,22 +105,7 @@ const assetMimeTypeByExtension: Record<string, string> = {
   '.woff2': 'font/woff2',
 };
 
-function normalizePath(path: string): string {
-  if (path.includes('\0')) {
-    throw new Error('Workspace path cannot contain NUL.');
-  }
-  const segments = path.replaceAll('\\', '/').split('/');
-  if (segments.some((segment) => segment === '..')) {
-    throw new Error('Workspace path cannot traverse a parent directory.');
-  }
-  const normalized = segments.filter(
-    (segment) => segment.length > 0 && segment !== '.'
-  );
-  if (normalized.length === 0) {
-    throw new Error('Workspace path is required.');
-  }
-  return normalized.join('/');
-}
+const normalizePath = normalizeWorkspacePath;
 
 function languageForPath(path: string): string | null {
   const extension = `.${path.split('.').pop()?.toLowerCase() ?? ''}`;
@@ -132,15 +121,7 @@ function isLikelyText(file: File): boolean {
   return file.type.startsWith('text/') || file.type === 'application/json';
 }
 
-function selectActivePath(files: readonly WorkspaceFile[]): string {
-  return (
-    files.find((file) => file.path === 'index.html')?.path ??
-    files.find((file) => file.language === 'html')?.path ??
-    files.find((file) => file.kind !== 'asset')?.path ??
-    files[0]?.path ??
-    'index.html'
-  );
-}
+const selectActivePath = selectWorkspaceActivePath;
 
 function isNotFoundFileSystemError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;

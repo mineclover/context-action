@@ -1,10 +1,15 @@
-import type {
-  PreviewSnapshot,
-  WorkspaceFile,
-  WorkspaceSnapshot,
+import {
+  assertWorkspaceTextSourceLength,
+  isBinaryWorkspacePath,
+  languageForWorkspacePath,
+  mimeTypeForWorkspaceLanguage,
+  normalizeWorkspacePath,
+  type PreviewSnapshot,
+  type WorkspaceFile,
+  type WorkspaceSnapshot,
+  WorkspaceToolError,
 } from '@context-action/live-code-editor';
 import { findPreviewHtmlFile } from './preview-document';
-import { WorkspaceToolError } from './workspace-errors';
 import type { ImportedFolder } from './workspace-filesystem';
 import {
   DEMO_WORKSPACE_ID,
@@ -18,6 +23,14 @@ export type {
   WorkspaceFile,
   WorkspaceSnapshot,
   WorkspaceStorageMode,
+} from '@context-action/live-code-editor';
+export {
+  assertWorkspaceTextSourceLength,
+  isBinaryWorkspacePath,
+  languageForWorkspacePath,
+  MAX_TEXT_SOURCE_LENGTH,
+  mimeTypeForWorkspaceLanguage,
+  normalizeWorkspacePath,
 } from '@context-action/live-code-editor';
 export {
   buildPreviewDocument,
@@ -53,36 +66,7 @@ function createPreviewWaitError(
   return new WorkspaceToolError(message, { code, retryable, details });
 }
 
-const languageByWorkspaceExtension: Record<string, string> = {
-  '.css': 'css',
-  '.htm': 'html',
-  '.html': 'html',
-  '.js': 'javascript',
-  '.json': 'json',
-  '.mjs': 'javascript',
-  '.md': 'markdown',
-  '.ts': 'typescript',
-  '.tsx': 'typescript',
-  '.txt': 'text',
-};
-
-const binaryWorkspaceExtensions = new Set([
-  '.avif',
-  '.gif',
-  '.ico',
-  '.jpeg',
-  '.jpg',
-  '.otf',
-  '.png',
-  '.svg',
-  '.ttf',
-  '.wasm',
-  '.webp',
-  '.woff',
-  '.woff2',
-]);
 const MAX_HISTORY_CHECKPOINTS = 100;
-export const MAX_TEXT_SOURCE_LENGTH = 80_000;
 
 function createWorkspaceInputError(
   code:
@@ -105,51 +89,6 @@ function createWorkspaceInputError(
   });
 }
 
-export function assertWorkspaceTextSourceLength(
-  source: string,
-  label = 'Workspace text source'
-): void {
-  if (source.length > MAX_TEXT_SOURCE_LENGTH) {
-    throw new WorkspaceToolError(
-      `${label} exceeds the ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} character limit.`,
-      {
-        code: 'WORKSPACE_SOURCE_LIMIT',
-        retryable: false,
-        details: { limit: MAX_TEXT_SOURCE_LENGTH },
-      }
-    );
-  }
-}
-
-export function normalizeWorkspacePath(path: string): string {
-  if (path.includes('\0')) {
-    throw createWorkspaceInputError(
-      'WORKSPACE_PATH_INVALID',
-      'Workspace path cannot contain NUL.',
-      { path, reason: 'nul' }
-    );
-  }
-  const segments = path.replaceAll('\\', '/').split('/');
-  if (segments.some((segment) => segment === '..')) {
-    throw createWorkspaceInputError(
-      'WORKSPACE_PATH_INVALID',
-      'Workspace path cannot traverse a parent directory.',
-      { path, reason: 'parent-traversal' }
-    );
-  }
-  const normalized = segments.filter(
-    (segment) => segment.length > 0 && segment !== '.'
-  );
-  if (normalized.length === 0) {
-    throw createWorkspaceInputError(
-      'WORKSPACE_PATH_INVALID',
-      'Workspace path is required.',
-      { path, reason: 'empty' }
-    );
-  }
-  return normalized.join('/');
-}
-
 function assertExpectedRevision(
   currentRevision: number,
   expectedRevision?: number
@@ -170,28 +109,6 @@ function assertExpectedRevision(
 function storageErrorMessage(error: unknown, fallback: string): string {
   const message = error instanceof Error ? error.message.trim() : '';
   return (message || fallback).slice(0, 240);
-}
-
-export function languageForWorkspacePath(path: string): string {
-  const extension = `.${path.split('.').pop()?.toLowerCase() ?? ''}`;
-  return languageByWorkspaceExtension[extension] ?? 'text';
-}
-
-function mimeTypeForWorkspaceLanguage(language: string): string {
-  switch (language) {
-    case 'html':
-      return 'text/html';
-    case 'css':
-      return 'text/css';
-    case 'javascript':
-      return 'text/javascript';
-    case 'json':
-      return 'application/json';
-    case 'markdown':
-      return 'text/markdown';
-    default:
-      return 'text/plain';
-  }
 }
 
 const initialFiles: WorkspaceFile[] = [
@@ -676,8 +593,7 @@ export class BrowserWorkspace {
   createFile(path: string, source: string): WorkspaceSnapshot {
     const normalizedPath = normalizeWorkspacePath(path);
     assertWorkspaceTextSourceLength(source);
-    const extension = `.${normalizedPath.split('.').pop()?.toLowerCase() ?? ''}`;
-    if (binaryWorkspaceExtensions.has(extension)) {
+    if (isBinaryWorkspacePath(normalizedPath)) {
       throw createWorkspaceInputError(
         'WORKSPACE_FILE_TYPE_CONFLICT',
         `Binary assets cannot be created as text files: ${normalizedPath}`,
@@ -743,8 +659,7 @@ export class BrowserWorkspace {
       );
     }
 
-    const targetExtension = `.${normalizedToPath.split('.').pop()?.toLowerCase() ?? ''}`;
-    const targetIsBinary = binaryWorkspaceExtensions.has(targetExtension);
+    const targetIsBinary = isBinaryWorkspacePath(normalizedToPath);
     if (file.kind === 'asset' && !targetIsBinary) {
       throw createWorkspaceInputError(
         'WORKSPACE_FILE_TYPE_CONFLICT',

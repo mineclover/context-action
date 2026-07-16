@@ -1,44 +1,4 @@
-export type WorkspaceToolErrorCode =
-  | 'WORKSPACE_REVISION_CONFLICT'
-  | 'WORKSPACE_SOURCE_LIMIT'
-  | 'WORKSPACE_NO_SUPPORTED_FILES'
-  | 'WORKSPACE_EMPTY'
-  | 'WORKSPACE_ACTIVE_FILE_NOT_FOUND'
-  | 'WORKSPACE_PREVIEW_ENTRY_REQUIRED'
-  | 'WORKSPACE_FOLDER_STATE_CONFLICT'
-  | 'WORKSPACE_FOLDER_STALE'
-  | 'WORKSPACE_FOLDER_NOT_CONNECTED'
-  | 'WORKSPACE_FOLDER_PERMISSION_DENIED'
-  | 'PREVIEW_RUNTIME_ERROR'
-  | 'PREVIEW_ACK_TIMEOUT'
-  | 'PREVIEW_REVISION_SUPERSEDED'
-  | 'PREVIEW_TARGET_NOT_FOUND'
-  | 'WORKSPACE_PATH_INVALID'
-  | 'WORKSPACE_FILE_NOT_FOUND'
-  | 'WORKSPACE_FILE_CONFLICT'
-  | 'WORKSPACE_FILE_TYPE_CONFLICT'
-  | 'WORKSPACE_PATCH_NOT_FOUND'
-  | 'WORKSPACE_HISTORY_EMPTY';
-
-export class WorkspaceToolError extends Error {
-  override name = 'WorkspaceToolError';
-
-  readonly code: WorkspaceToolErrorCode;
-  readonly retryable: boolean;
-  readonly details?: unknown;
-
-  constructor(
-    message: string,
-    options: {
-      code: WorkspaceToolErrorCode;
-      retryable: boolean;
-      details?: unknown;
-    }
-  ) {
-    super(message);
-    this.code = options.code;
-    this.retryable = options.retryable;
-    this.details = options.details;
-    Object.setPrototypeOf(this, WorkspaceToolError.prototype);
-  }
-}
+export {
+  WorkspaceToolError,
+  type WorkspaceToolErrorCode,
+} from '@context-action/live-code-editor';

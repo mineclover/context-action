@@ -88,3 +88,17 @@ export {
   rewriteJavaScriptModuleImports,
   workspaceJavaScriptModuleSpecifier,
 } from './preview-document';
+
+export {
+  assertWorkspaceTextSourceLength,
+  isBinaryWorkspacePath,
+  languageForWorkspacePath,
+  MAX_TEXT_SOURCE_LENGTH,
+  mimeTypeForWorkspaceLanguage,
+  normalizeWorkspacePath,
+  selectWorkspaceActivePath,
+} from './workspace-model';
+export {
+  WorkspaceToolError,
+  type WorkspaceToolErrorCode,
+} from './workspace-errors';

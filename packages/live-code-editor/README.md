@@ -1,8 +1,11 @@
 # @context-action/live-code-editor
 
-Private framework-neutral contracts for the browser live-code editor seam.
+Private framework-neutral contracts and pure workspace primitives for the
+browser live-code editor seam.
 
-The package intentionally contains types only in this first extraction slice:
-workspace files and snapshots, preview bridge messages and diagnostics, and
-folder import/permission results. The standalone demo owns the browser
-implementations until those contracts have independent consumers and tests.
+The package owns workspace file/snapshot types, preview bridge messages and
+diagnostics, folder import/permission results, the preview document compiler,
+and browser-independent path, source-limit, error, and active-file helpers.
+The standalone demo still owns Dexie persistence, the filesystem adapter,
+iframe runtime, and the stateful BrowserWorkspace until those implementations
+have independent consumers and tests.

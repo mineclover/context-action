@@ -9,28 +9,42 @@ const adapterPath = path.join(
 );
 const errorsPath = path.join(
   rootDirectory,
-  'demos/bolt-style-editor/src/workspace-errors.ts'
+  'packages/live-code-editor/src/workspace-errors.ts'
+);
+const modelPath = path.join(
+  rootDirectory,
+  'packages/live-code-editor/src/workspace-model.ts'
 );
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
+const compilerOptions = {
+  module: typescript.ModuleKind.ESNext,
+  target: typescript.ScriptTarget.ES2022,
+};
 const errorsSource = await readFile(errorsPath, 'utf8');
-const { outputText: errorsOutput } = typescript.transpileModule(errorsSource, {
-  compilerOptions: {
-    module: typescript.ModuleKind.ESNext,
-    target: typescript.ScriptTarget.ES2022,
-  },
-  fileName: errorsPath,
-});
+const { outputText: errorsOutput } = typescript.transpileModule(
+  errorsSource,
+  { compilerOptions, fileName: errorsPath }
+);
 const errorsModuleUrl =
   'data:text/javascript;base64,' + Buffer.from(errorsOutput).toString('base64');
+const modelSource = await readFile(modelPath, 'utf8');
+const { outputText: modelOutput } = typescript.transpileModule(
+  modelSource.replaceAll("from './workspace-errors'", `from '${errorsModuleUrl}'`),
+  { compilerOptions, fileName: modelPath }
+);
+const modelModuleUrl =
+  'data:text/javascript;base64,' + Buffer.from(modelOutput).toString('base64');
 const source = await readFile(adapterPath, 'utf8');
 const { outputText } = typescript.transpileModule(
-  source.replaceAll("from './workspace-errors'", `from '${errorsModuleUrl}'`),
+  source
+    .replaceAll("from './workspace-errors'", `from '${errorsModuleUrl}'`)
+    .replaceAll(
+      "from '@context-action/live-code-editor'",
+      `from '${modelModuleUrl}'`
+    ),
   {
-    compilerOptions: {
-      module: typescript.ModuleKind.ESNext,
-      target: typescript.ScriptTarget.ES2022,
-    },
+    compilerOptions,
     fileName: adapterPath,
   }
 );

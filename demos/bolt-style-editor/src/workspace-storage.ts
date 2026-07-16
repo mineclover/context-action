@@ -1,6 +1,8 @@
+import {
+  selectWorkspaceActivePath,
+  type WorkspaceFile,
+} from '@context-action/live-code-editor';
 import Dexie, { type Table } from 'dexie';
-
-import type { WorkspaceFile } from './workspace';
 import type { FileSystemDirectoryHandleLike } from './workspace-filesystem';
 
 const DATABASE_NAME = 'context-action-web-coding-demo';
@@ -76,16 +78,6 @@ function blobForFile(file: WorkspaceFile): Blob {
 function displayOrder(path: string): number {
   return (
     ['index.html', 'styles.css', 'app.js', 'README.md'].indexOf(path) + 1 || 100
-  );
-}
-
-function selectActivePath(files: readonly WorkspaceFile[]): string {
-  return (
-    files.find((file) => file.path === 'index.html')?.path ??
-    files.find((file) => file.language === 'html')?.path ??
-    files.find((file) => file.kind !== 'asset')?.path ??
-    files[0]?.path ??
-    'index.html'
   );
 }
 
@@ -321,7 +313,7 @@ export class WebCodingWorkspaceRepository {
     const filePaths = new Set(sortedFiles.map((file) => file.path));
     const activePath = filePaths.has(metadata.activePath)
       ? metadata.activePath
-      : selectActivePath(sortedFiles);
+      : selectWorkspaceActivePath(sortedFiles);
     const deletedPaths = [...new Set(metadata.deletedPaths ?? [])].filter(
       (path) => !filePaths.has(path)
     );
