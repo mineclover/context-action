@@ -664,10 +664,11 @@ Open folder → generic FileSystemAdapter
   동적 `import()` 경로도 stable workspace module specifier로 다시 작성한다.
   sandbox 내부 Blob module bootstrap과 import map이 이를 해석하므로 cyclic
   graph에서도 native module 실행을 유지한다. 누락된 local import와 external
-  import는 bounded module error로 바꾸고, bare package specifier만 browser에
-  남긴다. 동일한 bounded module graph를 iframe 실행 전에 검사한다.
-- 누락된 local CSS/JS/asset reference와 차단된 external stylesheet/script
-  reference는 parent Preview diagnostics panel과 structured
+  import는 bounded module error로 바꾸고, bare package specifier는 browser에
+  남기되 unsupported module diagnostic으로 보고한다. 동일한 bounded module
+  graph를 iframe 실행 전에 검사한다.
+- 누락된 local CSS/JS/asset reference, 차단된 external stylesheet/script와
+  unsupported bare module specifier는 parent Preview diagnostics panel과 structured
   `preview.getStatus` result에 함께 노출한다. 따라서 model이 불완전한
   preview를 false success로 보고하지 않고 원인을 설명할 수 있다.
 - 가져온 workspace에 HTML entry가 없으면 빈 iframe 대신 `index.html` 또는 다른

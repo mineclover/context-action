@@ -437,6 +437,11 @@ expectEqual(
       requestedPath: './missing-module.js',
     },
     {
+      kind: 'unsupported-module-reference',
+      sourcePath: 'module.js',
+      requestedPath: 'react',
+    },
+    {
       kind: 'blocked-external-reference',
       sourcePath: 'module.js',
       requestedPath: 'https://example.com/module.js',

@@ -60,7 +60,10 @@ const MAX_INLINE_CSS_IMPORTS = 32;
 const MAX_PREVIEW_JS_IMPORTS = 32;
 
 export type PreviewDiagnostic = {
-  kind: 'missing-reference' | 'blocked-external-reference';
+  kind:
+    | 'missing-reference'
+    | 'blocked-external-reference'
+    | 'unsupported-module-reference';
   sourcePath: string;
   requestedPath: string;
   message: string;
@@ -592,6 +595,24 @@ function collectReferenceDiagnostic(
   }
 }
 
+function collectUnsupportedModuleDiagnostic(
+  diagnostics: PreviewDiagnostic[],
+  sourcePath: string,
+  requestedPath: string,
+  seen: Set<string>
+): void {
+  const normalizedRequestedPath = requestedPath.trim();
+  const key = `${sourcePath}\u0000module import\u0000${normalizedRequestedPath}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  diagnostics.push({
+    kind: 'unsupported-module-reference',
+    sourcePath,
+    requestedPath: normalizedRequestedPath,
+    message: `Bare module specifier is unavailable in the standalone preview: ${normalizedRequestedPath}`,
+  });
+}
+
 export function collectPreviewDiagnostics(
   files: readonly WorkspaceFile[]
 ): PreviewDiagnostic[] {
@@ -685,6 +706,12 @@ export function collectPreviewDiagnostics(
       }
       const trimmedPath = requestedPath.trim();
       if (!trimmedPath.startsWith('.') && !trimmedPath.startsWith('/')) {
+        collectUnsupportedModuleDiagnostic(
+          diagnostics,
+          javascript.path,
+          requestedPath,
+          seen
+        );
         return;
       }
       collectReferenceDiagnostic(

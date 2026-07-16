@@ -718,10 +718,12 @@ Open folder → generic FileSystemAdapter
   sandbox-local Blob module bootstrap and import map then resolves those
   specifiers, preserving native module execution including cyclic graphs.
   Missing local and external imports become bounded module errors, while bare
-  package specifiers remain visible to the browser. The same bounded module
-  graph is inspected before the iframe runs.
-- Missing local CSS/JS/asset references and blocked external stylesheet/script
-  references appear in the parent Preview diagnostics panel and in the
+  package specifiers remain visible to the browser and are reported as
+  unsupported module diagnostics. The same bounded module graph is inspected
+  before the iframe runs.
+- Missing local CSS/JS/asset references, blocked external stylesheet/script
+  references, and unsupported bare module specifiers appear in the parent
+  Preview diagnostics panel and in the
   structured `preview.getStatus` result, so a model can explain an incomplete
   preview instead of reporting a false success.
 - If an imported workspace has no HTML entry, the preview renders a diagnostic

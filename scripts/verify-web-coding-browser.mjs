@@ -686,7 +686,7 @@ async function runBrowserProof(url) {
       const root = new ProofDirectory('folder-api-proof');
       root.addFile(
         'index.html',
-        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script><script src="missing.js"></script><script type="module">if (false) { import(\'./missing-module.js\'); }</script></body></html>',
+        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script><script src="missing.js"></script><script type="module">if (false) { import(\'./missing-module.js\'); import(\'react\'); }</script></body></html>',
         'text/html'
       );
       root.addFile('app.js', "document.body.dataset.apiFolder = 'ready';", 'text/javascript');
@@ -714,6 +714,15 @@ async function runBrowserProof(url) {
     ) {
       throw new Error(
         'Preview diagnostics did not surface the missing module dependency.'
+      );
+    }
+    if (
+      !(await previewDiagnostics.innerText()).includes(
+        'Bare module specifier is unavailable in the standalone preview: react'
+      )
+    ) {
+      throw new Error(
+        'Preview diagnostics did not surface the unsupported bare module dependency.'
       );
     }
 

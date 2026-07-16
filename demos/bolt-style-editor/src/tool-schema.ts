@@ -136,7 +136,11 @@ const previewStatusOutputSchema = workspacePersistenceOutputSchema.extend({
   runtime: z.literal('sandbox iframe'),
   diagnostics: z.array(
     z.object({
-      kind: z.enum(['missing-reference', 'blocked-external-reference']),
+      kind: z.enum([
+        'missing-reference',
+        'blocked-external-reference',
+        'unsupported-module-reference',
+      ]),
       sourcePath: z.string(),
       requestedPath: z.string(),
       message: z.string(),
