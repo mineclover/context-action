@@ -1121,6 +1121,75 @@ async function runBrowserProof(url) {
       await retryContext.close();
     }
 
+    const authContext = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const authPage = await authContext.newPage();
+    const authConsoleErrors = [];
+    let authRequestCount = 0;
+    authPage.on('console', (message) => {
+      if (message.type() !== 'error') return;
+      const text = message.text();
+      if (
+        text.includes('document is sandboxed and lacks the') ||
+        text.includes('server responded with a status of 401')
+      ) {
+        return;
+      }
+      authConsoleErrors.push(text);
+    });
+    authPage.on('pageerror', (error) => {
+      if (error.message.includes('document is sandboxed and lacks the')) return;
+      authConsoleErrors.push(error.message);
+    });
+    await authPage.addInitScript((storageKey) => {
+      window.localStorage.setItem(storageKey, 'test-openrouter-auth-key');
+    }, 'context-action.openrouter.api-key');
+    await authPage.route('**/api/v1/chat/completions', async (route) => {
+      authRequestCount += 1;
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: { message: 'User not found.' },
+        }),
+      });
+    });
+    try {
+      await authPage.goto(url, { waitUntil: 'networkidle' });
+      await authPage.getByText('Ready', { exact: true }).waitFor();
+      await authPage.getByLabel('Web studio prompt').fill('Show workspace status');
+      await authPage.getByRole('button', { name: /^Send/ }).click();
+      await authPage
+        .getByText('[OPENROUTER_AUTHENTICATION_FAILED] User not found.', {
+          exact: true,
+        })
+        .waitFor();
+      if (authRequestCount !== 1) {
+        throw new Error(
+          `The OpenRouter authentication failure unexpectedly retried ${authRequestCount} request(s).`
+        );
+      }
+      if (
+        await authPage.getByRole('button', { name: 'Retry', exact: true }).count()
+      ) {
+        throw new Error(
+          'A non-retryable OpenRouter authentication failure exposed a misleading Retry action.'
+        );
+      }
+      await authPage
+        .getByRole('button', { name: 'Open provider settings' })
+        .click();
+      await authPage.getByRole('dialog', { name: 'OpenRouter API' }).waitFor();
+      if (authConsoleErrors.length) {
+        throw new Error(
+          `OpenRouter authentication browser errors: ${authConsoleErrors.join(' | ')}`
+        );
+      }
+    } finally {
+      await authContext.close();
+    }
+
     const toolLoopContext = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
     });
