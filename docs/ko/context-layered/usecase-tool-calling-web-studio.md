@@ -110,7 +110,8 @@ workspace를 직접 변경하지 않습니다.
 `registry.executeModelToolCall()`로 통일합니다. provider별 tool 배열을 별도로
 만들거나 handler를 직접 호출하는 것은 이 컨벤션에 포함하지 않습니다. palette
 command는 직접 `tools/call` boundary를 소유한 action hook 안에서만
-`registry.callTool()`을 사용할 수 있습니다.
+`registry.callTool()`을 사용할 수 있으며, model call을 JSON-RPC request로
+표현하거나 export할 때는 공통 `toToolCallRequest()` adapter를 사용합니다.
 
 ### 3. Domain invariant는 handler와 framework-neutral manager에 둔다
 

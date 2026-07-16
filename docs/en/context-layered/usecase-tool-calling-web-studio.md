@@ -118,7 +118,9 @@ Use the registry boundary for every provider path. Discovery must use
 enter through `registry.executeModelToolCall()`. A direct provider-specific tool
 array or handler invocation is outside this convention. Palette commands may
 use `registry.callTool()` only inside the action hook that owns the direct
-`tools/call` boundary.
+`tools/call` boundary; use the shared `toToolCallRequest()` adapter when a model
+call must be represented as a JSON-RPC request for a catalog export or direct
+execution.
 
 ### 3. Put domain invariants in handlers and framework-neutral managers
 

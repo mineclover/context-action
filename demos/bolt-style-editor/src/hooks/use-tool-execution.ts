@@ -1,3 +1,4 @@
+import { toToolCallRequest } from '@context-action/react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { runLocalAgent } from '../actions/run-local-agent';
@@ -121,11 +122,11 @@ export function useToolExecution({
       setRunning(true);
       try {
         const result = await registry.callTool(
-          {
+          toToolCallRequest({
             id: `palette-${sessionId}`,
-            method: 'tools/call',
-            params: { name: call.name, arguments: call.arguments },
-          },
+            name: call.name,
+            arguments: call.arguments,
+          }),
           {
             context: { source: 'local', sessionId },
             signal: controller.signal,

@@ -1,3 +1,4 @@
+import { toToolCallRequest } from '@context-action/react';
 import { useEffect, useRef, useState } from 'react';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import type { ToolTraceEntry } from '../tool-trace';
@@ -122,10 +123,10 @@ export function useStudioExportActions({
     if (!selectedToolName) return;
     const argumentsValue = parseToolArguments();
     if (!argumentsValue) return;
-    await copyJson('tools/call request', {
-      method: 'tools/call',
-      params: { name: selectedToolName, arguments: argumentsValue },
-    });
+    await copyJson(
+      'tools/call request',
+      toToolCallRequest({ name: selectedToolName, arguments: argumentsValue })
+    );
   };
 
   const downloadSelectedToolDefinition = () => {
@@ -143,10 +144,7 @@ export function useStudioExportActions({
     if (!argumentsValue) return;
     downloadJson(
       'tools/call request',
-      {
-        method: 'tools/call',
-        params: { name: selectedToolName, arguments: argumentsValue },
-      },
+      toToolCallRequest({ name: selectedToolName, arguments: argumentsValue }),
       `context-action-${selectedToolName.replaceAll('.', '-')}-call.json`
     );
   };

@@ -137,8 +137,24 @@ const executionSource = readSource(
 assertContains(
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   executionSource,
-  /method:\s*['"]tools\/call['"]|registry\.callTool\(/,
+  /toToolCallRequest\(/,
+  'canonical model-to-tools/call request conversion'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  executionSource,
+  /registry\.callTool\(/,
   'canonical direct tools/call execution'
+);
+
+const exportSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts',
+  exportSource,
+  /toToolCallRequest\(/,
+  'canonical exported tools/call request conversion'
 );
 
 const editorSource = readSource('demos/bolt-style-editor/src/BoltStyleEditor.tsx');

@@ -143,4 +143,5 @@ export type {
 export {
   getToolCallErrorMetadata,
   TOOL_CALL_ERROR_CODES,
+  toToolCallRequest,
 } from '@context-action/core';

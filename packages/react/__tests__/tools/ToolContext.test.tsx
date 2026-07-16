@@ -11,6 +11,7 @@ import {
   createToolContext,
   defineAction,
   createActionSchema,
+  toToolCallRequest,
 } from '../../src';
 
 describe('createToolContext', () => {
@@ -244,6 +245,23 @@ describe('createToolContext', () => {
   });
 
   describe('Standard tool protocol management', () => {
+    it('exposes the canonical model-call to tools/call adapter', () => {
+      expect(
+        toToolCallRequest({
+          id: 'model-call-1',
+          name: 'searchProducts',
+          arguments: { query: 'laptop' },
+        })
+      ).toEqual({
+        id: 'model-call-1',
+        method: 'tools/call',
+        params: {
+          name: 'searchProducts',
+          arguments: { query: 'laptop' },
+        },
+      });
+    });
+
     it('should expose tools/list definitions through the registry', () => {
       const { result } = renderHook(() => useToolRegistry(), { wrapper });
 
