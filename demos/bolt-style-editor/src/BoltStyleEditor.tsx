@@ -43,6 +43,7 @@ import {
   RenameWorkspaceFileDialog,
 } from './views/editor-dialogs';
 import { FileIcon } from './views/file-icon';
+import { PreviewPanel } from './views/preview-panel';
 import {
   type ToolCatalogFilter,
   ToolCatalogPanel,
@@ -2309,116 +2310,19 @@ function EditorWorkbench({
           />
         </main>
 
-        <aside className="preview-panel">
-          <div className="preview-toolbar">
-            <div>
-              <span className="panel-label">Preview</span>
-              <strong>localhost · sandbox</strong>
-            </div>
-            <span
-              aria-live="polite"
-              className={`preview-status preview-status-${snapshot.preview.status}`}
-              role="status"
-            >
-              <span className="status-dot" /> {previewStatusLabel}
-            </span>
-          </div>
-          <div className="browser-frame">
-            <div className="browser-chrome">
-              <div className="browser-dots">
-                <span />
-                <span />
-                <span />
-              </div>
-              <div className="address-bar">
-                preview://{snapshot.rootName}/{activeFile.path}
-              </div>
-              <button
-                aria-label="Refresh preview"
-                className="refresh-button"
-                disabled={!isStorageReady || running}
-                onClick={refreshPreview}
-                title="Reload the current workspace revision"
-                type="button"
-              >
-                ↻
-              </button>
-            </div>
-            <iframe
-              className="preview-iframe"
-              ref={iframeRef}
-              sandbox="allow-scripts"
-              srcDoc={previewDocument}
-              title="Live generated web preview"
-              key={previewRefreshToken}
-            />
-          </div>
-          {snapshot.preview.status === 'error' ? (
-            <div
-              aria-label="Preview runtime error"
-              aria-live="assertive"
-              className="preview-error-panel"
-              role="alert"
-            >
-              <div className="preview-error-heading">
-                <strong>Preview runtime error</strong>
-                <button
-                  aria-label="Refresh preview after runtime error"
-                  className="preview-error-refresh"
-                  disabled={!isStorageReady || running}
-                  onClick={refreshPreview}
-                  type="button"
-                >
-                  Refresh
-                </button>
-              </div>
-              <code>
-                {snapshot.preview.message ?? 'The preview failed to load.'}
-              </code>
-            </div>
-          ) : null}
-          {previewDiagnostics.length ? (
-            <section
-              aria-label="Preview diagnostics"
-              aria-live="polite"
-              className="preview-diagnostics"
-            >
-              <div className="preview-diagnostics-heading">
-                <strong>Preview diagnostics</strong>
-                <span>{previewDiagnostics.length}</span>
-              </div>
-              <ul>
-                {previewDiagnostics.slice(0, 6).map((diagnostic) => (
-                  <li
-                    key={`${diagnostic.kind}:${diagnostic.sourcePath}:${diagnostic.requestedPath}`}
-                  >
-                    <code>{diagnostic.sourcePath}</code>
-                    <span>{diagnostic.message}</span>
-                  </li>
-                ))}
-              </ul>
-              {previewDiagnostics.length > 6 ? (
-                <small>
-                  +{previewDiagnostics.length - 6} more diagnostic(s)
-                </small>
-              ) : null}
-            </section>
-          ) : null}
-          <div className="preview-footer">
-            <div>
-              <span className="panel-label">Runtime</span>
-              <strong>Parent registry → iframe</strong>
-            </div>
-            <div className={`sync-row sync-row-${snapshot.preview.status}`}>
-              <span className="status-dot" /> revision {snapshot.revision}{' '}
-              {snapshot.preview.status === 'synced'
-                ? 'acknowledged'
-                : snapshot.preview.status === 'error'
-                  ? (snapshot.preview.message ?? 'failed')
-                  : 'pending acknowledgement'}
-            </div>
-          </div>
-        </aside>
+        <PreviewPanel
+          activePath={activeFile.path}
+          diagnostics={previewDiagnostics}
+          iframeRef={iframeRef}
+          onRefresh={refreshPreview}
+          preview={snapshot.preview}
+          previewDocument={previewDocument}
+          previewStatusLabel={previewStatusLabel}
+          refreshDisabled={!isStorageReady || running}
+          refreshToken={previewRefreshToken}
+          revision={snapshot.revision}
+          rootName={snapshot.rootName}
+        />
       </div>
 
       <footer className="studio-statusbar">
