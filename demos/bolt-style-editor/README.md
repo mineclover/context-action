@@ -136,6 +136,11 @@ visible diagnostic panel with the error text and a refresh action.
   superseded preview revisions use `PREVIEW_RUNTIME_ERROR`,
   `PREVIEW_ACK_TIMEOUT`, and `PREVIEW_REVISION_SUPERSEDED`; retryable preview
   synchronization failures expose a `Refresh preview` chat action.
+- Workspace input failures use non-retryable `WORKSPACE_PATH_INVALID`,
+  `WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
+  `WORKSPACE_FILE_TYPE_CONFLICT`, or `WORKSPACE_HISTORY_EMPTY` codes with
+  bounded operation details. Read/open/download tools are blocking handlers so
+  these failures cannot be mistaken for an empty successful result.
 - Preview source is rendered in a sandboxed iframe with revision acknowledgements;
   arbitrary scripts, external assets, and filesystem handles do not cross into
   the tool or preview payloads.

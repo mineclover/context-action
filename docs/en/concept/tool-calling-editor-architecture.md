@@ -259,6 +259,14 @@ are preserved as `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIMEOUT`, and
 `PREVIEW_REVISION_SUPERSEDED`; timeout and superseded-revision results are
 retryable and expose a `Refresh preview` chat action.
 
+Workspace path and state errors are also explicit: `WORKSPACE_PATH_INVALID`,
+`WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
+`WORKSPACE_FILE_TYPE_CONFLICT`, and `WORKSPACE_HISTORY_EMPTY` are non-retryable
+and include the operation or path in `details`. Read, open, and download tools
+are registered as blocking handlers, ensuring a failed lookup is returned as a
+structured tool error instead of being passed to output-schema validation as an
+empty success.
+
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows
 the same code and details in the assistant transcript, keeping provider and

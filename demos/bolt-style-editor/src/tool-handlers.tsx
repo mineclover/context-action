@@ -34,6 +34,18 @@ function createPreviewTargetError(
   });
 }
 
+function createWorkspaceTypeError(
+  message: string,
+  path: string,
+  operation: 'read' | 'write' | 'patch'
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code: 'WORKSPACE_FILE_TYPE_CONFLICT',
+    retryable: false,
+    details: { path, operation, actualKind: 'asset', expectedKind: 'text' },
+  });
+}
+
 export function ToolHandlers({
   workspace,
   fileSystemAdapter,
@@ -143,19 +155,27 @@ export function ToolHandlers({
     };
   });
 
-  useBoltStyleToolHandler('workspace.readFile', ({ path }) => {
-    const file = workspace.getFile(path);
-    if (file.kind === 'asset') {
-      throw new Error(`Binary asset cannot be returned as text: ${file.path}`);
-    }
-    const snapshot = workspace.getSnapshot();
-    return {
-      ...workspacePersistenceMeta(snapshot),
-      path: file.path,
-      source: file.source,
-      revision: snapshot.revision,
-    };
-  });
+  useBoltStyleToolHandler(
+    'workspace.readFile',
+    ({ path }) => {
+      const file = workspace.getFile(path);
+      if (file.kind === 'asset') {
+        throw createWorkspaceTypeError(
+          `Binary asset cannot be returned as text: ${file.path}`,
+          file.path,
+          'read'
+        );
+      }
+      const snapshot = workspace.getSnapshot();
+      return {
+        ...workspacePersistenceMeta(snapshot),
+        path: file.path,
+        source: file.source,
+        revision: snapshot.revision,
+      };
+    },
+    { blocking: true }
+  );
 
   useBoltStyleToolHandler<'workspace.downloadFile', unknown>(
     'workspace.downloadFile',
@@ -169,21 +189,26 @@ export function ToolHandlers({
         kind: file.kind === 'asset' ? ('asset' as const) : ('text' as const),
         size,
       };
-    }
+    },
+    { blocking: true }
   );
 
-  useBoltStyleToolHandler('workspace.openFile', async ({ path }) => {
-    const normalizedPath = normalizeWorkspacePath(path);
-    workspace.setActivePath(normalizedPath);
-    await workspace.waitForPersistence();
-    const snapshot = workspace.getSnapshot();
-    return {
-      ...workspacePersistenceMeta(),
-      path: normalizedPath,
-      activePath: snapshot.activePath,
-      revision: snapshot.revision,
-    };
-  });
+  useBoltStyleToolHandler(
+    'workspace.openFile',
+    async ({ path }) => {
+      const normalizedPath = normalizeWorkspacePath(path);
+      workspace.setActivePath(normalizedPath);
+      await workspace.waitForPersistence();
+      const snapshot = workspace.getSnapshot();
+      return {
+        ...workspacePersistenceMeta(),
+        path: normalizedPath,
+        activePath: snapshot.activePath,
+        revision: snapshot.revision,
+      };
+    },
+    { blocking: true }
+  );
 
   useBoltStyleToolHandler<'workspace.createFile', unknown>(
     'workspace.createFile',
@@ -265,8 +290,10 @@ export function ToolHandlers({
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
-        throw new Error(
-          `Binary asset cannot be replaced as text: ${file.path}`
+        throw createWorkspaceTypeError(
+          `Binary asset cannot be replaced as text: ${file.path}`,
+          file.path,
+          'write'
         );
       }
       const snapshot = workspace.updateFile(file.path, source, {
@@ -494,7 +521,11 @@ export function ToolHandlers({
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       const file = workspace.getFile(path);
       if (file.kind === 'asset') {
-        throw new Error(`Binary asset cannot be patched as text: ${file.path}`);
+        throw createWorkspaceTypeError(
+          `Binary asset cannot be patched as text: ${file.path}`,
+          file.path,
+          'patch'
+        );
       }
       const patch = applyTextPatch(file.source, search, replace, occurrence);
       assertWorkspaceTextSourceLength(patch.source, 'Patched source');
@@ -547,7 +578,14 @@ export function ToolHandlers({
     async ({ expectedRevision }, controller) => {
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!workspace.canUndo()) {
-        throw new Error('No workspace edit is available to undo.');
+        throw new WorkspaceToolError(
+          'No workspace edit is available to undo.',
+          {
+            code: 'WORKSPACE_HISTORY_EMPTY',
+            retryable: false,
+            details: { direction: 'undo' },
+          }
+        );
       }
       const snapshot = workspace.undo();
       await workspace.waitForPreviewRevision(
@@ -573,7 +611,14 @@ export function ToolHandlers({
     async ({ expectedRevision }, controller) => {
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!workspace.canRedo()) {
-        throw new Error('No workspace edit is available to redo.');
+        throw new WorkspaceToolError(
+          'No workspace edit is available to redo.',
+          {
+            code: 'WORKSPACE_HISTORY_EMPTY',
+            retryable: false,
+            details: { direction: 'redo' },
+          }
+        );
       }
       const snapshot = workspace.redo();
       await workspace.waitForPreviewRevision(

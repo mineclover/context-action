@@ -103,6 +103,23 @@ const binaryWorkspaceExtensions = new Set([
 const MAX_HISTORY_CHECKPOINTS = 100;
 export const MAX_TEXT_SOURCE_LENGTH = 80_000;
 
+function createWorkspaceInputError(
+  code:
+    | 'WORKSPACE_PATH_INVALID'
+    | 'WORKSPACE_FILE_NOT_FOUND'
+    | 'WORKSPACE_FILE_CONFLICT'
+    | 'WORKSPACE_FILE_TYPE_CONFLICT'
+    | 'WORKSPACE_HISTORY_EMPTY',
+  message: string,
+  details: Record<string, unknown>
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code,
+    retryable: false,
+    details,
+  });
+}
+
 export function assertWorkspaceTextSourceLength(
   source: string,
   label = 'Workspace text source'
@@ -120,16 +137,31 @@ export function assertWorkspaceTextSourceLength(
 }
 
 export function normalizeWorkspacePath(path: string): string {
-  if (path.includes('\0'))
-    throw new Error('Workspace path cannot contain NUL.');
+  if (path.includes('\0')) {
+    throw createWorkspaceInputError(
+      'WORKSPACE_PATH_INVALID',
+      'Workspace path cannot contain NUL.',
+      { path, reason: 'nul' }
+    );
+  }
   const segments = path.replaceAll('\\', '/').split('/');
   if (segments.some((segment) => segment === '..')) {
-    throw new Error('Workspace path cannot traverse a parent directory.');
+    throw createWorkspaceInputError(
+      'WORKSPACE_PATH_INVALID',
+      'Workspace path cannot traverse a parent directory.',
+      { path, reason: 'parent-traversal' }
+    );
   }
   const normalized = segments.filter(
     (segment) => segment.length > 0 && segment !== '.'
   );
-  if (normalized.length === 0) throw new Error('Workspace path is required.');
+  if (normalized.length === 0) {
+    throw createWorkspaceInputError(
+      'WORKSPACE_PATH_INVALID',
+      'Workspace path is required.',
+      { path, reason: 'empty' }
+    );
+  }
   return normalized.join('/');
 }
 
@@ -413,7 +445,13 @@ export class BrowserWorkspace {
     const file = this.snapshot.files.find(
       (candidate) => candidate.path === normalizedPath
     );
-    if (!file) throw new Error(`Workspace file not found: ${normalizedPath}`);
+    if (!file) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_NOT_FOUND',
+        `Workspace file not found: ${normalizedPath}`,
+        { path: normalizedPath }
+      );
+    }
     return file;
   }
 
@@ -561,8 +599,10 @@ export class BrowserWorkspace {
     const normalizedPath = normalizeWorkspacePath(path);
     assertWorkspaceTextSourceLength(source);
     if (this.getFile(normalizedPath).kind === 'asset') {
-      throw new Error(
-        `Binary asset cannot be edited as text: ${normalizedPath}`
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary asset cannot be edited as text: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'edit', actualKind: 'asset' }
       );
     }
     const nextFiles = this.snapshot.files.map((file) =>
@@ -647,12 +687,18 @@ export class BrowserWorkspace {
     assertWorkspaceTextSourceLength(source);
     const extension = `.${normalizedPath.split('.').pop()?.toLowerCase() ?? ''}`;
     if (binaryWorkspaceExtensions.has(extension)) {
-      throw new Error(
-        `Binary assets cannot be created as text files: ${normalizedPath}`
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary assets cannot be created as text files: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'create', expectedKind: 'text' }
       );
     }
     if (this.snapshot.files.some((file) => file.path === normalizedPath)) {
-      throw new Error(`Workspace file already exists: ${normalizedPath}`);
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        `Workspace file already exists: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'create' }
+      );
     }
 
     const language = languageForWorkspacePath(normalizedPath);
@@ -687,7 +733,11 @@ export class BrowserWorkspace {
     const normalizedFromPath = normalizeWorkspacePath(fromPath);
     const normalizedToPath = normalizeWorkspacePath(toPath);
     if (normalizedFromPath === normalizedToPath) {
-      throw new Error('The new workspace path must be different.');
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        'The new workspace path must be different.',
+        { fromPath: normalizedFromPath, toPath: normalizedToPath }
+      );
     }
     const file = this.getFile(normalizedFromPath);
     if (
@@ -695,19 +745,27 @@ export class BrowserWorkspace {
         (candidate) => candidate.path === normalizedToPath
       )
     ) {
-      throw new Error(`Workspace file already exists: ${normalizedToPath}`);
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        `Workspace file already exists: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename' }
+      );
     }
 
     const targetExtension = `.${normalizedToPath.split('.').pop()?.toLowerCase() ?? ''}`;
     const targetIsBinary = binaryWorkspaceExtensions.has(targetExtension);
     if (file.kind === 'asset' && !targetIsBinary) {
-      throw new Error(
-        `Binary assets must keep a supported asset extension: ${normalizedToPath}`
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary assets must keep a supported asset extension: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename', expectedKind: 'asset' }
       );
     }
     if (file.kind !== 'asset' && targetIsBinary) {
-      throw new Error(
-        `Text files cannot be renamed to a binary asset path: ${normalizedToPath}`
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Text files cannot be renamed to a binary asset path: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename', expectedKind: 'text' }
       );
     }
 

@@ -7,7 +7,12 @@ export type WorkspaceToolErrorCode =
   | 'PREVIEW_RUNTIME_ERROR'
   | 'PREVIEW_ACK_TIMEOUT'
   | 'PREVIEW_REVISION_SUPERSEDED'
-  | 'PREVIEW_TARGET_NOT_FOUND';
+  | 'PREVIEW_TARGET_NOT_FOUND'
+  | 'WORKSPACE_PATH_INVALID'
+  | 'WORKSPACE_FILE_NOT_FOUND'
+  | 'WORKSPACE_FILE_CONFLICT'
+  | 'WORKSPACE_FILE_TYPE_CONFLICT'
+  | 'WORKSPACE_HISTORY_EMPTY';
 
 export class WorkspaceToolError extends Error {
   override name = 'WorkspaceToolError';

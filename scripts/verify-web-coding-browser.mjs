@@ -350,6 +350,10 @@ async function runBrowserProof(url) {
     await send.click();
     await page.getByText(/Local agent inspected the workspace/).waitFor();
 
+    await prompt.fill('Change missing.md from "old" to "new"');
+    await send.click();
+    await page.getByText(/\[WORKSPACE_FILE_NOT_FOUND\]/).waitFor();
+
     await prompt.fill('Make it emerald');
     await send.click();
     const approval = page.getByRole('button', {

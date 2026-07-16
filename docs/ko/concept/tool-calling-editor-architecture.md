@@ -239,6 +239,12 @@ timeout, superseded revision은 각각 `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIM
 `PREVIEW_REVISION_SUPERSEDED`로 보존하며 timeout과 superseded 결과에는 retryable
 `Refresh preview` chat action을 제공한다.
 
+workspace path/state 오류도 `WORKSPACE_PATH_INVALID`, `WORKSPACE_FILE_NOT_FOUND`,
+`WORKSPACE_FILE_CONFLICT`, `WORKSPACE_FILE_TYPE_CONFLICT`,
+`WORKSPACE_HISTORY_EMPTY`로 명시하며 operation 또는 path를 `details`에 담는다.
+read/open/download tool은 blocking handler로 등록해 lookup 실패가 빈 성공 결과로
+간주되어 output-schema validation에 넘어가지 않도록 한다.
+
 standalone OpenRouter bridge는 canonical error의 `code`, `retryable`, `details`를
 다음 model message로 전달한다. local fallback 실행에서는 같은 code와 details를
 assistant transcript에 표시하므로 provider 사용 여부와 관계없이 오류 원인을
