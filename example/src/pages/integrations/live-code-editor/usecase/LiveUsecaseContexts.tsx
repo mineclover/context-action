@@ -1,33 +1,21 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import { createActionContext, createStoreContext } from '@context-action/react';
+import {
+  initialUsecaseActivity,
+  type UsecaseActivityEvent,
+} from './business/live-usecase-activity';
+import { type UsecaseWorkflowState } from './business/live-usecase-domain';
 
-export type UsecasePhase =
-  | 'idle'
-  | 'validating'
-  | 'packaging'
-  | 'ready'
-  | 'blocked';
-
-export type ActivityTone = 'info' | 'success' | 'blocked';
-
-export interface UsecaseWorkflowState {
-  resourceId: string;
-  reason: string;
-  phase: UsecasePhase;
-  error: string | null;
-  packet: {
-    priority: 'normal' | 'high';
-    scope: string;
-  } | null;
-}
-
-export interface UsecaseActivityEvent {
-  id: number;
-  layer: 'contract' | 'handler' | 'business' | 'facade' | 'recipe';
-  label: string;
-  detail: string;
-  tone: ActivityTone;
-}
+export type {
+  ActivityTone,
+  UsecaseActivityEvent,
+} from './business/live-usecase-activity';
+export { initialUsecaseActivity } from './business/live-usecase-activity';
+export type {
+  UsecasePacket,
+  UsecasePhase,
+  UsecaseWorkflowState,
+} from './business/live-usecase-domain';
 
 export interface LiveUsecaseStores {
   workflow: UsecaseWorkflowState;
@@ -48,16 +36,6 @@ export const initialUsecaseWorkflow: UsecaseWorkflowState = {
   error: null,
   packet: null,
 };
-
-export const initialUsecaseActivity: UsecaseActivityEvent[] = [
-  {
-    id: 1,
-    layer: 'contract',
-    label: 'Scope mounted',
-    detail: 'Action, Store, Facade, Recipe 경계를 준비했습니다.',
-    tone: 'info',
-  },
-];
 
 export const {
   Provider: LiveUsecaseStoreProvider,

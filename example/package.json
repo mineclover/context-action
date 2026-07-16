@@ -16,10 +16,11 @@
     "lint:fix": "biome lint --write src",
     "format": "biome format src",
     "format:write": "biome format --write src",
-    "check": "biome check src && pnpm run verify:catalog",
+    "check": "biome check src && pnpm run verify:catalog && pnpm run verify:usecase",
     "check:fix": "biome check --write src",
     "type-check": "tsc --noEmit",
     "verify:catalog": "node ../scripts/verify-mcp-function-calling-catalog.mjs",
+    "verify:usecase": "node ../scripts/verify-live-usecase-conventions.mjs",
     "clean": "rimraf dist",
     "analyze": "vite-bundle-analyzer",
     "bundle-report": "vite build --mode analyze"

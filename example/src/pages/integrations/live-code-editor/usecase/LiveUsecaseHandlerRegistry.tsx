@@ -1,26 +1,17 @@
 import React from 'react';
+import { appendUsecaseActivity } from './business/live-usecase-activity';
+import {
+  createReviewPacket,
+  validateUsecaseReason,
+} from './business/live-usecase-rules';
 import {
   initialUsecaseActivity,
   initialUsecaseWorkflow,
   LiveUsecaseActionProvider,
   LiveUsecaseStoreProvider,
-  type UsecaseActivityEvent,
   useLiveUsecaseActionHandler,
   useLiveUsecaseStoreManager,
 } from './LiveUsecaseContexts';
-
-function appendActivity(
-  activity: UsecaseActivityEvent[],
-  event: Omit<UsecaseActivityEvent, 'id'>
-) {
-  const nextId =
-    activity.reduce(
-      (currentMax, currentEvent) => Math.max(currentMax, currentEvent.id),
-      0
-    ) + 1;
-
-  return [...activity.slice(-5), { ...event, id: nextId }];
-}
 
 function LiveUsecaseHandlerRegistry({
   children,
@@ -43,7 +34,7 @@ function LiveUsecaseHandlerRegistry({
           packet: null,
         }));
         activityStore.update((current) =>
-          appendActivity(current, {
+          appendUsecaseActivity(current, {
             layer: 'recipe',
             label: 'Resource selected',
             detail: `${resourceId}를 선택하고 recipe 상태를 초기화했습니다.`,
@@ -85,7 +76,7 @@ function LiveUsecaseHandlerRegistry({
           error: null,
         }));
         activityStore.update((current) =>
-          appendActivity(current, {
+          appendUsecaseActivity(current, {
             layer: 'handler',
             label: 'Validation handler',
             detail: '최신 Store 값을 읽고 request contract를 검증합니다.',
@@ -93,14 +84,15 @@ function LiveUsecaseHandlerRegistry({
           })
         );
 
-        if (workflow.reason.trim().length < 24) {
+        const validationIssue = validateUsecaseReason(workflow.reason);
+        if (validationIssue) {
           workflowStore.update((current) => ({
             ...current,
             phase: 'blocked',
-            error: '접근 목적은 최소 24자 이상이어야 합니다.',
+            error: `접근 목적은 최소 ${validationIssue.minimumLength}자 이상이어야 합니다.`,
           }));
           activityStore.update((current) =>
-            appendActivity(current, {
+            appendUsecaseActivity(current, {
               layer: 'contract',
               label: 'Request blocked',
               detail: 'Validation이 실패하여 후속 handler를 중단했습니다.',
@@ -112,7 +104,7 @@ function LiveUsecaseHandlerRegistry({
         }
 
         activityStore.update((current) =>
-          appendActivity(current, {
+          appendUsecaseActivity(current, {
             layer: 'business',
             label: 'Validation passed',
             detail: '순수 business 규칙을 통과했습니다.',
@@ -141,13 +133,10 @@ function LiveUsecaseHandlerRegistry({
       workflowStore.update((current) => ({
         ...current,
         phase: 'ready',
-        packet: {
-          priority: workflow.resourceId === 'production' ? 'high' : 'normal',
-          scope: workflow.resourceId,
-        },
+        packet: createReviewPacket(workflow.resourceId),
       }));
       activityStore.update((current) =>
-        appendActivity(current, {
+        appendUsecaseActivity(current, {
           layer: 'business',
           label: 'Review packet ready',
           detail: 'business 결과를 Store에 반영했습니다.',
@@ -163,7 +152,7 @@ function LiveUsecaseHandlerRegistry({
     React.useCallback(() => {
       const activityStore = storeManager.getStore('activity');
       activityStore.update((current) =>
-        appendActivity(current, {
+        appendUsecaseActivity(current, {
           layer: 'handler',
           label: 'Audit recorded',
           detail: 'usecase 실행 결과를 activity stream에 기록했습니다.',
