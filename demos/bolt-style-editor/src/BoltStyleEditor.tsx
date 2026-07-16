@@ -46,7 +46,6 @@ import {
   OpenRouterSettingsDialog,
   RenameWorkspaceFileDialog,
 } from './views/editor-dialogs';
-import { FileIcon } from './views/file-icon';
 import { PreviewPanel } from './views/preview-panel';
 import { StudioStatusBar, StudioTopbar } from './views/studio-chrome';
 import {
@@ -54,6 +53,7 @@ import {
   ToolCatalogPanel,
 } from './views/tool-catalog-panel';
 import { ToolTracePanel } from './views/tool-trace-panel';
+import { WorkspaceEditorToolbar } from './views/workspace-editor-toolbar';
 import { WorkspaceExplorerPanel } from './views/workspace-explorer-panel';
 import { WorkspaceFileTree } from './views/workspace-file-tree';
 import {
@@ -679,195 +679,54 @@ function EditorWorkbench({
         </aside>
 
         <main className="studio-main">
-          <div className="editor-toolbar">
-            <div
-              aria-label="Open workspace files"
-              className="editor-tabs"
-              ref={editorTabsRef}
-              role="tablist"
-            >
-              {snapshot.files.map((file, index) => (
-                <button
-                  aria-selected={file.path === snapshot.activePath}
-                  aria-controls="workspace-source-panel"
-                  className={`editor-tab ${file.path === snapshot.activePath ? 'editor-tab-active' : ''}`}
-                  disabled={!isStorageReady || running}
-                  id={`workspace-tab-${index}`}
-                  key={file.path}
-                  onClick={() => void openWorkspaceFile(file.path)}
-                  onKeyDown={(event) => handleEditorTabKeyDown(event, index)}
-                  role="tab"
-                  tabIndex={file.path === snapshot.activePath ? 0 : -1}
-                  type="button"
-                >
-                  <FileIcon file={file} />
-                  {file.path}
-                  {dirtyPaths.has(file.path) ? (
-                    <span
-                      aria-label="Unsaved changes"
-                      className="tab-dirty-dot"
-                      title="Unsaved changes"
-                    >
-                      •
-                    </span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-            <div className="editor-controls">
-              <button
-                aria-keyshortcuts="Control+P Meta+P"
-                aria-label="Quick open workspace file"
-                className="editor-action"
-                disabled={!isStorageReady || running}
-                onClick={() => setQuickOpenOpen(true)}
-                title="Quick open a workspace file (⌘/Ctrl+P)"
-                type="button"
-              >
-                Quick open
-              </button>
-              <button
-                aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
-                aria-label={
-                  workspaceSearchOpen
-                    ? 'Close workspace search'
-                    : 'Search workspace'
-                }
-                aria-controls="workspace-search-panel"
-                aria-expanded={workspaceSearchOpen}
-                className={`editor-action editor-search ${workspaceSearchOpen ? 'editor-search-active' : ''}`}
-                disabled={!isStorageReady || running}
-                onClick={() => {
-                  if (workspaceSearchOpen) {
-                    closeWorkspaceSearch();
-                  } else {
-                    setWorkspaceSearchOpen(true);
-                    setWorkspaceSearchQuery('');
-                  }
-                }}
-                ref={workspaceSearchTriggerRef}
-                title="Search all workspace files (⌘/Ctrl+Shift+F)"
-                type="button"
-              >
-                {workspaceSearchOpen ? 'Close search' : 'Search'}
-              </button>
-              <button
-                aria-label="Undo last edit"
-                aria-keyshortcuts="Control+Z Meta+Z"
-                className="editor-action"
-                disabled={
-                  !isStorageReady ||
-                  running ||
-                  (!workspace.canUndo() && !hasUnsavedChanges)
-                }
-                onClick={() =>
-                  void executeQuickTool({
-                    name: 'workspace.undo',
-                    arguments: { expectedRevision: snapshot.revision },
-                  })
-                }
-                title="Undo through workspace.undo"
-                type="button"
-              >
-                ↶ Undo
-              </button>
-              <button
-                aria-label="Redo last edit"
-                aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y Meta+Y"
-                className="editor-action"
-                disabled={!isStorageReady || running || !workspace.canRedo()}
-                onClick={() =>
-                  void executeQuickTool({
-                    name: 'workspace.redo',
-                    arguments: { expectedRevision: snapshot.revision },
-                  })
-                }
-                title="Redo through workspace.redo"
-                type="button"
-              >
-                ↷ Redo
-              </button>
-              <button
-                aria-label={`Rename ${activeFile.path}`}
-                className="editor-action"
-                disabled={!isStorageReady || running}
-                onClick={() => setShowRenameFile(true)}
-                title="Rename the active file through workspace.renameFile"
-                type="button"
-              >
-                Rename
-              </button>
-              <button
-                aria-label={`Delete ${activeFile.path}`}
-                className="editor-delete"
-                disabled={!isStorageReady || running || !canDeleteActiveFile}
-                onClick={() => void deleteActiveFile()}
-                title="Delete the active file through workspace.deleteFile"
-                type="button"
-              >
-                Delete
-              </button>
-              <button
-                aria-label={`Revert ${activeFile.path}`}
-                className="editor-revert"
-                disabled={!isStorageReady || running || !canRevertActiveFile}
-                onClick={() => void revertActiveFile()}
-                title="Discard active file changes through workspace.revertFile"
-                type="button"
-              >
-                Revert
-              </button>
-              <button
-                aria-label={`Download ${activeFile.path}`}
-                className="editor-download"
-                disabled={!isStorageReady || running}
-                onClick={downloadActiveFile}
-                title="Download the active source or Blob asset"
-                type="button"
-              >
-                Download
-              </button>
-              <button
-                aria-keyshortcuts="Control+S Meta+S"
-                className="editor-save"
-                disabled={
-                  !isStorageReady ||
-                  running ||
-                  saving ||
-                  !hasUnsavedChanges ||
-                  hasUnpersistedEditorDrafts
-                }
-                onClick={() => void saveWorkspace()}
-                title={
-                  hasUnpersistedEditorDrafts
-                    ? 'Syncing the editor draft before saving'
-                    : hasWritableFolder
-                      ? 'Write dirty files to the selected folder and IndexedDB'
-                      : 'Mark the current browser workspace checkpoint as saved'
-                }
-                type="button"
-              >
-                {saving
-                  ? 'Saving…'
-                  : hasUnpersistedEditorDrafts
-                    ? 'Syncing…'
-                    : hasWritableFolder
-                      ? 'Save to folder'
-                      : 'Save'}
-              </button>
-              <span
-                aria-live="polite"
-                className={`save-status ${hasUnsavedChanges ? 'save-status-dirty' : ''}`}
-                role="status"
-              >
-                <span className="status-dot" />
-                {hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}
-              </span>
-              <span className="revision-label">
-                revision {snapshot.revision}
-              </span>
-            </div>
-          </div>
+          <WorkspaceEditorToolbar
+            activeFile={activeFile}
+            activePath={snapshot.activePath}
+            canDelete={canDeleteActiveFile}
+            canRedo={workspace.canRedo()}
+            canRevert={canRevertActiveFile}
+            canUndo={workspace.canUndo() || hasUnsavedChanges}
+            dirtyPaths={dirtyPaths}
+            editorTabsRef={editorTabsRef}
+            files={snapshot.files}
+            hasUnsavedChanges={hasUnsavedChanges}
+            hasUnpersistedEditorDrafts={hasUnpersistedEditorDrafts}
+            hasWritableFolder={hasWritableFolder}
+            isStorageReady={isStorageReady}
+            onDelete={() => void deleteActiveFile()}
+            onDownload={downloadActiveFile}
+            onOpenFile={(path) => void openWorkspaceFile(path)}
+            onQuickOpen={() => setQuickOpenOpen(true)}
+            onRedo={() =>
+              void executeQuickTool({
+                name: 'workspace.redo',
+                arguments: { expectedRevision: snapshot.revision },
+              })
+            }
+            onRename={() => setShowRenameFile(true)}
+            onRevert={() => void revertActiveFile()}
+            onSave={() => void saveWorkspace()}
+            onTabKeyDown={handleEditorTabKeyDown}
+            onToggleSearch={() => {
+              if (workspaceSearchOpen) {
+                closeWorkspaceSearch();
+              } else {
+                setWorkspaceSearchOpen(true);
+                setWorkspaceSearchQuery('');
+              }
+            }}
+            onUndo={() =>
+              void executeQuickTool({
+                name: 'workspace.undo',
+                arguments: { expectedRevision: snapshot.revision },
+              })
+            }
+            revision={snapshot.revision}
+            running={running}
+            saving={saving}
+            workspaceSearchOpen={workspaceSearchOpen}
+            workspaceSearchTriggerRef={workspaceSearchTriggerRef}
+          />
           {quickOpenOpen ? (
             <QuickOpenPanel
               files={snapshot.files}

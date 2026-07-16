@@ -88,6 +88,9 @@ callbacks without owning workspace mutation policy. The keyboard-aware file
 tree is isolated in `src/views/workspace-file-tree.tsx` and only emits file
 selection callbacks. The bounded, redacted execution history is rendered by
 `src/views/tool-trace-panel.tsx` and receives export/clear actions as props.
+The editor tabs and mutation controls are rendered by
+`src/views/workspace-editor-toolbar.tsx`; mutations still enter through the
+workspace action hooks.
 
 The code header shows the current text size against the shared 80,000-character
 workspace mutation limit. Imported files may use the separate filesystem import
