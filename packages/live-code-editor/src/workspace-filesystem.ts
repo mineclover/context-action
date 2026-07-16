@@ -3,11 +3,11 @@ import type {
   ImportedFolder,
   WorkspaceFile,
 } from './index';
+import { WorkspaceToolError } from './workspace-errors';
 import {
   normalizeWorkspacePath,
   selectWorkspaceActivePath,
 } from './workspace-model';
-import { WorkspaceToolError } from './workspace-errors';
 
 export type {
   FileSystemPermissionStatus,

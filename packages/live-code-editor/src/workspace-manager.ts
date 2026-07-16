@@ -1,3 +1,12 @@
+import type {
+  ImportedFolder,
+  PreviewSnapshot,
+  WorkspaceFile,
+  WorkspaceRepository,
+  WorkspaceSnapshot,
+} from './index';
+import { findPreviewHtmlFile } from './preview-document';
+import { WorkspaceToolError } from './workspace-errors';
 import {
   assertWorkspaceTextSourceLength,
   isBinaryWorkspacePath,
@@ -6,15 +15,6 @@ import {
   normalizeWorkspacePath,
   selectWorkspaceActivePath,
 } from './workspace-model';
-import { findPreviewHtmlFile } from './preview-document';
-import { WorkspaceToolError } from './workspace-errors';
-import type {
-  ImportedFolder,
-  PreviewSnapshot,
-  WorkspaceFile,
-  WorkspaceRepository,
-  WorkspaceSnapshot,
-} from './index';
 
 const MAX_HISTORY_CHECKPOINTS = 100;
 

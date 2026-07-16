@@ -118,6 +118,21 @@ export {
 } from './preview-document';
 
 export {
+  WorkspaceToolError,
+  type WorkspaceToolErrorCode,
+} from './workspace-errors';
+export {
+  BrowserWorkspaceFileSystemAdapter,
+  type DirectoryHandlePersistence,
+  type FileSystemDirectoryHandleLike,
+} from './workspace-filesystem';
+export {
+  WorkspaceDocumentManager,
+  type WorkspaceDocumentManagerOptions,
+  type WorkspaceImportOptions,
+  type WorkspaceUpdateFileOptions,
+} from './workspace-manager';
+export {
   assertWorkspaceTextSourceLength,
   isBinaryWorkspacePath,
   languageForWorkspacePath,
@@ -126,18 +141,3 @@ export {
   normalizeWorkspacePath,
   selectWorkspaceActivePath,
 } from './workspace-model';
-export {
-  WorkspaceToolError,
-  type WorkspaceToolErrorCode,
-} from './workspace-errors';
-export {
-  WorkspaceDocumentManager,
-  type WorkspaceDocumentManagerOptions,
-  type WorkspaceImportOptions,
-  type WorkspaceUpdateFileOptions,
-} from './workspace-manager';
-export {
-  BrowserWorkspaceFileSystemAdapter,
-  type DirectoryHandlePersistence,
-  type FileSystemDirectoryHandleLike,
-} from './workspace-filesystem';
