@@ -172,6 +172,25 @@ Read tools return the current revision. Mutation tools accept
 retryable structured result; it is not silently overwritten. The local agent
 must update its planned revision after each successful mutation.
 
+### 8. Keep protocol methods explicit in observability
+
+The registry and trace are different concerns, but their protocol vocabulary
+must remain aligned. A trace entry records `method: 'tools/list'` for
+discovery, `method: 'tools/call'` for every started/completed/failed tool
+lifecycle, and `method: 'agent.request'` for the surrounding provider or local
+run. Keep the provider `toolCallId`, run-level `sessionId`, and internal trace
+ID separate: providers may reuse or omit a call ID, while the trace still needs
+stable lifecycle correlation.
+
+This makes three entry points equivalent from an audit perspective:
+
+- a model call routed through `executeModelToolCall`;
+- a deterministic local-agent call routed through the same boundary;
+- a manually selected palette command routed through the direct action hook.
+
+The view may display or export these fields, but it must not infer the method
+from a label or decide whether a call is retryable from free-form text.
+
 ## Use-case recipes
 
 ### A. Local agent fallback
@@ -228,6 +247,21 @@ Use when a mutation must become visible before the agent reports completion.
 
 Never report a preview mutation as complete merely because the iframe message
 was sent; the acknowledgement must match the requested revision.
+
+### E. Palette command and recovery audit
+
+Use when a user needs to inspect or retry a tool without involving a model.
+
+1. Build the request with the shared `toToolCallRequest()` adapter.
+2. Execute it from the action hook through the registry boundary.
+3. Apply the same policy, revision guard, persistence, and preview wait as a
+   model-originated call.
+4. Preserve the canonical error code and `retryable` flag in the trace.
+5. Let the view offer `Retry` only when the structured result says recovery is
+   safe.
+
+This keeps manual debugging useful without creating a second, less protected
+mutation path.
 
 ## Build and verification order
 

@@ -153,6 +153,24 @@ read tool은 현재 revision을 반환하고, caller가 알고 있는 경우 mut
 조용히 overwrite하지 않습니다. local agent는 성공한 mutation마다 planned
 revision을 갱신해야 합니다.
 
+### 8. 관찰 상태에서도 protocol method를 명시한다
+
+registry와 trace는 서로 다른 관심사이지만 protocol vocabulary는 맞아야 합니다.
+discovery trace에는 `method: 'tools/list'`, 모든 started/completed/failed tool
+lifecycle에는 `method: 'tools/call'`, 이를 감싸는 provider 또는 local 실행에는
+`method: 'agent.request'`를 기록합니다. provider의 `toolCallId`, 실행 단위의
+`sessionId`, 내부 trace ID는 분리합니다. provider가 call ID를 재사용하거나 생략해도
+trace는 lifecycle을 안정적으로 상관관계화해야 하기 때문입니다.
+
+따라서 다음 세 진입점은 audit 관점에서 같은 실행 모델을 공유합니다.
+
+- `executeModelToolCall`을 거치는 model call
+- 같은 boundary를 거치는 deterministic local-agent call
+- 직접 action hook을 거치는 palette command
+
+view는 이 필드를 표시·export할 수 있지만 label을 보고 method를 추론하거나,
+자유 형식 오류 문자열을 parsing해 retry 가능 여부를 결정하지 않습니다.
+
 ## Use-case recipe
 
 ### A. Local agent fallback
@@ -206,6 +224,19 @@ mutation 결과가 agent의 완료 보고 전에 화면에 반영되어야 할 �
 
 iframe message를 보냈다는 이유만으로 preview mutation을 완료 처리하지
 않습니다. 요청한 revision과 acknowledgement가 일치해야 합니다.
+
+### E. Palette command와 recovery audit
+
+model을 거치지 않고 사용자가 tool을 직접 검사하거나 retry해야 할 때 사용합니다.
+
+1. 공통 `toToolCallRequest()` adapter로 request를 만듭니다.
+2. action hook에서 registry boundary를 통해 실행합니다.
+3. model-originated call과 같은 policy, revision guard, persistence, preview
+   wait를 적용합니다.
+4. canonical error code와 `retryable` flag를 trace에 보존합니다.
+5. structured result가 안전하다고 표시할 때만 view가 `Retry`를 제공합니다.
+
+이렇게 하면 수동 debugging도 보호된 mutation 경계를 벗어나지 않습니다.
 
 ## Build와 검증 순서
 

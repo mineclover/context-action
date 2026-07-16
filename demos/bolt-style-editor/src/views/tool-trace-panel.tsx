@@ -113,6 +113,7 @@ export function ToolTracePanel({
                   <small>
                     {entry.kind === 'discovery'
                       ? [
+                          entry.method,
                           entry.summary,
                           entry.sessionId
                             ? `session ${formatTraceId(entry.sessionId)}`
@@ -122,7 +123,7 @@ export function ToolTracePanel({
                           .join(' · ')
                       : [
                           entry.kind === 'agent'
-                            ? 'agent'
+                            ? entry.method
                             : entry.toolCallId
                               ? `call ${formatTraceId(entry.toolCallId)}`
                               : formatTraceId(entry.id),

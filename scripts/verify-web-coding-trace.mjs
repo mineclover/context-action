@@ -82,6 +82,8 @@ function failed(toolCallId, requestValue, sessionId, timestamp) {
   };
 }
 
+trace.recordToolList(23, 'local', 'session-discovery');
+
 const firstRequest = request('call_0');
 trace.recordToolCall(started('call_0', firstRequest, 'session-1', 10));
 trace.recordToolCall(completed('call_0', firstRequest, 'session-1', 14));
@@ -115,6 +117,17 @@ const calls = trace
   .toolTraceStore.getSnapshot()
   .filter((entry) => entry.kind === 'call');
 expect(calls.length === 4, 'Trace should retain all four tool calls.');
+expect(
+  calls.every((entry) => entry.method === 'tools/call'),
+  'Tool call trace entries must expose the canonical tools/call method.'
+);
+const discoveryEntry = trace
+  .toolTraceStore.getSnapshot()
+  .find((entry) => entry.kind === 'discovery');
+expect(
+  discoveryEntry?.method === 'tools/list',
+  'Discovery trace entries must expose the canonical tools/list method.'
+);
 expect(
   new Set(calls.map((entry) => entry.id)).size === calls.length,
   'Internal trace IDs must remain unique when provider IDs are reused.'
