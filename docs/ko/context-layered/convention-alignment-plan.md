@@ -57,7 +57,7 @@ canonical 중첩 순서는 다음과 같습니다.
 
 Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 검사를 담당합니다. Context-Layered 규칙은 저장소 전용 명령인 `pnpm convention:check`와 `scripts/check-context-layered-conventions.mjs`에서 검사합니다. Biome GritQL 플러그인은 한 파일의 문법 패턴에는 적합하지만, Registry 위치, transitional 예외, Provider 순서처럼 파일 경계와 마이그레이션 인벤토리를 알아야 하는 규칙은 별도의 구조 검사기로 두는 편이 안정적입니다.
 
-첫 번째 구조 규칙은 이미 활성화되어 있습니다. 모든 `use*ActionHandler(...)` 호출은 `handlers/` 모듈 또는 `*HandlerRegistry` 파일 안에 있어야 합니다. 현재 알려진 legacy/advanced 파일 21개는 transitional allowlist에 기록되어 검사 결과에 표시되지만 실패시키지는 않습니다. allowlist에 없는 새로운 직접 등록은 즉시 실패합니다. 각 표면을 마이그레이션할 때 allowlist 항목을 제거합니다.
+첫 번째 구조 규칙은 이미 활성화되어 있습니다. 모든 `use*ActionHandler(...)` 호출은 `handlers/` 모듈 또는 `*HandlerRegistry` 파일 안에 있어야 합니다. 현재 알려진 legacy/advanced 파일 18개는 transitional allowlist에 기록되어 검사 결과에 표시되지만 실패시키지는 않습니다. allowlist에 없는 새로운 직접 등록은 즉시 실패합니다. 각 표면을 마이그레이션할 때 allowlist 항목을 제거합니다.
 
 다음 검사 단계는 Provider 순서와 레이어 경로 검사를 추가하고, transitional 인벤토리가 0개가 되거나 남은 파일이 모두 명시적인 compatibility 분류를 갖추면 allowlist를 제거하는 것입니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록은 현재도 CI에서 잡힙니다.
 
@@ -82,6 +82,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - foundations/react Provider 데모는 `handlers/ProviderHandlerRegistry.tsx`에 handler를 두고 `ProviderRuntime`을 통해 조합합니다.
 - advanced Concurrent Actions 데모는 page에서 handler를 직접 등록하지 않고 task callback을 `handlers/ConcurrentActionHandlerRegistry.tsx`에 주입합니다.
 - advanced Canvas 데모는 public compatibility hook을 유지하면서 `contexts/CanvasContexts.tsx`와 `handlers/CanvasHandlerRegistry.tsx`를 분리했습니다.
+- `useRefMountState` pattern 데모는 `contexts/` 아래 ref/store/action 경계를 분리하고, 순수 렌더 카운트 전이는 `business/`, action command는 `actions/`, 등록은 `handlers/UseRefMountStateHandlerRegistry.tsx`로 이동했습니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -97,7 +98,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/core Basics, foundations/react Provider·Child A/B, advanced Concurrent Actions·Canvas, Action Lifecycle Workbench는 완료했습니다. 현재 foundations 호환성, pattern, performance 영역에 19개 파일이 남아 있습니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/core Basics, foundations/react Provider·Child A/B, advanced Concurrent Actions·Canvas, Action Lifecycle Workbench, useRefMountState pattern은 완료했습니다. 현재 foundations 호환성과 performance 영역에 18개 파일이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
@@ -105,12 +106,12 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 
 ## 남은 직접 등록 인벤토리
 
-이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 19개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
+이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 18개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
 
 | 그룹 | 남은 표면 |
 | --- | --- |
 | Foundations와 호환성 | `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
-| Pattern 데모 | `patterns/refs/UseRefMountStateTestPage.tsx` |
+| Pattern 데모 | 남은 직접 등록 없음 |
 | Integrations | 남은 직접 등록 없음 |
 | Performance 데모 | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts`, `performance/priority/DemoPage.tsx` |
 
@@ -123,4 +124,4 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-다음 재진입 지점은 pattern 그룹이며, 이후 performance 그룹을 진행합니다. 19개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.
+다음 재진입 지점은 performance 그룹입니다. 18개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.

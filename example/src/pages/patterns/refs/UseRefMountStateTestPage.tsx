@@ -8,13 +8,8 @@
  * - contexts/: State & Provider
  */
 
-import {
-  createActionContext,
-  createRefContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -22,133 +17,19 @@ import {
 } from '@/components/LogMonitor';
 import { LogLevel } from '@/utils/logger';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
-
-// ============================================================================
-// CONTEXTS LAYER - State Management & Providers
-// ============================================================================
-
-// 1. Store Context - 테스트 상태 관리 (LogMonitor 활용으로 logs 제거)
-// interface TestState {
-//   renderCounts: Record<string, number>;
-//   activeTests: Record<string, boolean>;
-// }
-
-const { Provider: TestStoreProvider, useStore: useTestStore } =
-  createStoreContext('UseRefMountStateTest', {
-    renderCounts: {} as Record<string, number>,
-    activeTests: {
-      dynamic: false,
-      conditional: false,
-      delayed: false,
-      toggle: true,
-    } as Record<string, boolean>,
-  });
-
-// 2. Action Context - 액션 관리 (LogMonitor 활용으로 로그 액션 제거)
-interface TestActions {
-  incrementRenderCount: { componentId: string };
-  toggleTest: { testId: string };
-  resetRenderCounts: void;
-}
-
-const {
-  Provider: TestActionProvider,
-  useActionDispatch: useTestAction,
-  useActionHandler: useTestActionHandler,
-} = createActionContext<TestActions>('UseRefMountStateTest');
-
-// 3. Ref Context - Ref 상태 관리
-type TestRefs = {
-  dynamicElement: HTMLDivElement;
-  conditionalElement: HTMLDivElement;
-  delayedElement: HTMLDivElement;
-  toggleElement: HTMLDivElement;
-};
-
-const {
-  Provider: TestRefsProvider,
-  useRefHandler: useTestRef,
-  useRefMountState: useTestRefMountState,
-  useOnMountStateChange: useTestOnMountStateChange,
-  useRefMountChecker: useTestRefMountChecker,
-} = createRefContext<TestRefs>('UseRefMountStateTest');
-
-// ============================================================================
-// HANDLERS LAYER - Business Logic
-// ============================================================================
-
-function TestHandlers({ children }: { children: React.ReactNode }) {
-  const renderCountsStore = useTestStore('renderCounts');
-  const activeTestsStore = useTestStore('activeTests');
-
-  // 렌더 카운트 증가 핸들러
-  useTestActionHandler(
-    'incrementRenderCount',
-    useCallback(
-      async (payload) => {
-        const currentCounts = renderCountsStore.getValue();
-        renderCountsStore.setValue({
-          ...currentCounts,
-          [payload.componentId]: (currentCounts[payload.componentId] || 0) + 1,
-        });
-      },
-      [renderCountsStore]
-    )
-  );
-
-  // 테스트 토글 핸들러
-  useTestActionHandler(
-    'toggleTest',
-    useCallback(
-      async (payload) => {
-        const currentTests = activeTestsStore.getValue();
-        activeTestsStore.setValue({
-          ...currentTests,
-          [payload.testId]: !currentTests[payload.testId],
-        });
-      },
-      [activeTestsStore]
-    )
-  );
-
-  // 렌더 카운트 리셋 핸들러
-  useTestActionHandler(
-    'resetRenderCounts',
-    useCallback(async () => {
-      renderCountsStore.setValue({});
-    }, [renderCountsStore])
-  );
-
-  return <>{children}</>;
-}
-
-// ============================================================================
-// ACTIONS LAYER - Action Dispatchers
-// ============================================================================
-
-function useTestActions() {
-  const dispatch = useTestAction();
-
-  return {
-    incrementRenderCount: useCallback(
-      (componentId: string) => {
-        dispatch('incrementRenderCount', { componentId });
-      },
-      [dispatch]
-    ),
-
-    toggleTest: useCallback(
-      (testId: string) => {
-        dispatch('toggleTest', { testId });
-      },
-      [dispatch]
-    ),
-
-    resetRenderCounts: useCallback(() => {
-      dispatch('resetRenderCounts');
-    }, [dispatch]),
-  };
-}
+import { useTestActions } from './actions/useTestActions';
+import type { UseRefMountStateRefs } from './contexts/UseRefMountStateContexts';
+import {
+  TestActionProvider,
+  TestRefsProvider,
+  TestStoreProvider,
+  useTestOnMountStateChange,
+  useTestRef,
+  useTestRefMountChecker,
+  useTestRefMountState,
+  useTestStore,
+} from './contexts/UseRefMountStateContexts';
+import { UseRefMountStateHandlerRegistry } from './handlers/UseRefMountStateHandlerRegistry';
 
 // ============================================================================
 // VIEWS LAYER - UI Components
@@ -161,7 +42,7 @@ function RefStateMonitor({
   refName,
   title,
 }: {
-  refName: keyof TestRefs;
+  refName: keyof UseRefMountStateRefs;
   title: string;
 }) {
   const mountState = useTestRefMountState(refName);
@@ -838,7 +719,8 @@ function UseRefMountStateContent() {
                 TestActionProvider, TestRefsProvider
               </li>
               <li>
-                • <strong>handlers/:</strong> TestHandlers (비즈니스 로직)
+                • <strong>handlers/:</strong> UseRefMountStateHandlerRegistry
+                (orchestration)
               </li>
               <li>
                 • <strong>actions/:</strong> useTestActions (액션 디스패처)
@@ -887,11 +769,11 @@ export function UseRefMountStateTestPage() {
       <TestActionProvider>
         <TestStoreProvider>
           <TestRefsProvider>
-            <TestHandlers>
+            <UseRefMountStateHandlerRegistry>
               <div className="page-container">
                 <UseRefMountStateContent />
               </div>
-            </TestHandlers>
+            </UseRefMountStateHandlerRegistry>
           </TestRefsProvider>
         </TestStoreProvider>
       </TestActionProvider>

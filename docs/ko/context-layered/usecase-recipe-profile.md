@@ -126,6 +126,29 @@ Recipe는 facade view model을 Astryx controlled prop으로 변환합니다.
 - primitive에서 `context-action`을 직접 import하지 않습니다.
 - JSX에 validation이나 business transition을 작성하지 않습니다.
 
+## Ref 마운트 관찰 usecase
+
+프레임워크 pattern 데모에서 DOM 경계를 관찰해야 할 때는 DOM node 자체를
+애플리케이션 state로 만들지 않습니다. ref context는 등록과 mount lifecycle을,
+store는 파생 관찰값을, action은 사용자 의도를 소유하도록 분리합니다.
+
+```text
+Ref mount lifecycle → action intent → Handler Registry → 순수 state 전이 → Store subscription
+```
+
+`useRefMountState` 데모를 이 경우의 기준 recipe로 사용합니다.
+
+- `contexts/`가 action, store, ref 계약을 소유합니다.
+- `business/`에는 렌더 카운트 증가 같은 순수 전이 함수를 둡니다.
+- `handlers/`만 `use*ActionHandler`를 등록합니다.
+- `actions/`는 `resetRenderCounts` 같은 의미 기반 command를 공개합니다.
+- view는 `useRefMountState`와 `useStoreValue`로 읽고 store를 직접 변경하지 않습니다.
+
+mount callback은 필요한 범위의 DOM 동기화만 수행할 수 있지만, 두 번째 state
+관리 채널이 되어서는 안 됩니다. 관찰값을 화면에 표시해야 한다면 intent를
+dispatch하고 렌더링 값은 Store Context에 유지합니다. 도메인은
+Action → Store → Ref → Handler Registry → View 순서로 조합합니다.
+
 ## Action 및 Handler 이름
 
 Action은 저장소 mutation이 아니라 사용자 의도를 표현합니다.

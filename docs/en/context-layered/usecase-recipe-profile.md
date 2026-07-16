@@ -139,6 +139,29 @@ Recipe rules:
 - never import `context-action` directly in a primitive
 - never implement validation or business transitions in JSX
 
+## Ref-mount observation usecase
+
+Framework pattern demos often need to observe a DOM boundary without turning the
+DOM node itself into application state. Use the ref context for registration and
+mount lifecycle, a store for derived observations, and actions for user intent:
+
+```text
+Ref mount lifecycle → action intent → Handler Registry → pure state transition → Store subscription
+```
+
+The `useRefMountState` demo is the reference recipe for this case:
+
+- `contexts/` owns the action, store, and ref contracts.
+- `business/` contains pure transitions such as incrementing render counts.
+- `handlers/` is the only place that registers `use*ActionHandler` calls.
+- `actions/` exposes semantic commands such as `resetRenderCounts`.
+- views read `useRefMountState` and `useStoreValue`; they do not mutate stores.
+
+Mount callbacks may perform narrowly scoped DOM synchronization, but they must
+not become a second state-management channel. If the observation is rendered,
+dispatch an intent and keep the rendered value in a Store Context. Compose the
+domain as Action → Store → Ref → Handler Registry → View.
+
 ## Action and handler naming
 
 Usecase actions describe intent, not storage mutation:
