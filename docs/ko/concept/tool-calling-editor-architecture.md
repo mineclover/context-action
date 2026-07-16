@@ -180,7 +180,9 @@ malformed하거나 과도하게 적극적인 model이 workspace mutation을 무�
 이 경계에서 tool result도 JSON 문자열로 직렬화한다. handler가 실수로
 JSON으로 표현할 수 없는 값을 반환하면 raw `JSON.stringify` 예외로 model
 loop를 중단하지 않고 다음 provider message 안에
-`TOOL_RESULT_SERIALIZATION_FAILED` 구조화 오류를 전달한다.
+`TOOL_RESULT_SERIALIZATION_FAILED` 구조화 오류를 전달한다. bridge는 먼저
+`isToolCallResult()`를 실행하며 result shape이 잘못되면 serialization 전에
+`TOOL_RESULT_VALIDATION_FAILED`를 반환한다.
 
 ## 표준 계약
 

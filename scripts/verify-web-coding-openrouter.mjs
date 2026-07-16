@@ -7,6 +7,10 @@ const protocolPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/openrouter-protocol.ts'
 );
+const toolProtocolPath = path.join(
+  rootDirectory,
+  'packages/core/src/tool-protocol.ts'
+);
 const standaloneSettingsPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/openrouter.ts'
@@ -17,16 +21,35 @@ const exampleSettingsPath = path.join(
 );
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
+const transpileToDataUrl = (source, fileName) => {
+  const { outputText } = typescript.transpileModule(source, {
+    compilerOptions: {
+      module: typescript.ModuleKind.ESNext,
+      target: typescript.ScriptTarget.ES2022,
+    },
+    fileName,
+  });
+  return 'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64');
+};
+const toolProtocolModuleUrl = transpileToDataUrl(
+  await readFile(toolProtocolPath, 'utf8'),
+  toolProtocolPath
+);
 const source = await readFile(protocolPath, 'utf8');
-const { outputText } = typescript.transpileModule(source, {
-  compilerOptions: {
-    module: typescript.ModuleKind.ESNext,
-    target: typescript.ScriptTarget.ES2022,
-  },
-  fileName: protocolPath,
-});
+const sourceWithCanonicalProtocol = source.replace(
+  "from '@context-action/react';",
+  `from ${JSON.stringify(toolProtocolModuleUrl)};`
+);
+expect(
+  sourceWithCanonicalProtocol !== source,
+  'OpenRouter protocol must import the canonical tool protocol contract.'
+);
+const protocolModuleUrl = transpileToDataUrl(
+  sourceWithCanonicalProtocol,
+  protocolPath
+);
 const protocol = await import(
-  'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64')
+  protocolModuleUrl
 );
 
 const sharedStorageKey = 'context-action.openrouter.api-key';
@@ -306,6 +329,7 @@ expectEqual(
   JSON.parse(
     protocol.toolResultContent({
       isError: true,
+      content: [{ type: 'text', text: 'Theme is invalid.' }],
       error: {
         code: 'TOOL_VALIDATION_FAILED',
         message: 'Theme is invalid.',
@@ -324,6 +348,7 @@ expectEqual(
 expectEqual(
   JSON.parse(
     protocol.toolResultContent({
+      content: [{ type: 'text', text: 'fallback' }],
       structuredContent: { unsupported: 1n },
     })
   ),
@@ -340,6 +365,7 @@ expectEqual(
   JSON.parse(
     protocol.toolResultContent({
       isError: true,
+      content: [{ type: 'text', text: 'The handler failed.' }],
       error: {
         code: 'TOOL_EXECUTION_FAILED',
         message: 'The handler failed.',
@@ -355,6 +381,20 @@ expectEqual(
     retryable: true,
   },
   'Non-JSON error details must not hide the canonical tool error metadata.'
+);
+expectEqual(
+  JSON.parse(
+    protocol.toolResultContent({
+      content: [{ type: 'json', json: { ok: true } }],
+      isError: false,
+    })
+  ),
+  {
+    status: 'error',
+    code: 'TOOL_RESULT_VALIDATION_FAILED',
+    message: 'Tool result did not match the canonical result contract.',
+  },
+  'Malformed tool results must be rejected before provider serialization.'
 );
 
 const controller = new AbortController();

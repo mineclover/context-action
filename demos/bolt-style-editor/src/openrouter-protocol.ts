@@ -1,3 +1,5 @@
+import { isToolCallResult, TOOL_CALL_ERROR_CODES } from '@context-action/react';
+
 export type OpenRouterErrorCode =
   | 'OPENROUTER_CONFIGURATION_ERROR'
   | 'OPENROUTER_AUTHENTICATION_FAILED'
@@ -272,17 +274,15 @@ export async function readOpenRouterResponse(
   return parsed as OpenRouterResponse;
 }
 
-export function toolResultContent(result: {
-  isError?: boolean;
-  error?: {
-    code?: string;
-    message?: string;
-    retryable?: boolean;
-    details?: unknown;
-  };
-  content?: Array<{ text: string }>;
-  structuredContent?: unknown;
-}): string {
+export function toolResultContent(result: unknown): string {
+  if (!isToolCallResult(result)) {
+    return JSON.stringify({
+      status: 'error',
+      code: TOOL_CALL_ERROR_CODES.RESULT_VALIDATION_FAILED,
+      message: 'Tool result did not match the canonical result contract.',
+    });
+  }
+
   const value = result.isError
     ? {
         status: 'error',

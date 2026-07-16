@@ -195,7 +195,9 @@ similar provider message.
 Tool results are serialized at this boundary as well: a handler that
 accidentally returns a non-JSON value becomes `TOOL_RESULT_SERIALIZATION_FAILED`
 inside the next provider message instead of aborting the model loop with a
-raw `JSON.stringify` exception.
+raw `JSON.stringify` exception. The bridge first applies `isToolCallResult()`;
+an invalid result shape becomes `TOOL_RESULT_VALIDATION_FAILED` before
+serialization is attempted.
 
 ## Standard contract
 
