@@ -3,30 +3,18 @@
  * Context-Action framework의 기본 마우스 이벤트 처리 데모 - 단일 예시
  */
 
-import { createActionContext } from '@context-action/react';
-import React, { useCallback, useRef, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
+import React, { useCallback, useRef } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent, CodeBlock } from '@/components/ui';
-
-// Mouse Events 관련 액션 타입 정의
-interface BasicMouseActions {
-  handleMouseClick: { x: number; y: number; button: string; target: string };
-  handleMouseMove: {
-    x: number;
-    y: number;
-    movementX: number;
-    movementY: number;
-  };
-  handleMouseEnter: { target: string; timestamp: number };
-  handleMouseLeave: { target: string; timestamp: number };
-}
-
-// Action Context 생성
-const {
-  Provider: MouseActionProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<BasicMouseActions>('BasicMouse');
+import { useBasicMouseActions } from './actions/useBasicMouseActions';
+import type { BasicMouseEventLogEntry } from './contexts/LegacyMouseEventsContexts';
+import {
+  MouseActionProvider,
+  MouseStoreProvider,
+  useBasicMouseStore,
+} from './contexts/LegacyMouseEventsContexts';
+import { LegacyMouseEventsHandlerRegistry } from './handlers/LegacyMouseEventsHandlerRegistry';
 
 // 메인 컴포넌트
 export default function MouseEventsPage() {
@@ -63,7 +51,11 @@ export default function MouseEventsPage() {
         </header>
 
         <MouseActionProvider>
-          <MouseEventsDemo />
+          <MouseStoreProvider>
+            <LegacyMouseEventsHandlerRegistry>
+              <MouseEventsDemo />
+            </LegacyMouseEventsHandlerRegistry>
+          </MouseStoreProvider>
         </MouseActionProvider>
       </div>
     </PageWithLogMonitor>
@@ -133,12 +125,7 @@ const EventLogDisplay = React.memo(
     eventLog,
     onClear,
   }: {
-    eventLog: Array<{
-      id: string;
-      type: string;
-      details: string;
-      timestamp: number;
-    }>;
+    eventLog: BasicMouseEventLogEntry[];
     onClear: () => void;
   }) => {
     const getLogTypeStyle = (type: string) => {
@@ -189,85 +176,18 @@ const EventLogDisplay = React.memo(
 
 // 메인 데모 컴포넌트
 function MouseEventsDemo() {
-  const dispatch = useActionDispatch();
-  const [eventLog, setEventLog] = useState<
-    Array<{
-      id: string;
-      type: string;
-      details: string;
-      timestamp: number;
-    }>
-  >([]);
-
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [hoverZones, setHoverZones] = useState<Record<string, boolean>>({});
-  const [clickCount, setClickCount] = useState(0);
+  const eventLog = useStoreValue(useBasicMouseStore('eventLog'));
+  const mousePosition = useStoreValue(useBasicMouseStore('mousePosition'));
+  const hoverZones = useStoreValue(useBasicMouseStore('hoverZones'));
+  const clickCount = useStoreValue(useBasicMouseStore('clickCount'));
+  const {
+    dispatchMouseClick,
+    dispatchMouseMove,
+    dispatchMouseEnter,
+    dispatchMouseLeave,
+    clearEventLog,
+  } = useBasicMouseActions();
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Action Handlers 등록
-  useActionHandler(
-    'handleMouseClick',
-    useCallback(async (payload) => {
-      const logEntry = {
-        id: `click_${Date.now()}`,
-        type: 'Click',
-        details: `${payload.button} at (${payload.x}, ${payload.y}) on ${payload.target}`,
-        timestamp: Date.now(),
-      };
-
-      setEventLog((prev) => [...prev, logEntry]);
-      setClickCount((prev) => prev + 1);
-    }, [])
-  );
-
-  useActionHandler(
-    'handleMouseMove',
-    useCallback(async (payload) => {
-      setMousePosition({ x: payload.x, y: payload.y });
-
-      // 움직임이 많으니 로그는 제한적으로
-      if (Math.random() < 0.1) {
-        // 10% 확률로만 로그
-        const logEntry = {
-          id: `move_${Date.now()}`,
-          type: 'Move',
-          details: `to (${payload.x}, ${payload.y})`,
-          timestamp: Date.now(),
-        };
-        setEventLog((prev) => [...prev.slice(-19), logEntry]); // 최대 20개 유지
-      }
-    }, [])
-  );
-
-  useActionHandler(
-    'handleMouseEnter',
-    useCallback(async (payload) => {
-      setHoverZones((prev) => ({ ...prev, [payload.target]: true }));
-
-      const logEntry = {
-        id: `enter_${Date.now()}`,
-        type: 'Enter',
-        details: `entered ${payload.target}`,
-        timestamp: Date.now(),
-      };
-      setEventLog((prev) => [...prev, logEntry]);
-    }, [])
-  );
-
-  useActionHandler(
-    'handleMouseLeave',
-    useCallback(async (payload) => {
-      setHoverZones((prev) => ({ ...prev, [payload.target]: false }));
-
-      const logEntry = {
-        id: `leave_${Date.now()}`,
-        type: 'Leave',
-        details: `left ${payload.target}`,
-        timestamp: Date.now(),
-      };
-      setEventLog((prev) => [...prev, logEntry]);
-    }, [])
-  );
 
   // 이벤트 핸들러들
   const handleMouseClick = useCallback(
@@ -280,14 +200,14 @@ function MouseEventsDemo() {
       const button =
         e.button === 0 ? 'Left' : e.button === 1 ? 'Middle' : 'Right';
 
-      dispatch('handleMouseClick', {
+      dispatchMouseClick({
         x: Math.round(x),
         y: Math.round(y),
         button,
         target: 'interactive-area',
       });
     },
-    [dispatch]
+    [dispatchMouseClick]
   );
 
   const handleMouseMove = useCallback(
@@ -298,34 +218,29 @@ function MouseEventsDemo() {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      dispatch('handleMouseMove', {
+      dispatchMouseMove({
         x: Math.round(x),
         y: Math.round(y),
         movementX: e.movementX,
         movementY: e.movementY,
       });
     },
-    [dispatch]
+    [dispatchMouseMove]
   );
 
   const handleZoneEnter = useCallback(
     (zoneName: string) => {
-      dispatch('handleMouseEnter', { target: zoneName, timestamp: Date.now() });
+      dispatchMouseEnter(zoneName, Date.now());
     },
-    [dispatch]
+    [dispatchMouseEnter]
   );
 
   const handleZoneLeave = useCallback(
     (zoneName: string) => {
-      dispatch('handleMouseLeave', { target: zoneName, timestamp: Date.now() });
+      dispatchMouseLeave(zoneName, Date.now());
     },
-    [dispatch]
+    [dispatchMouseLeave]
   );
-
-  const clearEventLog = useCallback(() => {
-    setEventLog([]);
-    setClickCount(0);
-  }, []);
 
   const activeZoneCount = Object.values(hoverZones).filter(Boolean).length;
 
@@ -432,29 +347,31 @@ function MouseEventsDemo() {
       {/* 코드 예시 */}
       <section>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          💻 구현 예시
+          💻 Handler Registry 구현 예시
         </h2>
         <Card>
           <CardContent className="p-6">
             <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
               <CodeBlock size="sm">
-                <code>{`// Action Context 정의
-const { Provider, useActionDispatch, useActionHandler } = 
-  createActionContext<BasicMouseActions>('BasicMouse');
-
-// Action Handler 등록
-useActionHandler('handleMouseClick', async (payload) => {
-  const logEntry = {
-    id: \`click_\${Date.now()}\`,
-    type: 'Click',
-    details: \`\${payload.button} at (\${payload.x}, \${payload.y})\`,
-    timestamp: Date.now()
-  };
-  setEventLog(prev => [...prev, logEntry]);
-  setClickCount(prev => prev + 1);
+                <code>{`// Context 경계
+const ActionContext = createActionContext<BasicMouseActions>('BasicMouse-actions');
+const StoreContext = createStoreContext('BasicMouse-stores', {
+  eventLog: { initialValue: [] },
+  clickCount: { initialValue: 0 }
 });
 
-// 이벤트 디스패치
+// Handler Registry에서만 등록
+function LegacyMouseEventsHandlerRegistry() {
+  const eventLogStore = StoreContext.useStore('eventLog');
+  const clickCountStore = StoreContext.useStore('clickCount');
+
+  ActionContext.useActionHandler('handleMouseClick', async (payload) => {
+    eventLogStore.setValue(appendClickLog(eventLogStore.getValue(), payload));
+    clickCountStore.update(count => count + 1);
+  });
+}
+
+// View에서는 semantic action만 dispatch
 const handleMouseClick = (e: React.MouseEvent) => {
   const rect = containerRef.current?.getBoundingClientRect();
   const x = e.clientX - rect.left;

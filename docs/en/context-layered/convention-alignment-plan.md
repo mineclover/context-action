@@ -84,6 +84,7 @@ The following classification is the baseline for migration.
 - The advanced Canvas demo now separates `contexts/CanvasContexts.tsx` from `handlers/CanvasHandlerRegistry.tsx` while preserving its public compatibility hooks.
 - The `useRefMountState` pattern demo now separates ref/store/action boundaries under `contexts/`, pure render-count transitions under `business/`, action commands under `actions/`, and registrations under `handlers/UseRefMountStateHandlerRegistry.tsx`.
 - The action-priority demo now keeps the ordered authentication pipeline in `handlers/ActionPriorityDemoHandlerRegistry.tsx`, stores execution results in a Store Context, and exposes only semantic commands from `actions/useActionPriorityDemoActions.ts`.
+- The legacy mouse-events demo now keeps event-derived state in a Store Context and registers its five event handlers in `handlers/LegacyMouseEventsHandlerRegistry.tsx`; the page only dispatches semantic mouse commands.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -99,7 +100,7 @@ The following classification is the baseline for migration.
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, and the action-priority demo are complete. The current inventory has 17 remaining files in foundations compatibility and performance surfaces.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, and the legacy mouse-events demo are complete. The current inventory has 16 remaining files in foundations compatibility and performance surfaces.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
@@ -107,14 +108,14 @@ The following classification is the baseline for migration.
 
 ## Remaining Direct-Registration Inventory
 
-This inventory is intentionally separated from the canonical playbook examples. The current search finds 17 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
+This inventory is intentionally separated from the canonical playbook examples. The current search finds 16 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
 
 | Group | Remaining surfaces |
 | --- | --- |
 | Foundations and compatibility | `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
 | Pattern demonstrations | No remaining direct registrations |
 | Integrations | No remaining direct registrations |
-| Performance demonstrations | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts` |
+| Performance demonstrations | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts` |
 
 ## Completion Gates
 
@@ -125,4 +126,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The next re-entry point is the remaining performance groups. Do not mark the migration complete until the 17-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
+The next re-entry point is the remaining performance groups. Do not mark the migration complete until the 16-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.

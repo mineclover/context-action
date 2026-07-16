@@ -13,7 +13,6 @@
   "src/pages/performance/memoization/hooks/useMemoizedHandlers.ts",
   "src/pages/performance/memoization/hooks/useNonMemoizedHandlers.ts",
   "src/pages/performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx",
-  "src/pages/performance/mouse-events/LegacyMouseEventsPage.tsx",
   "src/pages/performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx",
   "src/pages/performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts"
 ]

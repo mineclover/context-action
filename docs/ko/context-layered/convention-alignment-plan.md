@@ -84,6 +84,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - advanced Canvas 데모는 public compatibility hook을 유지하면서 `contexts/CanvasContexts.tsx`와 `handlers/CanvasHandlerRegistry.tsx`를 분리했습니다.
 - `useRefMountState` pattern 데모는 `contexts/` 아래 ref/store/action 경계를 분리하고, 순수 렌더 카운트 전이는 `business/`, action command는 `actions/`, 등록은 `handlers/UseRefMountStateHandlerRegistry.tsx`로 이동했습니다.
 - action-priority 데모는 순서가 있는 인증 pipeline을 `handlers/ActionPriorityDemoHandlerRegistry.tsx`에 두고, 실행 결과는 Store Context로 관리하며, `actions/useActionPriorityDemoActions.ts`에서는 의미 기반 command만 노출하도록 정리했습니다.
+- legacy mouse-events 데모는 이벤트 파생 상태를 Store Context에서 관리하고, 5개 이벤트 handler는 `handlers/LegacyMouseEventsHandlerRegistry.tsx`에서 등록하도록 정리했습니다. page는 의미 기반 mouse command만 dispatch합니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -99,7 +100,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 ## 마이그레이션 순서
 
 1. 영어·한국어 컨벤션 인덱스에 이 결정을 추가합니다.
-2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/core Basics, foundations/react Provider·Child A/B, advanced Concurrent Actions·Canvas, Action Lifecycle Workbench, useRefMountState pattern, action-priority 데모는 완료했습니다. 현재 foundations 호환성과 performance 영역에 17개 파일이 남아 있습니다.
+2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/core Basics, foundations/react Provider·Child A/B, advanced Concurrent Actions·Canvas, Action Lifecycle Workbench, useRefMountState pattern, action-priority 데모, legacy mouse-events 데모는 완료했습니다. 현재 foundations 호환성과 performance 영역에 16개 파일이 남아 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
 5. Registry 위치, Provider 순서, 레이어 경로, 명명을 검사하는 `convention:check`를 추가합니다.
@@ -107,14 +108,14 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 
 ## 남은 직접 등록 인벤토리
 
-이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 17개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
+이 목록은 canonical playbook 예제와 분리한 현재 기준선입니다. 현재 검색 결과는 16개 파일입니다. 구조 검증기를 엄격하게 적용하기 전에 각 그룹을 Registry로 이동하거나 명시적인 compatibility wrapper로 감싸야 합니다.
 
 | 그룹 | 남은 표면 |
 | --- | --- |
 | Foundations와 호환성 | `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
 | Pattern 데모 | 남은 직접 등록 없음 |
 | Integrations | 남은 직접 등록 없음 |
-| Performance 데모 | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/LegacyMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts` |
+| Performance 데모 | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts` |
 
 ## 완료 조건
 
@@ -125,4 +126,4 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-다음 재진입 지점은 남은 performance 그룹입니다. 17개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.
+다음 재진입 지점은 남은 performance 그룹입니다. 16개 인벤토리가 0이 되거나 각 파일이 compatibility 예외로 명시되기 전에는 마이그레이션 완료로 표시하지 않습니다.
