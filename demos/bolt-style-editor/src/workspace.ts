@@ -14,6 +14,8 @@ export {
   collectPreviewDiagnostics,
   findPreviewHtmlFile,
   findPreviewStylesheetFile,
+  rewriteJavaScriptModuleImports,
+  workspaceJavaScriptModuleSpecifier,
 } from './preview-document';
 
 export type WorkspaceFile = {

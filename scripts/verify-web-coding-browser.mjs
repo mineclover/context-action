@@ -502,7 +502,15 @@ async function runBrowserProof(url) {
     );
     await writeFile(
       path.join(folderFixture, 'app.js'),
-      "import { card } from './src/components/card.js'; document.body.dataset.folderImport = card;"
+      "import { card } from './src/components/card.js'; import './cycle-a.js'; document.body.dataset.folderImport = card; document.body.dataset.moduleCycle = 'ok';"
+    );
+    await writeFile(
+      path.join(folderFixture, 'cycle-a.js'),
+      "import './cycle-b.js'; export const cycle = 'cycle proof';"
+    );
+    await writeFile(
+      path.join(folderFixture, 'cycle-b.js'),
+      "import './cycle-a.js'; export const other = 'cycle dependency proof';"
     );
     await mkdir(path.join(folderFixture, 'src', 'components'), {
       recursive: true,
@@ -512,7 +520,7 @@ async function runBrowserProof(url) {
       "export const card = 'folder tree proof';"
     );
     await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);
-    await page.getByText(/Opened .* with 4 file\(s\)/).waitFor();
+    await page.getByText(/Opened .* with 6 file\(s\)/).waitFor();
     await page
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#folder-proof')
@@ -526,6 +534,11 @@ async function runBrowserProof(url) {
     ) {
       throw new Error(
         'Local JavaScript module imports did not execute in the folder preview.'
+      );
+    }
+    if ((await folderPreviewBody.getAttribute('data-module-cycle')) !== 'ok') {
+      throw new Error(
+        'Cyclic JavaScript module imports did not execute in the folder preview.'
       );
     }
     const srcDirectory = page

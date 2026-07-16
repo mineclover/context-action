@@ -47,8 +47,11 @@ function findReferencedFile(
 
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
+const WORKSPACE_MODULE_SPECIFIER_PREFIX =
+  'https://context-action.local/workspace-module/';
+
 const MAX_INLINE_CSS_IMPORTS = 32;
-const MAX_INLINE_JS_IMPORTS = 32;
+const MAX_PREVIEW_JS_IMPORTS = 32;
 
 export type PreviewDiagnostic = {
   kind: 'missing-reference' | 'blocked-external-reference';
@@ -144,8 +147,6 @@ function rewriteCssAssetUrls(
 
 type CssImportState = { count: number };
 
-type JavaScriptImportState = { count: number };
-
 function toJavaScriptDataUrl(source: string): string {
   const encodedSource = encodeURIComponent(source).replace(
     /[!'()*]/g,
@@ -154,12 +155,17 @@ function toJavaScriptDataUrl(source: string): string {
   return `data:text/javascript;charset=utf-8,${encodedSource}`;
 }
 
-function inlineJavaScriptModule(
+export function workspaceJavaScriptModuleSpecifier(path: string): string {
+  return `${WORKSPACE_MODULE_SPECIFIER_PREFIX}${path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')}`;
+}
+
+export function rewriteJavaScriptModuleImports(
   source: string,
   jsPath: string,
-  files: readonly WorkspaceFile[],
-  importedPaths: ReadonlySet<string>,
-  state: JavaScriptImportState
+  files: readonly WorkspaceFile[]
 ): string {
   return source.replace(
     /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
@@ -170,7 +176,67 @@ function inlineJavaScriptModule(
         requestedPath,
         'javascript'
       );
-      if (!imported) {
+      if (imported) {
+        return `${prefix}${quote}${workspaceJavaScriptModuleSpecifier(imported.path)}${quote}`;
+      }
+      const trimmedPath = requestedPath.trim();
+      const isLocalPath =
+        trimmedPath.startsWith('.') || trimmedPath.startsWith('/');
+      if (isExternalReference(trimmedPath) || isLocalPath) {
+        const reason = isExternalReference(trimmedPath)
+          ? `External module import blocked: ${trimmedPath}`
+          : `Missing local module import: ${trimmedPath}`;
+        return `${prefix}${quote}${toJavaScriptDataUrl(`throw new Error(${JSON.stringify(reason)});`)}${quote}`;
+      }
+      return match;
+    }
+  );
+}
+
+function buildJavaScriptModuleBootstrap(
+  source: string,
+  sourcePath: string,
+  files: readonly WorkspaceFile[],
+  rootKey = sourcePath
+): string {
+  type PendingModule = {
+    key: string;
+    path: string;
+    source: string;
+  };
+
+  const pending: PendingModule[] = [{ key: rootKey, path: sourcePath, source }];
+  const queued = new Set([rootKey]);
+  const moduleSources = new Map<string, string>();
+  let importCount = 0;
+
+  for (let index = 0; index < pending.length; index += 1) {
+    const module = pending[index];
+    const rewritten = module.source.replace(
+      /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
+      (match, prefix: string, quote: string, requestedPath: string) => {
+        const imported = findReferencedFile(
+          files,
+          module.path,
+          requestedPath,
+          'javascript'
+        );
+        if (imported) {
+          if (importCount >= MAX_PREVIEW_JS_IMPORTS) {
+            const reason = `JavaScript module import limit exceeded at: ${requestedPath}`;
+            return `${prefix}${quote}${toJavaScriptDataUrl(`throw new Error(${JSON.stringify(reason)});`)}${quote}`;
+          }
+          importCount += 1;
+          if (!queued.has(imported.path)) {
+            queued.add(imported.path);
+            pending.push({
+              key: imported.path,
+              path: imported.path,
+              source: imported.source,
+            });
+          }
+          return `${prefix}${quote}${workspaceJavaScriptModuleSpecifier(imported.path)}${quote}`;
+        }
         const trimmedPath = requestedPath.trim();
         const isLocalPath =
           trimmedPath.startsWith('.') || trimmedPath.startsWith('/');
@@ -182,20 +248,15 @@ function inlineJavaScriptModule(
         }
         return match;
       }
-      if (importedPaths.has(imported.path)) return match;
-      if (state.count >= MAX_INLINE_JS_IMPORTS) return match;
-      state.count += 1;
-      const importedSource = inlineJavaScriptModule(
-        imported.source,
-        imported.path,
-        files,
-        new Set([...importedPaths, imported.path]),
-        state
-      );
-      const dataUrl = toJavaScriptDataUrl(importedSource);
-      return `${prefix}${quote}${dataUrl}${quote}`;
-    }
-  );
+    );
+    moduleSources.set(module.key, rewritten);
+  }
+
+  const serializedSources = JSON.stringify(
+    Object.fromEntries(moduleSources)
+  ).replaceAll('<', '\\u003c');
+  const rootSpecifier = workspaceJavaScriptModuleSpecifier(rootKey);
+  return `<script>(function(){const sources=${serializedSources};const urls=Object.create(null);Object.keys(sources).forEach(function(key){urls[${JSON.stringify(WORKSPACE_MODULE_SPECIFIER_PREFIX)}+key.split('/').map(encodeURIComponent).join('/')]=URL.createObjectURL(new Blob([sources[key]],{type:'text/javascript'}))});const importMap=document.createElement('script');importMap.type='importmap';importMap.textContent=JSON.stringify({imports:urls});(document.head||document.documentElement).appendChild(importMap);import(${JSON.stringify(rootSpecifier)}).catch(function(error){setTimeout(function(){throw error},0)})})();</script>`;
 }
 
 function visitJavaScriptModuleReferences(
@@ -293,15 +354,12 @@ function inlineScripts(
       tag.match(/^<script\b[^>]*>([\s\S]*?)<\/script>$/i)?.[1] ?? '';
     if (!src) {
       if (!isModule) return tag;
-      const openingTag = tag.match(/^<script\b([^>]*)>/i)?.[1] ?? '';
-      const source = inlineJavaScriptModule(
+      return buildJavaScriptModuleBootstrap(
         inlineSource,
         htmlPath,
         files,
-        new Set([htmlPath]),
-        { count: 0 }
+        `__context-action-inline-module:${htmlPath}`
       );
-      return `<script${openingTag}>${source}</script>`;
     }
 
     const javascript = findReferencedFile(files, htmlPath, src, 'javascript');
@@ -312,16 +370,14 @@ function inlineScripts(
       /\s+src\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i,
       ''
     );
-    const source = isModule
-      ? inlineJavaScriptModule(
-          javascript.source,
-          javascript.path,
-          files,
-          new Set([javascript.path]),
-          { count: 0 }
-        )
-      : javascript.source;
-    return `<script${attributes}>${source}</script>`;
+    if (isModule) {
+      return buildJavaScriptModuleBootstrap(
+        javascript.source,
+        javascript.path,
+        files
+      );
+    }
+    return `<script${attributes}>${javascript.source}</script>`;
   });
 }
 

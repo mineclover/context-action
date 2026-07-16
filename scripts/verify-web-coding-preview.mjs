@@ -199,17 +199,64 @@ const moduleDocument = preview.buildPreviewDocument(
 );
 expectIncludes(
   moduleDocument,
-  'data:text/javascript;charset=utf-8,',
-  'Local JavaScript module imports must be rewritten to data module URLs.'
+  'https://context-action.local/workspace-module/utils.js',
+  'Local JavaScript module imports must be rewritten to workspace module specifiers.'
 );
 expectIncludes(
   moduleDocument,
-  'export%20const%20message',
-  'The data module URL must preserve local module source.'
+  'new Blob([sources[key]]',
+  'The preview must create module Blob URLs inside the sandbox runtime.'
 );
 expect(
   !moduleDocument.includes("from './utils.js'"),
   'The entry module must not retain a relative local import URL.'
+);
+
+const cyclicModuleDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'app.js',
+      language: 'javascript',
+      source: "import './cycle-a.js'; document.body.dataset.cycle = 'ok';",
+      kind: 'text',
+    },
+    {
+      path: 'cycle-a.js',
+      language: 'javascript',
+      source: "import './cycle-b.js'; export const cycle = 'a';",
+      kind: 'text',
+    },
+    {
+      path: 'cycle-b.js',
+      language: 'javascript',
+      source: "import './cycle-a.js'; export const cycle = 'b';",
+      kind: 'text',
+    },
+  ],
+  {},
+  18
+);
+expectIncludes(
+  cyclicModuleDocument,
+  'https://context-action.local/workspace-module/cycle-a.js',
+  'Cyclic module graphs must use stable workspace module specifiers.'
+);
+expectIncludes(
+  cyclicModuleDocument,
+  'https://context-action.local/workspace-module/cycle-b.js',
+  'Cyclic module graphs must include every reachable module source.'
+);
+expect(
+  !cyclicModuleDocument.includes("from './cycle-a.js'") &&
+    !cyclicModuleDocument.includes("from './cycle-b.js'"),
+  'Cyclic module imports must not fall back to data-relative URLs.'
 );
 
 const inlineModuleDocument = preview.buildPreviewDocument(
