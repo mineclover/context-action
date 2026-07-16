@@ -1,0 +1,920 @@
+import {
+  assertWorkspaceTextSourceLength,
+  isBinaryWorkspacePath,
+  languageForWorkspacePath,
+  mimeTypeForWorkspaceLanguage,
+  normalizeWorkspacePath,
+  selectWorkspaceActivePath,
+} from './workspace-model';
+import { findPreviewHtmlFile } from './preview-document';
+import { WorkspaceToolError } from './workspace-errors';
+import type {
+  ImportedFolder,
+  PreviewSnapshot,
+  WorkspaceFile,
+  WorkspaceRepository,
+  WorkspaceSnapshot,
+} from './index';
+
+const MAX_HISTORY_CHECKPOINTS = 100;
+
+export type WorkspaceDocumentManagerOptions = {
+  seedFiles: readonly WorkspaceFile[];
+  repository: WorkspaceRepository;
+  rootName?: string;
+  activePath?: string;
+};
+
+type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'> & {
+  deletedPaths: string[];
+  preserveActivePath?: boolean;
+};
+
+export type WorkspaceUpdateFileOptions = {
+  coalesce?: boolean;
+};
+
+export type WorkspaceImportOptions = {
+  expectedRevision?: number;
+};
+
+function createPreviewWaitError(
+  code:
+    | 'PREVIEW_RUNTIME_ERROR'
+    | 'PREVIEW_ACK_TIMEOUT'
+    | 'PREVIEW_REVISION_SUPERSEDED',
+  message: string,
+  retryable: boolean,
+  details: Record<string, unknown>
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, { code, retryable, details });
+}
+
+function createWorkspaceInputError(
+  code:
+    | 'WORKSPACE_PATH_INVALID'
+    | 'WORKSPACE_FILE_NOT_FOUND'
+    | 'WORKSPACE_FILE_CONFLICT'
+    | 'WORKSPACE_FILE_TYPE_CONFLICT'
+    | 'WORKSPACE_NO_SUPPORTED_FILES'
+    | 'WORKSPACE_EMPTY'
+    | 'WORKSPACE_ACTIVE_FILE_NOT_FOUND'
+    | 'WORKSPACE_PREVIEW_ENTRY_REQUIRED'
+    | 'WORKSPACE_HISTORY_EMPTY',
+  message: string,
+  details: Record<string, unknown>
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code,
+    retryable: false,
+    details,
+  });
+}
+
+function assertExpectedRevision(
+  currentRevision: number,
+  expectedRevision?: number
+): void {
+  if (expectedRevision === undefined || expectedRevision === currentRevision) {
+    return;
+  }
+  throw new WorkspaceToolError(
+    `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`,
+    {
+      code: 'WORKSPACE_REVISION_CONFLICT',
+      retryable: true,
+      details: { expectedRevision, currentRevision },
+    }
+  );
+}
+
+function storageErrorMessage(error: unknown, fallback: string): string {
+  const message = error instanceof Error ? error.message.trim() : '';
+  return (message || fallback).slice(0, 240);
+}
+
+export class WorkspaceDocumentManager {
+  private readonly repository: WorkspaceRepository;
+  private readonly seedFiles: WorkspaceFile[];
+  private readonly rootName: string;
+  private readonly seedActivePath: string;
+  private snapshot: WorkspaceSnapshot;
+  private listeners = new Set<() => void>();
+  private history: WorkspaceCheckpoint[];
+  private historyIndex = 0;
+  private savedFiles: WorkspaceFile[];
+  private deletedPaths: string[] = [];
+  private lastEdit: { path: string; timestamp: number } | null = null;
+  private persistQueue = Promise.resolve();
+  private hydrated = false;
+
+  constructor(options: WorkspaceDocumentManagerOptions) {
+    this.repository = options.repository;
+    this.seedFiles = options.seedFiles.map((file) => ({ ...file }));
+    this.rootName = options.rootName ?? 'workspace';
+    this.seedActivePath =
+      options.activePath ?? selectWorkspaceActivePath(this.seedFiles);
+    this.snapshot = {
+      rootName: this.rootName,
+      files: this.seedFiles.map((file) => ({ ...file })),
+      activePath: this.seedActivePath,
+      revision: 1,
+      preview: { revision: 1, status: 'waiting' },
+      storageMode: 'loading',
+    };
+    this.history = [this.createCheckpoint()];
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+  }
+
+  getSnapshot = (): WorkspaceSnapshot => this.snapshot;
+
+  async waitForPersistence(): Promise<void> {
+    await this.persistQueue;
+  }
+
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+
+  async hydrate(): Promise<void> {
+    if (this.hydrated) return;
+    this.hydrated = true;
+    try {
+      const persisted = await this.repository.ensureWorkspace(
+        this.seedFiles.map((file) => ({ ...file }))
+      );
+      const revision = this.snapshot.revision + 1;
+      this.snapshot = {
+        ...this.snapshot,
+        rootName: persisted.rootName,
+        files: persisted.files,
+        activePath: persisted.activePath,
+        preview: { revision, status: 'waiting' },
+        revision,
+        storageMode: 'indexed-db',
+        storageError: undefined,
+      };
+      this.deletedPaths = [...(persisted.deletedPaths ?? [])];
+      this.history = [this.createCheckpoint()];
+      this.historyIndex = 0;
+      this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    } catch (error) {
+      this.snapshot = {
+        ...this.snapshot,
+        storageMode: 'memory',
+        storageError: storageErrorMessage(
+          error,
+          'IndexedDB could not restore the browser workspace.'
+        ),
+      };
+    }
+    this.notify();
+  }
+
+  async importFolder(
+    folder: ImportedFolder,
+    options: WorkspaceImportOptions = {}
+  ): Promise<void> {
+    if (folder.files.length === 0) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_NO_SUPPORTED_FILES',
+        'No supported HTML, CSS, JS, text, or preview asset files were found.',
+        {
+          operation: 'import',
+          rootName: folder.rootName,
+          skippedCount: folder.skipped.length,
+        }
+      );
+    }
+
+    await this.persistQueue;
+    assertExpectedRevision(this.snapshot.revision, options.expectedRevision);
+    const activePath =
+      folder.files.find((file) => file.path === 'index.html')?.path ??
+      folder.files.find((file) => file.language === 'html')?.path ??
+      folder.files.find((file) => file.kind !== 'asset')?.path ??
+      folder.files[0].path;
+
+    try {
+      const persisted = await this.repository.replaceWorkspace(
+        folder.files,
+        activePath,
+        folder.rootName
+      );
+      this.snapshot = {
+        ...this.snapshot,
+        rootName: persisted.rootName,
+        files: persisted.files,
+        activePath: persisted.activePath,
+        storageMode: 'indexed-db',
+        revision: this.snapshot.revision + 1,
+        preview: {
+          revision: this.snapshot.revision + 1,
+          status: 'waiting',
+        },
+        storageError: undefined,
+      };
+    } catch (error) {
+      this.snapshot = {
+        ...this.snapshot,
+        rootName: folder.rootName || 'workspace',
+        files: folder.files.map((file) => ({ ...file })),
+        activePath,
+        storageMode: 'memory',
+        revision: this.snapshot.revision + 1,
+        preview: {
+          revision: this.snapshot.revision + 1,
+          status: 'waiting',
+        },
+        storageError: storageErrorMessage(
+          error,
+          'IndexedDB could not persist the imported workspace.'
+        ),
+      };
+    }
+
+    this.deletedPaths = [];
+    this.history = [this.createCheckpoint()];
+    this.historyIndex = 0;
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.lastEdit = null;
+    this.notify();
+  }
+
+  async resetToSeed(options: WorkspaceImportOptions = {}): Promise<void> {
+    await this.importFolder(
+      {
+        rootName: this.rootName,
+        files: this.seedFiles.map((file) => ({ ...file })),
+        skipped: [],
+      },
+      options
+    );
+  }
+
+  getFile(path: string): WorkspaceFile {
+    const normalizedPath = normalizeWorkspacePath(path);
+    const file = this.snapshot.files.find(
+      (candidate) => candidate.path === normalizedPath
+    );
+    if (!file) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_NOT_FOUND',
+        `Workspace file not found: ${normalizedPath}`,
+        { path: normalizedPath }
+      );
+    }
+    return file;
+  }
+
+  setPreviewStatus(
+    revision: number,
+    status: PreviewSnapshot['status'],
+    message?: string
+  ): void {
+    if (
+      revision !== this.snapshot.revision ||
+      revision < this.snapshot.preview.revision
+    ) {
+      return;
+    }
+    this.snapshot = {
+      ...this.snapshot,
+      preview: { revision, status, ...(message ? { message } : {}) },
+    };
+    this.notify();
+  }
+
+  waitForPreviewRevision(
+    revision: number,
+    timeoutMs = 2500,
+    signal?: AbortSignal
+  ): Promise<PreviewSnapshot> {
+    if (signal?.aborted) {
+      return Promise.reject(
+        signal.reason instanceof Error
+          ? signal.reason
+          : new DOMException('Preview wait cancelled.', 'AbortError')
+      );
+    }
+    const current = this.snapshot.preview;
+    if (current.revision === revision && current.status === 'synced') {
+      return Promise.resolve(current);
+    }
+    if (current.revision === revision && current.status === 'error') {
+      return Promise.reject(
+        createPreviewWaitError(
+          'PREVIEW_RUNTIME_ERROR',
+          current.message ?? `Preview revision ${revision} failed.`,
+          false,
+          { revision }
+        )
+      );
+    }
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      let unsubscribe = () => {};
+      let removeAbortListener = () => {};
+      const finish = (callback: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) clearTimeout(timeoutId);
+        unsubscribe();
+        removeAbortListener();
+        callback();
+      };
+      const inspect = () => {
+        const preview = this.snapshot.preview;
+        if (preview.revision > revision) {
+          finish(() =>
+            reject(
+              createPreviewWaitError(
+                'PREVIEW_REVISION_SUPERSEDED',
+                `Preview revision ${revision} was superseded by ${preview.revision}.`,
+                true,
+                {
+                  requestedRevision: revision,
+                  actualRevision: preview.revision,
+                }
+              )
+            )
+          );
+        } else if (preview.revision === revision) {
+          if (preview.status === 'synced') finish(() => resolve(preview));
+          if (preview.status === 'error') {
+            finish(() =>
+              reject(
+                createPreviewWaitError(
+                  'PREVIEW_RUNTIME_ERROR',
+                  preview.message ?? `Preview revision ${revision} failed.`,
+                  false,
+                  { revision }
+                )
+              )
+            );
+          }
+        }
+      };
+
+      unsubscribe = this.subscribe(inspect);
+      if (signal) {
+        const abort = () =>
+          finish(() =>
+            reject(
+              signal.reason instanceof Error
+                ? signal.reason
+                : new DOMException('Preview wait cancelled.', 'AbortError')
+            )
+          );
+        signal.addEventListener('abort', abort, { once: true });
+        removeAbortListener = () => signal.removeEventListener('abort', abort);
+        if (signal.aborted) {
+          abort();
+          return;
+        }
+      }
+      timeoutId = setTimeout(() => {
+        finish(() =>
+          reject(
+            createPreviewWaitError(
+              'PREVIEW_ACK_TIMEOUT',
+              `Preview revision ${revision} was not acknowledged within ${timeoutMs}ms.`,
+              true,
+              { revision, timeoutMs }
+            )
+          )
+        );
+      }, timeoutMs);
+      inspect();
+    });
+  }
+
+  setActivePath(path: string): void {
+    const normalizedPath = normalizeWorkspacePath(path);
+    this.getFile(normalizedPath);
+    this.snapshot = { ...this.snapshot, activePath: normalizedPath };
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository.setActivePath(normalizedPath)
+      );
+    }
+    this.notify();
+  }
+
+  updateFile(
+    path: string,
+    source: string,
+    options: WorkspaceUpdateFileOptions = {}
+  ): WorkspaceSnapshot {
+    const normalizedPath = normalizeWorkspacePath(path);
+    assertWorkspaceTextSourceLength(source);
+    if (this.getFile(normalizedPath).kind === 'asset') {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary asset cannot be edited as text: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'edit', actualKind: 'asset' }
+      );
+    }
+    const nextFiles = this.snapshot.files.map((file) =>
+      file.path === normalizedPath ? { ...file, source } : file
+    );
+    if (!nextFiles.some((file) => file.path === normalizedPath)) {
+      throw new Error(`Workspace file not found: ${normalizedPath}`);
+    }
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: this.snapshot.activePath,
+      files: nextFiles,
+      deletedPaths: [...this.deletedPaths],
+      preserveActivePath: true,
+    };
+    const now = Date.now();
+    const shouldCoalesce =
+      options.coalesce !== false &&
+      this.lastEdit?.path === normalizedPath &&
+      now - this.lastEdit.timestamp < 750;
+
+    if (shouldCoalesce) {
+      this.history[this.historyIndex] = checkpoint;
+    } else {
+      this.pushHistoryCheckpoint(checkpoint);
+    }
+
+    this.lastEdit = { path: normalizedPath, timestamp: now };
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      const persistedFile = nextFiles.find(
+        (file) => file.path === normalizedPath
+      );
+      if (persistedFile) {
+        this.enqueuePersistence(() => this.repository.saveFile(persistedFile));
+      }
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  revertFile(path: string): WorkspaceSnapshot {
+    const normalizedPath = normalizeWorkspacePath(path);
+    const currentFile = this.getFile(normalizedPath);
+    const savedFile = this.savedFiles.find(
+      (file) => file.path === normalizedPath
+    );
+    if (
+      currentFile.renamedFrom &&
+      !this.snapshot.files.some((file) => file.path === currentFile.renamedFrom)
+    ) {
+      const restored = this.renameFile(normalizedPath, currentFile.renamedFrom);
+      const originalSavedFile = this.savedFiles.find(
+        (file) => file.path === currentFile.renamedFrom
+      );
+      const sourceToRestore = originalSavedFile?.source ?? savedFile?.source;
+      const restoredFile = restored.files.find(
+        (file) => file.path === currentFile.renamedFrom
+      );
+      if (
+        sourceToRestore !== undefined &&
+        restoredFile?.source !== sourceToRestore
+      ) {
+        return this.updateFile(currentFile.renamedFrom, sourceToRestore, {
+          coalesce: false,
+        });
+      }
+      return restored;
+    }
+    if (!savedFile) {
+      return this.deleteFile(normalizedPath);
+    }
+    if (currentFile.source === savedFile.source) {
+      return this.getSnapshot();
+    }
+    return this.updateFile(normalizedPath, savedFile.source, {
+      coalesce: false,
+    });
+  }
+
+  createFile(path: string, source: string): WorkspaceSnapshot {
+    const normalizedPath = normalizeWorkspacePath(path);
+    assertWorkspaceTextSourceLength(source);
+    if (isBinaryWorkspacePath(normalizedPath)) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary assets cannot be created as text files: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'create', expectedKind: 'text' }
+      );
+    }
+    if (this.snapshot.files.some((file) => file.path === normalizedPath)) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        `Workspace file already exists: ${normalizedPath}`,
+        { path: normalizedPath, operation: 'create' }
+      );
+    }
+
+    const language = languageForWorkspacePath(normalizedPath);
+    const file: WorkspaceFile = {
+      path: normalizedPath,
+      language,
+      source,
+      kind: 'text',
+      mimeType: mimeTypeForWorkspaceLanguage(language),
+    };
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: normalizedPath,
+      files: [...this.snapshot.files, file],
+      deletedPaths: this.deletedPaths.filter(
+        (deletedPath) => deletedPath !== normalizedPath
+      ),
+    };
+    this.pushHistoryCheckpoint(checkpoint);
+    this.lastEdit = { path: normalizedPath, timestamp: Date.now() };
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.saveFile(file);
+        await this.repository.setActivePath(normalizedPath);
+      });
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  renameFile(fromPath: string, toPath: string): WorkspaceSnapshot {
+    const normalizedFromPath = normalizeWorkspacePath(fromPath);
+    const normalizedToPath = normalizeWorkspacePath(toPath);
+    if (normalizedFromPath === normalizedToPath) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        'The new workspace path must be different.',
+        { fromPath: normalizedFromPath, toPath: normalizedToPath }
+      );
+    }
+    const file = this.getFile(normalizedFromPath);
+    if (
+      this.snapshot.files.some(
+        (candidate) => candidate.path === normalizedToPath
+      )
+    ) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_CONFLICT',
+        `Workspace file already exists: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename' }
+      );
+    }
+
+    const targetIsBinary = isBinaryWorkspacePath(normalizedToPath);
+    if (file.kind === 'asset' && !targetIsBinary) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Binary assets must keep a supported asset extension: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename', expectedKind: 'asset' }
+      );
+    }
+    if (file.kind !== 'asset' && targetIsBinary) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_FILE_TYPE_CONFLICT',
+        `Text files cannot be renamed to a binary asset path: ${normalizedToPath}`,
+        { path: normalizedToPath, operation: 'rename', expectedKind: 'text' }
+      );
+    }
+
+    const nextLanguage =
+      file.kind === 'asset'
+        ? 'asset'
+        : languageForWorkspacePath(normalizedToPath);
+    if (
+      file.language === 'html' &&
+      nextLanguage !== 'html' &&
+      !this.snapshot.files.some(
+        (candidate) =>
+          candidate.path !== normalizedFromPath && candidate.language === 'html'
+      )
+    ) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_PREVIEW_ENTRY_REQUIRED',
+        'The workspace must keep an HTML preview entry.',
+        { operation: 'rename', path: normalizedFromPath }
+      );
+    }
+
+    const renamedFile: WorkspaceFile = {
+      ...file,
+      path: normalizedToPath,
+      language: nextLanguage,
+      renamedFrom:
+        file.renamedFrom === normalizedToPath
+          ? undefined
+          : (file.renamedFrom ?? normalizedFromPath),
+      ...(file.kind === 'asset'
+        ? {}
+        : { mimeType: mimeTypeForWorkspaceLanguage(nextLanguage) }),
+    };
+    const nextFiles = this.snapshot.files.map((candidate) =>
+      candidate.path === normalizedFromPath ? renamedFile : candidate
+    );
+    const nextActivePath =
+      this.snapshot.activePath === normalizedFromPath
+        ? normalizedToPath
+        : this.snapshot.activePath;
+    const wasSaved = this.savedFiles.some(
+      (savedFile) => savedFile.path === normalizedFromPath
+    );
+    const nextDeletedPaths = this.deletedPaths.filter(
+      (deletedPath) => deletedPath !== normalizedToPath
+    );
+    if (wasSaved) nextDeletedPaths.push(normalizedFromPath);
+
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: nextActivePath,
+      files: nextFiles,
+      deletedPaths: [...new Set(nextDeletedPaths)],
+    };
+    this.pushHistoryCheckpoint(checkpoint);
+    this.lastEdit = null;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.deleteFile(normalizedFromPath, {
+          trackPendingDeletion: wasSaved,
+        });
+        await this.repository.saveFile(renamedFile);
+        await this.repository.setActivePath(nextActivePath);
+      });
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  deleteFile(path: string): WorkspaceSnapshot {
+    const normalizedPath = normalizeWorkspacePath(path);
+    const file = this.getFile(normalizedPath);
+    if (this.snapshot.files.length <= 1) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_EMPTY',
+        'The workspace must keep at least one file.',
+        { operation: 'delete', path: normalizedPath }
+      );
+    }
+
+    const nextFiles = this.snapshot.files.filter(
+      (candidate) => candidate.path !== file.path
+    );
+    if (file.language === 'html' && !findPreviewHtmlFile(nextFiles)) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_PREVIEW_ENTRY_REQUIRED',
+        'The workspace must keep an HTML preview entry.',
+        { operation: 'delete', path: normalizedPath }
+      );
+    }
+    const nextActivePath =
+      this.snapshot.activePath === file.path
+        ? (findPreviewHtmlFile(nextFiles)?.path ?? nextFiles[0]?.path)
+        : this.snapshot.activePath;
+    if (!nextActivePath) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_ACTIVE_FILE_NOT_FOUND',
+        'The workspace has no active file after the deletion.',
+        { operation: 'delete', path: normalizedPath }
+      );
+    }
+
+    const wasPersisted = this.savedFiles.some(
+      (savedFile) => savedFile.path === file.path
+    );
+    const checkpoint: WorkspaceCheckpoint = {
+      activePath: nextActivePath,
+      files: nextFiles,
+      deletedPaths: wasPersisted
+        ? [...this.deletedPaths, file.path].filter(
+            (deletedPath, index, paths) => paths.indexOf(deletedPath) === index
+          )
+        : this.deletedPaths.filter((deletedPath) => deletedPath !== file.path),
+    };
+    this.pushHistoryCheckpoint(checkpoint);
+    this.lastEdit = null;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(async () => {
+        await this.repository.deleteFile(file.path, {
+          trackPendingDeletion: wasPersisted,
+        });
+        await this.repository.setActivePath(nextActivePath);
+      });
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  canUndo(): boolean {
+    return this.historyIndex > 0;
+  }
+
+  canRedo(): boolean {
+    return this.historyIndex < this.history.length - 1;
+  }
+
+  isDirty(): boolean {
+    return this.getDirtyFiles().length > 0 || this.deletedPaths.length > 0;
+  }
+
+  getDirtyFiles(): WorkspaceFile[] {
+    return this.snapshot.files.filter((file) => {
+      const savedFile = this.savedFiles.find(
+        (candidate) => candidate.path === file.path
+      );
+      return !savedFile || savedFile.source !== file.source;
+    });
+  }
+
+  getDeletedPaths(): string[] {
+    return [...this.deletedPaths];
+  }
+
+  undo(): WorkspaceSnapshot {
+    if (!this.canUndo()) return this.getSnapshot();
+    this.historyIndex -= 1;
+    this.lastEdit = null;
+    const checkpoint = this.resolveHistoryCheckpoint(
+      this.history[this.historyIndex]
+    );
+    const rootName = this.snapshot.rootName;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository
+          .replaceWorkspace(
+            checkpoint.files,
+            checkpoint.activePath,
+            rootName,
+            checkpoint.deletedPaths
+          )
+          .then(() => undefined)
+      );
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  redo(): WorkspaceSnapshot {
+    if (!this.canRedo()) return this.getSnapshot();
+    this.historyIndex += 1;
+    this.lastEdit = null;
+    const checkpoint = this.resolveHistoryCheckpoint(
+      this.history[this.historyIndex]
+    );
+    const rootName = this.snapshot.rootName;
+    this.applyCheckpoint(checkpoint);
+    if (this.snapshot.storageMode === 'indexed-db') {
+      this.enqueuePersistence(() =>
+        this.repository
+          .replaceWorkspace(
+            checkpoint.files,
+            checkpoint.activePath,
+            rootName,
+            checkpoint.deletedPaths
+          )
+          .then(() => undefined)
+      );
+    }
+    this.notify();
+    return this.getSnapshot();
+  }
+
+  async markSaved(): Promise<void> {
+    await this.persistQueue;
+    if (this.snapshot.storageMode === 'indexed-db') {
+      await this.repository.clearDeletedPaths();
+    }
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.deletedPaths = [];
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+  }
+
+  async markFileSavedIfRevision(
+    path: string,
+    expectedRevision: number
+  ): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    const file = this.getFile(path);
+    const savedIndex = this.savedFiles.findIndex(
+      (candidate) => candidate.path === file.path
+    );
+    this.savedFiles =
+      savedIndex >= 0
+        ? this.savedFiles.map((candidate, index) =>
+            index === savedIndex ? { ...file } : candidate
+          )
+        : [...this.savedFiles, { ...file }];
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
+  async markDeletedPathSavedIfRevision(
+    path: string,
+    expectedRevision: number
+  ): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    if (!this.deletedPaths.includes(path)) return true;
+    this.deletedPaths = this.deletedPaths.filter(
+      (deletedPath) => deletedPath !== path
+    );
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
+  async markSavedIfRevision(expectedRevision: number): Promise<boolean> {
+    await this.persistQueue;
+    if (this.snapshot.revision !== expectedRevision) return false;
+    if (this.snapshot.storageMode === 'indexed-db') {
+      try {
+        await this.repository.clearDeletedPaths();
+      } catch (error) {
+        this.markStorageUnavailable(
+          error,
+          'IndexedDB could not update the browser checkpoint.'
+        );
+        throw error;
+      }
+    }
+    if (this.snapshot.revision !== expectedRevision) return false;
+    this.savedFiles = this.snapshot.files.map((file) => ({ ...file }));
+    this.deletedPaths = [];
+    this.snapshot = { ...this.snapshot };
+    this.notify();
+    return true;
+  }
+
+  private createCheckpoint(): WorkspaceCheckpoint {
+    return {
+      activePath: this.snapshot.activePath,
+      files: this.snapshot.files,
+      deletedPaths: [...this.deletedPaths],
+    };
+  }
+
+  private pushHistoryCheckpoint(checkpoint: WorkspaceCheckpoint): void {
+    const nextHistory = [
+      ...this.history.slice(0, this.historyIndex + 1),
+      checkpoint,
+    ];
+    const overflow = Math.max(0, nextHistory.length - MAX_HISTORY_CHECKPOINTS);
+    this.history = overflow ? nextHistory.slice(overflow) : nextHistory;
+    this.historyIndex = this.history.length - 1;
+  }
+
+  private resolveHistoryCheckpoint(
+    checkpoint: WorkspaceCheckpoint
+  ): WorkspaceCheckpoint {
+    if (!checkpoint.preserveActivePath) return checkpoint;
+    const currentActivePath = this.snapshot.activePath;
+    if (!checkpoint.files.some((file) => file.path === currentActivePath)) {
+      return checkpoint;
+    }
+    return { ...checkpoint, activePath: currentActivePath };
+  }
+
+  private applyCheckpoint(checkpoint: WorkspaceCheckpoint): void {
+    const revision = this.snapshot.revision + 1;
+    this.deletedPaths = [...checkpoint.deletedPaths];
+    this.snapshot = {
+      ...this.snapshot,
+      files: checkpoint.files,
+      activePath: checkpoint.activePath,
+      rootName: this.snapshot.rootName,
+      storageMode: this.snapshot.storageMode,
+      preview: { revision, status: 'waiting' },
+      revision,
+    };
+  }
+
+  private enqueuePersistence(task: () => Promise<void>): void {
+    this.persistQueue = this.persistQueue.then(task).catch((error) => {
+      if (this.snapshot.storageMode === 'indexed-db') {
+        this.markStorageUnavailable(
+          error,
+          'IndexedDB could not persist the latest browser workspace change.'
+        );
+      }
+    });
+  }
+
+  private markStorageUnavailable(error: unknown, fallback: string): void {
+    this.snapshot = {
+      ...this.snapshot,
+      storageMode: 'memory',
+      storageError: storageErrorMessage(error, fallback),
+    };
+    this.notify();
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener();
+  }
+}

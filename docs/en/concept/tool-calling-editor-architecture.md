@@ -77,8 +77,11 @@ The deterministic prompt planner and revision-aware preflight now live in
 editor orchestration. This keeps the local fallback contract testable and gives
 the future `packages/live-code-editor` extraction a narrow first seam.
 The preview document compiler and local asset/script rewriting are isolated in
-`demos/bolt-style-editor/src/preview-document.ts`; `workspace.ts` owns state and
-revision persistence while the compiler owns the iframe document boundary.
+`packages/live-code-editor/src/preview-document.ts`; the demo path is a
+compatibility re-export. `WorkspaceDocumentManager` owns state, history, and
+revision persistence orchestration while the compiler owns the iframe document
+boundary. The demo `BrowserWorkspace` supplies only seed files and its Dexie
+repository.
 The OpenRouter response/error transport contract is isolated in
 `demos/bolt-style-editor/src/openrouter-protocol.ts`; `openrouter.ts` owns the
 provider tool loop while the protocol module owns status classification, body
@@ -435,11 +438,12 @@ ToolContext and the registry.
 The first extraction seam now exists as the private
 `@context-action/live-code-editor` workspace package. It exports the
 framework-neutral workspace, preview, and folder-import contracts consumed by
-the standalone demo, plus the pure preview document compiler. The browser-owned
-DocumentManager, filesystem adapter, iframe runtime, and editor adapters remain
-local. Extract those runtime pieces only after they have independent consumers
-and tests; decide whether to publish the package only after the contract
-stabilizes.
+the standalone demo, plus the pure preview document compiler, workspace model
+helpers, repository boundary, and stateful `WorkspaceDocumentManager`. The demo
+still owns the Dexie repository adapter, filesystem adapter, iframe runtime, and
+editor adapters. Extract those browser-specific pieces only after they have
+independent consumers and tests; decide whether to publish the package only
+after the contract stabilizes.
 
 Consider a separate repository only when one or more of these conditions hold:
 
@@ -827,8 +831,10 @@ Open folder → generic FileSystemAdapter
 1. Preserve tool IDs, error codes, and source context.
 2. Apply allowlist and policy to discovery and execution.
 3. Record parallel calls and failures through the lifecycle observer.
-4. Implement the parent-owned DocumentManager.
-5. Add the Dexie workspace repository and Blob/file-system adapter boundary.
+4. Implement the parent-owned `WorkspaceDocumentManager` against the
+   framework-neutral `WorkspaceRepository` boundary.
+5. Add the demo-owned Dexie workspace repository and Blob/file-system adapter
+   boundary.
 6. Keep the revision-aware preview bridge and acknowledgement contract aligned
    with the DocumentManager.
 7. Forward `toolCallId` and abort signals from the model adapter to the Registry,

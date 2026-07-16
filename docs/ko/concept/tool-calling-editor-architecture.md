@@ -72,8 +72,11 @@ browser workspace는 유지한다. header에는 folder link unavailable 상태�
 fallback 계약을 독립적으로 검증할 수 있고, 향후 `packages/live-code-editor`로
 추출할 때 첫 번째로 좁은 경계가 된다.
 preview document compiler와 local asset/script rewriting은
-`demos/bolt-style-editor/src/preview-document.ts`로 분리한다. `workspace.ts`는
-state와 revision persistence를 소유하고 compiler는 iframe document 경계를 소유한다.
+`packages/live-code-editor/src/preview-document.ts`로 분리한다. Demo 경로는
+호환성 re-export만 제공한다. `WorkspaceDocumentManager`가 state, history,
+revision persistence orchestration을 소유하고 compiler는 iframe document
+경계를 소유한다. Demo의 `BrowserWorkspace`는 seed file과 Dexie repository만
+주입한다.
 OpenRouter response/error transport 계약은
 `demos/bolt-style-editor/src/openrouter-protocol.ts`로 분리한다. `openrouter.ts`는
 provider tool loop를 소유하고 protocol 모듈은 status 분류, body decoding,
@@ -404,10 +407,11 @@ surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
 첫 번째 추출 seam은 이제 private
 `@context-action/live-code-editor` workspace package로 존재한다. 이 package는
 standalone demo가 소비하는 framework-neutral workspace, preview,
-folder-import 계약과 순수 preview document compiler를 export한다. Browser가
-소유하는 DocumentManager, filesystem adapter, iframe runtime, editor adapter는
-아직 demo 내부에 둔다. 이 runtime 구현은 독립 consumer와 test가 확보된 뒤
-실제 구현 package로 옮기며, 계약이 안정된 뒤 공개 package 여부를 판단한다.
+folder-import 계약, 순수 preview document compiler, workspace model helper,
+repository 경계와 stateful `WorkspaceDocumentManager`를 export한다. Demo에는
+Dexie repository adapter, filesystem adapter, iframe runtime, editor adapter만
+남긴다. 이 browser-specific 구현은 독립 consumer와 test가 확보된 뒤 옮기며,
+계약이 안정된 뒤 공개 package 여부를 판단한다.
 
 별도 repository는 다음 조건이 충족될 때만 검토한다.
 
@@ -762,8 +766,10 @@ Open folder → generic FileSystemAdapter
 1. Tool ID·오류 코드·source context를 유지한다.
 2. allowlist와 policy를 discovery/execution 양쪽에 적용한다.
 3. lifecycle observer로 병렬 호출과 실패 결과를 기록한다.
-4. DocumentManager를 부모에 구현한다.
-5. Dexie workspace repository와 Blob/filesystem adapter 경계를 추가한다.
+4. framework-neutral `WorkspaceRepository` 경계 위에 부모의
+   `WorkspaceDocumentManager`를 구현한다.
+5. Demo 소유의 Dexie workspace repository와 Blob/filesystem adapter 경계를
+   추가한다.
 6. DocumentManager와 revision-aware preview bridge 및 acknowledgement 계약을
    계속 일치시킨다.
 7. 실제 모델 호출에서 `toolCallId`와 abort signal을 Registry까지 전달하고,

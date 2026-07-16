@@ -8,6 +8,8 @@ diagnostics, folder import/permission results, the preview document compiler,
 and browser-independent path, source-limit, error, and active-file helpers.
 It also defines the async `WorkspaceRepository` boundary used by the stateful
 workspace manager without prescribing Dexie or another persistence engine.
-The standalone demo still owns Dexie persistence, the filesystem adapter,
-iframe runtime, and the stateful BrowserWorkspace until those implementations
-have independent consumers and tests.
+The package now owns the stateful `WorkspaceDocumentManager`; the standalone
+demo only supplies seed files and its Dexie-backed repository through the thin
+`BrowserWorkspace` adapter. The demo still owns the filesystem adapter, iframe
+runtime, and editor adapters until those implementations have independent
+consumers and tests.

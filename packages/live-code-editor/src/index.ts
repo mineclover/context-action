@@ -130,3 +130,9 @@ export {
   WorkspaceToolError,
   type WorkspaceToolErrorCode,
 } from './workspace-errors';
+export {
+  WorkspaceDocumentManager,
+  type WorkspaceDocumentManagerOptions,
+  type WorkspaceImportOptions,
+  type WorkspaceUpdateFileOptions,
+} from './workspace-manager';
