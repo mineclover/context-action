@@ -3,10 +3,6 @@
   "base": "example/src",
   "advanced": [
     {
-      "path": "pages/performance/mouse-events/context-store-pattern/handlers",
-      "reason": "Context-store mouse pattern is retained as an advanced comparison."
-    },
-    {
       "path": "pages/performance/mouse-events/enhanced-context-store/handlers",
       "reason": "Enhanced context-store mouse pattern is retained as an advanced comparison."
     }

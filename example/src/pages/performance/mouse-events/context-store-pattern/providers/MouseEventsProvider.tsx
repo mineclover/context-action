@@ -2,7 +2,7 @@ import React from 'react';
 import {
   MouseEventsActionProvider,
   MouseEventsStores,
-} from '../context/MouseEventsContext';
+} from '../contexts/MouseEventsContexts';
 import { MouseEventsHandlerRegistry } from '../handlers/MouseEventsHandlerRegistry';
 
 export function MouseEventsProvider({

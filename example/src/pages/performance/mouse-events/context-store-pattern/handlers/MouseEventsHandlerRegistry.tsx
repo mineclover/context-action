@@ -8,7 +8,7 @@ import {
   updateComputedValuesFromStores,
   useMouseEventsActionHandler,
   useMouseEventsStore,
-} from '../context/MouseEventsContext';
+} from '../contexts/MouseEventsContexts';
 
 export function MouseEventsHandlerRegistry({
   children,

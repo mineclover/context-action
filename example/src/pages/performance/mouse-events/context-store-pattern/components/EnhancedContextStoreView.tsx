@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   useMouseEventsActionDispatch,
   useMouseEventsStore,
-} from '../context/MouseEventsContext';
+} from '../contexts/MouseEventsContexts';
 
 export function EnhancedContextStoreView() {
   const containerRef = useRef<HTMLDivElement>(null);

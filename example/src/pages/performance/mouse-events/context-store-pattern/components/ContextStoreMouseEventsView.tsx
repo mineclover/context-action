@@ -6,7 +6,7 @@
 
 import { memo, useMemo, useRef } from 'react';
 import { Button, CodeBlock, CodeExample, DemoCard } from '@/components/ui';
-import type { MouseEventsStateData } from '../context/MouseEventsContext';
+import type { MouseEventsStateData } from '../contexts/MouseEventsContexts';
 
 // ================================
 // 📊 Props 인터페이스

@@ -11,7 +11,7 @@ import {
   aggregateMouseEventsState,
   useMouseEventsActionDispatch,
   useMouseEventsStore,
-} from '../context/MouseEventsContext';
+} from '../contexts/MouseEventsContexts';
 import { MouseEventsProvider } from '../providers/MouseEventsProvider';
 
 /**

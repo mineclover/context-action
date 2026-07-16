@@ -71,7 +71,9 @@ context-store-pattern/
 │   ├── ContextStoreMouseEventsView.tsx
 │   ├── EnhancedContextStoreView.tsx
 │   └── RealTimeDebugger.tsx
-├── context/            # React Context definitions and providers
+├── contexts/           # Canonical Context-Action contracts and providers
+│   └── MouseEventsContexts.tsx
+├── context/            # Compatibility implementation for legacy aggregate helpers
 │   └── MouseEventsContext.tsx
 └── types/              # Context-related types
 ```

@@ -39,7 +39,7 @@ React Context with individual stores and selective subscriptions - the most adva
 - **`ContextStoreMouseEventsView.tsx`**: Basic context store view
 
 ### 🔄 Context (`context/`)
-- **`MouseEventsContext.tsx`**: Context definitions, store schemas, and action handlers
+- **`contexts/MouseEventsContexts.tsx`**: Canonical Context-Action boundary (legacy aggregate helpers remain behind the compatibility export)
 
 ## Store Architecture
 
