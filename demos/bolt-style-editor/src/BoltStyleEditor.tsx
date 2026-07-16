@@ -23,6 +23,7 @@ import {
 } from './hooks/use-tool-execution';
 import { useWorkspaceEditorActions } from './hooks/use-workspace-editor-actions';
 import { useWorkspaceFolderActions } from './hooks/use-workspace-folder-actions';
+import { useWorkspaceKeyboardShortcuts } from './hooks/use-workspace-keyboard-shortcuts';
 import {
   readOpenRouterSettings,
   saveOpenRouterSettings,
@@ -883,6 +884,24 @@ function EditorWorkbench({
     requestConfirmation,
     executeQuickTool,
   });
+  useWorkspaceKeyboardShortcuts({
+    showSettings,
+    showCreateFile,
+    showRenameFile,
+    confirmationRequest,
+    quickOpenOpen,
+    workspaceSearchOpen,
+    running,
+    saving,
+    isStorageReady,
+    hasUnsavedChanges,
+    workspace,
+    executionControllerRef,
+    setQuickOpenOpen,
+    cancelExecution,
+    saveWorkspace,
+    executeQuickTool,
+  });
 
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
@@ -912,161 +931,6 @@ function EditorWorkbench({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges, hasUnpersistedEditorDrafts, hasWritableFolder]);
-
-  useEffect(() => {
-    const handleSaveShortcut = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        !(event.metaKey || event.ctrlKey) ||
-        event.key.toLowerCase() !== 's' ||
-        showSettings ||
-        showCreateFile ||
-        showRenameFile ||
-        confirmationRequest ||
-        quickOpenOpen ||
-        workspaceSearchOpen
-      ) {
-        return;
-      }
-      event.preventDefault();
-      void saveWorkspace();
-    };
-
-    window.addEventListener('keydown', handleSaveShortcut);
-    return () => window.removeEventListener('keydown', handleSaveShortcut);
-  }, [
-    isStorageReady,
-    running,
-    saving,
-    showCreateFile,
-    showRenameFile,
-    showSettings,
-    confirmationRequest,
-    quickOpenOpen,
-    workspaceSearchOpen,
-    workspace,
-  ]);
-
-  useEffect(() => {
-    const handleQuickOpenShortcut = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        !(event.metaKey || event.ctrlKey) ||
-        event.altKey ||
-        event.key.toLowerCase() !== 'p' ||
-        showSettings ||
-        showCreateFile ||
-        showRenameFile ||
-        confirmationRequest ||
-        workspaceSearchOpen
-      ) {
-        return;
-      }
-      event.preventDefault();
-      setQuickOpenOpen(true);
-    };
-
-    window.addEventListener('keydown', handleQuickOpenShortcut);
-    return () => window.removeEventListener('keydown', handleQuickOpenShortcut);
-  }, [
-    confirmationRequest,
-    showCreateFile,
-    showRenameFile,
-    showSettings,
-    workspaceSearchOpen,
-  ]);
-
-  useEffect(() => {
-    if (
-      !running ||
-      showSettings ||
-      showCreateFile ||
-      showRenameFile ||
-      confirmationRequest ||
-      quickOpenOpen ||
-      workspaceSearchOpen
-    ) {
-      return;
-    }
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      event.preventDefault();
-      cancelExecution();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [
-    cancelExecution,
-    confirmationRequest,
-    quickOpenOpen,
-    running,
-    showCreateFile,
-    showRenameFile,
-    showSettings,
-    workspaceSearchOpen,
-  ]);
-
-  useEffect(() => {
-    const handleHistoryShortcut = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        !(event.metaKey || event.ctrlKey) ||
-        event.altKey ||
-        showSettings ||
-        showCreateFile ||
-        showRenameFile ||
-        confirmationRequest ||
-        quickOpenOpen ||
-        workspaceSearchOpen ||
-        running ||
-        executionControllerRef.current ||
-        saving ||
-        !isStorageReady
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        (target instanceof HTMLElement && target.isContentEditable)
-      ) {
-        return;
-      }
-
-      const key = event.key.toLowerCase();
-      const undo = key === 'z' && !event.shiftKey;
-      const redo =
-        (key === 'z' && event.shiftKey) || (key === 'y' && !event.shiftKey);
-      if (!undo && !redo) return;
-      if (undo && !workspace.canUndo() && !hasUnsavedChanges) return;
-      if (redo && !workspace.canRedo()) return;
-
-      event.preventDefault();
-      void executeQuickTool({
-        name: redo ? 'workspace.redo' : 'workspace.undo',
-        arguments: { expectedRevision: workspace.getSnapshot().revision },
-      });
-    };
-
-    window.addEventListener('keydown', handleHistoryShortcut);
-    return () => window.removeEventListener('keydown', handleHistoryShortcut);
-  }, [
-    confirmationRequest,
-    executeQuickTool,
-    hasUnsavedChanges,
-    isStorageReady,
-    quickOpenOpen,
-    running,
-    saving,
-    showCreateFile,
-    showRenameFile,
-    showSettings,
-    workspace,
-    workspaceSearchOpen,
-  ]);
 
   const handleEditorTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
