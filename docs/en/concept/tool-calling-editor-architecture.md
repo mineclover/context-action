@@ -174,7 +174,8 @@ run. A response that would exceed the total call budget is rejected before any
 call in that response executes as non-retryable `OPENROUTER_TOOL_CALL_LIMIT`;
 this keeps a malformed or over-eager model from causing an unbounded sequence
 of workspace mutations. The response decoder also requires the assistant
-message role, rather than trusting a structurally similar provider message.
+message role and string-or-null content, rather than trusting a structurally
+similar provider message.
 
 ## Standard contract
 

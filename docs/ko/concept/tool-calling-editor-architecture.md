@@ -161,7 +161,7 @@ provider loop는 한 run에서 최대 5개 turn, 총 12개 tool call로 제한�
 전에 재시도하지 않는 `OPENROUTER_TOOL_CALL_LIMIT`으로 거부한다. 따라서
 malformed하거나 과도하게 적극적인 model이 workspace mutation을 무제한으로
 연속 실행할 수 없다. response decoder도 구조가 비슷한 provider message를
-그대로 신뢰하지 않고 assistant role을 확인한다.
+그대로 신뢰하지 않고 assistant role과 string 또는 null content를 확인한다.
 
 ## 표준 계약
 

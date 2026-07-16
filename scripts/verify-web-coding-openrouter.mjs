@@ -250,6 +250,20 @@ await expectInvalidProviderResponse(
   'non-assistant message role',
   'Non-assistant provider messages'
 );
+await expectInvalidProviderResponse(
+  {
+    choices: [
+      {
+        message: {
+          role: 'assistant',
+          content: { unexpected: true },
+        },
+      },
+    ],
+  },
+  'non-string assistant message content',
+  'Non-string assistant content'
+);
 
 let invalidResponseError;
 try {

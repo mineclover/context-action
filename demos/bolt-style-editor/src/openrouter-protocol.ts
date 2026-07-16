@@ -249,6 +249,15 @@ export async function readOpenRouterResponse(
         'Endpoint returned a non-assistant message role.'
       );
     }
+    if (
+      message.content !== undefined &&
+      message.content !== null &&
+      typeof message.content !== 'string'
+    ) {
+      throw invalidProviderResponse(
+        'Endpoint returned non-string assistant message content.'
+      );
+    }
     if (message.tool_calls !== undefined) {
       const normalizedToolCalls = normalizeToolCalls(message.tool_calls);
       const normalizedChoices = [...(choices ?? [])];
