@@ -84,6 +84,9 @@ const aiRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
 const aiDemoSource = readSource(
   'example/src/pages/integrations/ai/ToolContextAIDemo.tsx'
 );
+const realtimeWebCodingSource = readSource(
+  'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx'
+);
 
 assertContains(
   aiRunnerContractSource,
@@ -99,6 +102,11 @@ assertContains(
   aiDemoSource,
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'ToolContext AI multi-turn history preservation'
+);
+assertContains(
+  realtimeWebCodingSource,
+  /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
+  'realtime web-coding multi-turn history preservation'
 );
 
 const uiCount = assertCatalogMatchesSchema({
@@ -118,4 +126,4 @@ const standaloneCount = assertCatalogMatchesSchema({
 console.log('MCP/function-calling catalog contract check');
 console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
-console.log('- AI runner response-message history checked: 1');
+console.log('- AI runner response-message history checked: 2 showcases');

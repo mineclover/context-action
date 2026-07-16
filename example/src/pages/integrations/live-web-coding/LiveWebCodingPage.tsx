@@ -51,6 +51,8 @@ import styles from './LiveWebCodingPage.module.css';
 
 const WEB_WORKSPACE_ID = 'live-web-coding-demo';
 const WEB_WORKSPACE_ROOT = 'live-web-coding-demo';
+const WEB_CODING_SYSTEM_PROMPT =
+  'You are a realtime web coding assistant. Inspect the workspace before editing. Use web.setTheme, web.addFeature, web.updateHero, web.applyPatch, or web.writeFile to make the requested change. When read results include a workspace revision, pass it as expectedRevision for mutations. The user expects a visible HTML/CSS/JS preview update.';
 
 const defaultWebFiles = [
   createWorkspaceFile(
@@ -653,6 +655,9 @@ function LiveWebCodingWorkbench({
   const [messages, setMessages] = useState<
     Array<{ role: 'user' | 'assistant'; text: string; tools?: string[] }>
   >([]);
+  const [modelMessages, setModelMessages] = useState<ModelMessage[]>([
+    { role: 'system', content: WEB_CODING_SYSTEM_PROMPT },
+  ]);
   const [loading, setLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [traceCopied, setTraceCopied] = useState(false);
@@ -783,16 +788,13 @@ function LiveWebCodingWorkbench({
     setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
     try {
       if (runner && selectedModel) {
+        const requestMessages: ModelMessage[] = [
+          ...modelMessages,
+          { role: 'user', content: nextPrompt },
+        ];
         const response = await runner.generate({
           model: selectedModel,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a realtime web coding assistant. Inspect the workspace before editing. Use web.setTheme, web.addFeature, web.updateHero, web.applyPatch, or web.writeFile to make the requested change. When read results include a workspace revision, pass it as expectedRevision for mutations. The user expects a visible HTML/CSS/JS preview update.',
-            },
-            { role: 'user', content: nextPrompt },
-          ] satisfies ModelMessage[],
+          messages: requestMessages,
           registry,
           signal: controller.signal,
           sessionId,
@@ -810,6 +812,7 @@ function LiveWebCodingWorkbench({
             tools: [`OpenRouter · ${response.toolCallCount} tool call(s)`],
           },
         ]);
+        setModelMessages([...requestMessages, ...response.responseMessages]);
       } else {
         const local = await runLocalPrompt(
           registry,
@@ -951,6 +954,7 @@ function LiveWebCodingWorkbench({
       }
       clearLiveWebCodingTrace();
       setMessages([]);
+      setModelMessages([{ role: 'system', content: WEB_CODING_SYSTEM_PROMPT }]);
       setStatus(`${persisted.files.length} demo files restored · iframe ready`);
     } catch (resetError) {
       setError(
