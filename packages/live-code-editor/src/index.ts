@@ -60,3 +60,22 @@ export type FileSystemPermissionStatus =
   | 'denied'
   | 'unknown'
   | 'disconnected';
+
+export function isPreviewBridgeMessage(
+  value: unknown
+): value is PreviewBridgeMessage {
+  if (!value || typeof value !== 'object') return false;
+  const message = value as {
+    type?: unknown;
+    revision?: unknown;
+    message?: unknown;
+  };
+  return (
+    typeof message.revision === 'number' &&
+    Number.isSafeInteger(message.revision) &&
+    message.revision >= 0 &&
+    (message.type === 'context-action.preview.ready' ||
+      (message.type === 'context-action.preview.error' &&
+        typeof message.message === 'string'))
+  );
+}

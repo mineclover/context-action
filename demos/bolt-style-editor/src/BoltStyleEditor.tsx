@@ -1,3 +1,4 @@
+import { isPreviewBridgeMessage } from '@context-action/live-code-editor';
 import {
   type KeyboardEvent,
   useCallback,
@@ -62,30 +63,12 @@ import {
   BrowserWorkspace,
   buildPreviewDocument,
   collectPreviewDiagnostics,
-  type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
-
-function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
-  if (!value || typeof value !== 'object') return false;
-  const message = value as {
-    type?: unknown;
-    revision?: unknown;
-    message?: unknown;
-  };
-  return (
-    typeof message.revision === 'number' &&
-    Number.isSafeInteger(message.revision) &&
-    message.revision >= 0 &&
-    (message.type === 'context-action.preview.ready' ||
-      (message.type === 'context-action.preview.error' &&
-        typeof message.message === 'string'))
-  );
-}
 
 const PREVIEW_ERROR_MESSAGE_LIMIT = 240;
 
