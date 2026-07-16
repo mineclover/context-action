@@ -93,6 +93,13 @@ interface ToolTextGenerator {
 }
 ```
 
+When a provider runs a multi-step tool loop, `ToolTextGenerationResult` should
+return the provider's complete `responseMessages` as well as display text and a
+call count. The caller must append those assistant tool-call and tool-result
+messages to the next model turn; storing only the final prose loses the
+conversation's execution context. Keep that model history separate from the
+short, user-facing chat transcript.
+
 - A browser runner is permitted only for a user-owned, session-only key. State
   the direct-to-provider behavior in the UI and never pass an application-owned
   secret to that runner.

@@ -33,6 +33,12 @@ function extractCatalogTools(source) {
   return names;
 }
 
+function assertContains(source, pattern, label) {
+  if (!pattern.test(source)) {
+    throw new Error(`Missing ${label} contract.`);
+  }
+}
+
 function assertCatalogMatchesSchema({
   catalogSource,
   schemaSource,
@@ -73,6 +79,27 @@ const uiSchemaSource = readSource('example/src/lib/ui-tools-schema.ts');
 const standaloneSchemaSource = readSource(
   'demos/bolt-style-editor/src/tool-schema.ts'
 );
+const aiRunnerContractSource = readSource('example/src/lib/ai-tool-runner.ts');
+const aiRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
+const aiDemoSource = readSource(
+  'example/src/pages/integrations/ai/ToolContextAIDemo.tsx'
+);
+
+assertContains(
+  aiRunnerContractSource,
+  /responseMessages:\s*ModelMessage\[\]/,
+  'AI runner response-message history'
+);
+assertContains(
+  aiRunnerSource,
+  /responseMessages:\s*response\.responseMessages/,
+  'OpenRouter response-message propagation'
+);
+assertContains(
+  aiDemoSource,
+  /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
+  'ToolContext AI multi-turn history preservation'
+);
 
 const uiCount = assertCatalogMatchesSchema({
   catalogSource,
@@ -91,3 +118,4 @@ const standaloneCount = assertCatalogMatchesSchema({
 console.log('MCP/function-calling catalog contract check');
 console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
+console.log('- AI runner response-message history checked: 1');

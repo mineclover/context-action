@@ -117,6 +117,7 @@ export function createBrowserOpenRouterToolRunner(
       return {
         text: response.text,
         toolCallCount: response.toolCalls.length,
+        responseMessages: response.responseMessages,
       };
     },
   };

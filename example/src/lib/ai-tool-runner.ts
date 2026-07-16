@@ -21,6 +21,8 @@ export interface ToolTextGenerationRequest<TSchema extends ActionSchemaMap> {
 export interface ToolTextGenerationResult {
   text: string;
   toolCallCount: number;
+  /** Preserve assistant tool calls and tool results for the next model turn. */
+  responseMessages: ModelMessage[];
 }
 
 /**

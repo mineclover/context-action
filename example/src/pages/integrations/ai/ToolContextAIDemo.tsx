@@ -355,10 +355,7 @@ function DemoUI({ uiState }: { uiState: UIState }) {
         ...prev,
         { role: 'assistant', content: finalContent },
       ]);
-      setModelMessages([
-        ...requestMessages,
-        { role: 'assistant', content: finalContent },
-      ]);
+      setModelMessages([...requestMessages, ...response.responseMessages]);
     } catch (error) {
       console.error('AI request failed:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';

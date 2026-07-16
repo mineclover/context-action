@@ -95,6 +95,12 @@ interface ToolTextGenerator {
 }
 ```
 
+provider가 multi-step tool loop를 실행한다면 `ToolTextGenerationResult`는 화면에
+보여줄 text와 call count뿐 아니라 완전한 `responseMessages`도 반환해야 합니다.
+caller는 assistant tool-call와 tool-result message를 다음 model turn에 추가해야
+하며, 최종 prose만 저장하면 실행 맥락이 사라집니다. 이 model history는 짧은
+사용자용 chat transcript와 분리해 관리합니다.
+
 - 브라우저 runner는 사용자가 소유하고 세션 동안만 쓰는 키에 한해 허용합니다.
   UI에 provider로 직접 전송됨을 표시하고, 애플리케이션 소유 비밀값은 절대
   전달하지 않습니다.
