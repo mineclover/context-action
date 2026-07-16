@@ -181,6 +181,7 @@ Recommended commands:
 - `pnpm --dir example build:fast`
 - `pnpm --filter example run verify:conditional`
 - `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.rules.test.ts`
+- `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.integration.test.tsx`
 - `pnpm docs:build`
 
 ## Documentation Rule

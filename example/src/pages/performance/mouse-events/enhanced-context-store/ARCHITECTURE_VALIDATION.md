@@ -100,6 +100,7 @@ markersContainer.appendChild(marker);
 - [x] TypeScript compilation successful
 - [x] Build process successful
 - [x] Pure movement, click, activity, and metric rules covered by Jest
+- [x] Provider → Handler Registry → View → Store click flow covered by Jest
 - [x] Development server running without errors
 
 ## 📊 Comparison Results
