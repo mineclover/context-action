@@ -77,6 +77,28 @@ expectEqual(
   2,
   'Transient provider retry count must remain bounded.'
 );
+expectEqual(
+  protocol.OPENROUTER_MAX_TOOL_TURNS,
+  5,
+  'Provider tool turns must remain bounded.'
+);
+expectEqual(
+  protocol.OPENROUTER_MAX_TOOL_CALLS,
+  12,
+  'Provider tool calls must remain bounded across a run.'
+);
+protocol.assertOpenRouterToolCallBudget(10, 2);
+let toolCallBudgetError;
+try {
+  protocol.assertOpenRouterToolCallBudget(10, 3);
+} catch (error) {
+  toolCallBudgetError = error;
+}
+expect(
+  toolCallBudgetError instanceof protocol.OpenRouterRequestError &&
+    toolCallBudgetError.code === 'OPENROUTER_TOOL_CALL_LIMIT',
+  'A provider response that would exceed the total tool-call budget must be rejected before execution.'
+);
 expect(
   standaloneSettingsSource.includes('OPENROUTER_REQUEST_TIMEOUT_MS = 20_000') &&
     standaloneSettingsSource.includes("code: 'OPENROUTER_TIMEOUT'") &&
@@ -213,6 +235,20 @@ await expectInvalidProviderResponse(
   },
   'duplicate tool call id',
   'Duplicate tool call ids'
+);
+await expectInvalidProviderResponse(
+  {
+    choices: [
+      {
+        message: {
+          role: 'user',
+          content: 'unexpected role',
+        },
+      },
+    ],
+  },
+  'non-assistant message role',
+  'Non-assistant provider messages'
 );
 
 let invalidResponseError;

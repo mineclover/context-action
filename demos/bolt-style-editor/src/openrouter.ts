@@ -1,6 +1,8 @@
 import type { ActionSchemaMap, ToolRegistry } from '@context-action/react';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
+  assertOpenRouterToolCallBudget,
+  OPENROUTER_MAX_TOOL_TURNS,
   OPENROUTER_MAX_TRANSIENT_RETRIES,
   OpenRouterRequestError,
   openRouterRetryDelayMs,
@@ -245,7 +247,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
   recordToolList(listedTools.tools.length, 'openrouter', sessionId);
   const toolNames: string[] = [];
 
-  for (let turn = 0; turn < 5; turn += 1) {
+  let completedToolCalls = 0;
+  for (let turn = 0; turn < OPENROUTER_MAX_TOOL_TURNS; turn += 1) {
     throwIfAborted(signal);
     let response: Response;
     let transientRetryCount = 0;
@@ -372,6 +375,11 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
       };
     }
 
+    assertOpenRouterToolCallBudget(
+      completedToolCalls,
+      message.tool_calls.length
+    );
+
     messages.push({
       role: 'assistant',
       content: message.content ?? null,
@@ -419,11 +427,15 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
         tool_call_id: toolCall.id,
         content: toolResultContent(result),
       });
+      completedToolCalls += 1;
     }
   }
 
-  throw new OpenRouterRequestError('Tool loop reached the five-step limit.', {
-    code: 'OPENROUTER_TOOL_LOOP_LIMIT',
-    retryable: false,
-  });
+  throw new OpenRouterRequestError(
+    `Tool loop reached the ${OPENROUTER_MAX_TOOL_TURNS}-turn limit.`,
+    {
+      code: 'OPENROUTER_TOOL_LOOP_LIMIT',
+      retryable: false,
+    }
+  );
 }

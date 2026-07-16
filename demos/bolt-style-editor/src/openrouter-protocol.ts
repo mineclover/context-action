@@ -9,7 +9,8 @@ export type OpenRouterErrorCode =
   | 'OPENROUTER_INVALID_RESPONSE'
   | 'OPENROUTER_INVALID_TOOL_CALL'
   | 'OPENROUTER_NO_ASSISTANT_MESSAGE'
-  | 'OPENROUTER_TOOL_LOOP_LIMIT';
+  | 'OPENROUTER_TOOL_LOOP_LIMIT'
+  | 'OPENROUTER_TOOL_CALL_LIMIT';
 
 export class OpenRouterRequestError extends Error {
   readonly code: OpenRouterErrorCode;
@@ -34,6 +35,8 @@ export class OpenRouterRequestError extends Error {
 }
 
 export const OPENROUTER_MAX_TRANSIENT_RETRIES = 2;
+export const OPENROUTER_MAX_TOOL_TURNS = 5;
+export const OPENROUTER_MAX_TOOL_CALLS = 12;
 
 export function openRouterRetryDelayMs(
   attempt: number,
@@ -85,6 +88,38 @@ function invalidProviderResponse(
     retryable: false,
     cause,
   });
+}
+
+export function assertOpenRouterToolCallBudget(
+  completedToolCalls: number,
+  upcomingToolCalls: number
+): void {
+  if (
+    completedToolCalls < 0 ||
+    upcomingToolCalls < 0 ||
+    !Number.isInteger(completedToolCalls) ||
+    !Number.isInteger(upcomingToolCalls)
+  ) {
+    throw new OpenRouterRequestError(
+      'Tool call budget values must be integers.',
+      {
+        code: 'OPENROUTER_TOOL_CALL_LIMIT',
+        retryable: false,
+      }
+    );
+  }
+
+  if (completedToolCalls + upcomingToolCalls <= OPENROUTER_MAX_TOOL_CALLS) {
+    return;
+  }
+
+  throw new OpenRouterRequestError(
+    `OpenRouter tool-call budget reached (${OPENROUTER_MAX_TOOL_CALLS} calls per run).`,
+    {
+      code: 'OPENROUTER_TOOL_CALL_LIMIT',
+      retryable: false,
+    }
+  );
 }
 
 function normalizeToolCalls(value: unknown): OpenRouterToolCall[] {
@@ -209,6 +244,11 @@ export async function readOpenRouterResponse(
   const firstChoice = choices?.[0];
   if (isRecord(firstChoice) && isRecord(firstChoice.message)) {
     const message = firstChoice.message;
+    if (message.role !== 'assistant') {
+      throw invalidProviderResponse(
+        'Endpoint returned a non-assistant message role.'
+      );
+    }
     if (message.tool_calls !== undefined) {
       const normalizedToolCalls = normalizeToolCalls(message.tool_calls);
       const normalizedChoices = [...(choices ?? [])];

@@ -156,6 +156,12 @@ tool 실행 오류는 즉시 노출해 사용자가 명시적으로 복구하도
 function name, string JSON arguments를 모두 가져야 한다. ID 누락·중복이나 malformed
 function record는 모호한 correlation으로 `tools/call`에 도달하지 않고 재시도하지 않는
 `OPENROUTER_INVALID_RESPONSE`로 정규화한다.
+provider loop는 한 run에서 최대 5개 turn, 총 12개 tool call로 제한한다. 한
+응답의 호출 수가 남은 총량을 초과하면 그 응답의 tool을 하나도 실행하기
+전에 재시도하지 않는 `OPENROUTER_TOOL_CALL_LIMIT`으로 거부한다. 따라서
+malformed하거나 과도하게 적극적인 model이 workspace mutation을 무제한으로
+연속 실행할 수 없다. response decoder도 구조가 비슷한 provider message를
+그대로 신뢰하지 않고 assistant role을 확인한다.
 
 ## 표준 계약
 

@@ -169,6 +169,12 @@ function type, non-empty unique IDs, a function name, and string JSON
 arguments. Missing or duplicate IDs and malformed function records become the
 non-retryable `OPENROUTER_INVALID_RESPONSE` error instead of reaching
 `tools/call` with an ambiguous correlation.
+The loop is bounded to five provider turns and twelve total tool calls per
+run. A response that would exceed the total call budget is rejected before any
+call in that response executes as non-retryable `OPENROUTER_TOOL_CALL_LIMIT`;
+this keeps a malformed or over-eager model from causing an unbounded sequence
+of workspace mutations. The response decoder also requires the assistant
+message role, rather than trusting a structurally similar provider message.
 
 ## Standard contract
 
