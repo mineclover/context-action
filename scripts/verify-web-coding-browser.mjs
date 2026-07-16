@@ -1514,6 +1514,16 @@ async function runBrowserProof(url) {
         .filter({ hasText: 'workspace.applyPatch' })
         .first()
         .waitFor();
+      if (
+        (await toolLoopPage
+          .locator('#trace-list .trace-row')
+          .filter({ hasText: 'retryable' })
+          .count()) < 1
+      ) {
+        throw new Error(
+          'The trace UI did not surface retryable recovery metadata for the failed tool call.'
+        );
+      }
       if (toolLoopConsoleErrors.length) {
         throw new Error(
           `OpenRouter tool loop browser errors: ${toolLoopConsoleErrors.join(' | ')}`

@@ -3974,12 +3974,19 @@ function EditorWorkbench({
                             : [
                                 entry.kind === 'agent'
                                   ? 'agent'
-                                  : formatTraceId(entry.id),
+                                  : entry.toolCallId
+                                    ? `call ${formatTraceId(entry.toolCallId)}`
+                                    : formatTraceId(entry.id),
                                 entry.source,
                                 entry.sessionId
                                   ? `session ${formatTraceId(entry.sessionId)}`
                                   : null,
                                 `${entry.durationMs ?? 0}ms`,
+                                entry.retryable === true
+                                  ? 'retryable'
+                                  : entry.retryable === false
+                                    ? 'terminal'
+                                    : null,
                                 entry.summary,
                               ]
                                 .filter(Boolean)

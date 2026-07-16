@@ -252,7 +252,9 @@ lifecycle마다 unique한 내부 `traceId`도 생성하여 canonical request obj
 queue로 `started`/`completed`를 연결하므로, provider가 model turn 사이에서 ID를
 재사용하거나 ID를 생략해도 다른 row를 덮어쓰지 않는다. 축약 row의 tooltip과 복사한
 trace JSON에서 full correlation 값을 확인할 수 있으며, local fallback과 OpenRouter는
-같은 correlation 계약을 사용한다.
+같은 correlation 계약을 사용한다. 실패한 call은 structured `retryable` flag를
+보존하며, 축약 row에도 provider call ID와 `retryable` 또는 `terminal` recovery
+상태를 표시한다.
 승인 대기 항목도 같은 session marker를 표시하며, 직접 실행하는 palette call도
 자체 session을 생성한다. 따라서 agent row가 없는 수동 실행도 trace에서 감사할 수 있다.
 call row에는 provider `toolCallId`가 있으면 그것과 내부 `traceId`를 함께 표시하고 full

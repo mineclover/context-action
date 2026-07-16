@@ -57,7 +57,9 @@ The sidebar exposes the canonical catalog and sample arguments for the
 workspace and preview tools. The catalog can export `tools/list`, a selected
 tool definition, or a `tools/call` request as JSON. The trace panel exports
 bounded, redacted execution entries as JSON; use `All` in the trace header to
-inspect entries older than the recent eight.
+inspect entries older than the recent eight. Failed calls retain their
+`retryable` metadata, and the compact trace row shows the provider call ID plus
+whether recovery is retryable or terminal.
 
 The registry schema, approval policy, and lifecycle observer are isolated in
 `src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in

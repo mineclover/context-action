@@ -61,6 +61,27 @@ function completed(toolCallId, requestValue, sessionId, timestamp) {
   };
 }
 
+function failed(toolCallId, requestValue, sessionId, timestamp) {
+  return {
+    type: 'failed',
+    toolCallId,
+    name: requestValue.params.name,
+    request: requestValue,
+    context: { source: 'model', sessionId },
+    timestamp,
+    durationMs: 3,
+    result: {
+      isError: true,
+      error: {
+        code: 'WORKSPACE_REVISION_CONFLICT',
+        message: 'Re-read before retrying.',
+        retryable: true,
+      },
+      content: [{ type: 'text', text: 'Re-read before retrying.' }],
+    },
+  };
+}
+
 const firstRequest = request('call_0');
 trace.recordToolCall(started('call_0', firstRequest, 'session-1', 10));
 trace.recordToolCall(completed('call_0', firstRequest, 'session-1', 14));
@@ -82,17 +103,25 @@ trace.recordToolCall(
   completed(undefined, anonymousRequest, 'session-2', 35)
 );
 
+const failedRequest = request('call_failed', 'workspace.applyPatch');
+trace.recordToolCall(
+  started('call_failed', failedRequest, 'session-3', 40)
+);
+trace.recordToolCall(
+  failed('call_failed', failedRequest, 'session-3', 43)
+);
+
 const calls = trace
   .toolTraceStore.getSnapshot()
   .filter((entry) => entry.kind === 'call');
-expect(calls.length === 3, 'Trace should retain all three tool calls.');
+expect(calls.length === 4, 'Trace should retain all four tool calls.');
 expect(
   new Set(calls.map((entry) => entry.id)).size === calls.length,
   'Internal trace IDs must remain unique when provider IDs are reused.'
 );
 expect(
-  calls.every((entry) => entry.status === 'completed'),
-  'Every started call must resolve to its matching completed event.'
+  calls.every((entry) => entry.status === 'completed' || entry.status === 'failed'),
+  'Every started call must resolve to a completed or failed lifecycle event.'
 );
 expect(
   calls.filter((entry) => entry.toolCallId === 'call_0').length === 2,
@@ -101,6 +130,11 @@ expect(
 expect(
   calls.some((entry) => entry.toolCallId === undefined),
   'Trace should preserve anonymous canonical calls without inventing a protocol ID.'
+);
+const failedEntry = calls.find((entry) => entry.toolCallId === 'call_failed');
+expect(
+  failedEntry?.status === 'failed' && failedEntry.retryable === true,
+  'Failed trace entries must preserve retryability for recovery UI.'
 );
 
 console.log('Verified standalone tool trace correlation contracts.');

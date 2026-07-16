@@ -11,6 +11,7 @@ export type ToolTraceEntry = {
   startedAt: number;
   durationMs?: number;
   toolCount?: number;
+  retryable?: boolean;
   summary?: string;
   argumentsText?: string;
   resultText?: string;
@@ -275,6 +276,9 @@ export function recordToolCall(event: ToolCallEvent): void {
       status: event.type === 'failed' ? 'failed' : 'completed',
       startedAt: event.timestamp - event.durationMs,
       durationMs: event.durationMs,
+      ...(event.result.isError && event.result.error?.retryable !== undefined
+        ? { retryable: event.result.error.retryable }
+        : {}),
       summary: resultSummary(event),
       argumentsText: formatTraceJson(event.request.params.arguments ?? {}),
       resultText: formatTraceJson(resultTraceValue(event)),
