@@ -256,7 +256,7 @@ function buildJavaScriptModuleBootstrap(
     Object.fromEntries(moduleSources)
   ).replaceAll('<', '\\u003c');
   const rootSpecifier = workspaceJavaScriptModuleSpecifier(rootKey);
-  return `<script>(function(){const sources=${serializedSources};const urls=Object.create(null);Object.keys(sources).forEach(function(key){urls[${JSON.stringify(WORKSPACE_MODULE_SPECIFIER_PREFIX)}+key.split('/').map(encodeURIComponent).join('/')]=URL.createObjectURL(new Blob([sources[key]],{type:'text/javascript'}))});const importMap=document.createElement('script');importMap.type='importmap';importMap.textContent=JSON.stringify({imports:urls});(document.head||document.documentElement).appendChild(importMap);import(${JSON.stringify(rootSpecifier)}).catch(function(error){setTimeout(function(){throw error},0)})})();</script>`;
+  return `<script>(function(){const sources=${serializedSources};const urls=Object.create(null);Object.keys(sources).forEach(function(key){urls[${JSON.stringify(WORKSPACE_MODULE_SPECIFIER_PREFIX)}+key.split('/').map(encodeURIComponent).join('/')]=URL.createObjectURL(new Blob([sources[key]],{type:'text/javascript'}))});window.addEventListener('pagehide',function(){Object.keys(urls).forEach(function(key){URL.revokeObjectURL(urls[key])})},{once:true});const importMap=document.createElement('script');importMap.type='importmap';importMap.textContent=JSON.stringify({imports:urls});(document.head||document.documentElement).appendChild(importMap);import(${JSON.stringify(rootSpecifier)}).catch(function(error){setTimeout(function(){throw error},0)})})();</script>`;
 }
 
 function visitJavaScriptModuleReferences(

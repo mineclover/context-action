@@ -253,6 +253,11 @@ expectIncludes(
   'https://context-action.local/workspace-module/cycle-b.js',
   'Cyclic module graphs must include every reachable module source.'
 );
+expectIncludes(
+  cyclicModuleDocument,
+  'URL.revokeObjectURL(urls[key])',
+  'Module Blob URLs must be released when the sandbox document unloads.'
+);
 expect(
   !cyclicModuleDocument.includes("from './cycle-a.js'") &&
     !cyclicModuleDocument.includes("from './cycle-b.js'"),
