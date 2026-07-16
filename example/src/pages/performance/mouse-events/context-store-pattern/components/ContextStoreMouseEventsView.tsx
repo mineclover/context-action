@@ -339,17 +339,17 @@ const ContextStoreMouseEventsViewComponent = ({
           <p>
             <strong className="text-gray-900">Unified Store Management:</strong>
             <br />
-            This implementation uses createDeclarativeStores for a single,
-            unified store that manages all mouse state. Computed values are
-            automatically updated and cached for optimal performance.
+            This implementation uses createStoreContext with split stores for
+            position, movement, clicks, derived values, and performance. The
+            Handler Registry keeps updates explicit and cached for inspection.
           </p>
           <p>
             <strong className="text-gray-900">Key Advantages:</strong>
           </p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>
-              <strong>Single Source of Truth:</strong> All mouse data in one
-              store
+              <strong>Split Sources of Truth:</strong> Each update domain has an
+              isolated store
             </li>
             <li>
               <strong>Action Integration:</strong> Built-in action handling with
@@ -371,9 +371,8 @@ const ContextStoreMouseEventsViewComponent = ({
           <p>
             <strong className="text-gray-900">vs Reactive Stores:</strong>
             <br />
-            Context Store provides better integration with the @context-action
-            framework, simpler state management, and built-in action handling
-            compared to multiple separate stores.
+            Context Store provides explicit store boundaries and built-in action
+            handling compared to a page-local state model.
           </p>
         </div>
       </DemoCard>
@@ -412,13 +411,15 @@ const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
   },
 };
 
-// Provider Setup
+// Provider Setup: Action → Store → Handler Registry
 export const MouseEventsProvider = ({ children }) => (
-  <MouseEventsStoreProvider registryId="mouse-events-page">
-    <MouseEventsActionProvider>
-      {children}
-    </MouseEventsActionProvider>
-  </MouseEventsStoreProvider>
+  <MouseEventsActionProvider>
+    <MouseEventsStores.Provider registryId="mouse-events-page">
+      <MouseEventsHandlerRegistry>
+        {children}
+      </MouseEventsHandlerRegistry>
+    </MouseEventsStores.Provider>
+  </MouseEventsActionProvider>
 );
 
 // Usage in Components

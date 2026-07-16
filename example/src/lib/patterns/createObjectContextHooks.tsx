@@ -9,6 +9,7 @@ import {
   useStoreValue,
 } from '@context-action/react';
 import React, { ReactNode, useEffect, useRef } from 'react';
+import { useObjectContextHandlerRegistry } from './handlers/ObjectContextHandlerRegistry';
 import { ObjectContextManager } from './ObjectContextManager';
 import {
   BaseObjectActions,
@@ -391,186 +392,11 @@ export function createObjectContextHooks<T extends ManagedObject>(
    * 실시간 동기화를 위한 Action Handler Hook
    */
   const useObjectContextSync = () => {
-    const storeManager = useObjectStoreManager();
-    const manager = useObjectContextManager();
-
-    // Action handlers for store synchronization
-    useObjectActionHandler('register', async (payload) => {
-      // Manager를 통해 실제 등록 처리
-      const { id, object, metadata, contextMetadata } = payload;
-      await manager.register(id, object, metadata, contextMetadata);
-
-      // Store 동기화
-      const objectMetadata = manager.getMetadata(id);
-      if (objectMetadata) {
-        const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<
-          string,
-          ObjectMetadata
-        >;
-        const updatedObjects = new Map(currentObjects);
-        updatedObjects.set(id, objectMetadata);
-        objectsStore.setValue(updatedObjects);
-      }
-    });
-
-    useObjectActionHandler('unregister', async (payload) => {
-      const { id, force } = payload;
-      await manager.unregister(id, force);
-
-      // Store 동기화
-      const objectsStore = storeManager.getStore('objects');
-      const currentObjects = objectsStore.getValue() as Map<
-        string,
-        ObjectMetadata
-      >;
-      const updatedObjects = new Map(currentObjects);
-      updatedObjects.delete(id);
-      objectsStore.setValue(updatedObjects);
-
-      // 선택 및 포커스에서 제거
-      const selectedObjectsStore = storeManager.getStore('selectedObjects');
-      const currentSelected = selectedObjectsStore.getValue() as string[];
-      if (currentSelected.includes(id)) {
-        selectedObjectsStore.setValue(
-          currentSelected.filter((selectedId) => selectedId !== id)
-        );
-      }
-
-      const focusedObjectStore = storeManager.getStore('focusedObject');
-      if (focusedObjectStore.getValue() === id) {
-        focusedObjectStore.setValue(null);
-      }
-    });
-
-    useObjectActionHandler('update', async (payload) => {
-      const { id, object, metadata, contextMetadata } = payload;
-      await manager.update(id, object, metadata, contextMetadata);
-
-      // Store 동기화
-      const objectMetadata = manager.getMetadata(id);
-      if (objectMetadata) {
-        const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<
-          string,
-          ObjectMetadata
-        >;
-        const updatedObjects = new Map(currentObjects);
-        updatedObjects.set(id, objectMetadata);
-        objectsStore.setValue(updatedObjects);
-      }
-    });
-
-    // 생명주기 상태 변경 핸들러들
-    const handleLifecycleChange = async (actionType: string, payload: any) => {
-      // @ts-ignore - 동적 액션 호출
-      await manager.actionRegister.dispatch(actionType, payload);
-
-      // Store 동기화
-      const objectMetadata = manager.getMetadata(payload.id);
-      if (objectMetadata) {
-        const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<
-          string,
-          ObjectMetadata
-        >;
-        const updatedObjects = new Map(currentObjects);
-        updatedObjects.set(payload.id, objectMetadata);
-        objectsStore.setValue(updatedObjects);
-      }
-    };
-
-    useObjectActionHandler('activate', async (payload) => {
-      await handleLifecycleChange('activate', payload);
-    });
-
-    useObjectActionHandler('deactivate', async (payload) => {
-      await handleLifecycleChange('deactivate', payload);
-    });
-
-    useObjectActionHandler('archive', async (payload) => {
-      await handleLifecycleChange('archive', payload);
-    });
-
-    useObjectActionHandler('restore', async (payload) => {
-      await handleLifecycleChange('restore', payload);
-    });
-
-    // 선택 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
-    const selectHandler = async (payload: any) => {
-      if (!config.enableSelection) return;
-
-      // @ts-ignore
-      await manager.actionRegister.dispatch('select', payload);
-
-      // Store 동기화
-      const selectedObjects = manager.getSelectedObjects();
-      const selectedObjectsStore = storeManager.getStore('selectedObjects');
-      selectedObjectsStore.setValue(selectedObjects);
-    };
-
-    const clearSelectionHandler = async () => {
-      if (!config.enableSelection) return;
-
-      // @ts-ignore
-      await manager.actionRegister.dispatch('clearSelection');
-
-      // Store 동기화
-      const selectedObjectsStore = storeManager.getStore('selectedObjects');
-      selectedObjectsStore.setValue([]);
-    };
-
-    useObjectActionHandler('select', selectHandler);
-    useObjectActionHandler('clearSelection', clearSelectionHandler);
-
-    // 포커스 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
-    const focusHandler = async (payload: any) => {
-      if (!config.enableFocus) return;
-
-      // @ts-ignore
-      await manager.actionRegister.dispatch('focus', payload);
-
-      // Store 동기화
-      const focusedObject = manager.getFocusedObject();
-      const focusedObjectStore = storeManager.getStore('focusedObject');
-      focusedObjectStore.setValue(focusedObject);
-    };
-
-    const clearFocusHandler = async () => {
-      if (!config.enableFocus) return;
-
-      // @ts-ignore
-      await manager.actionRegister.dispatch('clearFocus');
-
-      // Store 동기화
-      const focusedObjectStore = storeManager.getStore('focusedObject');
-      focusedObjectStore.setValue(null);
-    };
-
-    useObjectActionHandler('focus', focusHandler);
-    useObjectActionHandler('clearFocus', clearFocusHandler);
-
-    useObjectActionHandler('cleanup', async (payload) => {
-      // @ts-ignore
-      await manager.actionRegister.dispatch('cleanup', payload);
-
-      // Store 전체 동기화
-      const allObjects = manager.getAllObjects();
-      const objectsStore = storeManager.getStore('objects');
-      const objectsMetadata = new Map<string, ObjectMetadata>();
-
-      for (const [id, _] of allObjects) {
-        const metadata = manager.getMetadata(id);
-        if (metadata) {
-          objectsMetadata.set(id, metadata);
-        }
-      }
-
-      objectsStore.setValue(objectsMetadata);
-
-      // 정리 시간 업데이트
-      const lastCleanupStore = storeManager.getStore('lastCleanup');
-      lastCleanupStore.setValue(new Date().toISOString());
+    useObjectContextHandlerRegistry({
+      config,
+      useObjectActionHandler,
+      useObjectStoreManager,
+      useObjectContextManager,
     });
   };
 

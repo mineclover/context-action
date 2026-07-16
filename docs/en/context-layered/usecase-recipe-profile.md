@@ -259,6 +259,28 @@ Use this recipe when measuring handler identity, registration churn, or the
 effect of lazy Store reads. Keep the contrast explicit in the Registry and do
 not let a legacy comparison path become a second architectural standard.
 
+## Generic object-context synchronization usecase
+
+The generic object-context factory is a useful usecase when one domain needs
+object lifecycle commands, a manager-owned runtime, and reactive metadata
+without coupling views to the manager implementation:
+
+```text
+semantic command → ObjectContextHandlerRegistry
+                 → ObjectContextManager.dispatch → typed Stores → view
+```
+
+- `createObjectContextHooks` creates the Action/Store/Manager contracts and
+  keeps its public hooks compatible.
+- `handlers/ObjectContextHandlerRegistry.tsx` registers lifecycle, selection,
+  focus, and cleanup actions, then synchronizes metadata into Stores.
+- `ObjectContextManager` owns domain lifecycle behavior; its public `dispatch`
+  bridge keeps the internal `ActionRegister` private.
+
+Use this recipe for dashboards, editors, or catalogs that manage many typed
+entities and need independent subscriptions for object lists, selection, focus,
+and cleanup state.
+
 ## High-frequency pointer tracking usecase
 
 Mouse tracking is a useful usecase when high-frequency input, derived metrics,
@@ -281,6 +303,17 @@ The enhanced context-store mouse recipe demonstrates this boundary:
   derived metrics and performance counters.
 - the View subscribes to the metrics it renders and leaves DOM/canvas control to
   the Ref-aware control hooks.
+
+The lower-level context-store variant is useful when the example should make the
+Store boundaries visible:
+
+- `context-store-pattern/context/MouseEventsContext.tsx` defines the typed Action
+  and Store contracts plus derived calculation helpers.
+- `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx` owns the six
+  event registrations and updates the split stores.
+- `context-store-pattern/providers/MouseEventsProvider.tsx` keeps Provider
+  composition outside the context definition, so containers only dispatch
+  semantic pointer actions.
 
 Use this recipe when the feature needs observable state without forcing every
 pointer event through a large page-level render tree. Keep the action payload

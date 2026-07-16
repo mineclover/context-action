@@ -246,6 +246,28 @@ handler identity, registration churn, lazy Store read의 효과를 측정할 때
 recipe를 사용합니다. 비교 의도는 Registry 안에 명시하고 legacy 경로가 두 번째
 아키텍처 표준이 되지 않게 합니다.
 
+## 범용 object-context 동기화 usecase
+
+하나의 도메인에서 객체 lifecycle command, Manager가 소유한 runtime, 반응형
+metadata를 함께 관리하면서 View를 Manager 구현과 분리해야 할 때 범용
+object-context factory를 사용합니다.
+
+```text
+semantic command → ObjectContextHandlerRegistry
+                 → ObjectContextManager.dispatch → typed Store → view
+```
+
+- `createObjectContextHooks`가 Action·Store·Manager 계약과 호환 public hook을
+  생성합니다.
+- `handlers/ObjectContextHandlerRegistry.tsx`가 lifecycle, selection, focus,
+  cleanup action을 등록하고 metadata를 Store에 동기화합니다.
+- `ObjectContextManager`가 도메인 lifecycle 동작을 소유하며, public `dispatch`
+  bridge를 통해 내부 `ActionRegister`를 비공개로 유지합니다.
+
+여러 typed entity를 관리하는 dashboard, editor, catalog에서 object list,
+selection, focus, cleanup 상태를 독립적으로 구독해야 할 때 이 recipe를
+사용합니다.
+
 ## 고빈도 포인터 추적 usecase
 
 고빈도 입력과 파생 metric, 직접 DOM 피드백을 함께 다뤄야 할 때 mouse
@@ -268,6 +290,16 @@ enhanced context-store mouse recipe는 다음 경계를 보여줍니다.
   store로 분리합니다.
 - View는 렌더링할 metric만 구독하고 DOM/canvas 제어는 Ref-aware control hook에
   맡깁니다.
+
+더 낮은 수준의 context-store 변형은 Store 경계를 직접 보여줘야 할 때
+사용합니다.
+
+- `context-store-pattern/context/MouseEventsContext.tsx`가 typed Action·Store
+  계약과 파생 계산 helper를 정의합니다.
+- `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx`가 6개 이벤트
+  등록과 분할 Store 업데이트를 소유합니다.
+- `context-store-pattern/providers/MouseEventsProvider.tsx`가 context 정의 밖에서
+  Provider 조합을 담당하므로 container는 의미 기반 pointer action만 dispatch합니다.
 
 큰 page-level render tree 전체를 매 pointer event마다 갱신하지 않으면서 관찰
 가능한 state가 필요할 때 이 recipe를 사용합니다. action payload는 작게

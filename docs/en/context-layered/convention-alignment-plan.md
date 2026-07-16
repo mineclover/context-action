@@ -1,6 +1,6 @@
 # Context-Layered Convention Alignment Plan
 
-**Status:** Migration baseline documented; remaining surfaces tracked
+**Status:** Direct-registration inventory closed; remaining structural gates tracked
 **Last reviewed:** 2026-07-16
 
 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable.
@@ -57,7 +57,7 @@ The repository uses Biome `2.5.3`, which is the current npm `latest` as of 2026-
 
 Biome remains responsible for language-level concerns: parsing, formatting, import organization, and generic lint rules. Context-Layered rules are enforced by the repository-specific `pnpm convention:check` command in `scripts/check-context-layered-conventions.mjs`. This split is intentional: a Biome GritQL plugin can match a local syntax pattern, but registry placement, transitional exceptions, and Provider ordering are repository structure rules that need file-aware analysis and an explicit migration inventory.
 
-The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The current transitional allowlist records 2 known legacy/advanced files; they are reported but do not fail the check. Any new direct registration outside that allowlist fails immediately. The allowlist is reduced as each remaining surface is migrated.
+The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The transitional allowlist is now empty: the direct-registration inventory has no remaining exceptions. Any new direct registration outside a Registry fails immediately.
 
 The next enforcement steps are to add Provider-order and layer-path checks, then remove the transitional allowlist when the inventory reaches zero (or every remaining file has an explicit compatibility classification). `convention:check` is already part of `verify:all`, so CI catches new direct registrations today.
 
@@ -98,6 +98,8 @@ The following classification is the baseline for migration.
 - The ActionGuard priority-word demo now keeps registered words, execution status, and results in a typed Store Context; semantic commands live in `components/priority/actions/usePriorityDemoActions.ts`, and the ordered async run is owned by `components/priority/handlers/PriorityDemoHandlerRegistry.tsx`.
 - The legacy Scroll, Search, and Throttle entry points are now compatibility re-exports of their canonical Refactored pages, so old source links remain valid without preserving direct handler registrations.
 - The memoization comparison now keeps pure comparison transitions in `business/comparison-rules.ts`, registers both handler lanes and performance controls in `handlers/ComparisonHandlerRegistry.tsx`, and exposes the old component/hooks as compatibility entry points.
+- The context-store mouse usecase now keeps its six event registrations in `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx`; `providers/MouseEventsProvider.tsx` owns the Action → Store → Registry composition while the context module remains the contract and derived-rule boundary.
+- The generic `createObjectContextHooks` factory now delegates its Action → Manager → Store synchronization to `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`; `ObjectContextManager.dispatch` is the domain-safe bridge instead of exposing its internal ActionRegister.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -113,7 +115,7 @@ The following classification is the baseline for migration.
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, the legacy mouse-events demo, the ActionGuard context-store mouse demo, Enhanced Abortable Search, the enhanced context-store mouse usecase, SearchPageRefactored, ApiBlockingPageRefactored, ScrollPageRefactored, ThrottleComparisonPageRefactored, the ActionGuard priority-word demo, and the memoization comparison are complete. The current inventory has 2 remaining files in foundations compatibility and performance surfaces.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, the legacy mouse-events demo, the ActionGuard context-store mouse demo, Enhanced Abortable Search, the enhanced context-store mouse usecase, SearchPageRefactored, ApiBlockingPageRefactored, ScrollPageRefactored, ThrottleComparisonPageRefactored, the ActionGuard priority-word demo, the memoization comparison, and the generic object-context factory are complete. The direct-registration inventory is now empty.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
@@ -121,14 +123,14 @@ The following classification is the baseline for migration.
 
 ## Remaining Direct-Registration Inventory
 
-This inventory is intentionally separated from the canonical playbook examples. The current search finds 2 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
+This inventory is intentionally separated from the canonical playbook examples. The current search finds no direct-registration files, so the structural check can run without transitional exceptions.
 
 | Group | Remaining surfaces |
 | --- | --- |
-| Foundations and compatibility | `lib/patterns/createObjectContextHooks.tsx` |
+| Foundations and compatibility | No remaining direct registrations |
 | Pattern demonstrations | No remaining direct registrations |
 | Integrations | No remaining direct registrations |
-| Performance demonstrations | `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx` |
+| Performance demonstrations | No remaining direct registrations |
 
 ## Completion Gates
 
@@ -139,4 +141,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The next re-entry point is the remaining performance groups. Do not mark the migration complete until the 2-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
+The direct-registration gate is complete. The next re-entry point is Provider-order and layer-path enforcement; keep compatibility exports documented, but do not add new handler registrations outside Registry modules.

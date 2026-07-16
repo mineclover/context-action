@@ -579,6 +579,20 @@ export class ObjectContextManager<T extends ManagedObject> {
   // Public API Methods
 
   /**
+   * 내부 ActionRegister를 도메인 경계 밖에 노출하지 않고 액션을 실행합니다.
+   * Handler Registry는 이 메서드를 통해 Manager의 기본 핸들러를 호출합니다.
+   */
+  public dispatch<K extends keyof BaseObjectActions<T>>(
+    action: K,
+    payload?: BaseObjectActions<T>[K]
+  ): Promise<void> {
+    if (payload === undefined) {
+      return this.actionRegister.dispatch(action);
+    }
+    return this.actionRegister.dispatch(action, payload);
+  }
+
+  /**
    * 객체 등록
    */
   public async register(

@@ -5,7 +5,7 @@
  */
 
 import { EnhancedContextStoreView } from '../components/EnhancedContextStoreView';
-import { MouseEventsProvider } from '../context/MouseEventsContext';
+import { MouseEventsProvider } from '../providers/MouseEventsProvider';
 
 /**
  * 향상된 Context Store 기반 마우스 이벤트 Container - Simplified

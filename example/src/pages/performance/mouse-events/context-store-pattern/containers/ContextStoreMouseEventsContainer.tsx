@@ -9,10 +9,10 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEventsView';
 import {
   aggregateMouseEventsState,
-  MouseEventsProvider,
   useMouseEventsActionDispatch,
   useMouseEventsStore,
 } from '../context/MouseEventsContext';
+import { MouseEventsProvider } from '../providers/MouseEventsProvider';
 
 /**
  * Context Store 기반 마우스 이벤트 Container 내부 로직
