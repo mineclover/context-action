@@ -102,6 +102,12 @@ const realtimeAgentActionsSource = readSource(
 const realtimeToolHandlersSource = readSource(
   'example/src/pages/integrations/live-web-coding/handlers/LiveWebCodingToolHandlers.tsx'
 );
+const realtimeObservablesSource = readSource(
+  'example/src/pages/integrations/live-web-coding/hooks/useLiveWebCodingObservables.ts'
+);
+const realtimeTraceActionsSource = readSource(
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingTraceActions.ts'
+);
 const liveEditorToolbarSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
 );
@@ -200,6 +206,21 @@ assertContains(
   /useLiveWebCodingToolHandler\(/,
   'realtime web-coding handler registration boundary'
 );
+assertContains(
+  realtimeObservablesSource,
+  /useSyncExternalStore\(/,
+  'realtime web-coding external observable boundary'
+);
+assertContains(
+  realtimeTraceActionsSource,
+  /clearLiveWebCodingTrace\(\)/,
+  'realtime web-coding trace clear action'
+);
+assertContains(
+  realtimeTraceActionsSource,
+  /serializeToolTrace\(/,
+  'realtime web-coding trace export action'
+);
 assertNotContains(
   realtimeWebCodingSource,
   /registry\.(?:callTool|executeModelToolCall|listTools)/,
@@ -209,6 +230,11 @@ assertNotContains(
   realtimeWebCodingSource,
   /useLiveWebCodingToolHandler\(/,
   'handler registration from the realtime web-coding workbench'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /(?:useSyncExternalStore|liveWebCodingTraceStore|clearLiveWebCodingTrace|serializeToolTrace|downloadTextFile|writeClipboardText)/,
+  'observable or trace runtime APIs from the realtime web-coding workbench'
 );
 assertContains(
   liveEditorAgentActionsSource,
@@ -322,4 +348,5 @@ console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
 console.log('- live editor reset approval boundary checked');
 console.log('- realtime web-coding handler/action/presentation boundary checked');
+console.log('- realtime web-coding observability/trace export boundary checked');
 console.log('- realtime web-coding reset approval boundary checked');

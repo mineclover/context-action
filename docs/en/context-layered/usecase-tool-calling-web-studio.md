@@ -98,8 +98,11 @@ owns ToolContext and handler registration, `actions/useLiveWebCodingToolActions.
 owns `tools/list`, direct palette `tools/call`, and local-agent model-shaped calls,
 while `actions/useLiveWebCodingAgentExecution.ts` owns the provider/local loop,
 message history, cancellation, and agent trace lifecycle. The workbench composes
-these returned data and callbacks; it does not call registry runtime methods or
-provider transport APIs directly.
+these returned data and callbacks. `hooks/useLiveWebCodingObservables.ts` owns
+workspace/document/trace subscriptions, and
+`actions/useLiveWebCodingTraceActions.ts` owns trace clear/copy/download. The
+workbench does not call registry, provider, external-store, or trace export APIs
+directly.
 
 ## Rules
 

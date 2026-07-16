@@ -98,8 +98,11 @@ ToolContext와 handler 등록을 소유하고, `actions/useLiveWebCodingToolActi
 `tools/list`, palette의 direct `tools/call`, local-agent의 model-shaped call을
 소유합니다. `actions/useLiveWebCodingAgentExecution.ts`는 provider/local loop,
 message history, cancellation, agent trace lifecycle을 담당합니다. 따라서
-workbench는 반환된 data와 callback을 조합할 뿐 registry runtime method나
-provider transport API를 직접 호출하지 않습니다.
+workbench는 반환된 data와 callback을 조합할 뿐 registry, provider,
+external-store, trace export API를 직접 호출하지 않습니다.
+`hooks/useLiveWebCodingObservables.ts`는 workspace/document/trace subscription을,
+`actions/useLiveWebCodingTraceActions.ts`는 trace clear/copy/download를
+소유합니다.
 
 ## 규칙
 

@@ -5,7 +5,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
@@ -15,18 +14,9 @@ import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
-import {
-  clearLiveWebCodingTrace,
-  formatLiveWebCodingTraceId,
-  liveWebCodingTraceStore,
-} from '../../../lib/live-web-coding-trace';
+import { formatLiveWebCodingTraceId } from '../../../lib/live-web-coding-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
-import {
-  createToolCallSessionId,
-  downloadTextFile,
-  serializeToolTrace,
-  writeClipboardText,
-} from '../../../lib/tool-call-trace';
+import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import { useLiveEditorProviderSettings } from '../live-code-editor/actions/useLiveEditorProviderSettings';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
 import { useLiveWebCodingAgentExecution } from './actions/useLiveWebCodingAgentExecution';
@@ -34,10 +24,12 @@ import {
   formatLiveWebCodingToolResult,
   useLiveWebCodingToolActions,
 } from './actions/useLiveWebCodingToolActions';
+import { useLiveWebCodingTraceActions } from './actions/useLiveWebCodingTraceActions';
 import {
   LIVE_WEB_WORKSPACE_ID,
   LiveWebCodingToolHandlers,
 } from './handlers/LiveWebCodingToolHandlers';
+import { useLiveWebCodingObservables } from './hooks/useLiveWebCodingObservables';
 import styles from './LiveWebCodingPage.module.css';
 import { LiveWebCodingToolProvider } from './LiveWebCodingToolchain';
 
@@ -165,21 +157,12 @@ function LiveWebCodingWorkbench({
   documentManager: LiveEditorDocumentManager;
   repository: LiveEditorWorkspaceRepository;
 }) {
-  const trace = useSyncExternalStore(
-    liveWebCodingTraceStore.subscribe,
-    liveWebCodingTraceStore.getSnapshot,
-    liveWebCodingTraceStore.getSnapshot
-  );
-  const workspaceSnapshot = useSyncExternalStore(
-    (listener) => manager.subscribe(() => listener()),
-    manager.getSnapshot,
-    manager.getSnapshot
-  );
-  const documentSnapshot = useSyncExternalStore(
-    (listener) => documentManager.subscribe(() => listener()),
-    documentManager.getSnapshot,
-    documentManager.getSnapshot
-  );
+  const {
+    document: documentSnapshot,
+    trace,
+    workspace: workspaceSnapshot,
+  } = useLiveWebCodingObservables({ manager, documentManager });
+  const traceActions = useLiveWebCodingTraceActions(trace);
   const providerSettings = useLiveEditorProviderSettings();
   const { apiKey, models, selectedModel } = providerSettings;
   const [prompt, setPrompt] = useState(
@@ -188,7 +171,6 @@ function LiveWebCodingWorkbench({
   const [directLoading, setDirectLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
-  const [traceCopied, setTraceCopied] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
   const directControllerRef = useRef<AbortController | null>(null);
@@ -213,7 +195,8 @@ function LiveWebCodingWorkbench({
     run,
   } = agentExecution;
   const loading = agentLoading || directLoading;
-  const displayError = agentError || error || providerSettings.error;
+  const displayError =
+    agentError || error || providerSettings.error || traceActions.error;
 
   useEffect(() => {
     if (!resetConfirmationOpen) return;
@@ -273,25 +256,6 @@ function LiveWebCodingWorkbench({
     const controller = directControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
     cancelAgentExecution();
-  };
-
-  const copyTrace = async () => {
-    if (!trace.length) return;
-    try {
-      await writeClipboardText(serializeToolTrace(trace));
-      setTraceCopied(true);
-      window.setTimeout(() => setTraceCopied(false), 1600);
-    } catch {
-      setError('웹 코딩 trace를 복사하지 못했습니다. Download를 사용하세요.');
-    }
-  };
-
-  const downloadTrace = () => {
-    if (!trace.length) return;
-    downloadTextFile(
-      serializeToolTrace(trace),
-      'context-action-web-trace.json'
-    );
   };
 
   const sendPrompt = (event: FormEvent<HTMLFormElement>) => {
@@ -385,7 +349,7 @@ function LiveWebCodingWorkbench({
           scenario: 'success',
         });
       }
-      clearLiveWebCodingTrace();
+      traceActions.commands.clear();
       resetConversation();
       setStatus(`${persisted.files.length} demo files restored · iframe ready`);
     } catch (resetError) {
@@ -544,7 +508,7 @@ function LiveWebCodingWorkbench({
                       className={styles.toolTraceClear}
                       aria-label="Clear web coding tool trace"
                       disabled={!trace.length}
-                      onClick={clearLiveWebCodingTrace}
+                      onClick={traceActions.commands.clear}
                     >
                       Clear
                     </button>
@@ -553,16 +517,16 @@ function LiveWebCodingWorkbench({
                       className={styles.toolTraceClear}
                       aria-label="Copy web coding tool trace"
                       disabled={!trace.length}
-                      onClick={() => void copyTrace()}
+                      onClick={() => void traceActions.commands.copy()}
                     >
-                      {traceCopied ? 'Copied' : 'Copy'}
+                      {traceActions.traceCopied ? 'Copied' : 'Copy'}
                     </button>
                     <button
                       type="button"
                       className={styles.toolTraceClear}
                       aria-label="Download web coding tool trace"
                       disabled={!trace.length}
-                      onClick={downloadTrace}
+                      onClick={traceActions.commands.download}
                     >
                       Download
                     </button>
