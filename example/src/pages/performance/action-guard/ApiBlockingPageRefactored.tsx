@@ -6,120 +6,20 @@
  * 고급 API 블로킹 패턴과 성능 최적화를 보여주는 데모입니다.
  */
 
-import {
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
-import { useCallback, useRef } from 'react';
+import { useStoreValue } from '@context-action/react';
 import { CodeBlock } from '@/components/ui';
-
-// ===== 타입 정의 =====
-interface ApiCallRecord {
-  id: string;
-  endpoint: string;
-  timestamp: number;
-  status: 'success' | 'blocked' | 'error' | 'pending';
-  responseTime?: number;
-  method: string;
-  reason?: string;
-}
-
-interface ApiBlockingActions {
-  makeApiCall: { endpoint: string; method: string; timestamp: number };
-  apiCallSuccess: {
-    callId: string;
-    endpoint: string;
-    responseTime: number;
-    timestamp: number;
-  };
-  apiCallBlocked: { endpoint: string; reason: string; timestamp: number };
-  apiCallError: { endpoint: string; error: string; timestamp: number };
-  startBlocking: { action: string; duration: number; timestamp: number };
-  endBlocking: { action: string; timestamp: number };
-  setBlockDuration: { duration: number };
-  clearHistory: void;
-  configureRateLimit: {
-    enabled: boolean;
-    maxRequests: number;
-    windowMs: number;
-  };
-}
-
-interface BlockingMetrics {
-  totalRequests: number;
-  successfulRequests: number;
-  blockedRequests: number;
-  errorRequests: number;
-  averageResponseTime: number;
-  successRate: number;
-  blockingEfficiency: number;
-  currentLoadLevel: 'low' | 'medium' | 'high';
-}
-
-interface RateLimitConfig {
-  enabled: boolean;
-  maxRequests: number;
-  windowMs: number;
-  currentWindow: number;
-  requestsInWindow: number;
-}
-
-// ===== Store Context =====
-const { Provider: ApiBlockingStoreProvider, useStore: useApiBlockingStore } =
-  createStoreContext('AdvancedApiBlocking', {
-    apiCalls: [] as ApiCallRecord[],
-    isBlocked: false,
-    blockedAction: null as string | null,
-    blockEndTime: null as number | null,
-    blockDuration: 2000,
-    rateLimit: {
-      enabled: true,
-      maxRequests: 5,
-      windowMs: 10000,
-      currentWindow: Date.now(),
-      requestsInWindow: 0,
-    } as RateLimitConfig,
-    metrics: {
-      totalRequests: 0,
-      successfulRequests: 0,
-      blockedRequests: 0,
-      errorRequests: 0,
-      averageResponseTime: 0,
-      successRate: 100,
-      blockingEfficiency: 0,
-      currentLoadLevel: 'low' as const,
-    } as BlockingMetrics,
-  });
-
-// ===== Action Context =====
-const {
-  Provider: ApiBlockingActionProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<ApiBlockingActions>('AdvancedApiBlocking');
-
-// ===== API 엔드포인트 데이터 =====
-const apiEndpoints = [
-  { path: '/api/users', method: 'GET', category: 'Users', load: 'high' },
-  { path: '/api/posts', method: 'GET', category: 'Content', load: 'medium' },
-  { path: '/api/comments', method: 'POST', category: 'Content', load: 'low' },
-  { path: '/api/profile', method: 'PUT', category: 'Users', load: 'medium' },
-  { path: '/api/settings', method: 'PATCH', category: 'Config', load: 'low' },
-  {
-    path: '/api/analytics',
-    method: 'GET',
-    category: 'Analytics',
-    load: 'high',
-  },
-  {
-    path: '/api/notifications',
-    method: 'GET',
-    category: 'System',
-    load: 'medium',
-  },
-  { path: '/api/upload', method: 'POST', category: 'File', load: 'high' },
-];
+import { useApiBlockingActions } from './api-blocking/actions/useApiBlockingActions';
+import {
+  apiEndpoints,
+  isBlockingActive,
+  isRateLimited,
+} from './api-blocking/business/api-blocking-rules';
+import {
+  ApiBlockingActionProvider,
+  ApiBlockingStoreProvider,
+  useApiBlockingStore,
+} from './api-blocking/contexts/ApiBlockingContexts';
+import { ApiBlockingHandlerRegistry } from './api-blocking/handlers/ApiBlockingHandlerRegistry';
 
 // ===== 메인 페이지 컴포넌트 =====
 export function ApiBlockingPageRefactored() {
@@ -129,18 +29,20 @@ export function ApiBlockingPageRefactored() {
         {/* 1. Architecture Section */}
         <ArchitectureSection />
 
-        <ApiBlockingStoreProvider>
-          <ApiBlockingActionProvider>
-            {/* 2. Demo Section */}
-            <DemoSection />
+        <ApiBlockingActionProvider>
+          <ApiBlockingStoreProvider>
+            <ApiBlockingHandlerRegistry>
+              {/* 2. Demo Section */}
+              <DemoSection />
 
-            {/* 3. Status Section */}
-            <StatusSection />
+              {/* 3. Status Section */}
+              <StatusSection />
 
-            {/* 4. Code Section */}
-            <CodeSection />
-          </ApiBlockingActionProvider>
-        </ApiBlockingStoreProvider>
+              {/* 4. Code Section */}
+              <CodeSection />
+            </ApiBlockingHandlerRegistry>
+          </ApiBlockingStoreProvider>
+        </ApiBlockingActionProvider>
       </div>
     </div>
   );
@@ -312,8 +214,8 @@ function DemoSection() {
 
 // ===== API Blocking Demo Interface =====
 function ApiBlockingDemoInterface() {
-  const dispatch = useActionDispatch();
-  const blockingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { makeApiCall, setBlockDuration, configureRateLimit, clearHistory } =
+    useApiBlockingActions();
 
   // Store subscriptions
   const apiCallsStore = useApiBlockingStore('apiCalls');
@@ -332,317 +234,8 @@ function ApiBlockingDemoInterface() {
   const rateLimit = useStoreValue(rateLimitStore);
   const metrics = useStoreValue(metricsStore);
 
-  // Helper functions
-  const isCurrentlyBlocked = useCallback(() => {
-    if (!isBlocked || !blockEndTime) return false;
-    return Date.now() < blockEndTime;
-  }, [isBlocked, blockEndTime]);
-
-  const isRateLimited = useCallback(() => {
-    if (!rateLimit?.enabled) return false;
-    const now = Date.now();
-    const windowStart =
-      Math.floor(now / rateLimit.windowMs) * rateLimit.windowMs;
-
-    if (windowStart !== rateLimit.currentWindow) {
-      // New window, reset counter
-      rateLimitStore.setValue({
-        ...rateLimit,
-        currentWindow: windowStart,
-        requestsInWindow: 0,
-      });
-      return false;
-    }
-
-    return rateLimit.requestsInWindow >= rateLimit.maxRequests;
-  }, [rateLimit, rateLimitStore]);
-
-  const simulateApiCall = useCallback(
-    async (
-      endpoint: string
-    ): Promise<{ success: boolean; responseTime: number }> => {
-      const responseTime = Math.random() * 800 + 200;
-      await new Promise((resolve) => setTimeout(resolve, responseTime));
-
-      return {
-        success: Math.random() > 0.15, // 15% failure rate
-        responseTime: Math.round(responseTime),
-      };
-    },
-    []
-  );
-
-  // Action handlers
-  useActionHandler(
-    'makeApiCall',
-    useCallback(
-      async (payload) => {
-        const { endpoint, method, timestamp } = payload;
-        const callId = `call-${timestamp}`;
-
-        // Add pending request
-        const pendingRecord: ApiCallRecord = {
-          id: callId,
-          endpoint,
-          timestamp,
-          status: 'pending',
-          method,
-        };
-
-        apiCallsStore.setValue([pendingRecord, ...apiCalls].slice(0, 50));
-
-        // Check if blocked
-        if (isCurrentlyBlocked()) {
-          dispatch('apiCallBlocked', {
-            endpoint,
-            reason: 'Request blocked by timing constraint',
-            timestamp: Date.now(),
-          });
-          return;
-        }
-
-        // Check rate limit
-        if (isRateLimited()) {
-          dispatch('apiCallBlocked', {
-            endpoint,
-            reason: 'Rate limit exceeded',
-            timestamp: Date.now(),
-          });
-          return;
-        }
-
-        // Start blocking
-        dispatch('startBlocking', {
-          action: 'apiCall',
-          duration: blockDuration,
-          timestamp: Date.now(),
-        });
-
-        // Update rate limit counter
-        if (rateLimit?.enabled) {
-          rateLimitStore.setValue({
-            ...rateLimit,
-            requestsInWindow: rateLimit.requestsInWindow + 1,
-          });
-        }
-
-        try {
-          const result = await simulateApiCall(endpoint);
-
-          if (result.success) {
-            dispatch('apiCallSuccess', {
-              callId,
-              endpoint,
-              responseTime: result.responseTime,
-              timestamp: Date.now(),
-            });
-          } else {
-            dispatch('apiCallError', {
-              endpoint,
-              error: 'Simulated API error',
-              timestamp: Date.now(),
-            });
-          }
-        } catch (_error) {
-          dispatch('apiCallError', {
-            endpoint,
-            error: 'Network error',
-            timestamp: Date.now(),
-          });
-        }
-      },
-      [
-        dispatch,
-        apiCalls,
-        apiCallsStore,
-        isCurrentlyBlocked,
-        isRateLimited,
-        blockDuration,
-        rateLimit,
-        rateLimitStore,
-        simulateApiCall,
-      ]
-    )
-  );
-
-  useActionHandler(
-    'apiCallSuccess',
-    useCallback(
-      async (payload) => {
-        const { callId, responseTime, timestamp } = payload;
-
-        // Update the pending record
-        const updatedCalls = apiCalls.map((call) =>
-          call.id === callId
-            ? { ...call, status: 'success' as const, responseTime, timestamp }
-            : call
-        );
-
-        apiCallsStore.setValue(updatedCalls);
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        const newTotalRequests = currentMetrics.totalRequests + 1;
-        const newSuccessfulRequests = currentMetrics.successfulRequests + 1;
-        const newAverageResponseTime =
-          (currentMetrics.averageResponseTime * currentMetrics.totalRequests +
-            responseTime) /
-          newTotalRequests;
-
-        metricsStore.setValue({
-          ...currentMetrics,
-          totalRequests: newTotalRequests,
-          successfulRequests: newSuccessfulRequests,
-          averageResponseTime: newAverageResponseTime,
-          successRate: (newSuccessfulRequests / newTotalRequests) * 100,
-          currentLoadLevel:
-            responseTime > 600 ? 'high' : responseTime > 400 ? 'medium' : 'low',
-        });
-      },
-      [apiCalls, apiCallsStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'apiCallBlocked',
-    useCallback(
-      async (payload) => {
-        const { endpoint, reason, timestamp } = payload;
-
-        // Find and update the pending record
-        const updatedCalls = apiCalls.map((call) =>
-          call.timestamp <= timestamp &&
-          call.endpoint === endpoint &&
-          call.status === 'pending'
-            ? { ...call, status: 'blocked' as const, reason, timestamp }
-            : call
-        );
-
-        apiCallsStore.setValue(updatedCalls);
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        metricsStore.setValue({
-          ...currentMetrics,
-          totalRequests: currentMetrics.totalRequests + 1,
-          blockedRequests: currentMetrics.blockedRequests + 1,
-          blockingEfficiency:
-            ((currentMetrics.blockedRequests + 1) /
-              (currentMetrics.totalRequests + 1)) *
-            100,
-        });
-      },
-      [apiCalls, apiCallsStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'apiCallError',
-    useCallback(
-      async (payload) => {
-        const { endpoint, error, timestamp } = payload;
-
-        // Find and update the pending record
-        const updatedCalls = apiCalls.map((call) =>
-          call.timestamp <= timestamp &&
-          call.endpoint === endpoint &&
-          call.status === 'pending'
-            ? { ...call, status: 'error' as const, reason: error, timestamp }
-            : call
-        );
-
-        apiCallsStore.setValue(updatedCalls);
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        metricsStore.setValue({
-          ...currentMetrics,
-          totalRequests: currentMetrics.totalRequests + 1,
-          errorRequests: currentMetrics.errorRequests + 1,
-        });
-      },
-      [apiCalls, apiCallsStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'startBlocking',
-    useCallback(
-      async (payload) => {
-        const { action, duration, timestamp } = payload;
-
-        isBlockedStore.setValue(true);
-        blockedActionStore.setValue(action);
-        blockEndTimeStore.setValue(timestamp + duration);
-
-        // Clear any existing timeout
-        if (blockingTimeoutRef.current) {
-          clearTimeout(blockingTimeoutRef.current);
-        }
-
-        // Set timeout to end blocking
-        blockingTimeoutRef.current = setTimeout(() => {
-          dispatch('endBlocking', { action, timestamp: Date.now() });
-        }, duration);
-      },
-      [dispatch, isBlockedStore, blockedActionStore, blockEndTimeStore]
-    )
-  );
-
-  useActionHandler(
-    'endBlocking',
-    useCallback(
-      async (payload) => {
-        isBlockedStore.setValue(false);
-        blockedActionStore.setValue(null);
-        blockEndTimeStore.setValue(null);
-      },
-      [isBlockedStore, blockedActionStore, blockEndTimeStore]
-    )
-  );
-
-  useActionHandler(
-    'setBlockDuration',
-    useCallback(
-      async (payload) => {
-        blockDurationStore.setValue(payload.duration);
-      },
-      [blockDurationStore]
-    )
-  );
-
-  useActionHandler(
-    'clearHistory',
-    useCallback(async () => {
-      apiCallsStore.setValue([]);
-      metricsStore.setValue({
-        totalRequests: 0,
-        successfulRequests: 0,
-        blockedRequests: 0,
-        errorRequests: 0,
-        averageResponseTime: 0,
-        successRate: 100,
-        blockingEfficiency: 0,
-        currentLoadLevel: 'low',
-      });
-    }, [apiCallsStore, metricsStore])
-  );
-
-  useActionHandler(
-    'configureRateLimit',
-    useCallback(
-      async (payload) => {
-        const currentRateLimit = rateLimitStore.getValue();
-        rateLimitStore.setValue({
-          ...currentRateLimit,
-          ...payload,
-          currentWindow: Date.now(),
-          requestsInWindow: 0,
-        });
-      },
-      [rateLimitStore]
-    )
-  );
+  const currentlyBlocked = isBlockingActive(isBlocked, blockEndTime);
+  const rateLimited = rateLimit ? isRateLimited(rateLimit) : false;
 
   // Remaining block time
   const remainingBlockTime = blockEndTime
@@ -669,11 +262,7 @@ function ApiBlockingDemoInterface() {
                 max="10000"
                 step="500"
                 value={blockDuration}
-                onChange={(e) =>
-                  dispatch('setBlockDuration', {
-                    duration: parseInt(e.target.value),
-                  })
-                }
+                onChange={(e) => setBlockDuration(parseInt(e.target.value))}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
@@ -691,7 +280,7 @@ function ApiBlockingDemoInterface() {
                   type="checkbox"
                   checked={rateLimit?.enabled || false}
                   onChange={(e) =>
-                    dispatch('configureRateLimit', {
+                    configureRateLimit({
                       enabled: e.target.checked,
                       maxRequests: rateLimit?.maxRequests || 5,
                       windowMs: rateLimit?.windowMs || 10000,
@@ -738,16 +327,8 @@ function ApiBlockingDemoInterface() {
             </div>
 
             <button
-              onClick={() =>
-                dispatch('makeApiCall', {
-                  endpoint: endpoint.path,
-                  method: endpoint.method,
-                  timestamp: Date.now(),
-                })
-              }
-              disabled={
-                isCurrentlyBlocked() || (rateLimit?.enabled && isRateLimited())
-              }
+              onClick={() => makeApiCall(endpoint.path, endpoint.method)}
+              disabled={currentlyBlocked || (rateLimit?.enabled && rateLimited)}
               className="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <span className="w-4 h-4" />
@@ -758,7 +339,7 @@ function ApiBlockingDemoInterface() {
       </div>
 
       {/* Blocking Status */}
-      {isCurrentlyBlocked() && (
+      {currentlyBlocked && (
         <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -822,7 +403,7 @@ function ApiBlockingDemoInterface() {
             최근 API 요청 기록
           </h3>
           <button
-            onClick={() => dispatch('clearHistory')}
+            onClick={clearHistory}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
           >
             <span className="w-4 h-4" />
@@ -1149,30 +730,19 @@ function CodeSection() {
               🏪 Store Context
             </h3>
             <CodeBlock size="sm">
-              {`const { Provider, useStore } = createStoreContext('AdvancedApiBlocking', {
-  apiCalls: [] as ApiCallRecord[],
-  isBlocked: false,
-  blockedAction: null as string | null,
-  blockEndTime: null as number | null,
-  blockDuration: 2000,
-  rateLimit: {
-    enabled: true,
-    maxRequests: 5,
-    windowMs: 10000,
-    currentWindow: Date.now(),
-    requestsInWindow: 0
-  } as RateLimitConfig,
-  metrics: {
-    totalRequests: 0,
-    successfulRequests: 0,
-    blockedRequests: 0,
-    errorRequests: 0,
-    averageResponseTime: 0,
-    successRate: 100,
-    blockingEfficiency: 0,
-    currentLoadLevel: 'low' as const
-  } as BlockingMetrics
-});`}
+              {`const {
+  Provider: ApiBlockingActionProvider,
+  useActionHandler: useApiBlockingActionHandler
+} = createActionContext<ApiBlockingActions>('AdvancedApiBlocking');
+
+const { Provider: ApiBlockingStoreProvider, useStore } =
+  createStoreContext<ApiBlockingStores>('AdvancedApiBlocking', {
+    apiCalls: { initialValue: [], strategy: 'shallow' },
+    isBlocked: { initialValue: false },
+    blockDuration: { initialValue: 2000 },
+    rateLimit: { initialValue: createInitialRateLimitConfig() },
+    metrics: { initialValue: createInitialBlockingMetrics() }
+  });`}
             </CodeBlock>
           </div>
 
@@ -1181,12 +751,18 @@ function CodeSection() {
               🛡️ Blocking Logic
             </h3>
             <CodeBlock size="sm">
-              {`useActionHandler('makeApiCall', useCallback(async (payload) => {
+              {`useApiBlockingActionHandler('makeApiCall', useCallback(async (payload) => {
   const { endpoint, method, timestamp } = payload;
+  const callId = createCallId(endpoint, timestamp);
+  apiCallsStore.setValue(appendApiCall(
+    apiCallsStore.getValue(),
+    { id: callId, endpoint, timestamp, method, status: 'pending' }
+  ));
   
   // Check if currently blocked
-  if (isCurrentlyBlocked()) {
-    dispatch('apiCallBlocked', {
+  if (isBlockingActive(isBlockedStore.getValue(), blockEndTimeStore.getValue())) {
+    dispatch('markApiCallBlocked', {
+      callId,
       endpoint,
       reason: 'Request blocked by timing constraint',
       timestamp: Date.now()
@@ -1195,8 +771,9 @@ function CodeSection() {
   }
   
   // Check rate limit
-  if (isRateLimited()) {
-    dispatch('apiCallBlocked', {
+  if (isRateLimited(rateLimitStore.getValue())) {
+    dispatch('markApiCallBlocked', {
+      callId,
       endpoint,
       reason: 'Rate limit exceeded',
       timestamp: Date.now()
@@ -1213,23 +790,24 @@ function CodeSection() {
   
   // Execute API call
   try {
-    const result = await simulateApiCall(endpoint);
+    const result = await simulateApiCall();
     if (result.success) {
-      dispatch('apiCallSuccess', {
-        callId: \`call-\${timestamp}\`,
+      dispatch('markApiCallSuccess', {
+        callId,
         endpoint,
         responseTime: result.responseTime,
         timestamp: Date.now()
       });
     }
   } catch (error) {
-    dispatch('apiCallError', {
+    dispatch('markApiCallError', {
+      callId,
       endpoint,
       error: error.message,
       timestamp: Date.now()
     });
   }
-}, [dispatch, blockDuration, isCurrentlyBlocked, isRateLimited]));`}
+}, [dispatch, apiCallsStore, isBlockedStore, blockEndTimeStore, rateLimitStore]));`}
             </CodeBlock>
           </div>
         </div>
@@ -1240,33 +818,25 @@ function CodeSection() {
               📊 Rate Limiting
             </h3>
             <CodeBlock size="sm">
-              {`const isRateLimited = useCallback(() => {
-  if (!rateLimit?.enabled) return false;
-  
-  const now = Date.now();
-  const windowStart = Math.floor(now / rateLimit.windowMs) * rateLimit.windowMs;
-  
-  // Check if new window started
-  if (windowStart !== rateLimit.currentWindow) {
-    // Reset counter for new window
-    rateLimitStore.setValue({
-      ...rateLimit,
-      currentWindow: windowStart,
-      requestsInWindow: 0
-    });
-    return false;
-  }
-  
-  // Check if limit exceeded
-  return rateLimit.requestsInWindow >= rateLimit.maxRequests;
-}, [rateLimit, rateLimitStore]);
+              {`const normalizedRateLimit = normalizeRateLimit(
+  rateLimitStore.getValue(),
+  Date.now()
+);
 
-// Increment counter on successful validation
-if (rateLimit?.enabled) {
-  rateLimitStore.setValue({
-    ...rateLimit,
-    requestsInWindow: rateLimit.requestsInWindow + 1
+if (isRateLimited(normalizedRateLimit)) {
+  dispatch('markApiCallBlocked', {
+    callId,
+    endpoint,
+    reason: 'Rate limit exceeded',
+    timestamp: Date.now()
   });
+  return;
+}
+
+if (normalizedRateLimit.enabled) {
+  rateLimitStore.setValue(
+    incrementRateLimit(normalizedRateLimit, Date.now())
+  );
 }`}
             </CodeBlock>
           </div>
@@ -1276,24 +846,15 @@ if (rateLimit?.enabled) {
               📈 Metrics Tracking
             </h3>
             <CodeBlock size="sm">
-              {`// Success metrics update
-const currentMetrics = metricsStore.getValue();
-const newTotalRequests = currentMetrics.totalRequests + 1;
-const newSuccessfulRequests = currentMetrics.successfulRequests + 1;
-const newAverageResponseTime = (
-  (currentMetrics.averageResponseTime * currentMetrics.totalRequests) + responseTime
-) / newTotalRequests;
+              {`const nextMetrics = recordSuccessfulRequest(
+  metricsStore.getValue(),
+  responseTime
+);
 
-metricsStore.setValue({
-  ...currentMetrics,
-  totalRequests: newTotalRequests,
-  successfulRequests: newSuccessfulRequests,
-  averageResponseTime: newAverageResponseTime,
-  successRate: (newSuccessfulRequests / newTotalRequests) * 100,
-  currentLoadLevel: responseTime > 600 ? 'high' : 
-                   responseTime > 400 ? 'medium' : 'low',
-  blockingEfficiency: (blockedRequests / totalRequests) * 100
-});`}
+metricsStore.setValue(nextMetrics);
+
+// The same pure transition is used for blocked and errored requests.
+metricsStore.setValue(recordBlockedRequest(metricsStore.getValue()));`}
             </CodeBlock>
           </div>
 

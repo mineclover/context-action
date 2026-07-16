@@ -250,6 +250,34 @@ advanced search recipe는 같은 경계를 적용합니다.
 측정해야 할 때 이 recipe를 사용합니다. cancellation과 error policy는 input
 JSX가 아니라 handler 경계에 둡니다.
 
+## API request gate usecase
+
+중복 요청 차단, rate limiting, 가상 transport 작업, 결과 metric을 독립적으로
+관찰해야 할 때 API request management usecase를 사용합니다.
+
+```text
+request command → blocking policy → rate-limit policy → transport
+                → outcome Registry → request history + metrics Store
+```
+
+API Blocking recipe는 같은 경계를 적용합니다.
+
+- `business/api-blocking-rules.ts`가 rate window 정규화, 차단 판단, request
+  record 전이, metric 계산을 순수 함수로 소유합니다.
+- `actions/useApiBlockingActions.ts`는 View에 raw Store mutation을 노출하지
+  않고 `makeApiCall`, configuration, history command를 제공합니다.
+- `handlers/ApiBlockingHandlerRegistry.tsx`가 가상 transport, blocking timer,
+  rate-limit counter, success/blocked/error 결과 action을 소유합니다.
+- `apiCalls`, gate 상태, rate-limit 상태, metrics를 별도 Store로 분리해 각
+  View가 렌더링하는 상태만 구독합니다.
+- 모든 요청에 `callId`를 부여해 endpoint나 timestamp로 추측하지 않고 정확히
+  하나의 pending record를 비동기 결과로 갱신합니다.
+
+double-submit 방지, client-side request gate, 작은 circuit-breaker 데모에 이
+recipe를 사용합니다. 정책 판단은 순수 함수로 유지하고 timer와 transport
+effect는 Registry에 두며, route는 provider 조합과 feature scope만 담당하게
+합니다.
+
 ## Astryx 연결 경계
 
 Recipe를 Astryx 연결 지점으로 사용합니다.

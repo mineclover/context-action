@@ -1,6 +1,5 @@
 [
   "src/lib/patterns/createObjectContextHooks.tsx",
-  "src/pages/performance/action-guard/ApiBlockingPageRefactored.tsx",
   "src/pages/performance/action-guard/ScrollPage.tsx",
   "src/pages/performance/action-guard/ScrollPageRefactored.tsx",
   "src/pages/performance/action-guard/SearchPage.tsx",

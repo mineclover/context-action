@@ -263,6 +263,36 @@ Use this recipe when a new query should supersede stale work or when filtering
 must be measured independently from result rendering. Keep cancellation and
 error policy in the handler boundary, not in input JSX.
 
+## API request gate usecase
+
+API request management is a useful usecase when duplicate-request blocking,
+rate limiting, simulated transport work, and outcome metrics must remain
+observable independently:
+
+```text
+request command → blocking policy → rate-limit policy → transport
+                → outcome Registry → request history + metrics Stores
+```
+
+The API Blocking recipe applies the same boundaries:
+
+- `business/api-blocking-rules.ts` owns rate-window normalization, blocking
+  decisions, request-record transitions, and metric calculations as pure
+  functions.
+- `actions/useApiBlockingActions.ts` exposes `makeApiCall`, configuration, and
+  history commands without exposing raw Store mutation to the View.
+- `handlers/ApiBlockingHandlerRegistry.tsx` owns the simulated transport,
+  blocking timer, rate-limit counter, and success/blocked/error result actions.
+- `apiCalls`, gate state, rate-limit state, and metrics remain separate Stores;
+  each View subscribes only to the state it renders.
+- Every request receives a `callId`, so asynchronous outcomes update exactly
+  one pending record instead of matching by endpoint or timestamp.
+
+Use this recipe for double-submit protection, client-side request gates, or
+small circuit-breaker demonstrations. Keep policy decisions pure, put timers
+and transport effects in the Registry, and keep the route responsible only for
+provider composition and feature scope.
+
 ## Design-system boundary
 
 The recipe is the integration point for Astryx-like conventions:
