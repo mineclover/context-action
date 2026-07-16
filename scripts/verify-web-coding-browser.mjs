@@ -1129,6 +1129,7 @@ async function runBrowserProof(url) {
     let toolLoopRequestCount = 0;
     let toolLoopFinalRequestBody;
     let toolLoopPatchExpectedRevision;
+    let toolLoopErrorResultContent;
     toolLoopPage.on('console', (message) => {
       if (message.type() !== 'error') return;
       const text = message.text();
@@ -1199,6 +1200,45 @@ async function runBrowserProof(url) {
                           name: 'workspace.applyPatch',
                           arguments: JSON.stringify({
                             path: 'index.html',
+                            search: '__missing_provider_search__',
+                            replace: 'Ship a page from a failed provider tool.',
+                            occurrence: 'first',
+                            expectedRevision: toolLoopPatchExpectedRevision,
+                          }),
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }),
+          });
+          return;
+        }
+        if (toolLoopRequestCount === 3) {
+          const failedPatchResultMessage = requestBody.messages?.find(
+            (message) =>
+              message.role === 'tool' &&
+              message.tool_call_id === 'provider_patch_1'
+          );
+          toolLoopErrorResultContent = failedPatchResultMessage?.content;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: [
+                      {
+                        id: 'provider_patch_2',
+                        type: 'function',
+                        function: {
+                          name: 'workspace.applyPatch',
+                          arguments: JSON.stringify({
+                            path: 'index.html',
                             search: 'Ship a page from a conversation.',
                             replace: 'Ship a page from a provider tool chain.',
                             occurrence: 'first',
@@ -1244,12 +1284,14 @@ async function runBrowserProof(url) {
       });
       await toolLoopPatchApproval.waitFor();
       await toolLoopPatchApproval.click();
+      await toolLoopPatchApproval.waitFor();
+      await toolLoopPatchApproval.click();
       await toolLoopPage
         .getByText('Provider tool chain completed', { exact: true })
         .waitFor();
-      if (toolLoopRequestCount !== 3) {
+      if (toolLoopRequestCount !== 4) {
         throw new Error(
-          `The OpenRouter tool loop expected three provider requests, got ${toolLoopRequestCount}.`
+          `The OpenRouter tool loop expected four provider requests, got ${toolLoopRequestCount}.`
         );
       }
       if (typeof toolLoopPatchExpectedRevision !== 'number') {
@@ -1276,10 +1318,15 @@ async function runBrowserProof(url) {
           message.role === 'assistant' &&
           Array.isArray(message.tool_calls) &&
           message.tool_calls.some(
-            (toolCall) => toolCall.id === 'provider_patch_1'
+            (toolCall) => toolCall.id === 'provider_patch_2'
           )
       );
       const patchToolResultMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'tool' &&
+          message.tool_call_id === 'provider_patch_2'
+      );
+      const failedPatchToolResultMessage = toolLoopMessages?.find(
         (message) =>
           message.role === 'tool' &&
           message.tool_call_id === 'provider_patch_1'
@@ -1288,7 +1335,8 @@ async function runBrowserProof(url) {
         !assistantStatusToolMessage ||
         !statusToolResultMessage ||
         !assistantPatchToolMessage ||
-        !patchToolResultMessage
+        !patchToolResultMessage ||
+        !failedPatchToolResultMessage
       ) {
         throw new Error(
           'The OpenRouter follow-up request did not preserve both assistant tool calls and their correlated results.'
@@ -1308,6 +1356,15 @@ async function runBrowserProof(url) {
       ) {
         throw new Error(
           'The OpenRouter mutation result did not report a synchronized preview.'
+        );
+      }
+      if (
+        typeof toolLoopErrorResultContent !== 'string' ||
+        !toolLoopErrorResultContent.includes('"status":"error"') ||
+        !toolLoopErrorResultContent.includes('TOOL_EXECUTION_FAILED')
+      ) {
+        throw new Error(
+          'The OpenRouter follow-up did not receive a structured failed tool result before retrying the mutation.'
         );
       }
       if (

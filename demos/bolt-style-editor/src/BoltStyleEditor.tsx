@@ -4340,8 +4340,8 @@ function EditorWorkbench({
                     <p>{message.text}</p>
                     {message.tools?.length ? (
                       <div className="message-tools">
-                        {message.tools.map((tool) => (
-                          <span key={tool}>{tool}</span>
+                        {message.tools.map((tool, toolIndex) => (
+                          <span key={`${tool}-${toolIndex}`}>{tool}</span>
                         ))}
                       </div>
                     ) : null}
