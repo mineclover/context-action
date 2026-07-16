@@ -1,7 +1,6 @@
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
 import { useRenewalRiskReviewActions } from '../actions/useRenewalRiskReviewActions';
-import { buildRenewalRiskPacket } from '../business/renewalBusiness';
 import {
   useRenewalRiskReviewData,
   useRenewalRiskReviewRefs,
@@ -29,8 +28,16 @@ function toneClass(phase: string) {
 }
 
 export function RenewalRiskReviewView() {
-  const { draft, validation, review, reviewView, activity, isBusy, hasErrors } =
-    useRenewalRiskReviewData();
+  const {
+    draft,
+    validation,
+    review,
+    reviewView,
+    livePacket,
+    activity,
+    isBusy,
+    hasErrors,
+  } = useRenewalRiskReviewData();
   const {
     updateTextField,
     updateRenewalWindow,
@@ -47,8 +54,6 @@ export function RenewalRiskReviewView() {
     riskNotesRef,
     statusPanelRef,
   } = useRenewalRiskReviewRefs();
-
-  const livePacket = buildRenewalRiskPacket(draft);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">

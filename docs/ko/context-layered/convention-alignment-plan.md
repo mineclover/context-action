@@ -59,7 +59,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 
 첫 번째 구조 규칙은 이미 활성화되어 있습니다. 모든 `use*ActionHandler(...)` 호출은 `handlers/` 모듈 또는 `*HandlerRegistry` 파일 안에 있어야 합니다. transitional allowlist는 이제 비어 있으며 직접 등록 인벤토리에 남은 예외가 없습니다. Registry 밖의 새로운 직접 등록은 즉시 실패합니다.
 
-직접 등록 규칙과 함께 Provider 순서 검사도 이제 활성화되었습니다. Action → Store → Ref → Handler Registry 중첩을 강제하며 현재 example 소스 전체에서 위반 0건을 보고합니다. 다음 구조 검사 단계는 레이어 경로와 명명 규칙입니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록과 Provider 순서 drift를 CI에서 잡습니다.
+직접 등록 규칙과 함께 Provider 순서 및 canonical 레이어 경로·명명 검사도 이제 활성화되었습니다. Action → Store → Ref → Handler Registry 중첩을 강제하고 canonical root 26곳을 식별하며, 현재 Provider 순서와 레이어 경로·명명 위반을 모두 0건으로 보고합니다. `convention:check`는 이미 `verify:all`에 포함되어 있으므로 새 직접 등록과 구조 drift를 CI에서 잡습니다.
 
 ## 현재 상태 분류
 
@@ -101,6 +101,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - context-store mouse usecase는 6개 이벤트 등록을 `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx`로 이동했습니다. `providers/MouseEventsProvider.tsx`가 Action → Store → Registry 조합을 소유하고, context 모듈은 계약과 파생 규칙 경계로 남습니다.
 - 범용 `createObjectContextHooks` factory는 Action → Manager → Store 동기화를 `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`에 위임합니다. 내부 ActionRegister를 노출하는 대신 `ObjectContextManager.dispatch`를 도메인 경계의 안전한 bridge로 사용합니다.
 - 컨벤션 검사기는 object-context factory, Flow Control, API Blocking, memoization, priority, mouse-event 조합의 Provider 중첩도 검증합니다. `pnpm convention:check` 결과 Provider 순서 위반은 0건입니다.
+- 컨벤션 검사기는 canonical root 26곳의 레이어 경로, 파일 명명, import 경계도 검증합니다. implementation-playbook View가 직접 계산하던 packet·quote를 Data Hook으로 이동했으며 레이어 경로·명명 위반은 0건입니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -119,7 +120,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 2. 직접 handler를 등록하는 도메인을 Handler Registry로 이동합니다. LogMonitor, ChatUI, context-store 마우스 이벤트, conditional 권한 실행, foundations/core Basics, foundations/react Provider·Child A/B, advanced Concurrent Actions·Canvas, Action Lifecycle Workbench, useRefMountState pattern, action-priority 데모, legacy mouse-events 데모, ActionGuard context-store mouse 데모, Enhanced Abortable Search, enhanced context-store mouse usecase, SearchPageRefactored, ApiBlockingPageRefactored, ScrollPageRefactored, ThrottleComparisonPageRefactored, ActionGuard priority-word 데모, memoization 비교 데모, 범용 object-context factory까지 완료했습니다. 직접 등록 인벤토리는 이제 비어 있습니다.
 3. 모든 Provider 예제를 고정된 중첩 순서로 통일합니다.
 4. public hook 명명을 정리하고 legacy API 예제는 migration guide로 이동합니다.
-5. 활성화된 `convention:check`의 Registry 위치·Provider 순서 게이트를 유지하고, 다음 구조 규칙으로 레이어 경로·명명 검사를 추가합니다.
+5. 활성화된 `convention:check`의 Registry 위치·Provider 순서·canonical 레이어 경로·파일 명명·import 경계 게이트를 유지하고, advanced 또는 compatibility 표면이 마이그레이션될 때만 검사 범위를 확장합니다.
 6. type-check, 테스트, example build, docs build, package verification을 실행합니다.
 
 ## 남은 직접 등록 인벤토리
@@ -142,4 +143,4 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-직접 등록과 Provider 순서 게이트는 완료되었습니다. 다음 재진입 지점은 레이어 경로와 명명 규칙 강제입니다. compatibility export는 문서화하되 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.
+직접 등록, Provider 순서, canonical 레이어 경로·명명 게이트는 완료되었습니다. 다음 재진입 지점은 advanced 또는 compatibility 표면에 대한 명시적 마이그레이션 분류입니다. compatibility export는 문서화하되 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.

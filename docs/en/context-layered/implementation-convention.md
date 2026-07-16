@@ -92,6 +92,41 @@ Every handler, including a single-handler feature, is registered through the dom
 - render state and forward user intent only
 - do not embed validation rules, result calculation, or workflow transitions
 
+## Structural Convention Gate
+
+`pnpm convention:check` automatically recognizes a canonical feature root when
+it contains sibling `contexts/` and `handlers/` directories. The gate then
+checks the direct layer folders without applying the canonical naming rules to
+advanced or compatibility surfaces that have not entered migration.
+
+The current gate enforces:
+
+- `contexts/` files end in `Context` or `Contexts`.
+- `business/` files use lower-camel or kebab-case names and remain free of
+  React and `@context-action/*` imports.
+- `handlers/` files use `*HandlerRegistry`, `*Handlers`, `*HandlerSupport`, or
+  `*HandlerDefinitions` names (plus `index` and `handler-registry` entry
+  points).
+- `actions/` files use `*Actions` or `*ActionHandlers` names.
+- `hooks/` files use `use*` names, with `index` and `types` entry points.
+- `views/` files use `*View`, `*Views`, or a named composite such as `*Grid`.
+- Context modules do not import downstream layer folders, and views do not
+  import framework runtime, business, or handler modules directly.
+
+Derived business values belong in a hook or facade before they reach a view.
+For example, the implementation-playbook packet and quote previews are
+computed by their Data Hooks, while the views only render the returned model.
+Run the gate together with the usecase-specific checks:
+
+```bash
+pnpm convention:check
+pnpm --filter example check
+```
+
+The gate currently covers 26 canonical roots with zero layer-path/name
+violations. Advanced and compatibility roots remain explicitly outside this
+automatic naming scope until their migration classification changes.
+
 ## Explicit State Machine Rule
 
 Once a workflow becomes meaningfully async, do not leave it as one mutable `status` string. Model it as an explicit state machine.

@@ -1,7 +1,6 @@
 import { SourceLink } from '../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../constants/github';
 import { useCanonicalOrderActions } from '../actions/useCanonicalOrderActions';
-import { buildOrderQuote } from '../business/orderBusiness';
 import {
   useCanonicalOrderData,
   useCanonicalOrderRefs,
@@ -104,6 +103,7 @@ export function CanonicalOrderView() {
     submission,
     submissionView,
     activity,
+    liveQuote,
     isBusy,
     hasErrors,
   } = useCanonicalOrderData();
@@ -119,7 +119,6 @@ export function CanonicalOrderView() {
   const { customerNameRef, emailRef, quantityRef, statusPanelRef } =
     useCanonicalOrderRefs();
 
-  const liveQuote = buildOrderQuote(draft);
   const planLabel = draft.plan === 'starter' ? '스타터' : '팀';
 
   return (

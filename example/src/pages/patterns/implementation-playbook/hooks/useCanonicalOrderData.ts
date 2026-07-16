@@ -1,4 +1,5 @@
 import { useStoreValue } from '@context-action/react';
+import { buildOrderQuote } from '../business/orderBusiness';
 import {
   useCanonicalOrderRef,
   useCanonicalOrderStore,
@@ -19,6 +20,7 @@ export function useCanonicalOrderData() {
   const validation = useStoreValue(validationStore);
   const submission = useStoreValue(submissionStore);
   const activity = useStoreValue(activityStore);
+  const liveQuote = buildOrderQuote(draft);
   const submissionView = toSubmissionViewState(submission);
   const activityEntries = activity.map(toActivityEntry).slice().reverse();
 
@@ -27,6 +29,7 @@ export function useCanonicalOrderData() {
     validation,
     submission,
     submissionView,
+    liveQuote,
     activity: activityEntries,
     isBusy: isSubmissionBusy(submission),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,

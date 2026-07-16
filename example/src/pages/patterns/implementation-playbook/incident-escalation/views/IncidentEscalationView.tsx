@@ -1,7 +1,6 @@
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
 import { useIncidentEscalationActions } from '../actions/useIncidentEscalationActions';
-import { buildIncidentEscalationPacket } from '../business/incidentBusiness';
 import {
   useIncidentEscalationData,
   useIncidentEscalationRefs,
@@ -34,6 +33,7 @@ export function IncidentEscalationView() {
     validation,
     escalation,
     escalationView,
+    livePacket,
     activity,
     isBusy,
     hasErrors,
@@ -56,8 +56,6 @@ export function IncidentEscalationView() {
     summaryRef,
     statusPanelRef,
   } = useIncidentEscalationRefs();
-
-  const livePacket = buildIncidentEscalationPacket(draft);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">

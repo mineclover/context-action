@@ -44,6 +44,7 @@ const directRegistrations = [];
 const transitionalRegistrations = [];
 const seenTransitionalFiles = new Set();
 const providerOrderViolations = [];
+const layerConventionViolations = [];
 
 const providerLayerRank = {
   action: 0,
@@ -51,6 +52,184 @@ const providerLayerRank = {
   ref: 2,
   registry: 3,
 };
+
+const layerFileNamePatterns = {
+  contexts: /(?:Context|Contexts)\.(?:ts|tsx)$/,
+  business: /^[a-z][A-Za-z0-9-]*\.(?:ts|tsx)$/,
+  handlers:
+    /^(?:index|handler-registry|[A-Za-z][A-Za-z0-9]*(?:HandlerRegistry|Handlers|HandlerSupport|HandlerDefinitions))\.(?:ts|tsx)$/,
+  actions:
+    /^(?:index\.(?:ts|tsx)|[A-Za-z][A-Za-z0-9]*(?:Actions|ActionHandlers|actions)\.(?:ts|tsx))$/,
+  hooks: /^(?:index|types|use[A-Z][A-Za-z0-9]*)\.(?:ts|tsx)$/,
+  views: /^(?:index|[A-Za-z][A-Za-z0-9]*(?:Views?|Grid))\.tsx$/,
+};
+
+const layerBoundaryRules = {
+  business: [
+    {
+      pattern: /^(?:react|@context-action(?:\/|$))/,
+      description: 'framework imports from business modules',
+    },
+  ],
+  contexts: [
+    {
+      pattern: /^(?:\.\.?\/)(?:handlers|actions|hooks|views)(?:\/|$)/,
+      description: 'downstream layer imports from context modules',
+    },
+  ],
+  views: [
+    {
+      pattern: /^(?:@context-action(?:\/|$))/,
+      description: 'direct framework imports from view modules',
+      runtimeOnly: true,
+    },
+    {
+      pattern: /(?:^|\/)(?:business|handlers)(?:\/|$)/,
+      description: 'domain or handler imports from view modules',
+      runtimeOnly: true,
+    },
+  ],
+};
+
+function collectDirectories(directory) {
+  const directories = [directory];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    directories.push(...collectDirectories(path.join(directory, entry.name)));
+  }
+  return directories;
+}
+
+function getLineNumber(node, sourceFile) {
+  return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
+    .line + 1;
+}
+
+function getImportIsTypeOnly(node) {
+  if (ts.isImportDeclaration(node)) {
+    const clause = node.importClause;
+    if (!clause) return false;
+    if (clause.isTypeOnly) return true;
+    if (
+      clause.namedBindings &&
+      ts.isNamedImports(clause.namedBindings) &&
+      clause.namedBindings.elements.length > 0
+    ) {
+      return clause.namedBindings.elements.every((element) => element.isTypeOnly);
+    }
+    return false;
+  }
+  if (ts.isExportDeclaration(node)) return node.isTypeOnly;
+  return false;
+}
+
+function collectModuleImports(sourceFile) {
+  const imports = [];
+
+  function addImport(moduleSpecifier, node, isTypeOnly = false) {
+    if (!moduleSpecifier || !ts.isStringLiteral(moduleSpecifier)) return;
+    imports.push({
+      moduleName: moduleSpecifier.text,
+      line: getLineNumber(node, sourceFile),
+      isTypeOnly,
+    });
+  }
+
+  function visit(node) {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      addImport(node.moduleSpecifier, node, getImportIsTypeOnly(node));
+    }
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) {
+      addImport(node.arguments[0], node);
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return imports;
+}
+
+function collectLayeredRoots() {
+  return collectDirectories(exampleSourceRoot)
+    .filter((directory) => path.basename(directory) === 'contexts')
+    .map((contextsDirectory) => path.dirname(contextsDirectory))
+    .filter((root) => fs.existsSync(path.join(root, 'handlers')));
+}
+
+function scanLayeredRoot(root) {
+  for (const [layer, fileNamePattern] of Object.entries(
+    layerFileNamePatterns
+  )) {
+    const layerDirectory = path.join(root, layer);
+    if (!fs.existsSync(layerDirectory)) continue;
+
+    for (const entry of fs.readdirSync(layerDirectory, { withFileTypes: true })) {
+      if (
+        !entry.isFile() ||
+        !/\.(?:ts|tsx)$/.test(entry.name) ||
+        fileNamePattern.test(entry.name)
+      ) {
+        continue;
+      }
+      layerConventionViolations.push({
+        kind: 'file-name',
+        file: relativePath(path.join(layerDirectory, entry.name)),
+        layer,
+        line: 1,
+        description: `file name does not match the ${layer}/ convention`,
+      });
+    }
+
+    const boundaryRules = layerBoundaryRules[layer] ?? [];
+    if (boundaryRules.length === 0) continue;
+
+    for (const entry of fs.readdirSync(layerDirectory, { withFileTypes: true })) {
+      if (
+        !entry.isFile() ||
+        !/\.(?:ts|tsx)$/.test(entry.name)
+      ) {
+        continue;
+      }
+      const filePath = path.join(layerDirectory, entry.name);
+      const source = fs.readFileSync(filePath, 'utf8');
+      const scriptKind = filePath.endsWith('.tsx')
+        ? ts.ScriptKind.TSX
+        : ts.ScriptKind.TS;
+      const sourceFile = ts.createSourceFile(
+        filePath,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        scriptKind
+      );
+
+      for (const imported of collectModuleImports(sourceFile)) {
+        for (const rule of boundaryRules) {
+          if (
+            (rule.runtimeOnly && imported.isTypeOnly) ||
+            !rule.pattern.test(imported.moduleName)
+          ) {
+            continue;
+          }
+          layerConventionViolations.push({
+            kind: 'boundary',
+            file: relativePath(filePath),
+            layer,
+            line: imported.line,
+            description: rule.description,
+            moduleName: imported.moduleName,
+          });
+        }
+      }
+    }
+  }
+}
+
+const layeredRoots = collectLayeredRoots();
+for (const root of layeredRoots) scanLayeredRoot(root);
 
 function getJsxTagName(tagName) {
   if (ts.isIdentifier(tagName)) return tagName.text;
@@ -270,4 +449,25 @@ if (providerOrderViolations.length > 0) {
   process.exitCode = 1;
 } else {
   console.log('- provider-order violations: 0 occurrence(s)');
+}
+
+console.log(`- canonical layered roots: ${layeredRoots.length}`);
+if (layerConventionViolations.length > 0) {
+  console.error(
+    `- layer-path/name violations: ${layerConventionViolations.length} occurrence(s)`
+  );
+  for (const violation of layerConventionViolations) {
+    const moduleSuffix = violation.moduleName
+      ? ` (${violation.moduleName})`
+      : '';
+    console.error(
+      `  ✖ ${violation.file}:${violation.line} ${violation.layer}/ ${violation.description}${moduleSuffix}`
+    );
+  }
+  console.error(
+    'Keep canonical layer files in their named folders and preserve the documented import boundaries.'
+  );
+  process.exitCode = 1;
+} else {
+  console.log('- layer-path/name violations: 0 occurrence(s)');
 }

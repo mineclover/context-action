@@ -92,6 +92,43 @@ scenario/
 - 렌더링과 입력 전달만 담당한다
 - validation 규칙, quote 계산, 상태 전이 로직을 직접 품지 않는다
 
+## 구조 컨벤션 게이트
+
+`pnpm convention:check`는 같은 feature root에 `contexts/`와 `handlers/`
+디렉터리가 함께 있을 때 이를 canonical 표면으로 식별합니다. 그 아래의
+직접 레이어 디렉터리만 검사하므로, 아직 마이그레이션하지 않은 advanced 및
+compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습니다.
+
+현재 게이트가 검사하는 내용은 다음과 같습니다.
+
+- `contexts/` 파일은 `Context` 또는 `Contexts`로 끝납니다.
+- `business/` 파일은 lower-camel 또는 kebab-case로 이름 짓고 React와
+  `@context-action/*` import를 갖지 않습니다.
+- `handlers/` 파일은 `*HandlerRegistry`, `*Handlers`, `*HandlerSupport`,
+  `*HandlerDefinitions` 명명을 사용합니다. `index`와
+  `handler-registry` 진입점은 예외로 허용합니다.
+- `actions/` 파일은 `*Actions` 또는 `*ActionHandlers`로 이름 짓습니다.
+- `hooks/` 파일은 `use*` 명명을 사용하며 `index`, `types` 진입점을
+  허용합니다.
+- `views/` 파일은 `*View`, `*Views` 또는 `*Grid` 같은 명시적 composite
+  명명을 사용합니다.
+- Context 모듈은 downstream 레이어를 import하지 않으며, View는 framework
+  runtime·business·handler 모듈을 직접 import하지 않습니다.
+
+파생 business 값은 View에 도달하기 전에 Hook 또는 Facade에서 계산합니다.
+예를 들어 implementation-playbook의 packet과 quote preview는 Data Hook이
+계산하고 View는 반환된 model만 렌더링합니다. usecase 전용 검사와 함께 다음
+게이트를 실행합니다.
+
+```bash
+pnpm convention:check
+pnpm --filter example check
+```
+
+현재 게이트는 canonical root 26곳을 검사하며 레이어 경로·명명 위반은
+0건입니다. advanced 및 compatibility root는 마이그레이션 분류가 바뀔
+때까지 이 자동 명명 범위에서 명시적으로 제외합니다.
+
 ## 명시적 상태 머신 규칙
 
 복잡한 async 흐름은 `status string` 하나로 끝내지 말고, 명시적 상태 머신으로 고정합니다.

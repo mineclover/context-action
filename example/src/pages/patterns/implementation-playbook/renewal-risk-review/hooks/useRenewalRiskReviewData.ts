@@ -1,4 +1,5 @@
 import { useStoreValue } from '@context-action/react';
+import { buildRenewalRiskPacket } from '../business/renewalBusiness';
 import {
   useRenewalRiskReviewRef,
   useRenewalRiskReviewStore,
@@ -19,6 +20,7 @@ export function useRenewalRiskReviewData() {
   const validation = useStoreValue(validationStore);
   const review = useStoreValue(reviewStore);
   const activity = useStoreValue(activityStore);
+  const livePacket = buildRenewalRiskPacket(draft);
   const reviewView = toReviewViewState(review);
   const activityEntries = activity.map(toActivityEntry);
 
@@ -27,6 +29,7 @@ export function useRenewalRiskReviewData() {
     validation,
     review,
     reviewView,
+    livePacket,
     activity: activityEntries,
     isBusy: isReviewBusy(review),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,

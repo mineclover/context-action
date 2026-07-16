@@ -1,7 +1,6 @@
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
 import { useAccessRequestActions } from '../actions/useAccessRequestActions';
-import { buildAccessReviewPacket } from '../business/accessBusiness';
 import {
   useAccessRequestData,
   useAccessRequestRefs,
@@ -29,8 +28,16 @@ function toneClass(phase: string) {
 }
 
 export function AccessRequestView() {
-  const { draft, validation, review, reviewView, activity, isBusy, hasErrors } =
-    useAccessRequestData();
+  const {
+    draft,
+    validation,
+    review,
+    reviewView,
+    livePacket,
+    activity,
+    isBusy,
+    hasErrors,
+  } = useAccessRequestData();
   const {
     updateTextField,
     updateScope,
@@ -46,8 +53,6 @@ export function AccessRequestView() {
     justificationRef,
     statusPanelRef,
   } = useAccessRequestRefs();
-
-  const livePacket = buildAccessReviewPacket(draft);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
