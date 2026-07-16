@@ -211,6 +211,16 @@ pnpm web-coding:verify
 최종 검증은 contract, production base-path 산출물, preview, filesystem,
 provider transport, browser flow를 모두 포함해야 합니다.
 
+standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
+
+```bash
+pnpm --filter @context-action/web-coding-demo verify:conventions
+```
+
+이 검사는 ToolContext 생성과 handler 등록이 전용 모듈에 남아 있는지,
+외부 subscription이 observable hook에 모여 있는지, presentation view가
+workspace mutation이나 tool execution API를 직접 호출하지 않는지를 확인합니다.
+
 ## Anti-pattern
 
 - view가 workspace, Dexie, `fetch`를 직접 호출한다.

@@ -146,6 +146,9 @@ jobs:
       - name: Verify standalone static artifact
         run: node scripts/verify-web-coding-build.mjs demos/bolt-style-editor/dist
 
+      - name: Verify standalone Context-Action conventions
+        run: node scripts/verify-web-coding-conventions.mjs
+
       - name: Verify standalone local-agent planning contracts
         run: node scripts/verify-web-coding-plan.mjs
 

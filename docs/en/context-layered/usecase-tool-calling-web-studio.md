@@ -231,6 +231,17 @@ The demo `prebuild` runs the package check before rebuilding it. The final
 verification must cover contract tests, production base-path output, preview,
 filesystem, provider transport, and the browser flow.
 
+The standalone boundary also has a convention gate:
+
+```bash
+pnpm --filter @context-action/web-coding-demo verify:conventions
+```
+
+It checks that ToolContext creation and handler registration stay in their
+dedicated modules, external subscriptions stay in the observable hook, and
+presentation views do not call workspace mutation or tool execution APIs
+directly.
+
 ## Anti-patterns
 
 - A view calls `workspace.setValue`, Dexie, or `fetch` directly.

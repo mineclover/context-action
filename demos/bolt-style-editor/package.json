@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "check": "biome check src",
-    "verify": "pnpm check && pnpm build && node ../../scripts/verify-web-coding-build.mjs dist && node ../../scripts/verify-web-coding-production-browser.mjs && node ../../scripts/verify-web-coding-plan.mjs && node ../../scripts/verify-web-coding-trace.mjs && node ../../scripts/verify-web-coding-preview.mjs && node ../../scripts/verify-web-coding-filesystem.mjs && node ../../scripts/verify-web-coding-openrouter.mjs && node ../../scripts/verify-web-coding-browser.mjs"
+    "verify:conventions": "node ../../scripts/verify-web-coding-conventions.mjs",
+    "verify": "pnpm check && pnpm verify:conventions && pnpm build && node ../../scripts/verify-web-coding-build.mjs dist && node ../../scripts/verify-web-coding-production-browser.mjs && node ../../scripts/verify-web-coding-plan.mjs && node ../../scripts/verify-web-coding-trace.mjs && node ../../scripts/verify-web-coding-preview.mjs && node ../../scripts/verify-web-coding-filesystem.mjs && node ../../scripts/verify-web-coding-openrouter.mjs && node ../../scripts/verify-web-coding-browser.mjs"
   },
   "dependencies": {
     "@context-action/live-code-editor": "workspace:*",

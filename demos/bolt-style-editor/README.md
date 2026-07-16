@@ -22,6 +22,7 @@ pnpm web-coding:verify
 
 # Equivalent package-filter commands:
 pnpm --filter @context-action/web-coding-demo verify
+pnpm --filter @context-action/web-coding-demo verify:conventions
 
 # Or run individual stages:
 pnpm --filter @context-action/web-coding-demo type-check
