@@ -48,6 +48,7 @@ function findReferencedFile(
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
 const MAX_INLINE_CSS_IMPORTS = 32;
+const MAX_INLINE_JS_IMPORTS = 32;
 
 export type PreviewDiagnostic = {
   kind: 'missing-reference' | 'blocked-external-reference';
@@ -143,6 +144,44 @@ function rewriteCssAssetUrls(
 
 type CssImportState = { count: number };
 
+type JavaScriptImportState = { count: number };
+
+function inlineJavaScriptModule(
+  source: string,
+  jsPath: string,
+  files: readonly WorkspaceFile[],
+  importedPaths: ReadonlySet<string>,
+  state: JavaScriptImportState
+): string {
+  return source.replace(
+    /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
+    (match, prefix: string, quote: string, requestedPath: string) => {
+      const imported = findReferencedFile(
+        files,
+        jsPath,
+        requestedPath,
+        'javascript'
+      );
+      if (!imported || importedPaths.has(imported.path)) return match;
+      if (state.count >= MAX_INLINE_JS_IMPORTS) return match;
+      state.count += 1;
+      const importedSource = inlineJavaScriptModule(
+        imported.source,
+        imported.path,
+        files,
+        new Set([...importedPaths, imported.path]),
+        state
+      );
+      const encodedSource = encodeURIComponent(importedSource).replace(
+        /[!'()*]/g,
+        (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+      );
+      const dataUrl = `data:text/javascript;charset=utf-8,${encodedSource}`;
+      return `${prefix}${quote}${dataUrl}${quote}`;
+    }
+  );
+}
+
 function inlineCssImports(
   source: string,
   cssPath: string,
@@ -229,7 +268,18 @@ function inlineScripts(
       /\s+src\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i,
       ''
     );
-    return `<script${attributes}>${javascript.source}</script>`;
+    const isModule =
+      attributeValue(tag, 'type')?.trim().toLowerCase() === 'module';
+    const source = isModule
+      ? inlineJavaScriptModule(
+          javascript.source,
+          javascript.path,
+          files,
+          new Set([javascript.path]),
+          { count: 0 }
+        )
+      : javascript.source;
+    return `<script${attributes}>${source}</script>`;
   });
 }
 

@@ -171,6 +171,47 @@ expectIncludes(
   'Nested CSS asset URLs must resolve relative to their own stylesheet.'
 );
 
+const moduleDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'app.js',
+      language: 'javascript',
+      source:
+        "import { message } from './utils.js'; document.body.dataset.module = message;",
+      kind: 'text',
+    },
+    {
+      path: 'utils.js',
+      language: 'javascript',
+      source: "export const message = 'module proof';",
+      kind: 'text',
+    },
+  ],
+  {},
+  15
+);
+expectIncludes(
+  moduleDocument,
+  'data:text/javascript;charset=utf-8,',
+  'Local JavaScript module imports must be rewritten to data module URLs.'
+);
+expectIncludes(
+  moduleDocument,
+  'export%20const%20message',
+  'The data module URL must preserve local module source.'
+);
+expect(
+  !moduleDocument.includes("from './utils.js'"),
+  'The entry module must not retain a relative local import URL.'
+);
+
 const diagnosticsFiles = [
   {
     path: 'index.html',

@@ -493,7 +493,7 @@ async function runBrowserProof(url) {
       `<!doctype html>
 <html lang="en">
   <head><meta charset="UTF-8" /><link rel="stylesheet" href="styles.css" /></head>
-  <body><h1 id="folder-proof">Folder import works</h1><script src="app.js"></script></body>
+  <body><h1 id="folder-proof">Folder import works</h1><script type="module" src="app.js"></script></body>
 </html>`
     );
     await writeFile(
@@ -502,7 +502,7 @@ async function runBrowserProof(url) {
     );
     await writeFile(
       path.join(folderFixture, 'app.js'),
-      "document.body.dataset.folderImport = 'ok';"
+      "import { card } from './src/components/card.js'; document.body.dataset.folderImport = card;"
     );
     await mkdir(path.join(folderFixture, 'src', 'components'), {
       recursive: true,
@@ -517,6 +517,17 @@ async function runBrowserProof(url) {
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#folder-proof')
       .waitFor();
+    const folderPreviewBody = page
+      .frameLocator('iframe[title="Live generated web preview"]')
+      .locator('body');
+    if (
+      (await folderPreviewBody.getAttribute('data-folder-import')) !==
+      'folder tree proof'
+    ) {
+      throw new Error(
+        'Local JavaScript module imports did not execute in the folder preview.'
+      );
+    }
     const srcDirectory = page
       .locator('button[role="treeitem"][aria-level="1"]')
       .filter({ hasText: 'src' })
