@@ -190,6 +190,7 @@ Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한�
 - `ToolCallContext`: transport `source`, execution `mode`, `sessionId`, `revision`
 - `isToolListRequest()`와 `isToolCallRequest()`는 untrusted JSON이 registry
   boundary에 들어오기 전에 request shape을 검증한다.
+  선택적 list request는 `undefined`만 생략으로 허용하고 `null`은 거부한다.
 - `ToolCallError`: 안정적인 `code`, `message`, `retryable`, `details`
 - `ToolCallEvent`: `started`, `completed`, `failed`
 - 각 `ToolCallEvent`는 canonical `tools/call` request를 함께 전달하므로 audit

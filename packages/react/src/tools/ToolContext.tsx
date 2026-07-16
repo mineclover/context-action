@@ -185,7 +185,7 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     return tool;
   };
   const listTools = (request?: ToolListRequest) => {
-    if (request && !isToolListRequest(request)) {
+    if (request !== undefined && !isToolListRequest(request)) {
       throw new Error('Invalid tools/list request.');
     }
     // A direct registry call without a protocol request remains the complete

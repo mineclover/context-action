@@ -308,6 +308,9 @@ describe('createToolContext', () => {
       expect(() =>
         result.current.listTools({ method: 'tools/call' } as unknown as ToolListRequest)
       ).toThrow('Invalid tools/list request.');
+      expect(() =>
+        result.current.listTools(null as unknown as ToolListRequest)
+      ).toThrow('Invalid tools/list request.');
     });
 
     it('should expose tools/list definitions through the registry', () => {

@@ -19,6 +19,7 @@ describe('tool protocol context', () => {
       isToolListRequest({ method: 'tools/list', params: { cursor: 'offset:2' } })
     ).toBe(true);
     expect(isToolListRequest({ method: 'tools/call' })).toBe(false);
+    expect(isToolListRequest(null)).toBe(false);
 
     expect(
       isToolCallRequest({
@@ -39,6 +40,7 @@ describe('tool protocol context', () => {
         params: { name: 'workspace.readFile', arguments: [] },
       })
     ).toBe(false);
+    expect(isToolCallRequest(null)).toBe(false);
   });
 
   it('creates canonical discovery, model-call, and result shapes', () => {

@@ -206,6 +206,7 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
   and `revision`
 - `isToolListRequest()` and `isToolCallRequest()` validate untrusted JSON before
   it enters the registry boundary
+  (`undefined` means no optional list request; `null` is rejected)
 - `ToolCallError` provides stable `code`, `message`, `retryable`, and `details`
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
 - Each `ToolCallEvent` carries the canonical `tools/call` request so an audit
