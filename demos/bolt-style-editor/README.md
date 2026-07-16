@@ -75,6 +75,7 @@ The registry schema, approval policy, and lifecycle observer are isolated in
 `src/actions/run-local-agent.ts`. The editor surface consumes focused action
 hooks: `use-tool-execution` owns provider-neutral execution,
 `use-workspace-folder-actions` owns folder boundaries,
+`use-workspace-runtime` owns workspace hydration and persisted-folder restore,
 `use-workspace-editor-actions` owns drafts and file mutations,
 `use-tool-catalog-actions` owns the MCP catalog call surface,
 `use-workspace-keyboard-shortcuts` owns global commands, and

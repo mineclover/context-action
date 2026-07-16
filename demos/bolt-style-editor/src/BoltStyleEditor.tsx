@@ -28,6 +28,10 @@ import { useWorkspaceEditorActions } from './hooks/use-workspace-editor-actions'
 import { useWorkspaceFolderActions } from './hooks/use-workspace-folder-actions';
 import { useWorkspaceKeyboardShortcuts } from './hooks/use-workspace-keyboard-shortcuts';
 import {
+  type FolderRestoreState,
+  useWorkspaceRuntime,
+} from './hooks/use-workspace-runtime';
+import {
   readOpenRouterSettings,
   saveOpenRouterSettings,
   subscribeOpenRouterSettings,
@@ -66,9 +70,6 @@ import {
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
-import { WebCodingWorkspaceRepository } from './workspace-storage';
-
-type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
 
 function FileTreeEntryView({
   entry,
@@ -1449,50 +1450,13 @@ function EditorWorkbench({
 }
 
 function ToolRuntime() {
-  const [repository] = useState(() => new WebCodingWorkspaceRepository());
-  const [workspace] = useState(() => new BrowserWorkspace(repository));
-  const [folderRestoreState, setFolderRestoreState] =
-    useState<FolderRestoreState>('restoring');
-  const [previewRefreshToken, setPreviewRefreshToken] = useState(0);
-  const requestPreviewRefresh = useCallback(() => {
-    setPreviewRefreshToken((current) => current + 1);
-  }, []);
-  const [fileSystemAdapter] = useState(
-    () =>
-      new BrowserWorkspaceFileSystemAdapter({
-        getDirectoryHandle: () => repository.getDirectoryHandle(),
-        setDirectoryHandle: (handle) => repository.setDirectoryHandle(handle),
-        clearDirectoryHandle: () => repository.clearDirectoryHandle(),
-      })
-  );
-  useEffect(() => {
-    let disposed = false;
-    void (async () => {
-      await workspace.hydrate();
-      if (disposed) return;
-      if (workspace.getSnapshot().storageMode === 'indexed-db') {
-        try {
-          const persistedHandle = await repository.getDirectoryHandle();
-          if (disposed) return;
-          if (!persistedHandle) {
-            if (!disposed) setFolderRestoreState('idle');
-            return;
-          }
-          const restored = await fileSystemAdapter.restorePersistedFolder();
-          if (!disposed) {
-            setFolderRestoreState(restored ? 'restored' : 'unavailable');
-          }
-        } catch {
-          if (!disposed) setFolderRestoreState('unavailable');
-        }
-      } else if (!disposed) {
-        setFolderRestoreState('idle');
-      }
-    })();
-    return () => {
-      disposed = true;
-    };
-  }, [fileSystemAdapter, repository, workspace]);
+  const {
+    workspace,
+    fileSystemAdapter,
+    folderRestoreState,
+    previewRefreshToken,
+    requestPreviewRefresh,
+  } = useWorkspaceRuntime();
   return (
     <ToolHandlers
       workspace={workspace}
