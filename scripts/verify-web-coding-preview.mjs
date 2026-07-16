@@ -487,7 +487,13 @@ const falsePositiveModuleFiles = [
     path: 'app.js',
     language: 'javascript',
     source:
-      'const example = "import \'./not-a-module.js\'"; const pattern = /export \'\.\/not-a-module\.js\'/; // export { value } from "./not-a-module.js"',
+      'const example = "import \'./not-a-module.js\'"; const pattern = /import \'not-a-module.js\'/; const template = `import \'./not-a-template.js\' ${import(\'./template-module.js\')}`; // export { value } from "./not-a-module.js"',
+    kind: 'text',
+  },
+  {
+    path: 'template-module.js',
+    language: 'javascript',
+    source: 'export const value = "template expression proof";',
     kind: 'text',
   },
 ];
@@ -504,6 +510,11 @@ const falsePositiveModuleDocument = preview.buildPreviewDocument(
 expect(
   !falsePositiveModuleDocument.includes('Missing%20local%20module%20import'),
   'Strings and comments must not be rewritten as missing module imports.'
+);
+expectIncludes(
+  falsePositiveModuleDocument,
+  'https://context-action.local/workspace-module/template-module.js',
+  'Dynamic imports inside template expressions must remain executable.'
 );
 
 const cyclicCssDocument = preview.buildPreviewDocument(

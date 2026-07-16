@@ -192,71 +192,116 @@ function maskJavaScriptNonCode(source: string): Uint8Array {
     codeMask.fill(0, start, end);
   };
 
-  let index = 0;
-  while (index < source.length) {
-    const character = source[index];
-    const nextCharacter = source[index + 1];
-    if (character === '/' && nextCharacter === '/') {
-      const start = index;
-      index += 2;
-      while (index < source.length && source[index] !== '\n') index += 1;
-      maskRange(start, index);
-      continue;
-    }
-    if (character === '/' && nextCharacter === '*') {
-      const start = index;
-      index += 2;
-      while (
-        index < source.length &&
-        !(source[index] === '*' && source[index + 1] === '/')
-      ) {
-        index += 1;
+  function scanTemplate(start: number): number {
+    maskRange(start, start + 1);
+    let index = start + 1;
+    while (index < source.length) {
+      if (source[index] === '\\') {
+        maskRange(index, Math.min(source.length, index + 2));
+        index += 2;
+        continue;
       }
-      index = Math.min(source.length, index + 2);
-      maskRange(start, index);
-      continue;
-    }
-    if (character === '/' && mayStartJavaScriptRegex(source, index)) {
-      const start = index;
+      if (source[index] === '`') {
+        maskRange(index, index + 1);
+        return index + 1;
+      }
+      if (source[index] === '$' && source[index + 1] === '{') {
+        maskRange(index, index + 2);
+        index = scanCode(index + 2, true);
+        continue;
+      }
+      maskRange(index, index + 1);
       index += 1;
-      let inCharacterClass = false;
-      while (index < source.length) {
-        if (source[index] === '\\') {
-          index += 2;
-          continue;
-        }
-        if (source[index] === '[') inCharacterClass = true;
-        if (source[index] === ']') inCharacterClass = false;
-        if (source[index] === '/' && !inCharacterClass) {
-          index += 1;
-          while (/[a-z]/i.test(source[index] ?? '')) index += 1;
-          break;
-        }
-        index += 1;
-      }
-      maskRange(start, index);
-      continue;
     }
-    if (character === "'" || character === '"' || character === '`') {
-      const quote = character;
-      const start = index;
-      index += 1;
-      while (index < source.length) {
-        if (source[index] === '\\') {
-          index += 2;
-          continue;
-        }
-        if (source[index] === quote) {
-          index += 1;
-          break;
-        }
-        index += 1;
-      }
-      maskRange(start, index);
-      continue;
-    }
-    index += 1;
+    return index;
   }
+
+  function scanCode(start: number, stopAtBrace: boolean): number {
+    let index = start;
+    let braceDepth = 0;
+    while (index < source.length) {
+      const character = source[index];
+      const nextCharacter = source[index + 1];
+      if (stopAtBrace && character === '}') {
+        if (braceDepth === 0) return index + 1;
+        braceDepth -= 1;
+        index += 1;
+        continue;
+      }
+      if (stopAtBrace && character === '{') {
+        braceDepth += 1;
+        index += 1;
+        continue;
+      }
+      if (character === '/' && nextCharacter === '/') {
+        const commentStart = index;
+        index += 2;
+        while (index < source.length && source[index] !== '\n') index += 1;
+        maskRange(commentStart, index);
+        continue;
+      }
+      if (character === '/' && nextCharacter === '*') {
+        const commentStart = index;
+        index += 2;
+        while (
+          index < source.length &&
+          !(source[index] === '*' && source[index + 1] === '/')
+        ) {
+          index += 1;
+        }
+        index = Math.min(source.length, index + 2);
+        maskRange(commentStart, index);
+        continue;
+      }
+      if (character === '/' && mayStartJavaScriptRegex(source, index)) {
+        const regexStart = index;
+        index += 1;
+        let inCharacterClass = false;
+        while (index < source.length) {
+          if (source[index] === '\\') {
+            index += 2;
+            continue;
+          }
+          if (source[index] === '[') inCharacterClass = true;
+          if (source[index] === ']') inCharacterClass = false;
+          if (source[index] === '/' && !inCharacterClass) {
+            index += 1;
+            while (/[a-z]/i.test(source[index] ?? '')) index += 1;
+            break;
+          }
+          index += 1;
+        }
+        maskRange(regexStart, index);
+        continue;
+      }
+      if (character === "'" || character === '"') {
+        const quote = character;
+        const stringStart = index;
+        index += 1;
+        while (index < source.length) {
+          if (source[index] === '\\') {
+            index += 2;
+            continue;
+          }
+          if (source[index] === quote) {
+            index += 1;
+            break;
+          }
+          index += 1;
+        }
+        maskRange(stringStart, index);
+        continue;
+      }
+      if (character === '`') {
+        index = scanTemplate(index);
+        continue;
+      }
+      index += 1;
+    }
+    return index;
+  }
+
+  scanCode(0, false);
   return codeMask;
 }
 
