@@ -123,9 +123,19 @@ pnpm convention:check
 pnpm --filter example check
 ```
 
-The gate currently covers 26 canonical roots with zero layer-path/name
+The gate currently covers 27 canonical roots with zero layer-path/name
 violations. Advanced and compatibility roots remain explicitly outside this
 automatic naming scope until their migration classification changes.
+
+Non-canonical `handlers/` directories are not silently ignored. Their current
+classification and rationale live in
+`tools/context-action-lint/layered-surface-classification.json`; the checker
+requires every such directory to be listed as either `advanced` or
+`compatibility`. The current manifest contains four advanced comparison
+surfaces and one compatibility object-context surface. The memoization
+comparison has already migrated into canonical `contexts/` and `actions/`
+boundaries, while its old model and hook paths remain compatibility
+re-exports.
 
 ## Explicit State Machine Rule
 

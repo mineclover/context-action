@@ -13,7 +13,7 @@ import {
   useNonMemoizedActionHandler,
   usePerformanceControlHandler,
   usePerformanceControlStore,
-} from '../models/ComparisonModel';
+} from '../contexts/ComparisonContexts';
 import { PERFORMANCE_LIMITS } from '../types';
 import {
   createExpensiveCalculation,

@@ -15,11 +15,20 @@ const allowlistPath = path.join(
   'context-action-lint',
   'transitional-handler-registrations.json'
 );
+const surfaceClassificationPath = path.join(
+  repositoryRoot,
+  'tools',
+  'context-action-lint',
+  'layered-surface-classification.json'
+);
 const relativePath = (filePath) =>
   path.relative(repositoryRoot, filePath).split(path.sep).join('/');
 
 const transitionalFiles = new Set(
   JSON.parse(fs.readFileSync(allowlistPath, 'utf8'))
+);
+const surfaceClassification = JSON.parse(
+  fs.readFileSync(surfaceClassificationPath, 'utf8')
 );
 
 function collectSourceFiles(directory) {
@@ -45,6 +54,7 @@ const transitionalRegistrations = [];
 const seenTransitionalFiles = new Set();
 const providerOrderViolations = [];
 const layerConventionViolations = [];
+const classificationViolations = [];
 
 const providerLayerRank = {
   action: 0,
@@ -159,6 +169,82 @@ function collectLayeredRoots() {
     .filter((root) => fs.existsSync(path.join(root, 'handlers')));
 }
 
+function getClassifiedSurfacePaths() {
+  const classified = new Map();
+  for (const category of ['advanced', 'compatibility']) {
+    for (const entry of surfaceClassification[category] ?? []) {
+      const surfacePath = entry?.path;
+      if (typeof surfacePath !== 'string' || surfacePath.length === 0) {
+        classificationViolations.push({
+          category,
+          description: 'classification entry must define a non-empty path',
+        });
+        continue;
+      }
+      if (
+        typeof entry.reason !== 'string' ||
+        entry.reason.trim().length === 0
+      ) {
+        classificationViolations.push({
+          category,
+          path: surfacePath,
+          description: 'classification entry must include a non-empty reason',
+        });
+      }
+      if (classified.has(surfacePath)) {
+        classificationViolations.push({
+          category,
+          path: surfacePath,
+          description: `surface is already classified as ${classified.get(surfacePath)}`,
+        });
+        continue;
+      }
+      const absolutePath = path.join(exampleSourceRoot, surfacePath);
+      if (
+        !fs.existsSync(absolutePath) ||
+        !fs.statSync(absolutePath).isDirectory() ||
+        path.basename(absolutePath) !== 'handlers'
+      ) {
+        classificationViolations.push({
+          category,
+          path: surfacePath,
+          description: 'classified surface must be an existing handlers directory',
+        });
+        continue;
+      }
+      classified.set(surfacePath, category);
+    }
+  }
+  return classified;
+}
+
+function classifyNonCanonicalHandlerRoots(layeredRoots) {
+  const classified = getClassifiedSurfacePaths();
+  const canonicalHandlerRoots = new Set(
+    layeredRoots.map((root) => path.join(root, 'handlers'))
+  );
+  const handlerDirectories = collectDirectories(exampleSourceRoot).filter(
+    (directory) => path.basename(directory) === 'handlers'
+  );
+  const unclassified = handlerDirectories.filter(
+    (directory) =>
+      !canonicalHandlerRoots.has(directory) &&
+      !classified.has(
+        path.relative(exampleSourceRoot, directory).split(path.sep).join('/')
+      )
+  );
+
+  for (const directory of unclassified) {
+    classificationViolations.push({
+      path: relativePath(directory),
+      description:
+        'non-canonical handlers directory is missing an advanced or compatibility classification',
+    });
+  }
+
+  return { classified, unclassified };
+}
+
 function scanLayeredRoot(root) {
   for (const [layer, fileNamePattern] of Object.entries(
     layerFileNamePatterns
@@ -230,6 +316,9 @@ function scanLayeredRoot(root) {
 
 const layeredRoots = collectLayeredRoots();
 for (const root of layeredRoots) scanLayeredRoot(root);
+const surfaceClassificationResult = classifyNonCanonicalHandlerRoots(
+  layeredRoots
+);
 
 function getJsxTagName(tagName) {
   if (ts.isIdentifier(tagName)) return tagName.text;
@@ -470,4 +559,33 @@ if (layerConventionViolations.length > 0) {
   process.exitCode = 1;
 } else {
   console.log('- layer-path/name violations: 0 occurrence(s)');
+}
+
+const advancedSurfaceCount = [...surfaceClassificationResult.classified.values()]
+  .filter((category) => category === 'advanced').length;
+const compatibilitySurfaceCount = [
+  ...surfaceClassificationResult.classified.values(),
+].filter((category) => category === 'compatibility').length;
+console.log(
+  `- classified non-canonical handler roots: ${surfaceClassificationResult.classified.size} (advanced ${advancedSurfaceCount}, compatibility ${compatibilitySurfaceCount})`
+);
+if (classificationViolations.length > 0) {
+  console.error(
+    `- migration classification violations: ${classificationViolations.length} occurrence(s)`
+  );
+  for (const violation of classificationViolations) {
+    const pathSuffix = violation.path ? ` ${violation.path}` : '';
+    const categorySuffix = violation.category
+      ? ` [${violation.category}]`
+      : '';
+    console.error(
+      `  ✖${categorySuffix}${pathSuffix}: ${violation.description}`
+    );
+  }
+  console.error(
+    'Classify every non-canonical handlers directory as advanced or compatibility before adding new exceptions.'
+  );
+  process.exitCode = 1;
+} else {
+  console.log('- migration classification violations: 0 occurrence(s)');
 }

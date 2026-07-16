@@ -1,5 +1,5 @@
 import { useStoreValue } from '@context-action/react';
-import { useComparisonStore } from '../models/ComparisonModel';
+import { useComparisonStore } from '../contexts/ComparisonContexts';
 import { UI_THRESHOLDS } from '../types';
 import { useRerenderMonitor } from './useRerenderMonitor';
 

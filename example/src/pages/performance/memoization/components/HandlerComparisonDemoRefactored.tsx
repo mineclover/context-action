@@ -1,11 +1,11 @@
-import { ComparisonHandlerRegistry } from '../handlers/ComparisonHandlerRegistry';
 import {
   ComparisonStoreProvider,
   MemoizedActionProvider,
   NonMemoizedActionProvider,
   PerformanceControlActionProvider,
   PerformanceControlProvider,
-} from '../models/ComparisonModel';
+} from '../contexts/ComparisonContexts';
+import { ComparisonHandlerRegistry } from '../handlers/ComparisonHandlerRegistry';
 import { CodeComparison } from './shared/CodeComparison';
 import { PerformanceImpactSummary } from './shared/PerformanceImpactSummary';
 import { MemoizedHandlerWidget } from './widgets/MemoizedHandlerWidget';
@@ -16,7 +16,7 @@ import { PerformanceControlWidget } from './widgets/PerformanceControlWidget';
  * MVVM 아키텍처로 리팩토링된 Handler Comparison Demo
  *
  * 아키텍처 레이어:
- * - Model: createStoreContext, createActionContext (../models/ComparisonModel.ts)
+ * - Contexts: createStoreContext, createActionContext (../contexts/ComparisonContexts.ts)
  * - ViewModel: hooks (../hooks/*.ts)
  * - View: 이 컴포넌트와 Shared Components, Widgets
  *

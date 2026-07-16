@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import {
   usePerformanceControlDispatch,
   usePerformanceControlStore,
-} from '../models/ComparisonModel';
+} from '../contexts/ComparisonContexts';
 
 /**
  * Performance Control ViewModel Hook - 자동 업데이트 제어 로직

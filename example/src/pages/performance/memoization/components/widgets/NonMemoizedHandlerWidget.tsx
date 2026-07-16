@@ -1,5 +1,5 @@
+import { useNonMemoizedActions } from '../../actions/useComparisonActions';
 import { useNonMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
-import { useNonMemoizedActions } from '../../hooks/useComparisonActions';
 import { useNonMemoizedViewState } from '../../hooks/useComparisonViewState';
 import { SafeModeWrapper } from '../SafeModeWrapper';
 import { ActionButtons } from '../shared/ActionButtons';

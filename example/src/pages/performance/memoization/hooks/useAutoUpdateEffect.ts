@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
   useMemoizedActions,
   useNonMemoizedActions,
-} from './useComparisonActions';
+} from '../actions/useComparisonActions';
 import { usePerformanceControlState } from './usePerformanceControl';
 
 /**

@@ -125,9 +125,17 @@ pnpm convention:check
 pnpm --filter example check
 ```
 
-현재 게이트는 canonical root 26곳을 검사하며 레이어 경로·명명 위반은
+현재 게이트는 canonical root 27곳을 검사하며 레이어 경로·명명 위반은
 0건입니다. advanced 및 compatibility root는 마이그레이션 분류가 바뀔
 때까지 이 자동 명명 범위에서 명시적으로 제외합니다.
+
+비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
+`tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는
+모든 비정형 디렉터리가 `advanced` 또는 `compatibility` 중 하나로 등록되어
+있는지 확인합니다. 현재 manifest에는 advanced 비교 표면 4곳과
+compatibility object-context 표면 1곳이 있습니다. memoization 비교는
+이미 canonical `contexts/`와 `actions/` 경계로 이동했으며, 기존 model과
+hook 경로는 compatibility re-export로 유지합니다.
 
 ## 명시적 상태 머신 규칙
 
