@@ -566,6 +566,9 @@ Open folder → generic FileSystemAdapter
 - standalone code editor header도 같은 예산을 live 문자 수로 표시한다. mutation
   제한을 넘는 imported text는 조용히 잘라내지 않고 그대로 읽을 수 있게 유지하며,
   다음 write 전에 줄여야 한다는 over-budget 상태를 표시한다.
+- New file dialog의 initial source에도 같은 예산을 적용하고 live counter를
+  표시한다. 제한을 넘는 create 요청은 registry에 도달하기 전에 차단하므로 UI,
+  schema, workspace validation이 같은 계약을 사용한다.
 - `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
   `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
   deletion을 기록한다. 각 작업이 성공하면 해당 항목을 즉시 clean으로 표시하고,

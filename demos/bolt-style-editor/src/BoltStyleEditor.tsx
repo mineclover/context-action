@@ -824,10 +824,18 @@ function CreateWorkspaceFileDialog({
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const dialogRef = useModalDialog<HTMLFormElement>(onClose);
+  const sourceLengthLabel = `${source.length.toLocaleString('en-US')} / ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} chars`;
+  const sourceExceedsLimit = source.length > MAX_TEXT_SOURCE_LENGTH;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || !path.trim()) return;
+    if (sourceExceedsLimit) {
+      setErrorMessage(
+        `Initial source exceeds the ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} character limit.`
+      );
+      return;
+    }
     setSubmitting(true);
     setErrorMessage(null);
     try {
@@ -887,11 +895,21 @@ function CreateWorkspaceFileDialog({
           <span>Initial source</span>
           <textarea
             aria-label="Initial file source"
+            aria-describedby="create-file-source-count"
             className="create-file-source"
+            maxLength={MAX_TEXT_SOURCE_LENGTH}
             onChange={(event) => setSource(event.target.value)}
             rows={8}
             value={source}
           />
+          <span
+            aria-live="polite"
+            className={`create-file-source-count ${sourceExceedsLimit ? 'create-file-source-count-warning' : ''}`}
+            id="create-file-source-count"
+            role="status"
+          >
+            {sourceLengthLabel}
+          </span>
         </label>
         {errorMessage ? (
           <p className="create-file-error" role="alert">
@@ -900,7 +918,8 @@ function CreateWorkspaceFileDialog({
         ) : null}
         <div className="settings-note">
           <span className="status-dot" />
-          Text files only · paths are normalized by workspace.createFile.
+          Text files only · paths are normalized by workspace.createFile ·
+          source is limited to 80,000 characters.
         </div>
         <div className="settings-actions">
           <span />
@@ -910,7 +929,7 @@ function CreateWorkspaceFileDialog({
             </button>
             <button
               className="settings-save"
-              disabled={submitting || !path.trim()}
+              disabled={submitting || !path.trim() || sourceExceedsLimit}
               type="submit"
             >
               {submitting ? 'Creating…' : 'Create file'}

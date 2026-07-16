@@ -607,6 +607,9 @@ Open folder → generic FileSystemAdapter
   character count. Imported text that is larger than the mutation limit remains
   readable and is marked as over budget so it can be reduced before the next
   write instead of being silently truncated.
+- The New file dialog applies the same budget to initial source and blocks an
+  oversized create request before it reaches the registry, keeping UI-side
+  feedback aligned with schema and workspace validation.
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
   parent-owned adapter used by the Save to folder button. Each successful

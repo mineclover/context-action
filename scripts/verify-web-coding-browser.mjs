@@ -131,6 +131,23 @@ async function runBrowserProof(url) {
     if (!(await sourceLengthStatus.textContent())?.includes('/ 80,000 chars')) {
       throw new Error('The source editor text-size budget is not readable.');
     }
+    await page
+      .getByRole('button', { name: 'Create new workspace file' })
+      .click();
+    const createFileDialog = page.getByRole('dialog', { name: 'New file' });
+    await createFileDialog.waitFor();
+    const createSourceLengthStatus = createFileDialog.locator(
+      '#create-file-source-count'
+    );
+    if ((await createSourceLengthStatus.count()) !== 1) {
+      throw new Error('The new-file dialog did not expose its text-size budget.');
+    }
+    if (!(await createSourceLengthStatus.textContent())?.includes('/ 80,000 chars')) {
+      throw new Error('The new-file text-size budget is not readable.');
+    }
+    await createFileDialog
+      .getByRole('button', { name: 'Close new file dialog' })
+      .click();
     if (
       (await page
         .getByRole('tab', { name: /index\.html/ })

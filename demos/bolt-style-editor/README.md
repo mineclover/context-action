@@ -71,6 +71,10 @@ workspace mutation limit. Imported files may use the separate filesystem import
 byte budget; an oversized imported source remains visible so it can be reduced
 before the next mutation.
 
+The New file dialog uses the same limit for its initial source, exposes a live
+counter, and prevents an oversized create request before it reaches the tool
+registry.
+
 The editor also includes IDE-style file navigation: use the `Quick open`
 button or `Ctrl/Cmd+P`, type a path fragment, then use the arrow keys and
 `Enter` to open a workspace file. `Esc` closes the palette and restores the

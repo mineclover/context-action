@@ -386,6 +386,8 @@ a { color: inherit; text-decoration: none; }
 .rename-file-from code { color: #d8d2ff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 .create-file-source { background: #0c0f14; border: 1px solid #303746; border-radius: 7px; color: #ecedf2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.55; outline: none; padding: 10px 11px; resize: vertical; width: 100%; }
 .create-file-source:focus { border-color: #8e7aff; box-shadow: 0 0 0 2px rgb(142 122 255 / 16%); }
+.create-file-source-count { color: #707b8d; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; margin-top: 5px; }
+.create-file-source-count-warning { color: #ed8d9a; }
 .create-file-error { background: #3a2029; border: 1px solid #75404d; border-radius: 7px; color: #ffbdc7; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.45; margin: 14px 0 0; padding: 9px 10px; }
 
 @keyframes pulse { 50% { opacity: .35; transform: scale(.8); } }
