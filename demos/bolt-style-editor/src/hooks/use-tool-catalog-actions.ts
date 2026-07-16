@@ -10,6 +10,7 @@ import type {
 } from './use-tool-execution';
 
 export type ToolCatalogActionsOptions = {
+  workspaceFiles: readonly WorkspaceFile[];
   activeFile: WorkspaceFile;
   activeSource: string;
   snapshotRevision: number;
@@ -28,6 +29,7 @@ export type ToolCatalogActionsOptions = {
 
 export function useToolCatalogActions({
   activeFile,
+  workspaceFiles,
   activeSource,
   snapshotRevision,
   selectedToolName,
@@ -40,6 +42,33 @@ export function useToolCatalogActions({
   executeQuickTool,
 }: ToolCatalogActionsOptions) {
   const toolArgumentsSampleRef = useRef(true);
+
+  const nextAvailablePath = (basePath: string): string => {
+    const existingPaths = new Set(workspaceFiles.map((file) => file.path));
+    if (!existingPaths.has(basePath)) return basePath;
+    const separatorIndex = basePath.lastIndexOf('.');
+    const stem =
+      separatorIndex > 0 ? basePath.slice(0, separatorIndex) : basePath;
+    const extension = separatorIndex > 0 ? basePath.slice(separatorIndex) : '';
+    for (let index = 1; index <= workspaceFiles.length + 1; index += 1) {
+      const candidate = `${stem}-${index}${extension}`;
+      if (!existingPaths.has(candidate)) return candidate;
+    }
+    return `${stem}-${Date.now()}${extension}`;
+  };
+
+  const deletionSamplePath = (): string => {
+    const candidate = workspaceFiles.find((file) => file.path === 'README.md');
+    if (candidate) return candidate.path;
+    const removableFile = workspaceFiles.find((file) => {
+      if (file.language !== 'html') return true;
+      return workspaceFiles.some(
+        (otherFile) =>
+          otherFile.path !== file.path && otherFile.language === 'html'
+      );
+    });
+    return removableFile?.path ?? activeFile.path;
+  };
 
   const paletteCallFor = (name: string): ToolCall | null => {
     switch (name) {
@@ -56,7 +85,7 @@ export function useToolCatalogActions({
         return {
           name,
           arguments: {
-            path: 'notes.md',
+            path: nextAvailablePath('notes.md'),
             source: '# Created from the tool palette\n',
             expectedRevision: snapshotRevision,
           },
@@ -67,7 +96,7 @@ export function useToolCatalogActions({
           name,
           arguments: {
             fromPath: activeFile.path,
-            toPath: `renamed-${filename}`,
+            toPath: nextAvailablePath(`renamed-${filename}`),
             expectedRevision: snapshotRevision,
           },
         };
@@ -75,7 +104,10 @@ export function useToolCatalogActions({
       case 'workspace.deleteFile':
         return {
           name,
-          arguments: { path: 'README.md', expectedRevision: snapshotRevision },
+          arguments: {
+            path: deletionSamplePath(),
+            expectedRevision: snapshotRevision,
+          },
         };
       case 'workspace.writeFile':
         return {

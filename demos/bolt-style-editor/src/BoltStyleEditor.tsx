@@ -299,6 +299,7 @@ function EditorWorkbench({
   } = useToolCatalogActions({
     activeFile,
     activeSource,
+    workspaceFiles: snapshot.files,
     snapshotRevision: snapshot.revision,
     selectedToolName,
     selectedToolDefinition,
