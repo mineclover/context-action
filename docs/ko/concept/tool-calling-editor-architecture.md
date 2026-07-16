@@ -558,6 +558,11 @@ Open folder → generic FileSystemAdapter
 - `workspace.applyPatch`는 text file에 literal search/replace를 수행한다. `first`와
   `all` occurrence mode를 지원하고, match 실패와 결과 source 크기 초과를 거부한 뒤
   다른 workspace mutation과 같은 preview revision acknowledgement를 기다린다.
+- text mutation은 workspace 레벨의 80,000자 source 제한을 하나의 guard로 공유한다.
+  `workspace.createFile`, `workspace.writeFile`, `workspace.applyPatch`, 직접 편집,
+  history restore가 같은 검사를 통과하며, tool schema도 handler 실행 전에 동일한
+  제한을 노출한다. 가져온 text file에는 별도의 filesystem import byte 예산을
+  유지한다.
 - `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
   `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
   deletion을 기록한다. 각 작업이 성공하면 해당 항목을 즉시 clean으로 표시하고,

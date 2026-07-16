@@ -1,5 +1,6 @@
 import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
+import { MAX_TEXT_SOURCE_LENGTH } from './workspace';
 
 const filePath = z.string().min(1).max(160);
 const expectedRevision = z.number().int().nonnegative().optional();
@@ -257,7 +258,7 @@ export const boltStyleToolSchema = createActionSchema({
         'Create a new text file in the browser-local web workspace, optionally guarded by a workspace revision.',
       parameters: z.object({
         path: filePath,
-        source: z.string().max(80_000),
+        source: z.string().max(MAX_TEXT_SOURCE_LENGTH),
         expectedRevision,
       }),
       outputSchema: workspaceCreateFileOutputSchema,
@@ -298,7 +299,7 @@ export const boltStyleToolSchema = createActionSchema({
       annotations: { idempotentHint: true },
       parameters: z.object({
         path: filePath,
-        source: z.string().max(80_000),
+        source: z.string().max(MAX_TEXT_SOURCE_LENGTH),
         expectedRevision,
       }),
       outputSchema: syncedWorkspaceMutationOutputSchema,

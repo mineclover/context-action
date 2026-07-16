@@ -88,6 +88,18 @@ const binaryWorkspaceExtensions = new Set([
   '.woff2',
 ]);
 const MAX_HISTORY_CHECKPOINTS = 100;
+export const MAX_TEXT_SOURCE_LENGTH = 80_000;
+
+export function assertWorkspaceTextSourceLength(
+  source: string,
+  label = 'Workspace text source'
+): void {
+  if (source.length > MAX_TEXT_SOURCE_LENGTH) {
+    throw new Error(
+      `${label} exceeds the ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} character limit.`
+    );
+  }
+}
 
 export function normalizeWorkspacePath(path: string): string {
   if (path.includes('\0'))
@@ -507,6 +519,7 @@ export class BrowserWorkspace {
     options: UpdateFileOptions = {}
   ): WorkspaceSnapshot {
     const normalizedPath = normalizeWorkspacePath(path);
+    assertWorkspaceTextSourceLength(source);
     if (this.getFile(normalizedPath).kind === 'asset') {
       throw new Error(
         `Binary asset cannot be edited as text: ${normalizedPath}`
@@ -591,6 +604,7 @@ export class BrowserWorkspace {
 
   createFile(path: string, source: string): WorkspaceSnapshot {
     const normalizedPath = normalizeWorkspacePath(path);
+    assertWorkspaceTextSourceLength(source);
     const extension = `.${normalizedPath.split('.').pop()?.toLowerCase() ?? ''}`;
     if (binaryWorkspaceExtensions.has(extension)) {
       throw new Error(

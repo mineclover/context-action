@@ -9,6 +9,7 @@ import {
   throwIfAborted,
 } from './tool-runtime-utils';
 import {
+  assertWorkspaceTextSourceLength,
   BrowserWorkspace,
   collectPreviewDiagnostics,
   findPreviewHtmlFile,
@@ -469,9 +470,7 @@ export function ToolHandlers({
         throw new Error(`Binary asset cannot be patched as text: ${file.path}`);
       }
       const patch = applyTextPatch(file.source, search, replace, occurrence);
-      if (patch.source.length > 80_000) {
-        throw new Error('Patched source exceeds the 80,000 character limit.');
-      }
+      assertWorkspaceTextSourceLength(patch.source, 'Patched source');
       const snapshot = workspace.updateFile(file.path, patch.source, {
         coalesce: false,
       });

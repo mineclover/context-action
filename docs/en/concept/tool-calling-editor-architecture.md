@@ -598,6 +598,11 @@ Open folder → generic FileSystemAdapter
   supports `first` or `all` occurrence mode, rejects missing matches and oversized
   output, then waits for the same preview revision acknowledgement as other
   workspace mutations.
+- Text mutations share one workspace-level source limit of 80,000 characters.
+  `workspace.createFile`, `workspace.writeFile`, `workspace.applyPatch`, direct
+  editor updates, and history restores all pass through the same guard, while
+  tool schemas expose the same limit before a handler runs. Imported text files
+  retain the separate filesystem import byte budget.
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
   parent-owned adapter used by the Save to folder button. Each successful
