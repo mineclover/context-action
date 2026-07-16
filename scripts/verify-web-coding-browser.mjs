@@ -661,7 +661,7 @@ async function runBrowserProof(url) {
       const root = new ProofDirectory('folder-api-proof');
       root.addFile(
         'index.html',
-        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script><script src="missing.js"></script></body></html>',
+        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script><script src="missing.js"></script><script type="module">if (false) { import(\'./missing-module.js\'); }</script></body></html>',
         'text/html'
       );
       root.addFile('app.js', "document.body.dataset.apiFolder = 'ready';", 'text/javascript');
@@ -681,6 +681,15 @@ async function runBrowserProof(url) {
     await previewDiagnostics.waitFor();
     if (!(await previewDiagnostics.innerText()).includes('Missing script: missing.js')) {
       throw new Error('Preview diagnostics did not surface the missing folder dependency.');
+    }
+    if (
+      !(await previewDiagnostics.innerText()).includes(
+        'Missing module import: ./missing-module.js'
+      )
+    ) {
+      throw new Error(
+        'Preview diagnostics did not surface the missing module dependency.'
+      );
     }
 
     await page.getByRole('tab', { name: /notes\.md/ }).click();

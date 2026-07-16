@@ -146,6 +146,14 @@ type CssImportState = { count: number };
 
 type JavaScriptImportState = { count: number };
 
+function toJavaScriptDataUrl(source: string): string {
+  const encodedSource = encodeURIComponent(source).replace(
+    /[!'()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+  );
+  return `data:text/javascript;charset=utf-8,${encodedSource}`;
+}
+
 function inlineJavaScriptModule(
   source: string,
   jsPath: string,
@@ -162,7 +170,19 @@ function inlineJavaScriptModule(
         requestedPath,
         'javascript'
       );
-      if (!imported || importedPaths.has(imported.path)) return match;
+      if (!imported) {
+        const trimmedPath = requestedPath.trim();
+        const isLocalPath =
+          trimmedPath.startsWith('.') || trimmedPath.startsWith('/');
+        if (isExternalReference(trimmedPath) || isLocalPath) {
+          const reason = isExternalReference(trimmedPath)
+            ? `External module import blocked: ${trimmedPath}`
+            : `Missing local module import: ${trimmedPath}`;
+          return `${prefix}${quote}${toJavaScriptDataUrl(`throw new Error(${JSON.stringify(reason)});`)}${quote}`;
+        }
+        return match;
+      }
+      if (importedPaths.has(imported.path)) return match;
       if (state.count >= MAX_INLINE_JS_IMPORTS) return match;
       state.count += 1;
       const importedSource = inlineJavaScriptModule(
@@ -172,12 +192,21 @@ function inlineJavaScriptModule(
         new Set([...importedPaths, imported.path]),
         state
       );
-      const encodedSource = encodeURIComponent(importedSource).replace(
-        /[!'()*]/g,
-        (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`
-      );
-      const dataUrl = `data:text/javascript;charset=utf-8,${encodedSource}`;
+      const dataUrl = toJavaScriptDataUrl(importedSource);
       return `${prefix}${quote}${dataUrl}${quote}`;
+    }
+  );
+}
+
+function visitJavaScriptModuleReferences(
+  source: string,
+  callback: (requestedPath: string) => void
+): void {
+  source.replace(
+    /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
+    (match, _prefix: string, _quote: string, requestedPath: string) => {
+      callback(requestedPath);
+      return match;
     }
   );
 }
@@ -258,7 +287,22 @@ function inlineScripts(
 ): string {
   return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) => {
     const src = attributeValue(tag, 'src');
-    if (!src) return tag;
+    const isModule =
+      attributeValue(tag, 'type')?.trim().toLowerCase() === 'module';
+    const inlineSource =
+      tag.match(/^<script\b[^>]*>([\s\S]*?)<\/script>$/i)?.[1] ?? '';
+    if (!src) {
+      if (!isModule) return tag;
+      const openingTag = tag.match(/^<script\b([^>]*)>/i)?.[1] ?? '';
+      const source = inlineJavaScriptModule(
+        inlineSource,
+        htmlPath,
+        files,
+        new Set([htmlPath]),
+        { count: 0 }
+      );
+      return `<script${openingTag}>${source}</script>`;
+    }
 
     const javascript = findReferencedFile(files, htmlPath, src, 'javascript');
     if (!javascript) return '';
@@ -268,8 +312,6 @@ function inlineScripts(
       /\s+src\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i,
       ''
     );
-    const isModule =
-      attributeValue(tag, 'type')?.trim().toLowerCase() === 'module';
     const source = isModule
       ? inlineJavaScriptModule(
           javascript.source,
@@ -339,6 +381,8 @@ export function collectPreviewDiagnostics(
   const htmlFile = findPreviewHtmlFile(files);
   if (!htmlFile) return diagnostics;
   const reachableCssPaths = new Set<string>();
+  const javascriptQueue: Array<{ path: string; source: string }> = [];
+  const queuedJavaScriptPaths = new Set<string>();
 
   htmlFile.source.replace(/<link\b[^>]*>/gi, (tag) => {
     const href = attributeValue(tag, 'href');
@@ -363,20 +407,87 @@ export function collectPreviewDiagnostics(
     return tag;
   });
 
-  htmlFile.source.replace(/<script\b[^>]*>/gi, (tag) => {
+  htmlFile.source.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) => {
     const src = attributeValue(tag, 'src');
-    if (src) {
-      collectReferenceDiagnostic(
-        diagnostics,
-        files,
-        htmlFile.path,
-        src,
-        'script',
-        seen
-      );
+    const isModule =
+      attributeValue(tag, 'type')?.trim().toLowerCase() === 'module';
+    if (!src) {
+      if (isModule) {
+        javascriptQueue.push({
+          path: htmlFile.path,
+          source:
+            tag.match(/^<script\b[^>]*>([\s\S]*?)<\/script>$/i)?.[1] ?? '',
+        });
+      }
+      return tag;
+    }
+    collectReferenceDiagnostic(
+      diagnostics,
+      files,
+      htmlFile.path,
+      src,
+      'script',
+      seen
+    );
+    const javascript = findReferencedFile(
+      files,
+      htmlFile.path,
+      src,
+      'javascript'
+    );
+    if (isModule && javascript && !queuedJavaScriptPaths.has(javascript.path)) {
+      queuedJavaScriptPaths.add(javascript.path);
+      javascriptQueue.push({
+        path: javascript.path,
+        source: javascript.source,
+      });
     }
     return tag;
   });
+
+  for (
+    let javascriptIndex = 0;
+    javascriptIndex < javascriptQueue.length;
+    javascriptIndex += 1
+  ) {
+    const javascript = javascriptQueue[javascriptIndex];
+    visitJavaScriptModuleReferences(javascript.source, (requestedPath) => {
+      if (isIgnoredReference(requestedPath)) return;
+      if (isExternalReference(requestedPath)) {
+        collectReferenceDiagnostic(
+          diagnostics,
+          files,
+          javascript.path,
+          requestedPath,
+          'module import',
+          seen
+        );
+        return;
+      }
+      const trimmedPath = requestedPath.trim();
+      if (!trimmedPath.startsWith('.') && !trimmedPath.startsWith('/')) {
+        return;
+      }
+      collectReferenceDiagnostic(
+        diagnostics,
+        files,
+        javascript.path,
+        requestedPath,
+        'module import',
+        seen
+      );
+      const imported = findReferencedFile(
+        files,
+        javascript.path,
+        requestedPath,
+        'javascript'
+      );
+      if (imported && !queuedJavaScriptPaths.has(imported.path)) {
+        queuedJavaScriptPaths.add(imported.path);
+        javascriptQueue.push({ path: imported.path, source: imported.source });
+      }
+    });
+  }
 
   const assetTags = new Set([
     'audio',

@@ -713,7 +713,9 @@ Open folder → generic FileSystemAdapter
   excessive import graphs are cut off with bounded diagnostics.
   Module scripts also rewrite local JavaScript `import`, `export ... from`, and
   dynamic `import()` specifiers to bounded data-module URLs, preserving native
-  module execution while leaving external or bare imports untouched.
+  module execution. Missing local and external imports become bounded module
+  errors, while bare package specifiers remain visible to the browser. The same
+  bounded module graph is inspected before the iframe runs.
 - Missing local CSS/JS/asset references and blocked external stylesheet/script
   references appear in the parent Preview diagnostics panel and in the
   structured `preview.getStatus` result, so a model can explain an incomplete

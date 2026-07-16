@@ -212,12 +212,79 @@ expect(
   'The entry module must not retain a relative local import URL.'
 );
 
+const inlineModuleDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module">import { message } from "./utils.js"; document.body.dataset.inlineModule = message;</script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'utils.js',
+      language: 'javascript',
+      source: 'export const message = "inline module proof";',
+      kind: 'text',
+    },
+  ],
+  {},
+  16
+);
+expect(
+  !inlineModuleDocument.includes('from "./utils.js"'),
+  'Inline module imports must use the same local data module boundary.'
+);
+
+const blockedModuleDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'app.js',
+      language: 'javascript',
+      source:
+        "import './missing.js'; import 'https://example.com/module.js';",
+      kind: 'text',
+    },
+  ],
+  {},
+  17
+);
+expect(
+  !blockedModuleDocument.includes("from './missing.js'") &&
+    !blockedModuleDocument.includes('https://example.com/module.js'),
+  'Missing and external module imports must not remain executable network specifiers.'
+);
+expectIncludes(
+  blockedModuleDocument,
+  'Missing%20local%20module%20import',
+  'Missing module imports must fail through a bounded data module.'
+);
+expectIncludes(
+  blockedModuleDocument,
+  'External%20module%20import%20blocked',
+  'External module imports must fail through a bounded data module.'
+);
+
 const diagnosticsFiles = [
   {
     path: 'index.html',
     language: 'html',
     source:
-      '<!doctype html><html><head><link rel="stylesheet" href="missing.css"><link rel="stylesheet" href="styles.css"></head><body><img src="assets/missing.png"><img src="https://example.com/remote.png"><script src="missing.js"></script></body></html>',
+      '<!doctype html><html><head><link rel="stylesheet" href="missing.css"><link rel="stylesheet" href="styles.css"></head><body><img src="assets/missing.png"><img src="https://example.com/remote.png"><script src="missing.js"></script><script type="module" src="module.js"></script></body></html>',
+    kind: 'text',
+  },
+  {
+    path: 'module.js',
+    language: 'javascript',
+    source:
+      "import './missing-module.js'; import 'react'; import 'https://example.com/module.js';",
     kind: 'text',
   },
   {
@@ -245,6 +312,16 @@ expectEqual(
       kind: 'missing-reference',
       sourcePath: 'index.html',
       requestedPath: 'missing.js',
+    },
+    {
+      kind: 'missing-reference',
+      sourcePath: 'module.js',
+      requestedPath: './missing-module.js',
+    },
+    {
+      kind: 'blocked-external-reference',
+      sourcePath: 'module.js',
+      requestedPath: 'https://example.com/module.js',
     },
     {
       kind: 'missing-reference',

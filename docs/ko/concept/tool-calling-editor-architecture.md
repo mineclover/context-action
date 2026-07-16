@@ -660,7 +660,9 @@ Open folder → generic FileSystemAdapter
   유지한다. 순환하거나 과도한 import graph는 bounded diagnostic으로 중단한다.
   `type="module"` script의 로컬 JavaScript `import`, `export ... from`,
   동적 `import()` 경로도 bounded data-module URL로 다시 작성해 native module
-  실행을 유지하며, external 또는 bare import는 원본 그대로 둔다.
+  실행을 유지한다. 누락된 local import와 external import는 bounded module
+  error로 바꾸고, bare package specifier만 browser에 남긴다. 동일한 bounded
+  module graph를 iframe 실행 전에 검사한다.
 - 누락된 local CSS/JS/asset reference와 차단된 external stylesheet/script
   reference는 parent Preview diagnostics panel과 structured
   `preview.getStatus` result에 함께 노출한다. 따라서 model이 불완전한
