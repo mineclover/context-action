@@ -310,7 +310,7 @@ export function defineAction<TSchema extends ZodRawShape>(
  * 여러 defineAction을 묶어서 ActionSchemaMap 생성
  *
  * @param actions - UnifiedAction 맵
- * @returns ActionSchemaMap
+ * @returns The input schema map with its literal action keys preserved
  *
  * @example
  * ```typescript
@@ -324,7 +324,7 @@ export function defineAction<TSchema extends ZodRawShape>(
  */
 export function createActionSchema<T extends Record<string, UnifiedAction>>(
   actions: T
-): T & ActionSchemaMap {
+): T {
   return actions;
 }
 

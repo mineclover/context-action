@@ -240,6 +240,7 @@ pnpm --filter @context-action/live-code-editor test
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo type-check
 pnpm web-coding:verify
+pnpm --filter example check
 ```
 
 The demo `prebuild` runs the package check before rebuilding it. The final
@@ -251,6 +252,11 @@ The standalone boundary also has a convention gate:
 ```bash
 pnpm --filter @context-action/web-coding-demo verify:conventions
 ```
+
+The example catalog check is included in `example check`. It validates that
+each UI and standalone prompt references only tools present in the corresponding
+ToolContext schema, so a renamed or removed tool cannot remain in the command
+library unnoticed.
 
 It checks that ToolContext creation and handler registration stay in their
 dedicated modules, external subscriptions stay in the observable hook, and

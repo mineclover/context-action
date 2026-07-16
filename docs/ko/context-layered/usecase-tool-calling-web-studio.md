@@ -218,6 +218,7 @@ pnpm --filter @context-action/live-code-editor test
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo type-check
 pnpm web-coding:verify
+pnpm --filter example check
 ```
 
 데모 `prebuild`는 package를 다시 build하기 전에 package check를 실행합니다.
@@ -229,6 +230,11 @@ standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
 ```bash
 pnpm --filter @context-action/web-coding-demo verify:conventions
 ```
+
+example catalog 검사는 `example check`에 포함됩니다. UI와 standalone 명령문이
+각각 대응하는 ToolContext schema에 실제 존재하는 tool만 참조하는지 확인하므로,
+tool 이름을 변경하거나 삭제한 뒤 command library가 조용히 오래된 상태로 남지
+않습니다.
 
 이 검사는 ToolContext 생성과 handler 등록이 전용 모듈에 남아 있는지,
 외부 subscription이 observable hook에 모여 있는지, local/provider 경로가

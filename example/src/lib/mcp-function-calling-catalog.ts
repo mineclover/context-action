@@ -1,24 +1,54 @@
+import type { UIToolsActions } from './ui-tools-schema';
+
 export type MCPCommandDifficulty = 'Starter' | 'Workflow' | 'Advanced';
 
-export interface MCPCommandReference {
+export interface MCPCommandReference<TToolName extends string = string> {
   id: string;
   title: string;
   description: string;
   prompt: string;
-  tools: string[];
-  expectedChain: string[];
+  tools: readonly TToolName[];
+  expectedChain: readonly string[];
   difficulty: MCPCommandDifficulty;
 }
 
-export interface MCPStandaloneCommandReference {
+export interface MCPStandaloneCommandReference<
+  TToolName extends string = string,
+> {
   id: string;
   title: string;
   description: string;
   prompt: string;
-  tools: string[];
-  expectedChain: string[];
+  tools: readonly TToolName[];
+  expectedChain: readonly string[];
   difficulty: MCPCommandDifficulty;
 }
+
+/** Public tool names used by the standalone web-coding catalog. */
+export type MCPStandaloneToolName =
+  | 'workspace.getStatus'
+  | 'workspace.reset'
+  | 'workspace.listFiles'
+  | 'workspace.readFile'
+  | 'workspace.downloadFile'
+  | 'workspace.openFile'
+  | 'workspace.createFile'
+  | 'workspace.renameFile'
+  | 'workspace.deleteFile'
+  | 'workspace.writeFile'
+  | 'workspace.saveAll'
+  | 'workspace.saveCheckpoint'
+  | 'workspace.reloadFolder'
+  | 'workspace.disconnectFolder'
+  | 'workspace.applyPatch'
+  | 'workspace.revertFile'
+  | 'workspace.undo'
+  | 'workspace.redo'
+  | 'preview.setTheme'
+  | 'preview.addFeature'
+  | 'preview.updateHero'
+  | 'preview.getStatus'
+  | 'preview.refresh';
 
 export const mcpExecutionStages = [
   {
@@ -139,20 +169,7 @@ export const mcpFunctionCallingCommands = [
     expectedChain: ['getUiState'],
     difficulty: 'Starter',
   },
-  {
-    id: 'reset-demo-workspace',
-    title: '데모 workspace 복구',
-    description:
-      '반복 테스트 중 남은 IndexedDB 상태를 초기 seed로 되돌리는 destructive 관리 호출입니다.',
-    prompt: '현재 브라우저 데모 workspace를 처음 상태로 초기화해줘.',
-    tools: ['workspace.getStatus', 'workspace.reset'],
-    expectedChain: [
-      'workspace.getStatus',
-      'workspace.reset → iframe acknowledgement',
-    ],
-    difficulty: 'Advanced',
-  },
-] satisfies MCPCommandReference[];
+] satisfies readonly MCPCommandReference<keyof UIToolsActions & string>[];
 
 export const mcpStandaloneCommands = [
   {
@@ -241,7 +258,7 @@ export const mcpStandaloneCommands = [
     ],
     difficulty: 'Advanced',
   },
-] satisfies MCPStandaloneCommandReference[];
+] satisfies readonly MCPStandaloneCommandReference<MCPStandaloneToolName>[];
 
 export type MCPFunctionCallingCommand =
   (typeof mcpFunctionCallingCommands)[number];
