@@ -16,13 +16,13 @@ import {
   collectDirectoryPaths,
   type FileTreeEntry,
 } from './file-tree';
+import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
 import {
   type EditorMessage,
   useToolExecution,
 } from './hooks/use-tool-execution';
 import { useWorkspaceEditorActions } from './hooks/use-workspace-editor-actions';
 import { useWorkspaceFolderActions } from './hooks/use-workspace-folder-actions';
-import { type ToolCall } from './local-agent-plan';
 import {
   readOpenRouterSettings,
   saveOpenRouterSettings,
@@ -685,7 +685,6 @@ function EditorWorkbench({
   const [toolCatalogFilter, setToolCatalogFilter] =
     useState<ToolCatalogFilter>('all');
   const [toolArgumentsText, setToolArgumentsText] = useState('{}');
-  const toolArgumentsSampleRef = useRef(true);
   const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
     null
   );
@@ -729,6 +728,25 @@ function EditorWorkbench({
   const selectedToolDefinition = selectedToolName
     ? registry.getToolDefinition(selectedToolName)
     : undefined;
+  const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
+  const {
+    parseToolArguments,
+    resetSelectedToolArguments,
+    handleToolArgumentsChange,
+    runSelectedTool,
+  } = useToolCatalogActions({
+    activeFile,
+    activeSource,
+    snapshotRevision: snapshot.revision,
+    selectedToolName,
+    selectedToolDefinition,
+    toolArgumentsText,
+    toolArgumentsError,
+    setToolArgumentsText,
+    setToolArgumentsError,
+    requestConfirmation,
+    executeQuickTool,
+  });
   const isStorageReady =
     snapshot.storageMode !== 'loading' && folderRestoreState !== 'restoring';
   const storageLabel =
@@ -1079,177 +1097,6 @@ function EditorWorkbench({
     });
   };
 
-  const paletteCallFor = (name: string): ToolCall | null => {
-    const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
-    switch (name) {
-      case 'workspace.getStatus':
-      case 'workspace.listFiles':
-      case 'preview.getStatus':
-      case 'preview.refresh':
-        return { name, arguments: {} };
-      case 'workspace.readFile':
-        return { name, arguments: { path: activeFile.path } };
-      case 'workspace.downloadFile':
-        return { name, arguments: { path: activeFile.path } };
-      case 'workspace.openFile':
-        return { name, arguments: { path: activeFile.path } };
-      case 'workspace.createFile':
-        return {
-          name,
-          arguments: {
-            path: 'notes.md',
-            source: '# Created from the tool palette\n',
-            expectedRevision: snapshot.revision,
-          },
-        };
-      case 'workspace.renameFile': {
-        const filename = activeFile.path.split('/').pop() ?? activeFile.path;
-        return {
-          name,
-          arguments: {
-            fromPath: activeFile.path,
-            toPath: `renamed-${filename}`,
-            expectedRevision: snapshot.revision,
-          },
-        };
-      }
-      case 'workspace.deleteFile':
-        return {
-          name,
-          arguments: { path: 'README.md', expectedRevision: snapshot.revision },
-        };
-      case 'workspace.writeFile':
-        return {
-          name,
-          arguments: {
-            path: activeFile.path,
-            source: activeSource,
-            expectedRevision: snapshot.revision,
-          },
-        };
-      case 'workspace.saveAll':
-        return {
-          name,
-          arguments: { expectedRevision: snapshot.revision },
-        };
-      case 'workspace.saveCheckpoint':
-        return {
-          name,
-          arguments: { expectedRevision: snapshot.revision },
-        };
-      case 'workspace.reset':
-        return {
-          name,
-          arguments: { expectedRevision: snapshot.revision },
-        };
-      case 'workspace.reloadFolder':
-        return {
-          name,
-          arguments: { expectedRevision: snapshot.revision },
-        };
-      case 'workspace.disconnectFolder':
-        return { name, arguments: {} };
-      case 'workspace.applyPatch': {
-        if (activeFile.kind === 'asset') return null;
-        const line = activeSource.split('\n').find((value) => value.trim());
-        if (!line) return null;
-        return {
-          name,
-          arguments: {
-            path: activeFile.path,
-            search: line,
-            replace: `${line}  `,
-            occurrence: 'first',
-            expectedRevision: snapshot.revision,
-          },
-        };
-      }
-      case 'workspace.revertFile':
-        return {
-          name,
-          arguments: {
-            path: activeFile.path,
-            expectedRevision: snapshot.revision,
-          },
-        };
-      case 'workspace.undo':
-      case 'workspace.redo':
-        return { name, arguments: { expectedRevision: snapshot.revision } };
-      case 'preview.setTheme':
-        return { name, arguments: { theme: 'violet' } };
-      case 'preview.addFeature':
-        return {
-          name,
-          arguments: {
-            title: 'Palette feature',
-            description: 'Added from the visible tool palette.',
-          },
-        };
-      case 'preview.updateHero':
-        return {
-          name,
-          arguments: {
-            title: 'A page shaped by a tool call.',
-            subtitle: 'The visible registry can update the hero copy directly.',
-          },
-        };
-      default:
-        return null;
-    }
-  };
-
-  const resetSelectedToolArguments = () => {
-    const sample = selectedToolName ? paletteCallFor(selectedToolName) : null;
-    toolArgumentsSampleRef.current = true;
-    setToolArgumentsText(JSON.stringify(sample?.arguments ?? {}, null, 2));
-    setToolArgumentsError(null);
-  };
-
-  useEffect(() => {
-    resetSelectedToolArguments();
-  }, [selectedToolName, activeFile.path]);
-
-  useEffect(() => {
-    if (toolArgumentsSampleRef.current) resetSelectedToolArguments();
-  }, [snapshot.revision]);
-
-  const parseToolArguments = (): Record<string, unknown> | null => {
-    try {
-      const parsed: unknown = JSON.parse(toolArgumentsText);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        throw new Error('Arguments must be a JSON object.');
-      }
-      setToolArgumentsError(null);
-      return parsed as Record<string, unknown>;
-    } catch (error) {
-      setToolArgumentsError(
-        error instanceof Error ? error.message : 'Invalid JSON arguments.'
-      );
-      return null;
-    }
-  };
-
-  const runSelectedTool = async () => {
-    if (!selectedToolName || !selectedToolDefinition) return;
-    const argumentsValue = parseToolArguments();
-    if (!argumentsValue) return;
-    if (
-      selectedToolDefinition.annotations?.destructiveHint === true &&
-      !(await requestConfirmation({
-        title: 'Run destructive tool sample?',
-        message: `${selectedToolName} can change or remove workspace data. Review the arguments and confirm before running it.`,
-        confirmLabel: 'Run tool',
-        tone: 'danger',
-      }))
-    ) {
-      return;
-    }
-    await executeQuickTool({
-      name: selectedToolName,
-      arguments: argumentsValue,
-    });
-  };
-
   const showCopyFeedback = (message: string) => {
     if (copyFeedbackTimerRef.current !== null) {
       window.clearTimeout(copyFeedbackTimerRef.current);
@@ -1414,11 +1261,7 @@ function EditorWorkbench({
             onResetToolArguments={resetSelectedToolArguments}
             onRunSelectedTool={() => void runSelectedTool()}
             onSelectTool={setSelectedToolName}
-            onToolArgumentsChange={(value) => {
-              toolArgumentsSampleRef.current = false;
-              setToolArgumentsText(value);
-              if (toolArgumentsError) setToolArgumentsError(null);
-            }}
+            onToolArgumentsChange={handleToolArgumentsChange}
             onToolCatalogFilterChange={(value) => setToolCatalogFilter(value)}
             onToolFilterChange={setToolFilter}
             running={running}
