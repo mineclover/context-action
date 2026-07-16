@@ -111,8 +111,10 @@ callbacks without owning workspace mutation policy. This keeps React editor
 orchestration, tool registration, and workspace mutation contracts independently
 reviewable without prematurely creating a public package.
 The example Live Code Editor follows the same seam: its `actions/` hooks own
-direct registry calls and the provider-facing agent loop, while
-`LiveEditorAIToolbar.tsx` renders their catalog, results, and callbacks.
+direct registry calls, provider settings, trace exports, and the
+provider-facing agent loop; `hooks/useLiveEditorObservables.ts` owns trace
+subscription, while `LiveEditorAIToolbar.tsx` renders their catalog, results,
+and callbacks.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.

@@ -86,9 +86,12 @@ showcase. `LiveEditorToolchain.tsx` owns the ToolContext and handler
 registration, `actions/useLiveEditorToolActions.ts` owns direct palette calls
 and model-shaped calls, and `actions/useLiveEditorAgentExecution.ts` owns
 provider discovery, cancellation, message execution, and agent trace
-lifecycle. `LiveEditorAIToolbar.tsx` only renders the returned tool catalog,
-results, trace, and callbacks. This makes the example a concrete reference for
-the convention without making the presentation layer a second registry API.
+lifecycle. `actions/useLiveEditorProviderSettings.ts` owns the shared key and
+model settings, `hooks/useLiveEditorObservables.ts` owns trace subscription,
+and `actions/useLiveEditorTraceActions.ts` owns trace clear/copy/download.
+`LiveEditorAIToolbar.tsx` renders the returned tool catalog, results, trace, and
+callbacks. This makes the example a concrete reference for the convention
+without making the presentation layer a second registry or external-store API.
 
 ## Rules
 

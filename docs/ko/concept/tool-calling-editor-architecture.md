@@ -105,7 +105,8 @@ mutation policy를 소유하지 않고 data와 callback만 받는다. 따라서 
 orchestration, tool 등록, workspace mutation 계약을 별도 public package를
 성급하게 만들지 않고 독립적으로 검토할 수 있다.
 example의 Live Code Editor도 같은 경계를 따른다. `actions/` hook이 direct
-registry call과 provider-facing agent loop를 소유하고,
+registry call, provider 설정, trace export, provider-facing agent loop를
+소유하고, `hooks/useLiveEditorObservables.ts`가 trace subscription을 맡는다.
 `LiveEditorAIToolbar.tsx`는 catalog, result, callback을 표현한다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로

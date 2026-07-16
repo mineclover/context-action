@@ -1,106 +1,34 @@
-import {
-  type FormEvent,
-  useEffect,
-  useState,
-  useSyncExternalStore,
-} from 'react';
-import {
-  clearLiveEditorTrace,
-  formatLiveEditorTraceId,
-  liveEditorTraceStore,
-} from '../../../lib/live-editor-trace';
-import {
-  saveOpenRouterApiKey,
-  useStoredOpenRouterApiKey,
-} from '../../../lib/openrouter-api-key';
-import {
-  formatModelName,
-  getFreeModelsWithTools,
-  type OpenRouterModel,
-} from '../../../lib/openrouter-models';
-import {
-  downloadTextFile,
-  serializeToolTrace,
-  writeClipboardText,
-} from '../../../lib/tool-call-trace';
+import { type FormEvent, useState } from 'react';
+import { formatLiveEditorTraceId } from '../../../lib/live-editor-trace';
+import { formatModelName } from '../../../lib/openrouter-models';
 import { useLiveEditorAgentExecution } from './actions/useLiveEditorAgentExecution';
+import { useLiveEditorProviderSettings } from './actions/useLiveEditorProviderSettings';
 import { useLiveEditorToolActions } from './actions/useLiveEditorToolActions';
+import { useLiveEditorTraceActions } from './actions/useLiveEditorTraceActions';
+import { useLiveEditorTrace } from './hooks/useLiveEditorObservables';
 import styles from './LiveCodeEditorPage.module.css';
 
 export function LiveEditorAIToolbar() {
-  const trace = useSyncExternalStore(
-    liveEditorTraceStore.subscribe,
-    liveEditorTraceStore.getSnapshot,
-    liveEditorTraceStore.getSnapshot
-  );
-  const apiKey = useStoredOpenRouterApiKey();
-  const [models, setModels] = useState<OpenRouterModel[]>([]);
-  const [selectedModel, setSelectedModel] = useState('');
+  const trace = useLiveEditorTrace();
+  const providerSettings = useLiveEditorProviderSettings();
+  const traceActions = useLiveEditorTraceActions(trace);
   const [prompt, setPrompt] = useState('');
-  const [uiError, setUiError] = useState('');
-  const [loadingModels, setLoadingModels] = useState(false);
-  const [traceCopied, setTraceCopied] = useState(false);
   const toolActions = useLiveEditorToolActions();
   const agentExecution = useLiveEditorAgentExecution({
-    apiKey,
-    selectedModel,
+    apiKey: providerSettings.apiKey,
+    selectedModel: providerSettings.selectedModel,
     prompt,
     onPromptConsumed: () => setPrompt(''),
   });
-
-  useEffect(() => {
-    let active = true;
-    setLoadingModels(true);
-    getFreeModelsWithTools()
-      .then((freeModels) => {
-        if (!active) return;
-        setModels(freeModels);
-        setSelectedModel((current) => current || freeModels[0]?.id || '');
-      })
-      .catch((loadError) => {
-        if (active) {
-          setUiError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'OpenRouter models could not be loaded.'
-          );
-        }
-      })
-      .finally(() => {
-        if (active) setLoadingModels(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void agentExecution.run();
   };
 
-  const copyTrace = async () => {
-    if (!trace.length) return;
-    try {
-      await writeClipboardText(serializeToolTrace(trace));
-      setTraceCopied(true);
-      window.setTimeout(() => setTraceCopied(false), 1600);
-    } catch {
-      setUiError(
-        'Could not copy the editor execution trace. Use Download instead.'
-      );
-    }
-  };
-
-  const downloadTrace = () => {
-    if (!trace.length) return;
-    downloadTextFile(
-      serializeToolTrace(trace),
-      'context-action-editor-trace.json'
-    );
-  };
-
   const { results, commands, toolDefinitions } = toolActions;
+  const displayError =
+    providerSettings.error || traceActions.error || agentExecution.error;
 
   return (
     <section className={styles.aiToolbar} aria-label="AI editor toolchain">
@@ -118,22 +46,31 @@ export function LiveEditorAIToolbar() {
           <span>OpenRouter key</span>
           <input
             type="password"
-            value={apiKey}
+            value={providerSettings.apiKey}
             placeholder="sk-or-..."
-            onChange={(event) => saveOpenRouterApiKey(event.target.value)}
+            onChange={(event) =>
+              providerSettings.commands.saveApiKey(event.target.value)
+            }
           />
         </label>
         <label>
           <span>Tool-capable model</span>
           <select
-            value={selectedModel}
-            disabled={loadingModels || models.length === 0}
-            onChange={(event) => setSelectedModel(event.target.value)}
+            value={providerSettings.selectedModel}
+            disabled={
+              providerSettings.loadingModels ||
+              providerSettings.models.length === 0
+            }
+            onChange={(event) =>
+              providerSettings.commands.selectModel(event.target.value)
+            }
           >
             <option value="">
-              {loadingModels ? 'Loading models…' : 'Select a model'}
+              {providerSettings.loadingModels
+                ? 'Loading models…'
+                : 'Select a model'}
             </option>
-            {models.map((model) => (
+            {providerSettings.models.map((model) => (
               <option key={model.id} value={model.id}>
                 {formatModelName(model)}
               </option>
@@ -256,7 +193,7 @@ export function LiveEditorAIToolbar() {
                 className={styles.traceClearButton}
                 aria-label="Clear editor execution trace"
                 disabled={!trace.length}
-                onClick={clearLiveEditorTrace}
+                onClick={traceActions.commands.clear}
               >
                 Clear
               </button>
@@ -265,16 +202,16 @@ export function LiveEditorAIToolbar() {
                 className={styles.traceClearButton}
                 aria-label="Copy editor execution trace"
                 disabled={!trace.length}
-                onClick={() => void copyTrace()}
+                onClick={() => void traceActions.commands.copy()}
               >
-                {traceCopied ? 'Copied' : 'Copy'}
+                {traceActions.traceCopied ? 'Copied' : 'Copy'}
               </button>
               <button
                 type="button"
                 className={styles.traceClearButton}
                 aria-label="Download editor execution trace"
                 disabled={!trace.length}
-                onClick={downloadTrace}
+                onClick={traceActions.commands.download}
               >
                 Download
               </button>
@@ -332,7 +269,11 @@ export function LiveEditorAIToolbar() {
           aria-label="Editor AI request"
           value={prompt}
           placeholder="예: 현재 문서의 scenario를 invalid로 바꿔줘"
-          disabled={!apiKey || !selectedModel || agentExecution.loading}
+          disabled={
+            !providerSettings.apiKey ||
+            !providerSettings.selectedModel ||
+            agentExecution.loading
+          }
           onChange={(event) => setPrompt(event.target.value)}
         />
         <button
@@ -341,7 +282,9 @@ export function LiveEditorAIToolbar() {
           disabled={
             agentExecution.loading
               ? false
-              : !apiKey || !selectedModel || !prompt.trim()
+              : !providerSettings.apiKey ||
+                !providerSettings.selectedModel ||
+                !prompt.trim()
           }
           onClick={agentExecution.loading ? agentExecution.cancel : undefined}
         >
@@ -353,9 +296,7 @@ export function LiveEditorAIToolbar() {
       {agentExecution.result && (
         <p className={styles.aiResult}>{agentExecution.result}</p>
       )}
-      {(uiError || agentExecution.error) && (
-        <p className={styles.aiError}>{uiError || agentExecution.error}</p>
-      )}
+      {displayError && <p className={styles.aiError}>{displayError}</p>}
     </section>
   );
 }

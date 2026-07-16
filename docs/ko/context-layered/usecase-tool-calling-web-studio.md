@@ -85,9 +85,13 @@ ToolContext와 handler 등록을 소유하고, `actions/useLiveEditorToolActions
 palette direct call과 model-shaped call을 소유하며,
 `actions/useLiveEditorAgentExecution.ts`가 provider discovery, cancellation,
 message 실행, agent trace lifecycle을 소유합니다. `LiveEditorAIToolbar.tsx`는
-반환된 tool catalog, result, trace와 callback만 표현합니다. 따라서 작은
-showcase에서도 presentation layer가 두 번째 registry API를 만들지 않는다는
-컨벤션을 실제 코드로 확인할 수 있습니다.
+반환된 tool catalog, result, trace와 callback만 표현합니다.
+`actions/useLiveEditorProviderSettings.ts`는 shared key와 model 설정을,
+`hooks/useLiveEditorObservables.ts`는 trace subscription을,
+`actions/useLiveEditorTraceActions.ts`는 trace clear/copy/download를
+소유합니다. 따라서 작은 showcase에서도 presentation layer가 두 번째
+registry 또는 external-store API를 만들지 않는다는 컨벤션을 실제 코드로
+확인할 수 있습니다.
 
 ## 규칙
 

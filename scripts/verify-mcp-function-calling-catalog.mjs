@@ -102,6 +102,15 @@ const liveEditorToolActionsSource = readSource(
 const liveEditorAgentActionsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorAgentExecution.ts'
 );
+const liveEditorTraceActionsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorTraceActions.ts'
+);
+const liveEditorProviderSettingsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorProviderSettings.ts'
+);
+const liveEditorObservablesSource = readSource(
+  'example/src/pages/integrations/live-code-editor/hooks/useLiveEditorObservables.ts'
+);
 const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
 assertContains(
@@ -189,10 +198,35 @@ assertContains(
   /runner\.generate\([\s\S]*?registry,/,
   'live editor provider action boundary'
 );
+assertContains(
+  liveEditorTraceActionsSource,
+  /clearLiveEditorTrace\(\)/,
+  'live editor trace clear action'
+);
+assertContains(
+  liveEditorTraceActionsSource,
+  /serializeToolTrace\(/,
+  'live editor trace export action'
+);
+assertContains(
+  liveEditorProviderSettingsSource,
+  /useStoredOpenRouterApiKey\(\)/,
+  'live editor provider key observable'
+);
+assertContains(
+  liveEditorProviderSettingsSource,
+  /getFreeModelsWithTools\(\)/,
+  'live editor provider model action'
+);
+assertContains(
+  liveEditorObservablesSource,
+  /useSyncExternalStore\(/,
+  'live editor external observable hook'
+);
 assertNotContains(
   liveEditorToolbarSource,
-  /registry\.(?:callTool|executeModelToolCall|listTools)\(/,
-  'registry execution from the presentation toolbar'
+  /(?:registry\.(?:callTool|executeModelToolCall|listTools)|liveEditorTraceStore|useSyncExternalStore|getFreeModelsWithTools|saveOpenRouterApiKey|serializeToolTrace|downloadTextFile|writeClipboardText)/,
+  'external runtime APIs from the presentation toolbar'
 );
 
 const uiCount = assertCatalogMatchesSchema({
@@ -218,3 +252,4 @@ console.log('- example tools/list/tools/call trace methods checked');
 console.log('- example agent.request trace lifecycle checked');
 console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
+console.log('- live editor observability/settings/export boundaries checked');
