@@ -3,6 +3,8 @@ import {
   createToolCallError,
   createToolCallSuccess,
   getToolCallErrorMetadata,
+  isToolCallRequest,
+  isToolListRequest,
   type ToolCallContext,
   type ToolCallMode,
   type ToolCallErrorCode,
@@ -11,6 +13,34 @@ import {
 } from '../../src/tool-protocol';
 
 describe('tool protocol context', () => {
+  it('guards canonical tools/list and tools/call request shapes at runtime', () => {
+    expect(isToolListRequest({ method: 'tools/list' })).toBe(true);
+    expect(
+      isToolListRequest({ method: 'tools/list', params: { cursor: 'offset:2' } })
+    ).toBe(true);
+    expect(isToolListRequest({ method: 'tools/call' })).toBe(false);
+
+    expect(
+      isToolCallRequest({
+        id: 'call-1',
+        method: 'tools/call',
+        params: { name: 'workspace.readFile', arguments: { path: 'index.html' } },
+      })
+    ).toBe(true);
+    expect(
+      isToolCallRequest({
+        method: 'tools/call',
+        params: { name: '  ', arguments: {} },
+      })
+    ).toBe(false);
+    expect(
+      isToolCallRequest({
+        method: 'tools/call',
+        params: { name: 'workspace.readFile', arguments: [] },
+      })
+    ).toBe(false);
+  });
+
   it('creates canonical discovery, model-call, and result shapes', () => {
     expect(toToolListRequest()).toEqual({ method: 'tools/list' });
     expect(toToolListRequest({ cursor: 'offset:2' })).toEqual({

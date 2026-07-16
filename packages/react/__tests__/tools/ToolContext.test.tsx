@@ -11,8 +11,12 @@ import {
   createToolContext,
   defineAction,
   createActionSchema,
+  isToolCallRequest,
+  isToolListRequest,
   toToolCallRequest,
   toToolListRequest,
+  type ToolCallRequest,
+  type ToolListRequest,
 } from '../../src';
 
 describe('createToolContext', () => {
@@ -269,6 +273,41 @@ describe('createToolContext', () => {
         method: 'tools/list',
         params: { cursor: 'offset:2' },
       });
+    });
+
+    it('rejects malformed runtime protocol requests before execution', async () => {
+      expect(isToolListRequest({ method: 'tools/call' })).toBe(false);
+      expect(
+        isToolCallRequest({
+          method: 'tools/call',
+          params: { name: 'searchProducts', arguments: [] },
+        })
+      ).toBe(false);
+
+      const handler = jest.fn();
+      const { result } = renderHook(
+        () => {
+          useToolHandler('searchProducts', useCallback(handler, []));
+          return useToolRegistry();
+        },
+        { wrapper }
+      );
+      const malformedCall = {
+        method: 'tools/list',
+        params: { name: 'searchProducts', arguments: {} },
+      } as unknown as ToolCallRequest;
+      const callResult = await act(async () =>
+        result.current.callTool(malformedCall)
+      );
+
+      expect(callResult).toMatchObject({
+        isError: true,
+        error: { code: 'TOOL_VALIDATION_FAILED' },
+      });
+      expect(handler).not.toHaveBeenCalled();
+      expect(() =>
+        result.current.listTools({ method: 'tools/call' } as unknown as ToolListRequest)
+      ).toThrow('Invalid tools/list request.');
     });
 
     it('should expose tools/list definitions through the registry', () => {

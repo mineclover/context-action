@@ -119,6 +119,10 @@ actions use `mode: 'direct'`. Keep provider-specific values in `metadata`; do
 not overload them to decide whether a mutation needs approval. The registry
 defaults `executeModelToolCall()` to `mode: 'agent'` when an adapter omits it;
 direct `callTool()` invocations must opt into `mode: 'direct'` explicitly.
+Adapters that receive JSON from a provider should run the shared runtime guards
+before handing the request to the registry; malformed method, name, ID, or
+argument shapes must become a structured validation error rather than reaching a
+handler.
 
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.

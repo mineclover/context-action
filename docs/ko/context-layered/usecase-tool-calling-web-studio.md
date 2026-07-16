@@ -110,6 +110,9 @@ provider 전용 값은 `metadata`에만 두고, mutation approval 여부를 결�
 재사용하지 않습니다. adapter가 mode를 생략해도 registry의
 `executeModelToolCall()`은 `mode: 'agent'`를 기본값으로 사용하며, 직접 실행하는
 `callTool()`은 `mode: 'direct'`를 명시해야 합니다.
+provider에서 JSON을 받는 adapter는 registry에 request를 넘기기 전에 공통 runtime
+guard를 실행해야 합니다. 잘못된 method, name, ID, arguments shape은 handler까지
+도달하지 않고 structured validation error가 되어야 합니다.
 
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.

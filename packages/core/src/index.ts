@@ -48,6 +48,8 @@ export {
   createToolCallError,
   createToolCallSuccess,
   getToolCallErrorMetadata,
+  isToolCallRequest,
+  isToolListRequest,
   toToolCallRequest,
   toToolListRequest,
   withToolCallId,

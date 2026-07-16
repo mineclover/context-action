@@ -118,6 +118,38 @@ export interface ToolCallRequest {
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isToolCallId(value: unknown): value is ToolCallId {
+  return (
+    typeof value === 'string' ||
+    (typeof value === 'number' && Number.isFinite(value))
+  );
+}
+
+/** Runtime guard for JSON received at the canonical tools/list boundary. */
+export function isToolListRequest(value: unknown): value is ToolListRequest {
+  if (!isRecord(value) || value.method !== 'tools/list') return false;
+  if (value.params === undefined) return true;
+  if (!isRecord(value.params)) return false;
+  return value.params.cursor === undefined || typeof value.params.cursor === 'string';
+}
+
+/** Runtime guard for JSON received at the canonical tools/call boundary. */
+export function isToolCallRequest(value: unknown): value is ToolCallRequest {
+  if (!isRecord(value) || value.method !== 'tools/call') return false;
+  if (!isRecord(value.params) || typeof value.params.name !== 'string') {
+    return false;
+  }
+  if (!value.params.name.trim()) return false;
+  if (value.id !== undefined && !isToolCallId(value.id)) return false;
+  return (
+    value.params.arguments === undefined || isRecord(value.params.arguments)
+  );
+}
+
 /** Canonical model-side tool call before it is wrapped as tools/call. */
 export interface ModelToolCall {
   readonly id?: ToolCallId;

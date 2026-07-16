@@ -59,6 +59,8 @@ import {
   getToolCallErrorMetadata,
   HandlerConfig,
   InferActionPayloadMap,
+  isToolCallRequest,
+  isToolListRequest,
   TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
   withToolCallId,
@@ -183,6 +185,9 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     return tool;
   };
   const listTools = (request?: ToolListRequest) => {
+    if (request && !isToolListRequest(request)) {
+      throw new Error('Invalid tools/list request.');
+    }
     // A direct registry call without a protocol request remains the complete
     // catalog. Canonical tools/list requests can opt into cursor pagination.
     if (!request || toolListPageSize === undefined) {
@@ -378,6 +383,21 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     // Canonical tools/call bridge used by MCP adapters and model tool calls.
     const executeToolCall = useMemo<ToolCallExecutor>(() => {
       return async (request, options) => {
+        if (!isToolCallRequest(request)) {
+          const rawRequest = request as unknown as {
+            id?: unknown;
+          } | null;
+          const rawId = rawRequest?.id;
+          const toolCallId =
+            typeof rawId === 'string' ||
+            (typeof rawId === 'number' && Number.isFinite(rawId))
+              ? rawId
+              : undefined;
+          return createToolCallError('Invalid tools/call request.', {
+            code: TOOL_CALL_ERROR_CODES.VALIDATION_FAILED,
+            ...(toolCallId === undefined ? {} : { toolCallId }),
+          });
+        }
         const startedAt = Date.now();
         const context: ToolCallContext = options?.context ?? { source: 'mcp' };
         const toolName = request.params.name as keyof TPayloadMap;
