@@ -16,6 +16,7 @@ import {
   collectDirectoryPaths,
   type FileTreeEntry,
 } from './file-tree';
+import { useConfirmationRequest } from './hooks/use-confirmation-request';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
 import {
@@ -41,7 +42,6 @@ import {
 } from './views/code-editor';
 import {
   ConfirmationDialog,
-  type ConfirmationRequest,
   CreateWorkspaceFileDialog,
   OpenRouterSettingsDialog,
   RenameWorkspaceFileDialog,
@@ -487,32 +487,8 @@ function EditorWorkbench({
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
   const [showRenameFile, setShowRenameFile] = useState(false);
-  const [confirmationRequest, setConfirmationRequest] =
-    useState<ConfirmationRequest | null>(null);
-  const confirmationResolverRef = useRef<((confirmed: boolean) => void) | null>(
-    null
-  );
-  const requestConfirmation = useCallback(
-    (request: ConfirmationRequest) =>
-      new Promise<boolean>((resolve) => {
-        confirmationResolverRef.current?.(false);
-        confirmationResolverRef.current = resolve;
-        setConfirmationRequest(request);
-      }),
-    []
-  );
-  const resolveConfirmation = useCallback((confirmed: boolean) => {
-    const resolve = confirmationResolverRef.current;
-    confirmationResolverRef.current = null;
-    setConfirmationRequest(null);
-    resolve?.(confirmed);
-  }, []);
-  useEffect(() => {
-    return () => {
-      confirmationResolverRef.current?.(false);
-      confirmationResolverRef.current = null;
-    };
-  }, []);
+  const { confirmationRequest, requestConfirmation, resolveConfirmation } =
+    useConfirmationRequest();
   const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
   const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
   const workspaceSearchRequestRef = useRef(0);
