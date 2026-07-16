@@ -8,7 +8,6 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { runLocalAgent } from './actions/run-local-agent';
 import {
   BoltStyleToolProvider,
   useBoltStyleToolRegistry,
@@ -18,33 +17,23 @@ import {
   collectDirectoryPaths,
   type FileTreeEntry,
 } from './file-tree';
+import {
+  type EditorMessage,
+  type ToolExecutionOutcome,
+  useToolExecution,
+} from './hooks/use-tool-execution';
 import { type ToolCall } from './local-agent-plan';
 import {
   DEFAULT_OPENROUTER_SETTINGS,
-  OpenRouterRequestError,
-  type OpenRouterRetryEvent,
   type OpenRouterSettings,
   readOpenRouterSettings,
-  runOpenRouterAgent,
   saveOpenRouterSettings,
   subscribeOpenRouterSettings,
 } from './openrouter';
-import {
-  denyPendingToolApprovals,
-  resolveToolApproval,
-  toolApprovalStore,
-} from './tool-approval';
-import { getToolErrorRecovery } from './tool-error-recovery';
+import { resolveToolApproval, toolApprovalStore } from './tool-approval';
 import { ToolHandlers } from './tool-handlers';
-import { formatToolResultText } from './tool-result-utils';
-import { throwIfAborted } from './tool-runtime-utils';
-import {
-  clearToolTrace,
-  createToolSessionId,
-  finishAgentTrace,
-  startAgentTrace,
-  toolTraceStore,
-} from './tool-trace';
+import { formatToolSuccessMessage } from './tool-result-utils';
+import { clearToolTrace, toolTraceStore } from './tool-trace';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
@@ -59,19 +48,6 @@ import {
   type ImportedFolder,
 } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
-
-type Message = {
-  role: 'user' | 'assistant';
-  text: string;
-  tools?: string[];
-  tone?: 'error' | 'cancelled';
-  retryPrompt?: string;
-  retryLabel?: string;
-  retryTool?: ToolCall;
-  folderAction?: 'reconnect' | 'grant';
-  previewAction?: boolean;
-  openSettings?: boolean;
-};
 
 type ConfirmationRequest = {
   title: string;
@@ -93,16 +69,6 @@ function toolPolicySummary(annotations?: ToolAnnotations): string {
   return 'approval · local direct allow';
 }
 
-function shouldOpenProviderSettings(error: unknown): boolean {
-  if (!(error instanceof OpenRouterRequestError)) return false;
-  return (
-    error.code === 'OPENROUTER_CONFIGURATION_ERROR' ||
-    error.code === 'OPENROUTER_AUTHENTICATION_FAILED' ||
-    error.code === 'OPENROUTER_ACCESS_DENIED' ||
-    error.code === 'OPENROUTER_INVALID_RESPONSE'
-  );
-}
-
 const toolCatalogFilterOptions: Array<{
   value: ToolCatalogFilter;
   label: string;
@@ -112,16 +78,6 @@ const toolCatalogFilterOptions: Array<{
   { value: 'workspace', label: 'Workspace' },
   { value: 'preview', label: 'Preview' },
 ];
-
-type ToolExecutionOutcome = {
-  ok: boolean;
-  message?: string;
-};
-
-type ToolExecutionOptions = {
-  announce?: boolean;
-  skipDraftFlush?: boolean;
-};
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
 
@@ -307,144 +263,6 @@ function thrownErrorText(error: unknown, fallback: string): string {
     return `[${error.code}] ${error.message}${details}`;
   }
   return error instanceof Error ? error.message : fallback;
-}
-
-function toolSuccessMessage(
-  name: string,
-  result: { structuredContent?: unknown }
-): string {
-  const value = result.structuredContent;
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return `Executed ${name}.`;
-  }
-
-  const structured = value as Record<string, unknown>;
-  const revision =
-    typeof structured.revision === 'number'
-      ? ` Revision ${structured.revision}.`
-      : '';
-
-  if (name === 'workspace.getStatus') {
-    const fileCount =
-      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
-    const filesystem =
-      structured.filesystem &&
-      typeof structured.filesystem === 'object' &&
-      !Array.isArray(structured.filesystem)
-        ? (structured.filesystem as Record<string, unknown>)
-        : undefined;
-    const storage = filesystem?.folderLinked
-      ? 'local folder connected'
-      : 'browser-only workspace';
-    const permission =
-      typeof filesystem?.permission === 'string'
-        ? `, write access ${filesystem.permission}`
-        : '';
-    return `Workspace status: ${fileCount} file(s), ${storage}${permission}.${revision}`;
-  }
-
-  if (name === 'preview.getStatus') {
-    const status =
-      typeof structured.status === 'string' ? structured.status : 'unknown';
-    const diagnostics = Array.isArray(structured.diagnostics)
-      ? structured.diagnostics.length
-      : 0;
-    return `Preview status: ${status}, ${diagnostics} diagnostic(s).${revision}`;
-  }
-
-  if (name === 'workspace.reset') {
-    const fileCount =
-      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
-    return `Reset the browser workspace to the demo seed (${fileCount} file(s)). Preview revision acknowledged.${revision}`;
-  }
-
-  if (name === 'workspace.listFiles' && Array.isArray(structured.files)) {
-    return `Listed ${structured.files.length} workspace file(s).${revision}`;
-  }
-
-  if (name === 'workspace.readFile' && typeof structured.path === 'string') {
-    const source =
-      typeof structured.source === 'string' ? structured.source : '';
-    return `Read ${structured.path} (${source.split('\n').length} lines).${revision}`;
-  }
-
-  if (
-    name === 'workspace.downloadFile' &&
-    typeof structured.path === 'string'
-  ) {
-    const size = typeof structured.size === 'number' ? structured.size : 0;
-    return `Downloaded ${structured.path} (${size} bytes).`;
-  }
-
-  if (name === 'workspace.openFile' && typeof structured.path === 'string') {
-    return `Opened ${structured.path} in the editor.${revision}`;
-  }
-
-  if (name === 'workspace.applyPatch') {
-    const replacements =
-      typeof structured.replacements === 'number' ? structured.replacements : 0;
-    return `Patched ${String(structured.path ?? 'the file')} (${replacements} replacement${replacements === 1 ? '' : 's'}).${revision}`;
-  }
-
-  if (
-    name === 'workspace.renameFile' &&
-    typeof structured.fromPath === 'string' &&
-    typeof structured.toPath === 'string'
-  ) {
-    return `Renamed ${structured.fromPath} → ${structured.toPath}. Preview revision acknowledged.${revision}`;
-  }
-
-  if (name === 'workspace.saveAll') {
-    const savedCount = Array.isArray(structured.savedPaths)
-      ? structured.savedPaths.length
-      : 0;
-    const deletedCount = Array.isArray(structured.deletedPaths)
-      ? structured.deletedPaths.length
-      : 0;
-    const pendingChanges = structured.checkpointUpdated === false;
-    const pendingSuffix = pendingChanges
-      ? ' Newer editor changes remain unsaved.'
-      : '';
-    return `Saved ${savedCount} file(s)${deletedCount ? ` and deleted ${deletedCount} file(s)` : ''}.${pendingSuffix}${revision}`;
-  }
-
-  if (name === 'workspace.saveCheckpoint') {
-    const savedCount = Array.isArray(structured.savedPaths)
-      ? structured.savedPaths.length
-      : 0;
-    const deletedCount = Array.isArray(structured.deletedPaths)
-      ? structured.deletedPaths.length
-      : 0;
-    return `Saved the browser checkpoint for ${savedCount} file(s)${deletedCount ? ` and cleared ${deletedCount} deletion marker(s)` : ''}.${revision}`;
-  }
-
-  if (name === 'workspace.reloadFolder') {
-    const fileCount =
-      typeof structured.fileCount === 'number' ? structured.fileCount : 0;
-    const skippedCount = Array.isArray(structured.skipped)
-      ? structured.skipped.length
-      : 0;
-    const skippedSuffix = skippedCount
-      ? ` Skipped ${skippedCount} invalid, unsupported, or oversized file(s).`
-      : '';
-    return `Reloaded the connected folder with ${fileCount} file(s).${skippedSuffix}${revision}`;
-  }
-
-  if (name === 'workspace.disconnectFolder') {
-    return 'Disconnected the local folder. Future saves stay in the browser workspace until another folder is opened.';
-  }
-
-  if (typeof structured.path === 'string') {
-    return `Updated ${structured.path}. Preview revision acknowledged.${revision}`;
-  }
-  if (typeof structured.theme === 'string') {
-    return `Applied the ${structured.theme} theme. Preview revision acknowledged.${revision}`;
-  }
-  if (typeof structured.title === 'string') {
-    return `Updated the preview content. Preview revision acknowledged.${revision}`;
-  }
-
-  return `Executed ${name}. Preview revision acknowledged.${revision}`;
 }
 
 function downloadTextFile(
@@ -1987,15 +1805,9 @@ function EditorWorkbench({
   const [prompt, setPrompt] = useState(
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
-  const [running, setRunning] = useState(false);
-  const [providerRetry, setProviderRetry] =
-    useState<OpenRouterRetryEvent | null>(null);
-  const executionControllerRef = useRef<AbortController | null>(null);
   const copyFeedbackTimerRef = useRef<number | null>(null);
   useEffect(() => {
     return () => {
-      denyPendingToolApprovals();
-      executionControllerRef.current?.abort();
       if (copyFeedbackTimerRef.current !== null) {
         window.clearTimeout(copyFeedbackTimerRef.current);
       }
@@ -2007,17 +1819,12 @@ function EditorWorkbench({
   const messageListRef = useRef<HTMLDivElement>(null);
   const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
   const focusedApprovalIdRef = useRef<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<EditorMessage[]>([
     {
       role: 'assistant',
       text: 'Describe a change and I will turn it into visible workspace tool calls.',
     },
   ]);
-  useEffect(() => {
-    const messageList = messageListRef.current;
-    if (!messageList) return;
-    messageList.scrollTop = messageList.scrollHeight;
-  }, [messages.length, running]);
   const [openRouterSettings, setOpenRouterSettings] = useState(
     readOpenRouterSettings
   );
@@ -2026,6 +1833,29 @@ function EditorWorkbench({
       setOpenRouterSettings(readOpenRouterSettings());
     });
   }, []);
+  const clearPrompt = useCallback(() => setPrompt(''), []);
+  const {
+    running,
+    providerRetry,
+    executionControllerRef,
+    flushEditorDraftsRef,
+    executePrompt,
+    executeQuickTool,
+    cancelExecution,
+  } = useToolExecution({
+    registry,
+    workspace,
+    fileSystemAdapter,
+    openRouterSettings,
+    setMessages,
+    clearPrompt,
+    formatToolSuccessMessage,
+  });
+  useEffect(() => {
+    const messageList = messageListRef.current;
+    if (!messageList) return;
+    messageList.scrollTop = messageList.scrollHeight;
+  }, [messages.length, running]);
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateFile, setShowCreateFile] = useState(false);
   const [showRenameFile, setShowRenameFile] = useState(false);
@@ -2658,12 +2488,6 @@ function EditorWorkbench({
     workspaceSearchOpen,
   ]);
 
-  const cancelExecution = useCallback(() => {
-    denyPendingToolApprovals();
-    const controller = executionControllerRef.current;
-    if (controller && !controller.signal.aborted) controller.abort();
-  }, []);
-
   useEffect(() => {
     if (
       !running ||
@@ -2693,187 +2517,6 @@ function EditorWorkbench({
     showSettings,
     workspaceSearchOpen,
   ]);
-
-  const executePrompt = async (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed || running) return;
-    if (!(await flushEditorDrafts())) return;
-    const controller = new AbortController();
-    executionControllerRef.current = controller;
-    setProviderRetry(null);
-    const agentTrace = startAgentTrace(
-      openRouterSettings.apiKey ? 'openrouter' : 'local'
-    );
-    setPrompt('');
-    setMessages((current) => [...current, { role: 'user', text: trimmed }]);
-    setRunning(true);
-    try {
-      const result = openRouterSettings.apiKey
-        ? await runOpenRouterAgent(
-            registry,
-            trimmed,
-            openRouterSettings,
-            controller.signal,
-            agentTrace.sessionId,
-            setProviderRetry
-          )
-        : await runLocalAgent(
-            registry,
-            workspace,
-            fileSystemAdapter,
-            trimmed,
-            controller.signal,
-            agentTrace.sessionId
-          );
-      throwIfAborted(controller.signal);
-      finishAgentTrace(
-        agentTrace,
-        result.failed ? 'failed' : 'completed',
-        result.failed
-          ? `${result.failedTool ?? 'tool call'} failed`
-          : `${result.toolNames.length} tool call(s)`
-      );
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: result.response,
-          tools: result.toolNames,
-          ...(result.failed
-            ? {
-                tone: 'error' as const,
-                ...(result.retryable === false
-                  ? {}
-                  : {
-                      retryPrompt: trimmed,
-                      ...getToolErrorRecovery(result.errorCode, {
-                        revisionConflict: result.revisionConflict,
-                      }),
-                    }),
-              }
-            : {}),
-        },
-      ]);
-    } catch (error) {
-      finishAgentTrace(
-        agentTrace,
-        controller.signal.aborted ? 'cancelled' : 'failed',
-        controller.signal.aborted
-          ? 'cancelled'
-          : error instanceof OpenRouterRequestError
-            ? error.code
-            : 'agent request failed'
-      );
-      const retryable =
-        !(error instanceof OpenRouterRequestError) || error.retryable;
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: controller.signal.aborted
-            ? 'Execution cancelled.'
-            : error instanceof Error
-              ? error.message
-              : 'Request failed.',
-          tone: controller.signal.aborted ? 'cancelled' : 'error',
-          ...(controller.signal.aborted || !retryable
-            ? {}
-            : { retryPrompt: trimmed }),
-          ...(shouldOpenProviderSettings(error) ? { openSettings: true } : {}),
-        },
-      ]);
-    } finally {
-      if (executionControllerRef.current === controller) {
-        executionControllerRef.current = null;
-      }
-      setProviderRetry(null);
-      setRunning(false);
-    }
-  };
-
-  const executeQuickTool = async (
-    call: ToolCall,
-    options: ToolExecutionOptions = {}
-  ): Promise<ToolExecutionOutcome> => {
-    if (running) {
-      return {
-        ok: false,
-        message: 'Another tool execution is already running.',
-      };
-    }
-    if (!options.skipDraftFlush && call.name !== 'workspace.writeFile') {
-      const draftsFlushed = await flushEditorDrafts();
-      if (!draftsFlushed) {
-        return {
-          ok: false,
-          message: 'Pending editor changes could not be committed.',
-        };
-      }
-    }
-    const controller = new AbortController();
-    executionControllerRef.current = controller;
-    const sessionId = createToolSessionId();
-    setRunning(true);
-    try {
-      const result = await registry.callTool(
-        {
-          id: `palette-${sessionId}`,
-          method: 'tools/call',
-          params: { name: call.name, arguments: call.arguments },
-        },
-        {
-          context: { source: 'local', sessionId },
-          signal: controller.signal,
-        }
-      );
-      throwIfAborted(controller.signal);
-      const message = result.isError
-        ? formatToolResultText(result)
-        : toolSuccessMessage(call.name, result);
-      if (options.announce !== false || result.isError) {
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: message,
-            tools: [call.name],
-            ...(result.isError
-              ? {
-                  tone: 'error' as const,
-                  ...getToolErrorRecovery(result.error?.code),
-                  ...(result.error?.retryable === false
-                    ? {}
-                    : { retryTool: call }),
-                }
-              : {}),
-          },
-        ]);
-      }
-      return result.isError ? { ok: false, message } : { ok: true };
-    } catch (error) {
-      const message = controller.signal.aborted
-        ? 'Execution cancelled.'
-        : error instanceof Error && error.message.trim()
-          ? error.message
-          : 'Tool execution failed.';
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: message,
-          tools: [call.name],
-          tone: controller.signal.aborted ? 'cancelled' : 'error',
-          ...(controller.signal.aborted ? {} : { retryTool: call }),
-        },
-      ]);
-      return { ok: false, message };
-    } finally {
-      if (executionControllerRef.current === controller) {
-        executionControllerRef.current = null;
-      }
-      setRunning(false);
-    }
-  };
 
   useEffect(() => {
     const handleHistoryShortcut = (event: globalThis.KeyboardEvent) => {
@@ -2994,6 +2637,7 @@ function EditorWorkbench({
     editorDraftFlushRef.current = trackedPromise;
     return trackedPromise;
   };
+  flushEditorDraftsRef.current = flushEditorDrafts;
 
   const updateEditorDraft = (path: string, source: string) => {
     setEditorDrafts((current) => {
