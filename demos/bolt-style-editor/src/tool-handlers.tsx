@@ -59,6 +59,17 @@ function createWorkspaceRevisionError(
   });
 }
 
+function createWorkspaceFolderStateError(
+  message: string,
+  operation: 'reset' | 'checkpoint'
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code: 'WORKSPACE_FOLDER_STATE_CONFLICT',
+    retryable: false,
+    details: { operation, folderLinked: true },
+  });
+}
+
 export function ToolHandlers({
   workspace,
   fileSystemAdapter,
@@ -117,8 +128,9 @@ export function ToolHandlers({
     'workspace.reset',
     async ({ expectedRevision }, controller) => {
       if (fileSystemAdapter.hasWritableFolder) {
-        throw new Error(
-          'A writable folder is connected. Disconnect the folder before resetting the browser demo workspace.'
+        throw createWorkspaceFolderStateError(
+          'A writable folder is connected. Disconnect the folder before resetting the browser demo workspace.',
+          'reset'
         );
       }
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
@@ -451,8 +463,9 @@ export function ToolHandlers({
     'workspace.saveCheckpoint',
     async ({ expectedRevision }) => {
       if (fileSystemAdapter.hasWritableFolder) {
-        throw new Error(
-          'A writable folder is connected. Use workspace.saveAll to persist filesystem changes.'
+        throw createWorkspaceFolderStateError(
+          'A writable folder is connected. Use workspace.saveAll to persist filesystem changes.',
+          'checkpoint'
         );
       }
       assertExpectedWorkspaceRevision(workspace, expectedRevision);

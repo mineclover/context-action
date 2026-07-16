@@ -109,6 +109,10 @@ function createWorkspaceInputError(
     | 'WORKSPACE_FILE_NOT_FOUND'
     | 'WORKSPACE_FILE_CONFLICT'
     | 'WORKSPACE_FILE_TYPE_CONFLICT'
+    | 'WORKSPACE_NO_SUPPORTED_FILES'
+    | 'WORKSPACE_EMPTY'
+    | 'WORKSPACE_ACTIVE_FILE_NOT_FOUND'
+    | 'WORKSPACE_PREVIEW_ENTRY_REQUIRED'
     | 'WORKSPACE_HISTORY_EMPTY',
   message: string,
   details: Record<string, unknown>
@@ -370,8 +374,14 @@ export class BrowserWorkspace {
     options: WorkspaceImportOptions = {}
   ): Promise<void> {
     if (folder.files.length === 0) {
-      throw new Error(
-        'No supported HTML, CSS, JS, text, or preview asset files were found.'
+      throw createWorkspaceInputError(
+        'WORKSPACE_NO_SUPPORTED_FILES',
+        'No supported HTML, CSS, JS, text, or preview asset files were found.',
+        {
+          operation: 'import',
+          rootName: folder.rootName,
+          skippedCount: folder.skipped.length,
+        }
       );
     }
 
@@ -781,7 +791,11 @@ export class BrowserWorkspace {
           candidate.path !== normalizedFromPath && candidate.language === 'html'
       )
     ) {
-      throw new Error('The workspace must keep an HTML preview entry.');
+      throw createWorkspaceInputError(
+        'WORKSPACE_PREVIEW_ENTRY_REQUIRED',
+        'The workspace must keep an HTML preview entry.',
+        { operation: 'rename', path: normalizedFromPath }
+      );
     }
 
     const renamedFile: WorkspaceFile = {
@@ -836,20 +850,34 @@ export class BrowserWorkspace {
     const normalizedPath = normalizeWorkspacePath(path);
     const file = this.getFile(normalizedPath);
     if (this.snapshot.files.length <= 1) {
-      throw new Error('The workspace must keep at least one file.');
+      throw createWorkspaceInputError(
+        'WORKSPACE_EMPTY',
+        'The workspace must keep at least one file.',
+        { operation: 'delete', path: normalizedPath }
+      );
     }
 
     const nextFiles = this.snapshot.files.filter(
       (candidate) => candidate.path !== file.path
     );
     if (file.language === 'html' && !findPreviewHtmlFile(nextFiles)) {
-      throw new Error('The workspace must keep an HTML preview entry.');
+      throw createWorkspaceInputError(
+        'WORKSPACE_PREVIEW_ENTRY_REQUIRED',
+        'The workspace must keep an HTML preview entry.',
+        { operation: 'delete', path: normalizedPath }
+      );
     }
     const nextActivePath =
       this.snapshot.activePath === file.path
         ? (findPreviewHtmlFile(nextFiles)?.path ?? nextFiles[0]?.path)
         : this.snapshot.activePath;
-    if (!nextActivePath) throw new Error('The workspace has no active file.');
+    if (!nextActivePath) {
+      throw createWorkspaceInputError(
+        'WORKSPACE_ACTIVE_FILE_NOT_FOUND',
+        'The workspace has no active file after the deletion.',
+        { operation: 'delete', path: normalizedPath }
+      );
+    }
 
     const wasPersisted = this.savedFiles.some(
       (savedFile) => savedFile.path === file.path

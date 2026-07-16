@@ -261,10 +261,14 @@ retryable and expose a `Refresh preview` chat action.
 
 Workspace path and state errors are also explicit: `WORKSPACE_PATH_INVALID`,
 `WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
-`WORKSPACE_FILE_TYPE_CONFLICT`, `WORKSPACE_PATCH_NOT_FOUND`, and
-`WORKSPACE_HISTORY_EMPTY` are non-retryable and include the operation or path in
-`details`. A patch miss includes only the path, occurrence mode, and search
-length; it never echoes source or search content into the tool error. Read, open, and download tools
+`WORKSPACE_FILE_TYPE_CONFLICT`, `WORKSPACE_PATCH_NOT_FOUND`,
+`WORKSPACE_NO_SUPPORTED_FILES`, `WORKSPACE_EMPTY`,
+`WORKSPACE_ACTIVE_FILE_NOT_FOUND`, `WORKSPACE_PREVIEW_ENTRY_REQUIRED`,
+`WORKSPACE_FOLDER_STATE_CONFLICT`, and `WORKSPACE_HISTORY_EMPTY` are
+non-retryable and include the operation or path in `details`. A patch miss
+includes only the path, occurrence mode, and search length; it never echoes
+source or search content into the tool error. Structural workspace failures
+also explain which invariant blocked the operation. Read, open, and download tools
 are registered as blocking handlers, ensuring a failed lookup is returned as a
 structured tool error instead of being passed to output-schema validation as an
 empty success.

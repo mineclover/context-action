@@ -60,6 +60,7 @@ import {
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
+import { WorkspaceToolError } from './workspace-errors';
 import {
   BrowserWorkspaceFileSystemAdapter,
   type ImportedFolder,
@@ -338,6 +339,17 @@ function resultText(result: {
     null,
     2
   );
+}
+
+function thrownErrorText(error: unknown, fallback: string): string {
+  if (error instanceof WorkspaceToolError) {
+    const details =
+      error.details === undefined
+        ? ''
+        : `\n${JSON.stringify(error.details, null, 2)}`;
+    return `[${error.code}] ${error.message}${details}`;
+  }
+  return error instanceof Error ? error.message : fallback;
 }
 
 function toolSuccessMessage(
@@ -2499,8 +2511,8 @@ function EditorWorkbench({
         ...current,
         {
           role: 'assistant',
-          text:
-            error instanceof Error ? error.message : 'Folder import failed.',
+          tone: 'error',
+          text: thrownErrorText(error, 'Folder import failed.'),
         },
       ]);
     } finally {
@@ -2542,8 +2554,8 @@ function EditorWorkbench({
         ...current,
         {
           role: 'assistant',
-          text:
-            error instanceof Error ? error.message : 'Folder import failed.',
+          tone: 'error',
+          text: thrownErrorText(error, 'Folder import failed.'),
         },
       ]);
     } finally {
@@ -2585,8 +2597,8 @@ function EditorWorkbench({
         ...current,
         {
           role: 'assistant',
-          text:
-            error instanceof Error ? error.message : 'Folder reload failed.',
+          tone: 'error',
+          text: thrownErrorText(error, 'Folder reload failed.'),
         },
       ]);
     } finally {

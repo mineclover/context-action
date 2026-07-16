@@ -139,9 +139,12 @@ visible diagnostic panel with the error text and a refresh action.
 - Workspace input failures use non-retryable `WORKSPACE_PATH_INVALID`,
   `WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
   `WORKSPACE_FILE_TYPE_CONFLICT`, `WORKSPACE_PATCH_NOT_FOUND`, or
+  `WORKSPACE_NO_SUPPORTED_FILES`, `WORKSPACE_EMPTY`,
+  `WORKSPACE_PREVIEW_ENTRY_REQUIRED`, `WORKSPACE_FOLDER_STATE_CONFLICT`, or
   `WORKSPACE_HISTORY_EMPTY` codes with bounded operation details. A patch miss
-  reports only its path, occurrence mode, and search length. Read/open/download
-  tools are blocking handlers so
+  reports only its path, occurrence mode, and search length; structural
+  workspace failures explain the invariant that blocked the operation.
+  Read/open/download tools are blocking handlers so
   these failures cannot be mistaken for an empty successful result.
 - A revision change detected during `saveAll` or `saveCheckpoint` keeps the
   retryable `WORKSPACE_REVISION_CONFLICT` code and includes the save operation

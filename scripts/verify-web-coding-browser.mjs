@@ -365,6 +365,15 @@ async function runBrowserProof(url) {
     await patchApproval.click();
     await page.getByText(/\[WORKSPACE_PATCH_NOT_FOUND\]/).waitFor();
 
+    await prompt.fill('Delete file index.html');
+    await send.click();
+    const deletePreviewApproval = page.getByRole('button', {
+      name: 'Approve workspace.deleteFile',
+    });
+    await deletePreviewApproval.waitFor();
+    await deletePreviewApproval.click();
+    await page.getByText(/\[WORKSPACE_PREVIEW_ENTRY_REQUIRED\]/).waitFor();
+
     await prompt.fill('Make it emerald');
     await send.click();
     const approval = page.getByRole('button', {

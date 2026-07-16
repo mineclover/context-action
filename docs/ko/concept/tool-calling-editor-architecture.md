@@ -241,11 +241,14 @@ timeout, superseded revision은 각각 `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIM
 
 workspace path/state 오류도 `WORKSPACE_PATH_INVALID`, `WORKSPACE_FILE_NOT_FOUND`,
 `WORKSPACE_FILE_CONFLICT`, `WORKSPACE_FILE_TYPE_CONFLICT`,
-`WORKSPACE_PATCH_NOT_FOUND`, `WORKSPACE_HISTORY_EMPTY`로 명시하며 operation 또는
-path를 `details`에 담는다. 패치 대상이 없을 때는 path, occurrence 모드, 검색
-문자열 길이만 포함하고 source나 검색 문자열 자체는 tool error에 복사하지 않는다.
-read/open/download tool은 blocking handler로 등록해 lookup 실패가 빈 성공 결과로
-간주되어 output-schema validation에 넘어가지 않도록 한다.
+`WORKSPACE_PATCH_NOT_FOUND`, `WORKSPACE_NO_SUPPORTED_FILES`, `WORKSPACE_EMPTY`,
+`WORKSPACE_ACTIVE_FILE_NOT_FOUND`, `WORKSPACE_PREVIEW_ENTRY_REQUIRED`,
+`WORKSPACE_FOLDER_STATE_CONFLICT`, `WORKSPACE_HISTORY_EMPTY`로 명시하며
+operation 또는 path를 `details`에 담는다. 패치 대상이 없을 때는 path,
+occurrence 모드, 검색 문자열 길이만 포함하고 source나 검색 문자열 자체는 tool
+error에 복사하지 않는다. 구조적 workspace 오류도 어떤 불변식 때문에 작업이
+차단됐는지 설명한다. read/open/download tool은 blocking handler로 등록해 lookup
+실패가 빈 성공 결과로 간주되어 output-schema validation에 넘어가지 않도록 한다.
 `saveAll` 또는 `saveCheckpoint` 중 revision이 바뀌어도 retryable
 `WORKSPACE_REVISION_CONFLICT` code와 expected/current revision, operation을 유지하며,
 부분 저장 요약이 추가된 결과에서도 metadata를 잃지 않는다.
