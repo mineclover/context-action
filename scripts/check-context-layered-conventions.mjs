@@ -223,6 +223,18 @@ function classifyNonCanonicalHandlerRoots(layeredRoots) {
   const canonicalHandlerRoots = new Set(
     layeredRoots.map((root) => path.join(root, 'handlers'))
   );
+  for (const [surfacePath, category] of classified) {
+    if (!canonicalHandlerRoots.has(path.join(exampleSourceRoot, surfacePath))) {
+      continue;
+    }
+    classificationViolations.push({
+      category,
+      path: surfacePath,
+      description:
+        'classified handlers directory is now canonical; remove it from the migration manifest',
+    });
+    classified.delete(surfacePath);
+  }
   const handlerDirectories = collectDirectories(exampleSourceRoot).filter(
     (directory) => path.basename(directory) === 'handlers'
   );

@@ -59,7 +59,7 @@ Biome remains responsible for language-level concerns: parsing, formatting, impo
 
 The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The transitional allowlist is now empty: the direct-registration inventory has no remaining exceptions. Any new direct registration outside a Registry fails immediately.
 
-Provider-order and canonical layer-path/name checking are now active alongside the direct-registration rule. The checker enforces Action → Store → Ref → Handler Registry nesting, recognizes 27 canonical roots, and currently reports zero provider-order and layer-path/name violations. `convention:check` is already part of `verify:all`, so CI catches new direct registrations and structural drift today.
+Provider-order and canonical layer-path/name checking are now active alongside the direct-registration rule. The checker enforces Action → Store → Ref → Handler Registry nesting, recognizes 28 canonical roots, and currently reports zero provider-order and layer-path/name violations. `convention:check` is already part of `verify:all`, so CI catches new direct registrations and structural drift today.
 
 ## Current-State Classification
 
@@ -89,6 +89,7 @@ The following classification is the baseline for migration.
 
 ### Evidence recorded on 2026-07-16
 
+- The conditional permission usecase now keeps its Context-Action providers in `contexts/ConditionalPatternsContexts.tsx`, pure role/action evaluation in `business/permission-rules.ts`, semantic commands in `actions/usePermissionActions.ts`, and fail-secure orchestration in `handlers/PermissionHandlerRegistry.tsx`; `verify:conditional` protects these boundaries.
 - `EnhancedAbortableSearch` now separates its Search Store/Action Contexts, pure search-state rules, semantic action facade, and abort-aware `handlers/EnhancedAbortableSearchHandlerRegistry.tsx`; the compatibility component is now a reactive view only.
 - The enhanced context-store mouse usecase now returns handler implementations from its ViewModel hook and registers them only in `handlers/EnhancedContextStoreHandlerRegistry.tsx`; its Model Provider follows Action → Store → Ref ordering.
 - `SearchPageRefactored` now separates search data and relevance/filter rules, typed Action/Store Contexts, a stable command facade, and `handlers/AdvancedSearchHandlerRegistry.tsx`; the page is now presentation and Store subscription only.
@@ -101,8 +102,8 @@ The following classification is the baseline for migration.
 - The context-store mouse usecase now keeps its six event registrations in `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx`; `providers/MouseEventsProvider.tsx` owns the Action → Store → Registry composition while the context module remains the contract and derived-rule boundary.
 - The generic `createObjectContextHooks` factory now delegates its Action → Manager → Store synchronization to `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`; `ObjectContextManager.dispatch` is the domain-safe bridge instead of exposing its internal ActionRegister.
 - The convention checker now validates Provider nesting through the object-context factory, Flow Control, API Blocking, memoization, priority, and mouse-event compositions; `pnpm convention:check` reports zero provider-order violations.
-- The convention checker now validates 27 canonical roots for layer paths, file names, and import boundaries; packet/quote calculations were moved from playbook Views into their Data Hooks, and the checker reports zero layer-path/name violations.
-- `tools/context-action-lint/layered-surface-classification.json` now records all five non-canonical `handlers/` surfaces: four advanced comparison roots and one compatibility object-context root; unclassified additions fail `convention:check`.
+- The convention checker now validates 28 canonical roots for layer paths, file names, and import boundaries; the conditional permission usecase now exposes its Context-Action boundaries under `contexts/`, packet/quote calculations remain in playbook Data Hooks, and the checker reports zero layer-path/name violations.
+- `tools/context-action-lint/layered-surface-classification.json` now records all four non-canonical `handlers/` surfaces: three advanced comparison roots and one compatibility object-context root; unclassified additions and stale classifications fail `convention:check`.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 

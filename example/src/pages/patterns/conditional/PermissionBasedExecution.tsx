@@ -1,17 +1,17 @@
 import { useStoreValue } from '@context-action/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PermissionHandlerRegistry } from './handlers/PermissionHandlerRegistry';
+import { usePermissionActions } from './actions/usePermissionActions';
 import {
   ConditionalPatternsProvider,
-  useConditionalAction,
   useConditionalStore,
-} from './stores';
+} from './contexts/ConditionalPatternsContexts';
+import { PermissionHandlerRegistry } from './handlers/PermissionHandlerRegistry';
 
 function PermissionBasedExecutionContent() {
-  const dispatch = useConditionalAction();
   const [selectedAction, setSelectedAction] = useState('read');
   const [selectedUserId, setSelectedUserId] = useState('user-123');
+  const { checkPermission, executeSecureAction } = usePermissionActions();
 
   const logsStore = useConditionalStore('logs');
   const logs = useStoreValue(logsStore);
@@ -39,18 +39,12 @@ function PermissionBasedExecutionContent() {
   const roles = ['guest', 'user', 'moderator', 'admin', 'superadmin'];
 
   const handleCheckPermission = () => {
-    dispatch('checkPermission', {
-      action: selectedAction,
-      userId: selectedUserId,
-      resourceId: 'resource-001',
-    });
+    checkPermission(selectedAction, selectedUserId, 'resource-001');
   };
 
   const handleExecuteSecureAction = () => {
-    dispatch('executeSecureAction', {
-      action: selectedAction,
-      userId: selectedUserId,
-      payload: { data: 'secure operation data' },
+    executeSecureAction(selectedAction, selectedUserId, {
+      data: 'secure operation data',
     });
   };
 

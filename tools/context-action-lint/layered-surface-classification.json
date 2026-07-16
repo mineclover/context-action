@@ -3,10 +3,6 @@
   "base": "example/src",
   "advanced": [
     {
-      "path": "pages/patterns/conditional/handlers",
-      "reason": "Conditional permission registry uses the legacy stores boundary."
-    },
-    {
       "path": "pages/performance/mouse-events/context-store-action-based/handlers",
       "reason": "Action-based mouse context is retained as an advanced comparison."
     },

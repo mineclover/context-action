@@ -1,9 +1,10 @@
 import type React from 'react';
-import { mockServices } from '../mockServices';
+import { evaluatePermission } from '../business/permission-rules';
 import {
   useConditionalActionHandler,
   useConditionalStoreManager,
-} from '../stores';
+} from '../contexts/ConditionalPatternsContexts';
+import { mockServices } from '../mockServices';
 import { addLog } from '../utils';
 
 /**
@@ -35,42 +36,24 @@ export function PermissionHandlerRegistry({
       );
 
       try {
-        const roleHierarchy: Record<string, number> = {
-          guest: 0,
-          user: 1,
-          moderator: 2,
-          admin: 3,
-          superadmin: 4,
-        };
-        const requiredPermissions: Record<string, number> = {
-          read: 0,
-          create: 1,
-          update: 1,
-          delete: 2,
-          moderate: 2,
-          admin: 3,
-          'manage-users': 3,
-          'system-config': 4,
-        };
-        const userLevel = roleHierarchy[userRole] || 0;
-        const requiredLevel = requiredPermissions[payload.action] || 0;
+        const evaluation = evaluatePermission(userRole, payload.action);
         const auditEntry = {
           timestamp: Date.now(),
           userId: payload.userId,
           action: payload.action,
           resourceId: payload.resourceId,
           userRole,
-          userLevel,
-          requiredLevel,
-          granted: userLevel >= requiredLevel,
+          userLevel: evaluation.userLevel,
+          requiredLevel: evaluation.requiredLevel,
+          granted: evaluation.granted,
           ip: '192.168.1.100',
           userAgent: 'Demo Browser',
         };
 
         auditLogsStore.update((logs) => [...logs, auditEntry]);
 
-        if (userLevel < requiredLevel) {
-          const errorMsg = `Access denied: ${userRole} (level ${userLevel}) insufficient for ${payload.action} (requires level ${requiredLevel})`;
+        if (!evaluation.granted) {
+          const errorMsg = evaluation.reason;
           logsStore.update((logs) =>
             addLog(logs, 'error', '❌ Permission denied', {
               error: errorMsg,
@@ -102,7 +85,7 @@ export function PermissionHandlerRegistry({
             userId: payload.userId,
             userRole,
             granted: true,
-            reason: `Permission granted: ${userRole} has sufficient privileges`,
+            reason: evaluation.reason,
             timestamp: Date.now(),
           },
         ]);
@@ -138,9 +121,38 @@ export function PermissionHandlerRegistry({
       );
 
       try {
-        await mockServices.checkUserPermissions(payload.userId, payload.action);
+        const permissionCheck = await mockServices.checkUserPermissions(
+          payload.userId,
+          payload.action
+        );
+        if (!permissionCheck.allowed) {
+          const errorMessage = `Secure action denied: ${payload.userId} does not have ${payload.action} permission`;
+          const permissionResultsStore = stores.getStore('permissionResults');
+          permissionResultsStore.update((results) => [
+            ...results,
+            {
+              action: `secure-${payload.action}`,
+              userId: payload.userId,
+              granted: false,
+              reason: errorMessage,
+              auditId: permissionCheck.auditId,
+              timestamp: Date.now(),
+            },
+          ]);
+          logsStore.update((logs) =>
+            addLog(logs, 'error', '❌ Secure action denied', {
+              action: payload.action,
+              userId: payload.userId,
+              permissions: permissionCheck.permissions,
+            })
+          );
+          controller.abort(errorMessage);
+          return;
+        }
+
         const result = await mockServices.executeSecureOperation(
           payload.action,
+          payload.userId,
           payload.payload
         );
         const permissionResultsStore = stores.getStore('permissionResults');
