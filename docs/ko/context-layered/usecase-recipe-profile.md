@@ -149,6 +149,23 @@ mount callback은 필요한 범위의 DOM 동기화만 수행할 수 있지만, 
 dispatch하고 렌더링 값은 Store Context에 유지합니다. 도메인은
 Action → Store → Ref → Handler Registry → View 순서로 조합합니다.
 
+## Priority pipeline usecase
+
+검증, 정책, business 작업, 관찰 로직을 하나의 action 아래 순서대로 실행해야
+할 때 priority pipeline을 사용합니다. 실행 순서는 하나의 Handler Registry에
+명시적으로 둡니다.
+
+```text
+authenticate → 100 validation → 95 security → 90 rate limit
+             → 80 business → 30 analytics → 10 audit
+```
+
+각 등록에는 안정적인 handler ID와 문서화된 priority를 지정합니다. blocking
+단계는 controller로 abort하여 이후 단계를 막고, 이후 단계의 결과는 page의
+React local state를 캡처하지 않고 Store Context를 통해 기록합니다. 이렇게 하면
+실행 trace를 관찰할 수 있고 page component를 읽지 않아도 priority 설정을
+검토할 수 있습니다.
+
 ## Action 및 Handler 이름
 
 Action은 저장소 mutation이 아니라 사용자 의도를 표현합니다.

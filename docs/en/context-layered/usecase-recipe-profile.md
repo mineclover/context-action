@@ -162,6 +162,23 @@ not become a second state-management channel. If the observation is rendered,
 dispatch an intent and keep the rendered value in a Store Context. Compose the
 domain as Action → Store → Ref → Handler Registry → View.
 
+## Priority pipeline usecase
+
+An ordered pipeline is a useful usecase when validation, policy, business work,
+and observability must run under one action. Keep the order explicit in one
+Handler Registry:
+
+```text
+authenticate → 100 validation → 95 security → 90 rate limit
+             → 80 business → 30 analytics → 10 audit
+```
+
+Each registration should have a stable handler ID and a documented priority.
+Blocking stages use the controller to abort before later stages, while later
+stages record their result through a Store Context rather than closing over
+view-local React state. This makes the execution trace observable and keeps
+priority configuration reviewable without reading the page component.
+
 ## Action and handler naming
 
 Usecase actions describe intent, not storage mutation:

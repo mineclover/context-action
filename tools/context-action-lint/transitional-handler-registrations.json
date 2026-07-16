@@ -15,6 +15,5 @@
   "src/pages/performance/mouse-events/ActionGuardContextStoreMouseEventsPage.tsx",
   "src/pages/performance/mouse-events/LegacyMouseEventsPage.tsx",
   "src/pages/performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx",
-  "src/pages/performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts",
-  "src/pages/performance/priority/DemoPage.tsx"
+  "src/pages/performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts"
 ]

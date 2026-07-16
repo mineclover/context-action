@@ -5,273 +5,48 @@
  * priority.md에서 설명한 priority-based handler execution을 보여줍니다.
  */
 
-import type { ActionPayloadMap } from '@context-action/core';
-import { createActionContext } from '@context-action/react';
-import { useCallback, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
 import { Link } from 'react-router-dom';
 import { Button, Card, CodeBlock } from '@/components/ui';
-
-// ================================
-// Types & Action Definitions
-// ================================
-
-interface ActionPriorityDemoActions extends ActionPayloadMap {
-  /** 인증 프로세스 시뮬레이션 */
-  authenticate: { username: string; password: string };
-
-  /** 데이터 처리 프로세스 시뮬레이션 */
-  processData: { data: any; options?: any };
-
-  /** 실행 결과 초기화 */
-  resetResults: void;
-}
-
-interface HandlerResult {
-  id: string;
-  priority: number;
-  step: string;
-  result: any;
-  timestamp: number;
-  duration: number;
-}
-
-// ================================
-// Action Context
-// ================================
-
-const ActionPriorityContext = createActionContext<ActionPriorityDemoActions>({
-  name: 'ActionPriorityDemo',
-});
+import { useActionPriorityDemoActions } from './actions/useActionPriorityDemoActions';
+import {
+  ActionPriorityDemoActionProvider,
+  ActionPriorityDemoStoreProvider,
+  useActionPriorityDemoStore,
+} from './contexts/ActionPriorityDemoContexts';
+import { ActionPriorityDemoHandlerRegistry } from './handlers/ActionPriorityDemoHandlerRegistry';
 
 // ================================
 // Main Component
 // ================================
 
 function ActionPriorityDemoContent() {
-  const [executionResults, setExecutionResults] = useState<HandlerResult[]>([]);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const dispatch = ActionPriorityContext.useActionDispatch();
-
-  // ================================
-  // Handler Registration
-  // ================================
-
-  // Authentication Pipeline Handlers (높은 priority → 낮은 priority 순서)
-
-  // Priority 100: Input Validation (가장 높은 우선순위)
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback((payload, controller) => {
-      const startTime = Date.now();
-
-      if (!payload.username || !payload.password) {
-        controller.abort('Missing credentials');
-        return;
-      }
-
-      const result = { step: 'input-validation', success: true, valid: true };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'input-validator',
-          priority: 100,
-          step: 'Input Validation',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 100, id: 'input-validator' }
-  );
-
-  // Priority 95: Security Check
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback(async (payload, controller) => {
-      const startTime = Date.now();
-
-      // 시뮬레이션을 위한 짧은 지연
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const isSuspicious = payload.username === 'hacker';
-
-      if (isSuspicious) {
-        controller.abort('Suspicious activity detected');
-        return;
-      }
-
-      const result = { step: 'security-check', success: true, cleared: true };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'security-checker',
-          priority: 95,
-          step: 'Security Check',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 95, id: 'security-checker' }
-  );
-
-  // Priority 90: Rate Limiting
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback((payload, controller) => {
-      const startTime = Date.now();
-
-      // 시뮬레이션: rate limit 체크
-      const isRateLimited = Math.random() < 0.1; // 10% 확률로 rate limit
-
-      if (isRateLimited) {
-        controller.abort('Rate limit exceeded');
-        return;
-      }
-
-      const result = { step: 'rate-limiting', success: true, consumed: true };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'rate-limiter',
-          priority: 90,
-          step: 'Rate Limiting',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 90, id: 'rate-limiter' }
-  );
-
-  // Priority 80: Authentication (Business Logic)
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback(async (payload) => {
-      const startTime = Date.now();
-
-      // 시뮬레이션을 위한 짧은 지연
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      const isValidCredentials =
-        payload.username === 'admin' && payload.password === 'password';
-
-      const result = {
-        step: 'authentication',
-        success: isValidCredentials,
-        user: isValidCredentials
-          ? { id: '123', username: payload.username }
-          : null,
-        token: isValidCredentials ? 'jwt-token-example' : null,
-      };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'authenticator',
-          priority: 80,
-          step: 'Authentication',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 80, id: 'authenticator' }
-  );
-
-  // Priority 30: Analytics (낮은 우선순위)
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback((payload) => {
-      const startTime = Date.now();
-
-      const result = {
-        step: 'analytics',
-        tracked: true,
-        event: 'login_attempt',
-        username: payload.username,
-      };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'analytics-tracker',
-          priority: 30,
-          step: 'Analytics Tracking',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 30, id: 'analytics-tracker' }
-  );
-
-  // Priority 10: Audit Logging (가장 낮은 우선순위)
-  ActionPriorityContext.useActionHandler(
-    'authenticate',
-    useCallback((payload, controller) => {
-      const startTime = Date.now();
-
-      // Audit logging - simplified for ActionHandler compliance
-      const result = {
-        step: 'audit',
-        logged: true,
-        action: 'login',
-        username: payload.username,
-        success: true, // Simplified - in real implementation use shared state
-      };
-
-      setExecutionResults((prev) => [
-        ...prev,
-        {
-          id: 'audit-logger',
-          priority: 10,
-          step: 'Audit Logging',
-          result,
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-      ]);
-    }, []),
-    { priority: 10, id: 'audit-logger' }
-  );
-
-  // Reset handler
-  ActionPriorityContext.useActionHandler(
-    'resetResults',
-    useCallback(() => {
-      setExecutionResults([]);
-    }, []),
-    { priority: 50 }
-  );
+  const executionResultsStore = useActionPriorityDemoStore('executionResults');
+  const isExecutingStore = useActionPriorityDemoStore('isExecuting');
+  const executionResults = useStoreValue(executionResultsStore);
+  const isExecuting = useStoreValue(isExecutingStore);
+  const { authenticate, resetResults, setExecutionStatus } =
+    useActionPriorityDemoActions();
 
   // ================================
   // Event Handlers
   // ================================
 
   const handleAuthenticateTest = async (username: string, password: string) => {
-    setIsExecuting(true);
-    setExecutionResults([]);
+    await setExecutionStatus(true);
+    await resetResults();
 
     try {
-      await dispatch('authenticate', { username, password });
+      await authenticate(username, password);
     } catch (error) {
       console.log('Authentication pipeline aborted:', error);
     } finally {
-      setIsExecuting(false);
+      await setExecutionStatus(false);
     }
   };
 
   const handleReset = () => {
-    dispatch('resetResults', undefined);
+    resetResults();
   };
 
   // ================================
@@ -503,12 +278,15 @@ useActionHandler('authenticate', auditLog, { priority: 10 });`}</CodeBlock>
   );
 }
 
-// Wrapper component with Provider
 export function ActionPriorityDemoPage() {
   return (
-    <ActionPriorityContext.Provider>
-      <ActionPriorityDemoContent />
-    </ActionPriorityContext.Provider>
+    <ActionPriorityDemoActionProvider>
+      <ActionPriorityDemoStoreProvider>
+        <ActionPriorityDemoHandlerRegistry>
+          <ActionPriorityDemoContent />
+        </ActionPriorityDemoHandlerRegistry>
+      </ActionPriorityDemoStoreProvider>
+    </ActionPriorityDemoActionProvider>
   );
 }
 
