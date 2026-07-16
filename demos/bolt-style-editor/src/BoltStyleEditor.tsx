@@ -53,6 +53,7 @@ import {
   type ToolCatalogFilter,
   ToolCatalogPanel,
 } from './views/tool-catalog-panel';
+import { ToolTracePanel } from './views/tool-trace-panel';
 import { WorkspaceExplorerPanel } from './views/workspace-explorer-panel';
 import { WorkspaceFileTree } from './views/workspace-file-tree';
 import {
@@ -665,151 +666,16 @@ function EditorWorkbench({
             toolNames={toolNames}
             visibleToolNames={visibleToolNames}
           />
-          <div className="trace-section">
-            <div className="sidebar-section-heading">
-              <span>Execution trace</span>
-              <span className="trace-heading-actions">
-                <button
-                  aria-label="Clear execution trace"
-                  className="trace-clear-button"
-                  disabled={!traceEntries.length || running}
-                  onClick={clearToolTrace}
-                  title={
-                    running
-                      ? 'Finish the current execution before clearing the trace'
-                      : 'Clear execution trace'
-                  }
-                  type="button"
-                >
-                  Clear
-                </button>
-                <button
-                  aria-label="Copy execution trace"
-                  className="trace-copy-button"
-                  disabled={!traceEntries.length || running}
-                  onClick={() => void copyJson('Execution trace', traceEntries)}
-                  type="button"
-                >
-                  Copy
-                </button>
-                <button
-                  aria-label="Download execution trace"
-                  className="trace-copy-button"
-                  disabled={!traceEntries.length || running}
-                  onClick={downloadExecutionTrace}
-                  type="button"
-                >
-                  Download
-                </button>
-                {traceEntries.length > 8 ? (
-                  <button
-                    aria-controls="trace-list"
-                    aria-expanded={showAllTrace}
-                    aria-label={
-                      showAllTrace
-                        ? 'Show recent execution trace'
-                        : 'Show all execution trace'
-                    }
-                    className="trace-copy-button"
-                    onClick={() => setShowAllTrace((current) => !current)}
-                    type="button"
-                  >
-                    {showAllTrace ? 'Recent' : 'All'}
-                  </button>
-                ) : null}
-                <span className="count-badge">{traceEntries.length}</span>
-              </span>
-            </div>
-            <div
-              aria-label="Tool execution trace"
-              aria-live="polite"
-              className="trace-list"
-              id="trace-list"
-              role="log"
-            >
-              {traceEntries.length ? (
-                traceEntries
-                  .slice(0, showAllTrace ? traceEntries.length : 8)
-                  .map((entry) => (
-                    <div
-                      className={`trace-row trace-row-${entry.status}`}
-                      key={entry.id}
-                      title={
-                        entry.kind === 'call'
-                          ? `${entry.toolCallId ? `toolCallId ${entry.toolCallId}` : `traceId ${entry.id}`} · traceId ${entry.id}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
-                          : entry.kind === 'agent'
-                            ? `agent request · ${entry.source}${entry.sessionId ? ` · sessionId ${entry.sessionId}` : ''}`
-                            : 'tools/list discovery'
-                      }
-                    >
-                      <span className="trace-mark" aria-hidden="true">
-                        {entry.status === 'running'
-                          ? '…'
-                          : entry.status === 'failed'
-                            ? '!'
-                            : entry.status === 'cancelled'
-                              ? '↶'
-                              : '✓'}
-                      </span>
-                      <span className="trace-copy">
-                        <strong>{entry.name}</strong>
-                        <small>
-                          {entry.kind === 'discovery'
-                            ? [
-                                entry.summary,
-                                entry.sessionId
-                                  ? `session ${formatTraceId(entry.sessionId)}`
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')
-                            : [
-                                entry.kind === 'agent'
-                                  ? 'agent'
-                                  : entry.toolCallId
-                                    ? `call ${formatTraceId(entry.toolCallId)}`
-                                    : formatTraceId(entry.id),
-                                entry.source,
-                                entry.sessionId
-                                  ? `session ${formatTraceId(entry.sessionId)}`
-                                  : null,
-                                `${entry.durationMs ?? 0}ms`,
-                                entry.retryable === true
-                                  ? 'retryable'
-                                  : entry.retryable === false
-                                    ? 'terminal'
-                                    : null,
-                                entry.summary,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                        </small>
-                        {entry.kind === 'call' &&
-                        (entry.argumentsText || entry.resultText) ? (
-                          <details className="trace-details">
-                            <summary>Inspect tools/call</summary>
-                            <div className="trace-detail-block">
-                              <span>arguments</span>
-                              <pre>{entry.argumentsText ?? '{}'}</pre>
-                            </div>
-                            {entry.resultText ? (
-                              <div className="trace-detail-block">
-                                <span>tool result</span>
-                                <pre>{entry.resultText}</pre>
-                              </div>
-                            ) : null}
-                          </details>
-                        ) : null}
-                      </span>
-                    </div>
-                  ))
-              ) : (
-                <div className="trace-empty">
-                  tools/list ready · waiting for a call
-                </div>
-              )}
-            </div>
-          </div>
+          <ToolTracePanel
+            formatTraceId={formatTraceId}
+            onClear={clearToolTrace}
+            onCopy={() => void copyJson('Execution trace', traceEntries)}
+            onDownload={downloadExecutionTrace}
+            onToggleShowAll={() => setShowAllTrace((current) => !current)}
+            running={running}
+            showAllTrace={showAllTrace}
+            traceEntries={traceEntries}
+          />
         </aside>
 
         <main className="studio-main">

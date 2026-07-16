@@ -86,7 +86,8 @@ such as revision guards, patching, escaping, and cancellation remain in
 `src/tool-runtime-utils.ts`; views under `src/views/` receive data and
 callbacks without owning workspace mutation policy. The keyboard-aware file
 tree is isolated in `src/views/workspace-file-tree.tsx` and only emits file
-selection callbacks.
+selection callbacks. The bounded, redacted execution history is rendered by
+`src/views/tool-trace-panel.tsx` and receives export/clear actions as props.
 
 The code header shows the current text size against the shared 80,000-character
 workspace mutation limit. Imported files may use the separate filesystem import
