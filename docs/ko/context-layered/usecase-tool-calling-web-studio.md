@@ -238,6 +238,12 @@ model을 거치지 않고 사용자가 tool을 직접 검사하거나 retry해�
 
 이렇게 하면 수동 debugging도 보호된 mutation 경계를 벗어나지 않습니다.
 
+이 parity 계약은
+`packages/react/__tests__/tools/ToolContext.test.tsx`의 React ToolContext 통합
+테스트로 고정합니다. palette call은 허용되어 structured output을 반환하고,
+model/prompt call은 handler가 실행되기 전에 policy에서 거절됩니다. 두 실행 모두
+canonical `tools/call` lifecycle event를 발생시킵니다.
+
 ## Build와 검증 순서
 
 private package 또는 contract를 변경한 경우 다음 순서를 사용합니다.

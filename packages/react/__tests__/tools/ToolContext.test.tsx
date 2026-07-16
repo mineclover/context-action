@@ -395,6 +395,88 @@ describe('createToolContext', () => {
       ]);
     });
 
+    it('should keep direct palette and model calls on one policy/result boundary', async () => {
+      const policyDecisions: string[] = [];
+      const lifecycleRequests: string[] = [];
+      const policyParityContext = createToolContext('PolicyParityTools', {
+        schema: testSchema,
+        onToolCall: (event) => {
+          lifecycleRequests.push(`${event.type}:${event.request.method}`);
+        },
+        toolPolicy: ({ context }) => {
+          const interaction = context?.metadata?.interaction;
+          policyDecisions.push(`${context?.source}:${String(interaction)}`);
+          return interaction === 'palette' ? 'allow' : 'deny';
+        },
+      });
+      const policyParityWrapper = ({ children }: { children: React.ReactNode }) => (
+        <policyParityContext.Provider>{children}</policyParityContext.Provider>
+      );
+      const handler = jest.fn().mockResolvedValue({ items: ['product-1'] });
+      const { result } = renderHook(
+        () => {
+          policyParityContext.useToolHandler(
+            'searchProducts',
+            useCallback(handler, [])
+          );
+          return policyParityContext.useToolRegistry();
+        },
+        { wrapper: policyParityWrapper }
+      );
+
+      const directResult = await act(async () =>
+        result.current.callTool(
+          toToolCallRequest({
+            id: 'palette-call-1',
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          }),
+          {
+            context: {
+              source: 'local',
+              metadata: { interaction: 'palette' },
+            },
+          }
+        )
+      );
+      const modelResult = await act(async () =>
+        result.current.executeModelToolCall(
+          {
+            id: 'model-call-1',
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          },
+          {
+            context: {
+              source: 'model',
+              metadata: { interaction: 'prompt' },
+            },
+          }
+        )
+      );
+
+      expect(directResult).toMatchObject({
+        toolCallId: 'palette-call-1',
+        structuredContent: { items: ['product-1'] },
+      });
+      expect(modelResult).toMatchObject({
+        isError: true,
+        toolCallId: 'model-call-1',
+        error: { code: 'TOOL_POLICY_DENIED' },
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(policyDecisions).toEqual([
+        'local:palette',
+        'model:prompt',
+      ]);
+      expect(lifecycleRequests).toEqual([
+        'started:tools/call',
+        'completed:tools/call',
+        'started:tools/call',
+        'failed:tools/call',
+      ]);
+    });
+
     it('should validate structured handler output against the tool contract', async () => {
       const outputSchema = createActionSchema({
         getStatus: defineAction({

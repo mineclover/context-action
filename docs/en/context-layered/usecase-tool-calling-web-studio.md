@@ -263,6 +263,12 @@ Use when a user needs to inspect or retry a tool without involving a model.
 This keeps manual debugging useful without creating a second, less protected
 mutation path.
 
+The parity contract is covered by the React ToolContext integration test at
+`packages/react/__tests__/tools/ToolContext.test.tsx`: the palette call is
+allowed and returns structured output, while the model/prompt call is denied by
+policy before the handler runs. Both lifecycles still emit canonical
+`tools/call` events.
+
 ## Build and verification order
 
 When the private package or its contracts change, use:
