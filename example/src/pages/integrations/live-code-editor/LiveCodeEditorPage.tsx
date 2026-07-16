@@ -422,6 +422,7 @@ function LiveCodeEditorContent() {
   );
   const [copied, setCopied] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
   const [workspaceMessage, setWorkspaceMessage] = useState(
     'Loading IndexedDB workspace…'
   );
@@ -433,6 +434,17 @@ function LiveCodeEditorContent() {
   const persistenceTimerRef = useRef<number | null>(null);
   const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
   const directoryInputRef = useRef<HTMLInputElement>(null);
+  const resetCancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!resetConfirmationOpen) return;
+    resetCancelButtonRef.current?.focus();
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setResetConfirmationOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [resetConfirmationOpen]);
 
   const activeWorkspaceFile = workspaceManager.getActiveFile();
   const currentExample: ExampleDefinition = activeExample
@@ -687,15 +699,8 @@ function LiveCodeEditorContent() {
     ) {
       return;
     }
-    if (
-      !window.confirm(
-        'Reset the showcase workspace to the built-in examples? Current browser edits will be replaced.'
-      )
-    ) {
-      return;
-    }
-
     setIsResetting(true);
+    setResetConfirmationOpen(false);
     try {
       await flushPendingPersistence();
       const persisted = await workspaceRepository.replaceWorkspace(
@@ -735,6 +740,17 @@ function LiveCodeEditorContent() {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  const requestResetWorkspace = () => {
+    if (
+      !isShowcaseWorkspace ||
+      workspaceSnapshot.storageMode !== 'indexed-db' ||
+      isResetting
+    ) {
+      return;
+    }
+    setResetConfirmationOpen(true);
   };
 
   const saveWorkspaceFile = async () => {
@@ -1012,7 +1028,7 @@ function LiveCodeEditorContent() {
                       <button
                         type="button"
                         className={styles.workspaceButton}
-                        onClick={() => void resetWorkspace()}
+                        onClick={requestResetWorkspace}
                         disabled={
                           !isShowcaseWorkspace ||
                           workspaceSnapshot.storageMode !== 'indexed-db' ||
@@ -1319,6 +1335,50 @@ function LiveCodeEditorContent() {
               </div>
             </section>
           </div>
+          {resetConfirmationOpen && (
+            <div
+              className={styles.dialogBackdrop}
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.currentTarget === event.target) {
+                  setResetConfirmationOpen(false);
+                }
+              }}
+            >
+              <div
+                className={styles.confirmationDialog}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="reset-workspace-title"
+                aria-describedby="reset-workspace-description"
+              >
+                <span className={styles.dialogEyebrow}>Approval required</span>
+                <h2 id="reset-workspace-title">Reset example workspace?</h2>
+                <p id="reset-workspace-description">
+                  Current browser edits will be replaced with the built-in
+                  Context-Action examples. This does not write to a connected
+                  local folder.
+                </p>
+                <div className={styles.dialogActions}>
+                  <button
+                    ref={resetCancelButtonRef}
+                    type="button"
+                    className={styles.dialogSecondary}
+                    onClick={() => setResetConfirmationOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.dialogDanger}
+                    onClick={() => void resetWorkspace()}
+                  >
+                    Reset examples
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </PageWithLogMonitor>
     </LiveEditorToolchainProvider>

@@ -153,6 +153,10 @@ read-only tool은 자동 허용할 수 있지만, model-originated mutation은
 ToolContext policy를 지나 UI approval을 거쳐야 합니다. approval UI는 요청을
 resolve할 뿐 tool을 직접 실행하지 않습니다.
 
+example Live Code Editor의 reset approval은 `window.confirm` 대신 in-app
+dialog를 사용합니다. 취소 action에 focus를 두고 `Escape` 또는 backdrop click으로
+닫을 수 있으며, 명시적으로 확인한 뒤에만 destructive reset command를 실행합니다.
+
 policy callback이 외부 event store를 사용해야 한다면 React에는 전용
 observable hook으로 노출합니다. non-React ToolContext callback과 React
 subscription을 모두 안전하게 유지할 수 있습니다.

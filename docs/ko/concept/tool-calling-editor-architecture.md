@@ -149,6 +149,9 @@ example live editor도 동일한 경계를 사용한다. 브라우저 OpenRouter
 runner contract를 통해 abort signal을 전달한다. realtime web-coding showcase도
 local agent·model request·palette tool 경로에 같은 signal을 사용하며, 두 route를
 이동할 때 진행 중인 실행을 함께 abort한다.
+example workspace reset도 standalone studio와 같은 명시적 approval 원칙을 따른다.
+접근 가능한 in-app dialog가 destructive intent를 먼저 resolve한 뒤에만
+IndexedDB showcase 파일을 교체한다.
 
 standalone chat은 실패와 취소를 typed UI 상태로 보존한다. 재시도 가능한 provider 또는
 local tool 오류와 재시도 가능한 palette 샘플 실패에는 원래 prompt 또는 tool arguments를

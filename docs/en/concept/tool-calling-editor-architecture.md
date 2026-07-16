@@ -159,6 +159,9 @@ request is active and forwards the abort signal through the provider-neutral
 runner contract. The realtime web-coding showcase uses the same signal for its
 local agent, model request, and palette tool paths; leaving either route also
 aborts an in-flight execution.
+The example workspace reset uses the same explicit approval principle as the
+standalone studio: an accessible in-app dialog resolves the destructive intent
+before the reset command replaces the IndexedDB showcase files.
 
 The standalone chat keeps failed and cancelled executions as typed UI states.
 Retryable provider or local-tool errors and failed palette samples with a

@@ -96,6 +96,9 @@ const realtimeWebCodingSource = readSource(
 const liveEditorToolbarSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
 );
+const liveEditorPageSource = readSource(
+  'example/src/pages/integrations/live-code-editor/LiveCodeEditorPage.tsx'
+);
 const liveEditorToolActionsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts'
 );
@@ -223,6 +226,16 @@ assertContains(
   /useSyncExternalStore\(/,
   'live editor external observable hook'
 );
+assertContains(
+  liveEditorPageSource,
+  /role="dialog"[\s\S]*aria-modal="true"/,
+  'live editor reset approval dialog'
+);
+assertNotContains(
+  liveEditorPageSource,
+  /window\.confirm\(/,
+  'native confirmation from the live editor page'
+);
 assertNotContains(
   liveEditorToolbarSource,
   /(?:registry\.(?:callTool|executeModelToolCall|listTools)|liveEditorTraceStore|useSyncExternalStore|getFreeModelsWithTools|saveOpenRouterApiKey|serializeToolTrace|downloadTextFile|writeClipboardText)/,
@@ -253,3 +266,4 @@ console.log('- example agent.request trace lifecycle checked');
 console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
+console.log('- live editor reset approval boundary checked');

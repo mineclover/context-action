@@ -170,6 +170,11 @@ Read-only tools may be allowed automatically. Mutating model-originated tools
 should pass through the ToolContext policy and return a pending approval to the
 UI. The approval UI resolves a request; it does not execute the tool itself.
 
+The example Live Code Editor uses an in-app reset approval dialog rather than
+`window.confirm`. It restores focus to the cancel action, closes on `Escape` or
+backdrop click, and only invokes the destructive reset command after explicit
+confirmation.
+
 If a policy callback must use an external event store, expose that store to
 React through a dedicated observable hook. This keeps the non-React ToolContext
 callback safe while keeping subscriptions out of view components.

@@ -943,6 +943,80 @@
   color: #a32929;
 }
 
+.dialogBackdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(27, 31, 50, 0.38);
+}
+
+.confirmationDialog {
+  width: min(100%, 28rem);
+  border: 1px solid var(--editor-border);
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  background: var(--editor-surface);
+  box-shadow: 0 20px 60px rgba(43, 36, 93, 0.22);
+}
+
+.dialogEyebrow {
+  color: #8a6400;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.confirmationDialog h2 {
+  margin: 0.45rem 0 0;
+  color: #2d3150;
+  font-size: 1.1rem;
+}
+
+.confirmationDialog p {
+  margin: 0.7rem 0 0;
+  color: #667085;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dialogSecondary,
+.dialogDanger {
+  border: 1px solid var(--editor-border);
+  border-radius: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.dialogSecondary {
+  background: var(--editor-surface);
+  color: #667085;
+}
+
+.dialogDanger {
+  border-color: #a32929;
+  background: #a32929;
+  color: white;
+}
+
+.dialogSecondary:focus-visible,
+.dialogDanger:focus-visible {
+  outline: 3px solid rgba(99, 91, 206, 0.28);
+  outline-offset: 2px;
+}
+
 @media (max-width: 960px) {
   .hero {
     grid-template-columns: 1fr;
