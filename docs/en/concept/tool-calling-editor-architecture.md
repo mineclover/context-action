@@ -252,6 +252,13 @@ uses `WORKSPACE_FOLDER_PERMISSION_DENIED`. Both are retryable and expose the
 operation in `details`, while the chat chooses folder reconnect or permission
 granting as the corresponding recovery action.
 
+Preview mutation handlers use `PREVIEW_TARGET_NOT_FOUND` when an HTML/CSS
+target is absent, rather than asking the model to repeat an impossible patch.
+Iframe runtime failures, acknowledgement timeouts, and superseded revisions
+are preserved as `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIMEOUT`, and
+`PREVIEW_REVISION_SUPERSEDED`; timeout and superseded-revision results are
+retryable and expose a `Refresh preview` chat action.
+
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows
 the same code and details in the assistant transcript, keeping provider and

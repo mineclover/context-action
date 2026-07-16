@@ -761,6 +761,11 @@ async function runBrowserProof(url) {
       );
     }
 
+    await prompt.fill('Add a feature card "Missing slot" "This should explain the target error."');
+    await send.click();
+    await page.getByRole('button', { name: 'Approve preview.addFeature' }).click();
+    await page.getByText(/\[PREVIEW_TARGET_NOT_FOUND\]/).waitFor();
+
     await page.getByRole('tab', { name: /notes\.md/ }).click();
     await page.getByRole('button', { name: 'Rename notes.md' }).click();
     const renameDialog = page.getByRole('dialog', { name: 'Rename file' });

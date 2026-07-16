@@ -60,6 +60,18 @@ type WorkspaceImportOptions = {
   expectedRevision?: number;
 };
 
+function createPreviewWaitError(
+  code:
+    | 'PREVIEW_RUNTIME_ERROR'
+    | 'PREVIEW_ACK_TIMEOUT'
+    | 'PREVIEW_REVISION_SUPERSEDED',
+  message: string,
+  retryable: boolean,
+  details: Record<string, unknown>
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, { code, retryable, details });
+}
+
 const languageByWorkspaceExtension: Record<string, string> = {
   '.css': 'css',
   '.htm': 'html',
@@ -441,7 +453,12 @@ export class BrowserWorkspace {
     }
     if (current.revision === revision && current.status === 'error') {
       return Promise.reject(
-        new Error(current.message ?? `Preview revision ${revision} failed.`)
+        createPreviewWaitError(
+          'PREVIEW_RUNTIME_ERROR',
+          current.message ?? `Preview revision ${revision} failed.`,
+          false,
+          { revision }
+        )
       );
     }
 
@@ -463,8 +480,14 @@ export class BrowserWorkspace {
         if (preview.revision > revision) {
           finish(() =>
             reject(
-              new Error(
-                `Preview revision ${revision} was superseded by ${preview.revision}.`
+              createPreviewWaitError(
+                'PREVIEW_REVISION_SUPERSEDED',
+                `Preview revision ${revision} was superseded by ${preview.revision}.`,
+                true,
+                {
+                  requestedRevision: revision,
+                  actualRevision: preview.revision,
+                }
               )
             )
           );
@@ -473,8 +496,11 @@ export class BrowserWorkspace {
           if (preview.status === 'error') {
             finish(() =>
               reject(
-                new Error(
-                  preview.message ?? `Preview revision ${revision} failed.`
+                createPreviewWaitError(
+                  'PREVIEW_RUNTIME_ERROR',
+                  preview.message ?? `Preview revision ${revision} failed.`,
+                  false,
+                  { revision }
                 )
               )
             );
@@ -502,8 +528,11 @@ export class BrowserWorkspace {
       timeoutId = setTimeout(() => {
         finish(() =>
           reject(
-            new Error(
-              `Preview revision ${revision} was not acknowledged within ${timeoutMs}ms.`
+            createPreviewWaitError(
+              'PREVIEW_ACK_TIMEOUT',
+              `Preview revision ${revision} was not acknowledged within ${timeoutMs}ms.`,
+              true,
+              { revision, timeoutMs }
             )
           )
         );

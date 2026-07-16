@@ -19,6 +19,21 @@ import {
 import { WorkspaceToolError } from './workspace-errors';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 
+function createPreviewTargetError(
+  message: string,
+  target: string,
+  path?: string
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code: 'PREVIEW_TARGET_NOT_FOUND',
+    retryable: false,
+    details: {
+      target,
+      ...(path ? { path } : {}),
+    },
+  });
+}
+
 export function ToolHandlers({
   workspace,
   fileSystemAdapter,
@@ -584,14 +599,19 @@ export function ToolHandlers({
     async ({ theme }, controller) => {
       const file = findPreviewStylesheetFile(workspace.getSnapshot().files);
       if (!file)
-        throw new Error('No CSS stylesheet was found in the workspace.');
+        throw createPreviewTargetError(
+          'No CSS stylesheet was found in the workspace.',
+          'stylesheet'
+        );
       const tokens = themeTokens[theme];
       const hasThemeTokens =
         /--accent:\s*#[0-9a-f]+;/i.test(file.source) ||
         /--accent-soft:\s*#[0-9a-f]+;/i.test(file.source);
       if (!hasThemeTokens) {
-        throw new Error(
-          `The stylesheet does not expose supported theme tokens: ${file.path}`
+        throw createPreviewTargetError(
+          `The stylesheet does not expose supported theme tokens: ${file.path}`,
+          'theme-tokens',
+          file.path
         );
       }
       const source = file.source
@@ -636,11 +656,16 @@ export function ToolHandlers({
     async ({ title, description }, controller) => {
       const file = findPreviewHtmlFile(workspace.getSnapshot().files);
       if (!file)
-        throw new Error('No HTML entry file was found in the workspace.');
+        throw createPreviewTargetError(
+          'No HTML entry file was found in the workspace.',
+          'html-entry'
+        );
       const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
       if (!file.source.includes('<!-- feature-slot -->')) {
-        throw new Error(
-          `The HTML entry file does not expose a feature slot: ${file.path}`
+        throw createPreviewTargetError(
+          `The HTML entry file does not expose a feature slot: ${file.path}`,
+          'feature-slot',
+          file.path
         );
       }
       const source = file.source.replace(
@@ -670,15 +695,22 @@ export function ToolHandlers({
     async ({ title, subtitle }, controller) => {
       const file = findPreviewHtmlFile(workspace.getSnapshot().files);
       if (!file)
-        throw new Error('No HTML entry file was found in the workspace.');
+        throw createPreviewTargetError(
+          'No HTML entry file was found in the workspace.',
+          'html-entry'
+        );
       if (!/<h1\b[^>]*id=["']hero-title["'][^>]*>/i.test(file.source)) {
-        throw new Error(
-          `The HTML entry file has no hero title target: ${file.path}`
+        throw createPreviewTargetError(
+          `The HTML entry file has no hero title target: ${file.path}`,
+          'hero-title',
+          file.path
         );
       }
       if (!/<p\b[^>]*id=["']hero-subtitle["'][^>]*>/i.test(file.source)) {
-        throw new Error(
-          `The HTML entry file has no hero subtitle target: ${file.path}`
+        throw createPreviewTargetError(
+          `The HTML entry file has no hero subtitle target: ${file.path}`,
+          'hero-subtitle',
+          file.path
         );
       }
       const source = file.source

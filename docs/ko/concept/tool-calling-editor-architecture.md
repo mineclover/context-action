@@ -233,6 +233,12 @@ action을 표시한다. browser-only workspace의 save는
 `WORKSPACE_FOLDER_PERMISSION_DENIED`로 반환한다. 둘 다 operation을 `details`에
 담은 retryable 오류이며 chat은 각각 폴더 재연결 또는 권한 승인 action을 선택한다.
 
+preview mutation handler는 HTML/CSS target이 없을 때 무의미한 재호출을 막기 위해
+non-retryable `PREVIEW_TARGET_NOT_FOUND`를 반환한다. iframe runtime 오류, acknowledgement
+timeout, superseded revision은 각각 `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIMEOUT`,
+`PREVIEW_REVISION_SUPERSEDED`로 보존하며 timeout과 superseded 결과에는 retryable
+`Refresh preview` chat action을 제공한다.
+
 standalone OpenRouter bridge는 canonical error의 `code`, `retryable`, `details`를
 다음 model message로 전달한다. local fallback 실행에서는 같은 code와 details를
 assistant transcript에 표시하므로 provider 사용 여부와 관계없이 오류 원인을

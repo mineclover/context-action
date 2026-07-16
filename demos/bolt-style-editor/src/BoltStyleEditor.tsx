@@ -75,6 +75,7 @@ type Message = {
   retryLabel?: string;
   retryTool?: ToolCall;
   folderAction?: 'reconnect' | 'grant';
+  previewAction?: boolean;
   openSettings?: boolean;
 };
 
@@ -105,6 +106,12 @@ function shouldOpenProviderSettings(error: unknown): boolean {
     error.code === 'OPENROUTER_AUTHENTICATION_FAILED' ||
     error.code === 'OPENROUTER_ACCESS_DENIED' ||
     error.code === 'OPENROUTER_INVALID_RESPONSE'
+  );
+}
+
+function canRefreshPreviewAfterError(code?: string): boolean {
+  return (
+    code === 'PREVIEW_ACK_TIMEOUT' || code === 'PREVIEW_REVISION_SUPERSEDED'
   );
 }
 
@@ -2864,6 +2871,9 @@ function EditorWorkbench({
                             'WORKSPACE_FOLDER_PERMISSION_DENIED'
                           ? { folderAction: 'grant' as const }
                           : {}),
+                      ...(canRefreshPreviewAfterError(result.errorCode)
+                        ? { previewAction: true }
+                        : {}),
                       ...(result.revisionConflict
                         ? { retryLabel: 'Re-read & retry' }
                         : {}),
@@ -2965,6 +2975,9 @@ function EditorWorkbench({
                         'WORKSPACE_FOLDER_PERMISSION_DENIED'
                       ? { folderAction: 'grant' as const }
                       : {}),
+                  ...(canRefreshPreviewAfterError(result.error?.code)
+                    ? { previewAction: true }
+                    : {}),
                   ...(result.error?.retryable === false
                     ? {}
                     : { retryTool: call }),
@@ -4436,6 +4449,15 @@ function EditorWorkbench({
                         type="button"
                       >
                         Grant folder access
+                      </button>
+                    ) : null}
+                    {!running && message.previewAction ? (
+                      <button
+                        className="message-reconnect"
+                        onClick={refreshPreview}
+                        type="button"
+                      >
+                        Refresh preview
                       </button>
                     ) : null}
                     {!running && message.openSettings ? (

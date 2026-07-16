@@ -131,6 +131,11 @@ visible diagnostic panel with the error text and a refresh action.
   write access returns `WORKSPACE_FOLDER_PERMISSION_DENIED`. Both retain
   retryable operation metadata; the chat offers `Reconnect folder` or `Grant
   folder access` respectively.
+- Preview mutations report missing HTML/CSS targets as non-retryable
+  `PREVIEW_TARGET_NOT_FOUND`. Runtime failures, acknowledgement timeouts, and
+  superseded preview revisions use `PREVIEW_RUNTIME_ERROR`,
+  `PREVIEW_ACK_TIMEOUT`, and `PREVIEW_REVISION_SUPERSEDED`; retryable preview
+  synchronization failures expose a `Refresh preview` chat action.
 - Preview source is rendered in a sandboxed iframe with revision acknowledgements;
   arbitrary scripts, external assets, and filesystem handles do not cross into
   the tool or preview payloads.
