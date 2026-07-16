@@ -27,6 +27,34 @@ export type WorkspaceSnapshot = {
   storageError?: string;
 };
 
+/** Persistence boundary consumed by the stateful workspace manager. */
+export type WorkspaceRepositorySnapshot = {
+  rootName: string;
+  activePath: string;
+  files: WorkspaceFile[];
+  deletedPaths: string[];
+};
+
+/** Async persistence operations kept independent from Dexie or a browser API. */
+export interface WorkspaceRepository {
+  ensureWorkspace(
+    seedFiles: readonly WorkspaceFile[]
+  ): Promise<WorkspaceRepositorySnapshot>;
+  replaceWorkspace(
+    files: readonly WorkspaceFile[],
+    activePath: string,
+    rootName: string,
+    deletedPaths?: readonly string[]
+  ): Promise<WorkspaceRepositorySnapshot>;
+  saveFile(file: WorkspaceFile): Promise<void>;
+  deleteFile(
+    path: string,
+    options?: { trackPendingDeletion?: boolean }
+  ): Promise<void>;
+  clearDeletedPaths(): Promise<void>;
+  setActivePath(activePath: string): Promise<void>;
+}
+
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
 export type PreviewBridgeMessage =

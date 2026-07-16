@@ -6,6 +6,7 @@ import {
   normalizeWorkspacePath,
   type PreviewSnapshot,
   type WorkspaceFile,
+  type WorkspaceRepository,
   type WorkspaceSnapshot,
   WorkspaceToolError,
 } from '@context-action/live-code-editor';
@@ -204,7 +205,7 @@ export class BrowserWorkspace {
   private hydrated = false;
 
   constructor(
-    private readonly repository = new WebCodingWorkspaceRepository(
+    private readonly repository: WorkspaceRepository = new WebCodingWorkspaceRepository(
       undefined,
       DEMO_WORKSPACE_ID
     )

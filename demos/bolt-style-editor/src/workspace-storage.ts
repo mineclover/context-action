@@ -1,6 +1,7 @@
 import {
   selectWorkspaceActivePath,
   type WorkspaceFile,
+  type WorkspaceRepository,
 } from '@context-action/live-code-editor';
 import Dexie, { type Table } from 'dexie';
 import type { FileSystemDirectoryHandleLike } from './workspace-filesystem';
@@ -81,7 +82,7 @@ function displayOrder(path: string): number {
   );
 }
 
-export class WebCodingWorkspaceRepository {
+export class WebCodingWorkspaceRepository implements WorkspaceRepository {
   constructor(
     private readonly database = new WebCodingWorkspaceDatabase(),
     private readonly workspaceId = DEMO_WORKSPACE_ID
