@@ -15,6 +15,7 @@ import React, {
   useState,
 } from 'react';
 import { Link } from 'react-router-dom';
+import { runLocalUIToolchain } from '../../../lib/local-ui-toolchain';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   clearStoredOpenRouterApiKey,
@@ -26,6 +27,7 @@ import {
   getFreeModelsWithTools,
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
+import { createToolCallSessionId } from '../../../lib/tool-call-trace';
 import { uiToolsSchema } from '../../../lib/ui-tools-schema';
 import styles from './ToolContextAIDemo.module.css';
 
@@ -253,6 +255,39 @@ function DemoUI({ uiState }: { uiState: UIState }) {
     clearStoredOpenRouterApiKey();
   };
 
+  const runOfflineRecipe = async () => {
+    if (executing) return;
+
+    const localPrompt =
+      '오프라인 recipe로 현재 UI를 확인하고 counter를 3 증가시킨 뒤 heading을 갱신해줘.';
+    const sessionId = createToolCallSessionId();
+    setRequestError(null);
+    setExecuting(true);
+
+    try {
+      const chain = await runLocalUIToolchain(registry, sessionId);
+      const failedResult = chain.results.find((result) => result.isError);
+      if (failedResult) {
+        throw new Error(
+          failedResult.error?.message ?? 'Offline tool chain failed.'
+        );
+      }
+
+      const response = `Offline recipe completed: ${chain.executedToolNames.join(' → ')} (discovered ${chain.listedToolNames.length} tools).`;
+      setMessages((prev) => [
+        ...prev,
+        { role: 'user', content: localPrompt },
+        { role: 'assistant', content: response },
+      ]);
+    } catch (error) {
+      setRequestError(
+        error instanceof Error ? error.message : 'Offline tool chain failed.'
+      );
+    } finally {
+      setExecuting(false);
+    }
+  };
+
   const toolTextGenerator = useMemo(
     () =>
       apiKey
@@ -395,6 +430,21 @@ function DemoUI({ uiState }: { uiState: UIState }) {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className={styles.keyActions}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => void runOfflineRecipe()}
+            disabled={executing}
+          >
+            Run offline tool chain
+          </button>
+          <small>
+            Runs tools/list → local model-shaped calls → tool result without an
+            OpenRouter key.
+          </small>
         </div>
       </div>
 
