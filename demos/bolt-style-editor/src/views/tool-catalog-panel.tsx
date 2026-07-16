@@ -31,6 +31,12 @@ export function toolPolicySummary(
   return 'approval · local direct allow';
 }
 
+export function toolPolicyLabel(
+  annotations?: ToolCatalogAnnotations
+): 'allow' | 'approval' {
+  return annotations?.readOnlyHint === true ? 'allow' : 'approval';
+}
+
 export type ToolCatalogPanelProps = {
   toolNames: readonly string[];
   visibleToolNames: readonly string[];
@@ -165,6 +171,7 @@ export function ToolCatalogPanel({
                 disabled={!isStorageReady || running}
                 key={name}
                 onClick={() => onSelectTool(name)}
+                title={`${name} · ${toolPolicySummary(definition?.annotations)}`}
                 type="button"
               >
                 <span className="tool-row-name">
@@ -174,7 +181,7 @@ export function ToolCatalogPanel({
                   <span>{name}</span>
                 </span>
                 <span className="tool-policy-label">
-                  {toolPolicySummary(definition?.annotations)}
+                  {toolPolicyLabel(definition?.annotations)}
                 </span>
               </button>
             );

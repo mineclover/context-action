@@ -43,7 +43,7 @@ a { color: inherit; text-decoration: none; }
 .settings-trigger { background: transparent; border: 1px solid #2a303c; border-radius: 6px; color: #aeb4c2; cursor: pointer; font-size: 11px; padding: 6px 8px; }
 .settings-trigger:hover { border-color: #7868df; color: #e8e4ff; }
 
-.studio-workspace { display: grid; flex: 1; grid-template-columns: 218px minmax(550px, 1fr) minmax(390px, 0.88fr); min-height: calc(100vh - 88px); }
+.studio-workspace { display: grid; flex: 1; grid-template-columns: 236px minmax(520px, 1fr) minmax(380px, 0.88fr); min-height: calc(100vh - 88px); }
 .studio-sidebar, .preview-panel { background: #0d1016; }
 .studio-sidebar { border-right: 1px solid #20242e; max-height: calc(100vh - 88px); overflow-y: auto; padding: 20px 12px; }
 .preview-panel { border-left: 1px solid #20242e; padding: 20px 16px; }
