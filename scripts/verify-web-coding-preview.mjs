@@ -5,7 +5,7 @@ import path from 'node:path';
 const rootDirectory = path.resolve(import.meta.dirname, '..');
 const compilerPath = path.join(
   rootDirectory,
-  'demos/bolt-style-editor/src/preview-document.ts'
+  'packages/live-code-editor/src/preview-document.ts'
 );
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');

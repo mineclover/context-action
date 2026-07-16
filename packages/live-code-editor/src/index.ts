@@ -79,3 +79,12 @@ export function isPreviewBridgeMessage(
         typeof message.message === 'string'))
   );
 }
+
+export {
+  buildPreviewDocument,
+  collectPreviewDiagnostics,
+  findPreviewHtmlFile,
+  findPreviewStylesheetFile,
+  rewriteJavaScriptModuleImports,
+  workspaceJavaScriptModuleSpecifier,
+} from './preview-document';
