@@ -283,28 +283,38 @@ export function toolResultContent(result: {
   content?: Array<{ text: string }>;
   structuredContent?: unknown;
 }): string {
-  if (result.isError) {
-    return JSON.stringify({
-      status: 'error',
-      code: result.error?.code,
-      message: result.error?.message,
-      ...(result.error?.retryable === undefined
-        ? {}
-        : { retryable: result.error.retryable }),
-      ...(result.error?.details === undefined
-        ? {}
-        : { details: result.error.details }),
-    });
-  }
-
-  return JSON.stringify(
-    result.structuredContent !== undefined
+  const value = result.isError
+    ? {
+        status: 'error',
+        code: result.error?.code,
+        message: result.error?.message,
+        ...(result.error?.retryable === undefined
+          ? {}
+          : { retryable: result.error.retryable }),
+        ...(result.error?.details === undefined
+          ? {}
+          : { details: result.error.details }),
+      }
+    : result.structuredContent !== undefined
       ? result.structuredContent
       : {
           status: 'completed',
           content: result.content?.map((block) => block.text).join('\n'),
-        }
-  );
+        };
+
+  try {
+    const serialized = JSON.stringify(value);
+    if (serialized !== undefined) return serialized;
+  } catch {
+    // Provider tool results must remain a JSON string even when an application
+    // handler accidentally returns BigInt or a circular object.
+  }
+
+  return JSON.stringify({
+    status: 'error',
+    code: 'TOOL_RESULT_SERIALIZATION_FAILED',
+    message: 'Tool result could not be serialized for the provider.',
+  });
 }
 
 export function throwIfAborted(signal?: AbortSignal): void {

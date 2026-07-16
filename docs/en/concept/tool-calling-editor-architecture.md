@@ -176,6 +176,10 @@ this keeps a malformed or over-eager model from causing an unbounded sequence
 of workspace mutations. The response decoder also requires the assistant
 message role and string-or-null content, rather than trusting a structurally
 similar provider message.
+Tool results are serialized at this boundary as well: a handler that
+accidentally returns a non-JSON value becomes `TOOL_RESULT_SERIALIZATION_FAILED`
+inside the next provider message instead of aborting the model loop with a
+raw `JSON.stringify` exception.
 
 ## Standard contract
 

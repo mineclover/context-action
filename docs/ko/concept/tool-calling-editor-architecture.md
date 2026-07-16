@@ -162,6 +162,10 @@ provider loop는 한 run에서 최대 5개 turn, 총 12개 tool call로 제한�
 malformed하거나 과도하게 적극적인 model이 workspace mutation을 무제한으로
 연속 실행할 수 없다. response decoder도 구조가 비슷한 provider message를
 그대로 신뢰하지 않고 assistant role과 string 또는 null content를 확인한다.
+이 경계에서 tool result도 JSON 문자열로 직렬화한다. handler가 실수로
+JSON으로 표현할 수 없는 값을 반환하면 raw `JSON.stringify` 예외로 model
+loop를 중단하지 않고 다음 provider message 안에
+`TOOL_RESULT_SERIALIZATION_FAILED` 구조화 오류를 전달한다.
 
 ## 표준 계약
 

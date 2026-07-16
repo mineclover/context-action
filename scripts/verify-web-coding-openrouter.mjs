@@ -310,6 +310,19 @@ expectEqual(
   },
   'Tool errors sent back to the provider must retain structured error metadata.'
 );
+expectEqual(
+  JSON.parse(
+    protocol.toolResultContent({
+      structuredContent: { unsupported: 1n },
+    })
+  ),
+  {
+    status: 'error',
+    code: 'TOOL_RESULT_SERIALIZATION_FAILED',
+    message: 'Tool result could not be serialized for the provider.',
+  },
+  'Non-JSON tool results must become a structured provider error instead of aborting the model loop.'
+);
 
 const controller = new AbortController();
 controller.abort(new Error('cancelled by test'));
