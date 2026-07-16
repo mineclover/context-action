@@ -1167,6 +1167,14 @@ async function runBrowserProof(url) {
                           arguments: '{}',
                         },
                       },
+                      {
+                        id: 'provider_preview_1',
+                        type: 'function',
+                        function: {
+                          name: 'preview.getStatus',
+                          arguments: '{}',
+                        },
+                      },
                     ],
                   },
                 },
@@ -1313,6 +1321,19 @@ async function runBrowserProof(url) {
           message.role === 'tool' &&
           message.tool_call_id === 'provider_status_1'
       );
+      const assistantPreviewToolMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'assistant' &&
+          Array.isArray(message.tool_calls) &&
+          message.tool_calls.some(
+            (toolCall) => toolCall.id === 'provider_preview_1'
+          )
+      );
+      const previewToolResultMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'tool' &&
+          message.tool_call_id === 'provider_preview_1'
+      );
       const assistantPatchToolMessage = toolLoopMessages?.find(
         (message) =>
           message.role === 'assistant' &&
@@ -1334,6 +1355,8 @@ async function runBrowserProof(url) {
       if (
         !assistantStatusToolMessage ||
         !statusToolResultMessage ||
+        !assistantPreviewToolMessage ||
+        !previewToolResultMessage ||
         !assistantPatchToolMessage ||
         !patchToolResultMessage ||
         !failedPatchToolResultMessage
@@ -1348,6 +1371,14 @@ async function runBrowserProof(url) {
       ) {
         throw new Error(
           'The OpenRouter tool result did not contain the structured workspace status.'
+        );
+      }
+      if (
+        typeof previewToolResultMessage.content !== 'string' ||
+        !previewToolResultMessage.content.includes('"status"')
+      ) {
+        throw new Error(
+          'The OpenRouter batch tool result did not contain the preview status.'
         );
       }
       if (
