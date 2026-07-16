@@ -55,6 +55,7 @@ import {
 import {
   BrowserWorkspace,
   buildPreviewDocument,
+  collectPreviewDiagnostics,
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
@@ -362,6 +363,15 @@ function toolSuccessMessage(
         ? `, write access ${filesystem.permission}`
         : '';
     return `Workspace status: ${fileCount} file(s), ${storage}${permission}.${revision}`;
+  }
+
+  if (name === 'preview.getStatus') {
+    const status =
+      typeof structured.status === 'string' ? structured.status : 'unknown';
+    const diagnostics = Array.isArray(structured.diagnostics)
+      ? structured.diagnostics.length
+      : 0;
+    return `Preview status: ${status}, ${diagnostics} diagnostic(s).${revision}`;
   }
 
   if (name === 'workspace.reset') {
@@ -2215,6 +2225,10 @@ function EditorWorkbench({
   const previewDocument = useMemo(
     () => buildPreviewDocument(snapshot.files, assetUrls, snapshot.revision),
     [assetUrls, snapshot.files, snapshot.revision]
+  );
+  const previewDiagnostics = useMemo(
+    () => collectPreviewDiagnostics(snapshot.files),
+    [snapshot.files]
   );
   const searchableFiles = useMemo(
     () => overlayEditorDrafts(snapshot.files, editorDrafts),
@@ -4500,6 +4514,33 @@ function EditorWorkbench({
                 {snapshot.preview.message ?? 'The preview failed to load.'}
               </code>
             </div>
+          ) : null}
+          {previewDiagnostics.length ? (
+            <section
+              aria-label="Preview diagnostics"
+              aria-live="polite"
+              className="preview-diagnostics"
+            >
+              <div className="preview-diagnostics-heading">
+                <strong>Preview diagnostics</strong>
+                <span>{previewDiagnostics.length}</span>
+              </div>
+              <ul>
+                {previewDiagnostics.slice(0, 6).map((diagnostic) => (
+                  <li
+                    key={`${diagnostic.kind}:${diagnostic.sourcePath}:${diagnostic.requestedPath}`}
+                  >
+                    <code>{diagnostic.sourcePath}</code>
+                    <span>{diagnostic.message}</span>
+                  </li>
+                ))}
+              </ul>
+              {previewDiagnostics.length > 6 ? (
+                <small>
+                  +{previewDiagnostics.length - 6} more diagnostic(s)
+                </small>
+              ) : null}
+            </section>
           ) : null}
           <div className="preview-footer">
             <div>

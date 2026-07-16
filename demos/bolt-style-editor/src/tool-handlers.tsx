@@ -10,6 +10,7 @@ import {
 } from './tool-runtime-utils';
 import {
   BrowserWorkspace,
+  collectPreviewDiagnostics,
   findPreviewHtmlFile,
   findPreviewStylesheetFile,
   normalizeWorkspacePath,
@@ -706,6 +707,7 @@ export function ToolHandlers({
       status: snapshot.preview.status,
       message: snapshot.preview.message,
       runtime: 'sandbox iframe',
+      diagnostics: collectPreviewDiagnostics(snapshot.files),
     };
   });
 

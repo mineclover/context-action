@@ -11,6 +11,7 @@ export type {
 } from './preview-document';
 export {
   buildPreviewDocument,
+  collectPreviewDiagnostics,
   findPreviewHtmlFile,
   findPreviewStylesheetFile,
 } from './preview-document';

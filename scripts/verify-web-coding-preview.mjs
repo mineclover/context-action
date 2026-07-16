@@ -25,6 +25,15 @@ function expect(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function expectEqual(actual, expected, message) {
+  const actualText = JSON.stringify(actual);
+  const expectedText = JSON.stringify(expected);
+  expect(
+    actualText === expectedText,
+    `${message}\nexpected: ${expectedText}\nactual: ${actualText}`
+  );
+}
+
 function expectIncludes(sourceText, expected, message) {
   expect(
     sourceText.includes(expected),
@@ -160,6 +169,74 @@ expectIncludes(
   nestedCssDocument,
   'url("blob:nested-icon")',
   'Nested CSS asset URLs must resolve relative to their own stylesheet.'
+);
+
+const diagnosticsFiles = [
+  {
+    path: 'index.html',
+    language: 'html',
+    source:
+      '<!doctype html><html><head><link rel="stylesheet" href="missing.css"><link rel="stylesheet" href="styles.css"></head><body><img src="assets/missing.png"><img src="https://example.com/remote.png"><script src="missing.js"></script></body></html>',
+    kind: 'text',
+  },
+  {
+    path: 'styles.css',
+    language: 'css',
+    source:
+      '@import "missing-theme.css"; @import url("https://example.com/theme.css"); body { background: url("missing-bg.png"); }',
+    kind: 'text',
+  },
+];
+const previewDiagnostics = preview.collectPreviewDiagnostics(diagnosticsFiles);
+expectEqual(
+  previewDiagnostics.map(({ kind, sourcePath, requestedPath }) => ({
+    kind,
+    sourcePath,
+    requestedPath,
+  })),
+  [
+    {
+      kind: 'missing-reference',
+      sourcePath: 'index.html',
+      requestedPath: 'missing.css',
+    },
+    {
+      kind: 'missing-reference',
+      sourcePath: 'index.html',
+      requestedPath: 'missing.js',
+    },
+    {
+      kind: 'missing-reference',
+      sourcePath: 'index.html',
+      requestedPath: 'assets/missing.png',
+    },
+    {
+      kind: 'missing-reference',
+      sourcePath: 'styles.css',
+      requestedPath: 'missing-theme.css',
+    },
+    {
+      kind: 'blocked-external-reference',
+      sourcePath: 'styles.css',
+      requestedPath: 'https://example.com/theme.css',
+    },
+    {
+      kind: 'missing-reference',
+      sourcePath: 'styles.css',
+      requestedPath: 'missing-bg.png',
+    },
+  ],
+  'Preview diagnostics must report missing local references and blocked CSS imports.'
+);
+const diagnosticsDocument = preview.buildPreviewDocument(
+  diagnosticsFiles,
+  {},
+  14
+);
+expect(
+  !diagnosticsDocument.includes('@import "missing-theme.css"') &&
+    !diagnosticsDocument.includes('@import url("https://example.com/theme.css")'),
+  'Unresolved or external CSS imports must not execute inside the preview.'
 );
 
 const cyclicCssDocument = preview.buildPreviewDocument(

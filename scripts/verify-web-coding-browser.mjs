@@ -650,7 +650,7 @@ async function runBrowserProof(url) {
       const root = new ProofDirectory('folder-api-proof');
       root.addFile(
         'index.html',
-        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script></body></html>',
+        '<!doctype html><html><body><h1 id="api-folder-proof">API folder works</h1><script src="app.js"></script><script src="missing.js"></script></body></html>',
         'text/html'
       );
       root.addFile('app.js', "document.body.dataset.apiFolder = 'ready';", 'text/javascript');
@@ -664,6 +664,13 @@ async function runBrowserProof(url) {
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#api-folder-proof')
       .waitFor();
+    const previewDiagnostics = page.locator(
+      '[aria-label="Preview diagnostics"]'
+    );
+    await previewDiagnostics.waitFor();
+    if (!(await previewDiagnostics.innerText()).includes('Missing script: missing.js')) {
+      throw new Error('Preview diagnostics did not surface the missing folder dependency.');
+    }
 
     await page.getByRole('tab', { name: /notes\.md/ }).click();
     await page.getByRole('button', { name: 'Rename notes.md' }).click();

@@ -49,6 +49,13 @@ export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
 const MAX_INLINE_CSS_IMPORTS = 32;
 
+export type PreviewDiagnostic = {
+  kind: 'missing-reference' | 'blocked-external-reference';
+  sourcePath: string;
+  requestedPath: string;
+  message: string;
+};
+
 export type PreviewBridgeMessage =
   | { type: 'context-action.preview.ready'; revision: number }
   | {
@@ -147,7 +154,7 @@ function inlineCssImports(
   const withImports = source.replace(
     /@import\s+(?:url\(\s*(["']?)([^)"'\s]+)\1\s*\)|(["'])([^"']+)\3)\s*([^;]*);/gi,
     (
-      match,
+      _match,
       _urlQuote: string,
       urlPath: string,
       quotedPathQuote: string,
@@ -156,7 +163,9 @@ function inlineCssImports(
     ) => {
       const requestedPath = quotedPathQuote ? quotedPath : urlPath;
       const imported = findReferencedFile(files, cssPath, requestedPath, 'css');
-      if (!imported) return match;
+      if (!imported) {
+        return `/* Blocked unresolved workspace @import: ${requestedPath} */`;
+      }
       if (importedPaths.has(imported.path)) {
         return `/* Skipped cyclic workspace @import: ${imported.path} */`;
       }
@@ -222,6 +231,193 @@ function inlineScripts(
     );
     return `<script${attributes}>${javascript.source}</script>`;
   });
+}
+
+function isIgnoredReference(requestedPath: string): boolean {
+  const value = requestedPath.trim();
+  return (
+    !value ||
+    value.startsWith('#') ||
+    /^(?:data:|blob:|javascript:)/i.test(value)
+  );
+}
+
+function isExternalReference(requestedPath: string): boolean {
+  return /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(requestedPath.trim());
+}
+
+function collectReferenceDiagnostic(
+  diagnostics: PreviewDiagnostic[],
+  files: readonly WorkspaceFile[],
+  sourcePath: string,
+  requestedPath: string,
+  label: string,
+  seen: Set<string>,
+  allowExternal = false
+): void {
+  if (isIgnoredReference(requestedPath)) return;
+  const normalizedRequestedPath = requestedPath.trim();
+  const key = `${sourcePath}\u0000${label}\u0000${normalizedRequestedPath}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  if (isExternalReference(normalizedRequestedPath)) {
+    if (allowExternal) return;
+    diagnostics.push({
+      kind: 'blocked-external-reference',
+      sourcePath,
+      requestedPath: normalizedRequestedPath,
+      message: `External ${label} is blocked in the sandbox: ${normalizedRequestedPath}`,
+    });
+    return;
+  }
+  const resolvedPath = resolveLocalPath(sourcePath, normalizedRequestedPath);
+  if (!resolvedPath || !files.some((file) => file.path === resolvedPath)) {
+    diagnostics.push({
+      kind: 'missing-reference',
+      sourcePath,
+      requestedPath: normalizedRequestedPath,
+      message: `Missing ${label}: ${normalizedRequestedPath}`,
+    });
+  }
+}
+
+export function collectPreviewDiagnostics(
+  files: readonly WorkspaceFile[]
+): PreviewDiagnostic[] {
+  const diagnostics: PreviewDiagnostic[] = [];
+  const seen = new Set<string>();
+  const htmlFile = findPreviewHtmlFile(files);
+  if (!htmlFile) return diagnostics;
+  const reachableCssPaths = new Set<string>();
+
+  htmlFile.source.replace(/<link\b[^>]*>/gi, (tag) => {
+    const href = attributeValue(tag, 'href');
+    const rel = attributeValue(tag, 'rel')?.toLowerCase() ?? '';
+    if (href && (rel.includes('stylesheet') || /\.css(?:[?#]|$)/i.test(href))) {
+      collectReferenceDiagnostic(
+        diagnostics,
+        files,
+        htmlFile.path,
+        href,
+        'stylesheet',
+        seen
+      );
+      const resolvedPath = resolveLocalPath(htmlFile.path, href);
+      const css = resolvedPath
+        ? files.find(
+            (file) => file.path === resolvedPath && file.language === 'css'
+          )
+        : undefined;
+      if (css) reachableCssPaths.add(css.path);
+    }
+    return tag;
+  });
+
+  htmlFile.source.replace(/<script\b[^>]*>/gi, (tag) => {
+    const src = attributeValue(tag, 'src');
+    if (src) {
+      collectReferenceDiagnostic(
+        diagnostics,
+        files,
+        htmlFile.path,
+        src,
+        'script',
+        seen
+      );
+    }
+    return tag;
+  });
+
+  const assetTags = new Set([
+    'audio',
+    'embed',
+    'image',
+    'img',
+    'object',
+    'source',
+    'track',
+    'video',
+  ]);
+  htmlFile.source.replace(
+    /<([a-z][\w:-]*)\b[^>]*>/gi,
+    (tag, tagName: string) => {
+      if (!assetTags.has(tagName.toLowerCase())) return tag;
+      for (const attribute of ['data', 'poster', 'src']) {
+        const requestedPath = attributeValue(tag, attribute);
+        if (requestedPath) {
+          collectReferenceDiagnostic(
+            diagnostics,
+            files,
+            htmlFile.path,
+            requestedPath,
+            'asset',
+            seen,
+            true
+          );
+        }
+      }
+      return tag;
+    }
+  );
+
+  const cssPaths = [...reachableCssPaths];
+  for (let cssIndex = 0; cssIndex < cssPaths.length; cssIndex += 1) {
+    const file = files.find(
+      (candidate) => candidate.path === cssPaths[cssIndex]
+    );
+    if (!file) continue;
+    file.source.replace(
+      /@import\s+(?:url\(\s*(["']?)([^)"'\s]+)\1\s*\)|(["'])([^"']+)\3)\s*([^;]*);/gi,
+      (
+        match,
+        _urlQuote: string,
+        urlPath: string,
+        quotedPathQuote: string,
+        quotedPath: string
+      ) => {
+        collectReferenceDiagnostic(
+          diagnostics,
+          files,
+          file.path,
+          quotedPathQuote ? quotedPath : urlPath,
+          'stylesheet import',
+          seen
+        );
+        const resolvedPath = resolveLocalPath(
+          file.path,
+          quotedPathQuote ? quotedPath : urlPath
+        );
+        const imported = resolvedPath
+          ? files.find(
+              (candidate) =>
+                candidate.path === resolvedPath && candidate.language === 'css'
+            )
+          : undefined;
+        if (imported && !reachableCssPaths.has(imported.path)) {
+          reachableCssPaths.add(imported.path);
+          cssPaths.push(imported.path);
+        }
+        return match;
+      }
+    );
+    file.source.replace(
+      /url\(\s*(["']?)([^)"']+)\1\s*\)/gi,
+      (match, _quote: string, requestedPath: string) => {
+        collectReferenceDiagnostic(
+          diagnostics,
+          files,
+          file.path,
+          requestedPath,
+          'asset',
+          seen,
+          true
+        );
+        return match;
+      }
+    );
+  }
+
+  return diagnostics;
 }
 
 function rewriteHtmlAssetReferences(

@@ -658,6 +658,10 @@ Open folder → generic FileSystemAdapter
   안에 주입해 실행한다. 로컬 CSS `@import` chain도 media 조건을 보존하며
   재귀적으로 inline하고, import된 stylesheet는 각자의 상대 asset 기준을
   유지한다. 순환하거나 과도한 import graph는 bounded diagnostic으로 중단한다.
+- 누락된 local CSS/JS/asset reference와 차단된 external stylesheet/script
+  reference는 parent Preview diagnostics panel과 structured
+  `preview.getStatus` result에 함께 노출한다. 따라서 model이 불완전한
+  preview를 false success로 보고하지 않고 원인을 설명할 수 있다.
 - 가져온 workspace에 HTML entry가 없으면 빈 iframe 대신 `index.html` 또는 다른
   `.html` 파일이 필요하다는 진단 카드를 preview에 표시한다.
 - visual tool은 workspace 경로에서 HTML entry와 우선 stylesheet를 찾으므로

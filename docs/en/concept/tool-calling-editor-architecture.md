@@ -711,6 +711,10 @@ Open folder → generic FileSystemAdapter
   `@import` chains are inlined recursively with media conditions preserved,
   while each imported stylesheet keeps its own relative asset base; cyclic or
   excessive import graphs are cut off with bounded diagnostics.
+- Missing local CSS/JS/asset references and blocked external stylesheet/script
+  references appear in the parent Preview diagnostics panel and in the
+  structured `preview.getStatus` result, so a model can explain an incomplete
+  preview instead of reporting a false success.
 - If an imported workspace has no HTML entry, the preview renders a diagnostic
   card explaining that `index.html` or another `.html` file is required instead
   of showing a blank iframe.

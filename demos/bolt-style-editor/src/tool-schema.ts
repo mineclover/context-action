@@ -134,6 +134,14 @@ const previewStatusOutputSchema = workspacePersistenceOutputSchema.extend({
   status: z.enum(['waiting', 'synced', 'error']),
   message: z.string().optional(),
   runtime: z.literal('sandbox iframe'),
+  diagnostics: z.array(
+    z.object({
+      kind: z.enum(['missing-reference', 'blocked-external-reference']),
+      sourcePath: z.string(),
+      requestedPath: z.string(),
+      message: z.string(),
+    })
+  ),
 });
 const previewRefreshOutputSchema = workspacePersistenceOutputSchema.extend({
   activePath: z.string(),
