@@ -354,6 +354,17 @@ async function runBrowserProof(url) {
     await send.click();
     await page.getByText(/\[WORKSPACE_FILE_NOT_FOUND\]/).waitFor();
 
+    await prompt.fill(
+      'Change index.html from "text that is not in this file" to "new text"'
+    );
+    await send.click();
+    const patchApproval = page.getByRole('button', {
+      name: 'Approve workspace.applyPatch',
+    });
+    await patchApproval.waitFor();
+    await patchApproval.click();
+    await page.getByText(/\[WORKSPACE_PATCH_NOT_FOUND\]/).waitFor();
+
     await prompt.fill('Make it emerald');
     await send.click();
     const approval = page.getByRole('button', {

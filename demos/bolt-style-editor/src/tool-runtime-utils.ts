@@ -70,20 +70,35 @@ export function applyTextPatch(
   source: string,
   search: string,
   replace: string,
-  occurrence: 'first' | 'all'
+  occurrence: 'first' | 'all',
+  path?: string
 ): { source: string; replacements: number } {
+  const patchNotFound = () =>
+    new WorkspaceToolError(
+      `Patch search text was not found in ${path ? `${path} ` : ''}using ${occurrence} occurrence mode. Re-read the file before retrying the patch.`,
+      {
+        code: 'WORKSPACE_PATCH_NOT_FOUND',
+        retryable: false,
+        details: {
+          ...(path ? { path } : {}),
+          occurrence,
+          searchLength: search.length,
+        },
+      }
+    );
+
   if (occurrence === 'all') {
     const parts = source.split(search);
     const replacements = parts.length - 1;
     if (!replacements) {
-      throw new Error('Patch search text was not found in the file.');
+      throw patchNotFound();
     }
     return { source: parts.join(replace), replacements };
   }
 
   const index = source.indexOf(search);
   if (index < 0) {
-    throw new Error('Patch search text was not found in the file.');
+    throw patchNotFound();
   }
   return {
     source: `${source.slice(0, index)}${replace}${source.slice(index + search.length)}`,

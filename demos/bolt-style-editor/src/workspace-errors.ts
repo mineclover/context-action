@@ -12,6 +12,7 @@ export type WorkspaceToolErrorCode =
   | 'WORKSPACE_FILE_NOT_FOUND'
   | 'WORKSPACE_FILE_CONFLICT'
   | 'WORKSPACE_FILE_TYPE_CONFLICT'
+  | 'WORKSPACE_PATCH_NOT_FOUND'
   | 'WORKSPACE_HISTORY_EMPTY';
 
 export class WorkspaceToolError extends Error {

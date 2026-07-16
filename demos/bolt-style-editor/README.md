@@ -138,8 +138,10 @@ visible diagnostic panel with the error text and a refresh action.
   synchronization failures expose a `Refresh preview` chat action.
 - Workspace input failures use non-retryable `WORKSPACE_PATH_INVALID`,
   `WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
-  `WORKSPACE_FILE_TYPE_CONFLICT`, or `WORKSPACE_HISTORY_EMPTY` codes with
-  bounded operation details. Read/open/download tools are blocking handlers so
+  `WORKSPACE_FILE_TYPE_CONFLICT`, `WORKSPACE_PATCH_NOT_FOUND`, or
+  `WORKSPACE_HISTORY_EMPTY` codes with bounded operation details. A patch miss
+  reports only its path, occurrence mode, and search length. Read/open/download
+  tools are blocking handlers so
   these failures cannot be mistaken for an empty successful result.
 - A revision change detected during `saveAll` or `saveCheckpoint` keeps the
   retryable `WORKSPACE_REVISION_CONFLICT` code and includes the save operation

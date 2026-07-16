@@ -563,7 +563,13 @@ export function ToolHandlers({
           'patch'
         );
       }
-      const patch = applyTextPatch(file.source, search, replace, occurrence);
+      const patch = applyTextPatch(
+        file.source,
+        search,
+        replace,
+        occurrence,
+        file.path
+      );
       assertWorkspaceTextSourceLength(patch.source, 'Patched source');
       const snapshot = workspace.updateFile(file.path, patch.source, {
         coalesce: false,
