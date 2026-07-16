@@ -12,4 +12,6 @@ The package now owns the stateful `WorkspaceDocumentManager`; the standalone
 demo only supplies seed files and its Dexie-backed repository through the thin
 `BrowserWorkspace` adapter. The demo still owns the filesystem adapter, iframe
 runtime, and editor adapters until those implementations have independent
-consumers and tests.
+consumers and tests. The package filesystem adapter accepts a browser directory
+handle and an optional `DirectoryHandlePersistence` implementation, so IndexedDB
+remains an application choice.

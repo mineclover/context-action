@@ -440,10 +440,11 @@ The first extraction seam now exists as the private
 framework-neutral workspace, preview, and folder-import contracts consumed by
 the standalone demo, plus the pure preview document compiler, workspace model
 helpers, repository boundary, and stateful `WorkspaceDocumentManager`. The demo
-still owns the Dexie repository adapter, filesystem adapter, iframe runtime, and
-editor adapters. Extract those browser-specific pieces only after they have
-independent consumers and tests; decide whether to publish the package only
-after the contract stabilizes.
+still owns the Dexie `DirectoryHandlePersistence` implementation, while the
+package owns the browser filesystem adapter. The demo keeps the iframe runtime
+and editor adapters. Extract those remaining browser-specific pieces only after
+they have independent consumers and tests; decide whether to publish the
+package only after the contract stabilizes.
 
 Consider a separate repository only when one or more of these conditions hold:
 
@@ -833,8 +834,8 @@ Open folder → generic FileSystemAdapter
 3. Record parallel calls and failures through the lifecycle observer.
 4. Implement the parent-owned `WorkspaceDocumentManager` against the
    framework-neutral `WorkspaceRepository` boundary.
-5. Add the demo-owned Dexie workspace repository and Blob/file-system adapter
-   boundary.
+5. Add the demo-owned Dexie workspace repository and inject its directory-handle
+   persistence into the package filesystem adapter.
 6. Keep the revision-aware preview bridge and acknowledgement contract aligned
    with the DocumentManager.
 7. Forward `toolCallId` and abort signals from the model adapter to the Registry,

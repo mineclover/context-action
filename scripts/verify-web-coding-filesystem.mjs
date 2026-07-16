@@ -5,7 +5,7 @@ import path from 'node:path';
 const rootDirectory = path.resolve(import.meta.dirname, '..');
 const adapterPath = path.join(
   rootDirectory,
-  'demos/bolt-style-editor/src/workspace-filesystem.ts'
+  'packages/live-code-editor/src/workspace-filesystem.ts'
 );
 const errorsPath = path.join(
   rootDirectory,
@@ -39,6 +39,7 @@ const source = await readFile(adapterPath, 'utf8');
 const { outputText } = typescript.transpileModule(
   source
     .replaceAll("from './workspace-errors'", `from '${errorsModuleUrl}'`)
+    .replaceAll("from './workspace-model'", `from '${modelModuleUrl}'`)
     .replaceAll(
       "from '@context-action/live-code-editor'",
       `from '${modelModuleUrl}'`

@@ -136,3 +136,8 @@ export {
   type WorkspaceImportOptions,
   type WorkspaceUpdateFileOptions,
 } from './workspace-manager';
+export {
+  BrowserWorkspaceFileSystemAdapter,
+  type DirectoryHandlePersistence,
+  type FileSystemDirectoryHandleLike,
+} from './workspace-filesystem';

@@ -187,8 +187,9 @@ framework-neutral workspace, preview, and folder-import contracts consumed by
 this demo, the pure preview document compiler, and the stateful
 `WorkspaceDocumentManager`. The demo keeps only the seed-file and Dexie
 repository adapter in `BrowserWorkspace`; the browser-owned filesystem adapter,
-iframe runtime, and editor adapters remain local until they have independent
-consumers and tests.
+iframe runtime, and editor adapters are consumed from the package through
+compatibility re-exports. The demo still owns only the IndexedDB persistence
+implementation and editor UI adapters.
 
 See the [tool-calling editor architecture guide](../../docs/en/concept/tool-calling-editor-architecture.md)
 for the full contract, approval policy, revision rules, and extraction plan.
