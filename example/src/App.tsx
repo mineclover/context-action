@@ -71,8 +71,9 @@ const ScrollPageRefactored = lazy(
 const SearchPageRefactored = lazy(
   () => import('./pages/performance/action-guard/SearchPageRefactored')
 );
-const ThrottleComparisonPage = lazy(
-  () => import('./pages/performance/action-guard/ThrottleComparisonPage')
+const ThrottleComparisonPageRefactored = lazy(
+  () =>
+    import('./pages/performance/action-guard/ThrottleComparisonPageRefactored')
 );
 const AdvancedFilteringPage = lazy(
   () => import('./pages/performance/action-guard/AdvancedFilteringPage')
@@ -438,7 +439,7 @@ function AppContent() {
             />
             <Route
               path="/performance/action-guard/throttle-comparison"
-              element={<ThrottleComparisonPage />}
+              element={<ThrottleComparisonPageRefactored />}
             />
             <Route
               path="/performance/action-guard/advanced-filtering"
@@ -649,7 +650,7 @@ function AppContent() {
             />
             <Route
               path="/actionguard/throttle-comparison"
-              element={<ThrottleComparisonPage />}
+              element={<ThrottleComparisonPageRefactored />}
             />
             <Route
               path="/actionguard/advanced-filtering"

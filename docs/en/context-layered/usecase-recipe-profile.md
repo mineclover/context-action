@@ -325,6 +325,33 @@ render. Keep the content window bounded by virtualization, keep DOM feedback
 in the Ref boundary, and keep page-loading state transitions observable in
 Stores rather than local component state.
 
+## Timing strategy comparison usecase
+
+Throttle comparison is a useful usecase when normal, throttle, debounce,
+leading-edge, and trailing-edge input strategies must be compared against the
+same processing and metrics pipeline:
+
+```text
+input event → strategy scheduler → processEvent → event log + metrics Store
+             → benchmark / auto-test actions
+```
+
+The Throttle recipe applies these boundaries:
+
+- `business/throttle-rules.ts` owns metric transitions, bounded event history,
+  configuration defaults, and benchmark history as pure functions.
+- `actions/useThrottleActions.ts` exposes `inputEvent`, configuration, and test
+  commands; the View never chooses a scheduler or dispatches `processEvent`.
+- `handlers/ThrottleHandlerRegistry.tsx` owns the five timing schedulers,
+  timeout cleanup, simulated processing, benchmark loops, and auto-test timer.
+- `inputEvent` is the semantic boundary. It fans out to the five strategy
+  schedulers, while `processEvent` remains the single result/metrics boundary.
+
+Use this recipe when comparing interaction policies or validating a timing
+configuration. Keep scheduler state in refs owned by the Registry, clean up all
+timers on unmount, and feed every strategy into the same result transition so
+the comparison remains meaningful.
+
 ## Design-system boundary
 
 The recipe is the integration point for Astryx-like conventions:

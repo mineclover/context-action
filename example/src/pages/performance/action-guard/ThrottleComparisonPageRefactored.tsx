@@ -7,180 +7,17 @@
  * 실제 사례로 보여주는 고급 데모입니다.
  */
 
-import {
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useMemo, useState } from 'react';
 import { CodeBlock } from '@/components/ui';
-
-// ===== 타입 정의 =====
-interface EventLog {
-  id: string;
-  type: 'normal' | 'throttle' | 'debounce' | 'leading' | 'trailing';
-  timestamp: number;
-  value: string;
-  delay?: number;
-  executionTime?: number;
-  isSkipped?: boolean;
-}
-
-interface ThrottleActions {
-  processEvent: {
-    type: 'normal' | 'throttle' | 'debounce' | 'leading' | 'trailing';
-    value: string;
-    timestamp: number;
-    delay?: number;
-  };
-  clearLogs: void;
-  runPerformanceTest: {
-    type: 'normal' | 'throttle' | 'debounce' | 'leading' | 'trailing';
-    iterations: number;
-    interval: number;
-  };
-  updateConfig: {
-    throttleDelay: number;
-    debounceDelay: number;
-    leadingDelay: number;
-    trailingDelay: number;
-  };
-  startAutoTest: { duration: number; frequency: number };
-  stopAutoTest: void;
-}
-
-interface PerformanceMetrics {
-  eventCounts: Record<string, number>;
-  avgResponseTimes: Record<string, number>;
-  totalExecutions: Record<string, number>;
-  efficiency: Record<string, number>;
-  memoryUsage: Record<string, number>;
-  cpuLoad: Record<string, number>;
-}
-
-// ===== Store Context =====
-const { Provider: ThrottleStoreProvider, useStore: useThrottleStore } =
-  createStoreContext('AdvancedThrottle', {
-    eventLogs: [] as EventLog[],
-    isAutoTesting: false,
-    config: {
-      throttleDelay: 300,
-      debounceDelay: 500,
-      leadingDelay: 250,
-      trailingDelay: 400,
-    },
-    metrics: {
-      eventCounts: {
-        normal: 0,
-        throttle: 0,
-        debounce: 0,
-        leading: 0,
-        trailing: 0,
-      },
-      avgResponseTimes: {
-        normal: 0,
-        throttle: 0,
-        debounce: 0,
-        leading: 0,
-        trailing: 0,
-      },
-      totalExecutions: {
-        normal: 0,
-        throttle: 0,
-        debounce: 0,
-        leading: 0,
-        trailing: 0,
-      },
-      efficiency: {
-        normal: 0,
-        throttle: 0,
-        debounce: 0,
-        leading: 0,
-        trailing: 0,
-      },
-      memoryUsage: {
-        normal: 0,
-        throttle: 0,
-        debounce: 0,
-        leading: 0,
-        trailing: 0,
-      },
-      cpuLoad: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    } as PerformanceMetrics,
-    performanceHistory: [] as Array<{
-      timestamp: number;
-      type: string;
-      duration: number;
-      operations: number;
-      efficiency: number;
-    }>,
-  });
-
-// ===== Action Context =====
-const {
-  Provider: ThrottleActionProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<ThrottleActions>('AdvancedThrottle');
-
-// ===== 유틸리티 훅들 =====
-function useThrottle<T extends (...args: any[]) => void>(
-  func: T,
-  delay: number,
-  options?: { leading?: boolean; trailing?: boolean }
-): T {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastExecutedRef = useRef<number>(0);
-  const argsRef = useRef<Parameters<T> | null>(null);
-  const { leading = true, trailing = true } = options || {};
-
-  return useCallback(
-    ((...args: Parameters<T>) => {
-      const now = Date.now();
-      argsRef.current = args;
-
-      if (leading && now - lastExecutedRef.current >= delay) {
-        func(...args);
-        lastExecutedRef.current = now;
-      } else if (trailing) {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = setTimeout(
-          () => {
-            if (argsRef.current) {
-              func(...argsRef.current);
-              lastExecutedRef.current = Date.now();
-            }
-          },
-          delay - (now - lastExecutedRef.current)
-        );
-      }
-    }) as T,
-    [func, delay, leading, trailing]
-  );
-}
-
-function useDebounce<T extends (...args: any[]) => void>(
-  func: T,
-  delay: number
-): T {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  return useCallback(
-    ((...args: Parameters<T>) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      timeoutRef.current = setTimeout(() => {
-        func(...args);
-      }, delay);
-    }) as T,
-    [func, delay]
-  );
-}
+import { useThrottleActions } from './throttle/actions/useThrottleActions';
+import type { ThrottleEventType } from './throttle/business/throttle-rules';
+import {
+  ThrottleActionProvider,
+  ThrottleStoreProvider,
+  useThrottleStore,
+} from './throttle/contexts/ThrottleContexts';
+import { ThrottleHandlerRegistry } from './throttle/handlers/ThrottleHandlerRegistry';
 
 // ===== 메인 페이지 컴포넌트 =====
 export function ThrottleComparisonPageRefactored() {
@@ -190,18 +27,20 @@ export function ThrottleComparisonPageRefactored() {
         {/* 1. Architecture Section */}
         <ArchitectureSection />
 
-        <ThrottleStoreProvider>
-          <ThrottleActionProvider>
-            {/* 2. Demo Section */}
-            <DemoSection />
+        <ThrottleActionProvider>
+          <ThrottleStoreProvider>
+            <ThrottleHandlerRegistry>
+              {/* 2. Demo Section */}
+              <DemoSection />
 
-            {/* 3. Status Section */}
-            <StatusSection />
+              {/* 3. Status Section */}
+              <StatusSection />
 
-            {/* 4. Code Section */}
-            <CodeSection />
-          </ThrottleActionProvider>
-        </ThrottleStoreProvider>
+              {/* 4. Code Section */}
+              <CodeSection />
+            </ThrottleHandlerRegistry>
+          </ThrottleStoreProvider>
+        </ThrottleActionProvider>
       </div>
     </div>
   );
@@ -357,9 +196,15 @@ function DemoSection() {
 
 // ===== Throttle Demo Interface =====
 function ThrottleDemoInterface() {
-  const dispatch = useActionDispatch();
+  const {
+    clearLogs,
+    inputEvent,
+    runPerformanceTest,
+    startAutoTest,
+    stopAutoTest,
+    updateConfig,
+  } = useThrottleActions();
   const [inputValue, setInputValue] = useState('');
-  const autoTestInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Store subscriptions
   const eventLogsStore = useThrottleStore('eventLogs');
@@ -373,303 +218,6 @@ function ThrottleDemoInterface() {
   const config = useStoreValue(configStore);
   const metrics = useStoreValue(metricsStore);
   const _performanceHistory = useStoreValue(performanceHistoryStore) || [];
-
-  // Action handlers
-  useActionHandler(
-    'processEvent',
-    useCallback(
-      async (payload) => {
-        const startTime = performance.now();
-
-        // Simulate processing work
-        const processingTime = Math.random() * 10 + 5;
-        await new Promise((resolve) => setTimeout(resolve, processingTime));
-
-        const endTime = performance.now();
-        const executionTime = endTime - startTime;
-
-        const eventLog: EventLog = {
-          id: `${payload.type}-${payload.timestamp}-${Math.random()}`,
-          type: payload.type,
-          timestamp: payload.timestamp,
-          value: payload.value,
-          delay: payload.delay,
-          executionTime,
-        };
-
-        // Update logs
-        const currentLogs = eventLogsStore.getValue();
-        eventLogsStore.setValue([eventLog, ...currentLogs].slice(0, 100));
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        const newEventCount =
-          (currentMetrics.eventCounts[payload.type] || 0) + 1;
-        const currentAvg = currentMetrics.avgResponseTimes[payload.type] || 0;
-        const newAvg =
-          (currentAvg * (newEventCount - 1) + executionTime) / newEventCount;
-
-        metricsStore.setValue({
-          ...currentMetrics,
-          eventCounts: {
-            ...currentMetrics.eventCounts,
-            [payload.type]: newEventCount,
-          },
-          avgResponseTimes: {
-            ...currentMetrics.avgResponseTimes,
-            [payload.type]: newAvg,
-          },
-          totalExecutions: {
-            ...currentMetrics.totalExecutions,
-            [payload.type]:
-              (currentMetrics.totalExecutions[payload.type] || 0) + 1,
-          },
-          efficiency: {
-            ...currentMetrics.efficiency,
-            [payload.type]: newEventCount > 0 ? 1000 / newAvg : 0,
-          },
-          cpuLoad: {
-            ...currentMetrics.cpuLoad,
-            [payload.type]: Math.min(100, executionTime / 2),
-          },
-        });
-      },
-      [eventLogsStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'clearLogs',
-    useCallback(async () => {
-      eventLogsStore.setValue([]);
-      metricsStore.setValue({
-        eventCounts: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-        avgResponseTimes: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-        totalExecutions: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-        efficiency: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-        memoryUsage: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-        cpuLoad: {
-          normal: 0,
-          throttle: 0,
-          debounce: 0,
-          leading: 0,
-          trailing: 0,
-        },
-      });
-      performanceHistoryStore.setValue([]);
-    }, [eventLogsStore, metricsStore, performanceHistoryStore])
-  );
-
-  useActionHandler(
-    'updateConfig',
-    useCallback(
-      async (payload) => {
-        configStore.setValue(payload);
-      },
-      [configStore]
-    )
-  );
-
-  useActionHandler(
-    'runPerformanceTest',
-    useCallback(
-      async (payload) => {
-        const { type, iterations, interval } = payload;
-        const startTime = performance.now();
-
-        let processedEvents = 0;
-
-        for (let i = 0; i < iterations; i++) {
-          dispatch('processEvent', {
-            type,
-            value: `Test Event ${i}`,
-            timestamp: Date.now(),
-            delay: interval,
-          });
-
-          processedEvents++;
-
-          if (interval > 0) {
-            await new Promise((resolve) => setTimeout(resolve, interval));
-          }
-        }
-
-        const endTime = performance.now();
-        const totalDuration = endTime - startTime;
-        const efficiency = (processedEvents / totalDuration) * 1000; // events per second
-
-        const currentHistory = performanceHistoryStore.getValue();
-        performanceHistoryStore.setValue(
-          [
-            {
-              timestamp: Date.now(),
-              type,
-              duration: totalDuration,
-              operations: processedEvents,
-              efficiency,
-            },
-            ...currentHistory,
-          ].slice(0, 20)
-        );
-      },
-      [dispatch, performanceHistoryStore]
-    )
-  );
-
-  useActionHandler(
-    'startAutoTest',
-    useCallback(
-      async (payload) => {
-        isAutoTestingStore.setValue(true);
-
-        let eventCount = 0;
-        autoTestInterval.current = setInterval(() => {
-          const value = `Auto Event ${eventCount++}`;
-
-          // Process all types simultaneously
-          ['normal', 'throttle', 'debounce', 'leading', 'trailing'].forEach(
-            (type) => {
-              handleEventByType(type as any, value);
-            }
-          );
-
-          if (eventCount >= payload.duration) {
-            dispatch('stopAutoTest');
-          }
-        }, payload.frequency);
-      },
-      [dispatch, isAutoTestingStore]
-    )
-  );
-
-  useActionHandler(
-    'stopAutoTest',
-    useCallback(async () => {
-      isAutoTestingStore.setValue(false);
-      if (autoTestInterval.current) {
-        clearInterval(autoTestInterval.current);
-      }
-    }, [isAutoTestingStore])
-  );
-
-  // Event processing functions
-  const handleEventByType = useCallback(
-    (type: string, value: string) => {
-      const timestamp = Date.now();
-
-      switch (type) {
-        case 'normal':
-          dispatch('processEvent', { type: 'normal', value, timestamp });
-          break;
-        case 'throttle':
-          throttledHandler(value);
-          break;
-        case 'debounce':
-          debouncedHandler(value);
-          break;
-        case 'leading':
-          leadingHandler(value);
-          break;
-        case 'trailing':
-          trailingHandler(value);
-          break;
-      }
-    },
-    [dispatch]
-  );
-
-  // Throttled handlers
-  const throttledHandler = useThrottle(
-    useCallback(
-      (value: string) => {
-        dispatch('processEvent', {
-          type: 'throttle',
-          value,
-          timestamp: Date.now(),
-          delay: config?.throttleDelay || 300,
-        });
-      },
-      [dispatch, config?.throttleDelay]
-    ),
-    config?.throttleDelay || 300
-  );
-
-  const debouncedHandler = useDebounce(
-    useCallback(
-      (value: string) => {
-        dispatch('processEvent', {
-          type: 'debounce',
-          value,
-          timestamp: Date.now(),
-          delay: config?.debounceDelay || 500,
-        });
-      },
-      [dispatch, config?.debounceDelay]
-    ),
-    config?.debounceDelay || 500
-  );
-
-  const leadingHandler = useThrottle(
-    useCallback(
-      (value: string) => {
-        dispatch('processEvent', {
-          type: 'leading',
-          value,
-          timestamp: Date.now(),
-          delay: config?.leadingDelay || 250,
-        });
-      },
-      [dispatch, config?.leadingDelay]
-    ),
-    config?.leadingDelay || 250,
-    { leading: true, trailing: false }
-  );
-
-  const trailingHandler = useThrottle(
-    useCallback(
-      (value: string) => {
-        dispatch('processEvent', {
-          type: 'trailing',
-          value,
-          timestamp: Date.now(),
-          delay: config?.trailingDelay || 400,
-        });
-      },
-      [dispatch, config?.trailingDelay]
-    ),
-    config?.trailingDelay || 400,
-    { leading: false, trailing: true }
-  );
 
   return (
     <div className="space-y-8">
@@ -703,7 +251,7 @@ function ThrottleDemoInterface() {
                   step="50"
                   value={config?.[key as keyof typeof config] || 0}
                   onChange={(e) =>
-                    dispatch('updateConfig', {
+                    updateConfig({
                       ...config,
                       [key]: parseInt(e.target.value),
                     })
@@ -731,12 +279,7 @@ function ThrottleDemoInterface() {
               const value = e.target.value;
               setInputValue(value);
 
-              // Process with all strategies simultaneously
-              ['normal', 'throttle', 'debounce', 'leading', 'trailing'].forEach(
-                (type) => {
-                  handleEventByType(type, value);
-                }
-              );
+              inputEvent(value);
             }}
             placeholder="타이핑하면서 5가지 방식의 이벤트 처리를 실시간으로 비교해보세요..."
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -757,9 +300,7 @@ function ThrottleDemoInterface() {
           </h3>
           <div className="space-y-3">
             <button
-              onClick={() =>
-                dispatch('startAutoTest', { duration: 20, frequency: 100 })
-              }
+              onClick={() => startAutoTest(20, 100)}
               disabled={isAutoTesting}
               className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
@@ -772,13 +313,7 @@ function ThrottleDemoInterface() {
             </button>
 
             <button
-              onClick={() =>
-                dispatch('runPerformanceTest', {
-                  type: 'normal',
-                  iterations: 50,
-                  interval: 20,
-                })
-              }
+              onClick={() => runPerformanceTest('normal', 50, 20)}
               className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
             >
               <span className="w-4 h-4" />
@@ -793,7 +328,7 @@ function ThrottleDemoInterface() {
           </h3>
           <div className="space-y-3">
             <button
-              onClick={() => dispatch('clearLogs')}
+              onClick={clearLogs}
               className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
             >
               <span className="w-4 h-4" />
@@ -802,7 +337,7 @@ function ThrottleDemoInterface() {
 
             {isAutoTesting && (
               <button
-                onClick={() => dispatch('stopAutoTest')}
+                onClick={stopAutoTest}
                 className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
               >
                 <span className="w-4 h-4" />
@@ -846,23 +381,28 @@ function ThrottleDemoInterface() {
             color: 'orange',
             icon: () => <span>🟠</span>,
           },
-        ].map(({ key, label, color, icon: Icon }) => (
-          <div key={key} className={`bg-${color}-50 p-4 rounded-lg`}>
-            <div className="flex items-center justify-between mb-2">
-              <Icon />
-              <span className="text-xs text-gray-600">
-                {config?.[`${key}Delay` as keyof typeof config] || 0}ms
-              </span>
+        ].map(({ key, label, color, icon: Icon }) => {
+          const strategyKey = key as ThrottleEventType;
+
+          return (
+            <div key={key} className={`bg-${color}-50 p-4 rounded-lg`}>
+              <div className="flex items-center justify-between mb-2">
+                <Icon />
+                <span className="text-xs text-gray-600">
+                  {config?.[`${key}Delay` as keyof typeof config] || 0}ms
+                </span>
+              </div>
+              <div className={`text-2xl font-bold text-${color}-600`}>
+                {metrics?.eventCounts[strategyKey] || 0}
+              </div>
+              <div className={`text-sm text-${color}-800`}>{label}</div>
+              <div className="text-xs text-gray-500 mt-1">
+                평균: {Math.round(metrics?.avgResponseTimes[strategyKey] || 0)}
+                ms
+              </div>
             </div>
-            <div className={`text-2xl font-bold text-${color}-600`}>
-              {metrics?.eventCounts[key] || 0}
-            </div>
-            <div className={`text-sm text-${color}-800`}>{label}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              평균: {Math.round(metrics?.avgResponseTimes[key] || 0)}ms
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Event Logs */}
@@ -1178,24 +718,17 @@ function CodeSection() {
               🏪 Store Context
             </h3>
             <CodeBlock size="sm">
-              {`const { Provider, useStore } = createStoreContext('AdvancedThrottle', {
-  eventLogs: [] as EventLog[],
-  isAutoTesting: false,
-  config: {
-    throttleDelay: 300,
-    debounceDelay: 500,
-    leadingDelay: 250,
-    trailingDelay: 400
-  },
-  metrics: {
-    eventCounts: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    avgResponseTimes: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    totalExecutions: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    efficiency: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    memoryUsage: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 },
-    cpuLoad: { normal: 0, throttle: 0, debounce: 0, leading: 0, trailing: 0 }
-  } as PerformanceMetrics
-});`}
+              {`const { Provider: ThrottleActionProvider } =
+  createActionContext<ThrottleActions>('AdvancedThrottle');
+
+const { Provider: ThrottleStoreProvider, useStore } =
+  createStoreContext<ThrottleStores>('AdvancedThrottle', {
+    eventLogs: { initialValue: [], strategy: 'reference' },
+    isAutoTesting: { initialValue: false },
+    config: { initialValue: createInitialThrottleConfig() },
+    metrics: { initialValue: createInitialPerformanceMetrics() },
+    performanceHistory: { initialValue: [], strategy: 'reference' }
+  });`}
             </CodeBlock>
           </div>
 
@@ -1204,36 +737,29 @@ function CodeSection() {
               ⏱️ Throttle Implementation
             </h3>
             <CodeBlock size="sm">
-              {`function useThrottle<T extends (...args: any[]) => void>(
-  func: T, 
-  delay: number, 
-  options?: { leading?: boolean; trailing?: boolean }
-): T {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastExecutedRef = useRef<number>(0);
-  const argsRef = useRef<Parameters<T> | null>(null);
-  const { leading = true, trailing = true } = options || {};
+              {`function scheduleTimedEvent(type, value, delay, options) {
+  const scheduler = schedulerRef.current[type];
+  const now = Date.now();
+  scheduler.latestValue = value;
 
-  return useCallback(((...args: Parameters<T>) => {
-    const now = Date.now();
-    argsRef.current = args;
-    
-    if (leading && now - lastExecutedRef.current >= delay) {
-      func(...args);
-      lastExecutedRef.current = now;
-    } else if (trailing) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      timeoutRef.current = setTimeout(() => {
-        if (argsRef.current) {
-          func(...argsRef.current);
-          lastExecutedRef.current = Date.now();
-        }
-      }, delay - (now - lastExecutedRef.current));
-    }
-  }) as T, [func, delay, leading, trailing]);
+  if (options.leading && now - scheduler.lastExecuted >= delay) {
+    dispatch('processEvent', { type, value, timestamp: now, delay });
+    scheduler.lastExecuted = now;
+    return;
+  }
+
+  if (!options.trailing) return;
+  if (scheduler.timeout) clearTimeout(scheduler.timeout);
+
+  scheduler.timeout = setTimeout(() => {
+    dispatch('processEvent', {
+      type,
+      value: scheduler.latestValue,
+      timestamp: Date.now(),
+      delay
+    });
+    scheduler.lastExecuted = Date.now();
+  }, options.leading ? delay - (now - scheduler.lastExecuted) : delay);
 }`}
             </CodeBlock>
           </div>
@@ -1245,35 +771,14 @@ function CodeSection() {
               🎯 Debounce Implementation
             </h3>
             <CodeBlock size="sm">
-              {`function useDebounce<T extends (...args: any[]) => void>(
-  func: T, 
-  delay: number
-): T {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  return useCallback(((...args: Parameters<T>) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    timeoutRef.current = setTimeout(() => {
-      func(...args);
-    }, delay);
-  }) as T, [func, delay]);
-}
+              {`useThrottleActionHandler('inputEvent', useCallback(async ({ value }) => {
+  const { debounceDelay } = configStore.getValue();
 
-// Usage in Action Handler
-const debouncedHandler = useDebounce(
-  useCallback((value: string) => {
-    dispatch('processEvent', { 
-      type: 'debounce', 
-      value, 
-      timestamp: Date.now(),
-      delay: config?.debounceDelay || 500
-    });
-  }, [dispatch, config?.debounceDelay]),
-  config?.debounceDelay || 500
-);`}
+  scheduleTimedEvent('debounce', value, debounceDelay, {
+    leading: false,
+    trailing: true
+  });
+}, [configStore, scheduleTimedEvent]));`}
             </CodeBlock>
           </div>
 
@@ -1282,7 +787,7 @@ const debouncedHandler = useDebounce(
               📊 Performance Tracking
             </h3>
             <CodeBlock size="sm">
-              {`useActionHandler('processEvent', useCallback(async (payload) => {
+              {`useThrottleActionHandler('processEvent', useCallback(async (payload) => {
   const startTime = performance.now();
   
   // Simulate processing work
@@ -1292,27 +797,9 @@ const debouncedHandler = useDebounce(
   const endTime = performance.now();
   const executionTime = endTime - startTime;
   
-  // Update metrics
-  const currentMetrics = metricsStore.getValue();
-  const newEventCount = currentMetrics.eventCounts[payload.type] + 1;
-  const currentAvg = currentMetrics.avgResponseTimes[payload.type] || 0;
-  const newAvg = ((currentAvg * (newEventCount - 1)) + executionTime) / newEventCount;
-  
-  metricsStore.setValue({
-    ...currentMetrics,
-    eventCounts: {
-      ...currentMetrics.eventCounts,
-      [payload.type]: newEventCount
-    },
-    avgResponseTimes: {
-      ...currentMetrics.avgResponseTimes,
-      [payload.type]: newAvg
-    },
-    efficiency: {
-      ...currentMetrics.efficiency,
-      [payload.type]: newEventCount > 0 ? (1000 / newAvg) : 0
-    }
-  });
+  metricsStore.setValue(
+    recordProcessedEvent(metricsStore.getValue(), payload.type, executionTime)
+  );
 }, [metricsStore]));`}
             </CodeBlock>
           </div>

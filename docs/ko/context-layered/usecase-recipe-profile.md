@@ -307,6 +307,34 @@ Scroll recipe는 다음 경계를 적용합니다.
 Ref 경계에 두며, page-loading 전이는 local component state가 아니라
 Store에서 관찰 가능하게 유지합니다.
 
+## Timing strategy comparison usecase
+
+normal, throttle, debounce, leading-edge, trailing-edge 입력 전략을 같은
+processing·metric pipeline에서 비교해야 할 때 throttle comparison usecase를
+사용합니다.
+
+```text
+input event → strategy scheduler → processEvent → event log + metrics Store
+             → benchmark / auto-test command
+```
+
+Throttle recipe는 다음 경계를 적용합니다.
+
+- `business/throttle-rules.ts`가 metric 전이, 제한된 event history, 기본
+  configuration, benchmark history를 순수 함수로 소유합니다.
+- `actions/useThrottleActions.ts`가 `inputEvent`, configuration, test command를
+  제공하며 View는 scheduler를 선택하거나 `processEvent`를 직접 dispatch하지
+  않습니다.
+- `handlers/ThrottleHandlerRegistry.tsx`가 다섯 timing scheduler, timeout
+  cleanup, 가상 processing, benchmark loop, auto-test timer를 소유합니다.
+- `inputEvent`가 의미 기반 경계이며 다섯 scheduler로 fan-out합니다. 결과와
+  metric 반영은 `processEvent` 하나의 경계를 사용합니다.
+
+interaction policy 비교나 timing configuration 검증에 이 recipe를 사용합니다.
+scheduler state는 Registry가 소유한 ref에 두고 unmount 때 모든 timer를
+정리하며, 모든 전략을 같은 result transition에 연결해 비교 가능성을
+유지합니다.
+
 ## Astryx 연결 경계
 
 Recipe를 Astryx 연결 지점으로 사용합니다.
