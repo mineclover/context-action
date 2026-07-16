@@ -8,9 +8,9 @@
  */
 
 import { useState } from 'react';
+import { EnhancedContextStoreHandlerRegistry } from '../handlers/EnhancedContextStoreHandlerRegistry';
 import { useCanvasDirectControl } from '../hooks/useCanvasDirectControl';
 import { useMetricsOnly } from '../hooks/useMetricsOnly';
-import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { MouseEventsCanvas } from './MouseEventsCanvas';
 import { DetailedMetrics, MetricsGrid } from './MouseEventsMetrics';
 
@@ -22,12 +22,7 @@ import { DetailedMetrics, MetricsGrid } from './MouseEventsMetrics';
  * - ViewModel: Hooks (비즈니스 로직 + 상태 주입)
  * - View: 이 컴포넌트 (순수 렌더링)
  */
-export function EnhancedContextStoreView() {
-  // === ViewModel Layer - RefContext 중심 아키텍처 ===
-
-  // 비즈니스 로직 초기화 (Store 관리)
-  const { initialized } = useMouseEventsLogic();
-
+function EnhancedContextStoreViewContent() {
   // RefContext 기반 Canvas 직접 제어
   const canvasControl = useCanvasDirectControl();
 
@@ -37,17 +32,6 @@ export function EnhancedContextStoreView() {
   // === Local UI State (비즈니스 로직과 무관한 View 상태) ===
   const [showDetails, setShowDetails] = useState(false);
   const [animationSpeed, _setAnimationSpeed] = useState(1);
-
-  // Hook 초기화 대기
-  if (!initialized) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-lg text-purple-600">
-          Initializing MVVM architecture...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">
@@ -264,5 +248,13 @@ export function EnhancedContextStoreView() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function EnhancedContextStoreView() {
+  return (
+    <EnhancedContextStoreHandlerRegistry>
+      <EnhancedContextStoreViewContent />
+    </EnhancedContextStoreHandlerRegistry>
   );
 }

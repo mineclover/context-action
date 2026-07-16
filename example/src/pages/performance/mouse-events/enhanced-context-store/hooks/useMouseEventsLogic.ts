@@ -14,7 +14,6 @@ import {
   type MouseClick,
   type MouseMovement,
   type MousePosition,
-  useMouseActionHandler,
   useMouseRef,
   useMouseRefMountState,
   useMouseStore,
@@ -24,7 +23,8 @@ import {
  * 마우스 이벤트 비즈니스 로직을 관리하는 Hook - 진짜 반응형 마운트 상태 기반
  *
  * 역할:
- * - 액션 핸들러 등록
+ * - 액션 핸들러 구현과 Store 오케스트레이션
+ * - Handler Registry에 주입할 semantic handler 반환
  * - Store 간 데이터 동기화
  * - 계산된 메트릭스 업데이트
  * - 성능 최적화
@@ -303,12 +303,6 @@ export function useMouseEventsLogic() {
     }
   }, [isContainerMounted, containerElement]);
 
-  useMouseActionHandler('updatePosition', handleUpdatePosition);
-  useMouseActionHandler('recordClick', handleRecordClick);
-  useMouseActionHandler('enterArea', handleEnterArea);
-  useMouseActionHandler('leaveArea', handleLeaveArea);
-  useMouseActionHandler('reset', handleReset);
-
   // === 주기적 메트릭스 업데이트 제거 ===
   // 메트릭스는 사용자 액션 시에만 업데이트 (updatePosition 핸들러에서 처리)
 
@@ -320,5 +314,12 @@ export function useMouseEventsLogic() {
     containerElement: containerElement,
     // 추가 반응형 정보
     reactiveState: containerMountState,
+    handlers: {
+      updatePosition: handleUpdatePosition,
+      recordClick: handleRecordClick,
+      enterArea: handleEnterArea,
+      leaveArea: handleLeaveArea,
+      reset: handleReset,
+    },
   };
 }

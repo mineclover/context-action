@@ -198,6 +198,34 @@ access-request.submit.audit
 | 20 | View 동기화 | 보통 아니오 |
 | 10 | Audit 및 telemetry | 아니오 |
 
+## 고빈도 포인터 추적 usecase
+
+고빈도 입력과 파생 metric, 직접 DOM 피드백을 함께 다뤄야 할 때 mouse
+tracking usecase를 사용합니다. 이벤트 경계는 의미 기반으로 유지하고 update
+빈도에 따라 데이터를 분리합니다.
+
+```text
+pointer event → updatePosition / recordClick → Handler Registry
+              → position + movement + activity Store → metric subscription
+```
+
+enhanced context-store mouse recipe는 다음 경계를 보여줍니다.
+
+- `contexts/`가 Store, Action, Ref 계약을 소유합니다.
+- ViewModel hook은 Store 접근이 주입된 handler 구현을 반환하지만 action을
+  직접 등록하지 않습니다.
+- `handlers/EnhancedContextStoreHandlerRegistry.tsx`가 5개 mouse action의
+  유일한 등록 지점입니다.
+- 고빈도 position·movement 데이터와 파생 metric·performance counter를 별도
+  store로 분리합니다.
+- View는 렌더링할 metric만 구독하고 DOM/canvas 제어는 Ref-aware control hook에
+  맡깁니다.
+
+큰 page-level render tree 전체를 매 pointer event마다 갱신하지 않으면서 관찰
+  가능한 state가 필요할 때 이 recipe를 사용합니다. action payload는 작게
+  유지하고 path/history 보관량을 제한하며, 파생 metric 중 즉시 갱신하는 값과
+  throttle하는 값을 문서화합니다.
+
 ## Astryx 연결 경계
 
 Recipe를 Astryx 연결 지점으로 사용합니다.

@@ -211,6 +211,34 @@ Suggested priority bands:
 | 20 | View synchronization | normally no |
 | 10 | Audit and telemetry | no |
 
+## High-frequency pointer tracking usecase
+
+Mouse tracking is a useful usecase when high-frequency input, derived metrics,
+and direct DOM feedback must coexist. Keep the event boundary semantic and split
+the data by update frequency:
+
+```text
+pointer event → updatePosition / recordClick → Handler Registry
+              → position + movement + activity Stores → metric subscriptions
+```
+
+The enhanced context-store mouse recipe demonstrates this boundary:
+
+- `contexts/` owns Store, Action, and Ref contracts.
+- the ViewModel hook computes handler implementations and injects Store access;
+  it does not register actions itself.
+- `handlers/EnhancedContextStoreHandlerRegistry.tsx` is the only registration
+  point for the five mouse actions.
+- high-frequency position and movement data stay in separate stores from
+  derived metrics and performance counters.
+- the View subscribes to the metrics it renders and leaves DOM/canvas control to
+  the Ref-aware control hooks.
+
+Use this recipe when the feature needs observable state without forcing every
+pointer event through a large page-level render tree. Keep the action payload
+small, cap retained paths/history, and document which derived metrics are
+updated eagerly versus throttled.
+
 ## Design-system boundary
 
 The recipe is the integration point for Astryx-like conventions:

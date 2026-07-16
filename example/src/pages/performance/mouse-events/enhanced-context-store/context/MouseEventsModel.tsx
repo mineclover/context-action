@@ -168,11 +168,11 @@ export function MouseEventsModelProvider({
   children: React.ReactNode;
 }) {
   return (
-    <MouseStoreProvider>
-      <MouseActionProvider>
+    <MouseActionProvider>
+      <MouseStoreProvider>
         <MouseRefProvider>{children}</MouseRefProvider>
-      </MouseActionProvider>
-    </MouseStoreProvider>
+      </MouseStoreProvider>
+    </MouseActionProvider>
   );
 }
 
