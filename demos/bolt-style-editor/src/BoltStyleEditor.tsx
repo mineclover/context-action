@@ -30,6 +30,7 @@ import { resolveToolApproval, toolApprovalStore } from './tool-approval';
 import { ToolHandlers } from './tool-handlers';
 import { formatToolSuccessMessage } from './tool-result-utils';
 import { clearToolTrace, toolTraceStore } from './tool-trace';
+import { AgentChatPanel } from './views/agent-chat-panel';
 import {
   CodeEditor,
   type WorkspaceSearchFocusRequest,
@@ -2283,228 +2284,29 @@ function EditorWorkbench({
             )}
           </section>
 
-          <section className="chat-panel">
-            <div className="chat-heading">
-              <div>
-                <span className="panel-label">Agent</span>
-                <strong>What should we change?</strong>
-              </div>
-              <span className="agent-badge">
-                {openRouterSettings.apiKey
-                  ? 'OPENROUTER / TOOL CALLING'
-                  : 'LOCAL / TOOL CALLING'}
-              </span>
-            </div>
-            {pendingApprovals.length ? (
-              <section
-                aria-label="Pending tool approvals"
-                aria-live="assertive"
-                className="approval-panel"
-                role="region"
-              >
-                <div className="approval-heading">
-                  <span className="approval-dot" />
-                  <strong>Approval required</strong>
-                  <span>{pendingApprovals.length}</span>
-                </div>
-                {pendingApprovals.map((approval) => (
-                  <div className="approval-request" key={approval.id}>
-                    <strong>{approval.name}</strong>
-                    <p>{approval.description}</p>
-                    <small>
-                      {approval.argumentKeys.length
-                        ? `arguments · ${approval.argumentKeys.join(', ')}`
-                        : 'no arguments'}{' '}
-                      · {approval.source}
-                      {approval.sessionId
-                        ? ` · session ${formatTraceId(approval.sessionId)}`
-                        : ''}
-                    </small>
-                    {approval.safeArgumentPreview ? (
-                      <code className="approval-argument-preview">
-                        {approval.safeArgumentPreview}
-                      </code>
-                    ) : null}
-                    <div className="approval-actions">
-                      <button
-                        aria-label={`Deny ${approval.name}`}
-                        className="approval-deny"
-                        onClick={() => resolveToolApproval(approval.id, 'deny')}
-                        type="button"
-                      >
-                        Deny
-                      </button>
-                      <button
-                        aria-label={`Approve ${approval.name}`}
-                        className="approval-allow"
-                        ref={
-                          approval.id === pendingApprovals[0]?.id
-                            ? firstApprovalButtonRef
-                            : undefined
-                        }
-                        onClick={() =>
-                          resolveToolApproval(approval.id, 'allow')
-                        }
-                        type="button"
-                      >
-                        Approve
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </section>
-            ) : null}
-            <div
-              aria-label="Agent conversation"
-              aria-live="polite"
-              className="message-list"
-              ref={messageListRef}
-              role="log"
-            >
-              {messages.map((message, index) => (
-                <div
-                  className={`message message-${message.role}${message.tone ? ` message-${message.tone}` : ''}`}
-                  key={`${message.role}-${index}`}
-                >
-                  <span className="message-avatar">
-                    {message.role === 'assistant' ? '✦' : 'You'}
-                  </span>
-                  <div>
-                    <p>{message.text}</p>
-                    {message.tools?.length ? (
-                      <div className="message-tools">
-                        {message.tools.map((tool, toolIndex) => (
-                          <span key={`${tool}-${toolIndex}`}>{tool}</span>
-                        ))}
-                      </div>
-                    ) : null}
-                    {!running && (message.retryPrompt || message.retryTool) ? (
-                      <button
-                        className="message-retry"
-                        onClick={() => {
-                          if (message.retryPrompt) {
-                            void executePrompt(message.retryPrompt);
-                          } else if (message.retryTool) {
-                            void executeQuickTool(message.retryTool);
-                          }
-                        }}
-                        type="button"
-                      >
-                        {message.retryLabel ?? 'Retry'}
-                      </button>
-                    ) : null}
-                    {!running && message.folderAction === 'reconnect' ? (
-                      <button
-                        className="message-reconnect"
-                        onClick={() => void handleOpenFolder()}
-                        type="button"
-                      >
-                        Reconnect folder
-                      </button>
-                    ) : null}
-                    {!running && message.folderAction === 'grant' ? (
-                      <button
-                        className="message-reconnect"
-                        onClick={() => void handleGrantFolderAccess()}
-                        type="button"
-                      >
-                        Grant folder access
-                      </button>
-                    ) : null}
-                    {!running && message.previewAction ? (
-                      <button
-                        className="message-reconnect"
-                        onClick={refreshPreview}
-                        type="button"
-                      >
-                        Refresh preview
-                      </button>
-                    ) : null}
-                    {!running && message.openSettings ? (
-                      <button
-                        className="message-settings"
-                        onClick={() => setShowSettings(true)}
-                        type="button"
-                      >
-                        Open provider settings
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-              {running ? (
-                <div aria-live="polite" className="running-line" role="status">
-                  <span className="pulse-dot" /> {executionStatusLabel}…
-                  {pendingApprovals.length ? (
-                    <span className="running-hint">
-                      Choose Approve or Deny above
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-            <div className="composer-wrap">
-              <textarea
-                aria-label="Web studio prompt"
-                disabled={!isStorageReady}
-                onChange={(event) => setPrompt(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    void executePrompt(prompt);
-                  }
-                }}
-                placeholder="Ask the local agent to change the page…"
-                value={prompt}
-              />
-              <button
-                aria-keyshortcuts={running ? 'Escape' : undefined}
-                className={`send-button ${running ? 'send-button-cancel' : ''}`}
-                disabled={!isStorageReady}
-                onClick={() =>
-                  running ? cancelExecution() : void executePrompt(prompt)
-                }
-                title={
-                  running
-                    ? 'Cancel current agent execution (Escape)'
-                    : undefined
-                }
-                type="button"
-              >
-                {running ? 'Cancel' : 'Send'} <span>{running ? '×' : '↗'}</span>
-              </button>
-            </div>
-            <div className="prompt-recipes-heading">
-              Try a tool-chain recipe
-            </div>
-            <div
-              aria-label="Tool-chain prompt recipes"
-              className="prompt-chips"
-            >
-              {[
-                'Make it emerald',
-                'Add a feature card',
-                'Update the hero',
-                'Show workspace status',
-                'Create notes.md',
-                'Rename index.html to landing.html',
-                'Download current file',
-                'Save to folder',
-                'Reload folder',
-                'Disconnect folder',
-                'Reset demo workspace',
-              ].map((example) => (
-                <button
-                  disabled={!isStorageReady || running}
-                  key={example}
-                  onClick={() => setPrompt(example)}
-                  type="button"
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
-          </section>
+          <AgentChatPanel
+            agentMode={openRouterSettings.apiKey ? 'openrouter' : 'local'}
+            executionStatusLabel={executionStatusLabel}
+            firstApprovalButtonRef={firstApprovalButtonRef}
+            formatSessionId={formatTraceId}
+            isStorageReady={isStorageReady}
+            messageListRef={messageListRef}
+            messages={messages}
+            onCancel={cancelExecution}
+            onExecutePrompt={executePrompt}
+            onExecuteQuickTool={(call) => executeQuickTool(call)}
+            onGrantFolderAccess={() => void handleGrantFolderAccess()}
+            onOpenSettings={() => setShowSettings(true)}
+            onPromptChange={setPrompt}
+            onReconnectFolder={() => void handleOpenFolder()}
+            onRefreshPreview={refreshPreview}
+            onResolveApproval={(id, decision) =>
+              resolveToolApproval(id, decision)
+            }
+            pendingApprovals={pendingApprovals}
+            prompt={prompt}
+            running={running}
+          />
         </main>
 
         <aside className="preview-panel">
