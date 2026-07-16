@@ -4,241 +4,77 @@
  * Comprehensive demonstration of abort functionality and search patterns.
  */
 
-import { createActionContext } from '@context-action/react';
-import { useState } from 'react';
-import type { AppActions } from '../types/actions.js';
-
-// Create typed action context
-const {
-  Provider: ActionProvider,
-  useActionDispatch,
-  useActionDispatchWithResult,
-  useActionHandler,
-} = createActionContext<AppActions>({
-  name: 'EnhancedAbortableSearchExample',
-});
-
-interface SearchResult {
-  id: number;
-  title: string;
-  description: string;
-  url: string;
-  relevance: number;
-  timestamp: number;
-}
-
-interface SearchState {
-  query: string;
-  isSearching: boolean;
-  searchProgress: number;
-  results: SearchResult[];
-  searchHistory: string[];
-  error: string | null;
-  searchCount: number;
-  lastSearchTime: number | null;
-}
+import { useStoreValue } from '@context-action/react';
+import { useCallback } from 'react';
+import { useEnhancedAbortableSearchActions } from './enhanced-abortable-search/actions/useEnhancedAbortableSearchActions';
+import {
+  EnhancedAbortableSearchActionProvider,
+  EnhancedAbortableSearchStoreProvider,
+  useEnhancedAbortableSearchStore,
+} from './enhanced-abortable-search/contexts/EnhancedAbortableSearchContexts';
+import { EnhancedAbortableSearchHandlerRegistry } from './enhanced-abortable-search/handlers/EnhancedAbortableSearchHandlerRegistry';
 
 function EnhancedAbortableSearchExampleContent() {
-  const [searchState, setSearchState] = useState<SearchState>({
-    query: '',
-    isSearching: false,
-    searchProgress: 0,
-    results: [],
-    searchHistory: [],
-    error: null,
-    searchCount: 0,
-    lastSearchTime: null,
-  });
+  const searchState = useStoreValue(useEnhancedAbortableSearchStore('search'));
+  const {
+    updateQuery,
+    search,
+    processLargeDataSet,
+    clearResults: clearResultsAction,
+    clearHistory: clearHistoryAction,
+    selectFromHistory: selectFromHistoryAction,
+    markSearchAborted,
+    resetAbortScope,
+    abortAll,
+  } = useEnhancedAbortableSearchActions();
 
-  const dispatch = useActionDispatch();
-  const { resetAbortScope, abortAll } = useActionDispatchWithResult();
-
-  // Enhanced search handler with realistic simulation
-  useActionHandler('search', async ({ query }, controller): Promise<void> => {
-    try {
-      // Simulate search with simpler progress tracking
-      const totalSteps = 10;
-      for (let step = 1; step <= totalSteps; step++) {
-        if ((controller as any).signal?.aborted) {
-          throw new Error('Search was aborted');
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 125)); // 125ms * 10 = 1.25s total
-        const progress = Math.round((step / totalSteps) * 100);
-
-        // Update progress using a ref to avoid stale closure
-        setSearchState((prev) => ({ ...prev, searchProgress: progress }));
-      }
-
-      // Generate realistic search results
-      const mockResults: SearchResult[] = Array.from(
-        { length: Math.floor(Math.random() * 8) + 3 },
-        (_, i) => ({
-          id: Date.now() + i,
-          title: `${query} - Result ${i + 1}`,
-          description: `This is a detailed description for search result ${i + 1} related to "${query}". It contains relevant information and highlights the key points that match your search query.`,
-          url: `https://example.com/result-${i + 1}`,
-          relevance: Math.round((Math.random() * 40 + 60) * 10) / 10, // 60-100%
-          timestamp: Date.now() - Math.floor(Math.random() * 86400000), // Random within 24h
-        })
-      ).sort((a, b) => b.relevance - a.relevance);
-
-      // Update search state directly in handler
-      setSearchState((prev) => ({
-        ...prev,
-        isSearching: false,
-        results: mockResults,
-        searchHistory: prev.searchHistory.includes(query)
-          ? prev.searchHistory
-          : [query, ...prev.searchHistory.slice(0, 9)], // Keep last 10
-        searchCount: prev.searchCount + 1,
-        lastSearchTime: Date.now(),
-        searchProgress: 100,
-      }));
-
-      // Return void as expected by ActionHandler type
-    } catch (error) {
-      // Reset state on error
-      setSearchState((prev) => ({
-        ...prev,
-        isSearching: false,
-        error: error instanceof Error ? error.message : 'Search failed',
-        searchProgress: 0,
-      }));
-      throw error;
-    }
-  });
-
-  // Large dataset processing handler
-  useActionHandler(
-    'processLargeDataSet',
-    async ({ chunkSize }, controller): Promise<void> => {
-      const totalChunks = Math.ceil(1000 / (chunkSize || 50));
-
-      for (let i = 0; i < totalChunks; i++) {
-        if ((controller as any).signal?.aborted) {
-          throw new Error('Data processing was aborted');
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        setSearchState((prev) => ({
-          ...prev,
-          searchProgress: Math.round((i / totalChunks) * 100),
-        }));
-      }
-
-      // Return void as expected by ActionHandler type
-    }
-  );
-
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     const trimmedQuery = searchState.query.trim();
     if (!trimmedQuery) return;
 
     resetAbortScope();
 
-    setSearchState((prev) => ({
-      ...prev,
-      isSearching: true,
-      searchProgress: 0,
-      error: null,
-    }));
-
     try {
-      await dispatch('search', { query: trimmedQuery });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Search failed';
-      setSearchState((prev) => ({
-        ...prev,
-        isSearching: false,
-        error: errorMessage,
-        results: [],
-        searchProgress: 0,
-      }));
+      await search(trimmedQuery);
+    } catch {
+      // The Handler Registry owns the error state transition.
     }
-  };
+  }, [resetAbortScope, search, searchState.query]);
 
-  const handleAbortSearch = () => {
+  const handleAbortSearch = useCallback(() => {
     abortAll();
-    setSearchState((prev) => ({
-      ...prev,
-      isSearching: false,
-      error: 'Search aborted by user',
-      searchProgress: 0,
-    }));
-  };
+    markSearchAborted();
+  }, [abortAll, markSearchAborted]);
 
-  const handleProcessLargeDataSet = async () => {
+  const handleProcessLargeDataSet = useCallback(async () => {
     resetAbortScope();
 
-    setSearchState((prev) => ({
-      ...prev,
-      isSearching: true,
-      searchProgress: 0,
-      error: null,
-    }));
-
     try {
-      await dispatch('processLargeDataSet', {
-        dataSetId: 'dataset-1',
-        chunkSize: 50,
-      });
-
-      // Use default values since handler doesn't return data
-      const processedChunks = 20;
-      const totalRecords = 1000;
-
-      setSearchState((prev) => ({
-        ...prev,
-        isSearching: false,
-        searchProgress: 100,
-        results: [
-          {
-            id: Date.now(),
-            title: 'Large Dataset Processing Complete',
-            description: `Processed ${processedChunks} chunks with ${totalRecords} total records`,
-            url: '#',
-            relevance: 100,
-            timestamp: Date.now(),
-          },
-        ],
-      }));
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Processing failed';
-      setSearchState((prev) => ({
-        ...prev,
-        isSearching: false,
-        error: errorMessage,
-        searchProgress: 0,
-      }));
+      await processLargeDataSet('dataset-1', 50);
+    } catch {
+      // The Handler Registry owns the error state transition.
     }
-  };
+  }, [processLargeDataSet, resetAbortScope]);
 
-  const clearResults = () => {
-    setSearchState((prev) => ({
-      ...prev,
-      results: [],
-      error: null,
-      searchProgress: 0,
-    }));
-  };
+  const clearResults = useCallback(() => {
+    clearResultsAction();
+  }, [clearResultsAction]);
 
-  const clearHistory = () => {
-    setSearchState((prev) => ({
-      ...prev,
-      searchHistory: [],
-    }));
-  };
+  const clearHistory = useCallback(() => {
+    clearHistoryAction();
+  }, [clearHistoryAction]);
 
-  const selectFromHistory = (historicalQuery: string) => {
-    setSearchState((prev) => ({ ...prev, query: historicalQuery }));
-  };
+  const selectFromHistory = useCallback(
+    (historicalQuery: string) => {
+      selectFromHistoryAction(historicalQuery);
+    },
+    [selectFromHistoryAction]
+  );
 
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
-  };
+  const formatTimestamp = useCallback(
+    (timestamp: number) => new Date(timestamp).toLocaleString(),
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -274,9 +110,7 @@ function EnhancedAbortableSearchExampleContent() {
           <input
             type="text"
             value={searchState.query}
-            onChange={(e) =>
-              setSearchState((prev) => ({ ...prev, query: e.target.value }))
-            }
+            onChange={(e) => updateQuery(e.target.value)}
             onKeyPress={(e) =>
               e.key === 'Enter' && !searchState.isSearching && handleSearch()
             }
@@ -440,9 +274,13 @@ function EnhancedAbortableSearchExampleContent() {
 
 export function EnhancedAbortableSearchExample() {
   return (
-    <ActionProvider>
-      <EnhancedAbortableSearchExampleContent />
-    </ActionProvider>
+    <EnhancedAbortableSearchActionProvider>
+      <EnhancedAbortableSearchStoreProvider>
+        <EnhancedAbortableSearchHandlerRegistry>
+          <EnhancedAbortableSearchExampleContent />
+        </EnhancedAbortableSearchHandlerRegistry>
+      </EnhancedAbortableSearchStoreProvider>
+    </EnhancedAbortableSearchActionProvider>
   );
 }
 

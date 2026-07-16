@@ -57,7 +57,7 @@ The repository uses Biome `2.5.3`, which is the current npm `latest` as of 2026-
 
 Biome remains responsible for language-level concerns: parsing, formatting, import organization, and generic lint rules. Context-Layered rules are enforced by the repository-specific `pnpm convention:check` command in `scripts/check-context-layered-conventions.mjs`. This split is intentional: a Biome GritQL plugin can match a local syntax pattern, but registry placement, transitional exceptions, and Provider ordering are repository structure rules that need file-aware analysis and an explicit migration inventory.
 
-The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The current transitional allowlist records 17 known legacy/advanced files; they are reported but do not fail the check. Any new direct registration outside that allowlist fails immediately. The allowlist is reduced as each remaining surface is migrated.
+The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The current transitional allowlist records 14 known legacy/advanced files; they are reported but do not fail the check. Any new direct registration outside that allowlist fails immediately. The allowlist is reduced as each remaining surface is migrated.
 
 The next enforcement steps are to add Provider-order and layer-path checks, then remove the transitional allowlist when the inventory reaches zero (or every remaining file has an explicit compatibility classification). `convention:check` is already part of `verify:all`, so CI catches new direct registrations today.
 
@@ -86,6 +86,7 @@ The following classification is the baseline for migration.
 - The action-priority demo now keeps the ordered authentication pipeline in `handlers/ActionPriorityDemoHandlerRegistry.tsx`, stores execution results in a Store Context, and exposes only semantic commands from `actions/useActionPriorityDemoActions.ts`.
 - The legacy mouse-events demo now keeps event-derived state in a Store Context and registers its five event handlers in `handlers/LegacyMouseEventsHandlerRegistry.tsx`; the page only dispatches semantic mouse commands.
 - The ActionGuard context-store mouse demo now uses a typed Store Context for position, clicks, path, and recording modes; its seven state handlers live in `handlers/ActionGuardMouseEventsHandlerRegistry.tsx`.
+- `EnhancedAbortableSearch` now separates its Search Store/Action Contexts, pure search-state rules, semantic action facade, and abort-aware `handlers/EnhancedAbortableSearchHandlerRegistry.tsx`; the compatibility component is now a reactive view only.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -101,7 +102,7 @@ The following classification is the baseline for migration.
 ## Migration Sequence
 
 1. Add this decision to the English and Korean convention indexes.
-2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, the legacy mouse-events demo, and the ActionGuard context-store mouse demo are complete. The current inventory has 15 remaining files in foundations compatibility and performance surfaces.
+2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, the legacy mouse-events demo, the ActionGuard context-store mouse demo, and Enhanced Abortable Search are complete. The current inventory has 14 remaining files in foundations compatibility and performance surfaces.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
 5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
@@ -109,11 +110,11 @@ The following classification is the baseline for migration.
 
 ## Remaining Direct-Registration Inventory
 
-This inventory is intentionally separated from the canonical playbook examples. The current search finds 15 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
+This inventory is intentionally separated from the canonical playbook examples. The current search finds 14 files. Each group needs either a Registry migration or an explicit compatibility wrapper before the structural check can be strict.
 
 | Group | Remaining surfaces |
 | --- | --- |
-| Foundations and compatibility | `components/EnhancedAbortableSearchExample.tsx`, `lib/patterns/createObjectContextHooks.tsx` |
+| Foundations and compatibility | `lib/patterns/createObjectContextHooks.tsx` |
 | Pattern demonstrations | No remaining direct registrations |
 | Integrations | No remaining direct registrations |
 | Performance demonstrations | `performance/action-guard/{ApiBlockingPageRefactored,ScrollPage,ScrollPageRefactored,SearchPage,SearchPageRefactored,ThrottleComparisonPage,ThrottleComparisonPageRefactored}.tsx`, `performance/action-guard/components/index.tsx`, `performance/memoization/components/HandlerComparisonDemo.tsx`, `performance/memoization/hooks/{useMemoizedHandlers,useNonMemoizedHandlers}.ts`, `performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx`, `performance/mouse-events/enhanced-context-store/hooks/useMouseEventsLogic.ts` |
@@ -127,4 +128,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The next re-entry point is the remaining performance groups. Do not mark the migration complete until the 15-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
+The next re-entry point is the remaining performance groups. Do not mark the migration complete until the 14-file inventory reaches zero or each remaining file is explicitly classified as a compatibility exception.
