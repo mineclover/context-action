@@ -1,8 +1,6 @@
 [
   "src/components/EnhancedAbortableSearchExample.tsx",
   "src/lib/patterns/createObjectContextHooks.tsx",
-  "src/pages/integrations/advanced/ConcurrentActionsPage.tsx",
-  "src/pages/integrations/advanced/canvas/CanvasContext.tsx",
   "src/pages/patterns/refs/UseRefMountStateTestPage.tsx",
   "src/pages/performance/action-guard/ApiBlockingPageRefactored.tsx",
   "src/pages/performance/action-guard/ScrollPage.tsx",
