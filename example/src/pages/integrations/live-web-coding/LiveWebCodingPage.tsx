@@ -26,10 +26,12 @@ import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveWebCodingToolsSchema } from '../../../lib/live-web-coding-tools-schema';
 import {
   clearLiveWebCodingTrace,
+  finishLiveWebCodingAgentTrace,
   formatLiveWebCodingTraceId,
   liveWebCodingTraceStore,
   recordLiveWebCodingToolCall,
   recordLiveWebCodingToolList,
+  startLiveWebCodingAgentTrace,
 } from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
@@ -503,7 +505,7 @@ async function runLocalPrompt(
   prompt: string,
   signal?: AbortSignal,
   sessionId?: string
-): Promise<{ toolNames: string[]; response: string }> {
+): Promise<{ toolNames: string[]; response: string; failed: boolean }> {
   const listedTools = registry.listTools(toToolListRequest());
   recordLiveWebCodingToolList(listedTools.tools.length, 'local', sessionId);
   const executeLocalModelCall = (
@@ -578,16 +580,21 @@ async function runLocalPrompt(
   const toolNames: string[] = [];
   let plannedRevision: number | undefined;
   const workspaceResult = await executeLocalModelCall('web.getWorkspace', {});
-  if (!workspaceResult.isError) {
-    const workspace = workspaceResult.structuredContent;
-    if (
-      workspace &&
-      typeof workspace === 'object' &&
-      !Array.isArray(workspace) &&
-      typeof (workspace as { revision?: unknown }).revision === 'number'
-    ) {
-      plannedRevision = (workspace as { revision: number }).revision;
-    }
+  if (workspaceResult.isError) {
+    return {
+      toolNames: ['web.getWorkspace'],
+      response: callToolResultText(workspaceResult),
+      failed: true,
+    };
+  }
+  const workspace = workspaceResult.structuredContent;
+  if (
+    workspace &&
+    typeof workspace === 'object' &&
+    !Array.isArray(workspace) &&
+    typeof (workspace as { revision?: unknown }).revision === 'number'
+  ) {
+    plannedRevision = (workspace as { revision: number }).revision;
   }
   for (const call of calls) {
     if (signal?.aborted) throw new Error('Execution cancelled.');
@@ -601,7 +608,7 @@ async function runLocalPrompt(
     if (signal?.aborted) throw new Error('Execution cancelled.');
     toolNames.push(call.name);
     if (result.isError) {
-      return { toolNames, response: callToolResultText(result) };
+      return { toolNames, response: callToolResultText(result), failed: true };
     }
     if (revisionGuardedWebTools.has(call.name)) {
       const nextWorkspace = await executeLocalModelCall('web.getWorkspace', {});
@@ -620,6 +627,7 @@ async function runLocalPrompt(
   return {
     toolNames,
     response: `로컬 demo agent가 ${toolNames.join(', ')}를 호출하고 preview 동기화를 기다렸습니다.`,
+    failed: false,
   };
 }
 
@@ -785,6 +793,10 @@ function LiveWebCodingWorkbench({
     if (!nextPrompt || loading) return;
     const controller = beginExecution();
     const sessionId = createToolCallSessionId();
+    const agentSource = runner && selectedModel ? 'model' : 'local';
+    const agentTrace = startLiveWebCodingAgentTrace(agentSource, sessionId);
+    let agentSummary = '';
+    let agentStatus: 'completed' | 'failed' = 'completed';
     setLoading(true);
     setError('');
     setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
@@ -821,6 +833,9 @@ function LiveWebCodingWorkbench({
           },
         ]);
         setModelMessages([...requestMessages, ...response.responseMessages]);
+        agentSummary =
+          response.text ||
+          `AI tool loop completed ${response.toolCallCount} call(s).`;
       } else {
         const local = await runLocalPrompt(
           registry,
@@ -832,13 +847,25 @@ function LiveWebCodingWorkbench({
           ...current,
           { role: 'assistant', text: local.response, tools: local.toolNames },
         ]);
+        agentSummary = local.response;
+        agentStatus = local.failed ? 'failed' : 'completed';
       }
       if (controller.signal.aborted) {
         throw new Error('Execution cancelled.');
       }
-      setPrompt('');
+      finishLiveWebCodingAgentTrace(
+        agentTrace,
+        agentStatus,
+        agentSummary || 'Agent request completed.'
+      );
+      if (agentStatus === 'completed') setPrompt('');
     } catch (requestError) {
       if (controller.signal.aborted) {
+        finishLiveWebCodingAgentTrace(
+          agentTrace,
+          'cancelled',
+          'Execution cancelled.'
+        );
         setMessages((current) => [
           ...current,
           {
@@ -848,11 +875,12 @@ function LiveWebCodingWorkbench({
         ]);
         setError('');
       } else {
-        setError(
+        const errorMessage =
           requestError instanceof Error
             ? requestError.message
-            : 'Realtime web coding request failed.'
-        );
+            : 'Realtime web coding request failed.';
+        finishLiveWebCodingAgentTrace(agentTrace, 'failed', errorMessage);
+        setError(errorMessage);
       }
     } finally {
       finishExecution(controller);
@@ -1145,7 +1173,9 @@ function LiveWebCodingWorkbench({
                             ? styles.toolTraceRowFailed
                             : entry.status === 'running'
                               ? styles.toolTraceRowRunning
-                              : ''
+                              : entry.status === 'cancelled'
+                                ? styles.toolTraceRowCancelled
+                                : ''
                         }`}
                         key={entry.id}
                         title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
@@ -1154,7 +1184,8 @@ function LiveWebCodingWorkbench({
                           aria-hidden="true"
                           className={styles.toolTraceMark}
                         >
-                          {entry.status === 'failed'
+                          {entry.status === 'failed' ||
+                          entry.status === 'cancelled'
                             ? '×'
                             : entry.status === 'running'
                               ? '…'

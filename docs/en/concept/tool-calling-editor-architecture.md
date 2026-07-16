@@ -362,6 +362,10 @@ catalog or agent discovery adds a `method: 'tools/list'` row, while registry
 lifecycle events use `method: 'tools/call'`. Each call row also shows `source`
 and `mode`, so `local · agent`, `model · agent`, and `local · direct` executions
 remain distinguishable in the same UI.
+The prompt execution itself is also wrapped in a `method: 'agent.request'` row
+with `running`, `completed`, `failed`, or `cancelled` status. A provider failure
+before a tool call, or a user cancellation, therefore remains visible as a run
+instead of disappearing from the trace.
 
 The realtime web-coding workspace exposes a monotonic workspace revision from
 `web.getWorkspace` and `web.readFile`. All mutating `web.*` tools accept the

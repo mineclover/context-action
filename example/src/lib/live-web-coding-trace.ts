@@ -12,6 +12,8 @@ const store = createToolCallTraceStore();
 
 export const recordLiveWebCodingToolCall = store.record;
 export const recordLiveWebCodingToolList = store.recordToolList;
+export const startLiveWebCodingAgentTrace = store.startAgentTrace;
+export const finishLiveWebCodingAgentTrace = store.finishAgentTrace;
 export const clearLiveWebCodingTrace = store.clear;
 export const liveWebCodingTraceStore = {
   getSnapshot: store.getSnapshot,

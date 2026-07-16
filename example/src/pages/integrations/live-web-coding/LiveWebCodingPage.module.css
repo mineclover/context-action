@@ -417,6 +417,11 @@
   color: #a32929;
 }
 
+.toolTraceRowCancelled .toolTraceMark {
+  background: #ebeef5;
+  color: #596579;
+}
+
 .error {
   margin: 0;
   padding: 0 1.1rem 0.8rem;

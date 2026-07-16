@@ -129,6 +129,16 @@ assertContains(
   /recordLiveWebCodingToolList\(listedTools\.tools\.length/,
   'realtime web-coding discovery trace'
 );
+assertContains(
+  exampleTraceSource,
+  /method:\s*'agent\.request'/,
+  'example agent request trace method'
+);
+assertContains(
+  realtimeWebCodingSource,
+  /startLiveWebCodingAgentTrace\(agentSource,\s*sessionId\)/,
+  'realtime web-coding agent trace lifecycle'
+);
 
 const uiCount = assertCatalogMatchesSchema({
   catalogSource,
@@ -150,3 +160,4 @@ console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
 console.log('- AI runner response-message history checked: 2 showcases');
 console.log('- realtime local-agent source/mode contract checked');
 console.log('- example tools/list/tools/call trace methods checked');
+console.log('- example agent.request trace lifecycle checked');

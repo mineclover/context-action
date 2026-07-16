@@ -334,6 +334,10 @@ example의 realtime web-coding trace도 같은 최소 protocol 필드를 유지�
 agent가 discovery를 수행하면 `method: 'tools/list'` row를 만들고, registry lifecycle은
 `method: 'tools/call'` row로 기록한다. call row에는 `source`와 `mode`를 함께 표시하므로
 `local · agent`, `model · agent`, `local · direct` 실행을 같은 UI에서 구분할 수 있다.
+agent prompt 실행 자체도 `method: 'agent.request'` row로 감싸며
+`running`, `completed`, `failed`, `cancelled` 상태를 보존한다. 따라서 model이
+tool call을 만들기 전에 실패하거나 사용자가 Cancel을 눌러도 실행 단위가 trace에서
+사라지지 않는다.
 
 realtime web-coding workspace는 `web.getWorkspace`와 `web.readFile`에서
 monotonic workspace revision을 노출한다. 모든 mutation `web.*` tool은 선택적인

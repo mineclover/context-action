@@ -10,10 +10,17 @@ export type ToolTraceEntry = {
   mode?: ToolCallMode;
   source: string;
   sessionId?: string;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
   durationMs?: number;
   startedAt: number;
   summary?: string;
+};
+
+export type AgentTraceHandle = {
+  id: string;
+  sessionId: string;
+  source: string;
+  startedAt: number;
 };
 
 export type ToolCallTraceStore = {
@@ -24,6 +31,12 @@ export type ToolCallTraceStore = {
     toolCount: number,
     source?: string,
     sessionId?: string
+  ) => void;
+  startAgentTrace: (source: string, sessionId?: string) => AgentTraceHandle;
+  finishAgentTrace: (
+    handle: AgentTraceHandle,
+    status: Exclude<ToolTraceEntry['status'], 'running'>,
+    summary: string
   ) => void;
   clear: () => void;
 };
@@ -170,6 +183,20 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
     for (const listener of listeners) listener();
   };
 
+  const upsertEntry = (entry: ToolTraceEntry): void => {
+    const existingIndex = entries.findIndex(
+      (candidate) => candidate.id === entry.id
+    );
+    entries = [
+      ...(existingIndex >= 0
+        ? entries.map((candidate, index) =>
+            index === existingIndex ? entry : candidate
+          )
+        : [entry]),
+    ].slice(0, maxEntries);
+    notify();
+  };
+
   const recordToolList = (
     toolCount: number,
     source = 'system',
@@ -188,10 +215,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
       durationMs: 0,
       summary: `${toolCount} tools available`,
     };
-    entries = [
-      entry,
-      ...entries,
-    ].slice(0, maxEntries);
+    entries = [entry, ...entries].slice(0, maxEntries);
     notify();
   };
 
@@ -237,6 +261,51 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
     notify();
   };
 
+  const startAgentTrace = (
+    source: string,
+    sessionId = createToolCallSessionId()
+  ): AgentTraceHandle => {
+    const startedAt = Date.now();
+    const handle: AgentTraceHandle = {
+      id: `agent-${startedAt}-${sessionSequence++}`,
+      sessionId,
+      source,
+      startedAt,
+    };
+    upsertEntry({
+      id: handle.id,
+      name: 'agent.request',
+      kind: 'agent',
+      method: 'agent.request',
+      mode: 'agent',
+      source,
+      sessionId,
+      status: 'running',
+      startedAt,
+    });
+    return handle;
+  };
+
+  const finishAgentTrace = (
+    handle: AgentTraceHandle,
+    status: Exclude<ToolTraceEntry['status'], 'running'>,
+    summary: string
+  ): void => {
+    upsertEntry({
+      id: handle.id,
+      name: 'agent.request',
+      kind: 'agent',
+      method: 'agent.request',
+      mode: 'agent',
+      source: handle.source,
+      sessionId: handle.sessionId,
+      status,
+      startedAt: handle.startedAt,
+      durationMs: Math.max(0, Date.now() - handle.startedAt),
+      summary,
+    });
+  };
+
   const clear = (): void => {
     if (!entries.length) return;
     entries = [];
@@ -251,6 +320,8 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
     },
     record,
     recordToolList,
+    startAgentTrace,
+    finishAgentTrace,
     clear,
   };
 }
