@@ -1,4 +1,4 @@
-import { toToolListRequest } from '@context-action/react';
+import { listAllTools } from '@context-action/react';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import {
   buildLocalAgentPlan,
@@ -22,8 +22,8 @@ export async function runLocalAgent(
   signal?: AbortSignal,
   sessionId?: string
 ): Promise<AgentRunResult> {
-  const listedTools = registry.listTools(toToolListRequest());
-  recordToolList(listedTools.tools.length, 'local', sessionId);
+  const listedTools = listAllTools(registry);
+  recordToolList(listedTools.length, 'local', sessionId);
   const calls = buildLocalAgentPlan(
     prompt,
     !fileSystemAdapter.hasWritableFolder,

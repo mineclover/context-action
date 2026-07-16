@@ -5,9 +5,11 @@ import {
   getToolCallErrorMetadata,
   isToolCallRequest,
   isToolListRequest,
+  listAllTools,
   type ToolCallContext,
   type ToolCallMode,
   type ToolCallErrorCode,
+  type ToolListRequest,
   toToolCallRequest,
   toToolListRequest,
 } from '../../src/tool-protocol';
@@ -78,6 +80,39 @@ describe('tool protocol context', () => {
       ],
       structuredContent: { path: 'index.html', revision: 3 },
     });
+  });
+
+  it('collects paged tools/list results and rejects a repeated cursor', () => {
+    const pages = [
+      {
+        tools: [{ name: 'first', inputSchema: { type: 'object' as const } }],
+        nextCursor: 'offset:1',
+      },
+      {
+        tools: [{ name: 'second', inputSchema: { type: 'object' as const } }],
+      },
+    ];
+    const listTools = jest
+      .fn()
+      .mockImplementation((request: ToolListRequest) =>
+        request.params?.cursor === 'offset:1' ? pages[1] : pages[0]
+      );
+
+    expect(listAllTools({ listTools })).toEqual([
+      pages[0].tools[0],
+      pages[1].tools[0],
+    ]);
+    expect(listTools).toHaveBeenCalledTimes(2);
+
+    const repeatedCursorManager = {
+      listTools: () => ({
+        tools: [],
+        nextCursor: 'same',
+      }),
+    };
+    expect(() => listAllTools(repeatedCursorManager)).toThrow(
+      'cursor did not advance'
+    );
   });
 
   it('accepts numeric browser workspace revisions', () => {

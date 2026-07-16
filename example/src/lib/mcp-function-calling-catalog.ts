@@ -85,6 +85,12 @@ export const mcpToolManagementMethods = [
       '등록된 표준 ToolDefinition 목록과 inputSchema·선택적 outputSchema를 조회합니다.',
   },
   {
+    name: 'listAllTools',
+    protocol: 'tools/list pagination helper',
+    purpose:
+      'nextCursor를 따라 모든 tools/list 페이지를 수집해 provider adapter가 cursor를 직접 재구현하지 않게 합니다.',
+  },
+  {
     name: 'getToolDefinition',
     protocol: 'definition lookup',
     purpose: '모델·UI·검증기가 동일한 입력·출력 도구 계약을 참조하게 합니다.',

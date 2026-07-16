@@ -1,7 +1,7 @@
 import {
+  listAllTools,
   type ToolCallResult,
   type ToolRegistry,
-  toToolListRequest,
 } from '@context-action/react';
 import type { UIToolsActions } from './ui-tools-schema';
 
@@ -40,14 +40,7 @@ export async function runLocalUIToolchain(
   registry: ToolRegistry<UIToolsActions>,
   sessionId: string
 ): Promise<LocalUIToolchainResult> {
-  const listedToolNames: string[] = [];
-  let page = registry.listTools(toToolListRequest());
-  listedToolNames.push(...page.tools.map((tool) => tool.name));
-
-  while (page.nextCursor) {
-    page = registry.listTools(toToolListRequest({ cursor: page.nextCursor }));
-    listedToolNames.push(...page.tools.map((tool) => tool.name));
-  }
+  const listedToolNames = listAllTools(registry).map((tool) => tool.name);
 
   const availableToolNames = new Set(listedToolNames);
   const missingToolNames = LOCAL_UI_TOOLCHAIN.filter(

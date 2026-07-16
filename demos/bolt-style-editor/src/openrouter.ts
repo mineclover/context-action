@@ -1,7 +1,7 @@
 import {
   type ActionSchemaMap,
+  listAllTools,
   type ToolRegistry,
-  toToolListRequest,
 } from '@context-action/react';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
@@ -248,8 +248,8 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     },
     { role: 'user', content: prompt },
   ];
-  const listedTools = registry.listTools(toToolListRequest());
-  recordToolList(listedTools.tools.length, 'openrouter', sessionId);
+  const listedTools = listAllTools(registry);
+  recordToolList(listedTools.length, 'openrouter', sessionId);
   const toolNames: string[] = [];
 
   let completedToolCalls = 0;

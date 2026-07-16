@@ -221,7 +221,9 @@ handler needs to report a workspace or product-specific failure.
 `createToolContext` can set `toolListPageSize` for large catalogs. Canonical
 `toToolListRequest({ cursor })` requests passed to `listTools()` then return an opaque
 `nextCursor`; direct `listTools()` calls and provider batch exports remain the
-complete catalog.
+complete catalog. Provider adapters that need complete paged discovery use the
+core `listAllTools()` helper, which follows `nextCursor` and rejects a repeated
+cursor.
 
 The standalone workspace, realtime web-coding, and Live Code Editor catalogs use
 this same output contract for file reads, mutations, preview acknowledgements,
@@ -308,9 +310,9 @@ file deletion and revert samples so the palette asks for explicit confirmation.
 Authorization must still be enforced by `toolPolicy`.
 
 The standalone studio and realtime web-coding route render the same boundary as
-an execution trace. Local and OpenRouter requests call
-`registry.listTools(toToolListRequest())`
-before provider-specific tool serialization. The ToolContext `onToolCall`
+an execution trace. Local and OpenRouter requests use the canonical
+`tools/list` discovery (the paginated `listAllTools()` helper delegates to
+`registry.listTools()`) before provider-specific tool serialization. The ToolContext `onToolCall`
 observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends
 file contents or filesystem handles to the model. `Clear` resets that local trace

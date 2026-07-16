@@ -206,7 +206,8 @@ Core는 표준 managed-call code를 재사용할 수 있도록
 지정할 수 있다. 이때 `toToolListRequest({ cursor })`로 만든 request를
 `listTools()`에 전달하면 canonical discovery가 opaque
 `nextCursor`를 반환하며, 인자가 없는 `listTools()`와 provider batch export는 전체
-catalog를 유지한다.
+catalog를 유지한다. 모든 page가 필요한 provider adapter는 core의
+`listAllTools()` helper로 `nextCursor`를 순회하며 반복 cursor도 거부한다.
 
 standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
 계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
@@ -284,8 +285,9 @@ revert 샘플에 표시하여 palette가 명시적 확인을 요청하게 한다
 반드시 `toolPolicy`에서 수행한다.
 
 standalone studio와 realtime web-coding route는 같은 경계를 execution trace로 표시한다.
-local과 OpenRouter 요청은 provider별 tool serialization 전에
-`registry.listTools(toToolListRequest())`를 호출한다. 이후 ToolContext의
+local과 OpenRouter 요청은 provider별 tool serialization 전에 canonical
+`tools/list` discovery를 사용한다. paged catalog에서는 `listAllTools()`가
+`registry.listTools()`를 위임 호출한다. 이후 ToolContext의
 `onToolCall` observer가
 `started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
 trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.

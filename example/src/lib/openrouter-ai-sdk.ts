@@ -7,7 +7,7 @@
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { ActionSchemaMap } from '@context-action/core';
-import { type ToolRegistry, toToolListRequest } from '@context-action/react';
+import { listAllTools, type ToolRegistry } from '@context-action/react';
 import { dynamicTool, generateText, stepCountIs, type ToolSet } from 'ai';
 import type {
   ToolTextGenerationRequest,
@@ -24,55 +24,60 @@ function createToolSet<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
   sessionId: string
 ): ToolSet {
-  registry.listTools(toToolListRequest());
+  const listedToolNames = new Set(
+    listAllTools(registry).map((tool) => tool.name)
+  );
   return Object.fromEntries(
-    registry.getToolNames().map((toolName) => {
-      const definition = registry.getTool(toolName);
+    registry
+      .getToolNames()
+      .filter((toolName) => listedToolNames.has(String(toolName)))
+      .map((toolName) => {
+        const definition = registry.getTool(toolName);
 
-      return [
-        String(toolName),
-        dynamicTool({
-          description: definition.description,
-          inputSchema: definition.zodSchema,
-          execute: async (input, executionOptions) => {
-            const result = await registry.executeModelToolCall(
-              {
-                id: executionOptions.toolCallId,
-                name: String(toolName),
-                arguments: input as Record<string, unknown>,
-              },
-              {
-                signal: executionOptions.abortSignal,
-                context: { source: 'model', mode: 'agent', sessionId },
-              }
-            );
-            const resultText = result.content
-              .map((block) => block.text)
-              .join('\n');
-
-            if (result.isError) {
-              return {
-                tool: String(toolName),
-                status: 'error',
-                error: result.error ?? {
-                  code: 'TOOL_EXECUTION_FAILED',
-                  message: resultText || `Tool ${String(toolName)} failed`,
+        return [
+          String(toolName),
+          dynamicTool({
+            description: definition.description,
+            inputSchema: definition.zodSchema,
+            execute: async (input, executionOptions) => {
+              const result = await registry.executeModelToolCall(
+                {
+                  id: executionOptions.toolCallId,
+                  name: String(toolName),
+                  arguments: input as Record<string, unknown>,
                 },
-                message: resultText,
-              };
-            }
+                {
+                  signal: executionOptions.abortSignal,
+                  context: { source: 'model', mode: 'agent', sessionId },
+                }
+              );
+              const resultText = result.content
+                .map((block) => block.text)
+                .join('\n');
 
-            return (
-              result.structuredContent ?? {
-                tool: String(toolName),
-                status: 'completed',
-                message: resultText,
+              if (result.isError) {
+                return {
+                  tool: String(toolName),
+                  status: 'error',
+                  error: result.error ?? {
+                    code: 'TOOL_EXECUTION_FAILED',
+                    message: resultText || `Tool ${String(toolName)} failed`,
+                  },
+                  message: resultText,
+                };
               }
-            );
-          },
-        }),
-      ];
-    })
+
+              return (
+                result.structuredContent ?? {
+                  tool: String(toolName),
+                  status: 'completed',
+                  message: resultText,
+                }
+              );
+            },
+          }),
+        ];
+      })
   );
 }
 

@@ -104,16 +104,18 @@ assertContains(
 const localAgentSource = readSource(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts'
 );
+const canonicalDiscoveryPattern =
+  /(?:registry\.listTools\(toToolListRequest\(\)\)|listAllTools\(registry\))/;
 assertContains(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   localAgentSource,
-  /registry\.listTools\(toToolListRequest\(\)\)/,
+  canonicalDiscoveryPattern,
   'canonical tools/list discovery'
 );
 assertContains(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   localAgentSource,
-  /toToolListRequest\(/,
+  /(?:toToolListRequest\(|listAllTools\(registry\))/,
   'canonical tools/list request conversion'
 );
 assertContains(
@@ -133,7 +135,7 @@ const openRouterSource = readSource('demos/bolt-style-editor/src/openrouter.ts')
 assertContains(
   'demos/bolt-style-editor/src/openrouter.ts',
   openRouterSource,
-  /registry\.listTools\(toToolListRequest\(\)\)/,
+  canonicalDiscoveryPattern,
   'provider-side tools/list discovery'
 );
 assertContains(
@@ -166,7 +168,7 @@ for (const relativeFile of discoveryRequestAdapters) {
   assertContains(
     relativeFile,
     source,
-    /registry\.listTools\(toToolListRequest\(\)\)/,
+    /(?:registry\.listTools\(toToolListRequest\(\)\)|listAllTools\(registry\))/,
     'canonical tools/list request construction'
   );
 }

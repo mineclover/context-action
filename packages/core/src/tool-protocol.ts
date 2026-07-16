@@ -257,6 +257,35 @@ export function toToolListRequest(
   };
 }
 
+/**
+ * Collect every page from a canonical tools/list manager.
+ *
+ * Provider adapters may use a paged registry without reimplementing cursor
+ * handling. A repeated cursor is rejected so a malformed remote manager cannot
+ * make an adapter loop forever.
+ */
+export function listAllTools<
+  TDefinition extends ToolDefinition = ToolDefinition,
+>(
+  manager: Pick<ToolManagementInterface<TDefinition>, 'listTools'>
+): TDefinition[] {
+  const tools: TDefinition[] = [];
+  const seenCursors = new Set<string>();
+  let page = manager.listTools(toToolListRequest());
+
+  tools.push(...page.tools);
+  while (page.nextCursor !== undefined) {
+    if (seenCursors.has(page.nextCursor)) {
+      throw new Error('Invalid tools/list pagination: cursor did not advance.');
+    }
+    seenCursors.add(page.nextCursor);
+    page = manager.listTools(toToolListRequest({ cursor: page.nextCursor }));
+    tools.push(...page.tools);
+  }
+
+  return tools;
+}
+
 export function withToolCallId<TResult>(
   result: ToolCallResult<TResult>,
   toolCallId: ToolCallId | undefined

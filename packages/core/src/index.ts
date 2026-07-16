@@ -50,6 +50,7 @@ export {
   getToolCallErrorMetadata,
   isToolCallRequest,
   isToolListRequest,
+  listAllTools,
   toToolCallRequest,
   toToolListRequest,
   withToolCallId,
