@@ -5,13 +5,13 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 import {
   BoltStyleToolProvider,
   useBoltStyleToolRegistry,
 } from './bolt-style-tool-context';
 import { useConfirmationRequest } from './hooks/use-confirmation-request';
+import { useEditorObservables } from './hooks/use-editor-observables';
 import { usePreviewBridge } from './hooks/use-preview-bridge';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
@@ -31,10 +31,10 @@ import {
   saveOpenRouterSettings,
   subscribeOpenRouterSettings,
 } from './openrouter';
-import { resolveToolApproval, toolApprovalStore } from './tool-approval';
+import { resolveToolApproval } from './tool-approval';
 import { ToolHandlers } from './tool-handlers';
 import { formatToolSuccessMessage } from './tool-result-utils';
-import { clearToolTrace, toolTraceStore } from './tool-trace';
+import { clearToolTrace } from './tool-trace';
 import { AgentChatPanel } from './views/agent-chat-panel';
 import { type WorkspaceSearchFocusRequest } from './views/code-editor';
 import {
@@ -94,11 +94,13 @@ function EditorWorkbench({
   folderRestoreState: FolderRestoreState;
 }) {
   const registry = useBoltStyleToolRegistry();
-  const snapshot = useSyncExternalStore(
-    workspace.subscribe,
-    workspace.getSnapshot,
-    workspace.getSnapshot
-  );
+  const {
+    snapshot,
+    traceEntries,
+    pendingApprovals,
+    hasWritableFolder,
+    folderPermission,
+  } = useEditorObservables({ workspace, fileSystemAdapter });
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const editorTabsRef = useRef<HTMLDivElement>(null);
   const workspaceSearchTriggerRef = useRef<HTMLButtonElement>(null);
@@ -166,16 +168,6 @@ function EditorWorkbench({
   const editorDraftsRef = useRef(editorDrafts);
   editorDraftsRef.current = editorDrafts;
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const traceEntries = useSyncExternalStore(
-    toolTraceStore.subscribe,
-    toolTraceStore.getSnapshot,
-    toolTraceStore.getSnapshot
-  );
-  const pendingApprovals = useSyncExternalStore(
-    toolApprovalStore.subscribe,
-    toolApprovalStore.getSnapshot,
-    toolApprovalStore.getSnapshot
-  );
   useEffect(() => {
     const firstApproval = pendingApprovals[0];
     if (!firstApproval) {
@@ -186,17 +178,6 @@ function EditorWorkbench({
     focusedApprovalIdRef.current = firstApproval.id;
     window.requestAnimationFrame(() => firstApprovalButtonRef.current?.focus());
   }, [pendingApprovals]);
-  const hasWritableFolder = useSyncExternalStore(
-    fileSystemAdapter.subscribe,
-    () => fileSystemAdapter.hasWritableFolder,
-    () => false
-  );
-  const folderPermission = useSyncExternalStore(
-    fileSystemAdapter.subscribe,
-    () => fileSystemAdapter.folderPermission,
-    () => 'disconnected' as const
-  );
-
   const activeFile =
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];

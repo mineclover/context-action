@@ -4,6 +4,10 @@ Standalone Bolt-style web coding demo for Context-Action. The editor keeps the
 tool registry, policy, execution trace, workspace state, and preview bridge in
 the parent document; the sandboxed iframe only renders the current workspace.
 
+The reusable rules and use-case recipes for this shape are documented in
+[Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
+and its [Korean version](/ko/context-layered/usecase-tool-calling-web-studio).
+
 ## Run locally
 
 From the repository root:
@@ -76,6 +80,8 @@ The registry schema, approval policy, and lifecycle observer are isolated in
 hooks: `use-tool-execution` owns provider-neutral execution,
 `use-workspace-folder-actions` owns folder boundaries,
 `use-workspace-runtime` owns workspace hydration and persisted-folder restore,
+`use-editor-observables` owns reactive workspace, filesystem, trace, and
+approval subscriptions,
 `use-workspace-editor-actions` owns drafts and file mutations,
 `use-tool-catalog-actions` owns the MCP catalog call surface,
 `use-workspace-keyboard-shortcuts` owns global commands, and

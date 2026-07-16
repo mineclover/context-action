@@ -1,0 +1,250 @@
+# Tool-Calling Web Studio Convention
+
+This document turns the standalone web-coding demo into a reusable
+Context-Action convention and use-case recipe. It describes the boundary
+between a model/provider, the typed tool registry, workspace domain logic,
+browser persistence, and the React views.
+
+It is intentionally a demo convention, not a requirement that every
+Context-Action application must use MCP or an iframe preview.
+
+## When to use this recipe
+
+Use this shape when a browser application needs one or more of the following:
+
+- a model or local agent that can inspect and mutate a document-like workspace;
+- MCP or function-calling tools that must be listed, approved, executed, and
+  returned as structured results;
+- browser-only persistence such as IndexedDB, Blob assets, or a local folder
+  adapter;
+- a live preview that acknowledges the revision it rendered;
+- a UI that exposes the tool catalog and execution trace for debugging.
+
+If the feature only has ordinary form state and no command boundary, use the
+standard Action Only or Store Only pattern instead.
+
+## Canonical flow
+
+```text
+tools/list
+  -> model/local-agent tool call
+  -> ToolContext policy + schema validation
+  -> tools/call handler
+  -> domain manager / repository
+  -> preview bridge acknowledgement
+  -> structured tool result + trace
+  -> view subscription
+```
+
+The model never receives a workspace object and the view never decides whether
+a tool is allowed. Each boundary has one source of truth:
+
+| Boundary | Owner | Responsibility |
+| --- | --- | --- |
+| Tool identity and input/output schema | Tool Context | Define names, descriptions, annotations, and validation |
+| Provider transport | action hook | Translate model messages into canonical model tool calls |
+| Approval and policy | Tool Context policy | Allow, deny, or request confirmation |
+| Workspace mutation | tool handler + manager | Check revision/type/path invariants and update the domain |
+| Persistence | repository/filesystem adapter | Store browser data or sync an explicitly connected folder |
+| Preview | preview compiler/bridge | Render a revision and acknowledge ready/error |
+| Observation | observable hook | Subscribe React to external workspace and trace state |
+| Presentation | view | Render data and emit callbacks |
+
+## Context-Action layout
+
+The recommended layout is:
+
+```text
+contexts/
+  tool-context.ts              # createToolContext and schema
+actions/
+  run-agent.ts                 # provider-neutral orchestration
+handlers/
+  tool-handlers.tsx            # useToolHandler registrations
+hooks/
+  use-tool-execution.ts        # provider/model execution
+  use-editor-observables.ts    # external subscriptions
+  use-workspace-*.ts           # workspace actions and keyboard commands
+views/
+  tool-catalog-panel.tsx
+  tool-trace-panel.tsx
+  workspace-editor-toolbar.tsx
+  workspace-source-panel.tsx
+  ...
+domain/
+  workspace-manager.ts         # framework-neutral state transitions
+  workspace-repository.ts      # persistence port
+```
+
+The standalone demo uses equivalent local names: `bolt-style-tool-context.ts`,
+`actions/run-local-agent.ts`, `tool-handlers.tsx`, the `hooks/` directory, the
+`views/` directory, and the private `@context-action/live-code-editor`
+package.
+
+## Rules
+
+### 1. The schema is the single source of truth
+
+Define a tool once in the ToolContext schema. Derive `tools/list`, OpenAI
+function definitions, MCP definitions, catalog inspectors, and validation from
+the registry. Do not hand-build a second provider-specific schema in a view or
+transport adapter.
+
+```tsx
+const { Provider, useToolHandler, useToolRegistry } = createToolContext(
+  'WebStudio',
+  { schema: webStudioToolSchema }
+);
+```
+
+### 2. Keep model transport provider-neutral
+
+OpenRouter, a local fallback agent, or another provider may choose different
+conversation formats. They must all end at the same canonical call boundary:
+
+```ts
+await registry.executeModelToolCall(
+  { id, name, arguments: parsedArguments },
+  { context: { source, sessionId }, signal }
+);
+```
+
+The action hook owns retries, cancellation, message history, and provider
+errors. It does not mutate workspace state directly.
+
+### 3. Put domain invariants in handlers and framework-neutral managers
+
+Handlers are the orchestration boundary. They must validate or delegate:
+
+- normalized paths and supported file kinds;
+- expected revision and conflict handling;
+- text-size and asset-size limits;
+- folder-linked versus browser-only state;
+- preview acknowledgement and timeout behavior.
+
+The workspace manager and repository port should remain usable without React.
+The handler reads the current domain snapshot, calls the manager, waits for
+required persistence/preview work, and returns a structured result.
+
+### 4. Treat approval as a policy boundary
+
+Read-only tools may be allowed automatically. Mutating model-originated tools
+should pass through the ToolContext policy and return a pending approval to the
+UI. The approval UI resolves a request; it does not execute the tool itself.
+
+If a policy callback must use an external event store, expose that store to
+React through a dedicated observable hook. This keeps the non-React ToolContext
+callback safe while keeping subscriptions out of view components.
+
+### 5. Views receive data and callbacks
+
+Views such as the tool catalog, trace panel, editor toolbar, and source panel
+may own ephemeral focus or display state. They must not know how Dexie,
+OpenRouter, revision guards, or filesystem handles work. Mutation callbacks
+should point to action hooks or handler-backed commands.
+
+### 6. Return canonical errors
+
+Use a stable error code, retryable flag, and structured details. The provider,
+local agent, trace panel, and recovery policy can then make the same decision.
+Do not make the UI parse arbitrary error strings to determine whether a retry is
+safe.
+
+### 7. Make revision flow explicit
+
+Read tools return the current revision. Mutation tools accept
+`expectedRevision` whenever the caller has observed one. A conflict is a
+retryable structured result; it is not silently overwritten. The local agent
+must update its planned revision after each successful mutation.
+
+## Use-case recipes
+
+### A. Local agent fallback
+
+Use when no provider key is available or when deterministic browser testing is
+needed.
+
+1. Call `tools/list` from the registry.
+2. Build a bounded local plan from the user prompt.
+3. Add the observed revision to guarded mutations.
+4. Execute every call through `executeModelToolCall`.
+5. Return the same structured result and trace shape as a provider call.
+
+Evidence in the demo: `src/actions/run-local-agent.ts` and the local-agent
+verification script.
+
+### B. OpenRouter model loop
+
+Use when a remote model should select tools from the same catalog.
+
+1. Export the registry definitions to the provider format.
+2. Normalize assistant tool calls and validate JSON arguments.
+3. Execute each call through the ToolContext registry.
+4. Append the canonical tool result to the provider message history.
+5. Continue until the assistant returns text or the call budget is reached.
+
+Evidence in the demo: `src/openrouter.ts`, `src/openrouter-protocol.ts`, and
+the OpenRouter transport verifier.
+
+### C. Browser workspace plus connected folder
+
+Use when a user should work safely in IndexedDB first and explicitly sync to a
+local folder.
+
+1. Hydrate the browser repository.
+2. Restore a persisted folder handle only when permission allows it.
+3. Keep browser mutations and local-folder writes as separate tool boundaries.
+4. Require `workspace.saveAll` for an explicit write to the folder.
+5. Surface permission, disconnected, and stale-folder errors as structured
+   results.
+
+Evidence in the demo: `use-workspace-runtime.ts`, `workspace-storage.ts`, and
+the browser filesystem adapter.
+
+### D. Live preview acknowledgement
+
+Use when a mutation must become visible before the agent reports completion.
+
+1. Increment the workspace revision after a successful mutation.
+2. Compile the HTML/CSS/JS graph for that revision.
+3. Send it to the sandboxed iframe.
+4. Wait for a matching `ready` or `error` bridge message.
+5. Return preview status in the tool result.
+
+Never report a preview mutation as complete merely because the iframe message
+was sent; the acknowledgement must match the requested revision.
+
+## Build and verification order
+
+When the private package or its contracts change, use:
+
+```bash
+pnpm --filter @context-action/live-code-editor check
+pnpm --filter @context-action/live-code-editor type-check
+pnpm --filter @context-action/live-code-editor test
+pnpm --filter @context-action/web-coding-demo check
+pnpm --filter @context-action/web-coding-demo type-check
+pnpm web-coding:verify
+```
+
+The demo `prebuild` runs the package check before rebuilding it. The final
+verification must cover contract tests, production base-path output, preview,
+filesystem, provider transport, and the browser flow.
+
+## Anti-patterns
+
+- A view calls `workspace.setValue`, Dexie, or `fetch` directly.
+- OpenRouter and local fallback each implement their own mutation path.
+- The catalog reconstructs tool definitions instead of reading the registry.
+- A model-originated write bypasses policy because it came from a convenient
+  UI button.
+- A handler returns a success message before persistence or preview completion.
+- Revision conflicts are hidden by re-reading and overwriting the latest file.
+- External ToolContext state is subscribed to separately in many views.
+
+## Demo mapping
+
+The complete reference implementation is the standalone
+[`@context-action/web-coding-demo`](../../../demos/bolt-style-editor/README.md).
+Its package seam is documented in
+[Tool-calling editor architecture](/en/concept/tool-calling-editor-architecture).

@@ -2,6 +2,9 @@
 
 A browser-based live editor keeps the canonical Tool Registry, policy, and call trace in the parent document. The iframe is a preview and document bridge, not the tool runtime.
 
+For the reusable Context-Action rules and use-case recipes behind this demo,
+see [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio).
+
 ## Execution boundary
 
 ```text

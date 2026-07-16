@@ -6,10 +6,11 @@ This document is the central entry point for the implementation-playbook style c
 
 1. [Implementation Convention](/en/context-layered/implementation-convention)
 2. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
-3. [Canonical Order Form Example](/en/examples/canonical-order-form)
-4. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
-5. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-6. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+3. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
+4. [Canonical Order Form Example](/en/examples/canonical-order-form)
+5. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+6. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+7. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
 These five cover:
 - folder structure
@@ -25,6 +26,8 @@ These five cover:
   - current-state classification, fixed provider order, and migration gates
 - [Implementation Convention](/en/context-layered/implementation-convention)
   - the standard implementation-playbook rule set
+- [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
+  - tool registry, policy, workspace mutation, observable subscriptions, and live preview boundaries
 - [Folder Structure](/en/context-layered/architecture/folder-structure)
   - responsibility split across `contexts / business / handlers / actions / hooks / views`
 - [Handler Registry](/en/context-layered/architecture/handler-registry)

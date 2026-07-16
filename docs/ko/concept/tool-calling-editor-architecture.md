@@ -2,6 +2,9 @@
 
 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다.
 
+이 데모에서 재사용할 Context-Action 규칙과 use-case recipe는
+[Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)에서 확인할 수 있다.
+
 ## 실행 경계
 
 ```text

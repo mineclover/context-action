@@ -6,10 +6,11 @@
 
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
 2. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
-3. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
-4. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
-5. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-6. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+3. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
+4. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+5. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
+6. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+7. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 이 다섯 개만 봐도
 - 폴더 구조
@@ -26,6 +27,8 @@
   - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
 - [Implementation Convention](/ko/context-layered/implementation-convention)
   - implementation-playbook 계열 개발의 표준 규칙
+- [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
+  - tool registry, policy, workspace mutation, observable subscription, live preview 경계
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
   - `contexts / business / handlers / actions / hooks / views` 책임 구분
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
