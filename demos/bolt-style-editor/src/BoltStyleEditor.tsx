@@ -20,6 +20,7 @@ import {
   type EditorMessage,
   useToolExecution,
 } from './hooks/use-tool-execution';
+import { useWorkspaceEditorActions } from './hooks/use-workspace-editor-actions';
 import { useWorkspaceFolderActions } from './hooks/use-workspace-folder-actions';
 import { type ToolCall } from './local-agent-plan';
 import {
@@ -501,9 +502,6 @@ function EditorWorkbench({
       if (copyFeedbackTimerRef.current !== null) {
         window.clearTimeout(copyFeedbackTimerRef.current);
       }
-      if (editorDraftTimerRef.current !== null) {
-        window.clearTimeout(editorDraftTimerRef.current);
-      }
     };
   }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -585,8 +583,6 @@ function EditorWorkbench({
   const [editorDrafts, setEditorDrafts] = useState<Record<string, string>>({});
   const editorDraftsRef = useRef(editorDrafts);
   editorDraftsRef.current = editorDrafts;
-  const editorDraftTimerRef = useRef<number | null>(null);
-  const editorDraftFlushRef = useRef<Promise<boolean> | null>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const traceEntries = useSyncExternalStore(
     toolTraceStore.subscribe,
@@ -841,6 +837,34 @@ function EditorWorkbench({
     setMessages,
     setEditorDrafts,
   });
+  const {
+    flushEditorDrafts,
+    updateEditorDraft,
+    createWorkspaceFile,
+    openWorkspaceFile,
+    renameWorkspaceFile,
+    deleteActiveFile,
+    revertActiveFile,
+    saveWorkspace,
+    downloadActiveFile,
+  } = useWorkspaceEditorActions({
+    workspace,
+    snapshotRevision: snapshot.revision,
+    activeFile,
+    isStorageReady,
+    hasWritableFolder,
+    canDeleteActiveFile,
+    canRevertActiveFile,
+    running,
+    saving,
+    editorDraftsRef,
+    setEditorDrafts,
+    setMessages,
+    setSaving,
+    flushEditorDraftsRef,
+    requestConfirmation,
+    executeQuickTool,
+  });
 
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
@@ -870,44 +894,6 @@ function EditorWorkbench({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges, hasUnpersistedEditorDrafts, hasWritableFolder]);
-
-  const saveWorkspace = async () => {
-    if (saving || running || !isStorageReady) return;
-    if (!(await flushEditorDrafts()) || !workspace.isDirty()) return;
-    setSaving(true);
-    try {
-      if (fileSystemAdapter.hasWritableFolder) {
-        await executeQuickTool({
-          name: 'workspace.saveAll',
-          arguments: {
-            expectedRevision: workspace.getSnapshot().revision,
-          },
-        });
-      } else {
-        await executeQuickTool({
-          name: 'workspace.saveCheckpoint',
-          arguments: { expectedRevision: workspace.getSnapshot().revision },
-        });
-      }
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: error instanceof Error ? error.message : 'Save failed.',
-        },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const downloadActiveFile = () => {
-    void executeQuickTool({
-      name: 'workspace.downloadFile',
-      arguments: { path: activeFile.path },
-    });
-  };
 
   useEffect(() => {
     const handleSaveShortcut = (event: globalThis.KeyboardEvent) => {
@@ -1064,91 +1050,6 @@ function EditorWorkbench({
     workspaceSearchOpen,
   ]);
 
-  const flushEditorDrafts = async (): Promise<boolean> => {
-    if (editorDraftTimerRef.current !== null) {
-      window.clearTimeout(editorDraftTimerRef.current);
-      editorDraftTimerRef.current = null;
-    }
-    if (editorDraftFlushRef.current) return editorDraftFlushRef.current;
-
-    const promise = (async () => {
-      let allFlushed = true;
-      const drafts = Object.entries(editorDraftsRef.current);
-      for (const [path, source] of drafts) {
-        if (editorDraftsRef.current[path] !== source) continue;
-        const file = workspace
-          .getSnapshot()
-          .files.find((candidate) => candidate.path === path);
-        if (!file || file.kind === 'asset' || file.source === source) {
-          setEditorDrafts((current) => {
-            if (current[path] !== source) return current;
-            const next = { ...current };
-            delete next[path];
-            return next;
-          });
-          continue;
-        }
-
-        const outcome = await executeQuickTool(
-          {
-            name: 'workspace.writeFile',
-            arguments: {
-              path,
-              source,
-              expectedRevision: workspace.getSnapshot().revision,
-            },
-          },
-          { announce: false, skipDraftFlush: true }
-        );
-        if (!outcome.ok) {
-          allFlushed = false;
-          continue;
-        }
-        setEditorDrafts((current) => {
-          if (current[path] !== source) return current;
-          const next = { ...current };
-          delete next[path];
-          return next;
-        });
-      }
-      return allFlushed;
-    })();
-    const trackedPromise = promise.finally(() => {
-      if (editorDraftFlushRef.current === trackedPromise) {
-        editorDraftFlushRef.current = null;
-      }
-    });
-    editorDraftFlushRef.current = trackedPromise;
-    return trackedPromise;
-  };
-  flushEditorDraftsRef.current = flushEditorDrafts;
-
-  const updateEditorDraft = (path: string, source: string) => {
-    setEditorDrafts((current) => {
-      if (current[path] === source) return current;
-      return { ...current, [path]: source };
-    });
-    if (editorDraftTimerRef.current !== null) {
-      window.clearTimeout(editorDraftTimerRef.current);
-    }
-    editorDraftTimerRef.current = window.setTimeout(() => {
-      editorDraftTimerRef.current = null;
-      void flushEditorDrafts();
-    }, 650);
-  };
-
-  const createWorkspaceFile = (path: string, source: string) =>
-    executeQuickTool({
-      name: 'workspace.createFile',
-      arguments: { path, source, expectedRevision: snapshot.revision },
-    });
-
-  const openWorkspaceFile = (path: string) =>
-    executeQuickTool({
-      name: 'workspace.openFile',
-      arguments: { path },
-    });
-
   const handleEditorTabKeyDown = (
     event: KeyboardEvent<HTMLButtonElement>,
     index: number
@@ -1175,58 +1076,6 @@ function EditorWorkbench({
         ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
         .item(nextIndex)
         ?.focus();
-    });
-  };
-
-  const renameWorkspaceFile = (fromPath: string, toPath: string) =>
-    executeQuickTool({
-      name: 'workspace.renameFile',
-      arguments: {
-        fromPath,
-        toPath,
-        expectedRevision: snapshot.revision,
-      },
-    });
-
-  const deleteActiveFile = async () => {
-    if (!canDeleteActiveFile || running) return;
-    if (
-      !(await requestConfirmation({
-        title: 'Delete active file?',
-        message: `${activeFile.path} will be removed from this browser workspace. This action can be recovered with Undo during this session.`,
-        confirmLabel: 'Delete file',
-        tone: 'danger',
-      }))
-    ) {
-      return;
-    }
-    await executeQuickTool({
-      name: 'workspace.deleteFile',
-      arguments: {
-        path: activeFile.path,
-        expectedRevision: snapshot.revision,
-      },
-    });
-  };
-
-  const revertActiveFile = async () => {
-    if (!canRevertActiveFile || running) return;
-    if (
-      !(await requestConfirmation({
-        title: 'Revert active file?',
-        message: `Unsaved changes in ${activeFile.path} will be discarded. Undo can restore this session's edit.`,
-        confirmLabel: 'Revert file',
-        tone: 'warning',
-      }))
-    ) {
-      return;
-    }
-    await executeQuickTool({
-      name: 'workspace.revertFile',
-      arguments: {
-        path: activeFile.path,
-        expectedRevision: snapshot.revision,
-      },
     });
   };
 
