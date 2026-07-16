@@ -1,6 +1,7 @@
 export type WorkspaceToolErrorCode =
   | 'WORKSPACE_REVISION_CONFLICT'
-  | 'WORKSPACE_SOURCE_LIMIT';
+  | 'WORKSPACE_SOURCE_LIMIT'
+  | 'WORKSPACE_FOLDER_STALE';
 
 export class WorkspaceToolError extends Error {
   override name = 'WorkspaceToolError';

@@ -240,7 +240,11 @@ only a generic `Tool call failed` response.
 Handlers may additionally attach `code`, `retryable`, and `details` metadata to
 their thrown Error. ToolContext preserves that metadata in the canonical result
 instead of flattening it into `TOOL_EXECUTION_FAILED`; the standalone workspace
-uses this for retryable revision conflicts and terminal source-limit errors.
+uses this for retryable revision conflicts, terminal source-limit errors, and
+stale local-folder handles. If a folder disappears during reload, save, or
+delete, the adapter clears the persisted File System Access handle and returns
+`WORKSPACE_FOLDER_STALE` with `retryable: true`, allowing the model to request a
+reconnect before retrying.
 
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows

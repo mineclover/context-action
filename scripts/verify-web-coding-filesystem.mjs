@@ -7,16 +7,33 @@ const adapterPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/workspace-filesystem.ts'
 );
+const errorsPath = path.join(
+  rootDirectory,
+  'demos/bolt-style-editor/src/workspace-errors.ts'
+);
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
-const source = await readFile(adapterPath, 'utf8');
-const { outputText } = typescript.transpileModule(source, {
+const errorsSource = await readFile(errorsPath, 'utf8');
+const { outputText: errorsOutput } = typescript.transpileModule(errorsSource, {
   compilerOptions: {
     module: typescript.ModuleKind.ESNext,
     target: typescript.ScriptTarget.ES2022,
   },
-  fileName: adapterPath,
+  fileName: errorsPath,
 });
+const errorsModuleUrl =
+  'data:text/javascript;base64,' + Buffer.from(errorsOutput).toString('base64');
+const source = await readFile(adapterPath, 'utf8');
+const { outputText } = typescript.transpileModule(
+  source.replaceAll("from './workspace-errors'", `from '${errorsModuleUrl}'`),
+  {
+    compilerOptions: {
+      module: typescript.ModuleKind.ESNext,
+      target: typescript.ScriptTarget.ES2022,
+    },
+    fileName: adapterPath,
+  }
+);
 const filesystem = await import(
   'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64')
 );
@@ -326,6 +343,12 @@ expect(
   'A missing folder during reload must return a reconnectable filesystem error.'
 );
 expect(
+  reloadUnavailableFolderError?.code === 'WORKSPACE_FOLDER_STALE' &&
+    reloadUnavailableFolderError?.retryable === true &&
+    reloadUnavailableFolderError?.details?.operation === 'reload',
+  'A missing folder during reload must preserve a retryable structured error.'
+);
+expect(
   !restoredAdapter.hasWritableFolder && clearedHandle,
   'A missing folder during reload must clear the stale writable handle.'
 );
@@ -344,6 +367,12 @@ try {
 expect(
   unavailableFolderError?.message.includes('connected folder is no longer available'),
   'A missing folder during deletion must return a reconnectable filesystem error.'
+);
+expect(
+  unavailableFolderError?.code === 'WORKSPACE_FOLDER_STALE' &&
+    unavailableFolderError?.retryable === true &&
+    unavailableFolderError?.details?.operation === 'delete',
+  'A missing folder during deletion must preserve a retryable structured error.'
 );
 expect(
   !reconnectedAdapter.hasWritableFolder && clearedHandle,

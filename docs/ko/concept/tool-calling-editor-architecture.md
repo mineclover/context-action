@@ -223,7 +223,10 @@ blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 h
 handler가 throw하는 Error에 `code`, `retryable`, `details` metadata를 추가하면
 ToolContext가 이를 canonical result까지 보존하므로 `TOOL_EXECUTION_FAILED`로
 평준화되지 않는다. standalone workspace는 이를 retry 가능한 revision conflict와
-terminal source-limit 오류에 사용한다.
+terminal source-limit 오류, stale local-folder handle 오류에 사용한다. reload·save·delete
+중 연결된 폴더가 사라지면 persistence의 File System Access handle을 해제하고
+`WORKSPACE_FOLDER_STALE`, `retryable: true` 결과를 반환하므로 model이 재연결을
+안내한 뒤 재시도할 수 있다.
 
 standalone OpenRouter bridge는 canonical error의 `code`, `retryable`, `details`를
 다음 model message로 전달한다. local fallback 실행에서는 같은 code와 details를

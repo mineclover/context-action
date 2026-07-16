@@ -1,4 +1,5 @@
 import type { WorkspaceFile } from './workspace';
+import { WorkspaceToolError } from './workspace-errors';
 
 export type ImportedFolder = {
   rootName: string;
@@ -72,6 +73,8 @@ const MAX_ASSET_BYTES = 4 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 12 * 1024 * 1024;
 const EMPTY_FOLDER_ERROR =
   'No supported HTML, CSS, JS, text, or preview asset files were found.';
+const STALE_FOLDER_ERROR =
+  'The connected folder is no longer available. Open the folder again to continue saving.';
 
 const languageByExtension: Record<string, string> = {
   '.css': 'css',
@@ -148,6 +151,22 @@ function isNotFoundFileSystemError(error: unknown): boolean {
   return (
     'name' in error && (error as { name?: unknown }).name === 'NotFoundError'
   );
+}
+
+function createStaleFolderError(
+  operation: 'reload' | 'write' | 'delete',
+  folderName: string,
+  cause: unknown
+): WorkspaceToolError {
+  return new WorkspaceToolError(STALE_FOLDER_ERROR, {
+    code: 'WORKSPACE_FOLDER_STALE',
+    retryable: true,
+    details: {
+      operation,
+      folderName,
+      cause: cause instanceof Error ? cause.message : String(cause),
+    },
+  });
 }
 
 function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
@@ -261,10 +280,7 @@ export class BrowserWorkspaceFileSystemAdapter {
         } catch {
           // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
         }
-        throw new Error(
-          'The connected folder is no longer available. Open the folder again to continue saving.',
-          { cause: error }
-        );
+        throw createStaleFolderError('reload', previousHandle.name, error);
       }
       this.directoryHandle = previousHandle;
       this.writePermission = await this.readWritePermission(previousHandle);
@@ -480,10 +496,7 @@ export class BrowserWorkspaceFileSystemAdapter {
         } catch {
           // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
         }
-        throw new Error(
-          'The connected folder is no longer available. Open the folder again to continue saving.',
-          { cause: error }
-        );
+        throw createStaleFolderError('write', directory.name, error);
       }
       throw error;
     }
@@ -514,10 +527,7 @@ export class BrowserWorkspaceFileSystemAdapter {
         } catch {
           // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
         }
-        throw new Error(
-          'The connected folder is no longer available. Open the folder again to continue saving.',
-          { cause: error }
-        );
+        throw createStaleFolderError('delete', directory.name, error);
       }
       throw error;
     }
