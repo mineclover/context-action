@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Standalone static Bolt-style web coding demo powered by Context-Action",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 43127",
+    "dev": "node scripts/dev.mjs",
     "prebuild": "pnpm --filter @context-action/live-code-editor check && pnpm --filter @context-action/live-code-editor build",
     "build": "tsc && vite build",
     "build:fast": "vite build",

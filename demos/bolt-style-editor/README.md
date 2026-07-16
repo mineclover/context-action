@@ -36,7 +36,8 @@ node scripts/verify-web-coding-preview.mjs
 node scripts/verify-web-coding-filesystem.mjs
 node scripts/verify-web-coding-openrouter.mjs
 node scripts/verify-web-coding-browser.mjs
-pnpm --filter @context-action/web-coding-demo dev -- --port 43144
+WEB_CODING_PORT=43144 pnpm --filter @context-action/web-coding-demo dev
+# or: pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
 
 `verify` runs formatting, type-checking, the production build, the GitHub Pages
@@ -51,8 +52,9 @@ approval, preview mutation, and the Dexie-backed source/preview restore path
 after a browser reload. Set
 `WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
-The development server defaults to `http://127.0.0.1:43127/`. The port can be
-overridden for parallel local apps.
+The development server defaults to `http://127.0.0.1:43127/`. Set
+`WEB_CODING_PORT` to use another port for parallel local apps; Vite CLI port
+arguments are also forwarded when invoking the package directly.
 
 ## What this demonstrates
 
