@@ -141,6 +141,10 @@ visible diagnostic panel with the error text and a refresh action.
   `WORKSPACE_FILE_TYPE_CONFLICT`, or `WORKSPACE_HISTORY_EMPTY` codes with
   bounded operation details. Read/open/download tools are blocking handlers so
   these failures cannot be mistaken for an empty successful result.
+- A revision change detected during `saveAll` or `saveCheckpoint` keeps the
+  retryable `WORKSPACE_REVISION_CONFLICT` code and includes the save operation
+  and expected/current revisions, even when the result contains a partial-save
+  summary.
 - Preview source is rendered in a sandboxed iframe with revision acknowledgements;
   arbitrary scripts, external assets, and filesystem handles do not cross into
   the tool or preview payloads.

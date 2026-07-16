@@ -266,6 +266,9 @@ and include the operation or path in `details`. Read, open, and download tools
 are registered as blocking handlers, ensuring a failed lookup is returned as a
 structured tool error instead of being passed to output-schema validation as an
 empty success.
+Revision changes detected during `saveAll` or `saveCheckpoint` retain the
+retryable `WORKSPACE_REVISION_CONFLICT` code with expected/current revisions and
+the operation, including when a partial-save summary is added.
 
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows

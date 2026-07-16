@@ -46,6 +46,19 @@ function createWorkspaceTypeError(
   });
 }
 
+function createWorkspaceRevisionError(
+  message: string,
+  expectedRevision: number,
+  currentRevision: number,
+  operation: 'save' | 'checkpoint'
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code: 'WORKSPACE_REVISION_CONFLICT',
+    retryable: true,
+    details: { expectedRevision, currentRevision, operation },
+  });
+}
+
 export function ToolHandlers({
   workspace,
   fileSystemAdapter,
@@ -349,8 +362,11 @@ export function ToolHandlers({
       try {
         for (const file of dirtyFiles) {
           if (workspace.getSnapshot().revision !== saveRevision) {
-            throw new Error(
-              'The workspace changed while saving. Retry to write the remaining changes.'
+            throw createWorkspaceRevisionError(
+              'The workspace changed while saving. Retry to write the remaining changes.',
+              saveRevision,
+              workspace.getSnapshot().revision,
+              'save'
             );
           }
           await fileSystemAdapter.writeFiles([file]);
@@ -358,8 +374,11 @@ export function ToolHandlers({
           if (
             !(await workspace.markFileSavedIfRevision(file.path, saveRevision))
           ) {
-            throw new Error(
-              'The workspace changed while saving. Retry to write the remaining changes.'
+            throw createWorkspaceRevisionError(
+              'The workspace changed while saving. Retry to write the remaining changes.',
+              saveRevision,
+              workspace.getSnapshot().revision,
+              'save'
             );
           }
           savedPaths.push(file.path);
@@ -367,8 +386,11 @@ export function ToolHandlers({
 
         for (const path of deletedPaths) {
           if (workspace.getSnapshot().revision !== saveRevision) {
-            throw new Error(
-              'The workspace changed while saving. Retry to apply the remaining deletions.'
+            throw createWorkspaceRevisionError(
+              'The workspace changed while saving. Retry to apply the remaining deletions.',
+              saveRevision,
+              workspace.getSnapshot().revision,
+              'save'
             );
           }
           await fileSystemAdapter.removeFiles([path]);
@@ -379,8 +401,11 @@ export function ToolHandlers({
               saveRevision
             ))
           ) {
-            throw new Error(
-              'The workspace changed while saving. Retry to apply the remaining deletions.'
+            throw createWorkspaceRevisionError(
+              'The workspace changed while saving. Retry to apply the remaining deletions.',
+              saveRevision,
+              workspace.getSnapshot().revision,
+              'save'
             );
           }
           removedPaths.push(path);
@@ -389,8 +414,11 @@ export function ToolHandlers({
         const checkpointUpdated =
           await workspace.markSavedIfRevision(saveRevision);
         if (!checkpointUpdated) {
-          throw new Error(
-            'The workspace changed while saving. Retry to write the remaining changes.'
+          throw createWorkspaceRevisionError(
+            'The workspace changed while saving. Retry to write the remaining changes.',
+            saveRevision,
+            workspace.getSnapshot().revision,
+            'save'
           );
         }
         return {
@@ -434,8 +462,11 @@ export function ToolHandlers({
       const checkpointUpdated =
         await workspace.markSavedIfRevision(checkpointRevision);
       if (!checkpointUpdated) {
-        throw new Error(
-          'The workspace changed while saving the browser checkpoint. Re-read the workspace and retry.'
+        throw createWorkspaceRevisionError(
+          'The workspace changed while saving the browser checkpoint. Re-read the workspace and retry.',
+          checkpointRevision,
+          workspace.getSnapshot().revision,
+          'checkpoint'
         );
       }
       const snapshot = workspace.getSnapshot();
@@ -456,8 +487,13 @@ export function ToolHandlers({
     async ({ expectedRevision }, controller) => {
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!fileSystemAdapter.hasWritableFolder) {
-        throw new Error(
-          'No writable folder is open. Open a local folder before reloading it.'
+        throw new WorkspaceToolError(
+          'No writable folder is open. Open a local folder before reloading it.',
+          {
+            code: 'WORKSPACE_FOLDER_NOT_CONNECTED',
+            retryable: true,
+            details: { operation: 'reload' },
+          }
         );
       }
       if (controller.signal?.aborted) throw new Error('Reload cancelled.');
