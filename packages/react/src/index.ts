@@ -147,6 +147,7 @@ export {
   getToolCallErrorMetadata,
   isToolCallRequest,
   isToolListRequest,
+  isToolListResult,
   listAllTools,
   TOOL_CALL_ERROR_CODES,
   toToolCallRequest,

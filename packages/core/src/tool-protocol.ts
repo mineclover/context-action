@@ -129,12 +129,35 @@ function isToolCallId(value: unknown): value is ToolCallId {
   );
 }
 
+function isToolDefinition(value: unknown): value is ToolDefinition {
+  return (
+    isRecord(value) &&
+    typeof value.name === 'string' &&
+    value.name.trim().length > 0 &&
+    isRecord(value.inputSchema)
+  );
+}
+
 /** Runtime guard for JSON received at the canonical tools/list boundary. */
 export function isToolListRequest(value: unknown): value is ToolListRequest {
   if (!isRecord(value) || value.method !== 'tools/list') return false;
   if (value.params === undefined) return true;
   if (!isRecord(value.params)) return false;
   return value.params.cursor === undefined || typeof value.params.cursor === 'string';
+}
+
+/** Runtime guard for JSON returned by the canonical tools/list boundary. */
+export function isToolListResult<
+  TDefinition extends ToolDefinition = ToolDefinition,
+>(value: unknown): value is ToolListResult<TDefinition> {
+  if (!isRecord(value) || !Array.isArray(value.tools)) return false;
+  if (
+    value.nextCursor !== undefined &&
+    typeof value.nextCursor !== 'string'
+  ) {
+    return false;
+  }
+  return value.tools.every(isToolDefinition);
 }
 
 /** Runtime guard for JSON received at the canonical tools/call boundary. */
@@ -271,7 +294,10 @@ export function listAllTools<
 ): TDefinition[] {
   const tools: TDefinition[] = [];
   const seenCursors = new Set<string>();
-  let page = manager.listTools(toToolListRequest());
+  let page: unknown = manager.listTools(toToolListRequest());
+  if (!isToolListResult<TDefinition>(page)) {
+    throw new Error('Invalid tools/list result.');
+  }
 
   tools.push(...page.tools);
   while (page.nextCursor !== undefined) {
@@ -280,6 +306,9 @@ export function listAllTools<
     }
     seenCursors.add(page.nextCursor);
     page = manager.listTools(toToolListRequest({ cursor: page.nextCursor }));
+    if (!isToolListResult<TDefinition>(page)) {
+      throw new Error('Invalid tools/list result.');
+    }
     tools.push(...page.tools);
   }
 

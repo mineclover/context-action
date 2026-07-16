@@ -5,11 +5,13 @@ import {
   getToolCallErrorMetadata,
   isToolCallRequest,
   isToolListRequest,
+  isToolListResult,
   listAllTools,
   type ToolCallContext,
   type ToolCallMode,
   type ToolCallErrorCode,
   type ToolListRequest,
+  type ToolManagementInterface,
   toToolCallRequest,
   toToolListRequest,
 } from '../../src/tool-protocol';
@@ -22,6 +24,17 @@ describe('tool protocol context', () => {
     ).toBe(true);
     expect(isToolListRequest({ method: 'tools/call' })).toBe(false);
     expect(isToolListRequest(null)).toBe(false);
+    expect(
+      isToolListResult({
+        tools: [{ name: 'workspace.readFile', inputSchema: { type: 'object' } }],
+      })
+    ).toBe(true);
+    expect(
+      isToolListResult({
+        tools: [{ name: 'workspace.readFile' }],
+        nextCursor: 3,
+      })
+    ).toBe(false);
 
     expect(
       isToolCallRequest({
@@ -112,6 +125,13 @@ describe('tool protocol context', () => {
     };
     expect(() => listAllTools(repeatedCursorManager)).toThrow(
       'cursor did not advance'
+    );
+
+    const malformedManager = {
+      listTools: () => ({ tools: [{ name: 'missing-input-schema' }] }),
+    } as unknown as Pick<ToolManagementInterface, 'listTools'>;
+    expect(() => listAllTools(malformedManager)).toThrow(
+      'Invalid tools/list result'
     );
   });
 
