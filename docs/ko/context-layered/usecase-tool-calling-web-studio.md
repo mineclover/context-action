@@ -101,6 +101,9 @@ await registry.executeModelToolCall(
 );
 ```
 
+`source`를 생략하면 registry는 call을 `model`로 기록하고, `local`이나 `mcp`처럼
+명시한 source는 approval·trace·audit consumer를 위해 그대로 보존합니다.
+
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.
 

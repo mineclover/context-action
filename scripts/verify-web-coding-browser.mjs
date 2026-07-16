@@ -349,6 +349,20 @@ async function runBrowserProof(url) {
     await prompt.fill('Show workspace status');
     await send.click();
     await page.getByText(/Local agent inspected the workspace/).waitFor();
+    const localStatusTraceVisible = await page
+      .locator('#trace-list .trace-row')
+      .evaluateAll((rows) =>
+        rows.some((row) => {
+          const name = row.querySelector('strong')?.textContent?.trim();
+          const metadata = row.querySelector('small')?.textContent ?? '';
+          return name === 'workspace.getStatus' && metadata.includes('local');
+        })
+      );
+    if (!localStatusTraceVisible) {
+      throw new Error(
+        'The local-agent tool trace did not preserve its explicit local source.'
+      );
+    }
 
     await prompt.fill('Change missing.md from "old" to "new"');
     await send.click();

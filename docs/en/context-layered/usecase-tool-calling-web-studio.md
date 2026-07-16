@@ -109,6 +109,10 @@ await registry.executeModelToolCall(
 );
 ```
 
+When `source` is omitted, the registry records the call as `model`; an
+explicit source such as `local` or `mcp` is preserved for approval, trace, and
+audit consumers.
+
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.
 

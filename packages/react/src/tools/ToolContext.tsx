@@ -228,7 +228,10 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     executeModelToolCall(call: ModelToolCall, options) {
       return executeToolCall(toToolCallRequest(call), {
         ...options,
-        context: { ...options?.context, source: 'model' },
+        context: {
+          ...options?.context,
+          source: options?.context?.source ?? 'model',
+        },
       });
     },
 

@@ -565,6 +565,56 @@ describe('createToolContext', () => {
       ]);
     });
 
+    it('should preserve an explicit source when normalizing a model call', async () => {
+      const contexts: Array<{ source?: string; provider?: string }> = [];
+      const observedContext = createToolContext('SourceAwareTools', {
+        schema: testSchema,
+        onToolCall: (event) => {
+          contexts.push({
+            source: event.context?.source,
+            provider:
+              typeof event.context?.metadata?.provider === 'string'
+                ? event.context.metadata.provider
+                : undefined,
+          });
+        },
+      });
+      const observedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <observedContext.Provider>{children}</observedContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          observedContext.useToolHandler(
+            'searchProducts',
+            useCallback(async () => ({ ok: true }), [])
+          );
+          return observedContext.useToolRegistry();
+        },
+        { wrapper: observedWrapper }
+      );
+
+      await act(async () =>
+        result.current.executeModelToolCall(
+          {
+            id: 'local-call',
+            name: 'searchProducts',
+            arguments: { query: 'laptop' },
+          },
+          {
+            context: {
+              source: 'local',
+              metadata: { provider: 'local-fallback' },
+            },
+          }
+        )
+      );
+
+      expect(contexts).toEqual([
+        { source: 'local', provider: 'local-fallback' },
+        { source: 'local', provider: 'local-fallback' },
+      ]);
+    });
+
     it('includes the canonical tools/call request in lifecycle events', async () => {
       const requests: Array<{
         type: string;
