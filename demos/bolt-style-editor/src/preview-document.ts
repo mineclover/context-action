@@ -168,14 +168,126 @@ export function workspaceJavaScriptModuleSpecifier(path: string): string {
     .join('/')}`;
 }
 
+type JavaScriptModuleReferenceReplacer = (
+  match: string,
+  prefix: string,
+  quote: string,
+  requestedPath: string
+) => string;
+
+function mayStartJavaScriptRegex(source: string, slashIndex: number): boolean {
+  let index = slashIndex - 1;
+  while (index >= 0 && /\s/.test(source[index])) index -= 1;
+  if (index < 0) return true;
+  if (/[([{=,:;!&|?+\-*%^~<>]/.test(source[index])) return true;
+  return /\b(?:return|throw|case|delete|void|typeof|instanceof|in|of)\s*$/.test(
+    source.slice(Math.max(0, index - 12), index + 1)
+  );
+}
+
+function maskJavaScriptNonCode(source: string): Uint8Array {
+  const codeMask = new Uint8Array(source.length);
+  codeMask.fill(1);
+  const maskRange = (start: number, end: number) => {
+    codeMask.fill(0, start, end);
+  };
+
+  let index = 0;
+  while (index < source.length) {
+    const character = source[index];
+    const nextCharacter = source[index + 1];
+    if (character === '/' && nextCharacter === '/') {
+      const start = index;
+      index += 2;
+      while (index < source.length && source[index] !== '\n') index += 1;
+      maskRange(start, index);
+      continue;
+    }
+    if (character === '/' && nextCharacter === '*') {
+      const start = index;
+      index += 2;
+      while (
+        index < source.length &&
+        !(source[index] === '*' && source[index + 1] === '/')
+      ) {
+        index += 1;
+      }
+      index = Math.min(source.length, index + 2);
+      maskRange(start, index);
+      continue;
+    }
+    if (character === '/' && mayStartJavaScriptRegex(source, index)) {
+      const start = index;
+      index += 1;
+      let inCharacterClass = false;
+      while (index < source.length) {
+        if (source[index] === '\\') {
+          index += 2;
+          continue;
+        }
+        if (source[index] === '[') inCharacterClass = true;
+        if (source[index] === ']') inCharacterClass = false;
+        if (source[index] === '/' && !inCharacterClass) {
+          index += 1;
+          while (/[a-z]/i.test(source[index] ?? '')) index += 1;
+          break;
+        }
+        index += 1;
+      }
+      maskRange(start, index);
+      continue;
+    }
+    if (character === "'" || character === '"' || character === '`') {
+      const quote = character;
+      const start = index;
+      index += 1;
+      while (index < source.length) {
+        if (source[index] === '\\') {
+          index += 2;
+          continue;
+        }
+        if (source[index] === quote) {
+          index += 1;
+          break;
+        }
+        index += 1;
+      }
+      maskRange(start, index);
+      continue;
+    }
+    index += 1;
+  }
+  return codeMask;
+}
+
+function replaceJavaScriptModuleReferences(
+  source: string,
+  replacer: JavaScriptModuleReferenceReplacer
+): string {
+  const codeMask = maskJavaScriptNonCode(source);
+  return source.replace(
+    /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
+    (
+      match,
+      prefix: string,
+      quote: string,
+      requestedPath: string,
+      offset: number
+    ) => {
+      if (!codeMask[offset]) return match;
+      return replacer(match, prefix, quote, requestedPath);
+    }
+  );
+}
+
 export function rewriteJavaScriptModuleImports(
   source: string,
   jsPath: string,
   files: readonly WorkspaceFile[]
 ): string {
-  return source.replace(
-    /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
-    (match, prefix: string, quote: string, requestedPath: string) => {
+  return replaceJavaScriptModuleReferences(
+    source,
+    (match, prefix, quote, requestedPath) => {
       const imported = findReferencedFile(
         files,
         jsPath,
@@ -218,9 +330,9 @@ function buildJavaScriptModuleBootstrap(
 
   for (let index = 0; index < pending.length; index += 1) {
     const module = pending[index];
-    const rewritten = module.source.replace(
-      /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
-      (match, prefix: string, quote: string, requestedPath: string) => {
+    const rewritten = replaceJavaScriptModuleReferences(
+      module.source,
+      (match, prefix, quote, requestedPath) => {
         const imported = findReferencedFile(
           files,
           module.path,
@@ -269,9 +381,9 @@ function visitJavaScriptModuleReferences(
   source: string,
   callback: (requestedPath: string) => void
 ): void {
-  source.replace(
-    /(\b(?:import|export)\s*(?:\(\s*)?(?:[^'"\n;]*?\sfrom\s*)?)(["'])([^"']+)\2/g,
-    (match, _prefix: string, _quote: string, requestedPath: string) => {
+  replaceJavaScriptModuleReferences(
+    source,
+    (match, _prefix, _quote, requestedPath) => {
       callback(requestedPath);
       return match;
     }

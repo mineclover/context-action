@@ -475,6 +475,37 @@ expect(
   'Unresolved or external CSS imports must not execute inside the preview.'
 );
 
+const falsePositiveModuleFiles = [
+  {
+    path: 'index.html',
+    language: 'html',
+    source:
+      '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+    kind: 'text',
+  },
+  {
+    path: 'app.js',
+    language: 'javascript',
+    source:
+      'const example = "import \'./not-a-module.js\'"; const pattern = /export \'\.\/not-a-module\.js\'/; // export { value } from "./not-a-module.js"',
+    kind: 'text',
+  },
+];
+expectEqual(
+  preview.collectPreviewDiagnostics(falsePositiveModuleFiles),
+  [],
+  'Strings and comments must not become JavaScript module diagnostics.'
+);
+const falsePositiveModuleDocument = preview.buildPreviewDocument(
+  falsePositiveModuleFiles,
+  {},
+  21
+);
+expect(
+  !falsePositiveModuleDocument.includes('Missing%20local%20module%20import'),
+  'Strings and comments must not be rewritten as missing module imports.'
+);
+
 const cyclicCssDocument = preview.buildPreviewDocument(
   [
     {
