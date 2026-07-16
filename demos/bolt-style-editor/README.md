@@ -9,6 +9,13 @@ the parent document; the sandboxed iframe only renders the current workspace.
 From the repository root:
 
 ```bash
+# Root aliases for the private package and standalone release check:
+pnpm build:live-code-editor
+pnpm type-check:live-code-editor
+pnpm test:live-code-editor
+pnpm web-coding:verify
+
+# Equivalent package-filter commands:
 pnpm --filter @context-action/web-coding-demo verify
 
 # Or run individual stages:
