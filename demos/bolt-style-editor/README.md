@@ -23,6 +23,7 @@ pnpm web-coding:verify
 # Equivalent package-filter commands:
 pnpm --filter @context-action/web-coding-demo verify
 pnpm --filter @context-action/web-coding-demo verify:conventions
+pnpm --filter @context-action/web-coding-demo verify:dev-server
 
 # Or run individual stages:
 pnpm --filter @context-action/web-coding-demo type-check
@@ -42,9 +43,9 @@ WEB_CODING_PORT=43144 pnpm --filter @context-action/web-coding-demo dev
 
 `verify` runs formatting, type-checking, the production build, the GitHub Pages
 artifact check, a production base-path browser smoke test, all standalone
-tool/preview/filesystem/OpenRouter/trace contract checks, and the isolated
-development-server Playwright browser proof in the same order used for a local
-release check.
+tool/preview/filesystem/OpenRouter/trace contract checks, a dev-server port
+override contract, and the isolated development-server Playwright browser proof
+in the same order used for a local release check.
 
 The browser proof starts an isolated Vite server and exercises source editing,
 syntax highlighting, directory-upload fallback, local-agent discovery,

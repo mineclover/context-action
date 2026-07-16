@@ -242,6 +242,19 @@ dedicated modules, external subscriptions stay in the observable hook, and
 presentation views do not call workspace mutation or tool execution APIs
 directly.
 
+The development entrypoint is part of that boundary as well. Keep the Vite
+port configurable so the standalone demo can run beside the example app and
+other local tools, then verify the package launcher itself:
+
+```bash
+pnpm --filter @context-action/web-coding-demo verify:dev-server
+WEB_CODING_PORT=43144 pnpm --filter @context-action/web-coding-demo dev
+```
+
+The verifier starts the package `dev` script with a generated port, confirms
+that it serves the standalone entry document, and terminates the process. This
+keeps local run instructions and the release contract aligned.
+
 ## Anti-patterns
 
 - A view calls `workspace.setValue`, Dexie, or `fetch` directly.

@@ -149,6 +149,9 @@ jobs:
       - name: Verify standalone Context-Action conventions
         run: node scripts/verify-web-coding-conventions.mjs
 
+      - name: Verify standalone dev server contract
+        run: node scripts/verify-web-coding-dev-server.mjs
+
       - name: Verify standalone local-agent planning contracts
         run: node scripts/verify-web-coding-plan.mjs
 

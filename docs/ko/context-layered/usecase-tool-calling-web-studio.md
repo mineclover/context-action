@@ -221,6 +221,19 @@ pnpm --filter @context-action/web-coding-demo verify:conventions
 외부 subscription이 observable hook에 모여 있는지, presentation view가
 workspace mutation이나 tool execution API를 직접 호출하지 않는지를 확인합니다.
 
+개발 진입점도 standalone 경계의 일부로 봅니다. example 앱이나 다른 로컬
+도구와 동시에 실행할 수 있도록 Vite 포트를 열어 두고 package launcher 자체를
+검증합니다.
+
+```bash
+pnpm --filter @context-action/web-coding-demo verify:dev-server
+WEB_CODING_PORT=43144 pnpm --filter @context-action/web-coding-demo dev
+```
+
+검증기는 package의 `dev` 스크립트를 생성 포트로 실행하고 standalone entry
+document가 실제로 응답하는지 확인한 뒤 프로세스를 종료합니다. 따라서 로컬
+실행 방법과 release 계약이 어긋나지 않습니다.
+
 ## Anti-pattern
 
 - view가 workspace, Dexie, `fetch`를 직접 호출한다.
