@@ -66,6 +66,12 @@ assertContains(
   /createToolContext\(/,
   'the ToolContext provider'
 );
+assertContains(
+  'demos/bolt-style-editor/src/bolt-style-tool-context.ts',
+  contextSource,
+  /context\?\.mode\s*===\s*['"]direct['"]/,
+  'the explicit direct execution mode policy boundary'
+);
 
 const schemaSource = readSource('demos/bolt-style-editor/src/tool-schema.ts');
 assertContains(
@@ -116,6 +122,12 @@ assertContains(
   /registry\.executeModelToolCall\(/,
   'canonical model tool-call execution'
 );
+assertContains(
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  localAgentSource,
+  /mode:\s*['"]agent['"]/,
+  'explicit agent execution mode'
+);
 
 const openRouterSource = readSource('demos/bolt-style-editor/src/openrouter.ts');
 assertContains(
@@ -135,6 +147,12 @@ assertContains(
   openRouterSource,
   /registry\.executeModelToolCall\(/,
   'provider-side canonical model tool-call execution'
+);
+assertContains(
+  'demos/bolt-style-editor/src/openrouter.ts',
+  openRouterSource,
+  /mode:\s*['"]agent['"]/,
+  'provider agent execution mode'
 );
 
 const discoveryRequestAdapters = [
@@ -167,6 +185,12 @@ assertContains(
   executionSource,
   /registry\.callTool\(/,
   'canonical direct tools/call execution'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  executionSource,
+  /mode:\s*['"]direct['"]/,
+  'explicit direct execution mode'
 );
 
 const exportSource = readSource(

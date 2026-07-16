@@ -4,6 +4,7 @@ import {
   createToolCallSuccess,
   getToolCallErrorMetadata,
   type ToolCallContext,
+  type ToolCallMode,
   type ToolCallErrorCode,
   toToolCallRequest,
   toToolListRequest,
@@ -50,9 +51,12 @@ describe('tool protocol context', () => {
   it('accepts numeric browser workspace revisions', () => {
     const context: ToolCallContext = {
       source: 'iframe',
+      mode: 'direct',
       revision: 12,
     };
 
+    const mode: ToolCallMode = context.mode!;
+    expect(mode).toBe('direct');
     expect(context.revision).toBe(12);
   });
 

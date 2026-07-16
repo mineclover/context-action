@@ -404,9 +404,8 @@ describe('createToolContext', () => {
           lifecycleRequests.push(`${event.type}:${event.request.method}`);
         },
         toolPolicy: ({ context }) => {
-          const interaction = context?.metadata?.interaction;
-          policyDecisions.push(`${context?.source}:${String(interaction)}`);
-          return interaction === 'palette' ? 'allow' : 'deny';
+          policyDecisions.push(`${context?.source}:${context?.mode}`);
+          return context?.mode === 'direct' ? 'allow' : 'deny';
         },
       });
       const policyParityWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -434,7 +433,7 @@ describe('createToolContext', () => {
           {
             context: {
               source: 'local',
-              metadata: { interaction: 'palette' },
+              mode: 'direct',
             },
           }
         )
@@ -449,7 +448,7 @@ describe('createToolContext', () => {
           {
             context: {
               source: 'model',
-              metadata: { interaction: 'prompt' },
+              mode: 'agent',
             },
           }
         )
@@ -466,8 +465,8 @@ describe('createToolContext', () => {
       });
       expect(handler).toHaveBeenCalledTimes(1);
       expect(policyDecisions).toEqual([
-        'local:palette',
-        'model:prompt',
+        'local:direct',
+        'model:agent',
       ]);
       expect(lifecycleRequests).toEqual([
         'started:tools/call',

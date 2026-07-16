@@ -48,8 +48,9 @@ export async function runLocalAgent(
       {
         context: {
           source: 'local',
+          mode: 'agent',
           ...(sessionId ? { sessionId } : {}),
-          metadata: { interaction: 'prompt', provider: 'local-fallback' },
+          metadata: { provider: 'local-fallback' },
         },
         signal,
       }

@@ -202,7 +202,8 @@ raw `JSON.stringify` exception.
 Core `tool-protocol.ts` preserves provider-neutral execution metadata:
 
 - `ToolCallId` correlates a model call with its result
-- `ToolCallContext` carries `source`, `sessionId`, and `revision`
+- `ToolCallContext` carries transport `source`, execution `mode`, `sessionId`,
+  and `revision`
 - `ToolCallError` provides stable `code`, `message`, `retryable`, and `details`
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
 - Each `ToolCallEvent` carries the canonical `tools/call` request so an audit

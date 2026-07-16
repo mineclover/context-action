@@ -37,8 +37,13 @@ export type ToolCallId = string | number;
 /** Origin metadata carried through the tool execution boundary. */
 export type ToolCallSource = 'model' | 'mcp' | 'iframe' | 'local';
 
+/** Execution intent, independent of the transport source. */
+export type ToolCallMode = 'agent' | 'direct';
+
 export interface ToolCallContext {
   readonly source?: ToolCallSource;
+  /** `agent` is model/prompt orchestration; `direct` is an explicit command. */
+  readonly mode?: ToolCallMode;
   readonly sessionId?: string;
   /** Provider/session revision token; browser workspaces commonly use a number. */
   readonly revision?: string | number;

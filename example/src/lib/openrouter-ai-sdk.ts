@@ -43,7 +43,7 @@ function createToolSet<TSchema extends ActionSchemaMap>(
               },
               {
                 signal: executionOptions.abortSignal,
-                context: { source: 'model', sessionId },
+                context: { source: 'model', mode: 'agent', sessionId },
               }
             );
             const resultText = result.content

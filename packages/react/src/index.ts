@@ -126,6 +126,8 @@ export type {
   ModelToolCall,
   ToolArguments,
   ToolCallContext,
+  ToolCallSource,
+  ToolCallMode,
   ToolCallError,
   ToolCallEvent,
   ToolCallId,

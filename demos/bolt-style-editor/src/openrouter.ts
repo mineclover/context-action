@@ -420,6 +420,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
         {
           context: {
             source: 'model',
+            mode: 'agent',
             ...(sessionId ? { sessionId } : {}),
           },
           signal,

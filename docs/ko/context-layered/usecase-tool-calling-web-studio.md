@@ -97,12 +97,17 @@ OpenRouter, local fallback 등 provider별 conversation format은 달라도
 ```ts
 await registry.executeModelToolCall(
   { id, name, arguments: parsedArguments },
-  { context: { source, sessionId }, signal }
+  { context: { source, mode: 'agent', sessionId }, signal }
 );
 ```
 
 `source`를 생략하면 registry는 call을 `model`로 기록하고, `local`이나 `mcp`처럼
 명시한 source는 approval·trace·audit consumer를 위해 그대로 보존합니다.
+
+`source`는 transport origin, `mode`는 실행 의도로 구분합니다. agent/model loop는
+`mode: 'agent'`, 명시적인 palette 또는 command action은 `mode: 'direct'`를 사용합니다.
+provider 전용 값은 `metadata`에만 두고, mutation approval 여부를 결정하는 값으로
+재사용하지 않습니다.
 
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.
@@ -230,7 +235,8 @@ iframe message를 보냈다는 이유만으로 preview mutation을 완료 처리
 model을 거치지 않고 사용자가 tool을 직접 검사하거나 retry해야 할 때 사용합니다.
 
 1. 공통 `toToolCallRequest()` adapter로 request를 만듭니다.
-2. action hook에서 registry boundary를 통해 실행합니다.
+2. `context.mode: 'direct'`를 지정하고 action hook에서 registry boundary를 통해
+   실행합니다.
 3. model-originated call과 같은 policy, revision guard, persistence, preview
    wait를 적용합니다.
 4. canonical error code와 `retryable` flag를 trace에 보존합니다.

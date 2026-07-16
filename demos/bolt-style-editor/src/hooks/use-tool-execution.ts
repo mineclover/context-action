@@ -128,7 +128,7 @@ export function useToolExecution({
             arguments: call.arguments,
           }),
           {
-            context: { source: 'local', sessionId },
+            context: { source: 'local', mode: 'direct', sessionId },
             signal: controller.signal,
           }
         );

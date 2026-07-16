@@ -70,7 +70,7 @@ export function LiveEditorAIToolbar() {
         name,
         arguments: argumentsValue,
       }),
-      { context: { source: 'local', sessionId } }
+      { context: { source: 'local', mode: 'direct', sessionId } }
     );
   const trace = useSyncExternalStore(
     liveEditorTraceStore.subscribe,
@@ -312,7 +312,7 @@ export function LiveEditorAIToolbar() {
         name: 'editor.setScenario',
         arguments: { scenario: 'blocked' },
       },
-      { context: { source: 'model', sessionId } }
+      { context: { source: 'model', mode: 'agent', sessionId } }
     );
     setModelShapedResult(
       formatLocalToolResult(result, 'Model-shaped call failed.')

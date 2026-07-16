@@ -12,10 +12,9 @@ export const {
   debug: true,
   onToolCall: recordToolCall,
   toolPolicy: ({ context, definition, request, signal }) => {
-    const isPromptAgentCall = context?.metadata?.interaction === 'prompt';
     if (
       definition.annotations?.readOnlyHint === true ||
-      (context?.source === 'local' && !isPromptAgentCall)
+      context?.mode === 'direct'
     ) {
       return 'allow';
     }

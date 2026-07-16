@@ -515,8 +515,9 @@ async function runLocalPrompt(
       {
         context: {
           source: 'model',
+          mode: 'agent',
           ...(sessionId ? { sessionId } : {}),
-          metadata: { interaction: 'prompt', provider: 'local-fallback' },
+          metadata: { provider: 'local-fallback' },
         },
         signal,
       }
@@ -864,7 +865,7 @@ function LiveWebCodingWorkbench({
           arguments: guardedArgs,
         }),
         {
-          context: { source: 'local', sessionId },
+          context: { source: 'local', mode: 'direct', sessionId },
           signal: controller.signal,
         }
       );

@@ -187,7 +187,7 @@ loop를 중단하지 않고 다음 provider message 안에
 Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.
 
 - `ToolCallId`: 모델 호출과 결과를 연결하는 ID
-- `ToolCallContext`: `source`, `sessionId`, `revision`
+- `ToolCallContext`: transport `source`, execution `mode`, `sessionId`, `revision`
 - `ToolCallError`: 안정적인 `code`, `message`, `retryable`, `details`
 - `ToolCallEvent`: `started`, `completed`, `failed`
 - 각 `ToolCallEvent`는 canonical `tools/call` request를 함께 전달하므로 audit

@@ -68,7 +68,7 @@ export async function runLocalUIToolchain(
         name: call.name,
         arguments: call.arguments,
       },
-      { context: { source: 'local', sessionId } }
+      { context: { source: 'local', mode: 'agent', sessionId } }
     );
     results.push(result);
     executedToolNames.push(call.name);

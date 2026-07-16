@@ -105,13 +105,18 @@ conversation formats. They must all end at the same canonical call boundary:
 ```ts
 await registry.executeModelToolCall(
   { id, name, arguments: parsedArguments },
-  { context: { source, sessionId }, signal }
+  { context: { source, mode: 'agent', sessionId }, signal }
 );
 ```
 
 When `source` is omitted, the registry records the call as `model`; an
 explicit source such as `local` or `mcp` is preserved for approval, trace, and
 audit consumers.
+
+Treat `source` as the transport origin and `mode` as the execution intent:
+agent/model loops use `mode: 'agent'`, while explicit palette or command
+actions use `mode: 'direct'`. Keep provider-specific values in `metadata`; do
+not overload them to decide whether a mutation needs approval.
 
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.
@@ -253,7 +258,8 @@ was sent; the acknowledgement must match the requested revision.
 Use when a user needs to inspect or retry a tool without involving a model.
 
 1. Build the request with the shared `toToolCallRequest()` adapter.
-2. Execute it from the action hook through the registry boundary.
+2. Execute it from the action hook through the registry boundary with
+   `context.mode: 'direct'`.
 3. Apply the same policy, revision guard, persistence, and preview wait as a
    model-originated call.
 4. Preserve the canonical error code and `retryable` flag in the trace.
