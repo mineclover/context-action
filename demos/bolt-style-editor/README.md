@@ -84,7 +84,9 @@ hooks: `use-tool-execution` owns provider-neutral execution,
 boundary. Browser-only helpers
 such as revision guards, patching, escaping, and cancellation remain in
 `src/tool-runtime-utils.ts`; views under `src/views/` receive data and
-callbacks without owning workspace mutation policy.
+callbacks without owning workspace mutation policy. The keyboard-aware file
+tree is isolated in `src/views/workspace-file-tree.tsx` and only emits file
+selection callbacks.
 
 The code header shows the current text size against the shared 80,000-character
 workspace mutation limit. Imported files may use the separate filesystem import
