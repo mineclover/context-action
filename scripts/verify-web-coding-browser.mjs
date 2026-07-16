@@ -268,13 +268,21 @@ async function runBrowserProof(url) {
     await page.getByRole('tab', { name: /app\.js/ }).click();
     const appEditor = page.getByLabel('Edit app.js');
     const initialAppSource = await appEditor.inputValue();
-    await appEditor.fill("throw new Error('browser preview proof');\n");
+    await appEditor.fill(
+      "throw new Error('browser preview proof ' + 'x'.repeat(1000));\n"
+    );
     const previewError = page.getByRole('alert', {
       name: 'Preview runtime error',
     });
     await previewError.waitFor();
-    if (!(await previewError.textContent())?.includes('browser preview proof')) {
+    const previewErrorText = await previewError.textContent();
+    if (!previewErrorText?.includes('browser preview proof')) {
       throw new Error('The preview runtime error message was not surfaced.');
+    }
+    if (previewErrorText.length > 420) {
+      throw new Error(
+        `The preview runtime error was not bounded: ${previewErrorText.length} characters.`
+      );
     }
     await appEditor.fill(initialAppSource);
     await page.locator('.preview-status-synced').waitFor();
@@ -1124,7 +1132,7 @@ async function runBrowserProof(url) {
     }
 
     const unexpectedConsoleErrors = consoleErrors.filter(
-      (message) => message !== 'browser preview proof'
+      (message) => !message.startsWith('browser preview proof')
     );
     if (unexpectedConsoleErrors.length) {
       throw new Error(

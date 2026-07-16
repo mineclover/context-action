@@ -522,9 +522,21 @@ function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
   };
   return (
     typeof message.revision === 'number' &&
+    Number.isSafeInteger(message.revision) &&
+    message.revision >= 0 &&
     (message.type === 'context-action.preview.ready' ||
       (message.type === 'context-action.preview.error' &&
         typeof message.message === 'string'))
+  );
+}
+
+const PREVIEW_ERROR_MESSAGE_LIMIT = 240;
+
+function boundPreviewErrorMessage(message: string): string {
+  const normalized = message.trim();
+  return (normalized || 'Preview runtime error').slice(
+    0,
+    PREVIEW_ERROR_MESSAGE_LIMIT
   );
 }
 
@@ -2026,7 +2038,7 @@ function EditorWorkbench({
         workspace.setPreviewStatus(
           event.data.revision,
           'error',
-          event.data.message
+          boundPreviewErrorMessage(event.data.message)
         );
       }
     };
