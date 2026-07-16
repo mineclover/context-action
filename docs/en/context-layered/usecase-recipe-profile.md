@@ -293,6 +293,38 @@ small circuit-breaker demonstrations. Keep policy decisions pure, put timers
 and transport effects in the Registry, and keep the route responsible only for
 provider composition and feature scope.
 
+## Virtualized scroll usecase
+
+Infinite scroll is a useful usecase when high-frequency position updates,
+virtualized rendering, asynchronous page loading, and DOM animation need clear
+ownership:
+
+```text
+scroll event → position/virtualization commands → Handler Registry
+             → scroll/content/metrics Stores → virtualized View
+```
+
+The Scroll recipe applies the following boundaries:
+
+- `business/scroll-rules.ts` owns content generation, velocity derivation,
+  virtualization windows, and page-load metric transitions.
+- `contexts/ScrollContexts.tsx` defines Action, Store, and Ref contracts; the
+  Ref Context exposes the scroll container without putting the DOM node in a
+  Store.
+- `actions/useScrollActions.ts` exposes semantic commands such as
+  `smoothScrollTo`, `loadMoreContent`, and `resetScroll`.
+- `handlers/ScrollHandlerRegistry.tsx` owns handler registration, the async
+  loading lifecycle, requestAnimationFrame animation, and the 60fps auto-scroll
+  loop.
+- The View subscribes to scroll data, content, loading, virtualization, and
+  metrics while keeping event handlers limited to payload calculation and
+  command dispatch.
+
+Use this recipe for large content surfaces where only the visible window should
+render. Keep the content window bounded by virtualization, keep DOM feedback
+in the Ref boundary, and keep page-loading state transitions observable in
+Stores rather than local component state.
+
 ## Design-system boundary
 
 The recipe is the integration point for Astryx-like conventions:

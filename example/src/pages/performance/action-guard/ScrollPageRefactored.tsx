@@ -6,126 +6,19 @@
  * 무한 스크롤과 가상화된 스크롤링 시스템을 보여주는 고급 데모입니다.
  */
 
-import {
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useCallback, useMemo } from 'react';
 import { CodeBlock } from '@/components/ui';
-
-// ===== 타입 정의 =====
-interface ScrollItem {
-  id: string;
-  title: string;
-  content: string;
-  color: string;
-  timestamp: string;
-  numericId: number;
-  category: string;
-  priority: number;
-}
-
-interface ScrollActions {
-  updateScrollPosition: {
-    scrollTop: number;
-    scrollLeft: number;
-    element: string;
-    velocity: number;
-    direction: 'up' | 'down';
-  };
-  reachScrollEnd: {
-    element: string;
-    direction: 'top' | 'bottom' | 'left' | 'right';
-  };
-  loadMoreContent: { page: number; itemsPerPage: number };
-  smoothScrollTo: { element: string; target: number; direction: 'x' | 'y' };
-  resetScroll: { element: string };
-  setAutoScroll: { enabled: boolean; speed: number };
-  updateVirtualization: { startIndex: number; endIndex: number };
-}
-
-interface ScrollMetrics {
-  totalScrolls: number;
-  averageScrollSpeed: number;
-  maxScrollDepth: number;
-  virtualizedItems: number;
-  loadedPages: number;
-  performanceScore: number;
-}
-
-// ===== 샘플 데이터 생성 =====
-let globalItemCounter = 0;
-const categories = ['Article', 'Tutorial', 'News', 'Guide', 'Reference'];
-const priorityColors = [
-  'hsl(220, 70%, 88%)',
-  'hsl(180, 70%, 88%)',
-  'hsl(140, 70%, 88%)',
-  'hsl(60, 70%, 88%)',
-  'hsl(300, 70%, 88%)',
-];
-
-const generateScrollContent = (
-  page: number,
-  itemsPerPage: number = 20
-): ScrollItem[] => {
-  return Array.from({ length: itemsPerPage }, (_, i) => {
-    const id = ++globalItemCounter;
-    const category = categories[Math.floor(Math.random() * categories.length)]!;
-    const priority = Math.floor(Math.random() * 5);
-
-    return {
-      id: `scroll-item-${id}`,
-      title: `${category} Item #${id}`,
-      content: `이것은 ${id}번째 스크롤 아이템입니다. Context-Action 프레임워크의 무한 스크롤 기능을 테스트하기 위한 샘플 컨텐츠로, 가상화된 렌더링과 성능 최적화를 보여줍니다. 카테고리: ${category}, 우선순위: ${priority + 1}`,
-      color: priorityColors[priority]!,
-      timestamp: new Date(Date.now() - Math.random() * 86400000 * 30)
-        .toISOString()
-        .split('T')[0]!,
-      numericId: id,
-      category,
-      priority,
-    };
-  });
-};
-
-// ===== Store Context =====
-const { Provider: ScrollStoreProvider, useStore: useScrollStore } =
-  createStoreContext('AdvancedScroll', {
-    scrollData: {
-      scrollTop: 0,
-      scrollLeft: 0,
-      element: '',
-      velocity: 0,
-      direction: 'down' as 'up' | 'down',
-    },
-    content: generateScrollContent(0, 15),
-    loading: false,
-    currentPage: 0,
-    autoScrolling: false,
-    scrollSpeed: 2,
-    virtualization: {
-      startIndex: 0,
-      endIndex: 10,
-      itemHeight: 100,
-      containerHeight: 400,
-    },
-    metrics: {
-      totalScrolls: 0,
-      averageScrollSpeed: 0,
-      maxScrollDepth: 0,
-      virtualizedItems: 0,
-      loadedPages: 1,
-      performanceScore: 95,
-    } as ScrollMetrics,
-  });
-
-// ===== Action Context =====
-const {
-  Provider: ScrollActionProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<ScrollActions>('AdvancedScroll');
+import { useScrollActions } from './scroll/actions/useScrollActions';
+import { calculateVirtualization } from './scroll/business/scroll-rules';
+import {
+  ScrollActionProvider,
+  ScrollRefProvider,
+  ScrollStoreProvider,
+  useScrollRef,
+  useScrollStore,
+} from './scroll/contexts/ScrollContexts';
+import { ScrollHandlerRegistry } from './scroll/handlers/ScrollHandlerRegistry';
 
 // ===== 메인 페이지 컴포넌트 =====
 export function ScrollPageRefactored() {
@@ -135,18 +28,22 @@ export function ScrollPageRefactored() {
         {/* 1. Architecture Section */}
         <ArchitectureSection />
 
-        <ScrollStoreProvider>
-          <ScrollActionProvider>
-            {/* 2. Demo Section */}
-            <DemoSection />
+        <ScrollActionProvider>
+          <ScrollStoreProvider>
+            <ScrollRefProvider>
+              <ScrollHandlerRegistry>
+                {/* 2. Demo Section */}
+                <DemoSection />
 
-            {/* 3. Status Section */}
-            <StatusSection />
+                {/* 3. Status Section */}
+                <StatusSection />
 
-            {/* 4. Code Section */}
-            <CodeSection />
-          </ScrollActionProvider>
-        </ScrollStoreProvider>
+                {/* 4. Code Section */}
+                <CodeSection />
+              </ScrollHandlerRegistry>
+            </ScrollRefProvider>
+          </ScrollStoreProvider>
+        </ScrollActionProvider>
       </div>
     </div>
   );
@@ -304,10 +201,16 @@ function DemoSection() {
 
 // ===== Scroll Demo Interface =====
 function ScrollDemoInterface() {
-  const dispatch = useActionDispatch();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const lastScrollTime = useRef<number>(0);
-  const lastScrollTop = useRef<number>(0);
+  const {
+    loadMoreContent,
+    reachScrollEnd,
+    resetScroll,
+    setAutoScroll,
+    smoothScrollTo,
+    updateScrollPosition,
+    updateVirtualization,
+  } = useScrollActions();
+  const scrollContainerRef = useScrollRef('container');
 
   // Store subscriptions
   const scrollDataStore = useScrollStore('scrollData');
@@ -328,185 +231,6 @@ function ScrollDemoInterface() {
   const virtualization = useStoreValue(virtualizationStore);
   const metrics = useStoreValue(metricsStore);
 
-  // Action handlers
-  useActionHandler(
-    'updateScrollPosition',
-    useCallback(
-      async (payload) => {
-        const now = Date.now();
-        const timeDelta = now - lastScrollTime.current;
-        const scrollDelta = Math.abs(payload.scrollTop - lastScrollTop.current);
-
-        if (timeDelta > 0) {
-          const velocity = scrollDelta / timeDelta;
-          const direction =
-            payload.scrollTop > lastScrollTop.current ? 'down' : 'up';
-
-          scrollDataStore.setValue({
-            ...payload,
-            velocity,
-            direction,
-          });
-        } else {
-          scrollDataStore.setValue(payload);
-        }
-
-        lastScrollTime.current = now;
-        lastScrollTop.current = payload.scrollTop;
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        metricsStore.setValue({
-          ...currentMetrics,
-          totalScrolls: currentMetrics.totalScrolls + 1,
-          maxScrollDepth: Math.max(
-            currentMetrics.maxScrollDepth,
-            payload.scrollTop
-          ),
-        });
-      },
-      [scrollDataStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'reachScrollEnd',
-    useCallback(
-      async (payload) => {
-        if (payload.direction === 'bottom' && !loading) {
-          dispatch('loadMoreContent', {
-            page: currentPageStore.getValue() + 1,
-            itemsPerPage: 10,
-          });
-        }
-      },
-      [dispatch, loading, currentPageStore]
-    )
-  );
-
-  useActionHandler(
-    'loadMoreContent',
-    useCallback(
-      async (payload) => {
-        loadingStore.setValue(true);
-
-        // Loading simulation with performance tracking
-        const startTime = Date.now();
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        const newContent = generateScrollContent(
-          payload.page,
-          payload.itemsPerPage
-        );
-        const currentContent = contentStore.getValue() || [];
-
-        contentStore.setValue([...currentContent, ...newContent]);
-        currentPageStore.setValue(payload.page);
-        loadingStore.setValue(false);
-
-        // Update metrics
-        const currentMetrics = metricsStore.getValue();
-        const loadTime = Date.now() - startTime;
-        metricsStore.setValue({
-          ...currentMetrics,
-          loadedPages: payload.page + 1,
-          performanceScore: Math.max(
-            90,
-            currentMetrics.performanceScore - (loadTime > 1000 ? 1 : 0)
-          ),
-        });
-      },
-      [loadingStore, contentStore, currentPageStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'smoothScrollTo',
-    useCallback(async (payload) => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
-
-      const start =
-        payload.direction === 'y' ? container.scrollTop : container.scrollLeft;
-      const target = payload.target;
-      const distance = target - start;
-      const duration = Math.abs(distance) / 2; // Variable duration based on distance
-      let startTime: number | null = null;
-
-      const animateScroll = (currentTime: number) => {
-        if (startTime === null) startTime = currentTime;
-        const timeElapsed = currentTime - startTime;
-        const progress = Math.min(timeElapsed / duration, 1);
-
-        // Easing function (cubic-bezier)
-        const easeInOutCubic =
-          progress < 0.5
-            ? 4 * progress * progress * progress
-            : 1 - (-2 * progress + 2) ** 3 / 2;
-
-        const currentPosition = start + distance * easeInOutCubic;
-
-        if (payload.direction === 'y') {
-          container.scrollTop = currentPosition;
-        } else {
-          container.scrollLeft = currentPosition;
-        }
-
-        if (progress < 1) {
-          requestAnimationFrame(animateScroll);
-        }
-      };
-
-      requestAnimationFrame(animateScroll);
-    }, [])
-  );
-
-  useActionHandler(
-    'setAutoScroll',
-    useCallback(
-      async (payload) => {
-        autoScrollingStore.setValue(payload.enabled);
-        scrollSpeedStore.setValue(payload.speed);
-      },
-      [autoScrollingStore, scrollSpeedStore]
-    )
-  );
-
-  useActionHandler(
-    'updateVirtualization',
-    useCallback(
-      async (payload) => {
-        const currentVirt = virtualizationStore.getValue();
-        virtualizationStore.setValue({
-          ...currentVirt,
-          ...payload,
-        });
-      },
-      [virtualizationStore]
-    )
-  );
-
-  // Auto scroll effect
-  useEffect(() => {
-    if (!autoScrolling) return;
-
-    const interval = setInterval(() => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
-
-      const newScrollTop = container.scrollTop + scrollSpeed;
-      const maxScroll = container.scrollHeight - container.clientHeight;
-
-      if (newScrollTop >= maxScroll) {
-        dispatch('setAutoScroll', { enabled: false, speed: scrollSpeed });
-      } else {
-        container.scrollTop = newScrollTop;
-      }
-    }, 16); // 60fps
-
-    return () => clearInterval(interval);
-  }, [autoScrolling, scrollSpeed, dispatch]);
-
   // Scroll event handler
   const handleScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
@@ -516,42 +240,43 @@ function ScrollDemoInterface() {
       const scrollHeight = target.scrollHeight;
       const clientHeight = target.clientHeight;
 
-      const velocity = Math.abs(scrollTop - lastScrollTop.current);
-      const direction = scrollTop > lastScrollTop.current ? 'down' : 'up';
-
-      dispatch('updateScrollPosition', {
+      updateScrollPosition({
         scrollTop,
         scrollLeft,
         element: 'scroll-container',
-        velocity,
-        direction,
+        velocity: 0,
+        direction: 'down',
       });
 
       // Virtual scrolling calculation
       const itemHeight = virtualization?.itemHeight || 100;
-      const startIndex = Math.floor(scrollTop / itemHeight);
-      const endIndex = Math.min(
-        startIndex + Math.ceil(clientHeight / itemHeight) + 2,
+      const { startIndex, endIndex } = calculateVirtualization(
+        scrollTop,
+        clientHeight,
+        itemHeight,
         content.length
       );
 
-      dispatch('updateVirtualization', { startIndex, endIndex });
+      updateVirtualization(startIndex, endIndex);
 
       // End detection
       if (scrollHeight - scrollTop - clientHeight < 200) {
-        dispatch('reachScrollEnd', {
-          element: 'scroll-container',
-          direction: 'bottom',
-        });
+        reachScrollEnd('bottom');
       }
     },
-    [dispatch, virtualization?.itemHeight, content.length]
+    [
+      content.length,
+      reachScrollEnd,
+      updateScrollPosition,
+      updateVirtualization,
+      virtualization?.itemHeight,
+    ]
   );
 
   // Statistics
   const scrollStats = useMemo(() => {
-    const totalHeight = scrollContainerRef.current?.scrollHeight || 0;
-    const viewportHeight = scrollContainerRef.current?.clientHeight || 0;
+    const totalHeight = scrollContainerRef.target?.scrollHeight || 0;
+    const viewportHeight = scrollContainerRef.target?.clientHeight || 0;
     const scrollPercentage =
       totalHeight > viewportHeight
         ? Math.round(
@@ -587,28 +312,18 @@ function ScrollDemoInterface() {
             </h4>
             <div className="space-y-2">
               <button
-                onClick={() =>
-                  dispatch('smoothScrollTo', {
-                    element: 'scroll-container',
-                    target: 0,
-                    direction: 'y',
-                  })
-                }
+                onClick={() => smoothScrollTo(0)}
                 className="w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-1"
               >
                 <span className="w-4 h-4" />맨 위로
               </button>
               <button
                 onClick={() => {
-                  const container = scrollContainerRef.current;
+                  const container = scrollContainerRef.target;
                   if (container) {
                     const middle =
                       (container.scrollHeight - container.clientHeight) / 2;
-                    dispatch('smoothScrollTo', {
-                      element: 'scroll-container',
-                      target: middle,
-                      direction: 'y',
-                    });
+                    smoothScrollTo(middle);
                   }
                 }}
                 className="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
@@ -617,15 +332,11 @@ function ScrollDemoInterface() {
               </button>
               <button
                 onClick={() => {
-                  const container = scrollContainerRef.current;
+                  const container = scrollContainerRef.target;
                   if (container) {
                     const bottom =
                       container.scrollHeight - container.clientHeight;
-                    dispatch('smoothScrollTo', {
-                      element: 'scroll-container',
-                      target: bottom,
-                      direction: 'y',
-                    });
+                    smoothScrollTo(bottom);
                   }
                 }}
                 className="w-full px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors text-sm flex items-center justify-center gap-1"
@@ -652,22 +363,14 @@ function ScrollDemoInterface() {
                   max="10"
                   value={scrollSpeed}
                   onChange={(e) =>
-                    dispatch('setAutoScroll', {
-                      enabled: autoScrolling,
-                      speed: parseInt(e.target.value),
-                    })
+                    setAutoScroll(autoScrolling, parseInt(e.target.value))
                   }
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
 
               <button
-                onClick={() =>
-                  dispatch('setAutoScroll', {
-                    enabled: !autoScrolling,
-                    speed: scrollSpeed,
-                  })
-                }
+                onClick={() => setAutoScroll(!autoScrolling, scrollSpeed)}
                 className={`w-full px-3 py-2 rounded transition-colors text-sm flex items-center justify-center gap-1 ${
                   autoScrolling
                     ? 'bg-red-500 text-white hover:bg-red-600'
@@ -697,12 +400,7 @@ function ScrollDemoInterface() {
             </h4>
             <div className="space-y-2">
               <button
-                onClick={() =>
-                  dispatch('loadMoreContent', {
-                    page: currentPage + 1,
-                    itemsPerPage: 10,
-                  })
-                }
+                onClick={() => loadMoreContent(currentPage + 1, 10)}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 transition-colors text-sm flex items-center justify-center gap-1"
               >
@@ -719,16 +417,7 @@ function ScrollDemoInterface() {
               </button>
 
               <button
-                onClick={() => {
-                  globalItemCounter = 0;
-                  contentStore.setValue(generateScrollContent(0, 15));
-                  currentPageStore.setValue(0);
-                  dispatch('smoothScrollTo', {
-                    element: 'scroll-container',
-                    target: 0,
-                    direction: 'y',
-                  });
-                }}
+                onClick={resetScroll}
                 className="w-full px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm flex items-center justify-center gap-1"
               >
                 <span className="w-4 h-4" />
@@ -814,7 +503,7 @@ function ScrollDemoInterface() {
         </div>
 
         <div
-          ref={scrollContainerRef}
+          ref={scrollContainerRef.setRef}
           onScroll={handleScroll}
           className="h-96 overflow-y-auto border border-gray-300 rounded-lg p-4 bg-gradient-to-b from-white to-gray-50"
           style={{ scrollBehavior: 'auto' }}
@@ -1101,34 +790,23 @@ function CodeSection() {
               🏪 Store Context
             </h3>
             <CodeBlock size="sm">
-              {`const { Provider, useStore } = createStoreContext('AdvancedScroll', {
-  scrollData: {
-    scrollTop: 0,
-    scrollLeft: 0,
-    element: '',
-    velocity: 0,
-    direction: 'down' as 'up' | 'down'
-  },
-  content: generateScrollContent(0, 15),
-  loading: false,
-  currentPage: 0,
-  autoScrolling: false,
-  scrollSpeed: 2,
-  virtualization: {
-    startIndex: 0,
-    endIndex: 10,
-    itemHeight: 100,
-    containerHeight: 400
-  },
-  metrics: {
-    totalScrolls: 0,
-    averageScrollSpeed: 0,
-    maxScrollDepth: 0,
-    virtualizedItems: 0,
-    loadedPages: 1,
-    performanceScore: 95
-  } as ScrollMetrics
-});`}
+              {`const { Provider: ScrollActionProvider } =
+  createActionContext<ScrollActions>('AdvancedScroll');
+
+const { Provider: ScrollStoreProvider, useStore } =
+  createStoreContext<ScrollStores>('AdvancedScroll', {
+    scrollData: { initialValue: initialScrollData },
+    content: { initialValue: generateScrollContent(0, 15) },
+    loading: { initialValue: false },
+    currentPage: { initialValue: 0 },
+    autoScrolling: { initialValue: false },
+    scrollSpeed: { initialValue: 2 },
+    virtualization: { initialValue: initialVirtualization },
+    metrics: { initialValue: createInitialScrollMetrics() }
+  });
+
+const { Provider: ScrollRefProvider, useRefHandler: useScrollRef } =
+  createRefContext<ScrollRefs>('AdvancedScrollRefs');`}
             </CodeBlock>
           </div>
 
@@ -1151,16 +829,13 @@ function CodeSection() {
     content.length
   );
   
-  dispatch('updateVirtualization', { startIndex, endIndex });
+  updateVirtualization(startIndex, endIndex);
   
   // Infinite scroll detection
   if (scrollHeight - scrollTop - clientHeight < 200) {
-    dispatch('reachScrollEnd', {
-      element: 'scroll-container',
-      direction: 'bottom'
-    });
+    reachScrollEnd('bottom');
   }
-}, [dispatch, virtualization?.itemHeight, content.length]);`}
+}, [reachScrollEnd, updateVirtualization, virtualization?.itemHeight, content.length]);`}
             </CodeBlock>
           </div>
         </div>
@@ -1171,8 +846,8 @@ function CodeSection() {
               ⚡ Smooth Scroll Animation
             </h3>
             <CodeBlock size="sm">
-              {`useActionHandler('smoothScrollTo', useCallback(async (payload) => {
-  const container = scrollContainerRef.current;
+              {`useScrollActionHandler('smoothScrollTo', useCallback(async (payload) => {
+  const container = useScrollRef('container').target;
   if (!container) return;
   
   const start = payload.direction === 'y' ? container.scrollTop : container.scrollLeft;
@@ -1209,7 +884,7 @@ function CodeSection() {
               📊 Performance Tracking
             </h3>
             <CodeBlock size="sm">
-              {`useActionHandler('updateScrollPosition', useCallback(async (payload) => {
+              {`useScrollActionHandler('updateScrollPosition', useCallback(async (payload) => {
   const now = Date.now();
   const timeDelta = now - lastScrollTime.current;
   const scrollDelta = Math.abs(payload.scrollTop - lastScrollTop.current);

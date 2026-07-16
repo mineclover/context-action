@@ -1,7 +1,6 @@
 [
   "src/lib/patterns/createObjectContextHooks.tsx",
   "src/pages/performance/action-guard/ScrollPage.tsx",
-  "src/pages/performance/action-guard/ScrollPageRefactored.tsx",
   "src/pages/performance/action-guard/SearchPage.tsx",
   "src/pages/performance/action-guard/ThrottleComparisonPage.tsx",
   "src/pages/performance/action-guard/ThrottleComparisonPageRefactored.tsx",

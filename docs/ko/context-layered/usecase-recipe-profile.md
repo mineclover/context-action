@@ -278,6 +278,35 @@ recipe를 사용합니다. 정책 판단은 순수 함수로 유지하고 timer�
 effect는 Registry에 두며, route는 provider 조합과 feature scope만 담당하게
 합니다.
 
+## Virtualized scroll usecase
+
+고빈도 position update, virtualized rendering, 비동기 page loading, DOM
+animation의 소유권을 분리해야 할 때 infinite scroll usecase를 사용합니다.
+
+```text
+scroll event → position/virtualization command → Handler Registry
+             → scroll/content/metrics Store → virtualized View
+```
+
+Scroll recipe는 다음 경계를 적용합니다.
+
+- `business/scroll-rules.ts`가 content 생성, velocity 계산, virtualization
+  window, page-load metric 전이를 소유합니다.
+- `contexts/ScrollContexts.tsx`가 Action·Store·Ref 계약을 정의하며, DOM
+  node를 Store에 넣지 않고 Ref Context로 scroll container를 제공합니다.
+- `actions/useScrollActions.ts`가 `smoothScrollTo`, `loadMoreContent`,
+  `resetScroll` 같은 의미 기반 command를 제공합니다.
+- `handlers/ScrollHandlerRegistry.tsx`가 handler 등록, 비동기 loading
+  lifecycle, requestAnimationFrame animation, 60fps auto-scroll loop를
+  소유합니다.
+- View는 scroll data, content, loading, virtualization, metrics를 구독하고
+  event handler는 payload 계산과 command dispatch만 담당합니다.
+
+대용량 content surface에서 보이는 window만 렌더링해야 할 때 이 recipe를
+사용합니다. virtualization으로 content window를 제한하고, DOM feedback은
+Ref 경계에 두며, page-loading 전이는 local component state가 아니라
+Store에서 관찰 가능하게 유지합니다.
+
 ## Astryx 연결 경계
 
 Recipe를 Astryx 연결 지점으로 사용합니다.
