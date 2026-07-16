@@ -207,6 +207,32 @@ for (const relativeFile of showcaseRequestAdapters) {
   );
 }
 
+const protocolDocumentationFiles = [
+  'docs/en/context-layered/usecase-tool-calling-web-studio.md',
+  'docs/ko/context-layered/usecase-tool-calling-web-studio.md',
+  'docs/en/concept/tool-calling-editor-architecture.md',
+  'docs/ko/concept/tool-calling-editor-architecture.md',
+  'docs/en/llms/conventions.md',
+  'docs/ko/llms/conventions.md',
+];
+const manualToolListRequestPattern =
+  /listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/;
+for (const relativeFile of protocolDocumentationFiles) {
+  const source = readSource(relativeFile);
+  assertContains(
+    relativeFile,
+    source,
+    /toToolListRequest\(/,
+    'the canonical tools/list request adapter'
+  );
+  assertNotContains(
+    relativeFile,
+    source,
+    manualToolListRequestPattern,
+    'manual tools/list request construction'
+  );
+}
+
 const sourceFiles = collectSourceFiles(sourceRoot);
 for (const filePath of sourceFiles) {
   const relativeFile = relativePath(filePath);
@@ -261,5 +287,6 @@ console.log('- handler registrations: tool-handlers.tsx');
 console.log('- external subscriptions: use-editor-observables.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
+console.log(`- protocol documentation checked: ${protocolDocumentationFiles.length}`);
 console.log(`- presentation views checked: ${viewFiles.length}`);
 console.log('- direct runtime/mutation crossings: 0');
