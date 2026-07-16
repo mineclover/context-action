@@ -184,8 +184,9 @@ the standalone `/web-coding/` path alongside the documentation and example app.
 The first package boundary is now represented by the private
 `@context-action/live-code-editor` workspace package. It exports the
 framework-neutral workspace, preview, and folder-import contracts consumed by
-this demo; browser implementations remain local until those contracts have
-independent consumers and tests.
+this demo, together with the pure preview document compiler. The browser-owned
+DocumentManager, filesystem adapter, iframe runtime, and editor adapters remain
+local until they have independent consumers and tests.
 
 See the [tool-calling editor architecture guide](../../docs/en/concept/tool-calling-editor-architecture.md)
 for the full contract, approval policy, revision rules, and extraction plan.

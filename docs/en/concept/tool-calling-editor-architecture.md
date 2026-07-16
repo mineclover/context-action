@@ -435,10 +435,10 @@ ToolContext and the registry.
 The first extraction seam now exists as the private
 `@context-action/live-code-editor` workspace package. It exports the
 framework-neutral workspace, preview, and folder-import contracts consumed by
-the standalone demo, while browser implementations remain local. Extract the
-iframe sandbox, revision protocol, `postMessage` bridge, DocumentManager, and
-editor adapters only after those contracts have independent consumers and
-tests; decide whether to publish the package only after the contract
+the standalone demo, plus the pure preview document compiler. The browser-owned
+DocumentManager, filesystem adapter, iframe runtime, and editor adapters remain
+local. Extract those runtime pieces only after they have independent consumers
+and tests; decide whether to publish the package only after the contract
 stabilizes.
 
 Consider a separate repository only when one or more of these conditions hold:
