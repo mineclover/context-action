@@ -1127,7 +1127,8 @@ async function runBrowserProof(url) {
     const toolLoopPage = await toolLoopContext.newPage();
     const toolLoopConsoleErrors = [];
     let toolLoopRequestCount = 0;
-    let toolLoopSecondRequestBody;
+    let toolLoopFinalRequestBody;
+    let toolLoopPatchExpectedRevision;
     toolLoopPage.on('console', (message) => {
       if (message.type() !== 'error') return;
       const text = message.text();
@@ -1173,7 +1174,47 @@ async function runBrowserProof(url) {
           });
           return;
         }
-        toolLoopSecondRequestBody = requestBody;
+        if (toolLoopRequestCount === 2) {
+          const statusResultMessage = requestBody.messages?.find(
+            (message) =>
+              message.role === 'tool' &&
+              message.tool_call_id === 'provider_status_1'
+          );
+          const statusResult = JSON.parse(statusResultMessage?.content ?? '{}');
+          toolLoopPatchExpectedRevision = statusResult.revision;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: [
+                      {
+                        id: 'provider_patch_1',
+                        type: 'function',
+                        function: {
+                          name: 'workspace.applyPatch',
+                          arguments: JSON.stringify({
+                            path: 'index.html',
+                            search: 'Ship a page from a conversation.',
+                            replace: 'Ship a page from a provider tool chain.',
+                            occurrence: 'first',
+                            expectedRevision: toolLoopPatchExpectedRevision,
+                          }),
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }),
+          });
+          return;
+        }
+        toolLoopFinalRequestBody = requestBody;
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -1194,18 +1235,30 @@ async function runBrowserProof(url) {
       await toolLoopPage.goto(url, { waitUntil: 'networkidle' });
       await toolLoopPage.getByText('Ready', { exact: true }).waitFor();
       const toolLoopPrompt = toolLoopPage.getByLabel('Web studio prompt');
-      await toolLoopPrompt.fill('Inspect the current workspace status.');
+      await toolLoopPrompt.fill(
+        'Inspect the current workspace status and update the hero title.'
+      );
       await toolLoopPage.getByRole('button', { name: /^Send/ }).click();
+      const toolLoopPatchApproval = toolLoopPage.getByRole('button', {
+        name: 'Approve workspace.applyPatch',
+      });
+      await toolLoopPatchApproval.waitFor();
+      await toolLoopPatchApproval.click();
       await toolLoopPage
         .getByText('Provider tool chain completed', { exact: true })
         .waitFor();
-      if (toolLoopRequestCount !== 2) {
+      if (toolLoopRequestCount !== 3) {
         throw new Error(
-          `The OpenRouter tool loop expected two provider requests, got ${toolLoopRequestCount}.`
+          `The OpenRouter tool loop expected three provider requests, got ${toolLoopRequestCount}.`
         );
       }
-      const toolLoopMessages = toolLoopSecondRequestBody?.messages;
-      const assistantToolMessage = toolLoopMessages?.find(
+      if (typeof toolLoopPatchExpectedRevision !== 'number') {
+        throw new Error(
+          'The OpenRouter mutation tool call did not receive the workspace revision from the status result.'
+        );
+      }
+      const toolLoopMessages = toolLoopFinalRequestBody?.messages;
+      const assistantStatusToolMessage = toolLoopMessages?.find(
         (message) =>
           message.role === 'assistant' &&
           Array.isArray(message.tool_calls) &&
@@ -1213,27 +1266,71 @@ async function runBrowserProof(url) {
             (toolCall) => toolCall.id === 'provider_status_1'
           )
       );
-      const toolResultMessage = toolLoopMessages?.find(
+      const statusToolResultMessage = toolLoopMessages?.find(
         (message) =>
           message.role === 'tool' &&
           message.tool_call_id === 'provider_status_1'
       );
-      if (!assistantToolMessage || !toolResultMessage) {
+      const assistantPatchToolMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'assistant' &&
+          Array.isArray(message.tool_calls) &&
+          message.tool_calls.some(
+            (toolCall) => toolCall.id === 'provider_patch_1'
+          )
+      );
+      const patchToolResultMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'tool' &&
+          message.tool_call_id === 'provider_patch_1'
+      );
+      if (
+        !assistantStatusToolMessage ||
+        !statusToolResultMessage ||
+        !assistantPatchToolMessage ||
+        !patchToolResultMessage
+      ) {
         throw new Error(
-          'The OpenRouter follow-up request did not preserve the assistant tool call and correlated tool result.'
+          'The OpenRouter follow-up request did not preserve both assistant tool calls and their correlated results.'
         );
       }
       if (
-        typeof toolResultMessage.content !== 'string' ||
-        !toolResultMessage.content.includes('storageMode')
+        typeof statusToolResultMessage.content !== 'string' ||
+        !statusToolResultMessage.content.includes('storageMode')
       ) {
         throw new Error(
           'The OpenRouter tool result did not contain the structured workspace status.'
         );
       }
+      if (
+        typeof patchToolResultMessage.content !== 'string' ||
+        !patchToolResultMessage.content.includes('"preview":"synced"')
+      ) {
+        throw new Error(
+          'The OpenRouter mutation result did not report a synchronized preview.'
+        );
+      }
+      if (
+        !(await toolLoopPage.getByLabel('Edit index.html').inputValue()).includes(
+          'Ship a page from a provider tool chain.'
+        )
+      ) {
+        throw new Error(
+          'The OpenRouter mutation did not update the workspace editor source.'
+        );
+      }
+      await toolLoopPage
+        .frameLocator('iframe[title="Live generated web preview"]')
+        .getByText('Ship a page from a provider tool chain.', { exact: true })
+        .waitFor();
       await toolLoopPage
         .locator('#trace-list .trace-row')
         .filter({ hasText: 'workspace.getStatus' })
+        .first()
+        .waitFor();
+      await toolLoopPage
+        .locator('#trace-list .trace-row')
+        .filter({ hasText: 'workspace.applyPatch' })
         .first()
         .waitFor();
       if (toolLoopConsoleErrors.length) {
