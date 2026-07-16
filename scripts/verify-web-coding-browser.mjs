@@ -1121,6 +1121,130 @@ async function runBrowserProof(url) {
       await retryContext.close();
     }
 
+    const toolLoopContext = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const toolLoopPage = await toolLoopContext.newPage();
+    const toolLoopConsoleErrors = [];
+    let toolLoopRequestCount = 0;
+    let toolLoopSecondRequestBody;
+    toolLoopPage.on('console', (message) => {
+      if (message.type() !== 'error') return;
+      const text = message.text();
+      if (text.includes('document is sandboxed and lacks the')) return;
+      toolLoopConsoleErrors.push(text);
+    });
+    toolLoopPage.on('pageerror', (error) => {
+      if (error.message.includes('document is sandboxed and lacks the')) return;
+      toolLoopConsoleErrors.push(error.message);
+    });
+    await toolLoopPage.addInitScript((storageKey) => {
+      window.localStorage.setItem(storageKey, 'test-openrouter-tool-loop-key');
+    }, 'context-action.openrouter.api-key');
+    await toolLoopPage.route(
+      '**/api/v1/chat/completions',
+      async (route) => {
+        toolLoopRequestCount += 1;
+        const requestBody = route.request().postDataJSON();
+        if (toolLoopRequestCount === 1) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: [
+                      {
+                        id: 'provider_status_1',
+                        type: 'function',
+                        function: {
+                          name: 'workspace.getStatus',
+                          arguments: '{}',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }),
+          });
+          return;
+        }
+        toolLoopSecondRequestBody = requestBody;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: 'assistant',
+                  content: 'Provider tool chain completed',
+                },
+              },
+            ],
+          }),
+        });
+      }
+    );
+    try {
+      await toolLoopPage.goto(url, { waitUntil: 'networkidle' });
+      await toolLoopPage.getByText('Ready', { exact: true }).waitFor();
+      const toolLoopPrompt = toolLoopPage.getByLabel('Web studio prompt');
+      await toolLoopPrompt.fill('Inspect the current workspace status.');
+      await toolLoopPage.getByRole('button', { name: /^Send/ }).click();
+      await toolLoopPage
+        .getByText('Provider tool chain completed', { exact: true })
+        .waitFor();
+      if (toolLoopRequestCount !== 2) {
+        throw new Error(
+          `The OpenRouter tool loop expected two provider requests, got ${toolLoopRequestCount}.`
+        );
+      }
+      const toolLoopMessages = toolLoopSecondRequestBody?.messages;
+      const assistantToolMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'assistant' &&
+          Array.isArray(message.tool_calls) &&
+          message.tool_calls.some(
+            (toolCall) => toolCall.id === 'provider_status_1'
+          )
+      );
+      const toolResultMessage = toolLoopMessages?.find(
+        (message) =>
+          message.role === 'tool' &&
+          message.tool_call_id === 'provider_status_1'
+      );
+      if (!assistantToolMessage || !toolResultMessage) {
+        throw new Error(
+          'The OpenRouter follow-up request did not preserve the assistant tool call and correlated tool result.'
+        );
+      }
+      if (
+        typeof toolResultMessage.content !== 'string' ||
+        !toolResultMessage.content.includes('storageMode')
+      ) {
+        throw new Error(
+          'The OpenRouter tool result did not contain the structured workspace status.'
+        );
+      }
+      await toolLoopPage
+        .locator('#trace-list .trace-row')
+        .filter({ hasText: 'workspace.getStatus' })
+        .first()
+        .waitFor();
+      if (toolLoopConsoleErrors.length) {
+        throw new Error(
+          `OpenRouter tool loop browser errors: ${toolLoopConsoleErrors.join(' | ')}`
+        );
+      }
+    } finally {
+      await toolLoopContext.close();
+    }
+
     const mobilePage = await page.context().browser().newPage({
       viewport: { width: 390, height: 844 },
     });
