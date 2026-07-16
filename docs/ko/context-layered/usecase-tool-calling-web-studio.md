@@ -157,6 +157,11 @@ example Live Code Editor의 reset approval은 `window.confirm` 대신 in-app
 dialog를 사용합니다. 취소 action에 focus를 두고 `Escape` 또는 backdrop click으로
 닫을 수 있으며, 명시적으로 확인한 뒤에만 destructive reset command를 실행합니다.
 
+realtime web-coding showcase의 IndexedDB reset도 같은 규칙을 따릅니다. reset
+버튼은 in-app approval dialog를 열고, dialog의 명시적 확인 action만 repository
+교체를 실행합니다. 따라서 browser-only workspace reset도 model/tool approval
+경계와 일치하고 자동화된 UI 테스트에서 상태를 확인할 수 있습니다.
+
 policy callback이 외부 event store를 사용해야 한다면 React에는 전용
 observable hook으로 노출합니다. non-React ToolContext callback과 React
 subscription을 모두 안전하게 유지할 수 있습니다.

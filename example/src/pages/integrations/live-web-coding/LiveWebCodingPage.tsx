@@ -670,10 +670,22 @@ function LiveWebCodingWorkbench({
   ]);
   const [loading, setLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
   const [traceCopied, setTraceCopied] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
   const executionControllerRef = useRef<AbortController | null>(null);
+  const resetCancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!resetConfirmationOpen) return;
+    resetCancelButtonRef.current?.focus();
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setResetConfirmationOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [resetConfirmationOpen]);
 
   useEffect(
     () => () => {
@@ -960,14 +972,8 @@ function LiveWebCodingWorkbench({
     ) {
       return;
     }
-    if (
-      !window.confirm(
-        'Reset the live web coding demo to its built-in files? Current demo edits will be replaced.'
-      )
-    ) {
-      return;
-    }
 
+    setResetConfirmationOpen(false);
     setIsResetting(true);
     setError('');
     try {
@@ -1003,6 +1009,17 @@ function LiveWebCodingWorkbench({
     } finally {
       setIsResetting(false);
     }
+  };
+
+  const requestResetDemoWorkspace = () => {
+    if (
+      loading ||
+      isResetting ||
+      workspaceSnapshot.storageMode !== 'indexed-db'
+    ) {
+      return;
+    }
+    setResetConfirmationOpen(true);
   };
 
   const activeFile = workspaceSnapshot.files.find(
@@ -1244,7 +1261,7 @@ function LiveWebCodingWorkbench({
                   <button
                     type="button"
                     className={styles.workspaceResetButton}
-                    onClick={() => void resetDemoWorkspace()}
+                    onClick={requestResetDemoWorkspace}
                     disabled={
                       loading ||
                       isResetting ||
@@ -1348,6 +1365,53 @@ function LiveWebCodingWorkbench({
               </div>
             </section>
           </section>
+
+          {resetConfirmationOpen && (
+            <div
+              className={styles.dialogBackdrop}
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.currentTarget === event.target) {
+                  setResetConfirmationOpen(false);
+                }
+              }}
+            >
+              <div
+                className={styles.confirmationDialog}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="realtime-reset-workspace-title"
+                aria-describedby="realtime-reset-workspace-description"
+              >
+                <span className={styles.dialogEyebrow}>Approval required</span>
+                <h2 id="realtime-reset-workspace-title">
+                  Reset realtime workspace?
+                </h2>
+                <p id="realtime-reset-workspace-description">
+                  Current IndexedDB edits and chat history will be replaced with
+                  the built-in web coding files. This does not write to a
+                  connected local folder.
+                </p>
+                <div className={styles.dialogActions}>
+                  <button
+                    ref={resetCancelButtonRef}
+                    type="button"
+                    className={styles.dialogSecondary}
+                    onClick={() => setResetConfirmationOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.dialogDanger}
+                    onClick={() => void resetDemoWorkspace()}
+                  >
+                    Reset workspace
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <footer className={styles.footer}>
             <span>

@@ -236,6 +236,16 @@ assertNotContains(
   /window\.confirm\(/,
   'native confirmation from the live editor page'
 );
+assertContains(
+  realtimeWebCodingSource,
+  /role="dialog"[\s\S]*aria-modal="true"/,
+  'realtime web-coding reset approval dialog'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /window\.confirm\(/,
+  'native confirmation from the realtime web-coding page'
+);
 assertNotContains(
   liveEditorToolbarSource,
   /(?:registry\.(?:callTool|executeModelToolCall|listTools)|liveEditorTraceStore|useSyncExternalStore|getFreeModelsWithTools|saveOpenRouterApiKey|serializeToolTrace|downloadTextFile|writeClipboardText)/,
@@ -267,3 +277,4 @@ console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
 console.log('- live editor reset approval boundary checked');
+console.log('- realtime web-coding reset approval boundary checked');

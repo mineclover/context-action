@@ -175,6 +175,12 @@ The example Live Code Editor uses an in-app reset approval dialog rather than
 backdrop click, and only invokes the destructive reset command after explicit
 confirmation.
 
+The realtime web-coding showcase follows the same rule for its IndexedDB reset:
+the reset button opens an in-app approval dialog, and the repository replacement
+is invoked only by the dialog's explicit confirmation action. This keeps the
+browser-only workspace reset aligned with the model/tool approval boundary and
+makes the state inspectable by automated UI tests.
+
 If a policy callback must use an external event store, expose that store to
 React through a dedicated observable hook. This keeps the non-React ToolContext
 callback safe while keeping subscriptions out of view components.
