@@ -93,6 +93,15 @@ const aiDemoSource = readSource(
 const realtimeWebCodingSource = readSource(
   'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx'
 );
+const realtimeToolActionsSource = readSource(
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts'
+);
+const realtimeAgentActionsSource = readSource(
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingAgentExecution.ts'
+);
+const realtimeToolHandlersSource = readSource(
+  'example/src/pages/integrations/live-web-coding/handlers/LiveWebCodingToolHandlers.tsx'
+);
 const liveEditorToolbarSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
 );
@@ -132,12 +141,12 @@ assertContains(
   'ToolContext AI multi-turn history preservation'
 );
 assertContains(
-  realtimeWebCodingSource,
+  realtimeAgentActionsSource,
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'realtime web-coding multi-turn history preservation'
 );
 assertContains(
-  realtimeWebCodingSource,
+  realtimeToolActionsSource,
   /source:\s*'local',[\s\S]*?mode:\s*'agent',[\s\S]*?provider:\s*'local-fallback'/,
   'realtime web-coding local-agent source and mode'
 );
@@ -152,8 +161,8 @@ assertContains(
   'example tools/call trace method'
 );
 assertContains(
-  realtimeWebCodingSource,
-  /recordLiveWebCodingToolList\(listedTools\.tools\.length/,
+  realtimeToolActionsSource,
+  /recordLiveWebCodingToolList\(result\.tools\.length/,
   'realtime web-coding discovery trace'
 );
 assertContains(
@@ -162,9 +171,44 @@ assertContains(
   'example agent request trace method'
 );
 assertContains(
-  realtimeWebCodingSource,
+  realtimeAgentActionsSource,
   /startLiveWebCodingAgentTrace\(agentSource,\s*sessionId\)/,
   'realtime web-coding agent trace lifecycle'
+);
+assertContains(
+  realtimeToolActionsSource,
+  /registry\.callTool\(\s*toToolCallRequest\(/,
+  'realtime web-coding direct action boundary'
+);
+assertContains(
+  realtimeToolActionsSource,
+  /registry\.executeModelToolCall\(/,
+  'realtime web-coding model-shaped action boundary'
+);
+assertContains(
+  realtimeToolActionsSource,
+  /registry\.listTools\(toToolListRequest\(\)\)/,
+  'realtime web-coding action discovery boundary'
+);
+assertContains(
+  realtimeAgentActionsSource,
+  /runner\.generate\([\s\S]*?registry:/,
+  'realtime web-coding provider action boundary'
+);
+assertContains(
+  realtimeToolHandlersSource,
+  /useLiveWebCodingToolHandler\(/,
+  'realtime web-coding handler registration boundary'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /registry\.(?:callTool|executeModelToolCall|listTools)/,
+  'direct runtime registry APIs from the realtime web-coding workbench'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /useLiveWebCodingToolHandler\(/,
+  'handler registration from the realtime web-coding workbench'
 );
 assertContains(
   liveEditorAgentActionsSource,
@@ -277,4 +321,5 @@ console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
 console.log('- live editor reset approval boundary checked');
+console.log('- realtime web-coding handler/action/presentation boundary checked');
 console.log('- realtime web-coding reset approval boundary checked');

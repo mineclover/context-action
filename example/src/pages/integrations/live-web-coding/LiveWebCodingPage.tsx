@@ -1,12 +1,6 @@
 import {
-  createToolContext,
-  toToolCallRequest,
-  toToolListRequest,
-} from '@context-action/react';
-import type { ModelMessage } from 'ai';
-import {
   type FormEvent,
-  type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -16,46 +10,39 @@ import {
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
-import { normalizeWorkspacePath } from '../../../lib/live-code-editor-filesystem';
 import { LiveEditorWorkspaceRepository } from '../../../lib/live-code-editor-storage';
 import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
-import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
-import { liveWebCodingToolsSchema } from '../../../lib/live-web-coding-tools-schema';
 import {
   clearLiveWebCodingTrace,
-  finishLiveWebCodingAgentTrace,
   formatLiveWebCodingTraceId,
   liveWebCodingTraceStore,
-  recordLiveWebCodingToolCall,
-  recordLiveWebCodingToolList,
-  startLiveWebCodingAgentTrace,
 } from '../../../lib/live-web-coding-trace';
-import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
-import {
-  saveOpenRouterApiKey,
-  useStoredOpenRouterApiKey,
-} from '../../../lib/openrouter-api-key';
-import {
-  formatModelName,
-  getFreeModelsWithTools,
-  type OpenRouterModel,
-} from '../../../lib/openrouter-models';
+import { formatModelName } from '../../../lib/openrouter-models';
 import {
   createToolCallSessionId,
   downloadTextFile,
   serializeToolTrace,
   writeClipboardText,
 } from '../../../lib/tool-call-trace';
+import { useLiveEditorProviderSettings } from '../live-code-editor/actions/useLiveEditorProviderSettings';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
+import { useLiveWebCodingAgentExecution } from './actions/useLiveWebCodingAgentExecution';
+import {
+  formatLiveWebCodingToolResult,
+  useLiveWebCodingToolActions,
+} from './actions/useLiveWebCodingToolActions';
+import {
+  LIVE_WEB_WORKSPACE_ID,
+  LiveWebCodingToolHandlers,
+} from './handlers/LiveWebCodingToolHandlers';
 import styles from './LiveWebCodingPage.module.css';
+import { LiveWebCodingToolProvider } from './LiveWebCodingToolchain';
 
-const WEB_WORKSPACE_ID = 'live-web-coding-demo';
+const WEB_WORKSPACE_ID = LIVE_WEB_WORKSPACE_ID;
 const WEB_WORKSPACE_ROOT = 'live-web-coding-demo';
-const WEB_CODING_SYSTEM_PROMPT =
-  'You are a realtime web coding assistant. Inspect the workspace before editing. Use web.setTheme, web.addFeature, web.updateHero, web.applyPatch, or web.writeFile to make the requested change. When read results include a workspace revision, pass it as expectedRevision for mutations. The user expects a visible HTML/CSS/JS preview update.';
 
 const defaultWebFiles = [
   createWorkspaceFile(
@@ -138,27 +125,6 @@ function createDefaultWebWorkspaceBlobFiles() {
   }));
 }
 
-const themeTokens = {
-  violet: { accent: '#6d5dfc', soft: '#eeedff' },
-  emerald: { accent: '#0f9f78', soft: '#e7f8f2' },
-  amber: { accent: '#d97706', soft: '#fff4dc' },
-  rose: { accent: '#e0527a', soft: '#ffedf2' },
-  sky: { accent: '#0b83c6', soft: '#e8f6ff' },
-} as const;
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    };
-    return entities[character] ?? character;
-  });
-}
-
 function createWebPatchSample(
   file: ReturnType<LiveEditorWorkspaceManager['getActiveFile']>
 ): { search: string; replace: string } | null {
@@ -190,447 +156,6 @@ function createWebPatchSample(
     : null;
 }
 
-const {
-  Provider: LiveWebCodingToolProvider,
-  useToolHandler: useLiveWebCodingToolHandler,
-  useToolRegistry: useLiveWebCodingToolRegistry,
-} = createToolContext('LiveWebCodingTools', {
-  schema: liveWebCodingToolsSchema,
-  debug: true,
-  onToolCall: recordLiveWebCodingToolCall,
-});
-
-type WebToolRegistry = ReturnType<typeof useLiveWebCodingToolRegistry>;
-
-const revisionGuardedWebTools = new Set([
-  'web.writeFile',
-  'web.applyPatch',
-  'web.setTheme',
-  'web.addFeature',
-  'web.updateHero',
-]);
-
-function serializeWorkspace(manager: LiveEditorWorkspaceManager) {
-  const snapshot = manager.getSnapshot();
-  return {
-    activePath: snapshot.activePath,
-    rootName: snapshot.rootName,
-    revision: snapshot.revision,
-    files: snapshot.files.map((file) => ({
-      path: file.path,
-      isText: file.isText,
-      size: file.size,
-    })),
-  };
-}
-
-function inferWebWorkspacePath(prompt: string): string | null {
-  const explicitPath = prompt.match(
-    /(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:html?|css|m?js|json|md|txt)(?=\b|[^A-Za-z0-9_.-])/i
-  )?.[0];
-  if (explicitPath) return explicitPath;
-  if (/\bstyle/i.test(prompt)) return 'style.css';
-  if (/\bscript/i.test(prompt)) return 'script.js';
-  return 'index.html';
-}
-
-function inferQuotedWebPatch(
-  prompt: string
-): { path: string; search: string; replace: string } | null {
-  if (!/(replace|change|edit|update|바꾸|바꿔|변경|수정|교체)/i.test(prompt)) {
-    return null;
-  }
-  const quotedValues = Array.from(
-    prompt.matchAll(/["“]([^"”]+)["”]/g),
-    (match) => match[1]?.trim()
-  ).filter((value): value is string => Boolean(value));
-  if (quotedValues.length < 2) return null;
-  const [search, replace] = quotedValues;
-  if (!search || !replace) return null;
-  return {
-    path: inferWebWorkspacePath(prompt) ?? 'index.html',
-    search,
-    replace,
-  };
-}
-
-function assertExpectedWebRevision(
-  manager: LiveEditorWorkspaceManager,
-  expectedRevision?: number
-): void {
-  if (expectedRevision === undefined) return;
-  const currentRevision = manager.getSnapshot().revision;
-  if (expectedRevision !== currentRevision) {
-    throw new Error(
-      `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
-    );
-  }
-}
-
-function WebCodingToolHandlers({
-  manager,
-  documentManager,
-  repository,
-  children,
-}: {
-  manager: LiveEditorWorkspaceManager;
-  documentManager: LiveEditorDocumentManager;
-  repository: LiveEditorWorkspaceRepository;
-  children: ReactNode;
-}) {
-  const updateFileAndWait = async (
-    path: string,
-    source: string,
-    options?: { expectedRevision?: number; signal?: AbortSignal }
-  ) => {
-    if (options?.signal?.aborted)
-      throw new Error('Workspace update cancelled.');
-    assertExpectedWebRevision(manager, options?.expectedRevision);
-    const normalizedPath = normalizeWorkspacePath(path);
-    const current = manager
-      .getSnapshot()
-      .files.find((file) => file.path === normalizedPath);
-    if (current && !current.isText) {
-      throw new Error(
-        `${normalizedPath} is binary and cannot be edited as text.`
-      );
-    }
-
-    const nextWorkspace = manager.updateFile(normalizedPath, source);
-    await repository.saveTextFile(
-      WEB_WORKSPACE_ID,
-      normalizedPath,
-      source,
-      current?.mimeType
-    );
-    if (options?.signal?.aborted)
-      throw new Error('Workspace update cancelled.');
-    const activeDocument = documentManager.getSnapshot();
-    const nextDocument = documentManager.update(
-      activeDocument.file === normalizedPath ? { source } : {}
-    );
-    const preview = await documentManager.waitForRendered(
-      nextDocument.revision,
-      2_000,
-      options?.signal
-    );
-    return { path: normalizedPath, revision: nextWorkspace.revision, preview };
-  };
-
-  useLiveWebCodingToolHandler('web.getWorkspace', () =>
-    serializeWorkspace(manager)
-  );
-
-  useLiveWebCodingToolHandler('web.readFile', ({ path }) => {
-    const file = manager
-      .getSnapshot()
-      .files.find(
-        (candidate) => candidate.path === normalizeWorkspacePath(path)
-      );
-    if (!file) throw new Error(`Workspace file not found: ${path}`);
-    if (!file.isText)
-      throw new Error(`${path} is binary and cannot be read as text.`);
-    return {
-      path: file.path,
-      source: file.source,
-      revision: manager.getSnapshot().revision,
-    };
-  });
-
-  useLiveWebCodingToolHandler<'web.writeFile', unknown>(
-    'web.writeFile',
-    ({ path, source, expectedRevision }, controller) =>
-      updateFileAndWait(path, source, {
-        expectedRevision,
-        signal: controller.signal,
-      })
-  );
-
-  useLiveWebCodingToolHandler<'web.applyPatch', unknown>(
-    'web.applyPatch',
-    async (
-      { path, search, replace, occurrence, expectedRevision },
-      controller
-    ) => {
-      assertExpectedWebRevision(manager, expectedRevision);
-      const normalizedPath = normalizeWorkspacePath(path);
-      const file = manager
-        .getSnapshot()
-        .files.find((candidate) => candidate.path === normalizedPath);
-      if (!file) throw new Error(`Workspace file not found: ${normalizedPath}`);
-      if (!file.isText)
-        throw new Error(
-          `${normalizedPath} is binary and cannot be patched as text.`
-        );
-      const patch = applyLiveEditorTextPatch(
-        file.source,
-        search,
-        replace,
-        occurrence
-      );
-      if (patch.source.length > 100_000) {
-        throw new Error('Patched source exceeds the 100,000 character limit.');
-      }
-      return {
-        replacements: patch.replacements,
-        ...(await updateFileAndWait(normalizedPath, patch.source, {
-          expectedRevision,
-          signal: controller.signal,
-        })),
-      };
-    }
-  );
-
-  useLiveWebCodingToolHandler<'web.setTheme', unknown>(
-    'web.setTheme',
-    async ({ theme, expectedRevision }, controller) => {
-      assertExpectedWebRevision(manager, expectedRevision);
-      const cssFile = manager
-        .getSnapshot()
-        .files.find((file) => file.path === 'style.css');
-      if (!cssFile) throw new Error('style.css is required for theme changes.');
-      const tokens = themeTokens[theme];
-      if (!/--accent:\s*#[0-9a-f]+;/i.test(cssFile.source)) {
-        throw new Error('style.css does not expose an --accent token.');
-      }
-      if (!/--accent-soft:\s*#[0-9a-f]+;/i.test(cssFile.source)) {
-        throw new Error('style.css does not expose an --accent-soft token.');
-      }
-      const source = cssFile.source
-        .replace(/--accent:\s*#[0-9a-f]+;/i, `--accent: ${tokens.accent};`)
-        .replace(
-          /--accent-soft:\s*#[0-9a-f]+;/i,
-          `--accent-soft: ${tokens.soft};`
-        );
-      return {
-        theme,
-        ...(await updateFileAndWait('style.css', source, {
-          expectedRevision,
-          signal: controller.signal,
-        })),
-      };
-    }
-  );
-
-  useLiveWebCodingToolHandler<'web.addFeature', unknown>(
-    'web.addFeature',
-    async ({ title, description, expectedRevision }, controller) => {
-      assertExpectedWebRevision(manager, expectedRevision);
-      const htmlFile = manager
-        .getSnapshot()
-        .files.find((file) => file.path === 'index.html');
-      if (!htmlFile)
-        throw new Error('index.html is required for feature cards.');
-      if (
-        !/<section\s+id="feature-grid"\s+class="feature-grid">[\s\S]*?<\/section>/i.test(
-          htmlFile.source
-        )
-      ) {
-        throw new Error(
-          'index.html does not expose the feature-grid insertion target.'
-        );
-      }
-      const card = `<article class="feature-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></article>`;
-      const source = htmlFile.source.replace(
-        /(<section\s+id="feature-grid"\s+class="feature-grid">[\s\S]*?)(<\/section>)/i,
-        `$1${card}$2`
-      );
-      return {
-        title,
-        ...(await updateFileAndWait('index.html', source, {
-          expectedRevision,
-          signal: controller.signal,
-        })),
-      };
-    }
-  );
-
-  useLiveWebCodingToolHandler<'web.updateHero', unknown>(
-    'web.updateHero',
-    async ({ title, subtitle, expectedRevision }, controller) => {
-      assertExpectedWebRevision(manager, expectedRevision);
-      const htmlFile = manager
-        .getSnapshot()
-        .files.find((file) => file.path === 'index.html');
-      if (!htmlFile)
-        throw new Error('index.html is required for hero changes.');
-      if (
-        !/<h1\b[^>]*id="hero-title"[^>]*>[\s\S]*?<\/h1>/i.test(htmlFile.source)
-      ) {
-        throw new Error('index.html does not expose a hero title target.');
-      }
-      if (
-        !/<p\b[^>]*id="hero-subtitle"[^>]*>[\s\S]*?<\/p>/i.test(htmlFile.source)
-      ) {
-        throw new Error('index.html does not expose a hero subtitle target.');
-      }
-      const source = htmlFile.source
-        .replace(
-          /(<h1\b[^>]*id="hero-title"[^>]*>)[\s\S]*?(<\/h1>)/i,
-          `$1${escapeHtml(title)}$2`
-        )
-        .replace(
-          /(<p\b[^>]*id="hero-subtitle"[^>]*>)[\s\S]*?(<\/p>)/i,
-          `$1${escapeHtml(subtitle)}$2`
-        );
-      return {
-        title,
-        ...(await updateFileAndWait('index.html', source, {
-          expectedRevision,
-          signal: controller.signal,
-        })),
-      };
-    }
-  );
-
-  useLiveWebCodingToolHandler('web.runPreview', () => ({
-    workspace: serializeWorkspace(manager),
-    preview: documentManager.getPreviewStatus(),
-  }));
-
-  return <>{children}</>;
-}
-
-function callToolResultText(result: {
-  isError?: boolean;
-  error?: { message?: string };
-  structuredContent?: unknown;
-}) {
-  if (result.isError) return result.error?.message ?? 'Tool call failed.';
-  return JSON.stringify(result.structuredContent ?? {}, null, 2);
-}
-
-async function runLocalPrompt(
-  registry: WebToolRegistry,
-  prompt: string,
-  signal?: AbortSignal,
-  sessionId?: string
-): Promise<{ toolNames: string[]; response: string; failed: boolean }> {
-  const listedTools = registry.listTools(toToolListRequest());
-  recordLiveWebCodingToolList(listedTools.tools.length, 'local', sessionId);
-  const executeLocalModelCall = (
-    name: string,
-    argumentsValue: Record<string, unknown>
-  ) =>
-    registry.executeModelToolCall(
-      {
-        id: `local-model-${Date.now()}-${name}`,
-        name,
-        arguments: argumentsValue,
-      },
-      {
-        context: {
-          source: 'local',
-          mode: 'agent',
-          ...(sessionId ? { sessionId } : {}),
-          metadata: { provider: 'local-fallback' },
-        },
-        signal,
-      }
-    );
-  const normalized = prompt.toLowerCase();
-  const calls: Array<{
-    name: string;
-    arguments: Record<string, unknown>;
-  }> = [];
-  const textPatch = inferQuotedWebPatch(prompt);
-
-  if (textPatch) {
-    calls.push({
-      name: 'web.applyPatch',
-      arguments: { ...textPatch, occurrence: 'first' },
-    });
-  }
-
-  if (/(보라|purple|violet)/i.test(normalized)) {
-    calls.push({ name: 'web.setTheme', arguments: { theme: 'violet' } });
-  } else if (/(초록|green|emerald|mint)/i.test(normalized)) {
-    calls.push({ name: 'web.setTheme', arguments: { theme: 'emerald' } });
-  } else if (/(주황|amber|orange)/i.test(normalized)) {
-    calls.push({ name: 'web.setTheme', arguments: { theme: 'amber' } });
-  } else if (/(분홍|rose|pink)/i.test(normalized)) {
-    calls.push({ name: 'web.setTheme', arguments: { theme: 'rose' } });
-  }
-
-  if (/(기능|feature|카드|추가)/i.test(normalized)) {
-    calls.push({
-      name: 'web.addFeature',
-      arguments: {
-        title: 'AI generated feature',
-        description: 'A new card was added through a controlled web tool call.',
-      },
-    });
-  }
-
-  if (/(제목|hero|랜딩|landing)/i.test(normalized)) {
-    calls.push({
-      name: 'web.updateHero',
-      arguments: {
-        title: 'A live page shaped by conversation.',
-        subtitle:
-          'The chat selected tools, the workspace changed, and the iframe acknowledged the revision.',
-      },
-    });
-  }
-
-  if (calls.length === 0) {
-    calls.push({ name: 'web.getWorkspace', arguments: {} });
-  }
-
-  const toolNames: string[] = [];
-  let plannedRevision: number | undefined;
-  const workspaceResult = await executeLocalModelCall('web.getWorkspace', {});
-  if (workspaceResult.isError) {
-    return {
-      toolNames: ['web.getWorkspace'],
-      response: callToolResultText(workspaceResult),
-      failed: true,
-    };
-  }
-  const workspace = workspaceResult.structuredContent;
-  if (
-    workspace &&
-    typeof workspace === 'object' &&
-    !Array.isArray(workspace) &&
-    typeof (workspace as { revision?: unknown }).revision === 'number'
-  ) {
-    plannedRevision = (workspace as { revision: number }).revision;
-  }
-  for (const call of calls) {
-    if (signal?.aborted) throw new Error('Execution cancelled.');
-    const argumentsValue =
-      revisionGuardedWebTools.has(call.name) &&
-      call.arguments.expectedRevision === undefined &&
-      plannedRevision !== undefined
-        ? { ...call.arguments, expectedRevision: plannedRevision }
-        : call.arguments;
-    const result = await executeLocalModelCall(call.name, argumentsValue);
-    if (signal?.aborted) throw new Error('Execution cancelled.');
-    toolNames.push(call.name);
-    if (result.isError) {
-      return { toolNames, response: callToolResultText(result), failed: true };
-    }
-    if (revisionGuardedWebTools.has(call.name)) {
-      const nextWorkspace = await executeLocalModelCall('web.getWorkspace', {});
-      const nextRevision = nextWorkspace.structuredContent;
-      if (
-        !nextWorkspace.isError &&
-        nextRevision &&
-        typeof nextRevision === 'object' &&
-        !Array.isArray(nextRevision) &&
-        typeof (nextRevision as { revision?: unknown }).revision === 'number'
-      ) {
-        plannedRevision = (nextRevision as { revision: number }).revision;
-      }
-    }
-  }
-  return {
-    toolNames,
-    response: `로컬 demo agent가 ${toolNames.join(', ')}를 호출하고 preview 동기화를 기다렸습니다.`,
-    failed: false,
-  };
-}
-
 function LiveWebCodingWorkbench({
   manager,
   documentManager,
@@ -640,7 +165,6 @@ function LiveWebCodingWorkbench({
   documentManager: LiveEditorDocumentManager;
   repository: LiveEditorWorkspaceRepository;
 }) {
-  const registry = useLiveWebCodingToolRegistry();
   const trace = useSyncExternalStore(
     liveWebCodingTraceStore.subscribe,
     liveWebCodingTraceStore.getSnapshot,
@@ -656,26 +180,40 @@ function LiveWebCodingWorkbench({
     documentManager.getSnapshot,
     documentManager.getSnapshot
   );
-  const apiKey = useStoredOpenRouterApiKey();
-  const [models, setModels] = useState<OpenRouterModel[]>([]);
-  const [selectedModel, setSelectedModel] = useState('');
+  const providerSettings = useLiveEditorProviderSettings();
+  const { apiKey, models, selectedModel } = providerSettings;
   const [prompt, setPrompt] = useState(
     '보라색 테마로 바꾸고 기능 카드를 하나 추가해줘'
   );
-  const [messages, setMessages] = useState<
-    Array<{ role: 'user' | 'assistant'; text: string; tools?: string[] }>
-  >([]);
-  const [modelMessages, setModelMessages] = useState<ModelMessage[]>([
-    { role: 'system', content: WEB_CODING_SYSTEM_PROMPT },
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [directLoading, setDirectLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
   const [traceCopied, setTraceCopied] = useState(false);
   const [status, setStatus] = useState('IndexedDB workspace loading…');
   const [error, setError] = useState('');
-  const executionControllerRef = useRef<AbortController | null>(null);
+  const directControllerRef = useRef<AbortController | null>(null);
   const resetCancelButtonRef = useRef<HTMLButtonElement>(null);
+  const toolActions = useLiveWebCodingToolActions({
+    workspaceRevision: workspaceSnapshot.revision,
+  });
+  const consumePrompt = useCallback(() => setPrompt(''), []);
+  const agentExecution = useLiveWebCodingAgentExecution({
+    apiKey,
+    selectedModel,
+    toolActions,
+    onPromptConsumed: consumePrompt,
+  });
+  const {
+    appendAssistantMessage,
+    cancel: cancelAgentExecution,
+    error: agentError,
+    loading: agentLoading,
+    messages,
+    resetConversation,
+    run,
+  } = agentExecution;
+  const loading = agentLoading || directLoading;
+  const displayError = agentError || error || providerSettings.error;
 
   useEffect(() => {
     if (!resetConfirmationOpen) return;
@@ -689,7 +227,7 @@ function LiveWebCodingWorkbench({
 
   useEffect(
     () => () => {
-      executionControllerRef.current?.abort();
+      directControllerRef.current?.abort();
     },
     []
   );
@@ -731,53 +269,10 @@ function LiveWebCodingWorkbench({
     };
   }, [documentManager, manager, repository]);
 
-  useEffect(() => {
-    let active = true;
-    setStatus('Loading tool-capable models…');
-    void getFreeModelsWithTools()
-      .then((freeModels) => {
-        if (!active) return;
-        setModels(freeModels);
-        setSelectedModel((current) => current || freeModels[0]?.id || '');
-        setStatus((current) =>
-          current.startsWith('Loading') ? 'Local tools ready' : current
-        );
-      })
-      .catch(() => {
-        if (active) setStatus('Local tools ready · model list unavailable');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const runner = useMemo(
-    () =>
-      apiKey
-        ? createBrowserOpenRouterToolRunner({
-            apiKey,
-            referer: window.location.origin,
-          })
-        : null,
-    [apiKey]
-  );
-
-  const beginExecution = () => {
-    const controller = new AbortController();
-    executionControllerRef.current = controller;
-    return controller;
-  };
-
-  const finishExecution = (controller: AbortController) => {
-    if (executionControllerRef.current === controller) {
-      executionControllerRef.current = null;
-    }
-    setLoading(false);
-  };
-
   const cancelExecution = () => {
-    const controller = executionControllerRef.current;
+    const controller = directControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
+    cancelAgentExecution();
   };
 
   const copyTrace = async () => {
@@ -799,151 +294,42 @@ function LiveWebCodingWorkbench({
     );
   };
 
-  const sendPrompt = async (event: FormEvent<HTMLFormElement>) => {
+  const sendPrompt = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextPrompt = prompt.trim();
     if (!nextPrompt || loading) return;
-    const controller = beginExecution();
-    const sessionId = createToolCallSessionId();
-    const agentSource = runner && selectedModel ? 'model' : 'local';
-    const agentTrace = startLiveWebCodingAgentTrace(agentSource, sessionId);
-    let agentSummary = '';
-    let agentStatus: 'completed' | 'failed' = 'completed';
-    setLoading(true);
     setError('');
-    setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
-    try {
-      if (runner && selectedModel) {
-        const listedTools = registry.listTools(toToolListRequest());
-        recordLiveWebCodingToolList(
-          listedTools.tools.length,
-          'model',
-          sessionId
-        );
-        const requestMessages: ModelMessage[] = [
-          ...modelMessages,
-          { role: 'user', content: nextPrompt },
-        ];
-        const response = await runner.generate({
-          model: selectedModel,
-          messages: requestMessages,
-          registry,
-          signal: controller.signal,
-          sessionId,
-        });
-        if (controller.signal.aborted) {
-          throw new Error('Execution cancelled.');
-        }
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text:
-              response.text ||
-              `AI tool loop completed ${response.toolCallCount} call(s).`,
-            tools: [`OpenRouter · ${response.toolCallCount} tool call(s)`],
-          },
-        ]);
-        setModelMessages([...requestMessages, ...response.responseMessages]);
-        agentSummary =
-          response.text ||
-          `AI tool loop completed ${response.toolCallCount} call(s).`;
-      } else {
-        const local = await runLocalPrompt(
-          registry,
-          nextPrompt,
-          controller.signal,
-          sessionId
-        );
-        setMessages((current) => [
-          ...current,
-          { role: 'assistant', text: local.response, tools: local.toolNames },
-        ]);
-        agentSummary = local.response;
-        agentStatus = local.failed ? 'failed' : 'completed';
-      }
-      if (controller.signal.aborted) {
-        throw new Error('Execution cancelled.');
-      }
-      finishLiveWebCodingAgentTrace(
-        agentTrace,
-        agentStatus,
-        agentSummary || 'Agent request completed.'
-      );
-      if (agentStatus === 'completed') setPrompt('');
-    } catch (requestError) {
-      if (controller.signal.aborted) {
-        finishLiveWebCodingAgentTrace(
-          agentTrace,
-          'cancelled',
-          'Execution cancelled.'
-        );
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: 'Execution cancelled. No toolchain success was reported.',
-          },
-        ]);
-        setError('');
-      } else {
-        const errorMessage =
-          requestError instanceof Error
-            ? requestError.message
-            : 'Realtime web coding request failed.';
-        finishLiveWebCodingAgentTrace(agentTrace, 'failed', errorMessage);
-        setError(errorMessage);
-      }
-    } finally {
-      finishExecution(controller);
-    }
+    void run(nextPrompt);
   };
 
   const runTool = async (name: string, args: Record<string, unknown>) => {
-    const controller = beginExecution();
+    if (loading) return;
+    const controller = new AbortController();
     const sessionId = createToolCallSessionId();
-    setLoading(true);
+    directControllerRef.current = controller;
+    setDirectLoading(true);
     setError('');
     try {
-      const listedTools = registry.listTools(toToolListRequest());
-      recordLiveWebCodingToolList(listedTools.tools.length, 'local', sessionId);
-      const guardedArgs =
-        revisionGuardedWebTools.has(name) && args.expectedRevision === undefined
-          ? { ...args, expectedRevision: workspaceSnapshot.revision }
-          : args;
-      const result = await registry.callTool(
-        toToolCallRequest({
-          id: `palette-${Date.now()}`,
-          name,
-          arguments: guardedArgs,
-        }),
-        {
-          context: { source: 'local', mode: 'direct', sessionId },
-          signal: controller.signal,
-        }
-      );
+      const result = await toolActions.callDirectTool(name, args, {
+        sessionId,
+        signal: controller.signal,
+      });
       if (controller.signal.aborted) {
         throw new Error('Execution cancelled.');
       }
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text: result.isError
-            ? callToolResultText(result)
-            : `${name} completed and the iframe acknowledged the revision.`,
-          tools: [name],
-        },
-      ]);
+      appendAssistantMessage({
+        role: 'assistant',
+        text: result.isError
+          ? formatLiveWebCodingToolResult(result, 'Tool call failed.')
+          : `${name} completed and the iframe acknowledged the revision.`,
+        tools: [name],
+      });
     } catch (toolError) {
       if (controller.signal.aborted) {
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: 'Execution cancelled. No tool success was reported.',
-          },
-        ]);
+        appendAssistantMessage({
+          role: 'assistant',
+          text: 'Execution cancelled. No toolchain success was reported.',
+        });
         setError('');
       } else {
         setError(
@@ -951,7 +337,10 @@ function LiveWebCodingWorkbench({
         );
       }
     } finally {
-      finishExecution(controller);
+      if (directControllerRef.current === controller) {
+        directControllerRef.current = null;
+      }
+      setDirectLoading(false);
     }
   };
 
@@ -997,8 +386,7 @@ function LiveWebCodingWorkbench({
         });
       }
       clearLiveWebCodingTrace();
-      setMessages([]);
-      setModelMessages([{ role: 'system', content: WEB_CODING_SYSTEM_PROMPT }]);
+      resetConversation();
       setStatus(`${persisted.files.length} demo files restored · iframe ready`);
     } catch (resetError) {
       setError(
@@ -1025,7 +413,7 @@ function LiveWebCodingWorkbench({
   const activeFile = workspaceSnapshot.files.find(
     (file) => file.path === workspaceSnapshot.activePath
   );
-  const toolDefinitions = registry.listTools().tools;
+  const toolDefinitions = toolActions.toolDefinitions;
 
   return (
     <PageWithLogMonitor pageId="live-web-coding" title="Realtime Web Coding">
@@ -1082,7 +470,7 @@ function LiveWebCodingWorkbench({
                   <h2>무엇을 바꿀까요?</h2>
                 </div>
                 <span className={styles.statusDot}>
-                  {runner && selectedModel ? 'AI' : 'LOCAL'}
+                  {apiKey && selectedModel ? 'AI' : 'LOCAL'}
                 </span>
               </div>
 
@@ -1094,7 +482,7 @@ function LiveWebCodingWorkbench({
                     value={apiKey}
                     placeholder="없으면 local demo agent"
                     onChange={(event) =>
-                      saveOpenRouterApiKey(event.target.value)
+                      providerSettings.commands.saveApiKey(event.target.value)
                     }
                   />
                 </label>
@@ -1103,7 +491,11 @@ function LiveWebCodingWorkbench({
                     <span>Model</span>
                     <select
                       value={selectedModel}
-                      onChange={(event) => setSelectedModel(event.target.value)}
+                      onChange={(event) =>
+                        providerSettings.commands.selectModel(
+                          event.target.value
+                        )
+                      }
                     >
                       {models.map((model) => (
                         <option key={model.id} value={model.id}>
@@ -1248,7 +640,7 @@ function LiveWebCodingWorkbench({
                   {loading ? 'Cancel execution' : 'Send to agent'}
                 </button>
               </form>
-              {error && <p className={styles.error}>{error}</p>}
+              {displayError && <p className={styles.error}>{displayError}</p>}
             </aside>
 
             <section className={styles.workspacePane}>
@@ -1452,7 +844,7 @@ function LiveWebCodingPage() {
 
   return (
     <LiveWebCodingToolProvider>
-      <WebCodingToolHandlers
+      <LiveWebCodingToolHandlers
         manager={manager}
         documentManager={documentManager}
         repository={repository}
@@ -1462,7 +854,7 @@ function LiveWebCodingPage() {
           documentManager={documentManager}
           repository={repository}
         />
-      </WebCodingToolHandlers>
+      </LiveWebCodingToolHandlers>
     </LiveWebCodingToolProvider>
   );
 }

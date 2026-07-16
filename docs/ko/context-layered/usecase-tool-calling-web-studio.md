@@ -93,6 +93,14 @@ message 실행, agent trace lifecycle을 소유합니다. `LiveEditorAIToolbar.t
 registry 또는 external-store API를 만들지 않는다는 컨벤션을 실제 코드로
 확인할 수 있습니다.
 
+realtime web-coding showcase도 같은 경계를 따릅니다. `LiveWebCodingToolchain.tsx`가
+ToolContext와 handler 등록을 소유하고, `actions/useLiveWebCodingToolActions.ts`가
+`tools/list`, palette의 direct `tools/call`, local-agent의 model-shaped call을
+소유합니다. `actions/useLiveWebCodingAgentExecution.ts`는 provider/local loop,
+message history, cancellation, agent trace lifecycle을 담당합니다. 따라서
+workbench는 반환된 data와 callback을 조합할 뿐 registry runtime method나
+provider transport API를 직접 호출하지 않습니다.
+
 ## 규칙
 
 ### 1. Schema를 single source of truth로 둔다

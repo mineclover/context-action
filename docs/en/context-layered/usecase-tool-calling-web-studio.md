@@ -93,6 +93,14 @@ and `actions/useLiveEditorTraceActions.ts` owns trace clear/copy/download.
 callbacks. This makes the example a concrete reference for the convention
 without making the presentation layer a second registry or external-store API.
 
+The realtime web-coding showcase follows the same boundary. `LiveWebCodingToolchain.tsx`
+owns ToolContext and handler registration, `actions/useLiveWebCodingToolActions.ts`
+owns `tools/list`, direct palette `tools/call`, and local-agent model-shaped calls,
+while `actions/useLiveWebCodingAgentExecution.ts` owns the provider/local loop,
+message history, cancellation, and agent trace lifecycle. The workbench composes
+these returned data and callbacks; it does not call registry runtime methods or
+provider transport APIs directly.
+
 ## Rules
 
 ### 1. The schema is the single source of truth
