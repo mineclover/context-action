@@ -1,9 +1,4 @@
-import {
-  type ActionPayloadMap,
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import {
@@ -11,31 +6,17 @@ import {
   useActionLoggerWithToast,
 } from '@/components/LogMonitor';
 import { Badge, Button, Card, CardContent, CodeBlock } from '@/components/ui';
-
-// 액션 타입 정의
-interface ProviderActions extends ActionPayloadMap {
-  updateCounter: { value: number };
-  resetCounter: void;
-  updateMessage: { text: string };
-  resetMessage: void;
-  logActivity: { activity: string };
-}
-
-// Action Only + Store Only 패턴 생성 - Provider Pattern 데모용
-const ProviderActions = createActionContext<ProviderActions>({
-  name: 'ReactProviderDemo-actions',
-});
-const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
-  counter: { initialValue: 0 },
-  message: { initialValue: 'Hello from Provider!' },
-  activities: { initialValue: [] as string[] },
-});
+import {
+  ProviderActionContext,
+  ProviderStoreContext,
+} from './contexts/ProviderContexts';
+import { ProviderRuntime } from './handlers/ProviderHandlerRegistry';
 
 // 카운터 컴포넌트 - Store Only + Action Only 패턴 사용
 function CounterComponent() {
-  const counterStore = ProviderStores.useStore('counter');
+  const counterStore = ProviderStoreContext.useStore('counter');
   const count = useStoreValue(counterStore);
-  const dispatch = ProviderActions.useActionDispatch();
+  const dispatch = ProviderActionContext.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const handleIncrement = useCallback(() => {
@@ -93,10 +74,10 @@ function CounterComponent() {
 
 // 메시지 컴포넌트 - Store Only + Action Only 패턴 사용
 function MessageComponent() {
-  const messageStore = ProviderStores.useStore('message');
+  const messageStore = ProviderStoreContext.useStore('message');
   const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
-  const dispatch = ProviderActions.useActionDispatch();
+  const dispatch = ProviderActionContext.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const handleSubmit = useCallback(
@@ -169,9 +150,9 @@ function MessageComponent() {
 
 // 액티비티 로거 컴포넌트 - Store Only + Action Only 패턴 사용
 function ActivityLogger() {
-  const activitiesStore = ProviderStores.useStore('activities');
+  const activitiesStore = ProviderStoreContext.useStore('activities');
   const activities = useStoreValue(activitiesStore);
-  const dispatch = ProviderActions.useActionDispatch();
+  const dispatch = ProviderActionContext.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const logCustomActivity = useCallback(() => {
@@ -254,9 +235,9 @@ function ActivityLogger() {
 
 // 스토어 모니터 컴포넌트 - Store Only + Action Only 패턴 사용
 function StoreMonitor() {
-  const counterStore = ProviderStores.useStore('counter');
-  const messageStore = ProviderStores.useStore('message');
-  const activitiesStore = ProviderStores.useStore('activities');
+  const counterStore = ProviderStoreContext.useStore('counter');
+  const messageStore = ProviderStoreContext.useStore('message');
+  const activitiesStore = ProviderStoreContext.useStore('activities');
 
   const counter = useStoreValue(counterStore);
   const message = useStoreValue(messageStore);
@@ -338,47 +319,10 @@ function StoreMonitor() {
   );
 }
 
-// 액션 핸들러 설정 컴포넌트 - Store Only + Action Only 패턴 사용
-function ActionHandlerSetup() {
-  const counterStore = ProviderStores.useStore('counter');
-  const messageStore = ProviderStores.useStore('message');
-  const activitiesStore = ProviderStores.useStore('activities');
-
-  // 카운터 업데이트 핸들러
-  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
-    counterStore.setValue(value);
-  });
-
-  // 카운터 리셋 핸들러
-  ProviderActions.useActionHandler('resetCounter', () => {
-    counterStore.setValue(0);
-  });
-
-  // 메시지 업데이트 핸들러
-  ProviderActions.useActionHandler('updateMessage', ({ text }) => {
-    messageStore.setValue(text);
-  });
-
-  // 메시지 리셋 핸들러
-  ProviderActions.useActionHandler('resetMessage', () => {
-    messageStore.setValue('Hello from Provider!');
-  });
-
-  // 액티비티 로깅 핸들러
-  ProviderActions.useActionHandler('logActivity', ({ activity }) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const logEntry = `${timestamp}: ${activity}`;
-    activitiesStore.update((prev) => [...prev, logEntry]);
-  });
-
-  return null; // 이 컴포넌트는 UI를 렌더링하지 않음
-}
-
 // 메인 애플리케이션 컴포넌트 - 통합 패턴 사용
 function ProviderApp() {
   return (
     <>
-      <ActionHandlerSetup />
       <div className="space-y-6">
         <CounterComponent />
         <MessageComponent />
@@ -524,11 +468,9 @@ function ReactProviderPage() {
         </header>
 
         {/* Store Only + Action Only Provider 패턴 사용 */}
-        <ProviderActions.Provider>
-          <ProviderStores.Provider registryId="react-provider-demo">
-            <ProviderApp />
-          </ProviderStores.Provider>
-        </ProviderActions.Provider>
+        <ProviderRuntime>
+          <ProviderApp />
+        </ProviderRuntime>
 
         {/* 코드 예제 */}
         <Card className="mt-6">
@@ -538,26 +480,37 @@ function ReactProviderPage() {
             </h3>
             <CodeBlock size="sm">
               {`// 1. Create Separated Patterns
-const ProviderActions = createActionContext<ProviderActions>({
-  name: 'ReactProviderDemo-actions'
-});
+const ProviderActions = createActionContext<ProviderActions>(
+  'ReactProviderDemo-actions'
+);
 const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
   'counter': { initialValue: 0 },
   'message': { initialValue: 'Hello from Provider!' }
 });
 
-// 2. Nested Provider Wrapping
+// 2. Register handlers in a dedicated Handler Registry
+function ProviderHandlerRegistry({ children }) {
+  const counterStore = ProviderStores.useStore('counter');
+  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
+    counterStore.setValue(value);
+  });
+  return children;
+}
+
+// 3. Nested Provider Wrapping
 function App() {
   return (
     <ProviderActions.Provider>
       <ProviderStores.Provider registryId="react-provider-demo">
-        <MyApp />
+        <ProviderHandlerRegistry>
+          <MyApp />
+        </ProviderHandlerRegistry>
       </ProviderStores.Provider>
     </ProviderActions.Provider>
   );
 }
 
-// 3. Separated Store & Action Usage
+// 4. Separated Store & Action Usage
 function MyComponent() {
   // Store management
   const counterStore = ProviderStores.useStore('counter');
@@ -565,11 +518,6 @@ function MyComponent() {
   
   // Action dispatching
   const dispatch = ProviderActions.useActionDispatch();
-  
-  // Action handling
-  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
-    counterStore.setValue(value);
-  });
   
   // Logger integration
   const { logAction } = useActionLoggerWithToast();

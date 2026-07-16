@@ -1,6 +1,4 @@
-import type { ActionHandler } from '@context-action/core';
-import { createActionContext } from '@context-action/react';
-import { useState } from 'react';
+import { useStoreValue } from '@context-action/react';
 import {
   LogMonitor,
   LogMonitorProvider,
@@ -15,79 +13,17 @@ import {
 } from '@/components/ui';
 import { SourceLink } from '@/components/ui/SourceLink';
 import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
-
-// 1. Define Actions following EventActions pattern
-interface CoreBasicsActions {
-  increment: void;
-  decrement: void;
-  setCount: number;
-  reset: void;
-  generateLog: void;
-  asyncOperation: string;
-}
-
-// 2. Create Context with Renaming Pattern
-const {
-  Provider: CoreActionProvider,
-  useActionDispatch: useCoreAction,
-  useActionHandler: useCoreActionHandler,
-  useActionDispatchWithResult: useCoreActionWithResult,
-} = createActionContext<CoreBasicsActions>('CoreBasics');
+import {
+  useCoreAction,
+  useCoreActionWithResult,
+  useCoreStore,
+} from './contexts/CoreBasicsContexts';
+import { CoreBasicsProviders } from './handlers/CoreBasicsHandlerRegistry';
 
 // 4. Component Usage with Renamed Hooks
 function CoreBasicsDemo() {
-  const [count, setCount] = useState(0);
+  const count = useStoreValue(useCoreStore('count'));
   const dispatch = useCoreAction();
-  const { logAction } = useActionLoggerWithToast();
-
-  // Register action handlers with renamed hook (properly memoized)
-  const incrementHandler: ActionHandler<void> = (payload, controller) => {
-    setCount((prev) => prev + 1);
-    logAction('increment', undefined);
-  };
-
-  const decrementHandler: ActionHandler<void> = (payload, controller) => {
-    setCount((prev) => prev - 1);
-    logAction('decrement', undefined);
-  };
-
-  const setCountHandler: ActionHandler<number> = (payload, controller) => {
-    setCount(payload);
-    logAction('setCount', payload);
-  };
-
-  const resetHandler: ActionHandler<void> = (payload, controller) => {
-    setCount(0);
-    logAction('reset', undefined);
-  };
-
-  const generateLogHandler: ActionHandler<void> = (payload, controller) => {
-    // Generate random log message
-    const adjectives = [
-      'Amazing',
-      'Brilliant',
-      'Creative',
-      'Dynamic',
-      'Elegant',
-    ];
-    const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task'];
-    const colors = ['Red', 'Blue', 'Green', 'Purple', 'Orange'];
-
-    const randomAdjective =
-      adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const randomNumber = Math.floor(Math.random() * 1000) + 1;
-
-    const message = `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
-    logAction('generateLog', message);
-  };
-
-  useCoreActionHandler('increment', incrementHandler);
-  useCoreActionHandler('decrement', decrementHandler);
-  useCoreActionHandler('setCount', setCountHandler);
-  useCoreActionHandler('reset', resetHandler);
-  useCoreActionHandler('generateLog', generateLogHandler);
 
   // Action dispatch functions using renamed hooks (React 컴파일러가 자동으로 메모이제이션)
   const handleIncrement = () => {
@@ -219,62 +155,8 @@ function CoreBasicsDemo() {
 function AdvancedFeaturesDemo() {
   const { dispatchWithResult, abortAll } = useCoreActionWithResult();
   const { logAction } = useActionLoggerWithToast();
-  const [isRunning, setIsRunning] = useState(false);
-  const [runningCount, setRunningCount] = useState(0);
-
-  // Advanced async handler
-  const asyncOperationHandler: ActionHandler<string> = async (
-    payload,
-    controller
-  ) => {
-    let aborted = false; // Move aborted to function scope
-
-    try {
-      setIsRunning(true);
-      setRunningCount((prev) => prev + 1);
-      logAction('asyncOperation', '🔄 Async operation started... (3초 소요)');
-
-      // Simulate async operation with abort support (force reload)
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(resolve, 3000);
-
-        // Handle abort through controller
-        // Note: PipelineController doesn't have signal, we simulate abort handling
-        const originalAbort = controller.abort;
-        controller.abort = (reason) => {
-          aborted = true;
-          clearTimeout(timeoutId);
-          originalAbort.call(controller, reason);
-          reject(new Error('Operation aborted by user'));
-        };
-      });
-
-      // Check if still not aborted
-      if (!aborted) {
-        logAction(
-          'asyncOperation',
-          '✅ Async operation completed successfully'
-        );
-        setIsRunning(false);
-        setRunningCount((prev) => Math.max(0, prev - 1));
-      }
-    } catch (error) {
-      setIsRunning(false);
-      setRunningCount((prev) => Math.max(0, prev - 1));
-
-      if (aborted) {
-        logAction('asyncOperation', '❌ Async operation was aborted');
-      } else {
-        logAction(
-          'asyncOperation',
-          `❌ Async operation failed: ${(error as Error).message}`
-        );
-      }
-      throw error;
-    }
-  };
-
-  useCoreActionHandler('asyncOperation', asyncOperationHandler);
+  const asyncStatus = useStoreValue(useCoreStore('asyncStatus'));
+  const { isRunning, runningCount } = asyncStatus;
 
   const handleAsyncAction = async () => {
     try {
@@ -288,8 +170,6 @@ function AdvancedFeaturesDemo() {
   const handleAbortAll = () => {
     const abortedCount = abortAll(); // Abort all pending actions
     logAction('abortAll', `🛑 Aborted ${abortedCount} pending actions`);
-    setIsRunning(false);
-    setRunningCount(0);
   };
 
   return (
@@ -356,7 +236,7 @@ function CoreBasicsPage() {
       pageId="core-basics"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
-      <CoreActionProvider>
+      <CoreBasicsProviders>
         <Container>
           <header className="mb-8">
             <div className="flex justify-between items-start">
@@ -385,54 +265,32 @@ function CoreBasicsPage() {
           {/* 코드 예제 */}
           <CodeExample title="Action Context Pattern Implementation">
             <CodeBlock>
-              {`// 1. Define Actions following EventActions pattern
-interface CoreBasicsActions {
-  increment: undefined;
-  setCount: number;
-  reset: undefined;
-  generateLog: undefined;
+              {`// contexts/CoreBasicsContexts.tsx
+const { Provider: CoreActionProvider, useActionDispatch: useCoreAction } =
+  createActionContext<CoreBasicsActions>('CoreBasics');
+const { Provider: CoreStoreProvider, useStore: useCoreStore } =
+  createStoreContext('CoreBasicsStores', { count: { initialValue: 0 } });
+
+// handlers/CoreBasicsHandlerRegistry.tsx
+function CoreBasicsHandlerRegistry({ children }) {
+  useCoreActionHandler('increment', (payload, controller) => {
+    countStore.update((count) => count + 1);
+  });
+  return children;
 }
 
-// 2. Create Context with Renaming Pattern
-const {
-  Provider: CoreActionProvider,
-  useActionDispatch: useCoreAction,
-  useActionHandler: useCoreActionHandler,
-  useActionDispatchWithResult: useCoreActionWithResult
-} = createActionContext<CoreBasicsActions>('CoreBasics');
-
-// 3. Provider Setup
-function App() {
-  return (
-    <CoreActionProvider>
-      <CounterComponent />
-    </CoreActionProvider>
-  );
-}
-
-// 4. Component Usage with Renamed Hooks
-function CounterComponent() {
-  const [count, setCount] = useState(0);
-  const dispatch = useCoreAction();
-  
-  // Register action handlers with renamed hook (properly memoized)
-  const incrementHandler = useCallback((payload, controller) => {
-    setCount(prev => prev + 1);
-    console.log('Counter incremented');
-  }, []);
-  
-  useCoreActionHandler('increment', incrementHandler);
-  
-  const handleClick = () => {
-    dispatch('increment');
-  };
-  
-  return <button onClick={handleClick}>Count: {count}</button>;
-}`}
+// Page composition: Action → Store → Handler Registry → View
+<CoreActionProvider>
+  <CoreStoreProvider>
+    <CoreBasicsHandlerRegistry>
+      <CounterView />
+    </CoreBasicsHandlerRegistry>
+  </CoreStoreProvider>
+</CoreActionProvider>`}
             </CodeBlock>
           </CodeExample>
         </Container>
-      </CoreActionProvider>
+      </CoreBasicsProviders>
     </LogMonitorProvider>
   );
 }
