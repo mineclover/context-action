@@ -16,6 +16,7 @@ pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/web-coding-demo check
 pnpm --filter @context-action/web-coding-demo build
 node scripts/verify-web-coding-build.mjs
+node scripts/verify-web-coding-production-browser.mjs
 node scripts/verify-web-coding-plan.mjs
 node scripts/verify-web-coding-trace.mjs
 node scripts/verify-web-coding-preview.mjs
@@ -26,9 +27,10 @@ pnpm --filter @context-action/web-coding-demo dev -- --port 43144
 ```
 
 `verify` runs formatting, type-checking, the production build, the GitHub Pages
-artifact check, all standalone tool/preview/filesystem/OpenRouter/trace
-contract checks, and the isolated Playwright browser proof in the same order
-used for a local release check.
+artifact check, a production base-path browser smoke test, all standalone
+tool/preview/filesystem/OpenRouter/trace contract checks, and the isolated
+development-server Playwright browser proof in the same order used for a local
+release check.
 
 The browser proof starts an isolated Vite server and exercises source editing,
 syntax highlighting, directory-upload fallback, local-agent discovery,

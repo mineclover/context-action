@@ -97,6 +97,10 @@ Production builds are checked with `scripts/verify-web-coding-build.mjs` both
 before and after they are copied into the GitHub Pages `/web-coding/` directory;
 the check validates the base path, compiled entry assets, transitive JavaScript
 chunk references, CSS asset references, and path-safe file existence.
+The standalone verification command also serves the built output through Vite
+preview and opens `/context-action/web-coding/` in a browser, proving that the
+base path, lazy editor chunk, tool catalog, and preview render together after
+the production build.
 
 The standalone top-bar settings dialog stores the user-owned API key under the
 shared, same-origin `context-action.openrouter.api-key` browser key used by the

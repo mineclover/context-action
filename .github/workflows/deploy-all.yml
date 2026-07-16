@@ -161,6 +161,7 @@ jobs:
       - name: Verify standalone browser flow
         run: |
           pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+          node scripts/verify-web-coding-production-browser.mjs
           node scripts/verify-web-coding-browser.mjs
 
       # Combine both builds

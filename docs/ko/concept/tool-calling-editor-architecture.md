@@ -92,6 +92,9 @@ production build는 `scripts/verify-web-coding-build.mjs`로 build 직후와 Git
 `/web-coding/` directory로 복사한 직후 두 번 검증한다. 이 검사는 base path, 컴파일된
 entry asset, compiled JavaScript transitive chunk reference, CSS asset reference,
 build directory 밖으로 벗어나지 않는 파일 존재 여부를 확인한다.
+standalone verification command는 build 결과를 Vite preview로 제공한 뒤
+`/context-action/web-coding/`을 browser에서 열어 base path, lazy editor chunk,
+tool catalog, preview가 production build 후 함께 동작하는지도 확인한다.
 
 standalone 상단의 설정 창에서는 사용자 소유 OpenRouter API key·model ID·chat
 completions endpoint를 관리한다. API key는 example 데모와 공유하는
