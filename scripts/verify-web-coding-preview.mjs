@@ -299,6 +299,37 @@ expect(
   'Dynamic local module imports must not retain relative URLs.'
 );
 
+const encodedPathDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'app.js',
+      language: 'javascript',
+      source: "import { card } from './src/card%20file.js';",
+      kind: 'text',
+    },
+    {
+      path: 'src/card file.js',
+      language: 'javascript',
+      source: 'export const card = "encoded path proof";',
+      kind: 'text',
+    },
+  ],
+  {},
+  20
+);
+expectIncludes(
+  encodedPathDocument,
+  'https://context-action.local/workspace-module/src/card%20file.js',
+  'URL-encoded local module paths must resolve to workspace files.'
+);
+
 const inlineModuleDocument = preview.buildPreviewDocument(
   [
     {

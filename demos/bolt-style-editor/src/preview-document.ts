@@ -11,7 +11,13 @@ function resolveLocalPath(
   fromPath: string,
   requestedPath: string
 ): string | null {
-  const path = requestedPath.trim().split(/[?#]/, 1)[0];
+  const rawPath = requestedPath.trim().split(/[?#]/, 1)[0];
+  let path: string;
+  try {
+    path = decodeURIComponent(rawPath);
+  } catch {
+    return null;
+  }
   if (!path || /^(?:[a-z][a-z\d+.-]*:|\/\/|#|data:)/i.test(path)) {
     return null;
   }

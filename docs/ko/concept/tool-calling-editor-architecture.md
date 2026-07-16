@@ -588,6 +588,8 @@ Open folder → generic FileSystemAdapter
   변경하기 전에 거부되어 다시 읽기를 요구한다.
 - 모든 workspace file lookup은 tool boundary에서 slash 방향과 불필요한 `.` segment를
   canonical path로 정규화하며, parent traversal과 빈 path는 거부한다.
+  Preview reference도 resolve 전에 URL-encoded local path를 decode하므로, 공백이
+  포함된 folder 파일도 실행할 수 있다.
 - local demo agent도 교체 요청 안의 두 quoted string을 인식해
   `workspace.applyPatch`로 전달하므로 external model key 없이도 exact-text mutation
   경로를 시연할 수 있다. 승인 전에 planned workspace revision을 캡처하므로 승인

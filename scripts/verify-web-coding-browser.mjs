@@ -502,7 +502,7 @@ async function runBrowserProof(url) {
     );
     await writeFile(
       path.join(folderFixture, 'app.js'),
-      "import { card } from './src/components/card.js'; import './cycle-a.js'; const { dynamic } = await import('./dynamic.js'); document.body.dataset.folderImport = card; document.body.dataset.moduleCycle = 'ok'; document.body.dataset.dynamicImport = dynamic;"
+      "import { card } from './src/components/card%20file.js'; import './cycle-a.js'; const { dynamic } = await import('./dynamic.js'); document.body.dataset.folderImport = card; document.body.dataset.moduleCycle = 'ok'; document.body.dataset.dynamicImport = dynamic;"
     );
     await writeFile(
       path.join(folderFixture, 'dynamic.js'),
@@ -520,7 +520,7 @@ async function runBrowserProof(url) {
       recursive: true,
     });
     await writeFile(
-      path.join(folderFixture, 'src', 'components', 'card.js'),
+      path.join(folderFixture, 'src', 'components', 'card file.js'),
       "export const card = 'folder tree proof';"
     );
     await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);

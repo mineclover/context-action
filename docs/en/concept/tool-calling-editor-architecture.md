@@ -635,6 +635,8 @@ Open folder → generic FileSystemAdapter
   read again.
 - All workspace file lookups canonicalize slash direction and harmless `.`
   segments at the tool boundary; parent traversal and empty paths are rejected.
+  Preview references also decode URL-encoded local paths before resolving them,
+  so folder files containing spaces remain runnable.
 - The local demo agent also recognizes two quoted strings in a replacement request
   and routes it through `workspace.applyPatch`, so the exact-text mutation path can
   be demonstrated without an external model key. It captures the planned workspace
