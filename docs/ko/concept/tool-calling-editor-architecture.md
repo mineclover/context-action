@@ -486,7 +486,9 @@ Open folder → generic FileSystemAdapter
   현재 workspace를 유지한다. Reload에도 같은 빈 folder guard를 적용해 지원 파일이
   없는 연결 directory가 workspace를 교체하지 못하게 한다.
 - file 수나 전체 byte limit에 도달하면 directory traversal을 중단하며, import
-  result에는 해당 limit을 나타내는 skipped summary 하나를 남긴다.
+  result에는 해당 limit을 나타내는 skipped summary 하나를 남긴다. 또한
+  directory/file entry를 2,000개까지 scan하고 중복 normalized path는 건너뛰어
+  비정상적인 upload가 제한 없는 diagnostic 목록을 만들지 못하게 한다.
 - filesystem handle은 parent adapter 경계 뒤에 두고 tool payload나 iframe message에
   전달하지 않는다. 지원되는 브라우저에서는 reload 후 재연결을 위해 workspace
   metadata에만 handle을 저장한다.

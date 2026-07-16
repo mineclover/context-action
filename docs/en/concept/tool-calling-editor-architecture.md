@@ -516,7 +516,10 @@ Open folder → generic FileSystemAdapter
   same empty-folder guard, so an empty connected directory cannot replace the
   workspace.
 - Directory traversal stops once the file-count or total-byte limit is reached,
-  while the import result retains one skipped-entry summary for that limit.
+  while the import result retains one skipped-entry summary for that limit. It
+  also stops after 2,000 scanned directory/file entries, and duplicate
+  normalized paths are skipped so hostile or malformed uploads cannot create an
+  unbounded diagnostics list.
 - File-system handles stay behind the parent adapter and never enter tool
   payloads or iframe messages. Where supported, the adapter stores a handle in
   workspace metadata only so it can reconnect after reload.

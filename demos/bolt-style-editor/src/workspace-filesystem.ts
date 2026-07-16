@@ -66,6 +66,7 @@ export type DirectoryHandlePersistence = {
 };
 
 const MAX_FILES = 200;
+const MAX_SCANNED_ENTRIES = 2_000;
 const MAX_TEXT_FILE_BYTES = 512 * 1024;
 const MAX_ASSET_BYTES = 4 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 12 * 1024 * 1024;
@@ -325,8 +326,17 @@ export class BrowserWorkspaceFileSystemAdapter {
     let totalBytes = 0;
     let fileLimitReported = false;
     let totalLimitReported = false;
+    let scannedEntries = 0;
+    let scanLimitReported = false;
 
     const shouldStopTraversal = (prefix: string): boolean => {
+      if (scannedEntries >= MAX_SCANNED_ENTRIES) {
+        if (!scanLimitReported) {
+          skipped.push(`${prefix || '.'} · scan limit reached`);
+          scanLimitReported = true;
+        }
+        return true;
+      }
       if (files.length >= MAX_FILES) {
         if (!fileLimitReported) {
           skipped.push(`${prefix || '.'} · file limit reached`);
@@ -351,6 +361,7 @@ export class BrowserWorkspaceFileSystemAdapter {
       if (shouldStopTraversal(prefix)) return;
       for await (const [name, entry] of directory.entries()) {
         if (shouldStopTraversal(prefix)) return;
+        scannedEntries += 1;
         const rawPath = `${prefix}/${name}`;
         let path: string;
         try {
@@ -390,8 +401,18 @@ export class BrowserWorkspaceFileSystemAdapter {
     const skipped: string[] = [];
     let totalBytes = 0;
     let rootName = 'workspace';
+    let scannedEntries = 0;
+    let scanLimitReported = false;
 
     for (const file of Array.from(fileList)) {
+      if (scannedEntries >= MAX_SCANNED_ENTRIES) {
+        if (!scanLimitReported) {
+          skipped.push('. · scan limit reached');
+          scanLimitReported = true;
+        }
+        break;
+      }
+      scannedEntries += 1;
       const relativePath = file.webkitRelativePath || file.name;
       const segments = relativePath.split('/');
       if (segments.length > 1 && segments[0]) rootName = segments[0];
@@ -583,6 +604,10 @@ export class BrowserWorkspaceFileSystemAdapter {
     }
     if (files.length >= MAX_FILES) {
       skipped.push(`${path} · file limit reached`);
+      return { totalBytes };
+    }
+    if (files.some((candidate) => candidate.path === path)) {
+      skipped.push(`${path} · duplicate workspace path`);
       return { totalBytes };
     }
     const maxBytes = assetMimeType ? MAX_ASSET_BYTES : MAX_TEXT_FILE_BYTES;

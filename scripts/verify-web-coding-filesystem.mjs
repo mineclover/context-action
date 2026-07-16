@@ -271,6 +271,39 @@ expectEqual(
 );
 expect(!fallbackAdapter.hasWritableFolder, 'Directory-upload fallback must stay browser-only.');
 
+const duplicateFallback = await fallbackAdapter.importFileList([
+  createRelativeFile('index.html', 'uploaded/index.html', '<main />', 'text/html'),
+  createRelativeFile('index.html', 'uploaded/index.html', '<main />', 'text/html'),
+]);
+expectEqual(
+  duplicateFallback.files.map((file) => file.path),
+  ['index.html'],
+  'Directory-upload fallback must reject duplicate workspace paths.'
+);
+expect(
+  duplicateFallback.skipped.includes('index.html · duplicate workspace path'),
+  'Duplicate workspace paths must be reported as skipped input.'
+);
+
+const unsupportedOverflow = await fallbackAdapter.importFileList(
+  Array.from({ length: 2_005 }, (_, index) =>
+    createRelativeFile(
+      `ignored-${index}.bin`,
+      `uploaded/ignored-${index}.bin`,
+      '\u0000\u0001',
+      'application/octet-stream'
+    )
+  )
+);
+expect(
+  unsupportedOverflow.skipped.includes('. · scan limit reached'),
+  'Directory-upload fallback must stop scanning after the bounded entry limit.'
+);
+expect(
+  unsupportedOverflow.skipped.length <= 2_001,
+  'Directory-upload fallback skipped diagnostics must remain bounded.'
+);
+
 const restoredAdapter = new filesystem.BrowserWorkspaceFileSystemAdapter(persistence);
 expect(await restoredAdapter.restorePersistedFolder(), 'Persisted folder handle must restore.');
 expect(restoredAdapter.hasWritableFolder, 'Restored adapter must reconnect the folder.');
