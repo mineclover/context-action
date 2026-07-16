@@ -91,8 +91,10 @@ execution, `use-workspace-folder-actions` owns folder boundaries,
 `use-workspace-editor-actions` owns drafts and file mutations,
 `use-tool-catalog-actions` owns the MCP catalog call surface,
 `use-workspace-keyboard-shortcuts` owns global commands, and
-`use-studio-export-actions` owns copy/download exports. Browser-only runtime
-helpers such as revision guards, text patching, escaping, and cancellation
+`use-studio-export-actions` owns copy/download exports. The shared
+`use-confirmation-request` hook owns the promise-backed destructive confirmation
+boundary. Browser-only runtime helpers such as revision guards, text patching,
+escaping, and cancellation
 remain in `src/tool-runtime-utils.ts`; views under `src/views/` receive data and
 callbacks without owning workspace mutation policy. This keeps React editor
 orchestration, tool registration, and workspace mutation contracts independently

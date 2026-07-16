@@ -86,8 +86,10 @@ orchestration은 focused hook으로 나눈다. `use-tool-execution`은 provider 
 `use-workspace-editor-actions`는 draft와 file mutation을,
 `use-tool-catalog-actions`는 MCP catalog call surface를,
 `use-workspace-keyboard-shortcuts`는 전역 명령을,
-`use-studio-export-actions`는 copy/download export를 소유한다. revision guard,
-text patch, escaping, cancellation 같은 browser 전용 runtime helper는
+`use-studio-export-actions`는 copy/download export를 소유한다. 공통
+`use-confirmation-request` hook은 Promise 기반 destructive confirmation
+boundary를 소유한다. revision guard, text patch, escaping, cancellation 같은
+browser 전용 runtime helper는
 `src/tool-runtime-utils.ts`에 남기고, `src/views/` 아래 view는 workspace
 mutation policy를 소유하지 않고 data와 callback만 받는다. 따라서 React editor
 orchestration, tool 등록, workspace mutation 계약을 별도 public package를
