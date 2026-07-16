@@ -116,7 +116,9 @@ audit consumers.
 Treat `source` as the transport origin and `mode` as the execution intent:
 agent/model loops use `mode: 'agent'`, while explicit palette or command
 actions use `mode: 'direct'`. Keep provider-specific values in `metadata`; do
-not overload them to decide whether a mutation needs approval.
+not overload them to decide whether a mutation needs approval. The registry
+defaults `executeModelToolCall()` to `mode: 'agent'` when an adapter omits it;
+direct `callTool()` invocations must opt into `mode: 'direct'` explicitly.
 
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.

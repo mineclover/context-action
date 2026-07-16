@@ -231,6 +231,7 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
         context: {
           ...options?.context,
           source: options?.context?.source ?? 'model',
+          mode: options?.context?.mode ?? 'agent',
         },
       });
     },

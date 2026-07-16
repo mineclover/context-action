@@ -107,7 +107,9 @@ await registry.executeModelToolCall(
 `source`는 transport origin, `mode`는 실행 의도로 구분합니다. agent/model loop는
 `mode: 'agent'`, 명시적인 palette 또는 command action은 `mode: 'direct'`를 사용합니다.
 provider 전용 값은 `metadata`에만 두고, mutation approval 여부를 결정하는 값으로
-재사용하지 않습니다.
+재사용하지 않습니다. adapter가 mode를 생략해도 registry의
+`executeModelToolCall()`은 `mode: 'agent'`를 기본값으로 사용하며, 직접 실행하는
+`callTool()`은 `mode: 'direct'`를 명시해야 합니다.
 
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.

@@ -656,10 +656,11 @@ describe('createToolContext', () => {
       expect(toolResult.error).toMatchObject({ code: 'TOOL_NOT_FOUND' });
     });
 
-    it('should preserve call identity and emit lifecycle events', async () => {
+    it('should preserve call identity and default model execution to agent mode', async () => {
       const events: string[] = [];
       const contexts: Array<{
         source?: string;
+        mode?: string;
         sessionId?: string;
         revision?: string | number;
       }> = [];
@@ -698,8 +699,18 @@ describe('createToolContext', () => {
       expect(toolResult.toolCallId).toBe('call-observed');
       expect(events).toEqual(['started:searchProducts', 'completed:searchProducts']);
       expect(contexts).toEqual([
-        { source: 'model', sessionId: 'session-observed', revision: 7 },
-        { source: 'model', sessionId: 'session-observed', revision: 7 },
+        {
+          source: 'model',
+          mode: 'agent',
+          sessionId: 'session-observed',
+          revision: 7,
+        },
+        {
+          source: 'model',
+          mode: 'agent',
+          sessionId: 'session-observed',
+          revision: 7,
+        },
       ]);
     });
 
