@@ -36,10 +36,7 @@ import { ToolHandlers } from './tool-handlers';
 import { formatToolSuccessMessage } from './tool-result-utils';
 import { clearToolTrace, toolTraceStore } from './tool-trace';
 import { AgentChatPanel } from './views/agent-chat-panel';
-import {
-  CodeEditor,
-  type WorkspaceSearchFocusRequest,
-} from './views/code-editor';
+import { type WorkspaceSearchFocusRequest } from './views/code-editor';
 import {
   ConfirmationDialog,
   CreateWorkspaceFileDialog,
@@ -60,6 +57,7 @@ import {
   QuickOpenPanel,
   WorkspaceSearchPanel,
 } from './views/workspace-search-panels';
+import { WorkspaceSourcePanel } from './views/workspace-source-panel';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
@@ -67,12 +65,6 @@ import {
   type WorkspaceFile,
 } from './workspace';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
-
-function formatFileSize(size: number): string {
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function formatTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
@@ -755,61 +747,29 @@ function EditorWorkbench({
               query={workspaceSearchQuery}
             />
           ) : null}
-          <section
-            aria-label="Workspace source"
-            aria-labelledby={`workspace-tab-${Math.max(
+          <WorkspaceSourcePanel
+            activeFile={activeFile}
+            activeTabId={`workspace-tab-${Math.max(
               0,
               snapshot.files.findIndex(
                 (file) => file.path === snapshot.activePath
               )
             )}`}
-            className="code-editor"
-            id="workspace-source-panel"
-            role="tabpanel"
-            tabIndex={0}
-          >
-            {activeFile.kind === 'asset' ? (
-              <>
-                <div className="code-header">
-                  <span>{activeFile.language}</span>
-                  <span>preview asset · read-only</span>
-                </div>
-                <div className="asset-placeholder">
-                  <div className="asset-placeholder-icon">◇</div>
-                  <strong>{activeFile.path}</strong>
-                  <span>
-                    {activeFile.mimeType ?? 'binary asset'} ·{' '}
-                    {formatFileSize(activeFile.blob?.size ?? 0)}
-                  </span>
-                  <p>
-                    This Blob is preserved in the browser workspace and
-                    available to the sandbox preview. Binary assets are not
-                    edited as text.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <CodeEditor
-                disabled={!isStorageReady || running}
-                file={activeFile}
-                focusRequest={
-                  activeFile.path === workspaceSearchFocus?.path
-                    ? workspaceSearchFocus
-                    : undefined
-                }
-                onFocusRequestConsumed={() => setWorkspaceSearchFocus(null)}
-                onOpenWorkspaceSearch={() => {
-                  setWorkspaceSearchOpen(true);
-                  setWorkspaceSearchQuery('');
-                }}
-                onBlur={() => void flushEditorDrafts()}
-                onChange={(source) =>
-                  updateEditorDraft(activeFile.path, source)
-                }
-                source={editorDrafts[activeFile.path] ?? activeFile.source}
-              />
-            )}
-          </section>
+            disabled={!isStorageReady || running}
+            focusRequest={
+              activeFile.path === workspaceSearchFocus?.path
+                ? workspaceSearchFocus
+                : undefined
+            }
+            onBlur={() => void flushEditorDrafts()}
+            onChange={(source) => updateEditorDraft(activeFile.path, source)}
+            onFocusRequestConsumed={() => setWorkspaceSearchFocus(null)}
+            onOpenWorkspaceSearch={() => {
+              setWorkspaceSearchOpen(true);
+              setWorkspaceSearchQuery('');
+            }}
+            source={editorDrafts[activeFile.path] ?? activeFile.source}
+          />
 
           <AgentChatPanel
             agentMode={openRouterSettings.apiKey ? 'openrouter' : 'local'}

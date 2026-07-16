@@ -90,7 +90,9 @@ selection callbacks. The bounded, redacted execution history is rendered by
 `src/views/tool-trace-panel.tsx` and receives export/clear actions as props.
 The editor tabs and mutation controls are rendered by
 `src/views/workspace-editor-toolbar.tsx`; mutations still enter through the
-workspace action hooks.
+workspace action hooks. The text/Blob source surface is isolated in
+`src/views/workspace-source-panel.tsx` and receives draft updates through a
+callback.
 
 The code header shows the current text size against the shared 80,000-character
 workspace mutation limit. Imported files may use the separate filesystem import
