@@ -492,8 +492,23 @@ export class BrowserWorkspaceFileSystemAdapter {
       );
     }
 
-    for (const path of paths) {
-      await this.removeFile(directory, path);
+    try {
+      for (const path of paths) {
+        await this.removeFile(directory, path);
+      }
+    } catch (error) {
+      if (isNotFoundFileSystemError(error)) {
+        try {
+          await this.disconnectFolder();
+        } catch {
+          // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
+        }
+        throw new Error(
+          'The connected folder is no longer available. Open the folder again to continue saving.',
+          { cause: error }
+        );
+      }
+      throw error;
     }
     return paths.length;
   }
@@ -568,20 +583,18 @@ export class BrowserWorkspaceFileSystemAdapter {
     root: FileSystemDirectoryHandleLike,
     filePath: string
   ): Promise<void> {
-    try {
-      const parts = normalizePath(filePath).split('/').filter(Boolean);
-      const filename = parts.pop();
-      if (!filename) throw new Error(`Invalid workspace path: ${filePath}`);
+    const parts = normalizePath(filePath).split('/').filter(Boolean);
+    const filename = parts.pop();
+    if (!filename) throw new Error(`Invalid workspace path: ${filePath}`);
 
-      let directory = root;
-      for (const segment of parts) {
-        directory = await directory.getDirectoryHandle(segment);
-      }
-      if (!directory.removeEntry) {
-        throw new Error(
-          'The selected browser does not support folder deletes.'
-        );
-      }
+    let directory = root;
+    for (const segment of parts) {
+      directory = await directory.getDirectoryHandle(segment);
+    }
+    if (!directory.removeEntry) {
+      throw new Error('The selected browser does not support folder deletes.');
+    }
+    try {
       await directory.removeEntry(filename);
     } catch (error) {
       if (isNotFoundFileSystemError(error)) return;

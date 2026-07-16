@@ -308,6 +308,21 @@ const restoredAdapter = new filesystem.BrowserWorkspaceFileSystemAdapter(persist
 expect(await restoredAdapter.restorePersistedFolder(), 'Persisted folder handle must restore.');
 expect(restoredAdapter.hasWritableFolder, 'Restored adapter must reconnect the folder.');
 expectEqual(restoredAdapter.folderPermission, 'granted', 'Restored permission must be observable.');
+root.children.delete('src');
+let unavailableFolderError;
+try {
+  await restoredAdapter.removeFiles(['src/app.js']);
+} catch (error) {
+  unavailableFolderError = error;
+}
+expect(
+  unavailableFolderError?.message.includes('connected folder is no longer available'),
+  'A missing folder during deletion must return a reconnectable filesystem error.'
+);
+expect(
+  !restoredAdapter.hasWritableFolder && clearedHandle,
+  'A missing folder during deletion must clear the stale writable handle.'
+);
 await restoredAdapter.disconnectFolder();
 expect(clearedHandle, 'Disconnecting a folder must clear its persisted handle.');
 expect(!restoredAdapter.hasWritableFolder, 'Disconnecting must remove the in-memory folder link.');
