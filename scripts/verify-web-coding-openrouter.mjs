@@ -37,7 +37,7 @@ const toolProtocolModuleUrl = transpileToDataUrl(
 );
 const source = await readFile(protocolPath, 'utf8');
 const sourceWithCanonicalProtocol = source.replace(
-  "from '@context-action/react';",
+  "from '@context-action/core';",
   `from ${JSON.stringify(toolProtocolModuleUrl)};`
 );
 expect(

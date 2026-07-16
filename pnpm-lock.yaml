@@ -107,6 +107,9 @@ importers:
 
   demos/bolt-style-editor:
     dependencies:
+      '@context-action/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@context-action/live-code-editor':
         specifier: workspace:*
         version: link:../../packages/live-code-editor

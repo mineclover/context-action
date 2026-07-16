@@ -1,4 +1,4 @@
-import { isToolCallResult, TOOL_CALL_ERROR_CODES } from '@context-action/react';
+import { isToolCallResult, TOOL_CALL_ERROR_CODES } from '@context-action/core';
 
 export type OpenRouterErrorCode =
   | 'OPENROUTER_CONFIGURATION_ERROR'
