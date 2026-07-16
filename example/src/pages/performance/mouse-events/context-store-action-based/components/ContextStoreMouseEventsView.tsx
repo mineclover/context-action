@@ -7,7 +7,7 @@
 import { useStoreValue } from '@context-action/react';
 import { memo, useMemo, useRef } from 'react';
 import { Button, CodeBlock, CodeExample, DemoCard } from '@/components/ui';
-import { useMouseStore } from '../stores/MouseStoreSchema';
+import { useMouseStore } from '../contexts/MouseActionContexts';
 
 // ================================
 // 📊 Props 인터페이스

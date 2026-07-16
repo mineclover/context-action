@@ -6,14 +6,17 @@
 
 import type { ActionHandler } from '@context-action/core';
 import type { Store } from '@context-action/react';
-import type { MouseActions, MouseStateData } from '../stores/MouseStoreSchema';
 import {
   computeActivityStatus,
   computeAverageVelocity,
   computeRecentClickCount,
   computeValidPath,
-  initialMouseState,
-} from '../stores/MouseStoreSchema';
+} from '../business/mouse-rules';
+import type {
+  MouseActions,
+  MouseStateData,
+} from '../contexts/MouseActionContexts';
+import { initialMouseState } from '../contexts/MouseActionContexts';
 
 // ================================
 // 🎯 액션 핸들러 구현

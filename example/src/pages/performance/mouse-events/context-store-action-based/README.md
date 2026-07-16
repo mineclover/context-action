@@ -17,11 +17,12 @@ User Interaction → Action Dispatch → Action Handler → Store Update → UI 
 
 ### 주요 구성 요소
 
-1. **stores/MouseStoreSchema.ts** - Context Store 스키마와 타입 정의
-2. **actions/MouseActionHandlers.ts** - 액션 핸들러 구현체
-3. **containers/ContextStoreMouseEventsContainer.tsx** - 컨테이너 컴포넌트
-4. **components/ContextStoreMouseEventsView.tsx** - 뷰 컴포넌트
-5. **ContextStoreMouseEventsWrapper.tsx** - Provider 래퍼
+1. **contexts/MouseActionContexts.tsx** - Context-Action 계약, Provider, 초기 상태
+2. **business/mouse-rules.ts** - 순수 경로·속도·활동 계산 규칙
+3. **actions/MouseActionHandlers.ts** - 액션 핸들러 구현체
+4. **containers/ContextStoreMouseEventsContainer.tsx** - 컨테이너 컴포넌트
+5. **components/ContextStoreMouseEventsView.tsx** - 뷰 컴포넌트
+6. **ContextStoreMouseEventsWrapper.tsx** - Provider 래퍼
 
 ## Store Architecture
 

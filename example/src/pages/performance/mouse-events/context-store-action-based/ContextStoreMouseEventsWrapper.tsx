@@ -6,7 +6,7 @@
 
 import { memo } from 'react';
 import { ContextStoreMouseEventsContainer } from './containers/ContextStoreMouseEventsContainer';
-import { MouseProvider } from './stores/MouseStoreSchema';
+import { MouseProvider } from './contexts/MouseActionContexts';
 
 /**
  * Context Store Provider들과 함께 마우스 이벤트 컴포넌트를 래핑

@@ -7,12 +7,12 @@
 import { Store } from '@context-action/react';
 import { useCallback, useEffect, useRef } from 'react';
 import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEventsView';
-import { MouseActionHandlerRegistry } from '../handlers/MouseActionHandlerRegistry';
-import type { MouseStateData } from '../stores/MouseStoreSchema';
+import type { MouseStateData } from '../contexts/MouseActionContexts';
 import {
   useMouseActionDispatch,
   useMouseStore,
-} from '../stores/MouseStoreSchema';
+} from '../contexts/MouseActionContexts';
+import { MouseActionHandlerRegistry } from '../handlers/MouseActionHandlerRegistry';
 
 /**
  * Context Store 기반 마우스 이벤트 컨테이너

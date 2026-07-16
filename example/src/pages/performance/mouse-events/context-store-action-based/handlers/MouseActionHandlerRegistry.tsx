@@ -15,7 +15,7 @@ import {
 import {
   type MouseStateData,
   useMouseActionHandler,
-} from '../stores/MouseStoreSchema';
+} from '../contexts/MouseActionContexts';
 
 export function MouseActionHandlerRegistry({
   mouseStateStore,
