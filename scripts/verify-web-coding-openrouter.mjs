@@ -106,6 +106,115 @@ expectEqual(
   'Valid provider JSON must be decoded into the canonical response shape.'
 );
 
+const normalizedToolResponse = await protocol.readOpenRouterResponse(
+  new Response(
+    JSON.stringify({
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: ' call_1 ',
+                type: 'function',
+                function: {
+                  name: ' workspace.getStatus ',
+                  arguments: '{}',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+    { status: 200, headers: { 'content-type': 'application/json' } }
+  )
+);
+expectEqual(
+  normalizedToolResponse.choices?.[0]?.message?.tool_calls?.[0],
+  {
+    id: 'call_1',
+    type: 'function',
+    function: { name: 'workspace.getStatus', arguments: '{}' },
+  },
+  'Provider tool calls must be normalized into the canonical function shape.'
+);
+
+async function expectInvalidProviderResponse(body, expectedMessage, label) {
+  let invalidShapeError;
+  try {
+    await protocol.readOpenRouterResponse(
+      new Response(JSON.stringify(body), { status: 200 })
+    );
+  } catch (error) {
+    invalidShapeError = error;
+  }
+  expect(
+    invalidShapeError instanceof protocol.OpenRouterRequestError,
+    `${label} must become a typed provider response error.`
+  );
+  expectEqual(
+    {
+      code: invalidShapeError?.code,
+      retryable: invalidShapeError?.retryable,
+    },
+    {
+      code: 'OPENROUTER_INVALID_RESPONSE',
+      retryable: false,
+    },
+    `${label} must be classified as non-retryable invalid provider data.`
+  );
+  expect(
+    invalidShapeError?.message.includes(expectedMessage),
+    `${label} must preserve an actionable diagnostic.`
+  );
+}
+
+await expectInvalidProviderResponse(
+  {
+    choices: [
+      {
+        message: {
+          role: 'assistant',
+          tool_calls: [
+            {
+              type: 'function',
+              function: { name: 'workspace.getStatus', arguments: '{}' },
+            },
+          ],
+        },
+      },
+    ],
+  },
+  'without a valid id',
+  'Missing tool call ids'
+);
+await expectInvalidProviderResponse(
+  {
+    choices: [
+      {
+        message: {
+          role: 'assistant',
+          tool_calls: [
+            {
+              id: 'duplicate',
+              type: 'function',
+              function: { name: 'workspace.getStatus', arguments: '{}' },
+            },
+            {
+              id: 'duplicate',
+              type: 'function',
+              function: { name: 'workspace.listFiles', arguments: '{}' },
+            },
+          ],
+        },
+      },
+    ],
+  },
+  'duplicate tool call id',
+  'Duplicate tool call ids'
+);
+
 let invalidResponseError;
 try {
   await protocol.readOpenRouterResponse(

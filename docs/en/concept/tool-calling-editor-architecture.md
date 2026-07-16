@@ -163,7 +163,12 @@ malformed successful responses, and tool execution failures are surfaced
 immediately for explicit user recovery. The running status exposes the current
 retry attempt while that backoff is active. Each provider request also has a
 bounded timeout; timeout failures keep the `OPENROUTER_TIMEOUT` code and use
-the same limited retry path without confusing them with user cancellation.
+the same limited retry path without confusing them with user cancellation. A
+successful response is also checked before the model loop: tool calls must have
+function type, non-empty unique IDs, a function name, and string JSON
+arguments. Missing or duplicate IDs and malformed function records become the
+non-retryable `OPENROUTER_INVALID_RESPONSE` error instead of reaching
+`tools/call` with an ambiguous correlation.
 
 ## Standard contract
 

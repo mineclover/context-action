@@ -151,7 +151,11 @@ bridge는 transient 429/5xx 응답과 network failure를 bounded abort 가능한
 tool 실행 오류는 즉시 노출해 사용자가 명시적으로 복구하도록 한다. backoff 중에는
 현재 retry 시도를 실행 상태에 표시한다. 각 provider request에도 bounded timeout을
 적용하며, timeout 실패는 `OPENROUTER_TIMEOUT` code와 제한 retry 경로를 유지한다.
-따라서 사용자가 직접 취소한 상태와 혼동되지 않는다.
+따라서 사용자가 직접 취소한 상태와 혼동되지 않는다. 성공한 response도 model loop에
+진입하기 전에 검사하며, tool call은 function type, 비어 있지 않고 서로 다른 ID,
+function name, string JSON arguments를 모두 가져야 한다. ID 누락·중복이나 malformed
+function record는 모호한 correlation으로 `tools/call`에 도달하지 않고 재시도하지 않는
+`OPENROUTER_INVALID_RESPONSE`로 정규화한다.
 
 ## 표준 계약
 

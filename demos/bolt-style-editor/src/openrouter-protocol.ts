@@ -72,6 +72,75 @@ export type OpenRouterResponse = {
   error?: { message?: string };
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function invalidProviderResponse(
+  message: string,
+  cause?: unknown
+): OpenRouterRequestError {
+  return new OpenRouterRequestError(message, {
+    code: 'OPENROUTER_INVALID_RESPONSE',
+    retryable: false,
+    cause,
+  });
+}
+
+function normalizeToolCalls(value: unknown): OpenRouterToolCall[] {
+  if (!Array.isArray(value)) {
+    throw invalidProviderResponse(
+      'Provider returned a non-array assistant tool_calls value.'
+    );
+  }
+
+  const ids = new Set<string>();
+  return value.map((candidate, index) => {
+    if (!isRecord(candidate)) {
+      throw invalidProviderResponse(
+        `Provider returned an invalid tool call at index ${index}.`
+      );
+    }
+    const id = candidate.id;
+    const type = candidate.type;
+    const functionValue = candidate.function;
+    if (typeof id !== 'string' || !id.trim()) {
+      throw invalidProviderResponse(
+        `Provider returned a tool call without a valid id at index ${index}.`
+      );
+    }
+    if (type !== 'function' || !isRecord(functionValue)) {
+      throw invalidProviderResponse(
+        `Provider returned a non-function tool call at index ${index}.`
+      );
+    }
+    const name = functionValue.name;
+    const argumentsValue = functionValue.arguments;
+    if (typeof name !== 'string' || !name.trim()) {
+      throw invalidProviderResponse(
+        `Provider returned a tool call without a function name at index ${index}.`
+      );
+    }
+    if (typeof argumentsValue !== 'string') {
+      throw invalidProviderResponse(
+        `Provider returned non-string JSON arguments for tool "${name}".`
+      );
+    }
+    const normalizedId = id.trim();
+    if (ids.has(normalizedId)) {
+      throw invalidProviderResponse(
+        `Provider returned duplicate tool call id "${normalizedId}".`
+      );
+    }
+    ids.add(normalizedId);
+    return {
+      id: normalizedId,
+      type: 'function',
+      function: { name: name.trim(), arguments: argumentsValue },
+    };
+  });
+}
+
 export function responseErrorCode(status: number): {
   code: OpenRouterErrorCode;
   retryable: boolean;
@@ -103,8 +172,9 @@ export async function readOpenRouterResponse(
 ): Promise<OpenRouterResponse> {
   const body = await response.text();
   if (!body.trim()) return {};
+  let parsed: unknown;
   try {
-    return JSON.parse(body) as OpenRouterResponse;
+    parsed = JSON.parse(body);
   } catch (error) {
     const errorType = response.ok
       ? { code: 'OPENROUTER_INVALID_RESPONSE' as const, retryable: false }
@@ -120,6 +190,37 @@ export async function readOpenRouterResponse(
       }
     );
   }
+
+  if (!isRecord(parsed)) {
+    if (!response.ok) return {};
+    throw invalidProviderResponse(
+      'Endpoint returned a non-object JSON response.'
+    );
+  }
+  if (!response.ok) return parsed as OpenRouterResponse;
+
+  const choices = parsed.choices;
+  if (choices !== undefined && !Array.isArray(choices)) {
+    throw invalidProviderResponse(
+      'Endpoint returned an invalid choices value.'
+    );
+  }
+
+  const firstChoice = choices?.[0];
+  if (isRecord(firstChoice) && isRecord(firstChoice.message)) {
+    const message = firstChoice.message;
+    if (message.tool_calls !== undefined) {
+      const normalizedToolCalls = normalizeToolCalls(message.tool_calls);
+      const normalizedChoices = [...(choices ?? [])];
+      normalizedChoices[0] = {
+        ...firstChoice,
+        message: { ...message, tool_calls: normalizedToolCalls },
+      };
+      return { ...parsed, choices: normalizedChoices } as OpenRouterResponse;
+    }
+  }
+
+  return parsed as OpenRouterResponse;
 }
 
 export function toolResultContent(result: {
