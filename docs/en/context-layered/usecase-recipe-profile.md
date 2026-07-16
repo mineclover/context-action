@@ -234,6 +234,31 @@ demo where users register work in one order but the system executes it by an
 explicit priority. Keep the execution trace in Stores so the view can show
 registered, executing, and completed states without owning the pipeline.
 
+## Memoization comparison usecase
+
+The memoization demo compares stable and intentionally re-registered handlers
+without mixing the comparison mechanics into the widgets:
+
+```text
+control command → ComparisonHandlerRegistry → memoized/non-memoized Stores
+                 → render metrics + data status View
+```
+
+- `business/comparison-rules.ts` owns counter, calculation, heavy-data, and
+  memory-data transitions as pure functions.
+- `handlers/ComparisonHandlerRegistry.tsx` owns both action lanes and the
+  performance-control handlers. The stable lane uses `useCallback`; the
+  comparison lane intentionally recreates its handler references inside the
+  same Registry boundary.
+- `actions/useComparisonActions.ts` exposes stable commands to widgets, while
+  `useComparisonViewState` remains read-only presentation state.
+- The old component and handler hooks remain compatibility re-exports/status
+  hooks, so existing links do not reintroduce direct registrations.
+
+Use this recipe when measuring handler identity, registration churn, or the
+effect of lazy Store reads. Keep the contrast explicit in the Registry and do
+not let a legacy comparison path become a second architectural standard.
+
 ## High-frequency pointer tracking usecase
 
 Mouse tracking is a useful usecase when high-frequency input, derived metrics,

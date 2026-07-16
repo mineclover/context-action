@@ -1,7 +1,6 @@
 import { useMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
 import { useMemoizedActions } from '../../hooks/useComparisonActions';
 import { useMemoizedViewState } from '../../hooks/useComparisonViewState';
-import { useMemoizedHandlers } from '../../hooks/useMemoizedHandlers';
 import { SafeModeWrapper } from '../SafeModeWrapper';
 import { ActionButtons } from '../shared/ActionButtons';
 import { MetricsDisplay } from '../shared/MetricsDisplay';
@@ -13,7 +12,6 @@ import { MetricsDisplay } from '../shared/MetricsDisplay';
  */
 export function MemoizedHandlerWidget() {
   // ViewModel hooks 조합
-  useMemoizedHandlers(); // 비즈니스 로직 등록
   useMemoizedAutoUpdateEffect(); // 자동 업데이트 효과 (memoized context 전용)
   const viewState = useMemoizedViewState(); // View state 획득
   const actions = useMemoizedActions(); // Action functions 획득

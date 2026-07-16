@@ -1,7 +1,4 @@
 [
   "src/lib/patterns/createObjectContextHooks.tsx",
-  "src/pages/performance/memoization/components/HandlerComparisonDemo.tsx",
-  "src/pages/performance/memoization/hooks/useMemoizedHandlers.ts",
-  "src/pages/performance/memoization/hooks/useNonMemoizedHandlers.ts",
   "src/pages/performance/mouse-events/context-store-pattern/context/MouseEventsContext.tsx"
 ]

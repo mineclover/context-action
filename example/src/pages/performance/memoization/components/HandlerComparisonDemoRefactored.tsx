@@ -1,3 +1,4 @@
+import { ComparisonHandlerRegistry } from '../handlers/ComparisonHandlerRegistry';
 import {
   ComparisonStoreProvider,
   MemoizedActionProvider,
@@ -42,21 +43,20 @@ export function HandlerComparisonDemoRefactored() {
       <ComparisonStoreProvider>
         <PerformanceControlProvider>
           <PerformanceControlActionProvider>
-            {/* Performance Control Widget */}
-            <PerformanceControlWidget />
-
-            {/* Comparison Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Memoized Handler Widget */}
-              <MemoizedActionProvider>
-                <MemoizedHandlerWidget />
-              </MemoizedActionProvider>
-
-              {/* Non-Memoized Handler Widget */}
+            <MemoizedActionProvider>
               <NonMemoizedActionProvider>
-                <NonMemoizedHandlerWidget />
+                <ComparisonHandlerRegistry>
+                  {/* Performance Control Widget */}
+                  <PerformanceControlWidget />
+
+                  {/* Comparison Grid */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <MemoizedHandlerWidget />
+                    <NonMemoizedHandlerWidget />
+                  </div>
+                </ComparisonHandlerRegistry>
               </NonMemoizedActionProvider>
-            </div>
+            </MemoizedActionProvider>
           </PerformanceControlActionProvider>
         </PerformanceControlProvider>
       </ComparisonStoreProvider>

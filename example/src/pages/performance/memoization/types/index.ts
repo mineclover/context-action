@@ -1,5 +1,7 @@
+import type { ActionPayloadMap } from '@context-action/core';
+
 // Action types
-export interface ComparisonActions {
+export interface ComparisonActions extends ActionPayloadMap {
   increment: void;
   decrement: void;
   reset: void;
@@ -14,7 +16,22 @@ export interface ComparisonStore {
   calcResult: number;
   heavyData: number[];
   processedResults: { id: number; value: number; timestamp: number }[];
-  memoryLeakData: any[];
+  memoryLeakData: MemoryLeakItem[];
+}
+
+export interface ComparisonStores {
+  memoized: ComparisonStore;
+  nonMemoized: ComparisonStore;
+}
+
+export interface PerformanceControlStores {
+  autoUpdate: boolean;
+  updateInterval: number;
+}
+
+export interface PerformanceControlActions extends ActionPayloadMap {
+  toggleAutoUpdate: void;
+  setUpdateInterval: { interval: number };
 }
 
 // Performance thresholds

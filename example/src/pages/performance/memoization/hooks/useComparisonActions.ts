@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import {
   useMemoizedActionDispatch,
   useNonMemoizedActionDispatch,
@@ -11,31 +12,79 @@ import {
 export function useMemoizedActions() {
   const dispatch = useMemoizedActionDispatch();
 
-  return {
-    increment: () => dispatch('increment'),
-    decrement: () => dispatch('decrement'),
-    reset: () => dispatch('reset'),
-    calculate: (multiplier: number = 10) =>
-      dispatch('complexCalculation', { multiplier }),
-    performHeavyOperation: (dataSize: number = 20) =>
-      dispatch('heavyOperation', { dataSize }),
-    performMemoryTask: () => dispatch('memoryIntensiveTask'),
-  };
+  const increment = useCallback(() => dispatch('increment'), [dispatch]);
+  const decrement = useCallback(() => dispatch('decrement'), [dispatch]);
+  const reset = useCallback(() => dispatch('reset'), [dispatch]);
+  const calculate = useCallback(
+    (multiplier: number = 10) => dispatch('complexCalculation', { multiplier }),
+    [dispatch]
+  );
+  const performHeavyOperation = useCallback(
+    (dataSize: number = 20) => dispatch('heavyOperation', { dataSize }),
+    [dispatch]
+  );
+  const performMemoryTask = useCallback(
+    () => dispatch('memoryIntensiveTask'),
+    [dispatch]
+  );
+
+  return useMemo(
+    () => ({
+      increment,
+      decrement,
+      reset,
+      calculate,
+      performHeavyOperation,
+      performMemoryTask,
+    }),
+    [
+      calculate,
+      decrement,
+      increment,
+      performHeavyOperation,
+      performMemoryTask,
+      reset,
+    ]
+  );
 }
 
 export function useNonMemoizedActions() {
   const dispatch = useNonMemoizedActionDispatch();
 
-  return {
-    increment: () => dispatch('increment'),
-    decrement: () => dispatch('decrement'),
-    reset: () => dispatch('reset'),
-    calculate: (multiplier: number = 10) =>
-      dispatch('complexCalculation', { multiplier }),
-    performHeavyOperation: (dataSize: number = 50) =>
-      dispatch('heavyOperation', { dataSize }),
-    performMemoryTask: () => dispatch('memoryIntensiveTask'),
-  };
+  const increment = useCallback(() => dispatch('increment'), [dispatch]);
+  const decrement = useCallback(() => dispatch('decrement'), [dispatch]);
+  const reset = useCallback(() => dispatch('reset'), [dispatch]);
+  const calculate = useCallback(
+    (multiplier: number = 10) => dispatch('complexCalculation', { multiplier }),
+    [dispatch]
+  );
+  const performHeavyOperation = useCallback(
+    (dataSize: number = 50) => dispatch('heavyOperation', { dataSize }),
+    [dispatch]
+  );
+  const performMemoryTask = useCallback(
+    () => dispatch('memoryIntensiveTask'),
+    [dispatch]
+  );
+
+  return useMemo(
+    () => ({
+      increment,
+      decrement,
+      reset,
+      calculate,
+      performHeavyOperation,
+      performMemoryTask,
+    }),
+    [
+      calculate,
+      decrement,
+      increment,
+      performHeavyOperation,
+      performMemoryTask,
+      reset,
+    ]
+  );
 }
 
 /**

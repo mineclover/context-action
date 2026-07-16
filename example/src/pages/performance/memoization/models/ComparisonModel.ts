@@ -1,5 +1,11 @@
 import { createActionContext, createStoreContext } from '@context-action/react';
-import type { ComparisonActions, MemoryLeakItem } from '../types';
+import { createInitialComparisonStore } from '../business/comparison-rules';
+import type {
+  ComparisonActions,
+  ComparisonStores,
+  PerformanceControlActions,
+  PerformanceControlStores,
+} from '../types';
 
 // Model Layer - 선언적 Context 관리
 
@@ -7,20 +13,16 @@ import type { ComparisonActions, MemoryLeakItem } from '../types';
 export const {
   Provider: ComparisonStoreProvider,
   useStore: useComparisonStore,
-} = createStoreContext('ComparisonStore', {
+} = createStoreContext<ComparisonStores>('ComparisonStore', {
   memoized: {
-    counter: 0,
-    calcResult: 0,
-    heavyData: [] as number[],
-    processedResults: [] as { id: number; value: number; timestamp: number }[],
-    memoryLeakData: [] as MemoryLeakItem[],
+    initialValue: createInitialComparisonStore(),
+    strategy: 'reference',
+    description: 'State for the stable-handler comparison lane.',
   },
   nonMemoized: {
-    counter: 0,
-    calcResult: 0,
-    heavyData: [] as number[],
-    processedResults: [] as { id: number; value: number; timestamp: number }[],
-    memoryLeakData: [] as MemoryLeakItem[],
+    initialValue: createInitialComparisonStore(),
+    strategy: 'reference',
+    description: 'State for the re-registration comparison lane.',
   },
 });
 
@@ -41,16 +43,19 @@ export const {
 export const {
   Provider: PerformanceControlProvider,
   useStore: usePerformanceControlStore,
-} = createStoreContext('PerformanceControl', {
-  autoUpdate: false,
-  updateInterval: 100,
+} = createStoreContext<PerformanceControlStores>('PerformanceControl', {
+  autoUpdate: {
+    initialValue: false,
+    description: 'Whether the comparison lanes receive automatic actions.',
+  },
+  updateInterval: {
+    initialValue: 100,
+    description: 'Interval used by both automatic comparison lanes.',
+  },
 });
 
 export const {
   Provider: PerformanceControlActionProvider,
   useActionDispatch: usePerformanceControlDispatch,
   useActionHandler: usePerformanceControlHandler,
-} = createActionContext<{
-  toggleAutoUpdate: void;
-  setUpdateInterval: { interval: number };
-}>('PerformanceControlActions');
+} = createActionContext<PerformanceControlActions>('PerformanceControlActions');

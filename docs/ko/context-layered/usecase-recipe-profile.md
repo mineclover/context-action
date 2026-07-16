@@ -221,6 +221,31 @@ command palette, 승인 단계, staged workflow처럼 사용자가 등록한 순
 Store에 두어 View가 등록·실행 중·완료 상태를 표현하도록 하고 pipeline 자체는
 View가 소유하지 않게 합니다.
 
+## Memoization 비교 usecase
+
+memoization 데모는 비교 mechanics를 widget에 섞지 않고 안정적인 handler와
+의도적으로 재등록되는 handler를 비교합니다.
+
+```text
+control command → ComparisonHandlerRegistry → memoized/non-memoized Store
+                 → render metric + data status View
+```
+
+- `business/comparison-rules.ts`가 counter, calculation, heavy-data,
+  memory-data 전이를 순수 함수로 소유합니다.
+- `handlers/ComparisonHandlerRegistry.tsx`가 두 action lane과 performance
+  control handler를 모두 소유합니다. stable lane은 `useCallback`을 사용하고,
+  비교 lane은 같은 Registry 경계 안에서 handler reference를 의도적으로
+  재생성합니다.
+- `actions/useComparisonActions.ts`는 widget에 안정적인 command를 제공하고,
+  `useComparisonViewState`는 읽기 전용 presentation state를 유지합니다.
+- 기존 component와 handler hook은 compatibility re-export/status hook으로
+  남겨 기존 link가 직접 등록을 다시 도입하지 않게 합니다.
+
+handler identity, registration churn, lazy Store read의 효과를 측정할 때 이
+recipe를 사용합니다. 비교 의도는 Registry 안에 명시하고 legacy 경로가 두 번째
+아키텍처 표준이 되지 않게 합니다.
+
 ## 고빈도 포인터 추적 usecase
 
 고빈도 입력과 파생 metric, 직접 DOM 피드백을 함께 다뤄야 할 때 mouse

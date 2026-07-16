@@ -1,7 +1,6 @@
 import { useNonMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
 import { useNonMemoizedActions } from '../../hooks/useComparisonActions';
 import { useNonMemoizedViewState } from '../../hooks/useComparisonViewState';
-import { useNonMemoizedHandlers } from '../../hooks/useNonMemoizedHandlers';
 import { SafeModeWrapper } from '../SafeModeWrapper';
 import { ActionButtons } from '../shared/ActionButtons';
 import { MetricsDisplay } from '../shared/MetricsDisplay';
@@ -13,7 +12,6 @@ import { MetricsDisplay } from '../shared/MetricsDisplay';
  */
 export function NonMemoizedHandlerWidget() {
   // ViewModel hooks 조합
-  useNonMemoizedHandlers(); // 비즈니스 로직 등록
   useNonMemoizedAutoUpdateEffect(); // 자동 업데이트 효과 (non-memoized context 전용)
   const viewState = useNonMemoizedViewState(); // View state 획득
   const actions = useNonMemoizedActions(); // Action functions 획득

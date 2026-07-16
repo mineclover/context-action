@@ -1,6 +1,5 @@
 import {
   usePerformanceControlActions,
-  usePerformanceControlLogic,
   usePerformanceControlState,
 } from '../../hooks/usePerformanceControl';
 import { PerformanceControlPanel } from '../shared/PerformanceControlPanel';
@@ -11,9 +10,6 @@ import { PerformanceControlPanel } from '../shared/PerformanceControlPanel';
  * 단순한 상태 제어만 담당 (auto update 실행 로직은 각 위젯에서 처리)
  */
 export function PerformanceControlWidget() {
-  // ViewModel hooks 조합
-  usePerformanceControlLogic(); // 비즈니스 로직 등록
-
   const { autoUpdate, updateInterval } = usePerformanceControlState();
   const { toggleAutoUpdate, setUpdateInterval } =
     usePerformanceControlActions();
