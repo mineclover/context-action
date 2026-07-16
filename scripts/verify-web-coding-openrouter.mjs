@@ -323,6 +323,28 @@ expectEqual(
   },
   'Non-JSON tool results must become a structured provider error instead of aborting the model loop.'
 );
+const circularDetails = {};
+circularDetails.self = circularDetails;
+expectEqual(
+  JSON.parse(
+    protocol.toolResultContent({
+      isError: true,
+      error: {
+        code: 'TOOL_EXECUTION_FAILED',
+        message: 'The handler failed.',
+        retryable: true,
+        details: circularDetails,
+      },
+    })
+  ),
+  {
+    status: 'error',
+    code: 'TOOL_EXECUTION_FAILED',
+    message: 'The handler failed.',
+    retryable: true,
+  },
+  'Non-JSON error details must not hide the canonical tool error metadata.'
+);
 
 const controller = new AbortController();
 controller.abort(new Error('cancelled by test'));

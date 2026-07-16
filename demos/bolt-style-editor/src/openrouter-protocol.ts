@@ -310,6 +310,19 @@ export function toolResultContent(result: {
     // handler accidentally returns BigInt or a circular object.
   }
 
+  if (result.isError) {
+    return JSON.stringify({
+      status: 'error',
+      code: result.error?.code ?? 'TOOL_RESULT_SERIALIZATION_FAILED',
+      message:
+        result.error?.message ??
+        'Tool result could not be serialized for the provider.',
+      ...(result.error?.retryable === undefined
+        ? {}
+        : { retryable: result.error.retryable }),
+    });
+  }
+
   return JSON.stringify({
     status: 'error',
     code: 'TOOL_RESULT_SERIALIZATION_FAILED',
