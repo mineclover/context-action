@@ -165,6 +165,26 @@ assertContains(
   'the observable facade hook'
 );
 
+const showcaseRequestAdapters = [
+  'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx',
+  'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx',
+];
+for (const relativeFile of showcaseRequestAdapters) {
+  const source = readSource(relativeFile);
+  assertContains(
+    relativeFile,
+    source,
+    /toToolCallRequest\(/,
+    'the shared model-to-tools/call adapter'
+  );
+  assertNotContains(
+    relativeFile,
+    source,
+    /method:\s*['"]tools\/call['"]\s*,/,
+    'manual tools/call request construction'
+  );
+}
+
 const sourceFiles = collectSourceFiles(sourceRoot);
 for (const filePath of sourceFiles) {
   const relativeFile = relativePath(filePath);
@@ -218,5 +238,6 @@ console.log('- canonical tool schema: tool-schema.ts');
 console.log('- handler registrations: tool-handlers.tsx');
 console.log('- external subscriptions: use-editor-observables.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
+console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
 console.log(`- presentation views checked: ${viewFiles.length}`);
 console.log('- direct runtime/mutation crossings: 0');

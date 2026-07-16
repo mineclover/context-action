@@ -1,4 +1,4 @@
-import { createToolContext } from '@context-action/react';
+import { createToolContext, toToolCallRequest } from '@context-action/react';
 import type { ModelMessage } from 'ai';
 import {
   type FormEvent,
@@ -854,11 +854,11 @@ function LiveWebCodingWorkbench({
           ? { ...args, expectedRevision: workspaceSnapshot.revision }
           : args;
       const result = await registry.callTool(
-        {
+        toToolCallRequest({
           id: `palette-${Date.now()}`,
-          method: 'tools/call',
-          params: { name, arguments: guardedArgs },
-        },
+          name,
+          arguments: guardedArgs,
+        }),
         {
           context: { source: 'local', sessionId },
           signal: controller.signal,

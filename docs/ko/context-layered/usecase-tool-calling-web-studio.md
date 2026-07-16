@@ -231,9 +231,10 @@ pnpm --filter @context-action/web-coding-demo verify:conventions
 
 이 검사는 ToolContext 생성과 handler 등록이 전용 모듈에 남아 있는지,
 외부 subscription이 observable hook에 모여 있는지, local/provider 경로가
-canonical discovery·export·model-call boundary를 사용하는지, presentation
-view가 workspace mutation·catalog·tool execution API를 직접 호출하지 않는지를
-확인합니다.
+canonical discovery·export·model-call boundary를 사용하는지 확인합니다. example
+live-coding showcase도 수동 JSON-RPC request를 만들지 않고 공통
+`toToolCallRequest()` adapter를 사용합니다. presentation view가 workspace
+mutation·catalog·tool execution API를 직접 호출하지 않는지도 확인합니다.
 
 개발 진입점도 standalone 경계의 일부로 봅니다. example 앱이나 다른 로컬
 도구와 동시에 실행할 수 있도록 Vite 포트를 열어 두고 package launcher 자체를

@@ -254,8 +254,10 @@ pnpm --filter @context-action/web-coding-demo verify:conventions
 It checks that ToolContext creation and handler registration stay in their
 dedicated modules, external subscriptions stay in the observable hook, and
 the local/provider paths use the canonical discovery, export, and model-call
-boundaries. Presentation views do not call workspace mutation, catalog, or tool
-execution APIs directly.
+boundaries. The example live-coding showcases also use the shared
+`toToolCallRequest()` adapter instead of hand-building JSON-RPC requests.
+Presentation views do not call workspace mutation, catalog, or tool execution
+APIs directly.
 
 The development entrypoint is part of that boundary as well. Keep the Vite
 port configurable so the standalone demo can run beside the example app and

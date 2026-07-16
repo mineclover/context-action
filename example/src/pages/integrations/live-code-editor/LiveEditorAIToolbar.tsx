@@ -1,3 +1,4 @@
+import { toToolCallRequest } from '@context-action/react';
 import type { ModelMessage } from 'ai';
 import {
   type FormEvent,
@@ -64,11 +65,11 @@ export function LiveEditorAIToolbar() {
     sessionId = createToolCallSessionId()
   ) =>
     registry.callTool(
-      {
+      toToolCallRequest({
         id: `local-${Date.now()}-${name}`,
-        method: 'tools/call',
-        params: { name, arguments: argumentsValue },
-      },
+        name,
+        arguments: argumentsValue,
+      }),
       { context: { source: 'local', sessionId } }
     );
   const trace = useSyncExternalStore(
