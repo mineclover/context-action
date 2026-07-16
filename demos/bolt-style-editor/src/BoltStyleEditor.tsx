@@ -42,6 +42,7 @@ import {
   resolveToolApproval,
   toolApprovalStore,
 } from './tool-approval';
+import { getToolErrorRecovery } from './tool-error-recovery';
 import { ToolHandlers } from './tool-handlers';
 import { throwIfAborted } from './tool-runtime-utils';
 import {
@@ -107,12 +108,6 @@ function shouldOpenProviderSettings(error: unknown): boolean {
     error.code === 'OPENROUTER_AUTHENTICATION_FAILED' ||
     error.code === 'OPENROUTER_ACCESS_DENIED' ||
     error.code === 'OPENROUTER_INVALID_RESPONSE'
-  );
-}
-
-function canRefreshPreviewAfterError(code?: string): boolean {
-  return (
-    code === 'PREVIEW_ACK_TIMEOUT' || code === 'PREVIEW_REVISION_SUPERSEDED'
   );
 }
 
@@ -2876,19 +2871,9 @@ function EditorWorkbench({
                   ? {}
                   : {
                       retryPrompt: trimmed,
-                      ...(result.errorCode === 'WORKSPACE_FOLDER_STALE' ||
-                      result.errorCode === 'WORKSPACE_FOLDER_NOT_CONNECTED'
-                        ? { folderAction: 'reconnect' as const }
-                        : result.errorCode ===
-                            'WORKSPACE_FOLDER_PERMISSION_DENIED'
-                          ? { folderAction: 'grant' as const }
-                          : {}),
-                      ...(canRefreshPreviewAfterError(result.errorCode)
-                        ? { previewAction: true }
-                        : {}),
-                      ...(result.revisionConflict
-                        ? { retryLabel: 'Re-read & retry' }
-                        : {}),
+                      ...getToolErrorRecovery(result.errorCode, {
+                        revisionConflict: result.revisionConflict,
+                      }),
                     }),
               }
             : {}),
@@ -2980,16 +2965,7 @@ function EditorWorkbench({
             ...(result.isError
               ? {
                   tone: 'error' as const,
-                  ...(result.error?.code === 'WORKSPACE_FOLDER_STALE' ||
-                  result.error?.code === 'WORKSPACE_FOLDER_NOT_CONNECTED'
-                    ? { folderAction: 'reconnect' as const }
-                    : result.error?.code ===
-                        'WORKSPACE_FOLDER_PERMISSION_DENIED'
-                      ? { folderAction: 'grant' as const }
-                      : {}),
-                  ...(canRefreshPreviewAfterError(result.error?.code)
-                    ? { previewAction: true }
-                    : {}),
+                  ...getToolErrorRecovery(result.error?.code),
                   ...(result.error?.retryable === false
                     ? {}
                     : { retryTool: call }),

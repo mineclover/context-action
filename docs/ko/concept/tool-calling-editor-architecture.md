@@ -237,7 +237,9 @@ preview mutation handler는 HTML/CSS target이 없을 때 무의미한 재호출
 non-retryable `PREVIEW_TARGET_NOT_FOUND`를 반환한다. iframe runtime 오류, acknowledgement
 timeout, superseded revision은 각각 `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIMEOUT`,
 `PREVIEW_REVISION_SUPERSEDED`로 보존하며 timeout과 superseded 결과에는 retryable
-`Refresh preview` chat action을 제공한다.
+`Refresh preview` chat action을 제공한다. local agent 요청과 palette/quick tool
+호출은 folder reconnect, permission grant, preview refresh, revision 재조회
+action에 동일한 복구 정책을 사용한다.
 
 workspace path/state 오류도 `WORKSPACE_PATH_INVALID`, `WORKSPACE_FILE_NOT_FOUND`,
 `WORKSPACE_FILE_CONFLICT`, `WORKSPACE_FILE_TYPE_CONFLICT`,

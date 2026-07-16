@@ -257,7 +257,9 @@ target is absent, rather than asking the model to repeat an impossible patch.
 Iframe runtime failures, acknowledgement timeouts, and superseded revisions
 are preserved as `PREVIEW_RUNTIME_ERROR`, `PREVIEW_ACK_TIMEOUT`, and
 `PREVIEW_REVISION_SUPERSEDED`; timeout and superseded-revision results are
-retryable and expose a `Refresh preview` chat action.
+retryable and expose a `Refresh preview` chat action. Local agent requests and
+palette/quick-tool calls use the same recovery policy, including folder reconnect,
+permission grant, preview refresh, and revision re-read actions.
 
 Workspace path and state errors are also explicit: `WORKSPACE_PATH_INVALID`,
 `WORKSPACE_FILE_NOT_FOUND`, `WORKSPACE_FILE_CONFLICT`,
