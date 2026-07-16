@@ -108,6 +108,11 @@ assertContains(
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'realtime web-coding multi-turn history preservation'
 );
+assertContains(
+  realtimeWebCodingSource,
+  /source:\s*'local',[\s\S]*?mode:\s*'agent',[\s\S]*?provider:\s*'local-fallback'/,
+  'realtime web-coding local-agent source and mode'
+);
 
 const uiCount = assertCatalogMatchesSchema({
   catalogSource,
@@ -127,3 +132,4 @@ console.log('MCP/function-calling catalog contract check');
 console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
 console.log('- AI runner response-message history checked: 2 showcases');
+console.log('- realtime local-agent source/mode contract checked');

@@ -516,7 +516,7 @@ async function runLocalPrompt(
       },
       {
         context: {
-          source: 'model',
+          source: 'local',
           mode: 'agent',
           ...(sessionId ? { sessionId } : {}),
           metadata: { provider: 'local-fallback' },
