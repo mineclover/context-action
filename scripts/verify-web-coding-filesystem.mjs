@@ -293,6 +293,34 @@ expectEqual(
   'Directory-upload fallback must preserve its selected root name.'
 );
 expect(!fallbackAdapter.hasWritableFolder, 'Directory-upload fallback must stay browser-only.');
+let disconnectedFolderError;
+try {
+  await fallbackAdapter.writeFiles([fallbackFiles.files[0]]);
+} catch (error) {
+  disconnectedFolderError = error;
+}
+expect(
+  disconnectedFolderError?.code === 'WORKSPACE_FOLDER_NOT_CONNECTED' &&
+    disconnectedFolderError?.retryable === true &&
+    disconnectedFolderError?.details?.operation === 'write',
+  'A browser-only workspace save must return a reconnectable structured error.'
+);
+
+root.permission = 'denied';
+let deniedFolderError;
+try {
+  await adapter.writeFiles([fallbackFiles.files[0]]);
+} catch (error) {
+  deniedFolderError = error;
+}
+expect(
+  deniedFolderError?.code === 'WORKSPACE_FOLDER_PERMISSION_DENIED' &&
+    deniedFolderError?.retryable === true &&
+    deniedFolderError?.details?.operation === 'write' &&
+    deniedFolderError?.details?.permission === 'denied',
+  'A denied folder permission must return a retryable structured error.'
+);
+root.permission = 'granted';
 
 const duplicateFallback = await fallbackAdapter.importFileList([
   createRelativeFile('index.html', 'uploaded/index.html', '<main />', 'text/html'),

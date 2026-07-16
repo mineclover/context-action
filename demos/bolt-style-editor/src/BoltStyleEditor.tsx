@@ -74,7 +74,7 @@ type Message = {
   retryPrompt?: string;
   retryLabel?: string;
   retryTool?: ToolCall;
-  reconnectFolder?: boolean;
+  folderAction?: 'reconnect' | 'grant';
   openSettings?: boolean;
 };
 
@@ -2857,9 +2857,13 @@ function EditorWorkbench({
                   ? {}
                   : {
                       retryPrompt: trimmed,
-                      ...(result.errorCode === 'WORKSPACE_FOLDER_STALE'
-                        ? { reconnectFolder: true }
-                        : {}),
+                      ...(result.errorCode === 'WORKSPACE_FOLDER_STALE' ||
+                      result.errorCode === 'WORKSPACE_FOLDER_NOT_CONNECTED'
+                        ? { folderAction: 'reconnect' as const }
+                        : result.errorCode ===
+                            'WORKSPACE_FOLDER_PERMISSION_DENIED'
+                          ? { folderAction: 'grant' as const }
+                          : {}),
                       ...(result.revisionConflict
                         ? { retryLabel: 'Re-read & retry' }
                         : {}),
@@ -2954,9 +2958,13 @@ function EditorWorkbench({
             ...(result.isError
               ? {
                   tone: 'error' as const,
-                  ...(result.error?.code === 'WORKSPACE_FOLDER_STALE'
-                    ? { reconnectFolder: true }
-                    : {}),
+                  ...(result.error?.code === 'WORKSPACE_FOLDER_STALE' ||
+                  result.error?.code === 'WORKSPACE_FOLDER_NOT_CONNECTED'
+                    ? { folderAction: 'reconnect' as const }
+                    : result.error?.code ===
+                        'WORKSPACE_FOLDER_PERMISSION_DENIED'
+                      ? { folderAction: 'grant' as const }
+                      : {}),
                   ...(result.error?.retryable === false
                     ? {}
                     : { retryTool: call }),
@@ -4412,13 +4420,22 @@ function EditorWorkbench({
                         {message.retryLabel ?? 'Retry'}
                       </button>
                     ) : null}
-                    {!running && message.reconnectFolder ? (
+                    {!running && message.folderAction === 'reconnect' ? (
                       <button
                         className="message-reconnect"
                         onClick={() => void handleOpenFolder()}
                         type="button"
                       >
                         Reconnect folder
+                      </button>
+                    ) : null}
+                    {!running && message.folderAction === 'grant' ? (
+                      <button
+                        className="message-reconnect"
+                        onClick={() => void handleGrantFolderAccess()}
+                        type="button"
+                      >
+                        Grant folder access
                       </button>
                     ) : null}
                     {!running && message.openSettings ? (

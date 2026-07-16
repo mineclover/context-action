@@ -279,8 +279,13 @@ export function ToolHandlers({
     async ({ expectedRevision }, controller) => {
       assertExpectedWorkspaceRevision(workspace, expectedRevision);
       if (!fileSystemAdapter.hasWritableFolder) {
-        throw new Error(
-          'No writable folder is open. Open a local folder before saving files.'
+        throw new WorkspaceToolError(
+          'No writable folder is open. Open a local folder before saving files.',
+          {
+            code: 'WORKSPACE_FOLDER_NOT_CONNECTED',
+            retryable: true,
+            details: { operation: 'save' },
+          }
         );
       }
       if (controller.signal?.aborted) throw new Error('Save cancelled.');

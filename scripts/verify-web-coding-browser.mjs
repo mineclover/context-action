@@ -808,6 +808,28 @@ async function runBrowserProof(url) {
     });
     await reconnectDialog.getByRole('button', { name: 'Open folder' }).click();
     await page.getByText(/Opened folder-api-proof with 3 file\(s\)/).waitFor();
+    await page.getByRole('tab', { name: /app\.js/ }).click();
+
+    await page.evaluate(() => {
+      window.__webCodingFolderProof.permission = 'denied';
+    });
+    await apiFolderEditor.fill("document.body.dataset.apiFolder = 'permission-denied';");
+    await page.locator('.editor-save').click();
+    await page.getByText(/\[WORKSPACE_FOLDER_PERMISSION_DENIED\]/).waitFor();
+    await page.getByRole('button', { name: 'Grant folder access' }).waitFor();
+    await page.evaluate(() => {
+      window.__webCodingFolderProof.permission = 'granted';
+    });
+    await page.getByRole('button', { name: 'Grant folder access' }).click();
+    await page.getByText('Write access restored for the connected folder.').waitFor();
+    await page.locator('.editor-save').click();
+    await page.getByText('Saved', { exact: true }).waitFor();
+    const permissionRecoveredSource = await page.evaluate(
+      () => window.__webCodingFolderProof.children.get('app.js')?.file.text()
+    );
+    if ((await permissionRecoveredSource) !== "document.body.dataset.apiFolder = 'permission-denied';") {
+      throw new Error('Granting folder access did not recover the pending save.');
+    }
 
     await page.getByRole('tab', { name: /notes\.md/ }).click();
     await page.getByRole('button', { name: 'Rename notes.md' }).click();

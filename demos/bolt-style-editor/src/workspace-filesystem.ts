@@ -169,6 +169,22 @@ function createStaleFolderError(
   });
 }
 
+function createFolderAccessError(
+  code: 'WORKSPACE_FOLDER_NOT_CONNECTED' | 'WORKSPACE_FOLDER_PERMISSION_DENIED',
+  message: string,
+  operation: 'reload' | 'write' | 'delete',
+  permission?: FileSystemPermissionStatus
+): WorkspaceToolError {
+  return new WorkspaceToolError(message, {
+    code,
+    retryable: true,
+    details: {
+      operation,
+      ...(permission ? { permission } : {}),
+    },
+  });
+}
+
 function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
   return files.sort((left, right) => {
     const leftRank =
@@ -263,7 +279,11 @@ export class BrowserWorkspaceFileSystemAdapter {
 
   async reloadFolder(): Promise<ImportedFolder> {
     if (!this.directoryHandle) {
-      throw new Error('No writable folder is connected to this workspace.');
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_NOT_CONNECTED',
+        'No writable folder is connected to this workspace.',
+        'reload'
+      );
     }
     const previousHandle = this.directoryHandle;
     try {
@@ -475,13 +495,20 @@ export class BrowserWorkspaceFileSystemAdapter {
   async writeFiles(files: readonly WorkspaceFile[]): Promise<number> {
     const directory = this.directoryHandle;
     if (!directory) {
-      throw new Error('This workspace was imported without a writable folder.');
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_NOT_CONNECTED',
+        'This workspace was imported without a writable folder.',
+        'write'
+      );
     }
 
     const permission = await this.ensureWritePermission(directory);
     if (permission !== 'granted') {
-      throw new Error(
-        'Write permission for the selected folder was not granted.'
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_PERMISSION_DENIED',
+        'Write permission for the selected folder was not granted.',
+        'write',
+        permission
       );
     }
 
@@ -506,13 +533,20 @@ export class BrowserWorkspaceFileSystemAdapter {
   async removeFiles(paths: readonly string[]): Promise<number> {
     const directory = this.directoryHandle;
     if (!directory) {
-      throw new Error('This workspace was imported without a writable folder.');
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_NOT_CONNECTED',
+        'This workspace was imported without a writable folder.',
+        'delete'
+      );
     }
 
     const permission = await this.ensureWritePermission(directory);
     if (permission !== 'granted') {
-      throw new Error(
-        'Write permission for the selected folder was not granted.'
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_PERMISSION_DENIED',
+        'Write permission for the selected folder was not granted.',
+        'delete',
+        permission
       );
     }
 
