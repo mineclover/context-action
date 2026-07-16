@@ -181,5 +181,11 @@ The production Vite base is `/context-action/web-coding/`. The repository's
 `deploy-all.yml` workflow builds this package and publishes its `dist` output at
 the standalone `/web-coding/` path alongside the documentation and example app.
 
+The first package boundary is now represented by the private
+`@context-action/live-code-editor` workspace package. It exports the
+framework-neutral workspace, preview, and folder-import contracts consumed by
+this demo; browser implementations remain local until those contracts have
+independent consumers and tests.
+
 See the [tool-calling editor architecture guide](../../docs/en/concept/tool-calling-editor-architecture.md)
 for the full contract, approval policy, revision rules, and extraction plan.

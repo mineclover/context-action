@@ -432,11 +432,14 @@ coupling its route to the example application. `@context-action/core` continues
 to own the provider-neutral tool protocol, while `@context-action/react` owns
 ToolContext and the registry.
 
-When the iframe sandbox, revision protocol, `postMessage` bridge,
-DocumentManager, and editor adapters have independent tests and public
-contracts, evaluate extracting them into a `packages/live-code-editor`
-workspace package. Start it as a private package and decide whether to publish
-it only after the contract stabilizes.
+The first extraction seam now exists as the private
+`@context-action/live-code-editor` workspace package. It exports the
+framework-neutral workspace, preview, and folder-import contracts consumed by
+the standalone demo, while browser implementations remain local. Extract the
+iframe sandbox, revision protocol, `postMessage` bridge, DocumentManager, and
+editor adapters only after those contracts have independent consumers and
+tests; decide whether to publish the package only after the contract
+stabilizes.
 
 Consider a separate repository only when one or more of these conditions hold:
 

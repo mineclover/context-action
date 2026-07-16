@@ -5,6 +5,7 @@ packages:
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
   - packages/style-testing
+  - packages/live-code-editor
   - example
   - demos/*
 

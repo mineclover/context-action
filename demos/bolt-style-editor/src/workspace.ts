@@ -1,3 +1,8 @@
+import type {
+  PreviewSnapshot,
+  WorkspaceFile,
+  WorkspaceSnapshot,
+} from '@context-action/live-code-editor';
 import { findPreviewHtmlFile } from './preview-document';
 import { WorkspaceToolError } from './workspace-errors';
 import type { ImportedFolder } from './workspace-filesystem';
@@ -8,8 +13,12 @@ import {
 
 export type {
   PreviewBridgeMessage,
+  PreviewSnapshot,
   WorkspaceAssetUrls,
-} from './preview-document';
+  WorkspaceFile,
+  WorkspaceSnapshot,
+  WorkspaceStorageMode,
+} from '@context-action/live-code-editor';
 export {
   buildPreviewDocument,
   collectPreviewDiagnostics,
@@ -18,34 +27,6 @@ export {
   rewriteJavaScriptModuleImports,
   workspaceJavaScriptModuleSpecifier,
 } from './preview-document';
-
-export type WorkspaceFile = {
-  path: string;
-  renamedFrom?: string;
-  language: string;
-  source: string;
-  kind?: 'text' | 'asset';
-  mimeType?: string;
-  blob?: Blob;
-};
-
-export type WorkspaceSnapshot = {
-  rootName: string;
-  files: WorkspaceFile[];
-  activePath: string;
-  revision: number;
-  preview: PreviewSnapshot;
-  storageMode: WorkspaceStorageMode;
-  storageError?: string;
-};
-
-export type WorkspaceStorageMode = 'loading' | 'indexed-db' | 'memory';
-
-export type PreviewSnapshot = {
-  revision: number;
-  status: 'waiting' | 'synced' | 'error';
-  message?: string;
-};
 
 type WorkspaceCheckpoint = Pick<WorkspaceSnapshot, 'files' | 'activePath'> & {
   deletedPaths: string[];

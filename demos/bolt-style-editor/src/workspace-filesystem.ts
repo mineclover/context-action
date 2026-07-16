@@ -1,18 +1,14 @@
-import type { WorkspaceFile } from './workspace';
+import type {
+  FileSystemPermissionStatus,
+  ImportedFolder,
+  WorkspaceFile,
+} from '@context-action/live-code-editor';
 import { WorkspaceToolError } from './workspace-errors';
 
-export type ImportedFolder = {
-  rootName: string;
-  files: WorkspaceFile[];
-  skipped: string[];
-};
-
-export type FileSystemPermissionStatus =
-  | 'granted'
-  | 'prompt'
-  | 'denied'
-  | 'unknown'
-  | 'disconnected';
+export type {
+  FileSystemPermissionStatus,
+  ImportedFolder,
+} from '@context-action/live-code-editor';
 
 type FileSystemFileHandleLike = {
   kind: 'file';

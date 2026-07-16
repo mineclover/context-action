@@ -401,10 +401,13 @@ surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
 배포한다. Tool protocol은 `@context-action/core`, ToolContext와 registry는
 `@context-action/react`가 계속 소유한다.
 
-다음 단계에서 iframe sandbox, revision protocol, `postMessage` bridge,
-DocumentManager, editor adapter가 독립적인 테스트와 API를 갖게 되면
-`packages/live-code-editor` workspace package로 분리하는 것을 검토한다.
-처음에는 private package로 두고 계약이 안정된 뒤 공개 패키지 여부를 판단한다.
+첫 번째 추출 seam은 이제 private
+`@context-action/live-code-editor` workspace package로 존재한다. 이 package는
+standalone demo가 소비하는 framework-neutral workspace, preview,
+folder-import 계약을 export하고, browser 구현은 아직 demo 내부에 둔다.
+iframe sandbox, revision protocol, `postMessage` bridge, DocumentManager,
+editor adapter를 실제 구현 package로 옮기는 일은 독립 consumer와 test가
+확보된 뒤 진행하며, 계약이 안정된 뒤 공개 package 여부를 판단한다.
 
 별도 repository는 다음 조건이 충족될 때만 검토한다.
 

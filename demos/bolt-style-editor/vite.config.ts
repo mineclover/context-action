@@ -20,6 +20,10 @@ export default defineConfig({
         __dirname,
         '../../packages/mutative/src/index.ts'
       ),
+      '@context-action/live-code-editor': path.resolve(
+        __dirname,
+        '../../packages/live-code-editor/src/index.ts'
+      ),
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },

@@ -1,4 +1,14 @@
+import type {
+  PreviewDiagnostic,
+  WorkspaceAssetUrls,
+} from '@context-action/live-code-editor';
 import type { WorkspaceFile } from './workspace';
+
+export type {
+  PreviewBridgeMessage,
+  PreviewDiagnostic,
+  WorkspaceAssetUrls,
+} from '@context-action/live-code-editor';
 
 function attributeValue(tag: string, name: string): string | null {
   const match = tag.match(
@@ -51,32 +61,11 @@ function findReferencedFile(
     : undefined;
 }
 
-export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
-
 const WORKSPACE_MODULE_SPECIFIER_PREFIX =
   'https://context-action.local/workspace-module/';
 
 const MAX_INLINE_CSS_IMPORTS = 32;
 const MAX_PREVIEW_JS_IMPORTS = 32;
-
-export type PreviewDiagnostic = {
-  kind:
-    | 'missing-reference'
-    | 'blocked-external-reference'
-    | 'unsupported-module-reference'
-    | 'module-graph-limit';
-  sourcePath: string;
-  requestedPath: string;
-  message: string;
-};
-
-export type PreviewBridgeMessage =
-  | { type: 'context-action.preview.ready'; revision: number }
-  | {
-      type: 'context-action.preview.error';
-      revision: number;
-      message: string;
-    };
 
 function appendPreviewBridge(html: string, revision: number): string {
   const bridge = `<script>(function(){const revision=${revision};let failed=false;const send=function(message){window.parent.postMessage(Object.assign({revision:revision},message),'*')};const reportError=function(message){if(failed)return;failed=true;send({type:'context-action.preview.error',message:message||'Preview runtime error'})};window.addEventListener('error',function(event){reportError(event.message||'Preview runtime error')});window.addEventListener('unhandledrejection',function(event){const reason=event.reason;reportError(reason&&reason.message?String(reason.message):String(reason||'Unhandled preview rejection'))});window.addEventListener('DOMContentLoaded',function(){if(!failed)send({type:'context-action.preview.ready'})})})();</script>`;
