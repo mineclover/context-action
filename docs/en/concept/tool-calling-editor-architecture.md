@@ -46,7 +46,7 @@ surface. Its first slice uses a Dexie-backed browser workspace, Blob file
 records, and a deterministic local agent so GitHub Pages can demonstrate the
 complete `tools/list` → model/local agent → `tools/call` → tool result → preview
 flow without an API key. If IndexedDB is unavailable, it falls back to the
-memory workspace. `Open folder` now uses a parent-owned browser adapter: it
+memory workspace. `Open folder` now uses the package browser filesystem adapter: it
 prefers the File System Access API and falls back to a directory-upload input,
 then replaces the Dexie workspace with the imported text files. When the user
 grants read/write access, `Save to folder` writes dirty files back to that
@@ -74,8 +74,9 @@ An empty or unsupported folder is rejected during both open and reload, so it
 cannot replace the current workspace or leave a misleading folder connection.
 The deterministic prompt planner and revision-aware preflight now live in
 `demos/bolt-style-editor/src/local-agent-plan.ts`, separate from the React
-editor orchestration. This keeps the local fallback contract testable and gives
-the future `packages/live-code-editor` extraction a narrow first seam.
+editor orchestration. This keeps the local fallback contract independently
+testable while the reusable workspace runtime lives in
+`packages/live-code-editor`.
 The preview document compiler and local asset/script rewriting are isolated in
 `packages/live-code-editor/src/preview-document.ts`; the demo path is a
 compatibility re-export. `WorkspaceDocumentManager` owns state, history, and

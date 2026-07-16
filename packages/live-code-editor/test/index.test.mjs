@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   assertWorkspaceTextSourceLength,
+  BrowserWorkspaceFileSystemAdapter,
   isPreviewBridgeMessage,
   languageForWorkspacePath,
   MAX_TEXT_SOURCE_LENGTH,
@@ -153,4 +154,10 @@ test('workspace document manager is independently consumable through a repositor
   manager.undo();
   await manager.waitForPersistence();
   assert.equal(manager.getFile('index.html').source, '<h1>Seed</h1>');
+});
+
+test('publishes the browser filesystem adapter from the package entrypoint', () => {
+  const adapter = new BrowserWorkspaceFileSystemAdapter();
+  assert.equal(adapter.hasWritableFolder, false);
+  assert.equal(adapter.folderPermission, 'disconnected');
 });

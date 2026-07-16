@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Framework-neutral browser contracts for Context-Action live code editors",
+  "description": "Workspace runtime and browser contracts for Context-Action live code editors",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

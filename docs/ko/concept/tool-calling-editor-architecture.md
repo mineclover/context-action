@@ -45,7 +45,7 @@ Bolt 스타일 standalone studio는 `demos/bolt-style-editor` workspace package�
 API 키 없이도 전체 `tools/list` → model/local agent → `tools/call` → tool result
 → preview 흐름을 확인할 수 있도록 Dexie 기반 browser workspace, Blob file record와
 결정적 local agent를 사용한다. IndexedDB를 사용할 수 없으면 memory workspace로
-fallback한다. `Open folder`는 부모가 소유하는 browser adapter를 사용하며 File
+fallback한다. `Open folder`는 package가 소유하는 browser filesystem adapter를 사용하며 File
 System Access API를 우선하고, 지원하지 않는 브라우저에서는 directory-upload
 input으로 fallback한 뒤 가져온 text 파일로 Dexie workspace를 교체한다. 사용자가
 read/write 권한을 허용하면 `Save to folder`로 dirty 파일을 선택한 directory에
@@ -69,8 +69,8 @@ browser workspace는 유지한다. header에는 folder link unavailable 상태�
 사용자가 folder를 다시 열어 연결을 복구할 수 있다.
 결정적 prompt planner와 revision-aware preflight는 React editor orchestration과
 분리해 `demos/bolt-style-editor/src/local-agent-plan.ts`에 둔다. 따라서 local
-fallback 계약을 독립적으로 검증할 수 있고, 향후 `packages/live-code-editor`로
-추출할 때 첫 번째로 좁은 경계가 된다.
+fallback 계약을 독립적으로 검증할 수 있고, 재사용 가능한 workspace runtime은
+`packages/live-code-editor`에 둔다.
 preview document compiler와 local asset/script rewriting은
 `packages/live-code-editor/src/preview-document.ts`로 분리한다. Demo 경로는
 호환성 re-export만 제공한다. `WorkspaceDocumentManager`가 state, history,
