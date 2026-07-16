@@ -16,6 +16,7 @@ import {
   collectDirectoryPaths,
   type FileTreeEntry,
 } from './file-tree';
+import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
 import {
   type EditorMessage,
@@ -68,60 +69,6 @@ import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
-
-function downloadTextFile(
-  value: string,
-  filename: string,
-  mimeType = 'application/json'
-): void {
-  const blob = new Blob([value], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.style.display = 'none';
-  document.body.appendChild(anchor);
-  anchor.click();
-  window.setTimeout(() => {
-    anchor.remove();
-    URL.revokeObjectURL(url);
-  }, 0);
-}
-
-async function writeClipboardText(value: string): Promise<void> {
-  const clipboard = navigator.clipboard;
-  if (clipboard?.writeText) {
-    try {
-      await Promise.race([
-        clipboard.writeText(value),
-        new Promise<never>((_, reject) => {
-          window.setTimeout(
-            () => reject(new Error('Clipboard access timed out.')),
-            800
-          );
-        }),
-      ]);
-      return;
-    } catch {
-      // Fall through to the synchronous browser copy path.
-    }
-  }
-
-  const textarea = document.createElement('textarea');
-  textarea.value = value;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.select();
-  let copied = false;
-  try {
-    copied = document.execCommand('copy');
-  } finally {
-    textarea.remove();
-  }
-  if (!copied) throw new Error('Clipboard access is unavailable.');
-}
 
 function isPreviewBridgeMessage(value: unknown): value is PreviewBridgeMessage {
   if (!value || typeof value !== 'object') return false;
@@ -497,14 +444,6 @@ function EditorWorkbench({
   const [prompt, setPrompt] = useState(
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
-  const copyFeedbackTimerRef = useRef<number | null>(null);
-  useEffect(() => {
-    return () => {
-      if (copyFeedbackTimerRef.current !== null) {
-        window.clearTimeout(copyFeedbackTimerRef.current);
-      }
-    };
-  }, []);
   const messageListRef = useRef<HTMLDivElement>(null);
   const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
   const focusedApprovalIdRef = useRef<string | null>(null);
@@ -689,7 +628,6 @@ function EditorWorkbench({
   const [toolArgumentsError, setToolArgumentsError] = useState<string | null>(
     null
   );
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [showAllTrace, setShowAllTrace] = useState(false);
   const toolCatalogCounts = useMemo(() => {
     const counts: Record<ToolCatalogFilter, number> = {
@@ -747,6 +685,21 @@ function EditorWorkbench({
     setToolArgumentsError,
     requestConfirmation,
     executeQuickTool,
+  });
+  const {
+    copyFeedback,
+    copyJson,
+    copySelectedToolCall,
+    downloadToolList,
+    downloadSelectedToolDefinition,
+    downloadSelectedToolCall,
+    downloadExecutionTrace,
+  } = useStudioExportActions({
+    registry,
+    traceEntries,
+    selectedToolName,
+    selectedToolDefinition,
+    parseToolArguments,
   });
   const isStorageReady =
     snapshot.storageMode !== 'loading' && folderRestoreState !== 'restoring';
@@ -959,82 +912,6 @@ function EditorWorkbench({
         .item(nextIndex)
         ?.focus();
     });
-  };
-
-  const showCopyFeedback = (message: string) => {
-    if (copyFeedbackTimerRef.current !== null) {
-      window.clearTimeout(copyFeedbackTimerRef.current);
-    }
-    setCopyFeedback(message);
-    copyFeedbackTimerRef.current = window.setTimeout(() => {
-      copyFeedbackTimerRef.current = null;
-      setCopyFeedback(null);
-    }, 1800);
-  };
-
-  const copyJson = async (label: string, value: unknown) => {
-    try {
-      await writeClipboardText(JSON.stringify(value, null, 2));
-      showCopyFeedback(`${label} copied`);
-    } catch (error) {
-      showCopyFeedback(
-        `${error instanceof Error ? error.message : 'Copy failed.'} Use Download instead.`
-      );
-    }
-  };
-
-  const downloadJson = (label: string, value: unknown, filename: string) => {
-    downloadTextFile(JSON.stringify(value, null, 2), filename);
-    showCopyFeedback(`${label} downloaded`);
-  };
-
-  const downloadToolList = () => {
-    downloadJson(
-      'tools/list result',
-      registry.listTools({ method: 'tools/list' }),
-      'context-action-tools-list.json'
-    );
-  };
-
-  const copySelectedToolCall = async () => {
-    if (!selectedToolName) return;
-    const argumentsValue = parseToolArguments();
-    if (!argumentsValue) return;
-    await copyJson('tools/call request', {
-      method: 'tools/call',
-      params: { name: selectedToolName, arguments: argumentsValue },
-    });
-  };
-
-  const downloadSelectedToolDefinition = () => {
-    if (!selectedToolDefinition) return;
-    downloadJson(
-      'Tool definition',
-      selectedToolDefinition,
-      `context-action-${selectedToolDefinition.name.replaceAll('.', '-')}-definition.json`
-    );
-  };
-
-  const downloadSelectedToolCall = () => {
-    if (!selectedToolName) return;
-    const argumentsValue = parseToolArguments();
-    if (!argumentsValue) return;
-    downloadJson(
-      'tools/call request',
-      {
-        method: 'tools/call',
-        params: { name: selectedToolName, arguments: argumentsValue },
-      },
-      `context-action-${selectedToolName.replaceAll('.', '-')}-call.json`
-    );
-  };
-
-  const downloadExecutionTrace = () => {
-    if (!traceEntries.length) return;
-    downloadTextFile(
-      JSON.stringify(traceEntries, null, 2),
-      'context-action-studio-trace.json'
-    );
   };
 
   const closeWorkspaceSearch = (restoreFocus = true) => {
