@@ -1,22 +1,14 @@
-import { toToolCallRequest, toToolListRequest } from '@context-action/react';
-import type { ModelMessage } from 'ai';
 import {
   type FormEvent,
   useEffect,
-  useMemo,
-  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
 import {
   clearLiveEditorTrace,
-  finishLiveEditorAgentTrace,
   formatLiveEditorTraceId,
   liveEditorTraceStore,
-  recordLiveEditorToolList,
-  startLiveEditorAgentTrace,
 } from '../../../lib/live-editor-trace';
-import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
   saveOpenRouterApiKey,
   useStoredOpenRouterApiKey,
@@ -27,54 +19,15 @@ import {
   type OpenRouterModel,
 } from '../../../lib/openrouter-models';
 import {
-  createToolCallSessionId,
   downloadTextFile,
   serializeToolTrace,
   writeClipboardText,
 } from '../../../lib/tool-call-trace';
+import { useLiveEditorAgentExecution } from './actions/useLiveEditorAgentExecution';
+import { useLiveEditorToolActions } from './actions/useLiveEditorToolActions';
 import styles from './LiveCodeEditorPage.module.css';
-import { useLiveEditorToolRegistry } from './LiveEditorToolchain';
-
-function formatLocalToolResult(
-  result: {
-    readonly content?: readonly {
-      readonly type: string;
-      readonly text?: string;
-    }[];
-    readonly error?: { readonly message?: string };
-    readonly isError?: boolean;
-    readonly structuredContent?: unknown;
-  },
-  fallback: string
-): string {
-  if (result.error?.message || result.isError) {
-    return result.error?.message ?? fallback;
-  }
-  if (result.structuredContent !== undefined) {
-    return JSON.stringify(result.structuredContent);
-  }
-  const text = result.content
-    ?.filter((item) => item.type === 'text' && item.text)
-    .map((item) => item.text)
-    .join('\n');
-  return text || fallback;
-}
 
 export function LiveEditorAIToolbar() {
-  const registry = useLiveEditorToolRegistry();
-  const callLocalTool = (
-    name: string,
-    argumentsValue: Record<string, unknown>,
-    sessionId = createToolCallSessionId()
-  ) =>
-    registry.callTool(
-      toToolCallRequest({
-        id: `local-${Date.now()}-${name}`,
-        name,
-        arguments: argumentsValue,
-      }),
-      { context: { source: 'local', mode: 'direct', sessionId } }
-    );
   const trace = useSyncExternalStore(
     liveEditorTraceStore.subscribe,
     liveEditorTraceStore.getSnapshot,
@@ -84,27 +37,16 @@ export function LiveEditorAIToolbar() {
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState('');
-  const [localStatusResult, setLocalStatusResult] = useState('');
-  const [localCallResult, setLocalCallResult] = useState('');
-  const [localOpenResult, setLocalOpenResult] = useState('');
-  const [localSaveResult, setLocalSaveResult] = useState('');
-  const [localSaveAllResult, setLocalSaveAllResult] = useState('');
-  const [localMutationResult, setLocalMutationResult] = useState('');
-  const [localPatchResult, setLocalPatchResult] = useState('');
-  const [modelShapedResult, setModelShapedResult] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [uiError, setUiError] = useState('');
   const [loadingModels, setLoadingModels] = useState(false);
   const [traceCopied, setTraceCopied] = useState(false);
-  const executionControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(
-    () => () => {
-      executionControllerRef.current?.abort();
-    },
-    []
-  );
+  const toolActions = useLiveEditorToolActions();
+  const agentExecution = useLiveEditorAgentExecution({
+    apiKey,
+    selectedModel,
+    prompt,
+    onPromptConsumed: () => setPrompt(''),
+  });
 
   useEffect(() => {
     let active = true;
@@ -117,7 +59,7 @@ export function LiveEditorAIToolbar() {
       })
       .catch((loadError) => {
         if (active) {
-          setError(
+          setUiError(
             loadError instanceof Error
               ? loadError.message
               : 'OpenRouter models could not be loaded.'
@@ -132,88 +74,9 @@ export function LiveEditorAIToolbar() {
     };
   }, []);
 
-  const runner = useMemo(
-    () =>
-      apiKey
-        ? createBrowserOpenRouterToolRunner({
-            apiKey,
-            referer: window.location.origin,
-          })
-        : null,
-    [apiKey]
-  );
-
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!runner || !selectedModel || !prompt.trim() || loading) return;
-
-    setLoading(true);
-    setError('');
-    setResult('');
-    const controller = new AbortController();
-    const sessionId = createToolCallSessionId();
-    const agentTrace = startLiveEditorAgentTrace('model', sessionId);
-    executionControllerRef.current = controller;
-    const messages: ModelMessage[] = [
-      {
-        role: 'user',
-        content: `You are operating a parent-owned live editor. Use editor.getStatus or editor.listFiles to inspect the current workspace before planning mutations. Use the available editor tools when appropriate. Never invent tool results. User request: ${prompt.trim()}`,
-      },
-    ];
-
-    try {
-      const listedTools = registry.listTools(toToolListRequest());
-      recordLiveEditorToolList(listedTools.tools.length, 'model', sessionId);
-      const response = await runner.generate({
-        model: selectedModel,
-        messages,
-        registry,
-        signal: controller.signal,
-        sessionId,
-      });
-      if (controller.signal.aborted) {
-        finishLiveEditorAgentTrace(
-          agentTrace,
-          'cancelled',
-          'Execution cancelled.'
-        );
-        setResult('Execution cancelled. No toolchain success was reported.');
-        return;
-      }
-      const resultText =
-        response.text ||
-        `Toolchain completed ${response.toolCallCount} editor tool call(s).`;
-      finishLiveEditorAgentTrace(agentTrace, 'completed', resultText);
-      setResult(resultText);
-      setPrompt('');
-    } catch (requestError) {
-      if (controller.signal.aborted) {
-        finishLiveEditorAgentTrace(
-          agentTrace,
-          'cancelled',
-          'Execution cancelled.'
-        );
-        setResult('Execution cancelled. No toolchain success was reported.');
-        setError('');
-      } else {
-        const errorMessage =
-          requestError instanceof Error
-            ? requestError.message
-            : 'AI editor request failed.';
-        finishLiveEditorAgentTrace(agentTrace, 'failed', errorMessage);
-        setError(errorMessage);
-      }
-    } finally {
-      if (executionControllerRef.current === controller) {
-        executionControllerRef.current = null;
-      }
-      setLoading(false);
-    }
-  };
-
-  const cancelExecution = () => {
-    const controller = executionControllerRef.current;
-    if (controller && !controller.signal.aborted) controller.abort();
+    void agentExecution.run();
   };
 
   const copyTrace = async () => {
@@ -223,7 +86,7 @@ export function LiveEditorAIToolbar() {
       setTraceCopied(true);
       window.setTimeout(() => setTraceCopied(false), 1600);
     } catch {
-      setError(
+      setUiError(
         'Could not copy the editor execution trace. Use Download instead.'
       );
     }
@@ -237,156 +100,7 @@ export function LiveEditorAIToolbar() {
     );
   };
 
-  const inspectEditorStatus = async () => {
-    const result = await callLocalTool('editor.getStatus', {});
-    setLocalStatusResult(
-      formatLocalToolResult(result, 'Local editor.getStatus failed.')
-    );
-  };
-
-  const inspectRegistry = async () => {
-    const result = await callLocalTool('editor.listFiles', {});
-    setLocalCallResult(
-      formatLocalToolResult(result, 'Local tools/call failed.')
-    );
-  };
-
-  const openWorkspaceFile = async () => {
-    try {
-      const result = await callLocalTool('editor.openFile', {
-        path: 'script.js',
-      });
-      setLocalOpenResult(
-        formatLocalToolResult(result, 'Local editor.openFile failed.')
-      );
-    } catch (error) {
-      setLocalOpenResult(
-        error instanceof Error ? error.message : 'Local editor.openFile failed.'
-      );
-    }
-  };
-
-  const saveActiveWorkspaceFile = async () => {
-    try {
-      const sessionId = createToolCallSessionId();
-      const listing = await callLocalTool('editor.listFiles', {}, sessionId);
-      if (listing.isError) {
-        setLocalSaveResult(
-          listing.error?.message ?? 'Could not list workspace files.'
-        );
-        return;
-      }
-      const value = listing.structuredContent;
-      const activePath =
-        value && typeof value === 'object' && 'activePath' in value
-          ? value.activePath
-          : undefined;
-      if (typeof activePath !== 'string' || !activePath) {
-        setLocalSaveResult('Workspace did not return an active text path.');
-        return;
-      }
-      const result = await callLocalTool(
-        'editor.saveFile',
-        { path: activePath },
-        sessionId
-      );
-      setLocalSaveResult(
-        formatLocalToolResult(result, 'Local editor.saveFile failed.')
-      );
-    } catch (error) {
-      setLocalSaveResult(
-        error instanceof Error ? error.message : 'Local editor.saveFile failed.'
-      );
-    }
-  };
-
-  const saveAllWorkspaceFiles = async () => {
-    try {
-      const result = await callLocalTool('editor.saveAll', {});
-      setLocalSaveAllResult(
-        formatLocalToolResult(result, 'Local editor.saveAll failed.')
-      );
-    } catch (error) {
-      setLocalSaveAllResult(
-        error instanceof Error ? error.message : 'Local editor.saveAll failed.'
-      );
-    }
-  };
-
-  const runLocalMutation = async () => {
-    const result = await callLocalTool('editor.setScenario', {
-      scenario: 'invalid',
-    });
-    setLocalMutationResult(
-      formatLocalToolResult(result, 'Local mutation failed.')
-    );
-  };
-
-  const runModelShapedCall = async () => {
-    const sessionId = createToolCallSessionId();
-    const result = await registry.executeModelToolCall(
-      {
-        id: `model-shaped-${Date.now()}`,
-        name: 'editor.setScenario',
-        arguments: { scenario: 'blocked' },
-      },
-      { context: { source: 'model', mode: 'agent', sessionId } }
-    );
-    setModelShapedResult(
-      formatLocalToolResult(result, 'Model-shaped call failed.')
-    );
-  };
-
-  const runLocalPatch = async () => {
-    const sessionId = createToolCallSessionId();
-    const documentResult = await callLocalTool(
-      'editor.getDocument',
-      {},
-      sessionId
-    );
-    if (documentResult.isError) {
-      setLocalPatchResult(
-        documentResult.error?.message ?? 'Could not read the current document.'
-      );
-      return;
-    }
-
-    const documentValue = documentResult.structuredContent;
-    if (!documentValue || typeof documentValue !== 'object') {
-      setLocalPatchResult('Current document result was not structured.');
-      return;
-    }
-    const document = documentValue as {
-      source?: unknown;
-      revision?: unknown;
-    };
-    const source = typeof document.source === 'string' ? document.source : '';
-    const revision =
-      typeof document.revision === 'number' ? document.revision : undefined;
-    const line = source.split('\n').find((value) => value.trim());
-    if (!line || revision === undefined) {
-      setLocalPatchResult(
-        'Current document does not expose a patchable source.'
-      );
-      return;
-    }
-
-    const patchResult = await callLocalTool(
-      'editor.applyPatch',
-      {
-        search: line,
-        replace: `${line}  `,
-        occurrence: 'first',
-        expectedRevision: revision,
-      },
-      sessionId
-    );
-    setLocalPatchResult(
-      formatLocalToolResult(patchResult, 'Local patch failed.')
-    );
-  };
-
-  const toolDefinitions = registry.listTools().tools;
+  const { results, commands, toolDefinitions } = toolActions;
 
   return (
     <section className={styles.aiToolbar} aria-label="AI editor toolchain">
@@ -440,82 +154,98 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void inspectEditorStatus()}
+          onClick={() => void commands.inspectEditorStatus()}
         >
           Run local tools/call · editor.getStatus
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void inspectRegistry()}
+          onClick={() => void commands.inspectRegistry()}
         >
           Run local tools/call · editor.listFiles
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void openWorkspaceFile()}
+          onClick={() => void commands.openWorkspaceFile()}
         >
           Run local editor.openFile · script.js
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void saveActiveWorkspaceFile()}
+          onClick={() => void commands.saveActiveWorkspaceFile()}
         >
           Run local editor.saveFile · active path
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void saveAllWorkspaceFiles()}
+          onClick={() => void commands.saveAllWorkspaceFiles()}
         >
           Run local editor.saveAll · dirty paths
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void runLocalMutation()}
+          onClick={() => void commands.runLocalMutation()}
         >
           Run local mutation + iframe acknowledgement
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void runLocalPatch()}
+          onClick={() => void commands.runLocalPatch()}
         >
           Run local editor.applyPatch + acknowledgement
         </button>
         <button
           type="button"
           className={styles.localCallButton}
-          onClick={() => void runModelShapedCall()}
+          onClick={() => void commands.runModelShapedCall()}
         >
           Run model-shaped call (no network)
         </button>
-        {localCallResult && (
-          <code className={styles.localCallResult}>{localCallResult}</code>
+        {results.localCallResult && (
+          <code className={styles.localCallResult}>
+            {results.localCallResult}
+          </code>
         )}
-        {localStatusResult && (
-          <code className={styles.localCallResult}>{localStatusResult}</code>
+        {results.localStatusResult && (
+          <code className={styles.localCallResult}>
+            {results.localStatusResult}
+          </code>
         )}
-        {localOpenResult && (
-          <code className={styles.localCallResult}>{localOpenResult}</code>
+        {results.localOpenResult && (
+          <code className={styles.localCallResult}>
+            {results.localOpenResult}
+          </code>
         )}
-        {localSaveResult && (
-          <code className={styles.localCallResult}>{localSaveResult}</code>
+        {results.localSaveResult && (
+          <code className={styles.localCallResult}>
+            {results.localSaveResult}
+          </code>
         )}
-        {localSaveAllResult && (
-          <code className={styles.localCallResult}>{localSaveAllResult}</code>
+        {results.localSaveAllResult && (
+          <code className={styles.localCallResult}>
+            {results.localSaveAllResult}
+          </code>
         )}
-        {localMutationResult && (
-          <code className={styles.localCallResult}>{localMutationResult}</code>
+        {results.localMutationResult && (
+          <code className={styles.localCallResult}>
+            {results.localMutationResult}
+          </code>
         )}
-        {localPatchResult && (
-          <code className={styles.localCallResult}>{localPatchResult}</code>
+        {results.localPatchResult && (
+          <code className={styles.localCallResult}>
+            {results.localPatchResult}
+          </code>
         )}
-        {modelShapedResult && (
-          <code className={styles.localCallResult}>{modelShapedResult}</code>
+        {results.modelShapedResult && (
+          <code className={styles.localCallResult}>
+            {results.modelShapedResult}
+          </code>
         )}
         <div className={styles.tracePanel} aria-label="Editor execution trace">
           <div className={styles.traceHeader}>
@@ -602,22 +332,30 @@ export function LiveEditorAIToolbar() {
           aria-label="Editor AI request"
           value={prompt}
           placeholder="예: 현재 문서의 scenario를 invalid로 바꿔줘"
-          disabled={!apiKey || !selectedModel || loading}
+          disabled={!apiKey || !selectedModel || agentExecution.loading}
           onChange={(event) => setPrompt(event.target.value)}
         />
         <button
-          className={loading ? styles.aiCancelButton : undefined}
-          type={loading ? 'button' : 'submit'}
+          className={agentExecution.loading ? styles.aiCancelButton : undefined}
+          type={agentExecution.loading ? 'button' : 'submit'}
           disabled={
-            loading ? false : !apiKey || !selectedModel || !prompt.trim()
+            agentExecution.loading
+              ? false
+              : !apiKey || !selectedModel || !prompt.trim()
           }
-          onClick={loading ? cancelExecution : undefined}
+          onClick={agentExecution.loading ? agentExecution.cancel : undefined}
         >
-          {loading ? 'Cancel editor toolchain' : 'Run editor toolchain'}
+          {agentExecution.loading
+            ? 'Cancel editor toolchain'
+            : 'Run editor toolchain'}
         </button>
       </form>
-      {result && <p className={styles.aiResult}>{result}</p>}
-      {error && <p className={styles.aiError}>{error}</p>}
+      {agentExecution.result && (
+        <p className={styles.aiResult}>{agentExecution.result}</p>
+      )}
+      {(uiError || agentExecution.error) && (
+        <p className={styles.aiError}>{uiError || agentExecution.error}</p>
+      )}
     </section>
   );
 }

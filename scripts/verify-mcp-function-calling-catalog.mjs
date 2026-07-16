@@ -39,6 +39,12 @@ function assertContains(source, pattern, label) {
   }
 }
 
+function assertNotContains(source, pattern, label) {
+  if (pattern.test(source)) {
+    throw new Error(`Unexpected ${label} contract.`);
+  }
+}
+
 function assertCatalogMatchesSchema({
   catalogSource,
   schemaSource,
@@ -89,6 +95,12 @@ const realtimeWebCodingSource = readSource(
 );
 const liveEditorToolbarSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
+);
+const liveEditorToolActionsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts'
+);
+const liveEditorAgentActionsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorAgentExecution.ts'
 );
 const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
@@ -143,14 +155,44 @@ assertContains(
   'realtime web-coding agent trace lifecycle'
 );
 assertContains(
-  liveEditorToolbarSource,
+  liveEditorAgentActionsSource,
   /startLiveEditorAgentTrace\('model',\s*sessionId\)/,
   'live editor agent trace lifecycle'
 );
 assertContains(
-  liveEditorToolbarSource,
+  liveEditorAgentActionsSource,
   /recordLiveEditorToolList\(listedTools\.tools\.length/,
   'live editor discovery trace'
+);
+assertContains(
+  liveEditorToolActionsSource,
+  /registry\.callTool\(\s*toToolCallRequest\(/,
+  'live editor direct action boundary'
+);
+assertContains(
+  liveEditorToolActionsSource,
+  /registry\.executeModelToolCall\(/,
+  'live editor model-shaped action boundary'
+);
+assertContains(
+  liveEditorToolActionsSource,
+  /registry\.listTools\(toToolListRequest\(\)\)/,
+  'live editor action discovery boundary'
+);
+assertContains(
+  liveEditorAgentActionsSource,
+  /registry\.listTools\(toToolListRequest\(\)\)/,
+  'live editor agent discovery boundary'
+);
+assertContains(
+  liveEditorAgentActionsSource,
+  /runner\.generate\([\s\S]*?registry,/,
+  'live editor provider action boundary'
+);
+assertNotContains(
+  liveEditorToolbarSource,
+  /registry\.(?:callTool|executeModelToolCall|listTools)\(/,
+  'registry execution from the presentation toolbar'
 );
 
 const uiCount = assertCatalogMatchesSchema({
@@ -175,3 +217,4 @@ console.log('- realtime local-agent source/mode contract checked');
 console.log('- example tools/list/tools/call trace methods checked');
 console.log('- example agent.request trace lifecycle checked');
 console.log('- live editor agent/discovery trace lifecycle checked');
+console.log('- live editor action/presentation boundary checked');

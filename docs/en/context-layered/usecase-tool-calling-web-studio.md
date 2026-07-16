@@ -81,6 +81,15 @@ The standalone demo uses equivalent local names: `bolt-style-tool-context.ts`,
 `views/` directory, and the private `@context-action/live-code-editor`
 package.
 
+The example Live Code Editor keeps the same seam even though it is a smaller
+showcase. `LiveEditorToolchain.tsx` owns the ToolContext and handler
+registration, `actions/useLiveEditorToolActions.ts` owns direct palette calls
+and model-shaped calls, and `actions/useLiveEditorAgentExecution.ts` owns
+provider discovery, cancellation, message execution, and agent trace
+lifecycle. `LiveEditorAIToolbar.tsx` only renders the returned tool catalog,
+results, trace, and callbacks. This makes the example a concrete reference for
+the convention without making the presentation layer a second registry API.
+
 ## Rules
 
 ### 1. The schema is the single source of truth

@@ -80,6 +80,15 @@ standalone 데모에서는 각각 `bolt-style-tool-context.ts`,
 `actions/run-local-agent.ts`, `tool-handlers.tsx`, `hooks/`, `views/`, private
 `@context-action/live-code-editor` package가 같은 역할을 합니다.
 
+example의 Live Code Editor도 같은 경계를 유지합니다. `LiveEditorToolchain.tsx`가
+ToolContext와 handler 등록을 소유하고, `actions/useLiveEditorToolActions.ts`가
+palette direct call과 model-shaped call을 소유하며,
+`actions/useLiveEditorAgentExecution.ts`가 provider discovery, cancellation,
+message 실행, agent trace lifecycle을 소유합니다. `LiveEditorAIToolbar.tsx`는
+반환된 tool catalog, result, trace와 callback만 표현합니다. 따라서 작은
+showcase에서도 presentation layer가 두 번째 registry API를 만들지 않는다는
+컨벤션을 실제 코드로 확인할 수 있습니다.
+
 ## 규칙
 
 ### 1. Schema를 single source of truth로 둔다
