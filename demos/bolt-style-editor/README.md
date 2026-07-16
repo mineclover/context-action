@@ -33,6 +33,7 @@ node scripts/verify-web-coding-build.mjs
 node scripts/verify-web-coding-production-browser.mjs
 node scripts/verify-web-coding-plan.mjs
 node scripts/verify-web-coding-trace.mjs
+node scripts/verify-web-coding-approval.mjs
 node scripts/verify-web-coding-preview.mjs
 node scripts/verify-web-coding-filesystem.mjs
 node scripts/verify-web-coding-openrouter.mjs

@@ -276,7 +276,12 @@ standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
 
 ```bash
 pnpm --filter @context-action/web-coding-demo verify:conventions
+pnpm --filter @context-action/web-coding-demo verify:approval
 ```
+
+approval contract 검사는 pending request가 canonical `tools/call` method,
+`toolCallId`, session, execution mode를 유지하는지와 명시적 승인·abort cleanup이
+pending queue를 정상적으로 정리하는지를 확인합니다.
 
 example catalog 검사는 `example check`에 포함됩니다. UI와 standalone 명령문이
 각각 대응하는 ToolContext schema에 실제 존재하는 tool만 참조하는지 확인하므로,

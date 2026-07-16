@@ -76,6 +76,9 @@ export function AgentChatPanel({
               <strong>{approval.name}</strong>
               <p>{approval.description}</p>
               <small>
+                {approval.toolCallId !== undefined
+                  ? `call ${String(approval.toolCallId)} · `
+                  : ''}
                 {approval.argumentKeys.length
                   ? `arguments · ${approval.argumentKeys.join(', ')}`
                   : 'no arguments'}{' '}

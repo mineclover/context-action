@@ -301,7 +301,12 @@ The standalone boundary also has a convention gate:
 
 ```bash
 pnpm --filter @context-action/web-coding-demo verify:conventions
+pnpm --filter @context-action/web-coding-demo verify:approval
 ```
+
+The approval contract check proves that pending requests retain the canonical
+`tools/call` method, `toolCallId`, session, and execution mode, and that both
+explicit approval and abort cleanup settle the pending queue.
 
 The example catalog check is included in `example check`. It validates that
 each UI and standalone prompt references only tools present in the corresponding

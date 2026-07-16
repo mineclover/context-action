@@ -1,4 +1,5 @@
 import type {
+  ToolCallId,
   ToolCallMode,
   ToolPolicyDecision,
   ToolPolicyInput,
@@ -6,6 +7,8 @@ import type {
 
 export type PendingToolApproval = {
   id: string;
+  method: 'tools/call';
+  toolCallId?: ToolCallId;
   sessionId?: string;
   name: string;
   description: string;
@@ -56,6 +59,8 @@ export function requestToolApproval(
     : baseId;
   const approval: PendingToolApproval = {
     id,
+    method: input.request.method,
+    ...(input.request.id === undefined ? {} : { toolCallId: input.request.id }),
     ...(input.context?.sessionId ? { sessionId: input.context.sessionId } : {}),
     name: input.request.params.name,
     description: input.definition.description ?? 'No description provided.',
