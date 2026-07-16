@@ -63,11 +63,17 @@ whether recovery is retryable or terminal.
 
 The registry schema, approval policy, and lifecycle observer are isolated in
 `src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in
-`src/tool-handlers.tsx`; local agent execution lives in
-`src/actions/run-local-agent.ts`; and browser-only helpers such as revision
-guards, patching, escaping, cancellation, and downloads live in
-`src/tool-runtime-utils.ts`. The editor surface owns interaction state and
-rendering while consuming these action and handler contracts.
+`src/tool-handlers.tsx`; and local agent execution lives in
+`src/actions/run-local-agent.ts`. The editor surface consumes focused action
+hooks: `use-tool-execution` owns provider-neutral execution,
+`use-workspace-folder-actions` owns folder boundaries,
+`use-workspace-editor-actions` owns drafts and file mutations,
+`use-tool-catalog-actions` owns the MCP catalog call surface,
+`use-workspace-keyboard-shortcuts` owns global commands, and
+`use-studio-export-actions` owns copy/download exports. Browser-only helpers
+such as revision guards, patching, escaping, and cancellation remain in
+`src/tool-runtime-utils.ts`; views under `src/views/` receive data and
+callbacks without owning workspace mutation policy.
 
 The code header shows the current text size against the shared 80,000-character
 workspace mutation limit. Imported files may use the separate filesystem import

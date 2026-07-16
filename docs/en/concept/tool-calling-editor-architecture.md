@@ -85,9 +85,16 @@ provider tool loop while the protocol module owns status classification, body
 decoding, cancellation, and structured tool-result serialization.
 The registry provider boundary remains in
 `demos/bolt-style-editor/src/bolt-style-tool-context.ts`; workspace and preview
-mutation handlers are isolated in `src/tool-handlers.tsx`, while browser-only
-runtime helpers such as revision guards, text patching, escaping, cancellation,
-and downloads live in `src/tool-runtime-utils.ts`. This keeps React editor
+mutation handlers are isolated in `src/tool-handlers.tsx`. React orchestration
+is split into focused hooks: `use-tool-execution` owns provider-neutral
+execution, `use-workspace-folder-actions` owns folder boundaries,
+`use-workspace-editor-actions` owns drafts and file mutations,
+`use-tool-catalog-actions` owns the MCP catalog call surface,
+`use-workspace-keyboard-shortcuts` owns global commands, and
+`use-studio-export-actions` owns copy/download exports. Browser-only runtime
+helpers such as revision guards, text patching, escaping, and cancellation
+remain in `src/tool-runtime-utils.ts`; views under `src/views/` receive data and
+callbacks without owning workspace mutation policy. This keeps React editor
 orchestration, tool registration, and workspace mutation contracts independently
 reviewable without prematurely creating a public package.
 The standalone Vite config resolves the workspace `core`, `react`, and
