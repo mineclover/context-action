@@ -1,3 +1,4 @@
+import { toToolListRequest } from '@context-action/react';
 import {
   type KeyboardEvent,
   useCallback,
@@ -617,7 +618,7 @@ function EditorWorkbench({
             onCopyToolsList={() =>
               void copyJson(
                 'tools/list result',
-                registry.listTools({ method: 'tools/list' })
+                registry.listTools(toToolListRequest())
               )
             }
             onDownloadCall={downloadSelectedToolCall}

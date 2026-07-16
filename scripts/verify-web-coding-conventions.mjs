@@ -101,8 +101,14 @@ const localAgentSource = readSource(
 assertContains(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   localAgentSource,
-  /registry\.listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/,
+  /registry\.listTools\(toToolListRequest\(\)\)/,
   'canonical tools/list discovery'
+);
+assertContains(
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  localAgentSource,
+  /toToolListRequest\(/,
+  'canonical tools/list request conversion'
 );
 assertContains(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
@@ -115,7 +121,7 @@ const openRouterSource = readSource('demos/bolt-style-editor/src/openrouter.ts')
 assertContains(
   'demos/bolt-style-editor/src/openrouter.ts',
   openRouterSource,
-  /registry\.listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/,
+  /registry\.listTools\(toToolListRequest\(\)\)/,
   'provider-side tools/list discovery'
 );
 assertContains(
@@ -130,6 +136,22 @@ assertContains(
   /registry\.executeModelToolCall\(/,
   'provider-side canonical model tool-call execution'
 );
+
+const discoveryRequestAdapters = [
+  'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
+  'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts',
+  'example/src/lib/openrouter-ai-sdk.ts',
+  'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx',
+];
+for (const relativeFile of discoveryRequestAdapters) {
+  const source = readSource(relativeFile);
+  assertContains(
+    relativeFile,
+    source,
+    /registry\.listTools\(toToolListRequest\(\)\)/,
+    'canonical tools/list request construction'
+  );
+}
 
 const executionSource = readSource(
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts'

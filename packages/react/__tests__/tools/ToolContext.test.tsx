@@ -12,6 +12,7 @@ import {
   defineAction,
   createActionSchema,
   toToolCallRequest,
+  toToolListRequest,
 } from '../../src';
 
 describe('createToolContext', () => {
@@ -259,6 +260,14 @@ describe('createToolContext', () => {
           name: 'searchProducts',
           arguments: { query: 'laptop' },
         },
+      });
+    });
+
+    it('exposes the canonical tools/list request adapter with cursor support', () => {
+      expect(toToolListRequest()).toEqual({ method: 'tools/list' });
+      expect(toToolListRequest({ cursor: 'offset:2' })).toEqual({
+        method: 'tools/list',
+        params: { cursor: 'offset:2' },
       });
     });
 

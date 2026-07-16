@@ -7,7 +7,7 @@
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { ActionSchemaMap } from '@context-action/core';
-import type { ToolRegistry } from '@context-action/react';
+import { type ToolRegistry, toToolListRequest } from '@context-action/react';
 import { dynamicTool, generateText, stepCountIs, type ToolSet } from 'ai';
 import type {
   ToolTextGenerationRequest,
@@ -24,7 +24,7 @@ function createToolSet<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
   sessionId: string
 ): ToolSet {
-  registry.listTools({ method: 'tools/list' });
+  registry.listTools(toToolListRequest());
   return Object.fromEntries(
     registry.getToolNames().map((toolName) => {
       const definition = registry.getTool(toolName);

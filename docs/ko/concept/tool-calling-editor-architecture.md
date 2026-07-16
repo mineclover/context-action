@@ -200,7 +200,8 @@ Core는 표준 managed-call code를 재사용할 수 있도록
 제품 도메인의 구체적인 실패를 보고해야 하는 경우에는 custom code도 추가할 수 있다.
 
 대규모 catalog는 `createToolContext`의 `toolListPageSize`로 discovery page 크기를
-지정할 수 있다. 이때 canonical `listTools({ method: 'tools/list' })` 요청은 opaque
+지정할 수 있다. 이때 `toToolListRequest({ cursor })`로 만든 request를
+`listTools()`에 전달하면 canonical discovery가 opaque
 `nextCursor`를 반환하며, 인자가 없는 `listTools()`와 provider batch export는 전체
 catalog를 유지한다.
 
@@ -337,7 +338,7 @@ registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 검색과 scope filter는 동일한 canonical list만 좁혀 보며 discovery나 execution
 policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace에서
 계산하며 all·read-only·workspace·preview 범위를 제공한다.
-`Copy list`는 `registry.listTools({ method: 'tools/list' })`가 반환한 전체 `tools`
+`Copy list`는 `registry.listTools(toToolListRequest())`가 반환한 전체 `tools`
 array를 serialize하므로 definition을 수동으로 다시 만들지 않고 MCP/provider
 테스트에 붙여 넣을 수 있다. `Download list`, `Download definition`,
 `Download tools/call`은 Clipboard 권한이 없는 환경에서도 같은 계약을 JSON 파일로

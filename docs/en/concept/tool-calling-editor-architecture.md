@@ -215,7 +215,7 @@ managed-call codes. Applications can still attach domain-specific codes when a
 handler needs to report a workspace or product-specific failure.
 
 `createToolContext` can set `toolListPageSize` for large catalogs. Canonical
-`listTools({ method: 'tools/list' })` requests then return an opaque
+`toToolListRequest({ cursor })` requests passed to `listTools()` then return an opaque
 `nextCursor`; direct `listTools()` calls and provider batch exports remain the
 complete catalog.
 
@@ -305,7 +305,7 @@ Authorization must still be enforced by `toolPolicy`.
 
 The standalone studio and realtime web-coding route render the same boundary as
 an execution trace. Local and OpenRouter requests call
-`registry.listTools({ method: 'tools/list' })`
+`registry.listTools(toToolListRequest())`
 before provider-specific tool serialization. The ToolContext `onToolCall`
 observer then records each `started`, `completed`, and `failed` event with its
 source, duration, and result status. The trace is UI state only; it never sends
@@ -367,7 +367,7 @@ workspace accidentally. Catalog search and scope filters narrow the same
 canonical list without changing discovery or execution policy. Scope counts are
 derived from canonical annotations and namespaces: all, read-only, workspace,
 and preview. `Copy list` serializes the complete `tools` array returned by
-`registry.listTools({ method: 'tools/list' })`, so the catalog can be pasted into
+`registry.listTools(toToolListRequest())`, so the catalog can be pasted into
 an MCP/provider test without reconstructing definitions by hand. `Download list`,
 `Download definition`, and `Download tools/call` provide the same contracts as
 JSON files when browser Clipboard permissions are unavailable. The sample

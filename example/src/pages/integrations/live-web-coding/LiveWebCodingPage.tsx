@@ -1,4 +1,8 @@
-import { createToolContext, toToolCallRequest } from '@context-action/react';
+import {
+  createToolContext,
+  toToolCallRequest,
+  toToolListRequest,
+} from '@context-action/react';
 import type { ModelMessage } from 'ai';
 import {
   type FormEvent,
@@ -497,7 +501,7 @@ async function runLocalPrompt(
   signal?: AbortSignal,
   sessionId?: string
 ): Promise<{ toolNames: string[]; response: string }> {
-  registry.listTools({ method: 'tools/list' });
+  registry.listTools(toToolListRequest());
   const executeLocalModelCall = (
     name: string,
     argumentsValue: Record<string, unknown>

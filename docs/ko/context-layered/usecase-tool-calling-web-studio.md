@@ -107,8 +107,9 @@ await registry.executeModelToolCall(
 retry, cancellation, message history, provider error는 action hook이 소유하고
 workspace를 직접 변경하지 않습니다.
 
-모든 provider 경로는 registry boundary를 사용합니다. discovery는
-`registry.listTools({ method: 'tools/list' })`, provider 직렬화는
+모든 provider 경로는 registry boundary를 사용합니다. discovery request는
+pagination이 필요하면 `toToolListRequest({ cursor })`로 만들고
+`registry.listTools()`에 전달합니다. provider 직렬화는
 `registry.toOpenAI()` 같은 registry export, model-originated call은
 `registry.executeModelToolCall()`로 통일합니다. provider별 tool 배열을 별도로
 만들거나 handler를 직접 호출하는 것은 이 컨벤션에 포함하지 않습니다. palette

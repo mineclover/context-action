@@ -49,6 +49,7 @@ export {
   createToolCallSuccess,
   getToolCallErrorMetadata,
   toToolCallRequest,
+  toToolListRequest,
   withToolCallId,
 } from './tool-protocol.js';
 
@@ -65,6 +66,7 @@ export type {
   ToolCallRequest,
   ToolCallResult,
   ToolListRequest,
+  ToolListRequestOptions,
   ToolListResult,
   ToolManagementInterface,
   ToolCallObserver,

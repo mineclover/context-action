@@ -1,4 +1,4 @@
-import { toToolCallRequest } from '@context-action/react';
+import { toToolCallRequest, toToolListRequest } from '@context-action/react';
 import { useEffect, useRef, useState } from 'react';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import type { ToolTraceEntry } from '../tool-trace';
@@ -114,7 +114,7 @@ export function useStudioExportActions({
   const downloadToolList = () => {
     downloadJson(
       'tools/list result',
-      registry.listTools({ method: 'tools/list' }),
+      registry.listTools(toToolListRequest()),
       'context-action-tools-list.json'
     );
   };

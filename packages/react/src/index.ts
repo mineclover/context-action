@@ -133,6 +133,7 @@ export type {
   ToolCallRequest,
   ToolCallResult,
   ToolListRequest,
+  ToolListRequestOptions,
   ToolListResult,
   ToolManagementInterface,
   ToolCallObserver,
@@ -144,4 +145,5 @@ export {
   getToolCallErrorMetadata,
   TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
+  toToolListRequest,
 } from '@context-action/core';

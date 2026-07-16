@@ -1,4 +1,8 @@
-import type { ActionSchemaMap, ToolRegistry } from '@context-action/react';
+import {
+  type ActionSchemaMap,
+  type ToolRegistry,
+  toToolListRequest,
+} from '@context-action/react';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
   assertOpenRouterToolCallBudget,
@@ -244,7 +248,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     },
     { role: 'user', content: prompt },
   ];
-  const listedTools = registry.listTools({ method: 'tools/list' });
+  const listedTools = registry.listTools(toToolListRequest());
   recordToolList(listedTools.tools.length, 'openrouter', sessionId);
   const toolNames: string[] = [];
 

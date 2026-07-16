@@ -116,8 +116,9 @@ audit consumers.
 The action hook owns retries, cancellation, message history, and provider
 errors. It does not mutate workspace state directly.
 
-Use the registry boundary for every provider path. Discovery must use
-`registry.listTools({ method: 'tools/list' })`, provider serialization must use
+Use the registry boundary for every provider path. Build discovery requests with
+`toToolListRequest({ cursor })` when pagination is needed, then pass them to
+`registry.listTools()`. Provider serialization must use
 `registry.toOpenAI()` or another registry export, and model-originated calls must
 enter through `registry.executeModelToolCall()`. A direct provider-specific tool
 array or handler invocation is outside this convention. Palette commands may

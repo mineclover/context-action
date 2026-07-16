@@ -90,6 +90,11 @@ export interface ToolListRequest {
   };
 }
 
+/** Options for creating a canonical tools/list request. */
+export interface ToolListRequestOptions {
+  readonly cursor?: string;
+}
+
 /** Result returned by a tools/list manager. */
 export interface ToolListResult<
   TDefinition extends ToolDefinition = ToolDefinition,
@@ -200,6 +205,18 @@ export function toToolCallRequest(call: ModelToolCall): ToolCallRequest {
       name: call.name,
       arguments: call.arguments ?? {},
     },
+  };
+}
+
+/** Create an MCP-compatible tools/list request with an optional cursor. */
+export function toToolListRequest(
+  options?: ToolListRequestOptions
+): ToolListRequest {
+  return {
+    method: 'tools/list',
+    ...(options?.cursor === undefined
+      ? {}
+      : { params: { cursor: options.cursor } }),
   };
 }
 
