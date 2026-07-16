@@ -299,6 +299,8 @@ standalone의 `agent.request` row는 같은 실행을 감싸며 running·complet
 각 agent 실행은 하나의 `sessionId`를 만들고 `tools/list`와 모든
 `executeModelToolCall()` context에 전달한다. 따라서 trace에서는 provider가 전달한
 개별 호출의 `toolCallId`와 실행 단위의 session correlation을 구분할 수 있다.
+call row와 approval snapshot에는 context의 `source`와 `mode`도 함께 보존하므로
+transport origin과 agent/direct 의도를 같이 audit할 수 있다.
 lifecycle마다 unique한 내부 `traceId`도 생성하여 canonical request object와 session
 queue로 `started`/`completed`를 연결하므로, provider가 model turn 사이에서 ID를
 재사용하거나 ID를 생략해도 다른 row를 덮어쓰지 않는다. 축약 row의 tooltip과 복사한

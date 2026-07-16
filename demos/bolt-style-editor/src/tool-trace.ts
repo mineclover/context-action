@@ -1,4 +1,4 @@
-import type { ToolCallEvent } from '@context-action/react';
+import type { ToolCallEvent, ToolCallMode } from '@context-action/react';
 
 export type ToolTraceMethod = 'tools/list' | 'tools/call' | 'agent.request';
 
@@ -8,6 +8,7 @@ export type ToolTraceEntry = {
   sessionId?: string;
   kind: 'discovery' | 'call' | 'agent';
   method: ToolTraceMethod;
+  mode?: ToolCallMode;
   name: string;
   source: string;
   status: 'running' | 'completed' | 'failed' | 'cancelled';
@@ -241,6 +242,7 @@ export function recordToolCall(event: ToolCallEvent): void {
   const traceIdentity = resolveTraceId(event);
   const id = traceIdentity.traceId;
   const source = event.context?.source ?? 'mcp';
+  const mode = event.context?.mode;
   const sessionId = event.context?.sessionId;
   const existingIndex = entries.findIndex(
     (entry) => entry.kind === 'call' && entry.id === id
@@ -255,6 +257,7 @@ export function recordToolCall(event: ToolCallEvent): void {
       ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       method: 'tools/call',
+      ...(mode ? { mode } : {}),
       name: event.name,
       source,
       status: 'running',
@@ -277,6 +280,7 @@ export function recordToolCall(event: ToolCallEvent): void {
       ...(sessionId ? { sessionId } : {}),
       kind: 'call',
       method: 'tools/call',
+      ...(mode ? { mode } : {}),
       name: event.name,
       source,
       status: event.type === 'failed' ? 'failed' : 'completed',
@@ -327,6 +331,7 @@ export function startAgentTrace(source: string): AgentTraceHandle {
     sessionId: handle.sessionId,
     kind: 'agent',
     method: 'agent.request',
+    mode: 'agent',
     name: 'agent.request',
     source,
     status: 'running',
@@ -345,6 +350,7 @@ export function finishAgentTrace(
     sessionId: handle.sessionId,
     kind: 'agent',
     method: 'agent.request',
+    mode: 'agent',
     name: 'agent.request',
     source: handle.source,
     status,

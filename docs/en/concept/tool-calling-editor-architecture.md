@@ -321,6 +321,8 @@ Each agent run creates one `sessionId` and forwards it through `tools/list` and
 every `executeModelToolCall()` context. The trace therefore separates the
 provider per-call `toolCallId` from the run-level session correlation, which
 remains available in the compact row tooltip and copied trace JSON. It also
+preserves the context `source` and `mode` on call rows and approval snapshots,
+so transport origin and agent/direct intent remain auditable together. It also
 assigns every lifecycle a unique internal `traceId`, correlating
 `started`/`completed` events by the canonical request object and session queue;
 failed calls retain their structured `retryable` flag, and the compact row

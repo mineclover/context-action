@@ -175,6 +175,9 @@ trace는 lifecycle을 안정적으로 상관관계화해야 하기 때문입니�
 
 view는 이 필드를 표시·export할 수 있지만 label을 보고 method를 추론하거나,
 자유 형식 오류 문자열을 parsing해 retry 가능 여부를 결정하지 않습니다.
+`source`와 `mode`에도 같은 규칙을 적용합니다. trace와 approval snapshot이 두
+필드를 함께 보존하므로 call 완료 후에도 audit consumer가 transport origin과
+실행 의도를 구분할 수 있습니다.
 
 ## Use-case recipe
 

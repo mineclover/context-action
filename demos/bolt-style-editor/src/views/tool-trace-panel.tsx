@@ -128,6 +128,7 @@ export function ToolTracePanel({
                               ? `call ${formatTraceId(entry.toolCallId)}`
                               : formatTraceId(entry.id),
                           entry.source,
+                          entry.mode ? `mode ${entry.mode}` : null,
                           entry.sessionId
                             ? `session ${formatTraceId(entry.sessionId)}`
                             : null,

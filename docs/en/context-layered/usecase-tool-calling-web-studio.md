@@ -195,6 +195,9 @@ This makes three entry points equivalent from an audit perspective:
 
 The view may display or export these fields, but it must not infer the method
 from a label or decide whether a call is retryable from free-form text.
+The same rule applies to `source` and `mode`: traces and approval snapshots
+preserve both fields so an audit consumer can distinguish transport origin from
+execution intent after the call has completed.
 
 ## Use-case recipes
 

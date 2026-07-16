@@ -80,6 +80,7 @@ export function AgentChatPanel({
                   ? `arguments · ${approval.argumentKeys.join(', ')}`
                   : 'no arguments'}{' '}
                 · {approval.source}
+                {approval.mode ? ` · mode ${approval.mode}` : ''}
                 {approval.sessionId
                   ? ` · session ${formatSessionId(approval.sessionId)}`
                   : ''}

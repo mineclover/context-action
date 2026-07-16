@@ -33,24 +33,36 @@ function request(id, name = 'workspace.getStatus') {
   };
 }
 
-function started(toolCallId, requestValue, sessionId, timestamp) {
+function started(
+  toolCallId,
+  requestValue,
+  sessionId,
+  timestamp,
+  mode = 'agent'
+) {
   return {
     type: 'started',
     ...(toolCallId === undefined ? {} : { toolCallId }),
     name: requestValue.params.name,
     request: requestValue,
-    context: { source: 'model', sessionId },
+    context: { source: mode === 'direct' ? 'local' : 'model', mode, sessionId },
     timestamp,
   };
 }
 
-function completed(toolCallId, requestValue, sessionId, timestamp) {
+function completed(
+  toolCallId,
+  requestValue,
+  sessionId,
+  timestamp,
+  mode = 'agent'
+) {
   return {
     type: 'completed',
     ...(toolCallId === undefined ? {} : { toolCallId }),
     name: requestValue.params.name,
     request: requestValue,
-    context: { source: 'model', sessionId },
+    context: { source: mode === 'direct' ? 'local' : 'model', mode, sessionId },
     timestamp,
     durationMs: 4,
     result: {
@@ -61,13 +73,19 @@ function completed(toolCallId, requestValue, sessionId, timestamp) {
   };
 }
 
-function failed(toolCallId, requestValue, sessionId, timestamp) {
+function failed(
+  toolCallId,
+  requestValue,
+  sessionId,
+  timestamp,
+  mode = 'agent'
+) {
   return {
     type: 'failed',
     toolCallId,
     name: requestValue.params.name,
     request: requestValue,
-    context: { source: 'model', sessionId },
+    context: { source: mode === 'direct' ? 'local' : 'model', mode, sessionId },
     timestamp,
     durationMs: 3,
     result: {
@@ -113,13 +131,32 @@ trace.recordToolCall(
   failed('call_failed', failedRequest, 'session-3', 43)
 );
 
+const directRequest = request('call_direct', 'workspace.getStatus');
+trace.recordToolCall(
+  started('call_direct', directRequest, 'session-direct', 50, 'direct')
+);
+trace.recordToolCall(
+  completed('call_direct', directRequest, 'session-direct', 54, 'direct')
+);
+
 const calls = trace
   .toolTraceStore.getSnapshot()
   .filter((entry) => entry.kind === 'call');
-expect(calls.length === 4, 'Trace should retain all four tool calls.');
+expect(calls.length === 5, 'Trace should retain all five tool calls.');
 expect(
   calls.every((entry) => entry.method === 'tools/call'),
   'Tool call trace entries must expose the canonical tools/call method.'
+);
+expect(
+  calls.filter((entry) => entry.mode === 'agent').length === 4,
+  'Agent tool calls must preserve the canonical agent execution mode.'
+);
+const directEntry = calls.find(
+  (entry) => entry.toolCallId === 'call_direct'
+);
+expect(
+  directEntry?.mode === 'direct' && directEntry.source === 'local',
+  'Direct tool calls must preserve the canonical direct execution mode.'
 );
 const discoveryEntry = trace
   .toolTraceStore.getSnapshot()

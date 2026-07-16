@@ -1,4 +1,5 @@
 import type {
+  ToolCallMode,
   ToolPolicyDecision,
   ToolPolicyInput,
 } from '@context-action/react';
@@ -9,6 +10,7 @@ export type PendingToolApproval = {
   name: string;
   description: string;
   source: string;
+  mode?: ToolCallMode;
   argumentKeys: string[];
   safeArgumentPreview?: string;
   createdAt: number;
@@ -58,6 +60,7 @@ export function requestToolApproval(
     name: input.request.params.name,
     description: input.definition.description ?? 'No description provided.',
     source: input.context?.source ?? 'model',
+    ...(input.context?.mode ? { mode: input.context.mode } : {}),
     argumentKeys: Object.keys(input.request.params.arguments ?? {}),
     safeArgumentPreview: buildSafeArgumentPreview(
       input.request.params.arguments
