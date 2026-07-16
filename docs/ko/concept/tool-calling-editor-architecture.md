@@ -226,7 +226,9 @@ ToolContext가 이를 canonical result까지 보존하므로 `TOOL_EXECUTION_FAI
 terminal source-limit 오류, stale local-folder handle 오류에 사용한다. reload·save·delete
 중 연결된 폴더가 사라지면 persistence의 File System Access handle을 해제하고
 `WORKSPACE_FOLDER_STALE`, `retryable: true` 결과를 반환하므로 model이 재연결을
-안내한 뒤 재시도할 수 있다.
+안내한 뒤 재시도할 수 있다. `saveAll`이 부분 완료 요약을 추가할 때도 이 metadata를
+보존하며, chat 오류에는 폴더 제어부를 직접 찾지 않아도 되는 `Reconnect folder`
+action을 표시한다.
 
 standalone OpenRouter bridge는 canonical error의 `code`, `retryable`, `details`를
 다음 model message로 전달한다. local fallback 실행에서는 같은 code와 details를

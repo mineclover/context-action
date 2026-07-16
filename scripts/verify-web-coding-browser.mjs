@@ -642,6 +642,7 @@ async function runBrowserProof(url) {
         kind = 'directory';
         children = new Map();
         permission = 'granted';
+        failWrites = false;
 
         constructor(name) {
           this.name = name;
@@ -667,6 +668,11 @@ async function runBrowserProof(url) {
         }
 
         async getDirectoryHandle(name, options = {}) {
+          if (this.failWrites) {
+            throw Object.assign(new Error('Folder disappeared during write.'), {
+              name: 'NotFoundError',
+            });
+          }
           const existing = this.children.get(name);
           if (existing?.kind === 'directory') return existing;
           if (existing) throw new Error(`Expected directory: ${name}`);
@@ -681,6 +687,11 @@ async function runBrowserProof(url) {
         }
 
         async getFileHandle(name, options = {}) {
+          if (this.failWrites) {
+            throw Object.assign(new Error('Folder disappeared during write.'), {
+              name: 'NotFoundError',
+            });
+          }
           const existing = this.children.get(name);
           if (existing?.kind === 'file') return existing;
           if (existing) throw new Error(`Expected file: ${name}`);
@@ -780,6 +791,23 @@ async function runBrowserProof(url) {
     if ((await savedFolderSource) !== "document.body.dataset.apiFolder = 'saved';") {
       throw new Error('Save to folder did not write through the File System Access boundary.');
     }
+
+    await page.evaluate(() => {
+      window.__webCodingFolderProof.failWrites = true;
+    });
+    await apiFolderEditor.fill("document.body.dataset.apiFolder = 'stale-save';");
+    await page.locator('.editor-save').click();
+    await page.getByText(/\[WORKSPACE_FOLDER_STALE\]/).waitFor();
+    await page.getByRole('button', { name: 'Reconnect folder' }).waitFor();
+    await page.evaluate(() => {
+      window.__webCodingFolderProof.failWrites = false;
+    });
+    await page.getByRole('button', { name: 'Reconnect folder' }).click();
+    const reconnectDialog = page.getByRole('dialog', {
+      name: 'Open a new folder?',
+    });
+    await reconnectDialog.getByRole('button', { name: 'Open folder' }).click();
+    await page.getByText(/Opened folder-api-proof with 3 file\(s\)/).waitFor();
 
     await page.getByRole('tab', { name: /notes\.md/ }).click();
     await page.getByRole('button', { name: 'Rename notes.md' }).click();

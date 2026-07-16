@@ -74,6 +74,7 @@ type Message = {
   retryPrompt?: string;
   retryLabel?: string;
   retryTool?: ToolCall;
+  reconnectFolder?: boolean;
   openSettings?: boolean;
 };
 
@@ -996,6 +997,7 @@ async function runLocalAgent(
         toolNames,
         response: `${completedSummary}${call.name} failed: ${errorMessage}`,
         failedTool: call.name,
+        errorCode: result.error?.code,
         revisionConflict,
         failed: true,
         retryable: result.error?.retryable === true || revisionConflict,
@@ -2855,6 +2857,9 @@ function EditorWorkbench({
                   ? {}
                   : {
                       retryPrompt: trimmed,
+                      ...(result.errorCode === 'WORKSPACE_FOLDER_STALE'
+                        ? { reconnectFolder: true }
+                        : {}),
                       ...(result.revisionConflict
                         ? { retryLabel: 'Re-read & retry' }
                         : {}),
@@ -2949,6 +2954,9 @@ function EditorWorkbench({
             ...(result.isError
               ? {
                   tone: 'error' as const,
+                  ...(result.error?.code === 'WORKSPACE_FOLDER_STALE'
+                    ? { reconnectFolder: true }
+                    : {}),
                   ...(result.error?.retryable === false
                     ? {}
                     : { retryTool: call }),
@@ -4402,6 +4410,15 @@ function EditorWorkbench({
                         type="button"
                       >
                         {message.retryLabel ?? 'Retry'}
+                      </button>
+                    ) : null}
+                    {!running && message.reconnectFolder ? (
+                      <button
+                        className="message-reconnect"
+                        onClick={() => void handleOpenFolder()}
+                        type="button"
+                      >
+                        Reconnect folder
                       </button>
                     ) : null}
                     {!running && message.openSettings ? (

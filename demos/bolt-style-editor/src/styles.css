@@ -290,6 +290,8 @@ a { color: inherit; text-decoration: none; }
 .message-retry:hover { background: #211c38; border-color: #8473d3; color: #f0edff; }
 .message-settings { background: transparent; border: 1px solid #70556f; border-radius: 4px; color: #d4a8d9; cursor: pointer; font-size: 10px; margin: 7px 0 0 5px; padding: 4px 8px; }
 .message-settings:hover { background: #2b2030; border-color: #b978bd; color: #f5ddf5; }
+.message-reconnect { background: transparent; border: 1px solid #4d6d78; border-radius: 4px; color: #a9d9e5; cursor: pointer; font-size: 10px; margin: 7px 0 0 5px; padding: 4px 8px; }
+.message-reconnect:hover { background: #1d3038; border-color: #71b5c5; color: #e0fbff; }
 .running-line { align-items: baseline; color: #8f98a8; display: flex; flex-wrap: wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; gap: 6px; padding: 3px 0; }
 .running-hint { color: #c9a2d5; font-size: 9px; }
 .composer-wrap { align-items: end; background: #0b0e14; border: 1px solid #2a303c; border-radius: 9px; display: flex; gap: 9px; padding: 8px; }

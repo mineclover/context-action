@@ -16,6 +16,7 @@ import {
   findPreviewStylesheetFile,
   normalizeWorkspacePath,
 } from './workspace';
+import { WorkspaceToolError } from './workspace-errors';
 import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 
 export function ToolHandlers({
@@ -357,9 +358,15 @@ export function ToolHandlers({
         const message =
           error instanceof Error ? error.message : 'Folder save failed.';
         const completed = [...savedPaths, ...removedPaths];
-        throw new Error(
-          `${completed.length ? `Folder save completed ${completed.length} item(s): ${completed.join(', ')}. ` : ''}Remaining changes stay in the browser workspace. ${message}`
-        );
+        const wrappedMessage = `${completed.length ? `Folder save completed ${completed.length} item(s): ${completed.join(', ')}. ` : ''}Remaining changes stay in the browser workspace. ${message}`;
+        if (error instanceof WorkspaceToolError) {
+          throw new WorkspaceToolError(wrappedMessage, {
+            code: error.code,
+            retryable: error.retryable,
+            details: error.details,
+          });
+        }
+        throw new Error(wrappedMessage, { cause: error });
       }
     },
     { blocking: true }

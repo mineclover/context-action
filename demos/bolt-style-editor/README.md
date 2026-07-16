@@ -124,7 +124,9 @@ visible diagnostic panel with the error text and a refresh action.
 - If a connected folder disappears during reload, save, or delete, the adapter
   clears the stale persisted handle and returns retryable
   `WORKSPACE_FOLDER_STALE` metadata so the model and trace can request a folder
-  reconnect instead of treating the failure as an opaque save error.
+  reconnect instead of treating the failure as an opaque save error. The chat
+  error also exposes a `Reconnect folder` action; `saveAll` preserves the same
+  structured metadata when it reports partially completed work.
 - Preview source is rendered in a sandboxed iframe with revision acknowledgements;
   arbitrary scripts, external assets, and filesystem handles do not cross into
   the tool or preview payloads.

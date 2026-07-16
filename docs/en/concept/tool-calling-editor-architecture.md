@@ -244,7 +244,9 @@ uses this for retryable revision conflicts, terminal source-limit errors, and
 stale local-folder handles. If a folder disappears during reload, save, or
 delete, the adapter clears the persisted File System Access handle and returns
 `WORKSPACE_FOLDER_STALE` with `retryable: true`, allowing the model to request a
-reconnect before retrying.
+reconnect before retrying. The `saveAll` handler preserves that metadata when it
+adds its partial-completion summary, and the chat exposes a `Reconnect folder`
+action so recovery does not depend on finding the folder controls manually.
 
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows
