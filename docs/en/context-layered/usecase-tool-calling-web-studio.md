@@ -101,8 +101,9 @@ message history, cancellation, and agent trace lifecycle. The workbench composes
 these returned data and callbacks. `hooks/useLiveWebCodingObservables.ts` owns
 workspace/document/trace subscriptions, and
 `actions/useLiveWebCodingTraceActions.ts` owns trace clear/copy/download. The
-workbench does not call registry, provider, external-store, or trace export APIs
-directly.
+`actions/useLiveWebCodingWorkspaceActions.ts` owns IndexedDB hydration, file
+selection, and reset commands. The workbench does not call registry, provider,
+external-store, trace export, or workspace repository APIs directly.
 
 ## Rules
 

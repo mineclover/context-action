@@ -102,7 +102,10 @@ workbench는 반환된 data와 callback을 조합할 뿐 registry, provider,
 external-store, trace export API를 직접 호출하지 않습니다.
 `hooks/useLiveWebCodingObservables.ts`는 workspace/document/trace subscription을,
 `actions/useLiveWebCodingTraceActions.ts`는 trace clear/copy/download를
-소유합니다.
+소유하고, `actions/useLiveWebCodingWorkspaceActions.ts`는 IndexedDB hydrate,
+파일 선택, reset command를 담당합니다. workbench는 registry, provider,
+external-store, trace export, workspace repository API를 직접 호출하지
+않습니다.
 
 ## 규칙
 

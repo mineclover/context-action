@@ -108,6 +108,9 @@ const realtimeObservablesSource = readSource(
 const realtimeTraceActionsSource = readSource(
   'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingTraceActions.ts'
 );
+const realtimeWorkspaceActionsSource = readSource(
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingWorkspaceActions.ts'
+);
 const liveEditorToolbarSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
 );
@@ -221,6 +224,21 @@ assertContains(
   /serializeToolTrace\(/,
   'realtime web-coding trace export action'
 );
+assertContains(
+  realtimeWorkspaceActionsSource,
+  /\.ensureWorkspace\(/,
+  'realtime web-coding workspace hydration action'
+);
+assertContains(
+  realtimeWorkspaceActionsSource,
+  /\.replaceWorkspace\(/,
+  'realtime web-coding workspace reset action'
+);
+assertContains(
+  realtimeWorkspaceActionsSource,
+  /manager\.setActivePath\(/,
+  'realtime web-coding workspace selection action'
+);
 assertNotContains(
   realtimeWebCodingSource,
   /registry\.(?:callTool|executeModelToolCall|listTools)/,
@@ -235,6 +253,11 @@ assertNotContains(
   realtimeWebCodingSource,
   /(?:useSyncExternalStore|liveWebCodingTraceStore|clearLiveWebCodingTrace|serializeToolTrace|downloadTextFile|writeClipboardText)/,
   'observable or trace runtime APIs from the realtime web-coding workbench'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /(?:repository\.(?:ensureWorkspace|replaceWorkspace)|manager\.(?:replaceFiles|setActivePath|getSnapshot))\(/,
+  'workspace runtime APIs from the realtime web-coding workbench'
 );
 assertContains(
   liveEditorAgentActionsSource,
@@ -349,4 +372,5 @@ console.log('- live editor observability/settings/export boundaries checked');
 console.log('- live editor reset approval boundary checked');
 console.log('- realtime web-coding handler/action/presentation boundary checked');
 console.log('- realtime web-coding observability/trace export boundary checked');
+console.log('- realtime web-coding workspace action boundary checked');
 console.log('- realtime web-coding reset approval boundary checked');

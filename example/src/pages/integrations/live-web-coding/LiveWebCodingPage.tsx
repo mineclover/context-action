@@ -25,6 +25,7 @@ import {
   useLiveWebCodingToolActions,
 } from './actions/useLiveWebCodingToolActions';
 import { useLiveWebCodingTraceActions } from './actions/useLiveWebCodingTraceActions';
+import { useLiveWebCodingWorkspaceActions } from './actions/useLiveWebCodingWorkspaceActions';
 import {
   LIVE_WEB_WORKSPACE_ID,
   LiveWebCodingToolHandlers,
@@ -169,10 +170,8 @@ function LiveWebCodingWorkbench({
     '보라색 테마로 바꾸고 기능 카드를 하나 추가해줘'
   );
   const [directLoading, setDirectLoading] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
-  const [status, setStatus] = useState('IndexedDB workspace loading…');
-  const [error, setError] = useState('');
+  const [interactionError, setInteractionError] = useState('');
   const directControllerRef = useRef<AbortController | null>(null);
   const resetCancelButtonRef = useRef<HTMLButtonElement>(null);
   const toolActions = useLiveWebCodingToolActions({
@@ -194,9 +193,26 @@ function LiveWebCodingWorkbench({
     resetConversation,
     run,
   } = agentExecution;
+  const workspaceActions = useLiveWebCodingWorkspaceActions({
+    manager,
+    documentManager,
+    repository,
+    workspaceId: WEB_WORKSPACE_ID,
+    rootName: WEB_WORKSPACE_ROOT,
+    seedFiles: defaultWebFiles,
+    createResetFiles: createDefaultWebWorkspaceBlobFiles,
+    entryPath: 'index.html',
+    exampleId: 'realtime-web-coding',
+    onResetConversation: resetConversation,
+    onClearTrace: traceActions.commands.clear,
+  });
   const loading = agentLoading || directLoading;
   const displayError =
-    agentError || error || providerSettings.error || traceActions.error;
+    agentError ||
+    interactionError ||
+    workspaceActions.error ||
+    providerSettings.error ||
+    traceActions.error;
 
   useEffect(() => {
     if (!resetConfirmationOpen) return;
@@ -215,43 +231,6 @@ function LiveWebCodingWorkbench({
     []
   );
 
-  useEffect(() => {
-    let active = true;
-    void repository
-      .ensureWorkspace(WEB_WORKSPACE_ID, defaultWebFiles, WEB_WORKSPACE_ROOT)
-      .then((persisted) => {
-        if (!active) return;
-        manager.replaceFiles(persisted.files, {
-          rootName: persisted.metadata.rootName,
-          storageMode: 'indexed-db',
-          activePath: persisted.metadata.activePath || 'index.html',
-        });
-        const entry = persisted.files.find(
-          (file) => file.path === 'index.html'
-        );
-        if (entry) {
-          documentManager.update({
-            file: 'index.html',
-            source: entry.source,
-            exampleId: 'realtime-web-coding',
-          });
-        }
-        setStatus(`${persisted.files.length} files persisted · iframe ready`);
-      })
-      .catch((loadError: unknown) => {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'Workspace load failed.'
-          );
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [documentManager, manager, repository]);
-
   const cancelExecution = () => {
     const controller = directControllerRef.current;
     if (controller && !controller.signal.aborted) controller.abort();
@@ -262,7 +241,7 @@ function LiveWebCodingWorkbench({
     event.preventDefault();
     const nextPrompt = prompt.trim();
     if (!nextPrompt || loading) return;
-    setError('');
+    setInteractionError('');
     void run(nextPrompt);
   };
 
@@ -272,7 +251,7 @@ function LiveWebCodingWorkbench({
     const sessionId = createToolCallSessionId();
     directControllerRef.current = controller;
     setDirectLoading(true);
-    setError('');
+    setInteractionError('');
     try {
       const result = await toolActions.callDirectTool(name, args, {
         sessionId,
@@ -294,9 +273,9 @@ function LiveWebCodingWorkbench({
           role: 'assistant',
           text: 'Execution cancelled. No toolchain success was reported.',
         });
-        setError('');
+        setInteractionError('');
       } else {
-        setError(
+        setInteractionError(
           toolError instanceof Error ? toolError.message : 'Tool failed.'
         );
       }
@@ -308,70 +287,16 @@ function LiveWebCodingWorkbench({
     }
   };
 
-  const selectFile = (path: string) => {
-    const file = workspaceSnapshot.files.find(
-      (candidate) => candidate.path === path
-    );
-    if (!file?.isText) return;
-    manager.setActivePath(path);
-    documentManager.update({ file: path, source: file.source });
-  };
-
-  const resetDemoWorkspace = async () => {
-    if (
-      loading ||
-      isResetting ||
-      workspaceSnapshot.storageMode !== 'indexed-db'
-    ) {
-      return;
-    }
-
-    setResetConfirmationOpen(false);
-    setIsResetting(true);
-    setError('');
-    try {
-      const persisted = await repository.replaceWorkspace(
-        WEB_WORKSPACE_ID,
-        createDefaultWebWorkspaceBlobFiles(),
-        { rootName: WEB_WORKSPACE_ROOT }
-      );
-      manager.replaceFiles(persisted.files, {
-        rootName: persisted.metadata.rootName,
-        storageMode: 'indexed-db',
-        activePath: 'index.html',
-      });
-      const entry = persisted.files.find((file) => file.path === 'index.html');
-      if (entry) {
-        documentManager.update({
-          file: entry.path,
-          source: entry.source,
-          exampleId: 'realtime-web-coding',
-          scenario: 'success',
-        });
-      }
-      traceActions.commands.clear();
-      resetConversation();
-      setStatus(`${persisted.files.length} demo files restored · iframe ready`);
-    } catch (resetError) {
-      setError(
-        resetError instanceof Error
-          ? resetError.message
-          : 'Demo workspace reset failed.'
-      );
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
   const requestResetDemoWorkspace = () => {
-    if (
-      loading ||
-      isResetting ||
-      workspaceSnapshot.storageMode !== 'indexed-db'
-    ) {
+    if (loading || !workspaceActions.canReset) {
       return;
     }
     setResetConfirmationOpen(true);
+  };
+
+  const resetDemoWorkspace = () => {
+    setResetConfirmationOpen(false);
+    void workspaceActions.commands.reset();
   };
 
   const activeFile = workspaceSnapshot.files.find(
@@ -618,16 +543,16 @@ function LiveWebCodingWorkbench({
                     type="button"
                     className={styles.workspaceResetButton}
                     onClick={requestResetDemoWorkspace}
-                    disabled={
-                      loading ||
-                      isResetting ||
-                      workspaceSnapshot.storageMode !== 'indexed-db'
-                    }
+                    disabled={loading || !workspaceActions.canReset}
                     title="Restore the built-in live web coding files"
                   >
-                    {isResetting ? 'Resetting…' : 'Reset demo workspace'}
+                    {workspaceActions.isResetting
+                      ? 'Resetting…'
+                      : 'Reset demo workspace'}
                   </button>
-                  <span className={styles.workspaceStatus}>{status}</span>
+                  <span className={styles.workspaceStatus}>
+                    {workspaceActions.status}
+                  </span>
                 </div>
               </div>
               <div className={styles.toolGrid}>
@@ -696,7 +621,9 @@ function LiveWebCodingWorkbench({
                         ? styles.fileTabActive
                         : styles.fileTab
                     }
-                    onClick={() => selectFile(file.path)}
+                    onClick={() =>
+                      workspaceActions.commands.selectFile(file.path)
+                    }
                   >
                     {file.path}
                   </button>
