@@ -12,7 +12,7 @@ This document is the central entry point for the implementation-playbook style c
 6. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
 7. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
-These five cover:
+The short path above covers:
 - folder structure
 - workflow transition rules
 - domain-level expansion

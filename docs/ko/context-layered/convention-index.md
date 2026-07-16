@@ -12,7 +12,7 @@
 6. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
 7. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
-이 다섯 개만 봐도
+위의 짧은 순서를 따라가면
 - 폴더 구조
 - 상태 전이 원칙
 - 도메인별 확장 방식

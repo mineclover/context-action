@@ -175,6 +175,12 @@ Live Code Editor의 **Usecase boundary** 예제가 이 profile의 기준 구현�
 Contract → Runtime → Facade → Recipe → Activity / Result
 ```
 
+같은 경계를 model-driven 방식으로 확장하려면 [Tool Calling Web Studio
+컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)을 사용합니다. 이
+recipe는 tool registry, approval policy, provider 중립 model loop, workspace
+repository, preview acknowledgement를 runtime에 추가하면서 facade/view 경계는
+그대로 유지합니다.
+
 ## 검증 게이트
 
 1. domain 순수 함수

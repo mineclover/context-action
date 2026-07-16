@@ -188,6 +188,12 @@ The Live Code Editor's **Usecase boundary** example is the reference implementat
 Contract → Runtime → Facade → Recipe → Activity / Result
 ```
 
+For a model-driven variant of the same boundary, use the [Tool-Calling Web
+Studio Convention](/en/context-layered/usecase-tool-calling-web-studio). It adds
+the tool registry, approval policy, provider-neutral model loop, workspace
+repository, and preview acknowledgement to the runtime while keeping the
+facade/view boundary intact.
+
 ## Verification gates
 
 Every profile implementation should verify:

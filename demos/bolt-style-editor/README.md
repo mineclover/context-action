@@ -5,8 +5,8 @@ tool registry, policy, execution trace, workspace state, and preview bridge in
 the parent document; the sandboxed iframe only renders the current workspace.
 
 The reusable rules and use-case recipes for this shape are documented in
-[Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
-and its [Korean version](/ko/context-layered/usecase-tool-calling-web-studio).
+[Tool-Calling Web Studio Convention](../../docs/en/context-layered/usecase-tool-calling-web-studio.md)
+and its [Korean version](../../docs/ko/context-layered/usecase-tool-calling-web-studio.md).
 
 ## Run locally
 
