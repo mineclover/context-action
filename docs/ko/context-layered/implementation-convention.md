@@ -180,6 +180,7 @@ activity log는 화면용 문자열을 바로 push하지 않습니다.
 - `pnpm --dir example type-check`
 - `pnpm --dir example build:fast`
 - `pnpm --filter example run verify:conditional`
+- `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.rules.test.ts`
 - `pnpm docs:build`
 
 ## 문서 규칙
