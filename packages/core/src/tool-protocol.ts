@@ -203,6 +203,40 @@ export interface ToolCallResult<TResult = unknown> {
   readonly error?: ToolCallError;
 }
 
+function isToolCallError(value: unknown): value is ToolCallError {
+  return (
+    isRecord(value) &&
+    typeof value.code === 'string' &&
+    value.code.trim().length > 0 &&
+    typeof value.message === 'string' &&
+    value.message.trim().length > 0 &&
+    (value.retryable === undefined || typeof value.retryable === 'boolean')
+  );
+}
+
+function isToolTextContent(value: unknown): value is ToolTextContent {
+  return (
+    isRecord(value) && value.type === 'text' && typeof value.text === 'string'
+  );
+}
+
+/** Runtime guard for JSON returned by the canonical tools/call boundary. */
+export function isToolCallResult<TResult = unknown>(
+  value: unknown
+): value is ToolCallResult<TResult> {
+  if (!isRecord(value) || !Array.isArray(value.content)) return false;
+  if (value.toolCallId !== undefined && !isToolCallId(value.toolCallId)) {
+    return false;
+  }
+  if (value.isError !== undefined && typeof value.isError !== 'boolean') {
+    return false;
+  }
+  if (value.error !== undefined && !isToolCallError(value.error)) {
+    return false;
+  }
+  return value.content.every(isToolTextContent);
+}
+
 /** Transport-independent options accepted by a managed tool call. */
 export interface ToolCallOptions {
   readonly signal?: AbortSignal;

@@ -209,6 +209,8 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
   (`undefined` means no optional list request; `null` is rejected)
 - `isToolListResult()` validates each discovery page before `listAllTools()` adds
   its definitions to a provider adapter
+- `isToolCallResult()` validates text content, correlation IDs, and structured
+  error metadata before an adapter forwards a tool result
 - `ToolCallError` provides stable `code`, `message`, `retryable`, and `details`
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
 - Each `ToolCallEvent` carries the canonical `tools/call` request so an audit

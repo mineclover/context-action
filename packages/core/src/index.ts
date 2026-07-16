@@ -49,6 +49,7 @@ export {
   createToolCallSuccess,
   getToolCallErrorMetadata,
   isToolCallRequest,
+  isToolCallResult,
   isToolListRequest,
   isToolListResult,
   listAllTools,

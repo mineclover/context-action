@@ -4,6 +4,7 @@ import {
   createToolCallSuccess,
   getToolCallErrorMetadata,
   isToolCallRequest,
+  isToolCallResult,
   isToolListRequest,
   isToolListResult,
   listAllTools,
@@ -56,6 +57,32 @@ describe('tool protocol context', () => {
       })
     ).toBe(false);
     expect(isToolCallRequest(null)).toBe(false);
+
+    expect(
+      isToolCallResult(
+        createToolCallSuccess({ path: 'index.html' }, { toolCallId: 'call-1' })
+      )
+    ).toBe(true);
+    expect(
+      isToolCallResult(
+        createToolCallError('denied', {
+          code: 'TOOL_POLICY_DENIED',
+          toolCallId: 'call-1',
+        })
+      )
+    ).toBe(true);
+    expect(
+      isToolCallResult({
+        content: [{ type: 'json', json: { ok: true } }],
+        isError: false,
+      })
+    ).toBe(false);
+    expect(
+      isToolCallResult({
+        content: [{ type: 'text', text: 'failed' }],
+        error: { code: '', message: 'missing code' },
+      })
+    ).toBe(false);
   });
 
   it('creates canonical discovery, model-call, and result shapes', () => {

@@ -146,6 +146,7 @@ export type {
 export {
   getToolCallErrorMetadata,
   isToolCallRequest,
+  isToolCallResult,
   isToolListRequest,
   isToolListResult,
   listAllTools,
