@@ -42,6 +42,46 @@ useActionHandler('updateProfile', useCallback(async (payload, controller) => {
 - 특정 필드 접근 시 `useStoreSelector` 선호
 - 항상 의미 있는 초기값 제공
 
+### Tool-calling 프로토콜 경계
+
+LLM이나 local agent가 Context-Action workspace를 조작한다면 tool protocol을
+하나의 registry 경계로 유지합니다.
+
+```typescript
+import {
+  toToolCallRequest,
+  toToolListRequest,
+} from '@context-action/react';
+
+const discovery = registry.listTools(toToolListRequest());
+const result = await registry.executeModelToolCall(
+  { id, name, arguments: parsedArguments },
+  { context: { source: 'model', sessionId }, signal }
+);
+
+// JSON-RPC 형태의 request를 표시·export하거나 direct-command 경계에서
+// 실행해야 할 때만 사용합니다.
+const request = toToolCallRequest({ id, name, arguments: parsedArguments });
+await registry.callTool(request, { context: { source: 'local', sessionId } });
+```
+
+- 각 tool은 `ToolContext` schema에 한 번만 정의합니다. `tools/list`, provider
+  definition, validation, execution은 registry에서 파생합니다.
+- catalog pagination이 필요할 때는 `toToolListRequest({ cursor })`로
+  discovery request를 만들며 provider 코드에서 protocol object를 직접
+  작성하지 않습니다.
+- model-originated call은 `executeModelToolCall()`로 보내 source, policy,
+  validation, lifecycle event, structured result를 일관되게 유지합니다.
+- `toToolCallRequest()`와 `callTool()`은 catalog sample이나 local palette처럼
+  명시적으로 직접 `tools/call` 경계를 소유한 경우에만 사용합니다.
+- retry, cancellation, message history, provider error는 runner 또는 action
+  hook이 소유합니다. tool handler는 domain invariant를 검사하고 structured
+  value 또는 canonical error를 반환합니다.
+
+전체 web-studio recipe는
+[Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)에서
+확인할 수 있습니다.
+
 ### AI Runner 및 자격 증명 경계
 
 뷰가 LLM provider, 전송 방식, 자격 증명에 의존하지 않도록

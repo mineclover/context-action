@@ -42,6 +42,44 @@ useActionHandler('updateProfile', useCallback(async (payload, controller) => {
 - Prefer `useStoreSelector` for specific field access
 - Always provide meaningful initial values
 
+### Tool-Calling Protocol Boundary
+
+For an LLM or local agent that can operate a Context-Action workspace, keep the
+tool protocol in one registry boundary:
+
+```typescript
+import {
+  toToolCallRequest,
+  toToolListRequest,
+} from '@context-action/react';
+
+const discovery = registry.listTools(toToolListRequest());
+const result = await registry.executeModelToolCall(
+  { id, name, arguments: parsedArguments },
+  { context: { source: 'model', sessionId }, signal }
+);
+
+// Use this only when a JSON-RPC-shaped request must be displayed, exported,
+// or executed by a direct-command action boundary.
+const request = toToolCallRequest({ id, name, arguments: parsedArguments });
+await registry.callTool(request, { context: { source: 'local', sessionId } });
+```
+
+- Define each tool once in the `ToolContext` schema. Derive `tools/list`,
+  provider definitions, validation, and execution from the registry.
+- Create discovery requests with `toToolListRequest({ cursor })` when the
+  catalog is paginated; do not hand-build protocol objects in provider code.
+- Route model-originated calls through `executeModelToolCall()` so source,
+  policy, validation, lifecycle events, and structured results stay consistent.
+- Use `toToolCallRequest()` and `callTool()` only for a boundary that explicitly
+  owns a direct `tools/call` command, such as a catalog sample or local palette.
+- Keep retry, cancellation, message history, and provider errors in the runner
+  or action hook. Tool handlers own domain invariants and return structured
+  values or canonical errors.
+
+The complete web-studio recipe is documented in
+[Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio).
+
 ### AI Runner and Credential Boundary
 
 Keep the view independent from the LLM provider, transport, and credential by

@@ -1,12 +1,52 @@
 import {
   TOOL_CALL_ERROR_CODES,
   createToolCallError,
+  createToolCallSuccess,
   getToolCallErrorMetadata,
   type ToolCallContext,
   type ToolCallErrorCode,
+  toToolCallRequest,
+  toToolListRequest,
 } from '../../src/tool-protocol';
 
 describe('tool protocol context', () => {
+  it('creates canonical discovery, model-call, and result shapes', () => {
+    expect(toToolListRequest()).toEqual({ method: 'tools/list' });
+    expect(toToolListRequest({ cursor: 'offset:2' })).toEqual({
+      method: 'tools/list',
+      params: { cursor: 'offset:2' },
+    });
+    expect(
+      toToolCallRequest({
+        id: 'model-call-1',
+        name: 'workspace.readFile',
+        arguments: { path: 'index.html' },
+      })
+    ).toEqual({
+      id: 'model-call-1',
+      method: 'tools/call',
+      params: {
+        name: 'workspace.readFile',
+        arguments: { path: 'index.html' },
+      },
+    });
+    expect(
+      createToolCallSuccess(
+        { path: 'index.html', revision: 3 },
+        { toolCallId: 'model-call-1' }
+      )
+    ).toEqual({
+      toolCallId: 'model-call-1',
+      content: [
+        {
+          type: 'text',
+          text: '{"path":"index.html","revision":3}',
+        },
+      ],
+      structuredContent: { path: 'index.html', revision: 3 },
+    });
+  });
+
   it('accepts numeric browser workspace revisions', () => {
     const context: ToolCallContext = {
       source: 'iframe',
