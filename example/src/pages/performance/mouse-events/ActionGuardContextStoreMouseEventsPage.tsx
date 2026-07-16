@@ -3,42 +3,17 @@
  * Context-Action framework의 Store 기반 마우스 이벤트 처리 데모
  */
 
-import {
-  createActionContext,
-  createStore,
-  useStoreValue,
-} from '@context-action/react';
-import React, { useCallback, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
+import React, { useCallback } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent } from '@/components/ui';
-
-// Mouse Events 관련 액션 타입 정의
-interface MouseEventActions {
-  updateMousePosition: { x: number; y: number };
-  recordMouseClick: { x: number; y: number; button: number; timestamp: number };
-  trackMousePath: { path: Array<{ x: number; y: number; timestamp: number }> };
-  clearMouseData: void;
-  setTrackingMode: { enabled: boolean };
-}
-
-// Store 생성
-const mousePositionStore = createStore('mousePosition', { x: 0, y: 0 });
-const mouseClicksStore = createStore(
-  'mouseClicks',
-  [] as Array<{ x: number; y: number; button: number; timestamp: number }>
-);
-const mousePathStore = createStore(
-  'mousePath',
-  [] as Array<{ x: number; y: number; timestamp: number }>
-);
-const trackingModeStore = createStore('trackingMode', false);
-
-// Action Context 생성
-const {
-  Provider: MouseEventProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<MouseEventActions>('MouseEvents');
+import { useActionGuardMouseEventsActions } from './actions/useActionGuardMouseEventsActions';
+import {
+  ActionGuardMouseEventsActionProvider,
+  ActionGuardMouseEventsStoreProvider,
+  useActionGuardMouseEventsStore,
+} from './contexts/ActionGuardMouseEventsContexts';
+import { ActionGuardMouseEventsHandlerRegistry } from './handlers/ActionGuardMouseEventsHandlerRegistry';
 
 // 메인 컴포넌트
 export function ContextStoreMouseEventsPage() {
@@ -74,9 +49,13 @@ export function ContextStoreMouseEventsPage() {
           </div>
         </header>
 
-        <MouseEventProvider>
-          <MouseEventsDemo />
-        </MouseEventProvider>
+        <ActionGuardMouseEventsActionProvider>
+          <ActionGuardMouseEventsStoreProvider>
+            <ActionGuardMouseEventsHandlerRegistry>
+              <MouseEventsDemo />
+            </ActionGuardMouseEventsHandlerRegistry>
+          </ActionGuardMouseEventsStoreProvider>
+        </ActionGuardMouseEventsActionProvider>
       </div>
     </PageWithLogMonitor>
   );
@@ -84,55 +63,28 @@ export function ContextStoreMouseEventsPage() {
 
 // 데모 컴포넌트
 function MouseEventsDemo() {
-  const dispatch = useActionDispatch();
-
-  // Store 구독
-  const mousePosition = useStoreValue(mousePositionStore);
-  const mouseClicks = useStoreValue(mouseClicksStore);
-  const mousePath = useStoreValue(mousePathStore);
-  const trackingEnabled = useStoreValue(trackingModeStore);
-
-  const [isTracking, setIsTracking] = useState(false);
-  const [pathRecording, setPathRecording] = useState(false);
-
-  // Action Handlers 등록
-  useActionHandler(
-    'updateMousePosition',
-    useCallback(async (payload, controller) => {
-      mousePositionStore.setValue(payload);
-    }, [])
+  const mousePosition = useStoreValue(
+    useActionGuardMouseEventsStore('mousePosition')
   );
-
-  useActionHandler(
-    'recordMouseClick',
-    useCallback(async (payload, controller) => {
-      const currentClicks = mouseClicksStore.getValue();
-      const newClicks = [...currentClicks, payload].slice(-20); // 최신 20개만 유지
-      mouseClicksStore.setValue(newClicks);
-    }, [])
+  const mouseClicks = useStoreValue(
+    useActionGuardMouseEventsStore('mouseClicks')
   );
-
-  useActionHandler(
-    'trackMousePath',
-    useCallback(async (payload, controller) => {
-      mousePathStore.setValue(payload.path);
-    }, [])
+  const mousePath = useStoreValue(useActionGuardMouseEventsStore('mousePath'));
+  const trackingEnabled = useStoreValue(
+    useActionGuardMouseEventsStore('trackingEnabled')
   );
-
-  useActionHandler(
-    'clearMouseData',
-    useCallback(async (_, controller) => {
-      mouseClicksStore.setValue([]);
-      mousePathStore.setValue([]);
-    }, [])
+  const pathRecording = useStoreValue(
+    useActionGuardMouseEventsStore('pathRecording')
   );
-
-  useActionHandler(
-    'setTrackingMode',
-    useCallback(async (payload, controller) => {
-      trackingModeStore.setValue(payload.enabled);
-    }, [])
-  );
+  const {
+    dispatchMouseMove,
+    dispatchMouseClick,
+    recordMousePathPoint,
+    clearMouseData,
+    clearMousePath,
+    setTrackingMode,
+    setPathRecording,
+  } = useActionGuardMouseEventsActions();
 
   // 마우스 이벤트 핸들러들
   const handleMouseMove = useCallback(
@@ -141,17 +93,14 @@ function MouseEventsDemo() {
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      dispatch('updateMousePosition', { x: Math.round(x), y: Math.round(y) });
+      dispatchMouseMove(Math.round(x), Math.round(y));
 
       // 패스 추적이 활성화된 경우
       if (pathRecording) {
-        const currentPath = mousePathStore.getValue();
-        const newPath = [...currentPath, { x, y, timestamp: Date.now() }];
-        // 최신 100개 포인트만 유지
-        dispatch('trackMousePath', { path: newPath.slice(-100) });
+        recordMousePathPoint({ x, y, timestamp: Date.now() });
       }
     },
-    [dispatch, pathRecording]
+    [dispatchMouseMove, pathRecording, recordMousePathPoint]
   );
 
   const handleMouseClick = useCallback(
@@ -160,33 +109,32 @@ function MouseEventsDemo() {
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      dispatch('recordMouseClick', {
+      dispatchMouseClick({
         x: Math.round(x),
         y: Math.round(y),
         button: event.button,
         timestamp: Date.now(),
       });
     },
-    [dispatch]
+    [dispatchMouseClick]
   );
 
   const toggleTracking = useCallback(() => {
-    const newTracking = !isTracking;
-    setIsTracking(newTracking);
-    dispatch('setTrackingMode', { enabled: newTracking });
-  }, [isTracking, dispatch]);
+    setTrackingMode(!trackingEnabled);
+  }, [setTrackingMode, trackingEnabled]);
 
   const togglePathRecording = useCallback(() => {
-    setPathRecording((prev) => !prev);
+    const newRecording = !pathRecording;
+    setPathRecording(newRecording);
     if (pathRecording) {
       // 녹화 중지 시 패스 초기화
-      dispatch('trackMousePath', { path: [] });
+      clearMousePath();
     }
-  }, [pathRecording, dispatch]);
+  }, [clearMousePath, pathRecording, setPathRecording]);
 
   const clearData = useCallback(() => {
-    dispatch('clearMouseData');
-  }, [dispatch]);
+    clearMouseData();
+  }, [clearMouseData]);
 
   return (
     <div className="space-y-6">
@@ -201,12 +149,12 @@ function MouseEventsDemo() {
             <button
               onClick={toggleTracking}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                isTracking
+                trackingEnabled
                   ? 'bg-green-500 text-white hover:bg-green-600'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              {isTracking ? '🟢 추적 중' : '⚪ 추적 시작'}
+              {trackingEnabled ? '🟢 추적 중' : '⚪ 추적 시작'}
             </button>
 
             <button
@@ -248,7 +196,7 @@ function MouseEventsDemo() {
             </div>
 
             {/* 현재 마우스 위치 표시 */}
-            {isTracking && (
+            {trackingEnabled && (
               <div
                 className="absolute w-4 h-4 bg-red-500 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 shadow-lg"
                 style={{
@@ -412,7 +360,7 @@ function MouseEventsDemo() {
                   • <strong>mousePathStore</strong>: 마우스 경로 추적
                 </li>
                 <li>
-                  • <strong>trackingModeStore</strong>: 추적 모드 상태
+                  • <strong>trackingEnabledStore</strong>: 추적 모드 상태
                 </li>
               </ul>
             </div>
@@ -429,10 +377,13 @@ function MouseEventsDemo() {
                   • <strong>recordMouseClick</strong>: 클릭 기록
                 </li>
                 <li>
-                  • <strong>trackMousePath</strong>: 패스 추적
+                  • <strong>recordMousePathPoint</strong>: 패스 추적
                 </li>
                 <li>
                   • <strong>setTrackingMode</strong>: 모드 전환
+                </li>
+                <li>
+                  • <strong>setPathRecording</strong>: 패스 녹화 전환
                 </li>
               </ul>
             </div>
