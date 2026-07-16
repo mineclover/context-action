@@ -32,10 +32,21 @@ const protocol = await import(
 const sharedStorageKey = 'context-action.openrouter.api-key';
 const standaloneSettingsSource = await readFile(standaloneSettingsPath, 'utf8');
 const exampleSettingsSource = await readFile(exampleSettingsPath, 'utf8');
+const toolSchemaPath = path.join(
+  rootDirectory,
+  'demos/bolt-style-editor/src/tool-schema.ts'
+);
+const toolSchemaSource = await readFile(toolSchemaPath, 'utf8');
 expect(
   standaloneSettingsSource.includes(sharedStorageKey) &&
     exampleSettingsSource.includes(sharedStorageKey),
   'Standalone and example OpenRouter settings must use the same storage key.'
+);
+expect(
+  toolSchemaSource.includes('MAX_TEXT_SOURCE_LENGTH.toLocaleString') &&
+    toolSchemaSource.includes('Source is limited to') &&
+    toolSchemaSource.includes('resulting source is limited to'),
+  'Workspace text limits must be exposed in model-facing tool descriptions as well as schemas.'
 );
 
 function expect(condition, message) {

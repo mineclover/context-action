@@ -610,6 +610,10 @@ Open folder → generic FileSystemAdapter
 - The New file dialog applies the same budget to initial source and blocks an
   oversized create request before it reaches the registry, keeping UI-side
   feedback aligned with schema and workspace validation.
+- The model-facing descriptions for `workspace.createFile`,
+  `workspace.writeFile`, and `workspace.applyPatch` repeat the shared source
+  budget, so `tools/list` communicates the constraint before a provider emits a
+  `tools/call` request.
 - `workspace.saveAll` is the explicit filesystem boundary for the standalone
   demo. It writes all dirty files and pending deletions through the same
   parent-owned adapter used by the Save to folder button. Each successful

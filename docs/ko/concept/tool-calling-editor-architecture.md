@@ -569,6 +569,9 @@ Open folder → generic FileSystemAdapter
 - New file dialog의 initial source에도 같은 예산을 적용하고 live counter를
   표시한다. 제한을 넘는 create 요청은 registry에 도달하기 전에 차단하므로 UI,
   schema, workspace validation이 같은 계약을 사용한다.
+- `workspace.createFile`, `workspace.writeFile`, `workspace.applyPatch`의
+  model-facing description에도 source 예산을 반복해 `tools/list` 단계에서
+  provider가 `tools/call`을 만들기 전에 제약을 알 수 있게 한다.
 - `workspace.saveAll`은 standalone demo의 명시적인 filesystem 경계다. Explorer의
   `Save to folder` 버튼과 동일한 parent-owned adapter로 모든 dirty file과 pending
   deletion을 기록한다. 각 작업이 성공하면 해당 항목을 즉시 clean으로 표시하고,

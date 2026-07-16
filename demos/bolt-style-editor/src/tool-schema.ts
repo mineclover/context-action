@@ -254,8 +254,7 @@ export const boltStyleToolSchema = createActionSchema({
   'workspace.createFile': defineAction(
     {
       name: 'workspace.createFile',
-      description:
-        'Create a new text file in the browser-local web workspace, optionally guarded by a workspace revision.',
+      description: `Create a new text file in the browser-local web workspace. Source is limited to ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} characters and may be guarded by a workspace revision.`,
       parameters: z.object({
         path: filePath,
         source: z.string().max(MAX_TEXT_SOURCE_LENGTH),
@@ -294,8 +293,7 @@ export const boltStyleToolSchema = createActionSchema({
   'workspace.writeFile': defineAction(
     {
       name: 'workspace.writeFile',
-      description:
-        'Replace one text file and refresh the live preview, optionally guarded by a workspace revision.',
+      description: `Replace one text file and refresh the live preview. Source is limited to ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} characters and may be guarded by a workspace revision.`,
       annotations: { idempotentHint: true },
       parameters: z.object({
         path: filePath,
@@ -353,8 +351,7 @@ export const boltStyleToolSchema = createActionSchema({
   'workspace.applyPatch': defineAction(
     {
       name: 'workspace.applyPatch',
-      description:
-        'Replace a bounded text match in one workspace file and refresh the live preview; optionally reject stale workspace revisions.',
+      description: `Replace a bounded text match in one workspace file and refresh the live preview. The resulting source is limited to ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} characters; stale workspace revisions may be rejected.`,
       parameters: z.object({
         path: filePath,
         search: z.string().min(1).max(20_000),
