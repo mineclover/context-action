@@ -43,6 +43,7 @@ import {
   type ToolCatalogFilter,
   ToolCatalogPanel,
 } from './views/tool-catalog-panel';
+import { WorkspaceExplorerPanel } from './views/workspace-explorer-panel';
 import {
   BrowserWorkspace,
   buildPreviewDocument,
@@ -2579,102 +2580,32 @@ function EditorWorkbench({
 
       <div className="studio-workspace">
         <aside className="studio-sidebar">
-          <div className="explorer-heading">
-            <div className="panel-label">Explorer</div>
-            <div className="explorer-actions">
-              <button
-                aria-label="Create new workspace file"
-                className="new-file-button"
-                disabled={openingFolder || !isStorageReady || running}
-                onClick={() => setShowCreateFile(true)}
-                title="Create a new text file"
-                type="button"
-              >
-                + New
-              </button>
-              <button
-                aria-label="Reset browser demo workspace"
-                className="reset-workspace-button"
-                disabled={
-                  openingFolder ||
-                  !isStorageReady ||
-                  running ||
-                  hasWritableFolder
-                }
-                onClick={() => void resetDemoWorkspace()}
-                title="Restore the browser workspace to the demo seed"
-                type="button"
-              >
-                Reset
-              </button>
-              {hasWritableFolder ? (
-                <>
-                  {folderPermissionNeedsAction ? (
-                    <button
-                      aria-label="Grant connected folder write access"
-                      className="grant-folder-button"
-                      disabled={openingFolder || !isStorageReady || running}
-                      onClick={() => void handleGrantFolderAccess()}
-                      title="Request write permission for the connected folder"
-                      type="button"
-                    >
-                      {folderPermission === 'denied'
-                        ? 'Retry access'
-                        : 'Grant access'}
-                    </button>
-                  ) : null}
-                  <button
-                    aria-label="Reload connected workspace folder"
-                    className="refresh-folder-button"
-                    disabled={openingFolder || !isStorageReady || running}
-                    onClick={() => void handleReloadFolder()}
-                    title="Re-read files from the connected folder"
-                    type="button"
-                  >
-                    {openingFolder ? 'Reloading…' : 'Reload'}
-                  </button>
-                  <button
-                    aria-label="Disconnect linked workspace folder"
-                    className="disconnect-folder-button"
-                    disabled={openingFolder || !isStorageReady || running}
-                    onClick={() => void handleDisconnectFolder()}
-                    title="Keep the browser workspace but stop local folder sync"
-                    type="button"
-                  >
-                    Disconnect
-                  </button>
-                </>
-              ) : null}
-              <button
-                className="open-folder-button"
-                disabled={openingFolder || !isStorageReady || running}
-                onClick={() => void handleOpenFolder()}
-                type="button"
-              >
-                {openingFolder ? 'Opening…' : 'Open'}
-              </button>
-            </div>
-            <input
-              ref={folderInputRef}
-              accept=".avif,.css,.gif,.htm,.html,.ico,.jpeg,.jpg,.js,.json,.mjs,.md,.otf,.png,.svg,.ts,.tsx,.ttf,.txt,.wasm,.webp,.woff,.woff2"
-              aria-label="Choose workspace folder"
-              className="folder-input"
-              multiple
-              onChange={(event) => void handleFolderInput(event.target.files)}
-              type="file"
-            />
-          </div>
-          <div className="tree-root">
-            <span>⌄</span> {snapshot.rootName}
-          </div>
-          <FileTree
-            activePath={snapshot.activePath}
-            disabled={!isStorageReady || running}
-            dirtyPaths={dirtyPaths}
-            files={snapshot.files}
-            onSelect={(path) => void openWorkspaceFile(path)}
+          <WorkspaceExplorerPanel
+            fileTree={
+              <FileTree
+                activePath={snapshot.activePath}
+                disabled={!isStorageReady || running}
+                dirtyPaths={dirtyPaths}
+                files={snapshot.files}
+                onSelect={(path) => void openWorkspaceFile(path)}
+              />
+            }
+            folderInputRef={folderInputRef}
+            folderPermission={folderPermission}
+            folderPermissionNeedsAction={folderPermissionNeedsAction}
+            hasWritableFolder={hasWritableFolder}
+            isStorageReady={isStorageReady}
+            onCreateFile={() => setShowCreateFile(true)}
+            onDisconnectFolder={() => void handleDisconnectFolder()}
+            onFolderInputChange={(files) => void handleFolderInput(files)}
+            onGrantFolderAccess={() => void handleGrantFolderAccess()}
+            onOpenFolder={() => void handleOpenFolder()}
+            onReloadFolder={() => void handleReloadFolder()}
+            onResetWorkspace={() => void resetDemoWorkspace()}
+            openingFolder={openingFolder}
+            rootName={snapshot.rootName}
+            running={running}
           />
-          +{' '}
           <ToolCatalogPanel
             copyFeedback={copyFeedback}
             getToolDefinition={(name) => registry.getToolDefinition(name)}
