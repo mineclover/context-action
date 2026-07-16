@@ -93,6 +93,73 @@ function App() {
 }
 ```
 
+## ToolContext: MCP and function-calling usecase
+
+`createToolContext()` is the React management surface for the same canonical
+protocol defined by `@context-action/core`:
+
+```text
+tools/list → model tool call → tools/call → tool result
+```
+
+Register handlers once, expose the registry to the provider adapter, and keep
+approval and schema validation inside the ToolContext boundary.
+
+```tsx
+import { useCallback, useMemo } from 'react';
+import {
+  createToolContext,
+  isToolCallResult,
+  listAllTools,
+} from '@context-action/react';
+import { studioToolSchema } from './studio-tool-schema';
+
+const StudioTools = createToolContext('StudioTools', {
+  schema: studioToolSchema,
+  toolPolicy: ({ context }) =>
+    context?.mode === 'direct' ? 'allow' : 'ask',
+});
+
+function ToolRuntime({ children }: { children: React.ReactNode }) {
+  const registry = StudioTools.useToolRegistry();
+
+  StudioTools.useToolHandler(
+    'workspace.readFile',
+    useCallback(async ({ path }) => readWorkspaceFile(path), [])
+  );
+
+  const definitions = useMemo(() => listAllTools(registry), [registry]);
+  const runModelCall = useCallback(
+    async (call: {
+      id: string;
+      name: string;
+      arguments: Record<string, unknown>;
+    }) => {
+      const result = await registry.executeModelToolCall(call, {
+        context: { source: 'model', mode: 'agent' },
+      });
+      if (!isToolCallResult(result)) {
+        throw new Error('The tool adapter returned an invalid tool result.');
+      }
+      return result;
+    },
+    [registry]
+  );
+
+  // Pass definitions to the provider and runModelCall to its response
+  // adapter. Views only receive these commands as props.
+  void definitions;
+  void runModelCall;
+  return children;
+}
+```
+
+Use `callTool()` with `context.mode: 'direct'` for an explicit palette or
+command action. Model and MCP calls should use `mode: 'agent'` so the same
+policy, revision checks, lifecycle trace, and structured error result apply to
+every mutation path. The reusable browser convention and complete usecases are
+documented in [`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
+
 ## Core Patterns
 
 ### 1. Declarative Store Pattern (Recommended)

@@ -53,6 +53,55 @@ await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
+## Canonical tool protocol boundary
+
+The core package also defines the framework-neutral contract for MCP and
+function-calling integrations:
+
+```text
+tools/list → model tool call → tools/call → tool result
+```
+
+Keep tool definitions in one registry, collect paged discovery with
+`listAllTools()`, and send model calls through the management interface. The
+provider adapter owns message formatting, retries, and cancellation; the
+registry owns request validation, policy, handler execution, and structured
+results.
+
+```typescript
+import {
+  isToolCallResult,
+  listAllTools,
+  type ToolManagementInterface,
+} from '@context-action/core';
+
+async function executeModelCall(
+  registry: ToolManagementInterface,
+  call: { id: string; name: string; arguments: Record<string, unknown> }
+) {
+  // 1. Export this catalog to the provider's tools/function format.
+  const definitions = listAllTools(registry);
+  console.log('available tools:', definitions.map(({ name }) => name));
+
+  // 2. Normalize the provider call at the canonical management boundary.
+  const result = await registry.executeModelToolCall(call, {
+    context: { source: 'model', mode: 'agent' },
+  });
+
+  // 3. Validate the result before adapting it back into provider messages.
+  if (!isToolCallResult(result)) {
+    throw new Error('The tool adapter returned an invalid canonical result.');
+  }
+  return result;
+}
+```
+
+Use `toToolListRequest()` and `toToolCallRequest()` when an adapter needs the
+JSON-RPC-shaped `tools/list` or `tools/call` form. Do not hand-build a second
+tool schema in a view or bypass the registry with a direct handler call. The
+full browser workspace recipe is documented in
+[`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
+
 ## 🌟 Vanilla JavaScript Support
 
 **@context-action/core works perfectly with vanilla JavaScript!** No React, Vue, or any framework required.
