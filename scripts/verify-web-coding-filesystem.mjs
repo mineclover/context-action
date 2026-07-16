@@ -97,6 +97,7 @@ class MockDirectoryHandle {
   kind = 'directory';
   children = new Map();
   permission = 'granted';
+  failEntries = false;
 
   constructor(name) {
     this.name = name;
@@ -156,6 +157,11 @@ class MockDirectoryHandle {
   }
 
   async *entries() {
+    if (this.failEntries) {
+      throw Object.assign(new Error('Folder disappeared during reload.'), {
+        name: 'NotFoundError',
+      });
+    }
     for (const entry of this.children.entries()) yield entry;
   }
 
@@ -308,10 +314,30 @@ const restoredAdapter = new filesystem.BrowserWorkspaceFileSystemAdapter(persist
 expect(await restoredAdapter.restorePersistedFolder(), 'Persisted folder handle must restore.');
 expect(restoredAdapter.hasWritableFolder, 'Restored adapter must reconnect the folder.');
 expectEqual(restoredAdapter.folderPermission, 'granted', 'Restored permission must be observable.');
+root.failEntries = true;
+let reloadUnavailableFolderError;
+try {
+  await restoredAdapter.reloadFolder();
+} catch (error) {
+  reloadUnavailableFolderError = error;
+}
+expect(
+  reloadUnavailableFolderError?.message.includes('connected folder is no longer available'),
+  'A missing folder during reload must return a reconnectable filesystem error.'
+);
+expect(
+  !restoredAdapter.hasWritableFolder && clearedHandle,
+  'A missing folder during reload must clear the stale writable handle.'
+);
+root.failEntries = false;
+persistedHandle = root;
+clearedHandle = false;
+const reconnectedAdapter = new filesystem.BrowserWorkspaceFileSystemAdapter(persistence);
+expect(await reconnectedAdapter.restorePersistedFolder(), 'The folder must be restorable after a stale reload.');
 root.children.delete('src');
 let unavailableFolderError;
 try {
-  await restoredAdapter.removeFiles(['src/app.js']);
+  await reconnectedAdapter.removeFiles(['src/app.js']);
 } catch (error) {
   unavailableFolderError = error;
 }
@@ -320,11 +346,11 @@ expect(
   'A missing folder during deletion must return a reconnectable filesystem error.'
 );
 expect(
-  !restoredAdapter.hasWritableFolder && clearedHandle,
+  !reconnectedAdapter.hasWritableFolder && clearedHandle,
   'A missing folder during deletion must clear the stale writable handle.'
 );
-await restoredAdapter.disconnectFolder();
+await reconnectedAdapter.disconnectFolder();
 expect(clearedHandle, 'Disconnecting a folder must clear its persisted handle.');
-expect(!restoredAdapter.hasWritableFolder, 'Disconnecting must remove the in-memory folder link.');
+expect(!reconnectedAdapter.hasWritableFolder, 'Disconnecting must remove the in-memory folder link.');
 
 console.log('Verified standalone filesystem adapter contracts.');

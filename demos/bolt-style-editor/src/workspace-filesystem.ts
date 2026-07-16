@@ -255,6 +255,17 @@ export class BrowserWorkspaceFileSystemAdapter {
       await this.refreshWritePermission();
       return imported;
     } catch (error) {
+      if (isNotFoundFileSystemError(error)) {
+        try {
+          await this.disconnectFolder();
+        } catch {
+          // Keep the in-memory disconnect even if the persisted handle cannot be cleared.
+        }
+        throw new Error(
+          'The connected folder is no longer available. Open the folder again to continue saving.',
+          { cause: error }
+        );
+      }
       this.directoryHandle = previousHandle;
       this.writePermission = await this.readWritePermission(previousHandle);
       try {
