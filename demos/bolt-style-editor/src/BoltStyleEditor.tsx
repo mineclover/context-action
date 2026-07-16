@@ -20,6 +20,7 @@ import {
   type EditorMessage,
   useToolExecution,
 } from './hooks/use-tool-execution';
+import { useWorkspaceFolderActions } from './hooks/use-workspace-folder-actions';
 import { type ToolCall } from './local-agent-plan';
 import {
   readOpenRouterSettings,
@@ -61,25 +62,10 @@ import {
   type PreviewBridgeMessage,
   type WorkspaceFile,
 } from './workspace';
-import { WorkspaceToolError } from './workspace-errors';
-import {
-  BrowserWorkspaceFileSystemAdapter,
-  type ImportedFolder,
-} from './workspace-filesystem';
+import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
-
-function thrownErrorText(error: unknown, fallback: string): string {
-  if (error instanceof WorkspaceToolError) {
-    const details =
-      error.details === undefined
-        ? ''
-        : `\n${JSON.stringify(error.details, null, 2)}`;
-    return `[${error.code}] ${error.message}${details}`;
-  }
-  return error instanceof Error ? error.message : fallback;
-}
 
 function downloadTextFile(
   value: string,
@@ -595,7 +581,6 @@ function EditorWorkbench({
   const [workspaceSearchFocus, setWorkspaceSearchFocus] =
     useState<WorkspaceSearchFocusRequest | null>(null);
   const [quickOpenOpen, setQuickOpenOpen] = useState(false);
-  const [openingFolder, setOpeningFolder] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editorDrafts, setEditorDrafts] = useState<Record<string, string>>({});
   const editorDraftsRef = useRef(editorDrafts);
@@ -834,6 +819,29 @@ function EditorWorkbench({
               ? 'Session-only memory workspace'
               : 'Preparing browser workspace';
 
+  const {
+    openingFolder,
+    refreshPreview,
+    handleFolderInput,
+    handleOpenFolder,
+    handleReloadFolder,
+    handleDisconnectFolder,
+    handleGrantFolderAccess,
+    resetDemoWorkspace,
+  } = useWorkspaceFolderActions({
+    workspace,
+    fileSystemAdapter,
+    folderInputRef,
+    isStorageReady,
+    hasWritableFolder,
+    hasUnsavedChanges,
+    running,
+    requestConfirmation,
+    executeQuickTool,
+    setMessages,
+    setEditorDrafts,
+  });
+
   const runningTraceEntry = traceEntries.find(
     (entry) => entry.status === 'running'
   );
@@ -862,234 +870,6 @@ function EditorWorkbench({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges, hasUnpersistedEditorDrafts, hasWritableFolder]);
-
-  const refreshPreview = () => {
-    if (!isStorageReady) return;
-    void executeQuickTool({ name: 'preview.refresh', arguments: {} });
-  };
-
-  useEffect(() => {
-    folderInputRef.current?.setAttribute('webkitdirectory', '');
-  }, []);
-
-  const importFolder = async (imported: ImportedFolder, verb = 'Opened') => {
-    await workspace.importFolder(imported);
-    setEditorDrafts({});
-    const skippedPreview = imported.skipped.slice(0, 3).join(' · ');
-    const skippedOverflow = imported.skipped.length - 3;
-    const skippedMessage = imported.skipped.length
-      ? ` Skipped ${imported.skipped.length} unsupported, oversized, or invalid file(s).${skippedPreview ? ` ${skippedPreview}${skippedOverflow > 0 ? ` · +${skippedOverflow} more` : ''}` : ''}`
-      : '';
-    const syncMessage = fileSystemAdapter.hasWritableFolder
-      ? ' Folder sync is enabled for Save.'
-      : ' Changes are saved to the browser workspace.';
-    setMessages((current) => [
-      ...current,
-      {
-        role: 'assistant',
-        text: `${verb} ${imported.rootName} with ${imported.files.length} file(s).${syncMessage}${skippedMessage}`,
-      },
-    ]);
-  };
-
-  const handleFolderInput = async (fileList: FileList | null) => {
-    if (!fileList) return;
-    if (
-      hasUnsavedChanges &&
-      !(await requestConfirmation({
-        title: 'Open selected folder?',
-        message:
-          'Unsaved browser workspace changes will be discarded before the selected folder is opened.',
-        confirmLabel: 'Open folder',
-        tone: 'warning',
-      }))
-    ) {
-      if (folderInputRef.current) folderInputRef.current.value = '';
-      return;
-    }
-    setOpeningFolder(true);
-    try {
-      await importFolder(await fileSystemAdapter.importFileList(fileList));
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          tone: 'error',
-          text: thrownErrorText(error, 'Folder import failed.'),
-        },
-      ]);
-    } finally {
-      setOpeningFolder(false);
-      if (folderInputRef.current) folderInputRef.current.value = '';
-    }
-  };
-
-  const handleOpenFolder = async () => {
-    if (openingFolder || !isStorageReady) return;
-    if (
-      hasUnsavedChanges &&
-      !(await requestConfirmation({
-        title: 'Open a new folder?',
-        message:
-          'Unsaved browser workspace changes will be discarded before the new folder is opened.',
-        confirmLabel: 'Open folder',
-        tone: 'warning',
-      }))
-    ) {
-      return;
-    }
-    const picker = (
-      window as Window & {
-        showDirectoryPicker?: unknown;
-      }
-    ).showDirectoryPicker;
-    if (!picker) {
-      folderInputRef.current?.click();
-      return;
-    }
-
-    setOpeningFolder(true);
-    try {
-      await importFolder(await fileSystemAdapter.pickFolder());
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          tone: 'error',
-          text: thrownErrorText(error, 'Folder import failed.'),
-        },
-      ]);
-    } finally {
-      setOpeningFolder(false);
-    }
-  };
-
-  const handleReloadFolder = async () => {
-    if (openingFolder || !isStorageReady || !hasWritableFolder) {
-      return;
-    }
-    if (
-      hasUnsavedChanges &&
-      !(await requestConfirmation({
-        title: 'Reload connected folder?',
-        message:
-          'The browser workspace will be replaced with the connected folder contents. Unsaved changes will be discarded.',
-        confirmLabel: 'Reload folder',
-        tone: 'warning',
-      }))
-    ) {
-      return;
-    }
-
-    setOpeningFolder(true);
-    try {
-      setEditorDrafts({});
-      await executeQuickTool(
-        {
-          name: 'workspace.reloadFolder',
-          arguments: {
-            expectedRevision: workspace.getSnapshot().revision,
-          },
-        },
-        { skipDraftFlush: true }
-      );
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          tone: 'error',
-          text: thrownErrorText(error, 'Folder reload failed.'),
-        },
-      ]);
-    } finally {
-      setOpeningFolder(false);
-    }
-  };
-
-  const handleDisconnectFolder = async () => {
-    if (openingFolder || !isStorageReady || !hasWritableFolder) {
-      return;
-    }
-    if (
-      hasUnsavedChanges &&
-      !(await requestConfirmation({
-        title: 'Disconnect folder?',
-        message:
-          'The folder connection will be removed. Current changes will remain only in the browser workspace.',
-        confirmLabel: 'Disconnect',
-        tone: 'warning',
-      }))
-    ) {
-      return;
-    }
-
-    await executeQuickTool({
-      name: 'workspace.disconnectFolder',
-      arguments: {},
-    });
-  };
-
-  const handleGrantFolderAccess = async () => {
-    if (openingFolder || !isStorageReady || !hasWritableFolder) return;
-    setOpeningFolder(true);
-    try {
-      const permission = await fileSystemAdapter.requestWritePermission();
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text:
-            permission === 'granted'
-              ? 'Write access restored for the connected folder.'
-              : `Folder write access is ${permission}. Use the browser permission prompt to continue saving.`,
-        },
-      ]);
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          text:
-            error instanceof Error
-              ? error.message
-              : 'Folder permission request failed.',
-        },
-      ]);
-    } finally {
-      setOpeningFolder(false);
-    }
-  };
-
-  const resetDemoWorkspace = async () => {
-    if (running || !isStorageReady || hasWritableFolder) {
-      return;
-    }
-    if (
-      hasUnsavedChanges &&
-      !(await requestConfirmation({
-        title: 'Reset demo workspace?',
-        message:
-          'The browser workspace will return to the demo seed. Current changes will be discarded.',
-        confirmLabel: 'Reset workspace',
-        tone: 'danger',
-      }))
-    ) {
-      return;
-    }
-
-    setEditorDrafts({});
-    await executeQuickTool(
-      {
-        name: 'workspace.reset',
-        arguments: { expectedRevision: workspace.getSnapshot().revision },
-      },
-      { skipDraftFlush: true }
-    );
-  };
 
   const saveWorkspace = async () => {
     if (saving || running || !isStorageReady) return;
