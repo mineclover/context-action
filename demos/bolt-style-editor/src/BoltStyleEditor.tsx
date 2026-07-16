@@ -40,6 +40,10 @@ import {
   useModalDialog,
 } from './views/editor-dialogs';
 import {
+  type ToolCatalogFilter,
+  ToolCatalogPanel,
+} from './views/tool-catalog-panel';
+import {
   BrowserWorkspace,
   buildPreviewDocument,
   collectPreviewDiagnostics,
@@ -53,29 +57,6 @@ import {
   type ImportedFolder,
 } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
-
-type ToolCatalogFilter = 'all' | 'read' | 'workspace' | 'preview';
-
-type ToolAnnotations = {
-  readOnlyHint?: boolean;
-  destructiveHint?: boolean;
-  openWorldHint?: boolean;
-};
-
-function toolPolicySummary(annotations?: ToolAnnotations): string {
-  if (annotations?.readOnlyHint === true) return 'allow · read-only';
-  return 'approval · local direct allow';
-}
-
-const toolCatalogFilterOptions: Array<{
-  value: ToolCatalogFilter;
-  label: string;
-}> = [
-  { value: 'all', label: 'All' },
-  { value: 'read', label: 'Read' },
-  { value: 'workspace', label: 'Workspace' },
-  { value: 'preview', label: 'Preview' },
-];
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
 
@@ -2693,224 +2674,46 @@ function EditorWorkbench({
             files={snapshot.files}
             onSelect={(path) => void openWorkspaceFile(path)}
           />
-
-          <div className="sidebar-section-heading">
-            <span>Tools</span>
-            <span className="tool-heading-actions">
-              <button
-                aria-label="Copy tools/list result"
-                className="tool-list-copy-button"
-                disabled={!isStorageReady || running}
-                onClick={() =>
-                  void copyJson(
-                    'tools/list result',
-                    registry.listTools({ method: 'tools/list' })
-                  )
-                }
-                type="button"
-              >
-                Copy list
-              </button>
-              <button
-                aria-label="Download tools/list result"
-                className="tool-list-copy-button"
-                disabled={!isStorageReady || running}
-                onClick={downloadToolList}
-                type="button"
-              >
-                Download list
-              </button>
-              <span className="count-badge">
-                {visibleToolNames.length === toolNames.length
-                  ? toolNames.length
-                  : `${visibleToolNames.length}/${toolNames.length}`}
-              </span>
-            </span>
-          </div>
-          <label className="tool-filter">
-            <span className="sr-only">Filter tools</span>
-            <input
-              aria-label="Filter tools"
-              disabled={!isStorageReady}
-              onChange={(event) => setToolFilter(event.target.value)}
-              placeholder="Filter tools…"
-              type="search"
-              value={toolFilter}
-            />
-            {toolFilter ? (
-              <button
-                aria-label="Clear tool filter"
-                onClick={() => setToolFilter('')}
-                type="button"
-              >
-                ×
-              </button>
-            ) : null}
-          </label>
-          <div aria-label="Tool capability filter" className="tool-scope-tabs">
-            {toolCatalogFilterOptions.map((option) => (
-              <button
-                aria-pressed={toolCatalogFilter === option.value}
-                className={`tool-scope-tab ${toolCatalogFilter === option.value ? 'tool-scope-tab-active' : ''}`}
-                disabled={!isStorageReady}
-                key={option.value}
-                onClick={() => setToolCatalogFilter(option.value)}
-                type="button"
-              >
-                {option.label}
-                <span>{toolCatalogCounts[option.value]}</span>
-              </button>
-            ))}
-          </div>
-          <div className="tool-palette">
-            {visibleToolNames.length ? (
-              visibleToolNames.map((name) => {
-                const definition = registry.getToolDefinition(name);
-                return (
-                  <button
-                    aria-pressed={name === selectedToolName}
-                    className={`tool-row ${name === selectedToolName ? 'tool-row-selected' : ''}`}
-                    data-tool-name={name}
-                    disabled={!isStorageReady || running}
-                    key={name}
-                    onClick={() => setSelectedToolName(name)}
-                    type="button"
-                  >
-                    <span className="tool-row-name">
-                      <span className="tool-glyph">
-                        {name.startsWith('preview') ? '◈' : '◇'}
-                      </span>
-                      <span>{name}</span>
-                    </span>
-                    <span className="tool-policy-label">
-                      {toolPolicySummary(definition?.annotations)}
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="tool-filter-empty">No matching tools</div>
-            )}
-          </div>
-          {selectedToolDefinition ? (
-            <section
-              aria-label="Selected tool definition"
-              className="tool-inspector"
-            >
-              <div className="tool-inspector-heading">
-                <span>Definition</span>
-                <span className="tool-inspector-format">MCP</span>
-              </div>
-              <strong>{selectedToolDefinition.name}</strong>
-              <p>{selectedToolDefinition.description}</p>
-              <div className="tool-policy-summary">
-                Model/MCP:{' '}
-                {toolPolicySummary(selectedToolDefinition.annotations)}
-              </div>
-              <div className="tool-annotations">
-                {Object.entries(selectedToolDefinition.annotations ?? {})
-                  .filter(([, value]) => Boolean(value))
-                  .map(([key]) => (
-                    <span key={key}>{key}</span>
-                  ))}
-              </div>
-              <div className="tool-inspector-actions">
-                <button
-                  disabled={!isStorageReady || running}
-                  onClick={() =>
-                    void copyJson('Tool definition', selectedToolDefinition)
-                  }
-                  type="button"
-                >
-                  Copy definition
-                </button>
-                <button
-                  aria-label="Download tool definition"
-                  disabled={!isStorageReady || running}
-                  onClick={downloadSelectedToolDefinition}
-                  type="button"
-                >
-                  Download definition
-                </button>
-                <button
-                  disabled={!isStorageReady || running}
-                  onClick={() => void copySelectedToolCall()}
-                  type="button"
-                >
-                  Copy tools/call
-                </button>
-                <button
-                  aria-label="Download tools/call request"
-                  disabled={!isStorageReady || running}
-                  onClick={downloadSelectedToolCall}
-                  type="button"
-                >
-                  Download tools/call
-                </button>
-              </div>
-              {copyFeedback ? (
-                <div
-                  aria-live="polite"
-                  className="tool-copy-feedback"
-                  role="status"
-                >
-                  {copyFeedback}
-                </div>
-              ) : null}
-              <button
-                className="tool-run-button"
-                disabled={!isStorageReady || running || !selectedToolName}
-                onClick={() => void runSelectedTool()}
-                type="button"
-              >
-                {selectedToolDefinition.annotations?.destructiveHint
-                  ? 'Run destructive sample'
-                  : 'Run with arguments'}
-              </button>
-              <div className="tool-schema-label">Arguments (JSON)</div>
-              <textarea
-                aria-label={`Arguments for ${selectedToolDefinition.name}`}
-                className="tool-arguments-input"
-                disabled={!isStorageReady || running}
-                onChange={(event) => {
-                  toolArgumentsSampleRef.current = false;
-                  setToolArgumentsText(event.target.value);
-                  if (toolArgumentsError) setToolArgumentsError(null);
-                }}
-                spellCheck={false}
-                value={toolArgumentsText}
-              />
-              {toolArgumentsError ? (
-                <div className="tool-arguments-error" role="alert">
-                  {toolArgumentsError}
-                </div>
-              ) : null}
-              <button
-                className="tool-reset-button"
-                disabled={!isStorageReady || running}
-                onClick={resetSelectedToolArguments}
-                type="button"
-              >
-                Reset sample arguments
-              </button>
-              <div className="tool-schema-label">Input schema</div>
-              <pre>
-                {JSON.stringify(selectedToolDefinition.inputSchema, null, 2)}
-              </pre>
-              {selectedToolDefinition.outputSchema ? (
-                <>
-                  <div className="tool-schema-label">Output schema</div>
-                  <pre>
-                    {JSON.stringify(
-                      selectedToolDefinition.outputSchema,
-                      null,
-                      2
-                    )}
-                  </pre>
-                </>
-              ) : null}
-            </section>
-          ) : null}
+          +{' '}
+          <ToolCatalogPanel
+            copyFeedback={copyFeedback}
+            getToolDefinition={(name) => registry.getToolDefinition(name)}
+            isStorageReady={isStorageReady}
+            onClearToolFilter={() => setToolFilter('')}
+            onCopyCall={() => void copySelectedToolCall()}
+            onCopyDefinition={() =>
+              void copyJson('Tool definition', selectedToolDefinition)
+            }
+            onCopyToolsList={() =>
+              void copyJson(
+                'tools/list result',
+                registry.listTools({ method: 'tools/list' })
+              )
+            }
+            onDownloadCall={downloadSelectedToolCall}
+            onDownloadDefinition={downloadSelectedToolDefinition}
+            onDownloadToolsList={downloadToolList}
+            onResetToolArguments={resetSelectedToolArguments}
+            onRunSelectedTool={() => void runSelectedTool()}
+            onSelectTool={setSelectedToolName}
+            onToolArgumentsChange={(value) => {
+              toolArgumentsSampleRef.current = false;
+              setToolArgumentsText(value);
+              if (toolArgumentsError) setToolArgumentsError(null);
+            }}
+            onToolCatalogFilterChange={(value) => setToolCatalogFilter(value)}
+            onToolFilterChange={setToolFilter}
+            running={running}
+            selectedToolDefinition={selectedToolDefinition}
+            selectedToolName={selectedToolName}
+            toolArgumentsError={toolArgumentsError}
+            toolArgumentsText={toolArgumentsText}
+            toolCatalogCounts={toolCatalogCounts}
+            toolCatalogFilter={toolCatalogFilter}
+            toolFilter={toolFilter}
+            toolNames={toolNames}
+            visibleToolNames={visibleToolNames}
+          />
           <div className="trace-section">
             <div className="sidebar-section-heading">
               <span>Execution trace</span>
