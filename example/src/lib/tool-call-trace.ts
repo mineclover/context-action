@@ -1,8 +1,13 @@
-import type { ToolCallEvent } from '@context-action/react';
+import type { ToolCallEvent, ToolCallMode } from '@context-action/react';
+
+export type ToolTraceMethod = 'tools/list' | 'tools/call' | 'agent.request';
 
 export type ToolTraceEntry = {
   id: string;
   name: string;
+  kind: 'discovery' | 'call' | 'agent';
+  method: ToolTraceMethod;
+  mode?: ToolCallMode;
   source: string;
   sessionId?: string;
   status: 'running' | 'completed' | 'failed';
@@ -15,6 +20,11 @@ export type ToolCallTraceStore = {
   getSnapshot: () => ToolTraceEntry[];
   subscribe: (listener: () => void) => () => void;
   record: (event: ToolCallEvent) => void;
+  recordToolList: (
+    toolCount: number,
+    source?: string,
+    sessionId?: string
+  ) => void;
   clear: () => void;
 };
 
@@ -160,6 +170,31 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
     for (const listener of listeners) listener();
   };
 
+  const recordToolList = (
+    toolCount: number,
+    source = 'system',
+    sessionId?: string
+  ): void => {
+    const startedAt = Date.now();
+    const entry: ToolTraceEntry = {
+      id: `list-${startedAt}-${sessionSequence++}`,
+      name: 'tools/list',
+      kind: 'discovery',
+      method: 'tools/list',
+      source,
+      ...(sessionId ? { sessionId } : {}),
+      status: 'completed',
+      startedAt,
+      durationMs: 0,
+      summary: `${toolCount} tools available`,
+    };
+    entries = [
+      entry,
+      ...entries,
+    ].slice(0, maxEntries);
+    notify();
+  };
+
   const record = (event: ToolCallEvent): void => {
     const id = String(event.toolCallId ?? `${event.name}-${Date.now()}`);
     const source = event.context?.source ?? 'mcp';
@@ -170,6 +205,9 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
         ? {
             id,
             name: event.name,
+            kind: 'call',
+            method: 'tools/call',
+            ...(event.context?.mode ? { mode: event.context.mode } : {}),
             source,
             ...(sessionId ? { sessionId } : {}),
             status: 'running',
@@ -178,6 +216,9 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
         : {
             id,
             name: event.name,
+            kind: 'call',
+            method: 'tools/call',
+            ...(event.context?.mode ? { mode: event.context.mode } : {}),
             source,
             ...(sessionId ? { sessionId } : {}),
             status: event.type === 'failed' ? 'failed' : 'completed',
@@ -209,6 +250,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
       return () => listeners.delete(listener);
     },
     record,
+    recordToolList,
     clear,
   };
 }

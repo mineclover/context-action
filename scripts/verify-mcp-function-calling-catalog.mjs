@@ -87,6 +87,7 @@ const aiDemoSource = readSource(
 const realtimeWebCodingSource = readSource(
   'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx'
 );
+const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
 assertContains(
   aiRunnerContractSource,
@@ -113,6 +114,21 @@ assertContains(
   /source:\s*'local',[\s\S]*?mode:\s*'agent',[\s\S]*?provider:\s*'local-fallback'/,
   'realtime web-coding local-agent source and mode'
 );
+assertContains(
+  exampleTraceSource,
+  /method:\s*'tools\/list'/,
+  'example tools/list trace method'
+);
+assertContains(
+  exampleTraceSource,
+  /method:\s*'tools\/call'/,
+  'example tools/call trace method'
+);
+assertContains(
+  realtimeWebCodingSource,
+  /recordLiveWebCodingToolList\(listedTools\.tools\.length/,
+  'realtime web-coding discovery trace'
+);
 
 const uiCount = assertCatalogMatchesSchema({
   catalogSource,
@@ -133,3 +149,4 @@ console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
 console.log('- AI runner response-message history checked: 2 showcases');
 console.log('- realtime local-agent source/mode contract checked');
+console.log('- example tools/list/tools/call trace methods checked');

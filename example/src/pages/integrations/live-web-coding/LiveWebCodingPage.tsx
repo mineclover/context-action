@@ -29,6 +29,7 @@ import {
   formatLiveWebCodingTraceId,
   liveWebCodingTraceStore,
   recordLiveWebCodingToolCall,
+  recordLiveWebCodingToolList,
 } from '../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
@@ -503,7 +504,8 @@ async function runLocalPrompt(
   signal?: AbortSignal,
   sessionId?: string
 ): Promise<{ toolNames: string[]; response: string }> {
-  registry.listTools(toToolListRequest());
+  const listedTools = registry.listTools(toToolListRequest());
+  recordLiveWebCodingToolList(listedTools.tools.length, 'local', sessionId);
   const executeLocalModelCall = (
     name: string,
     argumentsValue: Record<string, unknown>
@@ -788,6 +790,12 @@ function LiveWebCodingWorkbench({
     setMessages((current) => [...current, { role: 'user', text: nextPrompt }]);
     try {
       if (runner && selectedModel) {
+        const listedTools = registry.listTools(toToolListRequest());
+        recordLiveWebCodingToolList(
+          listedTools.tools.length,
+          'model',
+          sessionId
+        );
         const requestMessages: ModelMessage[] = [
           ...modelMessages,
           { role: 'user', content: nextPrompt },
@@ -857,6 +865,8 @@ function LiveWebCodingWorkbench({
     setLoading(true);
     setError('');
     try {
+      const listedTools = registry.listTools(toToolListRequest());
+      recordLiveWebCodingToolList(listedTools.tools.length, 'local', sessionId);
       const guardedArgs =
         revisionGuardedWebTools.has(name) && args.expectedRevision === undefined
           ? { ...args, expectedRevision: workspaceSnapshot.revision }
@@ -1153,6 +1163,8 @@ function LiveWebCodingWorkbench({
                         <span className={styles.toolTraceCopy}>
                           <code>{entry.name}</code>
                           <small>
+                            {entry.method}
+                            {entry.mode ? ` · ${entry.mode}` : ''} ·{' '}
                             {formatLiveWebCodingTraceId(entry.id)} ·{' '}
                             {entry.source}
                             {entry.sessionId
