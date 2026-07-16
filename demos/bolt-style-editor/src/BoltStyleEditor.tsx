@@ -1,4 +1,3 @@
-import { isPreviewBridgeMessage } from '@context-action/live-code-editor';
 import {
   type KeyboardEvent,
   useCallback,
@@ -18,6 +17,7 @@ import {
   type FileTreeEntry,
 } from './file-tree';
 import { useConfirmationRequest } from './hooks/use-confirmation-request';
+import { usePreviewBridge } from './hooks/use-preview-bridge';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
 import {
@@ -69,16 +69,6 @@ import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
 import { WebCodingWorkspaceRepository } from './workspace-storage';
 
 type FolderRestoreState = 'idle' | 'restoring' | 'restored' | 'unavailable';
-
-const PREVIEW_ERROR_MESSAGE_LIMIT = 240;
-
-function boundPreviewErrorMessage(message: string): string {
-  const normalized = message.trim();
-  return (normalized || 'Preview runtime error').slice(
-    0,
-    PREVIEW_ERROR_MESSAGE_LIMIT
-  );
-}
 
 function FileTreeEntryView({
   entry,
@@ -399,31 +389,11 @@ function EditorWorkbench({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const editorTabsRef = useRef<HTMLDivElement>(null);
   const workspaceSearchTriggerRef = useRef<HTMLButtonElement>(null);
-  const expectedPreviewRevisionRef = useRef(snapshot.revision);
-  useEffect(() => {
-    expectedPreviewRevisionRef.current = snapshot.revision;
-  }, [snapshot.revision]);
-  useEffect(() => {
-    const handlePreviewMessage = (event: MessageEvent<unknown>) => {
-      const iframeWindow = iframeRef.current?.contentWindow;
-      if (!iframeWindow || event.source !== iframeWindow) return;
-      if (!isPreviewBridgeMessage(event.data)) return;
-      if (event.data.revision !== expectedPreviewRevisionRef.current) return;
-
-      if (event.data.type === 'context-action.preview.ready') {
-        workspace.setPreviewStatus(event.data.revision, 'synced');
-      } else {
-        workspace.setPreviewStatus(
-          event.data.revision,
-          'error',
-          boundPreviewErrorMessage(event.data.message)
-        );
-      }
-    };
-
-    window.addEventListener('message', handlePreviewMessage);
-    return () => window.removeEventListener('message', handlePreviewMessage);
-  }, [workspace]);
+  usePreviewBridge({
+    workspace,
+    iframeRef,
+    revision: snapshot.revision,
+  });
   const [prompt, setPrompt] = useState(
     '보라색 테마로 바꾸고 기능 카드를 추가해줘'
   );
