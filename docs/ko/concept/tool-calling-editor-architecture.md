@@ -655,7 +655,9 @@ Open folder → generic FileSystemAdapter
   파일 선택은 전체 `activePath`를 그대로 유지한다.
 - 실행 가능한 workspace에서는 `index.html`을 우선 진입점으로 사용하고, 없으면
   첫 `.html` 파일을 사용한다. 상대 경로의 로컬 `.css`와 `.js`는 sandbox iframe
-  안에 주입해 실행한다.
+  안에 주입해 실행한다. 로컬 CSS `@import` chain도 media 조건을 보존하며
+  재귀적으로 inline하고, import된 stylesheet는 각자의 상대 asset 기준을
+  유지한다. 순환하거나 과도한 import graph는 bounded diagnostic으로 중단한다.
 - 가져온 workspace에 HTML entry가 없으면 빈 iframe 대신 `index.html` 또는 다른
   `.html` 파일이 필요하다는 진단 카드를 preview에 표시한다.
 - visual tool은 workspace 경로에서 HTML entry와 우선 stylesheet를 찾으므로

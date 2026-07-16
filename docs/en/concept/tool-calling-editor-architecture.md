@@ -707,7 +707,10 @@ Open folder → generic FileSystemAdapter
   while file selection continues to resolve to the full `activePath`.
 - For a runnable workspace, `index.html` is preferred; otherwise the first
   `.html` file becomes the entry point. Relative local `.css` and `.js`
-  references are inlined and executed inside the sandboxed iframe.
+  references are inlined and executed inside the sandboxed iframe. Local CSS
+  `@import` chains are inlined recursively with media conditions preserved,
+  while each imported stylesheet keeps its own relative asset base; cyclic or
+  excessive import graphs are cut off with bounded diagnostics.
 - If an imported workspace has no HTML entry, the preview renders a diagnostic
   card explaining that `index.html` or another `.html` file is required instead
   of showing a blank iframe.

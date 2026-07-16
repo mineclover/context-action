@@ -47,6 +47,8 @@ function findReferencedFile(
 
 export type WorkspaceAssetUrls = Readonly<Record<string, string>>;
 
+const MAX_INLINE_CSS_IMPORTS = 32;
+
 export type PreviewBridgeMessage =
   | { type: 'context-action.preview.ready'; revision: number }
   | {
@@ -132,6 +134,52 @@ function rewriteCssAssetUrls(
   );
 }
 
+type CssImportState = { count: number };
+
+function inlineCssImports(
+  source: string,
+  cssPath: string,
+  files: readonly WorkspaceFile[],
+  assetUrls: WorkspaceAssetUrls,
+  importedPaths: ReadonlySet<string>,
+  state: CssImportState
+): string {
+  const withImports = source.replace(
+    /@import\s+(?:url\(\s*(["']?)([^)"'\s]+)\1\s*\)|(["'])([^"']+)\3)\s*([^;]*);/gi,
+    (
+      match,
+      _urlQuote: string,
+      urlPath: string,
+      quotedPathQuote: string,
+      quotedPath: string,
+      media: string
+    ) => {
+      const requestedPath = quotedPathQuote ? quotedPath : urlPath;
+      const imported = findReferencedFile(files, cssPath, requestedPath, 'css');
+      if (!imported) return match;
+      if (importedPaths.has(imported.path)) {
+        return `/* Skipped cyclic workspace @import: ${imported.path} */`;
+      }
+      if (state.count >= MAX_INLINE_CSS_IMPORTS) {
+        return `/* Skipped workspace @import limit at: ${imported.path} */`;
+      }
+      state.count += 1;
+      const importedSource = inlineCssImports(
+        imported.source,
+        imported.path,
+        files,
+        assetUrls,
+        new Set([...importedPaths, imported.path]),
+        state
+      );
+      return media.trim()
+        ? `@media ${media.trim()} {\n${importedSource}\n}`
+        : importedSource;
+    }
+  );
+  return rewriteCssAssetUrls(withImports, cssPath, assetUrls);
+}
+
 function inlineStylesheets(
   html: string,
   htmlPath: string,
@@ -150,7 +198,7 @@ function inlineStylesheets(
 
     const css = findReferencedFile(files, htmlPath, href, 'css');
     return css
-      ? `<style data-workspace-source="${css.path}">${rewriteCssAssetUrls(css.source, css.path, assetUrls)}</style>`
+      ? `<style data-workspace-source="${css.path}">${inlineCssImports(css.source, css.path, files, assetUrls, new Set([css.path]), { count: 0 })}</style>`
       : '';
   });
 }

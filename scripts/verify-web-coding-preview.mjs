@@ -101,6 +101,98 @@ expectIncludes(
   'The preview bridge must report its ready message type.'
 );
 
+const nestedCssDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><head><link rel="stylesheet" href="css/main.css"></head><body></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'css/main.css',
+      language: 'css',
+      source:
+        '@import "theme/base.css" screen; .hero { background: url("../assets/bg.png"); }',
+      kind: 'text',
+    },
+    {
+      path: 'css/theme/base.css',
+      language: 'css',
+      source: '.hero { background-image: url("../../assets/icon.svg"); }',
+      kind: 'text',
+    },
+    {
+      path: 'assets/bg.png',
+      language: 'asset',
+      source: '',
+      kind: 'asset',
+    },
+    {
+      path: 'assets/icon.svg',
+      language: 'asset',
+      source: '',
+      kind: 'asset',
+    },
+  ],
+  {
+    'assets/bg.png': 'blob:nested-background',
+    'assets/icon.svg': 'blob:nested-icon',
+  },
+  12
+);
+expect(
+  !nestedCssDocument.includes('@import'),
+  'Local CSS @import rules must be inlined into the sandbox document.'
+);
+expectIncludes(
+  nestedCssDocument,
+  '@media screen',
+  'CSS @import media conditions must be preserved when inlining.'
+);
+expectIncludes(
+  nestedCssDocument,
+  'url("blob:nested-background")',
+  'Root CSS asset URLs must resolve relative to the importing stylesheet.'
+);
+expectIncludes(
+  nestedCssDocument,
+  'url("blob:nested-icon")',
+  'Nested CSS asset URLs must resolve relative to their own stylesheet.'
+);
+
+const cyclicCssDocument = preview.buildPreviewDocument(
+  [
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<!doctype html><html><head><link rel="stylesheet" href="a.css"></head><body></body></html>',
+      kind: 'text',
+    },
+    {
+      path: 'a.css',
+      language: 'css',
+      source: '@import "b.css"; body { color: red; }',
+      kind: 'text',
+    },
+    {
+      path: 'b.css',
+      language: 'css',
+      source: '@import "a.css"; body { color: blue; }',
+      kind: 'text',
+    },
+  ],
+  {},
+  13
+);
+expectIncludes(
+  cyclicCssDocument,
+  'Skipped cyclic workspace @import: a.css',
+  'Cyclic CSS imports must terminate with a bounded diagnostic.'
+);
+
 const missingHtmlDocument = preview.buildPreviewDocument(
   [
     {
