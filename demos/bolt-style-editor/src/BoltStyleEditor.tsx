@@ -44,6 +44,7 @@ import {
 } from './views/editor-dialogs';
 import { FileIcon } from './views/file-icon';
 import { PreviewPanel } from './views/preview-panel';
+import { StudioStatusBar, StudioTopbar } from './views/studio-chrome';
 import {
   type ToolCatalogFilter,
   ToolCatalogPanel,
@@ -1717,86 +1718,24 @@ function EditorWorkbench({
 
   return (
     <div className="studio-shell">
-      <header className="studio-topbar">
-        <div className="brand-lockup">
-          <span className="brand-mark">✦</span>
-          <span>Context-Action</span>
-          <span className="brand-divider">/</span>
-          <strong>Web Studio</strong>
-        </div>
-        <div className="topbar-center">
-          <span className="workspace-name">{snapshot.rootName}</span>
-          <span className="mode-chip">
-            <span className="status-dot" />
-            {openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
-          </span>
-          <span
-            className="storage-chip"
-            title={snapshot.storageError ?? undefined}
-          >
-            {storageLabel}
-          </span>
-          {storageErrorLabel ? (
-            <span
-              aria-label={`${storageErrorLabel}: ${snapshot.storageError}`}
-              className="storage-error-chip"
-              role="status"
-              title={snapshot.storageError}
-            >
-              {storageErrorLabel}
-            </span>
-          ) : null}
-          {hasWritableFolder ||
+      <StudioTopbar
+        agentLabel={openRouterSettings.apiKey ? 'OpenRouter' : 'Local agent'}
+        folderLinkUnavailable={folderRestoreUnavailable}
+        onOpenSettings={() => setShowSettings(true)}
+        permission={folderPermission}
+        permissionLabel={folderPermissionLabel}
+        restoreState={folderRestoreState}
+        rootName={snapshot.rootName}
+        showFolderSync={
+          hasWritableFolder ||
           folderRestoreState === 'restoring' ||
-          folderRestoreUnavailable ? (
-            <span
-              className={`folder-sync-chip folder-sync-${folderPermission} folder-sync-restore-${folderRestoreState}`}
-              title={
-                folderRestoreState === 'restoring'
-                  ? 'Restoring the persisted folder connection'
-                  : folderRestoreUnavailable
-                    ? 'The browser workspace is available; open the folder again to reconnect'
-                    : 'Writable folder permission status'
-              }
-            >
-              {folderPermissionLabel}
-            </span>
-          ) : null}
-          <span className="contract-chip">tools/list · {toolNames.length}</span>
-        </div>
-        <div className="topbar-actions">
-          <button
-            aria-label="Open OpenRouter settings"
-            className="settings-trigger"
-            onClick={() => setShowSettings(true)}
-            type="button"
-          >
-            ⚙ Settings
-          </button>
-          <a
-            href="https://github.com/mineclover/context-action"
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://mineclover.github.io/context-action/example/integrations/live-web-coding"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Full demo ↗
-          </a>
-          <a
-            href="https://mineclover.github.io/context-action/example/catalog/integrations/mcp-function-calling"
-            target="_blank"
-            rel="noreferrer"
-          >
-            MCP catalog ↗
-          </a>
-        </div>
-      </header>
-
+          folderRestoreUnavailable
+        }
+        storageError={snapshot.storageError}
+        storageErrorLabel={storageErrorLabel}
+        storageLabel={storageLabel}
+        toolCount={toolNames.length}
+      />
       <div className="studio-workspace">
         <aside className="studio-sidebar">
           <WorkspaceExplorerPanel
@@ -2325,19 +2264,16 @@ function EditorWorkbench({
         />
       </div>
 
-      <footer className="studio-statusbar">
-        <span className={`statusbar-state statusbar-state-${studioStatusTone}`}>
-          <span className="status-dot" /> {studioStatus}
-        </span>
-        <span>
-          {openRouterSettings.apiKey
+      <StudioStatusBar
+        persistenceLabel={persistenceFooterLabel}
+        providerStatusLabel={
+          openRouterSettings.apiKey
             ? `OpenRouter · ${openRouterSettings.model}`
-            : `Context-Action ToolContext · ${storageLabel}`}
-        </span>
-        <span>{persistenceFooterLabel}</span>
-        <span className="statusbar-spacer" />
-        <span>HTML · CSS · JS</span>
-      </footer>
+            : `Context-Action ToolContext · ${storageLabel}`
+        }
+        status={studioStatus}
+        statusTone={studioStatusTone}
+      />
       {showSettings ? (
         <OpenRouterSettingsDialog
           initialSettings={openRouterSettings}
