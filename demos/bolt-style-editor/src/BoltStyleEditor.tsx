@@ -8,8 +8,8 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import { runLocalAgent } from './actions/run-local-agent';
 import {
-  type BoltStyleRegistry,
   BoltStyleToolProvider,
   useBoltStyleToolRegistry,
 } from './bolt-style-tool-context';
@@ -18,16 +18,8 @@ import {
   collectDirectoryPaths,
   type FileTreeEntry,
 } from './file-tree';
+import { type ToolCall } from './local-agent-plan';
 import {
-  buildLocalAgentPlan,
-  inferWorkspacePath,
-  readResultRevision,
-  revisionGuardedWorkspaceTools,
-  revisionProducingWorkspaceTools,
-  type ToolCall,
-} from './local-agent-plan';
-import {
-  type AgentRunResult,
   DEFAULT_OPENROUTER_SETTINGS,
   OpenRouterRequestError,
   type OpenRouterRetryEvent,
@@ -44,12 +36,12 @@ import {
 } from './tool-approval';
 import { getToolErrorRecovery } from './tool-error-recovery';
 import { ToolHandlers } from './tool-handlers';
+import { formatToolResultText } from './tool-result-utils';
 import { throwIfAborted } from './tool-runtime-utils';
 import {
   clearToolTrace,
   createToolSessionId,
   finishAgentTrace,
-  recordToolList,
   startAgentTrace,
   toolTraceStore,
 } from './tool-trace';
@@ -304,36 +296,6 @@ function highlightSourceLine(
   if (language === 'json') return highlightJsonLine(line);
   if (language === 'markdown') return highlightMarkdownLine(line);
   return [{ value: line }];
-}
-
-function resultText(result: {
-  isError?: boolean;
-  error?: {
-    code?: string;
-    message?: string;
-    retryable?: boolean;
-    details?: unknown;
-  };
-  content?: Array<{ text?: string }>;
-  structuredContent?: unknown;
-}): string {
-  if (result.isError) {
-    const message =
-      result.error?.message?.trim() ||
-      result.content
-        ?.map((block) => block.text?.trim())
-        .find((text): text is string => Boolean(text));
-    const code = result.error?.code ? `[${result.error.code}] ` : '';
-    const details = result.error?.details;
-    const detailText =
-      details === undefined ? '' : `\n${JSON.stringify(details, null, 2)}`;
-    return `${code}${message || 'Tool call failed.'}${detailText}`;
-  }
-  return JSON.stringify(
-    result.structuredContent !== undefined ? result.structuredContent : {},
-    null,
-    2
-  );
 }
 
 function thrownErrorText(error: unknown, fallback: string): string {
@@ -954,93 +916,6 @@ function CreateWorkspaceFileDialog({
       </form>
     </div>
   );
-}
-
-async function runLocalAgent(
-  registry: BoltStyleRegistry,
-  workspace: BrowserWorkspace,
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter,
-  prompt: string,
-  signal?: AbortSignal,
-  sessionId?: string
-): Promise<AgentRunResult> {
-  const listedTools = registry.listTools({ method: 'tools/list' });
-  recordToolList(listedTools.tools.length, 'local', sessionId);
-  const calls = buildLocalAgentPlan(
-    prompt,
-    !fileSystemAdapter.hasWritableFolder,
-    workspace.getSnapshot().activePath
-  );
-  let plannedRevision = workspace.getSnapshot().revision;
-  const toolNames: string[] = [];
-
-  for (const [callIndex, call] of calls.entries()) {
-    throwIfAborted(signal);
-    const argumentsValue =
-      revisionGuardedWorkspaceTools.has(call.name) &&
-      call.arguments.expectedRevision === undefined
-        ? { ...call.arguments, expectedRevision: plannedRevision }
-        : call.arguments;
-    const result = await registry.executeModelToolCall(
-      {
-        id: `local-model-${sessionId ?? 'run'}-${callIndex}-${call.name}`,
-        name: call.name,
-        arguments: argumentsValue,
-      },
-      {
-        context: {
-          source: 'local',
-          ...(sessionId ? { sessionId } : {}),
-          metadata: { interaction: 'prompt', provider: 'local-fallback' },
-        },
-        signal,
-      }
-    );
-    throwIfAborted(signal);
-    toolNames.push(call.name);
-    if (result.isError) {
-      const errorMessage = resultText(result);
-      const revisionConflict =
-        result.error?.code === 'WORKSPACE_REVISION_CONFLICT' ||
-        errorMessage.includes('Workspace revision mismatch:');
-      const completedSummary =
-        toolNames.length > 1
-          ? `Completed ${toolNames.slice(0, -1).join(', ')} before the failure. `
-          : '';
-      return {
-        toolNames,
-        response: `${completedSummary}${call.name} failed: ${errorMessage}`,
-        failedTool: call.name,
-        errorCode: result.error?.code,
-        revisionConflict,
-        failed: true,
-        retryable: result.error?.retryable === true || revisionConflict,
-      };
-    }
-    plannedRevision = readResultRevision(
-      result,
-      revisionProducingWorkspaceTools.has(call.name)
-        ? workspace.getSnapshot().revision
-        : plannedRevision
-    );
-  }
-
-  return {
-    toolNames,
-    response:
-      toolNames.length === 1 &&
-      toolNames[0] === 'workspace.listFiles' &&
-      /(delete|remove|삭제|지워)/i.test(prompt) &&
-      /(file|파일)/i.test(prompt) &&
-      !inferWorkspacePath(prompt)
-        ? 'Which file should I delete? Include a path such as README.md.'
-        : toolNames.length === 1 &&
-            toolNames[0] === 'workspace.listFiles' &&
-            /(download|export|다운로드|내려받|받아\s*줘)/i.test(prompt) &&
-            !inferWorkspacePath(prompt)
-          ? 'Which file should I download? Include a path such as README.md.'
-          : `Local agent inspected the workspace, called ${toolNames.join(', ')}${toolNames.some((name) => name.startsWith('preview.') || revisionProducingWorkspaceTools.has(name)) ? ' and refreshed the sandbox preview.' : '.'}`,
-  };
 }
 
 function FileTreeEntryView({
@@ -2953,7 +2828,7 @@ function EditorWorkbench({
       );
       throwIfAborted(controller.signal);
       const message = result.isError
-        ? resultText(result)
+        ? formatToolResultText(result)
         : toolSuccessMessage(call.name, result);
       if (options.announce !== false || result.isError) {
         setMessages((current) => [
