@@ -1,4 +1,5 @@
 import { findPreviewHtmlFile } from './preview-document';
+import { WorkspaceToolError } from './workspace-errors';
 import type { ImportedFolder } from './workspace-filesystem';
 import {
   DEMO_WORKSPACE_ID,
@@ -95,8 +96,13 @@ export function assertWorkspaceTextSourceLength(
   label = 'Workspace text source'
 ): void {
   if (source.length > MAX_TEXT_SOURCE_LENGTH) {
-    throw new Error(
-      `${label} exceeds the ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} character limit.`
+    throw new WorkspaceToolError(
+      `${label} exceeds the ${MAX_TEXT_SOURCE_LENGTH.toLocaleString('en-US')} character limit.`,
+      {
+        code: 'WORKSPACE_SOURCE_LIMIT',
+        retryable: false,
+        details: { limit: MAX_TEXT_SOURCE_LENGTH },
+      }
     );
   }
 }
@@ -122,8 +128,13 @@ function assertExpectedRevision(
   if (expectedRevision === undefined || expectedRevision === currentRevision) {
     return;
   }
-  throw new Error(
-    `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
+  throw new WorkspaceToolError(
+    `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`,
+    {
+      code: 'WORKSPACE_REVISION_CONFLICT',
+      retryable: true,
+      details: { expectedRevision, currentRevision },
+    }
   );
 }
 

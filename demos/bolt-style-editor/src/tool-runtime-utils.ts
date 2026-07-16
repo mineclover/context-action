@@ -1,4 +1,5 @@
 import type { BrowserWorkspace, WorkspaceFile } from './workspace';
+import { WorkspaceToolError } from './workspace-errors';
 
 export const themeTokens = {
   violet: { accent: '#8b5cf6', soft: '#f0eaff' },
@@ -54,8 +55,13 @@ export function assertExpectedWorkspaceRevision(
   if (expectedRevision === undefined) return;
   const currentRevision = workspace.getSnapshot().revision;
   if (expectedRevision !== currentRevision) {
-    throw new Error(
-      `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`
+    throw new WorkspaceToolError(
+      `Workspace revision mismatch: expected ${expectedRevision}, current ${currentRevision}. Re-read the workspace before applying the mutation.`,
+      {
+        code: 'WORKSPACE_REVISION_CONFLICT',
+        retryable: true,
+        details: { expectedRevision, currentRevision },
+      }
     );
   }
 }

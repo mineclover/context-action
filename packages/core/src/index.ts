@@ -47,12 +47,14 @@ export {
   TOOL_CALL_ERROR_CODES,
   createToolCallError,
   createToolCallSuccess,
+  getToolCallErrorMetadata,
   toToolCallRequest,
   withToolCallId,
 } from './tool-protocol.js';
 
 export type {
   ToolCallErrorCode,
+  ToolCallErrorMetadata,
   ModelToolCall,
   ToolArguments,
   ToolCallContext,

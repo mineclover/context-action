@@ -985,9 +985,9 @@ async function runLocalAgent(
     toolNames.push(call.name);
     if (result.isError) {
       const errorMessage = resultText(result);
-      const revisionConflict = errorMessage.includes(
-        'Workspace revision mismatch:'
-      );
+      const revisionConflict =
+        result.error?.code === 'WORKSPACE_REVISION_CONFLICT' ||
+        errorMessage.includes('Workspace revision mismatch:');
       const completedSummary =
         toolNames.length > 1
           ? `Completed ${toolNames.slice(0, -1).join(', ')} before the failure. `

@@ -56,6 +56,7 @@ import {
   createToolCallError,
   createToolCallSuccess,
   DispatchOptions,
+  getToolCallErrorMetadata,
   HandlerConfig,
   InferActionPayloadMap,
   TOOL_CALL_ERROR_CODES,
@@ -526,6 +527,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             const lifecycleError = execution.errors.find(
               ({ error }) => Boolean(error?.message)
             );
+            const handlerError = failedHandler?.error ?? lifecycleError?.error;
+            const handlerMetadata = getToolCallErrorMetadata(handlerError);
             const executionMessage =
               execution.abortReason ??
               validationMessage ??
@@ -538,19 +541,25 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               {
                 code: externallyCancelled
                   ? TOOL_CALL_ERROR_CODES.CANCELLED
-                  : execution.validation && !execution.validation.passed
-                    ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
-                    : execution.aborted
-                      ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
-                      : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
+                  : handlerMetadata.code ??
+                    (execution.validation && !execution.validation.passed
+                      ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
+                      : execution.aborted
+                        ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                        : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED),
                 toolCallId: request.id,
-                retryable: externallyCancelled || execution.aborted,
-                details: failedHandler
-                  ? {
-                      handlerId: failedHandler.handlerId,
-                      message: failedHandler.error.message,
-                    }
-                  : undefined,
+                retryable:
+                  externallyCancelled ||
+                  handlerMetadata.retryable === true ||
+                  (handlerMetadata.retryable === undefined && execution.aborted),
+                details:
+                  handlerMetadata.details ??
+                  (failedHandler
+                    ? {
+                        handlerId: failedHandler.handlerId,
+                        message: failedHandler.error.message,
+                      }
+                    : undefined),
               }
             ));
           }
@@ -583,13 +592,18 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 
           return finish(createToolCallSuccess(normalizedOutput, { toolCallId: request.id }));
         } catch (error) {
+          const errorMetadata = getToolCallErrorMetadata(error);
           return finish(createToolCallError(
             error instanceof Error ? error.message : String(error),
             {
               code: options?.signal?.aborted
                 ? TOOL_CALL_ERROR_CODES.CANCELLED
-                : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
-              retryable: options?.signal?.aborted,
+                : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
+              retryable:
+                options?.signal?.aborted || errorMetadata.retryable === true,
+              ...(errorMetadata.details === undefined
+                ? {}
+                : { details: errorMetadata.details }),
               toolCallId: request.id,
             }
           ));

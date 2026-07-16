@@ -1301,10 +1301,10 @@ async function runBrowserProof(url) {
                           name: 'workspace.applyPatch',
                           arguments: JSON.stringify({
                             path: 'index.html',
-                            search: '__missing_provider_search__',
+                            search: 'Ship a page from a conversation.',
                             replace: 'Ship a page from a failed provider tool.',
                             occurrence: 'first',
-                            expectedRevision: toolLoopPatchExpectedRevision,
+                            expectedRevision: toolLoopPatchExpectedRevision + 1,
                           }),
                         },
                       },
@@ -1485,10 +1485,11 @@ async function runBrowserProof(url) {
       if (
         typeof toolLoopErrorResultContent !== 'string' ||
         !toolLoopErrorResultContent.includes('"status":"error"') ||
-        !toolLoopErrorResultContent.includes('TOOL_EXECUTION_FAILED')
+        !toolLoopErrorResultContent.includes('WORKSPACE_REVISION_CONFLICT') ||
+        !toolLoopErrorResultContent.includes('"retryable":true')
       ) {
         throw new Error(
-          'The OpenRouter follow-up did not receive a structured failed tool result before retrying the mutation.'
+          'The OpenRouter follow-up did not receive a structured retryable revision-conflict result before retrying the mutation.'
         );
       }
       if (

@@ -237,6 +237,10 @@ When a blocking handler fails, ToolContext preserves its error message and
 handler ID in the `tools/call` structured error message/details. The UI and
 model therefore receive the concrete validation or workspace cause instead of
 only a generic `Tool call failed` response.
+Handlers may additionally attach `code`, `retryable`, and `details` metadata to
+their thrown Error. ToolContext preserves that metadata in the canonical result
+instead of flattening it into `TOOL_EXECUTION_FAILED`; the standalone workspace
+uses this for retryable revision conflicts and terminal source-limit errors.
 
 The standalone OpenRouter bridge forwards the canonical error `code`,
 `retryable` flag, and `details` into the next model message. A local run shows

@@ -1,6 +1,7 @@
 import {
   TOOL_CALL_ERROR_CODES,
   createToolCallError,
+  getToolCallErrorMetadata,
   type ToolCallContext,
   type ToolCallErrorCode,
 } from '../../src/tool-protocol';
@@ -30,5 +31,19 @@ describe('tool protocol context', () => {
     expect(createToolCallError('failed').error?.code).toBe(
       TOOL_CALL_ERROR_CODES.EXECUTION_FAILED
     );
+  });
+
+  it('reads optional structured metadata from handler errors', () => {
+    const error = Object.assign(new Error('stale revision'), {
+      code: 'WORKSPACE_REVISION_CONFLICT',
+      retryable: true,
+      details: { expectedRevision: 3, currentRevision: 4 },
+    });
+
+    expect(getToolCallErrorMetadata(error)).toEqual({
+      code: 'WORKSPACE_REVISION_CONFLICT',
+      retryable: true,
+      details: { expectedRevision: 3, currentRevision: 4 },
+    });
   });
 });

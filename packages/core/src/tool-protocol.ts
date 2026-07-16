@@ -54,6 +54,34 @@ export interface ToolCallError {
   readonly details?: unknown;
 }
 
+/** Metadata that a handler error may carry into the canonical tool result. */
+export type ToolCallErrorMetadata = Partial<
+  Pick<ToolCallError, 'code' | 'retryable' | 'details'>
+>;
+
+/**
+ * Read optional structured error metadata from a handler-thrown value.
+ * Applications can use a custom Error subclass without coupling handlers to a
+ * transport-specific result object.
+ */
+export function getToolCallErrorMetadata(
+  error: unknown
+): ToolCallErrorMetadata {
+  if (!error || typeof error !== 'object') return {};
+  const candidate = error as Record<string, unknown>;
+  const code =
+    typeof candidate.code === 'string' && candidate.code.trim()
+      ? candidate.code
+      : undefined;
+  const retryable =
+    typeof candidate.retryable === 'boolean' ? candidate.retryable : undefined;
+  return {
+    ...(code === undefined ? {} : { code }),
+    ...(retryable === undefined ? {} : { retryable }),
+    ...('details' in candidate ? { details: candidate.details } : {}),
+  };
+}
+
 /** JSON-RPC-shaped request for MCP tools/list. */
 export interface ToolListRequest {
   readonly method: 'tools/list';
