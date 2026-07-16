@@ -222,9 +222,33 @@ enhanced context-store mouse recipe는 다음 경계를 보여줍니다.
   맡깁니다.
 
 큰 page-level render tree 전체를 매 pointer event마다 갱신하지 않으면서 관찰
-  가능한 state가 필요할 때 이 recipe를 사용합니다. action payload는 작게
-  유지하고 path/history 보관량을 제한하며, 파생 metric 중 즉시 갱신하는 값과
-  throttle하는 값을 문서화합니다.
+가능한 state가 필요할 때 이 recipe를 사용합니다. action payload는 작게
+유지하고 path/history 보관량을 제한하며, 파생 metric 중 즉시 갱신하는 값과
+throttle하는 값을 문서화합니다.
+
+## Abortable filtered search usecase
+
+query 의도, filter 전이, 비동기 작업, 결과 선택을 독립적으로 관찰해야 할 때
+search usecase를 사용합니다.
+
+```text
+query/filter command → performSearch → abort-aware Registry → results + metrics
+```
+
+advanced search recipe는 같은 경계를 적용합니다.
+
+- `business/`가 relevance 점수, filtering, history, metric 갱신을 결정적
+  함수로 소유합니다.
+- `actions/`는 View에 Store mutation을 노출하지 않고 `performSearch`, filter
+  command, `selectResult`를 제공합니다.
+- Registry가 비동기 search lifecycle을 소유하고 결과를 반영하기 전에
+  pipeline signal을 확인합니다.
+- query, filters, results, selection, loading, history, metrics를 별도 Store
+  concern으로 분리해 각 소비자가 필요한 값만 구독합니다.
+
+새 query가 이전 작업을 대체해야 하거나 filtering과 결과 렌더링을 별도로
+측정해야 할 때 이 recipe를 사용합니다. cancellation과 error policy는 input
+JSX가 아니라 handler 경계에 둡니다.
 
 ## Astryx 연결 경계
 

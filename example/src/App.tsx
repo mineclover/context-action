@@ -68,8 +68,8 @@ const ApiBlockingPage = lazy(
 const ScrollPage = lazy(
   () => import('./pages/performance/action-guard/ScrollPage')
 );
-const SearchPage = lazy(
-  () => import('./pages/performance/action-guard/SearchPage')
+const SearchPageRefactored = lazy(
+  () => import('./pages/performance/action-guard/SearchPageRefactored')
 );
 const ThrottleComparisonPage = lazy(
   () => import('./pages/performance/action-guard/ThrottleComparisonPage')
@@ -426,7 +426,7 @@ function AppContent() {
             />
             <Route
               path="/performance/action-guard/search"
-              element={<SearchPage />}
+              element={<SearchPageRefactored />}
             />
             <Route
               path="/performance/action-guard/scroll"
@@ -635,7 +635,10 @@ function AppContent() {
               element={<ImperativeRefPage />}
             />
             <Route path="/actionguard" element={<ActionGuardIndexPage />} />
-            <Route path="/actionguard/search" element={<SearchPage />} />
+            <Route
+              path="/actionguard/search"
+              element={<SearchPageRefactored />}
+            />
             <Route path="/actionguard/scroll" element={<ScrollPage />} />
             <Route
               path="/actionguard/api-blocking"

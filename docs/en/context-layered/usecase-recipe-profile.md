@@ -239,6 +239,30 @@ pointer event through a large page-level render tree. Keep the action payload
 small, cap retained paths/history, and document which derived metrics are
 updated eagerly versus throttled.
 
+## Abortable filtered search usecase
+
+Search is a useful usecase when query intent, filter transitions, async work,
+and result selection must remain independently observable:
+
+```text
+query/filter command → performSearch → abort-aware Registry → results + metrics
+```
+
+The advanced search recipe applies the same boundaries:
+
+- `business/` owns relevance scoring, filtering, history, and metric updates as
+  deterministic functions.
+- `actions/` exposes `performSearch`, filter commands, and `selectResult` without
+  exposing Store mutation to the View.
+- the Registry owns the async search lifecycle and checks the pipeline signal
+  before committing results.
+- query, filters, results, selection, loading, history, and metrics are separate
+  Store concerns so each consumer subscribes only to what it renders.
+
+Use this recipe when a new query should supersede stale work or when filtering
+must be measured independently from result rendering. Keep cancellation and
+error policy in the handler boundary, not in input JSX.
+
 ## Design-system boundary
 
 The recipe is the integration point for Astryx-like conventions:

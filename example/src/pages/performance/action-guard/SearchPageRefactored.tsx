@@ -6,150 +6,17 @@
  * 실시간 검색, 필터링, 결과 선택을 보여주는 고급 데모입니다.
  */
 
-import {
-  createActionContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
 import { useCallback, useMemo } from 'react';
 import { CodeBlock } from '@/components/ui';
-
-// ===== 타입 정의 =====
-interface SearchItem {
-  id: string;
-  title: string;
-  category: string;
-  tags: string[];
-  author: string;
-  date: string;
-  popularity: number;
-  relevance?: number;
-}
-
-interface SearchActions {
-  performSearch: {
-    query: string;
-    filters: Record<string, string>;
-    signal?: AbortSignal;
-  };
-  updateQuery: { query: string };
-  addSearch: { key: string; value: string };
-  removeSearch: { key: string };
-  clearSearchs: void;
-  selectResult: { id: string; item: SearchItem };
-  abortSearch: void;
-}
-
-interface SearchMetrics {
-  totalSearches: number;
-  averageSearchTime: number;
-  activeSearchs: number;
-  resultsFound: number;
-  searchHits: Record<string, number>;
-  popularSearchs: Array<{ tag: string; count: number }>;
-}
-
-// ===== 샘플 데이터 =====
-const sampleData: SearchItem[] = [
-  {
-    id: '1',
-    title: 'React Hooks Advanced Patterns',
-    category: 'Tutorial',
-    tags: ['react', 'hooks', 'javascript', 'patterns'],
-    author: 'John Doe',
-    date: '2024-01-15',
-    popularity: 95,
-  },
-  {
-    id: '2',
-    title: 'TypeScript Best Practices Guide',
-    category: 'Guide',
-    tags: ['typescript', 'javascript', 'best-practices', 'coding'],
-    author: 'Jane Smith',
-    date: '2024-01-20',
-    popularity: 88,
-  },
-  {
-    id: '3',
-    title: 'Context-Action Framework Deep Dive',
-    category: 'Documentation',
-    tags: ['context-action', 'react', 'state-management', 'framework'],
-    author: 'Dev Team',
-    date: '2024-01-25',
-    popularity: 92,
-  },
-  {
-    id: '4',
-    title: 'Performance Optimization Masterclass',
-    category: 'Tutorial',
-    tags: ['performance', 'optimization', 'react', 'javascript'],
-    author: 'Mike Johnson',
-    date: '2024-01-30',
-    popularity: 96,
-  },
-  {
-    id: '5',
-    title: 'Action Pipeline Architecture',
-    category: 'Tutorial',
-    tags: ['context-action', 'pipeline', 'advanced', 'architecture'],
-    author: 'Sarah Wilson',
-    date: '2024-02-05',
-    popularity: 89,
-  },
-  {
-    id: '6',
-    title: 'Store Management Patterns',
-    category: 'Guide',
-    tags: ['store', 'patterns', 'architecture', 'design'],
-    author: 'Tom Brown',
-    date: '2024-02-10',
-    popularity: 85,
-  },
-  {
-    id: '7',
-    title: 'Component Testing Strategies',
-    category: 'Guide',
-    tags: ['testing', 'components', 'jest', 'tdd'],
-    author: 'Lisa Chen',
-    date: '2024-02-15',
-    popularity: 91,
-  },
-  {
-    id: '8',
-    title: 'Real-time State Synchronization',
-    category: 'Documentation',
-    tags: ['state', 'sync', 'real-time', 'websockets'],
-    author: 'Alex Kim',
-    date: '2024-02-20',
-    popularity: 87,
-  },
-];
-
-// ===== Store Context =====
-const { Provider: SearchStoreProvider, useStore: useSearchStore } =
-  createStoreContext('AdvancedSearch', {
-    query: '',
-    filters: {} as Record<string, string>,
-    results: sampleData,
-    selectedResult: null as SearchItem | null,
-    isSearching: false,
-    searchHistory: [] as string[],
-    metrics: {
-      totalSearches: 0,
-      averageSearchTime: 0,
-      activeSearchs: 0,
-      resultsFound: 0,
-      searchHits: {},
-      popularSearchs: [],
-    } as SearchMetrics,
-  });
-
-// ===== Action Context =====
-const {
-  Provider: SearchActionProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<SearchActions>('AdvancedSearch');
+import { useAdvancedSearchActions } from './search/actions/useAdvancedSearchActions';
+import { sampleData } from './search/business/search-rules';
+import {
+  AdvancedSearchActionProvider,
+  AdvancedSearchStoreProvider,
+  useAdvancedSearchStore,
+} from './search/contexts/AdvancedSearchContexts';
+import { AdvancedSearchHandlerRegistry } from './search/handlers/AdvancedSearchHandlerRegistry';
 
 // ===== 메인 페이지 컴포넌트 =====
 export function SearchPageRefactored() {
@@ -159,18 +26,20 @@ export function SearchPageRefactored() {
         {/* 1. Architecture Section */}
         <ArchitectureSection />
 
-        <SearchStoreProvider>
-          <SearchActionProvider>
-            {/* 2. Demo Section */}
-            <DemoSection />
+        <AdvancedSearchActionProvider>
+          <AdvancedSearchStoreProvider>
+            <AdvancedSearchHandlerRegistry>
+              {/* 2. Demo Section */}
+              <DemoSection />
 
-            {/* 3. Status Section */}
-            <StatusSection />
+              {/* 3. Status Section */}
+              <StatusSection />
 
-            {/* 4. Code Section */}
-            <CodeSection />
-          </SearchActionProvider>
-        </SearchStoreProvider>
+              {/* 4. Code Section */}
+              <CodeSection />
+            </AdvancedSearchHandlerRegistry>
+          </AdvancedSearchStoreProvider>
+        </AdvancedSearchActionProvider>
       </div>
     </div>
   );
@@ -217,7 +86,7 @@ function ArchitectureSection() {
                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <strong>Action Pipeline:</strong> performSearch, updateQuery,
-                  addSearch, removeSearch, selectResult
+                  addFilter, removeFilter, selectResult
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -448,16 +317,23 @@ function DemoSection() {
 
 // ===== Search Demo Interface =====
 function SearchDemoInterface() {
-  const dispatch = useActionDispatch();
+  const {
+    updateQuery,
+    performSearch,
+    addFilter,
+    removeFilter,
+    clearFilters,
+    selectResult,
+  } = useAdvancedSearchActions();
 
   // Store subscriptions
-  const queryStore = useSearchStore('query');
-  const filtersStore = useSearchStore('filters');
-  const resultsStore = useSearchStore('results');
-  const selectedResultStore = useSearchStore('selectedResult');
-  const isSearchingStore = useSearchStore('isSearching');
-  const searchHistoryStore = useSearchStore('searchHistory');
-  const metricsStore = useSearchStore('metrics');
+  const queryStore = useAdvancedSearchStore('query');
+  const filtersStore = useAdvancedSearchStore('filters');
+  const resultsStore = useAdvancedSearchStore('results');
+  const selectedResultStore = useAdvancedSearchStore('selectedResult');
+  const isSearchingStore = useAdvancedSearchStore('isSearching');
+  const searchHistoryStore = useAdvancedSearchStore('searchHistory');
+  const metricsStore = useAdvancedSearchStore('metrics');
 
   const query = useStoreValue(queryStore) || '';
   const filters = useStoreValue(filtersStore) || {};
@@ -467,166 +343,13 @@ function SearchDemoInterface() {
   const searchHistory = useStoreValue(searchHistoryStore) || [];
   const metrics = useStoreValue(metricsStore);
 
-  // Action handlers
-  useActionHandler(
-    'updateQuery',
-    useCallback(
-      async (payload) => {
-        queryStore.setValue(payload.query);
-
-        // 검색 기록 업데이트
-        if (payload.query.trim() && !searchHistory.includes(payload.query)) {
-          const newHistory = [payload.query, ...searchHistory].slice(0, 5);
-          searchHistoryStore.setValue(newHistory);
-        }
-      },
-      [queryStore, searchHistory, searchHistoryStore]
-    )
-  );
-
-  useActionHandler(
-    'performSearch',
-    useCallback(
-      async (payload, controller) => {
-        const startTime = Date.now();
-        isSearchingStore.setValue(true);
-
-        try {
-          const { query, filters, signal } = payload;
-
-          // Simulate search delay
-          await new Promise((resolve) => setTimeout(resolve, 300));
-
-          if (signal?.aborted) {
-            throw new Error('Search aborted');
-          }
-
-          // Search logic
-          let filteredResults = sampleData.map((item) => ({
-            ...item,
-            relevance: calculateRelevance(item, query),
-          }));
-
-          // Apply text search
-          if (query.trim()) {
-            const searchTerm = query.toLowerCase();
-            filteredResults = filteredResults.filter(
-              (item) =>
-                item.title.toLowerCase().includes(searchTerm) ||
-                item.tags.some((tag) =>
-                  tag.toLowerCase().includes(searchTerm)
-                ) ||
-                item.author.toLowerCase().includes(searchTerm)
-            );
-          }
-
-          // Apply filters
-          Object.entries(filters).forEach(([key, value]) => {
-            if (value) {
-              filteredResults = filteredResults.filter((item) => {
-                if (key === 'category') return item.category === value;
-                if (key === 'author') return item.author === value;
-                if (key === 'tag') return item.tags.includes(value);
-                return true;
-              });
-            }
-          });
-
-          // Sort by relevance
-          filteredResults.sort(
-            (a, b) => (b.relevance || 0) - (a.relevance || 0)
-          );
-
-          resultsStore.setValue(filteredResults);
-
-          // Update metrics
-          const searchTime = Date.now() - startTime;
-          const currentMetrics = metricsStore.getValue();
-          const newMetrics: SearchMetrics = {
-            ...currentMetrics,
-            totalSearches: currentMetrics.totalSearches + 1,
-            averageSearchTime:
-              (currentMetrics.averageSearchTime * currentMetrics.totalSearches +
-                searchTime) /
-              (currentMetrics.totalSearches + 1),
-            activeSearchs: Object.keys(filters).length,
-            resultsFound: filteredResults.length,
-            searchHits: {
-              ...currentMetrics.searchHits,
-              [query]: (currentMetrics.searchHits[query] || 0) + 1,
-            },
-          };
-
-          metricsStore.setValue(newMetrics);
-        } catch (error) {
-          console.warn('Search operation aborted or failed:', error);
-        } finally {
-          isSearchingStore.setValue(false);
-        }
-      },
-      [resultsStore, isSearchingStore, metricsStore]
-    )
-  );
-
-  useActionHandler(
-    'addSearch',
-    useCallback(
-      async (payload) => {
-        const currentSearchs = filtersStore.getValue();
-        const newSearchs = { ...currentSearchs, [payload.key]: payload.value };
-        filtersStore.setValue(newSearchs);
-
-        dispatch('performSearch', {
-          query: queryStore.getValue(),
-          filters: newSearchs,
-        });
-      },
-      [dispatch, filtersStore, queryStore]
-    )
-  );
-
-  useActionHandler(
-    'removeSearch',
-    useCallback(
-      async (payload) => {
-        const currentSearchs = filtersStore.getValue();
-        const { [payload.key]: _, ...newSearchs } = currentSearchs;
-        filtersStore.setValue(newSearchs);
-
-        dispatch('performSearch', {
-          query: queryStore.getValue(),
-          filters: newSearchs,
-        });
-      },
-      [dispatch, filtersStore, queryStore]
-    )
-  );
-
-  useActionHandler(
-    'clearSearchs',
-    useCallback(async () => {
-      filtersStore.setValue({});
-      dispatch('performSearch', { query: queryStore.getValue(), filters: {} });
-    }, [dispatch, filtersStore, queryStore])
-  );
-
-  useActionHandler(
-    'selectResult',
-    useCallback(
-      async (payload) => {
-        selectedResultStore.setValue(payload.item);
-      },
-      [selectedResultStore]
-    )
-  );
-
   // Search helper
   const handleSearch = useCallback(
     (searchQuery: string) => {
-      dispatch('updateQuery', { query: searchQuery });
-      dispatch('performSearch', { query: searchQuery, filters });
+      updateQuery(searchQuery);
+      performSearch(searchQuery, filters);
     },
-    [dispatch, filters]
+    [filters, performSearch, updateQuery]
   );
 
   // Statistics
@@ -678,7 +401,7 @@ function SearchDemoInterface() {
             )}
           </div>
           <button
-            onClick={() => dispatch('performSearch', { query, filters })}
+            onClick={() => performSearch(query, filters)}
             disabled={isSearching}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
           >
@@ -764,7 +487,7 @@ function SearchDemoInterface() {
                     활성 필터
                   </h4>
                   <button
-                    onClick={() => dispatch('clearSearchs')}
+                    onClick={clearFilters}
                     className="text-xs text-red-600 hover:text-red-700"
                   >
                     모두 제거
@@ -780,7 +503,7 @@ function SearchDemoInterface() {
                         <strong>{key}</strong>: {value}
                       </span>
                       <button
-                        onClick={() => dispatch('removeSearch', { key })}
+                        onClick={() => removeFilter(key)}
                         className="text-red-500 hover:text-red-700 text-xs"
                       >
                         ✕
@@ -800,12 +523,7 @@ function SearchDemoInterface() {
                 {stats.categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() =>
-                      dispatch('addSearch', {
-                        key: 'category',
-                        value: category,
-                      })
-                    }
+                    onClick={() => addFilter('category', category)}
                     className="block w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 transition-colors"
                   >
                     {category}
@@ -823,9 +541,7 @@ function SearchDemoInterface() {
                 {stats.tags.slice(0, 10).map((tag) => (
                   <button
                     key={tag}
-                    onClick={() =>
-                      dispatch('addSearch', { key: 'tag', value: tag })
-                    }
+                    onClick={() => addFilter('tag', tag)}
                     className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                   >
                     <span className="w-3 h-3 inline mr-1" />
@@ -876,9 +592,7 @@ function SearchDemoInterface() {
                 results.map((item) => (
                   <div
                     key={item.id}
-                    onClick={() =>
-                      dispatch('selectResult', { id: item.id, item })
-                    }
+                    onClick={() => selectResult(item)}
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       selectedResult?.id === item.id
                         ? 'border-blue-500 bg-blue-50 shadow-md'
@@ -1054,9 +768,9 @@ function SearchDemoInterface() {
 
 // ===== 3. Status Section =====
 function StatusSection() {
-  const metricsStore = useSearchStore('metrics');
-  const resultsStore = useSearchStore('results');
-  const filtersStore = useSearchStore('filters');
+  const metricsStore = useAdvancedSearchStore('metrics');
+  const resultsStore = useAdvancedSearchStore('results');
+  const filtersStore = useAdvancedSearchStore('filters');
 
   const metrics = useStoreValue(metricsStore);
   const results = useStoreValue(resultsStore) || [];
@@ -1294,34 +1008,31 @@ function CodeSection() {
               ⚡ Action Handler
             </h3>
             <CodeBlock size="sm">
-              {`useActionHandler('performSearch', useCallback(async (payload, controller) => {
+              {`function AdvancedSearchHandlerRegistry() {
+  useAdvancedSearchActionHandler('performSearch', useCallback(async (payload, controller) => {
   const startTime = Date.now();
   isSearchingStore.setValue(true);
 
   try {
-    const { query, filters, signal } = payload;
+    const { query, filters } = payload;
     
     // Abortable search simulation
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    if (signal?.aborted) {
+    if (controller.signal?.aborted) {
       throw new Error('Search aborted');
     }
     
-    // Advanced search logic with relevance scoring
-    let filteredResults = sampleData.map(item => ({
-      ...item,
-      relevance: calculateRelevance(item, query)
-    }));
-    
-    // Apply filters and sorting...
+    // Pure business rule owns relevance, filtering, and sorting.
+    resultsStore.setValue(searchItems(sampleData, query, filters));
     
   } catch (error) {
     console.warn('Search aborted:', error);
   } finally {
     isSearchingStore.setValue(false);
   }
-}, [resultsStore, isSearchingStore, metricsStore]));`}
+  }, [resultsStore, isSearchingStore, metricsStore]);
+}`}
             </CodeBlock>
           </div>
         </div>
@@ -1339,9 +1050,9 @@ function CodeSection() {
     signal?: AbortSignal 
   };
   updateQuery: { query: string };
-  addSearch: { key: string; value: string };
-  removeSearch: { key: string };
-  clearSearchs: void;
+  addFilter: { key: string; value: string };
+  removeFilter: { key: string };
+  clearFilters: void;
   selectResult: { id: string; item: SearchItem };
   abortSearch: void;
 }`}
@@ -1414,35 +1125,6 @@ function CodeSection() {
       </div>
     </section>
   );
-}
-
-// ===== 헬퍼 함수 =====
-function calculateRelevance(item: SearchItem, query: string): number {
-  if (!query.trim()) return 0.5;
-
-  const searchTerm = query.toLowerCase();
-  let score = 0;
-
-  // Title match (highest weight)
-  if (item.title.toLowerCase().includes(searchTerm)) {
-    score += 0.6;
-  }
-
-  // Search matches
-  const tagMatches = item.tags.filter((tag) =>
-    tag.toLowerCase().includes(searchTerm)
-  ).length;
-  score += (tagMatches * 0.3) / item.tags.length;
-
-  // Author match
-  if (item.author.toLowerCase().includes(searchTerm)) {
-    score += 0.1;
-  }
-
-  // Popularity bonus
-  score += (item.popularity / 100) * 0.2;
-
-  return Math.min(score, 1);
 }
 
 export default SearchPageRefactored;
