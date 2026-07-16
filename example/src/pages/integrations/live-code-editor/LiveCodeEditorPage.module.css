@@ -919,6 +919,11 @@
   color: #8a6400;
 }
 
+.traceRowCancelled {
+  background: #f0f2f7;
+  color: #596579;
+}
+
 .aiResult,
 .aiError {
   margin: 0;

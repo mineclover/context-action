@@ -11,6 +11,9 @@ export const formatLiveEditorTraceId = formatToolTraceId;
 const store = createToolCallTraceStore();
 
 export const recordLiveEditorToolCall = store.record;
+export const recordLiveEditorToolList = store.recordToolList;
+export const startLiveEditorAgentTrace = store.startAgentTrace;
+export const finishLiveEditorAgentTrace = store.finishAgentTrace;
 export const clearLiveEditorTrace = store.clear;
 export const liveEditorTraceStore = {
   getSnapshot: store.getSnapshot,

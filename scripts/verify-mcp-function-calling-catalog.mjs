@@ -87,6 +87,9 @@ const aiDemoSource = readSource(
 const realtimeWebCodingSource = readSource(
   'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx'
 );
+const liveEditorToolbarSource = readSource(
+  'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx'
+);
 const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
 assertContains(
@@ -139,6 +142,16 @@ assertContains(
   /startLiveWebCodingAgentTrace\(agentSource,\s*sessionId\)/,
   'realtime web-coding agent trace lifecycle'
 );
+assertContains(
+  liveEditorToolbarSource,
+  /startLiveEditorAgentTrace\('model',\s*sessionId\)/,
+  'live editor agent trace lifecycle'
+);
+assertContains(
+  liveEditorToolbarSource,
+  /recordLiveEditorToolList\(listedTools\.tools\.length/,
+  'live editor discovery trace'
+);
 
 const uiCount = assertCatalogMatchesSchema({
   catalogSource,
@@ -161,3 +174,4 @@ console.log('- AI runner response-message history checked: 2 showcases');
 console.log('- realtime local-agent source/mode contract checked');
 console.log('- example tools/list/tools/call trace methods checked');
 console.log('- example agent.request trace lifecycle checked');
+console.log('- live editor agent/discovery trace lifecycle checked');

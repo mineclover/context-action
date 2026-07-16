@@ -330,8 +330,8 @@ value는 row tooltip에서 확인할 수 있다. trace panel의 `Copy` action은
 bounded·redacted entry를 JSON으로 내보내므로,
 workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부
 테스트에서 재사용할 수 있다.
-example의 realtime web-coding trace도 같은 최소 protocol 필드를 유지한다. catalog 또는
-agent가 discovery를 수행하면 `method: 'tools/list'` row를 만들고, registry lifecycle은
+example의 realtime web-coding과 Live Code Editor trace도 같은 최소 protocol 필드를
+유지한다. catalog 또는 agent가 discovery를 수행하면 `method: 'tools/list'` row를 만들고, registry lifecycle은
 `method: 'tools/call'` row로 기록한다. call row에는 `source`와 `mode`를 함께 표시하므로
 `local · agent`, `model · agent`, `local · direct` 실행을 같은 UI에서 구분할 수 있다.
 agent prompt 실행 자체도 `method: 'agent.request'` row로 감싸며

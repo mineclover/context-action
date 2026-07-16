@@ -1,4 +1,4 @@
-import { toToolCallRequest } from '@context-action/react';
+import { toToolCallRequest, toToolListRequest } from '@context-action/react';
 import type { ModelMessage } from 'ai';
 import {
   type FormEvent,
@@ -10,8 +10,11 @@ import {
 } from 'react';
 import {
   clearLiveEditorTrace,
+  finishLiveEditorAgentTrace,
   formatLiveEditorTraceId,
   liveEditorTraceStore,
+  recordLiveEditorToolList,
+  startLiveEditorAgentTrace,
 } from '../../../lib/live-editor-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../lib/openrouter-ai-sdk';
 import {
@@ -149,6 +152,7 @@ export function LiveEditorAIToolbar() {
     setResult('');
     const controller = new AbortController();
     const sessionId = createToolCallSessionId();
+    const agentTrace = startLiveEditorAgentTrace('model', sessionId);
     executionControllerRef.current = controller;
     const messages: ModelMessage[] = [
       {
@@ -158,6 +162,8 @@ export function LiveEditorAIToolbar() {
     ];
 
     try {
+      const listedTools = registry.listTools(toToolListRequest());
+      recordLiveEditorToolList(listedTools.tools.length, 'model', sessionId);
       const response = await runner.generate({
         model: selectedModel,
         messages,
@@ -166,24 +172,36 @@ export function LiveEditorAIToolbar() {
         sessionId,
       });
       if (controller.signal.aborted) {
+        finishLiveEditorAgentTrace(
+          agentTrace,
+          'cancelled',
+          'Execution cancelled.'
+        );
         setResult('Execution cancelled. No toolchain success was reported.');
         return;
       }
-      setResult(
+      const resultText =
         response.text ||
-          `Toolchain completed ${response.toolCallCount} editor tool call(s).`
-      );
+        `Toolchain completed ${response.toolCallCount} editor tool call(s).`;
+      finishLiveEditorAgentTrace(agentTrace, 'completed', resultText);
+      setResult(resultText);
       setPrompt('');
     } catch (requestError) {
       if (controller.signal.aborted) {
+        finishLiveEditorAgentTrace(
+          agentTrace,
+          'cancelled',
+          'Execution cancelled.'
+        );
         setResult('Execution cancelled. No toolchain success was reported.');
         setError('');
       } else {
-        setError(
+        const errorMessage =
           requestError instanceof Error
             ? requestError.message
-            : 'AI editor request failed.'
-        );
+            : 'AI editor request failed.';
+        finishLiveEditorAgentTrace(agentTrace, 'failed', errorMessage);
+        setError(errorMessage);
       }
     } finally {
       if (executionControllerRef.current === controller) {
@@ -546,13 +564,15 @@ export function LiveEditorAIToolbar() {
                       ? styles.traceRowFailed
                       : entry.status === 'running'
                         ? styles.traceRowRunning
-                        : ''
+                        : entry.status === 'cancelled'
+                          ? styles.traceRowCancelled
+                          : ''
                   }`}
                   key={entry.id}
                   title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
                 >
                   <span aria-hidden="true">
-                    {entry.status === 'failed'
+                    {entry.status === 'failed' || entry.status === 'cancelled'
                       ? '×'
                       : entry.status === 'running'
                         ? '…'
@@ -560,6 +580,8 @@ export function LiveEditorAIToolbar() {
                   </span>
                   <code>{entry.name}</code>
                   <span>
+                    {entry.method}
+                    {entry.mode ? ` · ${entry.mode}` : ''} ·{' '}
                     {formatLiveEditorTraceId(entry.id)} · {entry.source}
                     {entry.sessionId
                       ? ` · ${formatLiveEditorTraceId(entry.sessionId)}`

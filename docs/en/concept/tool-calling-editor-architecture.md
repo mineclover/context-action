@@ -357,8 +357,9 @@ tooltip. The trace panel's `Copy` action exports the
 same bounded, already-redacted entries as JSON, making a `tools/list` → call →
 result example reusable in documentation or external tests without exposing
 workspace source.
-The example realtime web-coding trace keeps the same minimum protocol fields:
-catalog or agent discovery adds a `method: 'tools/list'` row, while registry
+The example realtime web-coding and Live Code Editor traces keep the same
+minimum protocol fields: catalog or agent discovery adds a `method: 'tools/list'`
+row, while registry
 lifecycle events use `method: 'tools/call'`. Each call row also shows `source`
 and `mode`, so `local · agent`, `model · agent`, and `local · direct` executions
 remain distinguishable in the same UI.
