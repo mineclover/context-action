@@ -63,7 +63,8 @@ export type PreviewDiagnostic = {
   kind:
     | 'missing-reference'
     | 'blocked-external-reference'
-    | 'unsupported-module-reference';
+    | 'unsupported-module-reference'
+    | 'module-graph-limit';
   sourcePath: string;
   requestedPath: string;
   message: string;
@@ -613,6 +614,24 @@ function collectUnsupportedModuleDiagnostic(
   });
 }
 
+function collectModuleGraphLimitDiagnostic(
+  diagnostics: PreviewDiagnostic[],
+  sourcePath: string,
+  requestedPath: string,
+  seen: Set<string>
+): void {
+  const normalizedRequestedPath = requestedPath.trim();
+  const key = `${sourcePath}\u0000module graph limit\u0000${normalizedRequestedPath}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  diagnostics.push({
+    kind: 'module-graph-limit',
+    sourcePath,
+    requestedPath: normalizedRequestedPath,
+    message: `JavaScript module graph limit (${MAX_PREVIEW_JS_IMPORTS}) reached; import was not inspected: ${normalizedRequestedPath}`,
+  });
+}
+
 export function collectPreviewDiagnostics(
   files: readonly WorkspaceFile[]
 ): PreviewDiagnostic[] {
@@ -623,6 +642,7 @@ export function collectPreviewDiagnostics(
   const reachableCssPaths = new Set<string>();
   const javascriptQueue: Array<{ path: string; source: string }> = [];
   const queuedJavaScriptPaths = new Set<string>();
+  let javascriptImportCount = 0;
 
   htmlFile.source.replace(/<link\b[^>]*>/gi, (tag) => {
     const href = attributeValue(tag, 'href');
@@ -693,6 +713,32 @@ export function collectPreviewDiagnostics(
     const javascript = javascriptQueue[javascriptIndex];
     visitJavaScriptModuleReferences(javascript.source, (requestedPath) => {
       if (isIgnoredReference(requestedPath)) return;
+      const imported = findReferencedFile(
+        files,
+        javascript.path,
+        requestedPath,
+        'javascript'
+      );
+      if (imported) {
+        if (javascriptImportCount >= MAX_PREVIEW_JS_IMPORTS) {
+          collectModuleGraphLimitDiagnostic(
+            diagnostics,
+            javascript.path,
+            requestedPath,
+            seen
+          );
+          return;
+        }
+        javascriptImportCount += 1;
+        if (!queuedJavaScriptPaths.has(imported.path)) {
+          queuedJavaScriptPaths.add(imported.path);
+          javascriptQueue.push({
+            path: imported.path,
+            source: imported.source,
+          });
+        }
+        return;
+      }
       if (isExternalReference(requestedPath)) {
         collectReferenceDiagnostic(
           diagnostics,
@@ -722,16 +768,6 @@ export function collectPreviewDiagnostics(
         'module import',
         seen
       );
-      const imported = findReferencedFile(
-        files,
-        javascript.path,
-        requestedPath,
-        'javascript'
-      );
-      if (imported && !queuedJavaScriptPaths.has(imported.path)) {
-        queuedJavaScriptPaths.add(imported.path);
-        javascriptQueue.push({ path: imported.path, source: imported.source });
-      }
     });
   }
 

@@ -140,6 +140,7 @@ const previewStatusOutputSchema = workspacePersistenceOutputSchema.extend({
         'missing-reference',
         'blocked-external-reference',
         'unsupported-module-reference',
+        'module-graph-limit',
       ]),
       sourcePath: z.string(),
       requestedPath: z.string(),

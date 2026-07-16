@@ -522,6 +522,40 @@ expectIncludes(
   'Dynamic imports inside template expressions must remain executable.'
 );
 
+const boundedModuleFiles = [
+  {
+    path: 'index.html',
+    language: 'html',
+    source:
+      '<!doctype html><html><body><script type="module" src="app.js"></script></body></html>',
+    kind: 'text',
+  },
+  {
+    path: 'app.js',
+    language: 'javascript',
+    source: Array.from(
+      { length: 33 },
+      (_, index) => `import './module-${index}.js';`
+    ).join(' '),
+    kind: 'text',
+  },
+  ...Array.from({ length: 33 }, (_, index) => ({
+    path: `module-${index}.js`,
+    language: 'javascript',
+    source: `export const module${index} = ${index};`,
+    kind: 'text',
+  })),
+];
+const boundedModuleDiagnostics = preview.collectPreviewDiagnostics(
+  boundedModuleFiles
+);
+expectEqual(
+  boundedModuleDiagnostics.filter(({ kind }) => kind === 'module-graph-limit')
+    .length,
+  1,
+  'JavaScript module graph limits must produce one bounded diagnostic.'
+);
+
 const cyclicCssDocument = preview.buildPreviewDocument(
   [
     {

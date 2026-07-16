@@ -720,7 +720,8 @@ Open folder → generic FileSystemAdapter
   Missing local and external imports become bounded module errors, while bare
   package specifiers remain visible to the browser and are reported as
   unsupported module diagnostics. The same bounded module graph is inspected
-  before the iframe runs.
+  before the iframe runs, and graph-limit diagnostics identify imports that
+  were intentionally not traversed.
 - Missing local CSS/JS/asset references, blocked external stylesheet/script
   references, and unsupported bare module specifiers appear in the parent
   Preview diagnostics panel and in the
