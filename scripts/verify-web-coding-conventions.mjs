@@ -57,6 +57,32 @@ const requiredFiles = [
 
 for (const relativeFile of requiredFiles) readSource(relativeFile);
 
+const packageReadme = readSource('packages/live-code-editor/README.md');
+assertContains(
+  'packages/live-code-editor/README.md',
+  packageReadme,
+  /WorkspaceDocumentManager/,
+  'the framework-neutral document manager boundary'
+);
+assertContains(
+  'packages/live-code-editor/README.md',
+  packageReadme,
+  /WorkspaceRepository/,
+  'the persistence port boundary'
+);
+assertContains(
+  'packages/live-code-editor/README.md',
+  packageReadme,
+  /ToolContext schema \+ policy[\s\S]*useToolHandler/,
+  'the Context-Action integration order'
+);
+assertContains(
+  'packages/live-code-editor/README.md',
+  packageReadme,
+  /mode:\s*['"]agent['"]/,
+  'the explicit model execution mode'
+);
+
 const contextSource = readSource(
   'demos/bolt-style-editor/src/bolt-style-tool-context.ts'
 );
@@ -314,5 +340,6 @@ console.log('- external subscriptions: use-editor-observables.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
 console.log(`- protocol documentation checked: ${protocolDocumentationFiles.length}`);
+console.log('- live editor package integration docs checked: 1');
 console.log(`- presentation views checked: ${viewFiles.length}`);
 console.log('- direct runtime/mutation crossings: 0');

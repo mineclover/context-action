@@ -156,6 +156,110 @@ test('workspace document manager is independently consumable through a repositor
   assert.equal(manager.getFile('index.html').source, '<h1>Seed</h1>');
 });
 
+test('rejects an empty folder and stale import revision before replacing the repository', async () => {
+  const repository = createMemoryRepository();
+  const manager = new WorkspaceDocumentManager({
+    repository,
+    seedFiles: [
+      { path: 'index.html', language: 'html', source: '<h1>Seed</h1>' },
+    ],
+  });
+
+  await manager.hydrate();
+  await assert.rejects(
+    manager.importFolder({ rootName: 'empty', files: [], skipped: ['image.exe'] }),
+    (error) =>
+      error instanceof WorkspaceToolError &&
+      error.code === 'WORKSPACE_NO_SUPPORTED_FILES'
+  );
+
+  const observedRevision = manager.getSnapshot().revision;
+  manager.updateFile('index.html', '<h1>Changed</h1>');
+  await assert.rejects(
+    manager.importFolder(
+      {
+        rootName: 'replacement',
+        files: [
+          { path: 'index.html', language: 'html', source: '<h1>Replacement</h1>' },
+        ],
+        skipped: [],
+      },
+      { expectedRevision: observedRevision }
+    ),
+    (error) =>
+      error instanceof WorkspaceToolError &&
+      error.code === 'WORKSPACE_REVISION_CONFLICT' &&
+      error.retryable === true
+  );
+
+  assert.equal(manager.getSnapshot().rootName, 'memory');
+  assert.equal(manager.getFile('index.html').source, '<h1>Changed</h1>');
+});
+
+test('waits for the matching preview revision before resolving', async () => {
+  const manager = new WorkspaceDocumentManager({
+    repository: createMemoryRepository(),
+    seedFiles: [
+      { path: 'index.html', language: 'html', source: '<h1>Seed</h1>' },
+    ],
+  });
+
+  await manager.hydrate();
+  const next = manager.updateFile('index.html', '<h1>Preview me</h1>');
+  const previewWait = manager.waitForPreviewRevision(next.revision, 100);
+  manager.setPreviewStatus(next.revision, 'synced');
+
+  assert.deepEqual(await previewWait, {
+    revision: next.revision,
+    status: 'synced',
+  });
+});
+
+test('returns typed preview failures when a revision errors or is superseded', async () => {
+  const manager = new WorkspaceDocumentManager({
+    repository: createMemoryRepository(),
+    seedFiles: [
+      { path: 'index.html', language: 'html', source: '<h1>Seed</h1>' },
+    ],
+  });
+
+  await manager.hydrate();
+  const failedRevision = manager.updateFile(
+    'index.html',
+    '<h1>Runtime failure</h1>'
+  );
+  const failedWait = manager.waitForPreviewRevision(failedRevision.revision, 100);
+  manager.setPreviewStatus(
+    failedRevision.revision,
+    'error',
+    'Script failed in preview.'
+  );
+  await assert.rejects(
+    failedWait,
+    (error) =>
+      error instanceof WorkspaceToolError &&
+      error.code === 'PREVIEW_RUNTIME_ERROR' &&
+      error.retryable === false
+  );
+
+  const supersededRevision = manager.updateFile(
+    'index.html',
+    '<h1>Superseded</h1>'
+  );
+  const supersededWait = manager.waitForPreviewRevision(
+    supersededRevision.revision,
+    100
+  );
+  manager.updateFile('index.html', '<h1>Latest</h1>');
+  await assert.rejects(
+    supersededWait,
+    (error) =>
+      error instanceof WorkspaceToolError &&
+      error.code === 'PREVIEW_REVISION_SUPERSEDED' &&
+      error.retryable === true
+  );
+});
+
 test('publishes the browser filesystem adapter from the package entrypoint', () => {
   const adapter = new BrowserWorkspaceFileSystemAdapter();
   assert.equal(adapter.hasWritableFolder, false);
