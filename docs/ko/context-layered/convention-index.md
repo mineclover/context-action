@@ -29,6 +29,8 @@
   - implementation-playbook 계열 개발의 표준 규칙
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscription, live preview 경계
+- [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
+  - catalog, approval, trace, persistence, preview reference implementation 상세
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
   - `contexts / business / handlers / actions / hooks / views` 책임 구분
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
@@ -61,6 +63,8 @@
 
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
   - 설계 계약, 구현 패턴, 시나리오, 스트레스 테스트를 어떻게 나누는지
+- [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
+  - capability를 구현, 테스트, policy, 공개 문서와 연결하는 방법
 
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 
@@ -83,6 +87,12 @@
 2. [Implementation Convention](/ko/context-layered/implementation-convention)
 3. repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
 
+### Tool-calling web studio 설계용
+
+1. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
+2. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
+3. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
+
 ## 코드와 같이 볼 때
 
 문서만 보지 말고 예제 앱도 같이 보는 것이 가장 좋습니다.
@@ -91,6 +101,8 @@
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/integrations/live-web-coding`
+- standalone `/web-coding/` release
 
 ## 한 줄 요약
 

@@ -28,6 +28,8 @@ The short path above covers:
   - the standard implementation-playbook rule set
 - [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscriptions, and live preview boundaries
+- [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
+  - detailed catalog, approval, trace, persistence, and preview reference implementation
 - [Folder Structure](/en/context-layered/architecture/folder-structure)
   - responsibility split across `contexts / business / handlers / actions / hooks / views`
 - [Handler Registry](/en/context-layered/architecture/handler-registry)
@@ -60,6 +62,8 @@ The short path above covers:
 
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
   - how to split contract tests, scenario tests, and stress validation
+- [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
+  - how capabilities connect implementation, tests, policies, and public documentation
 
 ## Reading Paths by Goal
 
@@ -82,6 +86,12 @@ The short path above covers:
 2. [Implementation Convention](/en/context-layered/implementation-convention)
 3. repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
 
+### For tool-calling web studios
+
+1. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
+2. [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
+3. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
+
 ## Read Alongside the Example App
 
 The docs make more sense when paired with the live demos:
@@ -90,6 +100,8 @@ The docs make more sense when paired with the live demos:
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/integrations/live-web-coding`
+- standalone `/web-coding/` release
 
 ## One-Line Summary
 
