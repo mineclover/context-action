@@ -1,9 +1,5 @@
 [
   "src/lib/patterns/createObjectContextHooks.tsx",
-  "src/pages/performance/action-guard/ScrollPage.tsx",
-  "src/pages/performance/action-guard/SearchPage.tsx",
-  "src/pages/performance/action-guard/ThrottleComparisonPage.tsx",
-  "src/pages/performance/action-guard/components/index.tsx",
   "src/pages/performance/memoization/components/HandlerComparisonDemo.tsx",
   "src/pages/performance/memoization/hooks/useMemoizedHandlers.ts",
   "src/pages/performance/memoization/hooks/useNonMemoizedHandlers.ts",

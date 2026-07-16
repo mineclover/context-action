@@ -211,6 +211,29 @@ Suggested priority bands:
 | 20 | View synchronization | normally no |
 | 10 | Audit and telemetry | no |
 
+## Priority-word execution usecase
+
+The ActionGuard priority-word demo is a compact usecase for an ordered,
+user-built command sequence:
+
+```text
+registerWord → executeRegistered → ordered Registry run → status + result Stores
+```
+
+- `components/priority/business/priority-demo-rules.ts` owns duplicate checks,
+  priority sorting, status transitions, and result composition as pure rules.
+- `contexts/PriorityDemoContexts.tsx` defines the Action and Store contracts;
+  registration state, execution state, and the visible result are observable.
+- `actions/usePriorityDemoActions.ts` exposes `registerWord`,
+  `executeRegistered`, and `clear` without leaking Store mutation to the view.
+- `handlers/PriorityDemoHandlerRegistry.tsx` owns the ordered async run,
+  per-step delay, cancellation token, and cleanup.
+
+Use this recipe for command palettes, approval steps, staged workflows, or any
+demo where users register work in one order but the system executes it by an
+explicit priority. Keep the execution trace in Stores so the view can show
+registered, executing, and completed states without owning the pipeline.
+
 ## High-frequency pointer tracking usecase
 
 Mouse tracking is a useful usecase when high-frequency input, derived metrics,

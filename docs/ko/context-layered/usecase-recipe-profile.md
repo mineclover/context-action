@@ -198,6 +198,29 @@ access-request.submit.audit
 | 20 | View 동기화 | 보통 아니오 |
 | 10 | Audit 및 telemetry | 아니오 |
 
+## Priority 단어 실행 usecase
+
+ActionGuard priority-word 데모는 사용자가 등록한 command를 명시적인 우선순위로
+실행하는 작은 usecase입니다.
+
+```text
+registerWord → executeRegistered → 순서가 있는 Registry 실행 → status + result Store
+```
+
+- `components/priority/business/priority-demo-rules.ts`가 중복 검사, priority
+  정렬, status 전이, 결과 조합을 순수 규칙으로 소유합니다.
+- `contexts/PriorityDemoContexts.tsx`가 Action·Store 계약을 정의하고 등록 목록,
+  실행 상태, 화면 결과를 관찰 가능하게 유지합니다.
+- `actions/usePriorityDemoActions.ts`는 Store mutation을 View에 노출하지 않고
+  `registerWord`, `executeRegistered`, `clear` command를 제공합니다.
+- `handlers/PriorityDemoHandlerRegistry.tsx`가 순서가 있는 비동기 실행, 단계별
+  지연, cancellation token, cleanup을 소유합니다.
+
+command palette, 승인 단계, staged workflow처럼 사용자가 등록한 순서와 실제
+실행 priority를 분리해야 하는 경우 이 recipe를 사용합니다. 실행 trace는
+Store에 두어 View가 등록·실행 중·완료 상태를 표현하도록 하고 pipeline 자체는
+View가 소유하지 않게 합니다.
+
 ## 고빈도 포인터 추적 usecase
 
 고빈도 입력과 파생 metric, 직접 DOM 피드백을 함께 다뤄야 할 때 mouse

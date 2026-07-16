@@ -62,6 +62,9 @@ const ImperativeRefPage = lazy(
 const ActionGuardIndexPage = lazy(
   () => import('./pages/performance/action-guard/ActionGuardIndexPage')
 );
+const ActionGuardShowcasePage = lazy(
+  () => import('./pages/performance/action-guard/ActionGuardPageRefactored')
+);
 const ApiBlockingPageRefactored = lazy(
   () => import('./pages/performance/action-guard/ApiBlockingPageRefactored')
 );
@@ -426,6 +429,10 @@ function AppContent() {
               element={<ActionGuardIndexPage />}
             />
             <Route
+              path="/performance/action-guard/showcase"
+              element={<ActionGuardShowcasePage />}
+            />
+            <Route
               path="/performance/action-guard/search"
               element={<SearchPageRefactored />}
             />
@@ -636,6 +643,10 @@ function AppContent() {
               element={<ImperativeRefPage />}
             />
             <Route path="/actionguard" element={<ActionGuardIndexPage />} />
+            <Route
+              path="/actionguard/showcase"
+              element={<ActionGuardShowcasePage />}
+            />
             <Route
               path="/actionguard/search"
               element={<SearchPageRefactored />}

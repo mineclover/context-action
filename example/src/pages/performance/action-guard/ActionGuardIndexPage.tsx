@@ -6,6 +6,12 @@ import { Link } from 'react-router-dom';
 
 const actionGuardDemos = [
   {
+    path: '/actionguard/showcase',
+    title: '🧪 ActionGuard Runtime Showcase',
+    description: 'priority command 실행과 API·검색·throttle usecase 모음',
+    tags: ['Registry', 'Priority', 'Usecase'],
+  },
+  {
     path: '/actionguard/search',
     title: '🔍 Advanced Search Demo',
     description: '고급 검색 기능과 abort 가능한 검색 시스템',

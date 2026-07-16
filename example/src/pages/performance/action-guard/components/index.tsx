@@ -3,11 +3,11 @@
  * Performance monitoring, API management, and action handling components
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useCallback, useState } from 'react';
 
 export { ContextActionDemo } from './ContextActionDemo';
 
-import { createActionContext } from '@context-action/react';
 import { DemoCard, MetricsDisplay, StatusIndicator } from '@/components/ui';
 import {
   useActionPerformanceMonitor,
@@ -16,6 +16,14 @@ import {
   useThrottledEventHandler,
 } from '../hooks';
 import type { ApiRequestConfig, ApiResponse } from '../types';
+import { usePriorityDemoActions } from './priority/actions/usePriorityDemoActions';
+import { priorityWords } from './priority/business/priority-demo-rules';
+import {
+  PriorityDemoActionProvider,
+  PriorityDemoStoreProvider,
+  usePriorityDemoStore,
+} from './priority/contexts/PriorityDemoContexts';
+import { PriorityDemoHandlerRegistry } from './priority/handlers/PriorityDemoHandlerRegistry';
 
 // Type definitions for API responses
 interface JsonPlaceholderPost {
@@ -168,20 +176,6 @@ export function PerformanceMonitor({ className = '' }: { className?: string }) {
     </DemoCard>
   );
 }
-
-// Define action types for the priority demo
-interface PriorityDemoActions {
-  registerWord: { priority: number; word: string };
-  executeRegistered: void;
-  clear: void;
-}
-
-// Create action context for priority demo
-const {
-  Provider: PriorityDemoProvider,
-  useActionDispatch,
-  useActionHandler,
-} = createActionContext<PriorityDemoActions>('PriorityDemo');
 
 // =============================================================================
 // PRIORITY EXECUTION TEST CASES - Split into Separate Components
@@ -415,173 +409,23 @@ function PriorityExecutionDemoInternal({
 }: {
   className?: string;
 }) {
-  const dispatch = useActionDispatch();
-  const [registeredActions, setRegisteredActions] = useState<
-    Array<{ priority: number; word: string; registered: boolean }>
-  >([]);
-  const [executionResult, setExecutionResult] = useState<string>('');
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [executionStatus, setExecutionStatus] = useState<
-    Array<{
-      priority: number;
-      word: string;
-      status: 'registered' | 'executing' | 'completed';
-    }>
-  >([]);
-
-  // Debug execution result state changes
-  useEffect(() => {
-    console.log(
-      '🎯 executionResult state changed:',
-      `"${executionResult}"`,
-      'Length:',
-      executionResult.length
-    );
-    console.log('🎯 Will show result?', !!executionResult);
-  }, [executionResult]);
-
-  const wordsByPriority = {
-    1: 'Hello',
-    2: 'Beautiful',
-    3: 'World',
-    4: 'from',
-    5: 'Context-Action!',
-  };
-
-  // Register action handlers using Context-Action framework
-  useActionHandler(
-    'registerWord',
-    useCallback(async (payload: { priority: number; word: string }) => {
-      setRegisteredActions((prev) => {
-        // Check if already registered
-        if (prev.some((item) => item.priority === payload.priority)) {
-          return prev;
-        }
-
-        const newItem = { ...payload, registered: true };
-        const newList = [...prev, newItem];
-        // Sort by priority for display (1 = highest priority)
-        return newList.sort((a, b) => a.priority - b.priority);
-      });
-
-      // Update execution status
-      setExecutionStatus((prev) => {
-        if (prev.some((item) => item.priority === payload.priority)) {
-          return prev;
-        }
-        const newItem = { ...payload, status: 'registered' as const };
-        const newList = [...prev, newItem];
-        return newList.sort((a, b) => a.priority - b.priority);
-      });
-    }, [])
-  );
-
-  useActionHandler(
-    'executeRegistered',
-    useCallback(async () => {
-      console.log('🎬 executeRegistered handler called!');
-
-      // Get current state using the state setter functions to avoid stale closures
-      setIsExecuting((currentIsExecuting) => {
-        if (currentIsExecuting) {
-          console.log('❌ Execution blocked: already executing');
-          return currentIsExecuting;
-        }
-
-        setRegisteredActions((currentRegisteredActions) => {
-          if (currentRegisteredActions.length === 0) {
-            console.log('❌ Execution blocked: no registered actions');
-            return currentRegisteredActions;
-          }
-
-          console.log(
-            '🚀 Starting execution with registered actions:',
-            currentRegisteredActions
-          );
-
-          setExecutionResult('');
-          console.log('🧹 Cleared execution result');
-
-          // Mark all registered actions as executing
-          setExecutionStatus((prev) =>
-            prev.map((item) => ({ ...item, status: 'executing' as const }))
-          );
-
-          // Simulate execution with delays to show priority order
-          const sortedActions = [...currentRegisteredActions].sort(
-            (a, b) => a.priority - b.priority
-          );
-          const resultWords: string[] = [];
-
-          console.log('📋 Sorted actions for execution:', sortedActions);
-
-          // Execute the actions asynchronously
-          (async () => {
-            try {
-              for (const action of sortedActions) {
-                console.log(
-                  `⏳ Executing action P${action.priority}: ${action.word}`
-                );
-                await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate processing time
-
-                resultWords.push(action.word);
-                console.log(`✅ Current result words:`, resultWords);
-
-                // Mark this action as completed
-                setExecutionStatus((prev) =>
-                  prev.map((item) =>
-                    item.priority === action.priority
-                      ? { ...item, status: 'completed' as const }
-                      : item
-                  )
-                );
-
-                // Show intermediate result
-                const currentResult = resultWords.join(' ');
-                console.log(
-                  `📝 Setting execution result to: "${currentResult}"`
-                );
-                setExecutionResult(currentResult);
-                console.log(
-                  `📝 setExecutionResult called with: "${currentResult}"`
-                );
-              }
-
-              console.log(
-                '🏁 Execution completed, setting isExecuting to false'
-              );
-              setIsExecuting(false);
-              console.log('🏁 Final result should be:', resultWords.join(' '));
-            } catch (error) {
-              console.error('💥 Execution error:', error);
-              setIsExecuting(false);
-            }
-          })();
-
-          return currentRegisteredActions;
-        });
-
-        return true; // Set isExecuting to true
-      });
-    }, [])
-  );
-
-  useActionHandler(
-    'clear',
-    useCallback(async () => {
-      setRegisteredActions([]);
-      setExecutionResult('');
-      setExecutionStatus([]);
-      setIsExecuting(false);
-    }, [])
-  );
+  const registeredActionsStore = usePriorityDemoStore('registeredActions');
+  const executionResultStore = usePriorityDemoStore('executionResult');
+  const isExecutingStore = usePriorityDemoStore('isExecuting');
+  const executionStatusStore = usePriorityDemoStore('executionStatus');
+  const registeredActions = useStoreValue(registeredActionsStore);
+  const executionResult = useStoreValue(executionResultStore);
+  const isExecuting = useStoreValue(isExecutingStore);
+  const executionStatus = useStoreValue(executionStatusStore);
+  const { clear, executeRegistered, registerWord } = usePriorityDemoActions();
+  const wordsByPriority = priorityWords;
 
   const registerAction = useCallback(
     (priority: number) => {
       const word = wordsByPriority[priority as keyof typeof wordsByPriority];
-      dispatch('registerWord', { priority, word });
+      registerWord(priority, word);
     },
-    [dispatch]
+    [registerWord]
   );
 
   const _isRegistered = useCallback(
@@ -642,8 +486,8 @@ function PriorityExecutionDemoInternal({
 
         {/* Test Case 2: Execution Controls */}
         <TestCase2_ExecutionControls
-          onExecute={() => dispatch('executeRegistered')}
-          onClear={() => dispatch('clear')}
+          onExecute={executeRegistered}
+          onClear={clear}
           registeredActions={registeredActions}
           isExecuting={isExecuting}
         />
@@ -678,7 +522,7 @@ function PriorityExecutionDemoInternal({
             </div>
             <div>
               <strong>Result:</strong> Final output shows:{' '}
-              <strong>"Hello Beautiful World from Context-Action!"</strong>
+              <strong>the selected words in priority order</strong>
             </div>
             <div>
               <strong>Architecture:</strong> Each test case is a separate
@@ -694,9 +538,13 @@ function PriorityExecutionDemoInternal({
 // Exported Priority Execution Demo Component with Provider
 export function PriorityExecutionDemo(props: { className?: string }) {
   return (
-    <PriorityDemoProvider>
-      <PriorityExecutionDemoInternal {...props} />
-    </PriorityDemoProvider>
+    <PriorityDemoActionProvider>
+      <PriorityDemoStoreProvider>
+        <PriorityDemoHandlerRegistry>
+          <PriorityExecutionDemoInternal {...props} />
+        </PriorityDemoHandlerRegistry>
+      </PriorityDemoStoreProvider>
+    </PriorityDemoActionProvider>
   );
 }
 
