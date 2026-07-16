@@ -120,10 +120,10 @@ export const PriorityPerformanceProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   return (
-    <PriorityPerformanceStoreProvider>
-      <PriorityPerformanceActionProvider>
+    <PriorityPerformanceActionProvider>
+      <PriorityPerformanceStoreProvider>
         {children}
-      </PriorityPerformanceActionProvider>
-    </PriorityPerformanceStoreProvider>
+      </PriorityPerformanceStoreProvider>
+    </PriorityPerformanceActionProvider>
   );
 };

@@ -434,15 +434,15 @@ export function createObjectContextHooks<T extends ManagedObject>(
     children,
   }) => {
     return (
-      <ObjectManagerProvider>
-        <ObjectStoreProvider>
-          <ObjectActionProvider>
+      <ObjectActionProvider>
+        <ObjectManagerProvider>
+          <ObjectStoreProvider>
             <ObjectManagerInitializer>
               <ObjectContextSyncProvider>{children}</ObjectContextSyncProvider>
             </ObjectManagerInitializer>
-          </ObjectActionProvider>
-        </ObjectStoreProvider>
-      </ObjectManagerProvider>
+          </ObjectStoreProvider>
+        </ObjectManagerProvider>
+      </ObjectActionProvider>
     );
   };
 

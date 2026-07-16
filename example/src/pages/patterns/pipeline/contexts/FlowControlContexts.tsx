@@ -88,14 +88,14 @@ export function FlowControlProvider({
   children: React.ReactNode;
 }) {
   return (
-    <FlowControlStoreProvider>
-      <SecurityActionProvider>
-        <CacheActionProvider>
-          <OrderActionProvider>
-            <ApiActionProvider>{children}</ApiActionProvider>
-          </OrderActionProvider>
-        </CacheActionProvider>
-      </SecurityActionProvider>
-    </FlowControlStoreProvider>
+    <SecurityActionProvider>
+      <CacheActionProvider>
+        <OrderActionProvider>
+          <ApiActionProvider>
+            <FlowControlStoreProvider>{children}</FlowControlStoreProvider>
+          </ApiActionProvider>
+        </OrderActionProvider>
+      </CacheActionProvider>
+    </SecurityActionProvider>
   );
 }

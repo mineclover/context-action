@@ -40,11 +40,11 @@ export function HandlerComparisonDemoRefactored() {
       </div>
 
       {/* Model Providers Layer */}
-      <ComparisonStoreProvider>
-        <PerformanceControlProvider>
-          <PerformanceControlActionProvider>
-            <MemoizedActionProvider>
-              <NonMemoizedActionProvider>
+      <PerformanceControlActionProvider>
+        <MemoizedActionProvider>
+          <NonMemoizedActionProvider>
+            <ComparisonStoreProvider>
+              <PerformanceControlProvider>
                 <ComparisonHandlerRegistry>
                   {/* Performance Control Widget */}
                   <PerformanceControlWidget />
@@ -55,11 +55,11 @@ export function HandlerComparisonDemoRefactored() {
                     <NonMemoizedHandlerWidget />
                   </div>
                 </ComparisonHandlerRegistry>
-              </NonMemoizedActionProvider>
-            </MemoizedActionProvider>
-          </PerformanceControlActionProvider>
-        </PerformanceControlProvider>
-      </ComparisonStoreProvider>
+              </PerformanceControlProvider>
+            </ComparisonStoreProvider>
+          </NonMemoizedActionProvider>
+        </MemoizedActionProvider>
+      </PerformanceControlActionProvider>
 
       {/* Pure UI Components */}
       <CodeComparison />

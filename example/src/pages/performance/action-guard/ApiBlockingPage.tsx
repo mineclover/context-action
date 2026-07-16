@@ -674,11 +674,11 @@ const ApiBlockingProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   return (
-    <ApiBlockingStores.Provider registryId="api-blocking-demo">
-      <ApiBlockingActionContext.Provider>
+    <ApiBlockingActionContext.Provider>
+      <ApiBlockingStores.Provider registryId="api-blocking-demo">
         {children}
-      </ApiBlockingActionContext.Provider>
-    </ApiBlockingStores.Provider>
+      </ApiBlockingStores.Provider>
+    </ApiBlockingActionContext.Provider>
   );
 };
 

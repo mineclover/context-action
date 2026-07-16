@@ -59,7 +59,7 @@ Biome remains responsible for language-level concerns: parsing, formatting, impo
 
 The first structural rule is already active: every `use*ActionHandler(...)` call must be inside a `handlers/` module or a `*HandlerRegistry` file. The transitional allowlist is now empty: the direct-registration inventory has no remaining exceptions. Any new direct registration outside a Registry fails immediately.
 
-The next enforcement steps are to add Provider-order and layer-path checks, then remove the transitional allowlist when the inventory reaches zero (or every remaining file has an explicit compatibility classification). `convention:check` is already part of `verify:all`, so CI catches new direct registrations today.
+Provider-order checking is now active alongside the direct-registration rule. It enforces Action → Store → Ref → Handler Registry nesting and currently reports zero violations across the example source. Layer-path and naming checks remain the next enforcement steps. `convention:check` is already part of `verify:all`, so CI catches new direct registrations and provider-order drift today.
 
 ## Current-State Classification
 
@@ -100,6 +100,7 @@ The following classification is the baseline for migration.
 - The memoization comparison now keeps pure comparison transitions in `business/comparison-rules.ts`, registers both handler lanes and performance controls in `handlers/ComparisonHandlerRegistry.tsx`, and exposes the old component/hooks as compatibility entry points.
 - The context-store mouse usecase now keeps its six event registrations in `context-store-pattern/handlers/MouseEventsHandlerRegistry.tsx`; `providers/MouseEventsProvider.tsx` owns the Action → Store → Registry composition while the context module remains the contract and derived-rule boundary.
 - The generic `createObjectContextHooks` factory now delegates its Action → Manager → Store synchronization to `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`; `ObjectContextManager.dispatch` is the domain-safe bridge instead of exposing its internal ActionRegister.
+- The convention checker now validates Provider nesting through the object-context factory, Flow Control, API Blocking, memoization, priority, and mouse-event compositions; `pnpm convention:check` reports zero provider-order violations.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -118,7 +119,7 @@ The following classification is the baseline for migration.
 2. Move direct handler registrations into domain Handler Registries; LogMonitor, ChatUI, context-store mouse events, conditional permission execution, foundations/core Basics, foundations/react Provider and Child A/B, advanced Concurrent Actions and Canvas, Action Lifecycle Workbench, the useRefMountState pattern, the action-priority demo, the legacy mouse-events demo, the ActionGuard context-store mouse demo, Enhanced Abortable Search, the enhanced context-store mouse usecase, SearchPageRefactored, ApiBlockingPageRefactored, ScrollPageRefactored, ThrottleComparisonPageRefactored, the ActionGuard priority-word demo, the memoization comparison, and the generic object-context factory are complete. The direct-registration inventory is now empty.
 3. Reconcile all provider examples to the fixed nesting order.
 4. Normalize public hook names and move legacy API examples to the migration guide.
-5. Add `convention:check` for registry placement, provider order, layer paths, and naming.
+5. Keep the active `convention:check` gates for Registry placement and provider order; add layer-path and naming checks as the next structural rules.
 6. Run type-check, tests, example builds, docs builds, and package verification.
 
 ## Remaining Direct-Registration Inventory
@@ -141,4 +142,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The direct-registration gate is complete. The next re-entry point is Provider-order and layer-path enforcement; keep compatibility exports documented, but do not add new handler registrations outside Registry modules.
+The direct-registration and Provider-order gates are complete. The next re-entry point is layer-path and naming enforcement; keep compatibility exports documented, but do not add new handler registrations outside Registry modules.
