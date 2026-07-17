@@ -1275,9 +1275,11 @@ export function parseSemEntities(value: unknown, fallbackFile?: string): SemEnti
       entity.end_line,
       `sem entities[${index}].end_line`,
     );
-    const endLine = kind === 'property'
-      && parentId !== undefined
-      && reportedEndLine === startLine - 1
+    // SEM represents one-line JSON-schema children (properties, arrays, and
+    // objects) with an end line immediately before their start line. Treat
+    // that provider boundary as the containing line for every nested kind;
+    // rejecting it would make historical snapshots fail on valid schemas.
+    const endLine = parentId !== undefined && reportedEndLine === startLine - 1
       ? startLine
       : reportedEndLine;
     if (endLine < startLine) {
@@ -1297,8 +1299,44 @@ export function parseSemEntities(value: unknown, fallbackFile?: string): SemEnti
       ...(parentId ? { parentId } : {}),
     };
   });
-  semEntityEvidenceTextCharacters(parsed, 'normalized sem entities');
-  return parsed;
+  const disambiguated = disambiguateNestedEntityIds(parsed);
+  semEntityEvidenceTextCharacters(disambiguated, 'normalized sem entities');
+  return disambiguated;
+}
+
+/**
+ * Preserve both members when a provider gives same-name nested entities the
+ * same parent-scoped ID but different kinds (for example a TypeScript type
+ * and value declaration in a .d.ts namespace).
+ */
+function disambiguateNestedEntityIds(entities: SemEntity[]): SemEntity[] {
+  const groups = new Map<string, SemEntity[]>();
+  for (const entity of entities) {
+    const group = groups.get(entity.id);
+    if (group === undefined) groups.set(entity.id, [entity]);
+    else group.push(entity);
+  }
+  const ambiguousIds = new Set(
+    [...groups.entries()]
+      .filter(([, group]) => group.some((entry) => entry.parentId !== undefined)
+        && new Set(group.map((entry) => entry.kind)).size > 1)
+      .map(([id]) => id),
+  );
+  if (ambiguousIds.size === 0) return entities;
+
+  const existingIds = new Set(entities.map((entity) => entity.id));
+  const assignedIds = new Set<string>();
+  return entities.map((entity) => {
+    if (entity.parentId === undefined || !ambiguousIds.has(entity.id)) return entity;
+    const id = `${entity.parentId}::${entity.kind}::${entity.name}`;
+    if (existingIds.has(id) || assignedIds.has(id)) {
+      throw new InputContractError(
+        `sem entities cannot disambiguate nested identity ${entity.id} as ${id}`,
+      );
+    }
+    assignedIds.add(id);
+    return { ...entity, id };
+  });
 }
 
 export function parseSemImpact(value: unknown): SemImpact {

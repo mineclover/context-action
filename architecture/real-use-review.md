@@ -84,8 +84,9 @@ SEM 0.21의 설정 파일 출력이 심볼 목록에 섞이지 않게 한다.
   line count를 넘을 수 없다. file별 최대 요구 line까지만 하나의 64KiB buffer로 읽고 즉시
   중단하므로 큰 source 전체를 메모리에 적재하지 않으며 CRLF buffer 경계도 정확히 처리한다. top-level ID는
   `file::kind::name`과 정확히 일치해야 한다. diff type은 SEM 0.21.0의 added/modified/deleted/moved/
-  renamed/reordered로 제한하고 rename old path의 타입도 검증한다. 실제 nested ID 중복은 허용하되
-  top-level ID만 유일성을 강제한다.
+  renamed/reordered로 제한하고 rename old path의 타입도 검증한다. nested same-name entities가
+  서로 다른 kind로 충돌하면 provider adapter가 `parent::kind::name`으로 구분하고, unresolved
+  충돌은 거부한다. 동일 kind의 nested 중복은 top-level과 달리 허용 범위로 남긴다.
 - handler가 business를 호출하여 생기는 `dependents`는 정상 관계이므로 위반이 아니다.
 - package boundary는 계속 `package.json` 선언을 검사한다.
 - registry, policy, project root, report output은 repository root 밖으로 나갈 수 없으며 project

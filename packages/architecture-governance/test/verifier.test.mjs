@@ -2395,6 +2395,40 @@ test('parses sem entities and canonical IDs', () => {
   }], 'schemas/registry.json');
   assert.equal(jsonProperty[0]?.startLine, 9);
   assert.equal(jsonProperty[0]?.endLine, 9);
+
+  const jsonArray = parseSemEntities([{
+    name: 'enum',
+    type: 'array',
+    start_line: 87,
+    end_line: 86,
+    parent_id: 'schemas/registry.json::/properties/status',
+  }], 'schemas/registry.json');
+  assert.equal(jsonArray[0]?.startLine, 87);
+  assert.equal(jsonArray[0]?.endLine, 87);
+
+  const overloadedNestedEntities = parseSemEntities([
+    {
+      name: 'Scene',
+      type: 'type',
+      start_line: 19,
+      end_line: 19,
+      parent_id: 'schemas/three.d.ts::internal_module::THREE',
+    },
+    {
+      name: 'Scene',
+      type: 'variable',
+      start_line: 35,
+      end_line: 35,
+      parent_id: 'schemas/three.d.ts::internal_module::THREE',
+    },
+  ], 'schemas/three.d.ts');
+  assert.deepEqual(
+    overloadedNestedEntities.map((entity) => entity.id),
+    [
+      'schemas/three.d.ts::internal_module::THREE::type::Scene',
+      'schemas/three.d.ts::internal_module::THREE::variable::Scene',
+    ],
+  );
 });
 
 test('rejects invalid sem source line ranges and rename path types', () => {
@@ -2778,7 +2812,7 @@ test('serializes git commit symbol deltas through the history collector', async 
     entry.status === 'analyzed' || entry.status === 'skipped'));
   assert.equal(
     report.commits[0]?.snapshot.projectStatuses.find((entry) => entry.projectId === 'architecture-governance')?.status,
-    'skipped',
+    'analyzed',
   );
   assert.equal(typeof snapshotSymbol?.projectId, 'string');
   assert.equal(typeof snapshotSymbol?.filePath, 'string');

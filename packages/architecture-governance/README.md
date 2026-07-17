@@ -473,12 +473,15 @@ SEM output도 신뢰된 입력으로 가정하지 않는다. entity file은 실�
 1-based이고 `endLine`이 실제 source file line count를 넘지 않아야 한다. canonical file별 가장 큰
 요구 `endLine`만 검증한다. source 전체를 메모리에 적재하지 않고 하나의 64KiB 버퍼를 재사용하며
 요구 line에 도달하면 남은 file을 읽지 않는다. CRLF가 buffer 경계에 걸린 경우도 하나의 line
-break로 처리한다. SEM 0.21의 JSON parser가 nested `property`에만 반환하는
-`end_line = start_line - 1`은 provider adapter에서 해당 한 줄 property로 정규화한다. non-property,
-top-level entity, 더 큰 역전 범위와 직접 주입 normalized evidence는 계속 거부한다.
+break로 처리한다. SEM 0.21의 JSON parser가 nested `property`, `array`, `object`에 반환하는
+`end_line = start_line - 1`은 provider adapter에서 해당 한 줄 nested entity로 정규화한다. top-level
+entity, 더 큰 역전 범위와 직접 주입 normalized evidence는 계속 거부한다. 같은 parent 아래 같은
+이름의 서로 다른 kind가 하나의 provider ID를 공유하면 `parent::kind::name`으로 명시적으로
+구분하고, 그 뒤에도 충돌하는 ID는 거부한다.
 diff `changeType`은 SEM 0.21.0의 `added`, `modified`, `deleted`, `moved`,
 `renamed`, `reordered` 중 하나여야 한다. rename의 `oldFilePath`는 null 또는 non-empty string이어야 한다.
-nested entity ID의 중복은 SEM 모델 특성상 허용한다. impact response의 entity ID/file/name/kind는
+동일 kind의 nested entity ID 중복은 SEM 모델 특성상 입력 검증에서 보존할 수 있지만, 서로 다른
+kind의 충돌은 위의 kind-qualified ID로 분리한다. impact response의 entity ID/file/name/kind는
 요청 target과
 일치해야 하며 관련 dependency/dependent/test의 ID file과 file 필드도 일치해야 한다. 각 관계
 목록에서 entity ID는 유일해야 하며 중복 관계는 finding을 증폭시키지 않고 provider
