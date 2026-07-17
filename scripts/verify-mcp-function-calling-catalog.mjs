@@ -129,8 +129,14 @@ const liveEditorTraceActionsSource = readSource(
 const liveEditorProviderSettingsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorProviderSettings.ts'
 );
+const liveEditorWorkspaceActionsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorWorkspaceActions.ts'
+);
 const liveEditorObservablesSource = readSource(
   'example/src/pages/integrations/live-code-editor/hooks/useLiveEditorObservables.ts'
+);
+const liveEditorWorkspaceObservablesSource = readSource(
+  'example/src/pages/integrations/live-code-editor/hooks/useLiveEditorWorkspaceObservables.ts'
 );
 const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
@@ -320,6 +326,51 @@ assertContains(
   'live editor external observable hook'
 );
 assertContains(
+  liveEditorWorkspaceObservablesSource,
+  /useSyncExternalStore\(/,
+  'live editor workspace/document observable hook'
+);
+assertContains(
+  liveEditorPageSource,
+  /useLiveEditorWorkspaceObservables\(/,
+  'live editor workspace observable facade usage'
+);
+assertNotContains(
+  liveEditorPageSource,
+  /useSyncExternalStore\(/,
+  'direct workspace/document subscriptions from the live editor page'
+);
+assertContains(
+  liveEditorWorkspaceActionsSource,
+  /\.ensureWorkspace\(/,
+  'live editor workspace hydration action'
+);
+assertContains(
+  liveEditorWorkspaceActionsSource,
+  /\.replaceWorkspace\(/,
+  'live editor workspace replacement action'
+);
+assertContains(
+  liveEditorWorkspaceActionsSource,
+  /\.saveTextFile\(/,
+  'live editor persistence action'
+);
+assertContains(
+  liveEditorWorkspaceActionsSource,
+  /\.setActivePath\(/,
+  'live editor active-path persistence action'
+);
+assertContains(
+  liveEditorWorkspaceActionsSource,
+  /\.markSaved\(/,
+  'live editor filesystem save action'
+);
+assertNotContains(
+  liveEditorPageSource,
+  /(?:workspaceRepository\.|filesystemAdapter\.(?:openDirectory|openFileList|saveFile)|workspaceManager\.(?:replaceFiles|updateFile|setActivePath|markSaved))\(/,
+  'workspace persistence and mutation APIs from the live editor page'
+);
+assertContains(
   liveEditorPageSource,
   /role="dialog"[\s\S]*aria-modal="true"/,
   'live editor reset approval dialog'
@@ -369,6 +420,7 @@ console.log('- example agent.request trace lifecycle checked');
 console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
+console.log('- live editor workspace/document observability boundary checked');
 console.log('- live editor reset approval boundary checked');
 console.log('- realtime web-coding handler/action/presentation boundary checked');
 console.log('- realtime web-coding observability/trace export boundary checked');
