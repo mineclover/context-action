@@ -1,6 +1,7 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import type { PreviewDiagnostic } from '../preview-document';
 import type { PreviewSnapshot } from '../workspace';
+import { PanelResizeHandle } from './panel-resize-handle';
 
 export type PreviewPanelProps = {
   preview: PreviewSnapshot;
@@ -14,9 +15,13 @@ export type PreviewPanelProps = {
   iframeRef: RefObject<HTMLIFrameElement | null>;
   refreshDisabled: boolean;
   exportDisabled: boolean;
+  collapsed: boolean;
+  previewWidth: number;
   onOpenFile: (path: string) => void;
   onExport: () => void;
   onRefresh: () => void;
+  onResize: (delta: number) => void;
+  onToggleCollapsed: () => void;
 };
 
 export function PreviewPanel({
@@ -31,9 +36,13 @@ export function PreviewPanel({
   iframeRef,
   refreshDisabled,
   exportDisabled,
+  collapsed,
+  previewWidth,
   onOpenFile,
   onExport,
   onRefresh,
+  onResize,
+  onToggleCollapsed,
 }: PreviewPanelProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenButtonRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +61,29 @@ export function PreviewPanel({
     };
   }, [isFullscreen]);
 
+  useEffect(() => {
+    if (collapsed && isFullscreen) setIsFullscreen(false);
+  }, [collapsed, isFullscreen]);
+
+  if (collapsed) {
+    return (
+      <aside
+        aria-label="Live generated web preview"
+        className="preview-panel preview-panel-collapsed"
+      >
+        <button
+          aria-label="Expand preview panel"
+          className="panel-collapse-rail-button"
+          onClick={onToggleCollapsed}
+          title="Expand preview panel"
+          type="button"
+        >
+          ‹
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside
       aria-label="Live generated web preview"
@@ -64,13 +96,24 @@ export function PreviewPanel({
           <span className="panel-label">Preview</span>
           <strong>localhost · sandbox</strong>
         </div>
-        <span
-          aria-live="polite"
-          className={`preview-status preview-status-${preview.status}`}
-          role="status"
-        >
-          <span className="status-dot" /> {previewStatusLabel}
-        </span>
+        <div className="preview-toolbar-actions">
+          <span
+            aria-live="polite"
+            className={`preview-status preview-status-${preview.status}`}
+            role="status"
+          >
+            <span className="status-dot" /> {previewStatusLabel}
+          </span>
+          <button
+            aria-label="Collapse preview panel"
+            className="panel-collapse-button"
+            onClick={onToggleCollapsed}
+            title="Collapse preview panel"
+            type="button"
+          >
+            ›
+          </button>
+        </div>
       </div>
       <div className="browser-frame">
         <div className="browser-chrome">
@@ -202,6 +245,13 @@ export function PreviewPanel({
               : 'pending acknowledgement'}
         </div>
       </div>
+      <PanelResizeHandle
+        label="Resize preview panel"
+        max={720}
+        min={300}
+        onResize={onResize}
+        value={previewWidth}
+      />
     </aside>
   );
 }

@@ -186,6 +186,79 @@ async function runBrowserProof(url) {
         `The preview did not exit full screen cleanly: ${JSON.stringify(restoredPreviewState)}`
       );
     }
+    const sidebarCollapseButton = page.getByRole('button', {
+      name: 'Collapse workspace panel',
+    });
+    await sidebarCollapseButton.click();
+    if (
+      (await page.getByRole('button', { name: 'Expand workspace panel' }).count()) !==
+      1
+    ) {
+      throw new Error('The workspace panel did not expose its collapsed rail.');
+    }
+    await page.getByRole('button', { name: 'Expand workspace panel' }).click();
+    const previewCollapseButton = page.getByRole('button', {
+      name: 'Collapse preview panel',
+    });
+    await previewCollapseButton.click();
+    if (
+      (await page.getByRole('button', { name: 'Expand preview panel' }).count()) !==
+      1
+    ) {
+      throw new Error('The preview panel did not expose its collapsed rail.');
+    }
+    await page.getByRole('button', { name: 'Expand preview panel' }).click();
+    const sidebarBeforeResize = await page
+      .locator('.studio-sidebar')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    const sidebarResizeHandle = page.getByRole('separator', {
+      name: 'Resize workspace panel',
+    });
+    await sidebarResizeHandle.focus();
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(
+      (previousWidth) =>
+        (document.querySelector('.studio-sidebar')?.getBoundingClientRect().width ??
+          0) > previousWidth,
+      sidebarBeforeResize
+    );
+    const sidebarAfterKeyboardResize = await page
+      .locator('.studio-sidebar')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    const sidebarResizeBox = await sidebarResizeHandle.boundingBox();
+    if (!sidebarResizeBox) {
+      throw new Error('The workspace panel resize handle has no visible bounds.');
+    }
+    await page.mouse.move(
+      sidebarResizeBox.x + sidebarResizeBox.width / 2,
+      sidebarResizeBox.y + 120
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      sidebarResizeBox.x + sidebarResizeBox.width / 2 + 16,
+      sidebarResizeBox.y + 120
+    );
+    await page.mouse.up();
+    await page.waitForFunction(
+      (previousWidth) =>
+        (document.querySelector('.studio-sidebar')?.getBoundingClientRect().width ??
+          0) > previousWidth,
+      sidebarAfterKeyboardResize
+    );
+    const previewBeforeResize = await page
+      .locator('.preview-panel')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    const previewResizeHandle = page.getByRole('separator', {
+      name: 'Resize preview panel',
+    });
+    await previewResizeHandle.focus();
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(
+      (previousWidth) =>
+        (document.querySelector('.preview-panel')?.getBoundingClientRect().width ??
+          0) > previousWidth,
+      previewBeforeResize
+    );
     const desktopToolbarLayout = await page.evaluate(() => {
       const toolbar = document.querySelector('.editor-toolbar');
       const controls = document.querySelector('.editor-controls');
@@ -1132,6 +1205,8 @@ async function runBrowserProof(url) {
     }
 
     await page.getByRole('tab', { name: /notes\.md/ }).click();
+    await page.getByRole('button', { name: 'Close agent chat', exact: true }).click();
+    await agentPanel.waitFor({ state: 'detached' });
     const diagnosticSourceButton = previewDiagnostics
       .getByRole('listitem')
       .filter({ hasText: 'Missing script: missing.js' })
@@ -1146,6 +1221,8 @@ async function runBrowserProof(url) {
       );
     }
 
+    await page.getByRole('button', { name: 'Open agent chat' }).click();
+    await agentPanel.waitFor();
     await prompt.fill('Add a feature card "Missing slot" "This should explain the target error."');
     await send.click();
     if (!(await diagnosticSourceButton.isDisabled())) {

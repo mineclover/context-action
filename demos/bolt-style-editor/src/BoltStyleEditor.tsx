@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type KeyboardEvent,
   useCallback,
   useEffect,
@@ -12,6 +13,7 @@ import {
 } from './bolt-style-tool-context';
 import { useConfirmationRequest } from './hooks/use-confirmation-request';
 import { useEditorObservables } from './hooks/use-editor-observables';
+import { usePanelLayout } from './hooks/use-panel-layout';
 import { usePreviewBridge } from './hooks/use-preview-bridge';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
@@ -48,6 +50,7 @@ import {
   OpenRouterSettingsDialog,
   RenameWorkspaceFileDialog,
 } from './views/editor-dialogs';
+import { PanelResizeHandle } from './views/panel-resize-handle';
 import { PreviewPanel } from './views/preview-panel';
 import { StudioStatusBar, StudioTopbar } from './views/studio-chrome';
 import {
@@ -121,6 +124,16 @@ function EditorWorkbench({
   folderRestoreState: FolderRestoreState;
 }) {
   const registry = useBoltStyleToolRegistry();
+  const {
+    previewCollapsed,
+    previewWidth,
+    resizePreview,
+    resizeSidebar,
+    sidebarCollapsed,
+    sidebarWidth,
+    togglePreview,
+    toggleSidebar,
+  } = usePanelLayout();
   const {
     snapshot,
     workspaceDirtyPaths,
@@ -611,6 +624,11 @@ function EditorWorkbench({
     setQuickOpenOpen(false);
   };
 
+  const workspaceLayoutStyle = {
+    '--preview-width': `${previewCollapsed ? 34 : previewWidth}px`,
+    '--sidebar-width': `${sidebarCollapsed ? 34 : sidebarWidth}px`,
+  } as CSSProperties;
+
   const selectQuickOpenFile = async (path: string) => {
     const outcome = await openWorkspaceFile(path);
     if (outcome.ok) closeQuickOpen();
@@ -636,85 +654,122 @@ function EditorWorkbench({
         storageLabel={storageLabel}
         toolCount={toolNames.length}
       />
-      <div className="studio-workspace">
-        <aside className="studio-sidebar">
-          <WorkspaceExplorerPanel
-            fileTree={
-              <WorkspaceFileTree
-                activePath={snapshot.activePath}
-                disabled={!isStorageReady || running}
-                dirtyPaths={dirtyPaths}
-                files={snapshot.files}
-                onSelect={(path) => void openWorkspaceFile(path)}
+      <div className="studio-workspace" style={workspaceLayoutStyle}>
+        <aside
+          aria-label="Workspace panels"
+          className={`studio-sidebar ${sidebarCollapsed ? 'studio-sidebar-collapsed' : ''}`}
+        >
+          {sidebarCollapsed ? (
+            <button
+              aria-label="Expand workspace panel"
+              className="panel-collapse-rail-button"
+              onClick={toggleSidebar}
+              title="Expand workspace panel"
+              type="button"
+            >
+              ›
+            </button>
+          ) : (
+            <>
+              <button
+                aria-label="Collapse workspace panel"
+                className="panel-collapse-button sidebar-collapse-button"
+                onClick={toggleSidebar}
+                title="Collapse workspace panel"
+                type="button"
+              >
+                ‹
+              </button>
+              <WorkspaceExplorerPanel
+                fileTree={
+                  <WorkspaceFileTree
+                    activePath={snapshot.activePath}
+                    disabled={!isStorageReady || running}
+                    dirtyPaths={dirtyPaths}
+                    files={snapshot.files}
+                    onSelect={(path) => void openWorkspaceFile(path)}
+                  />
+                }
+                folderInputRef={folderInputRef}
+                folderPermission={folderPermission}
+                folderPermissionNeedsAction={folderPermissionNeedsAction}
+                hasWritableFolder={hasWritableFolder}
+                isStorageReady={isStorageReady}
+                onCreateFile={() => setShowCreateFile(true)}
+                onDisconnectFolder={() => void handleDisconnectFolder()}
+                onFolderInputChange={(files) => void handleFolderInput(files)}
+                onGrantFolderAccess={() => void handleGrantFolderAccess()}
+                onOpenFolder={() => void handleOpenFolder()}
+                onReloadFolder={() => void handleReloadFolder()}
+                onResetWorkspace={() => void resetDemoWorkspace()}
+                openingFolder={openingFolder}
+                rootName={snapshot.rootName}
+                running={running}
               />
-            }
-            folderInputRef={folderInputRef}
-            folderPermission={folderPermission}
-            folderPermissionNeedsAction={folderPermissionNeedsAction}
-            hasWritableFolder={hasWritableFolder}
-            isStorageReady={isStorageReady}
-            onCreateFile={() => setShowCreateFile(true)}
-            onDisconnectFolder={() => void handleDisconnectFolder()}
-            onFolderInputChange={(files) => void handleFolderInput(files)}
-            onGrantFolderAccess={() => void handleGrantFolderAccess()}
-            onOpenFolder={() => void handleOpenFolder()}
-            onReloadFolder={() => void handleReloadFolder()}
-            onResetWorkspace={() => void resetDemoWorkspace()}
-            openingFolder={openingFolder}
-            rootName={snapshot.rootName}
-            running={running}
-          />
-          <ToolCatalogPanel
-            copyFeedback={copyFeedback}
-            getToolDefinition={getToolDefinition}
-            isStorageReady={isStorageReady}
-            onClearToolFilter={() => setToolFilter('')}
-            onCopyCall={() => void copySelectedToolCall()}
-            onCopyDefinition={() =>
-              void copyJson('Tool definition', selectedToolDefinition)
-            }
-            onCopyToolsList={() => void copyToolsList()}
-            onDownloadCall={downloadSelectedToolCall}
-            onDownloadDefinition={downloadSelectedToolDefinition}
-            onDownloadToolsList={downloadToolList}
-            onResetToolArguments={resetSelectedToolArguments}
-            onRunSelectedTool={() => void runSelectedTool()}
-            onSelectTool={setSelectedToolName}
-            onToolArgumentsChange={handleToolArgumentsChange}
-            onToolCatalogFilterChange={(value) => setToolCatalogFilter(value)}
-            onToolFilterChange={setToolFilter}
-            running={running}
-            selectedToolDefinition={selectedToolDefinition}
-            selectedToolName={selectedToolName}
-            toolArgumentsError={toolArgumentsError}
-            toolArgumentsText={toolArgumentsText}
-            toolCatalogCounts={toolCatalogCounts}
-            toolCatalogFilter={toolCatalogFilter}
-            toolFilter={toolFilter}
-            toolNames={toolNames}
-            visibleToolNames={visibleToolNames}
-          />
-          <ToolTracePanel
-            formatTraceId={formatTraceId}
-            onClear={clearToolTrace}
-            onCopy={() => void copyJson('Execution trace', traceEntries)}
-            onDownload={downloadExecutionTrace}
-            onTraceSessionFilterChange={(value) => {
-              setTraceSessionFilter(value);
-              setShowAllTrace(false);
-            }}
-            onToggleShowAll={() => setShowAllTrace((current) => !current)}
-            running={running}
-            showAllTrace={showAllTrace}
-            traceEntries={visibleTraceEntries}
-            traceSessionFilter={traceSessionFilter}
-            traceSessionOptions={traceSessionOptions}
-          />
-          <VersionHistoryPanel
-            isStorageReady={isStorageReady}
-            onOpenDiff={setDiffVersionId}
-            versions={versions}
-          />
+              <ToolCatalogPanel
+                copyFeedback={copyFeedback}
+                getToolDefinition={getToolDefinition}
+                isStorageReady={isStorageReady}
+                onClearToolFilter={() => setToolFilter('')}
+                onCopyCall={() => void copySelectedToolCall()}
+                onCopyDefinition={() =>
+                  void copyJson('Tool definition', selectedToolDefinition)
+                }
+                onCopyToolsList={() => void copyToolsList()}
+                onDownloadCall={downloadSelectedToolCall}
+                onDownloadDefinition={downloadSelectedToolDefinition}
+                onDownloadToolsList={downloadToolList}
+                onResetToolArguments={resetSelectedToolArguments}
+                onRunSelectedTool={() => void runSelectedTool()}
+                onSelectTool={setSelectedToolName}
+                onToolArgumentsChange={handleToolArgumentsChange}
+                onToolCatalogFilterChange={(value) =>
+                  setToolCatalogFilter(value)
+                }
+                onToolFilterChange={setToolFilter}
+                running={running}
+                selectedToolDefinition={selectedToolDefinition}
+                selectedToolName={selectedToolName}
+                toolArgumentsError={toolArgumentsError}
+                toolArgumentsText={toolArgumentsText}
+                toolCatalogCounts={toolCatalogCounts}
+                toolCatalogFilter={toolCatalogFilter}
+                toolFilter={toolFilter}
+                toolNames={toolNames}
+                visibleToolNames={visibleToolNames}
+              />
+              <ToolTracePanel
+                formatTraceId={formatTraceId}
+                onClear={clearToolTrace}
+                onCopy={() => void copyJson('Execution trace', traceEntries)}
+                onDownload={downloadExecutionTrace}
+                onTraceSessionFilterChange={(value) => {
+                  setTraceSessionFilter(value);
+                  setShowAllTrace(false);
+                }}
+                onToggleShowAll={() => setShowAllTrace((current) => !current)}
+                running={running}
+                showAllTrace={showAllTrace}
+                traceEntries={visibleTraceEntries}
+                traceSessionFilter={traceSessionFilter}
+                traceSessionOptions={traceSessionOptions}
+              />
+              <VersionHistoryPanel
+                isStorageReady={isStorageReady}
+                onOpenDiff={setDiffVersionId}
+                versions={versions}
+              />
+            </>
+          )}
+          {!sidebarCollapsed ? (
+            <PanelResizeHandle
+              label="Resize workspace panel"
+              max={420}
+              min={190}
+              onResize={resizeSidebar}
+              value={sidebarWidth}
+            />
+          ) : null}
         </aside>
 
         <main className="studio-main">
@@ -834,6 +889,10 @@ function EditorWorkbench({
           refreshToken={previewRefreshToken}
           revision={snapshot.revision}
           rootName={snapshot.rootName}
+          collapsed={previewCollapsed}
+          onResize={resizePreview}
+          onToggleCollapsed={togglePreview}
+          previewWidth={previewWidth}
         />
       </div>
 

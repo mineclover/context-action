@@ -56,6 +56,8 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts',
   'demos/bolt-style-editor/src/hooks/use-workspace-version-history.ts',
+  'demos/bolt-style-editor/src/hooks/use-panel-layout.ts',
+  'demos/bolt-style-editor/src/views/panel-resize-handle.tsx',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   'demos/bolt-style-editor/src/openrouter.ts',
@@ -154,6 +156,12 @@ const versionHistoryViewSource = readSource(
 const versionDiffViewSource = readSource(
   'demos/bolt-style-editor/src/views/version-diff-dialog.tsx'
 );
+const panelLayoutSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-panel-layout.ts'
+);
+const panelResizeHandleSource = readSource(
+  'demos/bolt-style-editor/src/views/panel-resize-handle.tsx'
+);
 assertContains(
   'demos/bolt-style-editor/src/tool-command-catalog.ts',
   commandCatalogSource,
@@ -213,6 +221,18 @@ assertContains(
   versionDiffViewSource,
   /selectedChange\.diff\.map\(/,
   'line-level diff rendered from the version model'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-panel-layout.ts',
+  panelLayoutSource,
+  /localStorage[\s\S]*PANEL_LAYOUT_STORAGE_KEY|PANEL_LAYOUT_STORAGE_KEY[\s\S]*localStorage/,
+  'persisted panel layout preferences'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/panel-resize-handle.tsx',
+  panelResizeHandleSource,
+  /aria-orientation="vertical"[\s\S]*role="separator"/,
+  'keyboard-accessible vertical resize separator'
 );
 assertNotContains(
   'demos/bolt-style-editor/src/views/agent-chat-panel.tsx',
