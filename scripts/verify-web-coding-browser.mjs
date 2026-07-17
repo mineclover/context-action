@@ -1755,6 +1755,46 @@ async function runBrowserProof(url) {
       await mobilePage.close();
     }
 
+    const tabletPage = await page.context().browser().newPage({
+      viewport: { width: 800, height: 900 },
+    });
+    try {
+      await tabletPage.goto(url, { waitUntil: 'networkidle' });
+      await tabletPage.getByText('Ready', { exact: true }).waitFor();
+      const tabletLayout = await tabletPage.evaluate(() => {
+        const controls = document.querySelector('.editor-controls');
+        const quickOpen = document.querySelector(
+          'button[aria-label="Quick open workspace file"]'
+        );
+        const quickOpenRect = quickOpen?.getBoundingClientRect();
+        return {
+          bodyClientWidth: document.body.clientWidth,
+          bodyScrollWidth: document.body.scrollWidth,
+          controlsClientWidth: controls?.clientWidth ?? 0,
+          controlsScrollWidth: controls?.scrollWidth ?? 0,
+          quickOpenLeft: quickOpenRect?.left ?? 0,
+          quickOpenRight: quickOpenRect?.right ?? 0,
+          viewportWidth: window.innerWidth,
+        };
+      });
+      if (tabletLayout.bodyScrollWidth > tabletLayout.bodyClientWidth) {
+        throw new Error(
+          `The tablet studio introduced horizontal page overflow: ${JSON.stringify(tabletLayout)}`
+        );
+      }
+      if (
+        tabletLayout.controlsScrollWidth > tabletLayout.controlsClientWidth ||
+        tabletLayout.quickOpenLeft < -1 ||
+        tabletLayout.quickOpenRight > tabletLayout.viewportWidth + 1
+      ) {
+        throw new Error(
+          `The tablet editor toolbar clips its controls: ${JSON.stringify(tabletLayout)}`
+        );
+      }
+    } finally {
+      await tabletPage.close();
+    }
+
     const failedChunkContext = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
     });
