@@ -290,6 +290,11 @@ assertContains(
   'realtime web-coding catalog entry link'
 );
 assertContains(
+  catalogPageSource,
+  /standaloneStudioPromptUrl\(command\.prompt\)/,
+  'standalone catalog prompt deep-link'
+);
+assertContains(
   realtimeAgentActionsSource,
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'realtime web-coding multi-turn history preservation'

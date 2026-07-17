@@ -115,8 +115,24 @@ async function runBrowserProof(url) {
     if (await page.getByLabel('Edit index.html').isDisabled()) {
       throw new Error('The source editor remained disabled after hydration.');
     }
-    if ((await page.getByLabel('Web studio prompt').inputValue()) !== '') {
+    const composer = page.getByLabel('Web studio prompt');
+    if ((await composer.inputValue()) !== '') {
       throw new Error('The standalone composer must start empty and rely on placeholder or recipes for examples.');
+    }
+    const deepLink = new URL(url);
+    deepLink.searchParams.set('prompt', 'Show preview status');
+    await page.goto(deepLink.toString(), { waitUntil: 'networkidle' });
+    await page.getByText('Ready', { exact: true }).waitFor();
+    if ((await composer.inputValue()) !== 'Show preview status') {
+      throw new Error('The standalone deep link did not prefill the composer prompt.');
+    }
+    if (new URL(page.url()).searchParams.has('prompt')) {
+      throw new Error('The standalone deep-link prompt remained in browser history.');
+    }
+    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.getByText('Ready', { exact: true }).waitFor();
+    if ((await composer.inputValue()) !== '') {
+      throw new Error('A consumed deep-link prompt leaked into the default composer state.');
     }
     const promptRecipes = [
       'Make it emerald',
@@ -146,7 +162,6 @@ async function runBrowserProof(url) {
     if (!themeRecipeTitle?.includes('workspace.getStatus')) {
       throw new Error('The tool-chain recipe did not expose its expected call chain.');
     }
-    const composer = page.getByLabel('Web studio prompt');
     await page.getByRole('button', { name: 'Create notes.md' }).click();
     if ((await composer.inputValue()) !== 'Create notes.md') {
       throw new Error('The tool-chain recipe did not populate the composer prompt.');

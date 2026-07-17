@@ -200,6 +200,9 @@ expected approval/preview chain; the chat view receives the typed catalog as
 data instead of embedding a second list of strings. The save recipe explicitly
 describes its two outcomes: `workspace.saveAll` plus approval for a linked
 folder, or `workspace.saveCheckpoint` for a browser-only workspace.
+The example catalog's `Studio에서 실행` action deep-links an encoded prompt to
+the standalone page; the standalone shell consumes it as composer input only,
+removes it from browser history, and never auto-executes a tool.
 The example ToolContext AI demo keeps provider failures inline as an alert,
 restores the failed prompt in the composer, and leaves the saved key and model
 controls available so a corrected configuration can be submitted again.

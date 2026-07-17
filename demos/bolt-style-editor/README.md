@@ -64,6 +64,11 @@ approval, preview mutation, and the Dexie-backed source/preview restore path
 after a browser reload. Set
 `WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
+The example MCP catalog's `Studio에서 실행` links pass one encoded `prompt`
+query to this page. The standalone shell only pre-fills the composer, removes
+the query from browser history, and waits for the user to submit it; deep links
+never execute a tool automatically.
+
 The directory-upload part creates a short-lived fixture under the operating
 system temporary directory because the browser API needs a real directory
 path. That fixture is separate from the IndexedDB/Blob workspace and is

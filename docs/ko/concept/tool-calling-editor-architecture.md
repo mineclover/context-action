@@ -189,6 +189,9 @@ approval/preview 예상 chain을 typed catalog로 소유하고, chat view는 두
 문자열 목록을 직접 가지지 않고 이 catalog를 data로 주입받는다. Save recipe도
 연결된 folder에서는 `workspace.saveAll`과 approval을 사용하고, browser-only
 workspace에서는 `workspace.saveCheckpoint`로 분기되는 두 결과를 명시한다.
+example catalog의 `Studio에서 실행`도 encoded prompt를 standalone page로 전달하지만,
+standalone shell은 이를 composer 입력으로만 채우고 browser history에서 제거한다.
+따라서 deep link가 tool을 자동 실행하지 않는다.
 example의 ToolContext AI 데모는 provider 오류를 alert로 채팅 영역에 유지하고,
 실패한 prompt를 composer에 복원하며, 저장된 key와 model control을 그대로
 사용할 수 있게 한다. 따라서 설정을 수정한 뒤 같은 요청을 다시 제출할 수 있다.

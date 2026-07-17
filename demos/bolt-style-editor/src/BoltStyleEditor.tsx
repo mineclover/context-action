@@ -72,6 +72,23 @@ function formatTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
 }
 
+const INITIAL_PROMPT_MAX_LENGTH = 4_000;
+
+/** Read one catalog deep-link prompt without executing it. */
+function readInitialPrompt(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    const url = new URL(window.location.href);
+    const prompt = url.searchParams.get('prompt')?.trim() ?? '';
+    if (!prompt) return '';
+    url.searchParams.delete('prompt');
+    window.history.replaceState(window.history.state, '', url);
+    return prompt.slice(0, INITIAL_PROMPT_MAX_LENGTH);
+  } catch {
+    return '';
+  }
+}
+
 function overlayEditorDrafts(
   files: readonly WorkspaceFile[],
   editorDrafts: Readonly<Record<string, string>>
@@ -115,7 +132,7 @@ function EditorWorkbench({
     iframeRef,
     revision: snapshot.revision,
   });
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState(readInitialPrompt);
   const messageListRef = useRef<HTMLDivElement>(null);
   const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
   const focusedApprovalIdRef = useRef<string | null>(null);

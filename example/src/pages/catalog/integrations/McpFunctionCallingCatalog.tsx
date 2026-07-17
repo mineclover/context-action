@@ -18,6 +18,10 @@ const difficultyStyles = {
   Advanced: 'bg-rose-100 text-rose-800 border-rose-200',
 };
 
+function standaloneStudioPromptUrl(prompt: string): string {
+  return `https://mineclover.github.io/context-action/web-coding/?prompt=${encodeURIComponent(prompt)}`;
+}
+
 function CatalogCommandGrid({
   commands,
   commandFeedback,
@@ -285,6 +289,14 @@ export default function McpFunctionCallingCatalog() {
                           ? '다운로드됨'
                           : '명령문 다운로드'}
                       </button>
+                      <a
+                        className="rounded-full border border-violet-300 bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
+                        href={standaloneStudioPromptUrl(command.prompt)}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Studio에서 실행
+                      </a>
                     </div>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-slate-800">
