@@ -1709,6 +1709,22 @@ async function runBrowserProof(url) {
       const mobileLayout = await mobilePage.evaluate(() => ({
         bodyClientWidth: document.body.clientWidth,
         bodyScrollWidth: document.body.scrollWidth,
+        editorControls: (() => {
+          const controls = document.querySelector('.editor-controls');
+          const quickOpen = document.querySelector(
+            'button[aria-label="Quick open workspace file"]'
+          );
+          const controlsRect = controls?.getBoundingClientRect();
+          const quickOpenRect = quickOpen?.getBoundingClientRect();
+          return {
+            clientWidth: controls?.clientWidth ?? 0,
+            scrollWidth: controls?.scrollWidth ?? 0,
+            quickOpenLeft: quickOpenRect?.left ?? 0,
+            quickOpenRight: quickOpenRect?.right ?? 0,
+            viewportWidth: window.innerWidth,
+            height: controlsRect?.height ?? 0,
+          };
+        })(),
         sidebarHeight:
           document.querySelector('.studio-sidebar')?.getBoundingClientRect()
             .height ?? 0,
@@ -1718,6 +1734,17 @@ async function runBrowserProof(url) {
       }));
       if (mobileLayout.bodyScrollWidth > mobileLayout.bodyClientWidth) {
         throw new Error('The mobile studio introduced horizontal page overflow.');
+      }
+      if (
+        mobileLayout.editorControls.scrollWidth >
+          mobileLayout.editorControls.clientWidth ||
+        mobileLayout.editorControls.quickOpenLeft < -1 ||
+        mobileLayout.editorControls.quickOpenRight >
+          mobileLayout.editorControls.viewportWidth + 1
+      ) {
+        throw new Error(
+          `The mobile editor toolbar clips its controls: ${JSON.stringify(mobileLayout.editorControls)}`
+        );
       }
       if (mobileLayout.sidebarHeight > 560 || mobileLayout.editorTop > 850) {
         throw new Error(
