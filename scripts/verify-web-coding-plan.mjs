@@ -7,18 +7,35 @@ const plannerPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/local-agent-plan.ts'
 );
+const catalogPath = path.join(
+  rootDirectory,
+  'demos/bolt-style-editor/src/tool-command-catalog.ts'
+);
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
-const source = await readFile(plannerPath, 'utf8');
-const { outputText } = typescript.transpileModule(source, {
+const plannerSource = await readFile(plannerPath, 'utf8');
+const catalogSource = await readFile(catalogPath, 'utf8');
+const transpileOptions = {
   compilerOptions: {
     module: typescript.ModuleKind.ESNext,
     target: typescript.ScriptTarget.ES2022,
   },
-  fileName: plannerPath,
-});
+};
+const { outputText: plannerOutput } = typescript.transpileModule(
+  plannerSource,
+  { ...transpileOptions, fileName: plannerPath }
+);
+const { outputText: catalogOutput } = typescript.transpileModule(
+  catalogSource,
+  { ...transpileOptions, fileName: catalogPath }
+);
 const planner = await import(
-  'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64')
+  'data:text/javascript;base64,' +
+    Buffer.from(plannerOutput).toString('base64')
+);
+const commandCatalog = await import(
+  'data:text/javascript;base64,' +
+    Buffer.from(catalogOutput).toString('base64')
 );
 
 function expectEqual(actual, expected, label) {
@@ -115,5 +132,32 @@ expectEqual(
   2,
   'Missing tool revisions must preserve the fallback revision.'
 );
+
+for (const recipe of commandCatalog.standaloneToolChainRecipes) {
+  const folderPlan = planner
+    .buildLocalAgentPlan(recipe.prompt, false, 'index.html')
+    .map((call) => call.name);
+  const browserOnlyPlan = planner
+    .buildLocalAgentPlan(recipe.prompt, true, 'index.html')
+    .map((call) => call.name);
+  const plans =
+    recipe.id === 'save-to-folder'
+      ? [folderPlan, browserOnlyPlan]
+      : [folderPlan];
+  for (const plan of plans) {
+    if (plan.some((toolName) => !recipe.tools.includes(toolName))) {
+      throw new Error(
+        `Recipe ${recipe.id} planned a tool outside its catalog: ${plan.join(', ')}`
+      );
+    }
+  }
+  if (recipe.id !== 'save-to-folder') {
+    expectEqual(
+      folderPlan,
+      recipe.tools,
+      `Recipe ${recipe.id} must match its local-agent tool chain.`
+    );
+  }
+}
 
 console.log('Verified standalone local-agent planning contracts.');

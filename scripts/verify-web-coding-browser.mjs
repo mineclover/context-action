@@ -143,6 +143,12 @@ async function runBrowserProof(url) {
     if (!themeRecipeTitle?.includes('workspace.getStatus')) {
       throw new Error('The tool-chain recipe did not expose its expected call chain.');
     }
+    const composer = page.getByLabel('Web studio prompt');
+    await page.getByRole('button', { name: 'Create notes.md' }).click();
+    if ((await composer.inputValue()) !== 'Create notes.md') {
+      throw new Error('The tool-chain recipe did not populate the composer prompt.');
+    }
+    await composer.fill('');
 
     const editor = page.getByLabel('Edit index.html');
     const initialRevision = await page

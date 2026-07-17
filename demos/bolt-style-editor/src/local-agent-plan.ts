@@ -253,7 +253,13 @@ export function promptToToolCalls(
     return [{ name: 'workspace.listFiles', arguments: {} }];
   }
 
-  if (/(create|new|생성|만들)/i.test(prompt) && /(file|파일)/i.test(prompt)) {
+  const createRequest =
+    /(?:create|생성|만들)/i.test(prompt) ||
+    (/\bnew\b/i.test(prompt) && /(file|파일)/i.test(prompt));
+  if (
+    createRequest &&
+    (/(file|파일)/i.test(prompt) || requestedPath !== null)
+  ) {
     calls.push({
       name: 'workspace.createFile',
       arguments: {
