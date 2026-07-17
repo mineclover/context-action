@@ -585,6 +585,9 @@ async function runBrowserProof(url) {
     await multilineCommentEditor.fill(initialAppSource);
     await page.locator('.preview-status-synced').waitFor();
 
+    // Playwright's directory-upload proof needs a real directory path. This
+    // fixture is test-only: it never becomes the app workspace and is removed
+    // in the finally block below after the folder boundary has been exercised.
     folderFixture = await mkdtemp(
       path.join(os.tmpdir(), 'context-action-web-coding-')
     );

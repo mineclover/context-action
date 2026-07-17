@@ -54,6 +54,12 @@ approval, preview mutation, and the Dexie-backed source/preview restore path
 after a browser reload. Set
 `WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
+The directory-upload part creates a short-lived fixture under the operating
+system temporary directory because the browser API needs a real directory
+path. That fixture is separate from the IndexedDB/Blob workspace and is
+removed in the verifier's cleanup block; it is never used as application
+storage or shipped with the static demo.
+
 The development server defaults to an OS-assigned free localhost port, so it
 does not claim a commonly used fixed port. Set `WEB_CODING_PORT` when a stable
 port is useful for an in-app browser tab or another local integration; Vite CLI
