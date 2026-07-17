@@ -237,7 +237,11 @@ export function OpenRouterSettingsDialog({
         <div className="settings-note">
           <span className="status-dot" />
           Stored in this browser origin and sent directly to the configured
-          endpoint. It is not committed to the repository.
+          endpoint. The API key uses the shared
+          <code>context-action.openrouter.api-key</code> entry and is reused by
+          the example OpenRouter demos on this origin. Model and endpoint
+          settings remain standalone-specific. It is not committed to the
+          repository.
         </div>
 
         <div className="settings-actions">

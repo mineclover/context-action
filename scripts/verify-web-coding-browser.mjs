@@ -998,6 +998,15 @@ async function runBrowserProof(url) {
       .getByRole('button', { name: 'Open OpenRouter settings' })
       .click();
     let settingsDialog = page.getByRole('dialog', { name: 'OpenRouter API' });
+    if (
+      !(await settingsDialog.locator('.settings-note').innerText()).includes(
+        'context-action.openrouter.api-key'
+      )
+    ) {
+      throw new Error(
+        'The OpenRouter settings dialog does not explain the shared API-key storage contract.'
+      );
+    }
     const settingsKey = settingsDialog.locator('input').first();
     await settingsKey.fill('sk-or-v1-browser-proof');
     await settingsDialog
