@@ -5,10 +5,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type {
-  LiveEditorDocumentManager,
-  LiveEditorDocumentSnapshot,
-} from '../../../../lib/live-code-editor-bridge';
+import type { LiveEditorDocumentManager } from '../../../../lib/live-code-editor-bridge';
 import {
   type WorkspaceBlobFile,
   type WorkspaceFileSystemAdapter,
@@ -29,7 +26,6 @@ interface LiveEditorWorkspaceActionOptions {
   workspaceRepository: LiveEditorWorkspaceRepository;
   filesystemAdapter: WorkspaceFileSystemAdapter;
   workspaceSnapshot: LiveEditorWorkspaceSnapshot;
-  documentSnapshot: LiveEditorDocumentSnapshot;
   isShowcaseWorkspace: boolean;
   workspaceRoot: string;
   seedFiles: readonly LiveEditorWorkspaceFile[];
@@ -51,7 +47,6 @@ export function useLiveEditorWorkspaceActions({
   workspaceRepository,
   filesystemAdapter,
   workspaceSnapshot,
-  documentSnapshot,
   isShowcaseWorkspace,
   workspaceRoot,
   seedFiles,

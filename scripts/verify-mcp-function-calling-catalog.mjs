@@ -129,6 +129,9 @@ const liveEditorTraceActionsSource = readSource(
 const liveEditorProviderSettingsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorProviderSettings.ts'
 );
+const liveEditorDocumentActionsSource = readSource(
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorDocumentActions.ts'
+);
 const liveEditorWorkspaceActionsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorWorkspaceActions.ts'
 );
@@ -371,6 +374,31 @@ assertNotContains(
   'workspace persistence and mutation APIs from the live editor page'
 );
 assertContains(
+  liveEditorDocumentActionsSource,
+  /documentManager\.update\(/,
+  'live editor document mutation action'
+);
+assertContains(
+  liveEditorDocumentActionsSource,
+  /workspaceManager\.getInitialSource\(/,
+  'live editor document reset-source action'
+);
+assertContains(
+  liveEditorDocumentActionsSource,
+  /markRendered: documentManager\.markRendered/,
+  'live editor preview rendered acknowledgement action'
+);
+assertContains(
+  liveEditorDocumentActionsSource,
+  /markError: documentManager\.markError/,
+  'live editor preview error acknowledgement action'
+);
+assertNotContains(
+  liveEditorPageSource,
+  /documentManager\.(?:update|getInitialSource|markRendered|markError)\(/,
+  'direct document mutation and preview acknowledgements from the live editor page'
+);
+assertContains(
   liveEditorPageSource,
   /role="dialog"[\s\S]*aria-modal="true"/,
   'live editor reset approval dialog'
@@ -420,6 +448,7 @@ console.log('- example agent.request trace lifecycle checked');
 console.log('- live editor agent/discovery trace lifecycle checked');
 console.log('- live editor action/presentation boundary checked');
 console.log('- live editor observability/settings/export boundaries checked');
+console.log('- live editor document mutation/preview boundary checked');
 console.log('- live editor workspace/document observability boundary checked');
 console.log('- live editor reset approval boundary checked');
 console.log('- realtime web-coding handler/action/presentation boundary checked');

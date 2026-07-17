@@ -91,8 +91,9 @@ model settings, `hooks/useLiveEditorObservables.ts` owns trace subscription,
 `hooks/useLiveEditorWorkspaceObservables.ts` owns workspace/document
 subscriptions, `actions/useLiveEditorWorkspaceActions.ts` owns IndexedDB
 hydration, editor persistence, folder import, save, file selection, and reset
-commands, and `actions/useLiveEditorTraceActions.ts` owns trace
-clear/copy/download.
+commands, `actions/useLiveEditorDocumentActions.ts` owns document source and
+scenario mutations plus preview acknowledgements, and
+`actions/useLiveEditorTraceActions.ts` owns trace clear/copy/download.
 `LiveEditorAIToolbar.tsx` renders the returned tool catalog, results, trace, and
 callbacks. This makes the example a concrete reference for the convention
 without making the presentation layer a second registry or external-store API.

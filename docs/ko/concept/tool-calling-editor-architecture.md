@@ -110,7 +110,9 @@ registry call, provider 설정, trace export, provider-facing agent loop를
 `hooks/useLiveEditorWorkspaceObservables.ts`가 workspace/document subscription을
 맡는다. `actions/useLiveEditorWorkspaceActions.ts`는 IndexedDB hydrate, editor
 persistence, folder import/save, 파일 선택, reset command를 소유한다.
-`LiveEditorAIToolbar.tsx`는 catalog, result, trace, callback을 표현한다.
+`actions/useLiveEditorDocumentActions.ts`는 document source/scenario mutation과
+preview acknowledgement를 소유한다. `LiveEditorAIToolbar.tsx`는 catalog, result,
+trace, callback을 표현한다.
 standalone Vite config는 workspace의 `core`, `react`, `mutative` package를 source에서
 resolve하므로, 페이지를 띄우기 전에 오래된 `packages/*/dist` 중간 산출물을 별도로
 준비하지 않아도 dev server가 시작된다.

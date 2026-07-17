@@ -116,8 +116,10 @@ provider-facing agent loop; `hooks/useLiveEditorObservables.ts` owns trace
 subscription, `hooks/useLiveEditorWorkspaceObservables.ts` owns
 workspace/document subscriptions, and
 `actions/useLiveEditorWorkspaceActions.ts` owns IndexedDB hydration, editor
-persistence, folder import/save, file selection, and reset commands. The
-`LiveEditorAIToolbar.tsx` renders the catalog, results, trace, and callbacks.
+persistence, folder import/save, file selection, and reset commands.
+`actions/useLiveEditorDocumentActions.ts` owns document source/scenario
+mutations and preview acknowledgements. The `LiveEditorAIToolbar.tsx` renders
+the catalog, results, trace, and callbacks.
 The standalone Vite config resolves the workspace `core`, `react`, and
 `mutative` packages from source, so its dev server does not require a stale
 intermediate `packages/*/dist` artifact before the page can boot.

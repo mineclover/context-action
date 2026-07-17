@@ -91,6 +91,8 @@ message 실행, agent trace lifecycle을 소유합니다. `LiveEditorAIToolbar.t
 `hooks/useLiveEditorWorkspaceObservables.ts`는 workspace/document subscription을,
 `actions/useLiveEditorWorkspaceActions.ts`는 IndexedDB hydrate, editor persistence,
 folder import, save, 파일 선택, reset command를,
+`actions/useLiveEditorDocumentActions.ts`는 document source/scenario mutation과
+preview acknowledgement를,
 `actions/useLiveEditorTraceActions.ts`는 trace clear/copy/download를
 소유합니다. 따라서 작은 showcase에서도 presentation layer가 두 번째
 registry 또는 external-store API를 만들지 않는다는 컨벤션을 실제 코드로

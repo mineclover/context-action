@@ -19,6 +19,7 @@ import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
+import { useLiveEditorDocumentActions } from './actions/useLiveEditorDocumentActions';
 import { useLiveEditorWorkspaceActions } from './actions/useLiveEditorWorkspaceActions';
 import { useLiveEditorWorkspaceObservables } from './hooks/useLiveEditorWorkspaceObservables';
 import styles from './LiveCodeEditorPage.module.css';
@@ -377,6 +378,13 @@ function LiveCodeEditorContent() {
   );
   const { document: documentSnapshot, workspace: workspaceSnapshot } =
     useLiveEditorWorkspaceObservables({ workspaceManager, documentManager });
+  const documentActions = useLiveEditorDocumentActions({
+    documentManager,
+    workspaceManager,
+  });
+  const { getResetSource, resetSource, setScenario, setSource } =
+    documentActions.commands;
+  const { markError, markRendered } = documentActions.preview;
   const isShowcaseWorkspace =
     workspaceSnapshot.storageMode === 'memory' ||
     workspaceSnapshot.rootName === LIVE_EDITOR_WORKSPACE_ROOT;
@@ -400,7 +408,6 @@ function LiveCodeEditorContent() {
     workspaceRepository,
     filesystemAdapter,
     workspaceSnapshot,
-    documentSnapshot,
     isShowcaseWorkspace,
     workspaceRoot: LIVE_EDITOR_WORKSPACE_ROOT,
     seedFiles: defaultWorkspaceFiles,
@@ -473,7 +480,7 @@ function LiveCodeEditorContent() {
 
   const selectExample = (nextExample: ExampleId) => {
     selectPath(examples[nextExample].file);
-    documentManager.update({ scenario: 'success' });
+    setScenario('success');
     setRunState('ready');
   };
 
@@ -497,9 +504,7 @@ function LiveCodeEditorContent() {
   };
 
   const resetCode = () => {
-    documentManager.update({
-      source: workspaceManager.getInitialSource(documentSnapshot.file),
-    });
+    resetSource();
     setRunState('ready');
   };
 
@@ -521,7 +526,7 @@ function LiveCodeEditorContent() {
     const start = target.selectionStart;
     const end = target.selectionEnd;
     const nextCode = `${code.slice(0, start)}  ${code.slice(end)}`;
-    documentManager.update({ source: nextCode });
+    setSource(nextCode);
     window.requestAnimationFrame(() => {
       target.selectionStart = start + 2;
       target.selectionEnd = start + 2;
@@ -545,9 +550,7 @@ function LiveCodeEditorContent() {
       workspaceManager={workspaceManager}
       filesystemAdapter={filesystemAdapter}
       getExampleIdForPath={getExampleIdForPath}
-      getResetSource={() =>
-        workspaceManager.getInitialSource(documentSnapshot.file)
-      }
+      getResetSource={getResetSource}
     >
       <PageWithLogMonitor pageId="live-code-editor" title="Live Code Editor">
         <main className={styles.page}>
@@ -786,9 +789,7 @@ function LiveCodeEditorContent() {
                         aria-keyshortcuts="Control+S Meta+S"
                         value={code}
                         disabled={activeWorkspaceFile?.isText === false}
-                        onChange={(event) =>
-                          documentManager.update({ source: event.target.value })
-                        }
+                        onChange={(event) => setSource(event.target.value)}
                         onKeyDown={handleEditorKeyDown}
                       />
                     </div>
@@ -834,8 +835,8 @@ function LiveCodeEditorContent() {
                             document={documentSnapshot}
                             workspaceFiles={workspaceSnapshot.files}
                             entryPath={previewEntryPath}
-                            onRendered={documentManager.markRendered}
-                            onError={documentManager.markError}
+                            onRendered={markRendered}
+                            onError={markError}
                           />
                           <div
                             className={styles.scenarioBar}
@@ -851,11 +852,7 @@ function LiveCodeEditorContent() {
                                       ? styles.scenarioButtonActive
                                       : ''
                                   }`}
-                                  onClick={() =>
-                                    documentManager.update({
-                                      scenario: candidate,
-                                    })
-                                  }
+                                  onClick={() => setScenario(candidate)}
                                 >
                                   {scenarioLabels[candidate]}
                                 </button>
