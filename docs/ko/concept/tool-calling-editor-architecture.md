@@ -18,6 +18,13 @@ tools/list
   → model
 ```
 
+`ToolCallResult.content`는 text와 JSON content block을 모두 허용한다.
+`structuredContent`가 있으면 provider가 이를 사용할 수 있지만, structured
+output이 없을 때는 content block을 유지해야 한다. canonical runtime guard도
+model에 결과를 전달하기 전에 두 형식을 모두 검증한다. 사람이 읽는
+provider/UI 텍스트를 만들 때는 core의 `stringifyToolContent` helper를 사용해
+JSON block이 text-only mapper에서 조용히 누락되지 않도록 한다.
+
 Orca는 여러 coding agent를 worktree, 터미널, embedded browser와 연결하는 ADE다. 이번 구현에서는 전체 데스크톱 구조가 아니라 다음 경계만 참고한다.
 
 - Design Mode의 선택 결과 수집: 선택자, HTML/CSS 요약, 화면 상태를 입력 context로 전달

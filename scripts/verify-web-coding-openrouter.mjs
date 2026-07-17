@@ -393,7 +393,7 @@ expectEqual(
 expectEqual(
   JSON.parse(
     protocol.toolResultContent({
-      content: [{ type: 'json', json: { ok: true } }],
+      content: [{ type: 'json' }],
       isError: false,
     })
   ),
@@ -403,6 +403,19 @@ expectEqual(
     message: 'Tool result did not match the canonical result contract.',
   },
   'Malformed tool results must be rejected before provider serialization.'
+);
+expectEqual(
+  JSON.parse(
+    protocol.toolResultContent({
+      content: [{ type: 'json', json: { ok: true } }],
+      isError: false,
+    })
+  ),
+  {
+    status: 'completed',
+    content: '{"ok":true}',
+  },
+  'Valid JSON content blocks must remain available to the provider serializer.'
 );
 
 const controller = new AbortController();

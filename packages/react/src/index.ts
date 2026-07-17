@@ -150,6 +150,8 @@ export {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  stringifyToolContent,
+  stringifyToolContentBlock,
   TOOL_CALL_ERROR_CODES,
   toAnthropicToolDefinition,
   toAnthropicToolDefinitions,

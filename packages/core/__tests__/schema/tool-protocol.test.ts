@@ -8,6 +8,8 @@ import {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  stringifyToolContent,
+  stringifyToolContentBlock,
   toAnthropicToolDefinitions,
   toOpenAIToolDefinitions,
   type ToolCallContext,
@@ -78,6 +80,12 @@ describe('tool protocol context', () => {
         content: [{ type: 'json', json: { ok: true } }],
         isError: false,
       })
+    ).toBe(true);
+    expect(
+      isToolCallResult({
+        content: [{ type: 'json' }],
+        isError: false,
+      })
     ).toBe(false);
     expect(
       isToolCallResult({
@@ -122,6 +130,18 @@ describe('tool protocol context', () => {
       ],
       structuredContent: { path: 'index.html', revision: 3 },
     });
+
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    expect(
+      stringifyToolContent([
+        { type: 'text', text: 'updated' },
+        { type: 'json', json: { revision: 3 } },
+      ])
+    ).toBe('updated\n{"revision":3}');
+    expect(
+      stringifyToolContentBlock({ type: 'json', json: circular })
+    ).toBe('[unserializable JSON content]');
   });
 
   it('collects paged tools/list results and rejects a repeated cursor', () => {

@@ -1,8 +1,7 @@
+import { stringifyToolContent, type ToolContent } from '@context-action/react';
+
 export type ToolResultPresentationLike = {
-  readonly content?: readonly {
-    readonly type?: string;
-    readonly text?: string;
-  }[];
+  readonly content?: readonly ToolContent[];
   readonly error?: {
     readonly message?: string;
   };
@@ -27,8 +26,7 @@ export function formatToolResultText(
     return JSON.stringify(result.structuredContent, null, 2);
   }
   const text = result.content
-    ?.filter((item) => item.type === 'text' && item.text)
-    .map((item) => item.text)
-    .join('\n');
+    ? stringifyToolContent(result.content).trim()
+    : undefined;
   return text || fallback;
 }

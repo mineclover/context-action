@@ -1,4 +1,8 @@
-import { isToolCallResult, TOOL_CALL_ERROR_CODES } from '@context-action/core';
+import {
+  isToolCallResult,
+  stringifyToolContent,
+  TOOL_CALL_ERROR_CODES,
+} from '@context-action/core';
 
 export type OpenRouterErrorCode =
   | 'OPENROUTER_CONFIGURATION_ERROR'
@@ -299,7 +303,7 @@ export function toolResultContent(result: unknown): string {
       ? result.structuredContent
       : {
           status: 'completed',
-          content: result.content?.map((block) => block.text).join('\n'),
+          content: stringifyToolContent(result.content),
         };
 
   try {

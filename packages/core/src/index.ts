@@ -53,6 +53,8 @@ export {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  stringifyToolContent,
+  stringifyToolContentBlock,
   toAnthropicToolDefinition,
   toAnthropicToolDefinitions,
   toOpenAIToolDefinition,

@@ -7,7 +7,11 @@
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { ActionSchemaMap } from '@context-action/core';
-import { listAllTools, type ToolRegistry } from '@context-action/react';
+import {
+  listAllTools,
+  stringifyToolContent,
+  type ToolRegistry,
+} from '@context-action/react';
 import {
   dynamicTool,
   generateText,
@@ -52,9 +56,7 @@ function createToolSet<TSchema extends ActionSchemaMap>(
                 context: { source: 'model', mode: 'agent', sessionId },
               }
             );
-            const resultText = result.content
-              .map((block) => block.text)
-              .join('\n');
+            const resultText = stringifyToolContent(result.content);
 
             if (result.isError) {
               return {

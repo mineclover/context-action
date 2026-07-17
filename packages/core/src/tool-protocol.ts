@@ -199,11 +199,26 @@ export interface ToolJsonContent {
 
 export type ToolContent = ToolTextContent | ToolJsonContent;
 
-/** Standard tool result; structuredContent preserves non-text handler output. */
+/** Convert one canonical content block into a readable model/UI message. */
+export function stringifyToolContentBlock(block: ToolContent): string {
+  if (block.type === 'text') return block.text;
+  try {
+    return JSON.stringify(block.json) ?? '';
+  } catch {
+    return '[unserializable JSON content]';
+  }
+}
+
+/** Convert canonical result content blocks without dropping structured JSON. */
+export function stringifyToolContent(content: readonly ToolContent[]): string {
+  return content.map(stringifyToolContentBlock).join('\n');
+}
+
+/** Standard tool result; content blocks and structuredContent are both preserved. */
 export interface ToolCallResult<TResult = unknown> {
   readonly toolCallId?: ToolCallId;
-  /** Text remains the stable transport surface; structuredContent carries JSON output. */
-  readonly content: ToolTextContent[];
+  /** Content remains the stable transport surface; structuredContent carries JSON output. */
+  readonly content: ToolContent[];
   readonly structuredContent?: TResult;
   readonly isError?: boolean;
   readonly error?: ToolCallError;
@@ -226,6 +241,18 @@ function isToolTextContent(value: unknown): value is ToolTextContent {
   );
 }
 
+function isToolJsonContent(value: unknown): value is ToolJsonContent {
+  return (
+    isRecord(value) &&
+    value.type === 'json' &&
+    Object.prototype.hasOwnProperty.call(value, 'json')
+  );
+}
+
+function isToolContent(value: unknown): value is ToolContent {
+  return isToolTextContent(value) || isToolJsonContent(value);
+}
+
 /** Runtime guard for JSON returned by the canonical tools/call boundary. */
 export function isToolCallResult<TResult = unknown>(
   value: unknown
@@ -240,7 +267,7 @@ export function isToolCallResult<TResult = unknown>(
   if (value.error !== undefined && !isToolCallError(value.error)) {
     return false;
   }
-  return value.content.every(isToolTextContent);
+  return value.content.every(isToolContent);
 }
 
 /** Transport-independent options accepted by a managed tool call. */
@@ -356,14 +383,13 @@ export function listAllTools<
 }
 
 /**
- * Convert the canonical tools/list definitions into an OpenAI-compatible
+ * Convert one canonical tools/list definition into an OpenAI-compatible
  * function payload without consulting a second registry export.
  *
  * The input schema is preserved as-is so provider adapters do not silently
  * drop nested constraints, enums, descriptions, or additional-properties
  * policy while translating the transport envelope.
  */
-/** Convert one canonical tools/list definition to an OpenAI function tool. */
 export function toOpenAIToolDefinition(
   definition: ToolDefinition
 ): OpenAIToolDefinition {

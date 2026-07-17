@@ -18,6 +18,13 @@ tools/list
   → model
 ```
 
+`ToolCallResult.content` accepts both text and JSON content blocks. Provider
+serializers may use `structuredContent` when present, but must retain the
+content blocks when no structured output exists; the canonical runtime guard
+validates both forms before a result is sent back to the model. Use the core
+`stringifyToolContent` helper for human-readable provider/UI text so a JSON
+block is not silently dropped by a text-only mapper.
+
 Orca is an ADE that connects multiple coding agents with worktrees, terminals, and an embedded browser. This project uses only selected boundaries from the reference clone:
 
 - Design Mode selection capture: pass selector, HTML/CSS summary, and screen state as context

@@ -1,3 +1,5 @@
+import { stringifyToolContent, type ToolContent } from '@context-action/core';
+
 export type ToolResultLike = {
   isError?: boolean;
   error?: {
@@ -6,7 +8,7 @@ export type ToolResultLike = {
     retryable?: boolean;
     details?: unknown;
   };
-  content?: Array<{ text?: string }>;
+  content?: readonly ToolContent[];
   structuredContent?: unknown;
 };
 
@@ -14,9 +16,9 @@ export function formatToolResultText(result: ToolResultLike): string {
   if (result.isError) {
     const message =
       result.error?.message?.trim() ||
-      result.content
-        ?.map((block) => block.text?.trim())
-        .find((text): text is string => Boolean(text));
+      (result.content
+        ? stringifyToolContent(result.content).trim()
+        : undefined);
     const code = result.error?.code ? `[${result.error.code}] ` : '';
     const details = result.error?.details;
     const detailText =
