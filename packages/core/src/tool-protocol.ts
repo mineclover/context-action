@@ -155,6 +155,19 @@ function isToolCallId(value: unknown): value is ToolCallId {
   );
 }
 
+function isToolCallSource(value: unknown): value is ToolCallSource {
+  return (
+    value === 'model' ||
+    value === 'mcp' ||
+    value === 'iframe' ||
+    value === 'local'
+  );
+}
+
+function isToolCallMode(value: unknown): value is ToolCallMode {
+  return value === 'agent' || value === 'direct';
+}
+
 function isToolDefinition(value: unknown): value is ToolDefinition {
   return (
     isRecord(value) &&
@@ -196,6 +209,44 @@ export function isToolCallRequest(value: unknown): value is ToolCallRequest {
   if (value.id !== undefined && !isToolCallId(value.id)) return false;
   return (
     value.params.arguments === undefined || isRecord(value.params.arguments)
+  );
+}
+
+/** Runtime guard for approval metadata crossing a UI or audit boundary. */
+export function isToolApprovalSnapshot(
+  value: unknown
+): value is ToolApprovalSnapshot {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== 'string' ||
+    value.id.trim().length === 0 ||
+    value.method !== 'tools/call' ||
+    typeof value.name !== 'string' ||
+    value.name.trim().length === 0 ||
+    typeof value.description !== 'string' ||
+    !isToolCallSource(value.source) ||
+    !Array.isArray(value.argumentKeys) ||
+    !value.argumentKeys.every(
+      (key) => typeof key === 'string' && key.trim().length > 0
+    ) ||
+    typeof value.createdAt !== 'number' ||
+    !Number.isFinite(value.createdAt) ||
+    value.createdAt < 0
+  ) {
+    return false;
+  }
+  if (value.toolCallId !== undefined && !isToolCallId(value.toolCallId)) {
+    return false;
+  }
+  if (value.sessionId !== undefined && typeof value.sessionId !== 'string') {
+    return false;
+  }
+  if (value.mode !== undefined && !isToolCallMode(value.mode)) {
+    return false;
+  }
+  return (
+    value.safeArgumentPreview === undefined ||
+    typeof value.safeArgumentPreview === 'string'
   );
 }
 

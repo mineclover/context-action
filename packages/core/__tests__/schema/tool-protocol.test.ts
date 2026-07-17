@@ -4,6 +4,7 @@ import {
   createToolCallSuccess,
   getToolCallErrorMetadata,
   isToolCallRequest,
+  isToolApprovalSnapshot,
   isToolCallResult,
   isToolListRequest,
   isToolListResult,
@@ -93,6 +94,33 @@ describe('tool protocol context', () => {
         content: [{ type: 'text', text: 'failed' }],
         error: { code: '', message: 'missing code' },
       })
+    ).toBe(false);
+  });
+
+  it('guards approval metadata without coupling the approval surface to execution', () => {
+    const snapshot = {
+      id: 'approval-1',
+      method: 'tools/call',
+      toolCallId: 'call-1',
+      sessionId: 'session-1',
+      name: 'workspace.writeFile',
+      description: 'Write a workspace file.',
+      source: 'model',
+      mode: 'agent',
+      argumentKeys: ['path', 'source'],
+      safeArgumentPreview: 'path: index.html',
+      createdAt: 1,
+    };
+
+    expect(isToolApprovalSnapshot(snapshot)).toBe(true);
+    expect(
+      isToolApprovalSnapshot({ ...snapshot, method: 'tools/list' })
+    ).toBe(false);
+    expect(
+      isToolApprovalSnapshot({ ...snapshot, source: 'remote' })
+    ).toBe(false);
+    expect(
+      isToolApprovalSnapshot({ ...snapshot, argumentKeys: [''] })
     ).toBe(false);
   });
 

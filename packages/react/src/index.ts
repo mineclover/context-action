@@ -146,6 +146,7 @@ export type {
 } from '@context-action/core';
 export {
   getToolCallErrorMetadata,
+  isToolApprovalSnapshot,
   isToolCallRequest,
   isToolCallResult,
   isToolListRequest,

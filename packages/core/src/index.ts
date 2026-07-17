@@ -48,6 +48,7 @@ export {
   createToolCallError,
   createToolCallSuccess,
   getToolCallErrorMetadata,
+  isToolApprovalSnapshot,
   isToolCallRequest,
   isToolCallResult,
   isToolListRequest,
