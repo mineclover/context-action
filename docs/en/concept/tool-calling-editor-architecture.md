@@ -402,6 +402,9 @@ row, while registry
 lifecycle events use `method: 'tools/call'`. Each call row also shows `source`
 and `mode`, so `local · agent`, `model · agent`, and `local · direct` executions
 remain distinguishable in the same UI.
+Once more than one session is present, both example panels expose the same
+session selector and narrow only the visible rows; Copy, Download, and Clear
+continue to operate on the full bounded trace.
 The prompt execution itself is also wrapped in a `method: 'agent.request'` row
 with `running`, `completed`, `failed`, or `cancelled` status. A provider failure
 before a tool call, or a user cancellation, therefore remains visible as a run

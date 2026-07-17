@@ -16,7 +16,12 @@ import {
 } from '../../../lib/live-code-editor-workspace';
 import { formatLiveWebCodingTraceId } from '../../../lib/live-web-coding-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
-import { createToolCallSessionId } from '../../../lib/tool-call-trace';
+import {
+  ALL_TOOL_TRACE_SESSIONS,
+  createToolCallSessionId,
+  filterToolTraceEntries,
+  getToolTraceSessionOptions,
+} from '../../../lib/tool-call-trace';
 import { formatToolResultText } from '../../../lib/tool-result-format';
 import { useLiveEditorDocumentActions } from '../live-code-editor/actions/useLiveEditorDocumentActions';
 import { useLiveEditorProviderSettings } from '../live-code-editor/actions/useLiveEditorProviderSettings';
@@ -169,6 +174,25 @@ function LiveWebCodingWorkbench({
   const { updateDocument } = documentActions.commands;
   const { markRendered } = documentActions.preview;
   const traceActions = useLiveWebCodingTraceActions(trace);
+  const [traceSessionFilter, setTraceSessionFilter] = useState(
+    ALL_TOOL_TRACE_SESSIONS
+  );
+  const traceSessionOptions = useMemo(
+    () => getToolTraceSessionOptions(trace),
+    [trace]
+  );
+  const visibleTrace = useMemo(
+    () => filterToolTraceEntries(trace, traceSessionFilter),
+    [trace, traceSessionFilter]
+  );
+  useEffect(() => {
+    if (
+      traceSessionFilter !== ALL_TOOL_TRACE_SESSIONS &&
+      !traceSessionOptions.some((option) => option.value === traceSessionFilter)
+    ) {
+      setTraceSessionFilter(ALL_TOOL_TRACE_SESSIONS);
+    }
+  }, [traceSessionFilter, traceSessionOptions]);
   const providerSettings = useLiveEditorProviderSettings();
   const { apiKey, models, selectedModel } = providerSettings;
   const [prompt, setPrompt] = useState(
@@ -433,6 +457,26 @@ function LiveWebCodingWorkbench({
                 <div className={styles.toolTraceHeader}>
                   <strong>Tool execution trace</strong>
                   <div className={styles.toolTraceActions}>
+                    {traceSessionOptions.length > 1 ? (
+                      <label className={styles.toolTraceSessionFilter}>
+                        <span className={styles.visuallyHidden}>
+                          Filter execution trace session
+                        </span>
+                        <select
+                          aria-label="Filter execution trace session"
+                          value={traceSessionFilter}
+                          onChange={(event) =>
+                            setTraceSessionFilter(event.target.value)
+                          }
+                        >
+                          {traceSessionOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
                     <button
                       type="button"
                       className={styles.toolTraceClear}
@@ -460,7 +504,9 @@ function LiveWebCodingWorkbench({
                     >
                       Download
                     </button>
-                    <span>{trace.length}</span>
+                    <span>
+                      {visibleTrace.length}/{trace.length}
+                    </span>
                   </div>
                 </div>
                 <div className={styles.toolTraceRows}>
@@ -468,8 +514,12 @@ function LiveWebCodingWorkbench({
                     <span className={styles.toolTraceEmpty}>
                       tools/list ready · waiting for a tools/call event
                     </span>
+                  ) : visibleTrace.length === 0 ? (
+                    <span className={styles.toolTraceEmpty}>
+                      No events in the selected session.
+                    </span>
                   ) : (
-                    trace.slice(0, 6).map((entry) => (
+                    visibleTrace.slice(0, 6).map((entry) => (
                       <div
                         className={`${styles.toolTraceRow} ${
                           entry.status === 'failed'
@@ -480,6 +530,7 @@ function LiveWebCodingWorkbench({
                                 ? styles.toolTraceRowCancelled
                                 : ''
                         }`}
+                        data-session-id={entry.sessionId}
                         key={entry.id}
                         title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
                       >

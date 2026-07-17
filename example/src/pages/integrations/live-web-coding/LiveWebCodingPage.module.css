@@ -319,9 +319,26 @@
 .toolTraceActions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.45rem;
   color: #7a8492;
   font-size: 0.62rem;
+}
+
+.toolTraceSessionFilter {
+  display: inline-flex;
+  align-items: center;
+}
+
+.toolTraceSessionFilter select {
+  max-width: 12rem;
+  border: 1px solid #d9dde6;
+  border-radius: 0.3rem;
+  padding: 0.22rem 0.3rem;
+  background: #fff;
+  color: #667085;
+  font: inherit;
+  font-size: 0.58rem;
 }
 
 .toolTraceClear {
@@ -420,6 +437,18 @@
 .toolTraceRowCancelled .toolTraceMark {
   background: #ebeef5;
   color: #596579;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .error {

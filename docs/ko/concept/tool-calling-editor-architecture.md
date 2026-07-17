@@ -372,6 +372,9 @@ example의 realtime web-coding과 Live Code Editor trace도 같은 최소 protoc
 유지한다. catalog 또는 agent가 discovery를 수행하면 `method: 'tools/list'` row를 만들고, registry lifecycle은
 `method: 'tools/call'` row로 기록한다. call row에는 `source`와 `mode`를 함께 표시하므로
 `local · agent`, `model · agent`, `local · direct` 실행을 같은 UI에서 구분할 수 있다.
+session이 두 개 이상이면 두 example panel 모두 같은 session selector를 노출해
+화면에 보이는 row만 좁힌다. Copy·Download·Clear는 계속 bounded trace 전체를
+대상으로 동작한다.
 agent prompt 실행 자체도 `method: 'agent.request'` row로 감싸며
 `running`, `completed`, `failed`, `cancelled` 상태를 보존한다. 따라서 model이
 tool call을 만들기 전에 실패하거나 사용자가 Cancel을 눌러도 실행 단위가 trace에서

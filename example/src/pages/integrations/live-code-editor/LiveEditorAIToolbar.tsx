@@ -1,6 +1,11 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { formatLiveEditorTraceId } from '../../../lib/live-editor-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
+import {
+  ALL_TOOL_TRACE_SESSIONS,
+  filterToolTraceEntries,
+  getToolTraceSessionOptions,
+} from '../../../lib/tool-call-trace';
 import { useLiveEditorAgentExecution } from './actions/useLiveEditorAgentExecution';
 import { useLiveEditorProviderSettings } from './actions/useLiveEditorProviderSettings';
 import { useLiveEditorToolActions } from './actions/useLiveEditorToolActions';
@@ -12,6 +17,25 @@ export function LiveEditorAIToolbar() {
   const trace = useLiveEditorTrace();
   const providerSettings = useLiveEditorProviderSettings();
   const traceActions = useLiveEditorTraceActions(trace);
+  const [traceSessionFilter, setTraceSessionFilter] = useState(
+    ALL_TOOL_TRACE_SESSIONS
+  );
+  const traceSessionOptions = useMemo(
+    () => getToolTraceSessionOptions(trace),
+    [trace]
+  );
+  const visibleTrace = useMemo(
+    () => filterToolTraceEntries(trace, traceSessionFilter),
+    [trace, traceSessionFilter]
+  );
+  useEffect(() => {
+    if (
+      traceSessionFilter !== ALL_TOOL_TRACE_SESSIONS &&
+      !traceSessionOptions.some((option) => option.value === traceSessionFilter)
+    ) {
+      setTraceSessionFilter(ALL_TOOL_TRACE_SESSIONS);
+    }
+  }, [traceSessionFilter, traceSessionOptions]);
   const [prompt, setPrompt] = useState('');
   const toolActions = useLiveEditorToolActions();
   const agentExecution = useLiveEditorAgentExecution({
@@ -188,6 +212,26 @@ export function LiveEditorAIToolbar() {
           <div className={styles.traceHeader}>
             <strong>Execution trace</strong>
             <div className={styles.traceHeaderActions}>
+              {traceSessionOptions.length > 1 ? (
+                <label className={styles.traceSessionFilter}>
+                  <span className={styles.visuallyHidden}>
+                    Filter execution trace session
+                  </span>
+                  <select
+                    aria-label="Filter execution trace session"
+                    value={traceSessionFilter}
+                    onChange={(event) =>
+                      setTraceSessionFilter(event.target.value)
+                    }
+                  >
+                    {traceSessionOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
               <button
                 type="button"
                 className={styles.traceClearButton}
@@ -215,16 +259,22 @@ export function LiveEditorAIToolbar() {
               >
                 Download
               </button>
-              <span>{trace.length} recent events</span>
+              <span>
+                {visibleTrace.length}/{trace.length} recent events
+              </span>
             </div>
           </div>
           {trace.length === 0 ? (
             <span className={styles.traceEmpty}>
               tools/list → waiting for a tools/call event
             </span>
+          ) : visibleTrace.length === 0 ? (
+            <span className={styles.traceEmpty}>
+              No events in the selected session.
+            </span>
           ) : (
             <div className={styles.traceRows}>
-              {trace.slice(0, 8).map((entry) => (
+              {visibleTrace.slice(0, 8).map((entry) => (
                 <div
                   className={`${styles.traceRow} ${
                     entry.status === 'failed'
@@ -235,6 +285,7 @@ export function LiveEditorAIToolbar() {
                           ? styles.traceRowCancelled
                           : ''
                   }`}
+                  data-session-id={entry.sessionId}
                   key={entry.id}
                   title={`toolCallId: ${entry.id}${entry.sessionId ? ` · sessionId: ${entry.sessionId}` : ''}`}
                 >

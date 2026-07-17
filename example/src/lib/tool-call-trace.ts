@@ -16,6 +16,13 @@ export type ToolTraceEntry = {
   summary?: string;
 };
 
+export const ALL_TOOL_TRACE_SESSIONS = 'all';
+
+export type ToolTraceSessionOption = {
+  value: string;
+  label: string;
+};
+
 export type AgentTraceHandle = {
   id: string;
   sessionId: string;
@@ -43,6 +50,33 @@ export type ToolCallTraceStore = {
 
 export function formatToolTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
+}
+
+export function getToolTraceSessionOptions(
+  entries: readonly ToolTraceEntry[]
+): readonly ToolTraceSessionOption[] {
+  const sessions = new Map<string, string>();
+  for (const entry of entries) {
+    if (entry.sessionId && !sessions.has(entry.sessionId)) {
+      sessions.set(entry.sessionId, entry.source);
+    }
+  }
+
+  return [
+    { value: ALL_TOOL_TRACE_SESSIONS, label: 'All sessions' },
+    ...Array.from(sessions, ([sessionId, source]) => ({
+      value: sessionId,
+      label: `${source} · ${formatToolTraceId(sessionId)}`,
+    })),
+  ];
+}
+
+export function filterToolTraceEntries(
+  entries: readonly ToolTraceEntry[],
+  sessionId: string
+): readonly ToolTraceEntry[] {
+  if (sessionId === ALL_TOOL_TRACE_SESSIONS) return entries;
+  return entries.filter((entry) => entry.sessionId === sessionId);
 }
 
 export function serializeToolTrace(entries: readonly ToolTraceEntry[]): string {

@@ -850,7 +850,24 @@
 .traceHeaderActions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.45rem;
+}
+
+.traceSessionFilter {
+  display: inline-flex;
+  align-items: center;
+}
+
+.traceSessionFilter select {
+  max-width: 12rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 0.3rem;
+  padding: 0.22rem 0.3rem;
+  background: var(--editor-surface);
+  color: #667085;
+  font: inherit;
+  font-size: 0.58rem;
 }
 
 .traceClearButton {
@@ -922,6 +939,18 @@
 .traceRowCancelled {
   background: #f0f2f7;
   color: #596579;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .aiResult,
