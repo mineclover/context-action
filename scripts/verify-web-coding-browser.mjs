@@ -524,11 +524,27 @@ async function runBrowserProof(url) {
       throw new Error('The recent execution trace limit was not restored.');
     }
 
+    await page.locator('button[title="styles.css"]').click();
+    await page.getByLabel('Edit styles.css').waitFor();
+    if (
+      (await page
+        .getByRole('tab', { name: /styles\.css/ })
+        .getAttribute('aria-selected')) !== 'true'
+    ) {
+      throw new Error('The active workspace path did not switch to styles.css before reload.');
+    }
+
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
-    await page.locator('button[title="styles.css"]').click();
     const stylesEditor = page.getByLabel('Edit styles.css');
     await stylesEditor.waitFor();
+    if (
+      (await page
+        .getByRole('tab', { name: /styles\.css/ })
+        .getAttribute('aria-selected')) !== 'true'
+    ) {
+      throw new Error('The persisted active workspace path did not restore styles.css after reload.');
+    }
     const restoredStyles = await stylesEditor.inputValue();
     if (!restoredStyles.includes('--accent: #f59e0b')) {
       throw new Error(
