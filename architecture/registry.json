@@ -16,6 +16,11 @@
       "root": "example"
     },
     {
+      "id": "web-coding-demo",
+      "root": "demos/bolt-style-editor",
+      "fileExtensions": [".ts", ".tsx"]
+    },
+    {
       "id": "architecture-governance",
       "root": "packages/architecture-governance",
       "fileExtensions": [".cjs", ".js", ".mjs", ".ts", ".tsx"]
@@ -97,6 +102,27 @@
         "docs/ko/context-layered/context-layered-guide.md"
       ],
       "rules": ["CA-SEM-BUSINESS-ISOLATION"]
+    },
+    {
+      "id": "CA-WEB-CODING-STUDIO",
+      "status": "verified",
+      "project": "web-coding-demo",
+      "spec": "docs/en/context-layered/usecase-tool-calling-web-studio.md",
+      "owners": ["demos/bolt-style-editor"],
+      "implementationAnchors": [
+        "demos/bolt-style-editor/src/BoltStyleEditor.tsx::function::BoltStyleEditor",
+        "demos/bolt-style-editor/src/workspace-storage.ts::class::WebCodingWorkspaceRepository"
+      ],
+      "testEvidence": [
+        "scripts/verify-web-coding-conventions.mjs",
+        "scripts/verify-web-coding-browser.mjs"
+      ],
+      "publicDocs": [
+        "docs/en/context-layered/usecase-tool-calling-web-studio.md",
+        "docs/ko/context-layered/usecase-tool-calling-web-studio.md",
+        "docs/en/concept/tool-calling-editor-architecture.md",
+        "demos/bolt-style-editor/README.md"
+      ]
     },
     {
       "id": "CA-ARCH-GOVERNANCE",

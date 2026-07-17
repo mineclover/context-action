@@ -201,6 +201,7 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 
 ```bash
 pnpm docs:build
+pnpm docs:management
 pnpm convention:check
 pnpm docs:full             # 광범위한 API/문서 릴리스
 pnpm llms:sync-docs --changed-files <paths>
@@ -212,19 +213,23 @@ standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-call
 ## 8. 현재 피드백과 다음 액션
 
 최근 Dexie panel-layout 변경은 typed contract, repository port, schema
-migration, 집중 browser 증거, 영문·국문 문서를 갖추어 상태가 좋습니다. 다음
-관리 공백은 남아 있습니다.
+migration, 집중 browser 증거, 영문·국문 문서를 갖추어 상태가 좋습니다.
+standalone Web Studio도 이제 `web-coding-demo` architecture analysis project와
+`CA-WEB-CODING-STUDIO` capability로 등록되었으며, 현재 상태는
+`verified`입니다. standalone 전체 검증, browser migration 증거,
+documentation-management gate, architecture SEM gate가 모두 통과했습니다.
+추적성을 위해 다음 관리 항목을 기록합니다.
 
-| 우선순위 | 공백 | 권장 액션 |
+| 상태 | 항목 | 증거 또는 다음 액션 |
 | --- | --- | --- |
-| P0 | 이슈 template과 lifecycle이 이전에는 암묵적이었음 | issue form을 사용하고 review 전에 owner, acceptance criteria, evidence를 요구 |
-| P1 | standalone Web Studio가 아직 `architecture/registry.json` analysis project가 아님 | package 경계가 SEM 증거를 낼 만큼 안정되면 전용 project/capability 추가 |
-| P1 | 현재 Dexie migration 증거는 새 schema 경로가 v1 upgrade fixture보다 직접적임 | 향후 schema 변경에 v1 fixture/upgrade test 추가 |
-| P2 | 영문·국문 parity와 내부 링크 유효성은 주로 review convention임 | pair page, 누락 링크, stale `planned` 문구를 검사하는 CI gate 추가 |
+| 종료 | 이슈 template과 lifecycle이 이전에는 암묵적이었음 | `.github/ISSUE_TEMPLATE/*`를 `pnpm docs:management`가 검사 |
+| 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify`와 `pnpm arch:check` 통과, registry 상태는 `verified` |
+| 종료 | Dexie migration에 명시적인 v1→v2 browser fixture가 없었음 | `scripts/verify-web-coding-browser.mjs`가 v1 DB를 만들고 upgrade를 검증 |
+| 종료 | 영문·국문 parity와 내부 링크 유효성이 주로 review convention이었음 | `pnpm docs:management`가 pair page, discovery link, handoff metadata를 검사 |
 | P2 | issue→spec→test 연결이 기계적으로 강제되지 않음 | issue ID 사용이 정착되면 report 또는 PR check 추가 |
 
-이는 현재 기능을 막는 이유가 아니라 프로세스 개선 항목입니다. 앞의 세 항목을
-다음 governance backlog로 두는 것을 권장합니다.
+남은 추적성 항목은 현재 기능을 막는 이유가 아니라 프로세스 개선 항목입니다.
+이슈 ID가 스펙·커밋·증거에 일관되게 사용될 때까지 governance backlog로 유지합니다.
 
 ## 리뷰 및 handoff 체크리스트
 

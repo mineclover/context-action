@@ -54,6 +54,7 @@
     "diff": "lerna diff",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
+    "docs:management": "node scripts/verify-documentation-management.mjs",
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "npx @context-action/typedoc-vitepress-sync sync --config ./typedoc-vitepress-sync.config.js",
     "docs:api-generate": "node scripts/generate-api-docs.js",

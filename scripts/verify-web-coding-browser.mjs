@@ -97,8 +97,89 @@ async function runBrowserProof(url) {
   page.on('pageerror', (error) => consoleErrors.push(error.message));
 
   try {
+    const legacyFixturePage = await context.newPage();
+    try {
+      await legacyFixturePage.route('**/*', async (route) => {
+        if (route.request().url().startsWith(url)) {
+          await route.fulfill({
+            body: '<!doctype html><title>IndexedDB migration fixture</title>',
+            contentType: 'text/html',
+            status: 200,
+          });
+          return;
+        }
+        await route.continue();
+      });
+      await legacyFixturePage.goto(url, { waitUntil: 'domcontentloaded' });
+      await legacyFixturePage.evaluate(
+        (databaseName) =>
+          new Promise((resolve, reject) => {
+            const request = window.indexedDB.open(databaseName, 1);
+            request.onerror = () => reject(request.error);
+            request.onupgradeneeded = () => {
+              const database = request.result;
+              const workspaces = database.createObjectStore('workspaces', {
+                keyPath: 'id',
+              });
+              workspaces.createIndex('updatedAt', 'updatedAt');
+              const files = database.createObjectStore('files', {
+                keyPath: 'id',
+              });
+              files.createIndex('workspaceId', 'workspaceId');
+              files.createIndex('[workspaceId+path]', [
+                'workspaceId',
+                'path',
+              ]);
+              files.createIndex('updatedAt', 'updatedAt');
+              workspaces.put({
+                id: 'canvas-landing',
+                rootName: 'canvas-landing',
+                activePath: 'index.html',
+                deletedPaths: [],
+                updatedAt: 1,
+                schemaVersion: 1,
+              });
+            };
+            request.onsuccess = () => {
+              request.result.close();
+              resolve();
+            };
+          }),
+        'context-action-web-coding-demo'
+      );
+    } finally {
+      await legacyFixturePage.close();
+    }
+
     await page.goto(url, { waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
+    const migratedDatabase = await page.evaluate(
+      (databaseName) =>
+        new Promise((resolve, reject) => {
+          const request = window.indexedDB.open(databaseName);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            const database = request.result;
+            resolve({
+              stores: Array.from(database.objectStoreNames),
+              version: database.version,
+            });
+            database.close();
+          };
+        }),
+      'context-action-web-coding-demo'
+    );
+    // Dexie serializes logical version 2 as IndexedDB version 20.
+    if (
+      migratedDatabase.version !== 20 ||
+      !migratedDatabase.stores.includes('preferences') ||
+      !migratedDatabase.stores.includes('workspaces') ||
+      !migratedDatabase.stores.includes('files')
+    ) {
+      throw new Error(
+        `The v1 IndexedDB fixture did not migrate to the v2 workspace schema: ${JSON.stringify(migratedDatabase)}`
+      );
+    }
 
     await page.getByRole('button', { name: 'Open OpenRouter settings' }).click();
     const providerSettingsDialog = page.getByRole('dialog', {

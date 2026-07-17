@@ -9,6 +9,10 @@ const repositoryRoot = path.resolve(
 
 const checks = [
   ['Context-Layered layout', 'scripts/check-context-layered-conventions.mjs'],
+  [
+    'documentation management',
+    'scripts/verify-documentation-management.mjs',
+  ],
   ['example use-case recipe', 'scripts/verify-live-usecase-conventions.mjs'],
   [
     'MCP/function-calling catalog',

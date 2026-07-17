@@ -207,6 +207,7 @@ Minimum focused gates:
 
 ```bash
 pnpm docs:build
+pnpm docs:management
 pnpm convention:check
 pnpm docs:full             # broad API/documentation releases
 pnpm llms:sync-docs --changed-files <paths>
@@ -220,18 +221,24 @@ Studio Convention](./usecase-tool-calling-web-studio).
 
 The recent Dexie panel-layout change is in good shape: it has a typed contract,
 a repository port, a schema migration, focused browser evidence, and paired
-documentation. The following management gaps remain:
+documentation. The standalone Web Studio is now registered as the
+`web-coding-demo` architecture analysis project with the
+`CA-WEB-CODING-STUDIO` capability at `verified`. The full standalone
+verification, browser migration proof, documentation-management gate, and
+architecture SEM gate now pass. The following management items are recorded
+for traceability:
 
-| Priority | Gap | Recommended action |
+| Status | Item | Evidence or next action |
 | --- | --- | --- |
-| P0 | Issue templates and lifecycle were previously implicit | Use the repository issue forms and require owner, acceptance criteria, and evidence before review |
-| P1 | Standalone Web Studio is not yet an `architecture/registry.json` analysis project | Add a dedicated project/capability when its package boundary is stable enough for SEM evidence |
-| P1 | Dexie migration proof currently covers the new schema path more directly than an upgrade-from-v1 fixture | Add an explicit v1 fixture/upgrade test for future schema changes |
-| P2 | English/Korean parity and internal link validity are mostly review conventions | Add a lightweight CI check for paired pages, missing links, and stale “planned” wording |
+| Closed | Issue templates and lifecycle were previously implicit | `.github/ISSUE_TEMPLATE/*` is checked by `pnpm docs:management` |
+| Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` and `pnpm arch:check` pass; registry status is `verified` |
+| Closed | Dexie migration lacked an explicit v1→v2 browser fixture | `scripts/verify-web-coding-browser.mjs` creates a v1 database and verifies the upgrade |
+| Closed | English/Korean parity and internal link validity were mostly review conventions | `pnpm docs:management` checks paired pages, discovery links, and handoff metadata |
 | P2 | Issue-to-spec-to-test links are not machine-enforced | Add a small report or PR check once issue IDs are consistently used |
 
-These are process improvements, not reasons to block the current feature. The
-first three should be treated as the next governance backlog.
+The remaining traceability item is a process improvement, not a reason to
+block the current feature. It should remain in the governance backlog until
+issue IDs are consistently used in specifications, commits, and evidence.
 
 ## Review and handoff checklist
 
