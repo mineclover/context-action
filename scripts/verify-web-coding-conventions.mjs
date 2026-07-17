@@ -50,6 +50,7 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/tool-schema.ts',
   'demos/bolt-style-editor/src/tool-handlers.tsx',
   'demos/bolt-style-editor/src/tool-result-contract.ts',
+  'demos/bolt-style-editor/src/tool-command-catalog.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
@@ -122,6 +123,36 @@ const resultContractSource = readSource(
 );
 const catalogContractSource = readSource(
   'demos/bolt-style-editor/src/tool-catalog-contract.ts'
+);
+const commandCatalogSource = readSource(
+  'demos/bolt-style-editor/src/tool-command-catalog.ts'
+);
+const agentChatSource = readSource(
+  'demos/bolt-style-editor/src/views/agent-chat-panel.tsx'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-command-catalog.ts',
+  commandCatalogSource,
+  /export const standaloneToolChainRecipes/,
+  'the typed standalone tool-chain recipe catalog'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-command-catalog.ts',
+  commandCatalogSource,
+  /satisfies readonly ToolChainRecipe\[\]/,
+  'recipe entries checked against the catalog contract'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/agent-chat-panel.tsx',
+  agentChatSource,
+  /promptRecipes\.map\(/,
+  'prompt recipes injected from the catalog'
+);
+assertNotContains(
+  'demos/bolt-style-editor/src/views/agent-chat-panel.tsx',
+  agentChatSource,
+  /Make it emerald|Reset demo workspace/,
+  'inline prompt recipe definitions'
 );
 assertContains(
   'demos/bolt-style-editor/src/tool-result-contract.ts',

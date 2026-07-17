@@ -5,6 +5,7 @@ import type {
 } from '../hooks/use-tool-execution';
 import type { ToolCall } from '../local-agent-plan';
 import type { PendingToolApproval } from '../tool-approval';
+import type { ToolChainRecipe } from '../tool-command-catalog';
 
 export type AgentChatPanelProps = {
   agentMode: 'local' | 'openrouter';
@@ -15,6 +16,7 @@ export type AgentChatPanelProps = {
   running: boolean;
   executionStatusLabel: string;
   prompt: string;
+  promptRecipes: readonly ToolChainRecipe[];
   isStorageReady: boolean;
   formatSessionId: (id: string) => string;
   onResolveApproval: (id: string, decision: 'allow' | 'deny') => void;
@@ -40,6 +42,7 @@ export function AgentChatPanel({
   running,
   executionStatusLabel,
   prompt,
+  promptRecipes,
   isStorageReady,
   formatSessionId,
   onResolveApproval,
@@ -255,26 +258,16 @@ export function AgentChatPanel({
       </div>
       <div className="prompt-recipes-heading">Try a tool-chain recipe</div>
       <div aria-label="Tool-chain prompt recipes" className="prompt-chips">
-        {[
-          'Make it emerald',
-          'Add a feature card',
-          'Update the hero',
-          'Show workspace status',
-          'Create notes.md',
-          'Rename index.html to landing.html',
-          'Download current file',
-          'Save to folder',
-          'Reload folder',
-          'Disconnect folder',
-          'Reset demo workspace',
-        ].map((example) => (
+        {promptRecipes.map((recipe) => (
           <button
+            aria-label={recipe.prompt}
             disabled={!isStorageReady || running}
-            key={example}
-            onClick={() => onPromptChange(example)}
+            key={recipe.id}
+            onClick={() => onPromptChange(recipe.prompt)}
+            title={`${recipe.description} Chain: ${recipe.expectedChain.join(' → ')}`}
             type="button"
           >
-            {example}
+            {recipe.title}
           </button>
         ))}
       </div>

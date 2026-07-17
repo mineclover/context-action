@@ -118,6 +118,31 @@ async function runBrowserProof(url) {
     if ((await page.getByLabel('Web studio prompt').inputValue()) !== '') {
       throw new Error('The standalone composer must start empty and rely on placeholder or recipes for examples.');
     }
+    const promptRecipes = [
+      'Make it emerald',
+      'Add a feature card',
+      'Update the hero',
+      'Show workspace status',
+      'Create notes.md',
+      'Rename index.html to landing.html',
+      'Download current file',
+      'Save to folder',
+      'Reload folder',
+      'Disconnect folder',
+      'Reset demo workspace',
+    ];
+    for (const promptRecipe of promptRecipes) {
+      const recipeButton = page.getByRole('button', { name: promptRecipe });
+      if ((await recipeButton.count()) !== 1) {
+        throw new Error(`The tool-chain recipe is missing: ${promptRecipe}`);
+      }
+    }
+    const themeRecipeTitle = await page
+      .getByRole('button', { name: 'Make it emerald' })
+      .getAttribute('title');
+    if (!themeRecipeTitle?.includes('workspace.getStatus')) {
+      throw new Error('The tool-chain recipe did not expose its expected call chain.');
+    }
 
     const editor = page.getByLabel('Edit index.html');
     const initialRevision = await page

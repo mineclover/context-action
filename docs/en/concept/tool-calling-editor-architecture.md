@@ -194,7 +194,10 @@ retry, while cancellation is shown as cancelled rather than failed.
 The composer also exposes prompt recipes for visual changes, workspace status,
 file creation, the explicit folder save and reload boundaries, and folder
 disconnection; each recipe enters the same local-agent planning and approval
-path as free-form text.
+path as free-form text. In the standalone package,
+`src/tool-command-catalog.ts` owns those prompts, participating tool names, and
+expected approval/preview chain; the chat view receives the typed catalog as
+data instead of embedding a second list of strings.
 The example ToolContext AI demo keeps provider failures inline as an alert,
 restores the failed prompt in the composer, and leaves the saved key and model
 controls available so a corrected configuration can be submitted again.

@@ -33,6 +33,7 @@ import {
   subscribeOpenRouterSettings,
 } from './openrouter';
 import { resolveToolApproval } from './tool-approval';
+import { standaloneToolChainRecipes } from './tool-command-catalog';
 import { ToolHandlers } from './tool-handlers';
 import { formatToolSuccessMessage } from './tool-result-utils';
 import { clearToolTrace } from './tool-trace';
@@ -785,6 +786,7 @@ function EditorWorkbench({
             }
             pendingApprovals={pendingApprovals}
             prompt={prompt}
+            promptRecipes={standaloneToolChainRecipes}
             running={running}
           />
         </main>

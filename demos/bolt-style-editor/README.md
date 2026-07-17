@@ -128,6 +128,9 @@ selection callbacks. The bounded, redacted execution history is rendered by
 `src/tool-result-contract.ts` keeps persistence and revision metadata assembly
 pure and snapshot-driven, so handlers do not duplicate the canonical result
 shape.
+`src/tool-command-catalog.ts` keeps the prompt recipes, participating tools,
+and expected approval/preview chain together; `AgentChatPanel` receives that
+catalog as view data instead of embedding an untyped list of example strings.
 The editor tabs and mutation controls are rendered by
 `src/views/workspace-editor-toolbar.tsx`; mutations still enter through the
 workspace action hooks. The text/Blob source surface is isolated in
