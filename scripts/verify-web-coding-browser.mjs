@@ -1329,9 +1329,26 @@ async function runBrowserProof(url) {
         );
       }
       await authPage
+        .getByRole('button', { name: 'Use local agent & retry' })
+        .waitFor();
+      await authPage
         .getByRole('button', { name: 'Open provider settings' })
         .click();
       await authPage.getByRole('dialog', { name: 'OpenRouter API' }).waitFor();
+      await authPage
+        .getByRole('button', { name: 'Close OpenRouter settings' })
+        .click();
+      await authPage
+        .getByRole('button', { name: 'Use local agent & retry' })
+        .click();
+      await authPage
+        .getByText(/Local agent inspected the workspace/)
+        .waitFor();
+      if (authRequestCount !== 1) {
+        throw new Error(
+          'The local fallback after an OpenRouter authentication failure made another provider request.'
+        );
+      }
       if (authConsoleErrors.length) {
         throw new Error(
           `OpenRouter authentication browser errors: ${authConsoleErrors.join(' | ')}`

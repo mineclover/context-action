@@ -1,5 +1,8 @@
 import type { RefObject } from 'react';
-import type { EditorMessage } from '../hooks/use-tool-execution';
+import type {
+  AgentExecutionOptions,
+  EditorMessage,
+} from '../hooks/use-tool-execution';
 import type { ToolCall } from '../local-agent-plan';
 import type { PendingToolApproval } from '../tool-approval';
 
@@ -15,7 +18,10 @@ export type AgentChatPanelProps = {
   isStorageReady: boolean;
   formatSessionId: (id: string) => string;
   onResolveApproval: (id: string, decision: 'allow' | 'deny') => void;
-  onExecutePrompt: (value: string) => void | Promise<void>;
+  onExecutePrompt: (
+    value: string,
+    options?: AgentExecutionOptions
+  ) => void | Promise<void>;
   onExecuteQuickTool: (call: ToolCall) => Promise<unknown>;
   onReconnectFolder: () => void;
   onGrantFolderAccess: () => void;
@@ -157,6 +163,19 @@ export function AgentChatPanel({
                   type="button"
                 >
                   {message.retryLabel ?? 'Retry'}
+                </button>
+              ) : null}
+              {!running && message.localRetryPrompt ? (
+                <button
+                  className="message-local-fallback"
+                  onClick={() =>
+                    void onExecutePrompt(message.localRetryPrompt!, {
+                      forceLocal: true,
+                    })
+                  }
+                  type="button"
+                >
+                  Use local agent &amp; retry
                 </button>
               ) : null}
               {!running && message.folderAction === 'reconnect' ? (

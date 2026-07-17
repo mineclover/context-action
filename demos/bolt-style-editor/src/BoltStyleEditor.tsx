@@ -135,6 +135,7 @@ function EditorWorkbench({
   const clearPrompt = useCallback(() => setPrompt(''), []);
   const {
     running,
+    activeAgentMode,
     providerRetry,
     executionControllerRef,
     flushEditorDraftsRef,
@@ -725,7 +726,10 @@ function EditorWorkbench({
           />
 
           <AgentChatPanel
-            agentMode={openRouterSettings.apiKey ? 'openrouter' : 'local'}
+            agentMode={
+              activeAgentMode ??
+              (openRouterSettings.apiKey ? 'openrouter' : 'local')
+            }
             executionStatusLabel={executionStatusLabel}
             firstApprovalButtonRef={firstApprovalButtonRef}
             formatSessionId={formatTraceId}

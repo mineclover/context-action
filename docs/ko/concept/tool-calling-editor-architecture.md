@@ -172,6 +172,12 @@ reload 경계·folder disconnect를 위한 prompt recipe도 제공한다. 각 re
 example의 ToolContext AI 데모는 provider 오류를 alert로 채팅 영역에 유지하고,
 실패한 prompt를 composer에 복원하며, 저장된 key와 model control을 그대로
 사용할 수 있게 한다. 따라서 설정을 수정한 뒤 같은 요청을 다시 제출할 수 있다.
+standalone studio에서 설정된 key로 configuration·authentication·access 또는
+invalid-response 오류가 발생하면 공유 key를 지우지 않고 같은 prompt에 대해
+`Use local agent & retry`를 제공한다. 이 동작은 해당 요청만 provider에서
+우회하는 one-request fallback으로, OpenRouter에 두 번째 요청을 보내지 않고
+canonical local-agent tool boundary를 실행한다. 실행 중 chat badge에는 현재
+사용 중인 local mode가 표시된다.
 
 standalone OpenRouter bridge는 response body를 먼저 text로 읽은 뒤 JSON을 해석하므로,
 endpoint 설정이 잘못되어도 브라우저의 `Response.json()` 내부 예외가 chat에 그대로

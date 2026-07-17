@@ -184,6 +184,12 @@ path as free-form text.
 The example ToolContext AI demo keeps provider failures inline as an alert,
 restores the failed prompt in the composer, and leaves the saved key and model
 controls available so a corrected configuration can be submitted again.
+When the standalone studio has a configured key but receives a configuration,
+authentication, access, or invalid-response failure, it also keeps that shared
+key intact and offers `Use local agent & retry` for the same prompt. This is a
+one-request provider bypass: the retry runs through the canonical local-agent
+tool boundary without issuing another OpenRouter request, and the chat badge
+shows the active local mode while it runs.
 
 The standalone OpenRouter bridge parses the response body as text before JSON
 decoding, so a misconfigured endpoint cannot leak a browser `Response.json()`

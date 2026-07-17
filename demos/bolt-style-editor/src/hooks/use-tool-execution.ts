@@ -30,6 +30,7 @@ export type EditorMessage = {
   retryPrompt?: string;
   retryLabel?: string;
   retryTool?: ToolCall;
+  localRetryPrompt?: string;
   folderAction?: 'reconnect' | 'grant';
   previewAction?: boolean;
   openSettings?: boolean;
@@ -43,6 +44,10 @@ export type ToolExecutionOutcome = {
 export type ToolExecutionOptions = {
   announce?: boolean;
   skipDraftFlush?: boolean;
+};
+
+export type AgentExecutionOptions = {
+  forceLocal?: boolean;
 };
 
 export type EditorDraftFlushRef = MutableRefObject<
@@ -80,10 +85,14 @@ export function useToolExecution({
   ) => string;
 }): {
   running: boolean;
+  activeAgentMode: 'local' | 'openrouter' | null;
   providerRetry: OpenRouterRetryEvent | null;
   executionControllerRef: MutableRefObject<AbortController | null>;
   flushEditorDraftsRef: EditorDraftFlushRef;
-  executePrompt: (value: string) => Promise<void>;
+  executePrompt: (
+    value: string,
+    options?: AgentExecutionOptions
+  ) => Promise<void>;
   executeQuickTool: (
     call: ToolCall,
     options?: ToolExecutionOptions
@@ -91,6 +100,9 @@ export function useToolExecution({
   cancelExecution: () => void;
 } {
   const [running, setRunning] = useState(false);
+  const [activeAgentMode, setActiveAgentMode] = useState<
+    'local' | 'openrouter' | null
+  >(null);
   const [providerRetry, setProviderRetry] =
     useState<OpenRouterRetryEvent | null>(null);
   const executionControllerRef = useRef<AbortController | null>(null);
@@ -184,22 +196,27 @@ export function useToolExecution({
   );
 
   const executePrompt = useCallback(
-    async (value: string): Promise<void> => {
+    async (
+      value: string,
+      options: AgentExecutionOptions = {}
+    ): Promise<void> => {
       const trimmed = value.trim();
       if (!trimmed || running) return;
       const draftsFlushed = await flushEditorDraftsRef.current?.();
       if (draftsFlushed === false) return;
+      const useOpenRouter = !options.forceLocal && openRouterSettings.apiKey;
       const controller = new AbortController();
       executionControllerRef.current = controller;
       setProviderRetry(null);
       const agentTrace = startAgentTrace(
-        openRouterSettings.apiKey ? 'openrouter' : 'local'
+        useOpenRouter ? 'openrouter' : 'local'
       );
       clearPrompt();
       setMessages((current) => [...current, { role: 'user', text: trimmed }]);
+      setActiveAgentMode(useOpenRouter ? 'openrouter' : 'local');
       setRunning(true);
       try {
-        const result = openRouterSettings.apiKey
+        const result = useOpenRouter
           ? await runOpenRouterAgent(
               registry,
               trimmed,
@@ -271,7 +288,12 @@ export function useToolExecution({
               ? {}
               : { retryPrompt: trimmed }),
             ...(shouldOpenProviderSettings(error)
-              ? { openSettings: true }
+              ? {
+                  openSettings: true,
+                  ...(openRouterSettings.apiKey
+                    ? { localRetryPrompt: trimmed }
+                    : {}),
+                }
               : {}),
           },
         ]);
@@ -280,6 +302,7 @@ export function useToolExecution({
           executionControllerRef.current = null;
         }
         setProviderRetry(null);
+        setActiveAgentMode(null);
         setRunning(false);
       }
     },
@@ -309,6 +332,7 @@ export function useToolExecution({
 
   return {
     running,
+    activeAgentMode,
     providerRetry,
     executionControllerRef,
     flushEditorDraftsRef,
