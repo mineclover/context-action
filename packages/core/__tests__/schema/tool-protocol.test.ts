@@ -1,5 +1,6 @@
 import {
   TOOL_CALL_ERROR_CODES,
+  createToolApprovalQueue,
   createToolCallError,
   createToolCallSuccess,
   getToolCallErrorMetadata,
@@ -122,6 +123,86 @@ describe('tool protocol context', () => {
     expect(
       isToolApprovalSnapshot({ ...snapshot, argumentKeys: [''] })
     ).toBe(false);
+  });
+
+  it('provides a shared approval queue lifecycle for browser and host surfaces', async () => {
+    const queue = createToolApprovalQueue({
+      idPrefix: 'test-approval',
+      safeArgumentNames: ['path'],
+    });
+    let notifications = 0;
+    const unsubscribe = queue.store.subscribe(() => {
+      notifications += 1;
+    });
+    const request = {
+      id: 'call-approval-1',
+      method: 'tools/call' as const,
+      params: {
+        name: 'workspace.saveAll',
+        arguments: {
+          path: 'src/App.tsx',
+          source: 'secret source must never enter the preview',
+        },
+      },
+    };
+    const allowed = queue.request({
+      request,
+      definition: {
+        name: request.params.name,
+        description: 'Write workspace files.',
+        inputSchema: { type: 'object' },
+      },
+      context: {
+        source: 'mcp',
+        mode: 'agent',
+        sessionId: 'session-approval',
+      },
+    });
+
+    expect(queue.store.getSnapshot()).toEqual([
+      expect.objectContaining({
+        id: 'call-approval-1',
+        method: 'tools/call',
+        toolCallId: 'call-approval-1',
+        source: 'mcp',
+        mode: 'agent',
+        sessionId: 'session-approval',
+        argumentKeys: ['path', 'source'],
+        safeArgumentPreview: 'path: src/App.tsx',
+      }),
+    ]);
+    expect(notifications).toBe(1);
+
+    queue.resolve('call-approval-1', 'allow');
+    await expect(allowed).resolves.toBe('allow');
+    expect(queue.store.getSnapshot()).toEqual([]);
+    expect(notifications).toBe(2);
+
+    const controller = new AbortController();
+    const cancelled = queue.request({
+      request: { ...request, id: 'call-approval-cancelled' },
+      definition: {
+        name: request.params.name,
+        inputSchema: { type: 'object' },
+      },
+      context: { source: 'model', mode: 'agent' },
+      signal: controller.signal,
+    });
+    controller.abort();
+    await expect(cancelled).resolves.toBe('deny');
+    expect(queue.store.getSnapshot()).toEqual([]);
+
+    const pending = queue.request({
+      request: { ...request, id: 'call-approval-unmounted' },
+      definition: {
+        name: request.params.name,
+        inputSchema: { type: 'object' },
+      },
+    });
+    queue.denyAll();
+    await expect(pending).resolves.toBe('deny');
+    expect(queue.store.getSnapshot()).toEqual([]);
+    unsubscribe();
   });
 
   it('creates canonical discovery, model-call, and result shapes', () => {

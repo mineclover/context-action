@@ -102,6 +102,35 @@ tool schema in a view or bypass the registry with a direct handler call. The
 full browser workspace recipe is documented in
 [`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
 
+### Shared approval queue
+
+Use the framework-neutral queue for any UI or host approval surface. It stores
+metadata-only snapshots and owns cancellation/settlement, while the registry
+continues to own tool execution:
+
+```typescript
+import {
+  createToolApprovalQueue,
+  type ToolApprovalRequestInput,
+} from '@context-action/core';
+
+const approvals = createToolApprovalQueue({
+  idPrefix: 'studio-approval',
+  safeArgumentNames: ['path'],
+});
+
+declare const input: ToolApprovalRequestInput;
+const pendingDecision = approvals.request(input);
+// Attach approvals.store to useSyncExternalStore or another host observer.
+const snapshot = approvals.store.getSnapshot()[0];
+if (snapshot) approvals.resolve(snapshot.id, 'allow');
+const decision = await pendingDecision;
+```
+
+The queue never persists raw arguments or calls a handler. Use `denyAll()` when
+an execution session or approval surface unmounts, and pass the provider
+`AbortSignal` so cancelled model calls resolve as `deny`.
+
 ## 🌟 Vanilla JavaScript Support
 
 **@context-action/core works perfectly with vanilla JavaScript!** No React, Vue, or any framework required.

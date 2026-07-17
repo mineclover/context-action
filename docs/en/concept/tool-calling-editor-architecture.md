@@ -477,6 +477,14 @@ metadata. It preserves the canonical `tools/call` method, provider call ID,
 session, source, execution mode, safe argument summary, and creation time while
 keeping the approval surface separate from tool execution.
 
+The lifecycle should also use core's `createToolApprovalQueue()` rather than a
+surface-specific resolver map. The queue provides the same `request`, `resolve`,
+`denyAll`, `store.getSnapshot`, and `store.subscribe` boundary to React and
+standalone hosts. `safeArgumentNames` and `idPrefix` are application options;
+the queue never persists raw arguments or executes the tool. This keeps abort,
+duplicate-ID handling, unmount cleanup, and reactive approval state consistent
+across example and standalone implementations.
+
 ## iframe rules
 
 The iframe is limited to:

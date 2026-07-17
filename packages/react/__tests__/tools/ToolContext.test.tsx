@@ -632,7 +632,10 @@ describe('createToolContext', () => {
         message: 'workspace conflict',
         details: { message: 'workspace conflict' },
       });
-      expect(toolResult.content[0]?.text).toBe('workspace conflict');
+      expect(toolResult.content[0]).toEqual({
+        type: 'text',
+        text: 'workspace conflict',
+      });
     });
 
     it('should preserve structured metadata from a blocking handler error', async () => {
@@ -681,7 +684,10 @@ describe('createToolContext', () => {
       );
 
       expect(toolResult.isError).toBe(true);
-      expect(toolResult.content[0]?.text).toMatch(/unknownTool/);
+      expect(toolResult.content[0]).toMatchObject({
+        type: 'text',
+        text: expect.stringMatching(/unknownTool/),
+      });
       expect(toolResult.toolCallId).toBe('call-1');
       expect(toolResult.error).toMatchObject({ code: 'TOOL_NOT_FOUND' });
     });

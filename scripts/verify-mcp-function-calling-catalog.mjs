@@ -139,6 +139,12 @@ const liveEditorPageSource = readSource(
 const liveEditorToolchainSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveEditorToolchain.tsx'
 );
+const liveEditorApprovalSource = readSource(
+  'example/src/lib/live-editor-tool-approval.ts'
+);
+const standaloneApprovalSource = readSource(
+  'demos/bolt-style-editor/src/tool-approval.ts'
+);
 const liveEditorToolActionsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts'
 );
@@ -583,6 +589,16 @@ assertContains(
   liveEditorToolchainSource,
   /context\?\.mode\s*===\s*'direct'/,
   'live editor direct-call approval bypass'
+);
+assertContains(
+  liveEditorApprovalSource,
+  /createToolApprovalQueue\(/,
+  'Live Code Editor canonical approval queue'
+);
+assertContains(
+  standaloneApprovalSource,
+  /createToolApprovalQueue\(/,
+  'standalone canonical approval queue'
 );
 assertContains(
   liveEditorToolActionsSource,

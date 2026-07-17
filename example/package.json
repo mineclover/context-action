@@ -23,6 +23,7 @@
     "check:fix": "biome check --write src",
     "type-check": "tsc --noEmit",
     "verify:catalog": "node ../scripts/verify-mcp-function-calling-catalog.mjs",
+    "preverify:approval": "pnpm --filter @context-action/core build",
     "verify:approval": "node ../scripts/verify-example-live-editor-approval.mjs",
     "verify:openrouter": "node ../scripts/verify-example-openrouter-browser.mjs",
     "verify:usecase": "node ../scripts/verify-live-usecase-conventions.mjs",

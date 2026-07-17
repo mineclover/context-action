@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const rootDirectory = path.resolve(import.meta.dirname, '..');
 const approvalPath = path.join(
@@ -17,8 +18,17 @@ const { outputText } = typescript.transpileModule(source, {
   },
   fileName: approvalPath,
 });
+const coreModuleUrl = pathToFileURL(
+  path.join(rootDirectory, 'packages/core/dist/index.js')
+).href;
 const approval = await import(
-  'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64')
+  'data:text/javascript;base64,' +
+    Buffer.from(
+      outputText.replaceAll(
+        "from '@context-action/core'",
+        `from '${coreModuleUrl}'`
+      )
+    ).toString('base64')
 );
 
 function expect(condition, message) {

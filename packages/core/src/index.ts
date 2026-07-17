@@ -45,6 +45,7 @@ export type {
 // Standard tool protocol contracts
 export {
   TOOL_CALL_ERROR_CODES,
+  createToolApprovalQueue,
   createToolCallError,
   createToolCallSuccess,
   getToolCallErrorMetadata,
@@ -72,6 +73,11 @@ export type {
   ToolArguments,
   ToolCallContext,
   ToolApprovalSnapshot,
+  ToolApprovalDecision,
+  ToolApprovalQueue,
+  ToolApprovalQueueOptions,
+  ToolApprovalRequestInput,
+  ToolApprovalStore,
   ToolCallSource,
   ToolCallMode,
   ToolCallError,

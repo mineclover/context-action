@@ -127,6 +127,11 @@ export type {
   ToolArguments,
   ToolCallContext,
   ToolApprovalSnapshot,
+  ToolApprovalDecision,
+  ToolApprovalQueue,
+  ToolApprovalQueueOptions,
+  ToolApprovalRequestInput,
+  ToolApprovalStore,
   ToolCallSource,
   ToolCallMode,
   ToolCallError,
@@ -145,6 +150,7 @@ export type {
   ToolTextContent,
 } from '@context-action/core';
 export {
+  createToolApprovalQueue,
   getToolCallErrorMetadata,
   isToolApprovalSnapshot,
   isToolCallRequest,

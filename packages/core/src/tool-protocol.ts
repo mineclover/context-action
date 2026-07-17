@@ -76,6 +76,152 @@ export interface ToolApprovalSnapshot {
   readonly createdAt: number;
 }
 
+/** Decisions supported by a UI or host approval surface. */
+export type ToolApprovalDecision = 'allow' | 'deny';
+
+/** Provider-neutral input used to create a pending approval snapshot. */
+export interface ToolApprovalRequestInput {
+  readonly request: ToolCallRequest;
+  readonly definition: ToolDefinition;
+  readonly context?: ToolCallContext;
+  readonly signal?: AbortSignal;
+}
+
+/** Configuration for a canonical approval queue. */
+export interface ToolApprovalQueueOptions {
+  readonly idPrefix?: string;
+  readonly safeArgumentNames?: readonly string[];
+}
+
+/** Reactive snapshot boundary for approval surfaces. */
+export interface ToolApprovalStore {
+  readonly getSnapshot: () => readonly ToolApprovalSnapshot[];
+  readonly subscribe: (listener: () => void) => () => void;
+}
+
+/** Shared approval lifecycle used by browser and host tool surfaces. */
+export interface ToolApprovalQueue {
+  readonly store: ToolApprovalStore;
+  readonly request: (
+    input: ToolApprovalRequestInput
+  ) => Promise<ToolApprovalDecision>;
+  readonly resolve: (id: string, decision: ToolApprovalDecision) => void;
+  readonly denyAll: () => void;
+}
+
+/**
+ * Create a provider-neutral approval queue for `tools/call` requests.
+ *
+ * The queue owns only metadata and promise resolution. It does not execute a
+ * tool, persist arguments, or depend on React, so an application can attach a
+ * browser dialog, a host prompt, or an audit surface to the same contract.
+ */
+export function createToolApprovalQueue(
+  options: ToolApprovalQueueOptions = {}
+): ToolApprovalQueue {
+  let sequence = 0;
+  let pending: ToolApprovalSnapshot[] = [];
+  const resolvers = new Map<
+    string,
+    (decision: ToolApprovalDecision) => void
+  >();
+  const listeners = new Set<() => void>();
+  const safeArgumentNames = new Set(options.safeArgumentNames ?? []);
+  const idPrefix = options.idPrefix ?? 'approval';
+
+  const buildSafeArgumentPreview = (
+    argumentsValue: Record<string, unknown> | undefined
+  ): string | undefined => {
+    const entries = Object.entries(argumentsValue ?? {}).filter(
+      ([name, value]) =>
+        safeArgumentNames.has(name) &&
+        (typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean')
+    );
+    if (!entries.length) return undefined;
+    return entries
+      .map(([name, value]) => `${name}: ${String(value).slice(0, 120)}`)
+      .join(' · ');
+  };
+
+  const notify = (): void => {
+    for (const listener of listeners) listener();
+  };
+
+  const resolve = (id: string, decision: ToolApprovalDecision): void => {
+    const resolver = resolvers.get(id);
+    if (!resolver) return;
+    resolvers.delete(id);
+    pending = pending.filter((request) => request.id !== id);
+    notify();
+    resolver(decision);
+  };
+
+  const request = (
+    input: ToolApprovalRequestInput
+  ): Promise<ToolApprovalDecision> => {
+    if (input.signal?.aborted) return Promise.resolve('deny');
+
+    const baseId = String(
+      input.request.id ?? `${idPrefix}-${Date.now()}-${sequence++}`
+    );
+    const id = pending.some((approval) => approval.id === baseId)
+      ? `${baseId}-${sequence++}`
+      : baseId;
+    const approval: ToolApprovalSnapshot = {
+      id,
+      method: input.request.method,
+      ...(input.request.id === undefined ? {} : { toolCallId: input.request.id }),
+      ...(input.context?.sessionId
+        ? { sessionId: input.context.sessionId }
+        : {}),
+      name: input.request.params.name,
+      description: input.definition.description ?? 'No description provided.',
+      source: input.context?.source ?? 'model',
+      ...(input.context?.mode ? { mode: input.context.mode } : {}),
+      argumentKeys: Object.keys(input.request.params.arguments ?? {}),
+      safeArgumentPreview: buildSafeArgumentPreview(
+        input.request.params.arguments
+      ),
+      createdAt: Date.now(),
+    };
+
+    return new Promise((resolvePromise) => {
+      let abortHandler: (() => void) | undefined;
+      const settle = (decision: ToolApprovalDecision): void => {
+        if (abortHandler && input.signal) {
+          input.signal.removeEventListener('abort', abortHandler);
+        }
+        resolvePromise(decision);
+      };
+
+      pending = [approval, ...pending];
+      resolvers.set(id, settle);
+      if (input.signal) {
+        abortHandler = () => resolve(id, 'deny');
+        input.signal.addEventListener('abort', abortHandler, { once: true });
+        if (input.signal.aborted) abortHandler();
+      }
+      notify();
+    });
+  };
+
+  const denyAll = (): void => {
+    for (const approval of [...pending]) resolve(approval.id, 'deny');
+  };
+
+  const store: ToolApprovalStore = {
+    getSnapshot: (): readonly ToolApprovalSnapshot[] => pending,
+    subscribe: (listener: () => void): (() => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+
+  return { store, request, resolve, denyAll };
+}
+
 /** Structured error returned to the model instead of leaking an exception. */
 export interface ToolCallError {
   /** Canonical codes are listed in TOOL_CALL_ERROR_CODES; applications may add their own. */
