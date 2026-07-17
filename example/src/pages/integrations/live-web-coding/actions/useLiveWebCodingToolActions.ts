@@ -1,4 +1,8 @@
-import { toToolCallRequest, toToolListRequest } from '@context-action/react';
+import {
+  listAllTools,
+  type ToolListResult,
+  toToolCallRequest,
+} from '@context-action/react';
 import { useCallback, useMemo } from 'react';
 import { recordLiveWebCodingToolList } from '../../../../lib/live-web-coding-trace';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';
@@ -39,14 +43,12 @@ export function useLiveWebCodingToolActions({
 }) {
   const registry = useLiveWebCodingToolRegistry();
 
-  const toolDefinitions = useMemo(
-    () => registry.listTools(toToolListRequest()).tools,
-    [registry]
-  );
+  const toolDefinitions = useMemo(() => listAllTools(registry), [registry]);
 
   const listTools = useCallback(
     (source: ToolCallSource, sessionId?: string) => {
-      const result = registry.listTools(toToolListRequest());
+      const tools = listAllTools(registry);
+      const result = { tools } satisfies ToolListResult;
       recordLiveWebCodingToolList(result.tools.length, source, sessionId);
       return result;
     },

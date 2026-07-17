@@ -1,4 +1,4 @@
-import { toToolListRequest } from '@context-action/react';
+import { listAllTools } from '@context-action/react';
 import type { ModelMessage } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -65,8 +65,8 @@ export function useLiveEditorAgentExecution({
     ];
 
     try {
-      const listedTools = registry.listTools(toToolListRequest());
-      recordLiveEditorToolList(listedTools.tools.length, 'model', sessionId);
+      const listedTools = listAllTools(registry);
+      recordLiveEditorToolList(listedTools.length, 'model', sessionId);
       const response = await runner.generate({
         model: selectedModel,
         messages,

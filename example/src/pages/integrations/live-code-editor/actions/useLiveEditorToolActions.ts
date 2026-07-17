@@ -1,4 +1,4 @@
-import { toToolCallRequest, toToolListRequest } from '@context-action/react';
+import { listAllTools, toToolCallRequest } from '@context-action/react';
 import { useCallback, useMemo, useState } from 'react';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';
 import { formatToolResultText } from '../../../../lib/tool-result-format';
@@ -15,10 +15,7 @@ export function useLiveEditorToolActions() {
   const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
 
-  const toolDefinitions = useMemo(
-    () => registry.listTools(toToolListRequest()).tools,
-    [registry]
-  );
+  const toolDefinitions = useMemo(() => listAllTools(registry), [registry]);
 
   const callLocalTool = useCallback(
     (

@@ -285,7 +285,7 @@ assertContains(
 );
 assertContains(
   realtimeToolActionsSource,
-  /registry\.listTools\(toToolListRequest\(\)\)/,
+  /listAllTools\(registry\)/,
   'realtime web-coding action discovery boundary'
 );
 assertContains(
@@ -380,7 +380,7 @@ assertContains(
 );
 assertContains(
   liveEditorAgentActionsSource,
-  /recordLiveEditorToolList\(listedTools\.tools\.length/,
+  /recordLiveEditorToolList\(listedTools\.length/,
   'live editor discovery trace'
 );
 assertContains(
@@ -395,12 +395,12 @@ assertContains(
 );
 assertContains(
   liveEditorToolActionsSource,
-  /registry\.listTools\(toToolListRequest\(\)\)/,
+  /listAllTools\(registry\)/,
   'live editor action discovery boundary'
 );
 assertContains(
   liveEditorAgentActionsSource,
-  /registry\.listTools\(toToolListRequest\(\)\)/,
+  /listAllTools\(registry\)/,
   'live editor agent discovery boundary'
 );
 assertContains(

@@ -246,6 +246,12 @@ assertContains(
   /toolsList\.tools\.map\(\(definition\) => definition\.name\)/,
   'tool names derived from the canonical tools/list result'
 );
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
+  catalogModelSource,
+  /listAllTools\(registry\)/,
+  'complete tools/list pagination handling'
+);
 assertNotContains(
   'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
   catalogModelSource,

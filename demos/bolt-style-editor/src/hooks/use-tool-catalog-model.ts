@@ -1,4 +1,4 @@
-import { toToolListRequest } from '@context-action/react';
+import { listAllTools } from '@context-action/react';
 import { useCallback, useMemo } from 'react';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import type { ToolCatalogDefinition } from '../tool-catalog-contract';
@@ -23,7 +23,7 @@ export function useToolCatalogModel({
   toolCatalogFilter,
 }: ToolCatalogModelOptions) {
   const toolsList = useMemo(
-    () => registry.listTools(toToolListRequest()),
+    () => ({ tools: listAllTools(registry) }),
     [registry]
   );
   const toolNames = useMemo(
