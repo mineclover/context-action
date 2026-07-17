@@ -443,7 +443,11 @@ to execute its demo arguments, so browsing a destructive tool cannot mutate the
 workspace accidentally. Catalog search and scope filters narrow the same
 canonical list without changing discovery or execution policy. Scope counts are
 derived from canonical annotations and namespaces: all, read-only, workspace,
-and preview. `Copy list` serializes the complete `tools` array returned by
+and preview. The registry's `toMCP()`, `toOpenAI()`, and `toAnthropic()` batch
+exports all begin with the same complete `listTools().tools` definitions and
+then apply the core provider adapter. Individual action serializers delegate to
+that same adapter, so root schema constraints cannot disappear in one export
+path. `Copy list` serializes the complete `tools` array returned by
 `registry.listTools(toToolListRequest())`, so the catalog can be pasted into
 an MCP/provider test without reconstructing definitions by hand. `Download list`,
 `Download definition`, and `Download tools/call` provide the same contracts as

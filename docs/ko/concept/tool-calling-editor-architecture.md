@@ -409,7 +409,11 @@ input function projection을 사용하지만, provider 호출 뒤 structured res
 registry가 계속 수행한다. catalog 행 선택은 정의를 살펴보는
 데만 사용하고, 샘플 인자를 실행하려면 별도의 `Run sample` 버튼을 누르게 한다.
 따라서 파괴적인 tool을 살펴보는 것만으로 workspace가 변경되지 않는다. catalog
-검색과 scope filter는 동일한 canonical list만 좁혀 보며 discovery나 execution
+registry의 `toMCP()`, `toOpenAI()`, `toAnthropic()` batch export도 동일한 전체
+`listTools().tools` definition에서 시작해 core provider adapter를 적용한다.
+개별 action serializer도 같은 adapter를 위임하므로 export 경로마다 root schema
+제약이 사라지지 않는다. catalog 검색과 scope filter는 동일한 canonical list만
+좁혀 보며 discovery나 execution
 policy를 바꾸지 않는다. scope count는 canonical annotation과 namespace에서
 계산하며 all·read-only·workspace·preview 범위를 제공한다.
 `Copy list`는 `registry.listTools(toToolListRequest())`가 반환한 전체 `tools`

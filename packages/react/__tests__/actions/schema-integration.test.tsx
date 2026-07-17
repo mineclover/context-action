@@ -392,11 +392,13 @@ describe('Schema Integration with React', () => {
       const openaiTool: OpenAIToolDefinition = action.toOpenAI();
       expect(openaiTool.type).toBe('function');
       expect(openaiTool.function.name).toBe('searchProducts');
+      expect(openaiTool.function.parameters).toEqual(mcpTool.inputSchema);
 
       // Anthropic format for Claude
       const anthropicTool: AnthropicToolDefinition = action.toAnthropic();
       expect(anthropicTool.name).toBe('searchProducts');
       expect(anthropicTool.input_schema.type).toBe('object');
+      expect(anthropicTool.input_schema).toEqual(mcpTool.inputSchema);
     });
 
     it('should allow building tool arrays for LLM providers', () => {

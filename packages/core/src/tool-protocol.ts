@@ -9,6 +9,7 @@
  */
 
 import type {
+  AnthropicToolDefinition,
   JSONSchema,
   OpenAIToolDefinition,
   ToolDefinition,
@@ -362,10 +363,11 @@ export function listAllTools<
  * drop nested constraints, enums, descriptions, or additional-properties
  * policy while translating the transport envelope.
  */
-export function toOpenAIToolDefinitions(
-  definitions: readonly ToolDefinition[]
-): OpenAIToolDefinition[] {
-  return definitions.map((definition) => ({
+/** Convert one canonical tools/list definition to an OpenAI function tool. */
+export function toOpenAIToolDefinition(
+  definition: ToolDefinition
+): OpenAIToolDefinition {
+  return {
     type: 'function',
     function: {
       name: definition.name,
@@ -374,7 +376,34 @@ export function toOpenAIToolDefinitions(
         : { description: definition.description }),
       parameters: definition.inputSchema,
     },
-  }));
+  };
+}
+
+/** Convert canonical tools/list definitions to OpenAI function tools. */
+export function toOpenAIToolDefinitions(
+  definitions: readonly ToolDefinition[]
+): OpenAIToolDefinition[] {
+  return definitions.map(toOpenAIToolDefinition);
+}
+
+/** Convert one canonical tools/list definition to an Anthropic tool. */
+export function toAnthropicToolDefinition(
+  definition: ToolDefinition
+): AnthropicToolDefinition {
+  return {
+    name: definition.name,
+    ...(definition.description === undefined
+      ? {}
+      : { description: definition.description }),
+    input_schema: definition.inputSchema,
+  };
+}
+
+/** Convert canonical tools/list definitions to Anthropic tools. */
+export function toAnthropicToolDefinitions(
+  definitions: readonly ToolDefinition[]
+): AnthropicToolDefinition[] {
+  return definitions.map(toAnthropicToolDefinition);
 }
 
 export function withToolCallId<TResult>(

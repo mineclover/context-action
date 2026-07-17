@@ -62,6 +62,8 @@ import {
   isToolCallRequest,
   isToolListRequest,
   TOOL_CALL_ERROR_CODES,
+  toAnthropicToolDefinitions,
+  toOpenAIToolDefinitions,
   toToolCallRequest,
   withToolCallId,
 } from '@context-action/core';
@@ -252,11 +254,11 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     },
 
     toOpenAI() {
-      return toolNames.map((name) => schema[name]!.toOpenAI());
+      return toOpenAIToolDefinitions(listTools().tools);
     },
 
     toAnthropic() {
-      return toolNames.map((name) => schema[name]!.toAnthropic());
+      return toAnthropicToolDefinitions(listTools().tools);
     },
 
     toMCPFiltered<K extends keyof TSchema>(names: K[]) {
@@ -264,11 +266,15 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
     },
 
     toOpenAIFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => getExportableTool(name).toOpenAI());
+      return toOpenAIToolDefinitions(
+        names.map((name) => getExportableTool(name).toMCP())
+      );
     },
 
     toAnthropicFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => getExportableTool(name).toAnthropic());
+      return toAnthropicToolDefinitions(
+        names.map((name) => getExportableTool(name).toMCP())
+      );
     },
   };
 }

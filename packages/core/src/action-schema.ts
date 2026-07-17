@@ -31,6 +31,10 @@ import type {
   OpenAIToolDefinition,
   ToolAnnotations,
 } from './json-schema';
+import {
+  toAnthropicToolDefinition,
+  toOpenAIToolDefinition,
+} from './tool-protocol';
 
 // ============================================
 // Type Aliases (Zod 4 호환)
@@ -277,24 +281,11 @@ export function defineAction<TSchema extends ZodRawShape>(
       annotations,
     }),
 
-    toOpenAI: (): OpenAIToolDefinition => ({
-      type: 'function',
-      function: {
-        name,
-        description,
-        parameters: {
-          type: 'object',
-          properties: jsonSchema.properties ?? {},
-          required: jsonSchema.required,
-        },
-      },
-    }),
+    toOpenAI: (): OpenAIToolDefinition =>
+      toOpenAIToolDefinition({ name, description, inputSchema: jsonSchema }),
 
-    toAnthropic: (): AnthropicToolDefinition => ({
-      name,
-      description,
-      input_schema: jsonSchema,
-    }),
+    toAnthropic: (): AnthropicToolDefinition =>
+      toAnthropicToolDefinition({ name, description, inputSchema: jsonSchema }),
   };
 
   return action;

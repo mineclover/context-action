@@ -8,6 +8,7 @@ import {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  toAnthropicToolDefinitions,
   toOpenAIToolDefinitions,
   type ToolCallContext,
   type ToolCallMode,
@@ -193,6 +194,13 @@ describe('tool protocol context', () => {
           description: 'Update the preview theme.',
           parameters: inputSchema,
         },
+      },
+    ]);
+
+    expect(toAnthropicToolDefinitions([{ name: 'preview.setTheme', inputSchema }])).toEqual([
+      {
+        name: 'preview.setTheme',
+        input_schema: inputSchema,
       },
     ]);
   });

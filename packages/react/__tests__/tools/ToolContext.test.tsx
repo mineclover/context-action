@@ -1044,6 +1044,9 @@ describe('createToolContext', () => {
           }),
         },
       });
+      expect(openaiTools[0]?.function.parameters).toEqual(
+        result.current.getToolDefinition('searchProducts')?.inputSchema
+      );
     });
 
     it('should export filtered tools as OpenAI format', () => {
@@ -1070,6 +1073,9 @@ describe('createToolContext', () => {
           type: 'object',
         }),
       });
+      expect(anthropicTools[0]?.input_schema).toEqual(
+        result.current.getToolDefinition('searchProducts')?.inputSchema
+      );
     });
   });
 
