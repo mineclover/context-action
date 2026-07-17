@@ -227,6 +227,14 @@ for (const relativeFile of discoveryRequestAdapters) {
     /(?:registry\.listTools\(toToolListRequest\(\)\)|listAllTools\(registry\))/,
     'canonical tools/list request construction'
   );
+  if (relativeFile === 'example/src/lib/openrouter-ai-sdk.ts') {
+    assertNotContains(
+      relativeFile,
+      source,
+      /registry\.getToolNames\(\)/,
+      'parallel provider tool-name discovery'
+    );
+  }
 }
 
 const catalogModelSource = readSource(

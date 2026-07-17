@@ -24,60 +24,56 @@ function createToolSet<TSchema extends ActionSchemaMap>(
   registry: ToolRegistry<TSchema>,
   sessionId: string
 ): ToolSet {
-  const listedToolNames = new Set(
-    listAllTools(registry).map((tool) => tool.name)
-  );
+  const listedTools = listAllTools(registry);
   return Object.fromEntries(
-    registry
-      .getToolNames()
-      .filter((toolName) => listedToolNames.has(String(toolName)))
-      .map((toolName) => {
-        const definition = registry.getTool(toolName);
+    listedTools.map((listedTool) => {
+      const toolName = listedTool.name;
+      const definition = registry.getTool(toolName as keyof TSchema);
 
-        return [
-          String(toolName),
-          dynamicTool({
-            description: definition.description,
-            inputSchema: definition.zodSchema,
-            execute: async (input, executionOptions) => {
-              const result = await registry.executeModelToolCall(
-                {
-                  id: executionOptions.toolCallId,
-                  name: String(toolName),
-                  arguments: input as Record<string, unknown>,
-                },
-                {
-                  signal: executionOptions.abortSignal,
-                  context: { source: 'model', mode: 'agent', sessionId },
-                }
-              );
-              const resultText = result.content
-                .map((block) => block.text)
-                .join('\n');
-
-              if (result.isError) {
-                return {
-                  tool: String(toolName),
-                  status: 'error',
-                  error: result.error ?? {
-                    code: 'TOOL_EXECUTION_FAILED',
-                    message: resultText || `Tool ${String(toolName)} failed`,
-                  },
-                  message: resultText,
-                };
+      return [
+        toolName,
+        dynamicTool({
+          description: definition.description,
+          inputSchema: definition.zodSchema,
+          execute: async (input, executionOptions) => {
+            const result = await registry.executeModelToolCall(
+              {
+                id: executionOptions.toolCallId,
+                name: toolName,
+                arguments: input as Record<string, unknown>,
+              },
+              {
+                signal: executionOptions.abortSignal,
+                context: { source: 'model', mode: 'agent', sessionId },
               }
+            );
+            const resultText = result.content
+              .map((block) => block.text)
+              .join('\n');
 
-              return (
-                result.structuredContent ?? {
-                  tool: String(toolName),
-                  status: 'completed',
-                  message: resultText,
-                }
-              );
-            },
-          }),
-        ];
-      })
+            if (result.isError) {
+              return {
+                tool: String(toolName),
+                status: 'error',
+                error: result.error ?? {
+                  code: 'TOOL_EXECUTION_FAILED',
+                  message: resultText || `Tool ${toolName} failed`,
+                },
+                message: resultText,
+              };
+            }
+
+            return (
+              result.structuredContent ?? {
+                tool: toolName,
+                status: 'completed',
+                message: resultText,
+              }
+            );
+          },
+        }),
+      ];
+    })
   );
 }
 
