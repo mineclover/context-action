@@ -785,6 +785,9 @@ async function runBrowserProof(url) {
     });
     await page.getByRole('button', { name: /^Open$/ }).click();
     await page.getByText(/Opened folder-api-proof with 3 file\(s\)/).waitFor();
+    if ((await page.locator('.workspace-name').textContent())?.trim() !== 'folder-api-proof') {
+      throw new Error('The imported folder root name was not reflected in the workspace metadata.');
+    }
     await page
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#api-folder-proof')
@@ -976,6 +979,9 @@ async function runBrowserProof(url) {
       .waitFor();
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByLabel('Edit renamed-persisted.md').waitFor();
+    if ((await page.locator('.workspace-name').textContent())?.trim() !== 'folder-api-proof') {
+      throw new Error('The persisted workspace root name did not restore after reload.');
+    }
     const persistedRenameEditor = page.getByLabel('Edit renamed-persisted.md');
     const writeFileTrace = page
       .locator('#trace-list .trace-row')
