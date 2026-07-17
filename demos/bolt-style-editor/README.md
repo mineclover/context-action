@@ -149,8 +149,10 @@ The Explorer is a keyboard tree: `↑↓` move between visible entries, `←→`
 collapse or expand directories, and `Home/End` move to the first or last
 entry.
 
-Preview runtime exceptions are reported back from the sandboxed iframe as a
-visible diagnostic panel with the error text and a refresh action.
+Preview runtime exceptions and incomplete local references are reported back
+from the sandboxed iframe as a visible diagnostic panel. Each diagnostic
+source path is keyboard-focusable and opens that workspace file in the editor;
+source navigation is paused while another tool chain is running.
 
 ## Workspace boundaries
 
