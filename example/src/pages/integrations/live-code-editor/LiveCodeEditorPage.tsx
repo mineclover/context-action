@@ -19,12 +19,18 @@ import {
   createWorkspaceFile,
   LiveEditorWorkspaceManager,
 } from '../../../lib/live-code-editor-workspace';
+import {
+  denyAllLiveEditorToolApprovals,
+  resolveLiveEditorToolApproval,
+} from '../../../lib/live-editor-tool-approval';
 import { useLiveEditorDocumentActions } from './actions/useLiveEditorDocumentActions';
 import { useLiveEditorWorkspaceActions } from './actions/useLiveEditorWorkspaceActions';
+import { useLiveEditorToolApprovalObservables } from './hooks/useLiveEditorToolApprovalObservables';
 import { useLiveEditorWorkspaceObservables } from './hooks/useLiveEditorWorkspaceObservables';
 import styles from './LiveCodeEditorPage.module.css';
 import { LiveCodeEditorPreviewFrame } from './LiveCodeEditorPreviewFrame';
 import { LiveEditorAIToolbar } from './LiveEditorAIToolbar';
+import { LiveEditorToolApprovalDialog } from './LiveEditorToolApprovalDialog';
 import { LiveEditorToolchainProvider } from './LiveEditorToolchain';
 import { LiveUsecaseProviders } from './usecase/LiveUsecaseHandlerRegistry';
 import { LiveUsecaseRecipe } from './usecase/LiveUsecaseRecipe';
@@ -454,6 +460,8 @@ function LiveCodeEditorContent() {
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
   const directoryInputRef = useRef<HTMLInputElement>(null);
   const resetCancelButtonRef = useRef<HTMLButtonElement>(null);
+  const approvalCancelButtonRef = useRef<HTMLButtonElement>(null);
+  const { pendingApprovals } = useLiveEditorToolApprovalObservables();
 
   useEffect(() => {
     if (!resetConfirmationOpen) return;
@@ -464,6 +472,26 @@ function LiveCodeEditorContent() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [resetConfirmationOpen]);
+
+  useEffect(() => {
+    if (pendingApprovals.length === 0) return;
+    approvalCancelButtonRef.current?.focus();
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        const approval = pendingApprovals[0];
+        if (approval) resolveLiveEditorToolApproval(approval.id, 'deny');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pendingApprovals]);
+
+  useEffect(
+    () => () => {
+      denyAllLiveEditorToolApprovals();
+    },
+    []
+  );
 
   const currentExample: ExampleDefinition = activeExample
     ? examples[activeExample]
@@ -1015,6 +1043,19 @@ function LiveCodeEditorContent() {
                 </div>
               </div>
             </div>
+          )}
+          {pendingApprovals[0] && (
+            <LiveEditorToolApprovalDialog
+              approval={pendingApprovals[0]}
+              pendingCount={pendingApprovals.length}
+              cancelRef={approvalCancelButtonRef}
+              onResolve={(decision) => {
+                const approval = pendingApprovals[0];
+                if (approval) {
+                  resolveLiveEditorToolApproval(approval.id, decision);
+                }
+              }}
+            />
           )}
         </main>
       </PageWithLogMonitor>

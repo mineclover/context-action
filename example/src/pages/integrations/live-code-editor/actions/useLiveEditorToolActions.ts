@@ -14,6 +14,7 @@ export function useLiveEditorToolActions() {
   const [localMutationResult, setLocalMutationResult] = useState('');
   const [localPatchResult, setLocalPatchResult] = useState('');
   const [modelShapedResult, setModelShapedResult] = useState('');
+  const [modelSaveResult, setModelSaveResult] = useState('');
 
   const toolDefinitions = useMemo(() => listAllTools(registry), [registry]);
 
@@ -134,6 +135,21 @@ export function useLiveEditorToolActions() {
     );
   }, [registry]);
 
+  const runModelShapedSave = useCallback(async () => {
+    const sessionId = createToolCallSessionId();
+    const result = await registry.executeModelToolCall(
+      {
+        id: `model-shaped-save-${Date.now()}`,
+        name: 'editor.saveFile',
+        arguments: { path: 'index.html' },
+      },
+      { context: { source: 'model', mode: 'agent', sessionId } }
+    );
+    setModelSaveResult(
+      formatToolResultText(result, 'Model-shaped save failed.')
+    );
+  }, [registry]);
+
   const runLocalPatch = useCallback(async () => {
     const sessionId = createToolCallSessionId();
     const documentResult = await callLocalTool(
@@ -194,6 +210,7 @@ export function useLiveEditorToolActions() {
       localMutationResult,
       localPatchResult,
       modelShapedResult,
+      modelSaveResult,
     },
     commands: {
       inspectEditorStatus,
@@ -203,6 +220,7 @@ export function useLiveEditorToolActions() {
       saveAllWorkspaceFiles,
       runLocalMutation,
       runModelShapedCall,
+      runModelShapedSave,
       runLocalPatch,
     },
   } satisfies {

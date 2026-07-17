@@ -136,6 +136,9 @@ const liveEditorToolbarSource = readSource(
 const liveEditorPageSource = readSource(
   'example/src/pages/integrations/live-code-editor/LiveCodeEditorPage.tsx'
 );
+const liveEditorToolchainSource = readSource(
+  'example/src/pages/integrations/live-code-editor/LiveEditorToolchain.tsx'
+);
 const liveEditorToolActionsSource = readSource(
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts'
 );
@@ -159,6 +162,9 @@ const liveEditorObservablesSource = readSource(
 );
 const liveEditorWorkspaceObservablesSource = readSource(
   'example/src/pages/integrations/live-code-editor/hooks/useLiveEditorWorkspaceObservables.ts'
+);
+const liveEditorToolApprovalObservablesSource = readSource(
+  'example/src/pages/integrations/live-code-editor/hooks/useLiveEditorToolApprovalObservables.ts'
 );
 const exampleTraceSource = readSource('example/src/lib/tool-call-trace.ts');
 
@@ -483,6 +489,11 @@ assertContains(
   'live editor filesystem capability observable hook'
 );
 assertContains(
+  liveEditorToolApprovalObservablesSource,
+  /useSyncExternalStore\(/,
+  'live editor tool approval observable hook'
+);
+assertContains(
   liveEditorPageSource,
   /useLiveEditorWorkspaceObservables\(/,
   'live editor workspace observable facade usage'
@@ -556,6 +567,27 @@ assertContains(
   liveEditorPageSource,
   /role="dialog"[\s\S]*aria-modal="true"/,
   'live editor reset approval dialog'
+);
+assertContains(
+  liveEditorToolchainSource,
+  /filesystemWriteTools[\s\S]*editor\.saveFile[\s\S]*editor\.saveAll/,
+  'live editor filesystem write approval tool set'
+);
+assertContains(
+  liveEditorToolchainSource,
+  /toolPolicy:\s*\(\{[\s\S]*requestLiveEditorToolApproval/
+,
+  'live editor model filesystem approval policy'
+);
+assertContains(
+  liveEditorToolchainSource,
+  /context\?\.mode\s*===\s*'direct'/,
+  'live editor direct-call approval bypass'
+);
+assertContains(
+  liveEditorToolActionsSource,
+  /name:\s*'editor\.saveFile'[\s\S]*source:\s*'model'[\s\S]*mode:\s*'agent'/,
+  'live editor model-shaped approval showcase action'
 );
 assertNotContains(
   liveEditorPageSource,

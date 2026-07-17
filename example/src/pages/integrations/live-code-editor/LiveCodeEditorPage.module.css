@@ -1040,6 +1040,32 @@
   color: white;
 }
 
+.approvalMetadata {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.8rem;
+  color: #667085;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+}
+
+.approvalMetadata code {
+  overflow: hidden;
+  border: 1px solid #e2d8bd;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  background: #fffaf0;
+  color: #765b13;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approvalQueueNote {
+  margin-bottom: 0 !important;
+  color: #8a6400 !important;
+  font-size: 0.68rem !important;
+}
+
 .dialogSecondary:focus-visible,
 .dialogDanger:focus-visible {
   outline: 3px solid rgba(99, 91, 206, 0.28);

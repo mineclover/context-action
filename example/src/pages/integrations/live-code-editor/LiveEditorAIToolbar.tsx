@@ -168,6 +168,13 @@ export function LiveEditorAIToolbar() {
         >
           Run model-shaped call (no network)
         </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
+          onClick={() => void commands.runModelShapedSave()}
+        >
+          Run model-shaped save · approval
+        </button>
         {results.localCallResult && (
           <code className={styles.localCallResult}>
             {results.localCallResult}
@@ -206,6 +213,11 @@ export function LiveEditorAIToolbar() {
         {results.modelShapedResult && (
           <code className={styles.localCallResult}>
             {results.modelShapedResult}
+          </code>
+        )}
+        {results.modelSaveResult && (
+          <code className={styles.localCallResult}>
+            {results.modelSaveResult}
           </code>
         )}
         <div className={styles.tracePanel} aria-label="Editor execution trace">

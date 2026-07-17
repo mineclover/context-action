@@ -481,6 +481,14 @@ throw된 오류가 성공한 no-op 호출이 아니라 실패한 `tools/call` �
 filesystem에서 성공한 직후 해당 항목을 clean으로 표시하고, 실패 메시지에
 완료된 path를 포함해 남은 변경만 다시 시도할 수 있게 한다.
 
+example Live Code Editor에서는 model·MCP origin의 `editor.saveFile`과
+`editor.saveAll` 호출이 filesystem adapter에 도달하기 전에 approval queue에
+들어간다. 직접 palette action은 `mode: 'direct'`를 전달하므로 명시적인 local
+demo 경로로 허용된다. 화면의 approval dialog는 tool call, source/mode,
+argument 이름과 제한된 path preview만 보여주며 file source는 표시하지 않는다.
+거부, `Escape`, abort, unmount는 모두 `deny`로 resolve되고 pending request를
+queue에서 제거한다.
+
 standalone editor도 같은 경계를 작은 injected bridge로 구현한다. sandbox는
 문서 revision을 포함한 `context-action.preview.ready` 또는
 `context-action.preview.error` message를 부모로 보낸다. 부모는 현재 iframe

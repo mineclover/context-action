@@ -514,6 +514,14 @@ partial-save state. The standalone workspace marks each successful file or
 deletion immediately after its filesystem operation, and the failure message
 lists the completed paths so a retry can be scoped to the remaining changes.
 
+In the example Live Code Editor, `editor.saveFile` and `editor.saveAll` enter the
+approval queue for model- and MCP-originated calls before the filesystem adapter
+is invoked. Direct palette actions carry `mode: 'direct'` and remain an explicit
+local demo path. The in-app approval dialog shows the tool call, source/mode,
+argument names, and a bounded path preview; it never displays file source. Deny,
+Escape, abort, and an unmounted approval request all resolve to `deny` and
+remove the pending request from the queue.
+
 The standalone editor implements the same boundary with a small injected
 bridge. The sandbox posts `context-action.preview.ready` or
 `context-action.preview.error` with the document revision. The parent accepts

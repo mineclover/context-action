@@ -7,9 +7,12 @@ import {
 import { type WorkspaceFileSystemAdapter } from '../../../lib/live-code-editor-filesystem';
 import { LiveEditorWorkspaceManager } from '../../../lib/live-code-editor-workspace';
 import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
+import { requestLiveEditorToolApproval } from '../../../lib/live-editor-tool-approval';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
 import { recordLiveEditorToolCall } from '../../../lib/live-editor-trace';
 import { createLiveEditorResultContext } from '../../../lib/live-tool-result-contract';
+
+const filesystemWriteTools = new Set(['editor.saveFile', 'editor.saveAll']);
 
 export const {
   Provider: LiveEditorToolProvider,
@@ -19,6 +22,20 @@ export const {
   schema: liveEditorToolsSchema,
   debug: true,
   onToolCall: recordLiveEditorToolCall,
+  toolPolicy: ({ context, definition, request, signal }) => {
+    if (
+      !filesystemWriteTools.has(request.params.name) ||
+      context?.mode === 'direct'
+    ) {
+      return 'allow';
+    }
+    return requestLiveEditorToolApproval({
+      request,
+      definition,
+      context,
+      signal,
+    });
+  },
 });
 
 function LiveEditorToolHandlers({
