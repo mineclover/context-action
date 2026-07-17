@@ -92,7 +92,8 @@ message 실행, agent trace lifecycle을 소유합니다. `LiveEditorAIToolbar.t
 반환된 tool catalog, result, trace와 callback만 표현합니다.
 `actions/useLiveEditorProviderSettings.ts`는 shared key와 model 설정을,
 `hooks/useLiveEditorObservables.ts`는 trace subscription을,
-`hooks/useLiveEditorWorkspaceObservables.ts`는 workspace/document subscription을,
+`hooks/useLiveEditorWorkspaceObservables.ts`는 workspace/document subscription과
+filesystem capability 상태를,
 `actions/useLiveEditorWorkspaceActions.ts`는 IndexedDB hydrate, editor persistence,
 folder import, save, 파일 선택, reset command를,
 `actions/useLiveEditorDocumentActions.ts`는 document source/scenario mutation과

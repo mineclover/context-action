@@ -108,8 +108,8 @@ orchestration, tool 등록, workspace mutation 계약을 별도 public package�
 example의 Live Code Editor도 같은 경계를 따른다. `actions/` hook이 direct
 registry call, provider 설정, trace export, provider-facing agent loop를
 소유하고, `hooks/useLiveEditorObservables.ts`가 trace subscription을,
-`hooks/useLiveEditorWorkspaceObservables.ts`가 workspace/document subscription을
-맡는다. `actions/useLiveEditorWorkspaceActions.ts`는 IndexedDB hydrate, editor
+`hooks/useLiveEditorWorkspaceObservables.ts`가 workspace/document subscription과
+filesystem capability 상태를 맡는다. `actions/useLiveEditorWorkspaceActions.ts`는 IndexedDB hydrate, editor
 persistence, folder import/save, 파일 선택, reset command를 소유한다.
 `actions/useLiveEditorDocumentActions.ts`는 document source/scenario mutation과
 preview acknowledgement를 소유한다. `LiveEditorAIToolbar.tsx`는 catalog, result,

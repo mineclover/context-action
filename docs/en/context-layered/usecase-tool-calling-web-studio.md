@@ -93,7 +93,7 @@ provider discovery, cancellation, message execution, and agent trace
 lifecycle. `actions/useLiveEditorProviderSettings.ts` owns the shared key and
 model settings, `hooks/useLiveEditorObservables.ts` owns trace subscription,
 `hooks/useLiveEditorWorkspaceObservables.ts` owns workspace/document
-subscriptions, `actions/useLiveEditorWorkspaceActions.ts` owns IndexedDB
+subscriptions and filesystem capability state, `actions/useLiveEditorWorkspaceActions.ts` owns IndexedDB
 hydration, editor persistence, folder import, save, file selection, and reset
 commands, `actions/useLiveEditorDocumentActions.ts` owns document source and
 scenario mutations plus preview acknowledgements, and

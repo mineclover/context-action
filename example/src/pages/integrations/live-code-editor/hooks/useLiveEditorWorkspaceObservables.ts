@@ -3,6 +3,7 @@ import type {
   LiveEditorDocumentManager,
   LiveEditorDocumentSnapshot,
 } from '../../../../lib/live-code-editor-bridge';
+import type { WorkspaceFileSystemAdapter } from '../../../../lib/live-code-editor-filesystem';
 import type {
   LiveEditorWorkspaceManager,
   LiveEditorWorkspaceSnapshot,
@@ -11,14 +12,21 @@ import type {
 interface LiveEditorWorkspaceObservableSources {
   workspaceManager: LiveEditorWorkspaceManager;
   documentManager: LiveEditorDocumentManager;
+  filesystemAdapter: WorkspaceFileSystemAdapter;
 }
 
 export function useLiveEditorWorkspaceObservables({
   workspaceManager,
   documentManager,
+  filesystemAdapter,
 }: LiveEditorWorkspaceObservableSources): {
   workspace: LiveEditorWorkspaceSnapshot;
   document: LiveEditorDocumentSnapshot;
+  filesystem: {
+    isSupported: boolean;
+    isWritable: boolean;
+    supportsDirectoryPicker: boolean;
+  };
 } {
   const workspace = useSyncExternalStore(
     workspaceManager.subscribe,
@@ -30,6 +38,19 @@ export function useLiveEditorWorkspaceObservables({
     documentManager.getSnapshot,
     documentManager.getSnapshot
   );
+  const isWritable = useSyncExternalStore(
+    filesystemAdapter.subscribe,
+    () => filesystemAdapter.isWritable,
+    () => false
+  );
 
-  return { workspace, document };
+  return {
+    workspace,
+    document,
+    filesystem: {
+      isSupported: filesystemAdapter.isSupported,
+      isWritable,
+      supportsDirectoryPicker: filesystemAdapter.supportsDirectoryPicker,
+    },
+  };
 }

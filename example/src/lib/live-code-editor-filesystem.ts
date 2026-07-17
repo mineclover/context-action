@@ -16,6 +16,7 @@ export interface WorkspaceFileSystemAdapter {
   readonly isSupported: boolean;
   readonly isWritable: boolean;
   readonly supportsDirectoryPicker: boolean;
+  subscribe(listener: () => void): () => void;
   openDirectory(): Promise<{
     readonly files: WorkspaceBlobFile[];
     readonly rootName: string;
@@ -123,6 +124,16 @@ export class BrowserFileSystemWorkspaceAdapter
   implements WorkspaceFileSystemAdapter
 {
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
+  private readonly listeners = new Set<() => void>();
+
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+
+  private notify(): void {
+    for (const listener of this.listeners) listener();
+  }
 
   get supportsDirectoryPicker(): boolean {
     return (
@@ -159,6 +170,7 @@ export class BrowserFileSystemWorkspaceAdapter
     if (files.length === 0) {
       throw new Error('No supported files were found in this directory.');
     }
+    this.notify();
     return { files, rootName: this.directoryHandle.name };
   }
 

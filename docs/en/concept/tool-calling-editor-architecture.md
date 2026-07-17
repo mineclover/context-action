@@ -116,7 +116,7 @@ The example Live Code Editor follows the same seam: its `actions/` hooks own
 direct registry calls, provider settings, trace exports, and the
 provider-facing agent loop; `hooks/useLiveEditorObservables.ts` owns trace
 subscription, `hooks/useLiveEditorWorkspaceObservables.ts` owns
-workspace/document subscriptions, and
+workspace/document subscriptions and filesystem capability state, and
 `actions/useLiveEditorWorkspaceActions.ts` owns IndexedDB hydration, editor
 persistence, folder import/save, file selection, and reset commands.
 `actions/useLiveEditorDocumentActions.ts` owns document source/scenario

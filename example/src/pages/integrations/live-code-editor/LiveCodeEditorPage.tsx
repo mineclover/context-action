@@ -376,8 +376,15 @@ function LiveCodeEditorContent() {
     () => new LiveEditorWorkspaceRepository(),
     []
   );
-  const { document: documentSnapshot, workspace: workspaceSnapshot } =
-    useLiveEditorWorkspaceObservables({ workspaceManager, documentManager });
+  const {
+    document: documentSnapshot,
+    filesystem: filesystemCapabilities,
+    workspace: workspaceSnapshot,
+  } = useLiveEditorWorkspaceObservables({
+    workspaceManager,
+    documentManager,
+    filesystemAdapter,
+  });
   const documentActions = useLiveEditorDocumentActions({
     documentManager,
     workspaceManager,
@@ -641,7 +648,7 @@ function LiveCodeEditorContent() {
                       <strong>Code workspace</strong>
                       <span>
                         {workspaceSnapshot.storageMode} ·{' '}
-                        {filesystemAdapter.isWritable
+                        {filesystemCapabilities.isWritable
                           ? 'folder writable'
                           : 'IndexedDB auto-save'}
                       </span>
@@ -651,15 +658,15 @@ function LiveCodeEditorContent() {
                         type="button"
                         className={styles.workspaceButton}
                         onClick={() => {
-                          if (filesystemAdapter.supportsDirectoryPicker) {
+                          if (filesystemCapabilities.supportsDirectoryPicker) {
                             void openWorkspace();
                           } else {
                             directoryInputRef.current?.click();
                           }
                         }}
-                        disabled={!filesystemAdapter.isSupported}
+                        disabled={!filesystemCapabilities.isSupported}
                       >
-                        {filesystemAdapter.supportsDirectoryPicker
+                        {filesystemCapabilities.supportsDirectoryPicker
                           ? 'Open folder'
                           : 'Import folder'}
                       </button>
@@ -682,7 +689,7 @@ function LiveCodeEditorContent() {
                         onClick={() => void saveWorkspaceFile()}
                         disabled={
                           workspaceSnapshot.storageMode !== 'indexed-db' ||
-                          !filesystemAdapter.isWritable ||
+                          !filesystemCapabilities.isWritable ||
                           !activeWorkspaceFile?.isText ||
                           !workspaceSnapshot.dirtyPaths.includes(
                             workspaceSnapshot.activePath
@@ -698,7 +705,7 @@ function LiveCodeEditorContent() {
                         onClick={() => void saveAllWorkspaceFiles()}
                         disabled={
                           workspaceSnapshot.storageMode !== 'indexed-db' ||
-                          !filesystemAdapter.isWritable ||
+                          !filesystemCapabilities.isWritable ||
                           workspaceSnapshot.dirtyPaths.length === 0
                         }
                         title="Write all dirty text files back to the opened folder"
@@ -739,7 +746,7 @@ function LiveCodeEditorContent() {
                           onClick={() => selectPath(file.path)}
                         >
                           <span>{file.path}</span>
-                          {filesystemAdapter.isWritable &&
+                          {filesystemCapabilities.isWritable &&
                             workspaceSnapshot.dirtyPaths.includes(
                               file.path
                             ) && (
@@ -798,7 +805,7 @@ function LiveCodeEditorContent() {
                     <span>UTF-8 · LF</span>
                     <span>
                       {code.split('\n').length} lines · editable ·{' '}
-                      {filesystemAdapter.isWritable &&
+                      {filesystemCapabilities.isWritable &&
                       workspaceSnapshot.dirtyPaths.includes(
                         workspaceSnapshot.activePath
                       )

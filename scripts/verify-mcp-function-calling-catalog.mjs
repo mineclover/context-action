@@ -354,6 +354,11 @@ assertContains(
   'live editor workspace/document observable hook'
 );
 assertContains(
+  liveEditorWorkspaceObservablesSource,
+  /filesystemAdapter\.subscribe/,
+  'live editor filesystem capability observable hook'
+);
+assertContains(
   liveEditorPageSource,
   /useLiveEditorWorkspaceObservables\(/,
   'live editor workspace observable facade usage'
@@ -392,6 +397,11 @@ assertNotContains(
   liveEditorPageSource,
   /(?:workspaceRepository\.|filesystemAdapter\.(?:openDirectory|openFileList|saveFile)|workspaceManager\.(?:replaceFiles|updateFile|setActivePath|markSaved))\(/,
   'workspace persistence and mutation APIs from the live editor page'
+);
+assertNotContains(
+  liveEditorPageSource,
+  /filesystemAdapter\.(?:isSupported|isWritable|supportsDirectoryPicker)/,
+  'filesystem capability reads from the live editor page'
 );
 assertContains(
   liveEditorDocumentActionsSource,
