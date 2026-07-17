@@ -58,10 +58,12 @@ workspace mutation. The standalone implementation keeps this state behind
 `views/preview-panel.tsx`, and exposes the interaction through the pure
 `views/panel-resize-handle.tsx` primitive.
 
-The complete state contract, width bounds, persistence key, explicit
-presentation-only exception, and promotion criteria for a Store Context are
-maintained in [Panel Layout Preference Convention](./usecase-panel-layout.md).
-The panel preference must not enter `tools/call`, revision history, approval, or
+The complete state contract, width bounds, Dexie persistence boundary,
+presentation-only ownership decision, and promotion criteria for a Store
+Context are maintained in [Panel Layout Preference Convention](./usecase-panel-layout.md).
+The existing `WebCodingWorkspaceRepository` stores the preference in its
+`preferences` table; it is not a `localStorage` side channel. The panel
+preference must not enter `tools/call`, revision history, approval, or
 workspace file diff flows.
 
 ## Context-Action layout

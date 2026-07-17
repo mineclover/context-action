@@ -56,8 +56,10 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts',
   'demos/bolt-style-editor/src/hooks/use-workspace-version-history.ts',
+  'demos/bolt-style-editor/src/panel-layout-contract.ts',
   'demos/bolt-style-editor/src/hooks/use-panel-layout.ts',
   'demos/bolt-style-editor/src/views/panel-resize-handle.tsx',
+  'demos/bolt-style-editor/src/workspace-storage.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   'demos/bolt-style-editor/src/openrouter.ts',
@@ -159,6 +161,12 @@ const versionDiffViewSource = readSource(
 const panelLayoutSource = readSource(
   'demos/bolt-style-editor/src/hooks/use-panel-layout.ts'
 );
+const panelLayoutContractSource = readSource(
+  'demos/bolt-style-editor/src/panel-layout-contract.ts'
+);
+const workspaceStorageSource = readSource(
+  'demos/bolt-style-editor/src/workspace-storage.ts'
+);
 const panelResizeHandleSource = readSource(
   'demos/bolt-style-editor/src/views/panel-resize-handle.tsx'
 );
@@ -223,10 +231,28 @@ assertContains(
   'line-level diff rendered from the version model'
 );
 assertContains(
+  'demos/bolt-style-editor/src/panel-layout-contract.ts',
+  panelLayoutContractSource,
+  /export interface PanelLayoutPreferenceRepository[\s\S]*loadPanelLayout[\s\S]*savePanelLayout/,
+  'the panel layout persistence port'
+);
+assertContains(
   'demos/bolt-style-editor/src/hooks/use-panel-layout.ts',
   panelLayoutSource,
-  /localStorage[\s\S]*PANEL_LAYOUT_STORAGE_KEY|PANEL_LAYOUT_STORAGE_KEY[\s\S]*localStorage/,
-  'persisted panel layout preferences'
+  /repository\s*\.\s*loadPanelLayout\(\)[\s\S]*repository\s*\.\s*savePanelLayout\(layout\)/,
+  'Dexie-backed panel layout persistence through a repository port'
+);
+assertNotContains(
+  'demos/bolt-style-editor/src/hooks/use-panel-layout.ts',
+  panelLayoutSource,
+  /localStorage|indexedDB|from ['"]dexie['"]|new WebCodingWorkspaceDatabase/,
+  'direct browser persistence access from the panel view-model'
+);
+assertContains(
+  'demos/bolt-style-editor/src/workspace-storage.ts',
+  workspaceStorageSource,
+  /preferences:[\s\S]*\[workspaceId\+key\][\s\S]*loadPanelLayout[\s\S]*savePanelLayout/,
+  'the Dexie preferences table and repository implementation'
 );
 assertContains(
   'demos/bolt-style-editor/src/views/panel-resize-handle.tsx',
@@ -579,8 +605,14 @@ for (const relativeFile of panelLayoutDocumentationFiles) {
   assertContains(
     relativeFile,
     source,
-    /context-action\.web-coding\.panel-layout/,
-    'the persisted preference key'
+    /context-action-web-coding-demo[\s\S]*preferences/,
+    'the Dexie-backed preference database and table'
+  );
+  assertContains(
+    relativeFile,
+    source,
+    /PanelLayoutPreferenceRepository/,
+    'the panel layout persistence port'
   );
   assertContains(
     relativeFile,

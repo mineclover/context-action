@@ -36,6 +36,7 @@ import {
   saveOpenRouterSettings,
   subscribeOpenRouterSettings,
 } from './openrouter';
+import type { PanelLayoutPreferenceRepository } from './panel-layout-contract';
 import { resolveToolApproval } from './tool-approval';
 import { standaloneToolChainSimulationSnapshots } from './tool-chain-simulation-catalog';
 import { standaloneToolChainRecipes } from './tool-command-catalog';
@@ -115,11 +116,13 @@ function overlayEditorDrafts(
 function EditorWorkbench({
   workspace,
   fileSystemAdapter,
+  panelLayoutRepository,
   previewRefreshToken,
   folderRestoreState,
 }: {
   workspace: BrowserWorkspace;
   fileSystemAdapter: WorkspaceFileSystemAdapter;
+  panelLayoutRepository: PanelLayoutPreferenceRepository;
   previewRefreshToken: number;
   folderRestoreState: FolderRestoreState;
 }) {
@@ -133,7 +136,7 @@ function EditorWorkbench({
     sidebarWidth,
     togglePreview,
     toggleSidebar,
-  } = usePanelLayout();
+  } = usePanelLayout(panelLayoutRepository);
   const {
     snapshot,
     workspaceDirtyPaths,
@@ -1010,6 +1013,7 @@ function ToolRuntime() {
   const {
     workspace,
     fileSystemAdapter,
+    panelLayoutRepository,
     folderRestoreState,
     previewRefreshToken,
     requestPreviewRefresh,
@@ -1024,6 +1028,7 @@ function ToolRuntime() {
         folderRestoreState={folderRestoreState}
         workspace={workspace}
         fileSystemAdapter={fileSystemAdapter}
+        panelLayoutRepository={panelLayoutRepository}
         previewRefreshToken={previewRefreshToken}
       />
     </ToolHandlers>

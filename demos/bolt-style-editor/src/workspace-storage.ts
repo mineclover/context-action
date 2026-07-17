@@ -4,10 +4,15 @@ import {
   type WorkspaceRepository,
 } from '@context-action/live-code-editor';
 import Dexie, { type Table } from 'dexie';
+import {
+  PANEL_LAYOUT_PREFERENCE_KEY,
+  PANEL_LAYOUT_SCHEMA_VERSION,
+  type PanelLayoutState,
+} from './panel-layout-contract';
 import type { FileSystemDirectoryHandleLike } from './workspace-filesystem';
 
 const DATABASE_NAME = 'context-action-web-coding-demo';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 export const DEMO_WORKSPACE_ID = 'canvas-landing';
 
 type WorkspaceMetadataRecord = {
@@ -33,15 +38,26 @@ type WorkspaceFileRecord = {
   updatedAt: number;
 };
 
+type WorkspacePreferenceRecord = {
+  id: string;
+  workspaceId: string;
+  key: string;
+  value: PanelLayoutState;
+  updatedAt: number;
+  schemaVersion: number;
+};
+
 export class WebCodingWorkspaceDatabase extends Dexie {
   workspaces!: Table<WorkspaceMetadataRecord, string>;
   files!: Table<WorkspaceFileRecord, string>;
+  preferences!: Table<WorkspacePreferenceRecord, string>;
 
   constructor(name = DATABASE_NAME) {
     super(name);
     this.version(DATABASE_VERSION).stores({
       workspaces: 'id,updatedAt',
       files: 'id,workspaceId,[workspaceId+path],updatedAt',
+      preferences: 'id,workspaceId,[workspaceId+key],updatedAt',
     });
   }
 }
@@ -265,6 +281,27 @@ export class WebCodingWorkspaceRepository implements WorkspaceRepository {
       ...metadata,
       activePath,
       updatedAt: Date.now(),
+    });
+  }
+
+  async loadPanelLayout(): Promise<PanelLayoutState | undefined> {
+    const record = await this.database.preferences.get(
+      `${this.workspaceId}:${PANEL_LAYOUT_PREFERENCE_KEY}`
+    );
+    return record?.schemaVersion === PANEL_LAYOUT_SCHEMA_VERSION
+      ? record.value
+      : undefined;
+  }
+
+  async savePanelLayout(layout: PanelLayoutState): Promise<void> {
+    const now = Date.now();
+    await this.database.preferences.put({
+      id: `${this.workspaceId}:${PANEL_LAYOUT_PREFERENCE_KEY}`,
+      workspaceId: this.workspaceId,
+      key: PANEL_LAYOUT_PREFERENCE_KEY,
+      value: layout,
+      updatedAt: now,
+      schemaVersion: PANEL_LAYOUT_SCHEMA_VERSION,
     });
   }
 

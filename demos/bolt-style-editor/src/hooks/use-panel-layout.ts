@@ -1,95 +1,91 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  DEFAULT_PANEL_LAYOUT,
+  normalizePanelLayout,
+  type PanelLayoutPreferenceRepository,
+  type PanelLayoutState,
+  PREVIEW_WIDTH_RANGE,
+  SIDEBAR_WIDTH_RANGE,
+} from '../panel-layout-contract';
 
-export type PanelLayoutState = {
-  sidebarCollapsed: boolean;
-  sidebarWidth: number;
-  previewCollapsed: boolean;
-  previewWidth: number;
-};
-
-const PANEL_LAYOUT_STORAGE_KEY = 'context-action.web-coding.panel-layout';
-const DEFAULT_PANEL_LAYOUT: PanelLayoutState = {
-  sidebarCollapsed: false,
-  sidebarWidth: 236,
-  previewCollapsed: false,
-  previewWidth: 380,
-};
-const SIDEBAR_WIDTH_RANGE = { min: 190, max: 420 };
-const PREVIEW_WIDTH_RANGE = { min: 300, max: 720 };
+export type { PanelLayoutState } from '../panel-layout-contract';
 
 function clamp(value: number, range: { min: number; max: number }): number {
   return Math.min(range.max, Math.max(range.min, value));
 }
 
-function readStoredPanelLayout(): PanelLayoutState {
-  if (typeof window === 'undefined') return DEFAULT_PANEL_LAYOUT;
-
-  try {
-    const stored = window.localStorage.getItem(PANEL_LAYOUT_STORAGE_KEY);
-    if (!stored) return DEFAULT_PANEL_LAYOUT;
-    const parsed = JSON.parse(stored) as Partial<PanelLayoutState>;
-    return {
-      sidebarCollapsed: parsed.sidebarCollapsed === true,
-      sidebarWidth: clamp(
-        typeof parsed.sidebarWidth === 'number'
-          ? parsed.sidebarWidth
-          : DEFAULT_PANEL_LAYOUT.sidebarWidth,
-        SIDEBAR_WIDTH_RANGE
-      ),
-      previewCollapsed: parsed.previewCollapsed === true,
-      previewWidth: clamp(
-        typeof parsed.previewWidth === 'number'
-          ? parsed.previewWidth
-          : DEFAULT_PANEL_LAYOUT.previewWidth,
-        PREVIEW_WIDTH_RANGE
-      ),
-    };
-  } catch {
-    return DEFAULT_PANEL_LAYOUT;
-  }
-}
-
-export function usePanelLayout() {
-  const [layout, setLayout] = useState<PanelLayoutState>(readStoredPanelLayout);
+export function usePanelLayout(repository: PanelLayoutPreferenceRepository) {
+  const [layout, setLayout] = useState<PanelLayoutState>(DEFAULT_PANEL_LAYOUT);
+  const [hydrated, setHydrated] = useState(false);
+  const layoutTouchedRef = useRef(false);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        PANEL_LAYOUT_STORAGE_KEY,
-        JSON.stringify(layout)
-      );
-    } catch {
+    let disposed = false;
+    void repository
+      .loadPanelLayout()
+      .then((storedLayout) => {
+        if (disposed) return;
+        if (!layoutTouchedRef.current && storedLayout) {
+          setLayout(normalizePanelLayout(storedLayout));
+        }
+        setHydrated(true);
+      })
+      .catch(() => {
+        if (!disposed) setHydrated(true);
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [repository]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    void repository.savePanelLayout(layout).catch(() => {
       // Layout preferences are best-effort and should not affect the editor.
-    }
-  }, [layout]);
+    });
+  }, [hydrated, layout, repository]);
+
+  const updateLayout = useCallback(
+    (update: (current: PanelLayoutState) => PanelLayoutState) => {
+      layoutTouchedRef.current = true;
+      setLayout(update);
+    },
+    []
+  );
 
   const toggleSidebar = useCallback(() => {
-    setLayout((current) => ({
+    updateLayout((current) => ({
       ...current,
       sidebarCollapsed: !current.sidebarCollapsed,
     }));
-  }, []);
+  }, [updateLayout]);
 
   const togglePreview = useCallback(() => {
-    setLayout((current) => ({
+    updateLayout((current) => ({
       ...current,
       previewCollapsed: !current.previewCollapsed,
     }));
-  }, []);
+  }, [updateLayout]);
 
-  const resizeSidebar = useCallback((delta: number) => {
-    setLayout((current) => ({
-      ...current,
-      sidebarWidth: clamp(current.sidebarWidth + delta, SIDEBAR_WIDTH_RANGE),
-    }));
-  }, []);
+  const resizeSidebar = useCallback(
+    (delta: number) => {
+      updateLayout((current) => ({
+        ...current,
+        sidebarWidth: clamp(current.sidebarWidth + delta, SIDEBAR_WIDTH_RANGE),
+      }));
+    },
+    [updateLayout]
+  );
 
-  const resizePreview = useCallback((delta: number) => {
-    setLayout((current) => ({
-      ...current,
-      previewWidth: clamp(current.previewWidth - delta, PREVIEW_WIDTH_RANGE),
-    }));
-  }, []);
+  const resizePreview = useCallback(
+    (delta: number) => {
+      updateLayout((current) => ({
+        ...current,
+        previewWidth: clamp(current.previewWidth - delta, PREVIEW_WIDTH_RANGE),
+      }));
+    },
+    [updateLayout]
+  );
 
   return {
     ...layout,

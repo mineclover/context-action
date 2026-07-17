@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { PanelLayoutPreferenceRepository } from '../panel-layout-contract';
 import { BrowserWorkspace } from '../workspace';
 import {
   BrowserWorkspaceFileSystemAdapter,
@@ -15,6 +16,7 @@ export type FolderRestoreState =
 export type WorkspaceRuntime = {
   workspace: BrowserWorkspace;
   fileSystemAdapter: WorkspaceFileSystemAdapter;
+  panelLayoutRepository: PanelLayoutPreferenceRepository;
   folderRestoreState: FolderRestoreState;
   previewRefreshToken: number;
   requestPreviewRefresh: () => void;
@@ -71,6 +73,7 @@ export function useWorkspaceRuntime(): WorkspaceRuntime {
   return {
     workspace,
     fileSystemAdapter,
+    panelLayoutRepository: repository,
     folderRestoreState,
     previewRefreshToken,
     requestPreviewRefresh,

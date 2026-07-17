@@ -58,10 +58,12 @@ preference입니다. standalone 구현은 `hooks/use-panel-layout.ts` 뒤에 이
 전달하며, 실제 interaction은 순수한
 `views/panel-resize-handle.tsx` primitive가 표현합니다.
 
-전체 상태 계약, width 범위, persistence key, presentation-only 예외, Store
-Context 승격 기준은 [패널 레이아웃 Preference 컨벤션](./usecase-panel-layout.md)에
-관리합니다. 패널 preference는 `tools/call`, revision history, approval,
-workspace file diff 흐름에 들어가서는 안 됩니다.
+전체 상태 계약, width 범위, Dexie persistence 경계, presentation-only 소유권
+결정, Store Context 승격 기준은 [패널 레이아웃 Preference 컨벤션](./usecase-panel-layout.md)에
+관리합니다. 기존 `WebCodingWorkspaceRepository`의 `preferences` table에
+저장하며 `localStorage` side channel을 사용하지 않습니다. 패널 preference는
+`tools/call`, revision history, approval, workspace file diff 흐름에 들어가서는
+안 됩니다.
 
 ## Context-Action 배치
 

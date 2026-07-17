@@ -265,12 +265,36 @@ async function runBrowserProof(url) {
     const previewAfterKeyboardResize = await page
       .locator('.preview-panel')
       .evaluate((element) => element.getBoundingClientRect().width);
-    const persistedPanelLayout = await page.evaluate(() => {
-      const stored = window.localStorage.getItem(
-        'context-action.web-coding.panel-layout'
-      );
-      return stored ? JSON.parse(stored) : null;
-    });
+    const persistedPanelLayout = await page.evaluate(
+      () =>
+        new Promise((resolve, reject) => {
+          const request = window.indexedDB.open(
+            'context-action-web-coding-demo'
+          );
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('preferences')) {
+              database.close();
+              resolve(null);
+              return;
+            }
+            const transaction = database.transaction(
+              'preferences',
+              'readonly'
+            );
+            const read = transaction
+              .objectStore('preferences')
+              .get('canvas-landing:panel-layout');
+            read.onerror = () => reject(read.error);
+            read.onsuccess = () => {
+              const record = read.result;
+              database.close();
+              resolve(record?.value ?? null);
+            };
+          };
+        })
+    );
     if (
       !persistedPanelLayout ||
       Math.abs(persistedPanelLayout.sidebarWidth - sidebarAfterPointerResize) > 1 ||

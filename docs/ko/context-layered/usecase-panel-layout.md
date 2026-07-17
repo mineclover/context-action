@@ -20,16 +20,19 @@ Context-Action 방식으로 관리하기 위한 스펙입니다. standalone Web 
 workspace revision을 증가시키거나 approval/trace pipeline에 들어가지
 않습니다. local presentation preference에 맞는 경계입니다.
 
-### 명시적 컨벤션 예외
+### Presentation-only 소유권
 
-standalone 데모에서는 이 preference를 React `useState`와 `localStorage`를
-사용하는 전용 hook으로 관리합니다. 다음 조건을 만족하는
-**presentation-only 예외**입니다.
+standalone 데모는 실시간 preference 상태를 React `useState`를 사용하는
+전용 hook으로 관리합니다. persistence는 기존 Dexie 기반 workspace
+repository가 작은 `PanelLayoutPreferenceRepository` port를 통해
+제공하며, panel view-model이 IndexedDB를 직접 접근하지 않습니다. 이는
+다음 조건을 만족하는 presentation-only 소유권 결정입니다.
 
 - 하나의 editor surface에만 국한됩니다.
 - tool, handler, business rule이 이 상태를 소비하지 않습니다.
 - 레이아웃 변경이 workspace mutation을 의미하지 않습니다.
 - persistence 실패가 editor 정확성을 훼손하지 않는 best-effort 상태입니다.
+- 저장 record는 workspace file과 revision에서 분리됩니다.
 
 향후 여러 route가 이 preference를 공유하거나, 여러 surface가 관찰하거나,
 agent/tool이 조작해야 한다면 named Store Context와 facade로 승격해야
@@ -49,16 +52,22 @@ type PanelLayoutState = {
 };
 ```
 
-브라우저 persistence 계약은 다음 key입니다.
+브라우저 persistence 계약은 workspace와 같은 Dexie database를 사용합니다.
 
 ```text
-context-action.web-coding.panel-layout
+database: context-action-web-coding-demo
+table: preferences
+record id: canvas-landing:panel-layout
+key: panel-layout
+schemaVersion: 1
 ```
 
-현재 데모의 저장 값은 versionless이며 best-effort입니다. 값이 없거나,
-잘못되었거나, storage를 사용할 수 없으면 기본값으로 돌아갑니다. 이후
-shape를 깨뜨리는 변경은 기존 값을 조용히 재해석하지 말고 versioned
-envelope와 migration을 추가해야 합니다.
+`WebCodingWorkspaceRepository`가 `loadPanelLayout()`과 `savePanelLayout()`으로
+이 port를 구현하고, `usePanelLayout`이 범위를 보정합니다. 읽기/쓰기
+실패는 기본값으로 돌아가는 best-effort fallback으로 처리합니다. 이후
+shape를 깨뜨리는 변경은 preference schema version을 올리고 migration을
+추가해야 하며, 기존 값을 조용히 재해석하지 않습니다. panel preference는
+workspace file record, revision history, folder sync에 포함되지 않습니다.
 
 ## 소유권 규칙
 
@@ -133,7 +142,8 @@ audit 계약을 정의해야 합니다.
 
 ## 금지 패턴
 
-- view primitive에 `localStorage`, `workspace`, registry 호출을 넣지 않습니다.
+- view primitive에 `localStorage`, Dexie, repository, `workspace`, registry
+  호출을 넣지 않습니다.
 - panel width나 collapsed state를 workspace revision/file diff에 포함하지 않습니다.
 - 문서화된 범위를 벗어난 임의의 CSS width를 사용하지 않습니다.
 - 패널의 시각 상태로 approval이나 persistence 상태를 추론하지 않습니다.

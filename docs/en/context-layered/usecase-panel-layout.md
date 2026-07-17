@@ -20,16 +20,19 @@ The feature does not call the Tool Registry, mutate workspace files, change a
 workspace revision, or enter the approval/trace pipeline. That is the correct
 boundary for a local presentation preference.
 
-### Explicit convention exception
+### Presentation-only ownership
 
-The standalone demo keeps this preference in a dedicated hook with React
-`useState` and `localStorage`. This is an intentional **presentation-only
-exception** to the Store Only pattern:
+The standalone demo keeps the live preference state in a dedicated hook with
+React `useState`. Persistence is provided by the existing Dexie-backed
+workspace repository through a small `PanelLayoutPreferenceRepository` port;
+the panel view-model does not access IndexedDB directly. This is an intentional
+presentation-only ownership decision:
 
 - the state is local to one editor surface;
 - no tool, handler, or business rule consumes it;
 - a layout change does not represent a workspace mutation;
-- persistence is best-effort and does not affect editor correctness.
+- persistence is best-effort and does not affect editor correctness;
+- the persisted record is separate from workspace files and revisions.
 
 If the preference becomes shared across routes, must be observed by multiple
 surfaces, or becomes controllable by an agent/tool, migrate it to a named Store
@@ -49,16 +52,23 @@ type PanelLayoutState = {
 };
 ```
 
-The browser persistence contract is:
+The browser persistence contract uses the same Dexie database as the workspace:
 
 ```text
-context-action.web-coding.panel-layout
+database: context-action-web-coding-demo
+table: preferences
+record id: canvas-landing:panel-layout
+key: panel-layout
+schemaVersion: 1
 ```
 
-The stored value is versionless and best-effort in the current demo. Invalid,
-missing, or unavailable storage falls back to the defaults. A future breaking
-change to the shape must add a versioned envelope and a migration rather than
-silently reinterpreting old values.
+The stored value is a versioned preference record. `WebCodingWorkspaceRepository`
+implements the port with `loadPanelLayout()` and `savePanelLayout()`, while
+`usePanelLayout` normalizes bounds and treats read/write failures as a
+best-effort fallback to the defaults. A future breaking change to the shape
+must bump the preference schema and add a migration rather than silently
+reinterpreting old values. Panel preferences are not included in workspace
+file records, revision history, or folder sync.
 
 ## Ownership rules
 
@@ -132,7 +142,8 @@ and audit contract before exposing it as a tool.
 
 ## Anti-patterns
 
-- Do not put `localStorage`, `workspace`, or registry calls in a view primitive.
+- Do not put `localStorage`, Dexie, repository calls, `workspace`, or registry
+  calls in a view primitive.
 - Do not include panel width or collapsed state in workspace revisions or file diffs.
 - Do not use arbitrary CSS values outside the documented bounds.
 - Do not infer approval or persistence status from a panel's visual state.
