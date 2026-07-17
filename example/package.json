@@ -32,6 +32,7 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "3.0.7",
     "@context-action/core": "workspace:*",
+    "@context-action/live-code-editor": "workspace:*",
     "@context-action/react": "workspace:*",
     "ai": "7.0.22",
     "clsx": "2.1.1",

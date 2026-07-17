@@ -511,6 +511,13 @@ and editor adapters. Extract those remaining browser-specific pieces only after
 they have independent consumers and tests; decide whether to publish the
 package only after the contract stabilizes.
 
+The example keeps its existing Dexie repository and iframe bridge for showcase
+compatibility, but `example/src/lib/live-code-editor-filesystem.ts` is now only
+a Blob-oriented facade over the package adapter. It does not reimplement folder
+traversal, path validation, limits, permission handling, or writes. This keeps
+the example API stable while ensuring the standalone and example surfaces share
+the same filesystem safety contract.
+
 Consider a separate repository only when one or more of these conditions hold:
 
 - the editor is reused by multiple products outside context-action;

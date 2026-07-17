@@ -265,3 +265,21 @@ test('publishes the browser filesystem adapter from the package entrypoint', () 
   assert.equal(adapter.hasWritableFolder, false);
   assert.equal(adapter.folderPermission, 'disconnected');
 });
+
+test('imports a readonly File array for non-DOM consumers', async () => {
+  const adapter = new BrowserWorkspaceFileSystemAdapter();
+  const imported = await adapter.importFileList([
+    new File(['<h1>Imported</h1>'], 'index.html', { type: 'text/html' }),
+  ]);
+
+  assert.equal(imported.rootName, 'workspace');
+  assert.deepEqual(imported.files, [
+    {
+      path: 'index.html',
+      language: 'html',
+      source: '<h1>Imported</h1>',
+      kind: 'text',
+      mimeType: 'text/html',
+    },
+  ]);
+});

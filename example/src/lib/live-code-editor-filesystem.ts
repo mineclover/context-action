@@ -1,9 +1,22 @@
 /**
- * Generic file-system contracts for the Live Code Editor.
+ * Example compatibility facade for the shared workspace filesystem package.
  *
- * The workspace database owns the canonical files. File-system adapters only
- * import a directory or write an explicitly requested file back to it.
+ * The example keeps its Blob-oriented repository contract and UI naming, while
+ * the browser directory traversal, path validation, limits, permissions, and
+ * folder writes are owned by @context-action/live-code-editor.
  */
+
+import {
+  BrowserWorkspaceFileSystemAdapter,
+  type DirectoryHandlePersistence,
+  type FileSystemDirectoryHandleLike,
+  isBinaryWorkspacePath,
+  languageForWorkspacePath,
+  normalizeWorkspacePath as normalizePackageWorkspacePath,
+  type WorkspaceFile,
+} from '@context-action/live-code-editor';
+
+export type { DirectoryHandlePersistence, FileSystemDirectoryHandleLike };
 
 export interface WorkspaceBlobFile {
   readonly path: string;
@@ -28,49 +41,11 @@ export interface WorkspaceFileSystemAdapter {
   saveFile(path: string, blob: Blob): Promise<void>;
 }
 
-export interface FileSystemReadableFileLike {
-  readonly size: number;
-  readonly type?: string;
-  arrayBuffer(): Promise<ArrayBuffer>;
-}
-
-export interface FileSystemFileHandleLike {
-  readonly kind: 'file';
-  readonly name: string;
-  getFile(): Promise<FileSystemReadableFileLike>;
-  createWritable(): Promise<{
-    write(data: Blob): Promise<void>;
-    close(): Promise<void>;
-  }>;
-}
-
-export interface FileSystemDirectoryHandleLike {
-  readonly kind: 'directory';
-  readonly name: string;
-  values(): AsyncIterable<FileSystemEntryHandleLike>;
-  getDirectoryHandle(
-    name: string,
-    options?: { readonly create?: boolean }
-  ): Promise<FileSystemDirectoryHandleLike>;
-  getFileHandle(
-    name: string,
-    options?: { readonly create?: boolean }
-  ): Promise<FileSystemFileHandleLike>;
-}
-
-export type FileSystemEntryHandleLike =
-  | FileSystemFileHandleLike
-  | FileSystemDirectoryHandleLike;
-
-interface FileSystemWindow extends Window {
+type WindowWithDirectoryPicker = Window & {
   showDirectoryPicker?: (options?: {
-    readonly mode?: 'read' | 'readwrite';
+    mode?: 'read' | 'readwrite';
   }) => Promise<FileSystemDirectoryHandleLike>;
-}
-
-const MAX_FILES = 500;
-const MAX_FILE_SIZE = 10_000_000;
-const MAX_TOTAL_SIZE = 50_000_000;
+};
 
 const MIME_TYPES: Record<string, string> = {
   '.css': 'text/css',
@@ -91,11 +66,7 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export function normalizeWorkspacePath(path: string): string {
-  return path
-    .split('/')
-    .filter(Boolean)
-    .filter((segment) => segment !== '.' && segment !== '..')
-    .join('/');
+  return normalizePackageWorkspacePath(path);
 }
 
 export function inferWorkspaceMimeType(
@@ -111,6 +82,7 @@ export function inferWorkspaceMimeType(
 }
 
 export function isTextWorkspaceFile(path: string, mimeType: string): boolean {
+  if (isBinaryWorkspacePath(path)) return false;
   return (
     mimeType.startsWith('text/') ||
     mimeType === 'application/json' ||
@@ -120,25 +92,63 @@ export function isTextWorkspaceFile(path: string, mimeType: string): boolean {
   );
 }
 
+function toBlobFile(file: WorkspaceFile): WorkspaceBlobFile {
+  const mimeType = inferWorkspaceMimeType(file.path, file.mimeType);
+  const blob =
+    file.kind === 'asset' && file.blob
+      ? file.blob
+      : new Blob([file.source], { type: mimeType });
+  return {
+    path: file.path,
+    blob,
+    mimeType: blob.type || mimeType,
+    size: blob.size,
+  };
+}
+
+async function toWorkspaceFile(
+  path: string,
+  blob: Blob
+): Promise<WorkspaceFile> {
+  const normalizedPath = normalizeWorkspacePath(path);
+  const mimeType = inferWorkspaceMimeType(normalizedPath, blob.type);
+  const isText = isTextWorkspaceFile(normalizedPath, mimeType);
+  if (isText) {
+    return {
+      path: normalizedPath,
+      language: languageForWorkspacePath(normalizedPath),
+      source: await blob.text(),
+      kind: 'text',
+      mimeType,
+    };
+  }
+  return {
+    path: normalizedPath,
+    language: 'asset',
+    source: '',
+    kind: 'asset',
+    mimeType,
+    blob,
+  };
+}
+
 export class BrowserFileSystemWorkspaceAdapter
   implements WorkspaceFileSystemAdapter
 {
-  private directoryHandle: FileSystemDirectoryHandleLike | null = null;
-  private readonly listeners = new Set<() => void>();
+  private readonly adapter: BrowserWorkspaceFileSystemAdapter;
 
-  subscribe = (listener: () => void): (() => void) => {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  };
-
-  private notify(): void {
-    for (const listener of this.listeners) listener();
+  constructor(persistence?: DirectoryHandlePersistence) {
+    this.adapter = new BrowserWorkspaceFileSystemAdapter(persistence);
   }
+
+  subscribe = (listener: () => void): (() => void) =>
+    this.adapter.subscribe(listener);
 
   get supportsDirectoryPicker(): boolean {
     return (
       typeof window !== 'undefined' &&
-      typeof (window as FileSystemWindow).showDirectoryPicker === 'function'
+      typeof (window as WindowWithDirectoryPicker).showDirectoryPicker ===
+        'function'
     );
   }
 
@@ -147,124 +157,32 @@ export class BrowserFileSystemWorkspaceAdapter
   }
 
   get isWritable(): boolean {
-    return this.directoryHandle !== null;
+    return this.adapter.hasWritableFolder;
   }
 
   async openDirectory(): Promise<{
     readonly files: WorkspaceBlobFile[];
     readonly rootName: string;
   }> {
-    const picker = (window as FileSystemWindow).showDirectoryPicker;
-    if (!picker) {
-      throw new Error(
-        'This browser does not support the File System Access API.'
-      );
-    }
-    this.directoryHandle = await picker({ mode: 'readwrite' });
-    const files: WorkspaceBlobFile[] = [];
-    let totalSize = 0;
-    await this.readDirectory(this.directoryHandle, '', files, (size) => {
-      totalSize += size;
-      return totalSize <= MAX_TOTAL_SIZE;
-    });
-    if (files.length === 0) {
-      throw new Error('No supported files were found in this directory.');
-    }
-    this.notify();
-    return { files, rootName: this.directoryHandle.name };
+    const imported = await this.adapter.pickFolder();
+    return {
+      rootName: imported.rootName,
+      files: imported.files.map(toBlobFile),
+    };
   }
 
   async openFileList(fileList: readonly File[]): Promise<{
     readonly files: WorkspaceBlobFile[];
     readonly rootName: string;
   }> {
-    if (fileList.length === 0) {
-      throw new Error('No files were selected from the workspace folder.');
-    }
-
-    const firstFile = fileList[0] as File & {
-      readonly webkitRelativePath?: string;
+    const imported = await this.adapter.importFileList(fileList);
+    return {
+      rootName: imported.rootName,
+      files: imported.files.map(toBlobFile),
     };
-    const firstPath = firstFile.webkitRelativePath || firstFile.name;
-    const firstSegments = firstPath.split('/').filter(Boolean);
-    const rootName = firstSegments[0] || 'imported-workspace';
-    const files: WorkspaceBlobFile[] = [];
-    let totalSize = 0;
-
-    for (const entry of fileList) {
-      if (files.length >= MAX_FILES) break;
-      const inputFile = entry as File & {
-        readonly webkitRelativePath?: string;
-      };
-      const rawPath = inputFile.webkitRelativePath || inputFile.name;
-      const segments = rawPath.split('/').filter(Boolean);
-      const path = normalizeWorkspacePath(
-        segments[0] === rootName ? segments.slice(1).join('/') : rawPath
-      );
-      if (!path || entry.size > MAX_FILE_SIZE) continue;
-      totalSize += entry.size;
-      if (totalSize > MAX_TOTAL_SIZE) continue;
-      const blob = new Blob([await entry.arrayBuffer()], {
-        type: inferWorkspaceMimeType(path, entry.type),
-      });
-      files.push({
-        path,
-        blob,
-        mimeType: blob.type,
-        size: entry.size,
-      });
-    }
-
-    if (files.length === 0) {
-      throw new Error('No supported files were found in this directory.');
-    }
-    return { files, rootName };
   }
 
   async saveFile(path: string, blob: Blob): Promise<void> {
-    if (!this.directoryHandle) {
-      throw new Error('Open a workspace directory before saving files.');
-    }
-    const segments = normalizeWorkspacePath(path).split('/').filter(Boolean);
-    const fileName = segments.pop();
-    if (!fileName) throw new Error('Cannot save a file without a path.');
-
-    let directory = this.directoryHandle;
-    for (const segment of segments) {
-      directory = await directory.getDirectoryHandle(segment, { create: true });
-    }
-    const fileHandle = await directory.getFileHandle(fileName, {
-      create: true,
-    });
-    const writable = await fileHandle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-  }
-
-  private async readDirectory(
-    directory: FileSystemDirectoryHandleLike,
-    prefix: string,
-    files: WorkspaceBlobFile[],
-    acceptSize: (size: number) => boolean
-  ): Promise<void> {
-    for await (const entry of directory.values()) {
-      if (files.length >= MAX_FILES) return;
-      const path = normalizeWorkspacePath(`${prefix}/${entry.name}`);
-      if (entry.kind === 'directory') {
-        await this.readDirectory(entry, path, files, acceptSize);
-        continue;
-      }
-      const file = await entry.getFile();
-      if (file.size > MAX_FILE_SIZE || !acceptSize(file.size)) continue;
-      const blob = new Blob([await file.arrayBuffer()], {
-        type: inferWorkspaceMimeType(path, file.type),
-      });
-      files.push({
-        path,
-        blob,
-        mimeType: blob.type,
-        size: file.size,
-      });
-    }
+    await this.adapter.writeFiles([await toWorkspaceFile(path, blob)]);
   }
 }

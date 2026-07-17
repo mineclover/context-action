@@ -419,7 +419,9 @@ export class BrowserWorkspaceFileSystemAdapter {
     return imported;
   }
 
-  async importFileList(fileList: FileList): Promise<ImportedFolder> {
+  async importFileList(
+    fileList: FileList | readonly File[]
+  ): Promise<ImportedFolder> {
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
     let totalBytes = 0;

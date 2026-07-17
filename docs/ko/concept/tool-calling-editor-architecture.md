@@ -476,6 +476,12 @@ package가 소유한다. Demo에는 iframe runtime과 editor adapter도 남긴�
 나머지 browser-specific 구현은 독립 consumer와 test가 확보된 뒤 옮기며,
 계약이 안정된 뒤 공개 package 여부를 판단한다.
 
+example은 showcase 호환성을 위해 기존 Dexie repository와 iframe bridge를
+유지하지만, `example/src/lib/live-code-editor-filesystem.ts`는 이제 package
+adapter를 Blob 기반 기존 API로 변환하는 facade일 뿐이다. 폴더 순회, 경로
+검증, 파일 제한, 권한 처리, 쓰기 로직을 다시 구현하지 않으므로 standalone과
+example이 동일한 filesystem safety contract를 공유한다.
+
 별도 repository는 다음 조건이 충족될 때만 검토한다.
 
 - context-action 외 여러 제품에서 재사용한다.

@@ -156,6 +156,9 @@ importers:
       '@context-action/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@context-action/live-code-editor':
+        specifier: workspace:*
+        version: link:../packages/live-code-editor
       '@context-action/react':
         specifier: workspace:*
         version: link:../packages/react
