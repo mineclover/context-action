@@ -83,7 +83,10 @@ tool definition, or a `tools/call` request as JSON. The trace panel exports
 bounded, redacted execution entries as JSON; use `All` in the trace header to
 inspect entries older than the recent eight. Failed calls retain their
 `retryable` metadata, and the compact trace row shows the provider call ID plus
-whether recovery is retryable or terminal.
+whether recovery is retryable or terminal. After more than one execution
+session exists, the trace header also exposes a session selector so one
+`agent.request` → `tools/list` → `tools/call` chain can be inspected in
+isolation; Copy, Download, and Clear continue to operate on the full trace.
 
 The registry schema, approval policy, and lifecycle observer are isolated in
 `src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in
