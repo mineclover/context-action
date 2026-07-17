@@ -115,6 +115,9 @@ async function runBrowserProof(url) {
     if (await page.getByLabel('Edit index.html').isDisabled()) {
       throw new Error('The source editor remained disabled after hydration.');
     }
+    if ((await page.getByLabel('Web studio prompt').inputValue()) !== '') {
+      throw new Error('The standalone composer must start empty and rely on placeholder or recipes for examples.');
+    }
 
     const editor = page.getByLabel('Edit index.html');
     const initialRevision = await page

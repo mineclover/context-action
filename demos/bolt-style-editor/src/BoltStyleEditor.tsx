@@ -114,9 +114,7 @@ function EditorWorkbench({
     iframeRef,
     revision: snapshot.revision,
   });
-  const [prompt, setPrompt] = useState(
-    '보라색 테마로 바꾸고 기능 카드를 추가해줘'
-  );
+  const [prompt, setPrompt] = useState('');
   const messageListRef = useRef<HTMLDivElement>(null);
   const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
   const focusedApprovalIdRef = useRef<string | null>(null);
