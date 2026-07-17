@@ -261,6 +261,44 @@ export const mcpStandaloneCommands = [
     ],
     difficulty: 'Advanced',
   },
+  {
+    id: 'standalone-preview-observability',
+    title: 'Preview 상태와 diagnostics 조회',
+    description:
+      'workspace source를 변경하지 않고 iframe revision·runtime 상태와 bounded diagnostics를 확인합니다.',
+    prompt: '현재 preview 상태와 diagnostics를 알려줘.',
+    tools: ['preview.getStatus'],
+    expectedChain: ['preview.getStatus'],
+    difficulty: 'Starter',
+  },
+  {
+    id: 'standalone-preview-refresh',
+    title: 'Preview remount와 acknowledgement',
+    description:
+      'workspace preflight 뒤 sandbox iframe을 remount하고 현재 revision acknowledgement를 기다립니다.',
+    prompt: 'preview를 새로고침하고 현재 revision이 반영됐는지 알려줘.',
+    tools: ['workspace.getStatus', 'preview.refresh'],
+    expectedChain: [
+      'workspace.getStatus',
+      'preview.refresh',
+      'iframe acknowledgement',
+    ],
+    difficulty: 'Workflow',
+  },
+  {
+    id: 'standalone-undo-recovery',
+    title: 'Revision guard undo recovery',
+    description:
+      '현재 workspace revision을 확인한 뒤 최신 편집을 되돌리고 preview acknowledgement를 확인합니다.',
+    prompt: '최근 편집을 undo하고 preview가 반영됐는지 알려줘.',
+    tools: ['workspace.getStatus', 'workspace.undo'],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.undo',
+      'iframe acknowledgement',
+    ],
+    difficulty: 'Workflow',
+  },
 ] satisfies readonly MCPCommandReference<MCPStandaloneToolName>[];
 
 export const mcpLiveEditorCommands = [
