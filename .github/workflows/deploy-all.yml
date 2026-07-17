@@ -149,6 +149,12 @@ jobs:
       - name: Verify standalone Context-Action conventions
         run: node scripts/verify-web-coding-conventions.mjs
 
+      - name: Verify standalone approval lifecycle
+        run: node scripts/verify-web-coding-approval.mjs
+
+      - name: Verify standalone tool trace lifecycle
+        run: node scripts/verify-web-coding-trace.mjs
+
       - name: Verify standalone dev server contract
         run: node scripts/verify-web-coding-dev-server.mjs
 
