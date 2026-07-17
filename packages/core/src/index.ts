@@ -70,6 +70,7 @@ export type {
   ModelToolCall,
   ToolArguments,
   ToolCallContext,
+  ToolApprovalSnapshot,
   ToolCallSource,
   ToolCallMode,
   ToolCallError,

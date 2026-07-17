@@ -15,6 +15,7 @@ import {
   type ToolCallContext,
   type ToolCallMode,
   type ToolCallErrorCode,
+  type ToolApprovalSnapshot,
   type ToolListRequest,
   type ToolManagementInterface,
   toToolCallRequest,
@@ -235,6 +236,22 @@ describe('tool protocol context', () => {
     const mode: ToolCallMode = context.mode!;
     expect(mode).toBe('direct');
     expect(context.revision).toBe(12);
+
+    const approval: ToolApprovalSnapshot = {
+      id: 'approval-1',
+      method: 'tools/call',
+      toolCallId: 'call-1',
+      sessionId: 'session-1',
+      name: 'workspace.writeFile',
+      description: 'Write a workspace file.',
+      source: 'model',
+      mode: 'agent',
+      argumentKeys: ['path', 'source'],
+      safeArgumentPreview: 'path: index.html',
+      createdAt: 1,
+    };
+    expect(approval.source).toBe('model');
+    expect(approval.method).toBe('tools/call');
   });
 
   it('exposes stable canonical tool-call error codes', () => {

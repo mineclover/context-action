@@ -1,23 +1,10 @@
 import type {
-  ToolCallId,
-  ToolCallMode,
+  ToolApprovalSnapshot,
   ToolPolicyDecision,
   ToolPolicyInput,
 } from '@context-action/react';
 
-export type PendingToolApproval = {
-  id: string;
-  method: 'tools/call';
-  toolCallId?: ToolCallId;
-  sessionId?: string;
-  name: string;
-  description: string;
-  source: string;
-  mode?: ToolCallMode;
-  argumentKeys: string[];
-  safeArgumentPreview?: string;
-  createdAt: number;
-};
+export type PendingToolApproval = ToolApprovalSnapshot;
 
 type ApprovalDecision = Extract<ToolPolicyDecision, 'allow' | 'deny'>;
 

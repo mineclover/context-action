@@ -440,6 +440,11 @@ argument key를 표시하고 파일 source 자체는 다시 보여주지 않는�
 mutation은 approval 왕복을 거치고, 직접 실행하는 palette call은 결정적인 local
 action으로 실행된다.
 
+이 metadata는 core의 `ToolApprovalSnapshot` shape을 사용해야 한다. 이 shape은
+canonical `tools/call` method, provider call ID, session, source, 실행 mode, safe
+argument summary, 생성 시각을 보존하면서 approval surface를 tool 실행과
+분리한다.
+
 ## iframe 규칙
 
 iframe은 다음 역할만 담당한다.

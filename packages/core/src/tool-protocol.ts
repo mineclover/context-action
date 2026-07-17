@@ -56,6 +56,26 @@ export interface ToolCallContext {
   readonly metadata?: Record<string, unknown>;
 }
 
+/**
+ * Provider-neutral approval snapshot for a pending tools/call request.
+ *
+ * The snapshot is intentionally metadata-only: an approval surface may
+ * resolve it, but execution remains owned by the ToolManagementInterface.
+ */
+export interface ToolApprovalSnapshot {
+  readonly id: string;
+  readonly method: 'tools/call';
+  readonly toolCallId?: ToolCallId;
+  readonly sessionId?: string;
+  readonly name: string;
+  readonly description: string;
+  readonly source: ToolCallSource;
+  readonly mode?: ToolCallMode;
+  readonly argumentKeys: readonly string[];
+  readonly safeArgumentPreview?: string;
+  readonly createdAt: number;
+}
+
 /** Structured error returned to the model instead of leaking an exception. */
 export interface ToolCallError {
   /** Canonical codes are listed in TOOL_CALL_ERROR_CODES; applications may add their own. */

@@ -472,6 +472,11 @@ echoes the file source. It may show a safe argument preview such as a target
 use the same approval round trip, while direct palette calls remain deterministic
 local actions.
 
+Approval stores should use the core `ToolApprovalSnapshot` shape for this
+metadata. It preserves the canonical `tools/call` method, provider call ID,
+session, source, execution mode, safe argument summary, and creation time while
+keeping the approval surface separate from tool execution.
+
 ## iframe rules
 
 The iframe is limited to:
