@@ -1,8 +1,8 @@
 import type { ToolListResult } from '@context-action/core';
 import { toToolCallRequest } from '@context-action/react';
 import { useEffect, useRef, useState } from 'react';
+import type { ToolCatalogDefinition } from '../tool-catalog-contract';
 import type { ToolTraceEntry } from '../tool-trace';
-import type { ToolCatalogDefinition } from '../views/tool-catalog-panel';
 
 function downloadTextFile(
   value: string,

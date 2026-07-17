@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useRef } from 'react';
 import type { ToolCall } from '../local-agent-plan';
+import type { ToolCatalogDefinition } from '../tool-catalog-contract';
 import type { ConfirmationRequest } from '../views/editor-dialogs';
-import type { ToolCatalogDefinition } from '../views/tool-catalog-panel';
 import type { WorkspaceFile } from '../workspace';
 import type {
   ToolExecutionOptions,

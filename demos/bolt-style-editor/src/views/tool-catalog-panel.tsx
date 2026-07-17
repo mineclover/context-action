@@ -1,18 +1,9 @@
+import type {
+  ToolCatalogAnnotations,
+  ToolCatalogDefinition,
+} from '../tool-catalog-contract';
+
 export type ToolCatalogFilter = 'all' | 'read' | 'workspace' | 'preview';
-
-export type ToolCatalogAnnotations = {
-  readOnlyHint?: boolean;
-  destructiveHint?: boolean;
-  openWorldHint?: boolean;
-};
-
-export type ToolCatalogDefinition = {
-  name: string;
-  description?: string;
-  annotations?: ToolCatalogAnnotations;
-  inputSchema: unknown;
-  outputSchema?: unknown;
-};
 
 const toolCatalogFilterOptions: Array<{
   value: ToolCatalogFilter;

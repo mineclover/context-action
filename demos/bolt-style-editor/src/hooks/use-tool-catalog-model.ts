@@ -1,10 +1,8 @@
 import { toToolListRequest } from '@context-action/react';
 import { useCallback, useMemo } from 'react';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
-import type {
-  ToolCatalogDefinition,
-  ToolCatalogFilter,
-} from '../views/tool-catalog-panel';
+import type { ToolCatalogDefinition } from '../tool-catalog-contract';
+import type { ToolCatalogFilter } from '../views/tool-catalog-panel';
 
 export type ToolCatalogModelOptions = {
   registry: BoltStyleRegistry;

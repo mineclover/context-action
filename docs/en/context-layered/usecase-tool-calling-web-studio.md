@@ -84,6 +84,9 @@ package. Its `use-tool-catalog-model.ts` owns canonical `tools/list`, tool
 definitions, and catalog filtering; `use-tool-catalog-actions.ts` owns sample
 arguments and palette commands, while `use-studio-export-actions.ts` owns
 catalog and trace exports.
+The local `src/tool-catalog-contract.ts` only aliases the framework's
+`MCPToolDefinition` and `ToolAnnotations`, so views and action hooks do not
+invent a second catalog definition shape.
 
 The example Live Code Editor keeps the same seam even though it is a smaller
 showcase. `LiveEditorToolchain.tsx` owns the ToolContext and handler

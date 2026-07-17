@@ -96,6 +96,9 @@ orchestration은 focused hook으로 나눈다. `use-tool-execution`은 provider 
 `use-workspace-editor-actions`는 draft와 file mutation을,
 `use-tool-catalog-model`은 canonical `tools/list`, definition과 catalog filter를,
 `use-tool-catalog-actions`는 tool argument sample과 palette command를,
+로컬 `src/tool-catalog-contract.ts`는 view/action boundary에서 사용할
+framework의 `MCPToolDefinition`과 `ToolAnnotations` alias를 제공하므로 별도
+catalog definition shape을 선언하지 않는다.
 `use-workspace-keyboard-shortcuts`는 전역 명령을,
 `use-studio-export-actions`는 copy/download export를 소유한다. 공통
 `use-confirmation-request` hook은 Promise 기반 destructive confirmation

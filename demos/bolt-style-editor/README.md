@@ -95,7 +95,9 @@ filtering,
 `use-workspace-keyboard-shortcuts` owns global commands, and
 `use-studio-export-actions` owns copy/download exports. The shared
 `use-confirmation-request` hook owns the promise-backed destructive confirmation
-boundary. Browser-only helpers
+boundary. The local `src/tool-catalog-contract.ts` aliases the framework's
+`MCPToolDefinition` and `ToolAnnotations`; views and action hooks consume that
+contract instead of declaring a second catalog shape. Browser-only helpers
 such as revision guards, patching, escaping, and cancellation remain in
 `src/tool-runtime-utils.ts`; views under `src/views/` receive data and
 callbacks without owning workspace mutation policy. The keyboard-aware file

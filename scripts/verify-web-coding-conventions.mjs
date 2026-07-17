@@ -120,6 +120,9 @@ assertContains(
 const resultContractSource = readSource(
   'demos/bolt-style-editor/src/tool-result-contract.ts'
 );
+const catalogContractSource = readSource(
+  'demos/bolt-style-editor/src/tool-catalog-contract.ts'
+);
 assertContains(
   'demos/bolt-style-editor/src/tool-result-contract.ts',
   resultContractSource,
@@ -131,6 +134,18 @@ assertContains(
   handlerSource,
   /createWorkspacePersistenceMeta|createWorkspaceResultMeta/,
   'the handler-to-result-contract boundary'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-catalog-contract.ts',
+  catalogContractSource,
+  /export type ToolCatalogDefinition = MCPToolDefinition;/,
+  'the canonical MCP tool definition type'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-catalog-contract.ts',
+  catalogContractSource,
+  /export type ToolCatalogAnnotations = ToolAnnotations;/,
+  'the canonical tool annotation type'
 );
 
 const observableSource = readSource(
