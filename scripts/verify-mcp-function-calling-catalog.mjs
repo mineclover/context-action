@@ -654,6 +654,22 @@ const realtimeCount = assertCatalogMatchesSchema({
   label: 'realtime web-coding catalog',
 });
 
+assertContains(
+  catalogSource,
+  /id:\s*'standalone-preview-observability'[\s\S]*tools:\s*\['preview\.getStatus'\]/,
+  'standalone preview observability reference'
+);
+assertContains(
+  catalogSource,
+  /id:\s*'standalone-preview-refresh'[\s\S]*workspace\.getStatus[\s\S]*preview\.refresh[\s\S]*iframe acknowledgement/,
+  'standalone preview refresh chain reference'
+);
+assertContains(
+  catalogSource,
+  /id:\s*'standalone-undo-recovery'[\s\S]*workspace\.getStatus[\s\S]*workspace\.undo[\s\S]*iframe acknowledgement/,
+  'standalone undo recovery chain reference'
+);
+
 console.log('MCP/function-calling catalog contract check');
 console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
