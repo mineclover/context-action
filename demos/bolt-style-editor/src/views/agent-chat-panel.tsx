@@ -29,8 +29,10 @@ export type AgentChatPanelProps = {
   onGrantFolderAccess: () => void;
   onRefreshPreview: () => void;
   onOpenSettings: () => void;
+  onOpenSimulation: () => void;
   onPromptChange: (value: string) => void;
   onCancel: () => void;
+  onClose: () => void;
 };
 
 export function AgentChatPanel({
@@ -52,21 +54,46 @@ export function AgentChatPanel({
   onGrantFolderAccess,
   onRefreshPreview,
   onOpenSettings,
+  onOpenSimulation,
   onPromptChange,
   onCancel,
+  onClose,
 }: AgentChatPanelProps) {
   return (
-    <section className="chat-panel">
+    <section
+      aria-label="Agent chat panel"
+      className="chat-panel chat-panel-floating"
+      id="agent-chat-panel"
+      role="region"
+    >
       <div className="chat-heading">
         <div>
           <span className="panel-label">Agent</span>
           <strong>What should we change?</strong>
         </div>
-        <span className="agent-badge">
-          {agentMode === 'openrouter'
-            ? 'OPENROUTER / TOOL CALLING'
-            : 'LOCAL / TOOL CALLING'}
-        </span>
+        <div className="chat-heading-actions">
+          <span className="agent-badge">
+            {agentMode === 'openrouter'
+              ? 'OPENROUTER / TOOL CALLING'
+              : 'LOCAL / TOOL CALLING'}
+          </span>
+          <button
+            aria-label="Open simulation reference"
+            className="chat-reference-button"
+            onClick={onOpenSimulation}
+            type="button"
+          >
+            Reference
+          </button>
+          <button
+            aria-label="Close agent chat"
+            className="chat-close-button"
+            onClick={onClose}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
       </div>
       {pendingApprovals.length ? (
         <section

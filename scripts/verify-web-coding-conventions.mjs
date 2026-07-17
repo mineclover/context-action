@@ -51,7 +51,9 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/tool-handlers.tsx',
   'demos/bolt-style-editor/src/tool-result-contract.ts',
   'demos/bolt-style-editor/src/tool-command-catalog.ts',
+  'demos/bolt-style-editor/src/tool-chain-simulation-catalog.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   'demos/bolt-style-editor/src/openrouter.ts',
@@ -131,6 +133,15 @@ const commandCatalogSource = readSource(
 const agentChatSource = readSource(
   'demos/bolt-style-editor/src/views/agent-chat-panel.tsx'
 );
+const simulationCatalogSource = readSource(
+  'demos/bolt-style-editor/src/tool-chain-simulation-catalog.ts'
+);
+const simulationHookSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts'
+);
+const simulationViewSource = readSource(
+  'demos/bolt-style-editor/src/views/tool-chain-simulation-panel.tsx'
+);
 assertContains(
   'demos/bolt-style-editor/src/tool-command-catalog.ts',
   commandCatalogSource,
@@ -148,6 +159,24 @@ assertContains(
   agentChatSource,
   /promptRecipes\.map\(/,
   'prompt recipes injected from the catalog'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-chain-simulation-catalog.ts',
+  simulationCatalogSource,
+  /satisfies readonly ToolChainSimulationSnapshot\[\]/,
+  'captured simulation entries checked against the snapshot contract'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts',
+  simulationHookSource,
+  /executeQuickTool\(step\.call,[\s\S]*announce:\s*false/,
+  'simulation steps routed through the direct tool execution action'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/tool-chain-simulation-panel.tsx',
+  simulationViewSource,
+  /snapshot\.steps\.map\(/,
+  'simulation steps rendered from the captured catalog'
 );
 assertNotContains(
   'demos/bolt-style-editor/src/views/agent-chat-panel.tsx',

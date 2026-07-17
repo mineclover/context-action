@@ -230,6 +230,15 @@ async function runBrowserProof(url) {
     if (await page.getByLabel('Edit index.html').isDisabled()) {
       throw new Error('The source editor remained disabled after hydration.');
     }
+    const agentPanel = page.getByRole('region', { name: 'Agent chat panel' });
+    if ((await agentPanel.count()) !== 0) {
+      throw new Error('The agent chat panel should start closed behind its bubble.');
+    }
+    await page.getByRole('button', { name: 'Open agent chat' }).click();
+    await agentPanel.waitFor();
+    await page.getByRole('button', { name: 'Close agent chat', exact: true }).click();
+    await agentPanel.waitFor({ state: 'detached' });
+    await page.getByRole('button', { name: 'Open agent chat' }).click();
     const composer = page.getByLabel('Web studio prompt');
     if ((await composer.inputValue()) !== '') {
       throw new Error('The standalone composer must start empty and rely on placeholder or recipes for examples.');
@@ -246,6 +255,7 @@ async function runBrowserProof(url) {
     }
     await page.goto(url, { waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Open agent chat' }).click();
     if ((await composer.inputValue()) !== '') {
       throw new Error('A consumed deep-link prompt leaked into the default composer state.');
     }
@@ -277,6 +287,31 @@ async function runBrowserProof(url) {
     if (!themeRecipeTitle?.includes('workspace.getStatus')) {
       throw new Error('The tool-chain recipe did not expose its expected call chain.');
     }
+    await page.getByRole('button', { name: 'Open simulation reference' }).click();
+    const simulationDialog = page.getByRole('dialog', {
+      name: 'Tool-chain simulation',
+    });
+    await simulationDialog.waitFor();
+    for (const toolName of [
+      'workspace.getStatus',
+      'preview.setTheme',
+      'preview.getStatus',
+      'preview.refresh',
+    ]) {
+      if ((await simulationDialog.getByText(toolName, { exact: true }).count()) !== 1) {
+        throw new Error(`The simulation snapshot is missing ${toolName}.`);
+      }
+    }
+    await simulationDialog.getByRole('button', { name: 'Run snapshot' }).click();
+    await simulationDialog.getByText('Simulation completed', { exact: true }).waitFor({
+      timeout: 10_000,
+    });
+    if ((await page.locator('#trace-list .trace-row').count()) < 4) {
+      throw new Error('The simulation did not emit its calls into the shared trace.');
+    }
+    await simulationDialog
+      .getByRole('button', { name: 'Close simulation reference' })
+      .click();
     await page.getByRole('button', { name: 'Create notes.md' }).click();
     if ((await composer.inputValue()) !== 'Create notes.md') {
       throw new Error('The tool-chain recipe did not populate the composer prompt.');
@@ -731,6 +766,7 @@ async function runBrowserProof(url) {
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Open agent chat' }).click();
     const stylesEditor = page.getByLabel('Edit styles.css');
     await stylesEditor.waitFor();
     if (
@@ -1507,6 +1543,7 @@ async function runBrowserProof(url) {
     try {
       await retryPage.goto(url, { waitUntil: 'networkidle' });
       await retryPage.getByText('Ready', { exact: true }).waitFor();
+      await retryPage.getByRole('button', { name: 'Open agent chat' }).click();
       const retryPrompt = retryPage.getByLabel('Web studio prompt');
       const retrySend = retryPage.getByRole('button', { name: /^Send/ });
       await retryPrompt.fill('Show workspace status');
@@ -1583,6 +1620,7 @@ async function runBrowserProof(url) {
     try {
       await authPage.goto(url, { waitUntil: 'networkidle' });
       await authPage.getByText('Ready', { exact: true }).waitFor();
+      await authPage.getByRole('button', { name: 'Open agent chat' }).click();
       await authPage.getByLabel('Web studio prompt').fill('Show workspace status');
       await authPage.getByRole('button', { name: /^Send/ }).click();
       await authPage
@@ -1804,6 +1842,7 @@ async function runBrowserProof(url) {
     try {
       await toolLoopPage.goto(url, { waitUntil: 'networkidle' });
       await toolLoopPage.getByText('Ready', { exact: true }).waitFor();
+      await toolLoopPage.getByRole('button', { name: 'Open agent chat' }).click();
       toolLoopCatalogToolNames = await toolLoopPage
         .locator('[data-tool-name]')
         .evaluateAll((elements) =>

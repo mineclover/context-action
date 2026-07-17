@@ -16,6 +16,7 @@ import { usePreviewBridge } from './hooks/use-preview-bridge';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
 import { useToolCatalogModel } from './hooks/use-tool-catalog-model';
+import { useToolChainSimulation } from './hooks/use-tool-chain-simulation';
 import {
   type EditorMessage,
   useToolExecution,
@@ -33,6 +34,7 @@ import {
   subscribeOpenRouterSettings,
 } from './openrouter';
 import { resolveToolApproval } from './tool-approval';
+import { standaloneToolChainSimulationSnapshots } from './tool-chain-simulation-catalog';
 import { standaloneToolChainRecipes } from './tool-command-catalog';
 import { ToolHandlers } from './tool-handlers';
 import { formatToolSuccessMessage } from './tool-result-utils';
@@ -51,6 +53,7 @@ import {
   type ToolCatalogFilter,
   ToolCatalogPanel,
 } from './views/tool-catalog-panel';
+import { ToolChainSimulationPanel } from './views/tool-chain-simulation-panel';
 import { ToolTracePanel } from './views/tool-trace-panel';
 import { WorkspaceEditorToolbar } from './views/workspace-editor-toolbar';
 import { WorkspaceExplorerPanel } from './views/workspace-explorer-panel';
@@ -73,6 +76,8 @@ function formatTraceId(id: string): string {
 }
 
 const INITIAL_PROMPT_MAX_LENGTH = 4_000;
+const standaloneToolChainSimulationSnapshot =
+  standaloneToolChainSimulationSnapshots[0]!;
 
 /** Read one catalog deep-link prompt without executing it. */
 function readInitialPrompt(): string {
@@ -133,6 +138,8 @@ function EditorWorkbench({
     revision: snapshot.revision,
   });
   const [prompt, setPrompt] = useState(readInitialPrompt);
+  const [chatOpen, setChatOpen] = useState(() => Boolean(prompt));
+  const [simulationOpen, setSimulationOpen] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
   const firstApprovalButtonRef = useRef<HTMLButtonElement>(null);
   const focusedApprovalIdRef = useRef<string | null>(null);
@@ -169,6 +176,11 @@ function EditorWorkbench({
     clearPrompt,
     formatToolSuccessMessage,
   });
+  const {
+    state: simulationState,
+    runSnapshot,
+    resetSimulation,
+  } = useToolChainSimulation({ executeQuickTool, running });
   useEffect(() => {
     const messageList = messageListRef.current;
     if (!messageList) return;
@@ -782,34 +794,6 @@ function EditorWorkbench({
             }}
             source={editorDrafts[activeFile.path] ?? activeFile.source}
           />
-
-          <AgentChatPanel
-            agentMode={
-              activeAgentMode ??
-              (openRouterSettings.apiKey ? 'openrouter' : 'local')
-            }
-            executionStatusLabel={executionStatusLabel}
-            firstApprovalButtonRef={firstApprovalButtonRef}
-            formatSessionId={formatTraceId}
-            isStorageReady={isStorageReady}
-            messageListRef={messageListRef}
-            messages={messages}
-            onCancel={cancelExecution}
-            onExecutePrompt={executePrompt}
-            onExecuteQuickTool={(call) => executeQuickTool(call)}
-            onGrantFolderAccess={() => void handleGrantFolderAccess()}
-            onOpenSettings={() => setShowSettings(true)}
-            onPromptChange={setPrompt}
-            onReconnectFolder={() => void handleOpenFolder()}
-            onRefreshPreview={refreshPreview}
-            onResolveApproval={(id, decision) =>
-              resolveToolApproval(id, decision)
-            }
-            pendingApprovals={pendingApprovals}
-            prompt={prompt}
-            promptRecipes={standaloneToolChainRecipes}
-            running={running}
-          />
         </main>
 
         <PreviewPanel
@@ -829,6 +813,67 @@ function EditorWorkbench({
           rootName={snapshot.rootName}
         />
       </div>
+
+      {chatOpen ? (
+        <AgentChatPanel
+          agentMode={
+            activeAgentMode ??
+            (openRouterSettings.apiKey ? 'openrouter' : 'local')
+          }
+          executionStatusLabel={executionStatusLabel}
+          firstApprovalButtonRef={firstApprovalButtonRef}
+          formatSessionId={formatTraceId}
+          isStorageReady={isStorageReady}
+          messageListRef={messageListRef}
+          messages={messages}
+          onCancel={cancelExecution}
+          onClose={() => setChatOpen(false)}
+          onExecutePrompt={executePrompt}
+          onExecuteQuickTool={(call) => executeQuickTool(call)}
+          onGrantFolderAccess={() => void handleGrantFolderAccess()}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenSimulation={() => setSimulationOpen(true)}
+          onPromptChange={setPrompt}
+          onReconnectFolder={() => void handleOpenFolder()}
+          onRefreshPreview={refreshPreview}
+          onResolveApproval={(id, decision) =>
+            resolveToolApproval(id, decision)
+          }
+          pendingApprovals={pendingApprovals}
+          prompt={prompt}
+          promptRecipes={standaloneToolChainRecipes}
+          running={running}
+        />
+      ) : null}
+      <button
+        aria-controls="agent-chat-panel"
+        aria-expanded={chatOpen}
+        aria-label={chatOpen ? 'Close agent chat panel' : 'Open agent chat'}
+        className={`chat-bubble ${chatOpen ? 'chat-bubble-open' : ''}`}
+        onClick={() => setChatOpen((current) => !current)}
+        type="button"
+      >
+        <span aria-hidden="true" className="chat-bubble-icon">
+          {chatOpen ? '×' : '✦'}
+        </span>
+        <span>{chatOpen ? 'Close' : 'Chat'}</span>
+        {pendingApprovals.length ? (
+          <span className="chat-bubble-count">{pendingApprovals.length}</span>
+        ) : running ? (
+          <span aria-label="Agent is running" className="chat-bubble-running" />
+        ) : null}
+      </button>
+      {simulationOpen ? (
+        <ToolChainSimulationPanel
+          isStorageReady={isStorageReady}
+          onClose={() => setSimulationOpen(false)}
+          onReset={resetSimulation}
+          onRun={() => void runSnapshot(standaloneToolChainSimulationSnapshot)}
+          snapshot={standaloneToolChainSimulationSnapshot}
+          state={simulationState}
+          workspaceRevision={snapshot.revision}
+        />
+      ) : null}
 
       <StudioStatusBar
         persistenceLabel={persistenceFooterLabel}
