@@ -9,6 +9,7 @@ import {
   type ToolRegistry,
   toOpenAIToolDefinitions,
 } from '@context-action/react';
+import { type OpenRouterDataPolicy } from './openrouter-models';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
   assertOpenRouterToolCallBudget,
@@ -23,11 +24,13 @@ import {
 } from './openrouter-protocol';
 import { recordToolList } from './tool-trace';
 
+export type { OpenRouterDataPolicy } from './openrouter-models';
 export type { OpenRouterErrorCode } from './openrouter-protocol';
 export { OpenRouterRequestError } from './openrouter-protocol';
 
 const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
 const ENDPOINT_STORAGE_KEY = 'context-action.openrouter.endpoint';
+const DATA_POLICY_STORAGE_KEY = 'context-action.openrouter.data-policy';
 export const OPENROUTER_REQUEST_TIMEOUT_MS = 20_000;
 const settingsSubscribers = new Set<() => void>();
 let storageListenerAttached = false;
@@ -51,7 +54,11 @@ function ensureStorageListener(): void {
   const storage = getLocalStorage();
   window.addEventListener('storage', (event) => {
     if (event.storageArea && event.storageArea !== storage) return;
-    if (event.key === MODEL_STORAGE_KEY || event.key === ENDPOINT_STORAGE_KEY) {
+    if (
+      event.key === MODEL_STORAGE_KEY ||
+      event.key === ENDPOINT_STORAGE_KEY ||
+      event.key === DATA_POLICY_STORAGE_KEY
+    ) {
       notifySettingsSubscribers();
     }
   });
@@ -62,6 +69,7 @@ export type OpenRouterSettings = {
   apiKey: string;
   model: string;
   endpoint: string;
+  dataPolicy: OpenRouterDataPolicy;
 };
 
 export type AgentRunResult = {
@@ -85,7 +93,12 @@ export const DEFAULT_OPENROUTER_SETTINGS: OpenRouterSettings = {
   apiKey: '',
   model: 'openai/gpt-4o-mini',
   endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+  dataPolicy: 'allow',
 };
+
+function normalizeDataPolicy(value: string): OpenRouterDataPolicy {
+  return value === 'deny' || value === 'zdr' ? value : 'allow';
+}
 
 function readStorage(key: string): string {
   if (typeof window === 'undefined') return '';
@@ -185,6 +198,10 @@ export function readOpenRouterSettings(): OpenRouterSettings {
     model: readStorage(MODEL_STORAGE_KEY) || DEFAULT_OPENROUTER_SETTINGS.model,
     endpoint:
       readStorage(ENDPOINT_STORAGE_KEY) || DEFAULT_OPENROUTER_SETTINGS.endpoint,
+    dataPolicy: normalizeDataPolicy(
+      readStorage(DATA_POLICY_STORAGE_KEY) ||
+        DEFAULT_OPENROUTER_SETTINGS.dataPolicy
+    ),
   };
 }
 
@@ -207,11 +224,13 @@ export function saveOpenRouterSettings(
     apiKey: settings.apiKey.trim(),
     model: settings.model.trim() || DEFAULT_OPENROUTER_SETTINGS.model,
     endpoint: settings.endpoint.trim() || DEFAULT_OPENROUTER_SETTINGS.endpoint,
+    dataPolicy: normalizeDataPolicy(settings.dataPolicy),
   };
 
   if (typeof window !== 'undefined') {
     writeStorage(MODEL_STORAGE_KEY, next.model);
     writeStorage(ENDPOINT_STORAGE_KEY, next.endpoint);
+    writeStorage(DATA_POLICY_STORAGE_KEY, next.dataPolicy);
     saveOpenRouterApiKey(next.apiKey);
   }
 
@@ -279,6 +298,11 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
               tools: providerTools,
               tool_choice: 'auto',
               max_tokens: 1200,
+              ...(settings.dataPolicy === 'deny'
+                ? { provider: { data_collection: 'deny' } }
+                : settings.dataPolicy === 'zdr'
+                  ? { provider: { zdr: true } }
+                  : {}),
             }),
           },
           signal

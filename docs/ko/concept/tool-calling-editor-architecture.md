@@ -160,6 +160,13 @@ server가 서로 다른 port를 사용하면 브라우저 storage도 분리되�
 browser가 `localStorage`를 차단하거나 기록할 수 없는 경우에도 두 provider
 surface는 현재 tab에서 session-only in-memory fallback을 사용한다. 다만 다른
 page와의 key 재사용은 browser storage가 가능해야 한다.
+설정 창에서는 OpenRouter의 `tools` 지원 model catalog를 조회하고 무료 model만
+보도록 필터링할 수 있다. data policy도 명시적으로 선택한다. `allow`는 기본
+routing을 유지하고, `deny`는 요청에 `provider.data_collection: "deny"`를 보내
+data를 수집하거나 학습에 사용할 수 있는 provider를 제외한다. `zdr`은
+`provider.zdr: true`와 함께 zero-data-retention catalog를 요청한다. catalog
+adapter는 `demos/bolt-style-editor/src/openrouter-models.ts`에 분리해
+chat/tool 실행 loop와 model discovery를 구분한다.
 agent 실행 중에는 `Cancel`이 provider request, registry 실행, preview
 acknowledgement 대기를 함께 abort한다. 취소 결과는 tool 성공으로 오인되지 않도록
 사용자에게 assistant message로 표시한다.

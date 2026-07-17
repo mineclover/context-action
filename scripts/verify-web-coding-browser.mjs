@@ -100,6 +100,35 @@ async function runBrowserProof(url) {
     await page.goto(url, { waitUntil: 'networkidle' });
     await page.getByText('Ready', { exact: true }).waitFor();
 
+    await page.getByRole('button', { name: 'Open OpenRouter settings' }).click();
+    const providerSettingsDialog = page.getByRole('dialog', {
+      name: 'OpenRouter API',
+    });
+    await providerSettingsDialog.waitFor();
+    if (
+      (await providerSettingsDialog.getByRole('checkbox', {
+        name: 'Free models only',
+      }).count()) !== 1 ||
+      (await providerSettingsDialog.getByLabel('Provider data policy').count()) !==
+        1 ||
+      (await providerSettingsDialog.getByRole('button', {
+        name: 'Load models',
+      }).count()) !== 1
+    ) {
+      throw new Error(
+        'The OpenRouter settings dialog did not expose model catalog filters.'
+      );
+    }
+    await providerSettingsDialog
+      .getByRole('checkbox', { name: 'Free models only' })
+      .uncheck();
+    await providerSettingsDialog
+      .getByLabel('Provider data policy')
+      .selectOption('deny');
+    await providerSettingsDialog
+      .getByRole('button', { name: 'Close OpenRouter settings' })
+      .click();
+
     if ((await page.getByText('tools/list · 23', { exact: true }).count()) !== 1) {
       throw new Error('The standalone catalog did not expose 23 tools.');
     }

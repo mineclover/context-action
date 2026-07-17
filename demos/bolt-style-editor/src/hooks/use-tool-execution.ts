@@ -106,6 +106,7 @@ export function useToolExecution({
   const [providerRetry, setProviderRetry] =
     useState<OpenRouterRetryEvent | null>(null);
   const executionControllerRef = useRef<AbortController | null>(null);
+  const executionInFlightRef = useRef(false);
   const flushEditorDraftsRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const executeQuickTool = useCallback(
@@ -113,83 +114,88 @@ export function useToolExecution({
       call: ToolCall,
       options: ToolExecutionOptions = {}
     ): Promise<ToolExecutionOutcome> => {
-      if (running) {
+      if (running || executionInFlightRef.current) {
         return {
           ok: false,
           message: 'Another tool execution is already running.',
         };
       }
-      if (!options.skipDraftFlush && call.name !== 'workspace.writeFile') {
-        const draftsFlushed = await flushEditorDraftsRef.current?.();
-        if (draftsFlushed === false) {
-          return {
-            ok: false,
-            message: 'Pending editor changes could not be committed.',
-          };
-        }
-      }
-      const controller = new AbortController();
-      executionControllerRef.current = controller;
-      const sessionId = createToolSessionId();
-      setRunning(true);
+      executionInFlightRef.current = true;
       try {
-        const result = await registry.callTool(
-          toToolCallRequest({
-            id: `palette-${sessionId}`,
-            name: call.name,
-            arguments: call.arguments,
-          }),
-          {
-            context: { source: 'local', mode: 'direct', sessionId },
-            signal: controller.signal,
+        if (!options.skipDraftFlush && call.name !== 'workspace.writeFile') {
+          const draftsFlushed = await flushEditorDraftsRef.current?.();
+          if (draftsFlushed === false) {
+            return {
+              ok: false,
+              message: 'Pending editor changes could not be committed.',
+            };
           }
-        );
-        throwIfAborted(controller.signal);
-        const message = result.isError
-          ? formatToolResultText(result)
-          : formatToolSuccessMessage(call.name, result);
-        if (options.announce !== false || result.isError) {
+        }
+        const controller = new AbortController();
+        executionControllerRef.current = controller;
+        const sessionId = createToolSessionId();
+        setRunning(true);
+        try {
+          const result = await registry.callTool(
+            toToolCallRequest({
+              id: `palette-${sessionId}`,
+              name: call.name,
+              arguments: call.arguments,
+            }),
+            {
+              context: { source: 'local', mode: 'direct', sessionId },
+              signal: controller.signal,
+            }
+          );
+          throwIfAborted(controller.signal);
+          const message = result.isError
+            ? formatToolResultText(result)
+            : formatToolSuccessMessage(call.name, result);
+          if (options.announce !== false || result.isError) {
+            setMessages((current) => [
+              ...current,
+              {
+                role: 'assistant',
+                text: message,
+                tools: [call.name],
+                ...(result.isError
+                  ? {
+                      tone: 'error' as const,
+                      ...getToolErrorRecovery(result.error?.code),
+                      ...(result.error?.retryable === false
+                        ? {}
+                        : { retryTool: call }),
+                    }
+                  : {}),
+              },
+            ]);
+          }
+          return result.isError ? { ok: false, message } : { ok: true };
+        } catch (error) {
+          const message = controller.signal.aborted
+            ? 'Execution cancelled.'
+            : error instanceof Error && error.message.trim()
+              ? error.message
+              : 'Tool execution failed.';
           setMessages((current) => [
             ...current,
             {
               role: 'assistant',
               text: message,
               tools: [call.name],
-              ...(result.isError
-                ? {
-                    tone: 'error' as const,
-                    ...getToolErrorRecovery(result.error?.code),
-                    ...(result.error?.retryable === false
-                      ? {}
-                      : { retryTool: call }),
-                  }
-                : {}),
+              tone: controller.signal.aborted ? 'cancelled' : 'error',
+              ...(controller.signal.aborted ? {} : { retryTool: call }),
             },
           ]);
+          return { ok: false, message };
+        } finally {
+          if (executionControllerRef.current === controller) {
+            executionControllerRef.current = null;
+          }
+          setRunning(false);
         }
-        return result.isError ? { ok: false, message } : { ok: true };
-      } catch (error) {
-        const message = controller.signal.aborted
-          ? 'Execution cancelled.'
-          : error instanceof Error && error.message.trim()
-            ? error.message
-            : 'Tool execution failed.';
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: message,
-            tools: [call.name],
-            tone: controller.signal.aborted ? 'cancelled' : 'error',
-            ...(controller.signal.aborted ? {} : { retryTool: call }),
-          },
-        ]);
-        return { ok: false, message };
       } finally {
-        if (executionControllerRef.current === controller) {
-          executionControllerRef.current = null;
-        }
-        setRunning(false);
+        executionInFlightRef.current = false;
       }
     },
     [formatToolSuccessMessage, registry, running, setMessages]
@@ -201,109 +207,114 @@ export function useToolExecution({
       options: AgentExecutionOptions = {}
     ): Promise<void> => {
       const trimmed = value.trim();
-      if (!trimmed || running) return;
-      const draftsFlushed = await flushEditorDraftsRef.current?.();
-      if (draftsFlushed === false) return;
-      const useOpenRouter = !options.forceLocal && openRouterSettings.apiKey;
-      const controller = new AbortController();
-      executionControllerRef.current = controller;
-      setProviderRetry(null);
-      const agentTrace = startAgentTrace(
-        useOpenRouter ? 'openrouter' : 'local'
-      );
-      clearPrompt();
-      setMessages((current) => [...current, { role: 'user', text: trimmed }]);
-      setActiveAgentMode(useOpenRouter ? 'openrouter' : 'local');
-      setRunning(true);
+      if (!trimmed || running || executionInFlightRef.current) return;
+      executionInFlightRef.current = true;
       try {
-        const result = useOpenRouter
-          ? await runOpenRouterAgent(
-              registry,
-              trimmed,
-              openRouterSettings,
-              controller.signal,
-              agentTrace.sessionId,
-              setProviderRetry
-            )
-          : await runLocalAgent(
-              registry,
-              workspace,
-              fileSystemAdapter,
-              trimmed,
-              controller.signal,
-              agentTrace.sessionId
-            );
-        throwIfAborted(controller.signal);
-        finishAgentTrace(
-          agentTrace,
-          result.failed ? 'failed' : 'completed',
-          result.failed
-            ? `${result.failedTool ?? 'tool call'} failed`
-            : `${result.toolNames.length} tool call(s)`
-        );
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: result.response,
-            tools: result.toolNames,
-            ...(result.failed
-              ? {
-                  tone: 'error' as const,
-                  ...(result.retryable === false
-                    ? {}
-                    : {
-                        retryPrompt: trimmed,
-                        ...getToolErrorRecovery(result.errorCode, {
-                          revisionConflict: result.revisionConflict,
-                        }),
-                      }),
-                }
-              : {}),
-          },
-        ]);
-      } catch (error) {
-        finishAgentTrace(
-          agentTrace,
-          controller.signal.aborted ? 'cancelled' : 'failed',
-          controller.signal.aborted
-            ? 'cancelled'
-            : error instanceof OpenRouterRequestError
-              ? error.code
-              : 'agent request failed'
-        );
-        const retryable =
-          !(error instanceof OpenRouterRequestError) || error.retryable;
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'assistant',
-            text: controller.signal.aborted
-              ? 'Execution cancelled.'
-              : error instanceof Error
-                ? error.message
-                : 'Request failed.',
-            tone: controller.signal.aborted ? 'cancelled' : 'error',
-            ...(controller.signal.aborted || !retryable
-              ? {}
-              : { retryPrompt: trimmed }),
-            ...(shouldOpenProviderSettings(error)
-              ? {
-                  openSettings: true,
-                  ...(openRouterSettings.apiKey
-                    ? { localRetryPrompt: trimmed }
-                    : {}),
-                }
-              : {}),
-          },
-        ]);
-      } finally {
-        if (executionControllerRef.current === controller) {
-          executionControllerRef.current = null;
-        }
+        const draftsFlushed = await flushEditorDraftsRef.current?.();
+        if (draftsFlushed === false) return;
+        const useOpenRouter = !options.forceLocal && openRouterSettings.apiKey;
+        const controller = new AbortController();
+        executionControllerRef.current = controller;
         setProviderRetry(null);
-        setActiveAgentMode(null);
-        setRunning(false);
+        const agentTrace = startAgentTrace(
+          useOpenRouter ? 'openrouter' : 'local'
+        );
+        clearPrompt();
+        setMessages((current) => [...current, { role: 'user', text: trimmed }]);
+        setActiveAgentMode(useOpenRouter ? 'openrouter' : 'local');
+        setRunning(true);
+        try {
+          const result = useOpenRouter
+            ? await runOpenRouterAgent(
+                registry,
+                trimmed,
+                openRouterSettings,
+                controller.signal,
+                agentTrace.sessionId,
+                setProviderRetry
+              )
+            : await runLocalAgent(
+                registry,
+                workspace,
+                fileSystemAdapter,
+                trimmed,
+                controller.signal,
+                agentTrace.sessionId
+              );
+          throwIfAborted(controller.signal);
+          finishAgentTrace(
+            agentTrace,
+            result.failed ? 'failed' : 'completed',
+            result.failed
+              ? `${result.failedTool ?? 'tool call'} failed`
+              : `${result.toolNames.length} tool call(s)`
+          );
+          setMessages((current) => [
+            ...current,
+            {
+              role: 'assistant',
+              text: result.response,
+              tools: result.toolNames,
+              ...(result.failed
+                ? {
+                    tone: 'error' as const,
+                    ...(result.retryable === false
+                      ? {}
+                      : {
+                          retryPrompt: trimmed,
+                          ...getToolErrorRecovery(result.errorCode, {
+                            revisionConflict: result.revisionConflict,
+                          }),
+                        }),
+                  }
+                : {}),
+            },
+          ]);
+        } catch (error) {
+          finishAgentTrace(
+            agentTrace,
+            controller.signal.aborted ? 'cancelled' : 'failed',
+            controller.signal.aborted
+              ? 'cancelled'
+              : error instanceof OpenRouterRequestError
+                ? error.code
+                : 'agent request failed'
+          );
+          const retryable =
+            !(error instanceof OpenRouterRequestError) || error.retryable;
+          setMessages((current) => [
+            ...current,
+            {
+              role: 'assistant',
+              text: controller.signal.aborted
+                ? 'Execution cancelled.'
+                : error instanceof Error
+                  ? error.message
+                  : 'Request failed.',
+              tone: controller.signal.aborted ? 'cancelled' : 'error',
+              ...(controller.signal.aborted || !retryable
+                ? {}
+                : { retryPrompt: trimmed }),
+              ...(shouldOpenProviderSettings(error)
+                ? {
+                    openSettings: true,
+                    ...(openRouterSettings.apiKey
+                      ? { localRetryPrompt: trimmed }
+                      : {}),
+                  }
+                : {}),
+            },
+          ]);
+        } finally {
+          if (executionControllerRef.current === controller) {
+            executionControllerRef.current = null;
+          }
+          setProviderRetry(null);
+          setActiveAgentMode(null);
+          setRunning(false);
+        }
+      } finally {
+        executionInFlightRef.current = false;
       }
     },
     [

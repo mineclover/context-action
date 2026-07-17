@@ -55,6 +55,7 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   'demos/bolt-style-editor/src/openrouter.ts',
+  'demos/bolt-style-editor/src/openrouter-models.ts',
 ];
 
 for (const relativeFile of requiredFiles) readSource(relativeFile);
@@ -188,6 +189,15 @@ assertContains(
   /useSyncExternalStore\(/,
   'external store subscriptions'
 );
+const toolExecutionSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  toolExecutionSource,
+  /executionInFlightRef[\s\S]*executionInFlightRef\.current/,
+  'synchronous single-execution guard'
+);
 
 const localAgentSource = readSource(
   'demos/bolt-style-editor/src/actions/run-local-agent.ts'
@@ -220,6 +230,9 @@ assertContains(
 );
 
 const openRouterSource = readSource('demos/bolt-style-editor/src/openrouter.ts');
+const openRouterModelsSource = readSource(
+  'demos/bolt-style-editor/src/openrouter-models.ts'
+);
 assertContains(
   'demos/bolt-style-editor/src/openrouter.ts',
   openRouterSource,
@@ -249,6 +262,12 @@ assertContains(
   openRouterSource,
   /mode:\s*['"]agent['"]/,
   'provider agent execution mode'
+);
+assertContains(
+  'demos/bolt-style-editor/src/openrouter-models.ts',
+  openRouterModelsSource,
+  /fetchOpenRouterModels[\s\S]*supported_parameters[\s\S]*zdr/,
+  'OpenRouter model catalog filter boundary'
 );
 
 const discoveryRequestAdapters = [

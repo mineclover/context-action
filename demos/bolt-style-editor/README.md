@@ -249,6 +249,13 @@ Keys are not bundled or sent to a Context-Action server.
 If the browser blocks or cannot write `localStorage`, the current tab keeps a
 session-only fallback so the editor remains usable; cross-page reuse then
 requires browser storage to be available.
+The settings dialog can load the OpenRouter model catalog with the `tools`
+capability pre-filtered, then switch between all models and free-only models.
+Its provider data policy is explicit: `allow` preserves default routing,
+`deny` sends `provider.data_collection: "deny"`, and `zdr` sends
+`provider.zdr: true` while also requesting a ZDR-only catalog.
+The catalog adapter lives in `src/openrouter-models.ts`; model lookup remains
+separate from the chat/tool execution loop.
 
 ## GitHub Pages
 

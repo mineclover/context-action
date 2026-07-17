@@ -1,9 +1,23 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { ToolExecutionOutcome } from '../hooks/use-tool-execution';
 import {
   DEFAULT_OPENROUTER_SETTINGS,
   type OpenRouterSettings,
 } from '../openrouter';
+import {
+  fetchOpenRouterModels,
+  formatOpenRouterModel,
+  isFreeOpenRouterModel,
+  type OpenRouterDataPolicy,
+  type OpenRouterModel,
+  supportsOpenRouterTools,
+} from '../openrouter-models';
 import { MAX_TEXT_SOURCE_LENGTH } from '../workspace';
 
 export type ConfirmationRequest = {
@@ -145,7 +159,53 @@ export function OpenRouterSettingsDialog({
 }) {
   const [draft, setDraft] = useState(initialSettings);
   const [showKey, setShowKey] = useState(false);
+  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [freeOnly, setFreeOnly] = useState(true);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const modelRequestRef = useRef<AbortController | null>(null);
   const dialogRef = useModalDialog<HTMLElement>(onClose);
+
+  const loadModels = useCallback(
+    async (apiKey: string, dataPolicy: OpenRouterDataPolicy) => {
+      modelRequestRef.current?.abort();
+      const controller = new AbortController();
+      modelRequestRef.current = controller;
+      setModelsLoading(true);
+      setModelsError(null);
+      try {
+        setModels(
+          await fetchOpenRouterModels(apiKey, dataPolicy, controller.signal)
+        );
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setModelsError(
+          error instanceof Error
+            ? error.message
+            : 'OpenRouter models could not be loaded.'
+        );
+      } finally {
+        if (modelRequestRef.current === controller) {
+          modelRequestRef.current = null;
+          setModelsLoading(false);
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (initialSettings.apiKey) {
+      void loadModels(initialSettings.apiKey, initialSettings.dataPolicy);
+    }
+    return () => modelRequestRef.current?.abort();
+  }, [initialSettings.apiKey, initialSettings.dataPolicy, loadModels]);
+
+  const visibleModels = models.filter(
+    (model) =>
+      supportsOpenRouterTools(model) &&
+      (!freeOnly || isFreeOpenRouterModel(model))
+  );
 
   return (
     <div
@@ -209,16 +269,73 @@ export function OpenRouterSettingsDialog({
 
         <label className="settings-field">
           <span>Model ID</span>
+          <div className="settings-model-picker">
+            <input
+              aria-label="Model ID"
+              list="openrouter-model-options"
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  model: event.target.value,
+                }))
+              }
+              placeholder="openai/gpt-4o-mini"
+              value={draft.model}
+            />
+            <button
+              className="reveal-button"
+              disabled={modelsLoading}
+              onClick={() => void loadModels(draft.apiKey, draft.dataPolicy)}
+              type="button"
+            >
+              {modelsLoading ? 'Loading' : 'Load models'}
+            </button>
+          </div>
+          <datalist id="openrouter-model-options">
+            {visibleModels.map((model) => (
+              <option
+                key={model.id}
+                label={formatOpenRouterModel(model)}
+                value={model.id}
+              />
+            ))}
+          </datalist>
+          <div className="settings-model-meta">
+            {modelsError
+              ? modelsError
+              : models.length
+                ? `${visibleModels.length} tool-capable model${visibleModels.length === 1 ? '' : 's'}${freeOnly ? ' · free only' : ''}`
+                : 'Load the OpenRouter catalog to choose a tool-capable model.'}
+          </div>
+        </label>
+
+        <label className="settings-check-row">
           <input
+            checked={freeOnly}
+            onChange={(event) => setFreeOnly(event.target.checked)}
+            type="checkbox"
+          />
+          <span>Free models only</span>
+        </label>
+
+        <label className="settings-field">
+          <span>Provider data policy</span>
+          <select
+            aria-label="Provider data policy"
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
-                model: event.target.value,
+                dataPolicy: event.target.value as OpenRouterDataPolicy,
               }))
             }
-            placeholder="openai/gpt-4o-mini"
-            value={draft.model}
-          />
+            value={draft.dataPolicy}
+          >
+            <option value="allow">Allow provider data collection</option>
+            <option value="deny">
+              Deny provider collection / training route
+            </option>
+            <option value="zdr">Zero data retention only</option>
+          </select>
         </label>
 
         <label className="settings-field">
@@ -239,9 +356,11 @@ export function OpenRouterSettingsDialog({
           Stored in this browser origin and sent directly to the configured
           endpoint. The API key uses the shared
           <code>context-action.openrouter.api-key</code> entry and is reused by
-          the example OpenRouter demos on this origin. Model and endpoint
-          settings remain standalone-specific. It is not committed to the
-          repository.
+          the example OpenRouter demos on this origin. Model, endpoint, and
+          provider data-policy settings remain standalone-specific. `Deny` sends{' '}
+          <code>provider.data_collection=deny</code>; `ZDR` sends
+          <code>provider.zdr=true</code> for the chat request. It is not
+          committed to the repository.
         </div>
 
         <div className="settings-actions">

@@ -15,6 +15,10 @@ const standaloneSettingsPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/openrouter.ts'
 );
+const modelCatalogPath = path.join(
+  rootDirectory,
+  'demos/bolt-style-editor/src/openrouter-models.ts'
+);
 const exampleSettingsPath = path.join(
   rootDirectory,
   'example/src/lib/openrouter-api-key.ts'
@@ -58,6 +62,7 @@ const protocol = await import(
 
 const sharedStorageKey = 'context-action.openrouter.api-key';
 const standaloneSettingsSource = await readFile(standaloneSettingsPath, 'utf8');
+const modelCatalogSource = await readFile(modelCatalogPath, 'utf8');
 const exampleSettingsSource = await readFile(exampleSettingsPath, 'utf8');
 const sharedStorageSource = await readFile(sharedStoragePath, 'utf8');
 const toolSchemaPath = path.join(
@@ -146,6 +151,18 @@ expect(
     standaloneSettingsSource.includes("code: 'OPENROUTER_TIMEOUT'") &&
     standaloneSettingsSource.includes("reason: 'timeout'"),
   'Standalone OpenRouter requests must preserve a bounded timeout retry path.'
+);
+expect(
+  modelCatalogSource.includes('supported_parameters') &&
+    modelCatalogSource.includes("zdr', 'true'") &&
+    modelCatalogSource.includes('isFreeOpenRouterModel') &&
+    modelCatalogSource.includes('supportsOpenRouterTools'),
+  'The standalone model catalog must expose tool-capable, free, and ZDR filters.'
+);
+expect(
+  standaloneSettingsSource.includes("data_collection: 'deny'") &&
+    standaloneSettingsSource.includes('provider: { zdr: true }'),
+  'OpenRouter provider data policy settings must reach the chat-completions request.'
 );
 expectEqual(
   protocol.openRouterRetryDelayMs(0, '2'),

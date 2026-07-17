@@ -168,6 +168,13 @@ sent to a Context-Action server.
 If the browser blocks or cannot write `localStorage`, both provider surfaces
 keep a session-only in-memory fallback for the current tab; cross-page key reuse
 still requires browser storage to be available.
+The settings dialog can load OpenRouter's tool-capable model catalog and filter
+it to free models. Its provider data policy is explicit: `allow` keeps default
+routing, `deny` sends `provider.data_collection: "deny"` to exclude providers
+that may collect or train on the request, and `zdr` sends `provider.zdr: true`
+and requests a zero-data-retention-only catalog. The catalog adapter lives in
+`demos/bolt-style-editor/src/openrouter-models.ts`, separate from the
+chat/tool execution loop.
 While an agent run is active, `Cancel` aborts the provider request, registry
 execution, and any preview acknowledgement wait. Cancellation is shown as a
 user-visible assistant message instead of a misleading tool success.
