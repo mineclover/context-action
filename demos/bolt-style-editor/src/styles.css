@@ -174,7 +174,7 @@ a { color: inherit; text-decoration: none; }
 .trace-empty { color: #626c7d; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; line-height: 1.45; padding: 7px 4px; }
 
 .studio-main { background: #10131a; display: flex; min-width: 0; flex-direction: column; }
-.editor-toolbar { align-items: stretch; border-bottom: 1px solid #20242e; display: flex; flex-wrap: wrap; min-height: 45px; justify-content: space-between; }
+.editor-toolbar { align-items: stretch; border-bottom: 1px solid #20242e; container: editor-toolbar / inline-size; display: flex; flex-wrap: wrap; min-height: 45px; justify-content: space-between; }
 .editor-tabs { display: flex; flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; }
 .editor-tab { background: #10131a; border-right: 1px solid #20242e; color: #737b8c; cursor: pointer; font-size: 11px; gap: 7px; padding: 0 14px; white-space: nowrap; }
 .editor-tab:hover { color: #dde1e8; }
@@ -403,6 +403,24 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 900px) {
   .editor-controls { align-content: flex-start; flex-wrap: wrap; justify-content: flex-start; min-width: 0; row-gap: 5px; width: 100%; }
+}
+
+@container editor-toolbar (max-width: 720px) {
+  .editor-tabs {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .editor-controls {
+    align-content: flex-start;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    min-width: 0;
+    padding: 5px 9px;
+    row-gap: 5px;
+    width: 100%;
+  }
 }
 
 @media (max-width: 1260px) {

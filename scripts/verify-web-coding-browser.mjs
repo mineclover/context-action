@@ -112,6 +112,47 @@ async function runBrowserProof(url) {
     ) {
       throw new Error('Workspace save and preview states are not live regions.');
     }
+    const desktopToolbarLayout = await page.evaluate(() => {
+      const toolbar = document.querySelector('.editor-toolbar');
+      const controls = document.querySelector('.editor-controls');
+      if (!toolbar || !controls) {
+        return null;
+      }
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const controlsRect = controls.getBoundingClientRect();
+      const overflowingChildren = Array.from(controls.children)
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            label: element.getAttribute('aria-label') ?? element.textContent?.trim(),
+            right: rect.right,
+            bottom: rect.bottom,
+          };
+        })
+        .filter(
+          (element) =>
+            element.right > controlsRect.right + 1 ||
+            element.bottom > toolbarRect.bottom + 1
+        );
+      return {
+        viewportWidth: window.innerWidth,
+        toolbarWidth: toolbarRect.width,
+        toolbarScrollWidth: toolbar.scrollWidth,
+        controlsWidth: controlsRect.width,
+        controlsScrollWidth: controls.scrollWidth,
+        overflowingChildren,
+      };
+    });
+    if (
+      !desktopToolbarLayout ||
+      desktopToolbarLayout.toolbarScrollWidth > desktopToolbarLayout.toolbarWidth + 1 ||
+      desktopToolbarLayout.controlsScrollWidth > desktopToolbarLayout.controlsWidth + 1 ||
+      desktopToolbarLayout.overflowingChildren.length
+    ) {
+      throw new Error(
+        `The editor toolbar clips actions in its main column: ${JSON.stringify(desktopToolbarLayout)}`
+      );
+    }
     if (await page.getByLabel('Edit index.html').isDisabled()) {
       throw new Error('The source editor remained disabled after hydration.');
     }
