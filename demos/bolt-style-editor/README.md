@@ -86,7 +86,8 @@ hooks: `use-tool-execution` owns provider-neutral execution,
 `use-workspace-folder-actions` owns folder boundaries,
 `use-workspace-runtime` owns workspace hydration and persisted-folder restore,
 `use-editor-observables` owns reactive workspace, filesystem, trace, and
-approval subscriptions,
+approval subscriptions plus persisted dirty paths, deleted paths, and undo/redo
+availability,
 `use-workspace-editor-actions` owns drafts and file mutations,
 `use-tool-catalog-model` owns canonical `tools/list`, definitions, and catalog
 filtering,

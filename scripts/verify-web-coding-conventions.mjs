@@ -243,6 +243,18 @@ assertNotContains(
   /registry\.(?:getToolNames|getToolDefinition|listTools)\(/,
   'tool catalog reads from the editor composition root'
 );
+assertNotContains(
+  'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
+  editorSource,
+  /workspace\.(?:getDirtyFiles|getDeletedPaths|canUndo|canRedo)\(/,
+  'workspace derived-state reads from the editor composition root'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
+  observableSource,
+  /workspace\.getDirtyFiles\(\)[\s\S]*workspace\.getDeletedPaths\(\)[\s\S]*workspace\.canUndo\(\)[\s\S]*workspace\.canRedo\(\)/,
+  'workspace derived-state observable facade'
+);
 
 const showcaseRequestAdapters = [
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts',
@@ -342,6 +354,7 @@ console.log('- ToolContext creation: bolt-style-tool-context.ts');
 console.log('- canonical tool schema: tool-schema.ts');
 console.log('- handler registrations: tool-handlers.tsx');
 console.log('- external subscriptions: use-editor-observables.ts');
+console.log('- workspace derived-state observable boundary checked');
 console.log('- canonical catalog read model: use-tool-catalog-model.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);

@@ -63,7 +63,7 @@ handlers/
   tool-handlers.tsx            # useToolHandler 등록
 hooks/
   use-tool-execution.ts        # provider/model 실행
-  use-editor-observables.ts    # 외부 구독
+  use-editor-observables.ts    # 외부 구독과 workspace 파생 상태
   use-tool-catalog-model.ts    # canonical tools/list와 catalog read model
   use-workspace-*.ts           # workspace action과 keyboard command
 views/

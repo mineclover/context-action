@@ -97,6 +97,10 @@ function EditorWorkbench({
   const registry = useBoltStyleToolRegistry();
   const {
     snapshot,
+    workspaceDirtyPaths,
+    deletedPaths,
+    canUndo,
+    canRedo,
     traceEntries,
     pendingApprovals,
     hasWritableFolder,
@@ -183,7 +187,7 @@ function EditorWorkbench({
     snapshot.files.find((file) => file.path === snapshot.activePath) ??
     snapshot.files[0];
   const dirtyPaths = useMemo(() => {
-    const paths = new Set(workspace.getDirtyFiles().map((file) => file.path));
+    const paths = new Set(workspaceDirtyPaths);
     for (const [path, source] of Object.entries(editorDrafts)) {
       const file = snapshot.files.find((candidate) => candidate.path === path);
       if (file && file.kind !== 'asset' && file.source !== source) {
@@ -191,11 +195,7 @@ function EditorWorkbench({
       }
     }
     return paths;
-  }, [editorDrafts, snapshot, workspace]);
-  const deletedPaths = useMemo(
-    () => workspace.getDeletedPaths(),
-    [snapshot, workspace]
-  );
+  }, [editorDrafts, snapshot.files, workspaceDirtyPaths]);
   const hasUnsavedChanges = dirtyPaths.size > 0 || deletedPaths.length > 0;
   const hasUnpersistedEditorDrafts = Object.keys(editorDrafts).some((path) => {
     const file = snapshot.files.find((candidate) => candidate.path === path);
@@ -630,9 +630,9 @@ function EditorWorkbench({
             activeFile={activeFile}
             activePath={snapshot.activePath}
             canDelete={canDeleteActiveFile}
-            canRedo={workspace.canRedo()}
+            canRedo={canRedo}
             canRevert={canRevertActiveFile}
-            canUndo={workspace.canUndo() || hasUnsavedChanges}
+            canUndo={canUndo || hasUnsavedChanges}
             dirtyPaths={dirtyPaths}
             editorTabsRef={editorTabsRef}
             files={snapshot.files}

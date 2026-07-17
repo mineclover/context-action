@@ -63,7 +63,7 @@ handlers/
   tool-handlers.tsx            # useToolHandler registrations
 hooks/
   use-tool-execution.ts        # provider/model execution
-  use-editor-observables.ts    # external subscriptions
+  use-editor-observables.ts    # subscriptions and workspace derived state
   use-tool-catalog-model.ts    # canonical tools/list and catalog read model
   use-workspace-*.ts           # workspace actions and keyboard commands
 views/
