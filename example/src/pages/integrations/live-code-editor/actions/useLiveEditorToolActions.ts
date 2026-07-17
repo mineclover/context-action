@@ -1,34 +1,8 @@
 import { toToolCallRequest, toToolListRequest } from '@context-action/react';
 import { useCallback, useMemo, useState } from 'react';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';
+import { formatToolResultText } from '../../../../lib/tool-result-format';
 import { useLiveEditorToolRegistry } from '../LiveEditorToolchain';
-
-type LiveEditorToolResult = {
-  readonly content?: readonly {
-    readonly type: string;
-    readonly text?: string;
-  }[];
-  readonly error?: { readonly message?: string };
-  readonly isError?: boolean;
-  readonly structuredContent?: unknown;
-};
-
-function formatLocalToolResult(
-  result: LiveEditorToolResult,
-  fallback: string
-): string {
-  if (result.error?.message || result.isError) {
-    return result.error?.message ?? fallback;
-  }
-  if (result.structuredContent !== undefined) {
-    return JSON.stringify(result.structuredContent);
-  }
-  const text = result.content
-    ?.filter((item) => item.type === 'text' && item.text)
-    .map((item) => item.text)
-    .join('\n');
-  return text || fallback;
-}
 
 export function useLiveEditorToolActions() {
   const registry = useLiveEditorToolRegistry();
@@ -66,14 +40,14 @@ export function useLiveEditorToolActions() {
   const inspectEditorStatus = useCallback(async () => {
     const result = await callLocalTool('editor.getStatus', {});
     setLocalStatusResult(
-      formatLocalToolResult(result, 'Local editor.getStatus failed.')
+      formatToolResultText(result, 'Local editor.getStatus failed.')
     );
   }, [callLocalTool]);
 
   const inspectRegistry = useCallback(async () => {
     const result = await callLocalTool('editor.listFiles', {});
     setLocalCallResult(
-      formatLocalToolResult(result, 'Local tools/call failed.')
+      formatToolResultText(result, 'Local tools/call failed.')
     );
   }, [callLocalTool]);
 
@@ -83,7 +57,7 @@ export function useLiveEditorToolActions() {
         path: 'script.js',
       });
       setLocalOpenResult(
-        formatLocalToolResult(result, 'Local editor.openFile failed.')
+        formatToolResultText(result, 'Local editor.openFile failed.')
       );
     } catch (error) {
       setLocalOpenResult(
@@ -117,7 +91,7 @@ export function useLiveEditorToolActions() {
         sessionId
       );
       setLocalSaveResult(
-        formatLocalToolResult(result, 'Local editor.saveFile failed.')
+        formatToolResultText(result, 'Local editor.saveFile failed.')
       );
     } catch (error) {
       setLocalSaveResult(
@@ -130,7 +104,7 @@ export function useLiveEditorToolActions() {
     try {
       const result = await callLocalTool('editor.saveAll', {});
       setLocalSaveAllResult(
-        formatLocalToolResult(result, 'Local editor.saveAll failed.')
+        formatToolResultText(result, 'Local editor.saveAll failed.')
       );
     } catch (error) {
       setLocalSaveAllResult(
@@ -144,7 +118,7 @@ export function useLiveEditorToolActions() {
       scenario: 'invalid',
     });
     setLocalMutationResult(
-      formatLocalToolResult(result, 'Local mutation failed.')
+      formatToolResultText(result, 'Local mutation failed.')
     );
   }, [callLocalTool]);
 
@@ -159,7 +133,7 @@ export function useLiveEditorToolActions() {
       { context: { source: 'model', mode: 'agent', sessionId } }
     );
     setModelShapedResult(
-      formatLocalToolResult(result, 'Model-shaped call failed.')
+      formatToolResultText(result, 'Model-shaped call failed.')
     );
   }, [registry]);
 
@@ -208,7 +182,7 @@ export function useLiveEditorToolActions() {
       sessionId
     );
     setLocalPatchResult(
-      formatLocalToolResult(patchResult, 'Local patch failed.')
+      formatToolResultText(patchResult, 'Local patch failed.')
     );
   }, [callLocalTool]);
 

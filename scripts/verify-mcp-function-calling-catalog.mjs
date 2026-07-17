@@ -94,6 +94,9 @@ const liveToolResultContractSource = readSource(
 const catalogPageSource = readSource(
   'example/src/pages/catalog/integrations/McpFunctionCallingCatalog.tsx'
 );
+const toolResultFormatSource = readSource(
+  'example/src/lib/tool-result-format.ts'
+);
 const standaloneSchemaSource = readSource(
   'demos/bolt-style-editor/src/tool-schema.ts'
 );
@@ -194,6 +197,26 @@ assertContains(
   realtimeWebCodingSchemaSource,
   /livePreviewStatusSchema/,
   'realtime web-coding shared preview schema usage'
+);
+assertContains(
+  toolResultFormatSource,
+  /export function formatToolResultText\(/,
+  'shared ToolContext result presentation formatter'
+);
+assertContains(
+  liveEditorToolActionsSource,
+  /formatToolResultText\(/,
+  'Live Code Editor result presentation formatter usage'
+);
+assertNotContains(
+  liveEditorToolActionsSource,
+  /function formatLocalToolResult\(/,
+  'duplicated Live Code Editor result formatter'
+);
+assertContains(
+  realtimeAgentActionsSource,
+  /formatToolResultText/,
+  'realtime result presentation formatter usage'
 );
 assertContains(
   catalogPageSource,

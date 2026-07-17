@@ -263,6 +263,9 @@ output schema and returned metadata from drifting between tool surfaces.
 The standalone demo applies the same separation in
 `src/tool-result-contract.ts`: handlers provide the current snapshot and the
 pure helper returns persistence and revision metadata without reading state.
+The example's `tool-result-format.ts` likewise provides the single pure
+presentation adapter for local palette and agent messages; it does not execute
+tools or reinterpret the registry contract.
 The dedicated `mcp-function-calling-catalog.ts` now keeps prompt recipes for
 the UI, standalone workspace, Live Code Editor, and realtime web-coding
 surfaces under one `MCPCommandReference` shape; `example check` validates each

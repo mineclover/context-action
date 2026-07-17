@@ -6,12 +6,12 @@ import {
 } from '../../../../lib/live-web-coding-trace';
 import { createBrowserOpenRouterToolRunner } from '../../../../lib/openrouter-ai-sdk';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';
+import { formatToolResultText } from '../../../../lib/tool-result-format';
 import {
   planLocalWebToolCalls,
   WEB_CODING_SYSTEM_PROMPT,
 } from '../business/live-web-coding-agent';
 import {
-  formatLiveWebCodingToolResult,
   type LiveWebCodingToolActions,
   revisionGuardedWebTools,
 } from './useLiveWebCodingToolActions';
@@ -49,7 +49,7 @@ async function runLocalPrompt(
   if (workspaceResult.isError) {
     return {
       toolNames: ['web.getWorkspace'],
-      response: formatLiveWebCodingToolResult(
+      response: formatToolResultText(
         workspaceResult,
         'Local web.getWorkspace failed.'
       ),
@@ -76,7 +76,7 @@ async function runLocalPrompt(
     if (result.isError) {
       return {
         toolNames,
-        response: formatLiveWebCodingToolResult(result, 'Web tool failed.'),
+        response: formatToolResultText(result, 'Web tool failed.'),
         failed: true,
       };
     }

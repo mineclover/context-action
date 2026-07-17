@@ -21,14 +21,6 @@ export type LiveWebCodingToolResult = Awaited<
   ReturnType<WebToolRegistry['callTool']>
 >;
 
-export function formatLiveWebCodingToolResult(
-  result: LiveWebCodingToolResult,
-  fallback: string
-): string {
-  if (result.isError) return result.error?.message ?? fallback;
-  return JSON.stringify(result.structuredContent ?? {}, null, 2);
-}
-
 interface DirectToolOptions {
   expectedRevision?: number;
   sessionId?: string;

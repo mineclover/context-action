@@ -17,14 +17,12 @@ import {
 import { formatLiveWebCodingTraceId } from '../../../lib/live-web-coding-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
 import { createToolCallSessionId } from '../../../lib/tool-call-trace';
+import { formatToolResultText } from '../../../lib/tool-result-format';
 import { useLiveEditorDocumentActions } from '../live-code-editor/actions/useLiveEditorDocumentActions';
 import { useLiveEditorProviderSettings } from '../live-code-editor/actions/useLiveEditorProviderSettings';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
 import { useLiveWebCodingAgentExecution } from './actions/useLiveWebCodingAgentExecution';
-import {
-  formatLiveWebCodingToolResult,
-  useLiveWebCodingToolActions,
-} from './actions/useLiveWebCodingToolActions';
+import { useLiveWebCodingToolActions } from './actions/useLiveWebCodingToolActions';
 import { useLiveWebCodingTraceActions } from './actions/useLiveWebCodingTraceActions';
 import { useLiveWebCodingWorkspaceActions } from './actions/useLiveWebCodingWorkspaceActions';
 import {
@@ -270,7 +268,7 @@ function LiveWebCodingWorkbench({
       appendAssistantMessage({
         role: 'assistant',
         text: result.isError
-          ? formatLiveWebCodingToolResult(result, 'Tool call failed.')
+          ? formatToolResultText(result, 'Tool call failed.')
           : `${name} completed and the iframe acknowledged the revision.`,
         tools: [name],
       });
