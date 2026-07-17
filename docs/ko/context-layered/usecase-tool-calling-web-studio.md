@@ -332,6 +332,9 @@ pnpm --filter example verify:openrouter
 데모 `prebuild`는 package를 다시 build하기 전에 package check를 실행합니다.
 최종 검증은 contract, production base-path 산출물, preview, filesystem,
 provider transport, browser flow를 모두 포함해야 합니다.
+배포 workflow도 Chromium을 설치한 뒤
+`pnpm --filter example verify:openrouter`를 실행하므로 shared key 동작이
+로컬 전용 검사가 아니라 release gate가 된다.
 
 standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
 

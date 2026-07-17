@@ -356,6 +356,9 @@ pnpm --filter example verify:openrouter
 The demo `prebuild` runs the package check before rebuilding it. The final
 verification must cover contract tests, production base-path output, preview,
 filesystem, provider transport, and the browser flow.
+The deployment workflow also runs `pnpm --filter example verify:openrouter` after
+installing Chromium, so shared key behavior is a release gate rather than a
+local-only check.
 
 The standalone boundary also has a convention gate:
 
