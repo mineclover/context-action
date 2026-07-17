@@ -757,6 +757,7 @@ function EditorWorkbench({
           activePath={activeFile.path}
           diagnostics={previewDiagnostics}
           iframeRef={iframeRef}
+          onOpenFile={openWorkspaceFile}
           onRefresh={refreshPreview}
           preview={snapshot.preview}
           previewDocument={previewDocument}

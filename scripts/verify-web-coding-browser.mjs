@@ -883,6 +883,21 @@ async function runBrowserProof(url) {
       );
     }
 
+    await page.getByRole('tab', { name: /notes\.md/ }).click();
+    const diagnosticSourceButton = previewDiagnostics
+      .getByRole('listitem')
+      .filter({ hasText: 'Missing script: missing.js' })
+      .getByRole('button', { name: 'Open index.html in editor' });
+    await diagnosticSourceButton.click();
+    const selectedDiagnosticSourceTab = page.getByRole('tab', {
+      name: /index\.html/,
+    });
+    if ((await selectedDiagnosticSourceTab.getAttribute('aria-selected')) !== 'true') {
+      throw new Error(
+        'Preview diagnostics did not open the source file in the editor.'
+      );
+    }
+
     await prompt.fill('Add a feature card "Missing slot" "This should explain the target error."');
     await send.click();
     await page.getByRole('button', { name: 'Approve preview.addFeature' }).click();

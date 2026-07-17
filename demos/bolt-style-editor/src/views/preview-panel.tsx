@@ -13,6 +13,7 @@ export type PreviewPanelProps = {
   refreshToken: number;
   iframeRef: RefObject<HTMLIFrameElement | null>;
   refreshDisabled: boolean;
+  onOpenFile: (path: string) => void;
   onRefresh: () => void;
 };
 
@@ -27,6 +28,7 @@ export function PreviewPanel({
   refreshToken,
   iframeRef,
   refreshDisabled,
+  onOpenFile,
   onRefresh,
 }: PreviewPanelProps) {
   return (
@@ -111,7 +113,14 @@ export function PreviewPanel({
               <li
                 key={`${diagnostic.kind}:${diagnostic.sourcePath}:${diagnostic.requestedPath}`}
               >
-                <code>{diagnostic.sourcePath}</code>
+                <button
+                  aria-label={`Open ${diagnostic.sourcePath} in editor`}
+                  className="preview-diagnostic-source"
+                  onClick={() => void onOpenFile(diagnostic.sourcePath)}
+                  type="button"
+                >
+                  {diagnostic.sourcePath}
+                </button>
                 <span>{diagnostic.message}</span>
               </li>
             ))}
