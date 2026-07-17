@@ -65,6 +65,22 @@ The short path above covers:
 - [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
   - how capabilities connect implementation, tests, policies, and public documentation
 
+The general repository convention gate is:
+
+```bash
+pnpm convention:check
+```
+
+For the complete Context-Action integration gate, run:
+
+```bash
+node scripts/verify-context-action-conventions.mjs
+```
+
+It adds the example use-case recipe, MCP/function-calling catalog, and
+standalone Web Studio action boundaries. Use `pnpm web-coding:verify` for the
+standalone build, filesystem, provider, preview, and browser release checks.
+
 ## Reading Paths by Goal
 
 ### For architecture alignment

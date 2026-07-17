@@ -120,6 +120,7 @@ If you want to understand Context-Action through the repository's current standa
 
 - **Standard convention**: [Implementation Convention](https://mineclover.github.io/context-action/en/context-layered/implementation-convention)
 - **Usecase + Recipe profile**: [Usecase and Recipe Profile](https://mineclover.github.io/context-action/en/context-layered/usecase-recipe-profile)
+- **Tool-calling convention**: [Tool-Calling Web Studio Convention](https://mineclover.github.io/context-action/en/context-layered/usecase-tool-calling-web-studio)
 - **Canonical example**: [Canonical Order Form](https://mineclover.github.io/context-action/en/examples/canonical-order-form)
 - **Scenario library**: [Playbook Scenario Library](https://mineclover.github.io/context-action/en/examples/implementation-playbook-scenarios)
 - **Live demos**:
@@ -129,8 +130,12 @@ If you want to understand Context-Action through the repository's current standa
   - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
   - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+- **Tool-calling demos**:
+  - [Realtime web-coding showcase](https://mineclover.github.io/context-action/example/integrations/live-web-coding)
+  - [Standalone Web Coding Studio](https://mineclover.github.io/context-action/web-coding/)
 - **Repo-local skill**: `skills/context-action-implementation-playbook/SKILL.md`
 - **Verification**:
+  - `node scripts/verify-context-action-conventions.mjs`
   - `pnpm test:canonical-example`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/access-request-playbook.integration.test.tsx`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`

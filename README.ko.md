@@ -121,6 +121,7 @@ function App() {
 개별 API를 따로 보기보다, 현재 저장소가 권장하는 표준을 한 번에 이해하고 싶다면 **Implementation Playbook 경로**부터 시작하는 것이 가장 좋습니다.
 
 - **표준 컨벤션**: [Implementation Convention](https://mineclover.github.io/context-action/ko/context-layered/implementation-convention)
+- **Tool-calling 컨벤션**: [Tool Calling Web Studio 컨벤션](https://mineclover.github.io/context-action/ko/context-layered/usecase-tool-calling-web-studio)
 - **canonical example**: [Canonical Order Form](https://mineclover.github.io/context-action/ko/examples/canonical-order-form)
 - **시나리오 라이브러리**: [Playbook 시나리오 라이브러리](https://mineclover.github.io/context-action/ko/examples/implementation-playbook-scenarios)
 - **라이브 데모**:
@@ -128,8 +129,12 @@ function App() {
   - [Access Request](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/access-request)
   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
   - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
+- **Tool-calling 데모**:
+  - [Realtime web-coding showcase](https://mineclover.github.io/context-action/example/integrations/live-web-coding)
+  - [Standalone Web Coding Studio](https://mineclover.github.io/context-action/web-coding/)
 - **repo-local skill**: `skills/context-action-implementation-playbook/SKILL.md`
 - **검증 명령**:
+  - `node scripts/verify-context-action-conventions.mjs`
   - `pnpm test:canonical-example`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/access-request-playbook.integration.test.tsx`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`

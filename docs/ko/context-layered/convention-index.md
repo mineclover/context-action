@@ -66,6 +66,23 @@
 - [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
   - capability를 구현, 테스트, policy, 공개 문서와 연결하는 방법
 
+일반 저장소 컨벤션 게이트는 다음 명령입니다.
+
+```bash
+pnpm convention:check
+```
+
+Context-Action 통합 경계까지 포함한 전체 검사는 다음 명령으로 실행합니다.
+
+```bash
+node scripts/verify-context-action-conventions.mjs
+```
+
+이 명령은 example use-case recipe, MCP/function-calling catalog, standalone
+Web Studio action 경계까지 추가로 검사합니다. standalone
+build·filesystem·provider·preview·browser release 검사는
+`pnpm web-coding:verify`로 수행합니다.
+
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 
 ### 아키텍처 합의용
