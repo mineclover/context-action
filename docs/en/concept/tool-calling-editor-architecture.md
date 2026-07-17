@@ -94,6 +94,9 @@ The standalone provider payload is derived from the same `listAllTools(registry)
 result used for `tools/list`, through core's `toOpenAIToolDefinitions()` adapter.
 It does not query a second registry export, so discovery names and schemas remain
 the definitions sent to the model.
+The example AI SDK runner follows the same rule: it creates dynamic tools from
+each canonical listed definition and passes `listedTool.inputSchema` through the
+AI SDK `jsonSchema()` adapter; the registry is retained as the execution bridge.
 The example AI runner also returns the provider's complete `responseMessages`,
 and the ToolContext AI and realtime web-coding showcases append those assistant
 tool-call and tool-result messages to the next model turn. The visible chat

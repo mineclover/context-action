@@ -67,6 +67,11 @@ await registry.callTool(request, { context: { source: 'local', sessionId } });
 
 - 각 tool은 `ToolContext` schema에 한 번만 정의합니다. `tools/list`, provider
   definition, validation, execution은 registry에서 파생합니다.
+- provider adapter는 반환된 canonical `ToolDefinition`에서 payload를 만들어야
+  합니다. OpenAI-compatible envelope는
+  `toOpenAIToolDefinitions(listAllTools(registry))`를 사용하고, 다른 provider
+  SDK는 각 `inputSchema`를 해당 SDK의 JSON-Schema adapter로 전달합니다. provider
+  definition을 다시 만들기 위해 registry를 두 번째로 조회하지 않습니다.
 - catalog pagination이 필요할 때는 `toToolListRequest({ cursor })`로
   discovery request를 만들며 provider 코드에서 protocol object를 직접
   작성하지 않습니다.

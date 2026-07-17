@@ -101,7 +101,77 @@ try {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ data: [] }),
+      body: JSON.stringify({
+        data: [
+          {
+            id: 'test/function-calling:free',
+            name: 'Test Function Calling:free',
+            supported_parameters: ['tools'],
+          },
+        ],
+      }),
+    });
+  });
+
+  let aiRequestCount = 0;
+  let aiProviderToolNames;
+  let aiProviderToolDefinitions;
+  let aiProviderToolsSignature;
+  let aiFollowUpMessages;
+  await context.route('**/api/v1/chat/completions', async (route) => {
+    aiRequestCount += 1;
+    const requestBody = route.request().postDataJSON();
+    const providerTools = requestBody.tools;
+    if (Array.isArray(providerTools)) {
+      aiProviderToolNames ??= providerTools.map(
+        (tool) => tool?.function?.name ?? tool?.name
+      );
+      aiProviderToolDefinitions ??= providerTools;
+      aiProviderToolsSignature ??= JSON.stringify(providerTools);
+    }
+
+    if (aiRequestCount === 1) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'example_update_counter_1',
+                    type: 'function',
+                    function: {
+                      name: 'updateCounter',
+                      arguments: JSON.stringify({ amount: 3 }),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    aiFollowUpMessages = JSON.stringify(requestBody.messages ?? []);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'Provider tool call updated the counter.',
+            },
+          },
+        ],
+      }),
     });
   });
 
@@ -146,12 +216,70 @@ try {
   if (storedKey !== null) {
     throw new Error('The shared OpenRouter key remained in localStorage after clear.');
   }
+
+  await aiKeyInput.fill('test-openrouter-tool-calling-key');
+  await aiPage.waitForFunction(
+    () =>
+      document.querySelector('#model')?.value === 'test/function-calling:free'
+  );
+  const aiPrompt = aiPage.locator(
+    'input[placeholder="Ask AI to modify the UI..."]'
+  );
+  await aiPrompt.fill('Increase the counter by three with the UI tool.');
+  await aiPage.getByRole('button', { name: 'Send', exact: true }).click();
+  await aiPage
+    .getByText('Provider tool call updated the counter.', { exact: true })
+    .waitFor();
+  await aiPage.getByText('Counter: 3', { exact: true }).waitFor();
+
+  const expectedToolNames = [
+    'addListItem',
+    'clearList',
+    'getUiState',
+    'showNotification',
+    'toggleTheme',
+    'updateCounter',
+    'updateHeading',
+  ];
+  if (
+    aiRequestCount !== 2 ||
+    !Array.isArray(aiProviderToolNames) ||
+    JSON.stringify([...aiProviderToolNames].sort()) !==
+      JSON.stringify([...expectedToolNames].sort())
+  ) {
+    throw new Error(
+      'The example AI runner did not send the complete canonical UI tool catalog.'
+    );
+  }
+  if (aiProviderToolsSignature === undefined) {
+    throw new Error('The example AI runner omitted the provider tool payload.');
+  }
+  const counterTool = aiProviderToolDefinitions?.find(
+    (tool) => (tool?.function?.name ?? tool?.name) === 'updateCounter'
+  );
+  if (
+    !counterTool ||
+    !Array.isArray(counterTool.function?.parameters?.required) ||
+    !counterTool.function.parameters.required.includes('amount')
+  ) {
+    throw new Error(
+      'The example AI runner did not preserve the canonical updateCounter input schema.'
+    );
+  }
+  if (
+    !aiFollowUpMessages?.includes('example_update_counter_1') ||
+    !aiFollowUpMessages.includes('counter')
+  ) {
+    throw new Error(
+      'The example AI runner did not preserve the tool call and result for the follow-up turn.'
+    );
+  }
   if (pageErrors.length) {
     throw new Error(`Example OpenRouter browser errors: ${pageErrors.join(' | ')}`);
   }
 
   await context.close();
-  console.log(`Verified example OpenRouter key sharing at ${url}`);
+  console.log(`Verified example OpenRouter key sharing and tool loop at ${url}`);
 } finally {
   await browser?.close();
   await stopServer();

@@ -334,7 +334,8 @@ pnpm --filter example verify:openrouter
 provider transport, browser flow를 모두 포함해야 합니다.
 배포 workflow도 Chromium을 설치한 뒤
 `pnpm --filter example verify:openrouter`를 실행하므로 shared key 동작이
-로컬 전용 검사가 아니라 release gate가 된다.
+로컬 전용 검사가 아니라 shared key 동기화와 browser-side provider tool loop를
+함께 확인하는 release gate가 된다.
 
 standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
 

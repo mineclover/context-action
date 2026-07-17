@@ -8,7 +8,13 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { ActionSchemaMap } from '@context-action/core';
 import { listAllTools, type ToolRegistry } from '@context-action/react';
-import { dynamicTool, generateText, stepCountIs, type ToolSet } from 'ai';
+import {
+  dynamicTool,
+  generateText,
+  jsonSchema,
+  stepCountIs,
+  type ToolSet,
+} from 'ai';
 import type {
   ToolTextGenerationRequest,
   ToolTextGenerator,
@@ -28,13 +34,12 @@ function createToolSet<TSchema extends ActionSchemaMap>(
   return Object.fromEntries(
     listedTools.map((listedTool) => {
       const toolName = listedTool.name;
-      const definition = registry.getTool(toolName as keyof TSchema);
 
       return [
         toolName,
         dynamicTool({
-          description: definition.description,
-          inputSchema: definition.zodSchema,
+          description: listedTool.description,
+          inputSchema: jsonSchema(listedTool.inputSchema),
           execute: async (input, executionOptions) => {
             const result = await registry.executeModelToolCall(
               {

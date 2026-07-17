@@ -88,6 +88,9 @@ standalone provider payload는 `tools/list`에 사용한 동일한
 `listAllTools(registry)` 결과를 core의 `toOpenAIToolDefinitions()` adapter로
 변환해 만든다. 두 번째 registry export를 조회하지 않으므로 discovery에서
 노출한 이름과 schema가 그대로 model 요청에 전달된다.
+example AI SDK runner도 같은 규칙을 따른다. canonical list definition에서
+dynamic tool을 만들고 `listedTool.inputSchema`를 AI SDK `jsonSchema()` adapter로
+전달하며, registry는 실행 bridge로만 사용한다.
 example AI runner는 provider의 완전한 `responseMessages`도 반환하며,
 ToolContext AI와 realtime web-coding showcase는 assistant tool-call와 tool-result를
 다음 model turn에 추가한다. 화면에 표시하는 chat transcript는 별도의

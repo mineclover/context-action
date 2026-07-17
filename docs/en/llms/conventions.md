@@ -67,6 +67,11 @@ await registry.callTool(request, { context: { source: 'local', sessionId } });
 
 - Define each tool once in the `ToolContext` schema. Derive `tools/list`,
   provider definitions, validation, and execution from the registry.
+- Provider adapters must derive their payload from the returned canonical
+  `ToolDefinition` values: use `toOpenAIToolDefinitions(listAllTools(registry))`
+  for an OpenAI-compatible envelope, or pass each `inputSchema` through the
+  provider SDK's JSON-Schema adapter. Do not perform a second registry lookup to
+  rebuild provider definitions.
 - Create discovery requests with `toToolListRequest({ cursor })` when the
   catalog is paginated; do not hand-build protocol objects in provider code.
 - Route model-originated calls through `executeModelToolCall()` so source,

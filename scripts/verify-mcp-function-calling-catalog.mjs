@@ -169,6 +169,21 @@ assertContains(
   'OpenRouter response-message propagation'
 );
 assertContains(
+  aiRunnerSource,
+  /listAllTools\(registry\)/,
+  'example provider canonical tools/list discovery'
+);
+assertContains(
+  aiRunnerSource,
+  /jsonSchema\(listedTool\.inputSchema\)/,
+  'example provider canonical input schema adapter'
+);
+assertNotContains(
+  aiRunnerSource,
+  /registry\.getTool\(/,
+  'example provider second registry schema lookup'
+);
+assertContains(
   aiDemoSource,
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'ToolContext AI multi-turn history preservation'
