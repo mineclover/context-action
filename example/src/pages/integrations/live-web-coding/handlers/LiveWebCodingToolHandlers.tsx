@@ -4,6 +4,10 @@ import { normalizeWorkspacePath } from '../../../../lib/live-code-editor-filesys
 import { LiveEditorWorkspaceRepository } from '../../../../lib/live-code-editor-storage';
 import { LiveEditorWorkspaceManager } from '../../../../lib/live-code-editor-workspace';
 import { applyLiveEditorTextPatch } from '../../../../lib/live-editor-text-patch';
+import {
+  createLiveWorkspaceMutationResult,
+  createLiveWorkspaceResultContext,
+} from '../../../../lib/live-tool-result-contract';
 import { useLiveWebCodingToolHandler } from '../LiveWebCodingToolchain';
 
 export const LIVE_WEB_WORKSPACE_ID = 'live-web-coding-demo';
@@ -32,9 +36,7 @@ function escapeHtml(value: string): string {
 function serializeWorkspace(manager: LiveEditorWorkspaceManager) {
   const snapshot = manager.getSnapshot();
   return {
-    activePath: snapshot.activePath,
-    rootName: snapshot.rootName,
-    revision: snapshot.revision,
+    ...createLiveWorkspaceResultContext(snapshot),
     files: snapshot.files.map((file) => ({
       path: file.path,
       isText: file.isText,
@@ -103,7 +105,11 @@ export function LiveWebCodingToolHandlers({
       2_000,
       options?.signal
     );
-    return { path: normalizedPath, revision: nextWorkspace.revision, preview };
+    return createLiveWorkspaceMutationResult(
+      nextWorkspace,
+      normalizedPath,
+      preview
+    );
   };
 
   useLiveWebCodingToolHandler('web.getWorkspace', () =>

@@ -254,6 +254,15 @@ The standalone workspace, realtime web-coding, and Live Code Editor catalogs use
 this same output contract for file reads, mutations, preview acknowledgements,
 and save results. Their catalog definitions therefore describe both what a
 model may send and what the next model step may safely consume.
+Within the example app, `live-tool-result-contract.ts` is the narrow shared
+boundary for preview acknowledgement validation and result metadata assembly:
+the two-revision editor uses `createLiveEditorResultContext`, while the
+single-revision realtime workspace uses `createLiveWorkspaceMutationResult`.
+Handlers still own domain state and side effects; the helper only prevents the
+output schema and returned metadata from drifting between tool surfaces.
+The standalone demo applies the same separation in
+`src/tool-result-contract.ts`: handlers provide the current snapshot and the
+pure helper returns persistence and revision metadata without reading state.
 The standalone Web Studio mutation and preview results also carry the current
 `storageMode` and optional bounded `storageError`. A model can therefore tell
 whether a successful preview is backed by IndexedDB or is session-only memory

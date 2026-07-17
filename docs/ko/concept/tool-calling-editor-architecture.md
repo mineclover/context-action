@@ -235,6 +235,15 @@ catalog를 유지한다. 모든 page가 필요한 provider adapter는 core의
 standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
 계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
 보낼 입력과 다음 단계가 안전하게 소비할 결과를 함께 정의한다.
+example app에서는 `live-tool-result-contract.ts`가 preview acknowledgement
+검증과 결과 metadata 조립을 담당하는 좁은 공통 경계다. 두 revision clock을
+사용하는 editor는 `createLiveEditorResultContext`를, 단일 revision을 사용하는
+realtime workspace는 `createLiveWorkspaceMutationResult`를 사용한다. handler는
+여전히 domain state와 side effect를 소유하고, helper는 tool surface 사이에서
+output schema와 반환 metadata가 어긋나지 않게 하는 역할만 한다.
+standalone demo도 `src/tool-result-contract.ts`에서 같은 분리를 적용한다.
+handler가 현재 snapshot을 전달하면 pure helper가 state를 직접 읽지 않고
+persistence·revision metadata를 반환한다.
 standalone Web Studio의 mutation·preview 결과에는 현재 `storageMode`와
 bounded `storageError`도 포함된다. 따라서 모델은 별도 status 호출 없이도
 성공한 preview가 IndexedDB 기반인지 session-only memory 기반인지 구분할 수 있다.

@@ -49,6 +49,7 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/bolt-style-tool-context.ts',
   'demos/bolt-style-editor/src/tool-schema.ts',
   'demos/bolt-style-editor/src/tool-handlers.tsx',
+  'demos/bolt-style-editor/src/tool-result-contract.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
@@ -115,6 +116,21 @@ assertContains(
   handlerSource,
   /useBoltStyleToolHandler\(/,
   'the handler registration boundary'
+);
+const resultContractSource = readSource(
+  'demos/bolt-style-editor/src/tool-result-contract.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-result-contract.ts',
+  resultContractSource,
+  /createWorkspacePersistenceMeta[\s\S]*createWorkspaceResultMeta/,
+  'the canonical workspace tool-result metadata contract'
+);
+assertContains(
+  'demos/bolt-style-editor/src/tool-handlers.tsx',
+  handlerSource,
+  /createWorkspacePersistenceMeta|createWorkspaceResultMeta/,
+  'the handler-to-result-contract boundary'
 );
 
 const observableSource = readSource(
@@ -353,6 +369,7 @@ console.log('Web-coding Context-Action convention check');
 console.log('- ToolContext creation: bolt-style-tool-context.ts');
 console.log('- canonical tool schema: tool-schema.ts');
 console.log('- handler registrations: tool-handlers.tsx');
+console.log('- canonical workspace tool-result metadata boundary checked');
 console.log('- external subscriptions: use-editor-observables.ts');
 console.log('- workspace derived-state observable boundary checked');
 console.log('- canonical catalog read model: use-tool-catalog-model.ts');

@@ -102,6 +102,9 @@ callbacks without owning workspace mutation policy. The keyboard-aware file
 tree is isolated in `src/views/workspace-file-tree.tsx` and only emits file
 selection callbacks. The bounded, redacted execution history is rendered by
 `src/views/tool-trace-panel.tsx` and receives export/clear actions as props.
+`src/tool-result-contract.ts` keeps persistence and revision metadata assembly
+pure and snapshot-driven, so handlers do not duplicate the canonical result
+shape.
 The editor tabs and mutation controls are rendered by
 `src/views/workspace-editor-toolbar.tsx`; mutations still enter through the
 workspace action hooks. The text/Blob source surface is isolated in

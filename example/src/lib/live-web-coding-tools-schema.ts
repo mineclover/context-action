@@ -1,5 +1,6 @@
 import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
+import { livePreviewStatusSchema } from './live-tool-result-contract';
 
 const workspacePath = z.string().min(1).max(240);
 const expectedRevision = z.number().int().nonnegative().optional();
@@ -21,12 +22,9 @@ const webReadFileOutputSchema = z.object({
 });
 const webMutationOutputSchema = z.object({
   path: z.string(),
+  activePath: z.string(),
   revision: z.number().int().nonnegative(),
-  preview: z.object({
-    state: z.enum(['pending', 'rendered', 'timeout', 'error']),
-    revision: z.number().int(),
-    message: z.string().optional(),
-  }),
+  preview: livePreviewStatusSchema,
 });
 const webPatchOutputSchema = webMutationOutputSchema.extend({
   replacements: z.number().int().positive(),
@@ -39,11 +37,7 @@ const webFeatureOutputSchema = webMutationOutputSchema.extend({
 });
 const webPreviewOutputSchema = z.object({
   workspace: webWorkspaceOutputSchema,
-  preview: z.object({
-    state: z.enum(['pending', 'rendered', 'timeout', 'error']),
-    revision: z.number().int(),
-    message: z.string().optional(),
-  }),
+  preview: livePreviewStatusSchema,
 });
 
 export const getWebWorkspaceTool = defineAction(

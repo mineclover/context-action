@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { useBoltStyleToolHandler } from './bolt-style-tool-context';
 import {
+  createWorkspacePersistenceMeta,
+  createWorkspaceResultMeta,
+} from './tool-result-contract';
+import {
   applyTextPatch,
   assertExpectedWorkspaceRevision,
   downloadWorkspaceFile,
@@ -82,17 +86,10 @@ export function ToolHandlers({
   children: ReactNode;
 }) {
   const workspacePersistenceMeta = (snapshot = workspace.getSnapshot()) => {
-    return {
-      storageMode: snapshot.storageMode,
-      ...(snapshot.storageError ? { storageError: snapshot.storageError } : {}),
-    };
+    return createWorkspacePersistenceMeta(snapshot);
   };
   const workspaceResultMeta = (snapshot = workspace.getSnapshot()) => {
-    return {
-      activePath: snapshot.activePath,
-      revision: snapshot.revision,
-      ...workspacePersistenceMeta(),
-    };
+    return createWorkspaceResultMeta(snapshot);
   };
 
   useBoltStyleToolHandler('workspace.getStatus', () => {

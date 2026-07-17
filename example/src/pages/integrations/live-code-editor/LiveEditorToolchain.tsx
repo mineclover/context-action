@@ -9,6 +9,7 @@ import { LiveEditorWorkspaceManager } from '../../../lib/live-code-editor-worksp
 import { applyLiveEditorTextPatch } from '../../../lib/live-editor-text-patch';
 import { liveEditorToolsSchema } from '../../../lib/live-editor-tools-schema';
 import { recordLiveEditorToolCall } from '../../../lib/live-editor-trace';
+import { createLiveEditorResultContext } from '../../../lib/live-tool-result-contract';
 
 export const {
   Provider: LiveEditorToolProvider,
@@ -37,17 +38,6 @@ function LiveEditorToolHandlers({
 }) {
   const blockingToolHandler = { blocking: true };
 
-  const getDocumentResultContext = (
-    documentRevision = manager.getSnapshot().revision
-  ) => {
-    const workspace = workspaceManager.getSnapshot();
-    return {
-      activePath: workspace.activePath,
-      workspaceRevision: workspace.revision,
-      documentRevision,
-    };
-  };
-
   useLiveEditorToolHandler(
     'editor.getStatus',
     () => {
@@ -55,12 +45,10 @@ function LiveEditorToolHandlers({
       const document = manager.getSnapshot();
       const folderLinked = filesystemAdapter.isWritable;
       return {
-        activePath: workspace.activePath,
+        ...createLiveEditorResultContext(workspace, document.revision),
         documentPath: document.file,
         documentExampleId: document.exampleId,
         rootName: workspace.rootName,
-        workspaceRevision: workspace.revision,
-        documentRevision: document.revision,
         storageMode: workspace.storageMode,
         fileCount: workspace.files.length,
         dirtyPaths: workspace.dirtyPaths,
@@ -98,10 +86,16 @@ function LiveEditorToolHandlers({
 
   useLiveEditorToolHandler(
     'editor.getDocument',
-    () => ({
-      ...manager.getSnapshot(),
-      ...getDocumentResultContext(),
-    }),
+    () => {
+      const document = manager.getSnapshot();
+      return {
+        ...document,
+        ...createLiveEditorResultContext(
+          workspaceManager.getSnapshot(),
+          document.revision
+        ),
+      };
+    },
     blockingToolHandler
   );
 
@@ -134,7 +128,10 @@ function LiveEditorToolHandlers({
     }
     return {
       ...snapshot,
-      ...getDocumentResultContext(snapshot.revision),
+      ...createLiveEditorResultContext(
+        workspaceManager.getSnapshot(),
+        snapshot.revision
+      ),
       preview,
     };
   };
@@ -194,11 +191,12 @@ function LiveEditorToolHandlers({
       const snapshot = workspaceManager.markSaved(file.path, file.source);
       return {
         path: file.path,
-        activePath: snapshot.activePath,
         savedTo: 'filesystem',
         dirtyPaths: snapshot.dirtyPaths,
-        workspaceRevision: snapshot.revision,
-        documentRevision: manager.getSnapshot().revision,
+        ...createLiveEditorResultContext(
+          snapshot,
+          manager.getSnapshot().revision
+        ),
       };
     },
     blockingToolHandler
@@ -243,10 +241,11 @@ function LiveEditorToolHandlers({
       const snapshot = workspaceManager.getSnapshot();
       return {
         savedPaths,
-        activePath: snapshot.activePath,
         dirtyPaths: snapshot.dirtyPaths,
-        workspaceRevision: snapshot.revision,
-        documentRevision: manager.getSnapshot().revision,
+        ...createLiveEditorResultContext(
+          snapshot,
+          manager.getSnapshot().revision
+        ),
       };
     },
     blockingToolHandler

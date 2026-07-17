@@ -1,13 +1,10 @@
 import { createActionSchema, defineAction } from '@context-action/react';
 import { z } from 'zod';
+import { livePreviewStatusSchema } from './live-tool-result-contract';
 
 const scenarioSchema = z.enum(['success', 'invalid', 'blocked']);
 const expectedRevisionSchema = z.number().int().nonnegative().optional();
-const editorPreviewOutputSchema = z.object({
-  state: z.enum(['pending', 'rendered', 'timeout', 'error']),
-  revision: z.number().int(),
-  message: z.string().optional(),
-});
+const editorPreviewOutputSchema = livePreviewStatusSchema;
 const editorWorkspaceFileSchema = z.object({
   isText: z.boolean(),
   mimeType: z.string(),

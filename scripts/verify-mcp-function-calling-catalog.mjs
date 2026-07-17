@@ -82,6 +82,15 @@ const catalogSource = readSource(
   'example/src/lib/mcp-function-calling-catalog.ts'
 );
 const uiSchemaSource = readSource('example/src/lib/ui-tools-schema.ts');
+const liveEditorSchemaSource = readSource(
+  'example/src/lib/live-editor-tools-schema.ts'
+);
+const realtimeWebCodingSchemaSource = readSource(
+  'example/src/lib/live-web-coding-tools-schema.ts'
+);
+const liveToolResultContractSource = readSource(
+  'example/src/lib/live-tool-result-contract.ts'
+);
 const standaloneSchemaSource = readSource(
   'demos/bolt-style-editor/src/tool-schema.ts'
 );
@@ -159,6 +168,31 @@ assertContains(
   'ToolContext AI multi-turn history preservation'
 );
 assertContains(
+  liveToolResultContractSource,
+  /livePreviewStatusSchema/,
+  'shared live preview result schema'
+);
+assertContains(
+  liveToolResultContractSource,
+  /createLiveEditorResultContext/,
+  'shared editor revision result context'
+);
+assertContains(
+  liveToolResultContractSource,
+  /createLiveWorkspaceMutationResult/,
+  'shared realtime mutation result context'
+);
+assertContains(
+  liveEditorSchemaSource,
+  /livePreviewStatusSchema/,
+  'Live Code Editor shared preview schema usage'
+);
+assertContains(
+  realtimeWebCodingSchemaSource,
+  /livePreviewStatusSchema/,
+  'realtime web-coding shared preview schema usage'
+);
+assertContains(
   realtimeAgentActionsSource,
   /setModelMessages\(\[\.\.\.requestMessages, \.\.\.response\.responseMessages\]\)/,
   'realtime web-coding multi-turn history preservation'
@@ -217,6 +251,11 @@ assertContains(
   realtimeToolHandlersSource,
   /useLiveWebCodingToolHandler\(/,
   'realtime web-coding handler registration boundary'
+);
+assertContains(
+  realtimeToolHandlersSource,
+  /createLiveWorkspaceMutationResult\(/,
+  'realtime web-coding canonical mutation result assembly'
 );
 assertContains(
   realtimeObservablesSource,
