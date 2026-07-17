@@ -127,6 +127,8 @@ node packages/architecture-governance/dist/cli.js snapshot \
 
 CLI는 한 kind를 임의로 선택하지 않고 fail-closed합니다. `analysisProjects.fileExtensions`로 수집
 범위를 줄일 수 있지만, 해결되지 않은 identity 충돌을 숨기는 용도로 사용해서는 안 됩니다.
+SEM이 같은 parent 아래 서로 다른 kind의 같은 이름을 반환하면 adapter가
+`parent::kind::name` identity로 구분해 complete snapshot에 두 심볼을 모두 보존합니다.
 
 ## 5. 컨텍스트 심볼 집합 비교
 
@@ -149,6 +151,8 @@ node packages/architecture-governance/dist/cli.js intersect \
 ## 6. 문서 컨텍스트에는 sem-doc 사용
 
 `sem-doc`는 SEM 관계, Git, TSDoc binding을 결합하는 별도 private PoC입니다.
+분석 중 subprocess cwd가 repository root로 바뀌어도 workspace에 설치된 sem 바이너리를 기본으로
+찾으므로 `SEM_BIN`은 다른 실행 파일을 테스트할 때만 설정합니다.
 
 ```bash
 pnpm --filter @tsdoc-edge/sem-doc build

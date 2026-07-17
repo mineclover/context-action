@@ -126,6 +126,8 @@ node packages/architecture-governance/dist/cli.js snapshot \
 
 The CLI fails closed rather than choosing one kind silently. `analysisProjects.fileExtensions` can
 reduce a project's collection scope, but it must not be used to hide an unresolved identity conflict.
+When SEM gives same-name nested entities different kinds, the adapter emits a kind-qualified
+`parent::kind::name` identity so both symbols remain in the complete snapshot.
 
 ## 5. Compare context symbol sets
 
@@ -148,6 +150,8 @@ Inputs are either `{ "id": "screen", "symbols": [...] }` or a history snapshot w
 ## 6. Use sem-doc for document context
 
 `sem-doc` is a separate private PoC for combining SEM relationships with Git and TSDoc bindings:
+it resolves the workspace-installed sem binary by default, including when analysis changes the
+subprocess cwd to the repository root. Set `SEM_BIN` only to test a different executable.
 
 ```bash
 pnpm --filter @tsdoc-edge/sem-doc build
