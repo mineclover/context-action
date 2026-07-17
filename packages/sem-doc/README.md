@@ -32,9 +32,10 @@ promoting it to a canonical graph or lint violation.
 ## Install and run
 
 `sem-doc` requires Node.js 24. The private workspace pins the `@ataraxy-labs/sem` development
-wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` still
-invokes sem as an external read-only process at runtime. Set `SEM_BIN` only when using a different
-binary. Publishing and release automation are intentionally disabled during the PoC.
+wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` resolves
+that package-local binary by default, even when work-context changes the subprocess cwd to the Git
+repository root, and invokes it as an external read-only process. Set `SEM_BIN` only when using a
+different binary. Publishing and release automation are intentionally disabled during the PoC.
 
 ```bash
 pnpm install
@@ -43,8 +44,8 @@ pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js work-context SemClient -
 pnpm --filter @tsdoc-edge/sem-doc verify:poc
 ```
 
-For direct CLI commands below, run from the `context-action` root and export the workspace sem
-binary once:
+To use a different sem executable for the direct CLI commands below, run from the `context-action`
+root and set `SEM_BIN` explicitly:
 
 ```bash
 export SEM_BIN="$PWD/packages/sem-doc/node_modules/.bin/sem"

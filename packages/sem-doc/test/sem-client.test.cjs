@@ -23,6 +23,19 @@ test('captures sem version and parses JSON output through the external process b
   assert.equal(result[0].name, 'authenticateUser');
 });
 
+test('resolves the workspace sem binary when analysis changes cwd', () => {
+  const previous = process.env.SEM_BIN;
+  delete process.env.SEM_BIN;
+  try {
+    const sem = new SemClient();
+    const repositoryRoot = path.resolve(__dirname, '..', '..');
+    assert.equal(sem.version({ cwd: repositoryRoot }), '0.21.0');
+  } finally {
+    if (previous === undefined) delete process.env.SEM_BIN;
+    else process.env.SEM_BIN = previous;
+  }
+});
+
 test('typed advisory provider validates and envelopes sem entity output', () => {
   const envelope = new SemAdvisoryProvider(client()).analyzeEntities({
     args: ['--json'],

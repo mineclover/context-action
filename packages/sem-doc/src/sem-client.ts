@@ -1,4 +1,6 @@
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import * as path from 'node:path';
 
 import type { SemCommand } from './contracts';
 
@@ -84,7 +86,10 @@ export class SemClient {
   private readonly env: Readonly<Record<string, string | undefined>>;
 
   public constructor(options: SemClientOptions = {}) {
-    this.binary = nonEmptyOption(options.binary ?? process.env.SEM_BIN ?? 'sem', 'binary');
+    this.binary = nonEmptyOption(
+      options.binary ?? process.env.SEM_BIN ?? defaultSemBinary(),
+      'binary',
+    );
     this.prefixArgs = [...(options.prefixArgs ?? [])];
     this.cwd = options.cwd;
     this.timeoutMs = positiveIntegerOption(
@@ -198,6 +203,26 @@ export class SemClient {
       });
     }
   }
+}
+
+/**
+ * Resolve the workspace-installed sem executable before falling back to PATH.
+ *
+ * Work-context commands intentionally run sem from the Git repository root. A
+ * pnpm-provided `./node_modules/.bin` entry is relative to the package cwd and
+ * therefore stops resolving after that cwd changes. The package-local absolute
+ * path keeps the default CLI usable without requiring SEM_BIN.
+ */
+function defaultSemBinary(): string {
+  const extension = process.platform === 'win32' ? '.cmd' : '';
+  const candidate = path.resolve(
+    __dirname,
+    '..',
+    'node_modules',
+    '.bin',
+    `sem${extension}`,
+  );
+  return existsSync(candidate) ? candidate : 'sem';
 }
 
 function nonEmptyOption(value: string, name: string): string {
