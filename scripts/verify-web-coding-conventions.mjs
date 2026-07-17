@@ -187,7 +187,7 @@ const discoveryRequestAdapters = [
   'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
   'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts',
   'example/src/lib/openrouter-ai-sdk.ts',
-  'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx',
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts',
 ];
 for (const relativeFile of discoveryRequestAdapters) {
   const source = readSource(relativeFile);
@@ -240,8 +240,8 @@ assertContains(
 );
 
 const showcaseRequestAdapters = [
-  'example/src/pages/integrations/live-code-editor/LiveEditorAIToolbar.tsx',
-  'example/src/pages/integrations/live-web-coding/LiveWebCodingPage.tsx',
+  'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts',
+  'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts',
 ];
 for (const relativeFile of showcaseRequestAdapters) {
   const source = readSource(relativeFile);
