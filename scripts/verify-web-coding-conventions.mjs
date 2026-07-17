@@ -52,8 +52,10 @@ const requiredFiles = [
   'demos/bolt-style-editor/src/tool-result-contract.ts',
   'demos/bolt-style-editor/src/tool-command-catalog.ts',
   'demos/bolt-style-editor/src/tool-chain-simulation-catalog.ts',
+  'demos/bolt-style-editor/src/version-diff.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
   'demos/bolt-style-editor/src/hooks/use-tool-chain-simulation.ts',
+  'demos/bolt-style-editor/src/hooks/use-workspace-version-history.ts',
   'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
   'demos/bolt-style-editor/src/actions/run-local-agent.ts',
   'demos/bolt-style-editor/src/openrouter.ts',
@@ -142,6 +144,16 @@ const simulationHookSource = readSource(
 const simulationViewSource = readSource(
   'demos/bolt-style-editor/src/views/tool-chain-simulation-panel.tsx'
 );
+const versionDiffSource = readSource('demos/bolt-style-editor/src/version-diff.ts');
+const versionHistoryHookSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-workspace-version-history.ts'
+);
+const versionHistoryViewSource = readSource(
+  'demos/bolt-style-editor/src/views/version-history-panel.tsx'
+);
+const versionDiffViewSource = readSource(
+  'demos/bolt-style-editor/src/views/version-diff-dialog.tsx'
+);
 assertContains(
   'demos/bolt-style-editor/src/tool-command-catalog.ts',
   commandCatalogSource,
@@ -177,6 +189,30 @@ assertContains(
   simulationViewSource,
   /snapshot\.steps\.map\(/,
   'simulation steps rendered from the captured catalog'
+);
+assertContains(
+  'demos/bolt-style-editor/src/version-diff.ts',
+  versionDiffSource,
+  /buildVersionLineDiff[\s\S]*buildWorkspaceChangeSummary/,
+  'pure workspace version diff model'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-workspace-version-history.ts',
+  versionHistoryHookSource,
+  /useSyncExternalStore|snapshot\.revision|captureWorkspaceVersion/,
+  'revision snapshots derived from observable workspace state'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/version-history-panel.tsx',
+  versionHistoryViewSource,
+  /versions\.slice\(-4\)\.reverse\(\)/,
+  'recent revision feedback rendered from the history model'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/version-diff-dialog.tsx',
+  versionDiffViewSource,
+  /selectedChange\.diff\.map\(/,
+  'line-level diff rendered from the version model'
 );
 assertNotContains(
   'demos/bolt-style-editor/src/views/agent-chat-panel.tsx',

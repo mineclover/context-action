@@ -28,6 +28,7 @@ import {
   type FolderRestoreState,
   useWorkspaceRuntime,
 } from './hooks/use-workspace-runtime';
+import { useWorkspaceVersionHistory } from './hooks/use-workspace-version-history';
 import {
   readOpenRouterSettings,
   saveOpenRouterSettings,
@@ -55,6 +56,8 @@ import {
 } from './views/tool-catalog-panel';
 import { ToolChainSimulationPanel } from './views/tool-chain-simulation-panel';
 import { ToolTracePanel } from './views/tool-trace-panel';
+import { VersionDiffDialog } from './views/version-diff-dialog';
+import { VersionHistoryPanel } from './views/version-history-panel';
 import { WorkspaceEditorToolbar } from './views/workspace-editor-toolbar';
 import { WorkspaceExplorerPanel } from './views/workspace-explorer-panel';
 import { WorkspaceFileTree } from './views/workspace-file-tree';
@@ -129,6 +132,21 @@ function EditorWorkbench({
     hasWritableFolder,
     folderPermission,
   } = useEditorObservables({ workspace, fileSystemAdapter });
+  const { versions } = useWorkspaceVersionHistory(snapshot);
+  const [diffVersionId, setDiffVersionId] = useState<string | null>(null);
+  const selectedDiffVersion = versions.find(
+    (version) => version.id === diffVersionId
+  );
+  const selectedDiffVersionIndex = selectedDiffVersion
+    ? versions.findIndex((version) => version.id === selectedDiffVersion.id)
+    : -1;
+  const previousDiffVersion =
+    selectedDiffVersionIndex > 0
+      ? versions[selectedDiffVersionIndex - 1]
+      : undefined;
+  useEffect(() => {
+    if (diffVersionId && !selectedDiffVersion) setDiffVersionId(null);
+  }, [diffVersionId, selectedDiffVersion]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const editorTabsRef = useRef<HTMLDivElement>(null);
   const workspaceSearchTriggerRef = useRef<HTMLButtonElement>(null);
@@ -692,6 +710,11 @@ function EditorWorkbench({
             traceSessionFilter={traceSessionFilter}
             traceSessionOptions={traceSessionOptions}
           />
+          <VersionHistoryPanel
+            isStorageReady={isStorageReady}
+            onOpenDiff={setDiffVersionId}
+            versions={versions}
+          />
         </aside>
 
         <main className="studio-main">
@@ -872,6 +895,13 @@ function EditorWorkbench({
           snapshot={standaloneToolChainSimulationSnapshot}
           state={simulationState}
           workspaceRevision={snapshot.revision}
+        />
+      ) : null}
+      {selectedDiffVersion ? (
+        <VersionDiffDialog
+          onClose={() => setDiffVersionId(null)}
+          previousVersion={previousDiffVersion}
+          version={selectedDiffVersion}
         />
       ) : null}
 

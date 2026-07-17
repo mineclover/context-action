@@ -312,6 +312,21 @@ async function runBrowserProof(url) {
     await simulationDialog
       .getByRole('button', { name: 'Close simulation reference' })
       .click();
+    const latestDiffButton = page.getByRole('button', {
+      name: 'View latest workspace diff',
+    });
+    await latestDiffButton.waitFor();
+    await latestDiffButton.click();
+    const versionDiffDialog = page.getByRole('dialog', {
+      name: /Revision \d+ diff/,
+    });
+    await versionDiffDialog.waitFor();
+    await versionDiffDialog
+      .locator('[aria-label="Diff for styles.css"]')
+      .waitFor();
+    await versionDiffDialog
+      .getByRole('button', { name: 'Close version diff' })
+      .click();
     await page.getByRole('button', { name: 'Create notes.md' }).click();
     if ((await composer.inputValue()) !== 'Create notes.md') {
       throw new Error('The tool-chain recipe did not populate the composer prompt.');
@@ -632,6 +647,11 @@ async function runBrowserProof(url) {
       .getByText(
         /Local agent inspected the workspace, called workspace\.getStatus, preview\.updateHero/
       )
+      .waitFor();
+    await page
+      .locator('.message-assistant')
+      .filter({ hasText: /preview\.updateHero/ })
+      .filter({ hasText: /Changed \d+ file\(s\) · \+\d+ \/ −\d+:/ })
       .waitFor();
     if (
       (await preview.locator('#hero-title').textContent())?.trim() !==
@@ -1863,7 +1883,7 @@ async function runBrowserProof(url) {
       await toolLoopPatchApproval.waitFor();
       await toolLoopPatchApproval.click();
       await toolLoopPage
-        .getByText('Provider tool chain completed', { exact: true })
+        .getByText(/^Provider tool chain completed/)
         .waitFor();
       if (toolLoopRequestCount !== 4) {
         throw new Error(

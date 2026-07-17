@@ -19,6 +19,11 @@ import {
   finishAgentTrace,
   startAgentTrace,
 } from '../tool-trace';
+import {
+  buildWorkspaceChangeSummary,
+  captureWorkspaceVersion,
+  formatWorkspaceChangeFeedback,
+} from '../version-diff';
 import { BrowserWorkspace } from '../workspace';
 import type { WorkspaceFileSystemAdapter } from '../workspace-filesystem';
 
@@ -136,6 +141,9 @@ export function useToolExecution({
         const sessionId = createToolSessionId();
         setRunning(true);
         try {
+          const beforeVersion = captureWorkspaceVersion(
+            workspace.getSnapshot()
+          );
           const result = await registry.callTool(
             toToolCallRequest({
               id: `palette-${sessionId}`,
@@ -148,9 +156,20 @@ export function useToolExecution({
             }
           );
           throwIfAborted(controller.signal);
-          const message = result.isError
+          const baseMessage = result.isError
             ? formatToolResultText(result)
             : formatToolSuccessMessage(call.name, result);
+          const changeFeedback = result.isError
+            ? ''
+            : formatWorkspaceChangeFeedback(
+                buildWorkspaceChangeSummary(
+                  beforeVersion.files,
+                  captureWorkspaceVersion(workspace.getSnapshot()).files
+                )
+              );
+          const message = changeFeedback
+            ? `${baseMessage}\n\n${changeFeedback}`
+            : baseMessage;
           if (options.announce !== false || result.isError) {
             setMessages((current) => [
               ...current,
@@ -198,7 +217,7 @@ export function useToolExecution({
         executionInFlightRef.current = false;
       }
     },
-    [formatToolSuccessMessage, registry, running, setMessages]
+    [formatToolSuccessMessage, registry, running, setMessages, workspace]
   );
 
   const executePrompt = useCallback(
@@ -224,6 +243,9 @@ export function useToolExecution({
         setActiveAgentMode(useOpenRouter ? 'openrouter' : 'local');
         setRunning(true);
         try {
+          const beforeVersion = captureWorkspaceVersion(
+            workspace.getSnapshot()
+          );
           const result = useOpenRouter
             ? await runOpenRouterAgent(
                 registry,
@@ -249,11 +271,19 @@ export function useToolExecution({
               ? `${result.failedTool ?? 'tool call'} failed`
               : `${result.toolNames.length} tool call(s)`
           );
+          const changeFeedback = formatWorkspaceChangeFeedback(
+            buildWorkspaceChangeSummary(
+              beforeVersion.files,
+              captureWorkspaceVersion(workspace.getSnapshot()).files
+            )
+          );
           setMessages((current) => [
             ...current,
             {
               role: 'assistant',
-              text: result.response,
+              text: changeFeedback
+                ? `${result.response}\n\n${changeFeedback}`
+                : result.response,
               tools: result.toolNames,
               ...(result.failed
                 ? {
