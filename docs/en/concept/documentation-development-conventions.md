@@ -5,6 +5,12 @@ documentation, generated references, and LLM-oriented artifacts aligned.
 It complements the coding rules in [Conventions](./conventions.md); it does
 not replace package-specific ownership or release rules.
 
+For issue lifecycle, specification traceability, decision records, and review
+handoff, use the [Specification, Issue, and Documentation Management
+Convention](../context-layered/change-management-convention). This document
+defines document-production rules; the linked convention defines how a change
+is planned and closed.
+
 ## 1. Documentation Ownership
 
 | Surface | Owner and editing rule | Verification |
@@ -107,3 +113,7 @@ Each documentation-affecting pull request or handoff should state:
 
 This record makes documentation review a development-management activity with
 clear ownership, instead of a final formatting pass.
+
+When a change introduces durable behavior or a contract, also record its issue
+ID, specification/decision link, implementation anchor, focused proof, and
+follow-up work using the [change management convention](../context-layered/change-management-convention).

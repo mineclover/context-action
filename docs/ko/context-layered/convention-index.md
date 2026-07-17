@@ -5,13 +5,14 @@
 ## 가장 짧은 추천 순서
 
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
-2. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
-3. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-4. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
-5. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
-6. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
-7. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-8. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
+3. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
+4. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
+5. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+6. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+7. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
+8. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+9. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
@@ -28,6 +29,8 @@
   - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
 - [Implementation Convention](/ko/context-layered/implementation-convention)
   - implementation-playbook 계열 개발의 표준 규칙
+- [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
+  - 이슈 lifecycle, 계약 추적, decision record, handoff 증거
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscription, live preview 경계
 - [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
@@ -91,8 +94,9 @@ build·filesystem·provider·preview·browser release 검사는
 ### 아키텍처 합의용
 
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
-2. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-3. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
+3. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+4. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 ### 구현자 온보딩용
 
@@ -110,9 +114,10 @@ build·filesystem·provider·preview·browser release 검사는
 ### Tool-calling web studio 설계용
 
 1. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-2. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
-3. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
-4. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
+2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
+3. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+4. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
+5. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
 ## 코드와 같이 볼 때
 

@@ -1,0 +1,45 @@
+name: Documentation or convention drift
+description: Report missing, stale, untranslated, or generated documentation.
+title: "docs: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when implementation, specification, generated output, or public documentation no longer agrees.
+  - type: input
+    id: canonical_source
+    attributes:
+      label: Canonical source
+      description: Link the authoritative document, code contract, or API source.
+    validations:
+      required: true
+  - type: textarea
+    id: drift
+    attributes:
+      label: Drift or missing content
+      description: Explain what is stale, missing, untranslated, or generated from the wrong source.
+    validations:
+      required: true
+  - type: textarea
+    id: affected_surfaces
+    attributes:
+      label: Affected surfaces
+      description: List English/Korean pages, README files, API output, LLMS artifacts, examples, or checks.
+    validations:
+      required: true
+  - type: textarea
+    id: fix_plan
+    attributes:
+      label: Proposed fix and verification
+      description: Include the owner, generator command, docs build, or convention gate that should prove the fix.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I am reporting the source-of-truth location rather than editing only a generated artifact.
+          required: true
+        - label: I checked whether the paired English or Korean page is also affected.
+          required: true

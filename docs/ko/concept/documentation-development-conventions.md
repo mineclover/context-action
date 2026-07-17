@@ -4,6 +4,11 @@
 기준 문서입니다. [컨벤션](./conventions.md)의 코딩 규칙을 보완하며, 패키지별
 소유권이나 릴리스 규칙을 대체하지는 않습니다.
 
+이슈 lifecycle, 스펙 추적, decision record, 리뷰 handoff는
+[스펙·이슈·문서 관리 컨벤션](../context-layered/change-management-convention)을
+사용합니다. 이 문서는 문서 생산 규칙을 정의하고, 링크된 컨벤션은 변경을
+계획하고 종료하는 방법을 정의합니다.
+
 ## 1. 문서 소유권
 
 | 영역 | 소유자 및 편집 규칙 | 검증 |
@@ -98,3 +103,7 @@ pnpm example:build
 
 이 기록으로 문서 리뷰를 마지막 서식 작업이 아니라 소유권이 명확한 개발 관리
 활동으로 만듭니다.
+
+지속되는 동작이나 계약을 추가하는 변경이라면
+[변경 관리 컨벤션](../context-layered/change-management-convention)에 따라
+issue ID, spec/decision 링크, 구현 anchor, 집중 증거, 후속 작업도 기록합니다.

@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible regression or incorrect behavior.
+title: "fix: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Include enough evidence to reproduce the failure. If you already know the fix, keep the expected behavior separate from the proposed implementation.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment and revision
+      description: Browser/OS/package, URL or route, and commit if known.
+      placeholder: macOS, Chrome, standalone web-coding, f96f0d34
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add logs, screenshots, trace IDs, a failing test, or a minimal reproduction.
+    validations:
+      required: true
+  - type: input
+    id: regression
+    attributes:
+      label: Regression range
+      description: Optional first known good/bad revision.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed secrets and personal credentials from the evidence.
+          required: true

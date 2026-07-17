@@ -1,0 +1,79 @@
+name: Feature or architecture spec
+description: Propose a user-visible feature, pattern, or architecture change.
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for a durable behavior, API, tool, persistence, or architecture change.
+        Link the tracked specification or decision once the contract is agreed.
+  - type: input
+    id: area
+    attributes:
+      label: Area and owner
+      description: Name the package/demo/domain and the accountable owner.
+      placeholder: example / web-coding-demo — @owner
+    validations:
+      required: true
+  - type: dropdown
+    id: change_class
+    attributes:
+      label: Change class
+      options:
+        - Behavior or pattern
+        - Public API
+        - Architecture
+        - Persistence or migration
+        - Documentation or maintenance
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What user or maintainer outcome should exist after this change?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: State what is included and explicitly excluded.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Write observable, testable criteria. Avoid subjective wording.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: invariants
+    attributes:
+      label: Invariants, compatibility, and migration
+      description: Include provider boundaries, schema versions, failure behavior, or backward compatibility constraints.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and documentation plan
+      description: List implementation anchors, tests, authoritative docs, translations, and verification commands.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and risks
+      description: Include blockers, external credentials, rollout concerns, and follow-up work.
+  - type: checkboxes
+    id: readiness
+    attributes:
+      label: Readiness
+      options:
+        - label: I have checked for an existing issue/spec before opening this one.
+          required: true
+        - label: I will update the authoritative English/Korean documentation when this becomes public behavior.
+          required: true

@@ -231,6 +231,7 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
             { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+            { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
             { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
             { text: 'Tool-Calling Web Studio Convention', link: '/en/context-layered/usecase-tool-calling-web-studio' },
             { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
@@ -264,6 +265,7 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/context-layered/context-layered-guide' },
             { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+            { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
             { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
             { text: 'Tool Calling Web Studio 컨벤션', link: '/ko/context-layered/usecase-tool-calling-web-studio' },
             { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
@@ -315,6 +317,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+      { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
       { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
       { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
       { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
@@ -329,6 +332,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+      { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
       { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
       { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
       { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
