@@ -900,6 +900,11 @@ async function runBrowserProof(url) {
 
     await prompt.fill('Add a feature card "Missing slot" "This should explain the target error."');
     await send.click();
+    if (!(await diagnosticSourceButton.isDisabled())) {
+      throw new Error(
+        'Preview diagnostic source navigation must be disabled while a tool approval is pending.'
+      );
+    }
     await page.getByRole('button', { name: 'Approve preview.addFeature' }).click();
     await page.getByText(/\[PREVIEW_TARGET_NOT_FOUND\]/).waitFor();
 
