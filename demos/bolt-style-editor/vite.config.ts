@@ -1,6 +1,23 @@
+import net from 'node:net';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
+async function reserveDevelopmentPort(): Promise<number> {
+  while (true) {
+    const port = await new Promise<number>((resolve, reject) => {
+      const server = net.createServer();
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', () => {
+        const address = server.address();
+        const candidate =
+          typeof address === 'object' && address ? address.port : 0;
+        server.close((error) => (error ? reject(error) : resolve(candidate)));
+      });
+    });
+    if (port !== 4173 && port !== 5173) return port;
+  }
+}
 
 const configuredDevPort = Number.parseInt(
   process.env.WEB_CODING_PORT ?? '',
@@ -9,7 +26,7 @@ const configuredDevPort = Number.parseInt(
 const defaultDevPort =
   Number.isInteger(configuredDevPort) && configuredDevPort > 0
     ? configuredDevPort
-    : 43127;
+    : await reserveDevelopmentPort();
 
 export default defineConfig({
   plugins: [react()],

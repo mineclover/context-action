@@ -120,3 +120,7 @@ await verifyServer({
   label: 'port override',
 });
 await verifyServer({ args: ['dev'], label: 'random default port' });
+await verifyServer({
+  args: ['exec', 'vite', '--host', '127.0.0.1'],
+  label: 'direct Vite random default port',
+});

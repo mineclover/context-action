@@ -61,7 +61,8 @@ removed in the verifier's cleanup block; it is never used as application
 storage or shipped with the static demo.
 
 The development server defaults to an OS-assigned free localhost port, so it
-does not claim a commonly used fixed port. Set `WEB_CODING_PORT` when a stable
+does not claim a commonly used fixed port. This applies both to the package
+`dev` script and to direct Vite invocations. Set `WEB_CODING_PORT` when a stable
 port is useful for an in-app browser tab or another local integration; Vite CLI
 port arguments are also forwarded when invoking the package directly.
 
