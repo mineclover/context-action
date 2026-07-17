@@ -339,6 +339,9 @@ policy before the handler runs. Both lifecycles still emit canonical
 When the private package or its contracts change, use:
 
 ```bash
+pnpm --filter @context-action/openrouter-browser-storage check
+pnpm --filter @context-action/openrouter-browser-storage type-check
+pnpm --filter @context-action/openrouter-browser-storage test
 pnpm --filter @context-action/live-code-editor check
 pnpm --filter @context-action/live-code-editor type-check
 pnpm --filter @context-action/live-code-editor test

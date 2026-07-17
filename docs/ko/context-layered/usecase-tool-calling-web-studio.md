@@ -315,6 +315,9 @@ canonical `tools/call` lifecycle event를 발생시킵니다.
 private package 또는 contract를 변경한 경우 다음 순서를 사용합니다.
 
 ```bash
+pnpm --filter @context-action/openrouter-browser-storage check
+pnpm --filter @context-action/openrouter-browser-storage type-check
+pnpm --filter @context-action/openrouter-browser-storage test
 pnpm --filter @context-action/live-code-editor check
 pnpm --filter @context-action/live-code-editor type-check
 pnpm --filter @context-action/live-code-editor test

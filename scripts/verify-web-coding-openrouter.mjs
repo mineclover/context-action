@@ -19,6 +19,10 @@ const exampleSettingsPath = path.join(
   rootDirectory,
   'example/src/lib/openrouter-api-key.ts'
 );
+const sharedStoragePath = path.join(
+  rootDirectory,
+  'packages/openrouter-browser-storage/src/index.ts'
+);
 const require = createRequire(import.meta.url);
 const typescript = require('typescript');
 const transpileToDataUrl = (source, fileName) => {
@@ -55,15 +59,19 @@ const protocol = await import(
 const sharedStorageKey = 'context-action.openrouter.api-key';
 const standaloneSettingsSource = await readFile(standaloneSettingsPath, 'utf8');
 const exampleSettingsSource = await readFile(exampleSettingsPath, 'utf8');
+const sharedStorageSource = await readFile(sharedStoragePath, 'utf8');
 const toolSchemaPath = path.join(
   rootDirectory,
   'demos/bolt-style-editor/src/tool-schema.ts'
 );
 const toolSchemaSource = await readFile(toolSchemaPath, 'utf8');
 expect(
-  standaloneSettingsSource.includes(sharedStorageKey) &&
-    exampleSettingsSource.includes(sharedStorageKey),
-  'Standalone and example OpenRouter settings must use the same storage key.'
+  sharedStorageSource.includes(`'${sharedStorageKey}'`) &&
+    standaloneSettingsSource.includes(
+      "@context-action/openrouter-browser-storage"
+    ) &&
+    exampleSettingsSource.includes("@context-action/openrouter-browser-storage"),
+  'Standalone and example OpenRouter settings must consume the shared browser storage package.'
 );
 expect(
   toolSchemaSource.includes('MAX_TEXT_SOURCE_LENGTH.toLocaleString') &&

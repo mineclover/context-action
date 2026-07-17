@@ -6,6 +6,7 @@ packages:
   - packages/typedoc-vitepress-sync
   - packages/style-testing
   - packages/live-code-editor
+  - packages/openrouter-browser-storage
   - example
   - demos/*
 

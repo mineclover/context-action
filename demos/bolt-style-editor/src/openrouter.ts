@@ -1,4 +1,9 @@
 import {
+  getStoredOpenRouterApiKey,
+  saveOpenRouterApiKey,
+  subscribeStoredOpenRouterApiKey,
+} from '@context-action/openrouter-browser-storage';
+import {
   type ActionSchemaMap,
   listAllTools,
   type ToolRegistry,
@@ -20,7 +25,6 @@ import { recordToolList } from './tool-trace';
 export type { OpenRouterErrorCode } from './openrouter-protocol';
 export { OpenRouterRequestError } from './openrouter-protocol';
 
-const API_KEY_STORAGE_KEY = 'context-action.openrouter.api-key';
 const MODEL_STORAGE_KEY = 'context-action.openrouter.model';
 const ENDPOINT_STORAGE_KEY = 'context-action.openrouter.endpoint';
 export const OPENROUTER_REQUEST_TIMEOUT_MS = 20_000;
@@ -46,12 +50,7 @@ function ensureStorageListener(): void {
   const storage = getLocalStorage();
   window.addEventListener('storage', (event) => {
     if (event.storageArea && event.storageArea !== storage) return;
-    if (
-      event.key === API_KEY_STORAGE_KEY ||
-      event.key === MODEL_STORAGE_KEY ||
-      event.key === ENDPOINT_STORAGE_KEY ||
-      event.key === null
-    ) {
+    if (event.key === MODEL_STORAGE_KEY || event.key === ENDPOINT_STORAGE_KEY) {
       notifySettingsSubscribers();
     }
   });
@@ -181,7 +180,7 @@ async function fetchWithTimeout(
 
 export function readOpenRouterSettings(): OpenRouterSettings {
   return {
-    apiKey: readStorage(API_KEY_STORAGE_KEY),
+    apiKey: getStoredOpenRouterApiKey(),
     model: readStorage(MODEL_STORAGE_KEY) || DEFAULT_OPENROUTER_SETTINGS.model,
     endpoint:
       readStorage(ENDPOINT_STORAGE_KEY) || DEFAULT_OPENROUTER_SETTINGS.endpoint,
@@ -193,7 +192,11 @@ export function subscribeOpenRouterSettings(listener: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
   ensureStorageListener();
   settingsSubscribers.add(listener);
-  return () => settingsSubscribers.delete(listener);
+  const unsubscribeApiKey = subscribeStoredOpenRouterApiKey(listener);
+  return () => {
+    settingsSubscribers.delete(listener);
+    unsubscribeApiKey();
+  };
 }
 
 export function saveOpenRouterSettings(
@@ -206,12 +209,10 @@ export function saveOpenRouterSettings(
   };
 
   if (typeof window !== 'undefined') {
-    writeStorage(API_KEY_STORAGE_KEY, next.apiKey);
     writeStorage(MODEL_STORAGE_KEY, next.model);
     writeStorage(ENDPOINT_STORAGE_KEY, next.endpoint);
+    saveOpenRouterApiKey(next.apiKey);
   }
-
-  notifySettingsSubscribers();
 
   return next;
 }

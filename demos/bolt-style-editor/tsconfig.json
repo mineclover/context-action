@@ -15,6 +15,9 @@
       "@context-action/core": ["../../packages/core/src/index.ts"],
       "@context-action/live-code-editor": [
         "../../packages/live-code-editor/src/index.ts"
+      ],
+      "@context-action/openrouter-browser-storage": [
+        "../../packages/openrouter-browser-storage/src/index.ts"
       ]
     },
     "resolveJsonModule": true,

@@ -54,6 +54,10 @@ export default defineConfig({
         __dirname,
         '../../packages/live-code-editor/src/index.ts'
       ),
+      '@context-action/openrouter-browser-storage': path.resolve(
+        __dirname,
+        '../../packages/openrouter-browser-storage/src/index.ts'
+      ),
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },

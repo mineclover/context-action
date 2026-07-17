@@ -487,6 +487,15 @@ class가 아니라 이 port에 의존한다. Demo에는 iframe runtime과 editor
 나머지 browser-specific 구현은 독립 consumer와 test가 확보된 뒤 옮기며,
 계약이 안정된 뒤 공개 package 여부를 판단한다.
 
+브라우저가 소유하는 OpenRouter API 키에는 더 작은 별도 seam인 private
+`@context-action/openrouter-browser-storage` package를 둔다. 이 package가
+정식 `context-action.openrouter.api-key` 항목과 same-origin 변경 구독을
+소유하고, example의 React hook과 standalone provider 설정이 모두 이를
+사용한다. 따라서 키 계약은 한 곳에서 정의된다. 다만 이 저장소는 여전히
+origin 범위의 browser storage이므로 local example 페이지와 GitHub Pages
+배포본이 localStorage를 직접 공유하지는 않으며, 키를 Context-Action 서버로
+전송하지 않는다.
+
 example은 showcase 호환성을 위해 기존 Dexie repository와 iframe bridge를
 유지하지만, `example/src/lib/live-code-editor-filesystem.ts`는 이제 package
 adapter를 Blob 기반 기존 API로 변환하는 facade일 뿐이다. 폴더 순회, 경로

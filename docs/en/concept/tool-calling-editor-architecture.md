@@ -523,6 +523,15 @@ those remaining browser-specific pieces only after
 they have independent consumers and tests; decide whether to publish the
 package only after the contract stabilizes.
 
+The browser-owned OpenRouter API key has a separate, smaller seam in the
+private `@context-action/openrouter-browser-storage` package. It owns the
+canonical `context-action.openrouter.api-key` entry and same-origin change
+subscription. The example's React hook and the standalone provider settings
+both consume that package, so the key contract is defined once. This remains
+origin-scoped browser storage: a local example page and a GitHub Pages deploy
+cannot share localStorage directly, and no key is sent to a Context-Action
+server.
+
 The example keeps its existing Dexie repository and iframe bridge for showcase
 compatibility, but `example/src/lib/live-code-editor-filesystem.ts` is now only
 a Blob-oriented facade over the package adapter. It does not reimplement folder

@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "description": "Example application for @context-action/core library",
   "scripts": {
+    "prebuild": "pnpm --filter @context-action/openrouter-browser-storage check && pnpm --filter @context-action/openrouter-browser-storage build",
     "dev": "vite",
     "build": "tsc && vite build",
     "build:fast": "vite build",
@@ -33,6 +34,7 @@
     "@ai-sdk/openai-compatible": "3.0.7",
     "@context-action/core": "workspace:*",
     "@context-action/live-code-editor": "workspace:*",
+    "@context-action/openrouter-browser-storage": "workspace:*",
     "@context-action/react": "workspace:*",
     "ai": "7.0.22",
     "clsx": "2.1.1",

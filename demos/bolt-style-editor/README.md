@@ -8,12 +8,22 @@ The reusable rules and use-case recipes for this shape are documented in
 [Tool-Calling Web Studio Convention](../../docs/en/context-layered/usecase-tool-calling-web-studio.md)
 and its [Korean version](../../docs/ko/context-layered/usecase-tool-calling-web-studio.md).
 
+OpenRouter API key persistence is provided by the private
+`@context-action/openrouter-browser-storage` package. The standalone editor
+and example app consume the same-origin `context-action.openrouter.api-key`
+contract; different deployments still have separate browser origins.
+
 ## Run locally
 
 From the repository root:
 
 ```bash
-# Root aliases for the private package and standalone release check:
+# Shared browser storage package:
+pnpm --filter @context-action/openrouter-browser-storage check
+pnpm --filter @context-action/openrouter-browser-storage type-check
+pnpm --filter @context-action/openrouter-browser-storage test
+
+# Standalone release check:
 pnpm build:live-code-editor
 pnpm check:live-code-editor
 pnpm type-check:live-code-editor
