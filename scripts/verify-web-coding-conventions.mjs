@@ -214,6 +214,22 @@ for (const relativeFile of discoveryRequestAdapters) {
   );
 }
 
+const catalogModelSource = readSource(
+  'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
+  catalogModelSource,
+  /toolsList\.tools\.map\(\(definition\) => definition\.name\)/,
+  'tool names derived from the canonical tools/list result'
+);
+assertNotContains(
+  'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
+  catalogModelSource,
+  /registry\.(?:getToolNames|getToolDefinition)\(/,
+  'parallel internal tool catalog reads'
+);
+
 const executionSource = readSource(
   'demos/bolt-style-editor/src/hooks/use-tool-execution.ts'
 );

@@ -24,18 +24,25 @@ export function useToolCatalogModel({
   toolFilter,
   toolCatalogFilter,
 }: ToolCatalogModelOptions) {
-  const toolNames = useMemo(
-    () => registry.getToolNames().map(String),
-    [registry]
-  );
-  const getToolDefinition = useCallback(
-    (name: string): ToolCatalogDefinition | undefined =>
-      registry.getToolDefinition(name),
-    [registry]
-  );
   const toolsList = useMemo(
     () => registry.listTools(toToolListRequest()),
     [registry]
+  );
+  const toolNames = useMemo(
+    () => toolsList.tools.map((definition) => definition.name),
+    [toolsList]
+  );
+  const definitionsByName = useMemo(
+    () =>
+      new Map<string, ToolCatalogDefinition>(
+        toolsList.tools.map((definition) => [definition.name, definition])
+      ),
+    [toolsList]
+  );
+  const getToolDefinition = useCallback(
+    (name: string): ToolCatalogDefinition | undefined =>
+      definitionsByName.get(name),
+    [definitionsByName]
   );
   const toolCatalogCounts = useMemo(() => {
     const counts: Record<ToolCatalogFilter, number> = {
