@@ -233,6 +233,7 @@ const CONCEPT_STRUCTURE = {
             { text: 'Convention Index', link: '/en/context-layered/convention-index' },
             { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
             { text: 'Tool-Calling Web Studio Convention', link: '/en/context-layered/usecase-tool-calling-web-studio' },
+            { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
             { text: 'Convention Alignment Plan', link: '/en/context-layered/convention-alignment-plan' },
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
@@ -265,6 +266,7 @@ const CONCEPT_STRUCTURE = {
             { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
             { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
             { text: 'Tool Calling Web Studio 컨벤션', link: '/ko/context-layered/usecase-tool-calling-web-studio' },
+            { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
             { text: '컨벤션 정합성 계획', link: '/ko/context-layered/convention-alignment-plan' },
             { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
             { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
@@ -313,6 +315,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+      { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
       { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
       { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
       { text: 'Architecture Governance', link: '/en/context-layered/architecture/architecture-governance' },
@@ -326,6 +329,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+      { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
       { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
       { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
       { text: '아키텍처 거버넌스', link: '/ko/context-layered/architecture/architecture-governance' },

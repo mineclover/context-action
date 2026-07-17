@@ -259,6 +259,27 @@ async function runBrowserProof(url) {
           0) > previousWidth,
       previewBeforeResize
     );
+    const sidebarAfterPointerResize = await page
+      .locator('.studio-sidebar')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    const previewAfterKeyboardResize = await page
+      .locator('.preview-panel')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    const persistedPanelLayout = await page.evaluate(() => {
+      const stored = window.localStorage.getItem(
+        'context-action.web-coding.panel-layout'
+      );
+      return stored ? JSON.parse(stored) : null;
+    });
+    if (
+      !persistedPanelLayout ||
+      Math.abs(persistedPanelLayout.sidebarWidth - sidebarAfterPointerResize) > 1 ||
+      Math.abs(persistedPanelLayout.previewWidth - previewAfterKeyboardResize) > 1
+    ) {
+      throw new Error(
+        `The panel layout preference was not persisted: ${JSON.stringify(persistedPanelLayout)}`
+      );
+    }
     const desktopToolbarLayout = await page.evaluate(() => {
       const toolbar = document.querySelector('.editor-toolbar');
       const controls = document.querySelector('.editor-controls');

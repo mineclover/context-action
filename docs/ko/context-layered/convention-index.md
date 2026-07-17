@@ -7,10 +7,11 @@
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
 2. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
 3. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-4. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
-5. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
-6. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-7. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+4. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+5. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+6. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
+7. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+8. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
@@ -29,6 +30,8 @@
   - implementation-playbook 계열 개발의 표준 규칙
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscription, live preview 경계
+- [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+  - presentation-only 패널 상태, 범위 제한 resize, persistence, Store Context 승격 기준
 - [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
   - catalog, approval, trace, persistence, preview reference implementation 상세
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
@@ -107,8 +110,9 @@ build·filesystem·provider·preview·browser release 검사는
 ### Tool-calling web studio 설계용
 
 1. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-2. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
-3. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
+2. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+3. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
+4. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
 ## 코드와 같이 볼 때
 

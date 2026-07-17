@@ -50,6 +50,19 @@ model에는 workspace 객체를 직접 전달하지 않고, view가 tool 허용 
 | 관찰 | observable hook | 외부 workspace/trace 상태를 React에 구독 |
 | 표현 | view | 데이터 렌더링과 callback 발생 |
 
+### 패널 레이아웃 preference 경계
+
+접기·펼치기와 크기 조절은 workspace mutation이 아니라 presentation
+preference입니다. standalone 구현은 `hooks/use-panel-layout.ts` 뒤에 이
+상태를 두고, workbench와 `views/preview-panel.tsx`에는 data와 callback을
+전달하며, 실제 interaction은 순수한
+`views/panel-resize-handle.tsx` primitive가 표현합니다.
+
+전체 상태 계약, width 범위, persistence key, presentation-only 예외, Store
+Context 승격 기준은 [패널 레이아웃 Preference 컨벤션](./usecase-panel-layout.md)에
+관리합니다. 패널 preference는 `tools/call`, revision history, approval,
+workspace file diff 흐름에 들어가서는 안 됩니다.
+
 ## Context-Action 배치
 
 권장 구조는 다음과 같습니다.

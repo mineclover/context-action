@@ -7,10 +7,11 @@ This document is the central entry point for the implementation-playbook style c
 1. [Implementation Convention](/en/context-layered/implementation-convention)
 2. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
 3. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
-4. [Canonical Order Form Example](/en/examples/canonical-order-form)
-5. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
-6. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-7. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+4. [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
+5. [Canonical Order Form Example](/en/examples/canonical-order-form)
+6. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+7. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+8. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
 The short path above covers:
 - folder structure
@@ -28,6 +29,8 @@ The short path above covers:
   - the standard implementation-playbook rule set
 - [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscriptions, and live preview boundaries
+- [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
+  - presentation-only panel state, bounded resizing, persistence, and Store Context promotion criteria
 - [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
   - detailed catalog, approval, trace, persistence, and preview reference implementation
 - [Folder Structure](/en/context-layered/architecture/folder-structure)
@@ -105,8 +108,9 @@ standalone build, filesystem, provider, preview, and browser release checks.
 ### For tool-calling web studios
 
 1. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
-2. [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
-3. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
+2. [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
+3. [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
+4. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
 ## Read Alongside the Example App
 

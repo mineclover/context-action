@@ -50,6 +50,20 @@ a tool is allowed. Each boundary has one source of truth:
 | Observation | observable hook | Subscribe React to external workspace and trace state |
 | Presentation | view | Render data and emit callbacks |
 
+### Panel layout preference boundary
+
+Collapsible and resizable editor panels are a presentation preference, not a
+workspace mutation. The standalone implementation keeps this state behind
+`hooks/use-panel-layout.ts`, passes data and callbacks into the workbench and
+`views/preview-panel.tsx`, and exposes the interaction through the pure
+`views/panel-resize-handle.tsx` primitive.
+
+The complete state contract, width bounds, persistence key, explicit
+presentation-only exception, and promotion criteria for a Store Context are
+maintained in [Panel Layout Preference Convention](./usecase-panel-layout.md).
+The panel preference must not enter `tools/call`, revision history, approval, or
+workspace file diff flows.
+
 ## Context-Action layout
 
 The recommended layout is:

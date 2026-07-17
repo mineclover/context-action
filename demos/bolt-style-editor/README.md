@@ -7,6 +7,9 @@ the parent document; the sandboxed iframe only renders the current workspace.
 The reusable rules and use-case recipes for this shape are documented in
 [Tool-Calling Web Studio Convention](../../docs/en/context-layered/usecase-tool-calling-web-studio.md)
 and its [Korean version](../../docs/ko/context-layered/usecase-tool-calling-web-studio.md).
+The panel-specific contract is maintained in the
+[Panel Layout Preference Convention](../../docs/en/context-layered/usecase-panel-layout.md)
+and [Korean version](../../docs/ko/context-layered/usecase-panel-layout.md).
 
 OpenRouter API key persistence is provided by the private
 `@context-action/openrouter-browser-storage` package. The standalone editor
@@ -109,6 +112,12 @@ The preview browser chrome provides a presentation-only `Full screen` mode;
 uses the same current draft snapshot to download a standalone HTML file, with
 CSS and JavaScript inlined and Blob assets converted to data URLs so the result
 remains portable outside the browser session.
+
+The sidebar and preview panel can be collapsed from their toolbar controls.
+On desktop, their boundaries support pointer dragging and left/right keyboard
+resizing within documented bounds. The preference is stored per browser origin;
+it is not included in workspace revisions, tool results, approvals, or file
+diffs. Narrow layouts keep collapse rails available while hiding resize handles.
 
 The registry schema, approval policy, and lifecycle observer are isolated in
 `src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in

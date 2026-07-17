@@ -541,6 +541,10 @@ const protocolDocumentationFiles = [
   'docs/en/llms/conventions.md',
   'docs/ko/llms/conventions.md',
 ];
+const panelLayoutDocumentationFiles = [
+  'docs/en/context-layered/usecase-panel-layout.md',
+  'docs/ko/context-layered/usecase-panel-layout.md',
+];
 const manualToolListRequestPattern =
   /listTools\(\{\s*method:\s*['"]tools\/list['"]\s*\}\)/;
 for (const relativeFile of protocolDocumentationFiles) {
@@ -556,6 +560,33 @@ for (const relativeFile of protocolDocumentationFiles) {
     source,
     manualToolListRequestPattern,
     'manual tools/list request construction'
+  );
+}
+for (const relativeFile of panelLayoutDocumentationFiles) {
+  const source = readSource(relativeFile);
+  assertContains(
+    relativeFile,
+    source,
+    /PanelLayoutState/,
+    'the canonical panel layout state contract'
+  );
+  assertContains(
+    relativeFile,
+    source,
+    /usePanelLayout/,
+    'the presentation view-model boundary'
+  );
+  assertContains(
+    relativeFile,
+    source,
+    /context-action\.web-coding\.panel-layout/,
+    'the persisted preference key'
+  );
+  assertContains(
+    relativeFile,
+    source,
+    /PanelResizeHandle|panel-resize-handle/,
+    'the resize primitive boundary'
   );
 }
 
@@ -617,6 +648,9 @@ console.log('- canonical catalog read model: use-tool-catalog-model.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
 console.log(`- protocol documentation checked: ${protocolDocumentationFiles.length}`);
+console.log(
+  `- panel layout preference specs checked: ${panelLayoutDocumentationFiles.length}`
+);
 console.log('- live editor package integration docs checked: 1');
 console.log(
   `- filesystem port consumers checked: ${filesystemPortConsumerFiles.length}`
