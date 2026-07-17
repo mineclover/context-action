@@ -532,6 +532,13 @@ origin-scoped browser storage: a local example page and a GitHub Pages deploy
 cannot share localStorage directly, and no key is sent to a Context-Action
 server.
 
+The browser proof at `scripts/verify-example-openrouter-browser.mjs` opens the
+Tool Context AI and Live Code Editor routes together and verifies both
+same-origin storage events and clear behavior. Example `dev`, `build`, and
+`build:fast` lifecycle hooks build this private storage package before Vite
+resolves its workspace export, so a fresh checkout does not depend on a stale
+`dist` directory.
+
 The example keeps its existing Dexie repository and iframe bridge for showcase
 compatibility, but `example/src/lib/live-code-editor-filesystem.ts` is now only
 a Blob-oriented facade over the package adapter. It does not reimplement folder

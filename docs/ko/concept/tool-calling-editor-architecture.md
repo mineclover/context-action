@@ -496,6 +496,12 @@ origin 범위의 browser storage이므로 local example 페이지와 GitHub Page
 배포본이 localStorage를 직접 공유하지는 않으며, 키를 Context-Action 서버로
 전송하지 않는다.
 
+`scripts/verify-example-openrouter-browser.mjs` 브라우저 검증은 Tool Context
+AI route와 Live Code Editor route를 함께 열고 same-origin storage event와
+삭제 동작을 모두 확인한다. example의 `dev`, `build`, `build:fast` lifecycle
+hook은 Vite가 workspace export를 해석하기 전에 이 private storage package를
+build하므로 fresh checkout이 오래된 `dist` 디렉터리에 의존하지 않는다.
+
 example은 showcase 호환성을 위해 기존 Dexie repository와 iframe bridge를
 유지하지만, `example/src/lib/live-code-editor-filesystem.ts`는 이제 package
 adapter를 Blob 기반 기존 API로 변환하는 facade일 뿐이다. 폴더 순회, 경로

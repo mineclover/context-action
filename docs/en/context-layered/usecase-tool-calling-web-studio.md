@@ -350,6 +350,7 @@ pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/react test -- __tests__/tools/ToolContext.test.tsx
 pnpm web-coding:verify
 pnpm --filter example check
+pnpm --filter example verify:openrouter
 ```
 
 The demo `prebuild` runs the package check before rebuilding it. The final

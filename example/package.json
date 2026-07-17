@@ -6,7 +6,9 @@
   "license": "Apache-2.0",
   "description": "Example application for @context-action/core library",
   "scripts": {
+    "predev": "pnpm --filter @context-action/openrouter-browser-storage build",
     "prebuild": "pnpm --filter @context-action/openrouter-browser-storage check && pnpm --filter @context-action/openrouter-browser-storage build",
+    "prebuild:fast": "pnpm --filter @context-action/openrouter-browser-storage build",
     "dev": "vite",
     "build": "tsc && vite build",
     "build:fast": "vite build",
@@ -21,6 +23,7 @@
     "check:fix": "biome check --write src",
     "type-check": "tsc --noEmit",
     "verify:catalog": "node ../scripts/verify-mcp-function-calling-catalog.mjs",
+    "verify:openrouter": "node ../scripts/verify-example-openrouter-browser.mjs",
     "verify:usecase": "node ../scripts/verify-live-usecase-conventions.mjs",
     "verify:conditional": "node ../scripts/verify-conditional-permission-conventions.mjs",
     "verify:mouse-action": "node ../scripts/verify-context-store-action-mouse-conventions.mjs",

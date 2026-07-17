@@ -326,6 +326,7 @@ pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/react test -- __tests__/tools/ToolContext.test.tsx
 pnpm web-coding:verify
 pnpm --filter example check
+pnpm --filter example verify:openrouter
 ```
 
 데모 `prebuild`는 package를 다시 build하기 전에 package check를 실행합니다.
