@@ -249,6 +249,36 @@ function EditorWorkbench({
     null
   );
   const [showAllTrace, setShowAllTrace] = useState(false);
+  const [traceSessionFilter, setTraceSessionFilter] = useState('all');
+  const traceSessionOptions = useMemo(() => {
+    const sourceBySession = new Map<string, string>();
+    for (const entry of traceEntries) {
+      if (!entry.sessionId || sourceBySession.has(entry.sessionId)) continue;
+      sourceBySession.set(entry.sessionId, entry.source);
+    }
+    return Array.from(sourceBySession, ([value, source]) => ({
+      value,
+      label: `${source} · ${formatTraceId(value)}`,
+    }));
+  }, [traceEntries]);
+  useEffect(() => {
+    if (
+      traceSessionFilter === 'all' ||
+      traceSessionOptions.some((option) => option.value === traceSessionFilter)
+    ) {
+      return;
+    }
+    setTraceSessionFilter('all');
+  }, [traceSessionFilter, traceSessionOptions]);
+  const visibleTraceEntries = useMemo(
+    () =>
+      traceSessionFilter === 'all'
+        ? traceEntries
+        : traceEntries.filter(
+            (entry) => entry.sessionId === traceSessionFilter
+          ),
+    [traceEntries, traceSessionFilter]
+  );
   const {
     getToolDefinition,
     selectedToolDefinition,
@@ -617,10 +647,16 @@ function EditorWorkbench({
             onClear={clearToolTrace}
             onCopy={() => void copyJson('Execution trace', traceEntries)}
             onDownload={downloadExecutionTrace}
+            onTraceSessionFilterChange={(value) => {
+              setTraceSessionFilter(value);
+              setShowAllTrace(false);
+            }}
             onToggleShowAll={() => setShowAllTrace((current) => !current)}
             running={running}
             showAllTrace={showAllTrace}
-            traceEntries={traceEntries}
+            traceEntries={visibleTraceEntries}
+            traceSessionFilter={traceSessionFilter}
+            traceSessionOptions={traceSessionOptions}
           />
         </aside>
 

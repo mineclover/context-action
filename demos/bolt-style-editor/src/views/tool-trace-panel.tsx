@@ -2,23 +2,29 @@ import type { ToolTraceEntry } from '../tool-trace';
 
 export type ToolTracePanelProps = {
   traceEntries: readonly ToolTraceEntry[];
+  traceSessionFilter: string;
+  traceSessionOptions: readonly { value: string; label: string }[];
   running: boolean;
   showAllTrace: boolean;
   formatTraceId: (id: string) => string;
   onClear: () => void;
   onCopy: () => void;
   onDownload: () => void;
+  onTraceSessionFilterChange: (value: string) => void;
   onToggleShowAll: () => void;
 };
 
 export function ToolTracePanel({
   traceEntries,
+  traceSessionFilter,
+  traceSessionOptions,
   running,
   showAllTrace,
   formatTraceId,
   onClear,
   onCopy,
   onDownload,
+  onTraceSessionFilterChange,
   onToggleShowAll,
 }: ToolTracePanelProps) {
   return (
@@ -26,6 +32,25 @@ export function ToolTracePanel({
       <div className="sidebar-section-heading">
         <span>Execution trace</span>
         <span className="trace-heading-actions">
+          {traceSessionOptions.length > 1 ? (
+            <label className="trace-session-filter">
+              <span className="sr-only">Filter execution trace session</span>
+              <select
+                aria-label="Filter execution trace session"
+                onChange={(event) =>
+                  onTraceSessionFilterChange(event.target.value)
+                }
+                value={traceSessionFilter}
+              >
+                <option value="all">All sessions</option>
+                {traceSessionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <button
             aria-label="Clear execution trace"
             className="trace-clear-button"
@@ -90,6 +115,7 @@ export function ToolTracePanel({
             .map((entry) => (
               <div
                 className={`trace-row trace-row-${entry.status}`}
+                data-session-id={entry.sessionId}
                 key={entry.id}
                 title={
                   entry.kind === 'call'

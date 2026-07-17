@@ -526,6 +526,34 @@ async function runBrowserProof(url) {
     if ((await page.locator('#trace-list .trace-row').count()) > 8) {
       throw new Error('The recent execution trace limit was not restored.');
     }
+    const traceSessionFilter = page.getByLabel(
+      'Filter execution trace session'
+    );
+    await traceSessionFilter.waitFor();
+    if ((await traceSessionFilter.locator('option').count()) < 3) {
+      throw new Error('The execution trace did not expose multiple sessions.');
+    }
+    const allSessionTraceCount = await page
+      .locator('#trace-list .trace-row')
+      .count();
+    await traceSessionFilter.selectOption({ index: 1 });
+    const selectedTraceSession = await traceSessionFilter.inputValue();
+    await page.waitForFunction((expectedSession) => {
+      const rows = Array.from(document.querySelectorAll('#trace-list .trace-row'));
+      return (
+        rows.length > 0 &&
+        rows.every((row) => row.getAttribute('data-session-id') === expectedSession)
+      );
+    }, selectedTraceSession);
+    if ((await page.locator('#trace-list .trace-row').count()) >= allSessionTraceCount) {
+      throw new Error('The execution trace session filter did not narrow the chain.');
+    }
+    await traceSessionFilter.selectOption('all');
+    await page.waitForFunction(
+      (expectedCount) =>
+        document.querySelectorAll('#trace-list .trace-row').length === expectedCount,
+      allSessionTraceCount
+    );
 
     await page.locator('button[title="styles.css"]').click();
     await page.getByLabel('Edit styles.css').waitFor();
