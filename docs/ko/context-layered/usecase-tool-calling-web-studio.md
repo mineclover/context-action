@@ -64,6 +64,7 @@ handlers/
 hooks/
   use-tool-execution.ts        # provider/model 실행
   use-editor-observables.ts    # 외부 구독
+  use-tool-catalog-model.ts    # canonical tools/list와 catalog read model
   use-workspace-*.ts           # workspace action과 keyboard command
 views/
   tool-catalog-panel.tsx
@@ -79,6 +80,9 @@ domain/
 standalone 데모에서는 각각 `bolt-style-tool-context.ts`,
 `actions/run-local-agent.ts`, `tool-handlers.tsx`, `hooks/`, `views/`, private
 `@context-action/live-code-editor` package가 같은 역할을 합니다.
+`use-tool-catalog-model.ts`는 canonical `tools/list`, tool definition과 catalog
+filter를, `use-tool-catalog-actions.ts`는 sample arguments와 palette command를,
+`use-studio-export-actions.ts`는 catalog·trace export를 소유합니다.
 
 example의 Live Code Editor도 같은 경계를 유지합니다. `LiveEditorToolchain.tsx`가
 ToolContext와 handler 등록을 소유하고, `actions/useLiveEditorToolActions.ts`가

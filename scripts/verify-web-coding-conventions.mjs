@@ -184,8 +184,7 @@ assertContains(
 );
 
 const discoveryRequestAdapters = [
-  'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
-  'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts',
+  'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
   'example/src/lib/openrouter-ai-sdk.ts',
   'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts',
 ];
@@ -237,6 +236,12 @@ assertContains(
   editorSource,
   /useEditorObservables\(/,
   'the observable facade hook'
+);
+assertNotContains(
+  'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
+  editorSource,
+  /registry\.(?:getToolNames|getToolDefinition|listTools)\(/,
+  'tool catalog reads from the editor composition root'
 );
 
 const showcaseRequestAdapters = [
@@ -337,6 +342,7 @@ console.log('- ToolContext creation: bolt-style-tool-context.ts');
 console.log('- canonical tool schema: tool-schema.ts');
 console.log('- handler registrations: tool-handlers.tsx');
 console.log('- external subscriptions: use-editor-observables.ts');
+console.log('- canonical catalog read model: use-tool-catalog-model.ts');
 console.log('- provider boundaries: tools/list → registry export → executeModelToolCall');
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
 console.log(`- protocol documentation checked: ${protocolDocumentationFiles.length}`);

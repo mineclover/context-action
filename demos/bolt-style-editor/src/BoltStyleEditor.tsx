@@ -1,4 +1,3 @@
-import { toToolListRequest } from '@context-action/react';
 import {
   type KeyboardEvent,
   useCallback,
@@ -16,6 +15,7 @@ import { useEditorObservables } from './hooks/use-editor-observables';
 import { usePreviewBridge } from './hooks/use-preview-bridge';
 import { useStudioExportActions } from './hooks/use-studio-export-actions';
 import { useToolCatalogActions } from './hooks/use-tool-catalog-actions';
+import { useToolCatalogModel } from './hooks/use-tool-catalog-model';
 import {
   type EditorMessage,
   useToolExecution,
@@ -241,10 +241,7 @@ function EditorWorkbench({
     () => overlayEditorDrafts(snapshot.files, editorDrafts),
     [editorDrafts, snapshot.files]
   );
-  const toolNames = registry.getToolNames().map(String);
-  const [selectedToolName, setSelectedToolName] = useState(
-    () => toolNames[0] ?? ''
-  );
+  const [selectedToolName, setSelectedToolName] = useState('');
   const [toolFilter, setToolFilter] = useState('');
   const [toolCatalogFilter, setToolCatalogFilter] =
     useState<ToolCatalogFilter>('all');
@@ -253,44 +250,23 @@ function EditorWorkbench({
     null
   );
   const [showAllTrace, setShowAllTrace] = useState(false);
-  const toolCatalogCounts = useMemo(() => {
-    const counts: Record<ToolCatalogFilter, number> = {
-      all: toolNames.length,
-      read: 0,
-      workspace: 0,
-      preview: 0,
-    };
-    for (const name of toolNames) {
-      if (
-        registry.getToolDefinition(name)?.annotations?.readOnlyHint === true
-      ) {
-        counts.read += 1;
-      }
-      if (name.startsWith('workspace.')) counts.workspace += 1;
-      if (name.startsWith('preview.')) counts.preview += 1;
-    }
-    return counts;
-  }, [registry, toolNames]);
-  const visibleToolNames = useMemo(() => {
-    const query = toolFilter.trim().toLowerCase();
-    return toolNames.filter((name) => {
-      const definition = registry.getToolDefinition(name);
-      const matchesCatalog =
-        toolCatalogFilter === 'all' ||
-        (toolCatalogFilter === 'read' &&
-          definition?.annotations?.readOnlyHint === true) ||
-        (toolCatalogFilter === 'workspace' && name.startsWith('workspace.')) ||
-        (toolCatalogFilter === 'preview' && name.startsWith('preview.'));
-      return matchesCatalog && (!query || name.toLowerCase().includes(query));
-    });
-  }, [registry, toolCatalogFilter, toolFilter, toolNames]);
+  const {
+    getToolDefinition,
+    selectedToolDefinition,
+    toolCatalogCounts,
+    toolNames,
+    toolsList,
+    visibleToolNames,
+  } = useToolCatalogModel({
+    registry,
+    selectedToolName,
+    toolFilter,
+    toolCatalogFilter,
+  });
   useEffect(() => {
     if (visibleToolNames.includes(selectedToolName)) return;
     setSelectedToolName(visibleToolNames[0] ?? '');
   }, [selectedToolName, visibleToolNames]);
-  const selectedToolDefinition = selectedToolName
-    ? registry.getToolDefinition(selectedToolName)
-    : undefined;
   const activeSource = editorDrafts[activeFile.path] ?? activeFile.source;
   const {
     parseToolArguments,
@@ -315,12 +291,13 @@ function EditorWorkbench({
     copyFeedback,
     copyJson,
     copySelectedToolCall,
+    copyToolsList,
     downloadToolList,
     downloadSelectedToolDefinition,
     downloadSelectedToolCall,
     downloadExecutionTrace,
   } = useStudioExportActions({
-    registry,
+    toolsList,
     traceEntries,
     selectedToolName,
     selectedToolDefinition,
@@ -608,19 +585,14 @@ function EditorWorkbench({
           />
           <ToolCatalogPanel
             copyFeedback={copyFeedback}
-            getToolDefinition={(name) => registry.getToolDefinition(name)}
+            getToolDefinition={getToolDefinition}
             isStorageReady={isStorageReady}
             onClearToolFilter={() => setToolFilter('')}
             onCopyCall={() => void copySelectedToolCall()}
             onCopyDefinition={() =>
               void copyJson('Tool definition', selectedToolDefinition)
             }
-            onCopyToolsList={() =>
-              void copyJson(
-                'tools/list result',
-                registry.listTools(toToolListRequest())
-              )
-            }
+            onCopyToolsList={() => void copyToolsList()}
             onDownloadCall={downloadSelectedToolCall}
             onDownloadDefinition={downloadSelectedToolDefinition}
             onDownloadToolsList={downloadToolList}

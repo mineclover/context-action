@@ -94,7 +94,8 @@ preview mutation handler는 `src/tool-handlers.tsx`로 분리한다. React
 orchestration은 focused hook으로 나눈다. `use-tool-execution`은 provider 중립
 실행을, `use-workspace-folder-actions`는 folder 경계를,
 `use-workspace-editor-actions`는 draft와 file mutation을,
-`use-tool-catalog-actions`는 MCP catalog call surface를,
+`use-tool-catalog-model`은 canonical `tools/list`, definition과 catalog filter를,
+`use-tool-catalog-actions`는 tool argument sample과 palette command를,
 `use-workspace-keyboard-shortcuts`는 전역 명령을,
 `use-studio-export-actions`는 copy/download export를 소유한다. 공통
 `use-confirmation-request` hook은 Promise 기반 destructive confirmation

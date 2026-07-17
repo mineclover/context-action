@@ -1,6 +1,6 @@
-import { toToolCallRequest, toToolListRequest } from '@context-action/react';
+import type { ToolListResult } from '@context-action/core';
+import { toToolCallRequest } from '@context-action/react';
 import { useEffect, useRef, useState } from 'react';
-import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import type { ToolTraceEntry } from '../tool-trace';
 import type { ToolCatalogDefinition } from '../views/tool-catalog-panel';
 
@@ -59,7 +59,7 @@ async function writeClipboardText(value: string): Promise<void> {
 }
 
 export type StudioExportActionsOptions = {
-  registry: BoltStyleRegistry;
+  toolsList: ToolListResult;
   traceEntries: readonly ToolTraceEntry[];
   selectedToolName: string;
   selectedToolDefinition?: ToolCatalogDefinition;
@@ -67,7 +67,7 @@ export type StudioExportActionsOptions = {
 };
 
 export function useStudioExportActions({
-  registry,
+  toolsList,
   traceEntries,
   selectedToolName,
   selectedToolDefinition,
@@ -114,9 +114,13 @@ export function useStudioExportActions({
   const downloadToolList = () => {
     downloadJson(
       'tools/list result',
-      registry.listTools(toToolListRequest()),
+      toolsList,
       'context-action-tools-list.json'
     );
+  };
+
+  const copyToolsList = async () => {
+    await copyJson('tools/list result', toolsList);
   };
 
   const copySelectedToolCall = async () => {
@@ -161,6 +165,7 @@ export function useStudioExportActions({
     copyFeedback,
     copyJson,
     copySelectedToolCall,
+    copyToolsList,
     downloadToolList,
     downloadSelectedToolDefinition,
     downloadSelectedToolCall,

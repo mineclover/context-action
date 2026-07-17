@@ -64,6 +64,7 @@ handlers/
 hooks/
   use-tool-execution.ts        # provider/model execution
   use-editor-observables.ts    # external subscriptions
+  use-tool-catalog-model.ts    # canonical tools/list and catalog read model
   use-workspace-*.ts           # workspace actions and keyboard commands
 views/
   tool-catalog-panel.tsx
@@ -79,7 +80,10 @@ domain/
 The standalone demo uses equivalent local names: `bolt-style-tool-context.ts`,
 `actions/run-local-agent.ts`, `tool-handlers.tsx`, the `hooks/` directory, the
 `views/` directory, and the private `@context-action/live-code-editor`
-package.
+package. Its `use-tool-catalog-model.ts` owns canonical `tools/list`, tool
+definitions, and catalog filtering; `use-tool-catalog-actions.ts` owns sample
+arguments and palette commands, while `use-studio-export-actions.ts` owns
+catalog and trace exports.
 
 The example Live Code Editor keeps the same seam even though it is a smaller
 showcase. `LiveEditorToolchain.tsx` owns the ToolContext and handler

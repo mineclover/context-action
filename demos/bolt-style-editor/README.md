@@ -88,7 +88,9 @@ hooks: `use-tool-execution` owns provider-neutral execution,
 `use-editor-observables` owns reactive workspace, filesystem, trace, and
 approval subscriptions,
 `use-workspace-editor-actions` owns drafts and file mutations,
-`use-tool-catalog-actions` owns the MCP catalog call surface,
+`use-tool-catalog-model` owns canonical `tools/list`, definitions, and catalog
+filtering,
+`use-tool-catalog-actions` owns tool-argument samples and palette commands,
 `use-workspace-keyboard-shortcuts` owns global commands, and
 `use-studio-export-actions` owns copy/download exports. The shared
 `use-confirmation-request` hook owns the promise-backed destructive confirmation
