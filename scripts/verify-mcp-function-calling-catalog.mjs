@@ -91,6 +91,9 @@ const realtimeWebCodingSchemaSource = readSource(
 const liveToolResultContractSource = readSource(
   'example/src/lib/live-tool-result-contract.ts'
 );
+const catalogPageSource = readSource(
+  'example/src/pages/catalog/integrations/McpFunctionCallingCatalog.tsx'
+);
 const standaloneSchemaSource = readSource(
   'demos/bolt-style-editor/src/tool-schema.ts'
 );
@@ -191,6 +194,26 @@ assertContains(
   realtimeWebCodingSchemaSource,
   /livePreviewStatusSchema/,
   'realtime web-coding shared preview schema usage'
+);
+assertContains(
+  catalogPageSource,
+  /mcpLiveEditorCommands/,
+  'Live Code Editor catalog page section'
+);
+assertContains(
+  catalogPageSource,
+  /mcpRealtimeWebCodingCommands/,
+  'realtime web-coding catalog page section'
+);
+assertContains(
+  catalogPageSource,
+  /to="\/integrations\/live-code-editor"/,
+  'Live Code Editor catalog entry link'
+);
+assertContains(
+  catalogPageSource,
+  /to="\/integrations\/live-web-coding"/,
+  'realtime web-coding catalog entry link'
 );
 assertContains(
   realtimeAgentActionsSource,
@@ -504,12 +527,32 @@ const standaloneCount = assertCatalogMatchesSchema({
   catalogSource,
   schemaSource: standaloneSchemaSource,
   marker: 'export const mcpStandaloneCommands',
+  endMarker: 'export const mcpLiveEditorCommands',
   label: 'standalone catalog',
+});
+const liveEditorCount = assertCatalogMatchesSchema({
+  catalogSource,
+  schemaSource: liveEditorSchemaSource,
+  marker: 'export const mcpLiveEditorCommands',
+  endMarker: 'export const mcpRealtimeWebCodingCommands',
+  label: 'Live Code Editor catalog',
+});
+const realtimeCount = assertCatalogMatchesSchema({
+  catalogSource,
+  schemaSource: realtimeWebCodingSchemaSource,
+  marker: 'export const mcpRealtimeWebCodingCommands',
+  label: 'realtime web-coding catalog',
 });
 
 console.log('MCP/function-calling catalog contract check');
 console.log(`- UI catalog tool references checked: ${uiCount}`);
 console.log(`- standalone catalog tool references checked: ${standaloneCount}`);
+console.log(
+  `- Live Code Editor catalog tool references checked: ${liveEditorCount}`
+);
+console.log(
+  `- realtime web-coding catalog tool references checked: ${realtimeCount}`
+);
 console.log('- AI runner response-message history checked: 2 showcases');
 console.log('- realtime local-agent source/mode contract checked');
 console.log('- example tools/list/tools/call trace methods checked');

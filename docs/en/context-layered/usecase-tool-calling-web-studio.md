@@ -362,9 +362,12 @@ The approval contract check proves that pending requests retain the canonical
 explicit approval and abort cleanup settle the pending queue.
 
 The example catalog check is included in `example check`. It validates that
-each UI and standalone prompt references only tools present in the corresponding
-ToolContext schema, so a renamed or removed tool cannot remain in the command
-library unnoticed.
+each UI, standalone, Live Code Editor, and realtime web-coding prompt references
+only tools present in the corresponding ToolContext schema, so a renamed or
+removed tool cannot remain in the command library unnoticed. The catalog page
+links each live surface to its route while reusing the same generic
+`MCPCommandReference` shape for prompt, tool names, expected chain, and
+difficulty.
 
 It checks that ToolContext creation and handler registration stay in their
 dedicated modules, external subscriptions stay in the observable hook, and

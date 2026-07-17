@@ -244,6 +244,10 @@ output schema와 반환 metadata가 어긋나지 않게 하는 역할만 한다.
 standalone demo도 `src/tool-result-contract.ts`에서 같은 분리를 적용한다.
 handler가 현재 snapshot을 전달하면 pure helper가 state를 직접 읽지 않고
 persistence·revision metadata를 반환한다.
+전용 `mcp-function-calling-catalog.ts`는 UI, standalone workspace, Live Code
+Editor, realtime web-coding surface의 prompt recipe를 하나의
+`MCPCommandReference` 형태로 관리하며, `example check`가 각 recipe를 실제
+ToolContext schema와 대조한다.
 standalone Web Studio의 mutation·preview 결과에는 현재 `storageMode`와
 bounded `storageError`도 포함된다. 따라서 모델은 별도 status 호출 없이도
 성공한 preview가 IndexedDB 기반인지 session-only memory 기반인지 구분할 수 있다.

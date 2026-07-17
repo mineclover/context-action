@@ -1,20 +1,10 @@
+import type { LiveEditorToolsActions } from './live-editor-tools-schema';
+import type { LiveWebCodingToolsActions } from './live-web-coding-tools-schema';
 import type { UIToolsActions } from './ui-tools-schema';
 
 export type MCPCommandDifficulty = 'Starter' | 'Workflow' | 'Advanced';
 
 export interface MCPCommandReference<TToolName extends string = string> {
-  id: string;
-  title: string;
-  description: string;
-  prompt: string;
-  tools: readonly TToolName[];
-  expectedChain: readonly string[];
-  difficulty: MCPCommandDifficulty;
-}
-
-export interface MCPStandaloneCommandReference<
-  TToolName extends string = string,
-> {
   id: string;
   title: string;
   description: string;
@@ -49,6 +39,13 @@ export type MCPStandaloneToolName =
   | 'preview.updateHero'
   | 'preview.getStatus'
   | 'preview.refresh';
+
+/** Public tool names used by the browser-owned Live Code Editor catalog. */
+export type MCPLiveEditorToolName = keyof LiveEditorToolsActions & string;
+
+/** Public tool names used by the realtime web-coding catalog. */
+export type MCPRealtimeWebCodingToolName = keyof LiveWebCodingToolsActions &
+  string;
 
 export const mcpExecutionStages = [
   {
@@ -264,7 +261,140 @@ export const mcpStandaloneCommands = [
     ],
     difficulty: 'Advanced',
   },
-] satisfies readonly MCPStandaloneCommandReference<MCPStandaloneToolName>[];
+] satisfies readonly MCPCommandReference<MCPStandaloneToolName>[];
+
+export const mcpLiveEditorCommands = [
+  {
+    id: 'live-editor-inspect-patch',
+    title: '문서 확인 후 안전한 patch',
+    description:
+      'editor 상태·파일·현재 문서를 순서대로 읽고 관찰한 revision으로 bounded patch를 적용합니다.',
+    prompt:
+      '현재 editor 파일과 문서를 확인한 뒤, 첫 번째로 수정 가능한 줄 끝에 공백 두 칸을 추가하고 preview가 반영됐는지 확인해줘.',
+    tools: [
+      'editor.getStatus',
+      'editor.listFiles',
+      'editor.getDocument',
+      'editor.applyPatch',
+      'editor.getPreviewStatus',
+    ],
+    expectedChain: [
+      'editor.getStatus',
+      'editor.listFiles',
+      'editor.getDocument',
+      'editor.applyPatch',
+      'iframe acknowledgement',
+      'editor.getPreviewStatus',
+    ],
+    difficulty: 'Workflow',
+  },
+  {
+    id: 'live-editor-open-save',
+    title: '파일 열기 후 명시적 저장',
+    description:
+      'browser workspace에서 text file을 열고 preview acknowledgement를 받은 뒤 local folder 저장 경계를 설명합니다.',
+    prompt:
+      'script.js를 열고 preview가 갱신된 것을 확인한 다음 현재 파일을 local folder에 저장해줘.',
+    tools: [
+      'editor.getStatus',
+      'editor.listFiles',
+      'editor.openFile',
+      'editor.saveFile',
+    ],
+    expectedChain: [
+      'editor.getStatus',
+      'editor.listFiles',
+      'editor.openFile',
+      'iframe acknowledgement',
+      'editor.saveFile → approval/filesystem boundary',
+    ],
+    difficulty: 'Advanced',
+  },
+  {
+    id: 'live-editor-preview-scenario',
+    title: 'Preview scenario 확인',
+    description:
+      '문서 변경과 iframe acknowledgement를 분리해 안전한 preview scenario 전환을 확인합니다.',
+    prompt:
+      '현재 문서를 읽고 preview scenario를 invalid로 바꾼 뒤 preview 상태를 알려줘.',
+    tools: [
+      'editor.getDocument',
+      'editor.setScenario',
+      'editor.getPreviewStatus',
+    ],
+    expectedChain: [
+      'editor.getDocument',
+      'editor.setScenario',
+      'iframe acknowledgement',
+      'editor.getPreviewStatus',
+    ],
+    difficulty: 'Starter',
+  },
+] satisfies readonly MCPCommandReference<MCPLiveEditorToolName>[];
+
+export const mcpRealtimeWebCodingCommands = [
+  {
+    id: 'realtime-theme-feature',
+    title: '테마와 feature를 연속 반영',
+    description:
+      'realtime workspace revision을 확인하고 CSS·HTML mutation을 순차 실행한 뒤 preview를 확인합니다.',
+    prompt:
+      '현재 web workspace를 확인하고 emerald 테마로 바꾼 다음 "Tool result" feature를 추가해줘.',
+    tools: [
+      'web.getWorkspace',
+      'web.setTheme',
+      'web.addFeature',
+      'web.runPreview',
+    ],
+    expectedChain: [
+      'web.getWorkspace',
+      'web.setTheme',
+      'iframe acknowledgement',
+      'web.addFeature',
+      'iframe acknowledgement',
+      'web.runPreview',
+    ],
+    difficulty: 'Workflow',
+  },
+  {
+    id: 'realtime-revision-patch',
+    title: 'Revision guard가 있는 patch',
+    description:
+      '파일을 읽어 얻은 workspace revision을 patch mutation에 전달해 stale edit를 거부하는 흐름입니다.',
+    prompt:
+      'index.html을 읽고 hero 제목 뒤에 " · live"를 추가하되, 읽은 revision이 바뀌었으면 덮어쓰지 말고 알려줘.',
+    tools: [
+      'web.getWorkspace',
+      'web.readFile',
+      'web.applyPatch',
+      'web.runPreview',
+    ],
+    expectedChain: [
+      'web.getWorkspace',
+      'web.readFile',
+      'web.applyPatch(expectedRevision)',
+      'iframe acknowledgement',
+      'web.runPreview',
+    ],
+    difficulty: 'Advanced',
+  },
+  {
+    id: 'realtime-hero-update',
+    title: 'Hero copy 업데이트',
+    description:
+      '범용 source 편집 대신 semantic visual tool을 사용해 hero 영역을 업데이트합니다.',
+    prompt:
+      'hero 제목을 "Build with tool calls"로, 설명을 "Every result is visible"로 바꿔줘.',
+    tools: ['web.getWorkspace', 'web.updateHero', 'web.runPreview'],
+    expectedChain: [
+      'web.getWorkspace',
+      'web.updateHero',
+      'iframe acknowledgement',
+      'web.runPreview',
+    ],
+    difficulty: 'Starter',
+  },
+] satisfies readonly MCPCommandReference<MCPRealtimeWebCodingToolName>[];
 
 export type MCPFunctionCallingCommand =
   (typeof mcpFunctionCallingCommands)[number];

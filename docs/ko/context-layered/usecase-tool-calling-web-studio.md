@@ -337,10 +337,12 @@ approval contract 검사는 pending request가 canonical `tools/call` method,
 `toolCallId`, session, execution mode를 유지하는지와 명시적 승인·abort cleanup이
 pending queue를 정상적으로 정리하는지를 확인합니다.
 
-example catalog 검사는 `example check`에 포함됩니다. UI와 standalone 명령문이
-각각 대응하는 ToolContext schema에 실제 존재하는 tool만 참조하는지 확인하므로,
-tool 이름을 변경하거나 삭제한 뒤 command library가 조용히 오래된 상태로 남지
-않습니다.
+example catalog 검사는 `example check`에 포함됩니다. UI, standalone, Live Code
+Editor, realtime web-coding 명령문이 각각 대응하는 ToolContext schema에 실제
+존재하는 tool만 참조하는지 확인하므로, tool 이름을 변경하거나 삭제한 뒤
+command library가 조용히 오래된 상태로 남지 않습니다. catalog page는 각 live
+surface route로 연결하면서 prompt, tool name, expected chain, difficulty를 같은
+generic `MCPCommandReference` 형태로 재사용합니다.
 
 이 검사는 ToolContext 생성과 handler 등록이 전용 모듈에 남아 있는지,
 외부 subscription이 observable hook에 모여 있는지, local/provider 경로가

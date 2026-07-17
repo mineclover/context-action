@@ -263,6 +263,10 @@ output schema and returned metadata from drifting between tool surfaces.
 The standalone demo applies the same separation in
 `src/tool-result-contract.ts`: handlers provide the current snapshot and the
 pure helper returns persistence and revision metadata without reading state.
+The dedicated `mcp-function-calling-catalog.ts` now keeps prompt recipes for
+the UI, standalone workspace, Live Code Editor, and realtime web-coding
+surfaces under one `MCPCommandReference` shape; `example check` validates each
+recipe against its real ToolContext schema.
 The standalone Web Studio mutation and preview results also carry the current
 `storageMode` and optional bounded `storageError`. A model can therefore tell
 whether a successful preview is backed by IndexedDB or is session-only memory
