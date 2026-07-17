@@ -58,35 +58,65 @@ async function stopServer() {
   serverProcess = undefined;
 }
 
-const port = await reservePort();
 const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-serverProcess = spawn(command, ['dev', '--', '--port', String(port)], {
-  cwd: demoDirectory,
-  detached: process.platform !== 'win32',
-  env: { ...process.env, NODE_ENV: 'development' },
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
-
-let output = '';
-serverProcess.stdout?.on('data', (chunk) => {
-  output += chunk.toString();
-});
-serverProcess.stderr?.on('data', (chunk) => {
-  output += chunk.toString();
-});
-
-const url = `http://127.0.0.1:${port}/`;
-try {
-  const body = await waitForServer(url);
-  if (!body.includes('<title>Context-Action Web Coding Studio</title>')) {
-    throw new Error('The development server did not serve the standalone web-coding entry document.');
+async function waitForAdvertisedPort(readOutput, timeoutMs = 20_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const match = readOutput().match(
+      /Local:\s+http:\/\/127\.0\.0\.1:(\d+)\//
+    );
+    if (match) return Number.parseInt(match[1], 10);
+    if (serverProcess?.exitCode !== null) break;
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  console.log(`Verified standalone dev server port override at ${url}`);
-} catch (error) {
-  const details = output.trim();
-  throw new Error(
-    `${error instanceof Error ? error.message : String(error)}${details ? `\n--- server output ---\n${details}` : ''}`
-  );
-} finally {
-  await stopServer();
+  throw new Error('The development server did not advertise a localhost port.');
 }
+
+async function verifyServer({ args, label, expectedPort }) {
+  serverProcess = spawn(command, args, {
+    cwd: demoDirectory,
+    detached: process.platform !== 'win32',
+    env: { ...process.env, NODE_ENV: 'development' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let output = '';
+  serverProcess.stdout?.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  serverProcess.stderr?.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+
+  try {
+    const port = expectedPort ?? (await waitForAdvertisedPort(() => output));
+    if (expectedPort === undefined && (port === 4173 || port === 5173)) {
+      throw new Error(
+        `The random default dev server selected a commonly used port: ${port}.`
+      );
+    }
+    const url = `http://127.0.0.1:${port}/`;
+    const body = await waitForServer(url);
+    if (!body.includes('<title>Context-Action Web Coding Studio</title>')) {
+      throw new Error(
+        'The development server did not serve the standalone web-coding entry document.'
+      );
+    }
+    console.log(`Verified standalone dev server ${label} at ${url}`);
+  } catch (error) {
+    const details = output.trim();
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}${details ? `\n--- server output ---\n${details}` : ''}`
+    );
+  } finally {
+    await stopServer();
+  }
+}
+
+const overridePort = await reservePort();
+await verifyServer({
+  args: ['dev', '--', '--port', String(overridePort)],
+  expectedPort: overridePort,
+  label: 'port override',
+});
+await verifyServer({ args: ['dev'], label: 'random default port' });

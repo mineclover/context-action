@@ -2,10 +2,14 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const defaultDevPort = Number.parseInt(
-  process.env.WEB_CODING_PORT ?? '43127',
+const configuredDevPort = Number.parseInt(
+  process.env.WEB_CODING_PORT ?? '',
   10
 );
+const defaultDevPort =
+  Number.isInteger(configuredDevPort) && configuredDevPort > 0
+    ? configuredDevPort
+    : 43127;
 
 export default defineConfig({
   plugins: [react()],
@@ -13,7 +17,7 @@ export default defineConfig({
     process.env.NODE_ENV === 'production' ? '/context-action/web-coding/' : '/',
   server: {
     host: '127.0.0.1',
-    port: Number.isFinite(defaultDevPort) ? defaultDevPort : 43127,
+    port: defaultDevPort,
   },
   resolve: {
     alias: {

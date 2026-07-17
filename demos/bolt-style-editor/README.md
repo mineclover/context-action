@@ -54,9 +54,10 @@ approval, preview mutation, and the Dexie-backed source/preview restore path
 after a browser reload. Set
 `WEB_CODING_URL` to reuse an already-running server instead of starting one.
 
-The development server defaults to `http://127.0.0.1:43127/`. Set
-`WEB_CODING_PORT` to use another port for parallel local apps; Vite CLI port
-arguments are also forwarded when invoking the package directly.
+The development server defaults to an OS-assigned free localhost port, so it
+does not claim a commonly used fixed port. Set `WEB_CODING_PORT` when a stable
+port is useful for an in-app browser tab or another local integration; Vite CLI
+port arguments are also forwarded when invoking the package directly.
 
 ## What this demonstrates
 
