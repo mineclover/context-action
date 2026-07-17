@@ -175,6 +175,10 @@ export function promptToToolCalls(
     /(folder|directory|폴더|디렉터리)/i.test(prompt);
   const statusRequest =
     /(status|상태|folder sync|폴더 연결|저장 가능|writable)/i.test(prompt);
+  const previewStatusRequest =
+    /(?:preview|미리보기).*(?:status|state|상태)|(?:status|state|상태).*(?:preview|미리보기)/i.test(
+      prompt
+    );
   const requestedPath = inferWorkspacePath(prompt);
   const renamePaths = inferRenamePaths(prompt);
   const openRequest =
@@ -198,6 +202,10 @@ export function promptToToolCalls(
   const featureCopy = inferFeatureCopy(prompt, requestedPath);
 
   if (resetRequest) return [{ name: 'workspace.reset', arguments: {} }];
+
+  if (previewStatusRequest && !textPatch && !saveRequest && !reloadRequest) {
+    return [{ name: 'preview.getStatus', arguments: {} }];
+  }
 
   if (statusRequest && !textPatch && !saveRequest && !reloadRequest) {
     return [{ name: 'workspace.getStatus', arguments: {} }];

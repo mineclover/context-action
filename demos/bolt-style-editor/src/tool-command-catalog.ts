@@ -65,6 +65,28 @@ export const standaloneToolChainRecipes = [
     expectedChain: ['workspace.getStatus'],
   },
   {
+    id: 'show-preview-status',
+    title: 'Show preview status',
+    description:
+      'Read iframe revision, runtime status, and bounded preview diagnostics.',
+    prompt: 'Show preview status',
+    tools: ['preview.getStatus'],
+    expectedChain: ['preview.getStatus'],
+  },
+  {
+    id: 'refresh-preview',
+    title: 'Refresh preview',
+    description:
+      'Preflight the workspace, then remount the sandbox and await acknowledgement.',
+    prompt: 'Refresh the preview',
+    tools: ['workspace.getStatus', 'preview.refresh'],
+    expectedChain: [
+      'workspace.getStatus',
+      'preview.refresh',
+      'iframe acknowledgement',
+    ],
+  },
+  {
     id: 'create-notes',
     title: 'Create notes.md',
     description: 'Create a text file and wait for the preview boundary.',
@@ -91,6 +113,19 @@ export const standaloneToolChainRecipes = [
       'workspace.getStatus',
       'workspace.listFiles',
       'workspace.renameFile',
+      'iframe acknowledgement',
+    ],
+  },
+  {
+    id: 'undo-latest-edit',
+    title: 'Undo latest edit',
+    description:
+      'Read the current workspace before applying a revision-guarded undo.',
+    prompt: 'Undo latest edit',
+    tools: ['workspace.getStatus', 'workspace.undo'],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.undo',
       'iframe acknowledgement',
     ],
   },

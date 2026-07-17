@@ -192,9 +192,9 @@ retryable result show a `Retry` action that reuses the original prompt or tool
 arguments. Non-retryable execution and policy errors do not offer a misleading
 retry, while cancellation is shown as cancelled rather than failed.
 The composer also exposes prompt recipes for visual changes, workspace status,
-file creation, the explicit folder save and reload boundaries, and folder
-disconnection; each recipe enters the same local-agent planning and approval
-path as free-form text. In the standalone package,
+preview status/refresh, undo recovery, file creation, the explicit folder save
+and reload boundaries, and folder disconnection; each recipe enters the same
+local-agent planning and approval path as free-form text. In the standalone package,
 `src/tool-command-catalog.ts` owns those prompts, participating tool names, and
 expected approval/preview chain; the chat view receives the typed catalog as
 data instead of embedding a second list of strings. The save recipe explicitly
