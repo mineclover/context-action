@@ -116,6 +116,7 @@ export function PreviewPanel({
                 <button
                   aria-label={`Open ${diagnostic.sourcePath} in editor`}
                   className="preview-diagnostic-source"
+                  disabled={refreshDisabled}
                   onClick={() => void onOpenFile(diagnostic.sourcePath)}
                   type="button"
                 >
