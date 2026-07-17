@@ -1,0 +1,38 @@
+{
+  "name": "@sem-foundation/contracts",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared SEM contracts and deterministic symbol identity utilities",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mineclover/context-action.git",
+    "directory": "packages/sem-foundation"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsdown",
+    "type-check": "tsc --noEmit",
+    "test": "pnpm run build && node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

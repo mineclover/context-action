@@ -5,6 +5,10 @@ packages:
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
   - packages/style-testing
+  - packages/architecture-governance
+  - packages/sem-foundation
+  - packages/sem-foundation-repository
+  - packages/sem-doc
   - packages/live-code-editor
   - packages/openrouter-browser-storage
   - example

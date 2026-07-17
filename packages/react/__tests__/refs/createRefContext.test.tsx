@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { createRefContext } from '../../src/refs/createRefContext';
@@ -249,9 +249,10 @@ describe('createRefContext', () => {
         </TestRefsProvider>
       );
 
-      await new Promise(resolve => setTimeout(resolve, 200));
       const testElement = document.querySelector('[data-testid="multi-wait-test"]');
-      expect(testElement).toHaveTextContent('All ready: true');
+      await waitFor(() => {
+        expect(testElement).toHaveTextContent('All ready: true');
+      });
     });
 
     it('should handle withTarget operations', async () => {

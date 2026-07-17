@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:context-action:architecture-governance:verification-report:2.4",
+  "title": "Context-Action Architecture Verification Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "generatedAt",
+    "repositoryRoot",
+    "registryPath",
+    "failOn",
+    "passed",
+    "summary",
+    "capabilities",
+    "findings",
+    "semAnalyses"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "semFailure": {} },
+        "required": ["semFailure"]
+      },
+      "then": {
+        "properties": {
+          "passed": { "const": false }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "contractId": {
+      "const": "context-action/architecture-verification-report"
+    },
+    "contractVersion": { "const": "2.4" },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "repositoryRoot": { "$ref": "#/$defs/nonEmptyString" },
+    "registryPath": { "$ref": "#/$defs/nonEmptyString" },
+    "failOn": { "$ref": "#/$defs/severity" },
+    "passed": { "type": "boolean" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 65536,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/capabilityVerification" }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 65536,
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "symbolUsages": {
+      "type": "array",
+      "maxItems": 65536,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/symbolUsage" }
+    },
+    "semVersion": { "const": "sem 0.21.0" },
+    "semFailure": { "$ref": "#/$defs/semFailure" },
+    "semAnalyses": {
+      "type": "array",
+      "maxItems": 4096,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/semAnalysis" }
+    },
+    "semChanges": { "$ref": "#/$defs/semChanges" }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384,
+      "allOf": [
+        { "pattern": "[^\\s\\p{Cc}\\p{Cf}]" },
+        { "pattern": "^[^\\uD800-\\uDFFF]*$" }
+      ]
+    },
+    "boundedFailureString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4097,
+      "allOf": [
+        { "pattern": "[^\\s\\p{Cc}\\p{Cf}]" },
+        { "pattern": "^[^\\uD800-\\uDFFF]*$" }
+      ]
+    },
+    "severity": {
+      "enum": ["error", "warning", "info"]
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "safeInteger": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "stringSet": {
+      "type": "array",
+      "maxItems": 65536,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [{ "$ref": "#/$defs/nonEmptyString" }],
+      "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*//)(?!.*\\/$)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\\\\\u0000]+$"
+    },
+    "repositoryPathSet": {
+      "type": "array",
+      "maxItems": 65536,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/repositoryPath" }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capabilities", "errors", "warnings", "info"],
+      "properties": {
+        "capabilities": { "$ref": "#/$defs/nonNegativeInteger" },
+        "errors": { "$ref": "#/$defs/nonNegativeInteger" },
+        "warnings": { "$ref": "#/$defs/nonNegativeInteger" },
+        "info": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "capabilityVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "findings",
+        "implementationAnchors",
+        "testEvidence",
+        "publicDocs"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "status": {
+          "enum": ["planned", "implemented", "verified", "deprecated"]
+        },
+        "findings": { "$ref": "#/$defs/nonNegativeInteger" },
+        "implementationAnchors": { "$ref": "#/$defs/nonNegativeInteger" },
+        "testEvidence": { "$ref": "#/$defs/nonNegativeInteger" },
+        "publicDocs": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "$ref": "#/$defs/nonEmptyString" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "message": { "$ref": "#/$defs/nonEmptyString" },
+        "capabilityId": { "$ref": "#/$defs/nonEmptyString" },
+        "ruleId": { "$ref": "#/$defs/nonEmptyString" },
+        "path": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "symbolUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capabilityId", "anchor", "projectId", "definition", "usageFiles"],
+      "properties": {
+        "capabilityId": { "$ref": "#/$defs/nonEmptyString" },
+        "anchor": { "$ref": "#/$defs/nonEmptyString" },
+        "projectId": { "$ref": "#/$defs/nonEmptyString" },
+        "definition": { "$ref": "#/$defs/definitionLocation" },
+        "usageFiles": { "$ref": "#/$defs/repositoryPathSet" }
+      }
+    },
+    "definitionLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "startLine", "endLine"],
+      "properties": {
+        "file": { "$ref": "#/$defs/repositoryPath" },
+        "startLine": { "$ref": "#/$defs/positiveInteger" },
+        "endLine": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "semAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId", "root", "entities", "impacts"],
+      "properties": {
+        "projectId": { "$ref": "#/$defs/nonEmptyString" },
+        "root": { "$ref": "#/$defs/nonEmptyString" },
+        "entities": { "$ref": "#/$defs/nonNegativeInteger" },
+        "impacts": { "$ref": "#/$defs/nonNegativeInteger" },
+        "durationMs": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "semFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "reason": { "const": "query-limit" } },
+            "required": ["reason"]
+          },
+          "then": {
+            "required": ["impactTargets", "maxImpactQueries"],
+            "properties": {
+              "operation": { "const": "impact" },
+              "impactTargets": { "$ref": "#/$defs/positiveInteger" },
+              "maxImpactQueries": { "$ref": "#/$defs/positiveInteger" }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": ["impactTargets"],
+                  "properties": { "impactTargets": {} }
+                },
+                {
+                  "required": ["maxImpactQueries"],
+                  "properties": { "maxImpactQueries": {} }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "dependentRequired": {
+        "requestedProjects": ["completedProjects", "skippedProjects"],
+        "completedProjects": ["requestedProjects", "skippedProjects"],
+        "skippedProjects": ["requestedProjects", "completedProjects"]
+      },
+      "required": [
+        "operation",
+        "reason",
+        "command",
+        "args",
+        "cwd",
+        "durationMs",
+        "timeoutMs",
+        "maxOutputBytes"
+      ],
+      "properties": {
+        "operation": {
+          "enum": ["version", "entities", "impact", "diff"]
+        },
+        "reason": {
+          "enum": [
+            "spawn",
+            "timeout",
+            "output-limit",
+            "query-limit",
+            "exit",
+            "invalid-json",
+            "invalid-output"
+          ]
+        },
+        "command": { "$ref": "#/$defs/boundedFailureString" },
+        "args": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "#/$defs/boundedFailureString" }
+        },
+        "cwd": { "$ref": "#/$defs/boundedFailureString" },
+        "durationMs": { "$ref": "#/$defs/nonNegativeInteger" },
+        "timeoutMs": { "$ref": "#/$defs/positiveInteger" },
+        "maxOutputBytes": { "$ref": "#/$defs/positiveInteger" },
+        "impactTargets": { "$ref": "#/$defs/positiveInteger" },
+        "maxImpactQueries": { "$ref": "#/$defs/positiveInteger" },
+        "projectId": { "$ref": "#/$defs/boundedFailureString" },
+        "requestedProjects": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/boundedFailureString" }
+        },
+        "completedProjects": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/boundedFailureString" }
+        },
+        "skippedProjects": {
+          "type": "array",
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/boundedFailureString" }
+        },
+        "expectedVersion": { "$ref": "#/$defs/boundedFailureString" },
+        "observedVersion": { "$ref": "#/$defs/boundedFailureString" },
+        "exitCode": { "$ref": "#/$defs/safeInteger" },
+        "signal": { "$ref": "#/$defs/boundedFailureString" },
+        "stderr": { "$ref": "#/$defs/boundedFailureString" },
+        "detail": { "$ref": "#/$defs/boundedFailureString" }
+      }
+    },
+    "changeSource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": { "mode": { "const": "working" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": { "mode": { "const": "staged" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "from", "to"],
+          "properties": {
+            "mode": { "const": "range" },
+            "from": { "$ref": "#/$defs/nonEmptyString" },
+            "to": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        }
+      ]
+    },
+    "semChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "entities",
+        "files",
+        "semanticFiles",
+        "binaryFiles",
+        "untrackedFiles",
+        "affectedCapabilities",
+        "affectedDocuments",
+        "affectedTests"
+      ],
+      "properties": {
+        "source": { "$ref": "#/$defs/changeSource" },
+        "entities": { "$ref": "#/$defs/nonNegativeInteger" },
+        "files": { "$ref": "#/$defs/repositoryPathSet" },
+        "semanticFiles": { "$ref": "#/$defs/repositoryPathSet" },
+        "binaryFiles": { "$ref": "#/$defs/repositoryPathSet" },
+        "untrackedFiles": { "$ref": "#/$defs/repositoryPathSet" },
+        "affectedCapabilities": { "$ref": "#/$defs/stringSet" },
+        "affectedDocuments": { "$ref": "#/$defs/repositoryPathSet" },
+        "affectedTests": { "$ref": "#/$defs/repositoryPathSet" }
+      }
+    }
+  }
+}

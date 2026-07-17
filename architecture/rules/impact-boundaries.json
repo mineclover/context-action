@@ -1,0 +1,21 @@
+{
+  "$schema": "../../packages/architecture-governance/schemas/policy-set.schema.json",
+  "schemaVersion": 1,
+  "impactBoundaries": [
+    {
+      "id": "CA-SEM-BUSINESS-ISOLATION",
+      "project": "example",
+      "from": [
+        "example/src/pages/patterns/layered-architecture/business/**"
+      ],
+      "disallowDependencies": [
+        "example/src/pages/patterns/layered-architecture/handlers/**",
+        "example/src/pages/patterns/layered-architecture/actions/**",
+        "example/src/pages/patterns/layered-architecture/hooks/**",
+        "example/src/pages/patterns/layered-architecture/views/**"
+      ],
+      "severity": "error",
+      "missingEvidenceSeverity": "error"
+    }
+  ]
+}

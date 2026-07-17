@@ -58,7 +58,7 @@
     "test:type-check": "tsc -p __tests__/tsconfig.json --pretty false",
     "type-check": "pnpm run type-check:src && pnpm run test:type-check",
     "clean": "rimraf dist",
-    "security:audit": "pnpm audit --audit-level high",
+    "security:audit": "pnpm --workspace-root security:audit",
     "analyze": "NODE_ENV=production tsdown --analyze",
     "bundle-report": "NODE_ENV=production tsdown --report",
     "security:outdated": "pnpm outdated",

@@ -1,0 +1,42 @@
+{
+  "name": "@sem-foundation/repository",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Bounded Git history, revision, worktree, and project-snapshot primitives for SEM tools",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mineclover/context-action.git",
+    "directory": "packages/sem-foundation-repository"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "prebuild": "pnpm --filter @sem-foundation/contracts build",
+    "build": "tsdown",
+    "type-check": "tsc --noEmit",
+    "test": "pnpm run build && node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@sem-foundation/contracts": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

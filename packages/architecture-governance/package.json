@@ -1,0 +1,52 @@
+{
+  "name": "@context-action/architecture-governance",
+  "version": "0.0.0-poc",
+  "private": true,
+  "type": "module",
+  "description": "Architecture intent and implementation evidence verification PoC",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/architecture-registry": "./schemas/architecture-registry.schema.json",
+    "./schemas/policy-set": "./schemas/policy-set.schema.json",
+    "./schemas/verification-report": "./schemas/verification-report.schema.json",
+    "./schemas/symbol-snapshot": "./schemas/symbol-snapshot.schema.json",
+    "./schemas/symbol-history": "./schemas/symbol-history.schema.json",
+    "./schemas/symbol-snapshot-diff": "./schemas/symbol-snapshot-diff.schema.json"
+  },
+  "bin": {
+    "arch-verify": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
+  "scripts": {
+    "prebuild": "pnpm --filter @sem-foundation/contracts build && pnpm --filter @sem-foundation/repository build",
+    "build": "tsdown",
+    "postbuild": "pnpm verify:artifacts",
+    "verify:artifacts": "node scripts/verify-artifacts.mjs",
+    "type-check": "tsc --noEmit",
+    "test": "pnpm run build && node --test test/*.test.mjs",
+    "check:poc": "pnpm run build && node dist/cli.js check --root ../.. --registry architecture/registry.json --sem"
+  },
+  "dependencies": {
+    "@ataraxy-labs/sem": "0.21.0",
+    "@sem-foundation/contracts": "workspace:*",
+    "@sem-foundation/repository": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "ajv": "8.20.0",
+    "tsdown": "0.22.5",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

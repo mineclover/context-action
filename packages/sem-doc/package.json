@@ -1,0 +1,72 @@
+{
+  "name": "@tsdoc-edge/sem-doc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sem-centered work-context and Git diff analysis for TypeScript repositories",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "spec"
+  ],
+  "bin": {
+    "sem-doc": "./dist/cli.js"
+  },
+  "scripts": {
+    "clean": "node scripts/clean-dist.cjs",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/advisory.test.cjs test/binding-validation.test.cjs test/cli.test.cjs test/document-index.test.cjs test/git-diff.test.cjs test/sem-client.test.cjs test/sem-json.test.cjs test/work-context.test.cjs",
+    "benchmark:scope": "npm run build && node scripts/benchmark-scope.cjs",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "verify:boundary": "node scripts/verify-boundary.cjs",
+    "verify:poc": "node scripts/verify-poc.cjs",
+    "verify:pack": "npm run build && node scripts/verify-pack.cjs",
+    "prepublishOnly": "npm run verify:pack"
+  },
+  "keywords": [
+    "sem",
+    "tsdoc",
+    "documentation",
+    "code-analysis",
+    "impact-analysis",
+    "git-diff"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mineclover/context-action.git",
+    "directory": "packages/sem-doc"
+  },
+  "bugs": {
+    "url": "https://github.com/mineclover/context-action/issues"
+  },
+  "homepage": "https://github.com/mineclover/context-action/tree/main/packages/sem-doc",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "devDependencies": {
+    "@ataraxy-labs/sem": "0.21.0",
+    "@biomejs/biome": "2.5.3",
+    "@sem-foundation/contracts": "workspace:*",
+    "@sem-foundation/repository": "workspace:*",
+    "@types/node": "^20.19.24",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "@sem-foundation/contracts": "^0.1.0",
+    "@sem-foundation/repository": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@sem-foundation/contracts": {
+      "optional": true
+    },
+    "@sem-foundation/repository": {
+      "optional": true
+    }
+  }
+}

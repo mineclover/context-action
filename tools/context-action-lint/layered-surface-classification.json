@@ -1,7 +1,12 @@
 {
   "version": 1,
   "base": "example/src",
-  "advanced": [],
+  "advanced": [
+    {
+      "path": "pages/integrations/live-web-coding/handlers",
+      "reason": "The live web-coding tool host is an intentionally colocated integration surface; its handlers orchestrate the workspace and iframe boundary rather than a shared context layer."
+    }
+  ],
   "compatibility": [
     {
       "path": "lib/patterns/handlers",

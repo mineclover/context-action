@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
         
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
@@ -70,6 +72,37 @@ jobs:
           
       - name: Verify full repository
         run: pnpm verify:all
+
+      - name: Report architecture change scope
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        run: |
+          status=0
+          pnpm arch:build || status=$?
+          if [[ "$status" -eq 0 ]]; then
+            node packages/architecture-governance/dist/cli.js check \
+              --root . \
+              --registry architecture/registry.json \
+              --sem \
+              --from "${{ github.event.pull_request.base.sha }}" \
+              --to "${{ github.event.pull_request.head.sha }}" \
+              --format markdown \
+              --output reports/architecture/pr-report.md || status=$?
+          fi
+          if [[ -f reports/architecture/pr-report.md ]]; then
+            cat reports/architecture/pr-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Architecture report was not generated (exit $status)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+
+      - name: Upload architecture report
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: architecture-report-${{ matrix.node-version }}
+          path: reports/architecture/pr-report.md
+          if-no-files-found: ignore
+          retention-days: 7
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
@@ -137,64 +170,18 @@ jobs:
         run: pnpm install --frozen-lockfile
 
   security:
-    runs-on: ubuntu-latest
+    name: Security Audit
     needs: [test, setup]
     # Security is independent from test success, but still requires setup.
     if: ${{ always() && needs.setup.result == 'success' }}
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-        
-      - name: Clear npm config before pnpm setup
-        run: |
-          unset NPM_CONFIG_USERCONFIG
-          rm -f ~/.npmrc
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-        
-      - name: Configure npm registry (if token exists)
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-            echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
-          fi
-          
-      - name: Get pnpm store directory
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-        
-      - name: Setup pnpm cache
-        uses: actions/cache@v5
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Security audit
-        run: |
-          echo "🔒 Security Audit Report"
-          echo "======================="
-          echo ""
-
-          # The workspace lockfile is the canonical dependency graph. Preserve
-          # pnpm's non-zero exit code when high-severity findings exist.
-          pnpm audit --audit-level high
-
-          echo "✅ Security audit completed"
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
   size-check:
     runs-on: ubuntu-latest

@@ -9,12 +9,24 @@
     "build:core": "lerna run build --scope=@context-action/core",
     "build:react": "lerna run build --scope=@context-action/react",
     "build:llms-generator": "lerna run build --scope=@context-action/llms-generator",
-    "build:mutative": "lerna run build --scope=@context-action/mutative",
-    "build:live-code-editor": "pnpm --filter @context-action/live-code-editor build",
-    "check:live-code-editor": "pnpm --filter @context-action/live-code-editor check",
+  "build:mutative": "lerna run build --scope=@context-action/mutative",
+  "build:live-code-editor": "pnpm --filter @context-action/live-code-editor build",
+  "check:live-code-editor": "pnpm --filter @context-action/live-code-editor check",
+    "arch:build": "pnpm --filter @context-action/architecture-governance build",
+    "arch:type-check": "pnpm --filter @sem-foundation/contracts type-check && pnpm --filter @sem-foundation/repository type-check && pnpm --filter @context-action/architecture-governance type-check",
+    "arch:test": "pnpm --filter @context-action/architecture-governance test",
+    "arch:check": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem",
+    "arch:check:changed": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem --changed",
+    "arch:check:staged": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem --staged",
+    "arch:check:registry": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json",
+    "arch:snapshot": "pnpm arch:build && node packages/architecture-governance/dist/cli.js snapshot --root . --registry architecture/registry.json --format json",
+    "arch:history": "pnpm arch:build && node packages/architecture-governance/dist/cli.js history --root . --registry architecture/registry.json --format json",
+    "arch:intersect": "pnpm arch:build && node packages/architecture-governance/dist/cli.js intersect --root .",
+    "arch:snapshot-diff": "pnpm arch:build && node packages/architecture-governance/dist/cli.js snapshot-diff --root .",
+    "sem-doc:verify": "pnpm --filter @tsdoc-edge/sem-doc typecheck && pnpm --filter @tsdoc-edge/sem-doc verify:boundary && pnpm --filter @tsdoc-edge/sem-doc lint && pnpm --filter @tsdoc-edge/sem-doc verify:poc && pnpm --filter @tsdoc-edge/sem-doc test && pnpm --filter @tsdoc-edge/sem-doc verify:pack",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
-    "verify:all": "pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools",
+    "verify:all": "pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm arch:type-check && pnpm sem-doc:verify && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",
     "dev": "cd example && pnpm dev",
     "example:build": "cd example && pnpm build",
     "example:build:fast": "cd example && pnpm build:fast",
@@ -25,7 +37,7 @@
     "test:canonical-example": "pnpm --dir packages/react test:canonical-example",
     "test:core": "lerna run test --scope=@context-action/core",
     "test:live-code-editor": "pnpm --filter @context-action/live-code-editor test",
-    "lint": "biome lint packages/core/src packages/react/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src",
+    "lint": "biome lint packages/core/src packages/react/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/architecture-governance/src packages/sem-foundation/src packages/sem-foundation-repository/src packages/sem-doc/src packages/architecture-governance/scripts/verify-artifacts.mjs scripts/security-audit.mjs scripts/verify-private-tools.mjs",
     "convention:check": "node scripts/check-context-layered-conventions.mjs",
     "type-check": "lerna run type-check",
     "type-check:live-code-editor": "pnpm --filter @context-action/live-code-editor type-check",
@@ -68,8 +80,8 @@
     "llms:priority-tasks:fix": "node packages/llms-generator/dist/cli/index.js priority-tasks --fix",
     "llms:detect-mismatches": "node packages/llms-generator/dist/cli/index.js detect-mismatches",
     "llms:code-mode": "node packages/llms-generator/dist/cli/index.js code-mode --force",
-    "security:audit": "pnpm audit --audit-level high",
-    "security:audit:all": "lerna run security:audit",
+    "security:audit": "node scripts/security-audit.mjs",
+    "security:audit:all": "pnpm security:audit",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -139,6 +151,9 @@
     "ignoredBuiltDependencies": [
       "esbuild",
       "nx"
+    ],
+    "onlyBuiltDependencies": [
+      "@ataraxy-labs/sem"
     ]
   },
   "author": "mineclover",

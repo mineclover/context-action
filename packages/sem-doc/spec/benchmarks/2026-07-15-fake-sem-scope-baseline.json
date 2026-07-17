@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "sem-doc-scope-benchmark.v1",
+  "generatedAt": "2026-07-15T08:16:23.793Z",
+  "policy": "observational-no-wall-clock-gate",
+  "contracts": {
+    "workContext": "sem-doc-work-context.v2",
+    "documents": "sem-documents.v1",
+    "advisory": "sem-advisory.v1"
+  },
+  "scope": {
+    "entitySource": "sem-exposed-only",
+    "completeLocalScopeInventory": false,
+    "exactReferenceSites": false,
+    "workContextHops": [1, 2],
+    "semanticDiff": "typed-sem-entity-advisory",
+    "nativeGitDiff": "factual-evidence-not-semantic-judgment"
+  },
+  "engine": {
+    "mode": "fake-sem-orchestration",
+    "version": "0.21.0"
+  },
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuModel": "Apple M3 Pro",
+    "logicalCpus": 12
+  },
+  "configuration": {
+    "samples": 7,
+    "warmups": 2,
+    "entity": "authenticateUser",
+    "file": "src/auth.ts",
+    "docsRoot": "managed",
+    "contextBudget": 2000,
+    "cache": "engine-default"
+  },
+  "measurements": [
+    {
+      "name": "work-context-1-hop",
+      "unit": "milliseconds",
+      "samples": 7,
+      "warmups": 2,
+      "min": 99.858,
+      "p50": 102.619,
+      "p95": 104.653,
+      "max": 104.653,
+      "mean": 102.318,
+      "observed": {
+        "symbols": 2,
+        "affectedTests": 1
+      }
+    },
+    {
+      "name": "work-context-2-hop",
+      "unit": "milliseconds",
+      "samples": 7,
+      "warmups": 2,
+      "min": 101.68,
+      "p50": 104.86,
+      "p95": 186.321,
+      "max": 186.321,
+      "mean": 122.461,
+      "observed": {
+        "symbols": 3,
+        "affectedTests": 1
+      }
+    },
+    {
+      "name": "sem-entity-diff",
+      "unit": "milliseconds",
+      "samples": 7,
+      "warmups": 2,
+      "min": 51.062,
+      "p50": 56.716,
+      "p95": 59.994,
+      "max": 59.994,
+      "mean": 55.856,
+      "observed": {
+        "entityChanges": 1
+      }
+    }
+  ]
+}

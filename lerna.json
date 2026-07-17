@@ -7,7 +7,9 @@
     "packages/react",
     "packages/mutative",
     "packages/llms-generator",
-    "packages/typedoc-vitepress-sync"
+    "packages/typedoc-vitepress-sync",
+    "packages/sem-foundation",
+    "packages/sem-foundation-repository"
   ],
   "command": {
     "version": {

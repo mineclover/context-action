@@ -242,6 +242,31 @@ importers:
         specifier: 1.3.8
         version: 1.3.8
 
+  packages/architecture-governance:
+    dependencies:
+      '@ataraxy-labs/sem':
+        specifier: 0.21.0
+        version: 0.21.0
+      '@sem-foundation/contracts':
+        specifier: workspace:*
+        version: link:../sem-foundation
+      '@sem-foundation/repository':
+        specifier: workspace:*
+        version: link:../sem-foundation-repository
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
+      tsdown:
+        specifier: 0.22.5
+        version: 0.22.5(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(synckit@0.11.12))
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
   packages/core:
     devDependencies:
       '@swc/core':
@@ -455,6 +480,55 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  packages/sem-doc:
+    devDependencies:
+      '@ataraxy-labs/sem':
+        specifier: 0.21.0
+        version: 0.21.0
+      '@biomejs/biome':
+        specifier: 2.5.3
+        version: 2.5.3
+      '@sem-foundation/contracts':
+        specifier: workspace:*
+        version: link:../sem-foundation
+      '@sem-foundation/repository':
+        specifier: workspace:*
+        version: link:../sem-foundation-repository
+      '@types/node':
+        specifier: ^20.19.24
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/sem-foundation:
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
+      tsdown:
+        specifier: 0.22.5
+        version: 0.22.5(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(synckit@0.11.12))
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  packages/sem-foundation-repository:
+    dependencies:
+      '@sem-foundation/contracts':
+        specifier: workspace:^
+        version: link:../sem-foundation
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
+      tsdown:
+        specifier: 0.22.5
+        version: 0.22.5(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(synckit@0.11.12))
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
   packages/style-testing:
     dependencies:
       '@babel/core':
@@ -653,6 +727,11 @@ packages:
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
+
+  '@ataraxy-labs/sem@0.21.0':
+    resolution: {integrity: sha512-yaKyneJFLi50feoXfDky4IkKw9QrvYANZL+6XUrIK5/yv0gvOCvzX07hgkJBz/M0tRYDPEY6NA86WArtocv6TQ==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -2727,6 +2806,9 @@ packages:
 
   '@types/minimist@1.2.5':
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
+
+  '@types/node@20.19.43':
+    resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
 
   '@types/node@24.13.3':
     resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
@@ -6528,6 +6610,9 @@ packages:
   unconfig-core@7.5.0:
     resolution: {integrity: sha512-Su3FauozOGP44ZmKdHy2oE6LPjk51M/TRRjHv2HNCWiDvfvCoxC2lno6jevMA91MYAdCdwP05QnWdWpSbncX/w==}
 
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
@@ -7127,6 +7212,8 @@ snapshots:
       '@csstools/css-parser-algorithms': 3.0.5(@csstools/css-tokenizer@3.0.4)
       '@csstools/css-tokenizer': 3.0.4
       lru-cache: 10.4.3
+
+  '@ataraxy-labs/sem@0.21.0': {}
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -9094,6 +9181,10 @@ snapshots:
   '@types/mdurl@2.0.0': {}
 
   '@types/minimist@1.2.5': {}
+
+  '@types/node@20.19.43':
+    dependencies:
+      undici-types: 6.21.0
 
   '@types/node@24.13.3':
     dependencies:
@@ -13290,6 +13381,8 @@ snapshots:
     dependencies:
       '@quansync/fs': 1.0.0
       quansync: 1.0.0
+
+  undici-types@6.21.0: {}
 
   undici-types@7.18.2: {}
 

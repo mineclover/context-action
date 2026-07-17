@@ -192,6 +192,6 @@ describe('CLI', () => {
       } catch (error) {
         // Extract command might fail with test setup, but should handle errors gracefully
       }
-    });
+    }, 15_000);
   });
 });

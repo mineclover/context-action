@@ -38,7 +38,7 @@
     "clean": "rm -rf dist",
     "docs:generate": "pnpm --workspace-root exec typedoc packages/llms-generator/src/index.ts --tsconfig packages/llms-generator/tsconfig.json --out packages/llms-generator/docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*' --skipErrorChecking",
     "docs:build": "pnpm run docs:generate",
-    "security:audit": "pnpm audit --audit-level high",
+    "security:audit": "pnpm --workspace-root security:audit",
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",
     "size": "pnpm build:prod && node -e \"const fs=require('fs');const path=require('path');const distPath='./dist';const files=fs.readdirSync(distPath).filter(f=>f.endsWith('.js'));console.log('Bundle sizes:');files.forEach(f=>{const size=fs.statSync(path.join(distPath,f)).size;console.log(f+': '+(size/1024).toFixed(1)+'KB');});\"",

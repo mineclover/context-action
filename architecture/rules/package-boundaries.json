@@ -1,0 +1,38 @@
+{
+  "$schema": "../../packages/architecture-governance/schemas/policy-set.schema.json",
+  "schemaVersion": 1,
+  "packageBoundaries": [
+    {
+      "id": "CA-PKG-CORE-NO-REACT",
+      "project": "core",
+      "from": "packages/core",
+      "disallow": [
+        "@context-action/react",
+        "react",
+        "react-dom"
+      ],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-REACT-REQUIRES-CORE",
+      "project": "react",
+      "from": "packages/react",
+      "require": ["@context-action/core"],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-ARCH-GOVERNANCE-REQUIRES-SEM",
+      "project": "architecture-governance",
+      "from": "packages/architecture-governance",
+      "require": ["@ataraxy-labs/sem"],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    }
+  ]
+}
