@@ -154,6 +154,26 @@ test('workspace document manager is independently consumable through a repositor
   manager.undo();
   await manager.waitForPersistence();
   assert.equal(manager.getFile('index.html').source, '<h1>Seed</h1>');
+
+  manager.setActivePath('app.js');
+  await manager.waitForPersistence();
+  assert.equal(manager.getSnapshot().activePath, 'app.js');
+
+  const restoredManager = new WorkspaceDocumentManager({
+    repository,
+    rootName: 'restored-default',
+    seedFiles: [
+      { path: 'index.html', language: 'html', source: '<h1>Other seed</h1>' },
+      { path: 'app.js', language: 'javascript', source: 'console.log(2);' },
+    ],
+  });
+  await restoredManager.hydrate();
+  assert.equal(restoredManager.getSnapshot().rootName, 'memory');
+  assert.equal(restoredManager.getSnapshot().activePath, 'app.js');
+  assert.equal(
+    restoredManager.getFile('index.html').source,
+    '<h1>Seed</h1>'
+  );
 });
 
 test('rejects an empty folder and stale import revision before replacing the repository', async () => {
