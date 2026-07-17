@@ -7,6 +7,7 @@ import {
   type ActionSchemaMap,
   listAllTools,
   type ToolRegistry,
+  toOpenAIToolDefinitions,
 } from '@context-action/react';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {
@@ -250,6 +251,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
     { role: 'user', content: prompt },
   ];
   const listedTools = listAllTools(registry);
+  const providerTools = toOpenAIToolDefinitions(listedTools);
   recordToolList(listedTools.length, 'openrouter', sessionId);
   const toolNames: string[] = [];
 
@@ -274,7 +276,7 @@ export async function runOpenRouterAgent<TSchema extends ActionSchemaMap>(
             body: JSON.stringify({
               model: settings.model,
               messages,
-              tools: registry.toOpenAI(),
+              tools: providerTools,
               tool_choice: 'auto',
               max_tokens: 1200,
             }),

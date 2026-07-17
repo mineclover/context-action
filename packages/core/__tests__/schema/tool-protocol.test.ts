@@ -8,6 +8,7 @@ import {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  toOpenAIToolDefinitions,
   type ToolCallContext,
   type ToolCallMode,
   type ToolCallErrorCode,
@@ -160,6 +161,40 @@ describe('tool protocol context', () => {
     expect(() => listAllTools(malformedManager)).toThrow(
       'Invalid tools/list result'
     );
+  });
+
+  it('converts the canonical tools/list definitions without dropping schema constraints', () => {
+    const inputSchema = {
+      type: 'object' as const,
+      properties: {
+        theme: {
+          type: 'string' as const,
+          enum: ['violet', 'emerald'],
+          minLength: 1,
+        },
+      },
+      required: ['theme'],
+      additionalProperties: false,
+    };
+
+    expect(
+      toOpenAIToolDefinitions([
+        {
+          name: 'preview.setTheme',
+          description: 'Update the preview theme.',
+          inputSchema,
+        },
+      ])
+    ).toEqual([
+      {
+        type: 'function',
+        function: {
+          name: 'preview.setTheme',
+          description: 'Update the preview theme.',
+          parameters: inputSchema,
+        },
+      },
+    ]);
   });
 
   it('accepts numeric browser workspace revisions', () => {

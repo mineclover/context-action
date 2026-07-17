@@ -84,6 +84,10 @@ OpenRouter response/error transport 계약은
 `demos/bolt-style-editor/src/openrouter-protocol.ts`로 분리한다. `openrouter.ts`는
 provider tool loop를 소유하고 protocol 모듈은 status 분류, body decoding,
 cancellation, structured tool-result serialization을 소유한다.
+standalone provider payload는 `tools/list`에 사용한 동일한
+`listAllTools(registry)` 결과를 core의 `toOpenAIToolDefinitions()` adapter로
+변환해 만든다. 두 번째 registry export를 조회하지 않으므로 discovery에서
+노출한 이름과 schema가 그대로 model 요청에 전달된다.
 example AI runner는 provider의 완전한 `responseMessages`도 반환하며,
 ToolContext AI와 realtime web-coding showcase는 assistant tool-call와 tool-result를
 다음 model turn에 추가한다. 화면에 표시하는 chat transcript는 별도의

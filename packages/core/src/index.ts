@@ -53,6 +53,7 @@ export {
   isToolListRequest,
   isToolListResult,
   listAllTools,
+  toOpenAIToolDefinitions,
   toToolCallRequest,
   toToolListRequest,
   withToolCallId,

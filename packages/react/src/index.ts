@@ -151,6 +151,7 @@ export {
   isToolListResult,
   listAllTools,
   TOOL_CALL_ERROR_CODES,
+  toOpenAIToolDefinitions,
   toToolCallRequest,
   toToolListRequest,
 } from '@context-action/core';

@@ -90,6 +90,10 @@ The OpenRouter response/error transport contract is isolated in
 `demos/bolt-style-editor/src/openrouter-protocol.ts`; `openrouter.ts` owns the
 provider tool loop while the protocol module owns status classification, body
 decoding, cancellation, and structured tool-result serialization.
+The standalone provider payload is derived from the same `listAllTools(registry)`
+result used for `tools/list`, through core's `toOpenAIToolDefinitions()` adapter.
+It does not query a second registry export, so discovery names and schemas remain
+the definitions sent to the model.
 The example AI runner also returns the provider's complete `responseMessages`,
 and the ToolContext AI and realtime web-coding showcases append those assistant
 tool-call and tool-result messages to the next model turn. The visible chat

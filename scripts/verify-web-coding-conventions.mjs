@@ -198,8 +198,14 @@ assertContains(
 assertContains(
   'demos/bolt-style-editor/src/openrouter.ts',
   openRouterSource,
-  /registry\.toOpenAI\(\)/,
-  'canonical provider tool export'
+  /toOpenAIToolDefinitions\(\s*listedTools\s*\)/,
+  'canonical provider tool adapter'
+);
+assertNotContains(
+  'demos/bolt-style-editor/src/openrouter.ts',
+  openRouterSource,
+  /tools:\s*registry\.toOpenAI\(\)/,
+  'canonical tools/list to provider payload boundary'
 );
 assertContains(
   'demos/bolt-style-editor/src/openrouter.ts',

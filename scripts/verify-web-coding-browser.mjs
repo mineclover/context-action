@@ -1475,6 +1475,9 @@ async function runBrowserProof(url) {
     const toolLoopConsoleErrors = [];
     let toolLoopRequestCount = 0;
     let toolLoopFinalRequestBody;
+    let toolLoopCatalogToolNames;
+    let toolLoopProviderToolNames;
+    let toolLoopProviderToolsSignature;
     let toolLoopPatchExpectedRevision;
     let toolLoopErrorResultContent;
     toolLoopPage.on('console', (message) => {
@@ -1495,6 +1498,14 @@ async function runBrowserProof(url) {
       async (route) => {
         toolLoopRequestCount += 1;
         const requestBody = route.request().postDataJSON();
+        const providerTools = requestBody.tools;
+        if (Array.isArray(providerTools)) {
+          const providerToolNames = providerTools.map(
+            (tool) => tool?.function?.name
+          );
+          toolLoopProviderToolNames ??= providerToolNames;
+          toolLoopProviderToolsSignature ??= JSON.stringify(providerTools);
+        }
         if (toolLoopRequestCount === 1) {
           await route.fulfill({
             status: 200,
@@ -1629,6 +1640,13 @@ async function runBrowserProof(url) {
     try {
       await toolLoopPage.goto(url, { waitUntil: 'networkidle' });
       await toolLoopPage.getByText('Ready', { exact: true }).waitFor();
+      toolLoopCatalogToolNames = await toolLoopPage
+        .locator('[data-tool-name]')
+        .evaluateAll((elements) =>
+          elements
+            .map((element) => element.getAttribute('data-tool-name'))
+            .filter((name) => name !== null)
+        );
       const toolLoopPrompt = toolLoopPage.getByLabel('Web studio prompt');
       await toolLoopPrompt.fill(
         'Inspect the current workspace status and update the hero title.'
@@ -1647,6 +1665,30 @@ async function runBrowserProof(url) {
       if (toolLoopRequestCount !== 4) {
         throw new Error(
           `The OpenRouter tool loop expected four provider requests, got ${toolLoopRequestCount}.`
+        );
+      }
+      if (
+        !Array.isArray(toolLoopCatalogToolNames) ||
+        !Array.isArray(toolLoopProviderToolNames) ||
+        toolLoopProviderToolNames.length !== toolLoopCatalogToolNames.length ||
+        JSON.stringify([...toolLoopProviderToolNames].sort()) !==
+          JSON.stringify([...toolLoopCatalogToolNames].sort())
+      ) {
+        throw new Error(
+          'The OpenRouter request tools did not match the canonical tools/list catalog.'
+        );
+      }
+      if (toolLoopProviderToolsSignature === undefined) {
+        throw new Error(
+          'The OpenRouter request did not include an OpenAI-compatible tools payload.'
+        );
+      }
+      if (
+        (await toolLoopPage.locator('[data-tool-name]').count()) !==
+        toolLoopProviderToolNames.length
+      ) {
+        throw new Error(
+          'The provider tool payload did not preserve the complete tool catalog.'
         );
       }
       if (typeof toolLoopPatchExpectedRevision !== 'number') {

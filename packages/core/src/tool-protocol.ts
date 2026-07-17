@@ -8,7 +8,11 @@
  * providers, and local ToolContext adapters can all map to these shapes.
  */
 
-import type { JSONSchema, ToolDefinition } from './json-schema';
+import type {
+  JSONSchema,
+  OpenAIToolDefinition,
+  ToolDefinition,
+} from './json-schema';
 
 /** Canonical error codes emitted by the managed tool-call boundary. */
 export const TOOL_CALL_ERROR_CODES = {
@@ -348,6 +352,29 @@ export function listAllTools<
   }
 
   return tools;
+}
+
+/**
+ * Convert the canonical tools/list definitions into an OpenAI-compatible
+ * function payload without consulting a second registry export.
+ *
+ * The input schema is preserved as-is so provider adapters do not silently
+ * drop nested constraints, enums, descriptions, or additional-properties
+ * policy while translating the transport envelope.
+ */
+export function toOpenAIToolDefinitions(
+  definitions: readonly ToolDefinition[]
+): OpenAIToolDefinition[] {
+  return definitions.map((definition) => ({
+    type: 'function',
+    function: {
+      name: definition.name,
+      ...(definition.description === undefined
+        ? {}
+        : { description: definition.description }),
+      parameters: definition.inputSchema,
+    },
+  }));
 }
 
 export function withToolCallId<TResult>(
