@@ -5,8 +5,9 @@ live code editor seam.
 
 The package owns workspace file/snapshot types, preview bridge messages and
 diagnostics, folder import/permission results, the preview document compiler,
-the browser filesystem adapter, and browser-independent path, source-limit,
-error, and active-file helpers. It also defines the async
+the browser filesystem adapter and its `WorkspaceFileSystemAdapter` port, and
+browser-independent path, source-limit, error, and active-file helpers. It also
+defines the async
 `WorkspaceRepository` boundary used by the stateful workspace manager without
 prescribing Dexie or another persistence engine.
 

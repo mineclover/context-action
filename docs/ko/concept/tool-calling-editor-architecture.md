@@ -472,7 +472,9 @@ standalone demo가 소비하는 framework-neutral workspace, preview,
 folder-import 계약, 순수 preview document compiler, workspace model helper,
 repository 경계와 stateful `WorkspaceDocumentManager`를 export한다. Demo에는
 Dexie `DirectoryHandlePersistence` 구현만 남기고 browser filesystem adapter는
-package가 소유한다. Demo에는 iframe runtime과 editor adapter도 남긴다. 이
+package가 소유하며 public `WorkspaceFileSystemAdapter` port도 제공한다.
+consumer는 folder import, permission, write 동작을 주입할 때 browser adapter
+class가 아니라 이 port에 의존한다. Demo에는 iframe runtime과 editor adapter도 남긴다. 이
 나머지 browser-specific 구현은 독립 consumer와 test가 확보된 뒤 옮기며,
 계약이 안정된 뒤 공개 package 여부를 판단한다.
 

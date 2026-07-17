@@ -183,7 +183,28 @@ function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
   });
 }
 
-export class BrowserWorkspaceFileSystemAdapter {
+/** Public filesystem port used by browser workspace consumers. */
+export interface WorkspaceFileSystemAdapter {
+  readonly hasWritableFolder: boolean;
+  readonly folderPermission: FileSystemPermissionStatus;
+  subscribe(listener: () => void): () => void;
+  restorePersistedFolder(): Promise<boolean>;
+  pickFolder(): Promise<ImportedFolder>;
+  reloadFolder(): Promise<ImportedFolder>;
+  disconnectFolder(): Promise<void>;
+  refreshWritePermission(): Promise<FileSystemPermissionStatus>;
+  requestWritePermission(): Promise<FileSystemPermissionStatus>;
+  importDirectoryHandle(
+    handle: FileSystemDirectoryHandleLike
+  ): Promise<ImportedFolder>;
+  importFileList(fileList: FileList | readonly File[]): Promise<ImportedFolder>;
+  writeFiles(files: readonly WorkspaceFile[]): Promise<number>;
+  removeFiles(paths: readonly string[]): Promise<number>;
+}
+
+export class BrowserWorkspaceFileSystemAdapter
+  implements WorkspaceFileSystemAdapter
+{
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
   private writePermission: FileSystemPermissionStatus = 'disconnected';
   private readonly listeners = new Set<() => void>();

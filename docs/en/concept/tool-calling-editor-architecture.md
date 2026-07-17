@@ -506,8 +506,11 @@ framework-neutral workspace, preview, and folder-import contracts consumed by
 the standalone demo, plus the pure preview document compiler, workspace model
 helpers, repository boundary, and stateful `WorkspaceDocumentManager`. The demo
 still owns the Dexie `DirectoryHandlePersistence` implementation, while the
-package owns the browser filesystem adapter. The demo keeps the iframe runtime
-and editor adapters. Extract those remaining browser-specific pieces only after
+package owns the browser filesystem adapter and its public
+`WorkspaceFileSystemAdapter` port. Consumers should depend on that port rather
+than the browser adapter class when injecting folder import, permission, and
+write behavior. The demo keeps the iframe runtime and editor adapters. Extract
+those remaining browser-specific pieces only after
 they have independent consumers and tests; decide whether to publish the
 package only after the contract stabilizes.
 

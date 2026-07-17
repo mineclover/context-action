@@ -125,6 +125,7 @@ export {
   BrowserWorkspaceFileSystemAdapter,
   type DirectoryHandlePersistence,
   type FileSystemDirectoryHandleLike,
+  type WorkspaceFileSystemAdapter,
 } from './workspace-filesystem';
 export {
   WorkspaceDocumentManager,
