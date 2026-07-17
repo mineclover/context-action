@@ -317,6 +317,39 @@ assertContains(
   'workspace derived-state observable facade'
 );
 
+const filesystemPortConsumerFiles = [
+  'demos/bolt-style-editor/src/BoltStyleEditor.tsx',
+  'demos/bolt-style-editor/src/actions/run-local-agent.ts',
+  'demos/bolt-style-editor/src/hooks/use-editor-observables.ts',
+  'demos/bolt-style-editor/src/hooks/use-tool-execution.ts',
+  'demos/bolt-style-editor/src/hooks/use-workspace-folder-actions.ts',
+  'demos/bolt-style-editor/src/tool-handlers.tsx',
+];
+for (const relativeFile of filesystemPortConsumerFiles) {
+  const source = readSource(relativeFile);
+  assertNotContains(
+    relativeFile,
+    source,
+    /BrowserWorkspaceFileSystemAdapter/,
+    'the public WorkspaceFileSystemAdapter port'
+  );
+  assertContains(
+    relativeFile,
+    source,
+    /WorkspaceFileSystemAdapter/,
+    'the public WorkspaceFileSystemAdapter port'
+  );
+}
+const filesystemFacadeSource = readSource(
+  'demos/bolt-style-editor/src/workspace-filesystem.ts'
+);
+assertContains(
+  'demos/bolt-style-editor/src/workspace-filesystem.ts',
+  filesystemFacadeSource,
+  /type WorkspaceFileSystemAdapter/,
+  'the package filesystem port export'
+);
+
 const showcaseRequestAdapters = [
   'example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts',
   'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts',
@@ -422,5 +455,8 @@ console.log('- provider boundaries: tools/list → registry export → executeMo
 console.log(`- showcase request adapters checked: ${showcaseRequestAdapters.length}`);
 console.log(`- protocol documentation checked: ${protocolDocumentationFiles.length}`);
 console.log('- live editor package integration docs checked: 1');
+console.log(
+  `- filesystem port consumers checked: ${filesystemPortConsumerFiles.length}`
+);
 console.log(`- presentation views checked: ${viewFiles.length}`);
 console.log('- direct runtime/mutation crossings: 0');
