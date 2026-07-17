@@ -566,6 +566,25 @@ async function runBrowserProof(url) {
       .locator('#hero-title')
       .waitFor();
 
+    await page.getByRole('tab', { name: /app\.js/ }).click();
+    const multilineCommentEditor = page.getByLabel('Edit app.js');
+    await multilineCommentEditor.fill(
+      `/* browser multiline comment\n * still highlighted on the next line\n */\n${initialAppSource}`
+    );
+    await page.waitForFunction(
+      () => document.querySelectorAll('.code-highlight .syntax-comment').length >= 3
+    );
+    const multilineCommentText = await page
+      .locator('.code-highlight .syntax-comment')
+      .allTextContents();
+    if (!multilineCommentText.join('').includes('still highlighted on the next line')) {
+      throw new Error(
+        'The source editor did not preserve syntax highlighting across multiline comments.'
+      );
+    }
+    await multilineCommentEditor.fill(initialAppSource);
+    await page.locator('.preview-status-synced').waitFor();
+
     folderFixture = await mkdtemp(
       path.join(os.tmpdir(), 'context-action-web-coding-')
     );

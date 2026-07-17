@@ -826,7 +826,9 @@ Open folder → generic FileSystemAdapter
   destructive palette samples all use this in-app confirmation surface rather
   than a native `window.confirm`, so the decision remains visible and testable.
 - The source editor keeps syntax highlighting and editing in one overlay surface
-  for HTML, CSS, JavaScript, TypeScript, JSON, and Markdown files.
+  for HTML, CSS, JavaScript, TypeScript, JSON, and Markdown files, carrying
+  HTML and CSS/JavaScript block-comment state across lines so multiline source
+  remains visually coherent while it is edited.
   Keystrokes stay in a responsive local draft while the user is typing; idle,
   blur, and tool/save boundaries flush that draft through `workspace.writeFile`
   so source mutation and preview refresh still use the canonical registry path.

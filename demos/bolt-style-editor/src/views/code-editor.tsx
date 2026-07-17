@@ -19,6 +19,11 @@ type SyntaxToken = {
   value: string;
 };
 
+type SyntaxLineResult = {
+  tokens: SyntaxToken[];
+  blockCommentOpen: boolean;
+};
+
 function pushPlainToken(tokens: SyntaxToken[], value: string) {
   if (value) tokens.push({ value });
 }
@@ -54,13 +59,56 @@ function tokenizeHtmlTag(tag: string): SyntaxToken[] {
   return tokens;
 }
 
-function highlightHtmlLine(line: string): SyntaxToken[] {
+function highlightHtmlLine(
+  line: string,
+  blockCommentOpen = false
+): SyntaxLineResult {
   const tokens: SyntaxToken[] = [];
   let cursor = 0;
   const parts = /<!--[\s\S]*?-->|<\/?[A-Za-z][^>]*>/g;
-  let match = parts.exec(line);
+  while (cursor < line.length) {
+    if (blockCommentOpen) {
+      const commentEnd = line.indexOf('-->', cursor);
+      if (commentEnd < 0) {
+        tokens.push({
+          className: 'syntax-comment',
+          value: line.slice(cursor),
+        });
+        return { tokens, blockCommentOpen: true };
+      }
+      tokens.push({
+        className: 'syntax-comment',
+        value: line.slice(cursor, commentEnd + 3),
+      });
+      cursor = commentEnd + 3;
+      blockCommentOpen = false;
+      continue;
+    }
 
-  while (match) {
+    const commentStart = line.indexOf('<!--', cursor);
+    parts.lastIndex = cursor;
+    const match = parts.exec(line);
+    if (commentStart >= 0 && (!match || commentStart < match.index)) {
+      pushPlainToken(tokens, line.slice(cursor, commentStart));
+      const commentEnd = line.indexOf('-->', commentStart + 4);
+      if (commentEnd < 0) {
+        tokens.push({
+          className: 'syntax-comment',
+          value: line.slice(commentStart),
+        });
+        return { tokens, blockCommentOpen: true };
+      }
+      tokens.push({
+        className: 'syntax-comment',
+        value: line.slice(commentStart, commentEnd + 3),
+      });
+      cursor = commentEnd + 3;
+      continue;
+    }
+    if (!match) {
+      pushPlainToken(tokens, line.slice(cursor));
+      break;
+    }
     pushPlainToken(tokens, line.slice(cursor, match.index));
     if (match[0].startsWith('<!--')) {
       tokens.push({ className: 'syntax-comment', value: match[0] });
@@ -68,16 +116,15 @@ function highlightHtmlLine(line: string): SyntaxToken[] {
       tokens.push(...tokenizeHtmlTag(match[0]));
     }
     cursor = match.index + match[0].length;
-    match = parts.exec(line);
   }
-  pushPlainToken(tokens, line.slice(cursor));
-  return tokens;
+  return { tokens, blockCommentOpen };
 }
 
 function highlightScriptLine(
   line: string,
-  language: WorkspaceFile['language']
-): SyntaxToken[] {
+  language: WorkspaceFile['language'],
+  blockCommentOpen = false
+): SyntaxLineResult {
   const tokens: SyntaxToken[] = [];
   const isCss = language === 'css';
   let cursor = 0;
@@ -87,9 +134,50 @@ function highlightScriptLine(
   const keywordPattern = isCss
     ? /^(important|from|to|and|or|not)$/
     : /^(const|let|var|function|return|if|else|for|while|new|true|false|null|undefined|async|await|class|this|import|export|interface|type|enum|public|private|protected|readonly|implements|extends|as|unknown|never|void|any|string|number|boolean)$/;
-  let match = parts.exec(line);
+  while (cursor < line.length) {
+    if (blockCommentOpen) {
+      const commentEnd = line.indexOf('*/', cursor);
+      if (commentEnd < 0) {
+        tokens.push({
+          className: 'syntax-comment',
+          value: line.slice(cursor),
+        });
+        return { tokens, blockCommentOpen: true };
+      }
+      tokens.push({
+        className: 'syntax-comment',
+        value: line.slice(cursor, commentEnd + 2),
+      });
+      cursor = commentEnd + 2;
+      blockCommentOpen = false;
+      continue;
+    }
 
-  while (match) {
+    const commentStart = line.indexOf('/*', cursor);
+    parts.lastIndex = cursor;
+    const match = parts.exec(line);
+    if (commentStart >= 0 && (!match || commentStart < match.index)) {
+      pushPlainToken(tokens, line.slice(cursor, commentStart));
+      const commentEnd = line.indexOf('*/', commentStart + 2);
+      if (commentEnd < 0) {
+        tokens.push({
+          className: 'syntax-comment',
+          value: line.slice(commentStart),
+        });
+        return { tokens, blockCommentOpen: true };
+      }
+      tokens.push({
+        className: 'syntax-comment',
+        value: line.slice(commentStart, commentEnd + 2),
+      });
+      cursor = commentEnd + 2;
+      continue;
+    }
+    if (!match) {
+      pushPlainToken(tokens, line.slice(cursor));
+      break;
+    }
+
     pushPlainToken(tokens, line.slice(cursor, match.index));
     const value = match[0];
     const className =
@@ -106,10 +194,8 @@ function highlightScriptLine(
               : 'syntax-function';
     tokens.push({ className, value });
     cursor = match.index + value.length;
-    match = parts.exec(line);
   }
-  pushPlainToken(tokens, line.slice(cursor));
-  return tokens;
+  return { tokens, blockCommentOpen };
 }
 
 function highlightJsonLine(line: string): SyntaxToken[] {
@@ -172,19 +258,36 @@ function highlightMarkdownLine(line: string): SyntaxToken[] {
 
 function highlightSourceLine(
   line: string,
-  language: WorkspaceFile['language']
-): SyntaxToken[] {
-  if (language === 'html') return highlightHtmlLine(line);
+  language: WorkspaceFile['language'],
+  blockCommentOpen: boolean
+): SyntaxLineResult {
+  if (language === 'html') return highlightHtmlLine(line, blockCommentOpen);
   if (
     language === 'css' ||
     language === 'javascript' ||
     language === 'typescript'
   ) {
-    return highlightScriptLine(line, language);
+    return highlightScriptLine(line, language, blockCommentOpen);
   }
-  if (language === 'json') return highlightJsonLine(line);
-  if (language === 'markdown') return highlightMarkdownLine(line);
-  return [{ value: line }];
+  if (language === 'json') {
+    return { tokens: highlightJsonLine(line), blockCommentOpen: false };
+  }
+  if (language === 'markdown') {
+    return { tokens: highlightMarkdownLine(line), blockCommentOpen: false };
+  }
+  return { tokens: [{ value: line }], blockCommentOpen: false };
+}
+
+function highlightSourceLines(
+  source: string,
+  language: WorkspaceFile['language']
+): SyntaxToken[][] {
+  let blockCommentOpen = false;
+  return source.split('\n').map((line) => {
+    const result = highlightSourceLine(line, language, blockCommentOpen);
+    blockCommentOpen = result.blockCommentOpen;
+    return result.tokens;
+  });
 }
 
 function getCursorPosition(source: string, offset: number) {
@@ -239,13 +342,9 @@ export function CodeEditor({
   const [findQuery, setFindQuery] = useState('');
   const [findIndex, setFindIndex] = useState(0);
   const [cursorOffset, setCursorOffset] = useState(0);
-  const highlightedSource = useMemo(
-    () =>
-      source
-        .split('\n')
-        .map((line) => highlightSourceLine(line, file.language)),
-    [file.language, source]
-  );
+  const highlightedSource = useMemo(() => {
+    return highlightSourceLines(source, file.language);
+  }, [file.language, source]);
 
   useEffect(() => {
     const textarea = textareaRef.current;

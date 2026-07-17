@@ -763,7 +763,9 @@ Open folder → generic FileSystemAdapter
   `window.confirm` 대신 이 앱 내부 확인 surface를 사용해 결정 상태를 화면에
   남기고 자동화 가능한 경계로 유지한다.
 - source editor는 HTML, CSS, JavaScript, TypeScript, JSON, Markdown 파일의
-  syntax highlighting과 편집을 하나의 overlay surface에서 유지한다.
+  syntax highlighting과 편집을 하나의 overlay surface에서 유지한다. HTML 및
+  CSS/JavaScript block comment 상태도 줄 사이에 전달하므로 여러 줄 source를
+  편집할 때도 시각적 highlighting이 끊기지 않는다.
   입력 중에는 반응성 있는 local draft를 유지하고 idle·blur·tool/save 경계에서
   그 draft를 `workspace.writeFile`로 flush하므로 source mutation과 preview 갱신도
   canonical registry 경로를 사용한다.
