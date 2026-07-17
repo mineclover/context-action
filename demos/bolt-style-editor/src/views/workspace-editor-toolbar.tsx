@@ -1,4 +1,4 @@
-import type { KeyboardEvent, RefObject } from 'react';
+import { type KeyboardEvent, type RefObject, useEffect } from 'react';
 import type { WorkspaceFile } from '../workspace';
 import { FileIcon } from './file-icon';
 
@@ -68,6 +68,12 @@ export function WorkspaceEditorToolbar({
   onDownload,
   onSave,
 }: WorkspaceEditorToolbarProps) {
+  useEffect(() => {
+    editorTabsRef.current
+      ?.querySelector<HTMLButtonElement>('[aria-selected="true"]')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [activePath, editorTabsRef]);
+
   return (
     <div className="editor-toolbar">
       <div

@@ -626,8 +626,14 @@ async function runBrowserProof(url) {
       path.join(folderFixture, 'src', 'components', 'card file.js'),
       "export const card = 'folder tree proof';"
     );
+    for (let index = 1; index <= 18; index += 1) {
+      await writeFile(
+        path.join(folderFixture, `tab-${String(index).padStart(2, '0')}.md`),
+        `# Tab ${index}\n`
+      );
+    }
     await page.getByLabel('Choose workspace folder').setInputFiles(folderFixture);
-    await page.getByText(/Opened .* with 7 file\(s\)/).waitFor();
+    await page.getByText(/Opened .* with 25 file\(s\)/).waitFor();
     await page
       .frameLocator('iframe[title="Live generated web preview"]')
       .locator('#folder-proof')
@@ -654,6 +660,40 @@ async function runBrowserProof(url) {
     ) {
       throw new Error(
         'Nested dynamic JavaScript module imports did not execute in the folder preview.'
+      );
+    }
+    await page
+      .getByRole('button', { name: 'Quick open workspace file' })
+      .click();
+    const quickOpenFolderDialog = page.getByRole('dialog', {
+      name: 'Quick open file',
+    });
+    await quickOpenFolderDialog
+      .getByLabel('Quick open workspace file')
+      .fill('tab-18.md');
+    await quickOpenFolderDialog
+      .getByRole('button', { name: 'tab-18.md', exact: true })
+      .click();
+    await page.getByLabel('Edit tab-18.md').waitFor();
+    const activeTabBounds = await page
+      .getByRole('tab', { name: 'tab-18.md', exact: true })
+      .evaluate((element) => {
+        const container = element.parentElement;
+        const tabBounds = element.getBoundingClientRect();
+        const containerBounds = container?.getBoundingClientRect();
+        return {
+          tabLeft: tabBounds.left,
+          tabRight: tabBounds.right,
+          containerLeft: containerBounds?.left ?? 0,
+          containerRight: containerBounds?.right ?? 0,
+        };
+      });
+    if (
+      activeTabBounds.tabLeft < activeTabBounds.containerLeft - 1 ||
+      activeTabBounds.tabRight > activeTabBounds.containerRight + 1
+    ) {
+      throw new Error(
+        `Opening a file did not reveal its active editor tab: ${JSON.stringify(activeTabBounds)}`
       );
     }
     const srcDirectory = page
