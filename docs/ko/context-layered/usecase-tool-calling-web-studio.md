@@ -108,8 +108,11 @@ external-store, trace export API를 직접 호출하지 않습니다.
 `hooks/useLiveWebCodingObservables.ts`는 workspace/document/trace subscription을,
 `actions/useLiveWebCodingTraceActions.ts`는 trace clear/copy/download를
 소유하고, `actions/useLiveWebCodingWorkspaceActions.ts`는 IndexedDB hydrate,
-파일 선택, reset command를 담당합니다. workbench는 registry, provider,
-external-store, trace export, workspace repository API를 직접 호출하지
+파일 선택, reset command를 담당합니다. document patch와 preview-render
+acknowledgement는 두 showcase가 공유하는
+`actions/useLiveEditorDocumentActions.ts` facade를 통해서만 실행합니다.
+따라서 workbench는 registry, provider, external-store, trace export,
+workspace repository, document manager mutation API를 직접 호출하지
 않습니다.
 
 ## 규칙

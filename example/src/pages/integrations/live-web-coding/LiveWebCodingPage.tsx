@@ -17,6 +17,7 @@ import {
 import { formatLiveWebCodingTraceId } from '../../../lib/live-web-coding-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
 import { createToolCallSessionId } from '../../../lib/tool-call-trace';
+import { useLiveEditorDocumentActions } from '../live-code-editor/actions/useLiveEditorDocumentActions';
 import { useLiveEditorProviderSettings } from '../live-code-editor/actions/useLiveEditorProviderSettings';
 import { LiveCodeEditorPreviewFrame } from '../live-code-editor/LiveCodeEditorPreviewFrame';
 import { useLiveWebCodingAgentExecution } from './actions/useLiveWebCodingAgentExecution';
@@ -163,6 +164,12 @@ function LiveWebCodingWorkbench({
     trace,
     workspace: workspaceSnapshot,
   } = useLiveWebCodingObservables({ manager, documentManager });
+  const documentActions = useLiveEditorDocumentActions({
+    documentManager,
+    workspaceManager: manager,
+  });
+  const { updateDocument } = documentActions.commands;
+  const { markRendered } = documentActions.preview;
   const traceActions = useLiveWebCodingTraceActions(trace);
   const providerSettings = useLiveEditorProviderSettings();
   const { apiKey, models, selectedModel } = providerSettings;
@@ -195,7 +202,7 @@ function LiveWebCodingWorkbench({
   } = agentExecution;
   const workspaceActions = useLiveWebCodingWorkspaceActions({
     manager,
-    documentManager,
+    updateDocument,
     repository,
     workspaceId: WEB_WORKSPACE_ID,
     rootName: WEB_WORKSPACE_ROOT,
@@ -641,9 +648,7 @@ function LiveWebCodingWorkbench({
                   document={documentSnapshot}
                   workspaceFiles={workspaceSnapshot.files}
                   entryPath="index.html"
-                  onRendered={(revision) =>
-                    documentManager.markRendered(revision)
-                  }
+                  onRendered={markRendered}
                 />
               </div>
             </section>

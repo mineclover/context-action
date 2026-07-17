@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { LiveEditorDocumentManager } from '../../../../lib/live-code-editor-bridge';
+import type { LiveEditorDocument } from '../../../../lib/live-code-editor-bridge';
 import type { WorkspaceBlobFile } from '../../../../lib/live-code-editor-filesystem';
 import type { LiveEditorWorkspaceRepository } from '../../../../lib/live-code-editor-storage';
 import type {
@@ -9,7 +9,7 @@ import type {
 
 export function useLiveWebCodingWorkspaceActions({
   manager,
-  documentManager,
+  updateDocument,
   repository,
   workspaceId,
   rootName,
@@ -21,7 +21,7 @@ export function useLiveWebCodingWorkspaceActions({
   onClearTrace,
 }: {
   manager: LiveEditorWorkspaceManager;
-  documentManager: LiveEditorDocumentManager;
+  updateDocument: (patch: Partial<LiveEditorDocument>) => void;
   repository: LiveEditorWorkspaceRepository;
   workspaceId: string;
   rootName: string;
@@ -49,7 +49,7 @@ export function useLiveWebCodingWorkspaceActions({
         });
         const entry = persisted.files.find((file) => file.path === entryPath);
         if (entry) {
-          documentManager.update({
+          updateDocument({
             file: entryPath,
             source: entry.source,
             exampleId,
@@ -70,13 +70,13 @@ export function useLiveWebCodingWorkspaceActions({
       active = false;
     };
   }, [
-    documentManager,
     entryPath,
     exampleId,
     manager,
     repository,
     rootName,
     seedFiles,
+    updateDocument,
     workspaceId,
   ]);
 
@@ -87,9 +87,9 @@ export function useLiveWebCodingWorkspaceActions({
         .files.find((candidate) => candidate.path === path);
       if (!file?.isText) return;
       manager.setActivePath(path);
-      documentManager.update({ file: path, source: file.source });
+      updateDocument({ file: path, source: file.source });
     },
-    [documentManager, manager]
+    [manager, updateDocument]
   );
 
   const reset = useCallback(async () => {
@@ -112,7 +112,7 @@ export function useLiveWebCodingWorkspaceActions({
       });
       const entry = persisted.files.find((file) => file.path === entryPath);
       if (entry) {
-        documentManager.update({
+        updateDocument({
           file: entry.path,
           source: entry.source,
           exampleId,
@@ -133,7 +133,6 @@ export function useLiveWebCodingWorkspaceActions({
     }
   }, [
     createResetFiles,
-    documentManager,
     entryPath,
     exampleId,
     isResetting,
@@ -142,6 +141,7 @@ export function useLiveWebCodingWorkspaceActions({
     onResetConversation,
     repository,
     rootName,
+    updateDocument,
     workspaceId,
   ]);
 

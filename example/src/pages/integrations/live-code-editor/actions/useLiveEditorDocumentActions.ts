@@ -1,5 +1,8 @@
 import { useCallback } from 'react';
-import type { LiveEditorDocumentManager } from '../../../../lib/live-code-editor-bridge';
+import type {
+  LiveEditorDocument,
+  LiveEditorDocumentManager,
+} from '../../../../lib/live-code-editor-bridge';
 import type { LiveEditorWorkspaceManager } from '../../../../lib/live-code-editor-workspace';
 
 interface LiveEditorDocumentActionOptions {
@@ -11,22 +14,27 @@ export function useLiveEditorDocumentActions({
   documentManager,
   workspaceManager,
 }: LiveEditorDocumentActionOptions) {
-  const setSource = useCallback(
-    (source: string) => documentManager.update({ source }),
+  const updateDocument = useCallback(
+    (patch: Partial<LiveEditorDocument>) => documentManager.update(patch),
     [documentManager]
   );
 
+  const setSource = useCallback(
+    (source: string) => updateDocument({ source }),
+    [updateDocument]
+  );
+
   const setScenario = useCallback(
-    (scenario: string) => documentManager.update({ scenario }),
-    [documentManager]
+    (scenario: string) => updateDocument({ scenario }),
+    [updateDocument]
   );
 
   const resetSource = useCallback(() => {
     const file = documentManager.getSnapshot().file;
-    documentManager.update({
+    updateDocument({
       source: workspaceManager.getInitialSource(file),
     });
-  }, [documentManager, workspaceManager]);
+  }, [documentManager, updateDocument, workspaceManager]);
 
   const getResetSource = useCallback(
     () => workspaceManager.getInitialSource(documentManager.getSnapshot().file),
@@ -39,6 +47,7 @@ export function useLiveEditorDocumentActions({
       resetSource,
       setScenario,
       setSource,
+      updateDocument,
     },
     preview: {
       markError: documentManager.markError,

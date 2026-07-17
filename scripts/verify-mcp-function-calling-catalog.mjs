@@ -248,6 +248,26 @@ assertContains(
   /manager\.setActivePath\(/,
   'realtime web-coding workspace selection action'
 );
+assertContains(
+  realtimeWebCodingSource,
+  /useLiveEditorDocumentActions\(/,
+  'realtime web-coding shared document action facade'
+);
+assertContains(
+  realtimeWorkspaceActionsSource,
+  /updateDocument\(/,
+  'realtime web-coding document update command boundary'
+);
+assertNotContains(
+  realtimeWorkspaceActionsSource,
+  /(?:documentManager|LiveEditorDocumentManager)/,
+  'direct document manager dependency from the realtime workspace action'
+);
+assertNotContains(
+  realtimeWebCodingSource,
+  /documentManager\.(?:update|getInitialSource|markRendered|markError)\(/,
+  'direct document mutation and preview acknowledgements from the realtime web-coding page'
+);
 assertNotContains(
   realtimeWebCodingSource,
   /registry\.(?:callTool|executeModelToolCall|listTools)/,
@@ -454,4 +474,5 @@ console.log('- live editor reset approval boundary checked');
 console.log('- realtime web-coding handler/action/presentation boundary checked');
 console.log('- realtime web-coding observability/trace export boundary checked');
 console.log('- realtime web-coding workspace action boundary checked');
+console.log('- realtime web-coding shared document action boundary checked');
 console.log('- realtime web-coding reset approval boundary checked');
