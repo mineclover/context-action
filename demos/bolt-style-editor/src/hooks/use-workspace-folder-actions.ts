@@ -5,8 +5,8 @@ import type { ConfirmationRequest } from '../views/editor-dialogs';
 import { BrowserWorkspace } from '../workspace';
 import { WorkspaceToolError } from '../workspace-errors';
 import type {
-  BrowserWorkspaceFileSystemAdapter,
   ImportedFolder,
+  WorkspaceFileSystemAdapter,
 } from '../workspace-filesystem';
 import type {
   EditorMessage,
@@ -16,7 +16,7 @@ import type {
 
 export type WorkspaceFolderActionsOptions = {
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
   folderInputRef: MutableRefObject<HTMLInputElement | null>;
   isStorageReady: boolean;
   hasWritableFolder: boolean;

@@ -65,7 +65,7 @@ import {
   collectPreviewDiagnostics,
   type WorkspaceFile,
 } from './workspace';
-import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
+import type { WorkspaceFileSystemAdapter } from './workspace-filesystem';
 
 function formatTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
@@ -90,7 +90,7 @@ function EditorWorkbench({
   folderRestoreState,
 }: {
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
   previewRefreshToken: number;
   folderRestoreState: FolderRestoreState;
 }) {

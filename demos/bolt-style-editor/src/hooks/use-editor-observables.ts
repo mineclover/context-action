@@ -3,7 +3,7 @@ import type { PendingToolApproval } from '../tool-approval';
 import { toolApprovalStore } from '../tool-approval';
 import { type ToolTraceEntry, toolTraceStore } from '../tool-trace';
 import type { BrowserWorkspace, WorkspaceSnapshot } from '../workspace';
-import type { BrowserWorkspaceFileSystemAdapter } from '../workspace-filesystem';
+import type { WorkspaceFileSystemAdapter } from '../workspace-filesystem';
 
 export type EditorObservables = {
   snapshot: WorkspaceSnapshot;
@@ -14,7 +14,7 @@ export type EditorObservables = {
   traceEntries: readonly ToolTraceEntry[];
   pendingApprovals: readonly PendingToolApproval[];
   hasWritableFolder: boolean;
-  folderPermission: BrowserWorkspaceFileSystemAdapter['folderPermission'];
+  folderPermission: WorkspaceFileSystemAdapter['folderPermission'];
 };
 
 export function useEditorObservables({
@@ -22,7 +22,7 @@ export function useEditorObservables({
   fileSystemAdapter,
 }: {
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
 }): EditorObservables {
   const snapshot = useSyncExternalStore(
     workspace.subscribe,

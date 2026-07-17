@@ -20,7 +20,7 @@ import {
   startAgentTrace,
 } from '../tool-trace';
 import { BrowserWorkspace } from '../workspace';
-import { BrowserWorkspaceFileSystemAdapter } from '../workspace-filesystem';
+import type { WorkspaceFileSystemAdapter } from '../workspace-filesystem';
 
 export type EditorMessage = {
   role: 'user' | 'assistant';
@@ -70,7 +70,7 @@ export function useToolExecution({
 }: {
   registry: BoltStyleRegistry;
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
   openRouterSettings: OpenRouterSettings;
   setMessages: Dispatch<SetStateAction<EditorMessage[]>>;
   clearPrompt: () => void;

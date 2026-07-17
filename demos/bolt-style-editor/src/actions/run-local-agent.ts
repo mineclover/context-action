@@ -12,12 +12,12 @@ import { formatToolResultText } from '../tool-result-utils';
 import { throwIfAborted } from '../tool-runtime-utils';
 import { recordToolList } from '../tool-trace';
 import { BrowserWorkspace } from '../workspace';
-import { BrowserWorkspaceFileSystemAdapter } from '../workspace-filesystem';
+import type { WorkspaceFileSystemAdapter } from '../workspace-filesystem';
 
 export async function runLocalAgent(
   registry: BoltStyleRegistry,
   workspace: BrowserWorkspace,
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter,
+  fileSystemAdapter: WorkspaceFileSystemAdapter,
   prompt: string,
   signal?: AbortSignal,
   sessionId?: string

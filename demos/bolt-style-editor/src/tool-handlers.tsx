@@ -21,7 +21,7 @@ import {
   normalizeWorkspacePath,
 } from './workspace';
 import { WorkspaceToolError } from './workspace-errors';
-import { BrowserWorkspaceFileSystemAdapter } from './workspace-filesystem';
+import type { WorkspaceFileSystemAdapter } from './workspace-filesystem';
 
 function createPreviewTargetError(
   message: string,
@@ -81,7 +81,7 @@ export function ToolHandlers({
   children,
 }: {
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
   onPreviewRefresh: () => void;
   children: ReactNode;
 }) {

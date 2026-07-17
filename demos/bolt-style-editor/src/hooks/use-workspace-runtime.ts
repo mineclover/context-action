@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BrowserWorkspace } from '../workspace';
-import { BrowserWorkspaceFileSystemAdapter } from '../workspace-filesystem';
+import {
+  BrowserWorkspaceFileSystemAdapter,
+  type WorkspaceFileSystemAdapter,
+} from '../workspace-filesystem';
 import { WebCodingWorkspaceRepository } from '../workspace-storage';
 
 export type FolderRestoreState =
@@ -11,7 +14,7 @@ export type FolderRestoreState =
 
 export type WorkspaceRuntime = {
   workspace: BrowserWorkspace;
-  fileSystemAdapter: BrowserWorkspaceFileSystemAdapter;
+  fileSystemAdapter: WorkspaceFileSystemAdapter;
   folderRestoreState: FolderRestoreState;
   previewRefreshToken: number;
   requestPreviewRefresh: () => void;
