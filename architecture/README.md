@@ -7,6 +7,7 @@ package/impact policy는 이를 보호하는 보조 extension으로 제공한다
 - `registry.json`: stable symbol/capability와 SEM entity anchor, test, public docs 관계
 - `governance-guide.md`: symbol lifecycle, role comment, evidence, policy, 예외와 PR 운영 규칙
 - 공개 읽기 경로: `docs/en/context-layered/architecture/architecture-governance.md`, `docs/ko/context-layered/architecture/architecture-governance.md`
+- 실행 순서와 명령 recipe: `docs/en/context-layered/architecture/architecture-governance-usage.md`, `docs/ko/context-layered/architecture/architecture-governance-usage.md`
 - `rules/package-boundaries.json`: `package.json` 선언 기반 boundary policy set
 - `rules/impact-boundaries.json`: sem dependency 기반 impact policy set
 - `real-use-review.md`: 실제 저장소 실행 결과와 의도적으로 남긴 경계
@@ -52,6 +53,20 @@ package 및 impact policy의 `project`는 심볼 catalog를 CI에서 보호하�
 boundary 범위다.
 `architecture-governance` project와 `CA-ARCH-GOVERNANCE` capability는 verifier 자체의 구현,
 회귀 테스트, 공개 계약 문서와 SEM runtime dependency를 같은 registry로 검증한다.
+
+처음 실행할 때는 다음 순서를 따른다.
+
+```bash
+pnpm install
+pnpm arch:build
+pnpm arch:check:registry
+pnpm arch:check
+```
+
+이후 revision 심볼을 저장하려면 `node packages/architecture-governance/dist/cli.js snapshot`,
+두 snapshot을 비교하려면 `snapshot-diff --left <before> --right <after>`를 사용한다. commit별
+완전 snapshot과 delta가 필요하면 `history --from <base> --to <head>`를 사용한다. 상세한 옵션과
+`sem-doc` 문서 컨텍스트 흐름은 [사용 방법 가이드](../docs/ko/context-layered/architecture/architecture-governance-usage.md)를 따른다.
 
 ## 계약과 policy set 구성
 

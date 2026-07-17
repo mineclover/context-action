@@ -10,6 +10,7 @@ and verify the symbols in one pass.
 | --- | --- |
 | `architecture/registry.json` | Stable symbol/capability identity, owner, definition anchor, evidence, and policy references |
 | `architecture/rules/*.json` | Package declaration and SEM impact boundaries |
+| `architecture/contexts.json` *(planned)* | Revision-bound context intent, complete anchor identities, and explicitly declared semantic edges |
 | `packages/architecture-governance` | Registry loader, SEM adapter, verifier, report contract, and CLI |
 | Verification report | Evidence and findings for a working tree, staged set, or commit range |
 
@@ -18,6 +19,8 @@ The registry is not a list of files. A capability represents a user-visible beha
 This is a symbol catalog gate, not an architecture inference engine. The author declares the symbol and
 its role comment; SEM supplies the definition location; the test runner proves behavior; and the
 documentation system owns the public explanation.
+
+For a command-by-command walkthrough, see [Architecture Governance Usage](./architecture-governance-usage).
 
 ## Capability lifecycle
 
@@ -111,11 +114,14 @@ canonical `entityId`; the report contains deterministic `intersection`, `onlyLef
 sets. This is a structural symbol-set operation, not a call graph or runtime-flow analysis, and a
 history snapshot can be reused as either input.
 
-The next derived view is `ContextScope`: a screen, API, transaction, workflow, or document can declare
-canonical anchor symbols and project a bounded subgraph over the snapshot and SEM evidence. Its groups
-are visual boundaries around symbol IDs, so shared symbols can belong to multiple context bubbles without
-duplicating identity. See the [ContextScope Symbol Graph design](./context-scope-graph) for the contract,
-edge semantics, completeness rules, and renderer boundary.
+The next planned derived view is `ContextScope`. Its first slice is a screen adapter that reads a
+same-revision context manifest and projects a bounded subgraph over a complete snapshot. SEM contributes
+only structural `depends-on` evidence in that slice; semantic edges require an explicit manifest
+declaration or a future provider with its own evidence contract. Context groups are overlapping
+memberships around the existing project/file/entity identity, so shared symbols do not duplicate identity.
+Until that CLI exists, `architecture/contexts.json` is not an input to `arch:check`. See the
+[ContextScope Symbol Graph design](./context-scope-graph) for the contract, profile availability, edge
+semantics, completeness rules, and renderer boundary.
 
 For a focused project, use the CLI after building the workspace package:
 

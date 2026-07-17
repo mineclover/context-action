@@ -6,6 +6,9 @@ document links and a revision-pinned Git diff.
 
 The specification is in [spec/sem-doc.md](spec/sem-doc.md).
 
+For a repository-level walkthrough that combines `architecture-governance` and `sem-doc`, see the
+[Architecture Governance Usage guide](../../docs/en/context-layered/architecture/architecture-governance-usage.md).
+
 ## Scope
 
 - Uses the external `sem` executable as a read-only analysis engine.

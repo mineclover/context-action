@@ -33,6 +33,7 @@ reference나 runtime call graph가 아니다.
 ## 문서 구조
 
 - 이 README의 `실행`은 CLI, change scope, SEM budget, filesystem 신뢰 경계를 설명한다.
+- 처음 사용하는 순서와 대표 명령 조합은 [Architecture Governance Usage](../../docs/en/context-layered/architecture/architecture-governance-usage.md)와 [한국어 사용 방법](../../docs/ko/context-layered/architecture/architecture-governance-usage.md)을 따른다.
 - `계약`은 SEM entity/impact 의미, report 2.4, JSON Schema와 package export 계약을 설명한다.
 - capability authoring과 lifecycle은 repository의 [`architecture/governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md),
   구현 범위와 현재 한계는 [`architecture/implementation-review.md`](https://github.com/mineclover/context-action/blob/main/architecture/implementation-review.md)에서 관리한다.

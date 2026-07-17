@@ -239,6 +239,7 @@ const CONCEPT_STRUCTURE = {
             { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
             { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
             { text: 'Architecture Governance', link: '/en/context-layered/architecture/architecture-governance' },
+            { text: 'Architecture Governance Usage', link: '/en/context-layered/architecture/architecture-governance-usage' },
             { text: 'ContextScope Symbol Graph', link: '/en/context-layered/architecture/context-scope-graph' },
             { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
             { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
@@ -273,6 +274,7 @@ const CONCEPT_STRUCTURE = {
             { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
             { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
             { text: '아키텍처 거버넌스', link: '/ko/context-layered/architecture/architecture-governance' },
+            { text: '아키텍처 거버넌스 사용 방법', link: '/ko/context-layered/architecture/architecture-governance-usage' },
             { text: 'ContextScope 심볼 그래프', link: '/ko/context-layered/architecture/context-scope-graph' },
             { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
             { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
@@ -322,6 +324,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
       { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
       { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
       { text: 'Architecture Governance', link: '/en/context-layered/architecture/architecture-governance' },
+      { text: 'Architecture Governance Usage', link: '/en/context-layered/architecture/architecture-governance-usage' },
       { text: 'ContextScope Symbol Graph', link: '/en/context-layered/architecture/context-scope-graph' },
       { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
       { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
@@ -337,6 +340,7 @@ const CONTEXT_LAYERED_SIDEBAR = {
       { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
       { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
       { text: '아키텍처 거버넌스', link: '/ko/context-layered/architecture/architecture-governance' },
+      { text: '아키텍처 거버넌스 사용 방법', link: '/ko/context-layered/architecture/architecture-governance-usage' },
       { text: 'ContextScope 심볼 그래프', link: '/ko/context-layered/architecture/context-scope-graph' },
       { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
       { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }

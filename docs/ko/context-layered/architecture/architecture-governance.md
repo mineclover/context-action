@@ -9,6 +9,7 @@ Samdocs는 명시적으로 이름을 붙인 심볼, 역할 설명, 정의 위치
 | --- | --- |
 | `architecture/registry.json` | stable symbol/capability identity, owner, 정의 anchor, evidence, policy 연결 |
 | `architecture/rules/*.json` | package 선언과 SEM impact 경계 |
+| `architecture/contexts.json` *(planned)* | revision에 묶인 context 의도, 완전한 anchor identity, 명시적으로 선언한 의미론 edge |
 | `packages/architecture-governance` | registry loader, SEM adapter, verifier, report 계약, CLI |
 | Verification report | working tree, staged set, commit range별 evidence와 finding |
 
@@ -17,6 +18,9 @@ Registry는 파일 목록이 아닙니다. capability는 사용자가 식별하�
 이 도구는 architecture를 자동 추론하는 엔진이 아니라 symbol catalog gate입니다. 작성자가 symbol과
 역할 주석을 선언하고, SEM은 정의 위치를 제공하며, test runner는 동작을 검증하고, 문서 시스템은
 공개 설명을 소유합니다.
+
+명령을 순서대로 실행하는 방법은 [아키텍처 거버넌스 사용 방법](./architecture-governance-usage)을
+참고하세요.
 
 ## Capability lifecycle
 
@@ -108,11 +112,13 @@ canonical `entityId`로 식별하고 결과는 deterministic한 `intersection`, 
 집합으로 출력합니다. 이 기능은 구조적 심볼 집합 연산이며 호출 그래프나 runtime data flow를
 분석하지 않습니다. `history`가 만든 완전한 snapshot을 입력으로 재사용할 수 있습니다.
 
-다음 파생 뷰는 `ContextScope`입니다. 화면, API, transaction, workflow, 문서가 canonical anchor
-심볼을 선언하면 snapshot과 SEM 증거 위에 제한된 하위 그래프를 생성합니다. group은 심볼 ID를
-감싸는 시각적 경계이므로 공유 심볼도 identity를 복제하지 않고 여러 context bubble에 속할 수
-있습니다. [ContextScope 심볼 그래프 설계](./context-scope-graph)에서 계약, edge 의미, 완전성
-규칙, renderer 경계를 정의합니다.
+다음으로 계획된 파생 뷰는 `ContextScope`입니다. 첫 slice는 같은 revision의 context manifest를
+읽고 완전한 snapshot 위에 제한된 하위 그래프를 만드는 screen adapter입니다. 이 slice에서 SEM은
+구조적 `depends-on` 증거만 제공하며, 의미론 edge는 명시적인 manifest 선언 또는 별도의 증거 계약을
+갖춘 추후 provider가 있어야 합니다. Context group은 기존 project/file/entity identity를 감싸는 겹칠
+수 있는 멤버십이므로 공유 심볼의 identity를 복제하지 않습니다. 해당 CLI가 생기기 전까지
+`architecture/contexts.json`은 `arch:check`의 입력이 아닙니다. [ContextScope 심볼 그래프 설계](./context-scope-graph)에서 계약,
+profile 제공 범위, edge 의미, 완전성 규칙, renderer 경계를 정의합니다.
 
 특정 project만 집중 검사할 때는 workspace package를 먼저 빌드한 뒤 CLI를 직접 실행할 수 있습니다.
 
