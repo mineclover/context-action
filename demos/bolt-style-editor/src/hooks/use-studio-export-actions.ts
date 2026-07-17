@@ -3,6 +3,7 @@ import { toToolCallRequest } from '@context-action/react';
 import { useEffect, useRef, useState } from 'react';
 import type { ToolCatalogDefinition } from '../tool-catalog-contract';
 import type { ToolTraceEntry } from '../tool-trace';
+import { buildPreviewDocument, type WorkspaceFile } from '../workspace';
 
 function downloadTextFile(
   value: string,
@@ -58,9 +59,29 @@ async function writeClipboardText(value: string): Promise<void> {
   if (!copied) throw new Error('Clipboard access is unavailable.');
 }
 
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length))
+    );
+  }
+  return `data:${blob.type || 'application/octet-stream'};base64,${btoa(binary)}`;
+}
+
+function safeFilename(value: string): string {
+  return (
+    value.replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '') || 'workspace'
+  );
+}
+
 export type StudioExportActionsOptions = {
   toolsList: ToolListResult;
   traceEntries: readonly ToolTraceEntry[];
+  previewFiles: readonly WorkspaceFile[];
+  previewRootName: string;
   selectedToolName: string;
   selectedToolDefinition?: ToolCatalogDefinition;
   parseToolArguments: () => Record<string, unknown> | null;
@@ -69,11 +90,14 @@ export type StudioExportActionsOptions = {
 export function useStudioExportActions({
   toolsList,
   traceEntries,
+  previewFiles,
+  previewRootName,
   selectedToolName,
   selectedToolDefinition,
   parseToolArguments,
 }: StudioExportActionsOptions) {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [previewExporting, setPreviewExporting] = useState(false);
   const copyFeedbackTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -161,6 +185,37 @@ export function useStudioExportActions({
     );
   };
 
+  const downloadPreview = async () => {
+    if (previewExporting) return;
+    setPreviewExporting(true);
+    try {
+      const assetEntries = await Promise.all(
+        previewFiles
+          .filter((file) => file.kind === 'asset' && file.blob)
+          .map(
+            async (file) =>
+              [file.path, await blobToDataUrl(file.blob!)] as const
+          )
+      );
+      const document = buildPreviewDocument(
+        [...previewFiles],
+        Object.fromEntries(assetEntries)
+      );
+      downloadTextFile(
+        document,
+        `${safeFilename(previewRootName)}-preview.html`,
+        'text/html;charset=utf-8'
+      );
+      showCopyFeedback('Preview HTML downloaded');
+    } catch (error) {
+      showCopyFeedback(
+        `Preview export failed: ${error instanceof Error ? error.message : 'Unknown error.'}`
+      );
+    } finally {
+      setPreviewExporting(false);
+    }
+  };
+
   return {
     copyFeedback,
     copyJson,
@@ -170,5 +225,7 @@ export function useStudioExportActions({
     downloadSelectedToolDefinition,
     downloadSelectedToolCall,
     downloadExecutionTrace,
+    downloadPreview,
+    previewExporting,
   };
 }

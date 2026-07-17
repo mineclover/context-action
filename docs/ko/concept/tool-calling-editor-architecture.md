@@ -81,6 +81,11 @@ browser workspace는 유지한다. header에는 folder link unavailable 상태�
 분리해 `demos/bolt-style-editor/src/local-agent-plan.ts`에 둔다. 따라서 local
 fallback 계약을 독립적으로 검증할 수 있고, 재사용 가능한 workspace runtime은
 `packages/live-code-editor`에 둔다.
+preview browser chrome의 `Full screen`은 presentation-only 상태다. `Esc`로
+editor layout으로 돌아와도 workspace state는 바뀌지 않는다. `Export`는 현재
+draft snapshot을 기준으로 standalone HTML을 다운로드하며 CSS와 JavaScript를
+inline하고 Blob asset은 data URL로 변환해 브라우저 session 밖에서도 결과를
+이동할 수 있게 한다.
 preview document compiler와 local asset/script rewriting은
 `packages/live-code-editor/src/preview-document.ts`로 분리한다. Demo 경로는
 호환성 re-export만 제공한다. `WorkspaceDocumentManager`가 state, history,

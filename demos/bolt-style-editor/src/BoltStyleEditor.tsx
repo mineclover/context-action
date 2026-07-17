@@ -343,7 +343,11 @@ function EditorWorkbench({
     downloadSelectedToolDefinition,
     downloadSelectedToolCall,
     downloadExecutionTrace,
+    downloadPreview,
+    previewExporting,
   } = useStudioExportActions({
+    previewFiles: searchableFiles,
+    previewRootName: snapshot.rootName,
     toolsList,
     traceEntries,
     selectedToolName,
@@ -811,8 +815,10 @@ function EditorWorkbench({
         <PreviewPanel
           activePath={activeFile.path}
           diagnostics={previewDiagnostics}
+          exportDisabled={previewExporting || !isStorageReady}
           iframeRef={iframeRef}
           onOpenFile={openWorkspaceFile}
+          onExport={() => void downloadPreview()}
           onRefresh={refreshPreview}
           preview={snapshot.preview}
           previewDocument={previewDocument}

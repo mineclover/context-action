@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { type RefObject, useEffect, useRef, useState } from 'react';
 import type { PreviewDiagnostic } from '../preview-document';
 import type { PreviewSnapshot } from '../workspace';
 
@@ -13,7 +13,9 @@ export type PreviewPanelProps = {
   refreshToken: number;
   iframeRef: RefObject<HTMLIFrameElement | null>;
   refreshDisabled: boolean;
+  exportDisabled: boolean;
   onOpenFile: (path: string) => void;
+  onExport: () => void;
   onRefresh: () => void;
 };
 
@@ -28,11 +30,35 @@ export function PreviewPanel({
   refreshToken,
   iframeRef,
   refreshDisabled,
+  exportDisabled,
   onOpenFile,
+  onExport,
   onRefresh,
 }: PreviewPanelProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsFullscreen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.classList.add('preview-fullscreen-open');
+    window.requestAnimationFrame(() => fullscreenButtonRef.current?.focus());
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('preview-fullscreen-open');
+    };
+  }, [isFullscreen]);
+
   return (
-    <aside className="preview-panel">
+    <aside
+      aria-label="Live generated web preview"
+      aria-modal={isFullscreen || undefined}
+      className={`preview-panel ${isFullscreen ? 'preview-panel-fullscreen' : ''}`}
+      role={isFullscreen ? 'dialog' : undefined}
+    >
       <div className="preview-toolbar">
         <div>
           <span className="panel-label">Preview</span>
@@ -56,16 +82,47 @@ export function PreviewPanel({
           <div className="address-bar">
             preview://{rootName}/{activePath}
           </div>
-          <button
-            aria-label="Refresh preview"
-            className="refresh-button"
-            disabled={refreshDisabled}
-            onClick={onRefresh}
-            title="Reload the current workspace revision"
-            type="button"
-          >
-            ↻
-          </button>
+          <div className="preview-chrome-actions">
+            <button
+              aria-label="Export preview HTML"
+              className="preview-action-button"
+              disabled={exportDisabled}
+              onClick={onExport}
+              title="Download the current preview as a standalone HTML file"
+              type="button"
+            >
+              Export
+            </button>
+            <button
+              aria-label={
+                isFullscreen
+                  ? 'Exit preview full screen'
+                  : 'Open preview full screen'
+              }
+              aria-pressed={isFullscreen}
+              className="preview-action-button"
+              onClick={() => setIsFullscreen((current) => !current)}
+              ref={fullscreenButtonRef}
+              title={
+                isFullscreen
+                  ? 'Return to the editor layout (Esc)'
+                  : 'View the preview in a full-screen panel'
+              }
+              type="button"
+            >
+              {isFullscreen ? 'Exit' : 'Full screen'}
+            </button>
+            <button
+              aria-label="Refresh preview"
+              className="refresh-button"
+              disabled={refreshDisabled}
+              onClick={onRefresh}
+              title="Reload the current workspace revision"
+              type="button"
+            >
+              ↻
+            </button>
+          </div>
         </div>
         <iframe
           className="preview-iframe"

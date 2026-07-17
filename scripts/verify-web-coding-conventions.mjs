@@ -327,6 +327,28 @@ assertContains(
   /toToolCallRequest\(/,
   'canonical exported tools/call request conversion'
 );
+assertContains(
+  'demos/bolt-style-editor/src/hooks/use-studio-export-actions.ts',
+  exportSource,
+  /buildPreviewDocument[\s\S]*downloadPreview/,
+  'preview HTML export action boundary'
+);
+
+const previewPanelSource = readSource(
+  'demos/bolt-style-editor/src/views/preview-panel.tsx'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/preview-panel.tsx',
+  previewPanelSource,
+  /onExport/,
+  'preview export action boundary'
+);
+assertContains(
+  'demos/bolt-style-editor/src/views/preview-panel.tsx',
+  previewPanelSource,
+  /preview-panel-fullscreen/,
+  'preview full-screen presentation state'
+);
 
 const editorSource = readSource('demos/bolt-style-editor/src/BoltStyleEditor.tsx');
 assertContains(

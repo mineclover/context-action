@@ -82,6 +82,11 @@ available and the header explicitly reports that the folder link is unavailable
 so the user can open the folder again.
 An empty or unsupported folder is rejected during both open and reload, so it
 cannot replace the current workspace or leave a misleading folder connection.
+The preview browser chrome provides a presentation-only `Full screen` mode;
+`Esc` returns to the editor layout without changing workspace state. `Export`
+uses the same current draft snapshot to download a standalone HTML file, with
+CSS and JavaScript inlined and Blob assets converted to data URLs so the result
+remains portable outside the browser session.
 The deterministic prompt planner and revision-aware preflight now live in
 `demos/bolt-style-editor/src/local-agent-plan.ts`, separate from the React
 editor orchestration. This keeps the local fallback contract independently

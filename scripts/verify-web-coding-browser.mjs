@@ -112,6 +112,51 @@ async function runBrowserProof(url) {
     ) {
       throw new Error('Workspace save and preview states are not live regions.');
     }
+    const previewExportButton = page.getByRole('button', {
+      name: 'Export preview HTML',
+    });
+    if ((await previewExportButton.count()) !== 1) {
+      throw new Error('The preview HTML export control is missing.');
+    }
+    await previewExportButton.click();
+    await page.getByText('Preview HTML downloaded', { exact: true }).waitFor();
+
+    const previewFullscreenButton = page.getByRole('button', {
+      name: 'Open preview full screen',
+    });
+    if ((await previewFullscreenButton.count()) !== 1) {
+      throw new Error('The preview full-screen control is missing.');
+    }
+    await previewFullscreenButton.click();
+    const fullscreenPreviewState = await page.evaluate(() => ({
+      panelCount: document.querySelectorAll('.preview-panel-fullscreen').length,
+      iframeCount: document.querySelectorAll(
+        'iframe[title="Live generated web preview"]'
+      ).length,
+      bodyOverflow: getComputedStyle(document.body).overflow,
+    }));
+    if (
+      fullscreenPreviewState.panelCount !== 1 ||
+      fullscreenPreviewState.iframeCount !== 1 ||
+      fullscreenPreviewState.bodyOverflow !== 'hidden'
+    ) {
+      throw new Error(
+        `The preview full-screen state is invalid: ${JSON.stringify(fullscreenPreviewState)}`
+      );
+    }
+    await page.keyboard.press('Escape');
+    const restoredPreviewState = await page.evaluate(() => ({
+      panelCount: document.querySelectorAll('.preview-panel-fullscreen').length,
+      bodyOverflow: getComputedStyle(document.body).overflow,
+    }));
+    if (
+      restoredPreviewState.panelCount !== 0 ||
+      restoredPreviewState.bodyOverflow !== 'visible'
+    ) {
+      throw new Error(
+        `The preview did not exit full screen cleanly: ${JSON.stringify(restoredPreviewState)}`
+      );
+    }
     const desktopToolbarLayout = await page.evaluate(() => {
       const toolbar = document.querySelector('.editor-toolbar');
       const controls = document.querySelector('.editor-controls');
@@ -1953,7 +1998,9 @@ async function runBrowserProof(url) {
           0,
       }));
       if (mobileLayout.bodyScrollWidth > mobileLayout.bodyClientWidth) {
-        throw new Error('The mobile studio introduced horizontal page overflow.');
+        throw new Error(
+          `The mobile studio introduced horizontal page overflow: ${JSON.stringify(mobileLayout)}`
+        );
       }
       if (
         mobileLayout.editorControls.scrollWidth >

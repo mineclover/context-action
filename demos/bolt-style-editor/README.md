@@ -104,6 +104,12 @@ session exists, the trace header also exposes a session selector so one
 `agent.request` → `tools/list` → `tools/call` chain can be inspected in
 isolation; Copy, Download, and Clear continue to operate on the full trace.
 
+The preview browser chrome provides a presentation-only `Full screen` mode;
+`Esc` returns to the editor layout without changing workspace state. `Export`
+uses the same current draft snapshot to download a standalone HTML file, with
+CSS and JavaScript inlined and Blob assets converted to data URLs so the result
+remains portable outside the browser session.
+
 The registry schema, approval policy, and lifecycle observer are isolated in
 `src/bolt-style-tool-context.ts`; workspace/preview mutation handlers live in
 `src/tool-handlers.tsx`; and local agent execution lives in
