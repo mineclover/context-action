@@ -185,7 +185,9 @@ reload 경계·folder disconnect를 위한 prompt recipe도 제공한다. 각 re
 자유 입력과 동일한 local-agent planning 및 approval 경로로 들어간다.
 standalone package에서는 `src/tool-command-catalog.ts`가 prompt·참여 tool 이름·
 approval/preview 예상 chain을 typed catalog로 소유하고, chat view는 두 번째
-문자열 목록을 직접 가지지 않고 이 catalog를 data로 주입받는다.
+문자열 목록을 직접 가지지 않고 이 catalog를 data로 주입받는다. Save recipe도
+연결된 folder에서는 `workspace.saveAll`과 approval을 사용하고, browser-only
+workspace에서는 `workspace.saveCheckpoint`로 분기되는 두 결과를 명시한다.
 example의 ToolContext AI 데모는 provider 오류를 alert로 채팅 영역에 유지하고,
 실패한 prompt를 composer에 복원하며, 저장된 key와 model control을 그대로
 사용할 수 있게 한다. 따라서 설정을 수정한 뒤 같은 요청을 다시 제출할 수 있다.

@@ -115,13 +115,18 @@ export const standaloneToolChainRecipes = [
   {
     id: 'save-to-folder',
     title: 'Save to folder',
-    description: 'Use the explicit approval-gated filesystem save boundary.',
+    description:
+      'Save to the connected folder, or mark a browser-only checkpoint when no folder is linked.',
     prompt: 'Save to folder',
-    tools: ['workspace.getStatus', 'workspace.saveAll'],
-    expectedChain: [
+    tools: [
       'workspace.getStatus',
       'workspace.saveAll',
-      'approval → filesystem write',
+      'workspace.saveCheckpoint',
+    ],
+    expectedChain: [
+      'workspace.getStatus',
+      'workspace.saveAll (folder) / workspace.saveCheckpoint (browser-only)',
+      'approval only for filesystem write',
     ],
   },
   {
