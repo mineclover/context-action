@@ -17,7 +17,7 @@ import {
   MCPToolDefinition,
   ModelToolCall,
   OpenAIToolDefinition,
-  ToolCallContext,
+  ToolApprovalRequestInput,
   ToolCallObserver,
   ToolCallOptions,
   ToolCallRequest,
@@ -40,13 +40,8 @@ export type ToolValidationMode = 'strict' | 'warn' | 'silent';
 
 export type ToolPolicyDecision = 'allow' | 'ask' | 'deny';
 
-export interface ToolPolicyInput {
-  readonly request: ToolCallRequest;
-  readonly definition: MCPToolDefinition;
-  readonly context?: ToolCallContext;
-  /** Abort signal for approval/policy work that may outlive the provider call. */
-  readonly signal?: AbortSignal;
-}
+/** Canonical input shared by runtime policy callbacks and approval queues. */
+export type ToolPolicyInput = ToolApprovalRequestInput;
 
 export type ToolPolicy = (
   input: ToolPolicyInput

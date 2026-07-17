@@ -451,7 +451,9 @@ lifecycle도 surface별 resolver map을 복제하지 않고 core의
 `store.subscribe` 경계를 제공한다. `safeArgumentNames`와 `idPrefix`만 application
 옵션이며 raw argument를 저장하거나 tool을 실행하지 않는다. 따라서 abort,
 중복 ID 처리, unmount cleanup, reactive approval state가 example과 standalone에서
-같은 계약으로 유지된다.
+같은 계약으로 유지된다. React의 `ToolPolicyInput`도 같은 core request input의
+alias이므로 policy callback과 queue adapter의 request·definition shape이
+분리되지 않는다.
 
 ## iframe 규칙
 

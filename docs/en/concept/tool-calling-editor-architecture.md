@@ -483,7 +483,9 @@ surface-specific resolver map. The queue provides the same `request`, `resolve`,
 standalone hosts. `safeArgumentNames` and `idPrefix` are application options;
 the queue never persists raw arguments or executes the tool. This keeps abort,
 duplicate-ID handling, unmount cleanup, and reactive approval state consistent
-across example and standalone implementations.
+across example and standalone implementations. React's `ToolPolicyInput` is an
+alias of the same core request input, so policy callbacks and queue adapters
+cannot drift in request or definition shape.
 
 ## iframe rules
 
