@@ -37,6 +37,8 @@ reference나 runtime call graph가 아니다.
 - `계약`은 SEM entity/impact 의미, report 2.4, JSON Schema와 package export 계약을 설명한다.
 - capability authoring과 lifecycle은 repository의 [`architecture/governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md),
   구현 범위와 현재 한계는 [`architecture/implementation-review.md`](https://github.com/mineclover/context-action/blob/main/architecture/implementation-review.md)에서 관리한다.
+- capability ID(`CA-*`), symbol identity(`SymbolRef`), context ID(`contextId`)는 서로 다른 계층이며,
+  ContextScope와 Context-Action layer mapping은 공개 [ContextScope 설계](../../docs/en/context-layered/architecture/context-scope-graph.md)에서 관리한다.
 
 이 도구는 authored intent를 SEM evidence로 검증하는 gate다. runtime data flow, business correctness,
 owner 승인, 문서 생성 자체를 자동 증명하지 않는다. shared SEM contract는 publish-ready지만,
@@ -156,8 +158,10 @@ boundary와 심볼 교집합 계산의 기준으로 사용할 수 있다. merge 
 (`skipped`, `missing-at-revision`)가 함께 기록된다.
 `--registry`를 사용한 history/snapshot은 해당 registry가 각 historical revision에 있어야 하며,
 없으면 현재 project 목록으로 대체하지 않고 오류로 중단한다. `fileExtensions`가 지정된 경우
-SEM 출력도 해당 확장자를 벗어나지 않는지 검증한다. 동일한 `projectId/filePath/entityId`에 서로
-다른 kind가 나타나면 완전한 snapshot을 보장할 수 없으므로 충돌 오류를 반환한다.
+SEM 출력도 해당 확장자를 벗어나지 않는지 검증한다. 중첩 entity가 같은 parent-scoped name을
+공유하더라도 kind가 다르면 `parent::type::Scene`, `parent::variable::Scene`처럼 kind-qualified
+ID로 정규화해 두 정의를 모두 보존한다. 정규화 이후 정확히 같은
+`projectId/filePath/entityId`가 충돌할 때만 완전한 snapshot을 보장할 수 없으므로 오류를 반환한다.
 
 기본 cardinality는 Foundation 계약을 따르지만, 신뢰할 수 있는 대규모 분석 호출자는 API의
 `contractLimits`로 `maxAnalysisProjects`, `maxAnalysisProjectFileExtensions`,

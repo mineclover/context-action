@@ -113,9 +113,10 @@ node packages/architecture-governance/dist/cli.js history \
 포함됩니다. 과거 revision에 project가 없으면 현재 worktree 범위를 대체하지 않고
 `skipped`/`missing-at-revision`으로 기록합니다.
 
-전체 repository snapshot에서 `symbol identity collision`이 나오면 부분 결과를 사용하지 않습니다.
-provider가 하나의 canonical identity에 서로 다른 kind를 보고한 것이므로 source 또는 project
-scope를 수정하거나, 원인을 조사하는 동안 유효한 project만 선택합니다.
+전체 repository snapshot에서 해결되지 않은 `symbol identity collision`이 나오면 부분 결과를
+사용하지 않습니다. 중첩 kind-qualified ID 정규화 이후에도 provider 출력에 정확히 같은 identity가
+남아 있다는 뜻입니다. source 또는 project scope를 수정하거나, 원인을 조사하는 동안 유효한
+project만 선택합니다.
 
 ```bash
 node packages/architecture-governance/dist/cli.js snapshot \
@@ -125,8 +126,8 @@ node packages/architecture-governance/dist/cli.js snapshot \
   --output reports/architecture-governance-symbols.json
 ```
 
-CLI는 한 kind를 임의로 선택하지 않고 fail-closed합니다. `analysisProjects.fileExtensions`로 수집
-범위를 줄일 수 있지만, 해결되지 않은 identity 충돌을 숨기는 용도로 사용해서는 안 됩니다.
+CLI는 하나의 정확한 identity를 임의로 선택하지 않고 fail-closed합니다. `analysisProjects.fileExtensions`로
+수집 범위를 줄일 수 있지만, 해결되지 않은 identity 충돌을 숨기는 용도로 사용해서는 안 됩니다.
 SEM이 같은 parent 아래 서로 다른 kind의 같은 이름을 반환하면 adapter가
 `parent::kind::name` identity로 구분해 complete snapshot에 두 심볼을 모두 보존합니다.
 

@@ -112,9 +112,9 @@ Each history commit contains a semantic delta and a complete snapshot for the re
 `analysisProjects`. A project absent from a historical revision is retained as `skipped` with
 `missing-at-revision`; the current worktree project list is never substituted.
 
-If a full-repository snapshot reports a `symbol identity collision`, do not consume the partial
-result. The provider found one canonical identity with different kinds. Resolve the source or project
-scope, or isolate a valid project while investigating:
+If a full-repository snapshot reports an unresolved `symbol identity collision`, do not consume the partial
+result. This means the provider output still contains an exact collision after nested kind-qualified ID
+normalization. Resolve the source or project scope, or isolate a valid project while investigating:
 
 ```bash
 node packages/architecture-governance/dist/cli.js snapshot \
@@ -124,8 +124,8 @@ node packages/architecture-governance/dist/cli.js snapshot \
   --output reports/architecture-governance-symbols.json
 ```
 
-The CLI fails closed rather than choosing one kind silently. `analysisProjects.fileExtensions` can
-reduce a project's collection scope, but it must not be used to hide an unresolved identity conflict.
+The CLI fails closed rather than choosing one exact identity silently. `analysisProjects.fileExtensions`
+can reduce a project's collection scope, but it must not be used to hide an unresolved identity conflict.
 When SEM gives same-name nested entities different kinds, the adapter emits a kind-qualified
 `parent::kind::name` identity so both symbols remain in the complete snapshot.
 

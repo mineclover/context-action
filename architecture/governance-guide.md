@@ -20,9 +20,12 @@ symbol entry는 사용자가 식별할 수 있는 class, function, handler, stor
 분리되지 않도록 같은 변경에서 함께 관리한다. 다음 단계에서 `@samdocs` marker와 `@role` field를
 표준화하고, SEM entity 위치와 결합해 catalog를 생성한다.
 
-stable ID는 의미가 유지되는 `CA-...` 형식을 사용한다. 이름 변경이나 파일 이동만으로 ID를 교체하지
-않는다. 책임 자체가 분리되거나 합쳐질 때는 decision 문서에 이전·새 ID 관계를 남긴다. 동일 stable
-ID를 두 심볼에 부여하거나 한 심볼에 서로 다른 역할을 중복 등록하지 않는다.
+`CA-...` stable ID는 registry capability의 책임 identity다. SEM 심볼 자체의 identity는
+`SymbolRef(projectId, filePath, entityId)`이며, `implementationAnchors`가 capability와 심볼을
+연결한다. 이름 변경이나 파일 이동만으로 capability ID나 canonical `entityId`를 임의로 교체하지
+않는다. 책임 자체가 분리되거나 합쳐질 때는 decision 문서에 capability ID 관계를 남긴다. 하나의
+capability ID를 여러 책임에 재사용하거나, 하나의 `SymbolRef`를 서로 다른 역할로 중복 선언하지
+않는다. ContextScope의 `contextId`는 이 두 identity와 별개의 파생 scope ID다.
 
 ## 상태 lifecycle
 
@@ -87,11 +90,8 @@ rule은 특별한 점진 도입 사유가 없다면 `missingEvidenceSeverity: "e
 6. 완료 전 `pnpm arch:test`와 `pnpm arch:check`를 실행한다.
 7. PR에서는 base/head report의 affected capabilities, docs, tests와 finding을 함께 검토한다.
 
-심볼의 revision별 전체 목록이 필요하면 `arch-verify snapshot`을 사용하고, 두 시점의 증감은
-`arch-verify snapshot-diff`로 비교한다. 여러 commit의 재현 가능한 전체 목록과 delta가 필요할 때는
-`arch-verify history`를 사용한다. 이 세 결과는 각각 `symbol-snapshot@1.1`,
-`symbol-snapshot-diff@1.0`, `symbol-history-report@1.3` 계약을 따르며, 내부 함수 호출 그래프가
-아닌 `projectId/filePath/entityId` 기반의 구조적 심볼 목록이다.
+revision snapshot, snapshot diff, history의 명령과 report contract는 [Architecture Governance Usage](../docs/ko/context-layered/architecture/architecture-governance-usage.md)에서 한 번만 관리한다.
+이 문서는 해당 결과를 authored evidence와 review lifecycle에 연결하는 규칙만 소유한다.
 
 monorepo에서 설정·문서 파일이 코드와 같은 project root에 섞여 있으면 registry의
 `analysisProjects[].fileExtensions`로 수집 확장자를 명시한다. 확장자는 1~32개의 dot-prefixed

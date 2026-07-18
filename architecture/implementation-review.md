@@ -121,7 +121,7 @@ payload가 커지면 기존 `maxOutputBytes`/timeout 계약으로 실패하며, 
 | --- | --- | --- | --- |
 | `docs/en|ko/context-layered/architecture/architecture-governance.md` | 일반 사용자·reviewer | Samdocs 목적, 심볼 catalog workflow, report 의미, 호출 분석 제외 범위 | 내부 보안 budget의 모든 상수 |
 | `architecture/README.md` | 저장소 contributor | source map, 명령, policy 파일, CI 연결, 내부 문서 링크 | 각 함수의 방어 구현 목록 |
-| `architecture/governance-guide.md` | symbol author | stable symbol ID, role comment, 정의 위치, 예외, checklist | LSP 호출 그래프 |
+| `architecture/governance-guide.md` | symbol author | capability ID, `SymbolRef` anchor, role comment, 정의 위치, 예외, checklist | LSP 호출 그래프 |
 | `architecture/rules/README.md` | policy author | package/impact rule DSL과 glob 문법 | capability lifecycle 전체 |
 | `architecture/implementation-review.md` | maintainer·reviewer | 심볼 관리 구현 review, 한계, 운영 판단, roadmap | 사용자 API 사용 예제의 반복 |
 | `architecture/real-use-review.md` | 설계 의사결정 reviewer | SEM 선택 이유, 실제 수치, 의도적으로 남긴 경계 | 현재 명령 사용법의 복제 |
@@ -130,7 +130,7 @@ payload가 커지면 기존 `maxOutputBytes`/timeout 계약으로 실패하며, 
 공개 문서는 다음 순서로 읽게 한다.
 
 1. Samdocs overview에서 심볼 catalog와 호출 분석 제외 범위를 이해한다.
-2. stable symbol ID와 role comment 규칙을 읽고 registry/source comment 변경을 준비한다.
+2. capability ID, `SymbolRef` anchor와 role comment 규칙을 읽고 registry/source comment 변경을 준비한다.
 3. policy rule 문법과 명령을 확인한다.
 4. changed/staged/range report를 review workflow에 연결한다.
 5. 구현 세부나 운영 판단이 필요할 때 내부 review와 package README로 내려간다.

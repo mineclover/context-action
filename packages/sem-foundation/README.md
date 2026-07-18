@@ -36,8 +36,9 @@ can pass `SemFoundationLimitOptions` to normalization and snapshot APIs to raise
 extension-length, or snapshot-entry limits. The explicit `'unbounded'` value maps to the JavaScript
 safe-integer ceiling for trusted in-process callers. Overrides should be paired with the caller's own
 process and output budgets.
-`diffSymbolSnapshots` compares two complete inventories by the same stable identity and separates
-added, removed, and changed source evidence. Git/SEM execution remains outside this package.
+`diffSymbolSnapshots` compares two complete inventories by the same project-qualified `SymbolRef`
+identity (`projectId`, `filePath`, `entityId`) and separates added, removed, and changed source evidence.
+Git/SEM execution remains outside this package.
 
 Release checklist:
 
