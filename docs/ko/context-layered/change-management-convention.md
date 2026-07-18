@@ -226,7 +226,7 @@ documentation-management gate, architecture SEM gate가 모두 통과했습니�
 | 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify`와 `pnpm arch:check` 통과, registry 상태는 `verified` |
 | 종료 | Dexie migration에 명시적인 v1→v2 browser fixture가 없었음 | `scripts/verify-web-coding-browser.mjs`가 v1 DB를 만들고 upgrade를 검증 |
 | 종료 | 영문·국문 parity와 내부 링크 유효성이 주로 review convention이었음 | `pnpm docs:management`가 pair page, discovery link, handoff metadata를 검사 |
-| P2 | issue→spec→test 연결이 기계적으로 강제되지 않음 | issue ID 사용이 정착되면 report 또는 PR check 추가 |
+| P2 | issue→spec→test 연결이 기계적으로 강제되지 않음 | `CA-GOV-TRACE-001`로 추적하며 과거 commit을 다시 쓰지 않고 report 또는 PR check 추가 |
 
 남은 추적성 항목은 현재 기능을 막는 이유가 아니라 프로세스 개선 항목입니다.
 이슈 ID가 스펙·커밋·증거에 일관되게 사용될 때까지 governance backlog로 유지합니다.

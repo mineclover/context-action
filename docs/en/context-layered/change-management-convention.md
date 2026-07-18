@@ -234,7 +234,7 @@ for traceability:
 | Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` and `pnpm arch:check` pass; registry status is `verified` |
 | Closed | Dexie migration lacked an explicit v1→v2 browser fixture | `scripts/verify-web-coding-browser.mjs` creates a v1 database and verifies the upgrade |
 | Closed | English/Korean parity and internal link validity were mostly review conventions | `pnpm docs:management` checks paired pages, discovery links, and handoff metadata |
-| P2 | Issue-to-spec-to-test links are not machine-enforced | Add a small report or PR check once issue IDs are consistently used |
+| P2 | Issue-to-spec-to-test links are not machine-enforced | Tracked as `CA-GOV-TRACE-001`; add a small report or PR check without rewriting historical commits |
 
 The remaining traceability item is a process improvement, not a reason to
 block the current feature. It should remain in the governance backlog until
