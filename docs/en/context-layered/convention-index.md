@@ -12,12 +12,16 @@ This document is the central entry point for the implementation-playbook style c
 6. [Canonical Order Form Example](/en/examples/canonical-order-form)
 7. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
 8. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-9. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+9. [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
+10. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
+11. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
 The short path above covers:
 - folder structure
 - workflow transition rules
 - domain-level expansion
+- capability, symbol, and context identity
+- snapshot evidence and context-boundary projection
 - testing expectations
 
 ## Grouped by Role
@@ -40,6 +44,10 @@ The short path above covers:
   - responsibility split across `contexts / business / handlers / actions / hooks / views`
 - [Handler Registry](/en/context-layered/architecture/handler-registry)
   - handler registration and separation rules
+- [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
+  - capability identity, `SymbolRef`, snapshot evidence, and verification boundaries
+- [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
+  - screen/transaction grouping contract over the complete symbol snapshot
 
 ### 2. Documents that explain logic and transitions
 
@@ -68,8 +76,8 @@ The short path above covers:
 
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
   - how to split contract tests, scenario tests, and stress validation
-- [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
-  - how capabilities connect implementation, tests, policies, and public documentation
+- [Architecture Governance Usage](/en/context-layered/architecture/architecture-governance-usage)
+  - executable snapshot, history, diff, and intersection recipes
 
 The general repository convention gate is:
 

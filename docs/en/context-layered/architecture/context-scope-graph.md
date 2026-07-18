@@ -177,6 +177,25 @@ Each context kind defines valid anchor roles and the edge vocabulary used by its
 | `workflow` | `command`, `step` | unsupported in v1 | command → step → external effect → next step |
 | `document` | `definition`, `reference` | unsupported in v1 | document definition → referenced symbol → implementation/test |
 
+## Context-Action mapping
+
+The manifest is the bridge between the generic scope model and Context-Action's runtime layers. It
+reuses the same `SymbolRef` values from the snapshot and assigns graph roles without changing symbol
+identity:
+
+| Context-Action layer | ContextScope profile/role | Evidence boundary |
+| --- | --- | --- |
+| View/Page | `screen.root`, `view` | manifest anchor; SEM structural dependents |
+| Action dispatch | `transaction.trigger`, `command` | manifest anchor and declared edge |
+| Handler / business | `transaction.controller`, `step` | manifest anchor and declared edge |
+| Store read/write | `state-read`, `state-write` | manifest declaration; provider-specific evidence later |
+| Hook / selector | `state-read` or affected `view` | manifest declaration |
+
+After the initial screen adapter, prioritize the transaction profile as the first Context-Action-oriented
+extension because it expresses `action → handler/business → store write → selector or hook → affected view`.
+The screen profile remains the read-oriented view boundary. These mappings are authored intent: SEM may provide a structural
+`depends-on` edge, but it cannot prove `renders`, `reads`, or `writes` semantics by itself.
+
 In the first adapter, SEM produces only `depends-on` edges. A semantic edge such as `renders`, `reads`,
 or `writes` is admissible only when the manifest declares it with a stable declaration ID or a future,
 versioned provider supplies its evidence. The v1 contract has no `inferred` evidence source. A generic

@@ -162,11 +162,21 @@ Mount the Handler Registry with props and compose `Action Provider → Store Pro
 
 For product-facing features, the recommended composition is `Provider → Handler Registry → Facade → Recipe → Primitive`.
 
+### 7. Record architecture evidence
+
+After the runtime layers are composed, register the capability and its `SymbolRef` implementation anchors
+in [Architecture Governance and Evidence](./architecture/architecture-governance.md). Use the planned
+[ContextScope Symbol Graph](./architecture/context-scope-graph.md) only when a revision-bound context
+manifest is available; the catalog and the runtime graph remain separate contracts.
+
 ## 🔗 Related Documentation
 
 - [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 - [Props-based Handler Patterns](./patterns/props-based-handlers.md) - Handler implementation guides
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
+- [Architecture Governance and Evidence](./architecture/architecture-governance.md) - capability, symbol, and evidence contracts
+- [Architecture Governance Usage](./architecture/architecture-governance-usage.md) - snapshot, history, diff, and intersection commands
+- [ContextScope Symbol Graph](./architecture/context-scope-graph.md) - context grouping over complete symbol snapshots
 - [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
 - [Traditional MVVM Documentation](../guide/architecture/mvvm.md) - Legacy MVVM patterns (for reference)

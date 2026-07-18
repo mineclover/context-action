@@ -8,13 +8,25 @@ and verify the symbols in one pass.
 
 | Artifact | Responsibility |
 | --- | --- |
-| `architecture/registry.json` | Stable symbol/capability identity, owner, definition anchor, evidence, and policy references |
+| `architecture/registry.json` | Capability identity (`CA-*`), owner, definition anchor, evidence, and policy references |
 | `architecture/rules/*.json` | Package declaration and SEM impact boundaries |
 | `architecture/contexts.json` *(planned)* | Revision-bound context intent, complete anchor identities, and explicitly declared semantic edges |
 | `packages/architecture-governance` | Registry loader, SEM adapter, verifier, report contract, and CLI |
 | Verification report | Evidence and findings for a working tree, staged set, or commit range |
 
 The registry is not a list of files. A capability represents a user-visible behavior, an independently changed design responsibility, or an architectural boundary that needs a stable owner. A verified capability should connect a specification, a SEM top-level implementation anchor, representative tests, and public documentation.
+
+### Identity vocabulary
+
+The catalog intentionally keeps three identifiers separate:
+
+- `capabilityId` (`CA-*`) identifies an architectural responsibility in `registry.json`.
+- `SymbolRef` (`projectId`, repository-relative `filePath`, and `entityId`) identifies a concrete code symbol in a snapshot.
+- `contextId` identifies a derived screen, API, transaction, workflow, or document scope.
+
+`implementationAnchors` connect a capability to one or more `SymbolRef` values. A context manifest reuses
+the same `SymbolRef` tuple; it must not create a second symbol ID. This separation allows one capability to
+have multiple implementation symbols and one symbol to participate in multiple context scopes.
 
 This is a symbol catalog gate, not an architecture inference engine. The author declares the symbol and
 its role comment; SEM supplies the definition location; the test runner proves behavior; and the
@@ -71,31 +83,13 @@ node packages/architecture-governance/dist/cli.js snapshot-diff \
 
 The snapshot contract is `context-action/symbol-snapshot@1.1`; history is
 `context-action/symbol-history-report@1.3`; and snapshot comparison is
-`context-action/symbol-snapshot-diff@1.0`. Each snapshot includes declared `analysisProjects` and
-their `analyzed`/`skipped` status. A historical project missing at that revision is retained as
-`skipped` with reason `missing-at-revision`. Optional `analysisProjects.fileExtensions` restricts
-SEM entity collection to 1–32 normalized dot-prefixed extensions (each at most 64 characters).
-Provider output is checked against that extension allow-list. If SEM emits the same scoped canonical ID
-with different kinds, the snapshot is rejected as ambiguous rather than dropping an entity. Serialized
-collections use locale-independent code-unit ordering for reproducible diffs.
+`context-action/symbol-snapshot-diff@1.0`. Each snapshot preserves declared `analysisProjects` and their
+`analyzed`/`skipped` provenance. Identity normalization, extension filters, collision handling, and
+serialization limits are owned by the [package contract](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md).
 
-The defaults are shared Foundation contract limits, but trusted large-repository callers can raise them
-with `contractLimits`: `maxAnalysisProjects`, `maxAnalysisProjectFileExtensions`,
-`maxAnalysisProjectFileExtensionChars`, and `maxSymbolSnapshotEntries`. Callers can pass the same
-object to `parseArchitectureRegistry`/`loadArchitectureRegistry` before project selection, so
-registry loading is covered by the override as well. The CLI exposes the same
-controls as `--max-analysis-projects`, `--max-project-file-extensions`,
-`--max-project-file-extension-chars`, and `--max-snapshot-symbols`. History commit/change limits can
-be raised with `maxCommits`/`maxChanges` or the CLI flags `--max-history-commits` and
-`--max-history-changes`; the CLI also accepts `unbounded`, which maps to the JavaScript safe-integer
-ceiling. Callers should pair overrides with an appropriate execution/output budget.
-
-History materializes complete snapshots; it never truncates an oversized commit. Each snapshot is
-bounded at 65,536 symbols, while the history operation's aggregate SEM output budget (64 MiB by
-default, configurable through the existing SEM limit) bounds the total subprocess payload. The
-collector therefore has no second aggregate symbol-count cap that could reject an otherwise complete
-set for an arbitrary average-size reason. The 512-commit and 65,536-change history limits remain
-independent safety limits.
+Limit defaults, `contractLimits` overrides, history budgets, and `unbounded` semantics are runtime
+contract details owned by the [package README](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md).
+This overview only requires that a complete snapshot is never silently truncated.
 
 To compare two context-specific serialized symbol sets, use the lightweight set operation:
 
@@ -123,6 +117,11 @@ Until that CLI exists, `architecture/contexts.json` is not an input to `arch:che
 [ContextScope Symbol Graph design](./context-scope-graph) for the contract, profile availability, edge
 semantics, completeness rules, and renderer boundary.
 
+Context-Action role mapping, manifest ownership, and the planned `screen`/`transaction` profiles are
+defined once in the [ContextScope Symbol Graph design](./context-scope-graph). This page only establishes
+that ContextScope is a derived view over complete snapshots and is not an input to `arch:check` until its
+CLI exists.
+
 For a focused project, use the CLI after building the workspace package:
 
 ```bash
@@ -141,11 +140,10 @@ failure, not an implicit upgrade.
 ## Samdocs scope
 
 The intended unit is a named symbol such as a class, function, or other top-level entity. A role comment
-explains why that symbol exists; the catalog records its stable identity, where it is defined, and which files
-contain structural dependents of the symbol. A duplicate
-stable identity or ambiguous definition is a review finding. In this PoC, role comments are authored next to
-the symbol and reviewed with the registry; automatic `@samdocs`/`@role` comment extraction is the next
-collector step, not an LSP call-graph feature.
+explains why that symbol exists; the catalog records its `SymbolRef`, where it is defined, and which files
+contain structural dependents of the symbol. A duplicate `SymbolRef` or ambiguous definition is a review
+finding. In this PoC, role comments are authored next to the symbol and reviewed with the registry;
+automatic `@samdocs`/`@role` comment extraction is the next collector step, not an LSP call-graph feature.
 
 ## What the gate verifies
 
@@ -191,7 +189,7 @@ Do not add inline waivers or path ignores. A temporary exception must record its
 ## Reading order
 
 1. Use this page for the symbol catalog concept, verification boundary, and minimum commands.
-2. Read [`governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md) before adding a stable symbol ID or role comment.
+2. Read [`governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md) before adding a capability ID, `SymbolRef` anchor, or role comment.
 3. Read [`architecture/rules/README.md`](https://github.com/mineclover/context-action/blob/main/architecture/rules/README.md) before adding a package or impact rule.
 4. Use the generated changed/staged/range report during review.
 5. Consult the [implementation review](https://github.com/mineclover/context-action/blob/main/architecture/implementation-review.md) for symbol limits, the intentional LSP boundary, and roadmap decisions.

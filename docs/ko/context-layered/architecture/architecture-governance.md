@@ -7,13 +7,25 @@ Samdocs는 명시적으로 이름을 붙인 심볼, 역할 설명, 정의 위치
 
 | 산출물 | 책임 |
 | --- | --- |
-| `architecture/registry.json` | stable symbol/capability identity, owner, 정의 anchor, evidence, policy 연결 |
+| `architecture/registry.json` | capability identity(`CA-*`), owner, 정의 anchor, evidence, policy 연결 |
 | `architecture/rules/*.json` | package 선언과 SEM impact 경계 |
 | `architecture/contexts.json` *(planned)* | revision에 묶인 context 의도, 완전한 anchor identity, 명시적으로 선언한 의미론 edge |
 | `packages/architecture-governance` | registry loader, SEM adapter, verifier, report 계약, CLI |
 | Verification report | working tree, staged set, commit range별 evidence와 finding |
 
 Registry는 파일 목록이 아닙니다. capability는 사용자가 식별하는 동작, 독립적으로 변경되는 설계 책임, 또는 지속적으로 지켜야 하는 아키텍처 경계를 나타냅니다. `verified` capability에는 spec, SEM top-level 구현 anchor, 대표 동작 테스트, 공개 문서가 현재 구현을 증명하도록 연결되어야 합니다.
+
+### Identity vocabulary
+
+catalog에서는 다음 세 가지 식별자를 의도적으로 분리합니다.
+
+- `capabilityId`(`CA-*`)는 `registry.json`의 아키텍처 책임을 식별합니다.
+- `SymbolRef`(`projectId`, repository-relative `filePath`, `entityId`)는 snapshot 안의 실제 코드 심볼을 식별합니다.
+- `contextId`는 화면, API, transaction, workflow, document 범위의 파생 컨텍스트를 식별합니다.
+
+`implementationAnchors`는 capability와 하나 이상의 `SymbolRef`를 연결합니다. context manifest도
+동일한 `SymbolRef` 조합을 재사용하며 별도의 심볼 ID를 만들지 않습니다. 따라서 하나의 capability가
+여러 구현 심볼을 가질 수 있고, 하나의 심볼이 여러 context scope에 참여할 수 있습니다.
 
 이 도구는 architecture를 자동 추론하는 엔진이 아니라 symbol catalog gate입니다. 작성자가 symbol과
 역할 주석을 선언하고, SEM은 정의 위치를 제공하며, test runner는 동작을 검증하고, 문서 시스템은
@@ -72,28 +84,14 @@ node packages/architecture-governance/dist/cli.js snapshot-diff \
 Snapshot 계약은 `context-action/symbol-snapshot@1.1`, history는
 `context-action/symbol-history-report@1.3`, snapshot 비교는
 `context-action/symbol-snapshot-diff@1.0`입니다. 각 snapshot은 선언된 `analysisProjects`와
-프로젝트별 `analyzed`/`skipped` 상태를 보존합니다. 해당 revision에 없는 historical project는
-`skipped`, reason `missing-at-revision`으로 기록됩니다. `analysisProjects.fileExtensions`를
-사용하면 항목당 최대 64자인 1~32개의 정규화된 dot-prefixed 확장자로 SEM entity 수집 범위를
-제한할 수 있습니다. provider가 이 확장자 목록 밖의 파일을 반환하면 snapshot을 거부합니다. 같은
-scoped canonical ID에 서로 다른 kind가 보고되면 한 심볼을 버리지 않고 모호한 snapshot으로
-fail-closed 처리합니다. 직렬화 컬렉션 정렬은 locale과 무관한 code-unit 순서를 사용합니다.
+프로젝트별 `analyzed`/`skipped` provenance를 보존합니다. identity 정규화, 확장자 filter, 충돌
+처리, 직렬화 상한은 [package 계약](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md)이
+소유합니다.
 
-기본값은 Foundation 공통 계약 상한이지만, 신뢰할 수 있는 대규모 저장소 호출자는
-`contractLimits`로 `maxAnalysisProjects`, `maxAnalysisProjectFileExtensions`,
-`maxAnalysisProjectFileExtensionChars`, `maxSymbolSnapshotEntries`를 높일 수 있습니다. CLI에서는
-`parseArchitectureRegistry`/`loadArchitectureRegistry`에 같은 제한을 적용한 뒤 project를 선택하므로
-registry 로딩 단계도 override 범위에 포함됩니다. CLI flag로는
-`--max-analysis-projects`, `--max-project-file-extensions`, `--max-project-file-extension-chars`,
-`--max-snapshot-symbols`를 제공합니다. History commit/change 상한은 `maxCommits`/`maxChanges` 또는
-`--max-history-commits`/`--max-history-changes`로 조정하며, override 시 실행 시간과 output budget도
-함께 검토해야 합니다. CLI의 `unbounded` 값은 JavaScript safe-integer ceiling으로 매핑됩니다.
-
-History는 commit별 완전한 snapshot을 materialize하며 초과 결과를 잘라내지 않습니다. 단일
-snapshot은 최대 65,536개 심볼로 제한되고, 전체 history의 subprocess payload는 기존 SEM aggregate
-output budget(기본 64MiB, SEM limit으로 조정 가능)이 제한합니다. 따라서 평균 심볼 크기에 따라
-완전한 집합을 임의로 거부하는 별도의 aggregate 심볼 개수 상한은 두지 않습니다. 512개 commit과
-65,536개 change 상한은 독립적인 안전 상한으로 유지합니다.
+기본 상한, `contractLimits` override, history budget, `unbounded` 의미는
+[package README](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md)가
+소유하는 runtime 계약입니다. 이 문서에서는 complete snapshot을 조용히 잘라내지 않는다는 원칙만
+유지합니다.
 
 서로 다른 컨텍스트에서 직렬화한 심볼 집합은 다음처럼 가벼운 교집합 연산으로 비교합니다.
 
@@ -120,6 +118,11 @@ canonical `entityId`로 식별하고 결과는 deterministic한 `intersection`, 
 `architecture/contexts.json`은 `arch:check`의 입력이 아닙니다. [ContextScope 심볼 그래프 설계](./context-scope-graph)에서 계약,
 profile 제공 범위, edge 의미, 완전성 규칙, renderer 경계를 정의합니다.
 
+Context-Action role mapping, manifest 소유권, 계획된 `screen`/`transaction` profile은
+[ContextScope 심볼 그래프 설계](./context-scope-graph)에서 한 번만 정의합니다. 이 문서는
+ContextScope가 complete snapshot 위의 파생 뷰이며 CLI가 생기기 전까지 `arch:check` 입력이 아니라는
+원칙만 설명합니다.
+
 특정 project만 집중 검사할 때는 workspace package를 먼저 빌드한 뒤 CLI를 직접 실행할 수 있습니다.
 
 ```bash
@@ -138,7 +141,7 @@ node packages/architecture-governance/dist/cli.js check \
 ## Samdocs 범위
 
 기본 단위는 class, function 또는 다른 top-level entity 같은 명시적 심볼입니다. 역할 주석은 그
-심볼이 왜 존재하는지 설명하고, catalog는 stable identity와 정의 위치, 구조적으로 사용하는 파일을 기록합니다. stable identity가
+심볼이 왜 존재하는지 설명하고, catalog는 `SymbolRef`, 정의 위치, 구조적으로 사용하는 파일을 기록합니다. `SymbolRef`가
 중복되거나 정의 위치가 모호하면 review finding으로 처리합니다. 현재 PoC에서는 역할 주석을 심볼
 옆에 작성하고 registry와 함께 review하며, 자동 `@samdocs`/`@role` comment 수집은 다음 collector
 단계입니다. 이것은 LSP 호출 그래프 기능과는 별개의 범위입니다.
@@ -187,7 +190,7 @@ inline waiver나 경로별 ignore는 추가하지 않습니다. 임시 예외가
 ## 읽는 순서
 
 1. 이 문서에서 symbol catalog 개념, 검증 경계, 최소 명령을 확인합니다.
-2. stable symbol ID나 역할 주석을 추가하기 전에 [`governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md)를 읽습니다.
+2. capability ID, `SymbolRef` anchor 또는 역할 주석을 추가하기 전에 [`governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md)를 읽습니다.
 3. package/impact rule을 추가하기 전에 [`architecture/rules/README.md`](https://github.com/mineclover/context-action/blob/main/architecture/rules/README.md)를 읽습니다.
 4. review 중에는 changed/staged/range report를 사용합니다.
 5. 심볼 한계, 의도적인 LSP 경계, roadmap 판단은 [구현 review](https://github.com/mineclover/context-action/blob/main/architecture/implementation-review.md)에서 확인합니다.

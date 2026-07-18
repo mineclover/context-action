@@ -177,6 +177,25 @@ anchor, node, edge, group member는 모두 정확히 같은 심볼 identity를 �
 | `workflow` | `command`, `step` | v1 미지원 | command → step → external effect → next step |
 | `document` | `definition`, `reference` | v1 미지원 | document definition → referenced symbol → implementation/test |
 
+## Context-Action mapping
+
+manifest는 generic scope model과 Context-Action runtime 계층을 연결하는 bridge입니다. snapshot의
+동일한 `SymbolRef`를 재사용하고 graph role만 부여하므로 심볼 identity를 바꾸지 않습니다.
+
+| Context-Action 계층 | ContextScope profile/role | 증거 경계 |
+| --- | --- | --- |
+| View/Page | `screen.root`, `view` | manifest anchor; SEM 구조적 dependent |
+| Action dispatch | `transaction.trigger`, `command` | manifest anchor와 선언 edge |
+| Handler / business | `transaction.controller`, `step` | manifest anchor와 선언 edge |
+| Store read/write | `state-read`, `state-write` | manifest 선언; 추후 provider별 증거 |
+| Hook / selector | `state-read` 또는 영향받는 `view` | manifest 선언 |
+
+초기 screen adapter 다음에는 Context-Action과 직접 연결되는 첫 확장으로
+`action → handler/business → store write → selector 또는 hook → affected view`를 표현하는
+transaction profile을 우선합니다. screen profile은 읽기 중심의 view 경계를 보완합니다. 이 mapping은
+작성된 의도이며, SEM이 구조적 `depends-on`만으로 `renders`, `reads`, `writes` 의미를 증명한다는
+뜻은 아닙니다.
+
 첫 adapter에서 SEM은 `depends-on` edge만 생성한다. `renders`, `reads`, `writes` 같은 의미론적 edge는
 manifest가 stable declaration ID와 함께 선언하거나, 추후 versioned provider가 증거를 제공할 때만
 허용한다. v1 계약에는 `inferred` evidence source가 없다. 일반적인 `depends-on`은 구조적 증거로
