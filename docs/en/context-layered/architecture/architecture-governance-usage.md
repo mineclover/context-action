@@ -1,9 +1,13 @@
 # Architecture Governance Usage
 
-This guide is the shortest path from a repository checkout to a reproducible Samdocs symbol
-catalog. Use the [architecture governance overview](./architecture-governance) for concepts and
+This guide is the shortest path from a repository checkout to a reproducible Architecture Governance
+symbol catalog. Use the [architecture governance overview](./architecture-governance) for concepts and
 the [package README](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md)
 for the complete API and contract reference.
+
+This is a Context-Action convention PoC: use it to validate repository-local authored rules and evidence,
+not as a generic architecture analyzer or a documentation generator. `sem-doc` remains the separate
+Symbol Context SSOT for work-context and document bindings.
 
 ## 1. Prepare the repository
 
@@ -33,7 +37,7 @@ architecture/
 
 An `implementationAnchors` entry uses a SEM top-level identity such as
 `packages/foo/src/api.ts::function::createApi`. Keep the capability ID stable when a symbol is
-renamed or moved. Add a role comment near the implementation and connect the same capability to its
+renamed or moved. Add the registry `role` and an implementation-adjacent role comment, then connect the same capability to its
 specification, representative test, and public documentation.
 
 ## 3. Run the checks
@@ -147,17 +151,62 @@ Inputs are either `{ "id": "screen", "symbols": [...] }` or a history snapshot w
 `{ "snapshot": { ... } }`. The result has deterministic `intersection`, `onlyLeft`, and
 `onlyRight` sets. Membership can overlap; the original symbol identity is not duplicated.
 
-## 6. Use sem-doc for document context
+## 6. Generate a ContextScope
 
-`sem-doc` is a separate private PoC for combining SEM relationships with Git and TSDoc bindings:
+`context-scope` validates one revision-bound manifest against a complete symbol snapshot. The CLI
+projects manifest anchors and declared edges; the library API additionally accepts bounded SEM
+`depends-on` evidence. It never turns the manifest into an `arch:check` capability input.
+
+Every revision field provided by the manifest must match the corresponding snapshot field:
+
+```json
+{
+  "schemaVersion": 1,
+  "revision": { "gitHead": "<the gitHead from the snapshot>" },
+  "contexts": [{
+    "id": "dashboard",
+    "kind": "screen",
+    "anchors": [{
+      "role": "root",
+      "symbol": {
+        "projectId": "example",
+        "filePath": "example/src/Dashboard.tsx",
+        "entityId": "example/src/Dashboard.tsx::function::Dashboard"
+      }
+    }]
+  }]
+}
+```
+
+```bash
+node packages/architecture-governance/dist/cli.js context-scope \
+  --root . \
+  --snapshot reports/symbol-snapshot.json \
+  --manifest architecture/contexts.json \
+  --context dashboard \
+  --format json \
+  --output reports/dashboard-context-scope.json
+```
+
+The output is `context-action/context-scope@1.0`. `status.invalid` means an anchor or revision is
+invalid; `status.incomplete` means a configured graph limit or requested evidence was unavailable.
+The serialized node key is JSON-safe and derived from the existing `projectId/filePath/entityId` tuple.
+The current CLI consumes explicit manifest edges; SEM dependency projection is available through
+`createContextScope({ semAnalyses })` and remains structural rather than a runtime call graph.
+
+## 7. Use sem-doc for document context (separate package)
+
+`@context-action/sem-doc` is a separate private workspace package for combining SEM relationships with
+Git and TSDoc bindings. It is not an Architecture Governance dependency, verification report, or registry
+implementation:
 it resolves the workspace-installed sem binary by default, including when analysis changes the
 subprocess cwd to the repository root. Set `SEM_BIN` only to test a different executable.
 
 ```bash
-pnpm --filter @tsdoc-edge/sem-doc build
+pnpm --filter @context-action/sem-doc build
 
 # Context for one top-level entity, including dependent files and document backlinks.
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js \
+pnpm --filter @context-action/sem-doc exec node dist/cli.js \
   work-context SemClient \
   --file src/sem-client.ts \
   --docs-root spec \
@@ -165,11 +214,11 @@ pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js \
   --json
 
 # Git working-tree evidence, including untracked files.
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js diff --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
 
 # Index and validate exact document-to-entity bindings.
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
 ```
 
 Use `--depth 1` for direct relationships and `--depth 2` for a bounded transitive view. The
@@ -177,6 +226,8 @@ Use `--depth 1` for direct relationships and `--depth 2` for a bounded transitiv
 reference location, runtime call graph, or function-call count. See the
 [`sem-doc` README](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)
 for document frontmatter and `sem-doc-work-context.v4` details.
+For the decision table and prohibited report/contract conflations, see the
+[sem-doc and Architecture Governance boundary guide](./sem-doc-architecture-governance-boundary).
 
 ## Output and exit codes
 

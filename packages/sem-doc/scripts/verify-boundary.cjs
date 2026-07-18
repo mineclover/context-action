@@ -6,6 +6,10 @@ const path = require('node:path');
 
 const repositoryRoot = path.resolve(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(repositoryRoot, 'package.json'), 'utf8'));
+const allowedRuntimeDependencies = new Set([
+  '@sem-foundation/contracts',
+  '@sem-foundation/repository',
+]);
 const runtimeDependencies = Object.keys({
   ...(packageJson.dependencies ?? {}),
   ...Object.fromEntries(
@@ -13,10 +17,10 @@ const runtimeDependencies = Object.keys({
       ([name]) => !name.startsWith('@sem-foundation/')
     )
   ),
-});
+}).filter((name) => !allowedRuntimeDependencies.has(name));
 if (runtimeDependencies.length > 0) {
   throw new Error(
-    `sem-doc must keep sem as its external runtime engine; unexpected runtime dependencies: ${runtimeDependencies.join(', ')}`
+    `sem-doc must keep sem as its external runtime engine and only use Foundation runtime contracts; unexpected runtime dependencies: ${runtimeDependencies.join(', ')}`
   );
 }
 
@@ -34,7 +38,7 @@ if (violations.length > 0) {
 }
 
 process.stdout.write(
-  `sem-doc boundary verified: external sem engine, no ttsc/LSP runtime imports (${sourceFiles.length} source files)\n`
+  `sem-doc boundary verified: external sem engine, Foundation contracts, and no ttsc/LSP runtime imports (${sourceFiles.length} source files)\n`
 );
 
 function collectTypeScriptFiles(directory) {

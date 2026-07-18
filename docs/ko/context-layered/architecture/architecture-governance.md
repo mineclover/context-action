@@ -1,15 +1,22 @@
 # 아키텍처 거버넌스와 증거
 
-Samdocs는 명시적으로 이름을 붙인 심볼, 역할 설명, 정의 위치를 관리합니다. Context-Action은 이
-관계를 작은 repository-local registry로 유지하고, SEM 구조 증거로 한 번에 수집·검증합니다.
+이 repository에서 Architecture Governance는 **Context-Action convention 기반의 실험적 규칙형
+architecture·문서 evidence 관리 패키지**입니다. authored registry와 policy 선언을 SEM/Git 증거와
+결합해 검사·snapshot·review artifact로 만들며, 범용 architecture 추론 엔진이나 Markdown/API 문서
+편집기, TypeDoc 또는 `sem-doc`의 대체재가 아닙니다.
+
+Architecture Governance는 명시적으로 이름을 붙인 심볼, 역할 설명, 정의 위치를 관리합니다. Context-Action은
+이 관계를 작은 repository-local registry로 유지하고, SEM 구조 증거로 한 번에 수집·검증합니다. 별도
+패키지인 `@context-action/sem-doc`은 작업 컨텍스트와 TSDoc/Git evidence를 준비하며 이 registry gate가
+아닙니다.
 
 ## 기준 산출물
 
 | 산출물 | 책임 |
 | --- | --- |
-| `architecture/registry.json` | capability identity(`CA-*`), owner, 정의 anchor, evidence, policy 연결 |
+| `architecture/registry.json` | capability identity(`CA-*`), owner, authored role, 정의 anchor, evidence, policy 연결 |
 | `architecture/rules/*.json` | package 선언과 SEM impact 경계 |
-| `architecture/contexts.json` *(planned)* | revision에 묶인 context 의도, 완전한 anchor identity, 명시적으로 선언한 의미론 edge |
+| `architecture/contexts.json` *(optional)* | revision에 묶인 context 의도, 완전한 anchor identity, 명시적으로 선언한 의미론 edge |
 | `packages/architecture-governance` | registry loader, SEM adapter, verifier, report 계약, CLI |
 | Verification report | working tree, staged set, commit range별 evidence와 finding |
 
@@ -28,7 +35,7 @@ catalog에서는 다음 세 가지 식별자를 의도적으로 분리합니다.
 여러 구현 심볼을 가질 수 있고, 하나의 심볼이 여러 context scope에 참여할 수 있습니다.
 
 이 도구는 architecture를 자동 추론하는 엔진이 아니라 symbol catalog gate입니다. 작성자가 symbol과
-역할 주석을 선언하고, SEM은 정의 위치를 제공하며, test runner는 동작을 검증하고, 문서 시스템은
+registry의 authored role(및 심볼 옆 역할 주석)을 선언하고, SEM은 정의 위치를 제공하며, test runner는 동작을 검증하고, 문서 시스템은
 공개 설명을 소유합니다.
 
 명령을 순서대로 실행하는 방법은 [아키텍처 거버넌스 사용 방법](./architecture-governance-usage)을
@@ -110,18 +117,11 @@ canonical `entityId`로 식별하고 결과는 deterministic한 `intersection`, 
 집합으로 출력합니다. 이 기능은 구조적 심볼 집합 연산이며 호출 그래프나 runtime data flow를
 분석하지 않습니다. `history`가 만든 완전한 snapshot을 입력으로 재사용할 수 있습니다.
 
-다음으로 계획된 파생 뷰는 `ContextScope`입니다. 첫 slice는 같은 revision의 context manifest를
-읽고 완전한 snapshot 위에 제한된 하위 그래프를 만드는 screen adapter입니다. 이 slice에서 SEM은
-구조적 `depends-on` 증거만 제공하며, 의미론 edge는 명시적인 manifest 선언 또는 별도의 증거 계약을
-갖춘 추후 provider가 있어야 합니다. Context group은 기존 project/file/entity identity를 감싸는 겹칠
-수 있는 멤버십이므로 공유 심볼의 identity를 복제하지 않습니다. 해당 CLI가 생기기 전까지
-`architecture/contexts.json`은 `arch:check`의 입력이 아닙니다. [ContextScope 심볼 그래프 설계](./context-scope-graph)에서 계약,
-profile 제공 범위, edge 의미, 완전성 규칙, renderer 경계를 정의합니다.
-
-Context-Action role mapping, manifest 소유권, 계획된 `screen`/`transaction` profile은
-[ContextScope 심볼 그래프 설계](./context-scope-graph)에서 한 번만 정의합니다. 이 문서는
-ContextScope가 complete snapshot 위의 파생 뷰이며 CLI가 생기기 전까지 `arch:check` 입력이 아니라는
-원칙만 설명합니다.
+`context-scope`는 실행 가능한 derived-view 명령입니다. revision에 묶인 manifest를 complete
+snapshot과 대조하고 명시적 manifest edge를 출력하며, library API에서는 bounded SEM `depends-on`
+증거를 추가할 수 있습니다. `arch:check`와는 분리되어 있으며 manifest가 capability registry로
+암묵적으로 사용되지는 않습니다. 계약은 [ContextScope 심볼 그래프 설계](./context-scope-graph),
+실행 방법은 [사용 방법](./architecture-governance-usage)에서 관리합니다.
 
 특정 project만 집중 검사할 때는 workspace package를 먼저 빌드한 뒤 CLI를 직접 실행할 수 있습니다.
 
@@ -138,13 +138,19 @@ node packages/architecture-governance/dist/cli.js check \
 지원 provider identity는 `sem 0.21.0`으로 고정되어 있습니다. provider version이 다르면 자동으로
 업그레이드하지 않고 검증 실패로 처리합니다.
 
-## Samdocs 범위
+## Architecture Governance 범위
+
+이 패키지는 convention 실험장입니다. 규칙은 이 Context-Action repository를 대상으로 authored되며
+decision 문서를 통해 바뀔 수 있습니다. Foundation은 정책 중립적인 identity·path·provenance·Git
+primitive만 제공하고, capability·role·evidence·boundary의 의미는 repository-local architecture
+source가 소유합니다.
 
 기본 단위는 class, function 또는 다른 top-level entity 같은 명시적 심볼입니다. 역할 주석은 그
 심볼이 왜 존재하는지 설명하고, catalog는 `SymbolRef`, 정의 위치, 구조적으로 사용하는 파일을 기록합니다. `SymbolRef`가
 중복되거나 정의 위치가 모호하면 review finding으로 처리합니다. 현재 PoC에서는 역할 주석을 심볼
-옆에 작성하고 registry와 함께 review하며, 자동 `@samdocs`/`@role` comment 수집은 다음 collector
-단계입니다. 이것은 LSP 호출 그래프 기능과는 별개의 범위입니다.
+옆에 작성하고 registry와 함께 review합니다. 이 PoC에서 기계 판독 가능한 책임 선언은 registry의
+`role` field이며, 자동 `@role` comment 수집은 다음 collector 단계입니다. 이것은 LSP 호출
+그래프 기능과는 별개의 범위입니다.
 
 ## Gate가 검증하는 것
 
@@ -158,7 +164,7 @@ node packages/architecture-governance/dist/cli.js check \
 
 ## Gate가 증명하지 않는 것
 
-Samdocs는 내부 함수 호출 횟수·호출 순서·runtime data flow를 의도적으로 세지 않습니다. 이 부분은
+Architecture Governance는 내부 함수 호출 횟수·호출 순서·runtime data flow를 의도적으로 세지 않습니다. 이 부분은
 LSP 수준의 language analysis 영역이며 현재 lightweight catalog 범위 밖입니다. SEM impact는 심볼별
 `usageFiles`를 제공하지만 구조적인 파일 단위 신호일 뿐 reflection, dynamic loading, business correctness, 또는 역할 주석이
 제품 의도를 올바르게 표현했는지를 증명하지 않습니다. 동작 테스트, owner review, 공개 문서를 서로
@@ -166,6 +172,30 @@ LSP 수준의 language analysis 영역이며 현재 lightweight catalog 범위 �
 외부 semver 고정은 별도 release gate로 남겨둡니다. Git revision/history/worktree lifecycle과
 과거 `analysisProjects` traversal은 정책 중립적인 `@sem-foundation/repository` runtime이 제공하고,
 SEM 분석과 report policy는 소비자가 소유합니다.
+
+## sem-doc과의 관계
+
+`@context-action/sem-doc`과 Architecture Governance는 SEM과 공통 Foundation package를 나란히
+소비합니다. 편집 전에 어떤 구현·문서 binding·affected test·Git hunk를 확인할지는 sem-doc이
+담당하고, authored capability evidence·package/impact policy·complete revision snapshot·history
+diff·`ContextScope` manifest 검증은 Architecture Governance가 담당합니다. 어느 report도 다른 report의
+입력으로 암묵 승격되지 않으며 두 패키지는 runtime 의존성을 갖지 않습니다. 결정표와 금지할 혼용은
+[경계 가이드](./sem-doc-architecture-governance-boundary)를 참고하세요.
+
+## 문서 시스템의 책임 분리
+
+저장소 문서 시스템은 하나의 generator를 기반으로 하지 않고 계층별로 나뉩니다.
+
+| 문서 concern | SSOT / owner | 파생·소비처 |
+| --- | --- | --- |
+| architecture intent, capability, owner, role, policy, evidence | Architecture Governance registry와 report | architecture guide, CI/reviewer artifact |
+| 공개 TypeScript API signature와 JSDoc 페이지 | TypeDoc 설정과 exported source | TypeDoc Markdown, VitePress, `typedoc-vitepress-sync` |
+| 심볼 중심 작업 컨텍스트와 문서 binding | sem-doc versioned report | 구현자/agent context, 선택적 문서 enrichment |
+| 테스트 기반 예제와 LLMS summary | `test-driven-docs` / `llms-generator` source | 파생 example·training artifact |
+
+따라서 Architecture Governance는 architecture 문서와 evidence 관리를 받치는 기반이지만 모든
+공개·파생 문서를 생성하지는 않습니다. sem-doc은 여기에 컨텍스트 link를 보강할 수 있지만 두 번째
+API 문서 generator가 되어서는 안 됩니다.
 
 ## Report와 실패 의미
 

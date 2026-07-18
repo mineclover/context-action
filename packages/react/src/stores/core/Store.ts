@@ -101,6 +101,8 @@ export class Store<T = unknown> implements IStore<T> {
   // 🚀 requestAnimationFrame 기반 알림 시스템
   private animationFrameId: number | null = null;
   private pendingUpdatesCount = 0; // 누적된 업데이트 수 추적
+  // Batched patch-aware notifications must retain every transition in the frame
+  private pendingPatches: Patches | null = null;
   
   // 🧹 Advanced Cleanup and Memory Management
   private cleanupTasks = new Set<() => void>();
@@ -225,8 +227,10 @@ export class Store<T = unknown> implements IStore<T> {
   /**
    * Get the patches from the last state change
    *
-   * Returns the JSON patches that describe the most recent update,
-   * or null if no patches are available (e.g., initial state or full replacement).
+   * Returns the JSON patches that describe the most recent update. When the
+   * store batches notifications, this contains the concatenated patches for
+   * every transition included in the pending frame. Returns null if no patches
+   * are available (e.g., initial state or full replacement).
    *
    * @returns Array of JSON patches or null
    */
@@ -709,6 +713,8 @@ export class Store<T = unknown> implements IStore<T> {
         this.animationFrameId = null;
       }
       this.pendingNotification = false;
+      this.pendingPatches = null;
+      this.pendingUpdatesCount = 0;
       
       // Clear update queue
       this.updateQueue.length = 0;
@@ -863,6 +869,15 @@ export class Store<T = unknown> implements IStore<T> {
   private _scheduleWithRAF(): void {
     // 누적된 업데이트 수 증가 (모든 호출을 추적)
     this.pendingUpdatesCount++;
+
+    // Preserve all transition patches until the batched notification runs.
+    // `_lastPatches` is updated by each state change, so forwarding it directly
+    // would drop every patch except the final update in the frame.
+    if (this._lastPatches) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(this._lastPatches)
+        : this._lastPatches;
+    }
     
     // 스케줄된 알림이 없을 때만 새로운 프레임 요청
     if (!this.pendingNotification) {
@@ -883,6 +898,11 @@ export class Store<T = unknown> implements IStore<T> {
   private _executeNotification(): void {
     this.pendingNotification = false;
     this.animationFrameId = null;
+
+    if (this.pendingPatches) {
+      this._lastPatches = this.pendingPatches;
+      this.pendingPatches = null;
+    }
     
     // 누적된 업데이트 수 리셋하고 로깅 (디버깅용)
     const batchedUpdates = this.pendingUpdatesCount;
@@ -951,6 +971,11 @@ export class Store<T = unknown> implements IStore<T> {
   private _notifyListeners(): void {
     if (this.isDisposed) return;
 
+    // Snapshot the patches for this notification. A regular listener may
+    // synchronously trigger another update, which must not rewrite the patch
+    // payload delivered to patch-aware listeners for the current transition.
+    const notifiedPatches = this._lastPatches;
+
     // Notify regular listeners
     this.listeners.forEach(listener => {
       if (this.isDisposed) return; // Double-check during iteration
@@ -961,7 +986,7 @@ export class Store<T = unknown> implements IStore<T> {
     this.patchAwareListeners.forEach(listener => {
       if (this.isDisposed) return;
       try {
-        listener(this._lastPatches);
+        listener(notifiedPatches);
       } catch (error) {
         ErrorHandlers.store(
           'Error in patch-aware listener execution',
@@ -1000,4 +1025,3 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
   
   return store;
 }
-

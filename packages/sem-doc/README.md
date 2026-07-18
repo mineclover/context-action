@@ -1,13 +1,36 @@
-# @tsdoc-edge/sem-doc
+# @context-action/sem-doc
 
 `sem-doc` is a private workspace package and sem-centered analysis tool for answering what context
-an engineer needs before changing TypeScript code. It combines sem's semantic graph with TSDoc
-document links and a revision-pinned Git diff.
+an engineer needs before changing TypeScript code. It combines sem's semantic graph with a TSDoc-style
+Markdown document convention and a revision-pinned Git diff.
+
+The workspace identity is now `@context-action/sem-doc`. The former
+`@tsdoc-edge/sem-doc` name is retained only in the changelog as migration history;
+publish/release integration remains deferred.
 
 The specification is in [spec/sem-doc.md](spec/sem-doc.md).
 
-For a repository-level walkthrough that combines `architecture-governance` and `sem-doc`, see the
-[Architecture Governance Usage guide](../../docs/en/context-layered/architecture/architecture-governance-usage.md).
+`sem-doc` is not the `@context-action/architecture-governance` registry or verification gate. The two
+packages may share SEM/Foundation primitives but keep independent report contracts and runtime
+dependencies. Use the [boundary guide](../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)
+to choose the right tool; the [Architecture Governance Usage guide](../../docs/en/context-layered/architecture/architecture-governance-usage.md)
+only documents the side-by-side workflow.
+
+In that split, `sem-doc` is the operational Context Plane: it resolves symbols, work context, document
+bindings, and Git change evidence. It does not author or evaluate the Context-Action architecture convention;
+that experimental control-plane responsibility belongs to `architecture-governance`.
+
+## Symbol Context SSOT
+
+`sem-doc-work-context.v4` is the SSOT for a symbol-centered work context: target identity, bounded
+relationships, dependent files, affected tests, SEM provenance, Git revision, and document
+definitions/backlinks. Consumers should reuse this serialized report instead of issuing duplicate
+impact/context queries or rebuilding document bindings.
+
+This does not make sem-doc the architecture registry or API documentation source. Capability intent,
+owner/role evidence, package policy, complete snapshots, history, and `ContextScope` belong to
+`@context-action/architecture-governance`; signatures and public API pages remain in the TypeDoc
+pipeline.
 
 ## Scope
 
@@ -19,11 +42,15 @@ For a repository-level walkthrough that combines `architecture-governance` and `
 - Provides `sem-doc-git-diff.v1` with Git status, hunks, additions/deletions, and revision provenance.
 - Limits semantic diff decisions to typed changes emitted by sem; native Git hunks remain factual
   evidence rather than semantic classification.
-- Keeps sem entity IDs and revisions separate from a `ttsc` canonical graph.
+- Keeps sem entity IDs and revisions separate from any compiler-resolved canonical graph.
 - Exposes `foundationSymbolSnapshotEntry` so parsed entities can be handed to the shared
-  `context-action/symbol-snapshot@1.1` serializer without adding an LSP or second AST index.
+  `context-action/symbol-snapshot@1.1` serializer without adding an LSP or second AST index. The
+  conversion is delegated to the required canonical `@sem-foundation/contracts`
+  `createSymbolSnapshotEntry` primitive.
 - Rejects repository-outside paths, stale revisions, malformed JSON, and invalid semantic ranges/counts.
 - Does not attempt a complete inventory of function-local functions, constants, variables, or parameters.
+- Does not embed the `@microsoft/tsdoc` parser; document bindings use the package's Markdown/frontmatter
+  convention.
 - Does not implement an LSP server, unsaved-overlay analysis, or mutating CodeAction.
 
 Sem-derived output is advisory evidence. A caller must make a separate policy decision before
@@ -32,16 +59,18 @@ promoting it to a canonical graph or lint violation.
 ## Install and run
 
 `sem-doc` requires Node.js 24. The private workspace pins the `@ataraxy-labs/sem` development
-wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` resolves
-that package-local binary by default, even when work-context changes the subprocess cwd to the Git
-repository root, and invokes it as an external read-only process. Set `SEM_BIN` only when using a
-different binary. Publishing and release automation are intentionally disabled during the PoC.
+wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` also
+requires `@sem-foundation/contracts` and `@sem-foundation/repository` at runtime for canonical symbol
+and Git revision contracts. It resolves the package-local binary by default, even when work-context
+changes the subprocess cwd to the Git repository root, and invokes it as an external read-only
+process. Set `SEM_BIN` only when using a different binary. Publishing and release automation are
+intentionally disabled during the PoC.
 
 ```bash
 pnpm install
-pnpm --filter @tsdoc-edge/sem-doc build
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --docs-root spec --json
-pnpm --filter @tsdoc-edge/sem-doc verify:poc
+pnpm --filter @context-action/sem-doc build
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --docs-root spec --json
+pnpm --filter @context-action/sem-doc verify:poc
 ```
 
 To use a different sem executable for the direct CLI commands below, run from the `context-action`
@@ -55,16 +84,16 @@ export SEM_BIN="$PWD/packages/sem-doc/node_modules/.bin/sem"
 
 ```bash
 # HEAD vs working tree, including untracked files
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js diff --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
 
 # Native Git diff for selected paths
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js diff src spec --context 1
+pnpm --filter @context-action/sem-doc exec node dist/cli.js diff src spec --context 1
 
 # HEAD vs index; untracked files are excluded by default
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js diff --staged --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --staged --json
 
 # Raw sem semantic diff remains explicit
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js sem-diff --format json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js sem-diff --format json
 ```
 
 `sem-doc diff` records the Git HEAD, an on-disk working-tree digest, file status, hunks, and
@@ -82,16 +111,16 @@ and retain the aggregate budget across version, impact, and context calls.
 
 ```bash
 # Complete 2-hop symbol inventory, token-budgeted context, and document backlinks
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --docs-root spec
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --docs-root spec
 
 # Direct relationships only
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --depth 1
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --depth 1
 
 # Index TSDoc H1 [[Symbol]] definitions and backlinks
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs index spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
 
 # Validate declared SSOT bindings against the current sem entity catalog
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
 ```
 
 `--depth` accepts only 1 or 2 and is passed to both sem impact traversal and context `--hops`.
@@ -136,10 +165,10 @@ symbol. It is a structural file-level signal, not exact reference locations or a
 
 ```bash
 # Adapter/orchestration baseline with fake sem
-pnpm --filter @tsdoc-edge/sem-doc benchmark:scope
+pnpm --filter @context-action/sem-doc benchmark:scope
 
 # Real sem engine measurement
-SEM_BIN=/path/to/sem pnpm --filter @tsdoc-edge/sem-doc benchmark:scope
+SEM_BIN=/path/to/sem pnpm --filter @context-action/sem-doc benchmark:scope
 ```
 
 The lane measures individual 1-hop and 2-hop work-context, separate 1+2-hop queries, one shared
@@ -151,18 +180,18 @@ interpreted as real sem engine performance. The diff and benchmark decision is r
 ## Development and verification
 
 ```bash
-pnpm --filter @tsdoc-edge/sem-doc typecheck
-pnpm --filter @tsdoc-edge/sem-doc verify:boundary
-pnpm --filter @tsdoc-edge/sem-doc lint
-pnpm --filter @tsdoc-edge/sem-doc build
-pnpm --filter @tsdoc-edge/sem-doc verify:pack
-pnpm --filter @tsdoc-edge/sem-doc test
+pnpm --filter @context-action/sem-doc typecheck
+pnpm --filter @context-action/sem-doc verify:boundary
+pnpm --filter @context-action/sem-doc lint
+pnpm --filter @context-action/sem-doc build
+pnpm --filter @context-action/sem-doc verify:pack
+pnpm --filter @context-action/sem-doc test
 
 # Use the pinned repository binary
-pnpm --filter @tsdoc-edge/sem-doc verify:poc
+pnpm --filter @context-action/sem-doc verify:poc
 
 # Or override it with another sem build
-SEM_BIN=/path/to/sem pnpm --filter @tsdoc-edge/sem-doc verify:poc
+SEM_BIN=/path/to/sem pnpm --filter @context-action/sem-doc verify:poc
 ```
 
 `context-action/packages/sem-doc` is the implementation home for the private PoC. The former

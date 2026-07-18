@@ -2,9 +2,10 @@
 
 ## Status and purpose
 
-This document defines the design for grouping symbols by a meaningful context. It is a design
-contract for the next Samdocs/architecture-governance PoC; it is not a claim that the graph artifact or
-renderer is already implemented.
+This document defines the contract for grouping symbols by a meaningful context. The revision-bound
+manifest parser, `context-scope` CLI projection, JSON Schemas, and library-level bounded SEM dependency
+projection are implemented in the current PoC. A renderer and API/transaction-specific adapters remain
+future work.
 
 The first delivered slice is a screen: a screen is an entry symbol and the symbols structurally used by
 that screen are displayed inside a larger visual boundary. The durable model is designed to support an
@@ -36,7 +37,7 @@ interface SymbolRef {
   entityId: string;
 }
 
-/** Derived with the existing symbolSetKey(SymbolRef); never authored as a second ID. */
+/** Derived with the JSON-safe foundation symbolRefKey(SymbolRef); never authored as a second ID. */
 type SymbolKey = string;
 
 interface ContextScope {
@@ -160,7 +161,7 @@ interface DeclaredContextEdge {
 ```
 
 `SymbolRef` is the existing canonical symbol identity: `projectId`, `filePath`, and `entityId` are the
-identity tuple. `SymbolKey` is the deterministic serialization already used for that tuple; it is not a
+identity tuple. `SymbolKey` is the JSON-safe deterministic serialization for that tuple; it is not a
 new authored identity. Anchors, nodes, edges, and group members must therefore resolve against exactly
 the same symbol identity. A group is a view boundary, not a symbol. Group membership can overlap, so a
 shared symbol is referenced by multiple groups without duplicating its canonical node.
@@ -216,6 +217,7 @@ IDs must be unique within the manifest:
 ```json
 {
   "schemaVersion": 1,
+  "revision": { "gitHead": "<snapshot gitHead>" },
   "contexts": [
     {
       "id": "dashboard",
@@ -324,23 +326,27 @@ highlights its members; selecting a shared node lists every context that contain
 colors, hierarchy projection, and collapsed state belong to the renderer or a presentation artifact, not
 to the canonical symbol snapshot.
 
-## Relationship to current Samdocs boundaries
+## Relationship to Architecture Governance boundaries
 
-The current Samdocs scope remains symbol identity, definition location, role documentation, usage files,
-and revision history. `ContextScope` is a derived view over that catalog. It does not change the
-lightweight LSP boundary and does not claim to prove business correctness, runtime behavior, or call
-counts.
+The current Architecture Governance scope remains authored capability identity, symbol identity,
+definition location, role evidence, usage files, and revision history. `ContextScope` is a derived view
+over that catalog. It does not change the lightweight LSP boundary and does not claim to prove business
+correctness, runtime behavior, or call counts. Document checkpoints, TSDoc backlinks, and working-tree
+context remain the responsibility of the separate `@context-action/sem-doc` package.
 
 ## Implementation sequence
 
-1. Add the versioned `SymbolRef`, derived `SymbolKey`, `ContextScope`, manifest, and status contracts to
-   Foundation, including JSON schemas and deterministic normalizers.
+1. Add the versioned `SymbolRef` and derived `SymbolKey` to Foundation, then expose the `ContextScope`,
+   manifest, and status contracts from architecture-governance with JSON schemas and deterministic
+   normalizers. **Implemented in the PoC.**
 2. Add a repository-local context manifest under `architecture/`; validate complete anchor identities,
-   profile roles, declared-edge IDs, and same-revision loading.
-3. Implement only the screen adapter: SEM `depends-on` evidence plus manifest-declared edges. Fix its
-   output with complete, invalid, and every incomplete-reason fixture.
-4. Expose a JSON-producing graph command and schema export before choosing a renderer. Verify repeated
-   bounded traversals produce byte-identical output.
+   profile roles, declared-edge IDs, and same-revision loading. **Implemented as a loader/CLI input
+   contract; a checked-in `contexts.json` is optional.**
+3. Implement only the screen adapter: SEM `depends-on` evidence plus manifest-declared edges. **Manifest
+   projection is available in the CLI; bounded SEM dependency projection is available through the library
+   API.**
+4. Expose a JSON-producing graph command and schema export before choosing a renderer. **Implemented as
+   `context-scope` with deterministic sorting; renderer selection remains future work.**
 5. Add API and transaction adapters only after their provider/manifest evidence has a tested edge mapping;
    reject workflow and document profiles until their adapters exist.
 6. Add the compound graph UI and interaction evidence after the serialized contract is stable, then extend

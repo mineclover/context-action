@@ -51,6 +51,12 @@ pnpm dev  # Opens example app at http://localhost:5173
 
 ## 🏗️ Project Structure
 
+Package ownership and cross-package dependency rules are defined in the
+[Package Boundary and Codebase Management Convention](docs/en/context-layered/package-boundary-convention.md).
+Use that guide before adding a package, moving a file across package roots, or
+introducing a shared utility. The package README is the discovery entry point;
+the linked guide, schema, or API source remains authoritative.
+
 ```
 context-action/
 ├── packages/

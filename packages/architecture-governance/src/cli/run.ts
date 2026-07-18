@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   lstat,
   mkdir,
   open,
+  readFile,
   realpath,
   rename,
   unlink,
@@ -19,6 +20,13 @@ import type {
   SemProjectAnalysis,
   VerificationReport,
 } from '../contracts.js';
+import {
+  createContextScope,
+  parseContextManifest,
+  renderContextScopeConsole,
+  renderContextScopeJson,
+  renderContextScopeMarkdown,
+} from '../context-scope.js';
 import {
   diagnosticErrorMessage,
   diagnosticSystemErrorCode,
@@ -580,6 +588,67 @@ export async function runCli(
         protectedInputPaths: [leftPath, rightPath],
       });
       io.stdout(`Wrote symbol snapshot diff to ${path.relative(root, outputPath)}\n`);
+      return 0;
+    }
+    if (options.command === 'context-scope') {
+      const snapshotPath = await requireExistingRepositoryPath(
+        root,
+        options.snapshot!,
+        'Context symbol snapshot',
+        'file',
+      );
+      const manifestPath = await requireExistingRepositoryPath(
+        root,
+        options.manifest!,
+        'Context manifest',
+        'file',
+      );
+      const snapshot = parseSymbolSnapshotDocument(
+        await readBoundedJsonFile(snapshotPath, {
+          label: 'Context symbol snapshot',
+          maxBytes: 4 * 1024 * 1024,
+        }),
+        'context symbol snapshot',
+      );
+      const manifest = parseContextManifest(
+        await readBoundedJsonFile(manifestPath, {
+          label: 'Context manifest',
+          maxBytes: 4 * 1024 * 1024,
+        }),
+      );
+      const manifestDigest = createHash('sha256')
+        .update(await readFile(manifestPath))
+        .digest('hex');
+      const manifestRelativePath = path.relative(root, manifestPath).split(path.sep).join('/');
+      const scope = createContextScope({
+        snapshot,
+        manifest,
+        contextId: options.context!,
+        manifestPath: manifestRelativePath,
+        manifestDigest,
+        ...(options.maxContextDepth === undefined ? {} : { maxDepth: options.maxContextDepth }),
+        ...(options.maxContextNodes === undefined ? {} : { maxNodes: options.maxContextNodes }),
+        ...(options.maxContextEdges === undefined ? {} : { maxEdges: options.maxContextEdges }),
+        ...(options.maxContextGroups === undefined ? {} : { maxGroups: options.maxContextGroups }),
+        onLimit: options.contextOnLimit,
+      });
+      const rendered = options.format === 'json'
+        ? renderContextScopeJson(scope)
+        : options.format === 'markdown'
+          ? renderContextScopeMarkdown(scope)
+          : renderContextScopeConsole(scope);
+      if (!outputPath) {
+        io.stdout(rendered);
+        return 0;
+      }
+      await assertOutputDoesNotAlias(outputPath, [snapshotPath, manifestPath]);
+      await writeReportAtomically({
+        root,
+        outputPath,
+        output: rendered,
+        protectedInputPaths: [snapshotPath, manifestPath],
+      });
+      io.stdout(`Wrote context scope to ${path.relative(root, outputPath)}\n`);
       return 0;
     }
     if (options.command === 'history') {

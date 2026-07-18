@@ -5,6 +5,7 @@
       "packages/core/src/**/*.ts",
       "packages/react/src/**/*.ts",
       "packages/react/src/**/*.tsx",
+      "packages/mutative-core/src/**/*.ts",
       "packages/mutative/src/**/*.ts",
       "packages/llms-generator/src/**/*.ts",
       "packages/typedoc-vitepress-sync/src/**/*.ts",
@@ -20,6 +21,35 @@
   "formatter": {
     "enabled": false
   },
+  "overrides": [
+    {
+      "includes": ["packages/mutative-core/src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noArguments": "off",
+            "noCommaOperator": "off",
+            "noUselessTypeConstraint": "off"
+          },
+          "correctness": {
+            "noSwitchDeclarations": "off",
+            "noUnusedVariables": "off"
+          },
+          "style": {
+            "useConst": "off"
+          },
+          "suspicious": {
+            "noConstEnum": "off",
+            "noConfusingVoidType": "off",
+            "noExplicitAny": "off",
+            "noPrototypeBuiltins": "off",
+            "noSelfCompare": "off",
+            "noShadowRestrictedNames": "off"
+          }
+        }
+      }
+    }
+  ],
   "linter": {
     "enabled": true,
     "rules": {

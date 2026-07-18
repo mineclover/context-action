@@ -9,7 +9,7 @@ import {
 import { hasVisibleText, isWellFormedText } from '../text.js';
 
 export interface CliOptions {
-  command: 'check' | 'snapshot' | 'history' | 'intersect' | 'snapshot-diff';
+  command: 'check' | 'snapshot' | 'history' | 'intersect' | 'snapshot-diff' | 'context-scope';
   root: string;
   registry: string;
   useSem: boolean;
@@ -21,6 +21,14 @@ export interface CliOptions {
   worktree: boolean;
   left?: string;
   right?: string;
+  snapshot?: string;
+  manifest?: string;
+  context?: string;
+  maxContextDepth?: number;
+  maxContextNodes?: number;
+  maxContextEdges?: number;
+  maxContextGroups?: number;
+  contextOnLimit: 'error' | 'incomplete';
   semCommand?: string;
   semTimeoutMs?: number;
   semMaxOutputBytes?: number;
@@ -44,6 +52,9 @@ const singletonValueOptions = new Set([
   '--commit',
   '--left',
   '--right',
+  '--snapshot',
+  '--manifest',
+  '--context',
   '--sem-command',
   '--sem-timeout-ms',
   '--sem-max-output-bytes',
@@ -53,13 +64,18 @@ const singletonValueOptions = new Set([
   '--max-snapshot-symbols',
   '--max-history-changes',
   '--max-history-commits',
+  '--max-context-depth',
+  '--max-context-nodes',
+  '--max-context-edges',
+  '--max-context-groups',
+  '--on-limit',
   '--format',
   '--output',
   '--fail-on',
 ]);
 
 export function usage(): string {
-  return `arch-verify <check|snapshot|history|intersect|snapshot-diff> [options]
+  return `arch-verify <check|snapshot|history|intersect|snapshot-diff|context-scope> [options]
 
 Options:
   --root <path>              Repository root (default: current directory)
@@ -74,6 +90,14 @@ Options:
   --worktree                 Snapshot the current worktree (default for snapshot)
   --left <path>              Left serialized symbol context/snapshot for comparison
   --right <path>             Right serialized symbol context/snapshot for comparison
+  --snapshot <path>          Complete symbol snapshot for context-scope
+  --manifest <path>          Revision-bound context manifest for context-scope
+  --context <id>             Context manifest entry to project
+  --max-context-depth <n>     Maximum SEM dependency traversal depth (default: 2)
+  --max-context-nodes <n>     Maximum derived context nodes
+  --max-context-edges <n>     Maximum derived context edges
+  --max-context-groups <n>    Maximum derived context groups
+  --on-limit <value>         error or incomplete (default: incomplete)
   --sem-command <path>       Override the sem command (or use SEM_COMMAND)
   --sem-timeout-ms <number>  Command and project impact timeout (default: 120000 or SEM_TIMEOUT_MS)
   --sem-max-output-bytes <n> Command and project impact output limit (default: 67108864 or SEM_MAX_OUTPUT_BYTES)
@@ -91,6 +115,7 @@ Options:
   snapshot emits one complete symbol snapshot for the current worktree or --commit ref
   intersect compares two serialized symbol contexts and reports their intersection
   snapshot-diff compares two complete symbol snapshots by project/file/entity identity
+  context-scope projects one manifest context over a complete snapshot; library API accepts SEM evidence
   --help                     Show this help
 
 Value options may be specified once. Repeat --project only with distinct IDs.
@@ -144,7 +169,7 @@ function semRefAfter(args: string[], index: number, option: string): string {
 export function parseArgs(argv: string[]): CliOptions | 'help' {
   if (argv.includes('--help') || argv.includes('-h')) return 'help';
   const command = argv[0];
-  if (command !== 'check' && command !== 'snapshot' && command !== 'history' && command !== 'intersect' && command !== 'snapshot-diff') {
+  if (command !== 'check' && command !== 'snapshot' && command !== 'history' && command !== 'intersect' && command !== 'snapshot-diff' && command !== 'context-scope') {
     throw new InputContractError(`Unsupported command: ${command ?? '(missing)'}`);
   }
   const options: CliOptions = {
@@ -155,6 +180,7 @@ export function parseArgs(argv: string[]): CliOptions | 'help' {
     changed: false,
     staged: false,
     worktree: false,
+    contextOnLimit: 'incomplete',
     projects: [],
     format: 'console',
     failOn: 'error',
@@ -189,6 +215,20 @@ export function parseArgs(argv: string[]): CliOptions | 'help' {
     else if (option === '--worktree') options.worktree = true;
     else if (option === '--left') options.left = valueAfter(argv, index++, option);
     else if (option === '--right') options.right = valueAfter(argv, index++, option);
+    else if (option === '--snapshot') options.snapshot = valueAfter(argv, index++, option);
+    else if (option === '--manifest') options.manifest = valueAfter(argv, index++, option);
+    else if (option === '--context') options.context = valueAfter(argv, index++, option);
+    else if (option === '--max-context-depth') options.maxContextDepth = positiveIntegerAfter(argv, index++, option);
+    else if (option === '--max-context-nodes') options.maxContextNodes = positiveIntegerAfter(argv, index++, option);
+    else if (option === '--max-context-edges') options.maxContextEdges = positiveIntegerAfter(argv, index++, option);
+    else if (option === '--max-context-groups') options.maxContextGroups = positiveIntegerAfter(argv, index++, option);
+    else if (option === '--on-limit') {
+      const value = valueAfter(argv, index++, option);
+      if (value !== 'error' && value !== 'incomplete') {
+        throw new InputContractError(`${option} must be error or incomplete`);
+      }
+      options.contextOnLimit = value;
+    }
     else if (option === '--sem-command') options.semCommand = valueAfter(argv, index++, option);
     else if (option === '--sem-timeout-ms') {
       options.semTimeoutMs = positiveIntegerAfter(argv, index++, option);
@@ -282,6 +322,36 @@ export function parseArgs(argv: string[]): CliOptions | 'help' {
     if (options.staged || options.projects.length > 0) {
       throw new InputContractError('history does not accept --staged or --project');
     }
+  }
+  const contextLimitProvided = options.maxContextDepth !== undefined
+    || options.maxContextNodes !== undefined
+    || options.maxContextEdges !== undefined
+    || options.maxContextGroups !== undefined
+    || options.contextOnLimit !== 'incomplete';
+  if (command !== 'context-scope' && (options.snapshot || options.manifest || options.context || contextLimitProvided)) {
+    throw new InputContractError('--snapshot, --manifest, --context, and context limits require the context-scope command');
+  }
+  if (command === 'context-scope' && (!options.snapshot || !options.manifest || !options.context)) {
+    throw new InputContractError('context-scope requires --snapshot, --manifest, and --context');
+  }
+  if (command === 'context-scope' && (
+    options.registry !== 'architecture/registry.json'
+    || options.useSem
+    || options.changed
+    || options.staged
+    || options.from
+    || options.to
+    || options.commit
+    || options.worktree
+    || options.semCommand
+    || options.semTimeoutMs
+    || options.semMaxOutputBytes
+    || options.projects.length > 0
+    || options.failOn !== 'error'
+  )) {
+    throw new InputContractError(
+      'context-scope accepts only --root, --snapshot, --manifest, --context, context limits, --format, and --output',
+    );
   }
   if (command === 'snapshot') {
     if (options.staged || options.from || options.to || options.changed) {

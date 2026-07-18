@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Moved sem-doc into `context-action/packages/sem-doc` as a private workspace package for the PoC.
+- Renamed the private workspace package from `@tsdoc-edge/sem-doc` to `@context-action/sem-doc`; the source path and CLI binary remain unchanged.
 - Deferred publish/release integration until the serialized symbol snapshot contract stabilizes.
 
 - Updated the work-context contract to `sem-doc-work-context.v4` with bounded-hop symbols,

@@ -3,7 +3,7 @@
   "version": "0.0.0-poc",
   "private": true,
   "type": "module",
-  "description": "Architecture intent and implementation evidence verification PoC",
+  "description": "Experimental Context-Action convention-driven architecture and documentation evidence governance PoC",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -16,7 +16,9 @@
     "./schemas/verification-report": "./schemas/verification-report.schema.json",
     "./schemas/symbol-snapshot": "./schemas/symbol-snapshot.schema.json",
     "./schemas/symbol-history": "./schemas/symbol-history.schema.json",
-    "./schemas/symbol-snapshot-diff": "./schemas/symbol-snapshot-diff.schema.json"
+    "./schemas/symbol-snapshot-diff": "./schemas/symbol-snapshot-diff.schema.json",
+    "./schemas/context-manifest": "./schemas/context-manifest.schema.json",
+    "./schemas/context-scope": "./schemas/context-scope.schema.json"
   },
   "bin": {
     "arch-verify": "./dist/cli.js"

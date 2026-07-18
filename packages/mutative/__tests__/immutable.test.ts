@@ -74,6 +74,40 @@ describe('Mutative Immutability Utilities', () => {
       expect(patches.length).toBeGreaterThan(0);
       expect(inversePatches.length).toBeGreaterThan(0);
     });
+
+    it('propagates freeze to the core auto-freeze contract', () => {
+      const nextState = produce(
+        { nested: { count: 0 } },
+        (draft) => {
+          draft.nested.count = 1;
+        },
+        { freeze: true }
+      );
+
+      expect(Object.isFrozen(nextState)).toBe(true);
+      expect(Object.isFrozen(nextState.nested)).toBe(true);
+    });
+
+    it('freezes replacement values when freeze is enabled', () => {
+      const nextState = produce(
+        { count: 0 },
+        () => ({ count: 1 }),
+        { freeze: true }
+      );
+
+      expect(nextState).toEqual({ count: 1 });
+      expect(Object.isFrozen(nextState)).toBe(true);
+    });
+
+    it('propagates strict replacement errors from the core', () => {
+      expect(() =>
+        produce(
+          { count: 0 },
+          () => ({ count: 1 }),
+          { strict: true }
+        )
+      ).toThrow(/strict/i);
+    });
   });
 
   describe('deepClone', () => {

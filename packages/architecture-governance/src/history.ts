@@ -2,6 +2,7 @@ import path from 'node:path';
 import {
   compareStableText,
   compareSymbolContexts,
+  createSymbolSnapshotEntry,
   createSymbolSnapshot,
   diffSymbolSnapshots,
   entitySymbol,
@@ -215,20 +216,6 @@ function serializeChange(change: SemChange): SymbolHistoryChange {
   };
 }
 
-function serializeEntity(entity: SemEntity, projectId: string): SymbolSnapshotEntry {
-  return {
-    projectId,
-    entityId: entity.id,
-    filePath: entity.file,
-    symbol: entitySymbol(entity.id, entity.file),
-    kind: entity.kind,
-    name: entity.name,
-    startLine: entity.startLine,
-    endLine: entity.endLine,
-    ...(entity.parentId === undefined ? {} : { parentId: entity.parentId }),
-  };
-}
-
 function createSnapshotFromAnalyses(options: {
   repositoryRoot: string;
   revision: SymbolSnapshot['revision'];
@@ -276,7 +263,15 @@ function createSnapshotFromAnalyses(options: {
     );
   }
   const symbols = [...uniqueEntities.values()]
-    .map(({ entity, projectId }) => serializeEntity(entity, projectId));
+    .map(({ entity, projectId }) => createSymbolSnapshotEntry({
+      id: entity.id,
+      parentId: entity.parentId,
+      name: entity.name,
+      type: entity.kind,
+      file: entity.file,
+      startLine: entity.startLine,
+      endLine: entity.endLine,
+    }, projectId));
   return createSymbolSnapshot({
     repositoryRoot: options.repositoryRoot,
     revision: options.revision,
@@ -881,7 +876,7 @@ export function renderSymbolHistoryConsole(report: SymbolHistoryReport): string 
 
 export function renderSymbolHistoryMarkdown(report: SymbolHistoryReport): string {
   const lines = [
-    '# Samdocs Symbol History',
+    '# Architecture Governance Symbol History',
     '',
     `- Range: \`${report.range.from}..${report.range.to}\``,
     `- Commits: ${report.summary.commits}`,

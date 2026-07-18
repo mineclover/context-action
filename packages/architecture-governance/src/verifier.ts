@@ -633,6 +633,7 @@ export async function verifyArchitecture(options: VerificationOptions): Promise<
     ));
   }
   const capabilityIds = new Set<string>();
+  const implementationAnchorOwners = new Map<string, string>();
   const projectIds = new Set<string>();
   const canonicalProjectRoots = new Map<string, { absolute: string; relative: string }>();
   const declaredProjects = registry.analysisProjects;
@@ -859,6 +860,19 @@ export async function verifyArchitecture(options: VerificationOptions): Promise<
       findings.push(finding('CAPABILITY_ID_DUPLICATE', 'error', `Duplicate capability id: ${capability.id}`, { capabilityId: capability.id }));
     }
     capabilityIds.add(capability.id);
+    for (const anchor of capability.implementationAnchors.filter((value) => value.includes('::'))) {
+      const previousCapabilityId = implementationAnchorOwners.get(anchor);
+      if (previousCapabilityId !== undefined && previousCapabilityId !== capability.id) {
+        findings.push(finding(
+          'CAPABILITY_IMPLEMENTATION_DUPLICATE',
+          'error',
+          `Implementation anchor ${anchor} is declared by both ${previousCapabilityId} and ${capability.id}`,
+          { capabilityId: capability.id, path: anchorPath(anchor) },
+        ));
+      } else {
+        implementationAnchorOwners.set(anchor, capability.id);
+      }
+    }
     if (capability.project && !projectById.has(capability.project)) {
       findings.push(finding('CAPABILITY_ANALYSIS_PROJECT_UNKNOWN', 'error', `Capability references unknown analysis project: ${capability.project}`, { capabilityId: capability.id }));
     } else if (capability.project) {

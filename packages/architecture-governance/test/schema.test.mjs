@@ -58,6 +58,8 @@ async function schemas() {
     snapshot: await json(path.join(packageRoot, 'schemas/symbol-snapshot.schema.json')),
     history: await json(path.join(packageRoot, 'schemas/symbol-history.schema.json')),
     snapshotDiff: await json(path.join(packageRoot, 'schemas/symbol-snapshot-diff.schema.json')),
+    contextManifest: await json(path.join(packageRoot, 'schemas/context-manifest.schema.json')),
+    contextScope: await json(path.join(packageRoot, 'schemas/context-scope.schema.json')),
   };
 }
 
@@ -73,6 +75,8 @@ test('package export map exposes every published schema asset', async () => {
     'symbol-snapshot',
     'symbol-history',
     'symbol-snapshot-diff',
+    'context-manifest',
+    'context-scope',
   ];
   for (const subpath of subpaths) {
     const url = import.meta.resolve(
@@ -95,6 +99,8 @@ test('published JSON Schemas compile and accept repository contracts', async () 
   const validateSnapshot = ajv.compile(schema.snapshot);
   const validateHistory = ajv.compile(schema.history);
   const validateSnapshotDiff = ajv.compile(schema.snapshotDiff);
+  const validateContextManifest = ajv.compile(schema.contextManifest);
+  const validateContextScope = ajv.compile(schema.contextScope);
   assert.equal(validateRegistry(await json(registryPath)), true, JSON.stringify(validateRegistry.errors));
   assert.equal(validatePolicy(await json(packagePolicyPath)), true, JSON.stringify(validatePolicy.errors));
   assert.equal(validatePolicy(await json(impactPolicyPath)), true, JSON.stringify(validatePolicy.errors));
@@ -145,6 +151,53 @@ test('published JSON Schemas compile and accept repository contracts', async () 
     removed: [],
     modified: [],
   }), true, JSON.stringify(validateSnapshotDiff.errors));
+  const ref = {
+    projectId: 'core',
+    filePath: 'src/index.ts',
+    entityId: 'src/index.ts::function::main',
+  };
+  const manifest = {
+    schemaVersion: 1,
+    revision: { gitHead: 'a'.repeat(40) },
+    contexts: [{
+      id: 'main-screen',
+      kind: 'screen',
+      anchors: [{ role: 'root', symbol: ref }],
+      declaredEdges: [{ id: 'main-renders-view', from: ref, to: ref, kind: 'renders' }],
+    }],
+  };
+  assert.equal(validateContextManifest(manifest), true, JSON.stringify(validateContextManifest.errors));
+  assert.equal(validateContextScope({
+    contractId: 'context-action/context-scope',
+    contractVersion: '1.0',
+    context: { id: 'main-screen', kind: 'screen' },
+    source: {
+      snapshot: {
+        contractId: 'context-action/symbol-snapshot',
+        contractVersion: '1.1',
+        revision: { gitHead: 'a'.repeat(40) },
+      },
+      manifest: { path: 'architecture/contexts.json', contentDigest: 'a'.repeat(64) },
+    },
+    anchors: [{ role: 'root', symbol: ref }],
+    nodes: [ref],
+    edges: [{
+      from: '4:core|12:src/index.ts|28:src/index.ts::function::main',
+      to: '4:core|12:src/index.ts|28:src/index.ts::function::main',
+      kind: 'renders',
+      evidence: { provider: 'manifest', declarationId: 'main-renders-view' },
+    }],
+    groups: [{
+      id: 'context:main-screen',
+      kind: 'context',
+      label: 'main-screen',
+      memberNodeKeys: ['4:core|12:src/index.ts|28:src/index.ts::function::main'],
+    }],
+    status: {
+      kind: 'complete',
+      appliedLimits: { maxDepth: 2, maxNodes: 10, maxEdges: 10, maxGroups: 10 },
+    },
+  }), true, JSON.stringify(validateContextScope.errors));
 });
 
 test('policy schema bounds glob patterns consistently with the runtime loader', async () => {

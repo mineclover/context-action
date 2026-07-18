@@ -87,6 +87,7 @@
         },
         "project": { "$ref": "#/$defs/nonEmptyString" },
         "spec": { "$ref": "#/$defs/nonEmptyString" },
+        "role": { "$ref": "#/$defs/nonEmptyString" },
         "owners": { "$ref": "#/$defs/stringSet" },
         "implementationAnchors": { "$ref": "#/$defs/stringSet" },
         "testEvidence": { "$ref": "#/$defs/stringSet" },

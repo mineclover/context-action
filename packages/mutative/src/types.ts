@@ -4,7 +4,7 @@ import type {
   Draft,
   Immutable,
   PatchesOptions,
-} from 'mutative';
+} from '@context-action/mutative-core';
 
 // ============================================================================
 // Patch Types
@@ -59,7 +59,16 @@ export type TimeTravelOptions<
    * Patches options for mutative
    */
   patchesOptions?: P;
-} & Omit<MutativeOptions<true, F>, 'enablePatches'>;
+
+  /** Forwarded to @context-action/mutative-core. */
+  enableAutoFreeze?: F;
+
+  /** Reject non-draft replacement values in strict mode. */
+  strict?: boolean;
+} & Omit<
+  MutativeOptions<true, F>,
+  'enablePatches' | 'enableAutoFreeze' | 'strict'
+>;
 
 // ============================================================================
 // Value Types
@@ -131,7 +140,9 @@ export interface ManualTimeTravelControls<
 export type TimeTravelListener<S, P extends PatchesOption = object> = (
   state: S,
   patches: TravelPatches<P>,
-  position: number
+  position: number,
+  /** Patches applied by the state transition that triggered this notification. */
+  changedPatches?: Patches<P>
 ) => void;
 
 // ============================================================================
@@ -152,10 +163,17 @@ export interface ProduceOptions<F extends boolean = false> {
   freeze?: F;
   /** Enable patches generation */
   enablePatches?: boolean;
+  /** Reject non-draft replacement values */
+  strict?: boolean;
 }
 
 // ============================================================================
 // Re-export mutative types
 // ============================================================================
 
-export type { Draft, Immutable, Patches, PatchesOptions } from 'mutative';
+export type {
+  Draft,
+  Immutable,
+  Patches,
+  PatchesOptions,
+} from '@context-action/mutative-core';

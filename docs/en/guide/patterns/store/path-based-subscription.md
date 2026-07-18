@@ -401,6 +401,11 @@ store.setValue({ ...store.getValue(), count: 1 });
 const lastPatches = store.getLastPatches();
 ```
 
+When the store batches multiple updates in one animation frame, the callback
+receives the concatenated patches for every transition in that frame. This
+keeps path-based subscribers from missing an earlier update; `getLastPatches()`
+returns the same accumulated payload after the notification is flushed.
+
 ## Performance Benefits
 
 ### Before (Selector Only)

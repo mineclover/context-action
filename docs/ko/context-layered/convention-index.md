@@ -4,17 +4,20 @@
 
 ## 가장 짧은 추천 순서
 
-1. [Implementation Convention](/ko/context-layered/implementation-convention)
-2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
-3. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
-4. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-5. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
-6. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
-7. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
-8. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-9. [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-10. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
-11. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+1. [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
+2. [Implementation Convention](/ko/context-layered/implementation-convention)
+3. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
+4. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
+5. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
+6. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
+7. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+8. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
+9. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+10. [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
+11. [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
+12. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
+13. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+14. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
@@ -31,6 +34,10 @@
 
 - [컨벤션 정합성 계획](/ko/context-layered/convention-alignment-plan)
   - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
+- [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
+  - package ownership, dependency 방향, package lifecycle, cleanup 규칙
+- [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
+  - Mutative 소스 계보, 반영한 upstream 수정, 라이선스, 동기화 규칙
 - [Implementation Convention](/ko/context-layered/implementation-convention)
   - implementation-playbook 계열 개발의 표준 규칙
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
@@ -47,6 +54,8 @@
   - handler 등록과 분리 기준
 - [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
   - capability identity, `SymbolRef`, snapshot 증거, 검증 경계
+- [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
+  - 작업 컨텍스트/문서 도구와 authored architecture 검증을 분리
 - [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
   - 완전한 심볼 snapshot 위의 screen/transaction grouping 계약
 

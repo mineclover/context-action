@@ -36,6 +36,7 @@
       "status": "verified",
       "project": "core",
       "spec": "docs/en/concept/action-pipeline-guide.md",
+      "role": "Coordinates prioritized action handler execution and lifecycle state.",
       "owners": ["packages/core"],
       "implementationAnchors": [
         "packages/core/src/ActionRegister.ts::class::ActionRegister"
@@ -54,6 +55,7 @@
       "status": "verified",
       "project": "react",
       "spec": "docs/en/examples/action-only.md",
+      "role": "Provides a React-isolated action dispatch and handler context.",
       "owners": ["packages/react"],
       "implementationAnchors": [
         "packages/react/src/actions/ActionContext.tsx::function::createActionContext"
@@ -65,13 +67,17 @@
         "docs/en/examples/action-only.md",
         "docs/ko/examples/action-only.md"
       ],
-      "rules": ["CA-PKG-REACT-REQUIRES-CORE"]
+      "rules": [
+        "CA-PKG-REACT-REQUIRES-CORE",
+        "CA-PKG-REACT-REQUIRES-MUTATIVE"
+      ]
     },
     {
       "id": "CA-STORE-CONTEXT",
       "status": "verified",
       "project": "react",
       "spec": "docs/en/concept/store-conventions.md",
+      "role": "Provides declarative, type-safe store context and subscriptions.",
       "owners": ["packages/react"],
       "implementationAnchors": [
         "packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx::function::createStoreContext"
@@ -83,13 +89,17 @@
         "docs/en/examples/store-only.md",
         "docs/ko/examples/store-only.md"
       ],
-      "rules": ["CA-PKG-REACT-REQUIRES-CORE"]
+      "rules": [
+        "CA-PKG-REACT-REQUIRES-CORE",
+        "CA-PKG-REACT-REQUIRES-MUTATIVE"
+      ]
     },
     {
       "id": "CA-CONTEXT-LAYERED",
       "status": "verified",
       "project": "example",
       "spec": "docs/en/context-layered/context-layered-guide.md",
+      "role": "Demonstrates Context-Action layered separation in a working page.",
       "owners": ["example/src/pages/patterns/layered-architecture"],
       "implementationAnchors": [
         "example/src/pages/patterns/layered-architecture/LayeredArchitecturePage.tsx::function::LayeredArchitecturePage"
@@ -108,6 +118,7 @@
       "status": "verified",
       "project": "web-coding-demo",
       "spec": "docs/en/context-layered/usecase-tool-calling-web-studio.md",
+      "role": "Owns the web coding studio workspace behavior and persistence boundary.",
       "owners": ["demos/bolt-style-editor"],
       "implementationAnchors": [
         "demos/bolt-style-editor/src/BoltStyleEditor.tsx::function::BoltStyleEditor",
@@ -129,6 +140,7 @@
       "status": "verified",
       "project": "architecture-governance",
       "spec": "architecture/README.md",
+      "role": "Verifies authored architecture intent against SEM and repository evidence.",
       "owners": ["packages/architecture-governance"],
       "implementationAnchors": [
         "packages/architecture-governance/src/verifier.ts::function::verifyArchitecture"
@@ -145,7 +157,10 @@
         "docs/ko/context-layered/architecture/architecture-governance.md"
       ],
       "decisions": ["architecture/real-use-review.md"],
-      "rules": ["CA-PKG-ARCH-GOVERNANCE-REQUIRES-SEM"]
+      "rules": [
+        "CA-PKG-ARCH-GOVERNANCE-REQUIRES-SEM",
+        "CA-PKG-ARCH-GOVERNANCE-REQUIRES-FOUNDATION"
+      ]
     }
   ]
 }

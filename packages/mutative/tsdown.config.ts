@@ -11,7 +11,7 @@ export default defineConfig({
   treeshake: true,
   minify: process.env.NODE_ENV === 'production',
   deps: {
-    neverBundle: ['mutative'],
+    neverBundle: ['@context-action/mutative-core'],
   },
   outDir: 'dist',
 });

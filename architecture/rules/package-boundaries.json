@@ -27,10 +27,77 @@
       "severity": "error"
     },
     {
+      "id": "CA-PKG-REACT-REQUIRES-MUTATIVE",
+      "project": "react",
+      "from": "packages/react",
+      "require": ["@context-action/mutative"],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-MUTATIVE-REQUIRES-CORE",
+      "from": "packages/mutative",
+      "require": ["@context-action/mutative-core"],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-MUTATIVE-CORE-NO-ADAPTER-COUPLING",
+      "from": "packages/mutative-core",
+      "disallow": ["@context-action/mutative", "@context-action/react", "react", "react-dom"],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
+    },
+    {
       "id": "CA-PKG-ARCH-GOVERNANCE-REQUIRES-SEM",
       "project": "architecture-governance",
       "from": "packages/architecture-governance",
       "require": ["@ataraxy-labs/sem"],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-ARCH-GOVERNANCE-REQUIRES-FOUNDATION",
+      "project": "architecture-governance",
+      "from": "packages/architecture-governance",
+      "require": [
+        "@sem-foundation/contracts",
+        "@sem-foundation/repository"
+      ],
+      "dependencyFields": ["dependencies"],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-ARCH-GOVERNANCE-NO-SEM-DOC-RUNTIME-COUPLING",
+      "project": "architecture-governance",
+      "from": "packages/architecture-governance",
+      "disallow": ["@context-action/sem-doc"],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-SEM-DOC-NO-ARCH-GOVERNANCE-RUNTIME-COUPLING",
+      "from": "packages/sem-doc",
+      "disallow": ["@context-action/architecture-governance"],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-FOUNDATION-REPOSITORY-REQUIRES-CONTRACTS",
+      "from": "packages/sem-foundation-repository",
+      "require": ["@sem-foundation/contracts"],
       "dependencyFields": ["dependencies"],
       "severity": "error"
     }

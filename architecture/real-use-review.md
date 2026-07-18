@@ -4,14 +4,36 @@
 관리한다. 이 문서는 그중에서도 왜 SEM을 선택했는지, 실제 repository에서 어떤 결과를 얻었는지,
 어떤 경계를 의도적으로 남겼는지에 집중한다.
 
+현재 대상은 Context-Action convention을 규칙형 architecture/document evidence 관리로 시험하는
+실험적 `architecture-governance` PoC다. 따라서 아래 결과는 범용 architecture analyzer의 성능 약속이
+아니며, repository-local authored registry와 policy를 검증하기 위한 운영 근거로 해석한다. 작업 전
+심볼 컨텍스트와 document binding은 별도 `sem-doc`이 소유한다.
+
 ## 선택
 
 `@ttsc/graph`와 `@samchon/graph` 공급자 계층을 제거하고 `sem 0.21.0` 하나로 구조 분석을
-단순화했다. Samdocs의 목적은 내부 함수 호출을 세는 compiler/LSP graph가 아니라, 명시적으로
-관리하는 symbol의 canonical 정의 위치를 수집하는 것이다. 따라서 tree-sitter entity는 symbol
+단순화했다. Architecture Governance의 목적은 내부 함수 호출을 세는 compiler/LSP graph가 아니라, 명시적으로
+관리하는 symbol의 canonical 정의 위치를 수집하는 것이다. 따라서 외부 `sem` entity 모델은 symbol
 location provider로 충분하고, impact dependency는 catalog를 보호하는 선택적 extension으로 둔다.
 provider 의미 변화가 symbol location 결과를 조용히 바꾸지 않도록 이 버전을 package dependency와
 runtime compatibility gate 양쪽에 고정한다.
+
+## 사용하지 않는 provider와 도구
+
+현재 `architecture-governance`와 `sem-doc`의 runtime에는 다음을 추가하지 않았다.
+
+| 후보 | 현재 상태 | 정리 |
+| --- | --- | --- |
+| `@ttsc/graph`, `ttsc-graph-router` | 미사용 | compiler-resolved graph가 필요한 별도 provider 후보 |
+| `@samchon/graph` | 미사용 | 현재 SEM symbol/location 범위에서는 채택하지 않음 |
+| LSP / `vscode-languageserver` | 미사용 | exact reference, unsaved overlay, CodeAction 요구가 생길 때 별도 검토 |
+| TypeDoc / `typedoc-vitepress-sync` | 분석에는 미사용, API 문서에는 사용 | 문서 생성 pipeline과 symbol 분석기를 분리 |
+| `@microsoft/tsdoc` parser | 미사용 | sem-doc은 Markdown/frontmatter와 `[[Symbol]]` convention을 자체 색인 |
+| tree-sitter | 직접 dependency 없음 | 외부 `sem` 내부 구현을 consumer 계약으로 노출하지 않음 |
+
+`packages/sem-doc/scripts/verify-boundary.cjs`는 ttsc/LSP runtime import를 검사해 이 경계를 자동으로
+보호한다. 후보 provider를 다시 도입하려면 기존 `sem-doc` 또는 governance package에 바로 넣지 않고,
+별도 provider contract와 provenance/비용 검토를 먼저 추가한다.
 
 ## 실제 결과
 
@@ -283,7 +305,7 @@ SEM 0.21의 설정 파일 출력이 심볼 목록에 섞이지 않게 한다.
 
 ## 의도적으로 남긴 경계
 
-- tree-sitter 분석을 compiler type resolution과 동일하게 표현하지 않는다.
+- 외부 `sem`의 내부 engine 구현을 compiler type resolution과 동일한 것으로 표현하지 않는다.
 - nested method별 impact나 내부 함수 호출 카운팅은 현재 범위 밖이며 top-level entity를 symbol
   location 단위로 삼는다. 이 기능은 LSP 수준 provider가 필요한 별도 문제다.
 - sem cache와 MCP, cloud 기능을 검증기 내부에 포함하지 않는다. 반복 비용은 sem 자체 cache를

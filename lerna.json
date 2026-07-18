@@ -5,6 +5,7 @@
   "packages": [
     "packages/core",
     "packages/react",
+    "packages/mutative-core",
     "packages/mutative",
     "packages/llms-generator",
     "packages/typedoc-vitepress-sync",

@@ -1,16 +1,22 @@
 # Architecture Governance and Evidence
 
-Samdocs manages explicitly named symbols, their role descriptions, and definition locations. Context-Action
-keeps that relationship in a small, repository-local registry and uses SEM structural evidence to collect
-and verify the symbols in one pass.
+In this repository, Architecture Governance is an **experimental, Context-Action-convention-driven
+architecture and documentation evidence governance package**. It turns authored registry and policy
+declarations into SEM/Git checks, snapshots, and review artifacts. It is not a generic architecture
+inference engine, a Markdown/API documentation editor, or a replacement for TypeDoc or `sem-doc`.
+
+Architecture Governance manages explicitly named symbols, their role descriptions, and definition locations.
+Context-Action keeps that relationship in a small, repository-local registry and uses SEM structural evidence
+to collect and verify the symbols in one pass. The separate `@context-action/sem-doc` package prepares
+work-context and TSDoc/Git evidence; it is not this registry gate.
 
 ## Source of truth
 
 | Artifact | Responsibility |
 | --- | --- |
-| `architecture/registry.json` | Capability identity (`CA-*`), owner, definition anchor, evidence, and policy references |
+| `architecture/registry.json` | Capability identity (`CA-*`), owner, authored role, definition anchor, evidence, and policy references |
 | `architecture/rules/*.json` | Package declaration and SEM impact boundaries |
-| `architecture/contexts.json` *(planned)* | Revision-bound context intent, complete anchor identities, and explicitly declared semantic edges |
+| `architecture/contexts.json` *(optional)* | Revision-bound context intent, complete anchor identities, and explicitly declared semantic edges |
 | `packages/architecture-governance` | Registry loader, SEM adapter, verifier, report contract, and CLI |
 | Verification report | Evidence and findings for a working tree, staged set, or commit range |
 
@@ -29,7 +35,7 @@ the same `SymbolRef` tuple; it must not create a second symbol ID. This separati
 have multiple implementation symbols and one symbol to participate in multiple context scopes.
 
 This is a symbol catalog gate, not an architecture inference engine. The author declares the symbol and
-its role comment; SEM supplies the definition location; the test runner proves behavior; and the
+its authored role in the registry (with an implementation-adjacent role comment); SEM supplies the definition location; the test runner proves behavior; and the
 documentation system owns the public explanation.
 
 For a command-by-command walkthrough, see [Architecture Governance Usage](./architecture-governance-usage).
@@ -108,19 +114,11 @@ canonical `entityId`; the report contains deterministic `intersection`, `onlyLef
 sets. This is a structural symbol-set operation, not a call graph or runtime-flow analysis, and a
 history snapshot can be reused as either input.
 
-The next planned derived view is `ContextScope`. Its first slice is a screen adapter that reads a
-same-revision context manifest and projects a bounded subgraph over a complete snapshot. SEM contributes
-only structural `depends-on` evidence in that slice; semantic edges require an explicit manifest
-declaration or a future provider with its own evidence contract. Context groups are overlapping
-memberships around the existing project/file/entity identity, so shared symbols do not duplicate identity.
-Until that CLI exists, `architecture/contexts.json` is not an input to `arch:check`. See the
-[ContextScope Symbol Graph design](./context-scope-graph) for the contract, profile availability, edge
-semantics, completeness rules, and renderer boundary.
-
-Context-Action role mapping, manifest ownership, and the planned `screen`/`transaction` profiles are
-defined once in the [ContextScope Symbol Graph design](./context-scope-graph). This page only establishes
-that ContextScope is a derived view over complete snapshots and is not an input to `arch:check` until its
-CLI exists.
+`context-scope` is an executable derived-view command. It validates a revision-bound manifest against a
+complete snapshot, emits explicit manifest edges, and can add bounded SEM `depends-on` evidence through
+the library API. It remains separate from `arch:check`; the manifest is not silently treated as a
+capability registry. See the [ContextScope Symbol Graph design](./context-scope-graph) for the contract and
+the [usage guide](./architecture-governance-usage).
 
 For a focused project, use the CLI after building the workspace package:
 
@@ -137,13 +135,19 @@ node packages/architecture-governance/dist/cli.js check \
 The supported provider identity is pinned to `sem 0.21.0`. A provider version mismatch is a verification
 failure, not an implicit upgrade.
 
-## Samdocs scope
+## Architecture Governance scope
+
+The package is a convention testbed: rules are intentionally authored for this Context-Action repository and
+may evolve through decision documents. Foundation supplies policy-neutral identity, path, provenance, and Git
+primitives; the meaning of a capability, role, evidence requirement, or boundary remains owned by the
+repository-local architecture source.
 
 The intended unit is a named symbol such as a class, function, or other top-level entity. A role comment
 explains why that symbol exists; the catalog records its `SymbolRef`, where it is defined, and which files
 contain structural dependents of the symbol. A duplicate `SymbolRef` or ambiguous definition is a review
-finding. In this PoC, role comments are authored next to the symbol and reviewed with the registry;
-automatic `@samdocs`/`@role` comment extraction is the next collector step, not an LSP call-graph feature.
+finding. In this PoC, the registry `role` field is the machine-readable responsibility declaration. Role
+comments remain authored next to the symbol and are reviewed with the registry; automatic `@role`
+comment extraction is a later collector step, not an LSP call-graph feature.
 
 ## What the gate verifies
 
@@ -157,7 +161,7 @@ automatic `@samdocs`/`@role` comment extraction is the next collector step, not 
 
 ## What it does not prove
 
-Samdocs intentionally does not count internal function calls, call order, or runtime data flow. Those are
+Architecture Governance intentionally does not count internal function calls, call order, or runtime data flow. Those are
 LSP-level language-analysis concerns and are outside this lightweight catalog. SEM impact also supplies the
 symbol-level `usageFiles` list but remains a structural file-level signal; it does not prove reflection, dynamic loading, business
 correctness, or that the authored role comment expresses the right product intent. Keep behavior tests,
@@ -165,6 +169,31 @@ owner review, and public documentation as separate evidence sources. The shared 
 publish-ready, while registry publication and external semver pinning remain a separate release gate.
 Git revision/history/worktree lifecycle and historical `analysisProjects` traversal are provided by the
 policy-neutral `@sem-foundation/repository` runtime; SEM analysis and report policy remain consumer-owned.
+
+## Relationship with sem-doc
+
+`@context-action/sem-doc` and Architecture Governance are side-by-side consumers of SEM and the shared
+Foundation packages. Use sem-doc to answer which implementation, document binding, affected test, or Git
+hunk should be inspected before editing. Use Architecture Governance to validate authored capability
+evidence, package/impact policies, complete revision snapshots, history diffs, and `ContextScope` manifests.
+Neither report is an implicit input to the other, and neither package depends on the other at runtime. See
+the [boundary guide](./sem-doc-architecture-governance-boundary) for the decision table and prohibited
+conflations.
+
+## Documentation system ownership
+
+The repository documentation system is layered rather than based on one generator:
+
+| Documentation concern | SSOT / owner | Derived or consumed by |
+| --- | --- | --- |
+| Architecture intent, capability, owner, role, policy, and evidence | Architecture Governance registry and reports | architecture guides, CI/reviewer artifacts |
+| Public TypeScript API signatures and JSDoc pages | TypeDoc configuration and exported source | TypeDoc Markdown, VitePress, `typedoc-vitepress-sync` |
+| Symbol-centered work context and document bindings | `sem-doc` versioned reports | implementer/agent context and optional document enrichment |
+| Test-based examples and LLMS summaries | `test-driven-docs` / `llms-generator` sources | derived examples and training artifacts |
+
+Architecture Governance therefore underpins architecture documentation and evidence management, but it
+does not generate every public or derived document. sem-doc can enrich those documents with contextual
+links; it must not become a second API documentation generator.
 
 ## Report and failure semantics
 

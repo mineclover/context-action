@@ -193,6 +193,61 @@ describe('Store Class', () => {
     });
   });
 
+  describe('Patch-aware notification batching', () => {
+    it('should merge patches from multiple updates in the same frame', (done) => {
+      const batchedStore = createStore('batched-patches', {
+        count: 0,
+        name: 'initial'
+      });
+      const patchListener = jest.fn();
+      batchedStore.subscribeWithPatches(patchListener);
+
+      batchedStore.setValue({ count: 1, name: 'initial' });
+      batchedStore.setValue({ count: 1, name: 'changed' });
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        expect(patchListener).toHaveBeenCalledWith([
+          { op: 'replace', path: ['count'], value: 1 },
+          { op: 'replace', path: ['name'], value: 'changed' }
+        ]);
+        expect(batchedStore.getLastPatches()).toEqual([
+          { op: 'replace', path: ['count'], value: 1 },
+          { op: 'replace', path: ['name'], value: 'changed' }
+        ]);
+        batchedStore.dispose();
+        done();
+      }, 20);
+    });
+
+    it('should preserve the current frame patches when a listener updates again', (done) => {
+      const batchedStore = createStore('batched-reentrant-patches', { count: 0 });
+      const listener = jest.fn(() => {
+        if (listener.mock.calls.length === 1) {
+          batchedStore.setValue({ count: 2 });
+        }
+      });
+      const patchListener = jest.fn();
+      batchedStore.subscribe(listener);
+      batchedStore.subscribeWithPatches(patchListener);
+
+      batchedStore.setValue({ count: 1 });
+
+      setTimeout(() => {
+        expect(listener).toHaveBeenCalledTimes(2);
+        expect(patchListener).toHaveBeenCalledTimes(2);
+        expect(patchListener.mock.calls[0][0]).toEqual([
+          { op: 'replace', path: ['count'], value: 1 }
+        ]);
+        expect(patchListener.mock.calls[1][0]).toEqual([
+          { op: 'replace', path: ['count'], value: 2 }
+        ]);
+        batchedStore.dispose();
+        done();
+      }, 50);
+    });
+  });
+
   describe('Update Method with Immer Integration', () => {
     it('should update values using updater function', () => {
       objectStore.update(current => ({

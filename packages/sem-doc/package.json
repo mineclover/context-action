@@ -1,8 +1,8 @@
 {
-  "name": "@tsdoc-edge/sem-doc",
+  "name": "@context-action/sem-doc",
   "version": "0.1.0",
   "private": true,
-  "description": "Sem-centered work-context and Git diff analysis for TypeScript repositories",
+  "description": "Symbol-centered work-context, document binding, and Git diff analysis for TypeScript repositories",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -49,24 +49,14 @@
   "engines": {
     "node": ">=24.0.0 <25.0.0"
   },
+  "dependencies": {
+    "@sem-foundation/contracts": "workspace:^",
+    "@sem-foundation/repository": "workspace:^"
+  },
   "devDependencies": {
     "@ataraxy-labs/sem": "0.21.0",
     "@biomejs/biome": "2.5.3",
-    "@sem-foundation/contracts": "workspace:*",
-    "@sem-foundation/repository": "workspace:*",
     "@types/node": "^20.19.24",
     "typescript": "^5.3.3"
-  },
-  "peerDependencies": {
-    "@sem-foundation/contracts": "^0.1.0",
-    "@sem-foundation/repository": "^0.1.0"
-  },
-  "peerDependenciesMeta": {
-    "@sem-foundation/contracts": {
-      "optional": true
-    },
-    "@sem-foundation/repository": {
-      "optional": true
-    }
   }
 }

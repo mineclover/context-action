@@ -1,8 +1,17 @@
-# Samdocs Symbol Governance Guide
+# Architecture Governance Symbol Guide
 
-이 문서는 Samdocs 심볼을 정의 위치, 역할 설명, 테스트와 공개 문서와 함께 유지하기 위한 운영 규칙이다.
+이 문서는 Architecture Governance 심볼을 정의 위치, 역할 설명, 테스트와 공개 문서와 함께 유지하기 위한 운영 규칙이다.
 `registry.json`은 현재 상태의 기계 판독 source이고, 이 문서는 사람이 stable symbol을 생성·승격·폐기할
 때 따르는 lifecycle을 정의한다. 내부 함수 호출 횟수나 호출 순서를 기록하는 규칙은 포함하지 않는다.
+
+이 가이드는 **Context-Action convention을 이 repository에서 실험적으로 운영하는 작성 규칙**이다.
+Architecture Governance는 이 authored declaration을 evidence로 검증할 뿐, convention을 범용
+architecture 표준으로 자동 추론하지 않는다. 여기서 문서 관리는 문서를 편집하거나 생성한다는 뜻이
+아니라 capability의 의도·역할·구현·테스트·공개 설명 사이의 traceability를 유지한다는 뜻이다.
+
+작업 전 문서 컨텍스트와 TSDoc binding은 별도 패키지인 `@context-action/sem-doc`의 책임이다. 이
+문서는 `architecture/registry.json`의 authored capability와 Architecture Governance 검증 evidence만
+다룬다. 두 패키지를 하나의 “Samdocs” 기능으로 문서화하거나 서로의 report 계약을 재사용하지 않는다.
 
 ## 관리 단위
 
@@ -15,10 +24,11 @@ symbol entry는 사용자가 식별할 수 있는 class, function, handler, stor
 - 변경 시 함께 검토해야 할 문서와 테스트 집합이 있다.
 - package 또는 선택적 SEM boundary rule의 책임 주체가 필요하다.
 
-역할은 symbol 가까이에 있는 JSDoc/comment에 사람이 읽을 수 있는 문장으로 작성한다. 현재 PoC는
-이 comment를 자동 추출하는 collector를 아직 제공하지 않으므로, registry의 anchor와 comment가
-분리되지 않도록 같은 변경에서 함께 관리한다. 다음 단계에서 `@samdocs` marker와 `@role` field를
-표준화하고, SEM entity 위치와 결합해 catalog를 생성한다.
+역할은 registry의 `role` field와 symbol 가까이에 있는 JSDoc/comment에 사람이 읽을 수 있는 문장으로
+작성한다. registry `role`은 machine-readable authored declaration이며, 현재 PoC는 source comment를
+자동 추출하거나 두 값을 비교하는 collector까지는 제공하지 않는다. 따라서 registry의 anchor와
+comment가 분리되지 않도록 같은 변경에서 함께 관리한다. 다음 단계에서 `@role` marker를 표준화하고,
+SEM entity 위치와 결합해 catalog를 생성한다.
 
 `CA-...` stable ID는 registry capability의 책임 identity다. SEM 심볼 자체의 identity는
 `SymbolRef(projectId, filePath, entityId)`이며, `implementationAnchors`가 capability와 심볼을

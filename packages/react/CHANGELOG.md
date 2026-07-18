@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [Unreleased]
+
+### Bug Fixes
+
+* preserve every transition patch during batched Store and TimeTravelStore notifications
+* keep patch payloads stable when listeners trigger reentrant updates
+
 ## [0.8.8](https://github.com/mineclover/context-action/compare/v0.8.7...v0.8.8) (2026-07-13)
 
 **Note:** Version bump only for package @context-action/react

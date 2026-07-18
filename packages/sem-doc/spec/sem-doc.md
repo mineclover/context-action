@@ -13,23 +13,62 @@ version: 0.1.0
 
 > What context does an engineer need before changing this code?
 
-It combines sem's semantic entity graph with TSDoc document definitions/backlinks and a Git-based
-change view. It is intentionally independent from `ttsc`'s canonical graph and LSP runtime.
+It combines sem's semantic entity graph with a TSDoc-style Markdown document convention and a Git-based
+change view. It is intentionally independent from any compiler-resolved canonical graph and LSP runtime.
+
+“TSDoc” in this specification names the repository's document convention (`[[Symbol]]` checkpoints and
+frontmatter provenance); sem-doc does not depend on or embed the `@microsoft/tsdoc` parser.
+
+## Symbol Context SSOT
+
+Within its problem space, `sem-doc` is the single source of truth for the serialized context needed to
+work on a symbol. The canonical artifact is `sem-doc-work-context.v4`; its target entity, bounded symbol
+inventory, dependent `usageFiles`, affected tests, SEM provenance, repository revision, and document
+definitions/backlinks must be read from that report rather than reconstructed by each consumer.
+
+The related contracts have narrower ownership:
+
+| Contract | SSOT meaning |
+| --- | --- |
+| `sem-doc-work-context.v4` | symbol-centered work context and bounded structural relationships |
+| `sem-documents.v2` | Markdown checkpoint, exact entity binding, and document backlink index |
+| `sem-doc-git-diff.v1` | revision-pinned working-tree or staged file/hunk evidence |
+
+This SSOT boundary is contextual, not architectural. It does not own `CA-*` capability intent, role or
+owner declarations, package/impact policy decisions, complete revision snapshots, or public API
+signatures. Those remain owned by Architecture Governance, Foundation contracts, or the TypeDoc API
+documentation pipeline as described by their respective contracts.
 
 ## Ownership and boundaries
 
 | Capability | Owner | Contract |
 | --- | --- | --- |
-| TypeScript compiler-resolved graph | `ttsc` / `ttsc-graph-router` | canonical graph and provenance |
-| Convention and graph lint | `ttsc`-based consumer | policy diagnostics |
+| TypeScript compiler-resolved graph | external provider | canonical graph and provenance; out of scope for sem-doc |
+| Convention and graph lint | separate policy consumer | diagnostics; out of scope for sem-doc |
 | Semantic entity identity, source mapping, and impact/context queries | external `sem` executable | read-only advisory evidence |
 | Work context composition | `sem-doc` | `sem-doc-work-context.v4` |
 | Documentation definitions/backlinks | `sem-doc` | `sem-documents.v2` exact entity binding index |
 | Git file/hunk diff | `sem-doc` | `sem-doc-git-diff.v1` |
 | Unsaved overlay and mutating CodeAction | out of scope | no LSP overlay contract |
 
-`sem` output is never silently promoted to a `ttsc` canonical graph violation. A caller may apply a
+`sem` output is never silently promoted to a compiler-graph violation. A caller may apply a
 separate policy after inspecting the advisory envelope.
+
+## Relationship to Architecture Governance
+
+`@context-action/architecture-governance` is a separate consumer with a different purpose and contract.
+`sem-doc` owns work-context composition, exact TSDoc entity bindings, and native Git diff evidence for
+an implementer or reviewer. Architecture Governance owns the authored `architecture/registry.json`,
+package/impact policy verification, complete revision snapshots/history, snapshot diffs, and
+`ContextScope` projections for CI and architecture review.
+
+The packages may reuse `@sem-foundation/contracts`, `@sem-foundation/repository`, and the external `sem`
+executable, but neither package depends on the other at runtime. `sem-doc-work-context.v4`,
+`sem-documents.v2`, and `sem-doc-git-diff.v1` MUST NOT be treated as Architecture Governance
+verification-report or snapshot inputs without a separately versioned orchestration contract. Likewise,
+the architecture registry is not a TSDoc binding index. See the repository-level
+[boundary guide](../../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)
+for the selection checklist.
 
 ## Accepted decisions
 
@@ -162,7 +201,7 @@ does not add an AST inference or interpret absence from sem output as proof of n
 
 ## Scoped performance checks
 
-`pnpm --filter @tsdoc-edge/sem-doc benchmark:scope` measures individual 1-hop and 2-hop work-context, separate 1+2-hop
+`pnpm --filter @context-action/sem-doc benchmark:scope` measures individual 1-hop and 2-hop work-context, separate 1+2-hop
 queries, a shared 2-hop query with a derived 1-hop view, and typed sem entity diff. It emits
 `sem-doc-scope-benchmark.v1` with environment and percentile data. The benchmark is observational
 and has no wall-clock pass/fail threshold. Each result records the work-context, document-index, and
@@ -190,9 +229,9 @@ The `SEM_BIN` environment variable selects the sem executable. `sem-doc` has no 
 dependency on sem; the executable remains an external engine boundary. The private workspace pins
 `@ataraxy-labs/sem` as a development dependency so `pnpm install` obtains a reproducible default
 binary, while `SEM_BIN` can override it for another engine build.
-When installed as a library, `@sem-foundation/contracts` and `@sem-foundation/repository` are optional
-peers. If present, sem-doc reuses their path, entity-ID, and Git revision contracts; without them it
-uses the equivalent local fallback so the CLI remains usable without the Foundation packages.
+`@sem-foundation/contracts` and `@sem-foundation/repository` are required runtime dependencies:
+they own the canonical symbol identity, snapshot entry conversion, and Git revision semantics used
+by sem-doc.
 
 `work-context` and `docs validate-bindings` use a composed default budget of 120 seconds and 64 MiB
 of sem output across all subprocesses. `--timeout-ms` and `--max-output-bytes` override those
@@ -203,14 +242,14 @@ aggregate limits, up to 1 hour and 1 GiB respectively.
 The private workspace package must pass:
 
 ```bash
-pnpm --filter @tsdoc-edge/sem-doc typecheck
-pnpm --filter @tsdoc-edge/sem-doc verify:boundary
-pnpm --filter @tsdoc-edge/sem-doc lint
-pnpm --filter @tsdoc-edge/sem-doc build
-pnpm --filter @tsdoc-edge/sem-doc verify:pack
-pnpm --filter @tsdoc-edge/sem-doc test
-pnpm --filter @tsdoc-edge/sem-doc verify:poc
-pnpm --filter @tsdoc-edge/sem-doc benchmark:scope
+pnpm --filter @context-action/sem-doc typecheck
+pnpm --filter @context-action/sem-doc verify:boundary
+pnpm --filter @context-action/sem-doc lint
+pnpm --filter @context-action/sem-doc build
+pnpm --filter @context-action/sem-doc verify:pack
+pnpm --filter @context-action/sem-doc test
+pnpm --filter @context-action/sem-doc verify:poc
+pnpm --filter @context-action/sem-doc benchmark:scope
 ```
 
 The default POC uses the pinned repository binary. Set `SEM_BIN=/path/to/sem` only when validating
@@ -224,8 +263,8 @@ legacy AST/document analyzers in `tsdoc-edge` are not deleted by this split; the
 gated by the capability owner matrix and by confirming that documentation/quality enrichment has a
 replacement owner.
 
-Foundation package integration is exposed as an optional compatibility boundary; sem-doc remains
-usable with its local fallback when the Foundation packages are not installed. History snapshots and
-context-set operations are owned by the architecture-governance consumer until the shared packages
-are published for standalone installation. Publishing and release automation remain intentionally
-deferred while the private workspace PoC is evaluated.
+Foundation integration is a required runtime boundary; sem-doc does not carry a second local
+implementation of those contracts. History snapshots and context-set operations are owned by the
+architecture-governance consumer until the shared packages are published for standalone installation.
+Publishing and release automation remain intentionally deferred while the private workspace PoC is
+evaluated.

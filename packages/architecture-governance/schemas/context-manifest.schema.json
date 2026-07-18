@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/context-manifest.schema.json",
+  "title": "Context-Action Context Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "revision", "contexts"],
+  "properties": {
+    "$schema": { "$ref": "#/$defs/text" },
+    "schemaVersion": { "const": 1 },
+    "revision": { "$ref": "#/$defs/revision" },
+    "contexts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/context" }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "commit": { "$ref": "#/$defs/text" },
+        "gitHead": { "$ref": "#/$defs/text" },
+        "workingTreeDigest": { "$ref": "#/$defs/text" }
+      }
+    },
+    "symbolRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId", "filePath", "entityId"],
+      "properties": {
+        "projectId": { "$ref": "#/$defs/text" },
+        "filePath": { "$ref": "#/$defs/text" },
+        "entityId": { "$ref": "#/$defs/text" }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "symbol"],
+      "properties": {
+        "role": {
+          "enum": ["root", "view", "endpoint", "controller", "trigger", "state-read", "state-write", "command", "step", "definition", "reference"]
+        },
+        "symbol": { "$ref": "#/$defs/symbolRef" }
+      }
+    },
+    "declaredEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/text" },
+        "from": { "$ref": "#/$defs/symbolRef" },
+        "to": { "$ref": "#/$defs/symbolRef" },
+        "kind": {
+          "enum": ["depends-on", "invokes", "reads", "writes", "renders", "validates", "documents"]
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "anchors"],
+      "properties": {
+        "id": { "$ref": "#/$defs/text" },
+        "kind": { "enum": ["screen", "api", "transaction", "workflow", "document"] },
+        "label": { "$ref": "#/$defs/text" },
+        "anchors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16384,
+          "items": { "$ref": "#/$defs/anchor" }
+        },
+        "declaredEdges": {
+          "type": "array",
+          "maxItems": 65536,
+          "items": { "$ref": "#/$defs/declaredEdge" }
+        }
+      }
+    }
+  }
+}

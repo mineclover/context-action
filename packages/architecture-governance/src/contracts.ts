@@ -13,6 +13,8 @@ export interface ArchitectureCapability {
   status: CapabilityStatus;
   project?: string;
   spec: string;
+  /** Authored responsibility statement; source comments remain the implementation-adjacent detail. */
+  role?: string;
   owners: string[];
   implementationAnchors: string[];
   testEvidence: string[];

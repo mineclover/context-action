@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   canonicalEntityId,
   compareSymbolContexts,
+  createSymbolSnapshotEntry,
   entitySymbol,
   MAX_SYMBOL_SNAPSHOT_ENTRIES,
   normalizeRepositoryPath,
@@ -15,6 +16,7 @@ import {
   SEM_ADVISORY_SCHEMA,
   SYMBOL_SNAPSHOT_CONTRACT_ID,
   SYMBOL_SNAPSHOT_CONTRACT_VERSION,
+  symbolRefKey,
   symbolSetKey,
 } from '../dist/index.js';
 
@@ -50,6 +52,48 @@ test('preserves parent-scoped IDs and rejects root escapes', () => {
   );
 });
 
+test('converts SEM entities into shared complete snapshot entries', () => {
+  assert.deepEqual(
+    createSymbolSnapshotEntry({
+      parentId: 'src/auth.ts::class::AuthController',
+      name: 'authenticate',
+      type: 'method',
+      file: './src/auth.ts',
+      startLine: 4,
+      endLine: 9,
+    }, 'core'),
+    {
+      projectId: 'core',
+      entityId: 'src/auth.ts::class::AuthController::authenticate',
+      filePath: 'src/auth.ts',
+      symbol: 'class::AuthController::authenticate',
+      kind: 'method',
+      name: 'authenticate',
+      startLine: 4,
+      endLine: 9,
+      parentId: 'src/auth.ts::class::AuthController',
+    },
+  );
+  assert.throws(
+    () => createSymbolSnapshotEntry({
+      name: 'missingRange',
+      type: 'function',
+      file: 'src/auth.ts',
+    }, 'core'),
+    /startLine and endLine/,
+  );
+  assert.throws(
+    () => createSymbolSnapshotEntry({
+      name: 'validEntity',
+      type: 'function',
+      file: 'src/auth.ts',
+      startLine: 1,
+      endLine: 1,
+    }, ''),
+    /projectId must be non-empty text/,
+  );
+});
+
 test('compares project-qualified symbol contexts deterministically', () => {
   const authenticate = {
     projectId: 'core',
@@ -70,6 +114,7 @@ test('compares project-qualified symbol contexts deterministically', () => {
     { id: 'validation', symbols: [authenticate] },
   );
   assert.equal(symbolSetKey(authenticate), 'core\0src/auth.ts\0src/auth.ts::function::authenticateUser');
+  assert.equal(symbolRefKey(authenticate).includes('\0'), false);
   assert.deepEqual(result.intersection, [authenticate]);
   assert.deepEqual(result.onlyLeft, [repository]);
   assert.deepEqual(result.onlyRight, []);

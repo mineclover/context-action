@@ -11,7 +11,7 @@ import {
   type Draft,
   type Patches,
   rawReturn,
-} from 'mutative';
+} from '@context-action/mutative-core';
 import type {
   PatchesOption,
   TravelPatches,
@@ -46,6 +46,18 @@ function cloneTravelPatches<P extends PatchesOption = object>(
 }
 
 function overwriteDraftWith(draft: Draft<unknown>, value: unknown): void {
+  if (draft instanceof Map && value instanceof Map) {
+    draft.clear();
+    value.forEach((entryValue, key) => draft.set(key, entryValue));
+    return;
+  }
+
+  if (draft instanceof Set && value instanceof Set) {
+    draft.clear();
+    value.forEach((entryValue) => draft.add(entryValue));
+    return;
+  }
+
   const draftIsArray = Array.isArray(draft);
   const valueIsArray = Array.isArray(value);
   const draftKeys = Reflect.ownKeys(draft as object);
@@ -103,7 +115,11 @@ export class TimeTravel<
   private initialPosition: number;
   private initialPatches?: TravelPatches<P>;
   private autoArchive: A;
-  private options: { enablePatches: true | P; strict?: boolean };
+  private options: {
+    enablePatches: true | P;
+    strict?: boolean;
+    enableAutoFreeze?: F;
+  };
   private listeners = new Set<TimeTravelListener<S, P>>();
   private pendingState: S | null = null;
   private historyCache: { version: number; history: S[] } | null = null;
@@ -119,6 +135,7 @@ export class TimeTravel<
       mutable = false,
       patchesOptions,
       strict,
+      enableAutoFreeze,
     } = options;
 
     // Validate maxHistory
@@ -138,6 +155,7 @@ export class TimeTravel<
     this.options = {
       enablePatches: patchesOptions ?? true,
       strict,
+      enableAutoFreeze,
     };
 
     const { patches: normalizedPatches, position: normalizedPosition } =
@@ -201,9 +219,9 @@ export class TimeTravel<
     this.historyCache = null;
   }
 
-  private notify(): void {
+  private notify(changedPatches?: Patches<P>): void {
     this.listeners.forEach((listener) =>
-      listener(this.state, this.getPatches(), this.position)
+      listener(this.state, this.getPatches(), this.position, changedPatches)
     );
   }
 
@@ -269,7 +287,8 @@ export class TimeTravel<
     }
 
     if (useMutable) {
-      [, patches, inversePatches] = create(
+      let nextState: S;
+      [nextState, patches, inversePatches] = create(
         this.state,
         isFunctionUpdater
           ? (updater as (draft: Draft<S>) => void)
@@ -279,7 +298,13 @@ export class TimeTravel<
         this.options
       ) as [S, Patches<P>, Patches<P>];
 
-      apply(this.state as object, patches, { mutable: true });
+      if (this.hasRootReplacement(patches)) {
+        // A mutable patch application cannot replace the caller's root
+        // reference. Keep the finalized replacement returned by create().
+        this.state = nextState;
+      } else {
+        apply(this.state as object, patches, { mutable: true });
+      }
       this.pendingState = this.state;
     } else {
       const [nextState, p, ip] = (
@@ -333,7 +358,7 @@ export class TimeTravel<
     }
 
     this.invalidateHistoryCache();
-    this.notify();
+    this.notify(patches);
   }
 
   private archivePatches(patches: Patches<P>, inversePatches: Patches<P>): void {
@@ -419,7 +444,7 @@ export class TimeTravel<
     this.tempPatches.inversePatches.length = 0;
 
     this.invalidateHistoryCache();
-    this.notify();
+    this.notify([]);
   }
 
   /**
@@ -535,7 +560,7 @@ export class TimeTravel<
 
     this.position = nextPosition;
     this.invalidateHistoryCache();
-    this.notify();
+    this.notify(patchesToApply);
   }
 
   /**
@@ -560,14 +585,10 @@ export class TimeTravel<
       this.mutable && isObjectLike(this.state) && isObjectLike(this.initialState);
 
     if (canResetMutably) {
+      const initialValue = deepClone(this.initialState);
       const [, patches] = create(
         this.state,
-        (draft) => {
-          for (const key of Object.keys(draft as object)) {
-            delete (draft as Record<string, unknown>)[key];
-          }
-          deepClone(this.initialState, draft);
-        },
+        (draft) => overwriteDraftWith(draft, initialValue),
         this.options
       );
       apply(this.state as object, patches, { mutable: true });
@@ -580,7 +601,14 @@ export class TimeTravel<
     this.tempPatches = cloneTravelPatches();
 
     this.invalidateHistoryCache();
-    this.notify();
+    const rootPath =
+      typeof this.options.enablePatches === 'object' &&
+      this.options.enablePatches.pathAsArray === false
+        ? ''
+        : [];
+    this.notify([
+      { op: 'replace', path: rootPath, value: this.state },
+    ] as unknown as Patches<P>);
   }
 
   /**

@@ -1,9 +1,13 @@
 # 아키텍처 거버넌스 사용 방법
 
-이 문서는 저장소 checkout부터 재현 가능한 Samdocs 심볼 catalog를 만드는 가장 짧은 경로를
+이 문서는 저장소 checkout부터 재현 가능한 Architecture Governance 심볼 catalog를 만드는 가장 짧은 경로를
 설명합니다. 개념은 [아키텍처 거버넌스 개요](./architecture-governance)를, 전체 API와 계약은
 [package README](https://github.com/mineclover/context-action/blob/main/packages/architecture-governance/README.md)를
 참고하세요.
+
+이 도구는 Context-Action convention을 repository-local authored rule과 evidence로 검증하는 PoC입니다.
+범용 architecture analyzer나 문서 생성기로 사용하지 않으며, 작업 컨텍스트와 document binding의 심볼
+컨텍스트 SSOT는 별도 패키지인 `sem-doc`이 유지합니다.
 
 ## 1. 저장소 준비
 
@@ -149,17 +153,62 @@ node packages/architecture-governance/dist/cli.js intersect \
 `{ "snapshot": { ... } }` 형식입니다. 결과는 deterministic한 `intersection`, `onlyLeft`,
 `onlyRight` 집합을 가집니다. 멤버십은 겹칠 수 있으며 원래 심볼 identity를 복제하지 않습니다.
 
-## 6. 문서 컨텍스트에는 sem-doc 사용
+## 6. ContextScope 생성
 
-`sem-doc`는 SEM 관계, Git, TSDoc binding을 결합하는 별도 private PoC입니다.
+`context-scope`는 하나의 revision-bound manifest를 complete symbol snapshot과 대조합니다. CLI는
+manifest anchor와 선언 edge를 투영하고, library API는 bounded SEM `depends-on` 증거도 받을 수 있습니다.
+manifest를 `arch:check` capability 입력으로 바꾸지는 않습니다.
+
+manifest에 적은 revision field는 snapshot의 해당 field와 일치해야 합니다.
+
+```json
+{
+  "schemaVersion": 1,
+  "revision": { "gitHead": "<snapshot의 gitHead>" },
+  "contexts": [{
+    "id": "dashboard",
+    "kind": "screen",
+    "anchors": [{
+      "role": "root",
+      "symbol": {
+        "projectId": "example",
+        "filePath": "example/src/Dashboard.tsx",
+        "entityId": "example/src/Dashboard.tsx::function::Dashboard"
+      }
+    }]
+  }]
+}
+```
+
+```bash
+node packages/architecture-governance/dist/cli.js context-scope \
+  --root . \
+  --snapshot reports/symbol-snapshot.json \
+  --manifest architecture/contexts.json \
+  --context dashboard \
+  --format json \
+  --output reports/dashboard-context-scope.json
+```
+
+출력 계약은 `context-action/context-scope@1.0`입니다. `status.invalid`는 anchor 또는 revision이
+유효하지 않다는 뜻이고, `status.incomplete`는 graph limit 초과 또는 필요한 증거 부재를 뜻합니다.
+직렬화된 node key는 기존 `projectId/filePath/entityId` tuple에서 파생한 JSON-safe 값입니다. 현재
+CLI는 명시적 manifest edge를 소비하며, SEM dependency projection은
+`createContextScope({ semAnalyses })` library API에서 제공됩니다. 이 결과도 runtime call graph가
+아닌 구조적 관계입니다.
+
+## 7. 문서 컨텍스트에는 별도 패키지 sem-doc 사용
+
+`@context-action/sem-doc`는 SEM 관계, Git, TSDoc binding을 결합하는 별도 private workspace
+package입니다. Architecture Governance의 dependency, verification report, registry 구현이 아닙니다.
 분석 중 subprocess cwd가 repository root로 바뀌어도 workspace에 설치된 sem 바이너리를 기본으로
 찾으므로 `SEM_BIN`은 다른 실행 파일을 테스트할 때만 설정합니다.
 
 ```bash
-pnpm --filter @tsdoc-edge/sem-doc build
+pnpm --filter @context-action/sem-doc build
 
 # 한 top-level entity와 dependents, 문서 backlink 수집
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js \
+pnpm --filter @context-action/sem-doc exec node dist/cli.js \
   work-context SemClient \
   --file src/sem-client.ts \
   --docs-root spec \
@@ -167,18 +216,19 @@ pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js \
   --json
 
 # untracked 파일을 포함한 Git working-tree 증거
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js diff --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
 
 # 정확한 문서-entity binding 색인과 검증
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @tsdoc-edge/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
 ```
 
 직접 관계만 필요하면 `--depth 1`, 제한된 전이 관계가 필요하면 `--depth 2`를 사용합니다.
 `usageFiles`는 SEM dependents에서 얻은 정렬된 파일 단위 구조 신호이며, 정확한 reference 위치,
 runtime call graph, 함수 호출 횟수가 아닙니다. 문서 frontmatter와 `sem-doc-work-context.v4`는
 [`sem-doc README`](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)를
-참고하세요.
+참고하세요. 두 도구의 선택 기준과 report/계약 혼용 금지는
+[sem-doc과 Architecture Governance 경계 가이드](./sem-doc-architecture-governance-boundary)에서 확인합니다.
 
 ## 출력과 종료 코드
 

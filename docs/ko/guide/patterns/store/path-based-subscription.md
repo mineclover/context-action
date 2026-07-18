@@ -401,6 +401,11 @@ store.setValue({ ...store.getValue(), count: 1 });
 const lastPatches = store.getLastPatches();
 ```
 
+스토어가 한 애니메이션 프레임 안에서 여러 업데이트를 배치하면 콜백에는
+해당 프레임의 모든 전환 패치가 연결되어 전달됩니다. 따라서 경로 기반
+구독자가 앞선 업데이트를 놓치지 않으며, 알림이 반영된 후
+`getLastPatches()`도 동일한 누적 패치를 반환합니다.
+
 ## 성능 이점
 
 ### 이전 (셀렉터만 사용)

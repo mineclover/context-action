@@ -14,7 +14,7 @@ import {
   type Draft,
   type Patches,
   rawReturn,
-} from 'mutative';
+} from '@context-action/mutative-core';
 import type { ImmutabilityOptions, ProduceOptions } from './types';
 import {
   isPrimitive,
@@ -81,11 +81,15 @@ export function produce<T, F extends boolean = false>(
     // Without enablePatches, create returns the state directly, causing destructuring issues
     const result = create(baseState, producer, {
       enablePatches: true,
-      strict: options?.freeze ?? false,
+      enableAutoFreeze: options?.freeze ?? false,
+      strict: options?.strict ?? false,
     }) as [T, Patches<true>, Patches<true>];
     const [nextState] = result;
     return nextState;
   } catch (error) {
+    if (options?.strict) {
+      throw error;
+    }
     if (globalOptions.warnOnFallback) {
       logger.warn('Mutative produce failed, falling back to manual clone', error);
     }
@@ -114,7 +118,8 @@ export function produceWithPatches<T, F extends boolean = false>(
 ): [T, Patches, Patches] {
   const [nextState, patches, inversePatches] = create(baseState, producer, {
     enablePatches: true,
-    strict: options?.freeze ?? false,
+    enableAutoFreeze: options?.freeze ?? false,
+    strict: options?.strict ?? false,
   }) as [T, Patches<true>, Patches<true>];
   return [nextState, patches, inversePatches];
 }
@@ -160,6 +165,30 @@ function manualDeepClone<T>(value: T): T {
 
   if (Array.isArray(value)) {
     return value.map(manualDeepClone) as T;
+  }
+
+  if (value instanceof Map) {
+    const cloned = new Map();
+    value.forEach((entryValue, key) => {
+      cloned.set(key, manualDeepClone(entryValue));
+    });
+    return cloned as T;
+  }
+
+  if (value instanceof Set) {
+    const cloned = new Set();
+    value.forEach((entryValue) => {
+      cloned.add(manualDeepClone(entryValue));
+    });
+    return cloned as T;
+  }
+
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as T;
+  }
+
+  if (value instanceof RegExp) {
+    return new RegExp(value.source, value.flags) as T;
   }
 
   if (isPlainObject(value)) {
@@ -211,16 +240,27 @@ export function safeSet<T>(value: T, enableCloning = true): T {
  * @param state - The state to apply patches to
  * @param patches - The patches to apply
  * @param options - Optional configuration
- * @returns The new state with patches applied
+ * @returns The new state with patches applied, or `undefined` when
+ *   `mutable: true` mutates the provided state in place
  */
 export function applyPatches<T>(
   state: T,
   patches: Patches,
+  options: { mutable: true }
+): void;
+export function applyPatches<T>(
+  state: T,
+  patches: Patches,
+  options?: { mutable?: false }
+): T;
+export function applyPatches<T>(
+  state: T,
+  patches: Patches,
   options?: { mutable?: boolean }
-): T {
+): T | undefined {
   return apply(state as object, patches, {
     mutable: options?.mutable ?? false,
-  }) as T;
+  }) as T | undefined;
 }
 
 // ============================================================================

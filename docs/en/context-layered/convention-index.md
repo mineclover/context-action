@@ -4,17 +4,20 @@ This document is the central entry point for the implementation-playbook style c
 
 ## Short Recommended Reading Path
 
-1. [Implementation Convention](/en/context-layered/implementation-convention)
-2. [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
-3. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
-4. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
-5. [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
-6. [Canonical Order Form Example](/en/examples/canonical-order-form)
-7. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
-8. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-9. [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
-10. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
-11. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+1. [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
+2. [Implementation Convention](/en/context-layered/implementation-convention)
+3. [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
+4. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
+5. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
+6. [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
+7. [Canonical Order Form Example](/en/examples/canonical-order-form)
+8. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
+9. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+10. [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
+11. [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
+12. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
+13. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+14. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
 
 The short path above covers:
 - folder structure
@@ -30,6 +33,10 @@ The short path above covers:
 
 - [Convention Alignment Plan](/en/context-layered/convention-alignment-plan)
   - current-state classification, fixed provider order, and migration gates
+- [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
+  - package ownership, dependency direction, package lifecycle, and cleanup rules
+- [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
+  - Mutative source lineage, carried upstream fixes, licensing, and synchronization rules
 - [Implementation Convention](/en/context-layered/implementation-convention)
   - the standard implementation-playbook rule set
 - [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
@@ -46,6 +53,8 @@ The short path above covers:
   - handler registration and separation rules
 - [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
   - capability identity, `SymbolRef`, snapshot evidence, and verification boundaries
+- [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
+  - separate work-context/document tooling from authored architecture verification
 - [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
   - screen/transaction grouping contract over the complete symbol snapshot
 

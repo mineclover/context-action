@@ -47,6 +47,12 @@ describe('TimeTravelStore', () => {
       expect(store.getValue().count).toBe(1);
     });
 
+    it('should replace the root when an update function returns a new value', () => {
+      store.update(() => ({ count: 42, name: 'replacement' }));
+
+      expect(store.getValue()).toEqual({ count: 42, name: 'replacement' });
+    });
+
     it('should notify listeners on value change', (done) => {
       const listener = jest.fn();
       store.subscribe(listener);
@@ -281,6 +287,38 @@ describe('TimeTravelStore', () => {
   });
 
   describe('Patch-Aware Subscriptions', () => {
+    it('reports only patches from the most recent update', () => {
+      const patchListener = jest.fn();
+      store.subscribeWithPatches(patchListener);
+
+      store.setValue({ count: 1, name: 'initial' });
+      store.setValue({ count: 1, name: 'changed' });
+
+      expect(store.getLastPatches()).toEqual([
+        { op: 'replace', path: ['name'], value: 'changed' },
+      ]);
+      expect(patchListener).toHaveBeenLastCalledWith([
+        { op: 'replace', path: ['name'], value: 'changed' },
+      ]);
+    });
+
+    it('reports inverse and forward transition patches during undo and redo', () => {
+      store.setValue({ count: 1, name: 'first' });
+      store.setValue({ count: 2, name: 'second' });
+
+      store.undo();
+      expect(store.getLastPatches()).toEqual([
+        { op: 'replace', path: ['name'], value: 'first' },
+        { op: 'replace', path: ['count'], value: 1 },
+      ]);
+
+      store.redo();
+      expect(store.getLastPatches()).toEqual([
+        { op: 'replace', path: ['count'], value: 2 },
+        { op: 'replace', path: ['name'], value: 'second' },
+      ]);
+    });
+
     it('should notify patch-aware listeners with patches', (done) => {
       const patchListener = jest.fn();
       store.subscribeWithPatches(patchListener);
@@ -295,6 +333,19 @@ describe('TimeTravelStore', () => {
       }, 10);
     });
 
+    it('should include patch-aware listeners in the listener count', () => {
+      const listener = jest.fn();
+      const patchListener = jest.fn();
+      const unsubscribe = store.subscribe(listener);
+      const unsubscribeWithPatches = store.subscribeWithPatches(patchListener);
+
+      expect(store.getListenerCount()).toBe(2);
+
+      unsubscribe();
+      unsubscribeWithPatches();
+      expect(store.getListenerCount()).toBe(0);
+    });
+
     it('should return last patches', () => {
       expect(store.getLastPatches()).toBeNull();
 
@@ -303,6 +354,65 @@ describe('TimeTravelStore', () => {
       const patches = store.getLastPatches();
       expect(patches).not.toBeNull();
       expect(Array.isArray(patches)).toBe(true);
+    });
+
+    it('should merge patches from multiple updates in one batched notification', (done) => {
+      const batchedStore = createTimeTravelStore(
+        'batched-patches',
+        { count: 0, name: 'initial' },
+        { notificationMode: 'batched' }
+      );
+      const patchListener = jest.fn();
+      batchedStore.subscribeWithPatches(patchListener);
+
+      batchedStore.setValue({ count: 1, name: 'initial' });
+      batchedStore.setValue({ count: 1, name: 'changed' });
+
+      setTimeout(() => {
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        expect(patchListener).toHaveBeenCalledWith([
+          { op: 'replace', path: ['count'], value: 1 },
+          { op: 'replace', path: ['name'], value: 'changed' },
+        ]);
+        expect(batchedStore.getLastPatches()).toEqual([
+          { op: 'replace', path: ['count'], value: 1 },
+          { op: 'replace', path: ['name'], value: 'changed' },
+        ]);
+        batchedStore.dispose();
+        done();
+      }, 25);
+    });
+
+    it('should schedule reentrant batched updates for a subsequent frame', (done) => {
+      const batchedStore = createTimeTravelStore(
+        'batched-reentrant',
+        { count: 0 },
+        { notificationMode: 'batched' }
+      );
+      const listener = jest.fn(() => {
+        if (listener.mock.calls.length === 1) {
+          batchedStore.setValue({ count: 2 });
+        }
+      });
+      const patchListener = jest.fn();
+      batchedStore.subscribe(listener);
+      batchedStore.subscribeWithPatches(patchListener);
+
+      batchedStore.setValue({ count: 1 });
+
+      setTimeout(() => {
+        expect(listener).toHaveBeenCalledTimes(2);
+        expect(batchedStore.getValue()).toEqual({ count: 2 });
+        expect(patchListener).toHaveBeenCalledTimes(2);
+        expect(patchListener.mock.calls[0][0]).toEqual([
+          { op: 'replace', path: ['count'], value: 1 }
+        ]);
+        expect(patchListener.mock.calls[1][0]).toEqual([
+          { op: 'replace', path: ['count'], value: 2 }
+        ]);
+        batchedStore.dispose();
+        done();
+      }, 50);
     });
 
     it('should unsubscribe patch-aware listeners', (done) => {

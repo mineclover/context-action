@@ -74,6 +74,30 @@ export function deepCloneValue(value: unknown): unknown {
     return value.map(deepCloneValue);
   }
 
+  if (value instanceof Map) {
+    const cloned = new Map<unknown, unknown>();
+    value.forEach((entryValue, key) => {
+      cloned.set(key, deepCloneValue(entryValue));
+    });
+    return cloned;
+  }
+
+  if (value instanceof Set) {
+    const cloned = new Set<unknown>();
+    value.forEach((entryValue) => {
+      cloned.add(deepCloneValue(entryValue));
+    });
+    return cloned;
+  }
+
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+
+  if (value instanceof RegExp) {
+    return new RegExp(value.source, value.flags);
+  }
+
   const cloned: Record<string, unknown> = {};
   for (const key in value) {
     if (Object.prototype.hasOwnProperty.call(value, key)) {

@@ -1,4 +1,4 @@
-name: Publish Mutative Package
+name: Publish Mutative Packages
 
 on:
   workflow_dispatch:
@@ -61,6 +61,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Mutative version: $VERSION"
 
+      - name: Resolve mutative-core version
+        id: mutative_core
+        run: |
+          VERSION=$(jq -r '.version' packages/mutative-core/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Mutative core version: $VERSION"
+
       - name: Check if version is already published
         id: publish_check
         run: |
@@ -72,25 +79,48 @@ jobs:
             echo "already_published=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check if mutative-core version is already published
+        id: publish_core_check
+        run: |
+          if npm view "@context-action/mutative-core@${{ steps.mutative_core.outputs.version }}" version >/dev/null 2>&1; then
+            echo "Version ${{ steps.mutative_core.outputs.version }} is already published."
+            echo "already_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version ${{ steps.mutative_core.outputs.version }} is not published yet."
+            echo "already_published=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build published packages
-        if: steps.publish_check.outputs.already_published != 'true'
+        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm build
 
       - name: Type check published packages
-        if: steps.publish_check.outputs.already_published != 'true'
+        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm type-check
 
       - name: Verify package exports
-        if: steps.publish_check.outputs.already_published != 'true'
+        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm verify:package-exports
 
       - name: Test mutative package
-        if: steps.publish_check.outputs.already_published != 'true'
+        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative test
 
+      - name: Test mutative-core package
+        if: steps.publish_core_check.outputs.already_published != 'true'
+        run: pnpm --filter @context-action/mutative-core test
+
       - name: Verify package tarballs
-        if: steps.publish_check.outputs.already_published != 'true'
+        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm verify:package-tarballs
+
+      - name: Publish mutative-core package
+        if: steps.publish_core_check.outputs.already_published != 'true'
+        working-directory: packages/mutative-core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Publish mutative package
         if: steps.publish_check.outputs.already_published != 'true'

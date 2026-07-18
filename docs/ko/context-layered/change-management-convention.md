@@ -6,6 +6,7 @@
 
 이 문서는 요청을 검증된 변경으로 연결하는 운영 계층을 정의합니다.
 [구현 컨벤션](./implementation-convention),
+[패키지 경계 및 코드베이스 관리 컨벤션](./package-boundary-convention),
 [문서 및 개발 관리 컨벤션](../concept/documentation-development-conventions),
 [아키텍처 거버넌스와 증거](./architecture/architecture-governance)를 보완합니다.
 

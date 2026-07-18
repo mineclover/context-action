@@ -71,6 +71,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'immediate';
   private pendingNotification = false;
   private animationFrameId: number | null = null;
+  private pendingPatches: Patches | null = null;
 
   constructor(
     name: string,
@@ -92,9 +93,11 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.timeTravel.subscribe((state, travelPatches, _position) => {
-      // Flatten patches for easy access
-      this._lastPatches = travelPatches.patches.flat() as Patches;
+    this.timeTravel.subscribe((state, travelPatches, _position, changedPatches) => {
+      // Use only the patches from the transition that triggered this
+      // notification. The full history remains available through the
+      // TimeTravel controls and must not drive path-aware subscriptions.
+      this._lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
 
       if (process.env.NODE_ENV === 'development') {
         console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, this._lastPatches.length, 'listeners:', this.listeners.size);
@@ -136,7 +139,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   };
 
   /**
-   * Get the patches from the last state change
+   * Get the patches from the last state change. In batched mode this includes
+   * every transition accumulated before the notification frame was flushed.
    */
   getLastPatches(): Patches | null {
     return this._lastPatches;
@@ -212,7 +216,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   getListenerCount(): number {
-    return this.listeners.size;
+    return this.listeners.size + this.patchAwareListeners.size;
   }
 
   clearListeners(): void {
@@ -229,6 +233,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.pendingNotification = false;
+    this.pendingPatches = null;
 
     // Execute cleanup tasks
     this.cleanupTasks.forEach((task) => {
@@ -436,19 +442,34 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       return;
     }
 
+    if (this._lastPatches) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(this._lastPatches)
+        : this._lastPatches;
+    }
+
     // RAF batching
     if (!this.pendingNotification) {
       this.pendingNotification = true;
       this.animationFrameId = requestAnimationFrame(() => {
-        this._executeNotification();
         this.pendingNotification = false;
         this.animationFrameId = null;
+        this._executeNotification();
       });
     }
   }
 
   private _executeNotification(): void {
     if (this.isDisposed) return;
+
+    if (this.pendingPatches) {
+      this._lastPatches = this.pendingPatches;
+      this.pendingPatches = null;
+    }
+
+    // Keep the payload stable if a regular listener triggers another update
+    // before patch-aware listeners are reached.
+    const notifiedPatches = this._lastPatches;
 
     // Notify regular listeners
     this.listeners.forEach((listener) => {
@@ -462,7 +483,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     // Notify patch-aware listeners
     this.patchAwareListeners.forEach((listener) => {
       try {
-        listener(this._lastPatches);
+        listener(notifiedPatches);
       } catch {
         ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
       }

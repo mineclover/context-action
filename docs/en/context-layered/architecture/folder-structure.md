@@ -320,6 +320,6 @@ Full TypeScript support with clear interfaces between layers.
 This structure ensures maintainable, testable, and scalable Context-Action applications with clear architectural boundaries.
 
 For repository-level evidence, connect this runtime structure to the capability and `SymbolRef` contracts
-in [Architecture Governance](./architecture-governance.md). A future ContextScope manifest may group
+in [Architecture Governance](./architecture-governance.md). An optional ContextScope manifest may group
 these layers into screen or transaction scopes, but it must reuse snapshot identities rather than creating
 another symbol registry.

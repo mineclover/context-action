@@ -237,6 +237,40 @@ export function entitySymbol(entityId: string, filePath?: string): string {
   return entityId;
 }
 
+/**
+ * Converts a SEM entity into the shared complete-snapshot entry.
+ *
+ * This is deliberately policy-neutral: consumers still decide whether the
+ * resulting entry belongs to a work-context report, an architecture history,
+ * or another derived view.
+ */
+export function createSymbolSnapshotEntry(
+  entity: SemEntityRecord,
+  projectId: string,
+): SymbolSnapshotEntry {
+  const normalizedProjectId = nonEmptyText(projectId, 'projectId');
+  const normalized = normalizeSemEntity(entity);
+  const startLine = normalized.startLine;
+  const endLine = normalized.endLine;
+  if (startLine === undefined || endLine === undefined) {
+    throw new TypeError('SEM entity must include startLine and endLine for a complete snapshot');
+  }
+  if (endLine < startLine) {
+    throw new TypeError('SEM entity endLine must not precede startLine');
+  }
+  return {
+    projectId: normalizedProjectId,
+    entityId: normalized.id,
+    filePath: normalized.file,
+    symbol: entitySymbol(normalized.id, normalized.file),
+    kind: normalized.type,
+    name: normalized.name,
+    startLine,
+    endLine,
+    ...(normalized.parentId === undefined ? {} : { parentId: normalized.parentId }),
+  };
+}
+
 /** A stable serialized symbol entry used by context-boundary consumers. */
 export interface SymbolSetEntry {
   readonly projectId: string;
@@ -244,6 +278,13 @@ export interface SymbolSetEntry {
   readonly filePath: string;
   readonly symbol: string;
   readonly kind: string;
+}
+
+/** Canonical identity tuple shared by snapshots and derived context views. */
+export interface SymbolRef {
+  readonly projectId: string;
+  readonly filePath: string;
+  readonly entityId: string;
 }
 
 /** Stable wire-contract identifier for a complete symbol snapshot. */
@@ -311,6 +352,13 @@ export interface SymbolSnapshotDiff {
 /** Returns the repository/project-qualified identity used for set operations. */
 export function symbolSetKey(entry: SymbolSetEntry): string {
   return `${entry.projectId}\0${normalizeRepositoryPath(entry.filePath)}\0${entry.entityId}`;
+}
+
+/** Returns a JSON-safe deterministic key for a canonical symbol identity tuple. */
+export function symbolRefKey(ref: SymbolRef): string {
+  return [ref.projectId, normalizeRepositoryPath(ref.filePath), ref.entityId]
+    .map((value) => `${value.length}:${value}`)
+    .join('|');
 }
 
 /** Compares two serialized symbol contexts without interpreting runtime call semantics. */

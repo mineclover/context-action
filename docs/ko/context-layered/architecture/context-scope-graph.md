@@ -2,9 +2,9 @@
 
 ## 상태와 목적
 
-이 문서는 의미 있는 컨텍스트 단위로 심볼을 묶는 설계를 정의한다. 다음 Samdocs/
-architecture-governance PoC를 위한 설계 계약이며, 그래프 산출물이나 renderer가 이미 구현되었다는
-의미는 아니다.
+이 문서는 의미 있는 컨텍스트 단위로 심볼을 묶는 계약이다. 현재 PoC에는 revision-bound manifest
+parser, `context-scope` CLI projection, JSON Schema, library 수준 bounded SEM dependency projection이
+구현되어 있다. renderer와 API/transaction 전용 adapter는 후속 작업이다.
 
 첫 번째 제공 범위는 화면이다. 화면을 진입 심볼로 보고 정적으로 사용되는 하위 심볼을 하나의 큰
 시각적 경계 안에 표시한다. 영속적인 모델은 API 경계, 트랜잭션, workflow, 문서도 지원하도록
@@ -36,7 +36,7 @@ interface SymbolRef {
   entityId: string;
 }
 
-/** 기존 symbolSetKey(SymbolRef)로 파생하며, 별도로 작성하는 ID가 아니다. */
+/** Foundation의 JSON-safe symbolRefKey(SymbolRef)로 파생하며, 별도로 작성하는 ID가 아니다. */
 type SymbolKey = string;
 
 interface ContextScope {
@@ -160,7 +160,7 @@ interface DeclaredContextEdge {
 ```
 
 `SymbolRef`는 기존 canonical 심볼 ID인 `projectId`, `filePath`, `entityId` 조합을 사용한다.
-`SymbolKey`는 이 조합에 이미 쓰이는 결정적 직렬화이며, 새로 작성하는 identity가 아니다. 따라서
+`SymbolKey`는 이 조합의 JSON-safe 결정적 직렬화이며, 새로 작성하는 identity가 아니다. 따라서
 anchor, node, edge, group member는 모두 정확히 같은 심볼 identity를 해석해야 한다. 그룹은 심볼이
 아니라 화면에 표시되는 경계다. 그룹 멤버십은 겹칠 수 있으므로 공유 심볼은 canonical node를
 복제하지 않고 여러 그룹에서 참조한다.
@@ -214,6 +214,7 @@ route나 action 이름이 심볼로 오인되지 않도록 context를 명시적�
 ```json
 {
   "schemaVersion": 1,
+  "revision": { "gitHead": "<snapshot gitHead>" },
   "contexts": [
     {
       "id": "dashboard",
@@ -319,22 +320,26 @@ projection은 forest여야 한다. 즉 group ID는 유일하고, 모든 member k
 layout 좌표, 색상, hierarchy projection, 접힘 상태는 renderer 또는 presentation artifact의 책임이며
 canonical symbol snapshot에 저장하지 않는다.
 
-## 현재 Samdocs 범위와의 관계
+## Architecture Governance 범위와의 관계
 
-현재 Samdocs의 범위는 심볼 identity, 정의 위치, 역할 문서, usage files, revision history다.
-`ContextScope`는 이 catalog 위에 만들어지는 파생 뷰다. 경량 LSP 경계를 바꾸지 않으며 business
-correctness, runtime behavior, 호출 횟수를 증명하지 않는다.
+현재 Architecture Governance의 범위는 authored capability identity, 심볼 identity, 정의 위치,
+역할 evidence, usage files, revision history다. `ContextScope`는 이 catalog 위에 만들어지는 파생
+뷰다. 경량 LSP 경계를 바꾸지 않으며 business correctness, runtime behavior, 호출 횟수를 증명하지
+않는다. 문서 checkpoint, TSDoc backlink, working-tree context는 별도 패키지인
+`@context-action/sem-doc`의 책임이다.
 
 ## 구현 순서
 
-1. Foundation에 versioned `SymbolRef`, 파생 `SymbolKey`, `ContextScope`, manifest, status 계약과
-   JSON schema, deterministic normalizer를 추가한다.
+1. Foundation에 versioned `SymbolRef`와 파생 `SymbolKey`를 추가하고, architecture-governance에서
+   `ContextScope`, manifest, status 계약과 JSON schema, deterministic normalizer를 노출한다. **PoC에
+   구현됨.**
 2. `architecture/` 아래 repository-local context manifest를 추가하고 완전한 anchor identity, profile
-   role, 선언 edge ID, 같은 revision에서의 loading을 검증한다.
-3. screen adapter만 구현한다. SEM `depends-on` 증거와 manifest 선언 edge를 사용하고 complete, invalid,
-   모든 incomplete reason fixture로 출력을 고정한다.
-4. renderer 선택 전에 JSON graph CLI와 schema export를 제공한다. 제한된 traversal을 반복 실행해도
-   byte-identical output이 나오는지 검증한다.
+   role, 선언 edge ID, 같은 revision에서의 loading을 검증한다. **loader/CLI 입력 계약으로 구현되었고
+   checked-in `contexts.json`은 선택 사항이다.**
+3. screen adapter만 구현한다. **manifest projection은 CLI에서, bounded SEM dependency projection은
+   library API에서 제공한다.**
+4. renderer 선택 전에 JSON graph CLI와 schema export를 제공한다. **`context-scope`와 deterministic
+   sorting으로 구현되었으며 renderer 선택은 후속 작업이다.**
 5. provider/manifest 증거가 edge mapping test를 갖춘 뒤 API와 transaction adapter를 추가한다. workflow와
    document profile은 adapter가 생길 때까지 거부한다.
 6. 직렬화 계약이 안정된 뒤 compound graph UI와 상호작용 증거를 추가하고 canonical node set으로 group

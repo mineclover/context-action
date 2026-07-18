@@ -19,7 +19,6 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
-const rootLicensePath = path.join(repositoryRoot, 'LICENSE');
 const forbiddenDirectoryNames = new Set([
   '__tests__',
   'coverage',
@@ -228,11 +227,12 @@ async function assertRegularFile(packageRoot, target, label, archiveFiles, failu
   }
 }
 
-async function verifyPackage(relativePackageDirectory, rootLicense) {
+async function verifyPackage(relativePackageDirectory) {
   const packageDirectory = path.join(repositoryRoot, relativePackageDirectory);
   const sourceManifest = JSON.parse(
     await readFile(path.join(packageDirectory, 'package.json'), 'utf8'),
   );
+  const sourceLicense = await readFile(path.join(packageDirectory, 'LICENSE'));
   const packageName = sourceManifest.name ?? relativePackageDirectory;
   const temporaryDirectory = await mkdtemp(
     path.join(os.tmpdir(), 'context-action-package-'),
@@ -291,17 +291,17 @@ async function verifyPackage(relativePackageDirectory, rootLicense) {
         `package.json: packed version ${JSON.stringify(packedManifest.version)} does not match source ${JSON.stringify(sourceManifest.version)}`,
       );
     }
-    if (packedManifest.license !== 'Apache-2.0') {
+    if (packedManifest.license !== sourceManifest.license) {
       failures.push(
-        `package.json: expected license "Apache-2.0", received ${JSON.stringify(packedManifest.license)}`,
+        `package.json: packed license ${JSON.stringify(packedManifest.license)} does not match source ${JSON.stringify(sourceManifest.license)}`,
       );
     }
 
     const packedLicensePath = path.join(packageRoot, 'LICENSE');
     try {
       const packedLicense = await readFile(packedLicensePath);
-      if (!packedLicense.equals(rootLicense)) {
-        failures.push('LICENSE: content is not byte-identical to the repository root LICENSE');
+      if (!packedLicense.equals(sourceLicense)) {
+        failures.push('LICENSE: content is not byte-identical to the package source LICENSE');
       }
     } catch (error) {
       failures.push(`LICENSE: missing or unreadable (${error.message})`);
@@ -347,12 +347,11 @@ async function verifyPackage(relativePackageDirectory, rootLicense) {
   return failures.map((failure) => `${packageName}: ${failure}`);
 }
 
-const rootLicense = await readFile(rootLicensePath);
 const packagesToVerify = await discoverPublicPackages();
 const failures = [];
 
 for (const packageDirectory of packagesToVerify) {
-  failures.push(...await verifyPackage(packageDirectory, rootLicense));
+  failures.push(...await verifyPackage(packageDirectory));
 }
 
 if (failures.length > 0) {
@@ -361,6 +360,6 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    `\nVerified ${packagesToVerify.length} npm package tarballs against the Apache-2.0 publication contract.`,
+    `\nVerified ${packagesToVerify.length} npm package tarballs against their package publication contracts.`,
   );
 }

@@ -1,27 +1,43 @@
-# Samdocs Symbol Registry PoC
+# Context-Action Architecture Governance PoC
 
-Authored symbol registry와 `sem` entity/impact 결과를 연결해 심볼의 정의 위치와 사용 파일을 수집·검증하는 작은
-Samdocs 도구다. 심볼의 역할은 source comment/JSDoc와 registry evidence로 관리하며, 컴파일러 graph
+이 패키지는 **Context-Action repository convention을 규칙과 구조 evidence로 실행해보는 실험적 PoC**다.
+작성자가 선언한 capability, owner, role, implementation anchor와 policy를 SEM/Git evidence에 연결해
+검증하고, revision별 complete symbol snapshot과 review report를 만든다. 범용 architecture inference
+engine이나 문서 편집·생성기라기보다 이 repository의 architecture/document evidence 관리 규칙을
+시험하는 control-plane 도구다.
+
+Authored symbol registry와 `sem` entity/impact 결과를 연결해 심볼의 정의 위치와 사용 파일을 수집·검증하는
+Architecture Governance 도구다. 심볼의 역할은 registry `role` declaration과 source comment/JSDoc로 관리하며, 컴파일러 graph
 provider나 LSP 수준의 내부 함수 호출 분석·문서 생성 기능은 포함하지 않는다.
 
 공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@sem-foundation/contracts`](../sem-foundation/README.md)
 에서 관리하고, Git revision/history/worktree lifecycle은 [`@sem-foundation/repository`](../sem-foundation-repository/README.md)에서
-관리한다. 이 패키지는 SEM subprocess 실행이나 architecture policy를 소유하지 않으며,
-`@tsdoc-edge/sem-doc`도 같은 repository runtime을 optional peer로 소비할 수 있다.
+관리한다. 외부 SEM subprocess의 실행 adapter와 architecture policy의 loader/evaluator/report
+contract는 이 패키지가 소유하지만, 실제 authored registry와 policy source는 repository의
+`architecture/` 디렉터리가 소유한다.
+`@context-action/sem-doc`도 같은 Foundation contracts/repository runtime을 필수 dependency로
+소비하지만, 이 패키지와 서로 독립된 계약과 목적을 가진다.
 
-`@tsdoc-edge/sem-doc`의 소스는 이 저장소의 `packages/sem-doc`에 있는 private workspace PoC로
+`@context-action/sem-doc`은 작업 전 문서·Git 컨텍스트를 만드는 별도 도구다. 이 패키지는
+`architecture/registry.json`, policy, complete snapshot과 CI/reviewer용 verification을 소유한다.
+두 패키지는 같은 SEM/Foundation primitive을 사용할 수 있으나 runtime 의존성이나 report 계약을
+공유하지 않는다. 자세한 비교는 [sem-doc과 Architecture Governance 경계](../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)를 따른다.
+
+`@context-action/sem-doc`의 소스는 이 저장소의 `packages/sem-doc`에 있는 private workspace PoC로
 관리한다. `pnpm sem-doc:verify`가 sem-doc의 타입 검사, 경계 검사, lint, 테스트, artifact 검증을
 실행하며, 아직 Lerna publish/release 대상에는 포함하지 않는다.
 
 ## 검증 범위
 
-- stable symbol/capability의 spec, owner, 구현 anchor, test evidence, public docs 경로
+- stable symbol/capability의 spec, owner, authored `role`, 구현 anchor, test evidence, public docs 경로
 - `package.json` 선언 기반 package dependency boundary
 - `sem entities` 기반 `path::type::name` 구현 anchor 및 정의 위치
 - 명시적 anchor별 `sem impact` dependents의 중복 제거 `usageFiles`
 - policy source entity의 `sem impact` dependencies 기반 선택적 architecture boundary
 
-`sem`은 심볼의 구조적 정의 위치와 top-level 사용 entity 파일 증거를 제공한다. 테스트 성공 여부는 기존 test runner가,
+`sem`은 심볼의 구조적 정의 위치와 top-level 사용 entity 파일 증거를 제공한다. complete snapshot entry 변환은
+`@sem-foundation/contracts`의 `createSymbolSnapshotEntry`를 사용하므로 sem-doc과 symbol identity/range
+직렬화 규칙을 중복 소유하지 않는다. 테스트 성공 여부는 기존 test runner가,
 역할 설명과 symbol identity는 authored registry/comment가 소유한다. 내부 함수 호출을 세거나
 호출 순서를 추론하지 않는 것이 의도된 범위다. symbol 생성·상태 승격·예외 처리와 PR review 절차는
 [`architecture/governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md)를 따른다.
@@ -32,17 +48,31 @@ reference나 runtime call graph가 아니다.
 
 ## 문서 구조
 
-- 이 README의 `실행`은 CLI, change scope, SEM budget, filesystem 신뢰 경계를 설명한다.
+- 이 README의 `실행`은 package consumer가 바로 따라 할 CLI와 change scope를 설명한다.
 - 처음 사용하는 순서와 대표 명령 조합은 [Architecture Governance Usage](../../docs/en/context-layered/architecture/architecture-governance-usage.md)와 [한국어 사용 방법](../../docs/ko/context-layered/architecture/architecture-governance-usage.md)을 따른다.
-- `계약`은 SEM entity/impact 의미, report 2.4, JSON Schema와 package export 계약을 설명한다.
+- 아래 `Advanced` 섹션은 maintainer가 필요한 경우에만 읽는 SEM budget, filesystem 신뢰 경계, preflight 세부사항이다.
+- `공개 계약`은 SEM entity/impact 의미, report 2.4, JSON Schema와 package export 계약을 설명한다.
 - capability authoring과 lifecycle은 repository의 [`architecture/governance-guide.md`](https://github.com/mineclover/context-action/blob/main/architecture/governance-guide.md),
   구현 범위와 현재 한계는 [`architecture/implementation-review.md`](https://github.com/mineclover/context-action/blob/main/architecture/implementation-review.md)에서 관리한다.
 - capability ID(`CA-*`), symbol identity(`SymbolRef`), context ID(`contextId`)는 서로 다른 계층이며,
   ContextScope와 Context-Action layer mapping은 공개 [ContextScope 설계](../../docs/en/context-layered/architecture/context-scope-graph.md)에서 관리한다.
+- revision-bound manifest와 complete snapshot을 조합하는 `context-scope` command는 별도 derived view이며,
+  manifest는 `arch:check` capability 입력이 아니다.
 
-이 도구는 authored intent를 SEM evidence로 검증하는 gate다. runtime data flow, business correctness,
-owner 승인, 문서 생성 자체를 자동 증명하지 않는다. shared SEM contract는 publish-ready지만,
-registry 배포와 외부 소비자 고정은 별도 release decision으로 남겨둔다.
+이 도구는 Context-Action convention으로 작성한 authored intent를 SEM evidence로 검증하는 gate다.
+따라서 runtime data flow, business correctness, owner 승인, 문서 편집·생성 자체를 자동 증명하지
+않는다. 이 범위를 generic architecture standard로 해석하거나 sem-doc의 work-context report로
+대체해서도 안 된다. shared SEM contract는 publish-ready지만, registry 배포와 외부 소비자 고정은
+별도 release decision으로 남겨둔다.
+
+## Position and non-goals
+
+- **Position**: Context-Action convention 기반의 실험적 규칙형 architecture/document evidence governance
+- **Authored source**: repository-local `architecture/registry.json`, `architecture/rules/*.json`, guide와 decision 문서
+- **Runtime role**: authored source를 읽고 SEM/Git evidence를 결합해 gate, snapshot, history, scope artifact를 생성
+- **Not a document editor**: Markdown/API 문서를 작성·동기화하거나 TypeDoc을 대체하지 않음
+- **Not a language graph**: 내부 함수 호출, 정확한 reference 위치, runtime flow는 LSP/compiler graph의 별도 책임
+- **Not a generic policy**: 다른 저장소에 그대로 적용되는 표준을 자동 추론하지 않으며, convention 변경은 authored source와 decision으로 관리
 
 ## 실행
 
@@ -53,6 +83,22 @@ pnpm arch:check:staged
 pnpm arch:check:registry
 pnpm arch:type-check
 pnpm arch:test
+```
+
+### ContextScope 실행
+
+먼저 `snapshot`으로 complete inventory를 만들고, 같은 revision을 선언한 context manifest를 준비한다.
+그 다음 `context-scope`가 anchor와 declared edge를 검증해 JSON/Markdown/console scope artifact를 만든다.
+SEM `depends-on` 투영은 `createContextScope({ semAnalyses })` library API에서 추가할 수 있다.
+
+```bash
+node packages/architecture-governance/dist/cli.js context-scope \
+  --root . \
+  --snapshot reports/symbol-snapshot.json \
+  --manifest architecture/contexts.json \
+  --context dashboard \
+  --format json \
+  --output reports/dashboard-context-scope.json
 ```
 
 package build의 `postbuild`는 `npm pack --dry-run` 결과에서 root ESM/type export, 여섯 JSON Schema,
@@ -224,7 +270,7 @@ canonical `entityId`, 표시용 `symbol`, `kind`를 갖고, 결과는 `intersect
 호출 횟수·runtime data flow를 해석하지 않는다. `history`가 생성하는 완전한 commit snapshot을
 이 입력으로 재사용할 수 있다.
 
-### SEM 실행 budget과 실패 report
+### Advanced: SEM 실행 budget과 실패 report
 
 각 SEM command는 기본적으로 120초와 64MiB 출력 한도를 가진다. 출력 한도는 성공한 command의
 stdout과 stderr를 합친 byte 수에 적용하며, subprocess runtime이 스트림별로만 제한하는 경우에도
@@ -290,7 +336,7 @@ rule, analysis, impact source, dependency relation 평가가 이 한도를 넘�
 impact 응답에 대량 relation이 있거나 여러 policy가 같은 graph를 반복 탐색해 CPU와 finding을
 증폭시키는 경로가 fail-closed로 종료된다.
 
-### Filesystem·evidence 신뢰 경계
+### Advanced: Filesystem·evidence 신뢰 경계
 
 registry, policy, analysis project, report output은 모두 `--root` 내부 경로여야 한다. project
 경로는 `sem` 실행 전에 검증하므로 잘못된 registry가 repository 밖을 분석하지 않는다.
@@ -422,7 +468,7 @@ SEM 분석을 0회로 만드는 구성 오류로 거부한다. 참조된 policy 
 검사 대상에서 제거한다. capability evidence path도 순차 검사해 대량 path가 동시에 filesystem
 operation을 열지 않게 한다.
 
-### Semantic preflight와 report 무결성
+### Advanced: Semantic preflight와 report 무결성
 
 `--sem` 실행은 두 단계다. 먼저 registry, capability path, project ownership, policy identity,
 package boundary를 semantic preflight로 검사한다. 현재 `--fail-on` 기준을 넘는 finding이 있으면
@@ -445,7 +491,7 @@ PASS로 표시되거나 조용히 serialize되지 않는다. gate helper에 지�
 전달해도 `error`로 암묵 보정하지 않고 `InputContractError`로 거부한다. 별도 AJV runtime 의존성은
 추가하지 않는다.
 
-## 계약
+## 공개 계약
 
 구현 anchor는 sem entity ID 형식을 그대로 사용한다.
 
@@ -574,8 +620,10 @@ malformed Unicode는 계약 오류로 거부한다. 허용된 JSON report 값은
 - `@context-action/architecture-governance/schemas/symbol-snapshot`
 - `@context-action/architecture-governance/schemas/symbol-history`
 - `@context-action/architecture-governance/schemas/symbol-snapshot-diff`
+- `@context-action/architecture-governance/schemas/context-manifest`
+- `@context-action/architecture-governance/schemas/context-scope`
 
-여섯 파일은 JSON Schema Draft 2020-12를 사용한다. registry와 policy loader도 동일한 필드 및
+여덟 파일은 JSON Schema Draft 2020-12를 사용한다. registry와 policy loader도 동일한 필드 및
 well-formed/NUL-free 문자열 집합을 runtime에 강제하여 알 수 없는 필드와 중복 문자열 배열을
 거부한다. astral Unicode 문자의 정상 surrogate pair는 허용한다. package boundary는
 `disallow` 또는 `require` 중 하나 이상, impact boundary는 비어 있지 않은 `from`과

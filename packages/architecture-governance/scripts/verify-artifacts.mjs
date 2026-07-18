@@ -138,6 +138,8 @@ for (const subpath of [
   './schemas/symbol-snapshot',
   './schemas/symbol-history',
   './schemas/symbol-snapshot-diff',
+  './schemas/context-manifest',
+  './schemas/context-scope',
 ]) {
   const target = packageManifest.exports[subpath];
   try {
@@ -169,7 +171,7 @@ if (cliResult.error || cliResult.status !== 0) {
     `Built arch-verify CLI help failed: ${failureDetails || 'unknown failure'}`,
   );
 }
-if (!cliResult.stdout.startsWith('arch-verify <check|snapshot|history|intersect|snapshot-diff> [options]')) {
+if (!cliResult.stdout.startsWith('arch-verify <check|snapshot|history|intersect|snapshot-diff|context-scope> [options]')) {
   throw new Error('Built arch-verify CLI returned unexpected help output.');
 }
 

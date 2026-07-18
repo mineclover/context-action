@@ -6,6 +6,7 @@
 
 This document defines the operating layer between a request and a verified
 change. It complements the [Implementation Convention](./implementation-convention),
+the [Package Boundary and Codebase Management Convention](./package-boundary-convention),
 the [Documentation and Development Management Conventions](../concept/documentation-development-conventions),
 and [Architecture Governance and Evidence](./architecture/architecture-governance).
 

@@ -1,4 +1,5 @@
 export * from './contracts.js';
+export * from './context-scope.js';
 export * from './diagnostics.js';
 export * from './history.js';
 export * from './input.js';

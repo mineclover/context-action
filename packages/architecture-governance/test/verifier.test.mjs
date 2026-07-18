@@ -2253,6 +2253,23 @@ test('direct verifier reports duplicate capability IDs without emitting an inval
   assert.doesNotThrow(() => assertVerificationReport(report));
 });
 
+test('rejects the same implementation anchor across capability IDs', async () => {
+  const root = await fixture();
+  const duplicateRegistry = registry();
+  duplicateRegistry.capabilities.push({
+    ...structuredClone(duplicateRegistry.capabilities[0]),
+    id: 'CA-CORE-ALIAS',
+  });
+  const report = await verifyArchitecture({
+    root,
+    registryPath: 'architecture/registry.json',
+    registry: duplicateRegistry,
+  });
+  assert.equal(report.passed, false);
+  assert.ok(report.findings.some((entry) => entry.code === 'CAPABILITY_IMPLEMENTATION_DUPLICATE'));
+  assert.doesNotThrow(() => assertVerificationReport(report));
+});
+
 test('rejects non-canonical top-level IDs as invalid direct sem evidence', async () => {
   const root = await fixture();
   const semAnalysis = analysis(root);
@@ -5097,7 +5114,8 @@ test('CLI skips SEM command and impact policies when semantic analysis is disabl
 test('sem adapter classifies output, exit, and invalid JSON failures', async () => {
   const root = await fixture();
   const limits = resolveSemExecutionLimits({
-    timeoutMs: 1000,
+    // Keep provider classification deterministic on slower CI workers; this test is not a timeout test.
+    timeoutMs: 3000,
     maxOutputBytes: 1024,
     env: {},
   });
