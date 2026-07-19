@@ -160,9 +160,9 @@ and sem-doc contract gates before invoking `lerna publish from-package`. Manual 
 (npm Trusted Publishing, the default) or `token` (the `NPM_TOKEN` Actions secret) through the
 `publish_auth` input. Tag runs use OIDC. Each package must have a matching npm Trusted Publisher
 configuration before its first OIDC publish. Publishing is serialized across the package workflows,
-retries transient Lerna failures, stores an npm summary artifact, and runs a clean-consumer CLI smoke
-test after npm metadata becomes visible. This workflow publishes npm packages; it does not create a
-GitHub Release entry.
+retries transient Lerna failures, stores an npm summary artifact (including an empty summary for a
+no-op rerun), and runs a clean-consumer CLI smoke test after npm metadata becomes visible. This
+workflow publishes npm packages; it does not create a GitHub Release entry.
 
 To use a different sem executable for the direct CLI commands below, run from the `context-action`
 root and set `SEM_BIN` explicitly:

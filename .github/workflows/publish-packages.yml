@@ -170,16 +170,7 @@ jobs:
         if: always()
         run: |
           if [ -f reports/npm-publish-summary.json ]; then
-            node - <<'NODE' >> "$GITHUB_STEP_SUMMARY"
-            const fs = require('node:fs');
-            const entries = JSON.parse(fs.readFileSync('reports/npm-publish-summary.json', 'utf8'));
-            console.log('## npm publish result');
-            if (entries.length === 0) {
-              console.log('No new package versions were published.');
-            } else {
-              for (const entry of entries) console.log(`- \\`${entry.packageName}@${entry.version}\\``);
-            }
-            NODE
+            node scripts/print-npm-publish-summary.cjs reports/npm-publish-summary.json >> "$GITHUB_STEP_SUMMARY"
           else
             echo '## npm publish result' >> "$GITHUB_STEP_SUMMARY"
             echo 'No publish summary was produced.' >> "$GITHUB_STEP_SUMMARY"

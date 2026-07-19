@@ -2,12 +2,14 @@
 'use strict';
 
 const { execFileSync } = require('node:child_process');
-const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
+const { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
 const summaryPath = path.resolve('reports/npm-publish-summary.json');
-const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
+const summary = existsSync(summaryPath)
+  ? JSON.parse(readFileSync(summaryPath, 'utf8'))
+  : [];
 const packageName = '@context-action/sem-doc';
 
 async function main() {
