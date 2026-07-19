@@ -59,11 +59,14 @@ async function stopServer() {
 }
 
 const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const ansiEscapePattern = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001B\\))/g;
+
 async function waitForAdvertisedPort(readOutput, timeoutMs = 20_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const match = readOutput().match(
-      /Local:\s+http:\/\/127\.0\.0\.1:(\d+)\//
+    const normalizedOutput = readOutput().replace(ansiEscapePattern, '');
+    const match = normalizedOutput.match(
+      /Local:\s+http:\/\/(?:127\.0\.0\.1|localhost):(\d+)\//
     );
     if (match) return Number.parseInt(match[1], 10);
     if (serverProcess?.exitCode !== null) break;
