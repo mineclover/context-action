@@ -10,8 +10,8 @@ Authored symbol registry와 `sem` entity/impact 결과를 연결해 심볼의 �
 Architecture Governance 도구다. 심볼의 역할은 registry `role` declaration과 source comment/JSDoc로 관리하며, 컴파일러 graph
 provider나 LSP 수준의 내부 함수 호출 분석·문서 생성 기능은 포함하지 않는다.
 
-공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@sem-foundation/contracts`](../sem-foundation/README.md)
-에서 관리하고, Git revision/history/worktree lifecycle은 [`@sem-foundation/repository`](../sem-foundation-repository/README.md)에서
+공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@context-action/sem-foundation-contracts`](../sem-foundation/README.md)
+에서 관리하고, Git revision/history/worktree lifecycle은 [`@context-action/sem-foundation-repository`](../sem-foundation-repository/README.md)에서
 관리한다. 외부 SEM subprocess의 실행 adapter와 architecture policy의 loader/evaluator/report
 contract는 이 패키지가 소유하지만, 실제 authored registry와 policy source는 repository의
 `architecture/` 디렉터리가 소유한다.
@@ -36,7 +36,7 @@ contract는 이 패키지가 소유하지만, 실제 authored registry와 policy
 - policy source entity의 `sem impact` dependencies 기반 선택적 architecture boundary
 
 `sem`은 심볼의 구조적 정의 위치와 top-level 사용 entity 파일 증거를 제공한다. complete snapshot entry 변환은
-`@sem-foundation/contracts`의 `createSymbolSnapshotEntry`를 사용하므로 sem-doc과 symbol identity/range
+`@context-action/sem-foundation-contracts`의 `createSymbolSnapshotEntry`를 사용하므로 sem-doc과 symbol identity/range
 직렬화 규칙을 중복 소유하지 않는다. 테스트 성공 여부는 기존 test runner가,
 역할 설명과 symbol identity는 authored registry/comment가 소유한다. 내부 함수 호출을 세거나
 호출 순서를 추론하지 않는 것이 의도된 범위다. symbol 생성·상태 승격·예외 처리와 PR review 절차는

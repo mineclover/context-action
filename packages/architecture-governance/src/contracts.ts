@@ -1,4 +1,4 @@
-import type { AnalysisProject } from '@sem-foundation/contracts';
+import type { AnalysisProject } from '@context-action/sem-foundation-contracts';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -24,7 +24,7 @@ export interface ArchitectureCapability {
 }
 
 export type ArchitectureProject = AnalysisProject;
-export type { AnalysisProject } from '@sem-foundation/contracts';
+export type { AnalysisProject } from '@context-action/sem-foundation-contracts';
 
 export interface ArchitectureRegistry {
   $schema?: string;

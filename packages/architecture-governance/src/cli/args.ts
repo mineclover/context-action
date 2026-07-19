@@ -1,5 +1,5 @@
 import process from 'node:process';
-import type { SemFoundationLimitValue } from '@sem-foundation/contracts';
+import type { SemFoundationLimitValue } from '@context-action/sem-foundation-contracts';
 import type { Severity } from '../contracts.js';
 import { InputContractError } from '../input.js';
 import {

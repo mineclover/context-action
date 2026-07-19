@@ -5,7 +5,7 @@ import {
   normalizeAnalysisProjectFileExtensions,
   resolveSemFoundationLimits,
   type SemFoundationLimitOptions,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 import type {
   ArchitectureCapability,
   ArchitecturePolicySet,

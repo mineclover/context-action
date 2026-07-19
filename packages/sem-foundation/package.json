@@ -1,5 +1,5 @@
 {
-  "name": "@sem-foundation/contracts",
+  "name": "@context-action/sem-foundation-contracts",
   "version": "0.1.0",
   "type": "module",
   "description": "Shared SEM contracts and deterministic symbol identity utilities",

@@ -247,10 +247,10 @@ importers:
       '@ataraxy-labs/sem':
         specifier: 0.21.0
         version: 0.21.0
-      '@sem-foundation/contracts':
+      '@context-action/sem-foundation-contracts':
         specifier: workspace:*
         version: link:../sem-foundation
-      '@sem-foundation/repository':
+      '@context-action/sem-foundation-repository':
         specifier: workspace:*
         version: link:../sem-foundation-repository
     devDependencies:
@@ -500,10 +500,10 @@ importers:
 
   packages/sem-doc:
     dependencies:
-      '@sem-foundation/contracts':
+      '@context-action/sem-foundation-contracts':
         specifier: workspace:^
         version: link:../sem-foundation
-      '@sem-foundation/repository':
+      '@context-action/sem-foundation-repository':
         specifier: workspace:^
         version: link:../sem-foundation-repository
     devDependencies:
@@ -534,7 +534,7 @@ importers:
 
   packages/sem-foundation-repository:
     dependencies:
-      '@sem-foundation/contracts':
+      '@context-action/sem-foundation-contracts':
         specifier: workspace:^
         version: link:../sem-foundation
     devDependencies:

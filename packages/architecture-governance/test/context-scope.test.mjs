@@ -3,7 +3,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { symbolRefKey } from '@sem-foundation/contracts';
+import { symbolRefKey } from '@context-action/sem-foundation-contracts';
 import {
   createContextScope,
   parseContextManifest,

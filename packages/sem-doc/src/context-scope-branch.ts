@@ -1,4 +1,4 @@
-import { compareStableText, type SymbolRef, symbolRefKey } from '@sem-foundation/contracts';
+import { compareStableText, type SymbolRef, symbolRefKey } from '@context-action/sem-foundation-contracts';
 
 import {
   type ContextScope,

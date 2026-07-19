@@ -1,4 +1,4 @@
-# @sem-foundation/repository
+# @context-action/sem-foundation-repository
 
 Shared repository runtime primitives for SEM-backed tools.
 
@@ -15,7 +15,7 @@ It intentionally does not own SEM execution, architecture registries, document i
 evaluation, or report schemas. Consumers provide the project analyzer and keep their own evidence
 and missing-project policy.
 
-`@sem-foundation/contracts` supplies the shared `AnalysisProject`, `GitCommitRecord`, and
+`@context-action/sem-foundation-contracts` supplies the shared `AnalysisProject`, `GitCommitRecord`, and
 `RepositoryRevision` data contracts.
 
 `analyzeHistoricalProjects` materializes each requested project in the target commit worktree and

@@ -110,7 +110,7 @@ scope must be bound to a complete revision snapshot, manifest digest, and CI/rev
 - Keeps sem entity IDs and revisions separate from any compiler-resolved canonical graph.
 - Exposes `foundationSymbolSnapshotEntry` so parsed entities can be handed to the shared
   `context-action/symbol-snapshot@1.1` serializer without adding an LSP or second AST index. The
-  conversion is delegated to the required canonical `@sem-foundation/contracts`
+  conversion is delegated to the required canonical `@context-action/sem-foundation-contracts`
   `createSymbolSnapshotEntry` primitive.
 - Rejects repository-outside paths, stale revisions, malformed JSON, and invalid semantic ranges/counts.
 - Does not attempt a complete inventory of function-local functions, constants, variables, or parameters.
@@ -125,11 +125,11 @@ promoting it to a canonical graph or lint violation.
 
 `sem-doc` requires Node.js 24. The package pins the `@ataraxy-labs/sem` development
 wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` also
-requires `@sem-foundation/contracts` and `@sem-foundation/repository` at runtime for canonical symbol
+requires `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` at runtime for canonical symbol
 and Git revision contracts. It resolves the package-local binary by default, even when work-context
 changes the subprocess cwd to the Git repository root, and invokes it as an external read-only
 process. Set `SEM_BIN` only when using a different binary. The package is included in the repository's
-Lerna publish flow; publish `@sem-foundation/contracts` and `@sem-foundation/repository` before
+Lerna publish flow; publish `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` before
 publishing sem-doc when those foundation packages are not already available on the registry.
 
 ```bash
@@ -295,4 +295,4 @@ SEM_BIN=/path/to/sem pnpm --filter @context-action/sem-doc verify:poc
 `context-action/packages/sem-doc` is the implementation home for the publishable package. The former
 standalone checkout and the old `tsdoc-edge` copy are no longer source locations; new sem-doc
 features should land in this workspace package first. The package is included in the Lerna release/
-publish flow and keeps `@sem-foundation/*` as explicit runtime dependencies.
+publish flow and keeps `@context-action/sem-foundation-*` as explicit runtime dependencies.

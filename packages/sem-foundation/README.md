@@ -1,4 +1,4 @@
-# @sem-foundation/contracts
+# @context-action/sem-foundation-contracts
 
 Shared, policy-neutral contracts for SEM-backed tools.
 
@@ -24,7 +24,7 @@ publish SEM execution or repository policy; consumers retain those responsibilit
 consumers are `@context-action/architecture-governance` and `@context-action/sem-doc`, but they adapt
 the contracts independently: the former uses authored registry/policy and snapshot evidence, while the
 latter uses work-context, TSDoc binding, and Git diff evidence. Git history/worktree mechanics live in
-the companion `@sem-foundation/repository` package.
+the companion `@context-action/sem-foundation-repository` package.
 
 `compareSymbolContexts` performs set comparison on serialized `(projectId, filePath, entityId)`
 identity. It reports `intersection`, `onlyLeft`, and `onlyRight` entries without claiming exact

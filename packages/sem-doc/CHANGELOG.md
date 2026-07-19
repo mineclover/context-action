@@ -9,7 +9,7 @@
 - Updated the work-context contract to `sem-doc-work-context.v4` with bounded-hop symbols,
   complete affected-test evidence, dependent usage files, and aggregate sem budgets.
 - Added exact sem entity binding validation, native Git diff provenance, and scoped benchmarks.
-- Added optional `@sem-foundation/contracts`/`@sem-foundation/repository` compatibility adapters,
+- Added optional `@context-action/sem-foundation-contracts`/`@context-action/sem-foundation-repository` compatibility adapters,
   aggregate timeout/output budgets, symlink-aware revision checks, and package artifact verification.
 - Locked the CLI `version`, help, and JSON work-context paths to the current contract.
 - Pinned `@ataraxy-labs/sem@0.21.0` for reproducible development and POC verification.

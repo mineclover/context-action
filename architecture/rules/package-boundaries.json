@@ -65,8 +65,8 @@
       "project": "architecture-governance",
       "from": "packages/architecture-governance",
       "require": [
-        "@sem-foundation/contracts",
-        "@sem-foundation/repository"
+        "@context-action/sem-foundation-contracts",
+        "@context-action/sem-foundation-repository"
       ],
       "dependencyFields": ["dependencies"],
       "severity": "error"
@@ -97,7 +97,7 @@
     {
       "id": "CA-PKG-FOUNDATION-REPOSITORY-REQUIRES-CONTRACTS",
       "from": "packages/sem-foundation-repository",
-      "require": ["@sem-foundation/contracts"],
+      "require": ["@context-action/sem-foundation-contracts"],
       "dependencyFields": ["dependencies"],
       "severity": "error"
     }

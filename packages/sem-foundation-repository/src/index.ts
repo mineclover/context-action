@@ -17,12 +17,12 @@ import {
   normalizeAnalysisProjects,
   type RepositoryRevision,
   type SemFoundationLimitOptions,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 
 export const DEFAULT_GIT_MAX_BUFFER_BYTES = 16 * 1024 * 1024;
 export const MAX_GIT_HISTORY_COMMITS = 512;
 
-export { MAX_ANALYSIS_PROJECTS } from '@sem-foundation/contracts';
+export { MAX_ANALYSIS_PROJECTS } from '@context-action/sem-foundation-contracts';
 
 export interface GitRuntimeOptions {
   readonly gitBinary?: string;

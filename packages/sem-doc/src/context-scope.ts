@@ -4,7 +4,7 @@ import {
   compareStableText,
   type SymbolRef,
   symbolRefKey,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 import {
   foundationCanonicalEntityId,
   foundationNormalizeRepositoryPath,

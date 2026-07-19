@@ -5,7 +5,7 @@ import {
   type SymbolRef,
   type SymbolSnapshot,
   type SymbolSnapshotRevision,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 import type { SemProjectAnalysis } from './contracts.js';
 import { assertKnownFields } from './diagnostics.js';
 import { InputContractError } from './errors.js';

@@ -1,5 +1,5 @@
 {
-  "name": "@sem-foundation/repository",
+  "name": "@context-action/sem-foundation-repository",
   "version": "0.1.0",
   "type": "module",
   "description": "Bounded Git history, revision, worktree, and project-snapshot primitives for SEM tools",
@@ -23,13 +23,13 @@
   },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
-    "prebuild": "pnpm --filter @sem-foundation/contracts build",
+    "prebuild": "pnpm --filter @context-action/sem-foundation-contracts build",
     "build": "tsdown",
     "type-check": "tsc --noEmit",
     "test": "pnpm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@sem-foundation/contracts": "workspace:^"
+    "@context-action/sem-foundation-contracts": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

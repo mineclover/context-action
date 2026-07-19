@@ -85,7 +85,7 @@ async function verifyArchitectureIntegrationContract() {
     'arch:build':
       'pnpm --filter @context-action/architecture-governance build',
     'arch:type-check':
-      'pnpm --filter @sem-foundation/contracts type-check && pnpm --filter @sem-foundation/repository type-check && pnpm --filter @context-action/architecture-governance type-check',
+      'pnpm --filter @context-action/sem-foundation-contracts type-check && pnpm --filter @context-action/sem-foundation-repository type-check && pnpm --filter @context-action/architecture-governance type-check',
     'arch:check':
       'pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem',
     'arch:check:changed':

@@ -170,7 +170,7 @@ LSP 수준의 language analysis 영역이며 현재 lightweight catalog 범위 �
 제품 의도를 올바르게 표현했는지를 증명하지 않습니다. 동작 테스트, owner review, 공개 문서를 서로
 다른 evidence source로 유지해야 합니다. shared SEM 계약은 publish-ready 상태지만 registry 배포와
 외부 semver 고정은 별도 release gate로 남겨둡니다. Git revision/history/worktree lifecycle과
-과거 `analysisProjects` traversal은 정책 중립적인 `@sem-foundation/repository` runtime이 제공하고,
+과거 `analysisProjects` traversal은 정책 중립적인 `@context-action/sem-foundation-repository` runtime이 제공하고,
 SEM 분석과 report policy는 소비자가 소유합니다.
 
 ## sem-doc과의 관계

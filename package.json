@@ -14,7 +14,7 @@
     "build:live-code-editor": "pnpm --filter @context-action/live-code-editor build",
     "check:live-code-editor": "pnpm --filter @context-action/live-code-editor check",
     "arch:build": "pnpm --filter @context-action/architecture-governance build",
-    "arch:type-check": "pnpm --filter @sem-foundation/contracts type-check && pnpm --filter @sem-foundation/repository type-check && pnpm --filter @context-action/architecture-governance type-check",
+    "arch:type-check": "pnpm --filter @context-action/sem-foundation-contracts type-check && pnpm --filter @context-action/sem-foundation-repository type-check && pnpm --filter @context-action/architecture-governance type-check",
     "arch:test": "pnpm --filter @context-action/architecture-governance test",
     "arch:check": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem",
     "arch:check:changed": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem --changed",

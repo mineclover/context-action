@@ -19,7 +19,7 @@ import {
   type SymbolSnapshot,
   type SymbolSnapshotDiff,
   type SymbolSnapshotProjectStatus,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 import {
   analyzeHistoricalProjects,
   GitHistoryReader,
@@ -28,7 +28,7 @@ import {
   RepositoryRevisionReader,
   RepositoryStateError,
   sameRepositoryRevision,
-} from '@sem-foundation/repository';
+} from '@context-action/sem-foundation-repository';
 import type {
   ArchitectureProject,
   SemChange,

@@ -7,14 +7,14 @@ const path = require('node:path');
 const repositoryRoot = path.resolve(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(repositoryRoot, 'package.json'), 'utf8'));
 const allowedRuntimeDependencies = new Set([
-  '@sem-foundation/contracts',
-  '@sem-foundation/repository',
+  '@context-action/sem-foundation-contracts',
+  '@context-action/sem-foundation-repository',
 ]);
 const runtimeDependencies = Object.keys({
   ...(packageJson.dependencies ?? {}),
   ...Object.fromEntries(
     Object.entries(packageJson.peerDependencies ?? {}).filter(
-      ([name]) => !name.startsWith('@sem-foundation/')
+      ([name]) => !name.startsWith('@context-action/sem-foundation-')
     )
   ),
 }).filter((name) => !allowedRuntimeDependencies.has(name));

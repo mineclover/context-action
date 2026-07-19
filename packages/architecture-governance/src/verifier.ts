@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
-import { compareStableText } from '@sem-foundation/contracts';
+import { compareStableText } from '@context-action/sem-foundation-contracts';
 import type {
   ArchitectureCapability,
   ArchitecturePolicySet,

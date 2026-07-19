@@ -168,7 +168,7 @@ correctness, or that the authored role comment expresses the right product inten
 owner review, and public documentation as separate evidence sources. The shared SEM contract is
 publish-ready, while registry publication and external semver pinning remain a separate release gate.
 Git revision/history/worktree lifecycle and historical `analysisProjects` traversal are provided by the
-policy-neutral `@sem-foundation/repository` runtime; SEM analysis and report policy remain consumer-owned.
+policy-neutral `@context-action/sem-foundation-repository` runtime; SEM analysis and report policy remain consumer-owned.
 
 ## Relationship with sem-doc
 

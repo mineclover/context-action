@@ -32,7 +32,7 @@ architecture registry, evidence, policy, and snapshot contracts.
           scope, Git diff, advisory        history, ContextScope, gate
                    \                    /
                     \                  /
-       @sem-foundation/contracts + @sem-foundation/repository
+       @context-action/sem-foundation-contracts + @context-action/sem-foundation-repository
                  shared identity and Git primitives only
 ```
 
@@ -40,11 +40,11 @@ There must be no runtime dependency from one consumer package to the other. Foun
 be shared when their meaning is policy-neutral, but a report from one package is not automatically an
 input contract for the other.
 
-`sem-doc` requires `@sem-foundation/contracts` and `@sem-foundation/repository` at runtime. This is a
+`sem-doc` requires `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` at runtime. This is a
 shared-foundation dependency, not a dependency on Architecture Governance; sem-doc no longer carries a
 local fallback implementation for those contracts.
 
-The shared `@sem-foundation/contracts` package also owns the policy-neutral
+The shared `@context-action/sem-foundation-contracts` package also owns the policy-neutral
 `createSymbolSnapshotEntry` conversion from a SEM entity to a complete snapshot entry. Each consumer
 may adapt that entry into its own report, but neither consumer owns a second symbol identity/range
 serializer.

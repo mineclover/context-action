@@ -45,7 +45,7 @@ architecture inference engine, 문서 editor/generator, LSP/compiler call graph,
 | Git history symbol delta | `src/history.ts`, `src/sem.ts` | PoC 완료 | first-parent commit별 `sem diff`를 `{filePath, symbol, changeType}`로 직렬화하고 commit worktree에서 전체 snapshot을 materialize |
 | Complete snapshot/diff | `src/history.ts`, `src/cli/` | PoC 완료 | `symbol-snapshot@1.1`, `symbol-history-report@1.3`, `symbol-snapshot-diff@1.0` 계약과 CLI 제공 |
 | ContextScope manifest projection | `src/context-scope.ts`, `src/cli/` | 완료(PoC) | revision-bound manifest, explicit edges, bounded optional SEM `depends-on` projection, `context-scope@1.0` schema/CLI |
-| Historical project provenance | `src/history.ts`, `@sem-foundation/repository` | 완료 | revision에 없는 project를 `skipped/missing-at-revision`으로 보존하고 `fileExtensions` 필터를 history/snapshot에 전달 |
+| Historical project provenance | `src/history.ts`, `@context-action/sem-foundation-repository` | 완료 | revision에 없는 project를 `skipped/missing-at-revision`으로 보존하고 `fileExtensions` 필터를 history/snapshot에 전달 |
 | Shared SEM foundation contracts | `packages/sem-foundation`, `src/history.ts` | 완료 | entity identity, path normalization, advisory envelope, `AnalysisProject`를 정책 중립 shared package로 추출 |
 | Shared Git history/worktree runtime | `packages/sem-foundation-repository`, `src/history.ts` | PoC 완료 | revision, first-parent commit range, detached worktree lifecycle, historical project callback을 공통화 |
 | Package boundary/codebase lifecycle | `docs/en|ko/context-layered/package-boundary-convention.md`, `architecture/rules/package-boundaries.json` | 완료(PoC) | package ownership map, dependency direction, package lifecycle, cleanup checklist, and enforceable dependency gates |

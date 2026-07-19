@@ -34,10 +34,10 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
-| `@sem-foundation/contracts` | 분석 contract foundation | symbol identity, snapshot, revision, shared limit, wire contract | SEM subprocess, Git worktree, architecture policy |
-| `@sem-foundation/repository` | repository runtime foundation | Git revision, first-parent history, detached worktree | symbol semantics, architecture rule, UI behavior |
+| `@context-action/sem-foundation-contracts` | 분석 contract foundation | symbol identity, snapshot, revision, shared limit, wire contract | SEM subprocess, Git worktree, architecture policy |
+| `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree | symbol semantics, architecture rule, UI behavior |
 | `@context-action/architecture-governance` | 실험적 convention control plane | Context-Action authored capability registry, policy 검증, complete snapshot/history, snapshot-backed ContextScope projection | 범용 architecture 추론, React runtime, 일반 문서 생성 |
-| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@sem-foundation/*` 재사용 |
+| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@context-action/sem-foundation-*` 재사용 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/test-driven-docs` | test documentation tool | test metadata와 generated test docs | runtime API |
@@ -63,7 +63,7 @@ artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취
 @context-action/core          ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
-@sem-foundation/contracts ──→ @sem-foundation/repository
+@context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
                          ├──→ @context-action/architecture-governance ← @ataraxy-labs/sem
                          └──→ @context-action/sem-doc (운영용 Symbol Context plane)
 ```

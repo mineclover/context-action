@@ -9,7 +9,7 @@ import {
   unlink,
 } from 'node:fs/promises';
 import path from 'node:path';
-import type { SemFoundationLimitOptions } from '@sem-foundation/contracts';
+import type { SemFoundationLimitOptions } from '@context-action/sem-foundation-contracts';
 import type {
   ArchitecturePolicySet,
   ArchitectureProject,

@@ -61,8 +61,8 @@
     "node": ">=24.0.0 <25.0.0"
   },
   "dependencies": {
-    "@sem-foundation/contracts": "workspace:^",
-    "@sem-foundation/repository": "workspace:^"
+    "@context-action/sem-foundation-contracts": "workspace:^",
+    "@context-action/sem-foundation-repository": "workspace:^"
   },
   "devDependencies": {
     "@ataraxy-labs/sem": "0.21.0",

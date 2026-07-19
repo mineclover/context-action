@@ -35,10 +35,10 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
-| `@sem-foundation/contracts` | analysis contract foundation | symbol identity, snapshots, revisions, shared limits, wire contracts | SEM subprocesses, Git worktrees, architecture policy |
-| `@sem-foundation/repository` | repository runtime foundation | Git revision, first-parent history, detached worktree lifecycle | symbol semantics, architecture rules, UI behavior |
+| `@context-action/sem-foundation-contracts` | analysis contract foundation | symbol identity, snapshots, revisions, shared limits, wire contracts | SEM subprocesses, Git worktrees, architecture policy |
+| `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree lifecycle | symbol semantics, architecture rules, UI behavior |
 | `@context-action/architecture-governance` | experimental convention control plane | Context-Action-authored capability registry, policy verification, complete snapshots/history, and its snapshot-backed ContextScope projection | generic architecture inference, React runtime features, general-purpose documentation generation |
-| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@sem-foundation/*` |
+| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@context-action/sem-foundation-*` |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/test-driven-docs` | test documentation tool | test metadata extraction and generated test documentation | package runtime APIs |
@@ -64,7 +64,7 @@ The default direction is:
 @context-action/core          ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
-@sem-foundation/contracts ──→ @sem-foundation/repository
+@context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
                          ├──→ @context-action/architecture-governance ← @ataraxy-labs/sem
                          └──→ @context-action/sem-doc (operational Symbol Context plane)
 ```

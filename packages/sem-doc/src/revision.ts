@@ -1,11 +1,11 @@
 import * as path from 'node:path';
 
-import type { RepositoryRevision } from '@sem-foundation/contracts';
+import type { RepositoryRevision } from '@context-action/sem-foundation-contracts';
 import {
   RepositoryRevisionReader as FoundationRepositoryRevisionReader,
-} from '@sem-foundation/repository';
+} from '@context-action/sem-foundation-repository';
 
-export type { RepositoryRevision } from '@sem-foundation/contracts';
+export type { RepositoryRevision } from '@context-action/sem-foundation-contracts';
 
 export interface RepositoryRevisionReaderLike {
   read(cwd: string): RepositoryRevision;
@@ -14,7 +14,7 @@ export interface RepositoryRevisionReaderLike {
 export {
   RepositoryStateError,
   sameRepositoryRevision,
-} from '@sem-foundation/repository';
+} from '@context-action/sem-foundation-repository';
 
 /** Captures the on-disk Git state through the shared Foundation repository runtime. */
 export const RepositoryRevisionReader = FoundationRepositoryRevisionReader;

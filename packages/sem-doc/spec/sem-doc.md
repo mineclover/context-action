@@ -74,7 +74,7 @@ Architecture Governance owns the authored `architecture/registry.json`, package/
 verification, complete revision snapshots/history, snapshot diffs, and snapshot-backed `ContextScope`
 projections for CI and architecture review.
 
-The packages may reuse `@sem-foundation/contracts`, `@sem-foundation/repository`, and the external `sem`
+The packages may reuse `@context-action/sem-foundation-contracts`, `@context-action/sem-foundation-repository`, and the external `sem`
 executable, but neither package depends on the other at runtime. `sem-doc-work-context.v4`,
 `sem-documents.v3`, and `sem-doc-git-diff.v1` MUST NOT be treated as Architecture Governance
 verification-report or snapshot inputs without a separately versioned orchestration contract. Likewise,
@@ -305,7 +305,7 @@ The `SEM_BIN` environment variable selects the sem executable. `sem-doc` has no 
 dependency on sem; the executable remains an external engine boundary. The package pins
 `@ataraxy-labs/sem` as a development dependency so `pnpm install` obtains a reproducible default
 binary, while `SEM_BIN` can override it for another engine build.
-`@sem-foundation/contracts` and `@sem-foundation/repository` are required runtime dependencies:
+`@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` are required runtime dependencies:
 they own the canonical symbol identity, snapshot entry conversion, and Git revision semantics used
 by sem-doc.
 
@@ -343,5 +343,5 @@ Foundation integration is a required runtime boundary; sem-doc does not carry a 
 implementation of those contracts. History snapshots and snapshot-backed context-set operations are owned
 by the architecture-governance consumer. The operational context grouping in this package is intentionally
 bounded to one work-context report and does not replace that revision-level contract.
-The package is included in the Lerna release flow. The two `@sem-foundation/*` runtime dependencies
+The package is included in the Lerna release flow. The two `@context-action/sem-foundation-*` runtime dependencies
 must be published before sem-doc when they are not already available on the configured registry.

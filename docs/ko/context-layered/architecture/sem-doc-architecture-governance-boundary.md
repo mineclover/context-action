@@ -31,7 +31,7 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
             scope, Git diff, advisory      history, ContextScope, gate
                         \                   /
                          \                 /
-          @sem-foundation/contracts + @sem-foundation/repository
+          @context-action/sem-foundation-contracts + @context-action/sem-foundation-repository
                     공통 identity와 Git primitive만 공유
 ```
 
@@ -39,11 +39,11 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
 경우에만 Foundation 계약을 공유합니다. 한 패키지의 report를 다른 패키지의 입력 계약으로
 자동 승격하지 않습니다.
 
-`sem-doc`은 `@sem-foundation/contracts`와 `@sem-foundation/repository`를 runtime 필수 dependency로
+`sem-doc`은 `@context-action/sem-foundation-contracts`와 `@context-action/sem-foundation-repository`를 runtime 필수 dependency로
 사용합니다. 이는 공유 Foundation에 대한 의존성이지 Architecture Governance에 대한 의존성이 아니며,
 sem-doc은 해당 계약의 local fallback 구현을 더 이상 갖지 않습니다.
 
-공유 `@sem-foundation/contracts`는 SEM entity를 complete snapshot entry로 변환하는 정책 중립적인
+공유 `@context-action/sem-foundation-contracts`는 SEM entity를 complete snapshot entry로 변환하는 정책 중립적인
 `createSymbolSnapshotEntry`도 소유합니다. 각 consumer는 이 entry를 자체 report로 변환할 수 있지만,
 symbol identity와 range 직렬화기를 두 패키지가 각각 다시 소유하지 않습니다.
 

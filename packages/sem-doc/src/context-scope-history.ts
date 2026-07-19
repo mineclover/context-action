@@ -6,7 +6,7 @@ import {
   GitHistoryReader,
   type GitRuntimeOptions,
   GitWorktreeManager,
-} from '@sem-foundation/repository';
+} from '@context-action/sem-foundation-repository';
 
 import {
   type ContextScope,

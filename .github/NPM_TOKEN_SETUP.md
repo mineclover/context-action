@@ -17,7 +17,7 @@
    - **Generate New Token** → **Granular Access Token** 선택
    - Token 설정:
      - **Name**: `github-actions-context-action` (식별 가능한 이름)
-     - **Packages and scopes**: 필요한 `@context-action/*`, `@sem-foundation/*` 패키지만 선택
+     - **Packages and scopes**: 필요한 `@context-action/*` 패키지만 선택
      - **Permission**: 배포 fallback이므로 **Read and write**
      - **Bypass two-factor authentication**: 자동 publish에 필요한 경우에만 선택
      - **Expiration**: 짧은 만료 기간을 선택하고 만료 전에 수동 rotation

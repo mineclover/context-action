@@ -9,7 +9,7 @@ export default defineConfig({
   sourcemap: true,
   treeshake: true,
   deps: {
-    alwaysBundle: ['@sem-foundation/contracts', '@sem-foundation/repository'],
+    alwaysBundle: ['@context-action/sem-foundation-contracts', '@context-action/sem-foundation-repository'],
   },
   outDir: 'dist',
 });

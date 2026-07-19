@@ -87,8 +87,8 @@ pnpm arch:test
 
 snapshot, history, snapshot-diff, intersect의 상세 옵션은 usage 문서에만 추가한다. Git
 first-parent/worktree lifecycle과 historical `analysisProjects` traversal은
-`@sem-foundation/repository`가 제공하고, 공통 entity/path/provenance 계약은
-[`@sem-foundation/contracts`](../packages/sem-foundation/README.md)가 제공한다.
+`@context-action/sem-foundation-repository`가 제공하고, 공통 entity/path/provenance 계약은
+[`@context-action/sem-foundation-contracts`](../packages/sem-foundation/README.md)가 제공한다.
 
 `context-scope` CLI는 complete snapshot과 optional `contexts.json` manifest를 조합해 별도 scope
 artifact를 만든다. manifest는 `arch:check` 입력이 아니며, complete snapshot을 canonical inventory로

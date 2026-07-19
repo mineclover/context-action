@@ -3,7 +3,7 @@ import {
   createSymbolSnapshotEntry,
   normalizeRepositoryPath,
   type SymbolSnapshotEntry,
-} from '@sem-foundation/contracts';
+} from '@context-action/sem-foundation-contracts';
 import type { SemEntity } from './sem-json';
 
 export function foundationCanonicalEntityId(entity: {
