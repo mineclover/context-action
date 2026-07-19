@@ -69,6 +69,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify scoped package identities
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+
+          const expected = {
+            'packages/sem-foundation/package.json': '@context-action/sem-foundation-contracts',
+            'packages/sem-foundation-repository/package.json': '@context-action/sem-foundation-repository',
+            'packages/sem-doc/package.json': '@context-action/sem-doc',
+          };
+
+          for (const [file, name] of Object.entries(expected)) {
+            const actual = JSON.parse(fs.readFileSync(file, 'utf8')).name;
+            if (actual !== name) {
+              throw new Error(`${file} must publish as ${name}, received ${actual}`);
+            }
+            console.log(`${file}: ${actual}`);
+          }
+          NODE
+
       - name: Build private live-code-editor dependency
         run: pnpm build:live-code-editor
 
@@ -102,4 +122,15 @@ jobs:
       - name: Publish packages
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm exec lerna publish from-package --yes
+        run: |
+          mkdir -p reports
+          pnpm exec lerna publish from-package --yes --summary-file reports/npm-publish-summary.json
+
+      - name: Upload npm publish summary
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: npm-publish-summary
+          path: reports/npm-publish-summary.json
+          if-no-files-found: ignore
+          retention-days: 14
