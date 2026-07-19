@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/sem-doc-context-scope-history-stream.v1.json",
+  "title": "sem-doc ContextScope history NDJSON record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recordType", "commit", "scope"],
+  "properties": {
+    "schemaVersion": { "const": "sem-doc-context-scope-history-stream.v1" },
+    "recordType": { "enum": ["base", "entry"] },
+    "commit": { "type": "string", "minLength": 1 },
+    "parent": { "type": "string", "minLength": 1 },
+    "subject": { "type": "string", "minLength": 1 },
+    "scope": { "type": "object" },
+    "diff": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "recordType": { "const": "base" } } },
+      "then": { "not": { "required": ["parent", "subject"] } }
+    },
+    {
+      "if": { "properties": { "recordType": { "const": "entry" } } },
+      "then": { "required": ["parent", "subject", "diff"] }
+    }
+  ]
+}

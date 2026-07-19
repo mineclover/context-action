@@ -1,12 +1,11 @@
 # @context-action/sem-doc
 
-`sem-doc` is a private workspace package and sem-centered analysis tool for answering what context
+`sem-doc` is a publishable sem-centered analysis tool for answering what context
 an engineer needs before changing TypeScript code. It combines sem's semantic graph with a TSDoc-style
 Markdown document convention and a revision-pinned Git diff.
 
-The workspace identity is now `@context-action/sem-doc`. The former
-`@tsdoc-edge/sem-doc` name is retained only in the changelog as migration history;
-publish/release integration remains deferred.
+The package identity is `@context-action/sem-doc`. The former `@tsdoc-edge/sem-doc` name is retained
+only in the changelog as migration history.
 
 The specification is in [spec/sem-doc.md](spec/sem-doc.md).
 
@@ -28,9 +27,62 @@ definitions/backlinks. Consumers should reuse this serialized report instead of 
 impact/context queries or rebuilding document bindings.
 
 This does not make sem-doc the architecture registry or API documentation source. Capability intent,
-owner/role evidence, package policy, complete snapshots, history, and `ContextScope` belong to
+owner/role evidence, package policy, complete snapshots, and history belong to
 `@context-action/architecture-governance`; signatures and public API pages remain in the TypeDoc
-pipeline.
+pipeline. sem-doc emits the canonical operational `sem-doc-context-scope.v2` projection for
+implementer-facing grouping. It is derived from one work-context report and is not a replacement for the
+revision-bound, snapshot-backed Architecture Governance `ContextScope` contract.
+
+## ContextScope projection
+
+`context-scope` maps the bounded work-context inventory into a deterministic context grouping. The result
+keeps the canonical `projectId`/`filePath`/`entityId` identity, includes context and project groups,
+records the exact work-context request provenance, and records SEM dependency evidence. A project ID is
+required so serialized scopes remain interoperable with snapshot and commit-diff consumers. If the bounded
+inventory contains symbols without corresponding edge evidence, the scope is emitted as `incomplete` with
+`disconnected-nodes`; it is intentionally structural and does not infer render, read, write, runtime
+order, or call-graph semantics.
+
+The scope also carries a SHA-256 digest of the source work-context, the exact SEM impact/context
+argument vectors, and aggregate execution provenance (`timeoutMs`, `maxOutputBytes`, and
+`usedOutputBytes`). `parseContextScope` strictly rejects unknown fields, duplicate entries, oversized
+collections, non-canonical symbol paths, missing revision provenance, and contradictory completion status
+before a consumer uses the artifact.
+
+For a screen, API, transaction, or workflow composed from more than one entry point, pass a
+`sem-doc-context-manifest.v1` file with `--manifest`. The resulting scope keeps one context bubble,
+multiple typed anchors, and a `source.workContexts` provenance item for every anchor. `context-scope-diff`
+compares two serialized scopes by symbol, edge, and group identity. `context-scope-history` materializes
+the same scope at each bounded Git commit and stores adjacent diffs; historical worktrees are removed
+after each analysis. History collection can use `--output <path>` to write snapshots as NDJSON instead
+of retaining every commit in memory. `--aggregate-*` controls the whole range, while `--commit-*`
+controls each individual commit; both budgets are enforced together.
+
+The pinned `sem 0.21.0` scanner excludes `node_modules` in its default mode. sem-doc keeps that
+safe default unless `--include-node-modules-surface` is explicitly supplied to `work-context`,
+`context-scope`, or `context-scope-history`. The option passes sem's `--no-default-excludes` to
+the underlying impact/context queries so graph-referenced package files can actually be observed;
+sem-doc then projects only the graph-referenced direct one-hop `node_modules` surface and discards
+deeper package internals before work-context, scope, history, or branch-intersection artifacts are
+serialized.
+Because sem's flag is intentionally broad (it can also expose generated/vendor/fixture files),
+the option is an explicit review-time policy, not a new default. Markdown indexing still skips
+`node_modules`, build output, and repository metadata directories.
+
+```bash
+pnpm --filter @context-action/sem-doc exec node dist/cli.js context-scope \
+  Dashboard --file src/Dashboard.tsx --context-id dashboard --kind screen --project-id example --max-anchors 64 --json
+
+pnpm --filter @context-action/sem-doc exec node dist/cli.js context-scope-diff before.json after.json --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js context-scope-history HEAD~10 HEAD Dashboard \
+  --project-id example --file src/Dashboard.tsx --aggregate-max-output-bytes 268435456 \
+  --commit-max-output-bytes 33554432 --output managed/history.ndjson --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js context-scope-compare \
+  managed/left-history.ndjson managed/right-history.ndjson --json
+```
+
+Use this projection to prepare a visual scope or review context. Use Architecture Governance when the
+scope must be bound to a complete revision snapshot, manifest digest, and CI/reviewer gate.
 
 ## Scope
 
@@ -38,6 +90,19 @@ pipeline.
 - Normalizes sem JSON into versioned `sem-advisory.v1` evidence.
 - Provides `sem-doc-work-context.v4` with bounded-hop symbols, a separate complete affected-test
   list, dependent usage files, context, document definitions, and backlinks.
+- Provides `sem-doc-context-scope.v2` as the canonical operational grouping view over one or more work-context reports.
+- Includes separate `documentEvidence[]` in ContextScope so document binding readiness is visible without
+  conflating it with graph completeness.
+- Provides `sem-doc-context-manifest.v1`, ContextScope snapshot diffs, and bounded Git-history scope materialization.
+- Provides `sem-doc-context-scope-history-stream.v1` NDJSON output and branch changed-symbol intersections.
+- Exposes `parseContextScope` so JSON scopes loaded from Git history or another process are validated before
+  graph/diff consumers use them.
+- Publishes the machine-readable contract at [`spec/context-scope.schema.json`](spec/context-scope.schema.json).
+- Publishes companion [`context-manifest.schema.json`](spec/context-manifest.schema.json),
+  [`context-scope-diff.schema.json`](spec/context-scope-diff.schema.json),
+  [`context-scope-history.schema.json`](spec/context-scope-history.schema.json),
+  [`context-scope-history-stream.schema.json`](spec/context-scope-history-stream.schema.json), and
+  [`context-scope-branch-compare.schema.json`](spec/context-scope-branch-compare.schema.json) contracts.
 - Uses sem entity IDs to distinguish same-named symbols and preserves their definition file and range.
 - Provides `sem-doc-git-diff.v1` with Git status, hunks, additions/deletions, and revision provenance.
 - Limits semantic diff decisions to typed changes emitted by sem; native Git hunks remain factual
@@ -58,13 +123,14 @@ promoting it to a canonical graph or lint violation.
 
 ## Install and run
 
-`sem-doc` requires Node.js 24. The private workspace pins the `@ataraxy-labs/sem` development
+`sem-doc` requires Node.js 24. The package pins the `@ataraxy-labs/sem` development
 wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` also
 requires `@sem-foundation/contracts` and `@sem-foundation/repository` at runtime for canonical symbol
 and Git revision contracts. It resolves the package-local binary by default, even when work-context
 changes the subprocess cwd to the Git repository root, and invokes it as an external read-only
-process. Set `SEM_BIN` only when using a different binary. Publishing and release automation are
-intentionally disabled during the PoC.
+process. Set `SEM_BIN` only when using a different binary. The package is included in the repository's
+Lerna publish flow; publish `@sem-foundation/contracts` and `@sem-foundation/repository` before
+publishing sem-doc when those foundation packages are not already available on the registry.
 
 ```bash
 pnpm install
@@ -116,19 +182,32 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClie
 # Direct relationships only
 pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --depth 1
 
+# Explicitly include the direct node_modules surface (package internals remain bounded to one hop)
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient \
+  --file src/sem-client.ts --include-node-modules-surface --json
+
 # Index TSDoc H1 [[Symbol]] definitions and backlinks
 pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
 
-# Validate declared SSOT bindings against the current sem entity catalog
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+# Validate classified SSOT bindings against the current sem entity catalog
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --strict --json
 ```
 
 `--depth` accepts only 1 or 2 and is passed to both sem impact traversal and context `--hops`.
+The underlying sem CLI defaults to impact depth 2 but context hops 0 (unbounded, token-budgeted);
+sem-doc deliberately overrides both through its own default depth 2 so work-context collection is
+bounded and reproducible.
 `--budget` limits source excerpts, not the complete symbol inventory. Interactive consumers SHOULD
 request 2 hops once and derive a 1-hop view with `selectWorkContextHops(report.symbols, 1)` instead
 of issuing a second sem query.
 The work-context report preserves sem version, exact arguments, Git revision, sem payloads, and
 matching document definitions/backlinks.
+
+`--include-node-modules-surface` is deliberately opt-in. It is recorded in the exact SEM argument
+provenance (`--no-default-excludes`) and therefore remains visible in serialized scopes and history
+snapshots. The one-hop projection is a collection boundary, not a claim that every file in a package
+was analyzed; use the repository-level entity snapshot lane when a complete revision inventory is
+required.
 
 For conventional static TypeScript imports, sem entity identity and scope resolution are sufficient
 for the required source mapping. Named/default/namespace aliases resolve to the original entity ID,
@@ -138,16 +217,24 @@ type, definition file, and `startLine`/`endLine`. Exact reference-site line/colu
 requirement. Dynamic or computed patterns that sem cannot statically resolve are not treated as
 guaranteed mappings.
 
-Documents use a unique double-bracket H1 checkpoint for routing and bind it to code through complete
-`semEntityId`, `semEntityName`, `semEntityType`, and `semEntityFile` frontmatter. Work-context never
-falls back to checkpoint or entity name alone. Missing exact provenance produces `unresolved`, while
-incomplete metadata and duplicate checkpoint/entity bindings fail indexing. See
+Documents use a unique double-bracket H1 checkpoint for routing and bind it to code through
+`semDocumentKind: code`, plus `semEntityId`, `semEntityName`, `semEntityType`, and `semEntityFile`
+frontmatter. Work-context never falls back to checkpoint or entity name alone. Missing exact provenance
+produces `unresolved`, while incomplete metadata and duplicate checkpoint/entity bindings fail indexing. See
 [ADR-0003](spec/decisions/0003-exact-document-entity-binding.md).
+
+The repository convention distinguishes code-backed SSOT documents from conceptual or process guides.
+Any document intended to explain one implementation symbol MUST set `semDocumentKind: code`, use the
+four binding fields, and resolve in the work-context for that change. Conceptual, architecture,
+process, and tooling documents MAY remain document-only; `external-reference` documents may describe
+dependency surface evidence but do not own `node_modules` symbols. Use strict binding validation and a
+representative work-context run as review evidence.
 
 The normative rules are in the
 [Document Entity Binding Convention](spec/conventions/document-entity-binding.md). Binding
-validation emits `sem-doc-binding-validation.v1` and exits non-zero for missing entities, duplicate
-entity IDs, or mismatched name/type/file provenance. Document-only checkpoints may remain unbound.
+validation emits `sem-doc-binding-validation.v2`; `--strict` requires every document to declare a
+kind, requires exact bindings for `code` documents, and rejects bindings on non-code documents.
+Document-only checkpoints remain allowed when explicitly classified.
 
 The accepted scope boundary is recorded in
 [ADR-0001](spec/decisions/0001-sem-entity-scope-boundary.md): work-context uses only entities exposed
@@ -194,7 +281,7 @@ pnpm --filter @context-action/sem-doc verify:poc
 SEM_BIN=/path/to/sem pnpm --filter @context-action/sem-doc verify:poc
 ```
 
-`context-action/packages/sem-doc` is the implementation home for the private PoC. The former
+`context-action/packages/sem-doc` is the implementation home for the publishable package. The former
 standalone checkout and the old `tsdoc-edge` copy are no longer source locations; new sem-doc
-features should land in this workspace package first. The package remains excluded from Lerna
-release/publish flows until the PoC has a stable external contract.
+features should land in this workspace package first. The package is included in the Lerna release/
+publish flow and keeps `@sem-foundation/*` as explicit runtime dependencies.

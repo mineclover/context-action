@@ -23,6 +23,7 @@ function createFixtureRepository(binding = {}) {
     path.join(root, 'managed', 'authentication.md'),
     [
       '---',
+      'semDocumentKind: code',
       `semEntityId: ${binding.id ?? 'src/auth.ts::function::authenticateUser'}`,
       `semEntityName: ${binding.name ?? 'authenticateUser'}`,
       `semEntityType: ${binding.type ?? 'function'}`,
@@ -32,7 +33,10 @@ function createFixtureRepository(binding = {}) {
       '',
     ].join('\n')
   );
-  writeFileSync(path.join(root, 'managed', 'concept.md'), '# [[Authentication Concept]]\n');
+  writeFileSync(
+    path.join(root, 'managed', 'concept.md'),
+    '---\nsemDocumentKind: concept\n---\n# [[Authentication Concept]]\n'
+  );
   execFileSync('git', ['init', '-q'], { cwd: root });
   execFileSync('git', ['config', 'user.email', 'sem-doc@example.test'], { cwd: root });
   execFileSync('git', ['config', 'user.name', 'sem-doc test'], { cwd: root });
@@ -61,6 +65,35 @@ test('validates declared bindings against revision-pinned sem entities', () => {
   assert.equal(report.summary.resolved, 1);
   assert.equal(report.summary.errors, 0);
   assert.match(renderDocumentBindingValidationText(report), /Document Entity Bindings: valid/);
+});
+
+test('strict mode enforces document classification and code-backed bindings', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = validationService().analyze({
+    repositoryRoot,
+    docsRoot: 'managed',
+    strict: true,
+  });
+
+  assert.equal(report.valid, true);
+  assert.equal(report.strict, true);
+  assert.equal(report.summary.classified, 2);
+  assert.equal(report.summary.codeBacked, 1);
+  assert.equal(report.summary.errors, 0);
+});
+
+test('strict mode reports an unclassified document as a contract error', () => {
+  const repositoryRoot = createFixtureRepository();
+  writeFileSync(path.join(repositoryRoot, 'managed', 'concept.md'), '# [[Authentication Concept]]\n');
+
+  const report = validationService().analyze({
+    repositoryRoot,
+    docsRoot: 'managed',
+    strict: true,
+  });
+
+  assert.equal(report.valid, false);
+  assert.equal(report.issues.some(({ code }) => code === 'missing-document-kind'), true);
 });
 
 test('reports missing IDs and mismatched provenance without name fallback', () => {

@@ -3,10 +3,11 @@ title: sem-doc document binding validation
 type: component
 status: active
 version: 1.0.0
-semEntityId: src/binding-validation.ts::class::DocumentBindingValidationService
+semDocumentKind: code
+semEntityId: packages/sem-doc/src/binding-validation.ts::class::DocumentBindingValidationService
 semEntityName: DocumentBindingValidationService
 semEntityType: class
-semEntityFile: src/binding-validation.ts
+semEntityFile: packages/sem-doc/src/binding-validation.ts
 ---
 
 # [[Document Binding Validation]]
@@ -20,8 +21,8 @@ silently becoming the document's source.
 ## Input and output
 
 The service reads the revision-pinned sem `entities --json` catalog and the selected documentation
-root. It returns `sem-doc-binding-validation.v1` with provenance, counts, resolution status, and
-machine-readable issues. The CLI command is `sem-doc docs validate-bindings`.
+root. It returns `sem-doc-binding-validation.v2` with provenance, strict-mode classification counts,
+resolution status, and machine-readable issues. The CLI command is `sem-doc docs validate-bindings`.
 
 ## Identity logic
 

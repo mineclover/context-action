@@ -1,11 +1,20 @@
 {
   "name": "@context-action/sem-doc",
   "version": "0.1.0",
-  "private": true,
-  "description": "Symbol-centered work-context, document binding, and Git diff analysis for TypeScript repositories",
+  "description": "Symbol-centered work-context, operational ContextScope grouping, document binding, and Git diff analysis for TypeScript repositories",
   "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "README.md",
@@ -17,15 +26,17 @@
   },
   "scripts": {
     "clean": "node scripts/clean-dist.cjs",
-    "build": "npm run clean && tsc -p tsconfig.json",
+    "build": "pnpm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test test/advisory.test.cjs test/binding-validation.test.cjs test/cli.test.cjs test/document-index.test.cjs test/git-diff.test.cjs test/sem-client.test.cjs test/sem-json.test.cjs test/work-context.test.cjs",
-    "benchmark:scope": "npm run build && node scripts/benchmark-scope.cjs",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run build && node --test test/advisory.test.cjs test/binding-validation.test.cjs test/cli.test.cjs test/context-scope.test.cjs test/document-index.test.cjs test/git-diff.test.cjs test/sem-client.test.cjs test/sem-json.test.cjs test/work-context.test.cjs",
+    "benchmark:scope": "pnpm run build && node scripts/benchmark-scope.cjs",
     "lint": "biome check .",
     "format": "biome format --write .",
     "verify:boundary": "node scripts/verify-boundary.cjs",
     "verify:poc": "node scripts/verify-poc.cjs",
-    "verify:pack": "npm run build && node scripts/verify-pack.cjs",
+    "verify:bindings": "pnpm run build && node dist/cli.js docs validate-bindings spec --strict --json",
+    "verify:pack": "pnpm run build && node scripts/verify-pack.cjs",
     "prepublishOnly": "npm run verify:pack"
   },
   "keywords": [

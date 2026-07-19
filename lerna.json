@@ -10,7 +10,8 @@
     "packages/llms-generator",
     "packages/typedoc-vitepress-sync",
     "packages/sem-foundation",
-    "packages/sem-foundation-repository"
+    "packages/sem-foundation-repository",
+    "packages/sem-doc"
   ],
   "command": {
     "version": {

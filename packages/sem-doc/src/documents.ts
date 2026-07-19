@@ -1,9 +1,20 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import * as path from 'node:path';
-
+import { DEFAULT_COLLECTION_IGNORED_DIRECTORIES, isIgnoredCollectionDirectory } from './collection-policy';
 import type { SemEntity } from './sem-json';
 
-export const DOCUMENT_INDEX_SCHEMA = 'sem-documents.v2' as const;
+export const DOCUMENT_INDEX_SCHEMA = 'sem-documents.v3' as const;
+
+export const DOCUMENT_KINDS = [
+  'code',
+  'concept',
+  'architecture',
+  'process',
+  'tooling',
+  'external-reference',
+] as const;
+
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
 export interface DocumentReference {
   readonly symbol: string;
@@ -16,6 +27,7 @@ export interface DocumentDefinition {
   readonly documentPath: string;
   readonly line: number;
   readonly canonical: true;
+  readonly documentKind?: DocumentKind;
   readonly entity?: DocumentEntityBinding;
 }
 
@@ -29,6 +41,7 @@ export interface DocumentEntityBinding {
 export interface DocumentRecord {
   readonly documentPath: string;
   readonly title?: string;
+  readonly documentKind?: DocumentKind;
   readonly definitions: readonly string[];
   readonly references: readonly string[];
 }
@@ -161,7 +174,7 @@ export function indexDocuments(rootDir: string, options: DocumentIndexOptions = 
     (options.extensions ?? ['.md', '.mdx']).map((extension) => extension.toLowerCase())
   );
   const ignored = new Set(
-    options.ignoredDirectories ?? ['.git', 'node_modules', 'dist', '.test-dist', '.reports']
+    [...DEFAULT_COLLECTION_IGNORED_DIRECTORIES, ...(options.ignoredDirectories ?? [])]
   );
   if (!existsSync(root)) return new DocumentIndex(root, [], [], []);
   const paths = collectDocumentPaths(root, extensions, ignored);
@@ -191,7 +204,7 @@ function collectDocumentPaths(
   const visit = (directory: string): void => {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        if (!ignored.has(entry.name)) visit(path.join(directory, entry.name));
+        if (!isIgnoredCollectionDirectory(entry.name, ignored)) visit(path.join(directory, entry.name));
       } else if (entry.isFile() && extensions.has(path.extname(entry.name).toLowerCase())) {
         result.push(path.join(directory, entry.name));
       }
@@ -204,13 +217,15 @@ function collectDocumentPaths(
 
 function parseDocument(root: string, absolutePath: string): ParsedDocument {
   const content = readFileSync(absolutePath, 'utf8');
-  const searchableContent = maskFencedCode(content);
+  const searchableContent = maskInlineCode(maskFencedCode(content));
   const documentPath = toDocumentPath(root, absolutePath);
   const definitions: DocumentDefinition[] = [];
   const references: DocumentReference[] = [];
   const definitionNames: string[] = [];
   const referenceNames: string[] = [];
-  const entity = parseEntityBinding(content, documentPath);
+  const frontmatter = parseDocumentFrontmatter(content, documentPath);
+  const entity = frontmatter.entity;
+  const documentKind = frontmatter.documentKind;
   const headingMatches = [...searchableContent.matchAll(/^(#{1,6})[ \t]+(.+?)\s*$/gmu)];
   for (const match of headingMatches) {
     const level = match[1]?.length ?? 0;
@@ -222,6 +237,7 @@ function parseDocument(root: string, absolutePath: string): ParsedDocument {
         documentPath,
         line: lineNumberAt(content, match.index ?? 0),
         canonical: true,
+        ...(documentKind === undefined ? {} : { documentKind }),
         ...(entity === undefined ? {} : { entity }),
       } as const;
       definitions.push(definition);
@@ -248,6 +264,7 @@ function parseDocument(root: string, absolutePath: string): ParsedDocument {
     record: {
       documentPath,
       title,
+      ...(documentKind === undefined ? {} : { documentKind }),
       definitions: definitionNames,
       references: referenceNames,
     },
@@ -283,26 +300,47 @@ function maskFencedCode(content: string): string {
     .join('');
 }
 
+/** Inline Markdown code is explanatory syntax, not a document checkpoint. */
+function maskInlineCode(content: string): string {
+  return content.replace(/(`+)([^`\r\n]*?)\1/gu, (match) => maskLine(match));
+}
+
 function maskLine(line: string): string {
   return line.replace(/[^\r\n]/gu, ' ');
 }
 
-function parseEntityBinding(
+interface ParsedDocumentFrontmatter {
+  readonly documentKind?: DocumentKind;
+  readonly entity?: DocumentEntityBinding;
+}
+
+function parseDocumentFrontmatter(
   content: string,
   documentPath: string
-): DocumentEntityBinding | undefined {
+): ParsedDocumentFrontmatter {
   const frontmatter = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/u.exec(content)?.[1];
-  if (frontmatter === undefined) return undefined;
+  if (frontmatter === undefined) return {};
   const values = new Map<string, string>();
-  const keys = new Set(['semEntityId', 'semEntityName', 'semEntityType', 'semEntityFile']);
+  const keys = new Set(['semDocumentKind', 'semEntityId', 'semEntityName', 'semEntityType', 'semEntityFile']);
   for (const line of frontmatter.split(/\r?\n/u)) {
     const match = /^([A-Za-z][A-Za-z0-9]*):[ \t]*(.*?)\s*$/u.exec(line);
     if (match === null || !keys.has(match[1])) continue;
     values.set(match[1], unquote(match[2]));
   }
-  const present = [...keys].filter((key) => values.has(key));
-  if (present.length === 0) return undefined;
-  const missing = [...keys].filter((key) => (values.get(key) ?? '').length === 0);
+  const rawKind = values.get('semDocumentKind');
+  let documentKind: DocumentKind | undefined;
+  if (rawKind !== undefined) {
+    if (!isDocumentKind(rawKind)) {
+      throw new DocumentIndexError(
+        `${documentPath} semDocumentKind must be one of: ${DOCUMENT_KINDS.join(', ')}`
+      );
+    }
+    documentKind = rawKind;
+  }
+  const entityKeys = ['semEntityId', 'semEntityName', 'semEntityType', 'semEntityFile'] as const;
+  const present = entityKeys.filter((key) => values.has(key));
+  if (present.length === 0) return documentKind === undefined ? {} : { documentKind };
+  const missing = entityKeys.filter((key) => (values.get(key) ?? '').length === 0);
   if (missing.length > 0) {
     throw new DocumentIndexError(
       `${documentPath} has incomplete sem entity metadata; missing: ${missing.join(', ')}`
@@ -313,11 +351,18 @@ function parseEntityBinding(
     throw new DocumentIndexError(`${documentPath} semEntityFile must be repository-relative`);
   }
   return {
-    id: values.get('semEntityId') ?? '',
-    name: values.get('semEntityName') ?? '',
-    type: values.get('semEntityType') ?? '',
-    file,
+    ...(documentKind === undefined ? {} : { documentKind }),
+    entity: {
+      id: values.get('semEntityId') ?? '',
+      name: values.get('semEntityName') ?? '',
+      type: values.get('semEntityType') ?? '',
+      file,
+    },
   };
+}
+
+function isDocumentKind(value: string): value is DocumentKind {
+  return (DOCUMENT_KINDS as readonly string[]).includes(value);
 }
 
 function unquote(value: string): string {

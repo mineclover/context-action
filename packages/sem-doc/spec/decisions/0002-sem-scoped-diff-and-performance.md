@@ -1,3 +1,7 @@
+---
+semDocumentKind: architecture
+---
+
 # ADR-0002: Limit semantic diff decisions and performance checks to the sem entity boundary
 
 - Status: Accepted

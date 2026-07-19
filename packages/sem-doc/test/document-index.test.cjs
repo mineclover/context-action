@@ -62,6 +62,29 @@ test('binds a unique document checkpoint to exact sem entity provenance', () => 
   );
 });
 
+test('preserves explicit document kind on records and definitions', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'sem-doc-index-kind-'));
+  writeFileSync(
+    path.join(root, 'implementation.md'),
+    '---\nsemDocumentKind: code\n---\n# [[Implementation]]\n'
+  );
+
+  const index = indexDocuments(root);
+
+  assert.equal(index.documents[0].documentKind, 'code');
+  assert.equal(index.definitions[0].documentKind, 'code');
+});
+
+test('rejects an unknown document kind', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'sem-doc-index-kind-'));
+  writeFileSync(
+    path.join(root, 'invalid.md'),
+    '---\nsemDocumentKind: unknown\n---\n# [[Invalid]]\n'
+  );
+
+  assert.throws(() => indexDocuments(root), /semDocumentKind must be one of/);
+});
+
 test('rejects incomplete and duplicate SSOT bindings', () => {
   const incompleteRoot = mkdtempSync(path.join(os.tmpdir(), 'sem-doc-index-incomplete-'));
   writeFileSync(
@@ -111,4 +134,29 @@ test('ignores checkpoint examples inside fenced code blocks', () => {
   );
   assert.equal(index.lookup('Example Only').definitions.length, 0);
   assert.equal(index.missingReferences.length, 0);
+});
+
+test('ignores checkpoint examples inside inline Markdown code', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'sem-doc-index-inline-code-'));
+  writeFileSync(
+    path.join(root, 'guide.md'),
+    '# [[Visible Checkpoint]]\n\nUse the syntax `[[Example Only]]` in a document heading.\n'
+  );
+
+  const index = indexDocuments(root);
+  assert.equal(index.missingReferences.length, 0);
+  assert.equal(index.lookup('Example Only').references.length, 0);
+});
+
+test('does not index Markdown nested below node_modules', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'sem-doc-documents-node-modules-'));
+  mkdirSync(path.join(root, 'node_modules', 'pkg'), { recursive: true });
+  writeFileSync(path.join(root, 'README.md'), '# [[Visible]]\n');
+  writeFileSync(path.join(root, 'node_modules', 'pkg', 'README.md'), '# [[Hidden]]\n');
+
+  const index = indexDocuments(root);
+  assert.deepEqual(index.documents.map(({ documentPath }) => documentPath), ['README.md']);
+  assert.equal(index.lookup('Hidden').definitions.length, 0);
+  const customIndex = indexDocuments(root, { ignoredDirectories: ['.custom'] });
+  assert.equal(customIndex.lookup('Hidden').definitions.length, 0);
 });

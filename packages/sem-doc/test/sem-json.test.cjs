@@ -28,6 +28,20 @@ test('derives canonical IDs from top-level sem entities JSON rows', () => {
   assert.equal(entities[0].id, 'src/auth.ts::function::authenticateUser');
 });
 
+test('treats a null top-level parent_id as an absent parent', () => {
+  const entities = parseSemEntities([
+    {
+      name: 'authenticateUser',
+      type: 'function',
+      file: 'src/auth.ts',
+      parent_id: null,
+    },
+  ]);
+
+  assert.equal(entities[0].parentId, undefined);
+  assert.equal(entities[0].id, 'src/auth.ts::function::authenticateUser');
+});
+
 test('derives scoped canonical IDs from parent_id', () => {
   const entities = parseSemEntities([
     {

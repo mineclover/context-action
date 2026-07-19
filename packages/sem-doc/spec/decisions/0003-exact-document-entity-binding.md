@@ -1,3 +1,7 @@
+---
+semDocumentKind: architecture
+---
+
 # ADR-0003: Bind document checkpoints to exact sem entity provenance
 
 - Status: Accepted
@@ -20,6 +24,7 @@ frontmatter fields:
 
 ```yaml
 ---
+semDocumentKind: code
 semEntityId: src/auth.ts::function::authenticateUser
 semEntityName: authenticateUser
 semEntityType: function
@@ -43,7 +48,7 @@ The index follows these rules:
 
 ## Consequences
 
-`sem-documents.v2` carries entity binding provenance, and `sem-doc-work-context.v4` performs exact
+`sem-documents.v3` carries document classification and entity binding provenance, and `sem-doc-work-context.v4` performs exact
 entity lookup. Existing H1-only documents remain valid document checkpoints but do not automatically
 bind to code.
 

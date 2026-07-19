@@ -28,14 +28,19 @@ export interface SemRunOptions {
 
 /** Aggregate deadline/output budget shared by a composed sem-doc operation. */
 export interface SemExecutionBudget {
+  /** Requested aggregate timeout, before command-level remaining-time clipping. */
+  readonly timeoutMs: number;
   readonly deadlineAt: number;
+  /** Requested aggregate output ceiling. */
   readonly maxOutputBytes: number;
+  readonly parent?: SemExecutionBudget;
   usedOutputBytes: number;
 }
 
 export interface SemExecutionBudgetOptions {
   readonly timeoutMs: number;
   readonly maxOutputBytes: number;
+  readonly parent?: SemExecutionBudget;
 }
 
 export interface SemCommandResult {
@@ -165,14 +170,9 @@ export class SemClient {
     };
 
     if (budget !== undefined) {
-      budget.usedOutputBytes +=
+      const outputBytes =
         Buffer.byteLength(result.stdout, 'utf8') + Buffer.byteLength(result.stderr, 'utf8');
-      if (budget.usedOutputBytes > budget.maxOutputBytes) {
-        throw new SemExecutionError(
-          `sem command "${command}" exceeded aggregate output budget of ${budget.maxOutputBytes} bytes`,
-          result
-        );
-      }
+      chargeExecutionBudget(budget, outputBytes, result, command);
     }
 
     if (child.error) {
@@ -241,17 +241,21 @@ function positiveIntegerOption(value: number, name: string, maximum: number): nu
 }
 
 export function createSemExecutionBudget(options: SemExecutionBudgetOptions): SemExecutionBudget {
+  const timeoutMs = positiveIntegerOption(
+    options.timeoutMs,
+    'timeoutMs',
+    MAX_SEM_CLIENT_TIMEOUT_MS,
+  );
+  const maxOutputBytes = positiveIntegerOption(
+    options.maxOutputBytes,
+    'maxOutputBytes',
+    MAX_SEM_CLIENT_BUFFER_BYTES,
+  );
   return {
-    deadlineAt: Date.now() + positiveIntegerOption(
-      options.timeoutMs,
-      'timeoutMs',
-      MAX_SEM_CLIENT_TIMEOUT_MS,
-    ),
-    maxOutputBytes: positiveIntegerOption(
-      options.maxOutputBytes,
-      'maxOutputBytes',
-      MAX_SEM_CLIENT_BUFFER_BYTES,
-    ),
+    timeoutMs,
+    deadlineAt: Date.now() + timeoutMs,
+    maxOutputBytes,
+    ...(options.parent === undefined ? {} : { parent: options.parent }),
     usedOutputBytes: 0,
   };
 }
@@ -260,16 +264,38 @@ function resolveTimeout(timeoutMs: number, budget: SemExecutionBudget | undefine
   if (budget === undefined) return timeoutMs;
   const remaining = budget.deadlineAt - Date.now();
   if (remaining <= 0) {
-    throw new SemExecutionError('sem aggregate timeout budget exhausted before execution');
+    throw new SemExecutionError('sem execution timeout budget exhausted before execution');
   }
-  return Math.max(1, Math.min(timeoutMs, remaining));
+  const parentTimeout = budget.parent === undefined
+    ? timeoutMs
+    : resolveTimeout(timeoutMs, budget.parent);
+  return Math.max(1, Math.min(timeoutMs, remaining, parentTimeout));
 }
 
 function resolveMaxBuffer(maxBufferBytes: number, budget: SemExecutionBudget | undefined): number {
   if (budget === undefined) return maxBufferBytes;
   const remaining = budget.maxOutputBytes - budget.usedOutputBytes;
   if (remaining <= 0) {
-    throw new SemExecutionError('sem aggregate output budget exhausted before execution');
+    throw new SemExecutionError('sem execution output budget exhausted before execution');
   }
-  return Math.max(1, Math.min(maxBufferBytes, remaining));
+  const parentBuffer = budget.parent === undefined
+    ? maxBufferBytes
+    : resolveMaxBuffer(maxBufferBytes, budget.parent);
+  return Math.max(1, Math.min(maxBufferBytes, remaining, parentBuffer));
+}
+
+function chargeExecutionBudget(
+  budget: SemExecutionBudget,
+  outputBytes: number,
+  result: SemCommandResult,
+  command: SemCommand | 'version',
+): void {
+  budget.usedOutputBytes += outputBytes;
+  if (budget.usedOutputBytes > budget.maxOutputBytes) {
+    throw new SemExecutionError(
+      `sem command "${command}" exceeded execution output budget of ${budget.maxOutputBytes} bytes`,
+      result,
+    );
+  }
+  if (budget.parent !== undefined) chargeExecutionBudget(budget.parent, outputBytes, result, command);
 }

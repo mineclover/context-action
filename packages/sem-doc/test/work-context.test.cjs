@@ -6,6 +6,10 @@ const path = require('node:path');
 const test = require('node:test');
 
 const {
+  CONTEXT_SCOPE_SCHEMA,
+  MAX_CONTEXT_SCOPE_NODES,
+  createContextScope,
+  parseContextScope,
   RepositoryStateError,
   MAX_SEM_CLIENT_BUFFER_BYTES,
   MAX_SEM_CLIENT_TIMEOUT_MS,
@@ -14,6 +18,7 @@ const {
   WORK_CONTEXT_SCHEMA,
   WorkContextService,
   renderWorkContextText,
+  renderContextScopeText,
   selectWorkContextHops,
 } = require('../dist');
 
@@ -106,6 +111,103 @@ test('composes sem impact/context with canonical document definitions and backli
   assert.match(text, /Symbols \(3, complete through 2 hops\)/);
   assert.match(text, /Affected Tests \(1, complete; hop only when listed above\)/);
   assert.match(report.revision.workingTreeDigest, /^[a-f0-9]{64}$/);
+  assert.equal(report.execution.timeoutMs, 120000);
+  assert.equal(report.execution.maxOutputBytes, 64 * 1024 * 1024);
+  assert.ok(report.execution.usedOutputBytes > 0);
+});
+
+test('projects work-context into an operational context scope without changing symbol identity', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = new WorkContextService({
+    client: new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] }),
+  }).analyze({
+    repositoryRoot,
+    entity: 'authenticateUser',
+    docsRoot: 'managed',
+  });
+
+  const scope = createContextScope(report, {
+    contextId: 'login-screen',
+    kind: 'screen',
+    projectId: 'example',
+    label: 'Login screen',
+  });
+
+  assert.equal(scope.schemaVersion, CONTEXT_SCOPE_SCHEMA);
+  assert.equal(scope.source.workContext, WORK_CONTEXT_SCHEMA);
+  assert.match(scope.source.workContextDigest, /^[a-f0-9]{64}$/u);
+  assert.equal(scope.source.request.execution.timeoutMs, 120000);
+  assert.ok(scope.source.request.execution.usedOutputBytes <= scope.source.request.execution.maxOutputBytes);
+  assert.deepEqual(scope.source.request.impactArgs.slice(-1), ['--json']);
+  assert.deepEqual(scope.source.request.contextArgs.slice(-1), ['--json']);
+  assert.deepEqual(scope.anchors[0], {
+    role: 'root',
+    symbol: {
+      projectId: 'example',
+      filePath: 'src/auth.ts',
+      entityId: 'src/auth.ts::function::authenticateUser',
+    },
+  });
+  assert.equal(scope.nodes.length, 3);
+  assert.equal(scope.status.kind, 'incomplete');
+  assert.deepEqual(scope.status.reasons, ['disconnected-nodes']);
+  assert.deepEqual(parseContextScope(JSON.parse(JSON.stringify(scope))), scope);
+  assert.throws(
+    () => parseContextScope({
+      ...scope,
+      nodes: [{ ...scope.nodes[0], projectId: 'other-project' }],
+    }),
+    /nodes must use source\.projectId/,
+  );
+  assert.throws(
+    () => parseContextScope({
+      ...scope,
+      nodes: [{ ...scope.nodes[0], filePath: `./${scope.nodes[0].filePath}` }],
+    }),
+    /canonical repository path/,
+  );
+  assert.throws(
+    () => parseContextScope({
+      ...scope,
+      status: { kind: 'complete', appliedLimits: scope.status.appliedLimits, reasons: ['edges'] },
+    }),
+    /complete scopes must not contain reasons/,
+  );
+  assert.throws(
+    () => parseContextScope({ ...scope, extra: true }),
+    /context scope contains unknown field: extra/,
+  );
+  assert.throws(
+    () => parseContextScope({ ...scope, nodes: [scope.nodes[0], scope.nodes[0]] }),
+    /nodes contains duplicate values/,
+  );
+  assert.throws(
+    () => parseContextScope({
+      ...scope,
+      nodes: Array.from({ length: MAX_CONTEXT_SCOPE_NODES + 1 }, () => scope.nodes[0]),
+    }),
+    /nodes exceeds/,
+  );
+  assert.equal(scope.groups[0].id, 'context:login-screen');
+  assert.equal(scope.groups[1].id, 'project:example');
+  assert.equal(scope.edges.filter(({ evidence }) => evidence.relation === 'dependency').length, 1);
+  assert.equal(scope.edges.filter(({ evidence }) => evidence.relation === 'dependent').length, 1);
+  assert.match(renderContextScopeText(scope), /Context Scope: login-screen \(screen\)/);
+});
+
+test('marks graph output incomplete when output limits remove evidence', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = new WorkContextService({
+    client: new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] }),
+  }).analyze({ repositoryRoot, entity: 'authenticateUser', docsRoot: 'managed' });
+
+  const scope = createContextScope(report, {
+    projectId: 'example',
+    maxEdges: 1,
+  });
+
+  assert.equal(scope.status.kind, 'incomplete');
+  assert.deepEqual(scope.status.reasons, ['disconnected-nodes', 'edges']);
 });
 
 test('keeps the symbol inventory complete when content is token-truncated', () => {
@@ -228,6 +330,56 @@ test('adds a test role only when sem impact reports a bounded hop for that entit
   assert.deepEqual(
     report.affectedTests.entries.map(({ name }) => name),
     ['authenticateUserTest']
+  );
+});
+
+test('keeps direct node_modules surface evidence but excludes transitive package internals', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = new WorkContextService({
+    client: new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] }),
+  }).analyze({
+    repositoryRoot,
+    entity: 'withNodeModules',
+    docsRoot: 'managed',
+    includeNodeModulesSurface: true,
+  });
+
+  assert.ok(report.sem.impact.args.includes('--no-default-excludes'));
+  assert.ok(report.sem.context.args.includes('--no-default-excludes'));
+  assert.ok(report.sem.impact.payload.dependencies.some(({ file }) => file === 'node_modules/pkg/index.ts'));
+  assert.ok(report.sem.impact.payload.impact.entities.some(({ file }) => file === 'node_modules/pkg/index.ts'));
+  assert.equal(report.sem.impact.payload.impact.total, report.sem.impact.payload.impact.entities.length);
+  assert.equal(
+    report.sem.impact.payload.impact.entities.some(({ file }) => file === 'node_modules/pkg/internal.ts'),
+    false,
+  );
+  assert.ok(report.sem.context.payload.entries.some(({ file }) => file === 'node_modules/pkg/index.ts'));
+  assert.equal(report.sem.context.payload.totalTokens, 28);
+  assert.equal(
+    report.sem.context.payload.entries.some(({ file }) => file === 'node_modules/pkg/internal.ts'),
+    false,
+  );
+  assert.equal(
+    report.symbols.entries.some(({ entity }) => entity.file === 'node_modules/pkg/internal.ts'),
+    false,
+  );
+});
+
+test('does not collect node_modules without the explicit inclusion policy', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = new WorkContextService({
+    client: new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] }),
+  }).analyze({ repositoryRoot, entity: 'withNodeModules', docsRoot: 'managed' });
+
+  assert.equal(report.sem.impact.args.includes('--no-default-excludes'), false);
+  assert.equal(report.sem.context.args.includes('--no-default-excludes'), false);
+  assert.equal(
+    report.sem.impact.payload.dependencies.some(({ file }) => file.startsWith('node_modules/')),
+    false,
+  );
+  assert.equal(
+    report.sem.context.payload.entries.some(({ file }) => file.startsWith('node_modules/')),
+    false,
   );
 });
 

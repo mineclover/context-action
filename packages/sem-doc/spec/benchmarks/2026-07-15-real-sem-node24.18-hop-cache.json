@@ -4,7 +4,7 @@
   "policy": "observational-no-wall-clock-gate",
   "contracts": {
     "workContext": "sem-doc-work-context.v4",
-    "documents": "sem-documents.v2",
+    "documents": "sem-documents.v3",
     "advisory": "sem-advisory.v1"
   },
   "scope": {

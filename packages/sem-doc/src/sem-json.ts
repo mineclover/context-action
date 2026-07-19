@@ -103,7 +103,7 @@ function requiredString(value: unknown, path: string): string {
 }
 
 function optionalNonEmptyString(value: unknown, path: string): string | undefined {
-  if (value === undefined) return undefined;
+  if (value === undefined || value === null) return undefined;
   return requiredString(value, path);
 }
 

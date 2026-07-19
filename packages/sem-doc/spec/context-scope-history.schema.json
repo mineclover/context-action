@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/sem-doc-context-scope-history.v1.json",
+  "title": "sem-doc ContextScope history v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "repositoryRoot", "from", "to", "base", "entries", "storage", "summary", "execution"],
+  "properties": {
+    "schemaVersion": { "const": "sem-doc-context-scope-history.v1" },
+    "repositoryRoot": { "type": "string", "minLength": 1 },
+    "from": { "type": "string", "minLength": 1 },
+    "to": { "type": "string", "minLength": 1 },
+    "base": { "type": "object", "required": ["commit", "scope"], "properties": { "commit": { "type": "string" }, "scope": { "type": "object" } } },
+    "entries": { "type": "array", "items": { "type": "object", "required": ["commit", "parent", "subject", "scope", "diff"], "properties": { "commit": { "type": "string" }, "parent": { "type": "string" }, "subject": { "type": "string" }, "scope": { "type": "object" }, "diff": { "type": "object" } } } },
+    "storage": { "type": "object", "required": ["mode", "entries"], "properties": { "mode": { "enum": ["memory", "ndjson"] }, "path": { "type": "string" }, "entries": { "type": "integer", "minimum": 0 } } },
+    "summary": { "type": "object" }
+    ,"execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeoutMs", "maxOutputBytes", "usedOutputBytes"],
+      "properties": {
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "maxOutputBytes": { "type": "integer", "minimum": 1 },
+        "usedOutputBytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

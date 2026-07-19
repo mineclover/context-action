@@ -28,14 +28,27 @@ test('CLI help exposes the current work-context contract', () => {
   const result = runCli(['help']);
   assert.equal(result.status, 0);
   assert.match(result.stderr, /work-context <entity>/u);
+  assert.match(result.stderr, /context-scope <entity>/u);
   assert.match(result.stderr, /--no-cache/u);
   assert.match(result.stderr, /docs validate-bindings/u);
+  assert.match(result.stderr, /--strict/u);
+  assert.match(result.stderr, /context-scope-diff/u);
+  assert.match(result.stderr, /context-scope-history/u);
+  assert.match(result.stderr, /--aggregate-max-output-bytes/u);
+  assert.match(result.stderr, /--include-node-modules-surface/u);
+  assert.match(result.stderr, /context-scope-compare/u);
 });
 
 test('CLI rejects unknown commands with its stable input status', () => {
   const result = runCli(['unknown-command']);
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Usage:/u);
+});
+
+test('CLI validates ContextScope identity before invoking sem', () => {
+  const result = runCli(['context-scope', 'SemClient', '--kind', 'invalid']);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /--project-id is required/u);
 });
 
 test('CLI composes a JSON work-context report through the current contract', () => {
@@ -55,4 +68,6 @@ test('CLI composes a JSON work-context report through the current contract', () 
   assert.equal(report.symbols.maxHops, 1);
   assert.equal(report.affectedTests.complete, true);
   assert.ok(Array.isArray(report.usageFiles));
+  assert.equal(report.execution.timeoutMs, 120000);
+  assert.equal(report.execution.maxOutputBytes, 64 * 1024 * 1024);
 });

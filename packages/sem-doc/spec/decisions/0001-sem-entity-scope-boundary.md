@@ -1,3 +1,7 @@
+---
+semDocumentKind: architecture
+---
+
 # ADR-0001: Use sem-exposed entities without a complete local-scope inventory
 
 - Status: Accepted

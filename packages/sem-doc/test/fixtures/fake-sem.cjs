@@ -7,13 +7,22 @@ if (command === '--version') {
   process.exit(0);
 }
 
-const entity = {
+const baseEntity = {
   id: 'src/auth.ts::function::authenticateUser',
   name: 'authenticateUser',
   type: 'function',
   file: 'src/auth.ts',
   lines: [1, 5],
 };
+const entity = process.argv[3] === 'secondary'
+  ? {
+      id: 'src/secondary.ts::function::secondary',
+      name: 'secondary',
+      type: 'function',
+      file: 'src/secondary.ts',
+      lines: [1, 5],
+    }
+  : baseEntity;
 const repository = {
   id: 'src/repository.ts::class::UserRepository',
   name: 'UserRepository',
@@ -35,6 +44,21 @@ const controller = {
   file: 'src/controller.ts',
   lines: [1, 8],
 };
+const externalSurface = {
+  id: 'node_modules/pkg/index.ts::function::publicApi',
+  name: 'publicApi',
+  type: 'function',
+  file: 'node_modules/pkg/index.ts',
+  lines: [1, 4],
+};
+const externalInternal = {
+  id: 'node_modules/pkg/internal.ts::function::privateApi',
+  name: 'privateApi',
+  type: 'function',
+  file: 'node_modules/pkg/internal.ts',
+  lines: [1, 4],
+};
+const includeNodeModulesSurface = process.argv.includes('--no-default-excludes');
 
 function numberOption(name, fallback) {
   const index = process.argv.indexOf(name);
@@ -46,12 +70,15 @@ if (command === 'impact') {
   const impactEntities = [
     { ...repository, depth: 1 },
     { ...controller, depth: 2 },
+    ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface
+      ? [{ ...externalSurface, depth: 1 }, { ...externalInternal, depth: 2 }]
+      : []),
     ...(process.argv[3] === 'testInImpact' ? [{ ...testEntity, depth: 2 }] : []),
   ].filter((candidate) => candidate.depth <= depth);
   process.stdout.write(
     `${JSON.stringify({
       entity,
-      dependencies: [repository],
+      dependencies: [repository, ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface ? [externalSurface] : [])],
       dependents: [repository],
       impact: { depth, total: impactEntities.length, entities: impactEntities },
       tests: [testEntity],
@@ -79,13 +106,29 @@ if (command === 'context') {
           tokens: 12,
           content: 'class UserRepository {}',
         },
+        ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface
+          ? [
+              {
+                ...externalSurface,
+                role: 'direct_dependency',
+                tokens: 4,
+                content: 'function publicApi() {}',
+              },
+              {
+                ...externalInternal,
+                role: 'transitive_dependency',
+                tokens: 4,
+                content: 'function privateApi() {}',
+              },
+            ]
+          : []),
       ];
   process.stdout.write(
     `${JSON.stringify({
       entity: entity.name,
       entityId: entity.id,
       budget,
-      total_tokens: truncated ? 0 : 24,
+      total_tokens: truncated ? 0 : entries.reduce((total, entry) => total + entry.tokens, 0),
       truncated,
       target_omitted: truncated,
       entries,

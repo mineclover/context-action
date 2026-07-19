@@ -2,6 +2,11 @@ import { existsSync, realpathSync } from 'node:fs';
 import * as path from 'node:path';
 
 import { createSemAdvisoryEnvelope } from './advisory';
+import {
+  isDefaultIgnoredCollectionPath,
+  isNodeModulesPath,
+  MAX_NODE_MODULES_HOPS,
+} from './collection-policy';
 import type { SemAdvisoryEnvelope, SemAdvisoryRequest } from './contracts';
 import {
   type DocumentEntityLookup,
@@ -21,6 +26,7 @@ import {
   MAX_SEM_CLIENT_BUFFER_BYTES,
   MAX_SEM_CLIENT_TIMEOUT_MS,
   SemClient,
+  type SemExecutionBudget,
 } from './sem-client';
 import {
   parseSemContext,
@@ -46,6 +52,10 @@ export interface WorkContextRequest {
   readonly engineVersion?: string;
   readonly timeoutMs?: number;
   readonly maxOutputBytes?: number;
+  /** Opt in to SEM's broad include mode and retain only the direct node_modules surface. */
+  readonly includeNodeModulesSurface?: boolean;
+  /** Optional aggregate budget supplied by a history/composite caller. */
+  readonly executionBudget?: SemExecutionBudget;
 }
 
 export interface WorkContextDocuments {
@@ -93,6 +103,13 @@ export interface WorkContextAffectedTests {
   readonly entries: readonly SemEntity[];
 }
 
+/** Execution provenance for the aggregate SEM calls behind a work-context. */
+export interface WorkContextExecution {
+  readonly timeoutMs: number;
+  readonly maxOutputBytes: number;
+  readonly usedOutputBytes: number;
+}
+
 export interface SemDocWorkContext {
   readonly schemaVersion: typeof WORK_CONTEXT_SCHEMA;
   readonly source: 'sem-doc';
@@ -111,6 +128,7 @@ export interface SemDocWorkContext {
     readonly impact: SemAdvisoryEnvelope<SemImpactResult>;
     readonly context: SemAdvisoryEnvelope<SemContextResult>;
   };
+  readonly execution: WorkContextExecution;
   readonly symbols: WorkContextSymbolInventory;
   readonly affectedTests: WorkContextAffectedTests;
   readonly usageFiles: readonly string[];
@@ -148,6 +166,7 @@ export class WorkContextService {
       'maxOutputBytes',
       MAX_SEM_CLIENT_BUFFER_BYTES,
     );
+    validateOptionalBoolean(request.includeNodeModulesSurface, 'includeNodeModulesSurface');
     const depth = workContextDepth(request.depth);
     const revision = this.revisionReader.read(path.resolve(request.repositoryRoot));
     const repositoryRoot = revision.repositoryRoot;
@@ -156,10 +175,13 @@ export class WorkContextService {
         ? undefined
         : repositoryRelativePath(repositoryRoot, request.file, 'file');
     const docsRoot = repositoryPath(repositoryRoot, request.docsRoot ?? 'managed', 'docs-root');
-    const budget = createSemExecutionBudget({
-      timeoutMs: request.timeoutMs ?? DEFAULT_WORK_CONTEXT_TIMEOUT_MS,
-      maxOutputBytes: request.maxOutputBytes ?? DEFAULT_WORK_CONTEXT_MAX_OUTPUT_BYTES,
-    });
+    if (request.executionBudget !== undefined && (request.timeoutMs !== undefined || request.maxOutputBytes !== undefined)) {
+      throw new WorkContextInputError('executionBudget cannot be combined with timeoutMs or maxOutputBytes');
+    }
+    const budget = request.executionBudget ?? createSemExecutionBudget({
+        timeoutMs: request.timeoutMs ?? DEFAULT_WORK_CONTEXT_TIMEOUT_MS,
+        maxOutputBytes: request.maxOutputBytes ?? DEFAULT_WORK_CONTEXT_MAX_OUTPUT_BYTES,
+      });
     const engineVersion = (
       request.engineVersion ?? this.client.version({ cwd: repositoryRoot, budget })
     ).trim();
@@ -176,17 +198,17 @@ export class WorkContextService {
     };
     const impactArgs = buildImpactArgs(normalizedRequest);
     const contextArgs = buildContextArgs(normalizedRequest);
-    const impact = parseSemImpact(
+    const impact = filterImpactDependencyBoundary(parseSemImpact(
       this.client.runJson('impact', impactArgs, { cwd: repositoryRoot, budget })
-    );
+    ));
     if (impact.testsTruncated) {
       throw new WorkContextInputError(
         'sem impact truncated the test entity list; complete affected-test evidence is required'
       );
     }
-    const context = parseSemContext(
+    const context = filterContextDependencyBoundary(parseSemContext(
       this.client.runJson('context', contextArgs, { cwd: repositoryRoot, budget })
-    );
+    ));
     validateReportedEntity(impact.entity, repositoryRoot, file);
     const symbols = buildSymbolInventory(impact, depth);
     const documentIndex = indexDocuments(docsRoot);
@@ -218,8 +240,15 @@ export class WorkContextService {
           context
         ),
       },
+      execution: {
+        timeoutMs: budget.timeoutMs,
+        maxOutputBytes: budget.maxOutputBytes,
+        usedOutputBytes: budget.usedOutputBytes,
+      },
       symbols,
-      affectedTests: buildAffectedTests(impact.tests),
+      affectedTests: buildAffectedTests(
+        impact.tests.filter((entity) => !isNodeModulesPath(entity.file)),
+      ),
       usageFiles: uniqueFiles(impact.dependents.map((entity) => entity.file)),
       documents: {
         root: docsRoot,
@@ -293,9 +322,56 @@ function buildImpactArgs(request: WorkContextRequest): readonly string[] {
     request.entity,
     ...(request.file === undefined ? [] : ['--file', request.file]),
     ...(request.depth === undefined ? [] : ['--depth', String(request.depth)]),
+    ...(request.includeNodeModulesSurface === true ? ['--no-default-excludes'] : []),
     ...(request.noCache === true ? ['--no-cache'] : []),
     '--json',
   ];
+}
+
+/**
+ * Keep a package's directly referenced surface visible while preventing the
+ * bounded work-context inventory from descending into package internals.
+ * SEM reports transitive entities with an explicit depth; direct dependency
+ * and dependent arrays remain available as surface evidence. The total is
+ * rewritten to describe the collected projection rather than rows discarded
+ * at the package boundary.
+ */
+function filterImpactDependencyBoundary(impact: SemImpactResult): SemImpactResult {
+  const entities = impact.impact.entities.filter((entity) =>
+    isAdmittedSourceEntity(entity) &&
+    (!isNodeModulesPath(entity.file) || entity.depth <= MAX_NODE_MODULES_HOPS),
+  );
+  return {
+    ...impact,
+    dependencies: impact.dependencies.filter(isAdmittedSourceEntity),
+    dependents: impact.dependents.filter(isAdmittedSourceEntity),
+    tests: impact.tests.filter(isAdmittedSourceEntity),
+    impact: {
+      ...impact.impact,
+      total: entities.length,
+      entities,
+    },
+  };
+}
+
+function filterContextDependencyBoundary(context: SemContextResult): SemContextResult {
+  const entries = context.entries.filter((entry) =>
+    isAdmittedSourceEntity(entry) &&
+    (!isNodeModulesPath(entry.file) || isDirectContextRole(entry.role)),
+  );
+  return {
+    ...context,
+    totalTokens: entries.reduce((total, entry) => total + entry.tokens, 0),
+    entries,
+  };
+}
+
+function isAdmittedSourceEntity(entity: Pick<SemEntity, 'file'>): boolean {
+  return !isDefaultIgnoredCollectionPath(entity.file);
+}
+
+function isDirectContextRole(role: string): boolean {
+  return role === 'target' || role === 'direct_dependency' || role === 'direct_dependent';
 }
 
 function nonEmpty(value: string, name: string): string {
@@ -318,6 +394,12 @@ function validatePositiveInteger(value: number | undefined, name: string, maximu
     throw new WorkContextInputError(
       `${name} must be a safe integer between 1 and ${maximum}`,
     );
+  }
+}
+
+function validateOptionalBoolean(value: boolean | undefined, name: string): void {
+  if (value !== undefined && typeof value !== 'boolean') {
+    throw new WorkContextInputError(`${name} must be a boolean`);
   }
 }
 
@@ -470,6 +552,7 @@ function buildContextArgs(request: WorkContextRequest): readonly string[] {
     ...(request.file === undefined ? [] : ['--file', request.file]),
     ...(request.budget === undefined ? [] : ['--budget', String(request.budget)]),
     ...(request.depth === undefined ? [] : ['--hops', String(request.depth)]),
+    ...(request.includeNodeModulesSurface === true ? ['--no-default-excludes'] : []),
     ...(request.noCache === true ? ['--no-cache'] : []),
     '--json',
   ];

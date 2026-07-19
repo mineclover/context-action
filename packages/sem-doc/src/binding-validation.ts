@@ -5,6 +5,7 @@ import {
   DOCUMENT_INDEX_SCHEMA,
   type DocumentDefinition,
   type DocumentEntityBinding,
+  type DocumentRecord,
   indexDocuments,
 } from './documents';
 import {
@@ -17,7 +18,7 @@ import {
 import { createSemExecutionBudget, SemClient } from './sem-client';
 import { parseSemEntities, type SemEntity } from './sem-json';
 
-export const DOCUMENT_BINDING_VALIDATION_SCHEMA = 'sem-doc-binding-validation.v1' as const;
+export const DOCUMENT_BINDING_VALIDATION_SCHEMA = 'sem-doc-binding-validation.v2' as const;
 
 export interface DocumentBindingValidationRequest {
   readonly repositoryRoot: string;
@@ -26,19 +27,25 @@ export interface DocumentBindingValidationRequest {
   readonly engineVersion?: string;
   readonly timeoutMs?: number;
   readonly maxOutputBytes?: number;
+  /** Require an explicit document kind and enforce code-backed binding rules. */
+  readonly strict?: boolean;
 }
 
 export type DocumentBindingIssueCode =
   | 'missing-sem-entity'
   | 'duplicate-sem-entity-id'
-  | 'provenance-mismatch';
+  | 'provenance-mismatch'
+  | 'missing-document-kind'
+  | 'missing-code-binding'
+  | 'missing-code-checkpoint'
+  | 'non-code-binding';
 
 export interface DocumentBindingIssue {
   readonly severity: 'error';
   readonly code: DocumentBindingIssueCode;
-  readonly symbol: string;
+  readonly symbol?: string;
   readonly documentPath: string;
-  readonly entityId: string;
+  readonly entityId?: string;
   readonly message: string;
 }
 
@@ -49,6 +56,8 @@ export interface DocumentBindingValidationSummary {
   readonly resolved: number;
   readonly unresolved: number;
   readonly errors: number;
+  readonly classified: number;
+  readonly codeBacked: number;
 }
 
 export interface DocumentBindingValidationReport {
@@ -69,6 +78,7 @@ export interface DocumentBindingValidationReport {
   readonly semEntities: number;
   readonly summary: DocumentBindingValidationSummary;
   readonly issues: readonly DocumentBindingIssue[];
+  readonly strict: boolean;
 }
 
 export interface DocumentBindingValidationServiceOptions {
@@ -108,7 +118,7 @@ export class DocumentBindingValidationService {
     );
     validateEntityPaths(repositoryRoot, entities);
     const index = indexDocuments(docsRoot);
-    const result = validateBindings(index.definitions, entities);
+    const result = validateBindings(index.documents, index.definitions, entities, request.strict === true);
     const after = this.revisionReader.read(repositoryRoot);
     if (!sameRepositoryRevision(revision, after)) {
       throw new RepositoryStateError(
@@ -124,6 +134,7 @@ export class DocumentBindingValidationService {
       revision,
       engine: { name: 'sem', version: engineVersion, command: 'entities', args },
       documentSchemaVersion: DOCUMENT_INDEX_SCHEMA,
+      strict: request.strict === true,
       documentFiles: index.files,
       semEntities: entities.length,
       summary: {
@@ -133,6 +144,8 @@ export class DocumentBindingValidationService {
         resolved: result.resolved,
         unresolved: result.bound - result.resolved,
         errors: result.issues.length,
+        classified: result.classified,
+        codeBacked: result.codeBacked,
       },
       issues: result.issues,
     };
@@ -152,22 +165,29 @@ export function renderDocumentBindingValidationText(
     `Unbound document checkpoints: ${report.summary.unbound}`,
     `Resolved bindings: ${report.summary.resolved}`,
     `Unresolved bindings: ${report.summary.unresolved}`,
+    `Classified documents: ${report.summary.classified}`,
+    `Code-backed documents: ${report.summary.codeBacked}`,
+    `Strict mode: ${report.strict ? 'yes' : 'no'}`,
     `Errors: ${report.summary.errors}`,
   ];
   for (const issue of report.issues) {
     lines.push(
-      `  [${issue.code}] ${issue.documentPath} [[${issue.symbol}]] -> ${issue.entityId}: ${issue.message}`
+      `  [${issue.code}] ${issue.documentPath}${issue.symbol === undefined ? '' : ` [[${issue.symbol}]]`}${issue.entityId === undefined ? '' : ` -> ${issue.entityId}`}: ${issue.message}`
     );
   }
   return `${lines.join('\n')}\n`;
 }
 
 function validateBindings(
+  documents: readonly DocumentRecord[],
   definitions: readonly DocumentDefinition[],
-  entities: readonly SemEntity[]
+  entities: readonly SemEntity[],
+  strict: boolean,
 ): {
   readonly bound: number;
   readonly resolved: number;
+  readonly classified: number;
+  readonly codeBacked: number;
   readonly issues: readonly DocumentBindingIssue[];
 } {
   const entitiesById = new Map<string, SemEntity[]>();
@@ -180,6 +200,40 @@ function validateBindings(
   const issues: DocumentBindingIssue[] = [];
   let bound = 0;
   let resolved = 0;
+  let classified = 0;
+  let codeBacked = 0;
+  const definitionsByDocument = new Map<string, DocumentDefinition[]>();
+  for (const definition of definitions) {
+    const current = definitionsByDocument.get(definition.documentPath) ?? [];
+    current.push(definition);
+    definitionsByDocument.set(definition.documentPath, current);
+  }
+  for (const document of documents) {
+    const documentDefinitions = definitionsByDocument.get(document.documentPath) ?? [];
+    if (document.documentKind !== undefined) classified += 1;
+    if (document.documentKind === 'code') {
+      codeBacked += 1;
+      if (documentDefinitions.length === 0 && strict) {
+        issues.push(documentIssue(document, 'missing-code-checkpoint', 'code-backed documents must define exactly one H1 [[Checkpoint]]'));
+      }
+      if (strict) {
+        for (const definition of documentDefinitions) {
+          if (definition.entity === undefined) {
+            issues.push(definitionIssue(definition, 'missing-code-binding', 'code-backed documents must declare all semEntity* fields'));
+          }
+        }
+      }
+    } else if (document.documentKind !== undefined) {
+      for (const definition of documentDefinitions) {
+        if (definition.entity !== undefined) {
+          issues.push(definitionIssue(definition, 'non-code-binding', `document kind ${document.documentKind} must not declare semEntity* fields`));
+        }
+      }
+    }
+    if (strict && document.documentKind === undefined) {
+      issues.push(documentIssue(document, 'missing-document-kind', 'strict validation requires semDocumentKind'));
+    }
+  }
   for (const definition of definitions) {
     if (definition.entity === undefined) continue;
     bound += 1;
@@ -206,7 +260,35 @@ function validateBindings(
     }
     resolved += 1;
   }
-  return { bound, resolved, issues };
+  return { bound, resolved, classified, codeBacked, issues };
+}
+
+function documentIssue(
+  document: DocumentRecord,
+  code: DocumentBindingIssueCode,
+  message: string,
+): DocumentBindingIssue {
+  return {
+    severity: 'error',
+    code,
+    documentPath: document.documentPath,
+    message,
+  };
+}
+
+function definitionIssue(
+  definition: DocumentDefinition,
+  code: DocumentBindingIssueCode,
+  message: string,
+): DocumentBindingIssue {
+  return {
+    severity: 'error',
+    code,
+    symbol: definition.symbol,
+    documentPath: definition.documentPath,
+    ...(definition.entity === undefined ? {} : { entityId: definition.entity.id }),
+    message,
+  };
 }
 
 function issue(

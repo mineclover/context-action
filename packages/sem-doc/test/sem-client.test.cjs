@@ -71,3 +71,16 @@ test('enforces one aggregate output budget across composed sem calls', () => {
   assert.throws(() => sem.runJson('entities', ['--json'], { budget }), SemExecutionError);
   assert.ok(budget.usedOutputBytes > budget.maxOutputBytes);
 });
+
+test('propagates nested commit usage into the aggregate execution budget', () => {
+  const sem = client();
+  const aggregate = createSemExecutionBudget({ timeoutMs: 30_000, maxOutputBytes: 1024 * 1024 });
+  const commit = createSemExecutionBudget({
+    timeoutMs: 30_000,
+    maxOutputBytes: 1024 * 1024,
+    parent: aggregate,
+  });
+  sem.version({ budget: commit });
+  assert.ok(commit.usedOutputBytes > 0);
+  assert.equal(aggregate.usedOutputBytes, commit.usedOutputBytes);
+});
