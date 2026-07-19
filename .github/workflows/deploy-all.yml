@@ -122,7 +122,9 @@ jobs:
         
       - name: Build packages (if artifacts not available)
         if: steps.download-artifacts.outcome == 'failure'
-        run: pnpm build
+        run: |
+          pnpm build:live-code-editor
+          pnpm build
 
       # Build documentation
       - name: Generate API documentation
