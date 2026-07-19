@@ -86,6 +86,26 @@ GitHub Actions 워크플로우가 다음과 같이 설정되어 있는지 확인
 2. GitHub Actions 탭에서 워크플로우 실행 확인
 3. `pnpm install` 단계에서 403 에러가 해결되었는지 확인
 
+### 7. NPM_TOKEN 갱신 정책
+
+`NPM_TOKEN`은 GitHub에서 자동으로 갱신되는 refresh token이 아닙니다. npm에서 새 토큰을
+발급한 뒤 GitHub Actions secret을 교체하는 수동 rotation이 필요합니다.
+
+```bash
+# 토큰 값은 셸 히스토리나 로그에 남기지 말고 안전한 입력으로 전달합니다.
+gh secret set NPM_TOKEN --repo mineclover/context-action
+```
+
+위 명령은 입력을 숨긴 상태로 새 값을 받습니다. 갱신 후에는 다음 workflow 중 하나를
+수동 실행해 인증과 publish 전 검증을 확인합니다.
+
+- `Publish Packages` — `publish_auth=token`
+- `Publish Mutative Packages`
+
+새 npm 패키지에 Trusted Publisher가 등록되어 있다면 장기 토큰 대신 `Publish Packages`의
+기본 `publish_auth=oidc` 경로를 사용하십시오. OIDC를 사용하면 토큰 rotation이 필요하지 않지만,
+각 npm 패키지에 repository와 `.github/workflows/publish-packages.yml`을 정확히 등록해야 합니다.
+
 ---
 
 ## 📞 지원

@@ -27,7 +27,7 @@
     "sem-doc:verify": "pnpm --filter @context-action/sem-doc typecheck && pnpm --filter @context-action/sem-doc verify:boundary && pnpm --filter @context-action/sem-doc lint && pnpm --filter @context-action/sem-doc verify:bindings && pnpm --filter @context-action/sem-doc verify:poc && pnpm --filter @context-action/sem-doc test && pnpm --filter @context-action/sem-doc verify:pack",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
-    "verify:all": "pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm arch:type-check && pnpm sem-doc:verify && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",
+    "verify:all": "pnpm build:live-code-editor && pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm arch:type-check && pnpm sem-doc:verify && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",
     "dev": "cd example && pnpm dev",
     "example:build": "cd example && pnpm build",
     "example:build:fast": "cd example && pnpm build:fast",

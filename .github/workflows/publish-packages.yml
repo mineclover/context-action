@@ -43,6 +43,12 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
 
+      - name: Verify npm token auth
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -62,6 +68,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build private live-code-editor dependency
+        run: pnpm build:live-code-editor
 
       - name: Build packages
         run: pnpm build
