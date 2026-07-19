@@ -11,7 +11,7 @@ TypeDoc 대체재가 아닙니다.
 두 Foundation 패키지를 함께 설치하므로, 깨끗한 환경에서도 기본 `sem` 실행 파일을 제공합니다.
 
 ```bash
-npm install --save-dev @context-action/sem-doc@^0.1.1
+npm install --save-dev @context-action/sem-doc@^0.1.2
 npx sem-doc version
 ```
 
@@ -158,4 +158,3 @@ npx sem-doc context-scope-history HEAD~10 HEAD Dashboard \
 
 릴리즈 시 repository workflow는 package identity, workspace build, export/tarball, type/test/docs gate를
 확인한 뒤 `.github/workflows/publish-packages.yml`을 통해 npm에 배포합니다.
-

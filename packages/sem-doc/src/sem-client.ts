@@ -215,14 +215,15 @@ export class SemClient {
  */
 function defaultSemBinary(): string {
   const extension = process.platform === 'win32' ? '.cmd' : '';
-  const candidate = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    `sem${extension}`,
-  );
-  return existsSync(candidate) ? candidate : 'sem';
+  let directory = __dirname;
+  while (true) {
+    const candidate = path.join(directory, 'node_modules', '.bin', `sem${extension}`);
+    if (existsSync(candidate)) return candidate;
+    const parent = path.dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+  return 'sem';
 }
 
 function nonEmptyOption(value: string, name: string): string {

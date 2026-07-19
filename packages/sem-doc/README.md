@@ -133,7 +133,7 @@ subprocess cwd to the Git repository root. Set `SEM_BIN` only when using a diffe
 For a consumer repository, install the published package and invoke its CLI directly:
 
 ```bash
-npm install --save-dev @context-action/sem-doc@^0.1.1
+npm install --save-dev @context-action/sem-doc@^0.1.2
 npx sem-doc version
 npx sem-doc work-context SemClient --file src/sem-client.ts --docs-root spec --json
 ```

@@ -12,7 +12,7 @@ runtime wrapper and the two Foundation packages, so a clean install provides the
 executable as well:
 
 ```bash
-npm install --save-dev @context-action/sem-doc@^0.1.1
+npm install --save-dev @context-action/sem-doc@^0.1.2
 npx sem-doc version
 ```
 
@@ -165,4 +165,3 @@ npx sem-doc context-scope-history HEAD~10 HEAD Dashboard \
 For release verification, the repository workflow additionally checks package identities, builds all
 workspace packages, verifies exports and tarballs, runs type/tests/docs gates, and publishes through
 `.github/workflows/publish-packages.yml`.
-

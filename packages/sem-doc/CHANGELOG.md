@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Resolve the bundled `sem` executable through ancestor `node_modules/.bin` directories so npm-hoisted
+  consumer installs work in addition to pnpm's package-local layout.
+
 ## 0.1.1
 
 - Include `@ataraxy-labs/sem@0.21.0` as a runtime dependency so a clean npm install

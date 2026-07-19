@@ -2,7 +2,7 @@
 title: sem-doc package specification
 type: product-specification
 status: active
-version: 0.1.1
+version: 0.1.2
 semDocumentKind: architecture
 ---
 
