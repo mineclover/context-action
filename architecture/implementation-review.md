@@ -107,7 +107,7 @@ preflight, path containment, output budget, atomic report, package artifact 검�
 | P1 | SEM 0.21.0에 provider 의미가 고정됨 | provider 업그레이드가 entity/impact semantics를 바꿀 수 있음 | version gate, parser 회귀 테스트, decision 기록 후에만 upgrade |
 | P1 | 내부 호출 분석을 제공하지 않음 | 함수 호출 횟수·순서·runtime flow는 알 수 없음 | LSP/언어 분석의 별도 provider로 남기고 Architecture Governance core에는 포함하지 않음 |
 | P1 | 심볼 registry는 authored declaration임 | 선언하지 않은 개념은 catalog에 자동 등장하지 않음 | 명시적 annotation, 정의 위치 수집, duplicate ID gate를 운영 규칙으로 고정 |
-| P2 | shared packages는 publish-ready지만 아직 registry에 배포하지 않음 | 외부 저장소가 실제로 고정할 semver/API 계약은 아직 없음 | ESM/CJS pack smoke test와 sem-doc wire/runtime fixture까지 보장 |
+| P2 | shared packages의 registry 배포와 소비자 smoke test를 release마다 확인해야 함 | workspace 검증만 통과해도 외부 설치 경로가 깨질 수 있음 | 공개 npm metadata/tarball 확인과 clean-consumer CLI smoke test를 release gate에 포함 |
 | P2 | package/impact policy가 core 목적과 섞일 위험이 있음 | architecture graph 도구로 오해될 수 있음 | policy를 보조 extension으로 문서·API에서 분리 |
 
 이 한계들은 현재 결함으로 숨기지 않는다. 특히 SEM entity가 있다고 해서 내부 호출 관계나 역할

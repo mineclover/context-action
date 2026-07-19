@@ -2,7 +2,7 @@
 title: sem-doc package specification
 type: product-specification
 status: active
-version: 0.1.0
+version: 0.1.1
 semDocumentKind: architecture
 ---
 
@@ -301,10 +301,10 @@ branch artifact. The filtered impact total describes the collected view, not dis
 rows. Markdown collection still skips `node_modules`, `.git`, `dist`, `.test-dist`, and `.reports`.
 The exact SEM flag is retained in request provenance so the policy is reproducible and reviewable.
 
-The `SEM_BIN` environment variable selects the sem executable. `sem-doc` has no runtime package
-dependency on sem; the executable remains an external engine boundary. The package pins
-`@ataraxy-labs/sem` as a development dependency so `pnpm install` obtains a reproducible default
-binary, while `SEM_BIN` can override it for another engine build.
+The `SEM_BIN` environment variable selects the sem executable. `sem-doc` includes the pinned
+`@ataraxy-labs/sem` wrapper as a runtime dependency so a published install obtains a reproducible
+default binary; the wrapper still executes sem as an external read-only process. `SEM_BIN` can
+override it for another engine build.
 `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` are required runtime dependencies:
 they own the canonical symbol identity, snapshot entry conversion, and Git revision semantics used
 by sem-doc.

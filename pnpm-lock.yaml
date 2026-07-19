@@ -500,6 +500,9 @@ importers:
 
   packages/sem-doc:
     dependencies:
+      '@ataraxy-labs/sem':
+        specifier: 0.21.0
+        version: 0.21.0
       '@context-action/sem-foundation-contracts':
         specifier: workspace:^
         version: link:../sem-foundation
@@ -507,9 +510,6 @@ importers:
         specifier: workspace:^
         version: link:../sem-foundation-repository
     devDependencies:
-      '@ataraxy-labs/sem':
-        specifier: 0.21.0
-        version: 0.21.0
       '@biomejs/biome':
         specifier: 2.5.3
         version: 2.5.3

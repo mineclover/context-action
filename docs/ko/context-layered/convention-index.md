@@ -15,9 +15,10 @@
 9. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
 10. [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
 11. [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
-12. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
-13. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
-14. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
+12. [sem-doc 사용 방법](/ko/context-layered/architecture/sem-doc-usage)
+13. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
+14. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+15. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
@@ -56,6 +57,8 @@
   - capability identity, `SymbolRef`, snapshot 증거, 검증 경계
 - [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
   - 작업 컨텍스트/문서 도구와 authored architecture 검증을 분리
+- [sem-doc 사용 방법](/ko/context-layered/architecture/sem-doc-usage)
+  - 공개 설치, ContextScope, 문서 binding, 히스토리, CI 실행 recipe
 - [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
   - 완전한 심볼 snapshot 위의 screen/transaction grouping 계약
 

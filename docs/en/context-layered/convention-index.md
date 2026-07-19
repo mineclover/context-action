@@ -15,9 +15,10 @@ This document is the central entry point for the implementation-playbook style c
 9. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
 10. [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
 11. [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
-12. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
-13. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
-14. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
+12. [sem-doc Usage](/en/context-layered/architecture/sem-doc-usage)
+13. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
+14. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+15. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
 
 The short path above covers:
 - folder structure
@@ -55,6 +56,8 @@ The short path above covers:
   - capability identity, `SymbolRef`, snapshot evidence, and verification boundaries
 - [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
   - separate work-context/document tooling from authored architecture verification
+- [sem-doc Usage](/en/context-layered/architecture/sem-doc-usage)
+  - published installation, ContextScope, document binding, history, and CI recipes
 - [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
   - screen/transaction grouping contract over the complete symbol snapshot
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Include `@ataraxy-labs/sem@0.21.0` as a runtime dependency so a clean npm install
+  provides the default `sem` executable required by work-context and context-scope commands.
+
 ## Unreleased
 
 - Moved sem-doc into `context-action/packages/sem-doc` as a private workspace package for the PoC.

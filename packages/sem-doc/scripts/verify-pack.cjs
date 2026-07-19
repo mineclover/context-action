@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
 const { execFileSync } = require('node:child_process');
+const { readFileSync } = require('node:fs');
+
+const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+if (packageJson.dependencies?.['@ataraxy-labs/sem'] === undefined) {
+  throw new Error(
+    'sem-doc must declare @ataraxy-labs/sem as a runtime dependency so published CLI installs include sem'
+  );
+}
 
 const output = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   cwd: process.cwd(),

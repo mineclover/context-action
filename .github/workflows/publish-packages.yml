@@ -126,6 +126,12 @@ jobs:
           mkdir -p reports
           pnpm exec lerna publish from-package --yes --summary-file reports/npm-publish-summary.json
 
+      - name: Verify published sem-doc consumer install
+        if: success()
+        env:
+          NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: pnpm verify:published-consumer
+
       - name: Upload npm publish summary
         if: always()
         uses: actions/upload-artifact@v6

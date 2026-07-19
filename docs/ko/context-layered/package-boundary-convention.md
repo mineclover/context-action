@@ -49,8 +49,8 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
 
 `@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. source
-경로와 CLI binary는 유지하며, publish는 별도의 release decision으로 남긴다. 이 패키지는 운영용 Symbol
-Context SSOT이며 임시 staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
+경로와 CLI binary는 유지하며, 공개 npm release는 repository publish workflow가 관리한다. 이 패키지는 운영용
+Symbol Context SSOT이며 임시 staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
 transaction grouping에는 `sem-doc-context-scope.v2`를 유일한 operational projection으로 사용한다.
 Architecture Governance의 기존 `context-action/context-scope@1.0`은 architecture review용 snapshot-bound
 artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취급하지 않는다.

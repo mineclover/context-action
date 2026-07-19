@@ -123,14 +123,22 @@ promoting it to a canonical graph or lint violation.
 
 ## Install and run
 
-`sem-doc` requires Node.js 24. The package pins the `@ataraxy-labs/sem` development
-wrapper to `0.21.0`; the workspace install obtains the matching platform binary. `sem-doc` also
-requires `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` at runtime for canonical symbol
-and Git revision contracts. It resolves the package-local binary by default, even when work-context
-changes the subprocess cwd to the Git repository root, and invokes it as an external read-only
-process. Set `SEM_BIN` only when using a different binary. The package is included in the repository's
-Lerna publish flow; publish `@context-action/sem-foundation-contracts` and `@context-action/sem-foundation-repository` before
-publishing sem-doc when those foundation packages are not already available on the registry.
+`sem-doc` requires Node.js 24. The published package includes
+`@ataraxy-labs/sem@0.21.0` as a runtime dependency, so a clean npm install also obtains the
+matching platform binary. It also installs `@context-action/sem-foundation-contracts` and
+`@context-action/sem-foundation-repository` for canonical symbol and Git revision contracts.
+The CLI resolves the package-local `sem` binary by default, even when analysis changes the
+subprocess cwd to the Git repository root. Set `SEM_BIN` only when using a different executable.
+
+For a consumer repository, install the published package and invoke its CLI directly:
+
+```bash
+npm install --save-dev @context-action/sem-doc@^0.1.1
+npx sem-doc version
+npx sem-doc work-context SemClient --file src/sem-client.ts --docs-root spec --json
+```
+
+For local workspace development:
 
 ```bash
 pnpm install
@@ -138,6 +146,10 @@ pnpm --filter @context-action/sem-doc build
 pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClient --file src/sem-client.ts --docs-root spec --json
 pnpm --filter @context-action/sem-doc verify:poc
 ```
+
+The package is included in the repository's Lerna publish flow. Publish the foundation packages
+before sem-doc when releasing a new foundation contract version; the current `0.1.1` release
+already resolves both foundation packages from npm.
 
 ## Release through GitHub Actions
 
