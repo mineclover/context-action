@@ -14,7 +14,7 @@ or document editor.
 
 | Package | Primary question | Main input | Main output | Consumer | Gate? |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/sem-doc` | What context and documents does an engineer need before changing this code? | target entity/path, TSDoc bindings, Git working-tree or staged state | `sem-doc-work-context.v4`, `sem-documents.v2`, `sem-doc-git-diff.v1`, binding and benchmark reports | implementer, reviewer, agent | advisory context; not an architecture gate |
+| `@context-action/sem-doc` | What context, documents, and operational scope does an engineer need before changing this code? | target entity/path, TSDoc bindings, Git working-tree or staged state | `sem-doc-work-context.v4`, canonical `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding and benchmark reports | implementer, reviewer, agent | advisory context; not an architecture gate |
 | `@context-action/architecture-governance` | Does the Context-Action-authored architecture contract have valid implementation and boundary evidence? | `architecture/registry.json`, policy sets, analysis projects, SEM evidence, optional revision/context manifest | verification report, complete symbol snapshot/history, snapshot diff, `ContextScope` | CI, maintainer, architecture reviewer | yes; selected findings fail the verification command |
 
 The distinction is about responsibility, not implementation size. `sem-doc` is the Symbol Context SSOT
@@ -29,7 +29,7 @@ architecture registry, evidence, policy, and snapshot contracts.
                    /                    \
       @context-action/sem-doc    @context-action/architecture-governance
           work context, docs,             registry, policy, snapshots,
-          Git diff, advisory               history, ContextScope, gate
+          scope, Git diff, advisory        history, ContextScope, gate
                    \                    /
                     \                  /
        @sem-foundation/contracts + @sem-foundation/repository
@@ -77,11 +77,20 @@ Use `sem-doc` when the immediate task is to prepare a change or explain a docume
 - list dependent files and affected tests as advisory evidence;
 - index exact TSDoc entity bindings and backlinks;
 - capture the Git working-tree or staged diff before editing.
+- project the work-context into the canonical operational `sem-doc-context-scope.v2` grouping for a screen, API, or transaction review.
+- materialize bounded commit snapshots/diffs, stream them as NDJSON, and intersect changed symbols from two branches.
 
 `usageFiles` is a deduplicated file-level signal from SEM dependents. It is not an exact reference
 index, call graph, runtime trace, or architecture approval.
 
-Treat `sem-doc-work-context.v4`, `sem-documents.v2`, and `sem-doc-git-diff.v1` as the canonical
+The pinned sem 0.21.0 scanner excludes `node_modules` by default. sem-doc keeps that default unless
+`--include-node-modules-surface` is explicitly supplied to `work-context`, `context-scope`, or
+`context-scope-history`. The option passes sem's broad `--no-default-excludes` flag so graph-referenced
+package files can be observed, then drops package-internal rows beyond one graph hop before work-context,
+history, or branch artifacts are serialized. The exact flag is retained in request provenance.
+Markdown indexing still skips `node_modules` and generated output directories.
+
+Treat `sem-doc-work-context.v4`, `sem-doc-context-scope.v2`, `sem-documents.v3`, and `sem-doc-git-diff.v1` as the canonical
 serialized artifacts for their respective contextual views. Do not recreate those views independently
 in a UI, agent, or documentation script without preserving the same report provenance and contract.
 
@@ -100,14 +109,16 @@ The registry is authored intent. SEM supplies structural evidence; it does not i
 prove the product meaning of a role comment.
 
 Architecture Governance is the architecture-contract SSOT, not the work-context SSOT. Its registry,
-policy, snapshot/history, and ContextScope artifacts must not be replaced by a sem-doc work-context
-report.
+policy, snapshot/history, and snapshot-backed `ContextScope` artifacts must not be replaced by a sem-doc
+work-context or operational scope report. The two scope views intentionally have different provenance:
+sem-doc is derived from one or more bounded work-context reports; Architecture Governance is bound to a complete revision
+snapshot and authored manifest.
 
 ## Independent workflow
 
 The normal workflow is sequential but independent:
 
-1. Run `sem-doc work-context` and `sem-doc diff` while preparing a change. Use the result to find the
+1. Run `sem-doc work-context`, `sem-doc context-scope`, and `sem-doc diff` while preparing a change. Use the result to find the
    relevant implementation, documents, tests, and changed files.
 2. Update the appropriate spec, registry entry, implementation, tests, and public documentation.
 3. Run `arch:check:registry` and the full Architecture Governance gate. Generate `snapshot`, `history`,

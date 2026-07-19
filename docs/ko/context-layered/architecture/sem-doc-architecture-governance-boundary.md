@@ -13,7 +13,7 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
 
 | 패키지 | 기본 질문 | 주요 입력 | 주요 출력 | 사용자 | gate 여부 |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/sem-doc` | 이 코드를 바꾸기 전에 어떤 컨텍스트와 문서를 알아야 하는가? | target entity/path, TSDoc binding, Git working-tree/staged 상태 | `sem-doc-work-context.v4`, `sem-documents.v2`, `sem-doc-git-diff.v1`, binding·benchmark report | 구현자, reviewer, agent | advisory context; architecture gate 아님 |
+| `@context-action/sem-doc` | 이 코드를 바꾸기 전에 어떤 컨텍스트·문서·운영 scope를 알아야 하는가? | target entity/path, TSDoc binding, Git working-tree/staged 상태 | `sem-doc-work-context.v4`, canonical `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding·benchmark report | 구현자, reviewer, agent | advisory context; architecture gate 아님 |
 | `@context-action/architecture-governance` | Context-Action-authored architecture 계약에 구현·경계 증거가 유효한가? | `architecture/registry.json`, policy set, analysis project, SEM 증거, 선택적 revision/context manifest | verification report, complete symbol snapshot/history, snapshot diff, `ContextScope` | CI, maintainer, architecture reviewer | 예; 선택한 finding이 threshold에 도달하면 검증 실패 |
 
 핵심 차이는 구현 규모가 아니라 책임입니다. `sem-doc`은 작업 컨텍스트와 문서 binding report의
@@ -28,7 +28,7 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
                         /                   \
          @context-action/sem-doc    @context-action/architecture-governance
             work context, docs,          registry, policy, snapshot,
-            Git diff, advisory            history, ContextScope, gate
+            scope, Git diff, advisory      history, ContextScope, gate
                         \                   /
                          \                 /
           @sem-foundation/contracts + @sem-foundation/repository
@@ -75,11 +75,21 @@ symbol identity와 range 직렬화기를 두 패키지가 각각 다시 소유�
 - dependent file과 affected test를 advisory evidence로 나열
 - 정확한 TSDoc entity binding과 backlink 색인
 - 편집 전 Git working-tree/staged diff 기록
+- 작업 컨텍스트를 화면·API·transaction review용 canonical operational `sem-doc-context-scope.v2` grouping으로 투영
+- bounded commit snapshot/diff를 materialize하고 NDJSON으로 stream하며 두 branch의 변경 symbol 교집합을 추출
 
 `usageFiles`는 SEM dependent에서 만든 중복 제거 파일 단위 신호입니다. 정확한 reference index,
 call graph, runtime trace, architecture 승인으로 해석하지 않습니다.
 
-`sem-doc-work-context.v4`, `sem-documents.v2`, `sem-doc-git-diff.v1`는 각 컨텍스트 view의 canonical
+고정된 sem 0.21.0 scanner는 기본 모드에서 `node_modules`를 제외합니다. sem-doc은
+`work-context`, `context-scope`, `context-scope-history`에
+`--include-node-modules-surface`를 명시한 경우에만 sem의 넓은
+`--no-default-excludes`를 전달해 그래프에서 참조된 package 파일을 관측합니다. 그 뒤 sem-doc
+collection 경계는 그래프에서 참조된 직접 표면만 허용하고 1 hop을 넘는 package 내부 row를 work-context·history·branch artifact
+직렬화 전에 제거합니다. 실제 전달된 flag는 request provenance에 남습니다. Markdown 색인은
+`node_modules`와 생성 output directory를 순회하지 않습니다.
+
+`sem-doc-work-context.v4`, `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`는 각 컨텍스트 view의 canonical
 직렬화 artifact입니다. UI·agent·문서 script가 같은 view를 별도로 재구성하지 말고, 동일 report
 provenance와 계약을 재사용해야 합니다.
 
@@ -98,13 +108,16 @@ Registry는 authored intent입니다. SEM은 구조 evidence를 제공할 뿐 ca
 제품 의미를 자동으로 만들지 않습니다.
 
 Architecture Governance는 architecture-contract SSOT이지 work-context SSOT가 아닙니다. 따라서
-registry·policy·snapshot/history·ContextScope를 sem-doc work-context report로 대체하지 않습니다.
+registry·policy·snapshot/history·snapshot-backed `ContextScope`를 sem-doc work-context 또는
+operational scope report로 대체하지 않습니다. 두 scope view는 provenance가 다릅니다. sem-doc은
+하나 이상의 bounded work-context report에서 파생하고, Architecture Governance는 complete revision snapshot과
+authored manifest에 묶습니다.
 
 ## 독립적인 workflow
 
 일반적인 순서는 이어지지만 두 도구는 독립적으로 실행합니다.
 
-1. 변경 준비 중 `sem-doc work-context`와 `sem-doc diff`를 실행해 구현·문서·테스트·변경 파일을 찾습니다.
+1. 변경 준비 중 `sem-doc work-context`, `sem-doc context-scope`, `sem-doc diff`를 실행해 구현·문서·테스트·변경 파일과 운영 scope를 찾습니다.
 2. 해당 spec, registry entry, 구현, 테스트, 공개 문서를 갱신합니다.
 3. `arch:check:registry`와 Architecture Governance 전체 gate를 실행합니다. revision 또는
    context 증거가 필요하면 `snapshot`, `history`, `snapshot-diff`, `context-scope` artifact를 만듭니다.

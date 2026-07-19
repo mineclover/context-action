@@ -37,8 +37,8 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
 | `@sem-foundation/contracts` | analysis contract foundation | symbol identity, snapshots, revisions, shared limits, wire contracts | SEM subprocesses, Git worktrees, architecture policy |
 | `@sem-foundation/repository` | repository runtime foundation | Git revision, first-parent history, detached worktree lifecycle | symbol semantics, architecture rules, UI behavior |
-| `@context-action/architecture-governance` | experimental convention control plane | Context-Action-authored capability registry, policy verification, snapshots, ContextScope projection, CLI | generic architecture inference, React runtime features, general-purpose documentation generation |
-| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, bindings, and Git diff integration | architecture convention/policy, complete architecture snapshots, new shared contracts; reuse `@sem-foundation/*` |
+| `@context-action/architecture-governance` | experimental convention control plane | Context-Action-authored capability registry, policy verification, complete snapshots/history, and its snapshot-backed ContextScope projection | generic architecture inference, React runtime features, general-purpose documentation generation |
+| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@sem-foundation/*` |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/test-driven-docs` | test documentation tool | test metadata extraction and generated test documentation | package runtime APIs |
@@ -52,6 +52,9 @@ architecture, but a reusable implementation belongs in a package before it is im
 `@context-action/sem-doc` has completed the workspace identity migration from the former `@tsdoc-edge/sem-doc`
 name. Its source path and CLI binary are unchanged, and publication remains a separate release decision. It is
 the operational Symbol Context SSOT, not a temporary staging package or an Architecture Governance adapter.
+For screen/API/transaction grouping used during implementation, `sem-doc-context-scope.v2` is the single
+operational projection. Architecture Governance's existing `context-action/context-scope@1.0` remains a
+separate snapshot-bound architecture-review artifact and is not a second sem-doc implementation target.
 
 ## 3. Dependency direction
 
@@ -199,6 +202,44 @@ Before handoff, update all affected layers:
 5. English/Korean public pages when the behavior is public;
 6. generated artifacts only after their source is correct.
 
+### Document-to-symbol binding convention
+
+When a Markdown or MDX document is intended to explain one implementation symbol, treat it as a
+code-backed SSOT document and require `semDocumentKind: code` plus the four sem-doc frontmatter fields:
+
+```yaml
+semDocumentKind: code
+semEntityId: src/auth.ts::function::authenticateUser
+semEntityName: authenticateUser
+semEntityType: function
+semEntityFile: src/auth.ts
+```
+
+The document must also contain exactly one canonical H1 checkpoint, for example `# [[Authentication
+Entry Point]]`. Concept, architecture, process, and tooling guides may remain document-only, but they
+are not a resolved symbol SSOT. `external-reference` documents may describe direct dependency surface
+evidence but must not claim ownership of a `node_modules` entity. An `unresolved` work-context result
+for a code-backed document is a documentation issue, not a successful fallback to a same-named symbol.
+
+Use strict validation for the repository's authoritative docs root:
+
+```bash
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+```
+
+Strict mode requires every document to declare `semDocumentKind`, requires exact bindings for `code`
+documents, and rejects bindings on non-code documents.
+
+For code-backed documentation changes, reviewers run both the declared-binding validator and a
+representative context query:
+
+```bash
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context <entity> --docs-root <docs-root> --json
+```
+
+The exact rules are owned by the [sem-doc document entity binding convention](../../../packages/sem-doc/spec/conventions/document-entity-binding.md).
+
 ## 6. Adding, merging, splitting, or deprecating packages
 
 ### Add
@@ -247,6 +288,7 @@ stop adding new cross-package consumers, and add a verification gate that preven
 - [ ] No lower-level package imports a higher-level adapter, example, or generator.
 - [ ] Tests live with the contract they prove and include a boundary regression where needed.
 - [ ] Registry, policy, schema, and decision evidence are updated for durable boundaries.
+- [ ] Code-backed SSOT documents declare exact sem entity frontmatter and resolve in a representative work-context.
 - [ ] English/Korean docs and discovery links are aligned for public behavior.
 - [ ] Generated files were regenerated from source, not hand-edited.
 - [ ] The proportional package and repository gates were run and recorded.

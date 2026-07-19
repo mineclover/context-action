@@ -196,7 +196,7 @@ The current CLI consumes explicit manifest edges; SEM dependency projection is a
 
 ## 7. Use sem-doc for document context (separate package)
 
-`@context-action/sem-doc` is a separate private workspace package for combining SEM relationships with
+`@context-action/sem-doc` is a separate package for combining SEM relationships with
 Git and TSDoc bindings. It is not an Architecture Governance dependency, verification report, or registry
 implementation:
 it resolves the workspace-installed sem binary by default, including when analysis changes the
@@ -218,7 +218,7 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
 
 # Index and validate exact document-to-entity bindings.
 pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --strict --json
 ```
 
 Use `--depth 1` for direct relationships and `--depth 2` for a bounded transitive view. The

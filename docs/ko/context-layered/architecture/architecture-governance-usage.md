@@ -199,8 +199,8 @@ CLI는 명시적 manifest edge를 소비하며, SEM dependency projection은
 
 ## 7. 문서 컨텍스트에는 별도 패키지 sem-doc 사용
 
-`@context-action/sem-doc`는 SEM 관계, Git, TSDoc binding을 결합하는 별도 private workspace
-package입니다. Architecture Governance의 dependency, verification report, registry 구현이 아닙니다.
+`@context-action/sem-doc`는 SEM 관계, Git, TSDoc binding을 결합하는 별도 패키지입니다.
+Architecture Governance의 dependency, verification report, registry 구현이 아닙니다.
 분석 중 subprocess cwd가 repository root로 바뀌어도 workspace에 설치된 sem 바이너리를 기본으로
 찾으므로 `SEM_BIN`은 다른 실행 파일을 테스트할 때만 설정합니다.
 
@@ -220,7 +220,7 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
 
 # 정확한 문서-entity binding 색인과 검증
 pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --strict --json
 ```
 
 직접 관계만 필요하면 `--depth 1`, 제한된 전이 관계가 필요하면 `--depth 2`를 사용합니다.

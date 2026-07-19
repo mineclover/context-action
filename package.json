@@ -24,7 +24,7 @@
     "arch:history": "pnpm arch:build && node packages/architecture-governance/dist/cli.js history --root . --registry architecture/registry.json --format json",
     "arch:intersect": "pnpm arch:build && node packages/architecture-governance/dist/cli.js intersect --root .",
     "arch:snapshot-diff": "pnpm arch:build && node packages/architecture-governance/dist/cli.js snapshot-diff --root .",
-    "sem-doc:verify": "pnpm --filter @context-action/sem-doc typecheck && pnpm --filter @context-action/sem-doc verify:boundary && pnpm --filter @context-action/sem-doc lint && pnpm --filter @context-action/sem-doc verify:poc && pnpm --filter @context-action/sem-doc test && pnpm --filter @context-action/sem-doc verify:pack",
+    "sem-doc:verify": "pnpm --filter @context-action/sem-doc typecheck && pnpm --filter @context-action/sem-doc verify:boundary && pnpm --filter @context-action/sem-doc lint && pnpm --filter @context-action/sem-doc verify:bindings && pnpm --filter @context-action/sem-doc verify:poc && pnpm --filter @context-action/sem-doc test && pnpm --filter @context-action/sem-doc verify:pack",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
     "verify:all": "pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm arch:type-check && pnpm sem-doc:verify && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",

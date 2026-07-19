@@ -36,8 +36,8 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
 | `@sem-foundation/contracts` | 분석 contract foundation | symbol identity, snapshot, revision, shared limit, wire contract | SEM subprocess, Git worktree, architecture policy |
 | `@sem-foundation/repository` | repository runtime foundation | Git revision, first-parent history, detached worktree | symbol semantics, architecture rule, UI behavior |
-| `@context-action/architecture-governance` | 실험적 convention control plane | Context-Action authored capability registry, policy 검증, snapshot, ContextScope, CLI | 범용 architecture 추론, React runtime, 일반 문서 생성 |
-| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, binding, Git diff 연동 | architecture convention/policy, 완전한 architecture snapshot, 새 shared contract; `@sem-foundation/*` 재사용 |
+| `@context-action/architecture-governance` | 실험적 convention control plane | Context-Action authored capability registry, policy 검증, complete snapshot/history, snapshot-backed ContextScope projection | 범용 architecture 추론, React runtime, 일반 문서 생성 |
+| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@sem-foundation/*` 재사용 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/test-driven-docs` | test documentation tool | test metadata와 generated test docs | runtime API |
@@ -50,7 +50,10 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 
 `@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. source
 경로와 CLI binary는 유지하며, publish는 별도의 release decision으로 남긴다. 이 패키지는 운영용 Symbol
-Context SSOT이며 임시 staging package나 Architecture Governance adapter가 아니다.
+Context SSOT이며 임시 staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
+transaction grouping에는 `sem-doc-context-scope.v2`를 유일한 operational projection으로 사용한다.
+Architecture Governance의 기존 `context-action/context-scope@1.0`은 architecture review용 snapshot-bound
+artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취급하지 않는다.
 
 ## 3. 의존성 방향
 
@@ -180,6 +183,43 @@ public surface 변경이면 package export/tarball check도 추가한다.
 handoff 전에 package manifest/export, README/authoritative guide, test/fixture, policy 또는 registry/decision,
 영·한 public page, generated artifact를 순서대로 갱신한다.
 
+### 문서-심볼 binding 컨벤션
+
+Markdown 또는 MDX 문서가 하나의 구현 심볼을 설명한다면 code-backed SSOT 문서로 취급하고
+`semDocumentKind: code`와 다음 sem-doc frontmatter 네 필드를 요구한다.
+
+```yaml
+semDocumentKind: code
+semEntityId: src/auth.ts::function::authenticateUser
+semEntityName: authenticateUser
+semEntityType: function
+semEntityFile: src/auth.ts
+```
+
+문서에는 `# [[Authentication Entry Point]]`와 같은 canonical H1 checkpoint도 정확히 하나 있어야
+한다. Concept·architecture·process·tooling guide는 document-only로 남을 수 있지만 resolved symbol
+SSOT가 아니다. `external-reference` 문서는 직접 dependency surface를 설명할 수 있지만
+`node_modules` 심볼의 소유권을 주장하지 않는다. code-backed 문서의 `unresolved` work-context 결과는
+동일 이름 fallback이 성공한 것이 아니라 문서 계약 이슈로 기록한다.
+
+저장소의 authoritative docs root에는 strict 검증을 사용한다.
+
+```bash
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+```
+
+Strict 모드는 모든 문서의 `semDocumentKind` 선언, `code` 문서의 정확한 binding, non-code 문서의
+binding 금지를 강제한다.
+
+code-backed 문서를 변경할 때는 선언된 binding validator와 대표 context query를 모두 실행한다.
+
+```bash
+pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context <entity> --docs-root <docs-root> --json
+```
+
+정확한 규칙은 [sem-doc document entity binding 컨벤션](../../../packages/sem-doc/spec/conventions/document-entity-binding.md)이 소유한다.
+
 ## 6. 패키지 추가·병합·분리·폐기
 
 - **추가:** ID, owner, stability, 주 책임, public/private 결정, dependency graph, export, focused test, README,
@@ -210,6 +250,7 @@ handoff 전에 package manifest/export, README/authoritative guide, test/fixture
 - [ ] lower-level package가 adapter, example, generator를 import하지 않는다.
 - [ ] test와 fixture가 contract 가까이에 있고 boundary regression이 필요한 경우 포함한다.
 - [ ] registry, policy, schema, decision evidence가 갱신되었다.
+- [ ] code-backed SSOT 문서가 정확한 sem entity frontmatter를 선언하고 대표 work-context에서 resolve된다.
 - [ ] public behavior라면 영·한 문서와 discovery link가 정합하다.
 - [ ] generated file은 source에서 재생성했다.
 - [ ] 비례하는 package/repository gate 결과를 기록했다.
