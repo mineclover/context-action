@@ -144,9 +144,11 @@ pnpm --filter @context-action/sem-doc verify:poc
 Package publication is managed by `.github/workflows/publish-packages.yml`. It can be started from
 the GitHub Actions UI with **Publish Packages**, with `gh workflow run publish-packages.yml --ref main`,
 or by pushing a `v*` tag. The workflow runs the package export, tarball, type, test, documentation,
-and sem-doc contract gates before invoking `lerna publish from-package`. The repository needs an
-`NPM_TOKEN` Actions secret with publish permission. This workflow publishes npm packages; it does not
-create a GitHub Release entry.
+and sem-doc contract gates before invoking `lerna publish from-package`. Manual runs select `oidc`
+(npm Trusted Publishing, the default) or `token` (the `NPM_TOKEN` Actions secret) through the
+`publish_auth` input. Tag runs use OIDC. Each package must have a matching npm Trusted Publisher
+configuration before its first OIDC publish. This workflow publishes npm packages; it does not create a
+GitHub Release entry.
 
 To use a different sem executable for the direct CLI commands below, run from the `context-action`
 root and set `SEM_BIN` explicitly:

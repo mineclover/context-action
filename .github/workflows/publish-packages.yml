@@ -2,12 +2,22 @@ name: Publish Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this publish'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
   push:
     tags:
       - 'v*'
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -15,9 +25,6 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -35,9 +42,6 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
-
-      - name: Verify npm auth
-        run: npm whoami
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -87,4 +91,6 @@ jobs:
         run: pnpm test:canonical-example
 
       - name: Publish packages
+        env:
+          NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: pnpm exec lerna publish from-package --yes
