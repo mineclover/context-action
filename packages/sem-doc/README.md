@@ -139,6 +139,15 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClie
 pnpm --filter @context-action/sem-doc verify:poc
 ```
 
+## Release through GitHub Actions
+
+Package publication is managed by `.github/workflows/publish-packages.yml`. It can be started from
+the GitHub Actions UI with **Publish Packages**, with `gh workflow run publish-packages.yml --ref main`,
+or by pushing a `v*` tag. The workflow runs the package export, tarball, type, test, documentation,
+and sem-doc contract gates before invoking `lerna publish from-package`. The repository needs an
+`NPM_TOKEN` Actions secret with publish permission. This workflow publishes npm packages; it does not
+create a GitHub Release entry.
+
 To use a different sem executable for the direct CLI commands below, run from the `context-action`
 root and set `SEM_BIN` explicitly:
 
