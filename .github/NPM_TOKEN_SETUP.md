@@ -1,5 +1,9 @@
 # NPM Token Setup Guide for GitHub Actions
 
+이 저장소의 npm 배포는 `Publish Packages` 워크플로의 OIDC(Trusted Publishing)를
+기본 경로로 사용합니다. `NPM_TOKEN`은 OIDC를 사용할 수 없을 때의 명시적 fallback과
+`Publish Mutative Packages` 실행에만 사용합니다.
+
 ## 🔐 NPM Token 생성 및 GitHub Secrets 등록 가이드
 
 ### 1. NPM Access Token 생성
@@ -10,13 +14,17 @@
 
 2. **Access Token 생성**
    - 우측 상단 프로필 클릭 → **Access Tokens** 선택
-   - **Generate New Token** → **Classic Token** 선택
+   - **Generate New Token** → **Granular Access Token** 선택
    - Token 설정:
      - **Name**: `github-actions-context-action` (식별 가능한 이름)
-     - **Type**: **Automation** 선택 (CI/CD용)
-     - **Scope**: 
-       - ✅ **Read and publish** (패키지 설치 및 발행)
-       - ✅ **Read** (최소한 이것은 선택)
+     - **Packages and scopes**: 필요한 `@context-action/*`, `@sem-foundation/*` 패키지만 선택
+     - **Permission**: 배포 fallback이므로 **Read and write**
+     - **Bypass two-factor authentication**: 자동 publish에 필요한 경우에만 선택
+     - **Expiration**: 짧은 만료 기간을 선택하고 만료 전에 수동 rotation
+
+   Legacy/Classic token은 현재 CI 배포용으로 사용하지 않습니다. npm은 2025년 11월부터
+   Legacy access token을 제거했으므로, 새 토큰은 반드시 Granular Access Token으로
+   생성해야 합니다.
 
 3. **Token 복사**
    - 생성된 토큰을 안전한 곳에 복사 (한 번만 표시됨)
@@ -39,27 +47,24 @@
    - **Secret**: 앞서 복사한 NPM 토큰 값 붙여넣기
    - **Add secret** 버튼으로 저장
 
-### 3. 설정 확인
+### 3. 워크플로 인증 방식 확인
 
-GitHub Actions 워크플로우가 다음과 같이 설정되어 있는지 확인:
+`publish-packages.yml`은 `publish_auth=oidc`를 기본값으로 사용합니다. OIDC 경로에서는
+장기 토큰을 주입하지 않고, GitHub Actions의 `id-token: write` 권한으로 npm Trusted
+Publishing을 수행합니다. 각 npm 패키지에 저장소와
+`.github/workflows/publish-packages.yml`을 Trusted Publisher로 등록해야 합니다.
 
-```yaml
-- name: Create .npmrc file with token
-  run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
-- name: Install dependencies
-  run: pnpm install --frozen-lockfile
-  env:
-    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
+`publish_auth=token`을 선택한 수동 실행과 `publish-mutative.yml`은
+`NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}`을 사용합니다. `setup-node`가 registry 설정을
+생성하므로 저장소에 실제 토큰이 포함된 `.npmrc`를 추가할 필요가 없습니다.
 
 ### 4. 문제 해결
 
 #### 403 Forbidden 에러가 계속 발생하는 경우:
 
 1. **Token 권한 확인**
-   - NPM 토큰에 `read` 권한이 있는지 확인
-   - Automation 타입으로 생성되었는지 확인
+   - Granular Token에 대상 패키지의 `Read and write` 권한이 있는지 확인
+   - 자동 publish에서 2FA 프롬프트가 발생하면 `Bypass two-factor authentication` 설정 확인
 
 2. **GitHub Secrets 확인**
    - Secret 이름이 정확히 `NPM_TOKEN`인지 확인
@@ -71,13 +76,19 @@ GitHub Actions 워크플로우가 다음과 같이 설정되어 있는지 확인
 4. **pnpm 버전 확인**
    - pnpm 10을 사용하고 있는지 확인
 
+5. **401 Unauthorized**
+   - `Publish Packages`의 `publish_auth=token` 또는 `Publish Mutative Packages`에서
+     발생하면 secret 값이 만료·폐기되었거나 package scope 권한이 부족한 것입니다.
+   - OIDC 실행에서 `npm whoami`를 별도로 호출하지 마십시오. npm Trusted Publishing은
+     publish 시점의 OIDC 교환으로 인증되므로 `npm whoami`로 OIDC 상태를 검증할 수 없습니다.
+
 ### 5. 보안 참고사항
 
 - ❌ **절대 하지 말 것**: 토큰을 코드에 직접 포함
 - ❌ **절대 하지 말 것**: 토큰을 공개 저장소에 커밋
 - ✅ **권장사항**: 토큰은 반드시 GitHub Secrets 사용
-- ✅ **권장사항**: 최소 권한 원칙 적용 (read 권한만)
-- ✅ **권장사항**: 정기적으로 토큰 갱신
+- ✅ **권장사항**: 최소 권한 원칙 적용 (필요한 패키지 scope만 read/write)
+- ✅ **권장사항**: 만료 전에 Granular Token을 재발급하고 GitHub secret을 교체
 
 ### 6. 테스트
 
@@ -88,8 +99,10 @@ GitHub Actions 워크플로우가 다음과 같이 설정되어 있는지 확인
 
 ### 7. NPM_TOKEN 갱신 정책
 
-`NPM_TOKEN`은 GitHub에서 자동으로 갱신되는 refresh token이 아닙니다. npm에서 새 토큰을
-발급한 뒤 GitHub Actions secret을 교체하는 수동 rotation이 필요합니다.
+`NPM_TOKEN`은 GitHub에서 자동으로 갱신되는 refresh token이 아닙니다. npm에서 새
+Granular Token을 발급한 뒤 GitHub Actions secret을 교체하는 수동 rotation이 필요합니다.
+따라서 코드에 자동 갱신 로직을 추가하는 대신, OIDC를 기본 경로로 두고 token fallback에만
+만료·권한 검증을 적용합니다.
 
 ```bash
 # 토큰 값은 셸 히스토리나 로그에 남기지 말고 안전한 입력으로 전달합니다.
