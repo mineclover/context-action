@@ -22,6 +22,9 @@ async function main() {
       path.join(consumerRoot, 'package.json'),
       JSON.stringify({ name: 'sem-doc-consumer-smoke', private: true }, null, 2),
     );
+    // npm 11 can require an explicit project-level allow-list for dependency postinstall scripts.
+    // The sem wrapper uses its postinstall only to place the pinned read-only binary in the package.
+    writeFileSync(path.join(consumerRoot, '.npmrc'), 'allow-scripts=@ataraxy-labs/sem\n');
 
     execFileSync(
       'npm',
