@@ -6,7 +6,8 @@ const { dirname } = require('node:path');
 const { existsSync, mkdirSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 
-const summaryFile = process.argv[2] ?? path.join('reports', 'npm-publish-summary.json');
+const summaryArgument = process.argv.slice(2).find((argument) => argument !== '--');
+const summaryFile = summaryArgument ?? path.join('reports', 'npm-publish-summary.json');
 const maxAttempts = 3;
 const retryDelayMs = 15_000;
 
