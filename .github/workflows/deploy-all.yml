@@ -1,18 +1,8 @@
 name: Deploy Documentation and Example
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'docs/**'
-      - 'example/**'
-      - 'demos/**'
-      - 'packages/*/src/**'
-      - 'scripts/verify-web-coding-build.mjs'
-      - 'scripts/verify-web-coding-*.mjs'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/deploy-all.yml'
-      - 'package.json'
+  # CI is the source trigger. Deploy only after the corresponding CI run
+  # succeeds so a commit does not produce both push and workflow_run deploys.
   workflow_dispatch:
   workflow_run:
     workflows: ["CI"]
@@ -42,12 +32,21 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
 
       - name: Check for relevant changes
         id: check
         run: |
-          # 마지막 배포 이후 변경된 파일들 확인
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          # workflow_run checks the exact commit that CI validated. Manual
+          # dispatches retain the previous HEAD~1 behavior.
+          if [ "$GITHUB_EVENT_NAME" = "workflow_run" ]; then
+            BASE_SHA="${{ github.event.workflow_run.head_sha }}^"
+            HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            BASE_SHA="HEAD~1"
+            HEAD_SHA="HEAD"
+          fi
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
           
           # 관련 파일들이 변경되었는지 확인
           RELEVANT_CHANGES=false
@@ -80,6 +79,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
