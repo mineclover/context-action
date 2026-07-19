@@ -28,6 +28,7 @@
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
     "verify:published-consumer": "node scripts/verify-published-consumer.cjs",
+    "publish:packages": "node scripts/publish-packages.cjs",
     "verify:all": "pnpm build:live-code-editor && pnpm build && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm lint && pnpm convention:check && pnpm type-check && pnpm arch:type-check && pnpm sem-doc:verify && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",
     "dev": "cd example && pnpm dev",
     "example:build": "cd example && pnpm build",

@@ -6,12 +6,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   publish-mutative:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5

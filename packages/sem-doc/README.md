@@ -148,7 +148,7 @@ pnpm --filter @context-action/sem-doc verify:poc
 ```
 
 The package is included in the repository's Lerna publish flow. Publish the foundation packages
-before sem-doc when releasing a new foundation contract version; the current `0.1.1` release
+before sem-doc when releasing a new foundation contract version; the current `0.1.2` release
 already resolves both foundation packages from npm.
 
 ## Release through GitHub Actions
@@ -159,7 +159,9 @@ or by pushing a `v*` tag. The workflow runs the package export, tarball, type, t
 and sem-doc contract gates before invoking `lerna publish from-package`. Manual runs select `oidc`
 (npm Trusted Publishing, the default) or `token` (the `NPM_TOKEN` Actions secret) through the
 `publish_auth` input. Tag runs use OIDC. Each package must have a matching npm Trusted Publisher
-configuration before its first OIDC publish. This workflow publishes npm packages; it does not create a
+configuration before its first OIDC publish. Publishing is serialized across the package workflows,
+retries transient Lerna failures, stores an npm summary artifact, and runs a clean-consumer CLI smoke
+test after npm metadata becomes visible. This workflow publishes npm packages; it does not create a
 GitHub Release entry.
 
 To use a different sem executable for the direct CLI commands below, run from the `context-action`

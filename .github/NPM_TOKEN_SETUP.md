@@ -58,6 +58,18 @@ Publishing을 수행합니다. 각 npm 패키지에 저장소와
 `NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}`을 사용합니다. `setup-node`가 registry 설정을
 생성하므로 저장소에 실제 토큰이 포함된 `.npmrc`를 추가할 필요가 없습니다.
 
+### 3.1 배포 안정화 동작
+
+- `Publish Packages`와 `Publish Mutative Packages`는 같은 `npm-publish` concurrency group을 사용해
+  같은 시점에 두 publish가 실행되지 않습니다.
+- tag 기반 publish는 tag가 `origin/main`에서 도달 가능한 commit인지 먼저 확인합니다.
+- Lerna publish는 일시적인 registry/network 오류에 한해 최대 3회 재시도합니다. 일부 버전이 먼저
+  등록된 뒤 재시도해도 `from-package`가 등록 완료 버전을 건너뛰므로 재실행할 수 있습니다.
+- publish 후에는 summary artifact를 저장하고 `@context-action/sem-doc`을 임시 consumer에 설치해
+  `sem-doc version`까지 확인합니다. npm metadata 전파 지연은 polling으로 흡수합니다.
+- post-publish 검증만 실패한 경우 같은 workflow를 재실행할 수 있습니다. 이미 publish된 버전은
+  덮어쓰지 않고 현재 registry 버전을 검증합니다.
+
 ### 4. 문제 해결
 
 #### 403 Forbidden 에러가 계속 발생하는 경우:
