@@ -4,6 +4,12 @@ on:
   # CI is the source trigger. Deploy only after the corresponding CI run
   # succeeds so a commit does not produce both push and workflow_run deploys.
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Deploy even when the latest commit has no detected documentation changes'
+        required: false
+        default: false
+        type: boolean
   workflow_run:
     workflows: ["CI"]
     branches: [main]
@@ -16,7 +22,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -58,6 +64,11 @@ jobs:
           # 문서나 예제 관련 파일이 변경되었는지 확인
           if echo "$CHANGED_FILES" | grep -E "(\.md$|\.tsx?$|\.jsx?$|\.css$|\.html$)"; then
             RELEVANT_CHANGES=true
+          fi
+
+          if [ "${{ inputs.force }}" = "true" ]; then
+            RELEVANT_CHANGES=true
+            echo "✅ Manual force deployment requested"
           fi
           
           echo "Changed files:"
