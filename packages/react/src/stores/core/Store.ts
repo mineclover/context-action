@@ -339,8 +339,6 @@ export class Store<T = unknown> implements IStore<T> {
               return;
             }
             break;
-            
-          case 'block':
           default:
             // 기존 차단 로직
             ErrorHandlers.store(
@@ -385,7 +383,7 @@ export class Store<T = unknown> implements IStore<T> {
 
               // Remove keys not in new value
               for (const key of draftKeys) {
-                if (!Object.prototype.hasOwnProperty.call(safeValue, key)) {
+                if (Object.getOwnPropertyDescriptor(safeValue, key) === undefined) {
                   delete (draft as Record<string, unknown>)[key];
                 }
               }
@@ -426,7 +424,7 @@ export class Store<T = unknown> implements IStore<T> {
    * @implements store-immutability
    * 보안 강화: Mutative draft를 통한 안전한 상태 수정
    */
-  update(updater: (current: T) => T | void): void {
+  update(updater: (current: T) => T | undefined): void {
     // 동시성 보호: update 진행 중이면 큐에 추가
     if (this.isUpdating) {
       this.updateQueue.push(() => this.update(updater));
@@ -444,7 +442,7 @@ export class Store<T = unknown> implements IStore<T> {
         // Mutative produceWithPatches로 불변성 보장된 업데이트 + 패치 캡처
         const [nextState, capturedPatches] = produceWithPatches(
           this._value,
-          (draft): T | void => {
+          (draft): T | undefined => {
             // updater 함수 실행 - draft를 수정하거나 새 값을 반환할 수 있음
             const result = updater(draft as T);
             // 반환값이 있으면 그것을 사용 (새 객체로 대체)
@@ -453,9 +451,10 @@ export class Store<T = unknown> implements IStore<T> {
               return result;
             }
             // 명시적 void 반환 - draft 수정이 적용됨
+            return undefined;
           }
         );
-        updatedValue = nextState;
+        updatedValue = nextState as T;
         patches = capturedPatches;
       } catch (mutativeError) {
         if (process.env.NODE_ENV === 'development') {
@@ -468,15 +467,16 @@ export class Store<T = unknown> implements IStore<T> {
           // 폴백에서도 Mutative의 동작을 시뮬레이션
           const [nextState, capturedPatches] = produceWithPatches(
             safeCurrentValue,
-            (draft): T | void => {
+            (draft): T | undefined => {
               const result = updater(draft as T);
               if (result !== undefined) {
                 return result;
               }
               // 명시적 void 반환 - draft 수정이 적용됨
+              return undefined;
             }
           );
-          updatedValue = nextState;
+          updatedValue = nextState as T;
           patches = capturedPatches;
         } catch (secondMutativeError) {
           // Mutative가 완전히 실패한 경우에만 일반 객체 사용

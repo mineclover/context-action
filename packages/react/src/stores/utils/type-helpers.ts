@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous store type mapping boundary.
+
 /**
  * @fileoverview Enhanced Type Helpers
  *

@@ -11,11 +11,10 @@
 import { z } from 'zod';
 import {
   ActionRegister,
-  defineAction,
-  createActionSchema,
   ActionValidationError,
   type ActionPayloadMap,
 } from '../../src';
+import { defineAction, createActionSchema } from '@context-action/tool-protocol';
 
 describe('Execute with Schema Validation', () => {
   interface UserActions extends ActionPayloadMap {

@@ -29,6 +29,10 @@
       "@context-action/react/*": ["../src/*"],
       "@context-action/core": ["../../core/src/index"],
       "@context-action/core/*": ["../../core/src/*"],
+      "@context-action/tool-protocol": ["../../tool-protocol/src/index"],
+      "@context-action/tool-protocol/*": ["../../tool-protocol/src/*"],
+      "@context-action/tool-durable-operations": ["../../tool-durable-operations/src/index"],
+      "@context-action/tool-durable-operations/*": ["../../tool-durable-operations/src/*"],
       "@context-action/mutative": ["../../mutative/src/index"],
       "@context-action/mutative/*": ["../../mutative/src/*"]
     }

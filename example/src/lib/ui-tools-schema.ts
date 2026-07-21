@@ -5,7 +5,10 @@
  * These tools can be called by AI models to interact with the UI
  */
 
-import { createActionSchema, defineAction } from '@context-action/react';
+import {
+  createActionSchema,
+  defineAction,
+} from '@context-action/tool-protocol';
 import { z } from 'zod';
 
 /**

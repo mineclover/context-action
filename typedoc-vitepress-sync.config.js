@@ -37,6 +37,8 @@ export default {
   // Package mapping for proper organization
   packageMapping: {
     'core': 'core',
+    'tool-protocol': 'tool-protocol',
+    'tool-durable-operations': 'tool-durable-operations',
     'react': 'react'
   },
   

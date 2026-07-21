@@ -13,7 +13,8 @@ import type {
   JSONSchema,
   OpenAIToolDefinition,
   ToolDefinition,
-} from './json-schema';
+} from './json-schema.js';
+import type { ToolExecutionProvenance } from './execution-provenance.js';
 
 /** Canonical error codes emitted by the managed tool-call boundary. */
 export const TOOL_CALL_ERROR_CODES = {
@@ -21,12 +22,21 @@ export const TOOL_CALL_ERROR_CODES = {
   NOT_ALLOWED: 'TOOL_NOT_ALLOWED',
   VALIDATION_FAILED: 'TOOL_VALIDATION_FAILED',
   OUTPUT_VALIDATION_FAILED: 'TOOL_OUTPUT_VALIDATION_FAILED',
+  OUTPUT_LIMIT_EXCEEDED: 'TOOL_OUTPUT_LIMIT_EXCEEDED',
   RESULT_VALIDATION_FAILED: 'TOOL_RESULT_VALIDATION_FAILED',
   POLICY_FAILED: 'TOOL_POLICY_FAILED',
   POLICY_DENIED: 'TOOL_POLICY_DENIED',
   APPROVAL_REQUIRED: 'TOOL_APPROVAL_REQUIRED',
   CANCELLED: 'TOOL_CANCELLED',
+  TIMEOUT: 'TOOL_TIMEOUT',
+  INVALID_OPTIONS: 'TOOL_INVALID_OPTIONS',
+  IDEMPOTENCY_CONFLICT: 'TOOL_IDEMPOTENCY_CONFLICT',
+  IDEMPOTENCY_PENDING: 'TOOL_IDEMPOTENCY_PENDING',
+  IDEMPOTENCY_UNKNOWN: 'TOOL_IDEMPOTENCY_UNKNOWN',
+  IDEMPOTENCY_STORE_FAILED: 'TOOL_IDEMPOTENCY_STORE_FAILED',
   EXECUTION_ABORTED: 'TOOL_EXECUTION_ABORTED',
+  /** The handler may have applied a partial external side effect. */
+  EXECUTION_UNKNOWN: 'TOOL_EXECUTION_UNKNOWN',
   EXECUTION_FAILED: 'TOOL_EXECUTION_FAILED',
   REGISTRY_NOT_READY: 'TOOL_REGISTRY_NOT_READY',
 } as const;
@@ -280,6 +290,12 @@ export interface ToolListResult<
   readonly nextCursor?: string;
 }
 
+/** Bounds a paged discovery walk without preventing explicit unbounded use. */
+export interface ListAllToolsOptions {
+  /** Maximum number of pages, including the first page. Defaults to 1000. */
+  readonly maxPages?: number;
+}
+
 /** JSON-RPC-shaped request for MCP tools/call. */
 export interface ToolCallRequest {
   readonly id?: ToolCallId;
@@ -462,7 +478,7 @@ function isToolJsonContent(value: unknown): value is ToolJsonContent {
   return (
     isRecord(value) &&
     value.type === 'json' &&
-    Object.prototype.hasOwnProperty.call(value, 'json')
+    Object.getOwnPropertyDescriptor(value, 'json') !== undefined
   );
 }
 
@@ -484,12 +500,22 @@ export function isToolCallResult<TResult = unknown>(
   if (value.error !== undefined && !isToolCallError(value.error)) {
     return false;
   }
+  if (value.error !== undefined && value.isError !== true) return false;
+  if (value.isError === true && value.error === undefined) return false;
   return value.content.every(isToolContent);
 }
 
 /** Transport-independent options accepted by a managed tool call. */
 export interface ToolCallOptions {
   readonly signal?: AbortSignal;
+  /** Wall-clock timeout covering policy evaluation and tool execution. */
+  readonly timeout?: number;
+  /** Optional output budget enforced at the canonical result boundary. */
+  readonly maxOutputBytes?: number;
+  /** Optional logical owner override for execution provenance. */
+  readonly executionOwnerId?: string;
+  /** Stable key for one logical mutation across provider retries. */
+  readonly idempotencyKey?: string;
   readonly context?: ToolCallContext;
 }
 
@@ -502,6 +528,7 @@ export type ToolCallEvent =
       readonly request: ToolCallRequest;
       readonly context?: ToolCallContext;
       readonly timestamp: number;
+      readonly provenance: ToolExecutionProvenance;
     }
   | {
       readonly type: 'completed' | 'failed';
@@ -513,6 +540,7 @@ export type ToolCallEvent =
       readonly timestamp: number;
       readonly durationMs: number;
       readonly result: ToolCallResult;
+      readonly provenance: ToolExecutionProvenance;
     };
 
 export type ToolCallObserver = (event: ToolCallEvent) => void;
@@ -568,16 +596,26 @@ export function toToolListRequest(
  * Collect every page from a canonical tools/list manager.
  *
  * Provider adapters may use a paged registry without reimplementing cursor
- * handling. A repeated cursor is rejected so a malformed remote manager cannot
- * make an adapter loop forever.
+ * handling. A repeated cursor and a configurable page limit are rejected so a
+ * malformed remote manager cannot make an adapter loop forever.
  */
 export function listAllTools<
   TDefinition extends ToolDefinition = ToolDefinition,
 >(
-  manager: Pick<ToolManagementInterface<TDefinition>, 'listTools'>
+  manager: Pick<ToolManagementInterface<TDefinition>, 'listTools'>,
+  options: ListAllToolsOptions = {}
 ): TDefinition[] {
+  const maxPages = options.maxPages ?? 1000;
+  if (
+    maxPages !== Infinity &&
+    (!Number.isInteger(maxPages) || maxPages < 1)
+  ) {
+    throw new RangeError('listAllTools maxPages must be a positive integer or Infinity.');
+  }
+
   const tools: TDefinition[] = [];
   const seenCursors = new Set<string>();
+  let pageCount = 1;
   let page: unknown = manager.listTools(toToolListRequest());
   if (!isToolListResult<TDefinition>(page)) {
     throw new Error('Invalid tools/list result.');
@@ -585,6 +623,9 @@ export function listAllTools<
 
   tools.push(...page.tools);
   while (page.nextCursor !== undefined) {
+    if (pageCount >= maxPages) {
+      throw new Error('Invalid tools/list pagination: page limit exceeded.');
+    }
     if (seenCursors.has(page.nextCursor)) {
       throw new Error('Invalid tools/list pagination: cursor did not advance.');
     }
@@ -594,6 +635,7 @@ export function listAllTools<
       throw new Error('Invalid tools/list result.');
     }
     tools.push(...page.tools);
+    pageCount += 1;
   }
 
   return tools;
@@ -680,6 +722,9 @@ export function createToolCallError(
     readonly toolCallId?: ToolCallId;
   }
 ): ToolCallResult<never> {
+  if (typeof message !== 'string' || !message.trim()) {
+    throw new TypeError('createToolCallError requires a non-empty message.');
+  }
   return {
     ...(options?.toolCallId === undefined ? {} : { toolCallId: options.toolCallId }),
     content: [{ type: 'text', text: message }],

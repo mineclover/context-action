@@ -38,6 +38,10 @@ export function useWorkspaceRuntime(): WorkspaceRuntime {
         getDirectoryHandle: () => repository.getDirectoryHandle(),
         setDirectoryHandle: (handle) => repository.setDirectoryHandle(handle),
         clearDirectoryHandle: () => repository.clearDirectoryHandle(),
+        getDirectoryScopeId: () => repository.getDirectoryScopeId(),
+        setDirectoryScopeId: (scopeId) =>
+          repository.setDirectoryScopeId(scopeId),
+        clearDirectoryScopeId: () => repository.clearDirectoryScopeId(),
       })
   );
 

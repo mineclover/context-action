@@ -1,4 +1,13 @@
-import type { ToolCallEvent, ToolCallMode } from '@context-action/react';
+import type {
+  ToolCallEvent,
+  ToolCallMode,
+  ToolExecutionProvenance,
+} from '@context-action/tool-protocol';
+import {
+  createToolObservabilityPolicy,
+  isToolObservationRetained,
+  serializeToolObservabilityValue,
+} from '@context-action/tool-protocol';
 
 export type ToolTraceMethod = 'tools/list' | 'tools/call' | 'agent.request';
 
@@ -17,13 +26,26 @@ export type ToolTraceEntry = {
   toolCount?: number;
   retryable?: boolean;
   summary?: string;
+  provenance?: ToolExecutionProvenance;
   argumentsText?: string;
   resultText?: string;
 };
 
+/** Export-safe projection; local UI diagnostics never cross copy/download sinks. */
+export type ToolTraceExportEntry = Omit<
+  ToolTraceEntry,
+  'argumentsText' | 'resultText'
+>;
+
 const MAX_TRACE_ENTRIES = 24;
-const MAX_TRACE_DETAIL_LENGTH = 2_400;
-const REDACTED_TRACE_KEYS = new Set(['source', 'search', 'replace']);
+const TRACE_OBSERVABILITY_POLICY = createToolObservabilityPolicy({
+  maxBytes: 2_400,
+  maxEntries: MAX_TRACE_ENTRIES,
+});
+const TRACE_EXPORT_POLICY = createToolObservabilityPolicy({
+  maxBytes: 8 * 1024,
+  maxEntries: MAX_TRACE_ENTRIES,
+});
 let sequence = 0;
 let entries: ToolTraceEntry[] = [];
 const listeners = new Set<() => void>();
@@ -46,7 +68,16 @@ function notify(): void {
 }
 
 function trimEntries(nextEntries: ToolTraceEntry[]): ToolTraceEntry[] {
-  return nextEntries.slice(0, MAX_TRACE_ENTRIES);
+  const now = Date.now();
+  return nextEntries
+    .filter((entry) =>
+      isToolObservationRetained(
+        entry.startedAt,
+        now,
+        TRACE_OBSERVABILITY_POLICY
+      )
+    )
+    .slice(0, TRACE_OBSERVABILITY_POLICY.maxEntries);
 }
 
 function nextTraceId(): string {
@@ -105,34 +136,26 @@ function resolveTraceId(event: ToolCallEvent): {
   };
 }
 
-function redactTraceValue(value: unknown, key?: string): unknown {
-  if (typeof value === 'string' && key && REDACTED_TRACE_KEYS.has(key)) {
-    return `[${key} omitted · ${value.length} chars]`;
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => redactTraceValue(item));
-  }
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value).map(([entryKey, entryValue]) => [
-        entryKey,
-        redactTraceValue(entryValue, entryKey),
-      ])
-    );
-  }
-  return value;
+function formatTraceJson(value: unknown): string {
+  return serializeToolObservabilityValue(value, TRACE_OBSERVABILITY_POLICY);
 }
 
-function formatTraceJson(value: unknown): string {
-  let text: string;
-  try {
-    text = JSON.stringify(redactTraceValue(value), null, 2) ?? String(value);
-  } catch {
-    text = '[unserializable value]';
-  }
-  return text.length > MAX_TRACE_DETAIL_LENGTH
-    ? `${text.slice(0, MAX_TRACE_DETAIL_LENGTH)}\n… truncated`
-    : text;
+export function projectToolTraceEntriesForExport(
+  traceEntries: readonly ToolTraceEntry[]
+): readonly ToolTraceExportEntry[] {
+  return traceEntries.map(
+    ({ argumentsText: _argumentsText, resultText: _resultText, ...entry }) =>
+      entry
+  );
+}
+
+export function serializeToolTraceEntriesForExport(
+  traceEntries: readonly ToolTraceEntry[]
+): string {
+  return serializeToolObservabilityValue(
+    projectToolTraceEntriesForExport(traceEntries),
+    TRACE_EXPORT_POLICY
+  );
 }
 
 function resultTraceValue(
@@ -262,6 +285,7 @@ export function recordToolCall(event: ToolCallEvent): void {
       source,
       status: 'running',
       startedAt: event.timestamp,
+      provenance: event.provenance,
       argumentsText: formatTraceJson(event.request.params.arguments ?? {}),
     };
     entries = trimEntries(
@@ -290,6 +314,7 @@ export function recordToolCall(event: ToolCallEvent): void {
         ? { retryable: event.result.error.retryable }
         : {}),
       summary: resultSummary(event),
+      provenance: event.provenance,
       argumentsText: formatTraceJson(event.request.params.arguments ?? {}),
       resultText: formatTraceJson(resultTraceValue(event)),
     };

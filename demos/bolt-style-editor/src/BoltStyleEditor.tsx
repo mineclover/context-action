@@ -77,6 +77,7 @@ import {
   type WorkspaceFile,
 } from './workspace';
 import type { WorkspaceFileSystemAdapter } from './workspace-filesystem';
+import { createWorkspaceSideEffectRunner } from './workspace-side-effects';
 
 function formatTraceId(id: string): string {
   return id.length > 18 ? `…${id.slice(-17)}` : id;
@@ -383,6 +384,7 @@ function EditorWorkbench({
   const {
     copyFeedback,
     copyJson,
+    copyExecutionTrace,
     copySelectedToolCall,
     copyToolsList,
     downloadToolList,
@@ -744,7 +746,7 @@ function EditorWorkbench({
               <ToolTracePanel
                 formatTraceId={formatTraceId}
                 onClear={clearToolTrace}
-                onCopy={() => void copyJson('Execution trace', traceEntries)}
+                onCopy={() => void copyExecutionTrace()}
                 onDownload={downloadExecutionTrace}
                 onTraceSessionFilterChange={(value) => {
                   setTraceSessionFilter(value);
@@ -1018,10 +1020,12 @@ function ToolRuntime() {
     previewRefreshToken,
     requestPreviewRefresh,
   } = useWorkspaceRuntime();
+  const sideEffectRunner = useMemo(() => createWorkspaceSideEffectRunner(), []);
   return (
     <ToolHandlers
       workspace={workspace}
       fileSystemAdapter={fileSystemAdapter}
+      sideEffectRunner={sideEffectRunner}
       onPreviewRefresh={requestPreviewRefresh}
     >
       <EditorWorkbench

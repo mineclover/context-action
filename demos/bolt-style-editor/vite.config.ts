@@ -46,6 +46,14 @@ export default defineConfig({
         __dirname,
         '../../packages/react/src/index.ts'
       ),
+      '@context-action/tool-protocol': path.resolve(
+        __dirname,
+        '../../packages/tool-protocol/src/index.ts'
+      ),
+      '@context-action/tool-durable-operations': path.resolve(
+        __dirname,
+        '../../packages/tool-durable-operations/src/index.ts'
+      ),
       '@context-action/mutative': path.resolve(
         __dirname,
         '../../packages/mutative/src/index.ts'

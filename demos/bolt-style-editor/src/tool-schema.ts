@@ -1,4 +1,7 @@
-import { createActionSchema, defineAction } from '@context-action/react';
+import {
+  createActionSchema,
+  defineAction,
+} from '@context-action/tool-protocol';
 import { z } from 'zod';
 import { MAX_TEXT_SOURCE_LENGTH } from './workspace';
 
@@ -308,7 +311,7 @@ export const boltStyleToolSchema = createActionSchema({
     {
       name: 'workspace.saveAll',
       description:
-        'Write every dirty workspace file and pending deletion to the user-opened local folder. Requires a writable folder workspace.',
+        'Write every dirty workspace file and pending deletion to the user-opened local folder. Requires a writable folder workspace. Each path is durably keyed; an ambiguous adapter or timeout outcome returns WORKSPACE_SIDE_EFFECT_UNKNOWN and requires folder reconciliation before retrying.',
       annotations: { destructiveHint: true, idempotentHint: true },
       parameters: z.object({ expectedRevision }),
       outputSchema: workspaceSaveAllOutputSchema,

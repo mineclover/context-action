@@ -230,11 +230,8 @@ export interface MouseEventsActions extends ActionPayloadMap {
 // ================================
 
 // Action Context 생성
-export const MouseEventsActionContext = createActionContext<MouseEventsActions>(
-  {
-    name: 'MouseEventsActions',
-  }
-);
+export const MouseEventsActionContext =
+  createActionContext<MouseEventsActions>('MouseEventsActions');
 
 // Store Context는 이미 MouseEventsStores로 생성됨
 

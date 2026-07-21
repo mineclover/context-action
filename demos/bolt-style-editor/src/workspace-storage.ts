@@ -20,6 +20,7 @@ type WorkspaceMetadataRecord = {
   rootName: string;
   activePath: string;
   directoryHandle?: FileSystemDirectoryHandleLike;
+  directoryScopeId?: string;
   deletedPaths?: string[];
   updatedAt: number;
   schemaVersion: number;
@@ -137,6 +138,7 @@ export class WebCodingWorkspaceRepository implements WorkspaceRepository {
       rootName: rootName || 'workspace',
       activePath,
       directoryHandle: previousMetadata?.directoryHandle,
+      directoryScopeId: previousMetadata?.directoryScopeId,
       deletedPaths: [...new Set(deletedPaths)],
       updatedAt: now,
       schemaVersion: DATABASE_VERSION,
@@ -264,12 +266,41 @@ export class WebCodingWorkspaceRepository implements WorkspaceRepository {
     });
   }
 
+  async getDirectoryScopeId(): Promise<string | undefined> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    return metadata?.directoryScopeId;
+  }
+
+  async setDirectoryScopeId(directoryScopeId: string): Promise<void> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    if (!metadata) return;
+    await this.database.workspaces.put({
+      ...metadata,
+      directoryScopeId,
+      updatedAt: Date.now(),
+    });
+  }
+
   async clearDirectoryHandle(): Promise<void> {
     const metadata = await this.database.workspaces.get(this.workspaceId);
     if (!metadata) return;
-    const { directoryHandle: _directoryHandle, ...withoutHandle } = metadata;
+    const {
+      directoryHandle: _directoryHandle,
+      directoryScopeId: _directoryScopeId,
+      ...withoutHandle
+    } = metadata;
     await this.database.workspaces.put({
       ...withoutHandle,
+      updatedAt: Date.now(),
+    });
+  }
+
+  async clearDirectoryScopeId(): Promise<void> {
+    const metadata = await this.database.workspaces.get(this.workspaceId);
+    if (!metadata) return;
+    const { directoryScopeId: _directoryScopeId, ...withoutScope } = metadata;
+    await this.database.workspaces.put({
+      ...withoutScope,
       updatedAt: Date.now(),
     });
   }

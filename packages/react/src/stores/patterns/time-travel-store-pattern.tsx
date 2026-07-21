@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous time-travel store boundary.
+
 /**
  * @fileoverview Time Travel Store Context Pattern
  *
@@ -306,7 +308,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   function useStore<K extends keyof T>(storeName: K): Store<T[K]> | TimeTravelStore<T[K]> {
     const context = useContext(StoreContext);
 
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStore must be used within ${contextName}.Provider. ` +
         `Wrap your component with <${contextName}.Provider>`
@@ -553,7 +555,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   function useStoreManager(): TimeTravelStoreManager<T> {
     const context = useContext(StoreContext);
 
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStoreManager must be used within ${contextName}.Provider`
       );

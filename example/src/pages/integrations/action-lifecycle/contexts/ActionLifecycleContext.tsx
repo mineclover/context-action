@@ -18,6 +18,6 @@ export interface TraceEntry extends HandlerOutput {
   elapsedMs: number;
 }
 
-export const LifecycleContext = createActionContext<LifecycleActions>({
-  name: 'ActionLifecycleWorkbench',
-});
+export const LifecycleContext = createActionContext<LifecycleActions>(
+  'ActionLifecycleWorkbench'
+);

@@ -75,7 +75,7 @@ export function unescapeSegment(segment: string): string {
  */
 export function pathToPointer(path: JsonPointerPath): string {
   if (path.length === 0) return '';
-  return '/' + path.map(escapeSegment).join('/');
+  return `/${path.map(escapeSegment).join('/')}`;
 }
 
 /**
@@ -115,7 +115,7 @@ export function isPointerPrefix(prefix: string, pointer: string): boolean {
   if (prefix === pointer) return true;
   if (prefix === '') return true; // Root is prefix of everything
   // prefix must be followed by '/' to be a valid prefix
-  return pointer.startsWith(prefix + '/');
+  return pointer.startsWith(`${prefix}/`);
 }
 
 /**

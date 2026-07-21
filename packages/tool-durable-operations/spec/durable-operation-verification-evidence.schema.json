@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/durable-operation-verification-evidence.v1.json",
+  "title": "Context-Action Durable Operation Verification Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "target",
+    "credentialPolicy",
+    "checks"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "context-action/durable-operation-verification@1"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "credentialPolicy": {
+      "const": "host-only; endpoint credentials and raw command output omitted"
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preflight", "redis", "integration", "postgres", "queue"],
+      "properties": {
+        "preflight": { "$ref": "#/$defs/check" },
+        "redis": { "$ref": "#/$defs/check" },
+        "integration": { "$ref": "#/$defs/check" },
+        "postgres": { "$ref": "#/$defs/check" },
+        "queue": { "$ref": "#/$defs/check" }
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "commitSha", "runId", "operator"],
+      "properties": {
+        "environment": { "type": "string", "minLength": 1 },
+        "commitSha": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "operator": { "type": "string", "minLength": 1 },
+        "startedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "available", "status"],
+      "properties": {
+        "outcome": {
+          "enum": ["success", "failure", "cancelled", "skipped", "unknown"]
+        },
+        "available": { "type": "boolean" },
+        "status": { "enum": ["ok", "unknown"] },
+        "result": { "$ref": "#/$defs/result" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["ok", "unknown"] },
+        "environment": { "type": "string" },
+        "redisProtocol": { "enum": ["redis:", "rediss:"] },
+        "redisHost": { "type": "string", "minLength": 1 },
+        "postgresVariable": { "enum": ["DATABASE_URL", "POSTGRES_URL"] },
+        "postgresProtocol": { "enum": ["postgres:", "postgresql:"] },
+        "postgresHost": { "type": "string", "minLength": 1 },
+        "redisVersion": { "type": "string", "minLength": 1 },
+        "postgresVersion": { "type": "string", "minLength": 1 },
+        "postgresIsolation": { "type": "string", "minLength": 1 },
+        "checks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "suites": { "$ref": "#/$defs/testSummary" },
+        "tests": { "$ref": "#/$defs/testSummary" }
+      }
+    },
+    "testSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failed", "skipped", "passed", "total"],
+      "properties": {
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -106,6 +106,11 @@ whether recovery is retryable or terminal. After more than one execution
 session exists, the trace header also exposes a session selector so one
 `agent.request` → `tools/list` → `tools/call` chain can be inspected in
 isolation; Copy, Download, and Clear continue to operate on the full trace.
+The trace uses the shared `@context-action/tool-protocol` observability policy
+for credential/source redaction, a 2,400-byte detail budget, and bounded retention.
+Copy/Download exports a separate 8 KiB metadata-only projection that strips the
+local argument/result diagnostic text; raw tool arguments are never persisted in
+the durable workspace store or trace export.
 
 The preview browser chrome provides a presentation-only `Full screen` mode;
 `Esc` returns to the editor layout without changing workspace state. `Export`
@@ -207,6 +212,16 @@ source navigation is paused while another tool chain is running.
 - `Open` uses the File System Access API when available and a directory-upload
   fallback otherwise.
 - `Save to folder` is the explicit operating-system filesystem boundary.
+- Each `workspace.saveAll` file write/delete is recorded through the shared
+  `@context-action/tool-durable-operations`'s `createDurableSideEffectRunner()`
+  contract in a dedicated IndexedDB store.
+  Repeating the same destination scope, workspace revision, and path replays the completed record;
+  a timeout or adapter error is reported as `WORKSPACE_SIDE_EFFECT_UNKNOWN`
+  and must be reconciled before another attempt. This protects partial saves
+  without claiming that the browser filesystem itself is exactly-once.
+- Browsers without IndexedDB fail closed with
+  `WORKSPACE_DURABLE_STATE_UNAVAILABLE` for folder saves instead of silently
+  bypassing the durable mutation boundary.
 - Destructive UI actions use an in-app keyboard-modal confirmation surface;
   folder replacement, reset, delete/revert, and destructive tool samples never
   depend on a native `window.confirm`.

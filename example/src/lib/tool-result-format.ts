@@ -1,4 +1,7 @@
-import { stringifyToolContent, type ToolContent } from '@context-action/react';
+import {
+  stringifyToolContent,
+  type ToolContent,
+} from '@context-action/tool-protocol';
 
 export type ToolResultPresentationLike = {
   readonly content?: readonly ToolContent[];

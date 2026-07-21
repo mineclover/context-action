@@ -53,83 +53,22 @@ await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
-## Canonical tool protocol boundary
+## Tool protocol boundary
 
-The core package also defines the framework-neutral contract for MCP and
-function-calling integrations:
+MCP, JSON Schema, provider conversion, action schemas, and approval queues are
+owned by [`@context-action/tool-protocol`](../tool-protocol/README.md). Core
+only owns action registration and execution. This keeps the runtime usable
+without a tool-calling or Zod dependency.
 
-```text
-tools/list → model tool call → tools/call → tool result
+Install the protocol package separately when an integration needs it:
+
+```bash
+npm install @context-action/tool-protocol zod
 ```
 
-Keep tool definitions in one registry, collect paged discovery with
-`listAllTools()`, and send model calls through the management interface. The
-provider adapter owns message formatting, retries, and cancellation; the
-registry owns request validation, policy, handler execution, and structured
-results.
-
-```typescript
-import {
-  isToolCallResult,
-  listAllTools,
-  type ToolManagementInterface,
-} from '@context-action/core';
-
-async function executeModelCall(
-  registry: ToolManagementInterface,
-  call: { id: string; name: string; arguments: Record<string, unknown> }
-) {
-  // 1. Export this catalog to the provider's tools/function format.
-  const definitions = listAllTools(registry);
-  console.log('available tools:', definitions.map(({ name }) => name));
-
-  // 2. Normalize the provider call at the canonical management boundary.
-  const result = await registry.executeModelToolCall(call, {
-    context: { source: 'model', mode: 'agent' },
-  });
-
-  // 3. Validate the result before adapting it back into provider messages.
-  if (!isToolCallResult(result)) {
-    throw new Error('The tool adapter returned an invalid canonical result.');
-  }
-  return result;
-}
-```
-
-Use `toToolListRequest()` and `toToolCallRequest()` when an adapter needs the
-JSON-RPC-shaped `tools/list` or `tools/call` form. Do not hand-build a second
-tool schema in a view or bypass the registry with a direct handler call. The
-full browser workspace recipe is documented in
-[`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
-
-### Shared approval queue
-
-Use the framework-neutral queue for any UI or host approval surface. It stores
-metadata-only snapshots and owns cancellation/settlement, while the registry
-continues to own tool execution:
-
-```typescript
-import {
-  createToolApprovalQueue,
-  type ToolApprovalRequestInput,
-} from '@context-action/core';
-
-const approvals = createToolApprovalQueue({
-  idPrefix: 'studio-approval',
-  safeArgumentNames: ['path'],
-});
-
-declare const input: ToolApprovalRequestInput;
-const pendingDecision = approvals.request(input);
-// Attach approvals.store to useSyncExternalStore or another host observer.
-const snapshot = approvals.store.getSnapshot()[0];
-if (snapshot) approvals.resolve(snapshot.id, 'allow');
-const decision = await pendingDecision;
-```
-
-The queue never persists raw arguments or calls a handler. Use `denyAll()` when
-an execution session or approval surface unmounts, and pass the provider
-`AbortSignal` so cancelled model calls resolve as `deny`.
+The React-facing registry remains in `@context-action/react`; protocol symbols
+such as `defineAction`, `listAllTools`, and `ToolManagementInterface` must be
+imported from `@context-action/tool-protocol`.
 
 ## 🌟 Vanilla JavaScript Support
 

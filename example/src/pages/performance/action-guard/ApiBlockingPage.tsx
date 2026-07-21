@@ -96,9 +96,8 @@ const ApiBlockingStores = createStoreContext('ApiBlockingStoreManager', {
   },
 });
 
-const ApiBlockingActionContext = createActionContext<ApiBlockingActions>({
-  name: 'ApiBlockingActions',
-});
+const ApiBlockingActionContext =
+  createActionContext<ApiBlockingActions>('ApiBlockingActions');
 
 // ================================
 // 🎯 Business Logic Hook

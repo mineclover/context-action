@@ -6,8 +6,8 @@
  * can therefore share the same ToolContext execution boundary.
  */
 
-import type { ActionSchemaMap } from '@context-action/core';
 import type { ToolRegistry } from '@context-action/react';
+import type { ActionSchemaMap } from '@context-action/tool-protocol';
 import type { ModelMessage } from 'ai';
 
 export interface ToolTextGenerationRequest<TSchema extends ActionSchemaMap> {

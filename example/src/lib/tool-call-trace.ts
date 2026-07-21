@@ -1,4 +1,13 @@
-import type { ToolCallEvent, ToolCallMode } from '@context-action/react';
+import type {
+  ToolCallEvent,
+  ToolCallMode,
+  ToolExecutionProvenance,
+} from '@context-action/tool-protocol';
+import {
+  createToolObservabilityPolicy,
+  isToolObservationRetained,
+  serializeToolObservabilityValue,
+} from '@context-action/tool-protocol';
 
 export type ToolTraceMethod = 'tools/list' | 'tools/call' | 'agent.request';
 
@@ -14,6 +23,7 @@ export type ToolTraceEntry = {
   durationMs?: number;
   startedAt: number;
   summary?: string;
+  provenance?: ToolExecutionProvenance;
 };
 
 export const ALL_TOOL_TRACE_SESSIONS = 'all';
@@ -210,6 +220,11 @@ function resultSummary(
 }
 
 export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
+  const observabilityPolicy = createToolObservabilityPolicy({
+    maxBytes: 2_400,
+    maxEntries,
+    maxStringLength: 140,
+  });
   let entries: ToolTraceEntry[] = [];
   const listeners = new Set<() => void>();
 
@@ -217,17 +232,41 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
     for (const listener of listeners) listener();
   };
 
+  const sanitizeTraceText = (value: string): string => {
+    const serialized = serializeToolObservabilityValue(
+      value,
+      observabilityPolicy
+    );
+    try {
+      const parsed: unknown = JSON.parse(serialized);
+      return typeof parsed === 'string'
+        ? parsed
+        : '[observability summary redacted]';
+    } catch {
+      return '[observability summary redacted]';
+    }
+  };
+
+  const trimEntries = (nextEntries: ToolTraceEntry[]): ToolTraceEntry[] => {
+    const now = Date.now();
+    return nextEntries
+      .filter((entry) =>
+        isToolObservationRetained(entry.startedAt, now, observabilityPolicy)
+      )
+      .slice(0, observabilityPolicy.maxEntries);
+  };
+
   const upsertEntry = (entry: ToolTraceEntry): void => {
     const existingIndex = entries.findIndex(
       (candidate) => candidate.id === entry.id
     );
-    entries = [
+    entries = trimEntries([
       ...(existingIndex >= 0
         ? entries.map((candidate, index) =>
             index === existingIndex ? entry : candidate
           )
         : [entry]),
-    ].slice(0, maxEntries);
+    ]);
     notify();
   };
 
@@ -249,7 +288,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
       durationMs: 0,
       summary: `${toolCount} tools available`,
     };
-    entries = [entry, ...entries].slice(0, maxEntries);
+    entries = trimEntries([entry, ...entries]);
     notify();
   };
 
@@ -270,6 +309,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
             ...(sessionId ? { sessionId } : {}),
             status: 'running',
             startedAt: event.timestamp,
+            provenance: event.provenance,
           }
         : {
             id,
@@ -282,16 +322,17 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
             status: event.type === 'failed' ? 'failed' : 'completed',
             startedAt: event.timestamp - event.durationMs,
             durationMs: event.durationMs,
-            summary: resultSummary(event),
+            summary: sanitizeTraceText(resultSummary(event)),
+            provenance: event.provenance,
           };
 
-    entries = (
+    entries = trimEntries(
       existingIndex >= 0
         ? entries.map((entry, index) =>
             index === existingIndex ? nextEntry : entry
           )
         : [nextEntry, ...entries]
-    ).slice(0, maxEntries);
+    );
     notify();
   };
 
@@ -336,7 +377,7 @@ export function createToolCallTraceStore(maxEntries = 16): ToolCallTraceStore {
       status,
       startedAt: handle.startedAt,
       durationMs: Math.max(0, Date.now() - handle.startedAt),
-      summary,
+      summary: sanitizeTraceText(summary),
     });
   };
 

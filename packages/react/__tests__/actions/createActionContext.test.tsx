@@ -14,6 +14,13 @@ interface UserActions extends ActionPayloadMap {
 }
 
 describe('createActionContext', () => {
+  it('requires an explicit non-empty context name', () => {
+    expect(() => (createActionContext as unknown as (config: unknown) => unknown)({
+      name: 'LegacyConfigOnly',
+    })).toThrow('requires a non-empty context name');
+    expect(() => createActionContext('')).toThrow('requires a non-empty context name');
+  });
+
   it('should create action context with all hooks', () => {
     const UserActionContext = createActionContext<UserActions>('UserActions');
 

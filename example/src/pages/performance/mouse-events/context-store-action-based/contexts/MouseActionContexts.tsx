@@ -59,9 +59,7 @@ export const initialMouseState: MouseStateData = {
   hasActivity: false,
 };
 
-const MouseActionContext = createActionContext<MouseActions>({
-  name: 'Mouse-actions',
-});
+const MouseActionContext = createActionContext<MouseActions>('Mouse-actions');
 
 const MouseStoreContext = createStoreContext('Mouse-stores', {
   mouseState: {

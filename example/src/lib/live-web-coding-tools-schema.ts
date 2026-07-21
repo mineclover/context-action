@@ -1,4 +1,7 @@
-import { createActionSchema, defineAction } from '@context-action/react';
+import {
+  createActionSchema,
+  defineAction,
+} from '@context-action/tool-protocol';
 import { z } from 'zod';
 import { livePreviewStatusSchema } from './live-tool-result-contract';
 

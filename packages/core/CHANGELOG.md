@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.0] (2026-07-21)
+
+### Breaking Changes
+
+- Moved action schemas, JSON Schema types, MCP/provider adapters, tool-call
+  contracts, and approval queues to `@context-action/tool-protocol`.
+- Removed the Core exports for those protocol and schema APIs. Install and
+  import them from the new package when needed.
+- `ActionRegister.actions` and `actionsWithResult` no longer accept the
+  options-first void-action form; pass `undefined` as the payload explicitly.
+
 ## [0.8.8](https://github.com/mineclover/context-action/compare/v0.8.7...v0.8.8) (2026-07-13)
 
 

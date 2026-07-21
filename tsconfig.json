@@ -26,6 +26,8 @@
   },
   "references": [
     { "path": "./packages/core" },
+    { "path": "./packages/tool-protocol" },
+    { "path": "./packages/tool-durable-operations" },
     { "path": "./packages/react" },
     { "path": "./packages/llms-generator" },
     { "path": "./packages/typedoc-vitepress-sync" },

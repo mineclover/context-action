@@ -89,6 +89,8 @@ jobs:
           const fs = require('node:fs');
 
           const expected = {
+            'packages/tool-protocol/package.json': '@context-action/tool-protocol',
+            'packages/tool-durable-operations/package.json': '@context-action/tool-durable-operations',
             'packages/sem-foundation/package.json': '@context-action/sem-foundation-contracts',
             'packages/sem-foundation-repository/package.json': '@context-action/sem-foundation-repository',
             'packages/sem-doc/package.json': '@context-action/sem-doc',
@@ -126,6 +128,9 @@ jobs:
       - name: Verify package tarballs
         run: pnpm verify:package-tarballs
 
+      - name: Verify repository conventions and documentation ownership
+        run: pnpm convention:check && pnpm docs:management
+
       - name: Type check packages
         run: pnpm type-check
 
@@ -136,7 +141,7 @@ jobs:
         run: pnpm test
 
       - name: Build docs
-        run: pnpm docs:build
+        run: pnpm docs:full
 
       - name: Build example
         run: pnpm --dir example build:fast
@@ -156,6 +161,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: pnpm verify:published-consumer
+
+      - name: Verify published tool package consumer install
+        if: success()
+        env:
+          NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: pnpm verify:published-tool-consumers
 
       - name: Upload npm publish summary
         if: always()

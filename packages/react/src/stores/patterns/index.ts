@@ -30,6 +30,6 @@ export {
 
 // === TYPE ALIASES ===
 // For consistency
-export { 
-  type StoreConfig as StoreSchema
+export type {
+  StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';

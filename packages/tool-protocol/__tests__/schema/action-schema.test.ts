@@ -22,6 +22,22 @@ import {
 
 describe('Action Schema', () => {
   describe('defineAction', () => {
+    it('rejects empty action names before publishing a tool definition', () => {
+      expect(() =>
+        defineAction(
+          { name: '   ', parameters: z.object({}) },
+          z
+        )
+      ).toThrow('non-empty action name');
+
+      expect(() =>
+        defineAction(
+          { name: 42 as never, parameters: z.object({}) },
+          z
+        )
+      ).toThrow('non-empty action name');
+    });
+
     it('should create a UnifiedAction with correct properties', () => {
       const action = defineAction(
         {
@@ -322,6 +338,17 @@ describe('Action Schema', () => {
 
       const result = schema.test.safeParse({ value: 'hello' });
       expect(result.success).toBe(true);
+    });
+
+    it('rejects schema keys that do not match the canonical action name', () => {
+      const action = defineAction(
+        { name: 'canonicalName', parameters: z.object({}) },
+        z
+      );
+
+      expect(() => createActionSchema({ alias: action })).toThrow(
+        'must match the action name'
+      );
     });
   });
 

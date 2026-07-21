@@ -105,7 +105,7 @@ const aiRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
 const toolContextSource = readSource(
   'packages/react/src/tools/ToolContext.tsx'
 );
-const actionSchemaSource = readSource('packages/core/src/action-schema.ts');
+const actionSchemaSource = readSource('packages/tool-protocol/src/action-schema.ts');
 const aiDemoSource = readSource(
   'example/src/pages/integrations/ai/ToolContextAIDemo.tsx'
 );

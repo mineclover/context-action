@@ -1,4 +1,16 @@
+import {
+  createWorkspaceSavePlan,
+  createWorkspaceSaveUnknownDetails,
+} from '@context-action/live-code-editor';
 import { createToolContext } from '@context-action/react';
+import {
+  createDurableOperationStore,
+  createIndexedDbDurableOperationBackend,
+} from '@context-action/tool-durable-operations';
+import {
+  TOOL_CALL_ERROR_CODES,
+  type ToolCallResult,
+} from '@context-action/tool-protocol';
 import type { ReactNode } from 'react';
 import {
   LiveEditorDocumentManager,
@@ -14,6 +26,34 @@ import { createLiveEditorResultContext } from '../../../lib/live-tool-result-con
 
 const filesystemWriteTools = new Set(['editor.saveFile', 'editor.saveAll']);
 
+function createLiveEditorOwnerId(): string {
+  const randomUUID = globalThis.crypto?.randomUUID;
+  return `live-editor:${
+    typeof randomUUID === 'function'
+      ? randomUUID.call(globalThis.crypto)
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }`;
+}
+
+// IndexedDB is intentionally created only in browser runtimes. This gives the
+// editor a cross-tab operation record without making the framework package or
+// the Node build depend on a browser persistence API.
+const liveEditorDurableOperationStore =
+  typeof globalThis !== 'undefined' && 'indexedDB' in globalThis
+    ? createDurableOperationStore(
+        createIndexedDbDurableOperationBackend<ToolCallResult>({
+          databaseName: 'context-action-live-editor',
+          storeName: 'tool-operations',
+        }),
+        {
+          defaultLeaseMs: 30_000,
+          retentionMs: 24 * 60 * 60 * 1000,
+          prunePageSize: 100,
+          maxPrunePages: 10,
+        }
+      )
+    : undefined;
+
 export const {
   Provider: LiveEditorToolProvider,
   useToolHandler: useLiveEditorToolHandler,
@@ -22,6 +62,9 @@ export const {
   schema: liveEditorToolsSchema,
   debug: true,
   onToolCall: recordLiveEditorToolCall,
+  durableOperationStore: liveEditorDurableOperationStore,
+  durableOperationOwnerId: createLiveEditorOwnerId(),
+  durableOperationLeaseMs: 30_000,
   toolPolicy: ({ context, definition, request, signal }) => {
     if (
       !filesystemWriteTools.has(request.params.name) ||
@@ -233,26 +276,50 @@ function LiveEditorToolHandlers({
       const dirtyFiles = initialSnapshot.files.filter(
         (file) => initialSnapshot.dirtyPaths.includes(file.path) && file.isText
       );
+      const plannedFiles = await createWorkspaceSavePlan(
+        dirtyFiles.map((file) => ({ path: file.path, source: file.source })),
+        'editor.saveAll'
+      );
       const savedPaths: string[] = [];
 
-      for (const file of dirtyFiles) {
-        if (controller.signal?.aborted) {
-          throw new Error('File save cancelled.');
+      try {
+        for (const file of dirtyFiles) {
+          if (controller.signal?.aborted) {
+            throw new Error('File save cancelled.');
+          }
+          await filesystemAdapter.saveFile(
+            file.path,
+            new Blob([file.source], { type: file.mimeType })
+          );
+          if (controller.signal?.aborted) {
+            throw new Error('File save cancelled.');
+          }
+          const latestFile = workspaceManager
+            .getSnapshot()
+            .files.find((candidate) => candidate.path === file.path);
+          if (latestFile?.source === file.source) {
+            workspaceManager.markSaved(file.path, file.source);
+            savedPaths.push(file.path);
+          }
         }
-        await filesystemAdapter.saveFile(
-          file.path,
-          new Blob([file.source], { type: file.mimeType })
-        );
-        if (controller.signal?.aborted) {
-          throw new Error('File save cancelled.');
-        }
-        const latestFile = workspaceManager
-          .getSnapshot()
-          .files.find((candidate) => candidate.path === file.path);
-        if (latestFile?.source === file.source) {
-          workspaceManager.markSaved(file.path, file.source);
-          savedPaths.push(file.path);
-        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const unknownError = new Error(message) as Error & {
+          code: string;
+          retryable: boolean;
+          details: ReturnType<typeof createWorkspaceSaveUnknownDetails>;
+        };
+        Object.assign(unknownError, {
+          code: TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN,
+          retryable: true,
+          details: createWorkspaceSaveUnknownDetails({
+            operation: 'editor.saveAll',
+            plannedFiles,
+            completedPaths: savedPaths,
+            reason: message,
+          }),
+        });
+        throw unknownError;
       }
 
       const snapshot = workspaceManager.getSnapshot();

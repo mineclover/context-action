@@ -3,12 +3,36 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [Unreleased]
+## [0.9.0] (2026-07-21)
 
 ### Bug Fixes
 
 * preserve every transition patch during batched Store and TimeTravelStore notifications
 * keep patch payloads stable when listeners trigger reentrant updates
+
+### Breaking Changes
+
+- Removed schema and tool-protocol re-exports. Import protocol symbols from
+  `@context-action/tool-protocol`; `createToolContext` remains in this package.
+- Durable operation record/store types are now provided by the dedicated
+  `@context-action/tool-durable-operations` package; applications that use
+  `durableOperationStore` should import its backend and runner APIs directly.
+- `createActionContext(config)` is removed. Pass the context name explicitly as
+  `createActionContext('Name', config)`.
+- The React peer range now explicitly supports React 18 and React 19.
+
+### Features
+
+- Add bounded in-memory idempotency sharing for `ToolContext` mutation retries;
+  timed-out calls do not invoke the same handler twice when the same stable key
+  is reused.
+- Add optional `durableOperationStore` injection, lease-aware claims, durable
+  result replay, and `getOperationStatus()` for cross-reload/process recovery.
+- Return retryable `TOOL_IDEMPOTENCY_STORE_FAILED` when a terminal durable
+  transition cannot be persisted, instead of exposing an unrecorded mutation
+  result as durable success.
+- Add `registry.reconcileOperation()` to record domain-confirmed outcomes for
+  `unknown` durable operations without invoking the tool handler.
 
 ## [0.8.8](https://github.com/mineclover/context-action/compare/v0.8.7...v0.8.8) (2026-07-13)
 

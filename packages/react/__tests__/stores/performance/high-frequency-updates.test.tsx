@@ -99,13 +99,13 @@ describe('High-frequency store updates', () => {
       }
     });
 
-    TestActionContext = createActionContext<MouseActions>({
-      name: 'HighFrequencyActions'
-    });
+    TestActionContext = createActionContext<MouseActions>('HighFrequencyActions');
   });
 
   describe('Store update performance', () => {
     it('should handle rapid mouse move updates without performance degradation', async () => {
+      let updateCount = 0;
+      let updateWorkMs = 0;
       const TestComponent = () => {
         const positionStore = TestStorePattern.useStore('position');
         const movementStore = TestStorePattern.useStore('movement');
@@ -113,6 +113,7 @@ describe('High-frequency store updates', () => {
         React.useEffect(() => {
           // Simulate 120fps mouse movement (8ms intervals)
           const interval = setInterval(() => {
+            const updateStart = performance.now();
             const newPos = {
               x: Math.random() * 800,
               y: Math.random() * 600
@@ -127,6 +128,8 @@ describe('High-frequency store updates', () => {
               velocity: Math.random() * 10,
               isMoving: true
             });
+            updateWorkMs += performance.now() - updateStart;
+            updateCount += 1;
           }, 8);
 
           return () => clearInterval(interval);
@@ -141,9 +144,7 @@ describe('High-frequency store updates', () => {
         </TestStorePattern.Provider>
       );
 
-      const start = performance.now();
-      
-      render(
+      const { unmount } = render(
         <Wrapper>
           <TestComponent />
         </Wrapper>
@@ -154,16 +155,19 @@ describe('High-frequency store updates', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      const end = performance.now();
-
-      // Should complete setup and initial updates quickly
-      expect(end - start).toBeLessThan(200);
+      // Measure store update work independently from timer scheduling and
+      // host load. A 100ms wall-clock wait is intentionally not part of the
+      // performance budget, otherwise this test becomes machine-dependent.
+      expect(updateCount).toBeGreaterThan(0);
+      expect(updateWorkMs).toBeLessThan(200);
 
       // Deep clone logs should be severely limited
       const deepCloneLogs = mockConsole.debug.mock.calls.filter(
         call => call[0]?.includes?.('Deep clone successful')
       );
       expect(deepCloneLogs.length).toBeLessThan(5); // Very few logs despite many updates
+
+      unmount();
     });
 
     it('should prevent infinite logging loops in real-time scenarios', async () => {

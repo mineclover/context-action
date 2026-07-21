@@ -52,6 +52,16 @@ describe('Main index.ts exports', () => {
     });
   });
 
+  describe('Tool protocol boundary', () => {
+    it('keeps protocol contracts in @context-action/tool-protocol', () => {
+      const exports = mainExports as Record<string, unknown>;
+
+      expect(exports.defineAction).toBeUndefined();
+      expect(exports.listAllTools).toBeUndefined();
+      expect(exports.TOOL_CALL_ERROR_CODES).toBeUndefined();
+    });
+  });
+
   describe('Type exports', () => {
     // Type exports are compile-time only, so we just verify the module loads without errors
     it('should load without errors', () => {

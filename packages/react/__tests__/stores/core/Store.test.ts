@@ -244,7 +244,10 @@ describe('Store Class', () => {
         ]);
         batchedStore.dispose();
         done();
-      }, 50);
+      // Re-entrant updates schedule a second animation frame. Keep enough
+      // headroom for a loaded jsdom/CI event loop instead of assuming two
+      // frames complete within 50ms.
+      }, 100);
     });
   });
 

@@ -2,7 +2,7 @@ import {
   listAllTools,
   type ToolListResult,
   toToolCallRequest,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 import { useCallback, useMemo } from 'react';
 import { recordLiveWebCodingToolList } from '../../../../lib/live-web-coding-trace';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';

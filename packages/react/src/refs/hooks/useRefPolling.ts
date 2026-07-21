@@ -12,7 +12,7 @@ export interface RefPollingOptions {
   timeout?: number;
   onTick?: (elapsed: number, isMounted: boolean) => void;
   onTimeout?: (elapsed: number) => void;
-  onSuccess?: (elapsed: number, target: any) => void;
+  onSuccess?: (elapsed: number, target: unknown) => void;
 }
 
 export interface RefPollingReturn<T> {

@@ -8,6 +8,10 @@
  * have direct React dependencies. Import React types externally when used.
  */
 
+// ActionRegister is intentionally erased in the diagnostics helper because
+// it aggregates handlers from an arbitrary application action map.
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous action maps are erased only at this runtime inspection boundary.
+
 import type { 
   ActionPayloadMap, 
   ActionHandler, 
@@ -192,7 +196,7 @@ export const ReactDevUtils = {
   /**
    * Log React-specific debugging information
    */
-  log(component: string, action: string, message: string, data?: any): void {
+  log(component: string, action: string, message: string, data?: unknown): void {
     if (this.isDebugMode()) {
       console.log(`🎯 [React-ActionRegister] [${component}] ${action}: ${message}`, data || '');
     }
@@ -238,14 +242,14 @@ export const ReactDevUtils = {
  */
 export class ReactActionError extends Error {
   public readonly action: string;
-  public readonly payload?: any;
+  public readonly payload?: unknown;
   public readonly handlerId: string | undefined;
   public readonly timestamp: number;
 
   constructor(
     message: string,
     action: string,
-    payload?: any,
+    payload?: unknown,
     handlerId: string | undefined = undefined,
     originalError?: Error
   ) {
@@ -257,7 +261,7 @@ export class ReactActionError extends Error {
     this.timestamp = Date.now();
 
     // Maintain original error stack if available
-    if (originalError && originalError.stack) {
+    if (originalError?.stack) {
       this.stack = originalError.stack;
     }
   }
@@ -268,7 +272,7 @@ export class ReactActionError extends Error {
   static fromActionError(
     originalError: Error,
     action: string,
-    payload?: any,
+    payload?: unknown,
     handlerId?: string
   ): ReactActionError {
     return new ReactActionError(
@@ -287,6 +291,6 @@ export class ReactActionError extends Error {
  * @param error - Error to check
  * @returns True if error is a ReactActionError
  */
-export function isReactActionError(error: any): error is ReactActionError {
+export function isReactActionError(error: unknown): error is ReactActionError {
   return error instanceof ReactActionError;
 }

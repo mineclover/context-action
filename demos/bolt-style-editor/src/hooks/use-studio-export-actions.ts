@@ -1,8 +1,13 @@
-import type { ToolListResult } from '@context-action/core';
-import { toToolCallRequest } from '@context-action/react';
+import {
+  type ToolListResult,
+  toToolCallRequest,
+} from '@context-action/tool-protocol';
 import { useEffect, useRef, useState } from 'react';
 import type { ToolCatalogDefinition } from '../tool-catalog-contract';
-import type { ToolTraceEntry } from '../tool-trace';
+import {
+  serializeToolTraceEntriesForExport,
+  type ToolTraceEntry,
+} from '../tool-trace';
 import { buildPreviewDocument, type WorkspaceFile } from '../workspace';
 
 function downloadTextFile(
@@ -180,9 +185,23 @@ export function useStudioExportActions({
   const downloadExecutionTrace = () => {
     if (!traceEntries.length) return;
     downloadTextFile(
-      JSON.stringify(traceEntries, null, 2),
+      serializeToolTraceEntriesForExport(traceEntries),
       'context-action-studio-trace.json'
     );
+  };
+
+  const copyExecutionTrace = async () => {
+    if (!traceEntries.length) return;
+    try {
+      await writeClipboardText(
+        serializeToolTraceEntriesForExport(traceEntries)
+      );
+      showCopyFeedback('Execution trace copied');
+    } catch (error) {
+      showCopyFeedback(
+        `${error instanceof Error ? error.message : 'Copy failed.'} Use Download instead.`
+      );
+    }
   };
 
   const downloadPreview = async () => {
@@ -219,6 +238,7 @@ export function useStudioExportActions({
   return {
     copyFeedback,
     copyJson,
+    copyExecutionTrace,
     copySelectedToolCall,
     copyToolsList,
     downloadToolList,

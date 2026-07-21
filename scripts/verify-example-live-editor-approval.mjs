@@ -18,15 +18,15 @@ const { outputText } = typescript.transpileModule(source, {
   },
   fileName: approvalPath,
 });
-const coreModuleUrl = pathToFileURL(
-  path.join(rootDirectory, 'packages/core/dist/index.js')
+const toolProtocolModuleUrl = pathToFileURL(
+  path.join(rootDirectory, 'packages/tool-protocol/dist/index.js')
 ).href;
 const approval = await import(
   'data:text/javascript;base64,' +
     Buffer.from(
       outputText.replaceAll(
-        "from '@context-action/core'",
-        `from '${coreModuleUrl}'`
+        "from '@context-action/tool-protocol'",
+        `from '${toolProtocolModuleUrl}'`
       )
     ).toString('base64')
 );

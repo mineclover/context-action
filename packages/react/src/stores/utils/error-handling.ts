@@ -103,8 +103,12 @@ interface ErrorLogEntry {
 /**
  * 에러 로그 저장소
  */
-let errorLog: ErrorLogEntry[] = [];
-let errorSignatures: Map<string, ErrorLogEntry> = new Map();
+const errorLog: ErrorLogEntry[] = [];
+const errorSignatures: Map<string, ErrorLogEntry> = new Map();
+
+interface GlobalErrorBoundary {
+  reportError(error: ContextActionError): void;
+}
 
 /**
  * 에러 핸들링 설정 업데이트
@@ -195,8 +199,11 @@ function logError(error: ContextActionError): void {
   }
 
   // globalErrorBoundary에 에러 보고 (테스트 환경에서 사용)
-  if (typeof globalThis !== 'undefined' && (globalThis as any).globalErrorBoundary) {
-    (globalThis as any).globalErrorBoundary.reportError(error);
+  const globalWithBoundary = globalThis as typeof globalThis & {
+    globalErrorBoundary?: GlobalErrorBoundary;
+  };
+  if (globalWithBoundary.globalErrorBoundary) {
+    globalWithBoundary.globalErrorBoundary.reportError(error);
   }
   
   // 로그 레벨에 따른 출력
@@ -333,5 +340,4 @@ export function getErrorStatistics(): ErrorStatistics {
     recentErrors
   };
 }
-
 

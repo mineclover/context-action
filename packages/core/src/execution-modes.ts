@@ -32,7 +32,7 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
  * @internal
  */
 function handleExecutionError<T, R>(
-  error: any,
+  error: unknown,
   registration: HandlerRegistration<T, R>
 ): HandlerError {
   const errorObj = error instanceof Error ? error : new Error(String(error));
@@ -70,7 +70,7 @@ export async function executeSequential<T, R = void>(
 ): Promise<void> {
 
   let i = 0;
-  const nonBlockingPromises: Array<Promise<any>> = [];
+  const nonBlockingPromises: Array<Promise<unknown>> = [];
   const errors: HandlerError[] = [];
   
   while (i < context.handlers.length) {
@@ -194,7 +194,6 @@ export async function executeSequential<T, R = void>(
           // Allow both forward and backward jumps
           i = jumpIndex;
           context.jumpToPriority = undefined;
-          continue;
         } else {
           // No valid jump target found, or jumping to same handler
           context.jumpToPriority = undefined;
@@ -204,7 +203,7 @@ export async function executeSequential<T, R = void>(
         i++;
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 🔧 Fix: Handle errors gracefully and continue pipeline execution
       const handlerError = handleExecutionError(error, registration);
       errors.push(handlerError);
@@ -235,7 +234,7 @@ export async function executeSequential<T, R = void>(
     }));
     
     // Add to context with proper typing
-    (context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] }).collectedErrors = handlerErrors;
+    context.collectedErrors = handlerErrors;
   }
 }
 
@@ -316,7 +315,7 @@ export async function executeParallel<T, R = void>(
         terminated: context.terminated 
       };
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
       
@@ -358,7 +357,10 @@ export async function executeParallel<T, R = void>(
     context.terminated = true;
     // In parallel mode, we can't determine which handler's termination result to use,
     // so we use the first one that terminated
-    const firstTerminated = terminatedResults[0] as PromiseFulfilledResult<any>;
+    const firstTerminated = terminatedResults[0] as PromiseFulfilledResult<{
+      terminated: boolean;
+      result: R | undefined;
+    }>;
     context.terminationResult = firstTerminated.value.result;
   }
 }
@@ -445,7 +447,7 @@ export async function executeRace<T, R = void>(
         terminated: context.terminated
       };
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
       return { success: false, handlerId: registration.id, error: handlerError.error, registration };

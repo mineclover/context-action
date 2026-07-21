@@ -47,18 +47,18 @@ export {
 
 // === TYPE HELPERS ===
 // Enhanced type utilities and helpers
-export {
-  type StoreValue,
-  type StoresValues,
-  type StoreRecordValues,
-  type StoreSelector,
-  type EqualityFunction,
-  type StoreListener,
-  type StoreUpdater,
-  type DeepReadonly,
-  type StoreInitConfig,
-  type PartialBy,
-  type RequiredBy
+export type {
+  StoreValue,
+  StoresValues,
+  StoreRecordValues,
+  StoreSelector,
+  EqualityFunction,
+  StoreListener,
+  StoreUpdater,
+  DeepReadonly,
+  StoreInitConfig,
+  PartialBy,
+  RequiredBy
 } from './type-helpers';
 
 // === JSON POINTER UTILITIES ===

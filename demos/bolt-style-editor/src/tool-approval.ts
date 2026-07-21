@@ -1,9 +1,9 @@
-import { createToolApprovalQueue } from '@context-action/core';
 import type {
-  ToolApprovalSnapshot,
   ToolPolicyDecision,
   ToolPolicyInput,
 } from '@context-action/react';
+import type { ToolApprovalSnapshot } from '@context-action/tool-protocol';
+import { createToolApprovalQueue } from '@context-action/tool-protocol';
 
 export type PendingToolApproval = ToolApprovalSnapshot;
 

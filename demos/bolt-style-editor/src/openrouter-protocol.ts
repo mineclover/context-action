@@ -2,7 +2,7 @@ import {
   isToolCallResult,
   stringifyToolContent,
   TOOL_CALL_ERROR_CODES,
-} from '@context-action/core';
+} from '@context-action/tool-protocol';
 
 export type OpenRouterErrorCode =
   | 'OPENROUTER_CONFIGURATION_ERROR'

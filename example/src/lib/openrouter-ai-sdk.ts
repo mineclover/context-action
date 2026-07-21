@@ -6,12 +6,12 @@
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import type { ActionSchemaMap } from '@context-action/core';
+import type { ToolRegistry } from '@context-action/react';
 import {
+  type ActionSchemaMap,
   listAllTools,
   stringifyToolContent,
-  type ToolRegistry,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 import {
   dynamicTool,
   generateText,

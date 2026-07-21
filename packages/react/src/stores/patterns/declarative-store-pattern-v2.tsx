@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous declarative store boundary.
+
 /**
  * @fileoverview Store Context Pattern - Simplified and Unified Store Management
  * 
@@ -377,7 +379,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
   function useStore<K extends keyof T>(storeName: K): Store<T[K]> {
     const context = useContext(StoreContext);
     
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStore must be used within ${contextName}.Provider. ` +
         `Wrap your component with <${contextName}.Provider>`
@@ -396,7 +398,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
   function useStoreManager(): StoreManager<T> {
     const context = useContext(StoreContext);
     
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStoreManager must be used within ${contextName}.Provider`
       );

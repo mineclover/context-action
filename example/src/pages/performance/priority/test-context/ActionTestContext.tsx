@@ -28,9 +28,8 @@ export interface TestActions extends ActionPayloadMap {
 }
 
 // Priority Test용 Action Context
-export const PriorityTestAction = createActionContext<TestActions>({
-  name: 'PriorityTest',
-});
+export const PriorityTestAction =
+  createActionContext<TestActions>('PriorityTest');
 
 // Provider 타입을 명시적으로 선언
 export const ActionTestProvider: React.FC<{ children: React.ReactNode }> =

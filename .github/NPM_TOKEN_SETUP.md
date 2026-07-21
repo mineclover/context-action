@@ -68,7 +68,9 @@ Publishing을 수행합니다. 각 npm 패키지에 저장소와
 - 변경된 패키지가 없는 재실행도 빈 summary(`[]`)를 남기므로 consumer 검증과 artifact 업로드가
   동일한 계약으로 동작합니다.
 - publish 후에는 summary artifact를 저장하고 `@context-action/sem-doc`을 임시 consumer에 설치해
-  `sem-doc version`까지 확인합니다. npm metadata 전파 지연은 polling으로 흡수합니다.
+  `sem-doc version`까지 확인합니다. `@context-action/tool-protocol`과
+  `@context-action/tool-durable-operations`도 별도 임시 consumer에 설치하고 public export를
+  `require`하는 smoke를 실행합니다. npm metadata 전파 지연은 polling으로 흡수합니다.
 - post-publish 검증만 실패한 경우 같은 workflow를 재실행할 수 있습니다. 이미 publish된 버전은
   덮어쓰지 않고 현재 registry 버전을 검증합니다.
 

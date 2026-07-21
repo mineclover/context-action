@@ -6,7 +6,7 @@ export default defineConfig({
     'src/index.ts',      // Main entry point
     'src/advanced.ts',   // Advanced features
     'src/utils.ts',      // Utility functions
-    'src/react18.ts'     // Backward-compatible React 18 type entry point
+    'src/react18.ts'     // React 18/19 compatibility entry point
   ],
   format: ['esm', 'cjs'],
   dts: true,

@@ -1,4 +1,4 @@
-import { listAllTools } from '@context-action/react';
+import { listAllTools } from '@context-action/tool-protocol';
 import type { ModelMessage } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {

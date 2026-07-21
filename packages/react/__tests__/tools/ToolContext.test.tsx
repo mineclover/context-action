@@ -7,17 +7,27 @@
 import React, { useCallback } from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
+import { createToolContext } from '../../src';
 import {
-  createToolContext,
+  createMockDurableOperationBackend,
+  createMockDurableOperationStore,
+} from '../../../tool-durable-operations/__tests__/support/mock-durable-operation-store';
+import {
   defineAction,
   createActionSchema,
+  createToolCallFingerprint,
+  createToolObservabilityPolicy,
+  createToolOperationKey,
   isToolCallRequest,
   isToolListRequest,
+  TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
   toToolListRequest,
   type ToolCallRequest,
+  type ToolCallResult,
+  type ToolExecutionProvenance,
   type ToolListRequest,
-} from '../../src';
+} from '@context-action/tool-protocol';
 
 describe('createToolContext', () => {
   // Create a test schema
@@ -387,6 +397,55 @@ describe('createToolContext', () => {
         expect.objectContaining({ query: 'laptop' }),
         expect.any(Object)
       );
+    });
+
+    it('should expose additive execution provenance on lifecycle events', async () => {
+      const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
+      const provenanceContext = createToolContext('ProvenanceTools', {
+        schema: testSchema,
+        executionOwnerId: 'audit-worker',
+        onToolCall: event => events.push({ type: event.type, provenance: event.provenance }),
+      });
+      const provenanceWrapper = ({ children }: { children: React.ReactNode }) => (
+        <provenanceContext.Provider>{children}</provenanceContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          provenanceContext.useToolHandler(
+            'searchProducts',
+            useCallback(async () => ({ text: 'ok' }), [])
+          );
+          return provenanceContext.useToolRegistry();
+        },
+        { wrapper: provenanceWrapper }
+      );
+
+      await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'provenance-1',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      }));
+
+      expect(events).toHaveLength(2);
+      expect(events[0]).toMatchObject({
+        type: 'started',
+        provenance: {
+          phase: 'tool-call',
+          ownerId: 'audit-worker',
+          state: 'pending',
+          usedOutputBytes: 0,
+        },
+      });
+      expect(events[1]).toMatchObject({
+        type: 'completed',
+        provenance: {
+          phase: 'tool-call',
+          ownerId: 'audit-worker',
+          state: 'completed',
+        },
+      });
+      expect(events[1]!.provenance.elapsedMs).toEqual(expect.any(Number));
+      expect(events[1]!.provenance.usedOutputBytes).toBeGreaterThan(0);
     });
 
     it('should connect discovery, model calls, canonical tools/call, and results', async () => {
@@ -959,8 +1018,10 @@ describe('createToolContext', () => {
     });
 
     it('should use the same cancellation result when a handler is running', async () => {
+      const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
       const cancellationContext = createToolContext('AbortHandlerTools', {
         schema: testSchema,
+        onToolCall: event => events.push({ type: event.type, provenance: event.provenance }),
       });
       const cancellationWrapper = ({ children }: { children: React.ReactNode }) => (
         <cancellationContext.Provider>{children}</cancellationContext.Provider>
@@ -1003,6 +1064,791 @@ describe('createToolContext', () => {
         toolCallId: 'abort-handler',
         error: { code: 'TOOL_CANCELLED', retryable: true },
       });
+      expect(events[events.length - 1]).toMatchObject({
+        type: 'failed',
+        provenance: { state: 'cancelled' },
+      });
+    });
+
+    it('should return a canonical error for invalid tool-call timeout options', async () => {
+      const handler = jest.fn();
+      const timeoutContext = createToolContext('InvalidTimeoutTools', {
+        schema: testSchema,
+      });
+      const timeoutWrapper = ({ children }: { children: React.ReactNode }) => (
+        <timeoutContext.Provider>{children}</timeoutContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          timeoutContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return timeoutContext.useToolRegistry();
+        },
+        { wrapper: timeoutWrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool(
+          {
+            method: 'tools/call',
+            id: 'invalid-timeout',
+            params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+          },
+          { timeout: -1 }
+        )
+      );
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'invalid-timeout',
+        error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
+      });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('should return a canonical error for an invalid per-call provenance owner', async () => {
+      const ownerContext = createToolContext('InvalidOwnerTools', { schema: testSchema });
+      const ownerWrapper = ({ children }: { children: React.ReactNode }) => (
+        <ownerContext.Provider>{children}</ownerContext.Provider>
+      );
+      const { result } = renderHook(() => ownerContext.useToolRegistry(), {
+        wrapper: ownerWrapper,
+      });
+
+      const toolResult = await act(async () => result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'invalid-owner',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { executionOwnerId: ' '.repeat(2) }
+      ));
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'invalid-owner',
+        error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
+      });
+    });
+
+    it('should time out policy evaluation and expose an aborted policy signal', async () => {
+      let policySignal: AbortSignal | undefined;
+      const timeoutContext = createToolContext('TimeoutPolicyTools', {
+        schema: testSchema,
+        toolPolicy: ({ signal }) => new Promise(resolve => {
+          policySignal = signal;
+          signal?.addEventListener('abort', () => resolve('allow'), { once: true });
+        }),
+      });
+      const timeoutWrapper = ({ children }: { children: React.ReactNode }) => (
+        <timeoutContext.Provider>{children}</timeoutContext.Provider>
+      );
+      const { result } = renderHook(() => timeoutContext.useToolRegistry(), {
+        wrapper: timeoutWrapper,
+      });
+
+      const toolResult = await act(async () =>
+        result.current.callTool(
+          {
+            method: 'tools/call',
+            id: 'policy-timeout',
+            params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+          },
+          { timeout: 10 }
+        )
+      );
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'policy-timeout',
+        error: {
+          code: TOOL_CALL_ERROR_CODES.TIMEOUT,
+          retryable: true,
+          details: { timeoutMs: 10 },
+        },
+      });
+      expect(policySignal?.aborted).toBe(true);
+    });
+
+    it('should time out a running handler without waiting for an ignored signal', async () => {
+      const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
+      const timeoutContext = createToolContext('TimeoutHandlerTools', {
+        schema: testSchema,
+        onToolCall: event => events.push({ type: event.type, provenance: event.provenance }),
+      });
+      const timeoutWrapper = ({ children }: { children: React.ReactNode }) => (
+        <timeoutContext.Provider>{children}</timeoutContext.Provider>
+      );
+      const { result, unmount } = renderHook(
+        () => {
+          timeoutContext.useToolHandler(
+            'searchProducts',
+            useCallback(async () => {
+              await new Promise(resolve => setTimeout(resolve, 40));
+              return { completedAfterTimeout: true };
+            }, [])
+          );
+          return timeoutContext.useToolRegistry();
+        },
+        { wrapper: timeoutWrapper }
+      );
+
+      const toolResult = await act(async () =>
+        result.current.callTool(
+          {
+            method: 'tools/call',
+            id: 'handler-timeout',
+            params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+          },
+          { timeout: 10 }
+        )
+      );
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        toolCallId: 'handler-timeout',
+        error: {
+          code: TOOL_CALL_ERROR_CODES.TIMEOUT,
+          retryable: true,
+          details: { timeoutMs: 10 },
+        },
+      });
+      expect(events[events.length - 1]).toMatchObject({
+        type: 'failed',
+        provenance: {
+          state: 'unknown',
+          timeoutMs: 10,
+        },
+      });
+      await new Promise(resolve => setTimeout(resolve, 50));
+      unmount();
+    });
+
+    it('should enforce an optional output budget and retain measured usage in provenance', async () => {
+      const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
+      const outputBackend = createMockDurableOperationBackend<ToolCallResult>();
+      const outputStore = createMockDurableOperationStore(outputBackend, 'output-budget-owner');
+      const outputContext = createToolContext('OutputBudgetTools', {
+        schema: testSchema,
+        executionOwnerId: 'output-budget-owner',
+        durableOperationStore: outputStore,
+        durableOperationOwnerId: 'output-budget-owner',
+        onToolCall: event => events.push({ type: event.type, provenance: event.provenance }),
+      });
+      const outputWrapper = ({ children }: { children: React.ReactNode }) => (
+        <outputContext.Provider>{children}</outputContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          outputContext.useToolHandler(
+            'searchProducts',
+            useCallback(async () => ({ text: 'x'.repeat(128) }), [])
+          );
+          return outputContext.useToolRegistry();
+        },
+        { wrapper: outputWrapper }
+      );
+
+      const toolResult = await act(async () => result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'output-budget',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { maxOutputBytes: 16, idempotencyKey: 'output-budget-operation' }
+      ));
+
+      expect(toolResult).toMatchObject({
+        isError: true,
+        error: {
+          code: TOOL_CALL_ERROR_CODES.OUTPUT_LIMIT_EXCEEDED,
+          details: { maxOutputBytes: 16 },
+        },
+      });
+      expect(events[events.length - 1]).toMatchObject({
+        type: 'failed',
+        provenance: {
+          ownerId: 'output-budget-owner',
+          state: 'failed',
+          maxOutputBytes: 16,
+        },
+      });
+      expect(events[events.length - 1]!.provenance.usedOutputBytes).toBeGreaterThan(16);
+      await expect(
+        result.current.getOperationStatus('searchProducts', 'output-budget-operation')
+      ).resolves.toMatchObject({
+        state: 'failed',
+        result: { error: { code: TOOL_CALL_ERROR_CODES.OUTPUT_LIMIT_EXCEEDED } },
+      });
+    });
+
+    it('should share a timed-out mutation with a retry using the same idempotency key', async () => {
+      let markStarted!: () => void;
+      let releaseHandler!: () => void;
+      const started = new Promise<void>(resolve => {
+        markStarted = resolve;
+      });
+      const handler = jest.fn(async () => {
+        markStarted();
+        await new Promise<void>(resolve => {
+          releaseHandler = resolve;
+        });
+        return { saved: true };
+      });
+      const idempotentContext = createToolContext('IdempotentTools', {
+        schema: testSchema,
+      });
+      const idempotentWrapper = ({ children }: { children: React.ReactNode }) => (
+        <idempotentContext.Provider>{children}</idempotentContext.Provider>
+      );
+      const { result, unmount } = renderHook(
+        () => {
+          idempotentContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return idempotentContext.useToolRegistry();
+        },
+        { wrapper: idempotentWrapper }
+      );
+      const request = {
+        method: 'tools/call' as const,
+        id: 'idempotent-first',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      };
+
+      const firstPending = result.current.callTool(request, {
+        timeout: 10,
+        idempotencyKey: 'save-operation-1',
+      });
+      await started;
+      const first = await act(async () => firstPending);
+
+      expect(first).toMatchObject({
+        isError: true,
+        error: {
+          code: TOOL_CALL_ERROR_CODES.TIMEOUT,
+          details: { executionState: 'detached' },
+        },
+      });
+
+      const replayPending = result.current.callTool(
+        { ...request, id: 'idempotent-retry' },
+        { timeout: 100, idempotencyKey: 'save-operation-1' }
+      );
+      expect(handler).toHaveBeenCalledTimes(1);
+      releaseHandler();
+      const replay = await act(async () => replayPending);
+
+      expect(replay).toMatchObject({
+        toolCallId: 'idempotent-retry',
+        isError: true,
+        error: {
+          code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+          retryable: true,
+        },
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      const conflict = await result.current.callTool(
+        {
+          ...request,
+          id: 'idempotent-conflict',
+          params: { name: 'searchProducts', arguments: { query: 'tablet' } },
+        },
+        { idempotencyKey: 'save-operation-1' }
+      );
+      expect(conflict).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_CONFLICT, retryable: false },
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+      unmount();
+    });
+
+    it('should reject malformed idempotency keys before invoking a handler', async () => {
+      const handler = jest.fn();
+      const invalidKeyContext = createToolContext('InvalidIdempotencyTools', {
+        schema: testSchema,
+      });
+      const invalidKeyWrapper = ({ children }: { children: React.ReactNode }) => (
+        <invalidKeyContext.Provider>{children}</invalidKeyContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          invalidKeyContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return invalidKeyContext.useToolRegistry();
+        },
+        { wrapper: invalidKeyWrapper }
+      );
+
+      const response = await result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'invalid-idempotency',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { idempotencyKey: '' }
+      );
+
+      expect(response).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
+      });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('should replay a durable result after a provider restart and expose status', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const storeA = createMockDurableOperationStore(backend, 'process-a');
+      const firstContext = createToolContext('DurableToolsA', {
+        schema: testSchema,
+        durableOperationStore: storeA,
+        durableOperationOwnerId: 'process-a',
+      });
+      const firstHandler = jest.fn(async () => ({ saved: true }));
+      const firstWrapper = ({ children }: { children: React.ReactNode }) => (
+        <firstContext.Provider>{children}</firstContext.Provider>
+      );
+      const firstHook = renderHook(
+        () => {
+          firstContext.useToolHandler('searchProducts', useCallback(firstHandler, []));
+          return firstContext.useToolRegistry();
+        },
+        { wrapper: firstWrapper }
+      );
+      const request = {
+        method: 'tools/call' as const,
+        id: 'durable-first',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      };
+
+      const firstResult = await firstHook.result.current.callTool(request, {
+        idempotencyKey: 'durable-save-1',
+      });
+      expect(firstResult).toMatchObject({
+        structuredContent: { saved: true },
+      });
+      expect(firstHandler).toHaveBeenCalledTimes(1);
+      await expect(
+        firstHook.result.current.getOperationStatus('searchProducts', 'durable-save-1')
+      ).resolves.toMatchObject({ state: 'completed', result: { structuredContent: { saved: true } } });
+      firstHook.unmount();
+
+      const storeB = createMockDurableOperationStore(backend, 'process-b');
+      const restartedContext = createToolContext('DurableToolsB', {
+        schema: testSchema,
+        durableOperationStore: storeB,
+        durableOperationOwnerId: 'process-b',
+      });
+      const replayHandler = jest.fn(async () => ({ shouldNotRun: true }));
+      const restartedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <restartedContext.Provider>{children}</restartedContext.Provider>
+      );
+      const restartedHook = renderHook(
+        () => {
+          restartedContext.useToolHandler('searchProducts', useCallback(replayHandler, []));
+          return restartedContext.useToolRegistry();
+        },
+        { wrapper: restartedWrapper }
+      );
+
+      const replay = await restartedHook.result.current.callTool(
+        { ...request, id: 'durable-replay' },
+        { idempotencyKey: 'durable-save-1' }
+      );
+      expect(replay).toMatchObject({
+        toolCallId: 'durable-replay',
+        structuredContent: { saved: true },
+      });
+      expect(replayHandler).not.toHaveBeenCalled();
+      restartedHook.unmount();
+    });
+
+    it('retains an ambiguous handler result for later durable recovery', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const store = createMockDurableOperationStore(backend, 'process-a');
+      const context = createToolContext('DurableUnknownResultTools', {
+        schema: testSchema,
+        durableOperationStore: store,
+        durableOperationOwnerId: 'process-a',
+      });
+      const handler = jest.fn(async () => {
+        const error = new Error('saveAll stopped after a partial write') as Error & {
+          code: string;
+          retryable: boolean;
+          details: { outcome: 'unknown'; plannedPaths: string[] };
+        };
+        Object.assign(error, {
+          code: TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN,
+          retryable: true,
+          details: {
+            outcome: 'unknown',
+            plannedPaths: ['index.html', 'styles.css'],
+            source: 'secret source must not enter durable diagnostics',
+            credentials: { token: 'secret-token' },
+          },
+        });
+        throw error;
+      });
+      const unknownWrapper = ({ children }: { children: React.ReactNode }) => (
+        <context.Provider>{children}</context.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          context.useToolHandler(
+            'searchProducts',
+            useCallback(handler, []),
+            { blocking: true }
+          );
+          return context.useToolRegistry();
+        },
+        { wrapper: unknownWrapper }
+      );
+
+      const response = await hook.result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'durable-unknown-result',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { idempotencyKey: 'durable-save-unknown-result' }
+      );
+      expect(response).toMatchObject({
+        isError: true,
+        error: {
+          code: TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN,
+          details: {
+            outcome: 'unknown',
+            plannedPaths: ['index.html', 'styles.css'],
+          },
+        },
+      });
+
+      await expect(
+        hook.result.current.getOperationStatus(
+          'searchProducts',
+          'durable-save-unknown-result'
+        )
+      ).resolves.toMatchObject({
+        state: 'unknown',
+        result: {
+          error: {
+            code: TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN,
+            details: {
+              plannedPaths: ['index.html', 'styles.css'],
+              source: '[source redacted]',
+              credentials: { token: '[token redacted]' },
+            },
+          },
+        },
+      });
+      const durableRecord = await hook.result.current.getOperationStatus(
+        'searchProducts',
+        'durable-save-unknown-result'
+      );
+      expect(durableRecord?.result?.content).toEqual([
+        {
+          type: 'text',
+          text: 'Tool execution diagnostic retained in redacted form.',
+        },
+      ]);
+      expect(durableRecord?.result).not.toHaveProperty('structuredContent');
+      expect(JSON.stringify(durableRecord)).not.toContain('secret source');
+      expect(JSON.stringify(durableRecord)).not.toContain('secret-token');
+      hook.unmount();
+    });
+
+    it('redacts known error terminal results before durable persistence', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const store = createMockDurableOperationStore(backend, 'failed-owner');
+      const context = createToolContext('DurableFailedResultTools', {
+        schema: testSchema,
+        durableOperationStore: store,
+        durableOperationOwnerId: 'failed-owner',
+        durableDiagnosticPolicy: createToolObservabilityPolicy({ maxStringLength: 4 }),
+      });
+      const handler = jest.fn(async () => {
+        const error = new Error('handler message contains secret source') as Error & {
+          code: string;
+          details: Record<string, unknown>;
+        };
+        Object.assign(error, {
+          code: 'WORKSPACE_KNOWN_FAILURE',
+          details: {
+            path: 'abcdefghij',
+            source: 'secret source must not enter failed records',
+            token: 'secret-token',
+          },
+        });
+        throw error;
+      });
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <context.Provider>{children}</context.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          context.useToolHandler(
+            'searchProducts',
+            useCallback(handler, []),
+            { blocking: true }
+          );
+          return context.useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      await hook.result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'durable-failed-result',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { idempotencyKey: 'durable-save-known-failure' }
+      );
+
+      const record = await hook.result.current.getOperationStatus(
+        'searchProducts',
+        'durable-save-known-failure'
+      );
+      expect(record?.state).toBe('failed');
+      expect(record?.result?.error).toMatchObject({
+        code: 'WORKSPACE_KNOWN_FAILURE',
+        message: 'Tool execution diagnostic retained in redacted form.',
+        details: {
+          path: 'abcd… [truncated]',
+          source: '[source redacted]',
+          token: '[token redacted]',
+        },
+      });
+      expect(JSON.stringify(record)).not.toContain('secret source');
+      expect(JSON.stringify(record)).not.toContain('secret-token');
+      hook.unmount();
+    });
+
+    it('returns pending and unknown durable states without invoking a handler', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const ownerStore = createMockDurableOperationStore(backend, 'owner');
+      const operationKey = createToolOperationKey('searchProducts', 'durable-save-2');
+      const fingerprint = createToolCallFingerprint('searchProducts', { query: 'laptop' });
+      await ownerStore.claim(operationKey, fingerprint, 'owner', { leaseMs: 60_000 });
+
+      const recoveryStore = createMockDurableOperationStore(backend, 'recovery');
+      const recoveryContext = createToolContext('DurableRecoveryTools', {
+        schema: testSchema,
+        durableOperationStore: recoveryStore,
+        durableOperationOwnerId: 'recovery',
+      });
+      const handler = jest.fn(async () => ({ shouldNotRun: true }));
+      const recoveryWrapper = ({ children }: { children: React.ReactNode }) => (
+        <recoveryContext.Provider>{children}</recoveryContext.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          recoveryContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return recoveryContext.useToolRegistry();
+        },
+        { wrapper: recoveryWrapper }
+      );
+      const request = {
+        method: 'tools/call' as const,
+        id: 'durable-pending',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      };
+
+      await expect(hook.result.current.callTool(request, {
+        idempotencyKey: 'durable-save-2',
+      })).resolves.toMatchObject({
+        error: { code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_PENDING, retryable: true },
+      });
+      expect(handler).not.toHaveBeenCalled();
+
+      await ownerStore.markUnknown(operationKey, 'owner', 'worker crashed after write');
+      await expect(hook.result.current.callTool(
+        { ...request, id: 'durable-unknown' },
+        { idempotencyKey: 'durable-save-2' }
+      )).resolves.toMatchObject({
+        error: { code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN, retryable: false },
+      });
+      expect(handler).not.toHaveBeenCalled();
+      hook.unmount();
+    });
+
+    it('returns a retryable store error when the durable terminal transition fails', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const baseStore = createMockDurableOperationStore(backend, 'process-a');
+      const failingStore = {
+        ...baseStore,
+        complete: async () => {
+          throw new Error('durable write unavailable');
+        },
+      };
+      const context = createToolContext('DurableTransitionFailureTools', {
+        schema: testSchema,
+        durableOperationStore: failingStore,
+        durableOperationOwnerId: 'process-a',
+      });
+      const handler = jest.fn(async () => ({ saved: true }));
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <context.Provider>{children}</context.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          context.useToolHandler('searchProducts', useCallback(handler, []));
+          return context.useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      await expect(hook.result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'durable-transition-failure',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { idempotencyKey: 'durable-save-transition-failure' }
+      )).resolves.toMatchObject({
+        isError: true,
+        error: {
+          code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_STORE_FAILED,
+          retryable: true,
+        },
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+      hook.unmount();
+    });
+
+    it('records a domain-confirmed reconciliation without invoking the handler', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const ownerStore = createMockDurableOperationStore(backend, 'owner');
+      const operationKey = createToolOperationKey('searchProducts', 'durable-save-reconcile');
+      const fingerprint = createToolCallFingerprint('searchProducts', { query: 'laptop' });
+      await ownerStore.claim(operationKey, fingerprint, 'owner');
+      await ownerStore.markUnknown(operationKey, 'owner', 'provider disconnected after write');
+
+      const recoveryStore = createMockDurableOperationStore(backend, 'recovery');
+      const context = createToolContext('DurableReconcileTools', {
+        schema: testSchema,
+        durableOperationStore: recoveryStore,
+        durableOperationOwnerId: 'recovery',
+      });
+      const handler = jest.fn(async () => ({ shouldNotRun: true }));
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <context.Provider>{children}</context.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          context.useToolHandler('searchProducts', useCallback(handler, []));
+          return context.useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      await expect(hook.result.current.reconcileOperation(
+        'searchProducts',
+        'durable-save-reconcile',
+        { state: 'completed', result: { content: [], structuredContent: { saved: true } } }
+      )).resolves.toMatchObject({
+        state: 'completed',
+        reconciledBy: 'recovery',
+      });
+
+      await expect(hook.result.current.callTool(
+        {
+          method: 'tools/call',
+          id: 'durable-reconcile-replay',
+          params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+        },
+        { idempotencyKey: 'durable-save-reconcile' }
+      )).resolves.toMatchObject({
+        toolCallId: 'durable-reconcile-replay',
+        structuredContent: { saved: true },
+      });
+      expect(handler).not.toHaveBeenCalled();
+      hook.unmount();
+    });
+
+    it('runs a domain recovery resolver only for unknown records and uses the observed revision', async () => {
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const ownerStore = createMockDurableOperationStore(backend, 'owner');
+      const operationKey = createToolOperationKey('searchProducts', 'durable-save-recover');
+      const fingerprint = createToolCallFingerprint('searchProducts', { query: 'laptop' });
+      await ownerStore.claim(operationKey, fingerprint, 'owner');
+      await ownerStore.markUnknown(operationKey, 'owner', 'worker crashed after provider write');
+
+      const recoveryStore = createMockDurableOperationStore(backend, 'recovery');
+      const context = createToolContext('DurableRecoveryCommandTools', {
+        schema: testSchema,
+        durableOperationStore: recoveryStore,
+        durableOperationOwnerId: 'recovery',
+      });
+      const handler = jest.fn(async () => ({ shouldNotRun: true }));
+      const resolver = jest.fn(async (record) => {
+        expect(record.state).toBe('unknown');
+        expect(record.revision).toBe(2);
+        return {
+          state: 'completed' as const,
+          result: { content: [], structuredContent: { recovered: true } },
+        };
+      });
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <context.Provider>{children}</context.Provider>
+      );
+      const hook = renderHook(
+        () => {
+          context.useToolHandler('searchProducts', useCallback(handler, []));
+          return context.useToolRegistry();
+        },
+        { wrapper }
+      );
+
+      await expect(hook.result.current.recoverOperation(
+        'searchProducts',
+        'durable-save-recover',
+        resolver
+      )).resolves.toMatchObject({
+        state: 'completed',
+        revision: 3,
+        reconciledBy: 'recovery',
+        result: { structuredContent: { recovered: true } },
+      });
+      expect(resolver).toHaveBeenCalledTimes(1);
+      expect(handler).not.toHaveBeenCalled();
+
+      await expect(hook.result.current.recoverOperation(
+        'searchProducts',
+        'durable-save-recover',
+        resolver
+      )).resolves.toMatchObject({ state: 'completed', revision: 3 });
+      expect(resolver).toHaveBeenCalledTimes(1);
+
+      const staleKey = createToolOperationKey('searchProducts', 'durable-save-stale');
+      await ownerStore.claim(staleKey, fingerprint, 'owner');
+      await ownerStore.markUnknown(staleKey, 'owner', 'worker crashed before acknowledgement');
+      const staleResolver = jest.fn(async () => {
+        const current = await backend.read(staleKey);
+        await backend.compareAndSet(staleKey, current!.revision, {
+          ...current!,
+          revision: current!.revision + 1,
+          updatedAt: current!.updatedAt + 1,
+          reason: 'another recovery decision is being recorded',
+        });
+        return {
+          state: 'completed' as const,
+          result: { content: [], structuredContent: { recovered: true } },
+        };
+      });
+      await expect(hook.result.current.recoverOperation(
+        'searchProducts',
+        'durable-save-stale',
+        staleResolver
+      )).rejects.toThrow('revision is stale');
+      await expect(hook.result.current.getOperationStatus(
+        'searchProducts',
+        'durable-save-stale'
+      )).resolves.toMatchObject({
+        state: 'unknown',
+        revision: 3,
+        reason: 'another recovery decision is being recorded',
+      });
+
+      hook.unmount();
     });
   });
 

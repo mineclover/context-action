@@ -90,7 +90,7 @@ export interface CreateRefContextOptions {
 /**
  * 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
  */
-export function createRefContext<T extends Record<string, any>>(
+export function createRefContext<T extends object>(
   contextName: string,
   options?: CreateRefContextOptions
 ): RefContextReturn<T>;
@@ -101,7 +101,7 @@ export function createRefContext<T extends RefDefinitions>(
   options?: CreateRefContextOptions
 ): RefContextReturn<InferRefTypes<T>>;
 
-export function createRefContext<T extends Record<string, any> | RefDefinitions>(
+export function createRefContext<T extends object | RefDefinitions>(
   contextName: string,
   refDefinitionsOrOptions?: T extends RefDefinitions ? T : CreateRefContextOptions,
   optionsWhenDefs?: CreateRefContextOptions
@@ -112,8 +112,8 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   // 파라미터 정규화 - 더 안전한 타입 처리
   const refDefinitions = (typeof refDefinitionsOrOptions === 'object' && 
     refDefinitionsOrOptions !== null &&
-    Object.values(refDefinitionsOrOptions as any).some(
-      (value: any) => value && typeof value === 'object' && 'name' in value
+    Object.values(refDefinitionsOrOptions as object).some(
+      (value: unknown) => value !== null && typeof value === 'object' && 'name' in value
     )) ? (refDefinitionsOrOptions as unknown) as T extends RefDefinitions ? T : undefined : undefined;
   
   const options = refDefinitions ? optionsWhenDefs : refDefinitionsOrOptions as CreateRefContextOptions | undefined;
@@ -122,12 +122,12 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   
   // Context 타입
   interface RefContextValue {
-    refsMapRef: React.MutableRefObject<Map<string, InternalRefState<any>>>;
+    refsMapRef: React.MutableRefObject<Map<string, InternalRefState<RefTarget>>>;
     definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
     optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>;
     subscribeToRef: (refName: string, listener: () => void) => () => void;
-    getRefState: (refName: string) => InternalRefState<any>;
-    setRefTarget: (refName: string, target: any) => void;
+    getRefState: (refName: string) => InternalRefState<RefTarget>;
+    setRefTarget: (refName: string, target: RefTarget) => void;
   }
   
   // Context 생성
@@ -136,11 +136,11 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   // Provider 컴포넌트
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // 모든 ref 상태를 하나의 Map으로 관리
-    const refsMapRef = useRef<Map<string, InternalRefState<any>>>(null!);
+    const refsMapRef = useRef<Map<string, InternalRefState<RefTarget>>>(null!);
     
     // 초기화
     if (!refsMapRef.current) {
-      const map = new Map<string, InternalRefState<any>>();
+      const map = new Map<string, InternalRefState<RefTarget>>();
       
       // RefDefinitions가 있으면 미리 초기화
       if (hasDefinitions && refDefinitions) {
@@ -202,7 +202,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     }, []);
     
     // ref target 설정
-    const setRefTarget = useCallback((refName: string, target: any) => {
+    const setRefTarget = useCallback((refName: string, target: RefTarget) => {
       const refState = getOrCreateRefState(refsMapRef.current, refName);
       
       if (target === null) {
@@ -312,7 +312,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         setRefTarget(refNameStr, target);
       },
       get target(): T[K] | null {
-        return refState.target;
+        return refState.target as T[K] | null;
       },
       waitForMount: () => waitForMount() as Promise<T[K]>,
       withTarget: withTarget as <Result>(
@@ -321,7 +321,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       ) => Promise<RefOperationResult<Result>>,
       isMounted,
       isWaitingForMount,
-      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: any) => void),
+      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: RefTarget) => void),
       executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
       ) => Result | null
@@ -354,7 +354,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         }
         
         if (!refState.mountPromise) {
-          refState.mountPromise = new Promise<any>((resolve, reject) => {
+          refState.mountPromise = new Promise<RefTarget>((resolve, reject) => {
             refState.mountResolvers.add(resolve);
             refState.mountRejectors.add(reject);
           });
@@ -385,7 +385,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       
       refsMapRef.current.forEach((refState, refName) => {
         if (refState.target !== null && refState.isMounted) {
-          (result as any)[refName] = refState.target;
+          (result as unknown as Record<string, unknown>)[String(refName)] = refState.target;
         }
       });
       
@@ -430,7 +430,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   ) => {
     const { getRefState } = useRefContext();
     const refState = getRefState(String(refName));
-    useOnMountStateChange(refState, callback);
+    useOnMountStateChange(refState as InternalRefState<T[K]>, callback);
   };
   
   const useRefMountCheckerHook = <K extends keyof T>(refName: K) => {

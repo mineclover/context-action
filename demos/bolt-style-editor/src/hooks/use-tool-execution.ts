@@ -1,4 +1,4 @@
-import { toToolCallRequest } from '@context-action/react';
+import { toToolCallRequest } from '@context-action/tool-protocol';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { runLocalAgent } from '../actions/run-local-agent';

@@ -13,5 +13,6 @@ export type {
   ToolDispatchFunction,
   ToolDispatchWithResultReturn,
   ToolExecutionResult,
+  ToolOperationRecoveryResolver,
   ToolValidationMode,
 } from './ToolContext.types';

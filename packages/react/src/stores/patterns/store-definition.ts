@@ -57,7 +57,7 @@ export function isStoreConfigShape(
     return false;
   }
 
-  if (!Object.prototype.hasOwnProperty.call(value, 'initialValue')) {
+  if (Object.getOwnPropertyDescriptor(value, 'initialValue') === undefined) {
     return false;
   }
 

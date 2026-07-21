@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous runtime pipeline storage.
 
 import {
   ActionPayloadMap,
@@ -25,109 +26,6 @@ import {
 } from './errors.js';
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
-
-const dispatchOptionKeys = new Set<keyof DispatchOptions>([
-  'autoAbort',
-  'debounce',
-  'executionMode',
-  'filter',
-  'immediate',
-  'queuePriority',
-  'result',
-  'retryOnError',
-  'signal',
-  'throttle',
-  'timeout',
-]);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isOptionalNumber(value: unknown): boolean {
-  return value === undefined || typeof value === 'number';
-}
-
-function isOptionalBoolean(value: unknown): boolean {
-  return value === undefined || typeof value === 'boolean';
-}
-
-/**
- * Recognize the deprecated options-first void-action proxy call.
- *
- * Every supplied field is validated so ordinary payloads that merely overlap
- * one option name are not silently reinterpreted as dispatch options.
- */
-function isDispatchOptions(value: unknown): value is DispatchOptions {
-  if (!isRecord(value)) return false;
-
-  const keys = Object.keys(value);
-  if (
-    keys.length === 0
-    || keys.some(key => !dispatchOptionKeys.has(key as keyof DispatchOptions))
-  ) {
-    return false;
-  }
-
-  return keys.every(key => {
-    const optionValue = value[key];
-    switch (key as keyof DispatchOptions) {
-      case 'debounce':
-      case 'queuePriority':
-      case 'throttle':
-      case 'timeout':
-        return isOptionalNumber(optionValue);
-      case 'immediate':
-        return isOptionalBoolean(optionValue);
-      case 'executionMode':
-        return optionValue === undefined
-          || optionValue === 'sequential'
-          || optionValue === 'parallel'
-          || optionValue === 'race';
-      case 'signal':
-        return optionValue === undefined
-          || (isRecord(optionValue)
-            && typeof optionValue.aborted === 'boolean'
-            && typeof optionValue.addEventListener === 'function');
-      case 'retryOnError':
-        return optionValue === undefined
-          || (isRecord(optionValue)
-            && typeof optionValue.maxAttempts === 'number'
-            && typeof optionValue.delay === 'number');
-      case 'autoAbort':
-        return optionValue === undefined
-          || (isRecord(optionValue)
-            && typeof optionValue.enabled === 'boolean'
-            && isOptionalBoolean(optionValue.allowHandlerAbort)
-            && (optionValue.onControllerCreated === undefined
-              || typeof optionValue.onControllerCreated === 'function'));
-      case 'filter':
-        return optionValue === undefined
-          || (isRecord(optionValue)
-            && (optionValue.handlerIds === undefined
-              || (Array.isArray(optionValue.handlerIds)
-                && optionValue.handlerIds.every(item => typeof item === 'string')))
-            && (optionValue.excludeHandlerIds === undefined
-              || (Array.isArray(optionValue.excludeHandlerIds)
-                && optionValue.excludeHandlerIds.every(item => typeof item === 'string')))
-            && (optionValue.priority === undefined || isRecord(optionValue.priority))
-            && (optionValue.custom === undefined || typeof optionValue.custom === 'function'));
-      case 'result':
-        return optionValue === undefined
-          || (isRecord(optionValue)
-            && (optionValue.strategy === undefined
-              || optionValue.strategy === 'first'
-              || optionValue.strategy === 'last'
-              || optionValue.strategy === 'all'
-              || optionValue.strategy === 'merge'
-              || optionValue.strategy === 'custom')
-            && (optionValue.merger === undefined || typeof optionValue.merger === 'function')
-            && isOptionalBoolean(optionValue.collect)
-            && isOptionalNumber(optionValue.maxResults)
-            && isOptionalBoolean(optionValue.includeErrors));
-    }
-  });
-}
 
 /**
  * Action Register for managing action handlers with priority-based execution
@@ -169,15 +67,11 @@ export class ActionRegister<
   // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
   private dispatchQueue?: OperationQueue;
 
-  // 🧠 Filter cache disabled to prevent memory issues - direct filtering only
-  private filterCacheDisabled = true;
-
   // 🔧 Performance optimization: Fast handler ID generation counter
   private handlerIdCounter = 0;
 
   // 🔧 Performance optimization: PipelineController pool for object reuse
   private controllerPool: PipelineController<any, any>[] = [];
-  private readonly maxControllerPoolSize = 10;
 
   private lifecycleState: 'active' | 'closing' | 'destroyed' = 'active';
   private readonly lifecycleController = new AbortController();
@@ -190,7 +84,7 @@ export class ActionRegister<
   private _actionsProxy?: {
     [K in keyof T]: T[K] extends void
       ? (
-          payloadOrOptions?: undefined | DispatchOptions,
+          payload?: undefined,
           options?: DispatchOptions
         ) => Promise<void>
       : (payload: T[K], options?: DispatchOptions) => Promise<void>
@@ -198,7 +92,7 @@ export class ActionRegister<
   private _actionsWithResultProxy?: {
     [K in keyof T]: T[K] extends void
       ? (
-          payloadOrOptions?: undefined | DispatchOptions,
+          payload?: undefined,
           options?: DispatchOptions
         ) => Promise<ExecutionResult<any>>
       : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
@@ -253,7 +147,6 @@ export class ActionRegister<
    * // Function-based dispatching
    * await registry.actions.userLogin({ userId: '123', email: 'test@example.com' });
    * await registry.actions.resetApp();
-   * await registry.actions.resetApp({ debounce: 100 }); // Legacy options-first form
    * await registry.actions.resetApp(undefined, { debounce: 100 });
    * ```
    * 
@@ -262,7 +155,7 @@ export class ActionRegister<
   get actions(): {
     [K in keyof T]: T[K] extends void
       ? (
-          payloadOrOptions?: undefined | DispatchOptions,
+          payload?: undefined,
           options?: DispatchOptions
         ) => Promise<void>
       : (payload: T[K], options?: DispatchOptions) => Promise<void>
@@ -275,15 +168,12 @@ export class ActionRegister<
           const actionKey = prop as keyof T;
           if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
             return (
-              payloadOrOptions?: T[typeof actionKey] | DispatchOptions,
+              payload?: T[typeof actionKey],
               options?: DispatchOptions
             ) => {
-              if (isDispatchOptions(payloadOrOptions)) {
-                return this.dispatch(actionKey, undefined, payloadOrOptions);
-              }
               return this.dispatch(
                 actionKey,
-                payloadOrOptions as T[typeof actionKey],
+                payload as T[typeof actionKey],
                 options
               );
             };
@@ -325,7 +215,7 @@ export class ActionRegister<
   get actionsWithResult(): {
     [K in keyof T]: T[K] extends void
       ? (
-          payloadOrOptions?: undefined | DispatchOptions,
+          payload?: undefined,
           options?: DispatchOptions
         ) => Promise<ExecutionResult<any>>
       : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
@@ -338,13 +228,10 @@ export class ActionRegister<
           const actionKey = prop as keyof T;
           if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
             return (
-              payloadOrOptions?: T[typeof actionKey] | DispatchOptions,
+              payload?: T[typeof actionKey],
               options?: DispatchOptions
             ) => {
-              if (isDispatchOptions(payloadOrOptions)) {
-                return this.dispatchWithResult(actionKey, undefined, payloadOrOptions);
-              }
-              return this.dispatchWithResult(actionKey, payloadOrOptions, options);
+              return this.dispatchWithResult(actionKey, payload, options);
             };
           }
           return undefined;
@@ -542,7 +429,7 @@ export class ActionRegister<
         // 🔧 Fix: Clean up existing handler properly without removing from pipeline
 
         // Call cleanup if available on the old handler
-        if (existing && existing.config.cleanup && typeof existing.config.cleanup === 'function') {
+        if (existing?.config.cleanup && typeof existing.config.cleanup === 'function') {
           try {
             existing.config.cleanup();
           } catch (cleanupError) {
@@ -1710,42 +1597,6 @@ export class ActionRegister<
     return null; // No guard intervention, proceed with execution
   }
 
-  // Cache methods removed for memory stability
-
-  /**
-   * 🔧 Generate optimized cache key for filter options
-   */
-  private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
-    if (!filterOptions) {
-      return 'no-filter';
-    }
-
-    // Use pre-sorted arrays to avoid repeated sorting
-    const parts: string[] = [];
-
-    if (filterOptions.handlerIds?.length) {
-      parts.push(`h:${filterOptions.handlerIds.slice().sort().join(',')}`);
-    }
-
-    if (filterOptions.excludeHandlerIds?.length) {
-      parts.push(`e:${filterOptions.excludeHandlerIds.slice().sort().join(',')}`);
-    }
-
-    if (filterOptions.priority) {
-      const { min, max } = filterOptions.priority;
-      if (min !== undefined || max !== undefined) {
-        parts.push(`p:${min ?? '*'}-${max ?? '*'}`);
-      }
-    }
-
-    // Custom filters cannot be cached
-    if (filterOptions.custom) {
-      return 'custom-' + Date.now() + Math.random(); // Unique non-cacheable key
-    }
-
-    return parts.length > 0 ? parts.join('|') : 'no-filter';
-  }
-
   // Cache invalidation removed for memory stability
 
   /**
@@ -1817,16 +1668,6 @@ export class ActionRegister<
     return controller;
   }
 
-  /**
-   * 🔧 Return controller to pool for reuse
-   */
-  private returnControllerToPool(controller: PipelineController<any, any>): void {
-    // Only add to pool if we haven't exceeded max size
-    if (this.controllerPool.length < this.maxControllerPoolSize) {
-      this.controllerPool.push(controller);
-    }
-  }
-
   private filterHandlers(
     handlers: HandlerRegistration<any, any>[],
     filterOptions?: DispatchOptions['filter']
@@ -1853,7 +1694,7 @@ export class ActionRegister<
       }
 
       // Fast Set-based exclusion check
-      if (excludeIdSet && excludeIdSet.has(config.id)) {
+      if (excludeIdSet?.has(config.id)) {
         return false;
       }
 
@@ -2286,7 +2127,7 @@ export class ActionRegister<
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return false;
 
-    const index = pipeline.findIndex(candidate => candidate === registration);
+    const index = pipeline.indexOf(registration);
     if (index === -1) return false;
 
     pipeline.splice(index, 1);

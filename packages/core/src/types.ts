@@ -20,6 +20,25 @@
 export type ActionPayloadMap = object;
 
 /**
+ * Minimal runtime contract consumed by ActionRegister for payload validation.
+ *
+ * The concrete Zod-backed action schema lives in
+ * `@context-action/tool-protocol`; keeping this structural contract here
+ * avoids coupling the action runtime to transport and schema adapters.
+ */
+export interface ActionSchemaLike {
+  safeParse(value: unknown):
+    | { success: true; data: unknown }
+    | {
+        success: false;
+        error: {
+          message: string;
+          issues: readonly { message: string }[];
+        };
+      };
+}
+
+/**
  * Strict action payload map that prevents certain problematic types
  */
 export type StrictActionPayloadMap = {
@@ -254,7 +273,7 @@ export type ActionPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
  * 
  * @public
  */
-export interface PipelineController<T = any, R = void> {
+export interface PipelineController<T = unknown, R = void> {
   /**
    * Signal for the current dispatch lifecycle.
    *
@@ -383,7 +402,7 @@ export interface PipelineController<T = any, R = void> {
  * 
  * @public
  */
-export type ActionHandler<T = any, R = void> = (
+export type ActionHandler<T = unknown, R = void> = (
   payload: T,
   controller: PipelineController<T, R>
 ) => R | Promise<R> | void | Promise<void>;
@@ -457,7 +476,7 @@ export interface HandlerConfig<T = unknown> {
  * 
  * @internal
  */
-export interface HandlerRegistration<T = any, R = void> {
+export interface HandlerRegistration<T = unknown, R = void> {
   /** The handler function */
   handler: ActionHandler<T, R>;
   
@@ -505,7 +524,7 @@ export type ExecutionMode = 'sequential' | 'parallel' | 'race';
  * 
  * @internal
  */
-export interface PipelineContext<T = any, R = void> {
+export interface PipelineContext<T = unknown, R = void> {
   /** The action name being executed */
   action: string;
   
@@ -526,6 +545,9 @@ export interface PipelineContext<T = any, R = void> {
 
   /** Track handler work that may outlive the exposed dispatch promise */
   trackHandlerPromise?<V>(promise: Promise<V>): Promise<V>;
+
+  /** Errors collected from non-blocking handler execution */
+  collectedErrors?: HandlerError[];
   
   /** Whether execution has been aborted */
   aborted: boolean;
@@ -618,9 +640,9 @@ export interface ActionRegisterConfig {
     /**
      * Action schema map for runtime payload validation
      * When provided, enables Zod-based validation on dispatch
-     * @see ActionSchemaMap from './action-schema'
+     * @see ActionSchemaMap from '@context-action/tool-protocol'
      */
-    schema?: import('./action-schema').ActionSchemaMap;
+    schema?: Record<string, ActionSchemaLike>;
 
     /**
      * Enable/disable validation on dispatch
@@ -894,7 +916,7 @@ export interface ExecutionResult<R = void> {
     error: Error | undefined;
     
     /** Custom metadata for this handler */
-    metadata: Record<string, any> | undefined;
+    metadata: Record<string, unknown> | undefined;
   }>;
   
   /** Errors that occurred during execution */
@@ -935,11 +957,11 @@ export type UnregisterFunction = () => void;
  * Helper types for better ActionDispatcher type safety
  */
 type VoidActions<T extends ActionPayloadMap> = {
-  [K in keyof T]: T[K] extends void | undefined ? K : never
+  [K in keyof T]: T[K] extends undefined | undefined ? K : never
 }[keyof T];
 
 type PayloadActions<T extends ActionPayloadMap> = {
-  [K in keyof T]: T[K] extends void | undefined ? never : K
+  [K in keyof T]: T[K] extends undefined | undefined ? never : K
 }[keyof T];
 
 /**
@@ -952,20 +974,20 @@ type PayloadActions<T extends ActionPayloadMap> = {
  */
 export interface ActionDispatcherWithResult<T extends ActionPayloadMap> {
   /** Dispatch an action that doesn't require a payload and get result */
-  <K extends VoidActions<T>, R = any>(
+  <K extends VoidActions<T>, R = unknown>(
     action: K,
     options?: DispatchOptions
   ): Promise<ExecutionResult<R>>;
   
   /** Dispatch an action with optional payload parameter and get result */
-  <K extends VoidActions<T>, R = any>(
+  <K extends VoidActions<T>, R = unknown>(
     action: K,
     payload?: undefined,
     options?: DispatchOptions
   ): Promise<ExecutionResult<R>>;
   
   /** Dispatch an action that requires a payload and get result */
-  <K extends PayloadActions<T>, R = any>(
+  <K extends PayloadActions<T>, R = unknown>(
     action: K,
     payload: T[K],
     options?: DispatchOptions

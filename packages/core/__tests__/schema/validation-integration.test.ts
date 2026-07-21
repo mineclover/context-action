@@ -13,10 +13,9 @@ import {
   ActionRegister,
   ActionValidationError,
   isActionValidationError,
-  defineAction,
-  createActionSchema,
   type ActionPayloadMap,
 } from '../../src';
+import { defineAction, createActionSchema } from '@context-action/tool-protocol';
 
 describe('ActionValidationError', () => {
   describe('constructor', () => {

@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import type { RefInitConfig } from '../types';
+import type { RefDefinitions, RefInitConfig } from '../types';
 import type { CreateRefContextOptions } from '../createRefContext';
 
 export interface InternalRefState<T> {
@@ -26,7 +26,7 @@ export function useRefMount<T>(
   refState: InternalRefState<T>,
   refNameStr: string,
   optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>,
-  definitionsRef: React.MutableRefObject<any>
+  definitionsRef: React.MutableRefObject<RefDefinitions | undefined>
 ) {
   const waitForMount = useCallback(async (): Promise<T> => {
     // 이미 마운트된 경우
@@ -41,7 +41,7 @@ export function useRefMount<T>(
     
     // 타임아웃 설정 계산
     const globalOptions = optionsRef.current;
-    const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
+    const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig | undefined;
     
     let timeoutMs: number | undefined;
     if (globalOptions?.disableTimeout) {

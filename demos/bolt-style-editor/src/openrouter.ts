@@ -3,12 +3,12 @@ import {
   saveOpenRouterApiKey,
   subscribeStoredOpenRouterApiKey,
 } from '@context-action/openrouter-browser-storage';
+import type { ToolRegistry } from '@context-action/react';
 import {
   type ActionSchemaMap,
   listAllTools,
-  type ToolRegistry,
   toOpenAIToolDefinitions,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 import { type OpenRouterDataPolicy } from './openrouter-models';
 import type { OpenRouterToolCall } from './openrouter-protocol';
 import {

@@ -58,22 +58,31 @@ const examples: Record<ExampleId, ExampleDefinition> = {
     description: '우선순위 handler와 abort 경계를 편집해 봅니다.',
     code: `import { createActionContext } from '@context-action/react';
 
-const Checkout = createActionContext({ name: 'Checkout' });
+const Checkout = createActionContext<CheckoutActions>('Checkout');
 
-Checkout.useActionHandler('submit', validateCart, {
-  id: 'validate-cart',
-  priority: 100,
-  blocking: true,
-});
+function CheckoutLogic() {
+  const dispatch = Checkout.useActionDispatch();
 
-Checkout.useActionHandler('submit', async ({ cartId }, controller) => {
-  const result = await reserveInventory(cartId);
-  if (!result.ok) controller.abort('재고 부족');
-  return result;
-}, { id: 'reserve-inventory', priority: 60, blocking: true });
+  Checkout.useActionHandler('submit', validateCart, {
+    id: 'validate-cart',
+    priority: 100,
+    blocking: true,
+  });
 
-const result = await dispatchWithResult('submit', { cartId: 'cart-42' });
-console.log(result.successResults);`,
+  Checkout.useActionHandler('submit', async ({ cartId }, controller) => {
+    const result = await reserveInventory(cartId);
+    if (!result.ok) controller.abort('재고 부족');
+    return result;
+  }, { id: 'reserve-inventory', priority: 60, blocking: true });
+
+  return <button onClick={() => void dispatch('submit', { cartId: 'cart-42' })}>
+    Submit
+  </button>;
+}
+
+function CheckoutApp() {
+  return <Checkout.Provider><CheckoutLogic /></Checkout.Provider>;
+}`,
   },
   tools: {
     label: 'ToolContext',
@@ -441,6 +450,7 @@ function LiveCodeEditorContent() {
     selectPath,
     saveWorkspaceFile,
     saveAllWorkspaceFiles,
+    reconcileRecoveredPaths,
   } = workspaceActions.commands;
   const code = documentSnapshot.source;
   const scenario = documentSnapshot.scenario as ScenarioId;
@@ -614,7 +624,10 @@ function LiveCodeEditorContent() {
               </div>
             </section>
 
-            <LiveEditorAIToolbar />
+            <LiveEditorAIToolbar
+              filesystemAdapter={filesystemAdapter}
+              onRecoveredPaths={reconcileRecoveredPaths}
+            />
 
             <section
               className={styles.workbench}

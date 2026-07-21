@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous store registry boundary.
+
 import type { IStore, IStoreRegistry, Listener, Unsubscribe } from './types';
 
 /**

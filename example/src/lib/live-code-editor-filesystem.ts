@@ -38,6 +38,7 @@ export interface WorkspaceFileSystemAdapter {
     readonly files: WorkspaceBlobFile[];
     readonly rootName: string;
   }>;
+  readFile(path: string): Promise<WorkspaceBlobFile | undefined>;
   saveFile(path: string, blob: Blob): Promise<void>;
 }
 
@@ -184,5 +185,10 @@ export class BrowserFileSystemWorkspaceAdapter
 
   async saveFile(path: string, blob: Blob): Promise<void> {
     await this.adapter.writeFiles([await toWorkspaceFile(path, blob)]);
+  }
+
+  async readFile(path: string): Promise<WorkspaceBlobFile | undefined> {
+    const file = await this.adapter.readFile(path);
+    return file ? toBlobFile(file) : undefined;
   }
 }

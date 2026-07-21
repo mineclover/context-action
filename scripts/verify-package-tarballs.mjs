@@ -244,29 +244,41 @@ async function verifyPackage(relativePackageDirectory) {
   try {
     const packDirectory = path.join(temporaryDirectory, 'pack');
     const extractDirectory = path.join(temporaryDirectory, 'extract');
-    await Promise.all([mkdir(packDirectory), mkdir(extractDirectory)]);
+    const pnpmCacheDirectory = path.join(temporaryDirectory, 'pnpm-cache');
+    await Promise.all([
+      mkdir(packDirectory),
+      mkdir(extractDirectory),
+      mkdir(pnpmCacheDirectory),
+    ]);
 
     const { stdout } = await run(
-      'npm',
-      ['pack', '--json', '--ignore-scripts', '--pack-destination', packDirectory],
-      { cwd: packageDirectory },
+      'pnpm',
+      ['pack', '--json', '--pack-destination', packDirectory],
+      {
+        cwd: packageDirectory,
+        env: {
+          pnpm_config_cache: pnpmCacheDirectory,
+          npm_config_update_notifier: 'false',
+        },
+      },
     );
-    let packResults;
+    let packResult;
     try {
-      packResults = JSON.parse(stdout);
+      const parsed = JSON.parse(stdout);
+      packResult = Array.isArray(parsed) ? parsed[0] : parsed;
     } catch (error) {
-      throw new Error(`npm pack returned invalid JSON: ${error.message}\n${stdout}`);
+      throw new Error(`pnpm pack returned invalid JSON: ${error.message}\n${stdout}`);
     }
 
-    if (!Array.isArray(packResults) || packResults.length !== 1) {
-      throw new Error(`npm pack returned ${packResults?.length ?? 'an invalid number of'} results`);
+    if (!packResult || typeof packResult !== 'object' || typeof packResult.filename !== 'string') {
+      throw new Error('pnpm pack returned an invalid result');
     }
 
-    const archivePath = path.resolve(packDirectory, packResults[0].filename);
+    const archivePath = path.resolve(packDirectory, packResult.filename);
     const realPackDirectory = await realpath(packDirectory);
     const realArchivePath = await realpath(archivePath);
     if (!isInside(realPackDirectory, realArchivePath)) {
-      throw new Error(`npm pack created an archive outside the temporary directory: ${archivePath}`);
+      throw new Error(`pnpm pack created an archive outside the temporary directory: ${archivePath}`);
     }
     await access(realArchivePath, fsConstants.R_OK);
     await run('tar', ['-xzf', realArchivePath, '-C', extractDirectory]);
@@ -295,6 +307,18 @@ async function verifyPackage(relativePackageDirectory) {
       failures.push(
         `package.json: packed license ${JSON.stringify(packedManifest.license)} does not match source ${JSON.stringify(sourceManifest.license)}`,
       );
+    }
+
+    for (const dependencyField of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      const dependencies = packedManifest[dependencyField];
+      if (!dependencies || typeof dependencies !== 'object') continue;
+      for (const [dependencyName, version] of Object.entries(dependencies)) {
+        if (typeof version === 'string' && version.startsWith('workspace:')) {
+          failures.push(
+            `package.json: packed ${dependencyField}.${dependencyName} retains workspace protocol ${version}`,
+          );
+        }
+      }
     }
 
     const packedLicensePath = path.join(packageRoot, 'LICENSE');

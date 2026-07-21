@@ -1,3 +1,5 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: generic store implementation boundary.
+
 import { useMemo } from 'react';
 import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { IStore } from '../core/types';

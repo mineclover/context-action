@@ -63,7 +63,7 @@ export const {
   useActionDispatch: useCartAction,
   useActionHandler: useCartActionHandler,
   useActionDispatchWithResult: useCartActionWithResult,
-} = createActionContext<CartActions>({ name: 'Cart' });
+} = createActionContext<CartActions>('Cart');
 
 export const { Provider: CartStoreProvider, useStore: useCartStore } =
   createStoreContext('CartStores', {

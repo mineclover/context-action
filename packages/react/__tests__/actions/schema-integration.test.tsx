@@ -2,7 +2,7 @@
  * @fileoverview Tests for Zod Schema Integration with React ActionContext
  *
  * Tests that verify:
- * - Re-exports from @context-action/core work correctly
+ * - Protocol and schema contracts are consumed from @context-action/tool-protocol
  * - ActionContext with schema option works
  * - Validation in React component context
  * - Error handling with ActionValidationError
@@ -13,15 +13,21 @@ import React, { useCallback, useState } from 'react';
 import { z } from 'zod';
 import {
   createActionContext,
+} from '@context-action/react';
+import {
   defineAction,
   createActionSchema,
   createActionFactory,
+  zodToJsonSchema,
+} from '@context-action/tool-protocol';
+import {
   ActionValidationError,
   isActionValidationError,
-  zodToJsonSchema,
-} from '@context-action/react';
+} from '@context-action/core';
 import type {
   ActionPayloadMap,
+} from '@context-action/core';
+import type {
   UnifiedAction,
   ActionSchemaMap,
   InferActionPayloadMap,
@@ -29,10 +35,10 @@ import type {
   MCPToolDefinition,
   OpenAIToolDefinition,
   AnthropicToolDefinition,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 
 describe('Schema Integration with React', () => {
-  describe('Re-exports from @context-action/core', () => {
+  describe('Tool protocol package contract', () => {
     it('should export defineAction', () => {
       expect(defineAction).toBeDefined();
       expect(typeof defineAction).toBe('function');

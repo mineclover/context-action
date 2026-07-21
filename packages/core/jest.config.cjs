@@ -8,6 +8,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@context-action/core$': '<rootDir>/src/index',
+    '^@context-action/tool-protocol$': '<rootDir>/../tool-protocol/src/index',
     '^(.+)\\.js$': '$1'
   },
   testMatch: [

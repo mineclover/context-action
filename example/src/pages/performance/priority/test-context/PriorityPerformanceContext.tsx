@@ -85,9 +85,7 @@ export interface PriorityPerformanceActions extends ActionPayloadMap {
 
 // Action Context 생성
 export const PriorityPerformanceActionContext =
-  createActionContext<PriorityPerformanceActions>({
-    name: 'PriorityPerformanceActions',
-  });
+  createActionContext<PriorityPerformanceActions>('PriorityPerformanceActions');
 
 // Store Context 생성
 // Store Context는 이미 PriorityPerformanceStores로 생성됨

@@ -1,8 +1,8 @@
+import type { ToolRegistry } from '@context-action/react';
 import {
   listAllTools,
   type ToolCallResult,
-  type ToolRegistry,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 import type { UIToolsActions } from './ui-tools-schema';
 
 export interface LocalUIToolchainResult {

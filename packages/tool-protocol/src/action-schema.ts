@@ -30,11 +30,11 @@ import type {
   MCPToolDefinition,
   OpenAIToolDefinition,
   ToolAnnotations,
-} from './json-schema';
+} from './json-schema.js';
 import {
   toAnthropicToolDefinition,
   toOpenAIToolDefinition,
-} from './tool-protocol';
+} from './tool-protocol.js';
 
 // ============================================
 // Type Aliases (Zod 4 호환)
@@ -197,13 +197,14 @@ export function zodToJsonSchema(
  * - Tool Chain 호환: toMCP(), toOpenAI(), toAnthropic()
  *
  * @param options - Action 정의 옵션
- * @param zodModule - Zod 모듈 (peerDependency로 주입)
+ * @param zodModule - Zod 모듈. Passing the caller's module keeps schema creation
+ *   bound to the same Zod instance used by the application.
  * @returns UnifiedAction 인스턴스
  *
  * @example
  * ```typescript
  * import { z } from 'zod';
- * import { defineAction } from '@context-action/core';
+ * import { defineAction } from '@context-action/tool-protocol';
  *
  * const updateUserAction = defineAction({
  *   name: 'updateUser',
@@ -236,6 +237,10 @@ export function defineAction<TSchema extends ZodRawShape>(
     parameters,
     outputSchema,
   } = options;
+
+  if (typeof name !== 'string' || !name.trim()) {
+    throw new TypeError('defineAction requires a non-empty action name.');
+  }
 
   // Zod → JSON Schema 변환
   const jsonSchema = zodToJsonSchema(parameters, zodModule);
@@ -316,6 +321,13 @@ export function defineAction<TSchema extends ZodRawShape>(
 export function createActionSchema<T extends Record<string, UnifiedAction>>(
   actions: T
 ): T {
+  for (const [key, action] of Object.entries(actions)) {
+    if (!action || typeof action.name !== 'string' || action.name !== key) {
+      throw new TypeError(
+        `createActionSchema key "${key}" must match the action name.`,
+      );
+    }
+  }
   return actions;
 }
 
@@ -334,7 +346,7 @@ export function createActionSchema<T extends Record<string, UnifiedAction>>(
  * @example
  * ```typescript
  * import { z } from 'zod';
- * import { createActionFactory } from '@context-action/core';
+ * import { createActionFactory } from '@context-action/tool-protocol';
  *
  * const defineAction = createActionFactory(z);
  *

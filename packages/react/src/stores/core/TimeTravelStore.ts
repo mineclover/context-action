@@ -202,16 +202,17 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     }
   }
 
-  update(updater: (current: T) => T | void): void {
+  update(updater: (current: T) => T | undefined): void {
     if (this.isDisposed) return;
 
     // Use TimeTravel's draft-based update
-    this.timeTravel.setState((draft): T | void => {
+    this.timeTravel.setState((draft): T | undefined => {
       const result = updater(draft as T);
       if (result !== undefined) {
         return result;
       }
       // When updater modifies draft in-place, return void (mutative handles this)
+      return undefined;
     });
   }
 

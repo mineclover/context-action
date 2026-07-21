@@ -6,7 +6,7 @@
  */
 
 import React, { Component, ReactNode, ErrorInfo } from 'react';
-import { ErrorHandlers, getErrorStatistics, type ContextActionError } from '../utils/error-handling';
+import { ContextActionError, ErrorHandlers, getErrorStatistics } from '../utils/error-handling';
 
 /**
  * Store Error Boundary Props
@@ -52,8 +52,7 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
 
   static getDerivedStateFromError(error: Error): Partial<StoreErrorBoundaryState> {
     // Context-Action 에러인지 확인
-    const isContextActionError = error instanceof Error && error.name === 'ContextActionError';
-    const contextActionError = isContextActionError ? (error as any) : null;
+    const contextActionError = error instanceof ContextActionError ? error : null;
 
     return {
       hasError: true,
@@ -64,9 +63,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Context-Action 에러 시스템으로 에러 로깅
-    if (error.name === 'ContextActionError') {
+    if (error instanceof ContextActionError) {
       // 이미 처리된 ContextActionError
-      const contextActionError = error as any;
+      const contextActionError = error;
       this.setState({ errorInfo });
       
       // 사용자 정의 onError 콜백 호출
@@ -100,11 +99,11 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     // props 변경 시 에러 상태 리셋
     if (hasError && resetOnPropsChange) {
       if (resetKeys) {
-        const hasResetKeyChanged = resetKeys.some(key => {
-          const prevKey = (prevProps as any)[key];
-          const currentKey = (this.props as any)[key];
-          return prevKey !== currentKey;
-        });
+        const previousResetKeys = prevProps.resetKeys;
+        const hasResetKeyChanged =
+          previousResetKeys === undefined ||
+          previousResetKeys.length !== resetKeys.length ||
+          resetKeys.some((key, index) => !Object.is(key, previousResetKeys[index]));
 
         if (hasResetKeyChanged) {
           this.resetErrorBoundary();

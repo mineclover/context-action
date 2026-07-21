@@ -12,7 +12,9 @@
     "types": ["jest", "node"],
     "paths": {
       "@context-action/core": ["../src/index"],
-      "@context-action/core/*": ["../src/*"]
+      "@context-action/core/*": ["../src/*"],
+      "@context-action/tool-protocol": ["../../tool-protocol/src/index"],
+      "@context-action/tool-protocol/*": ["../../tool-protocol/src/*"]
     }
   },
   "include": [

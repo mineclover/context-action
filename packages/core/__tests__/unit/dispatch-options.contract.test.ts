@@ -203,27 +203,22 @@ describe('DispatchOptions runtime contract', () => {
     await register.destroyAsync();
   });
 
-  it('supports options-first and explicit-undefined void action proxies', async () => {
-    const legacyOptionsHandler = jest.fn();
+  it('requires explicit undefined for void action proxy options', async () => {
     const explicitOptionsHandler = jest.fn();
-    register.register('nestedOuter', legacyOptionsHandler, { blocking: true });
     register.register('nestedInner', explicitOptionsHandler, { blocking: true });
 
-    await register.actions.nestedOuter({ throttle: 10_000 });
-    await register.actions.nestedOuter({ throttle: 10_000 });
     await register.actions.nestedInner(undefined, { throttle: 10_000 });
     await register.actions.nestedInner(undefined, { throttle: 10_000 });
 
-    expect(legacyOptionsHandler).toHaveBeenCalledTimes(1);
     expect(explicitOptionsHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('applies options-first calls through the result proxy', async () => {
+  it('applies options through the result proxy after an explicit undefined payload', async () => {
     register.register<'nestedOuter', string>('nestedOuter', () => 'proxy-result', {
       blocking: true,
     });
 
-    const result = await register.actionsWithResult.nestedOuter({
+    const result = await register.actionsWithResult.nestedOuter(undefined, {
       result: { collect: true, strategy: 'first' },
     });
 

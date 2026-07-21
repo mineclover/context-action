@@ -1,3 +1,4 @@
+import type { DurableSideEffectRunner } from '@context-action/tool-durable-operations';
 import type { ReactNode } from 'react';
 import { useBoltStyleToolHandler } from './bolt-style-tool-context';
 import {
@@ -22,6 +23,14 @@ import {
 } from './workspace';
 import { WorkspaceToolError } from './workspace-errors';
 import type { WorkspaceFileSystemAdapter } from './workspace-filesystem';
+import {
+  createWorkspaceSideEffectIdentity,
+  createWorkspaceSideEffectKey,
+  type WorkspaceSideEffectDiagnostic,
+  type WorkspaceSideEffectOperation,
+  type WorkspaceSideEffectResult,
+  type WorkspaceSideEffectRunResult,
+} from './workspace-side-effects';
 
 function createPreviewTargetError(
   message: string,
@@ -77,11 +86,18 @@ function createWorkspaceFolderStateError(
 export function ToolHandlers({
   workspace,
   fileSystemAdapter,
+  sideEffectRunner,
   onPreviewRefresh,
   children,
 }: {
   workspace: BrowserWorkspace;
   fileSystemAdapter: WorkspaceFileSystemAdapter;
+  sideEffectRunner:
+    | DurableSideEffectRunner<
+        WorkspaceSideEffectResult,
+        WorkspaceSideEffectDiagnostic
+      >
+    | undefined;
   onPreviewRefresh: () => void;
   children: ReactNode;
 }) {
@@ -90,6 +106,126 @@ export function ToolHandlers({
   };
   const workspaceResultMeta = (snapshot = workspace.getSnapshot()) => {
     return createWorkspaceResultMeta(snapshot);
+  };
+
+  const runFolderSideEffect = async ({
+    operation,
+    path,
+    source,
+    scopeId,
+    revision,
+    signal,
+    execute,
+  }: {
+    operation: WorkspaceSideEffectOperation;
+    path: string;
+    source?: string;
+    scopeId?: string;
+    revision: number;
+    signal?: AbortSignal;
+    execute: () => Promise<void>;
+  }): Promise<WorkspaceSideEffectRunResult> => {
+    if (!sideEffectRunner || !scopeId) {
+      throw new WorkspaceToolError(
+        'Durable folder-save state or destination scope is unavailable in this browser runtime.',
+        {
+          code: 'WORKSPACE_DURABLE_STATE_UNAVAILABLE',
+          retryable: true,
+          details: { operation, path, revision, scopeId },
+        }
+      );
+    }
+    const key = createWorkspaceSideEffectKey(
+      scopeId,
+      revision,
+      operation,
+      path
+    );
+    const identity = await createWorkspaceSideEffectIdentity(
+      operation,
+      path,
+      source
+    );
+    try {
+      return await sideEffectRunner.run({
+        key,
+        fingerprint: identity.fingerprint,
+        signal,
+        abortDiagnostic: {
+          operation,
+          path,
+          scopeId,
+          revision,
+          ...(source === undefined ? {} : { sourceLength: source.length }),
+          ...(identity.sourceHash === undefined
+            ? {}
+            : { sourceHash: identity.sourceHash }),
+        },
+        execute: async () => {
+          await execute();
+          return { state: 'completed', result: { operation, path } };
+        },
+        onError: (error) => ({
+          state: 'unknown',
+          reason: error instanceof Error ? error.message : String(error),
+          diagnostic: {
+            operation,
+            path,
+            scopeId,
+            revision,
+            ...(source === undefined ? {} : { sourceLength: source.length }),
+            ...(identity.sourceHash === undefined
+              ? {}
+              : { sourceHash: identity.sourceHash }),
+          },
+        }),
+      });
+    } catch (error) {
+      throw new WorkspaceToolError(
+        'Durable folder-save state could not be persisted. Retry only after the durable store is available.',
+        {
+          code: 'WORKSPACE_DURABLE_STATE_UNAVAILABLE',
+          retryable: true,
+          details: {
+            operation,
+            path,
+            scopeId,
+            revision,
+            reason: error instanceof Error ? error.message : String(error),
+          },
+        }
+      );
+    }
+  };
+
+  const throwForFolderSideEffect = (
+    result: WorkspaceSideEffectRunResult,
+    operation: WorkspaceSideEffectOperation,
+    path: string,
+    revision: number
+  ): void => {
+    if (result.state === 'completed' || result.state === 'replayed') {
+      return;
+    }
+    if (result.state === 'cancelled') {
+      throw new Error('Folder save cancelled.');
+    }
+    throw new WorkspaceToolError(
+      `Folder ${operation} for ${path} did not reach a confirmed outcome. ${result.reason ?? 'Reconcile the connected folder before retrying.'}`,
+      {
+        code: 'WORKSPACE_SIDE_EFFECT_UNKNOWN',
+        retryable: result.state === 'pending',
+        details: {
+          operation,
+          path,
+          revision,
+          state: result.state,
+          reason: result.reason,
+          diagnostic: result.diagnostic,
+          operationKey: result.operation?.key,
+        },
+      }
+    );
   };
 
   useBoltStyleToolHandler('workspace.getStatus', () => {
@@ -354,6 +490,7 @@ export function ToolHandlers({
       }
       if (controller.signal?.aborted) throw new Error('Save cancelled.');
       const saveRevision = workspace.getSnapshot().revision;
+      const folderScopeId = fileSystemAdapter.folderScopeId;
       const dirtyFiles = workspace.getDirtyFiles();
       const deletedPaths = workspace.getDeletedPaths();
       if (dirtyFiles.length === 0 && deletedPaths.length === 0) {
@@ -378,8 +515,22 @@ export function ToolHandlers({
               'save'
             );
           }
-          await fileSystemAdapter.writeFiles([file]);
-          if (controller.signal?.aborted) throw new Error('Save cancelled.');
+          const sideEffect = await runFolderSideEffect({
+            operation: 'write',
+            path: file.path,
+            source: file.source,
+            scopeId: folderScopeId,
+            revision: saveRevision,
+            signal: controller.signal,
+            execute: () =>
+              fileSystemAdapter.writeFiles([file]).then(() => undefined),
+          });
+          throwForFolderSideEffect(
+            sideEffect,
+            'write',
+            file.path,
+            saveRevision
+          );
           if (
             !(await workspace.markFileSavedIfRevision(file.path, saveRevision))
           ) {
@@ -402,8 +553,16 @@ export function ToolHandlers({
               'save'
             );
           }
-          await fileSystemAdapter.removeFiles([path]);
-          if (controller.signal?.aborted) throw new Error('Save cancelled.');
+          const sideEffect = await runFolderSideEffect({
+            operation: 'delete',
+            path,
+            scopeId: folderScopeId,
+            revision: saveRevision,
+            signal: controller.signal,
+            execute: () =>
+              fileSystemAdapter.removeFiles([path]).then(() => undefined),
+          });
+          throwForFolderSideEffect(sideEffect, 'delete', path, saveRevision);
           if (
             !(await workspace.markDeletedPathSavedIfRevision(
               path,

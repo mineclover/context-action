@@ -1,4 +1,4 @@
-import { listAllTools } from '@context-action/react';
+import { listAllTools } from '@context-action/tool-protocol';
 import type { BoltStyleRegistry } from '../bolt-style-tool-context';
 import {
   buildLocalAgentPlan,

@@ -448,6 +448,18 @@ export function useLiveEditorWorkspaceActions({
     workspaceRepository,
   ]);
 
+  const reconcileRecoveredPaths = useCallback(
+    (paths: readonly string[]) => {
+      for (const path of paths) {
+        const file = workspaceManager
+          .getSnapshot()
+          .files.find((candidate) => candidate.path === path);
+        workspaceManager.markSaved(path, file?.source);
+      }
+    },
+    [workspaceManager]
+  );
+
   const activeFile = workspaceSnapshot.files.find(
     (file) => file.path === workspaceSnapshot.activePath
   );
@@ -464,6 +476,7 @@ export function useLiveEditorWorkspaceActions({
       selectPath,
       saveWorkspaceFile,
       saveAllWorkspaceFiles,
+      reconcileRecoveredPaths,
       flushPendingPersistence,
     },
   };

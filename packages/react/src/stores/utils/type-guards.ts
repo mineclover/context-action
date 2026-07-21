@@ -16,15 +16,18 @@ export interface RefState {
 }
 
 export function isRefState(value: unknown): value is RefState {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    'target' in value &&
-    'isReady' in value &&
-    'isMounted' in value &&
-    'mountPromise' in value &&
-    typeof (value as any).isReady === 'boolean' &&
-    typeof (value as any).isMounted === 'boolean'
+    'target' in candidate &&
+    'isReady' in candidate &&
+    'isMounted' in candidate &&
+    'mountPromise' in candidate &&
+    typeof candidate.isReady === 'boolean' &&
+    typeof candidate.isMounted === 'boolean'
   );
 }
 
@@ -39,10 +42,12 @@ export function isDOMEvent(value: unknown): value is Event {
  * Event-like 객체인지 확인하는 타입 가드 (preventDefault 메서드를 가진 객체)
  */
 export function isEventLike(value: unknown): value is { preventDefault: () => void } {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as any).preventDefault === 'function'
+    typeof (value as Record<string, unknown>).preventDefault === 'function'
   );
 }
 
@@ -88,7 +93,7 @@ export function isSuspiciousEventObject(value: unknown, checkNested = true): boo
   // Check nested objects if enabled
   if (checkNested) {
     for (const key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) {
+      if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
         const nestedValue = value[key];
         if (isEventLikeObject(nestedValue)) {
           return true;
@@ -113,7 +118,7 @@ function isEventLikeObject(value: unknown): boolean {
   const isEvent = isDOMEvent(value);
   
   // Check for event-like properties that indicate this might be an event object
-  const hasEventType = 'type' in value && typeof (value as any).type === 'string';
+  const hasEventType = 'type' in value && typeof value.type === 'string';
   const hasEventProperties = hasEventType && (hasEventTarget || hasPreventDefault);
   
   // Check for React synthetic event markers
@@ -145,7 +150,7 @@ export function findProblematicProperties(value: unknown): string[] {
   const problematicKeys: string[] = [];
   
   for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
       const prop = value[key];
       if (isDOMElement(prop) || isDOMEvent(prop) || (isObject(prop) && hasTargetProperty(prop))) {
         problematicKeys.push(key);

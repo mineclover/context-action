@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import type { WorkspaceFileSystemAdapter } from '../../../lib/live-code-editor-filesystem';
 import { formatLiveEditorTraceId } from '../../../lib/live-editor-trace';
 import { formatModelName } from '../../../lib/openrouter-models';
 import {
@@ -13,7 +14,13 @@ import { useLiveEditorTraceActions } from './actions/useLiveEditorTraceActions';
 import { useLiveEditorTrace } from './hooks/useLiveEditorObservables';
 import styles from './LiveCodeEditorPage.module.css';
 
-export function LiveEditorAIToolbar() {
+export function LiveEditorAIToolbar({
+  filesystemAdapter,
+  onRecoveredPaths,
+}: {
+  readonly filesystemAdapter: WorkspaceFileSystemAdapter;
+  readonly onRecoveredPaths?: (paths: readonly string[]) => void;
+}) {
   const trace = useLiveEditorTrace();
   const providerSettings = useLiveEditorProviderSettings();
   const traceActions = useLiveEditorTraceActions(trace);
@@ -37,7 +44,10 @@ export function LiveEditorAIToolbar() {
     }
   }, [traceSessionFilter, traceSessionOptions]);
   const [prompt, setPrompt] = useState('');
-  const toolActions = useLiveEditorToolActions();
+  const toolActions = useLiveEditorToolActions({
+    filesystemAdapter,
+    onRecoveredPaths,
+  });
   const agentExecution = useLiveEditorAgentExecution({
     apiKey: providerSettings.apiKey,
     selectedModel: providerSettings.selectedModel,
@@ -150,6 +160,13 @@ export function LiveEditorAIToolbar() {
         <button
           type="button"
           className={styles.localCallButton}
+          onClick={() => void commands.recoverLastSave()}
+        >
+          Recover last editor.saveFile from folder
+        </button>
+        <button
+          type="button"
+          className={styles.localCallButton}
           onClick={() => void commands.runLocalMutation()}
         >
           Run local mutation + iframe acknowledgement
@@ -198,6 +215,11 @@ export function LiveEditorAIToolbar() {
         {results.localSaveAllResult && (
           <code className={styles.localCallResult}>
             {results.localSaveAllResult}
+          </code>
+        )}
+        {results.localSaveRecoveryResult && (
+          <code className={styles.localCallResult}>
+            {results.localSaveRecoveryResult}
           </code>
         )}
         {results.localMutationResult && (

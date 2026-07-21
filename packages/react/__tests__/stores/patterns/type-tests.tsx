@@ -169,11 +169,10 @@ const NewActionContextAPI = createActionContext<TestActions>('TestActions', {
 });
 
 /**
- * ✅ CORRECT: Legacy API with config only
- * 레거시 API - 설정 객체만
+ * ✅ CORRECT: Explicit context name with config
+ * 명시적 context name + 설정 객체
  */
-const LegacyActionContextAPI = createActionContext<TestActions>({
-  name: 'LegacyTestActions',
+const ConfiguredActionContextAPI = createActionContext<TestActions>('ConfiguredTestActions', {
   registry: {
     debug: false
   }
@@ -292,7 +291,7 @@ export {
   TypeInferenceWithConfig,
   TypeInferenceComplex,
   NewActionContextAPI,
-  LegacyActionContextAPI,
+  ConfiguredActionContextAPI,
   TestComponent,
   typeValidationTests
 };
@@ -312,7 +311,7 @@ export {
  * 
  * ✅ Action Context Tests:
  * - New API: createActionContext<T>(contextName, config?)
- * - Legacy API: createActionContext<T>(config)
+ * - Configured API: createActionContext<T>(contextName, config)
  * 
  * ✅ Integration Tests:
  * - Hook usage patterns

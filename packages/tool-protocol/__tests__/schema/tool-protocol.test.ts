@@ -96,6 +96,51 @@ describe('tool protocol context', () => {
         error: { code: '', message: 'missing code' },
       })
     ).toBe(false);
+    expect(
+      isToolCallResult({
+        content: [{ type: 'text', text: 'failed' }],
+        isError: true,
+      })
+    ).toBe(false);
+    expect(
+      isToolCallResult({
+        content: [{ type: 'text', text: 'failed' }],
+        isError: false,
+        error: { code: 'TOOL_EXECUTION_FAILED', message: 'failed' },
+      })
+    ).toBe(false);
+
+    expect(
+      isToolCallRequest({
+        id: 0,
+        method: 'tools/call',
+        params: { name: 'workspace.readFile' },
+      })
+    ).toBe(true);
+    expect(
+      isToolCallRequest({
+        id: Number.NaN,
+        method: 'tools/call',
+        params: { name: 'workspace.readFile' },
+      })
+    ).toBe(false);
+    expect(
+      isToolCallResult({
+        toolCallId: Number.POSITIVE_INFINITY,
+        content: [],
+      })
+    ).toBe(false);
+    expect(
+      isToolCallResult({
+        content: [],
+        isError: true,
+        error: {
+          code: 'TOOL_EXECUTION_FAILED',
+          message: 'failed',
+          retryable: 'yes',
+        },
+      })
+    ).toBe(false);
   });
 
   it('guards approval metadata without coupling the approval surface to execution', () => {
@@ -292,6 +337,12 @@ describe('tool protocol context', () => {
     expect(() => listAllTools(malformedManager)).toThrow(
       'Invalid tools/list result'
     );
+
+    expect(() => listAllTools({
+      listTools: () => ({ tools: [], nextCursor: 'next' }),
+    }, { maxPages: 1 })).toThrow('page limit exceeded');
+    expect(() => listAllTools({ listTools: () => ({ tools: [] }) }, { maxPages: 0 }))
+      .toThrow('maxPages');
   });
 
   it('converts the canonical tools/list definitions without dropping schema constraints', () => {
@@ -374,11 +425,19 @@ describe('tool protocol context', () => {
       RESULT_VALIDATION_FAILED: 'TOOL_RESULT_VALIDATION_FAILED',
       POLICY_DENIED: 'TOOL_POLICY_DENIED',
       APPROVAL_REQUIRED: 'TOOL_APPROVAL_REQUIRED',
+      TIMEOUT: 'TOOL_TIMEOUT',
+      INVALID_OPTIONS: 'TOOL_INVALID_OPTIONS',
+      IDEMPOTENCY_CONFLICT: 'TOOL_IDEMPOTENCY_CONFLICT',
+      IDEMPOTENCY_PENDING: 'TOOL_IDEMPOTENCY_PENDING',
+      IDEMPOTENCY_UNKNOWN: 'TOOL_IDEMPOTENCY_UNKNOWN',
+      IDEMPOTENCY_STORE_FAILED: 'TOOL_IDEMPOTENCY_STORE_FAILED',
       EXECUTION_FAILED: 'TOOL_EXECUTION_FAILED',
     });
     expect(createToolCallError('failed').error?.code).toBe(
       TOOL_CALL_ERROR_CODES.EXECUTION_FAILED
     );
+    expect(() => createToolCallError('')).toThrow('non-empty message');
+    expect(() => createToolCallError(42 as never)).toThrow('non-empty message');
   });
 
   it('reads optional structured metadata from handler errors', () => {
@@ -393,5 +452,38 @@ describe('tool protocol context', () => {
       retryable: true,
       details: { expectedRevision: 3, currentRevision: 4 },
     });
+
+    expect(getToolCallErrorMetadata({ code: ' ', retryable: 'yes' })).toEqual({});
+    expect(getToolCallErrorMetadata('plain failure')).toEqual({});
+  });
+
+  it('keeps approval IDs unique when duplicate tool-call IDs are pending', async () => {
+    const queue = createToolApprovalQueue({ idPrefix: 'duplicate' });
+    const request = {
+      id: 'same-call',
+      method: 'tools/call' as const,
+      params: { name: 'workspace.writeFile', arguments: { path: 'a.ts' } },
+    };
+    const definition = {
+      name: 'workspace.writeFile',
+      inputSchema: { type: 'object' as const },
+    };
+
+    const first = queue.request({ request, definition });
+    const second = queue.request({ request, definition });
+    const pending = queue.store.getSnapshot();
+
+    expect(pending).toHaveLength(2);
+    expect(new Set(pending.map(({ id }) => id)).size).toBe(2);
+    expect(pending.map(({ toolCallId }) => toolCallId)).toEqual([
+      'same-call',
+      'same-call',
+    ]);
+
+    queue.resolve(pending[0]!.id, 'deny');
+    queue.resolve(pending[1]!.id, 'allow');
+    await expect(first).resolves.toBe('allow');
+    await expect(second).resolves.toBe('deny');
+    expect(queue.store.getSnapshot()).toEqual([]);
   });
 });

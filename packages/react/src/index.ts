@@ -72,35 +72,6 @@ export type {
 export { ActionRegister } from '@context-action/core';
 
 // ==============================================
-// Zod Schema Integration (optional - requires zod peer dependency)
-// ==============================================
-
-// Re-export from @context-action/core for convenience
-export {
-  defineAction,
-  createActionSchema,
-  createActionFactory,
-  zodToJsonSchema,
-  ActionValidationError,
-  isActionValidationError,
-} from '@context-action/core';
-
-export type {
-  JSONSchema,
-  JSONSchemaType,
-  ToolAnnotations,
-  ToolDefinition,
-  MCPToolDefinition,
-  OpenAIToolDefinition,
-  AnthropicToolDefinition,
-  DefineActionOptions,
-  UnifiedAction,
-  ActionSchemaMap,
-  InferActionPayloadMap,
-  SafeParseResult,
-} from '@context-action/core';
-
-// ==============================================
 // Tool Context (LLM Tool Registry)
 // ==============================================
 
@@ -116,55 +87,6 @@ export type {
   ToolDispatchFunction,
   ToolDispatchWithResultReturn,
   ToolExecutionResult,
+  ToolOperationRecoveryResolver,
   ToolValidationMode,
 } from './tools/ToolContext.types';
-
-// Standard tool protocol contracts
-export type {
-  ToolCallErrorCode,
-  ToolCallErrorMetadata,
-  ModelToolCall,
-  ToolArguments,
-  ToolCallContext,
-  ToolApprovalSnapshot,
-  ToolApprovalDecision,
-  ToolApprovalQueue,
-  ToolApprovalQueueOptions,
-  ToolApprovalRequestInput,
-  ToolApprovalStore,
-  ToolCallSource,
-  ToolCallMode,
-  ToolCallError,
-  ToolCallEvent,
-  ToolCallId,
-  ToolCallOptions,
-  ToolCallRequest,
-  ToolCallResult,
-  ToolListRequest,
-  ToolListRequestOptions,
-  ToolListResult,
-  ToolManagementInterface,
-  ToolCallObserver,
-  ToolContent,
-  ToolJsonContent,
-  ToolTextContent,
-} from '@context-action/core';
-export {
-  createToolApprovalQueue,
-  getToolCallErrorMetadata,
-  isToolApprovalSnapshot,
-  isToolCallRequest,
-  isToolCallResult,
-  isToolListRequest,
-  isToolListResult,
-  listAllTools,
-  stringifyToolContent,
-  stringifyToolContentBlock,
-  TOOL_CALL_ERROR_CODES,
-  toAnthropicToolDefinition,
-  toAnthropicToolDefinitions,
-  toOpenAIToolDefinition,
-  toOpenAIToolDefinitions,
-  toToolCallRequest,
-  toToolListRequest,
-} from '@context-action/core';

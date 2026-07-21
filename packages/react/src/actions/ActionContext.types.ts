@@ -5,16 +5,16 @@
  * Only includes types that are actually used in ActionContext.tsx implementation.
  */
 
-import { ReactNode } from 'react';
 import {
   ActionRegister,
-  HandlerConfig,
   ActionRegisterConfig,
   DispatchOptions,
   ExecutionResult,
-  ActionSchemaMap,
+  HandlerConfig,
   PipelineController,
 } from '@context-action/core';
+import type { ActionSchemaMap } from '@context-action/tool-protocol';
+import { ReactNode } from 'react';
 
 /**
  * Inlined handler shape keeps callback contextual typing intact in the
@@ -42,10 +42,7 @@ export type ActionContextHandler<T, R = void> = (
  * });
  * ```
  */
-export interface ActionContextConfig extends ActionRegisterConfig {
-  /** Name identifier for this ActionRegister instance */
-  name?: string;
-
+export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> {
   /**
    * Action schema map for runtime payload validation
    * When provided, enables Zod-based validation on dispatch
@@ -69,6 +66,7 @@ export interface ProviderDispatchLifecycle {
     operation: (signal: AbortSignal) => Promise<R>
   ): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
+  // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
   shutdown(register: ActionRegister<any>): Promise<void>;
 }
 

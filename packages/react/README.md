@@ -17,9 +17,9 @@ React integration for the Context-Action framework - providing React hooks, comp
 ### Installation
 
 ```bash
-npm install @context-action/react @context-action/core
+npm install @context-action/react @context-action/core @context-action/tool-protocol
 # or
-pnpm add @context-action/react @context-action/core
+pnpm add @context-action/react @context-action/core @context-action/tool-protocol
 ```
 
 ### Basic Usage
@@ -95,8 +95,8 @@ function App() {
 
 ## ToolContext: MCP and function-calling usecase
 
-`createToolContext()` is the React management surface for the same canonical
-protocol defined by `@context-action/core`:
+`createToolContext()` is the React management surface for the canonical
+protocol defined by `@context-action/tool-protocol`:
 
 ```text
 tools/list → model tool call → tools/call → tool result
@@ -109,9 +109,11 @@ approval and schema validation inside the ToolContext boundary.
 import { useCallback, useMemo } from 'react';
 import {
   createToolContext,
+} from '@context-action/react';
+import {
   isToolCallResult,
   listAllTools,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 import { studioToolSchema } from './studio-tool-schema';
 
 const StudioTools = createToolContext('StudioTools', {
@@ -159,6 +161,23 @@ command action. Model and MCP calls should use `mode: 'agent'` so the same
 policy, revision checks, lifecycle trace, and structured error result apply to
 every mutation path. The reusable browser convention and complete usecases are
 documented in [`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
+
+`callTool()` and `executeModelToolCall()` accept a wall-clock `timeout` and
+`createToolContext()` can receive a durable operation store from
+`@context-action/tool-durable-operations`. The precise timeout,
+cancellation, idempotency, and recovery outcomes are defined by the linked
+semantic guide rather than repeated in this package quick start.
+
+The complete timeout, retry, abort-drain, idempotency, and durable-operation
+contract is maintained in the [Tool-calling editor architecture
+guide](../../docs/en/concept/tool-calling-editor-architecture.md). This README
+only documents the package API entry point; durable behavior across reloads or
+processes remains application-owned. Install the dedicated package when using
+`durableOperationStore`:
+
+```bash
+pnpm add @context-action/tool-durable-operations
+```
 
 ## Core Patterns
 
@@ -257,8 +276,8 @@ function OptimizedComponent() {
 ## Essential Hooks (Must Learn)
 
 ### Factory Functions
-- `createActionContext<T>()` - Creates type-safe action system
-- `createStoreContext()` - Creates type-safe store management
+- `createActionContext<T>(contextName, config?)` - Creates a named, type-safe action system
+- `createStoreContext(contextName, initialStores)` - Creates named, type-safe store management
 
 ### Core Hooks
 - `useStoreValue(store)` - Subscribe to store changes

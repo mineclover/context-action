@@ -1,5 +1,7 @@
 packages:
   - packages/core
+  - packages/tool-protocol
+  - packages/tool-durable-operations
   - packages/react
   - packages/mutative-core
   - packages/mutative

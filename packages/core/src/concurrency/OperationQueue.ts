@@ -4,7 +4,7 @@
  * 모든 상태 변경 작업을 직렬화하여 race condition을 방지합니다.
  */
 
-export interface QueuedOperation<T = any> {
+export interface QueuedOperation<T = unknown> {
   id: string;
   operation: () => T | Promise<T>;
   resolve: (value: T) => void;
@@ -32,7 +32,7 @@ export interface QueuedOperationHandle<T> {
  * 7. 🆕 이벤트 기반 처리 - 효율적인 큐 처리 시스템
  */
 export class OperationQueue {
-  private queue: QueuedOperation[] = [];
+  private queue: Array<QueuedOperation<unknown>> = [];
   private processingPromise: Promise<void> | null = null;
   private operationCounter = 0;
   
@@ -86,7 +86,7 @@ export class OperationQueue {
         }
       }
 
-      this.queue.splice(insertIndex, 0, queuedOperation);
+      this.queue.splice(insertIndex, 0, queuedOperation as unknown as QueuedOperation<unknown>);
 
       // 큐 처리 시작 (이미 처리 중이면 무시됨)
       if (this.processingPromise) {
@@ -99,7 +99,7 @@ export class OperationQueue {
     return {
       promise,
       cancel: (reason = new Error('Queue operation cancelled')) => {
-        const index = this.queue.indexOf(queuedOperation);
+        const index = this.queue.indexOf(queuedOperation as unknown as QueuedOperation<unknown>);
         if (index === -1) return false;
 
         this.queue.splice(index, 1);
@@ -158,7 +158,7 @@ export class OperationQueue {
   /**
    * 🆕 개별 작업을 시작하고 완료를 추적
    */
-  private startOperation<T>(operation: QueuedOperation<T>): void {
+  private startOperation(operation: QueuedOperation<unknown>): void {
     this.activeOperations++;
 
     // 비동기로 작업 실행
@@ -202,7 +202,7 @@ export class OperationQueue {
   /**
    * 🆕 개별 작업 실행 로직
    */
-  private async executeOperation<T>(operation: QueuedOperation<T>): Promise<void> {
+  private async executeOperation(operation: QueuedOperation<unknown>): Promise<void> {
     try {
       // 작업 실행 (동기/비동기 모두 지원)
       const result = await Promise.resolve(operation.operation());

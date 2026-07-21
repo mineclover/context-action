@@ -160,7 +160,7 @@ export interface IStore<T = unknown> {
   setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
   
   /** Update store value with function (for functional updates, supports draft mutations) */
-  update: (updater: (current: T) => T | void) => void;
+  update: (updater: (current: T) => T | undefined) => void;
   
   /** Get current value directly (for action handlers) */
   getValue: () => T;
@@ -308,7 +308,7 @@ export interface HookOptions<T> {
   /** 기본값 */
   defaultValue?: T;
   /** Enhanced error handler with retry capability */
-  onError?: (error: Error, retryCount?: number) => void | boolean;
+  onError?: (error: Error, retryCount?: number) => undefined | boolean;
   /** React useEffect 의존성 */
   dependencies?: React.DependencyList;
   /** Enable automatic error recovery */

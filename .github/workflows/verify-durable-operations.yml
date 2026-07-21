@@ -1,0 +1,136 @@
+name: Verify Durable Operation Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment containing the protected durable-operation endpoints
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: durable-operation-verification-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    name: Verify ${{ inputs.environment }} durable-operation endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: durable-${{ inputs.environment }}
+    env:
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DURABLE_OPERATION_ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Validate durable-operation workflow contract
+        run: pnpm tool-durable:verify:workflow
+
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare evidence directory
+        run: mkdir -p reports/durable-operation/raw reports/durable-operation/evidence
+
+      - name: Validate durable-operation endpoint configuration
+        id: preflight
+        run: |
+          set -o pipefail
+          pnpm tool-durable:verify:env 2>&1 | tee reports/durable-operation/raw/preflight.log
+
+      - name: Verify Redis endpoint
+        id: redis
+        run: |
+          set -o pipefail
+          pnpm tool-durable:verify:redis 2>&1 | tee reports/durable-operation/raw/redis.log
+
+      - name: Verify Redis integration suite
+        id: integration
+        if: always()
+        run: |
+          set -o pipefail
+          pnpm --filter @context-action/tool-durable-operations test 2>&1 | tee reports/durable-operation/raw/integration.log
+
+      - name: Verify PostgreSQL endpoint
+        id: postgres
+        if: always()
+        run: |
+          set -o pipefail
+          pnpm tool-durable:verify:postgres 2>&1 | tee reports/durable-operation/raw/postgres.log
+
+      - name: Verify queue bridge contract fixture
+        id: queue
+        if: always()
+        run: |
+          set -o pipefail
+          pnpm tool-durable:verify:queue 2>&1 | tee reports/durable-operation/raw/queue.log
+
+      - name: Write sanitized protected evidence record
+        if: always()
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          OPERATOR: ${{ github.actor }}
+          STARTED_AT: ${{ github.run_started_at }}
+          PREFLIGHT_RESULT: ${{ steps.preflight.outcome }}
+          REDIS_RESULT: ${{ steps.redis.outcome }}
+          INTEGRATION_RESULT: ${{ steps.integration.outcome }}
+          POSTGRES_RESULT: ${{ steps.postgres.outcome }}
+          QUEUE_RESULT: ${{ steps.queue.outcome }}
+        run: |
+          COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          node packages/tool-durable-operations/scripts/write-verification-evidence.mjs \
+            --input reports/durable-operation/raw \
+            --output reports/durable-operation/evidence
+          pnpm tool-durable:verify:evidence \
+            --file reports/durable-operation/evidence/evidence.json
+          cat reports/durable-operation/evidence/evidence.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload protected evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: durable-operation-evidence-${{ inputs.environment }}-${{ github.run_id }}
+          path: reports/durable-operation/evidence
+          if-no-files-found: error
+          retention-days: 14

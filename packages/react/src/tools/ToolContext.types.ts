@@ -8,24 +8,34 @@
 import {
   ActionHandler,
   ActionRegister,
-  ActionSchemaMap,
-  AnthropicToolDefinition,
   DispatchOptions,
   ExecutionResult,
   HandlerConfig,
+} from '@context-action/core';
+import type {
+  ActionSchemaMap,
+  AnthropicToolDefinition,
   InferActionPayloadMap,
   MCPToolDefinition,
   ModelToolCall,
   OpenAIToolDefinition,
   ToolApprovalRequestInput,
+  ToolCallContext,
   ToolCallObserver,
   ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
+  ToolIdempotencyRegistryOptions,
   ToolListRequest,
   ToolListResult,
   ToolManagementInterface,
-} from '@context-action/core';
+  ToolObservabilityPolicy,
+} from '@context-action/tool-protocol';
+import type {
+  DurableOperationRecord,
+  DurableOperationResolution,
+  DurableOperationStore,
+} from '@context-action/tool-durable-operations';
 import { ReactNode } from 'react';
 import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
 
@@ -46,6 +56,15 @@ export type ToolPolicyInput = ToolApprovalRequestInput;
 export type ToolPolicy = (
   input: ToolPolicyInput
 ) => ToolPolicyDecision | Promise<ToolPolicyDecision>;
+
+/**
+ * Domain-owned decision used by `recoverOperation` after an unknown durable
+ * operation has been queried, compensated, or confirmed by the application.
+ */
+export type ToolOperationRecoveryResolver = (
+  record: DurableOperationRecord<ToolCallResult>,
+  context?: ToolCallContext
+) => DurableOperationResolution<ToolCallResult> | Promise<DurableOperationResolution<ToolCallResult>>;
 
 /**
  * Configuration options for createToolContext
@@ -82,6 +101,31 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
 
   /** Receives normalized tool lifecycle events for traces and audit UI. */
   onToolCall?: ToolCallObserver;
+
+  /** Stable logical owner recorded in tool-call execution provenance. */
+  executionOwnerId?: string;
+
+  /**
+   * Bounded in-memory replay guard for calls that provide idempotencyKey.
+   * Durable stores belong at the application/server mutation boundary.
+   */
+  idempotency?: ToolIdempotencyRegistryOptions;
+
+  /** Optional durable record store for cross-reload/process mutation recovery. */
+  durableOperationStore?: DurableOperationStore<ToolCallResult>;
+
+  /** Stable process/worker identity used for durable operation ownership. */
+  durableOperationOwnerId?: string;
+
+  /** Pending-operation lease duration. Defaults to five minutes. */
+  durableOperationLeaseMs?: number;
+
+  /**
+   * Policy used when durable failed/unknown diagnostics are projected.
+   * Create it with `createToolObservabilityPolicy()`; the shared default is
+   * used when omitted.
+   */
+  durableDiagnosticPolicy?: ToolObservabilityPolicy;
 }
 
 // ============================================
@@ -140,6 +184,38 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
     call: ModelToolCall,
     options?: ToolCallOptions
   ): Promise<ToolCallResult>;
+
+  /** Query a durable operation without starting or retrying its handler. */
+  getOperationStatus(
+    toolName: string,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+
+  /**
+   * Record a domain-confirmed outcome for an `unknown` durable operation.
+   * This does not invoke the tool handler or decide whether compensation is
+   * safe; the caller owns that domain decision.
+   */
+  reconcileOperation(
+    toolName: string,
+    idempotencyKey: string,
+    resolution: DurableOperationResolution<ToolCallResult>,
+    context?: ToolCallContext,
+    expectedRevision?: number
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+
+  /**
+   * Query an operation and invoke the resolver only for an unknown record.
+   * The resolver owns domain status checks and compensation; this method never
+   * starts the tool handler and reconciles with the observed revision.
+   */
+  recoverOperation(
+    toolName: string,
+    idempotencyKey: string,
+    resolver: ToolOperationRecoveryResolver,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
 }
 
 // ============================================

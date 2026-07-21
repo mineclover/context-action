@@ -10,7 +10,7 @@
  * 참조 가능한 객체의 기본 제약 조건
  * 사용자는 구체적인 타입 (HTMLElement, THREE.Object3D 등)을 직접 정의하세요
  */
-export type RefTarget = any;
+export type RefTarget = unknown;
 
 
 /**
@@ -36,13 +36,13 @@ export interface RefState<T extends RefTarget = RefTarget> {
   error?: Error | null;
   
   /** 추가 메타데이터 */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * 참조 작업의 결과
  */
-export interface RefOperationResult<T = any> {
+export interface RefOperationResult<T = unknown> {
   success: boolean;
   result?: T;
   error?: Error;
@@ -70,13 +70,13 @@ export interface RefOperationOptions {
   operationId?: string;
   
   /** 추가 메타데이터 */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * 참조 작업 함수 타입
  */
-export type RefOperation<T extends RefTarget, R = any> = (
+export type RefOperation<T extends RefTarget, R = unknown> = (
   target: T,
   options?: RefOperationOptions
 ) => R | Promise<R>;
@@ -89,7 +89,7 @@ export interface RefInitConfig<T extends RefTarget = RefTarget> {
   name: string;
   
   /** 초기 메타데이터 */
-  initialMetadata?: Record<string, any>;
+  initialMetadata?: Record<string, unknown>;
   
   /** 마운트 타임아웃 (ms) */
   mountTimeout?: number;
@@ -98,7 +98,7 @@ export interface RefInitConfig<T extends RefTarget = RefTarget> {
   autoCleanup?: boolean;
   
   /** 커스텀 validation 함수 */
-  validator?: (target: any) => target is T;
+  validator?: (target: unknown) => target is T;
   
   /** 커스텀 cleanup 함수 */
   cleanup?: (target: T) => void | Promise<void>;
@@ -107,6 +107,11 @@ export interface RefInitConfig<T extends RefTarget = RefTarget> {
 /**
  * 참조 정의 타입 - 여러 참조를 한 번에 정의
  */
+/**
+ * Definition maps intentionally erase the concrete target type at this
+ * boundary; `createRefContext` re-infers each entry through `InferRefTypes`.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: target erasure is required for heterogeneous ref definitions.
 export type RefDefinitions = Record<string, RefInitConfig<any>>;
 
 /**
@@ -126,7 +131,7 @@ export interface RefEvent<T extends RefTarget = RefTarget> {
   target?: T;
   error?: Error;
   timestamp: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -135,4 +140,3 @@ export interface RefEvent<T extends RefTarget = RefTarget> {
 export type RefEventListener<T extends RefTarget = RefTarget> = (
   event: RefEvent<T>
 ) => void;
-

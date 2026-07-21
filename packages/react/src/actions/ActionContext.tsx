@@ -1,9 +1,16 @@
-import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo, useCallback } from 'react';
-import {  ActionRegister, ActionHandler, HandlerConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
+import {
+  ActionHandler,
+  ActionRegister,
+  ActionRegisterConfig,
+  DispatchOptions,
+  ExecutionResult,
+  HandlerConfig,
+} from '@context-action/core';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useId, useMemo, useRef } from 'react';
 import type {
   ActionContextConfig,
-  ActionContextType,
   ActionContextReturn,
+  ActionContextType,
   ProviderDispatchLifecycle
 } from './ActionContext.types';
 
@@ -107,6 +114,7 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     });
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
   shutdown(register: ActionRegister<any>): Promise<void> {
     if (this.shutdownPromise) return this.shutdownPromise;
 
@@ -150,7 +158,8 @@ export function withProviderDispatchSignal(
  * Enhanced action context factory with automatic type inference
  * 
  * @template T Action payload map type for complete type safety
- * @param config - Configuration options for the ActionRegister
+ * @param contextName - Stable name used to identify this action context
+ * @param config - Optional configuration for the ActionRegister
  * @returns Object containing Provider, hooks, and utility functions
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/action/
@@ -160,35 +169,30 @@ export function withProviderDispatchSignal(
 // === UNIFIED ACTION CONTEXT SYSTEM ===
 // Factory-based action context with built-in abort support
 
-// Function overload for new API (contextName first)
+// Context name is explicit so registrations remain discoverable in source and
+// the public API has one unambiguous construction form.
 export function createActionContext<T extends {}>(
   contextName: string,
   config?: ActionContextConfig
 ): ActionContextReturn<T>;
 
-// Function overload for legacy API (config only)
-export function createActionContext<T extends {}>(
-  config: ActionContextConfig
-): ActionContextReturn<T>;
-
 // Implementation
 export function createActionContext<T extends {}>(
-  contextNameOrConfig: string | ActionContextConfig = {},
+  contextName: string,
   config?: ActionContextConfig
 ): ActionContextReturn<T> {
-  let effectiveConfig: ActionContextConfig;
-  let contextName: string;
-  
-  // Handle both API styles
-  if (typeof contextNameOrConfig === 'string') {
-    // New API: createActionContext<T>('ContextName', config?)
-    contextName = contextNameOrConfig;
-    effectiveConfig = { ...config, name: config?.name || contextName };
-  } else {
-    // Legacy API: createActionContext<T>({ name: 'ContextName', ...config })
-    effectiveConfig = contextNameOrConfig;
-    contextName = effectiveConfig.name || 'ActionContext';
+  if (typeof contextName !== 'string' || contextName.trim().length === 0) {
+    throw new TypeError(
+      'createActionContext requires a non-empty context name as its first argument.'
+    );
   }
+
+  let effectiveConfig: ActionContextConfig & Pick<ActionRegisterConfig, 'name'> = {
+    ...config,
+    // The positional name is canonical; a legacy config.name must not
+    // silently change the identity advertised by the factory call.
+    name: contextName,
+  };
 
   // 🆕 Merge schema option into registry.schema (shorthand support)
   if (effectiveConfig.schema && !effectiveConfig.registry?.schema) {

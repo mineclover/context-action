@@ -1,4 +1,7 @@
-import { stringifyToolContent, type ToolContent } from '@context-action/core';
+import {
+  stringifyToolContent,
+  type ToolContent,
+} from '@context-action/tool-protocol';
 
 export type ToolResultLike = {
   isError?: boolean;

@@ -1,4 +1,7 @@
-import type { ToolApprovalSnapshot, ToolCallId } from '@context-action/react';
+import type {
+  ToolApprovalSnapshot,
+  ToolCallId,
+} from '@context-action/tool-protocol';
 import type { RefObject } from 'react';
 import styles from './LiveCodeEditorPage.module.css';
 

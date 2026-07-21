@@ -1,12 +1,25 @@
 {
   "entryPoints": [
     "./packages/core/src/index.ts",
+    "./packages/tool-protocol/src/index.ts",
+    "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts"
   ],
   "tsconfig": "./tsconfig.json",
   "out": "./docs/api/generated",
   "plugin": ["typedoc-plugin-markdown"],
   "theme": "markdown",
+  "blockTags": [
+    "@defaultValue", "@deprecated", "@example", "@jsx", "@param",
+    "@privateRemarks", "@remarks", "@returns", "@see", "@throws",
+    "@typeParam", "@author", "@callback", "@category", "@categoryDescription",
+    "@default", "@document", "@extends", "@augments", "@yields", "@group",
+    "@groupDescription", "@import", "@inheritDoc", "@license", "@module",
+    "@mergeModuleWith", "@prop", "@property", "@return", "@satisfies", "@since",
+    "@sortStrategy", "@template", "@this", "@type", "@typedef", "@summary",
+    "@preventInline", "@inlineType", "@preventExpand", "@expandType",
+    "@implements", "@memberof"
+  ],
   "readme": "none",
   "excludePrivate": true,
   "excludeProtected": true,
@@ -17,6 +30,8 @@
   "categorizeByGroup": false,
   "categoryOrder": [
     "Core",
+    "Tool Protocol",
+    "Tool Durable Operations",
     "React",
     "*"
   ],
@@ -71,5 +86,10 @@
   "skipErrorChecking": true,
   "basePath": ".",
   "excludeExternals": true,
+  "externalSymbolLinkMappings": {
+    "@types/react": {
+      "React.NewLifecycle.getSnapshotBeforeUpdate": "#"
+    }
+  },
   "githubPages": false
 }
