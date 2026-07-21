@@ -142,3 +142,14 @@ export {
   normalizeWorkspacePath,
   selectWorkspaceActivePath,
 } from './workspace-model';
+export {
+  createWorkspaceSavePlan,
+  createWorkspaceSaveUnknownDetails,
+  hashWorkspaceSource,
+  readWorkspaceSavePlanDetails,
+  verifyWorkspaceSavePlan,
+  type WorkspaceSavePlanDetails,
+  type WorkspaceSavePlanFile,
+  type WorkspaceSavePlanFileReader,
+  type WorkspaceSavePlanInput,
+} from './workspace-save-plan';

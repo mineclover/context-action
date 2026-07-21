@@ -9,7 +9,9 @@ the browser filesystem adapter and its `WorkspaceFileSystemAdapter` port, and
 browser-independent path, source-limit, error, and active-file helpers. It also
 defines the async
 `WorkspaceRepository` boundary used by the stateful workspace manager without
-prescribing Dexie or another persistence engine.
+prescribing Dexie or another persistence engine. Its save-plan helpers create
+bounded per-file source digests for ambiguous multi-file writes; they never
+persist source text.
 
 `WorkspaceDocumentManager` owns document state, history, revision changes, and
 repository orchestration. The standalone demo supplies seed files and its
@@ -18,6 +20,17 @@ it also supplies the optional `DirectoryHandlePersistence` implementation.
 The package filesystem adapter accepts a browser directory handle, so IndexedDB
 and handle metadata remain application choices. The iframe runtime, ToolContext
 schema, provider loop, and editor views remain application boundaries.
+
+`WorkspaceFileSystemAdapter.readFile(path)` is a read-only reconciliation port
+for a connected folder. It returns the current external file when available
+and `undefined` when the path is absent; permission or folder failures remain
+typed `WorkspaceToolError` values. It is intentionally separate from the
+workspace manager snapshot so a recovery resolver can compare the external
+write with the source that the mutation attempted to persist.
+The optional `folderScopeId` identifies the connected destination across a
+folder restore; a durable filesystem mutation should include it in its
+idempotency key so two folders with the same path and workspace revision cannot
+replay each other's records.
 
 ## Context-Action integration boundary
 
@@ -117,6 +130,28 @@ boundary; the complete approval, schema, trace, and preview flow lives in the
 - **Recovery and audit:** return stable error codes and revision/storage
   metadata from handlers so the ToolContext policy, provider loop, retry UI, and
   trace can make the same decision.
+
+The example Live Code Editor injects an IndexedDB-backed
+`durableOperationStore` into its `createToolContext()` instance. Explicit
+`editor.saveFile` and `editor.saveAll` commands pass a stable idempotency key
+scoped to their session and path, so a same-session retry replays the durable
+record instead of writing the folder twice. A new user-intended save must create
+a new session/key pair. If a filesystem write reaches an `unknown` state, the
+application must query or manually confirm the folder outcome and call
+`registry.recoverOperation()`; it must not invoke the save handler again merely
+because the caller timed out. The example's direct `editor.saveFile` recovery
+action uses `readFile()` plus exact-source matching before recording completion.
+The multi-file `editor.saveAll` recovery action validates the stored digest
+manifest for every external file before recording completion. This is still an
+application reconciliation boundary, not a replacement for a downstream
+outbox.
+
+Applications that wrap individual connected-folder writes with
+`createDurableSideEffectRunner()` should surface `WORKSPACE_SIDE_EFFECT_UNKNOWN`
+when the File System Access API outcome is ambiguous, and
+`WORKSPACE_DURABLE_STATE_UNAVAILABLE` when the durable store cannot be opened.
+Neither code claims exactly-once filesystem semantics; both prevent a blind
+retry from being presented as a confirmed save.
 
 ## Verification
 

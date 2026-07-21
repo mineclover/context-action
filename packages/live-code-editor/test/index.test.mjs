@@ -3,11 +3,16 @@ import test from 'node:test';
 import {
   assertWorkspaceTextSourceLength,
   BrowserWorkspaceFileSystemAdapter,
+  createWorkspaceSavePlan,
+  createWorkspaceSaveUnknownDetails,
+  hashWorkspaceSource,
   isPreviewBridgeMessage,
   languageForWorkspacePath,
   MAX_TEXT_SOURCE_LENGTH,
   normalizeWorkspacePath,
+  readWorkspaceSavePlanDetails,
   selectWorkspaceActivePath,
+  verifyWorkspaceSavePlan,
   WorkspaceDocumentManager,
   WorkspaceToolError,
 } from '../dist/index.js';
@@ -75,6 +80,60 @@ test('keeps source limits and active-file selection framework-neutral', () => {
     (error) =>
       error instanceof WorkspaceToolError &&
       error.code === 'WORKSPACE_SOURCE_LIMIT'
+  );
+});
+
+test('creates bounded per-file save digests without persisting source text', async () => {
+  const plan = await createWorkspaceSavePlan([
+    { path: 'styles.css', source: 'body { color: red; }' },
+    { path: 'index.html', source: '<h1>Hello</h1>' },
+  ], 'editor.saveAll');
+
+  assert.deepEqual(plan.map(file => file.path), ['index.html', 'styles.css']);
+  assert.equal(plan[0].sourceLength, '<h1>Hello</h1>'.length);
+  assert.match(plan[0].sourceHash, /^(sha256|fnv1a32):/);
+  assert.notEqual(plan[0].sourceHash, plan[1].sourceHash);
+  assert.equal(await hashWorkspaceSource('<h1>Hello</h1>'), plan[0].sourceHash);
+});
+
+test('parses and validates ambiguous multi-file save details', async () => {
+  const plannedFiles = await createWorkspaceSavePlan([
+    { path: 'index.html', source: '<h1>Hello</h1>' },
+    { path: 'styles.css', source: 'body {}' },
+  ], 'editor.saveAll');
+  const details = createWorkspaceSaveUnknownDetails({
+    operation: 'editor.saveAll',
+    plannedFiles,
+    completedPaths: ['index.html'],
+    reason: 'folder write ended after the first file',
+  });
+
+  assert.deepEqual(readWorkspaceSavePlanDetails(details), details);
+  assert.equal(
+    readWorkspaceSavePlanDetails({
+      ...details,
+      plannedFiles: [{ ...details.plannedFiles[0], sourceLength: -1 }],
+    }),
+    undefined
+  );
+  assert.equal(
+    readWorkspaceSavePlanDetails({
+      ...details,
+      completedPaths: ['not-planned.txt'],
+    }),
+    undefined
+  );
+
+  await assert.doesNotReject(
+    verifyWorkspaceSavePlan(details, async path =>
+      path === 'index.html' ? '<h1>Hello</h1>' : 'body {}'
+    )
+  );
+  await assert.rejects(
+    verifyWorkspaceSavePlan(details, async path =>
+      path === 'index.html' ? '<h1>Changed</h1>' : 'body {}'
+    ),
+    /does not match the external files/
   );
 });
 
@@ -302,4 +361,112 @@ test('imports a readonly File array for non-DOM consumers', async () => {
       mimeType: 'text/html',
     },
   ]);
+});
+
+test('reads a connected folder file for external operation reconciliation', async () => {
+  const files = new Map([
+    ['index.html', new File(['<h1>Saved</h1>'], 'index.html', { type: 'text/html' })],
+  ]);
+  const fileHandle = name => ({
+    kind: 'file',
+    name,
+    async getFile() {
+      const file = files.get(name);
+      if (!file) {
+        const error = new Error(`Missing file: ${name}`);
+        error.name = 'NotFoundError';
+        throw error;
+      }
+      return file;
+    },
+  });
+  const directoryHandle = {
+    kind: 'directory',
+    name: 'workspace',
+    async *entries() {
+      for (const [name] of files) yield [name, fileHandle(name)];
+    },
+    async getDirectoryHandle(name) {
+      const error = new Error(`Missing directory: ${name}`);
+      error.name = 'NotFoundError';
+      throw error;
+    },
+    async getFileHandle(name) {
+      return fileHandle(name);
+    },
+  };
+  const adapter = new BrowserWorkspaceFileSystemAdapter();
+  await adapter.importDirectoryHandle(directoryHandle);
+
+  assert.equal((await adapter.readFile('index.html')).source, '<h1>Saved</h1>');
+  assert.equal(await adapter.readFile('missing.html'), undefined);
+});
+
+test('persists a destination scope across folder restore and clears it on disconnect', async () => {
+  let persistedHandle;
+  let persistedScopeId;
+  const persistence = {
+    async getDirectoryHandle() {
+      return persistedHandle;
+    },
+    async setDirectoryHandle(handle) {
+      persistedHandle = handle;
+    },
+    async clearDirectoryHandle() {
+      persistedHandle = undefined;
+    },
+    async getDirectoryScopeId() {
+      return persistedScopeId;
+    },
+    async setDirectoryScopeId(scopeId) {
+      persistedScopeId = scopeId;
+    },
+    async clearDirectoryScopeId() {
+      persistedScopeId = undefined;
+    },
+  };
+  const directoryHandle = {
+    kind: 'directory',
+    name: 'scoped-workspace',
+    async *entries() {
+      yield [
+        'index.html',
+        {
+          kind: 'file',
+          name: 'index.html',
+          async getFile() {
+            return new File(['<h1>Scoped</h1>'], 'index.html', {
+              type: 'text/html',
+            });
+          },
+        },
+      ];
+    },
+    async getDirectoryHandle(name) {
+      throw new Error(`Missing directory: ${name}`);
+    },
+    async getFileHandle(name) {
+      throw new Error(`Missing file: ${name}`);
+    },
+  };
+
+  const firstAdapter = new BrowserWorkspaceFileSystemAdapter(persistence);
+  await firstAdapter.importDirectoryHandle(directoryHandle);
+  assert.match(firstAdapter.folderScopeId, /^folder:/);
+  assert.equal(persistedScopeId, firstAdapter.folderScopeId);
+  const firstScopeId = firstAdapter.folderScopeId;
+
+  await firstAdapter.importDirectoryHandle({
+    ...directoryHandle,
+    name: 'other-workspace',
+  });
+  assert.notEqual(firstAdapter.folderScopeId, firstScopeId);
+
+  const restoredAdapter = new BrowserWorkspaceFileSystemAdapter(persistence);
+  assert.equal(await restoredAdapter.restorePersistedFolder(), true);
+  assert.equal(restoredAdapter.folderScopeId, firstAdapter.folderScopeId);
+
+  await restoredAdapter.disconnectFolder();
+  assert.equal(restoredAdapter.folderScopeId, undefined);
+  assert.equal(persistedScopeId, undefined);
 });

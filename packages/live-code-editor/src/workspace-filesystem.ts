@@ -64,6 +64,10 @@ export type DirectoryHandlePersistence = {
   getDirectoryHandle: () => Promise<FileSystemDirectoryHandleLike | undefined>;
   setDirectoryHandle: (handle: FileSystemDirectoryHandleLike) => Promise<void>;
   clearDirectoryHandle: () => Promise<void>;
+  /** Optional durable identity for the selected folder destination. */
+  getDirectoryScopeId?: () => Promise<string | undefined>;
+  setDirectoryScopeId?: (scopeId: string) => Promise<void>;
+  clearDirectoryScopeId?: () => Promise<void>;
 };
 
 const MAX_FILES = 200;
@@ -75,6 +79,15 @@ const EMPTY_FOLDER_ERROR =
   'No supported HTML, CSS, JS, text, or preview asset files were found.';
 const STALE_FOLDER_ERROR =
   'The connected folder is no longer available. Open the folder again to continue saving.';
+
+function createFolderScopeId(): string {
+  const randomUUID = globalThis.crypto?.randomUUID;
+  return `folder:${
+    typeof randomUUID === 'function'
+      ? randomUUID.call(globalThis.crypto)
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }`;
+}
 
 const languageByExtension: Record<string, string> = {
   '.css': 'css',
@@ -130,7 +143,7 @@ function isNotFoundFileSystemError(error: unknown): boolean {
 }
 
 function createStaleFolderError(
-  operation: 'reload' | 'write' | 'delete',
+  operation: 'reload' | 'read' | 'write' | 'delete',
   folderName: string,
   cause: unknown
 ): WorkspaceToolError {
@@ -148,7 +161,7 @@ function createStaleFolderError(
 function createFolderAccessError(
   code: 'WORKSPACE_FOLDER_NOT_CONNECTED' | 'WORKSPACE_FOLDER_PERMISSION_DENIED',
   message: string,
-  operation: 'reload' | 'write' | 'delete',
+  operation: 'reload' | 'read' | 'write' | 'delete',
   permission?: FileSystemPermissionStatus
 ): WorkspaceToolError {
   return new WorkspaceToolError(message, {
@@ -187,6 +200,8 @@ function sortFiles(files: WorkspaceFile[]): WorkspaceFile[] {
 export interface WorkspaceFileSystemAdapter {
   readonly hasWritableFolder: boolean;
   readonly folderPermission: FileSystemPermissionStatus;
+  /** Stable identity for the connected destination, when available. */
+  readonly folderScopeId?: string;
   subscribe(listener: () => void): () => void;
   restorePersistedFolder(): Promise<boolean>;
   pickFolder(): Promise<ImportedFolder>;
@@ -198,6 +213,8 @@ export interface WorkspaceFileSystemAdapter {
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder>;
   importFileList(fileList: FileList | readonly File[]): Promise<ImportedFolder>;
+  /** Read one connected-folder file for external side-effect reconciliation. */
+  readFile(path: string): Promise<WorkspaceFile | undefined>;
   writeFiles(files: readonly WorkspaceFile[]): Promise<number>;
   removeFiles(paths: readonly string[]): Promise<number>;
 }
@@ -206,6 +223,7 @@ export class BrowserWorkspaceFileSystemAdapter
   implements WorkspaceFileSystemAdapter
 {
   private directoryHandle: FileSystemDirectoryHandleLike | null = null;
+  private directoryScopeId: string | null = null;
   private writePermission: FileSystemPermissionStatus = 'disconnected';
   private readonly listeners = new Set<() => void>();
 
@@ -224,15 +242,25 @@ export class BrowserWorkspaceFileSystemAdapter
     return this.writePermission;
   }
 
+  get folderScopeId(): string | undefined {
+    return this.directoryScopeId ?? undefined;
+  }
+
   async restorePersistedFolder(): Promise<boolean> {
     let handle: FileSystemDirectoryHandleLike | undefined;
+    let persistedScopeId: string | undefined;
     try {
       handle = await this.persistence?.getDirectoryHandle();
+      persistedScopeId = await this.persistence?.getDirectoryScopeId?.();
     } catch {
       return false;
     }
     if (!handle) return false;
     this.directoryHandle = handle;
+    this.directoryScopeId = persistedScopeId?.trim() || createFolderScopeId();
+    if (!persistedScopeId?.trim()) {
+      await this.persistDirectoryScope(this.directoryScopeId);
+    }
     await this.refreshWritePermission();
     this.notify();
     return true;
@@ -246,8 +274,10 @@ export class BrowserWorkspaceFileSystemAdapter
       );
     }
     const previousHandle = this.directoryHandle;
+    const previousScopeId = this.directoryScopeId;
     const handle = await picker({ mode: 'readwrite' });
     this.directoryHandle = handle;
+    this.directoryScopeId = createFolderScopeId();
     try {
       const imported = await this.importDirectoryHandle(handle);
       if (imported.files.length === 0) {
@@ -257,14 +287,19 @@ export class BrowserWorkspaceFileSystemAdapter
       return imported;
     } catch (error) {
       this.directoryHandle = previousHandle;
+      this.directoryScopeId = previousScopeId;
       this.writePermission = previousHandle
         ? await this.readWritePermission(previousHandle)
         : 'disconnected';
       try {
         if (previousHandle) {
           await this.persistence?.setDirectoryHandle(previousHandle);
+          if (previousScopeId) {
+            await this.persistence?.setDirectoryScopeId?.(previousScopeId);
+          }
         } else {
           await this.persistence?.clearDirectoryHandle();
+          await this.persistence?.clearDirectoryScopeId?.();
         }
       } catch {
         // Keep the in-memory handle consistent even if persistence recovery fails.
@@ -314,8 +349,10 @@ export class BrowserWorkspaceFileSystemAdapter
   async disconnectFolder(): Promise<void> {
     try {
       await this.persistence?.clearDirectoryHandle();
+      await this.persistence?.clearDirectoryScopeId?.();
     } finally {
       this.directoryHandle = null;
+      this.directoryScopeId = null;
       this.writePermission = 'disconnected';
       this.notify();
     }
@@ -363,7 +400,11 @@ export class BrowserWorkspaceFileSystemAdapter
   async importDirectoryHandle(
     handle: FileSystemDirectoryHandleLike
   ): Promise<ImportedFolder> {
+    const handleChanged = this.directoryHandle !== handle;
     this.directoryHandle = handle;
+    if (handleChanged || !this.directoryScopeId) {
+      this.directoryScopeId = createFolderScopeId();
+    }
     this.notify();
     const files: WorkspaceFile[] = [];
     const skipped: string[] = [];
@@ -419,7 +460,7 @@ export class BrowserWorkspaceFileSystemAdapter
           continue;
         }
         const file = await entry.getFile();
-        const accepted = await this.readFile(
+        const accepted = await this.collectImportedFile(
           file,
           path,
           files,
@@ -437,6 +478,7 @@ export class BrowserWorkspaceFileSystemAdapter
       skipped,
     };
     await this.persistDirectoryHandle(handle);
+    await this.persistDirectoryScope(this.directoryScopeId);
     return imported;
   }
 
@@ -470,7 +512,7 @@ export class BrowserWorkspaceFileSystemAdapter
         skipped.push(`${rawPath} · invalid workspace path`);
         continue;
       }
-      const accepted = await this.readFile(
+      const accepted = await this.collectImportedFile(
         file,
         path,
         files,
@@ -485,9 +527,11 @@ export class BrowserWorkspaceFileSystemAdapter
     if (imported.files.length === 0) return imported;
 
     this.directoryHandle = null;
+    this.directoryScopeId = null;
     this.writePermission = 'disconnected';
     this.notify();
     await this.persistence?.clearDirectoryHandle();
+    await this.persistence?.clearDirectoryScopeId?.();
     return imported;
   }
 
@@ -527,6 +571,47 @@ export class BrowserWorkspaceFileSystemAdapter
       throw error;
     }
     return files.length;
+  }
+
+  async readFile(path: string): Promise<WorkspaceFile | undefined> {
+    const root = this.directoryHandle;
+    if (!root) {
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_NOT_CONNECTED',
+        'No folder is connected to this workspace.',
+        'read'
+      );
+    }
+
+    const permission = await this.readPermission(root);
+    if (permission !== 'granted') {
+      throw createFolderAccessError(
+        'WORKSPACE_FOLDER_PERMISSION_DENIED',
+        'Read permission for the selected folder was not granted.',
+        'read',
+        permission
+      );
+    }
+
+    const normalizedPath = normalizePath(path);
+    const parts = normalizedPath.split('/').filter(Boolean);
+    const filename = parts.pop();
+    if (!filename) throw new Error(`Invalid workspace path: ${path}`);
+
+    try {
+      let directory = root;
+      for (const segment of parts) {
+        directory = await directory.getDirectoryHandle(segment);
+      }
+      const file = await (await directory.getFileHandle(filename)).getFile();
+      const files: WorkspaceFile[] = [];
+      const skipped: string[] = [];
+      await this.collectImportedFile(file, normalizedPath, files, skipped, 0);
+      return files[0];
+    } catch (error) {
+      if (isNotFoundFileSystemError(error)) return undefined;
+      throw error;
+    }
   }
 
   async removeFiles(paths: readonly string[]): Promise<number> {
@@ -606,6 +691,16 @@ export class BrowserWorkspaceFileSystemAdapter
     }
   }
 
+  private async readPermission(
+    directory: FileSystemDirectoryHandleLike
+  ): Promise<FileSystemPermissionStatus> {
+    try {
+      return (await directory.queryPermission?.({ mode: 'read' })) ?? 'granted';
+    } catch {
+      return 'unknown';
+    }
+  }
+
   private async writeFile(
     root: FileSystemDirectoryHandleLike,
     file: WorkspaceFile
@@ -656,7 +751,7 @@ export class BrowserWorkspaceFileSystemAdapter
     }
   }
 
-  private async readFile(
+  private async collectImportedFile(
     file: File,
     path: string,
     files: WorkspaceFile[],
@@ -726,6 +821,15 @@ export class BrowserWorkspaceFileSystemAdapter
       await this.persistence?.setDirectoryHandle(handle);
     } catch {
       // Keep the current session usable when IndexedDB cannot clone the handle.
+    }
+  }
+
+  private async persistDirectoryScope(scopeId: string | null): Promise<void> {
+    if (!scopeId) return;
+    try {
+      await this.persistence?.setDirectoryScopeId?.(scopeId);
+    } catch {
+      // Keep the current session usable when scope metadata cannot be persisted.
     }
   }
 
