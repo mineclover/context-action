@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@ataraxy-labs/sem": "0.21.0",
-    "@context-action/sem-foundation-contracts": "^0.1.0",
-    "@context-action/sem-foundation-repository": "^0.1.0"
+    "@context-action/sem-foundation-contracts": "^0.1.1",
+    "@context-action/sem-foundation-repository": "^0.1.1"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

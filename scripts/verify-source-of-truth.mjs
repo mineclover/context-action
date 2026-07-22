@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,7 +36,7 @@ const expectedSemContract = {
   ],
 };
 const expectedCutoverRule =
-  'Remove migration-copy packages only after local-tarball boundary smoke and a corrected published metadata/consumer gate pass.';
+  'Consumer uses published tooling packages; no Foundation or sem-doc migration copies remain in the consumer workspace.';
 
 if (JSON.stringify(manifest.semContract) !== JSON.stringify(expectedSemContract)) {
   throw new Error('The consumer manifest must declare the canonical SEM contract and non-goals.');
@@ -54,60 +55,42 @@ if (!['local-scaffold:not-configured', 'pre-release:configured', 'published:conf
   );
 }
 if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArtifactNote.length === 0) {
-  throw new Error('The consumer manifest must document the legacy published-artifact metadata state.');
+  throw new Error('The consumer manifest must document the published tooling artifact state.');
 }
 if (manifest.cutoverRule !== expectedCutoverRule) {
-  throw new Error('The consumer manifest must require both local boundary smoke and corrected published gates before deletion.');
-}
-if (!Array.isArray(manifest.migrationCopyExceptions)
-  || !manifest.migrationCopyExceptions.includes('README.md')
-  || !manifest.migrationCopyExceptions.includes('package.json')) {
-  throw new Error('The consumer manifest must declare README.md and package.json as migration-copy exceptions.');
+  throw new Error('The consumer manifest must declare the completed published-package cutover.');
 }
 
-const expectedCanonical = new Map([
-  ['@context-action/sem-foundation-contracts', 'packages/sem-foundation'],
-  ['@context-action/sem-foundation-repository', 'packages/sem-foundation-repository'],
-  ['@context-action/sem-doc', 'packages/sem-doc'],
+const expectedPublished = new Map([
+  ['@context-action/sem-foundation-contracts', '0.1.1'],
+  ['@context-action/sem-foundation-repository', '0.1.1'],
+  ['@context-action/sem-doc', '0.2.0'],
 ]);
-
-const lerna = await readJson(path.join(root, 'lerna.json'));
-for (const relativePath of expectedCanonical.values()) {
-  if ((lerna.packages ?? []).includes(relativePath)) {
-    throw new Error(`${relativePath} must stay outside the consumer Lerna publish/build package list.`);
-  }
-}
-
-const listedCanonical = new Map(
-  (manifest.canonicalPackages ?? []).map((entry) => [entry.name, entry]),
+const listedPublished = new Map(
+  (manifest.publishedPackages ?? []).map((entry) => [entry.name, entry.version]),
 );
-if (listedCanonical.size !== (manifest.canonicalPackages ?? []).length
-  || listedCanonical.size !== expectedCanonical.size
-  || [...listedCanonical.keys()].some((name) => !expectedCanonical.has(name))) {
-  throw new Error('Consumer canonical package manifest must contain exactly the three tooling packages, once each.');
+if (manifest.canonicalPackages?.length || manifest.migrationCopyExceptions?.length) {
+  throw new Error('Consumer source-of-truth must not retain migration-copy package entries after cutover.');
 }
-for (const [name, relativePath] of expectedCanonical) {
-  const entry = listedCanonical.get(name);
-  if (!entry || entry.path !== relativePath || entry.owner !== manifest.toolingRepository.name) {
-    throw new Error(`Canonical package manifest mismatch for ${name}.`);
+if (listedPublished.size !== expectedPublished.size
+  || [...listedPublished.keys()].some((name) => !expectedPublished.has(name))) {
+  throw new Error('Consumer published package manifest must contain exactly the three tooling packages.');
+}
+for (const [name, version] of expectedPublished) {
+  if (listedPublished.get(name) !== version) {
+    throw new Error(`Published package version mismatch for ${name}.`);
   }
-  if (entry.status !== 'migration-copy') {
-    throw new Error(`${name} must be marked as a migration-copy in the consumer repository.`);
-  }
-
-  const packagePath = path.join(root, relativePath, 'package.json');
-  const packageJson = await readJson(packagePath);
-  if (packageJson.name !== name) {
-    throw new Error(`${relativePath}/package.json must publish as ${name}.`);
-  }
-  if (packageJson.private !== true) {
-    throw new Error(`${relativePath}/package.json must remain private while it is a migration copy.`);
-  }
-  const repositoryUrl = packageJson.repository?.url ?? '';
-  if (!repositoryUrl.includes('/mineclover/context-action.git')) {
-    throw new Error(
-      `${relativePath}/package.json must identify the current consumer repository during migration.`,
-    );
+}
+for (const relativePath of [
+  'packages/sem-foundation/package.json',
+  'packages/sem-foundation/src',
+  'packages/sem-foundation-repository/package.json',
+  'packages/sem-foundation-repository/src',
+  'packages/sem-doc/package.json',
+  'packages/sem-doc/src',
+]) {
+  if (existsSync(path.join(root, relativePath))) {
+    throw new Error(`${relativePath} must be removed after the published tooling cutover.`);
   }
 }
 
@@ -122,40 +105,26 @@ for (const name of expectedConsumerOwned) {
     throw new Error(`Consumer-owned package is missing from the manifest: ${name}.`);
   }
 }
-for (const entry of manifest.canonicalPackages ?? []) {
-  if (expectedConsumerOwned.has(entry.name)) {
-    throw new Error(`${entry.name} cannot be both canonical tooling and consumer-owned.`);
-  }
-}
-
 const packageJson = async (relativePath) => readJson(path.join(root, relativePath, 'package.json'));
 const architecturePackage = await packageJson('packages/architecture-governance');
-const semDocPackage = await packageJson('packages/sem-doc');
 const architectureDependencies = {
   ...(architecturePackage.dependencies ?? {}),
   ...(architecturePackage.optionalDependencies ?? {}),
   ...(architecturePackage.peerDependencies ?? {}),
 };
-const semDocDependencies = {
-  ...(semDocPackage.dependencies ?? {}),
-  ...(semDocPackage.optionalDependencies ?? {}),
-  ...(semDocPackage.peerDependencies ?? {}),
-};
 if (architectureDependencies['@context-action/sem-doc']) {
   throw new Error('Architecture Governance must not depend on sem-doc report contracts.');
-}
-if (semDocDependencies['@context-action/architecture-governance']) {
-  throw new Error('sem-doc must not depend on Architecture Governance report contracts.');
 }
 for (const dependency of [
   '@context-action/sem-foundation-contracts',
   '@context-action/sem-foundation-repository',
 ]) {
-  if (String(architectureDependencies[dependency] ?? '').startsWith('workspace:')) {
-    throw new Error(`Architecture Governance must use a versioned ${dependency} dependency for cutover readiness.`);
+  const expectedVersion = expectedPublished.get(dependency);
+  if (architectureDependencies[dependency] !== `^${expectedVersion}`) {
+    throw new Error(`Architecture Governance must use ${dependency}@^${expectedVersion}.`);
   }
 }
 
 console.log(
-  `Source-of-truth verified: ${expectedCanonical.size} migration copies, ${expectedConsumerOwned.size} consumer-owned packages.`,
+  `Source-of-truth verified: ${expectedPublished.size} published tooling packages, ${expectedConsumerOwned.size} consumer-owned packages.`,
 );

@@ -12,9 +12,6 @@
       "packages/llms-generator/src/**/*.ts",
       "packages/typedoc-vitepress-sync/src/**/*.ts",
       "packages/architecture-governance/src/**/*.ts",
-      "packages/sem-foundation/src/**/*.ts",
-      "packages/sem-foundation-repository/src/**/*.ts",
-      "packages/sem-doc/src/**/*.ts",
       "packages/architecture-governance/scripts/verify-artifacts.mjs",
       "scripts/security-audit.mjs",
       "scripts/verify-private-tools.mjs"

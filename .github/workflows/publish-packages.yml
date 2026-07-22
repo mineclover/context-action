@@ -131,9 +131,6 @@ jobs:
       - name: Type check packages
         run: pnpm type-check
 
-      - name: Verify sem-doc migration copy contract
-        run: pnpm sem-doc:verify
-
       - name: Test packages
         run: pnpm test
 

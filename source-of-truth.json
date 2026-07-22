@@ -35,29 +35,19 @@
       "architecture-policy-ownership"
     ]
   },
-  "canonicalPackages": [
+  "publishedPackages": [
     {
       "name": "@context-action/sem-foundation-contracts",
-      "path": "packages/sem-foundation",
-      "owner": "context-action-documentation-tooling",
-      "status": "migration-copy"
+      "version": "0.1.1"
     },
     {
       "name": "@context-action/sem-foundation-repository",
-      "path": "packages/sem-foundation-repository",
-      "owner": "context-action-documentation-tooling",
-      "status": "migration-copy"
+      "version": "0.1.1"
     },
     {
       "name": "@context-action/sem-doc",
-      "path": "packages/sem-doc",
-      "owner": "context-action-documentation-tooling",
-      "status": "migration-copy"
+      "version": "0.2.0"
     }
-  ],
-  "migrationCopyExceptions": [
-    "README.md",
-    "package.json"
   ],
   "consumerOwnedPackages": [
     "@context-action/architecture-governance",
@@ -69,6 +59,6 @@
     "docs/api",
     "llmsData"
   ],
-  "publishedArtifactNote": "Corrected 0.1.1 Foundation and 0.2.0 sem-doc artifacts point to the tooling repository and emit the current v5 contract; older 0.1.x artifacts remain legacy history until consumer migration copies are removed.",
-  "cutoverRule": "Remove migration-copy packages only after local-tarball boundary smoke and a corrected published metadata/consumer gate pass."
+  "publishedArtifactNote": "Corrected 0.1.1 Foundation and 0.2.0 sem-doc artifacts point to the tooling repository and emit the current v5 contract; older 0.1.x artifacts remain legacy history.",
+  "cutoverRule": "Consumer uses published tooling packages; no Foundation or sem-doc migration copies remain in the consumer workspace."
 }

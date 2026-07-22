@@ -260,11 +260,11 @@ importers:
         specifier: 0.21.0
         version: 0.21.0
       '@context-action/sem-foundation-contracts':
-        specifier: ^0.1.0
-        version: link:../sem-foundation
+        specifier: ^0.1.1
+        version: 0.1.1
       '@context-action/sem-foundation-repository':
-        specifier: ^0.1.0
-        version: link:../sem-foundation-repository
+        specifier: ^0.1.1
+        version: 0.1.1
     devDependencies:
       '@types/node':
         specifier: 24.13.3
@@ -518,56 +518,6 @@ importers:
       zod:
         specifier: ^4.4.3
         version: 4.4.3
-
-  packages/sem-doc:
-    dependencies:
-      '@ataraxy-labs/sem':
-        specifier: 0.21.0
-        version: 0.21.0
-      '@context-action/sem-foundation-contracts':
-        specifier: workspace:^
-        version: link:../sem-foundation
-      '@context-action/sem-foundation-repository':
-        specifier: workspace:^
-        version: link:../sem-foundation-repository
-    devDependencies:
-      '@biomejs/biome':
-        specifier: 2.5.5
-        version: 2.5.5
-      '@types/node':
-        specifier: 24.13.3
-        version: 24.13.3
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-
-  packages/sem-foundation:
-    devDependencies:
-      '@types/node':
-        specifier: 24.13.3
-        version: 24.13.3
-      tsdown:
-        specifier: 0.22.13
-        version: 0.22.13(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(synckit@0.11.12))
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-
-  packages/sem-foundation-repository:
-    dependencies:
-      '@context-action/sem-foundation-contracts':
-        specifier: workspace:^
-        version: link:../sem-foundation
-    devDependencies:
-      '@types/node':
-        specifier: 24.13.3
-        version: 24.13.3
-      tsdown:
-        specifier: 0.22.13
-        version: 0.22.13(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(synckit@0.11.12))
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
 
   packages/style-testing:
     dependencies:
@@ -1074,6 +1024,14 @@ packages:
 
   '@chevrotain/types@11.1.2':
     resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
+
+  '@context-action/sem-foundation-contracts@0.1.1':
+    resolution: {integrity: sha512-bC94OsxLL2Oo3tbUCJ4YDPZYqGs+NMXQz0onhYforonD7ljBtt9tZbhChmEGK3rpPrPa31bW4owCrEQIOFkX7g==}
+    engines: {node: '>=24.11.0'}
+
+  '@context-action/sem-foundation-repository@0.1.1':
+    resolution: {integrity: sha512-eEJy2G2iQixZfUsa4Kstmq4gbQ0+akMzUDMDruFv1Cr+j5l6h8QFH85HgJ8S7IUlcQOUNdRK+ihh+Bq2YfbUow==}
+    engines: {node: '>=24.11.0'}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -7623,6 +7581,12 @@ snapshots:
   '@braintree/sanitize-url@7.1.2': {}
 
   '@chevrotain/types@11.1.2': {}
+
+  '@context-action/sem-foundation-contracts@0.1.1': {}
+
+  '@context-action/sem-foundation-repository@0.1.1':
+    dependencies:
+      '@context-action/sem-foundation-contracts': 0.1.1
 
   '@csstools/color-helpers@5.1.0': {}
 

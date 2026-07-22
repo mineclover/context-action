@@ -84,24 +84,6 @@
       "severity": "error"
     },
     {
-      "id": "CA-PKG-SEM-DOC-NO-ARCH-GOVERNANCE-RUNTIME-COUPLING",
-      "from": "packages/sem-doc",
-      "disallow": ["@context-action/architecture-governance"],
-      "dependencyFields": [
-        "dependencies",
-        "peerDependencies",
-        "optionalDependencies"
-      ],
-      "severity": "error"
-    },
-    {
-      "id": "CA-PKG-FOUNDATION-REPOSITORY-REQUIRES-CONTRACTS",
-      "from": "packages/sem-foundation-repository",
-      "require": ["@context-action/sem-foundation-contracts"],
-      "dependencyFields": ["dependencies"],
-      "severity": "error"
-    },
-    {
       "id": "CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING",
       "from": "packages/tool-protocol",
       "disallow": [
