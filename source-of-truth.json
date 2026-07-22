@@ -70,5 +70,5 @@
     "llmsData"
   ],
   "publishedArtifactNote": "Published 0.1.x sem-doc/Foundation artifacts still carry legacy context-action repository metadata; the sem-doc 0.1.2 artifact also emits the older sem-doc-work-context.v4 contract, so it is not proof of the tooling-repository cutover.",
-  "cutoverRule": "Remove migration-copy packages only after published or local-tarball consumer verification passes."
+  "cutoverRule": "Remove migration-copy packages only after local-tarball boundary smoke and a corrected published metadata/consumer gate pass."
 }

@@ -34,6 +34,8 @@ const expectedSemContract = {
     'architecture-policy-ownership',
   ],
 };
+const expectedCutoverRule =
+  'Remove migration-copy packages only after local-tarball boundary smoke and a corrected published metadata/consumer gate pass.';
 
 if (JSON.stringify(manifest.semContract) !== JSON.stringify(expectedSemContract)) {
   throw new Error('The consumer manifest must declare the canonical SEM contract and non-goals.');
@@ -55,6 +57,9 @@ if (manifest.toolingRepository?.remoteStatus !== 'not-configured') {
 }
 if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArtifactNote.length === 0) {
   throw new Error('The consumer manifest must document the legacy published-artifact metadata state.');
+}
+if (manifest.cutoverRule !== expectedCutoverRule) {
+  throw new Error('The consumer manifest must require both local boundary smoke and corrected published gates before deletion.');
 }
 if (!Array.isArray(manifest.migrationCopyExceptions)
   || !manifest.migrationCopyExceptions.includes('README.md')
