@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - Added shared execution provenance for work-context and aggregate history reports, including phase,
   logical owner, final state, configured limits, measured output usage, and elapsed time.
 - Bumped the work-context, ContextScope, and ContextScope history contracts to v5, v3, and v2.
 - Centralized strict execution provenance parsing so serialized ContextScope sources use one validator.
+
+## Unreleased
 
 ## 0.1.2
 
