@@ -50,6 +50,17 @@ async function waitForServer(url, timeoutMs = 20_000) {
   );
 }
 
+async function waitForNewLocatorMatch(locator, previousCount, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if ((await locator.count()) > previousCount) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(
+    `Timed out waiting for a new browser proof result after ${previousCount} existing match(es).`
+  );
+}
+
 async function startServer() {
   const port = await reservePort();
   const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
@@ -1395,7 +1406,10 @@ async function runBrowserProof(url) {
     });
     await apiFolderEditor.fill("document.body.dataset.apiFolder = 'stale-save';");
     await page.locator('.editor-save').click();
-    await page.getByText(/\[WORKSPACE_FOLDER_STALE\]/).waitFor();
+    // saveAll records each write through the durable side-effect runner. An
+    // adapter failure is intentionally surfaced as an ambiguous outcome so a
+    // retry cannot be mistaken for a confirmed filesystem write.
+    await page.getByText(/\[WORKSPACE_SIDE_EFFECT_UNKNOWN\]/).waitFor();
     await page.getByRole('button', { name: 'Reconnect folder' }).waitFor();
     await page.evaluate(() => {
       window.__webCodingFolderProof.failWrites = false;
@@ -1438,11 +1452,12 @@ async function runBrowserProof(url) {
       .click();
     await page.getByLabel('Edit renamed-folder.md').waitFor();
     await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
+    const renameSaveMessage = page.getByText(
+      /Saved 1 file\(s\) and deleted 1 file\(s\)/
+    );
+    const renameSaveCount = await renameSaveMessage.count();
     await page.locator('.editor-save').click();
-    await page
-      .getByText(/Saved 1 file\(s\) and deleted 1 file\(s\)/)
-      .last()
-      .waitFor();
+    await waitForNewLocatorMatch(renameSaveMessage, renameSaveCount);
     const renamedFolderState = await page.evaluate(async () => {
       const root = window.__webCodingFolderProof;
       const renamed = root.children.get('renamed-folder.md');
@@ -1465,11 +1480,9 @@ async function runBrowserProof(url) {
     await folderRevertDialog.getByRole('button', { name: 'Revert file' }).click();
     await page.getByLabel('Edit notes.md').waitFor();
     await page.locator('.statusbar-state:not(.statusbar-state-running)').waitFor();
+    const restoredSaveCount = await renameSaveMessage.count();
     await page.locator('.editor-save').click();
-    await page
-      .getByText(/Saved 1 file\(s\) and deleted 1 file\(s\)/)
-      .last()
-      .waitFor();
+    await waitForNewLocatorMatch(renameSaveMessage, restoredSaveCount);
     const restoredFolderState = await page.evaluate(() => {
       const root = window.__webCodingFolderProof;
       return {

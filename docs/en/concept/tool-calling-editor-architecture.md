@@ -590,16 +590,18 @@ Handlers may additionally attach `code`, `retryable`, and `details` metadata to
 their thrown Error. ToolContext preserves that metadata in the canonical result
 instead of flattening it into `TOOL_EXECUTION_FAILED`; the standalone workspace
 uses this for retryable revision conflicts, terminal source-limit errors, and
-stale local-folder handles. If a folder disappears during reload, save, or
-delete, the adapter clears the persisted File System Access handle and returns
-`WORKSPACE_FOLDER_STALE` with `retryable: true`, allowing the model to request a
-reconnect before retrying. The `saveAll` handler preserves that metadata when it
-adds its partial-completion summary, and the chat exposes a `Reconnect folder`
-action so recovery does not depend on finding the folder controls manually. A
-browser-only save uses `WORKSPACE_FOLDER_NOT_CONNECTED`; a permission refusal
-uses `WORKSPACE_FOLDER_PERMISSION_DENIED`. Both are retryable and expose the
-operation in `details`, while the chat chooses folder reconnect or permission
-granting as the corresponding recovery action.
+stale local-folder handles. If a folder disappears during reload or delete, the
+adapter clears the persisted File System Access handle and returns
+`WORKSPACE_FOLDER_STALE` with `retryable: true`. The durable `saveAll` handler
+intentionally maps an adapter error or caller timeout to
+`WORKSPACE_SIDE_EFFECT_UNKNOWN`, because a filesystem write may have partially
+completed and cannot be reported as confirmed. Both outcomes expose a
+`Reconnect folder` action so recovery does not depend on finding the folder
+controls manually; reconciliation is required before retrying an ambiguous
+save. A browser-only save uses `WORKSPACE_FOLDER_NOT_CONNECTED`; a permission
+refusal uses `WORKSPACE_FOLDER_PERMISSION_DENIED`. Both are retryable and expose
+the operation in `details`, while the chat chooses folder reconnect or
+permission granting as the corresponding recovery action.
 
 Preview mutation handlers use `PREVIEW_TARGET_NOT_FOUND` when an HTML/CSS
 target is absent, rather than asking the model to repeat an impossible patch.

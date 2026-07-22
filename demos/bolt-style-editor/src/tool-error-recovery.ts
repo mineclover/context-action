@@ -13,7 +13,11 @@ export function getToolErrorRecovery(
 
   return {
     ...(code === 'WORKSPACE_FOLDER_STALE' ||
-    code === 'WORKSPACE_FOLDER_NOT_CONNECTED'
+    code === 'WORKSPACE_FOLDER_NOT_CONNECTED' ||
+    // A durable save intentionally collapses adapter failures and caller
+    // timeouts into an unknown outcome. Reconnecting the folder is the
+    // explicit reconciliation path before the caller retries the mutation.
+    code === 'WORKSPACE_SIDE_EFFECT_UNKNOWN'
       ? { folderAction: 'reconnect' as const }
       : code === 'WORKSPACE_FOLDER_PERMISSION_DENIED'
         ? { folderAction: 'grant' as const }

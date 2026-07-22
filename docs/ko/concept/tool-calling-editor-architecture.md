@@ -534,11 +534,12 @@ handler가 throw하는 Error에 `code`, `retryable`, `details` metadata를 추�
 ToolContext가 이를 canonical result까지 보존하므로 `TOOL_EXECUTION_FAILED`로
 평준화되지 않는다. standalone workspace는 이를 retry 가능한 revision conflict와
 terminal source-limit 오류, stale local-folder handle 오류에 사용한다. reload·save·delete
-중 연결된 폴더가 사라지면 persistence의 File System Access handle을 해제하고
-`WORKSPACE_FOLDER_STALE`, `retryable: true` 결과를 반환하므로 model이 재연결을
-안내한 뒤 재시도할 수 있다. `saveAll`이 부분 완료 요약을 추가할 때도 이 metadata를
-보존하며, chat 오류에는 폴더 제어부를 직접 찾지 않아도 되는 `Reconnect folder`
-action을 표시한다. browser-only workspace의 save는
+중 reload 또는 delete 과정에서 연결된 폴더가 사라지면 persistence의 File System
+Access handle을 해제하고 `WORKSPACE_FOLDER_STALE`, `retryable: true` 결과를 반환한다.
+반면 durable `saveAll`은 filesystem write가 부분 완료되었을 수 있어 adapter 오류나
+caller timeout을 확정된 저장으로 보고하지 않고 `WORKSPACE_SIDE_EFFECT_UNKNOWN`으로
+변환한다. 두 결과 모두 chat 오류에 `Reconnect folder` action을 표시하며, ambiguous
+save는 재시도 전에 reconciliation이 필요하다. browser-only workspace의 save는
 `WORKSPACE_FOLDER_NOT_CONNECTED`, 쓰기 권한 거부는
 `WORKSPACE_FOLDER_PERMISSION_DENIED`로 반환한다. 둘 다 operation을 `details`에
 담은 retryable 오류이며 chat은 각각 폴더 재연결 또는 권한 승인 action을 선택한다.

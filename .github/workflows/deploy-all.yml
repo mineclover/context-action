@@ -122,17 +122,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # CI에서 빌드 아티팩트 재사용 시도, 실패 시 직접 빌드
+      # workflow_run deploys can reuse artifacts from the exact CI run that
+      # authorized this deployment. Manual dispatches have no upstream run,
+      # so they build locally below.
       - name: Try to download CI build artifacts
         id: download-artifacts
+        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v8
         with:
           name: build-artifacts-24
           path: .
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
         continue-on-error: true
         
       - name: Build packages (if artifacts not available)
-        if: steps.download-artifacts.outcome == 'failure'
+        if: github.event_name != 'workflow_run' || steps.download-artifacts.outcome != 'success'
         run: |
           pnpm build:live-code-editor
           pnpm build
@@ -238,7 +243,10 @@ jobs:
           path: deploy-dist
 
   deploy:
-    if: github.ref == 'refs/heads/main' && needs.check-changes.outputs.has-changes == 'true'
+    if: >-
+      needs.check-changes.outputs.has-changes == 'true' &&
+      ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main') ||
+      (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main'))
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

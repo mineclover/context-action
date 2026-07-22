@@ -57,9 +57,18 @@ export function createWorkspaceSideEffectRunner():
       WorkspaceSideEffectDiagnostic
     >
   | undefined {
-  const indexedDBFactory = (
-    globalThis as typeof globalThis & { indexedDB?: IDBFactory }
-  ).indexedDB;
+  let indexedDBFactory: IDBFactory | undefined;
+  try {
+    // Some privacy/sandboxed runtimes expose IndexedDB through a throwing
+    // getter instead of returning undefined. Durable folder-save state is
+    // optional at this boundary; let the workspace's own persistence layer
+    // report its bounded memory fallback instead of crashing the editor.
+    indexedDBFactory = (
+      globalThis as typeof globalThis & { indexedDB?: IDBFactory }
+    ).indexedDB;
+  } catch {
+    return undefined;
+  }
   if (!indexedDBFactory) {
     return undefined;
   }

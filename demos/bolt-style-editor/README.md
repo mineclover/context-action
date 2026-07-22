@@ -230,12 +230,13 @@ source navigation is paused while another tool chain is running.
 - Restored folder handles expose `granted`, `prompt`, `denied`, `unknown`, or
   `disconnected` write-permission state; `Grant access` re-requests permission
   without replacing the browser workspace.
-- If a connected folder disappears during reload, save, or delete, the adapter
-  clears the stale persisted handle and returns retryable
-  `WORKSPACE_FOLDER_STALE` metadata so the model and trace can request a folder
-  reconnect instead of treating the failure as an opaque save error. The chat
-  error also exposes a `Reconnect folder` action; `saveAll` preserves the same
-  structured metadata when it reports partially completed work.
+- If a connected folder disappears during a direct reload or delete, the
+  adapter clears the stale persisted handle and returns retryable
+  `WORKSPACE_FOLDER_STALE` metadata. The durable `saveAll` boundary maps an
+  adapter error or caller timeout to `WORKSPACE_SIDE_EFFECT_UNKNOWN` because a
+  filesystem write may have partially completed. Both outcomes expose a
+  `Reconnect folder` action and require reconciliation before retrying; the
+  ambiguous result must never be treated as a confirmed write.
 - Browser-only saves return `WORKSPACE_FOLDER_NOT_CONNECTED`, while denied
   write access returns `WORKSPACE_FOLDER_PERMISSION_DENIED`. Both retain
   retryable operation metadata; the chat offers `Reconnect folder` or `Grant

@@ -503,6 +503,22 @@ export function ToolHandlers({
         };
       }
 
+      // Check permission before creating durable per-file records. A denied
+      // permission is a deterministic precondition failure, not an ambiguous
+      // filesystem side effect, so the user can grant access and retry the
+      // same save without having to reconcile a durable operation first.
+      const folderPermission = await fileSystemAdapter.refreshWritePermission();
+      if (folderPermission !== 'granted') {
+        throw new WorkspaceToolError(
+          'Write permission for the selected folder was not granted.',
+          {
+            code: 'WORKSPACE_FOLDER_PERMISSION_DENIED',
+            retryable: true,
+            details: { operation: 'write', permission: folderPermission },
+          }
+        );
+      }
+
       const savedPaths: string[] = [];
       const removedPaths: string[] = [];
       try {
