@@ -48,9 +48,9 @@ if (manifest.repository?.role !== 'consumer') {
   throw new Error('context-action must declare itself as the consumer repository.');
 }
 const toolingLifecycleState = `${manifest.toolingRepository?.phase}:${manifest.toolingRepository?.remoteStatus}`;
-if (!['local-scaffold:not-configured', 'pre-release:configured'].includes(toolingLifecycleState)) {
+if (!['local-scaffold:not-configured', 'pre-release:configured', 'published:configured'].includes(toolingLifecycleState)) {
   throw new Error(
-    'The consumer manifest must use local-scaffold/not-configured or pre-release/configured before artifact cutover.',
+    'The consumer manifest must use a supported tooling lifecycle and remote state before migration cutover.',
   );
 }
 if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArtifactNote.length === 0) {
