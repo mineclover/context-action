@@ -58,8 +58,12 @@ multiple typed anchors, and a `source.workContexts` provenance item for every an
 compares two serialized scopes by symbol, edge, and group identity. `context-scope-history` materializes
 the same scope at each bounded Git commit and stores adjacent diffs; historical worktrees are removed
 after each analysis. History collection can use `--output <path>` to write snapshots as NDJSON instead
-of retaining every commit in memory. `--aggregate-*` controls the whole range, while `--commit-*`
-controls each individual commit; both budgets are enforced together.
+of retaining every commit in memory; the history writer retains only scalar entry accounting. The
+array-returning `readContextScopeHistoryStream` helper materializes records for validation and branch
+comparison, so callers processing very large streams should consume NDJSON incrementally. `--aggregate-*`
+controls the whole range, while `--commit-*` controls each individual commit; both budgets are enforced
+together. The stream starts with exactly one base record followed by unique commit entries. Branch
+intersection reports changed symbols/edges/groups common to both histories, not final snapshot membership.
 
 The pinned `sem 0.21.0` scanner excludes `node_modules` in its default mode. sem-doc keeps that
 safe default unless `--include-node-modules-surface` is explicitly supplied to `work-context`,
@@ -86,6 +90,10 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js context-scope-compar
 
 Use this projection to prepare a visual scope or review context. Use Architecture Governance when the
 scope must be bound to a complete revision snapshot, manifest digest, and CI/reviewer gate.
+
+The history API currently analyzes one repository-relative project/entity per request. Shared Git
+`analysisProjects` traversal belongs to `@context-action/sem-foundation-repository`; sem-doc does not
+claim a multi-project complete snapshot until a dedicated adapter contract is introduced.
 
 ## Scope
 

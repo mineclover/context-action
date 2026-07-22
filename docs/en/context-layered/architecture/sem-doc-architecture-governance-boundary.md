@@ -1,5 +1,7 @@
 # sem-doc and Architecture Governance Boundary
 
+The implementation extraction plan is tracked in the [documentation tooling monorepo boundary](./documentation-tooling-monorepo).
+
 `@context-action/sem-doc` and `@context-action/architecture-governance` are related
 repository tools, but they are not two names for the same library and neither replaces the other.
 They may use the same external `sem` executable and the policy-neutral Foundation packages, while
@@ -78,7 +80,7 @@ Use `sem-doc` when the immediate task is to prepare a change or explain a docume
 - index exact TSDoc entity bindings and backlinks;
 - capture the Git working-tree or staged diff before editing.
 - project the work-context into the canonical operational `sem-doc-context-scope.v3` grouping for a screen, API, or transaction review.
-- materialize bounded commit snapshots/diffs, stream them as NDJSON, and intersect changed symbols from two branches.
+- materialize bounded single-project commit snapshots/diffs, stream them as NDJSON, and intersect changed symbols from two branches.
 
 `usageFiles` is a deduplicated file-level signal from SEM dependents. It is not an exact reference
 index, call graph, runtime trace, or architecture approval.

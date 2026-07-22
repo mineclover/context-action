@@ -118,8 +118,16 @@ npx sem-doc context-scope-compare \
   managed/left-history.ndjson managed/right-history.ndjson --json
 ```
 
-Use NDJSON output for long ranges so the consumer does not retain every snapshot in memory. The
-historical worktree is removed after each commit analysis.
+Use NDJSON output for long ranges so the history writer does not retain every snapshot in memory; it
+keeps only scalar entry accounting. The current array-returning reader materializes records for
+validation/branch comparison, so very large consumers should process NDJSON incrementally. A valid
+stream starts with exactly one base record and then unique commit entries. The historical worktree is
+removed after each commit analysis.
+
+`context-scope-compare` returns the changed-symbol/edge/group intersection of the two histories. This
+is a changed-set intersection, not a claim about final snapshot membership. The history API analyzes a
+single project/entity per request; `analysisProjects` traversal remains a Foundation repository
+capability and requires a separate adapter.
 
 ## 5. Handle dependency surface explicitly
 

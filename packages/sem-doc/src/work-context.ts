@@ -201,17 +201,24 @@ export class WorkContextService {
     };
     const impactArgs = buildImpactArgs(normalizedRequest);
     const contextArgs = buildContextArgs(normalizedRequest);
-    const impact = filterImpactDependencyBoundary(parseSemImpact(
-      this.client.runJson('impact', impactArgs, { cwd: repositoryRoot, budget })
-    ));
+    const impact = filterImpactDependencyBoundary(
+      parseSemImpact(this.client.runJson('impact', impactArgs, { cwd: repositoryRoot, budget })),
+      request.includeNodeModulesSurface === true,
+    );
     if (impact.testsTruncated) {
       throw new WorkContextInputError(
         'sem impact truncated the test entity list; complete affected-test evidence is required'
       );
     }
-    const context = filterContextDependencyBoundary(parseSemContext(
-      this.client.runJson('context', contextArgs, { cwd: repositoryRoot, budget })
-    ));
+    const context = filterContextDependencyBoundary(
+      parseSemContext(this.client.runJson('context', contextArgs, { cwd: repositoryRoot, budget })),
+      request.includeNodeModulesSurface === true,
+    );
+    if (isNodeModulesPath(impact.entity.file) && request.includeNodeModulesSurface !== true) {
+      throw new WorkContextInputError(
+        'sem resolved the target inside node_modules; includeNodeModulesSurface is required',
+      );
+    }
     validateReportedEntity(impact.entity, repositoryRoot, file);
     const symbols = buildSymbolInventory(impact, depth);
     const documentIndex = indexDocuments(docsRoot);
@@ -345,16 +352,22 @@ function buildImpactArgs(request: WorkContextRequest): readonly string[] {
  * rewritten to describe the collected projection rather than rows discarded
  * at the package boundary.
  */
-function filterImpactDependencyBoundary(impact: SemImpactResult): SemImpactResult {
+function filterImpactDependencyBoundary(
+  impact: SemImpactResult,
+  includeNodeModulesSurface: boolean,
+): SemImpactResult {
   const entities = impact.impact.entities.filter((entity) =>
-    isAdmittedSourceEntity(entity) &&
+    isAdmittedSourceEntity(entity, includeNodeModulesSurface) &&
     (!isNodeModulesPath(entity.file) || entity.depth <= MAX_NODE_MODULES_HOPS),
   );
   return {
     ...impact,
-    dependencies: impact.dependencies.filter(isAdmittedSourceEntity),
-    dependents: impact.dependents.filter(isAdmittedSourceEntity),
-    tests: impact.tests.filter(isAdmittedSourceEntity),
+    dependencies: impact.dependencies.filter((entity) =>
+      isAdmittedSourceEntity(entity, includeNodeModulesSurface)),
+    dependents: impact.dependents.filter((entity) =>
+      isAdmittedSourceEntity(entity, includeNodeModulesSurface)),
+    tests: impact.tests.filter((entity) =>
+      isAdmittedSourceEntity(entity, includeNodeModulesSurface)),
     impact: {
       ...impact.impact,
       total: entities.length,
@@ -363,9 +376,12 @@ function filterImpactDependencyBoundary(impact: SemImpactResult): SemImpactResul
   };
 }
 
-function filterContextDependencyBoundary(context: SemContextResult): SemContextResult {
+function filterContextDependencyBoundary(
+  context: SemContextResult,
+  includeNodeModulesSurface: boolean,
+): SemContextResult {
   const entries = context.entries.filter((entry) =>
-    isAdmittedSourceEntity(entry) &&
+    isAdmittedSourceEntity(entry, includeNodeModulesSurface) &&
     (!isNodeModulesPath(entry.file) || isDirectContextRole(entry.role)),
   );
   return {
@@ -375,7 +391,11 @@ function filterContextDependencyBoundary(context: SemContextResult): SemContextR
   };
 }
 
-function isAdmittedSourceEntity(entity: Pick<SemEntity, 'file'>): boolean {
+function isAdmittedSourceEntity(
+  entity: Pick<SemEntity, 'file'>,
+  includeNodeModulesSurface: boolean,
+): boolean {
+  if (isNodeModulesPath(entity.file)) return includeNodeModulesSurface;
   return !isDefaultIgnoredCollectionPath(entity.file);
 }
 

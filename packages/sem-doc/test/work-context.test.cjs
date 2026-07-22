@@ -389,6 +389,22 @@ test('does not collect node_modules without the explicit inclusion policy', () =
   );
 });
 
+test('enforces the node_modules opt-in even when the SEM process returns external rows', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = new WorkContextService({
+    client: new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] }),
+  }).analyze({ repositoryRoot, entity: 'forcedNodeModules', docsRoot: 'managed' });
+
+  assert.equal(
+    report.sem.impact.payload.dependencies.some(({ file }) => file.startsWith('node_modules/')),
+    false,
+  );
+  assert.equal(
+    report.sem.context.payload.entries.some(({ file }) => file.startsWith('node_modules/')),
+    false,
+  );
+});
+
 test('rejects a truncated test entity list instead of returning partial symbols', () => {
   const repositoryRoot = createFixtureRepository();
   const client = new SemClient({ binary: process.execPath, prefixArgs: [fakeBinary] });

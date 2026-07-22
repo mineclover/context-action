@@ -294,7 +294,10 @@ an independent SEM query and all reports must share the same revision and engine
 remain compatibility aliases for the aggregate history budget. The aggregate budget is the parent of
 each commit budget, so neither the whole range nor an individual commit can exceed its limit.
 With `--output`, the report keeps only summary metadata in memory and writes one base record plus one
-record per commit to the repository-relative NDJSON path.
+record per commit to the repository-relative NDJSON path. The writer retains only an entry counter;
+consumers should treat the stream as a base record followed by unique commit entries. The current
+array-returning reader materializes records; a future incremental reader should be used for very large
+branch comparisons.
 
 All commit work-context budgets are children of one aggregate history budget. Child budgets preserve
 per-commit limits, while every SEM subprocess charges the same aggregate counters; the history
@@ -310,6 +313,11 @@ work-context inventory, context content, affected tests, and every serialized Co
 branch artifact. The filtered impact total describes the collected view, not discarded package-internal
 rows. Markdown collection still skips `node_modules`, `.git`, `dist`, `.test-dist`, and `.reports`.
 The exact SEM flag is retained in request provenance so the policy is reproducible and reviewable.
+
+The branch comparison `intersection` is intentionally a changed-set intersection: it reports symbols,
+edges, and groups changed in both histories. It does not assert that those identities are members of both
+histories' final snapshots. A history request is single-project (`repositoryRoot` plus one entity/file);
+the repository foundation's `analysisProjects` traversal is not implicitly enabled by sem-doc.
 
 The `SEM_BIN` environment variable selects the sem executable. `sem-doc` includes the pinned
 `@ataraxy-labs/sem` wrapper as a runtime dependency so a published install obtains a reproducible

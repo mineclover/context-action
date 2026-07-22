@@ -59,6 +59,8 @@ const externalInternal = {
   lines: [1, 4],
 };
 const includeNodeModulesSurface = process.argv.includes('--no-default-excludes');
+const forceNodeModulesSurface = process.argv[3] === 'forcedNodeModules';
+const emitNodeModulesSurface = includeNodeModulesSurface || forceNodeModulesSurface;
 
 function numberOption(name, fallback) {
   const index = process.argv.indexOf(name);
@@ -70,7 +72,7 @@ if (command === 'impact') {
   const impactEntities = [
     { ...repository, depth: 1 },
     { ...controller, depth: 2 },
-    ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface
+    ...(emitNodeModulesSurface
       ? [{ ...externalSurface, depth: 1 }, { ...externalInternal, depth: 2 }]
       : []),
     ...(process.argv[3] === 'testInImpact' ? [{ ...testEntity, depth: 2 }] : []),
@@ -78,7 +80,7 @@ if (command === 'impact') {
   process.stdout.write(
     `${JSON.stringify({
       entity,
-      dependencies: [repository, ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface ? [externalSurface] : [])],
+      dependencies: [repository, ...(emitNodeModulesSurface ? [externalSurface] : [])],
       dependents: [repository],
       impact: { depth, total: impactEntities.length, entities: impactEntities },
       tests: [testEntity],
@@ -106,7 +108,7 @@ if (command === 'context') {
           tokens: 12,
           content: 'class UserRepository {}',
         },
-        ...(process.argv[3] === 'withNodeModules' && includeNodeModulesSurface
+        ...(emitNodeModulesSurface
           ? [
               {
                 ...externalSurface,

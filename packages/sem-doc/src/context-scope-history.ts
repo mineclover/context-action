@@ -203,7 +203,10 @@ export class ContextScopeHistoryService {
     let addedNodes = 0;
     let removedNodes = 0;
     const collectedEntries: ContextScopeHistoryEntry[] = [];
-    const streamedReferences: Array<Omit<ContextScopeHistoryEntry, 'scope'>> = [];
+    // Keep only scalar accounting for NDJSON output. The serialized scope and diff
+    // are deliberately not retained after appendHistoryRecord() so a long history
+    // does not silently become an in-memory snapshot collection.
+    let streamedEntries = 0;
     await manager.withCommitRange(commits, async (commit, worktreeRoot) => {
       const scope = await this.analyzeScopeAtCommit(
         request,
@@ -240,14 +243,13 @@ export class ContextScopeHistoryService {
         diff: entry.diff,
       };
       appendHistoryRecord(outputPath, streamEntry);
-      const reference = {
+      streamedEntries += 1;
+      return {
         commit: entry.commit,
         parent: entry.parent,
         subject: entry.subject,
         diff: entry.diff,
       };
-      streamedReferences.push(reference);
-      return reference;
     }, request.maxCommits);
     return {
       schemaVersion: CONTEXT_SCOPE_HISTORY_SCHEMA,
@@ -261,7 +263,7 @@ export class ContextScopeHistoryService {
         : {
           mode: 'ndjson',
           path: path.relative(repositoryRoot, outputPath).split(path.sep).join('/'),
-          entries: streamedReferences.length,
+          entries: streamedEntries,
         },
       summary: {
         commits: commits.length,
@@ -329,7 +331,7 @@ export function readContextScopeHistoryStream(
     .split(/\r?\n/u)
     .filter((line: string) => line.length > 0)
     .map((line: string) => JSON.parse(line) as unknown);
-  return records.map((record: unknown, index: number) => {
+  const parsedRecords = records.map((record: unknown, index: number) => {
     if (!record || typeof record !== 'object' || Array.isArray(record)) {
       throw new TypeError(`history stream record ${index} must be an object`);
     }
@@ -347,6 +349,20 @@ export function readContextScopeHistoryStream(
     }
     return record as ContextScopeHistoryStreamRecord;
   });
+  if (parsedRecords.length === 0 || parsedRecords[0]?.recordType !== 'base') {
+    throw new TypeError('history stream must start with one base record');
+  }
+  const commits = new Set<string>();
+  for (const [index, record] of parsedRecords.entries()) {
+    if (commits.has(record.commit)) {
+      throw new TypeError(`history stream record ${index} duplicates commit ${record.commit}`);
+    }
+    commits.add(record.commit);
+    if (index > 0 && record.recordType === 'base') {
+      throw new TypeError('history stream may contain only one base record');
+    }
+  }
+  return parsedRecords;
 }
 
 export function renderContextScopeHistoryText(report: ContextScopeHistoryReport): string {

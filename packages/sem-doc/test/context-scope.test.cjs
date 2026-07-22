@@ -167,7 +167,28 @@ test('streams commit scopes to NDJSON without retaining every entry in memory', 
   });
   assert.equal(report.storage.mode, 'ndjson');
   assert.equal(report.entries.length, 0);
+  assert.equal(report.storage.entries, 1);
   assert.equal(readContextScopeHistoryStream(outputPath).length, 2);
+});
+
+test('rejects malformed history streams before branch comparison', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = service().analyze({ repositoryRoot, entity: 'authenticateUser' });
+  const scope = createContextScope(report, { projectId: 'example' });
+  const outputPath = path.join(repositoryRoot, 'managed', 'invalid-history.ndjson');
+  writeFileSync(outputPath, `${JSON.stringify({
+    schemaVersion: 'sem-doc-context-scope-history-stream.v1',
+    recordType: 'entry',
+    commit: 'entry',
+    parent: 'base',
+    subject: 'entry',
+    scope,
+    diff: diffContextScopes(scope, scope),
+  })}\n`);
+  assert.throws(
+    () => readContextScopeHistoryStream(outputPath),
+    /must start with one base record/,
+  );
 });
 
 test('rejects a history output symlink that escapes the repository', async () => {
