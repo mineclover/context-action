@@ -52,6 +52,29 @@ const toolingSourceOfTruth = path.join(toolingRoot, 'scripts/verify-source-of-tr
 if (!(await stat(toolingSourceOfTruth).then((entry) => entry.isFile()).catch(() => false))) {
   throw new Error(`Tooling source-of-truth verifier is missing: ${toolingSourceOfTruth}`);
 }
+const toolingManifest = JSON.parse(
+  await readFile(path.join(toolingRoot, 'source-of-truth.json'), 'utf8'),
+);
+if (JSON.stringify(manifest.semContract) !== JSON.stringify(toolingManifest.semContract)) {
+  throw new Error(
+    'Consumer and tooling source-of-truth manifests must declare the same SEM contract before cutover.',
+  );
+}
+const consumerCanonical = new Map(
+  (manifest.canonicalPackages ?? []).map((entry) => [entry.name, entry]),
+);
+const toolingCanonical = new Map(
+  (toolingManifest.canonicalPackages ?? []).map((entry) => [entry.name, entry]),
+);
+for (const [name, consumerEntry] of consumerCanonical) {
+  const toolingEntry = toolingCanonical.get(name);
+  if (!toolingEntry || toolingEntry.path !== consumerEntry.path) {
+    throw new Error(`Consumer/tooling canonical package path mismatch for ${name}.`);
+  }
+  if (consumerEntry.owner !== toolingManifest.repository?.name) {
+    throw new Error(`${name} must remain owned by the tooling repository in the consumer manifest.`);
+  }
+}
 execFileSync(process.execPath, [toolingSourceOfTruth], {
   cwd: toolingRoot,
   stdio: 'inherit',

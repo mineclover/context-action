@@ -51,8 +51,8 @@ Architecture Governance의 현재 통합
 읽으므로, 패키지 전용 fixture 저장소가 생기기 전까지는 consumer checkout에서 실행합니다.
 
 두 worktree를 local에서 함께 사용할 수 있을 때는 `pnpm source-of-truth:parity`가 canonical package의
-tooling manifest를 검증하고 모든 파일을 hash해 tooling source와 consumer migration copy 사이의
-code/spec/test drift를 찾습니다.
+두 manifest의 SEM contract와 canonical package 경로를 비교한 뒤 tooling manifest를 검증하고, 모든
+파일을 hash해 tooling source와 consumer migration copy 사이의 code/spec/test drift를 찾습니다.
 root `README.md`와 `package.json`은 repository ownership과 migration metadata가 의도적으로 다르므로
 제외하며, sibling tooling checkout이 없으면 명시적인 skip 메시지를 출력합니다.
 

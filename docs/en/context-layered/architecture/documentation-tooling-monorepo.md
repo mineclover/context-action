@@ -51,7 +51,8 @@ analysis project; it is therefore run from the consumer checkout until a package
 is introduced.
 
 When both worktrees are available locally, `pnpm source-of-truth:parity` hashes every canonical package
-file, validates the tooling manifest, and detects code/spec/test drift between the tooling source and the consumer migration copy. Root
+file, compares the SEM contract and canonical package paths in both manifests, validates the tooling
+manifest, and detects code/spec/test drift between the tooling source and the consumer migration copy. Root
 `README.md` and `package.json` are excluded because their repository ownership and migration metadata are
 intentionally different; the command skips with an explicit message when the sibling tooling checkout is absent.
 
