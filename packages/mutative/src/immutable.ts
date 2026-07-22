@@ -73,7 +73,7 @@ export function getGlobalImmutabilityOptions(): ImmutabilityOptions {
  */
 export function produce<T, F extends boolean = false>(
   baseState: T,
-  producer: (draft: Draft<T>) => void | T,
+  producer: (draft: Draft<T>) => undefined | T,
   options?: ProduceOptions<F>
 ): T {
   try {
@@ -113,7 +113,7 @@ export function produce<T, F extends boolean = false>(
  */
 export function produceWithPatches<T, F extends boolean = false>(
   baseState: T,
-  producer: (draft: Draft<T>) => void | T,
+  producer: (draft: Draft<T>) => undefined | T,
   options?: Omit<ProduceOptions<F>, 'enablePatches'>
 ): [T, Patches, Patches] {
   const [nextState, patches, inversePatches] = create(baseState, producer, {

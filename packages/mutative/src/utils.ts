@@ -100,7 +100,7 @@ export function deepCloneValue(value: unknown): unknown {
 
   const cloned: Record<string, unknown> = {};
   for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
       cloned[key] = deepCloneValue((value as Record<string, unknown>)[key]);
     }
   }
@@ -114,7 +114,7 @@ export function deepCloneValue(value: unknown): unknown {
 export function deepClone<T>(source: T, target?: unknown): T {
   if (target && source && typeof source === 'object') {
     for (const key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
+      if (Object.getOwnPropertyDescriptor(source, key) !== undefined) {
         (target as Record<string, unknown>)[key] = deepCloneValue(
           source[key as keyof T]
         );

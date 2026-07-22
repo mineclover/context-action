@@ -13,6 +13,15 @@ The package uses the maintained `@context-action/mutative-core` runtime
 internally. Install the core package directly only when the upstream-compatible
 Mutative API is needed without the Context-Action adapter.
 
+## Maintenance policy
+
+`@context-action/mutative` and `@context-action/mutative-core` are maintained
+fork packages. Upstream changes are synchronized deliberately and tracked in
+[`mutative-core/UPSTREAM.md`](../mutative-core/UPSTREAM.md); adapter-specific
+patch, history, and time-travel behavior is kept in this package. Keep their
+versions aligned for normal releases and run both package test suites after a
+fork update.
+
 ## Adapter contract
 
 - `produce(..., { freeze: true })` forwards to the core `enableAutoFreeze`

@@ -64,7 +64,7 @@ function overwriteDraftWith(draft: Draft<unknown>, value: unknown): void {
 
   for (const key of draftKeys) {
     if (draftIsArray && key === 'length') continue;
-    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+    if (Object.getOwnPropertyDescriptor(Object(value), key) === undefined) {
       delete (draft as Record<PropertyKey, unknown>)[key];
     }
   }

@@ -16,3 +16,14 @@ Carried upstream references:
 The implementation remains MIT-licensed. Keep this file and `LICENSE` with
 future source synchronizations so downstream package archives retain the
 provenance of the vendored core.
+
+## Maintenance contract
+
+- `@context-action/mutative-core` is a maintained fork, not a temporary copy.
+- Upstream synchronization is reviewed manually and recorded here before a
+  release; Context-Action-specific fixes must include regression tests.
+- `@context-action/mutative` is the supported adapter and may add patch,
+  history, and time-travel behavior without changing the upstream-compatible
+  core contract.
+- Keep the two package versions aligned unless a release note explicitly
+  explains why the adapter and core diverge.
