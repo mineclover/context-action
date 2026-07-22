@@ -45,7 +45,7 @@
   "devDependencies": {
     "@types/node": "24.13.3",
     "ajv": "8.20.0",
-    "tsdown": "0.22.5",
+    "tsdown": "0.22.13",
     "typescript": "6.0.3"
   },
   "engines": {

@@ -78,13 +78,13 @@
     "ora": "9.4.1"
   },
   "devDependencies": {
-    "@swc/core": "1.15.43",
+    "@swc/core": "1.15.46",
     "@swc/helpers": "0.5.23",
     "@swc/jest": "0.2.39",
     "@types/jest": "30.0.0",
     "@types/node": "24.13.3",
     "jest": "30.4.2",
-    "tsdown": "0.22.5",
+    "tsdown": "0.22.13",
     "typescript": "6.0.3"
   },
   "gitHead": "d044f181a22b8f1fc5ad3362afd30d117fedebdd"

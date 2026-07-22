@@ -66,8 +66,8 @@
     "@context-action/sem-foundation-repository": "workspace:^"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.3",
-    "@types/node": "^20.19.24",
+    "@biomejs/biome": "2.5.5",
+    "@types/node": "24.13.3",
     "typescript": "^5.3.3"
   }
 }
