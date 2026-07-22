@@ -10,8 +10,8 @@ Authored symbol registry와 `sem` entity/impact 결과를 연결해 심볼의 �
 Architecture Governance 도구다. 심볼의 역할은 registry `role` declaration과 source comment/JSDoc로 관리하며, 컴파일러 graph
 provider나 LSP 수준의 내부 함수 호출 분석·문서 생성 기능은 포함하지 않는다.
 
-공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@context-action/sem-foundation-contracts`](../sem-foundation/README.md)
-에서 관리하고, Git revision/history/worktree lifecycle은 [`@context-action/sem-foundation-repository`](../sem-foundation-repository/README.md)에서
+공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@context-action/sem-foundation-contracts`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation)
+에서 관리하고, Git revision/history/worktree lifecycle은 [`@context-action/sem-foundation-repository`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation-repository)에서
 관리한다. 외부 SEM subprocess의 실행 adapter와 architecture policy의 loader/evaluator/report
 contract는 이 패키지가 소유하지만, 실제 authored registry와 policy source는 repository의
 `architecture/` 디렉터리가 소유한다.
@@ -23,15 +23,12 @@ contract는 이 패키지가 소유하지만, 실제 authored registry와 policy
 두 패키지는 같은 SEM/Foundation primitive을 사용할 수 있으나 runtime 의존성이나 report 계약을
 공유하지 않는다. 자세한 비교는 [sem-doc과 Architecture Governance 경계](../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)를 따른다.
 
-`@context-action/sem-doc`은 현재 `context-action-documentation-tooling`을 canonical source로
-분리하는 중이다. 이 저장소의 `packages/sem-doc`은 Architecture Governance 호환성을 검증하기
-위한 private migration copy이며, `pnpm sem-doc:verify`로 타입 검사, 경계 검사, lint, 테스트,
-artifact 검증만 실행한다. sem-doc과 Foundation은 이 저장소의 Lerna publish/release 대상이 아니다.
+`@context-action/sem-doc`은 `context-action-documentation-tooling`이 소유하는 별도 published
+패키지다. Architecture Governance는 sem-doc report를 소비하지 않으며, Foundation primitive만
+versioned runtime dependency로 사용한다.
 
-Architecture Governance의 Foundation dependency 준비 단계는 local migration copy가 있으면 이를
-먼저 build하고, copy가 제거된 consumer에서는 설치된 versioned Foundation package를 검증하도록
-분기된다. cutover 경로를 로컬에서 확인하려면
-`ARCHITECTURE_GOVERNANCE_FOUNDATION_SOURCE=external node packages/architecture-governance/scripts/prepare-foundation-deps.mjs`를 사용한다.
+Architecture Governance의 Foundation dependency 준비 단계는 설치된 published package를
+검증한다. 이 consumer repository에는 Foundation/sem-doc migration copy가 없다.
 
 ## 검증 범위
 
@@ -68,8 +65,9 @@ reference나 runtime call graph가 아니다.
 이 도구는 Context-Action convention으로 작성한 authored intent를 SEM evidence로 검증하는 gate다.
 따라서 runtime data flow, business correctness, owner 승인, 문서 편집·생성 자체를 자동 증명하지
 않는다. 이 범위를 generic architecture standard로 해석하거나 sem-doc의 work-context report로
-대체해서도 안 된다. shared SEM contract는 publish-ready지만, registry 배포와 외부 소비자 고정은
-별도 release decision으로 남겨둔다.
+대체해서도 안 된다. shared SEM contract와 sem-doc은
+`context-action-documentation-tooling`에서 versioned published package로 관리하며, 이 패키지는
+설치된 Foundation version을 명시적으로 고정한다.
 
 ## Position and non-goals
 
