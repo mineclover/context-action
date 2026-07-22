@@ -71,6 +71,7 @@
     "docs:management": "node scripts/verify-documentation-management.mjs",
     "source-of-truth:check": "node scripts/verify-source-of-truth.mjs",
     "source-of-truth:parity": "node scripts/verify-tooling-parity.mjs",
+    "source-of-truth:cutover": "node scripts/verify-tooling-cutover.mjs",
     "verify:tooling-consumer": "node scripts/verify-tooling-consumer.mjs",
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "node packages/typedoc-vitepress-sync/bin/cli.js sync --config ./typedoc-vitepress-sync.config.js",

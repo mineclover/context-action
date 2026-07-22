@@ -56,6 +56,12 @@ Architecture Governance의 현재 통합
 root `README.md`와 `package.json`은 repository ownership과 migration metadata가 의도적으로 다르므로
 제외하며, sibling tooling checkout이 없으면 명시적인 skip 메시지를 출력합니다.
 
+두 저장소의 전환 상태는 `node scripts/verify-tooling-cutover.mjs --json`으로 확인합니다.
+`--local-only`를 사용하면 registry에 접근하지 않고 두 manifest, package parity, 양쪽 local
+tarball consumer smoke만 검증합니다. 옵션 없이 실행하면 tooling remote, published metadata,
+published consumer smoke, 미사용 release version까지 확인하며, 외부 cutover 검증이 통과하기 전에는
+ready가 되지 않습니다.
+
 tooling 저장소에는 이제 이 계약을 검증하고 Foundation contracts를 sem-doc보다 먼저 배포한 뒤
 published metadata와 clean-consumer 검증을 실행하는 release workflow를 준비했습니다. tooling remote,
 npm Trusted Publisher 또는 token 설정, corrected package version을 의도적으로 확정하기 전에는
