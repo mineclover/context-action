@@ -28,6 +28,11 @@ contract는 이 패키지가 소유하지만, 실제 authored registry와 policy
 위한 private migration copy이며, `pnpm sem-doc:verify`로 타입 검사, 경계 검사, lint, 테스트,
 artifact 검증만 실행한다. sem-doc과 Foundation은 이 저장소의 Lerna publish/release 대상이 아니다.
 
+Architecture Governance의 Foundation dependency 준비 단계는 local migration copy가 있으면 이를
+먼저 build하고, copy가 제거된 consumer에서는 설치된 versioned Foundation package를 검증하도록
+분기된다. cutover 경로를 로컬에서 확인하려면
+`ARCHITECTURE_GOVERNANCE_FOUNDATION_SOURCE=external node packages/architecture-governance/scripts/prepare-foundation-deps.mjs`를 사용한다.
+
 ## 검증 범위
 
 - stable symbol/capability의 spec, owner, authored `role`, 구현 anchor, test evidence, public docs 경로

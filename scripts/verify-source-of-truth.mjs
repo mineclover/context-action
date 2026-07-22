@@ -139,6 +139,14 @@ if (architectureDependencies['@context-action/sem-doc']) {
 if (semDocDependencies['@context-action/architecture-governance']) {
   throw new Error('sem-doc must not depend on Architecture Governance report contracts.');
 }
+for (const dependency of [
+  '@context-action/sem-foundation-contracts',
+  '@context-action/sem-foundation-repository',
+]) {
+  if (String(architectureDependencies[dependency] ?? '').startsWith('workspace:')) {
+    throw new Error(`Architecture Governance must use a versioned ${dependency} dependency for cutover readiness.`);
+  }
+}
 
 console.log(
   `Source-of-truth verified: ${expectedCanonical.size} migration copies, ${expectedConsumerOwned.size} consumer-owned packages.`,

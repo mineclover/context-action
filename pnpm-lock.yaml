@@ -260,10 +260,10 @@ importers:
         specifier: 0.21.0
         version: 0.21.0
       '@context-action/sem-foundation-contracts':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../sem-foundation
       '@context-action/sem-foundation-repository':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../sem-foundation-repository
     devDependencies:
       '@types/node':

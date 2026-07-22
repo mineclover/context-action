@@ -29,7 +29,7 @@
     "README.md"
   ],
   "scripts": {
-    "prebuild": "pnpm --filter @context-action/sem-foundation-contracts build && pnpm --filter @context-action/sem-foundation-repository build",
+    "prebuild": "node scripts/prepare-foundation-deps.mjs",
     "build": "tsdown",
     "postbuild": "pnpm verify:artifacts",
     "verify:artifacts": "node scripts/verify-artifacts.mjs",
@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@ataraxy-labs/sem": "0.21.0",
-    "@context-action/sem-foundation-contracts": "workspace:*",
-    "@context-action/sem-foundation-repository": "workspace:*"
+    "@context-action/sem-foundation-contracts": "^0.1.0",
+    "@context-action/sem-foundation-repository": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
