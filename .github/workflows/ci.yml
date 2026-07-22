@@ -229,7 +229,10 @@ jobs:
   size-check:
     runs-on: ubuntu-latest
     needs: [test, setup]
-    if: ${{ always() && needs.setup.result == 'success' && needs.test.result != 'cancelled' }}
+    # Build artifacts are produced only after the test matrix reaches its
+    # upload steps. Do not turn an upstream test failure into a secondary
+    # artifact-download failure when there is nothing to inspect.
+    if: ${{ needs.setup.result == 'success' && needs.test.result == 'success' }}
     
     steps:
       - name: Checkout

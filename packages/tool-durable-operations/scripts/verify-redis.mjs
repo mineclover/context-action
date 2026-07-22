@@ -146,7 +146,10 @@ try {
   assert.equal(reclaimed.record.ownerId, 'smoke-reclaimer');
   await clockedStoreB.complete('smoke-reclaim', 'smoke-reclaimer', { recovered: true });
 
-  const removed = await clockedStoreA.prune(Date.now() + 1);
+  // The smoke store uses a deterministic clock. Use that same clock for the
+  // cutoff so the lease-reclaim record (which is intentionally advanced by
+  // 11ms) cannot race the wall clock on a fast CI runner.
+  const removed = await clockedStoreA.prune(now + 1);
   assert.equal(removed, 3);
 
   console.log(JSON.stringify({
