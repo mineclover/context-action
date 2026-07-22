@@ -7,6 +7,10 @@
     "documents": "sem-documents.v3",
     "advisory": "sem-advisory.v1"
   },
+  "compatibility": {
+    "status": "legacy",
+    "note": "Captured before the sem-doc-work-context.v5 contract; retained as a historical performance baseline."
+  },
   "scope": {
     "entitySource": "sem-exposed-only",
     "completeLocalScopeInventory": false,

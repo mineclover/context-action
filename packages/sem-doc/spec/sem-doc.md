@@ -361,5 +361,7 @@ Foundation integration is a required runtime boundary; sem-doc does not carry a 
 implementation of those contracts. History snapshots and snapshot-backed context-set operations are owned
 by the architecture-governance consumer. The operational context grouping in this package is intentionally
 bounded to one work-context report and does not replace that revision-level contract.
-The package is included in the Lerna release flow. The two `@context-action/sem-foundation-*` runtime dependencies
-must be published before sem-doc when they are not already available on the configured registry.
+The tooling workspace does not use Lerna. Its GitHub Actions release workflow publishes the two
+`@context-action/sem-foundation-*` runtime dependencies before sem-doc when they are not already
+available on the configured registry. The consumer repository's migration copies remain private and
+outside `context-action`'s Lerna publish list until the corrected tooling release passes the cutover gates.
