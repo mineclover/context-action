@@ -101,6 +101,23 @@ function checkRemote() {
   return actual;
 }
 
+const localToolingChecks = [
+  ['tooling-source-of-truth', 'tooling source-of-truth',
+    () => run(process.execPath, ['scripts/verify-source-of-truth.mjs'], toolingRoot)],
+  ['manifest-parity', 'consumer/tooling manifest and package parity',
+    () => run(process.execPath, ['scripts/verify-tooling-parity.mjs'], consumerRoot)],
+  ['tooling-consumer', 'consumer Architecture Governance tarball smoke',
+    () => run('pnpm', ['verify:tooling-consumer'], consumerRoot)],
+  ['canonical-consumer', 'canonical tooling tarball smoke',
+    () => run('pnpm', ['verify:consumer'], toolingRoot)],
+];
+const externalChecks = [
+  ['tooling-remote', 'tooling Git remote', checkRemote],
+  ['published-metadata', 'published package metadata', () => run('pnpm', ['verify:published-metadata'], toolingRoot)],
+  ['published-consumer', 'published consumer smoke', () => run('pnpm', ['verify:published-consumer'], toolingRoot)],
+  ['release-versions', 'unused release versions', () => run('pnpm', ['verify:release-versions'], toolingRoot)],
+];
+
 addCheck(
   'consumer-source-of-truth',
   'consumer source-of-truth',
@@ -109,75 +126,27 @@ addCheck(
 );
 
 if (!toolingManifest) {
-  skipCheck('tooling-source-of-truth', 'tooling source-of-truth', false, 'tooling checkout is not available');
-  skipCheck('manifest-parity', 'consumer/tooling manifest and package parity', false, 'tooling checkout is not available');
-  skipCheck('tooling-consumer', 'consumer Architecture Governance tarball smoke', false, 'tooling checkout is not available');
-  skipCheck('canonical-consumer', 'canonical tooling tarball smoke', false, 'tooling checkout is not available');
+  for (const [id, label] of localToolingChecks) {
+    skipCheck(id, label, false, 'tooling checkout is not available');
+  }
 } else {
-  addCheck(
-    'tooling-source-of-truth',
-    'tooling source-of-truth',
-    false,
-    () => run(process.execPath, ['scripts/verify-source-of-truth.mjs'], toolingRoot),
-  );
-  addCheck(
-    'manifest-parity',
-    'consumer/tooling manifest and package parity',
-    false,
-    () => run(process.execPath, ['scripts/verify-tooling-parity.mjs'], consumerRoot),
-  );
-  addCheck(
-    'tooling-consumer',
-    'consumer Architecture Governance tarball smoke',
-    false,
-    () => run('pnpm', ['verify:tooling-consumer'], consumerRoot),
-  );
-  addCheck(
-    'canonical-consumer',
-    'canonical tooling tarball smoke',
-    false,
-    () => run('pnpm', ['verify:consumer'], toolingRoot),
-  );
+  for (const [id, label, check] of localToolingChecks) {
+    addCheck(id, label, false, check);
+  }
 }
 
 if (localOnly) {
-  for (const [id, label] of [
-    ['tooling-remote', 'tooling Git remote'],
-    ['published-metadata', 'published package metadata'],
-    ['published-consumer', 'published consumer smoke'],
-    ['release-versions', 'unused release versions'],
-  ]) {
+  for (const [id, label] of externalChecks) {
     skipCheck(id, label, true, 'skipped by --local-only');
   }
 } else if (!toolingManifest) {
-  for (const [id, label] of [
-    ['tooling-remote', 'tooling Git remote'],
-    ['published-metadata', 'published package metadata'],
-    ['published-consumer', 'published consumer smoke'],
-    ['release-versions', 'unused release versions'],
-  ]) {
+  for (const [id, label] of externalChecks) {
     skipCheck(id, label, true, 'tooling checkout is not available');
   }
 } else {
-  addCheck('tooling-remote', 'tooling Git remote', true, checkRemote);
-  addCheck(
-    'published-metadata',
-    'published package metadata',
-    true,
-    () => run('pnpm', ['verify:published-metadata'], toolingRoot),
-  );
-  addCheck(
-    'published-consumer',
-    'published consumer smoke',
-    true,
-    () => run('pnpm', ['verify:published-consumer'], toolingRoot),
-  );
-  addCheck(
-    'release-versions',
-    'unused release versions',
-    true,
-    () => run('pnpm', ['verify:release-versions'], toolingRoot),
-  );
+  for (const [id, label, check] of externalChecks) {
+    addCheck(id, label, true, check);
+  }
 }
 
 const localReady = checks.filter(({ scope }) => scope === 'local').every(({ status }) => status === 'pass');
