@@ -3,6 +3,8 @@
   "files": {
     "includes": [
       "packages/core/src/**/*.ts",
+      "packages/tool-protocol/src/**/*.ts",
+      "packages/tool-durable-operations/src/**/*.ts",
       "packages/react/src/**/*.ts",
       "packages/react/src/**/*.tsx",
       "packages/mutative-core/src/**/*.ts",

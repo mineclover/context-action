@@ -247,7 +247,11 @@ loop를 중단하지 않고 다음 provider message 안에
 
 ## 표준 계약
 
-Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한다.
+이 절은 tool-call timeout, cancellation, retry, idempotency, durable operation
+동작의 의미론적 기준 문서다. 패키지 README는 API quick start와 이 문서 링크만
+유지하고, changelog는 계약을 반복하지 않고 릴리스 변경점만 기록한다.
+
+`@context-action/tool-protocol`은 provider와 무관한 다음 정보를 유지한다.
 
 - `ToolCallId`: 모델 호출과 결과를 연결하는 ID
 - `ToolCallContext`: transport `source`, execution `mode`, `sessionId`, `revision`
@@ -265,7 +269,7 @@ Core의 `tool-protocol.ts`는 provider와 무관한 다음 정보를 유지한�
 - action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
   검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
 
-Core는 표준 managed-call code를 재사용할 수 있도록
+`@context-action/tool-protocol`은 표준 managed-call code를 재사용할 수 있도록
 `TOOL_CALL_ERROR_CODES`와 `ToolCallErrorCode`를 export한다. handler가 workspace나
 제품 도메인의 구체적인 실패를 보고해야 하는 경우에는 custom code도 추가할 수 있다.
 
@@ -273,8 +277,11 @@ Core는 표준 managed-call code를 재사용할 수 있도록
 지정할 수 있다. 이때 `toToolListRequest({ cursor })`로 만든 request를
 `listTools()`에 전달하면 canonical discovery가 opaque
 `nextCursor`를 반환하며, 인자가 없는 `listTools()`와 provider batch export는 전체
-catalog를 유지한다. 모든 page가 필요한 provider adapter는 core의
-`listAllTools()` helper로 `nextCursor`를 순회하며 반복 cursor도 거부한다.
+catalog를 유지한다. 모든 page가 필요한 provider adapter는 공통
+`listAllTools()` helper로 `nextCursor`를 순회합니다. 반복 cursor를 거부하고
+기본 1,000페이지 안전 상한도 적용합니다. manager의 범위를 호출자가 별도로
+보장하는 경우에만 `listAllTools(manager, { maxPages: Infinity })`로 상한을
+해제할 수 있습니다.
 
 standalone workspace, realtime web-coding, Live Code Editor catalog도 같은 output
 계약을 사용한다. 파일 조회·변경, preview acknowledgement, save 결과까지 모델이
@@ -304,6 +311,14 @@ React ToolContext는 여기에 실행 범위를 추가한다.
 - `allowedToolNames`: discovery와 execution에 모두 적용되는 allowlist
 - `toolPolicy`: `allow`, `ask`, `deny` 결정
 - `onToolCall`: trace와 audit UI를 위한 lifecycle observer
+- `durableDiagnosticPolicy`: failed/unknown durable projection에 사용할 선택적
+  `ToolObservabilityPolicy` override. 생략하면 공통 default를 사용한다.
+- `ToolCallEvent.provenance`: `context-action-tool-execution-provenance.v1`로
+  검증되는 additive lifecycle record. started는 `pending`, 최종 이벤트는
+  `completed`, `failed`, `cancelled`, `unknown` 중 하나이며 논리 owner, 선택적
+  timeout/output budget, UTF-8 result byte 수, 경과 시간을 담는다. raw
+  arguments·credential·result payload는 보존하지 않으며 두 번째 durable
+  state machine이 아니다.
 
 strict 모드에서는 `tools/call` arguments를 `toolPolicy` 실행 전에 검증한다.
 잘못된 model 입력은 schema issue를 포함한 `TOOL_VALIDATION_FAILED` 결과로
@@ -315,14 +330,206 @@ approval·policy 대기가 남지 않는다. 같은 signal은 registry handler�
 대기까지 전달되며, 어느 경계에서 취소되어도 재시도 가능한
 `TOOL_CANCELLED` 표준 오류 결과를 반환한다.
 
+호출자는 `ToolCallOptions.timeout`으로 policy와 handler 실행 전체에 적용되는
+wall-clock 예산을 지정할 수 있다. 시간이 만료되면 공유 signal을 중단하고
+`timeoutMs`와 `executionState: 'detached'`를 담은 재시도 가능한 `TOOL_TIMEOUT` 결과를 반환한다. 음수 또는
+유한하지 않은 값은 `TOOL_INVALID_OPTIONS`로 거절한다. timeout은 호출자
+취소와 의도적으로 분리되어 runner가 재시도와 사용자 피드백을 다르게 처리할 수
+있다.
+
+호출자는 `ToolCallOptions.maxOutputBytes`로 결과 크기 경계를 선택할 수 있다.
+ToolContext는 직렬화된 `content`와 `structuredContent` 표면을 UTF-8 byte로
+측정하고, 한도를 넘으면 durable operation을 completed로 기록하기 전에
+재시도할 수 없는 `TOOL_OUTPUT_LIMIT_EXCEEDED`를 반환한다. 시도한 byte 수는
+제한된 숫자형 provenance/error metadata로만 보존한다.
+
+telemetry와 사용자 trace consumer는 event나 diagnostic을 보존하기 전에 공통
+`createToolObservabilityPolicy()`와 `serializeToolObservabilityValue()`를 사용한다.
+이 policy는 credential/source 계열 필드를 redaction하고 depth, collection, string,
+직렬화 UTF-8 byte 상한을 적용하며 소유 store가 사용할 `retentionMs`와 `maxEntries`
+metadata를 제공한다. durable operation record를 변경하거나 두 번째 state machine을
+만드는 기능은 아니며, standalone Bolt-style trace는 화면 표시와 복사 JSON 모두에
+이 policy를 사용한다.
+`@context-action/react`가 ambiguous durable tool result를 저장할 때는
+`sanitizeToolCallDiagnostic()`를 사용해 error code/retryability와 bounded redacted
+details만 남긴다. canonical content와 structured payload는 생략하며, 성공한 terminal
+result는 cross-process replay 계약을 보존하기 위해 lossless로 유지한다.
+`sanitizeToolCallDiagnosticReason()`도 handler가 제공한 error text 대신 안정적인 code 기반
+reason을 저장한다. known error terminal record에도 같은 projection을 적용하며, 성공한
+terminal result만 replay를 위해 lossless로 보존한다.
+
+mutation을 재시도할 때는 provider attempt마다 새 key를 만들지 말고 하나의
+논리적 작업에 하나의 안정적인 `ToolCallOptions.idempotencyKey`를 사용해야
+한다. ToolContext는 이 key와 인자 fingerprint가 같은 호출에 하나의 handler
+실행 Promise를 공유하며, 다른 fingerprint로 같은 key를 재사용하면 재시도할 수
+없는 `TOOL_IDEMPOTENCY_CONFLICT`를 반환한다. 따라서 첫 호출 timeout 뒤 재시도가
+handler를 중복 실행하지 않는다.
+
+timeout은 rollback이 아니라 호출자 경계의 분리다. handler가 abort signal을
+무시하면 호출자에게 `TOOL_TIMEOUT`을 반환한 뒤 내부 Promise가 drain될 수 있다.
+같은 key의 후속 호출도 성공을 추정해서는 안 되며, 내부 실행이 중단되었거나 결과가
+불확실하면 `TOOL_EXECUTION_ABORTED`를 받을 수 있다. 이 경우 새 key로 무작정
+재실행하지 말고 idempotency key로 도메인 작업 상태를 조회하거나 보정해야 한다.
+기본 registry는 하나의 Provider 수명 안에서만 동작하는 bounded in-memory
+guard다. reload·프로세스 재시작·다중 host까지 exactly-once를 보장하려면
+atomic claim, fingerprint, pending/completed 상태, retention 정책을 가진
+애플리케이션 소유 durable operation store를 mutation 경계에 둬야 한다.
+
+저장소 없이 이 전이를 검증할 수 있도록
+`packages/tool-durable-operations/__tests__/support/mock-durable-operation-store.ts`에
+test-only shared-backend mock을 둔다. 각각의 store instance는 다른 탭 또는
+프로세스이고 shared backend는 DB 역할을 하므로, durable claim·replay·unknown
+전이를 Redis나 SQL 없이 테스트할 수 있다.
+
+애플리케이션은 `createToolContext`의 `durableOperationStore`,
+`durableOperationOwnerId`, `durableOperationLeaseMs` 옵션으로 이 경계를
+주입한다. 다른 owner가 lease 동안 같은 작업을 요청하면 재시도 가능한
+`TOOL_IDEMPOTENCY_PENDING`을 받고, lease가 만료되면 pending record를 reclaim할
+수 있다. 보정이 필요한 record는 재시도 불가능한
+`TOOL_IDEMPOTENCY_UNKNOWN`으로 반환된다. `registry.getOperationStatus(toolName,
+key, context)`는 handler를 시작하지 않고 record만 조회한다. store 자체의 실패는
+재시도 가능한 `TOOL_IDEMPOTENCY_STORE_FAILED`로 반환되며 guard를 우회한 mutation으로
+fall through하지 않는다. terminal transition 저장이 실패하면 local promise entry도
+지워지므로 이후 재시도는 memory에 남은 미기록 성공을 replay하지 않고 durable pending
+record를 다시 확인한다.
+
+domain query, compensation 또는 사용자 결정으로 결과가 확정된 뒤에는
+`registry.reconcileOperation(toolName, idempotencyKey, resolution)`으로
+`unknown` record를 `completed` 또는 `failed`로 확정할 수 있다. 이 호출은 recovery
+actor와 revision 검증을 기록하지만 handler를 실행하거나 외부 side effect 발생 여부를
+추측하지 않는다. 안전한 재시도가 새 논리적 operation을 만드는 경우에는 새
+idempotency key를 사용해야 한다.
+
+일반적인 status-first 흐름에는 `registry.recoverOperation(toolName,
+idempotencyKey, resolver)`를 사용한다. 이 메서드는 record를 먼저 읽고 관찰한
+상태가 `unknown`일 때만 `resolver`를 호출하며 pending·terminal record에서는
+resolver를 실행하지 않고 그대로 반환한다. resolver가 domain query,
+compensation, 사용자 확인을 소유하고, reconciliation은 첫 조회에서 관찰한
+revision을 사용해 stale decision을 거부한다.
+
+외부 side effect가 일부 적용됐을 수 있음을 handler가 알면
+`TOOL_EXECUTION_UNKNOWN`을 반환할 수 있다. ToolContext는 durable record를
+`unknown`으로 만들고 resolver가 사용할 수 있도록 정제된 tool result를 진단 정보로
+보존한다. 보존 값은 크기 제한과 redaction을 적용해야 하며 mutation 재실행 권한으로
+해석하면 안 된다.
+
+전용 `@context-action/tool-durable-operations` package는
+`createDurableOperationStore(backend, options)` reference adapter를 제공한다.
+backend는 durable `read`, revision을 검사하는
+`compareAndSet`, 그리고 호환용 `list()` 또는 bounded `listPage()` 중 하나를
+구현하면 되므로 Redis, SQL, IndexedDB 등 atomic store를 ToolContext의 persistence
+로직과 분리해서 연결할 수 있다. retention window가 지난 terminal record는
+`prune()`으로 정리한다.
+
+서버 backend는 operation catalog가 커질 수 있으면 optional
+`listPage({ cursor, limit })` keyset scan을 구현해야 한다. `prunePageSize`와
+`maxPrunePages`로 한 번의 cleanup 범위를 제한하며, 이전 페이지의 terminal
+record를 삭제해도 cursor가 유효해야 한다. `listPage()`가 없는 backend는 호환성을
+위해 `list()` fallback을 사용하므로 작은 bounded store에서만 사용한다.
+
+durable-operations package에는 `createRedisDurableOperationBackend()`도 포함된다. JSON
+record를 Redis에 저장하고 lexicographic sorted-set index를 유지하며, 하나의 Lua
+`EVAL`로 record/index CAS를 수행한다. 주입형 client bridge를 사용하므로
+node-redis와 ioredis를 필수 의존성으로 만들지 않는다. 기존 client는
+`createNodeRedisDurableOperationClient()` 또는
+`createIoredisDurableOperationClient()`로 연결할 수 있고, custom client는
+`get`, `eval`, `rangeByLex`만 제공하면 된다. repository CI는 Redis 7에 대해
+integration suite를 실행하며 운영 환경에서는 별도의 retention schedule이 필요하다.
+
+package에는 `createPostgresDurableOperationBackend()` 참조 SQL adapter도 포함된다. 이
+adapter는 structural `query(text, values)` client를 주입받으며 `pg` runtime dependency를
+추가하지 않는다. PostgreSQL 기본 `READ COMMITTED` isolation에서 parameterized 조건부
+`INSERT ... ON CONFLICT DO NOTHING`, revision 검증 `UPDATE`, revision 검증 `DELETE`를
+사용한다. `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL`은 명시적인 migration 경계이며 adapter가
+자동 migration을 실행하지 않는다. PostgreSQL 결정, schema 소유권, live-server 검증 경계는
+[PostgreSQL durable-operation adapter 결정](../context-layered/architecture/postgres-durable-operation-adapter.md)에
+기록한다.
+
+브라우저 애플리케이션은 `createIndexedDbDurableOperationBackend()`를 기본
+브라우저 backend로 사용할 수 있다. 이 backend는 object store를 지연 생성하고
+IndexedDB read-write transaction과 revision 검증 CAS로 탭 간 record를 조정한다.
+각 탭에서 같은 `databaseName`과 `storeName`을 사용해야 하며, `close()`는 해당
+탭의 연결만 닫는다. 이 기능이 보장하는 것은 durable operation record의 조정까지이며,
+공통 side-effect runner가 standalone Bolt filesystem reference를 담당하고,
+`runHttpSideEffect()`는 얇은 HTTP bridge를, `runQueueSideEffect()`는 같은 runner
+위의 enqueue/acknowledgement bridge를 제공한다. Ambiguous record는 runner의 기존
+`recover()`를 사용한다. Queue/provider 완료 판단은 application 소유이며
+adapter별 idempotency·inbox·outbox 경계가 여전히 필요하다.
+
+### 외부 side-effect adapter 경계
+
+`@context-action/tool-durable-operations`는 기존 `DurableOperationStore`를 재사용하는
+작은 공통 adapter인 `createDurableSideEffectRunner()`를 제공한다. 두 번째
+persistence state machine이나 provider별 retry 정책은 만들지 않는다. 각
+논리 작업은 안정적인 `key`와 `fingerprint` 하나를 사용하고
+`completed`/`failed`/`unknown` tagged outcome 중 하나를 반환한다.
+
+HTTP adapter는 response가 authoritative한 뒤에만 `completed`를 반환하고,
+요청이 전송되지 않았다는 사실이 확인될 때만 `failed`를 반환한다. 전송 후
+응답이 유실된 transport 오류는 `unknown`으로 남겨야 한다. Queue와 provider
+adapter도 같은 규칙을 사용하며 acknowledgement와 domain status query는
+애플리케이션이 소유한다.
+
+caller timeout이나 abort signal을 무시한 handler가 drain되는 경우 runner는
+즉시 `unknown`을 반환하고 같은 key의 두 번째 호출을 막는다. 애플리케이션은
+provider/domain 상태를 확인한 뒤 `sideEffects.recover()`를 호출해야 한다.
+runner는 애플리케이션이 제공한 제한된 diagnostic만 저장하며 credential이나
+raw source를 직렬화하지 않는다.
+
+HTTP mutation은 주입한 request와 명시적인 response classifier를 bridge에 넘긴다. 상태
+코드만으로 mutation 거부를 추측하지 않는다. Provider별 classifier가 authoritative한
+acknowledgement일 때만 `completed`, 전송 전 거부가 확인될 때만 `failed`, 전송 여부나
+provider 결과가 모호할 때 `unknown`을 반환해야 한다. Runner의 `recover()`가 상태를
+먼저 확인해 reconciliation하며 HTTP request를 다시 보내지 않는다.
+
+저장소의 `pnpm tool-durable:verify:http` smoke fixture는 ephemeral local provider와
+실제 `fetch` transport를 사용해 `Idempotency-Key` 경계, 두 번째 mutation 없는 replay,
+ambiguous acknowledgement 보존, status query reconciliation을 검증한다. 함께 제공하는
+`pnpm tool-durable:verify:queue` fixture는 ephemeral in-process publisher로
+authoritative acknowledgement, 두 번째 publish 없는 replay, publish 후 acknowledgement
+유실, provider status reconciliation을 검증한다. 둘 다 bridge 계약 증거이며
+production provider 증거를 대체하지 않는다. Queue fixture는 production broker SDK를
+선택하거나 흉내 내지 않는다.
+
+Queue mutation은 주입한 `enqueue` 함수와 `onAcknowledgement` classifier를 가진
+`runQueueSideEffect()`를 사용한다. 권위 있는 broker receipt는 `completed`, enqueue
+이전의 확인된 거절은 `failed`, publish 이후 acknowledgement 유실은 `unknown`으로
+분류한다. 이 bridge는 queue SDK 응답에서 완료를 추측하거나 재시도하지 않으며,
+provider 소유 idempotency 또는 inbox/outbox reconciliation이 필요하다.
+
+예제 Live Code Editor는 이 backend를 browser `ToolContext`에 주입한다. 명시적인
+`editor.saveFile`과 `editor.saveAll`은 session과 path 범위의 안정적인
+idempotency key를 사용하므로 같은 session의 retry는 durable record를 replay하고
+folder를 두 번 쓰지 않는다. 사용자가 새 save를 의도한 경우에는 새 session/key를
+만들어야 한다. browser filesystem write가 `unknown`이 되면 folder 상태를 조회하거나
+명시적으로 operator가 결정한 뒤 `registry.recoverOperation()`을 호출해야 하며,
+caller timeout만을 이유로 save handler를 다시 실행해서는 안 된다. 직접 save 복구
+action은
+`example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts`에서
+package의 `readFile()` port로 외부 파일을 읽고 시도한 source와 byte 단위로 비교한 뒤,
+읽기 전용 `editor.getStatus` 결과를 사용해 완료 recovery를 기록한다. 파일이 없거나
+내용이 다르면 record는 `unknown`으로 남는다. 여러 파일을 다루는 `saveAll`은 이제
+ambiguous durable result에 파일별 source digest/길이 manifest만 보존하고 모든 외부
+파일을 확인한 뒤에만 recovery를 완료한다. 이것은 reconciliation evidence이며
+browser filesystem의 exactly-once 또는 production outbox를 보장하지 않는다.
+
+standalone Bolt-style editor는 같은 runner를 더 작은 경계에 적용한다.
+`workspace.saveAll`의 각 write/delete에 destination scope, revision, path key와
+source digest fingerprint를 만들고 전용 IndexedDB operation store에 기록한다. 같은 save를
+반복하면 완료된 파일은 replay되고, adapter 오류나 caller timeout은
+`WORKSPACE_SIDE_EFFECT_UNKNOWN`이 되어 folder를 확인하기 전에는 남은 mutation을
+진행하지 않는다. File System Access API 자체의 exactly-once를 주장하지 않으면서
+부분 저장 상태를 명시적으로 다루는 방식이다.
+
 provider별 filtered export(`toMCPFiltered`, `toOpenAIFiltered`,
 `toAnthropicFiltered`)도 같은 allowlist 경계를 사용한다. `tools/list`에서
 숨겨진 도구는 이름을 직접 선택해 provider payload에 다시 넣을 수 없다.
 
-blocking handler가 실패하면 ToolContext는 handler의 오류 메시지와 handler ID를
-`tools/call`의 structured error message/details에 보존한다. 따라서 UI와 model이
-`Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace 원인을
-확인할 수 있다.
+blocking handler가 실패하면 ToolContext는 현재 호출자의 `tools/call` structured
+error message/details에 handler 오류 메시지와 handler ID를 보존한다. 따라서 UI와
+model이 `Tool call failed` 같은 일반 오류만 받지 않고 실제 validation·workspace
+원인을 확인할 수 있다. Durable failed/unknown record는 위에서 설명한 redacted
+projection을 사용하므로 현재 호출 진단과 persistence evidence의 저장 계약은 분리된다.
 handler가 throw하는 Error에 `code`, `retryable`, `details` metadata를 추가하면
 ToolContext가 이를 canonical result까지 보존하므로 `TOOL_EXECUTION_FAILED`로
 평준화되지 않는다. standalone workspace는 이를 retry 가능한 revision conflict와
@@ -372,8 +579,10 @@ local과 OpenRouter 요청은 provider별 tool serialization 전에 canonical
 `tools/list` discovery를 사용한다. paged catalog에서는 `listAllTools()`가
 `registry.listTools()`를 위임 호출한다. 이후 ToolContext의
 `onToolCall` observer가
-`started`, `completed`, `failed` 이벤트와 source·duration·result 상태를 기록한다.
-trace는 UI state일 뿐이며 파일 내용이나 filesystem handle을 모델로 보내지 않는다.
+`started`, `completed`, `failed` 이벤트와 source·duration·result 상태 및 additive
+execution provenance를 기록한다.
+표시·복사 details는 bounded redaction policy를 통과하며 trace는 UI state일 뿐이고
+파일 내용이나 filesystem handle을 모델로 보내지 않는다.
 `Clear`는 workspace 파일·tool registry·provider history를 바꾸지 않고 이 local
 trace view만 초기화한다. 실행 중에는 in-flight lifecycle이 화면에서 사라지지
 않도록 `Clear`가 비활성화된다. call row를 펼치면 canonical `tools/call` arguments와
@@ -381,6 +590,11 @@ result를 제한된 길이로 확인할 수 있다. 파일성 `source`, `search`
 값은 문자 수만 남기고 redact하므로 파일 내용을 trace UI에 복사하지 않으면서
 호출 구조를 확인할 수 있다. 접힌 row에는 파일 수·path·theme·revision 같은
 안전한 result summary만 표시한다.
+standalone Bolt trace는 로컬 UI 확인을 위해 bounded redacted argument/result
+projection과 검증된 provenance를 보존한다. 반면 example live-editor와 realtime
+web-coding trace store는 metadata와 provenance만 저장한다. 어떤 store도 canonical
+`request`나 `result` 객체를 남기지 않으며, Bolt의 Copy/Download는 UI diagnostic text도
+제거한 metadata-only projection을 export한다.
 standalone의 `agent.request` row는 같은 실행을 감싸며 running·completed·failed·cancelled
 상태를 기록한다. 따라서 `tools/call`까지 도달하지 못한 provider 오류도 trace에서
 확인할 수 있다.
@@ -399,10 +613,10 @@ trace JSON에서 full correlation 값을 확인할 수 있으며, local fallback
 승인 대기 항목도 같은 session marker를 표시하며, 직접 실행하는 palette call도
 자체 session을 생성한다. 따라서 agent row가 없는 수동 실행도 trace에서 감사할 수 있다.
 call row에는 provider `toolCallId`가 있으면 그것과 내부 `traceId`를 함께 표시하고 full
-value는 row tooltip에서 확인할 수 있다. trace panel의 `Copy` action은 같은
-bounded·redacted entry를 JSON으로 내보내므로,
-workspace source를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부
-테스트에서 재사용할 수 있다.
+value는 row tooltip에서 확인할 수 있다. trace panel의 `Copy`와 `Download` action은
+bounded metadata-only projection을 JSON으로 내보내므로 workspace source나 result
+content를 노출하지 않고도 `tools/list` → call → result 예시를 문서나 외부 테스트에서
+재사용할 수 있다.
 example의 realtime web-coding과 Live Code Editor trace도 같은 최소 protocol 필드를
 유지한다. catalog 또는 agent가 discovery를 수행하면 `method: 'tools/list'` row를 만들고, registry lifecycle은
 `method: 'tools/call'` row로 기록한다. call row에는 `source`와 `mode`를 함께 표시하므로
@@ -534,8 +748,8 @@ bridge는 ready message를 억제하므로, 이후 `DOMContentLoaded` event가 �
 전체 Live Code Editor는 framework runtime이 아니라 `example`의 showcase
 surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
 `demos/bolt-style-editor`로 격리해 example route와 결합하지 않고 정적 페이지로
-배포한다. Tool protocol은 `@context-action/core`, ToolContext와 registry는
-`@context-action/react`가 계속 소유한다.
+배포한다. Tool protocol과 action schema는 `@context-action/tool-protocol`,
+ToolContext와 registry는 `@context-action/react`가 소유한다.
 
 첫 번째 추출 seam은 이제 private
 `@context-action/live-code-editor` workspace package로 존재한다. 이 package는
@@ -940,6 +1154,15 @@ Open folder → generic FileSystemAdapter
    때는 `WEB_CODING_URL`을 전달한다.
 9. 파괴적인 workspace tool은 model 호출에서 approval gate를 유지하고,
    실제 폴더 삭제는 사용자가 실행하는 save 경계에서만 수행한다.
+
+## 후속 작업
+
+유지되는 backlog와 문서 소유권 맵은
+[다음 작업과 문서 소유권](../context-layered/next-work.md)에 둔다. 이 문서는
+tool-execution 의미 계약에 집중하고, 배포·장애 절차는
+[Durable Operation 운영 Runbook](../context-layered/architecture/durable-operation-operations.md)에
+둔다. Package README와 생성 API 문서에는 두 번째 TODO 목록을 복사하지 않고
+각 기준 문서로 연결한다.
 
 ## 검증 기준
 

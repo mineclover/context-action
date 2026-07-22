@@ -68,30 +68,21 @@ DATABASE_URL=postgres://user:password@127.0.0.1:5432/context_action \
 ```
 
 The endpoint preflight accepts `POSTGRES_URL` as a local alias when
-`DATABASE_URL` is not set. The protected GitHub workflow intentionally uses
-the environment secret name `DATABASE_URL`.
+`DATABASE_URL` is not set.
 
 These checks verify the persistence adapter and recovery contract; they do not
 claim exactly-once behavior from an external provider.
 
-The protected deployment workflow emits a sanitized
-`context-action/durable-operation-verification@1` evidence record. It contains
-step outcomes and allow-listed host/version/isolation/check fields only; raw
-command logs remain in the workflow log and endpoint credentials are never
-written to the artifact.
+The repository CI workflow runs the Redis 7 and PostgreSQL 16 checks against
+GitHub-hosted service containers. This is the supported automated verification
+path; it does not require GitHub Environments or environment-scoped endpoint
+secrets. Production endpoint verification remains an application-owned
+operations task outside this repository's CI.
 
-Use `pnpm tool-durable:verify:github --report-only` before dispatching the
-workflow to check the local workflow contract, remote workflow, protected
-environments, and required secret names without reading secret values.
-
-Validate the checked-in workflow wiring before that remote check:
-
-```bash
-pnpm tool-durable:verify:workflow
-```
-
-This local gate verifies the referenced commands, evidence writer/schema, and
-sanitized artifact path without contacting GitHub or reading endpoint secrets.
+The optional `context-action/durable-operation-verification@1` evidence schema
+and writer can be used by an application deployment pipeline. They are not
+coupled to this repository's CI workflow, and raw command logs and endpoint
+credentials must never be uploaded as evidence.
 
 The uploaded JSON evidence is validated against
 [`spec/durable-operation-verification-evidence.schema.json`](./spec/durable-operation-verification-evidence.schema.json)

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const rootDirectory = path.resolve(import.meta.dirname, '..');
 const protocolPath = path.join(
@@ -9,7 +10,7 @@ const protocolPath = path.join(
 );
 const toolProtocolPath = path.join(
   rootDirectory,
-  'packages/core/src/tool-protocol.ts'
+  'packages/tool-protocol/dist/index.js'
 );
 const standaloneSettingsPath = path.join(
   rootDirectory,
@@ -39,13 +40,10 @@ const transpileToDataUrl = (source, fileName) => {
   });
   return 'data:text/javascript;base64,' + Buffer.from(outputText).toString('base64');
 };
-const toolProtocolModuleUrl = transpileToDataUrl(
-  await readFile(toolProtocolPath, 'utf8'),
-  toolProtocolPath
-);
+const toolProtocolModuleUrl = pathToFileURL(toolProtocolPath).href;
 const source = await readFile(protocolPath, 'utf8');
 const sourceWithCanonicalProtocol = source.replace(
-  "from '@context-action/core';",
+  "from '@context-action/tool-protocol';",
   `from ${JSON.stringify(toolProtocolModuleUrl)};`
 );
 expect(

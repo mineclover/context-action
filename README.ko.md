@@ -710,6 +710,27 @@ npm install @context-action/react
 - 🪝 고급 React 훅
 - 🏗️ HOC 지원
 
+### [@context-action/tool-protocol](./packages/tool-protocol)
+**MCP, OpenAI 호환 provider, Anthropic 호환 provider, local adapter를 위한
+framework-neutral tool/action 계약**
+```bash
+npm install @context-action/tool-protocol zod
+```
+- 🧩 Zod 기반 action schema와 JSON Schema 변환
+- 🔌 provider 독립적인 tool-call 및 approval 계약
+- 🧱 React와 action runtime에 의존하지 않음
+- 📦 protocol symbol은 이 패키지에서 직접 import
+
+### [@context-action/tool-durable-operations](./packages/tool-durable-operations)
+**선택적 mutation 안전성 계층**으로 durable idempotency와 외부 side-effect를 관리합니다.
+```bash
+npm install @context-action/tool-durable-operations
+```
+- 🧾 Lease 기반 durable operation record
+- 🔁 HTTP·queue·filesystem·provider side-effect adapter
+- 🗄️ IndexedDB·Redis·PostgreSQL reference backend
+- ⚠️ 모호한 외부 효과는 애플리케이션 reconciliation 전까지 `unknown` 유지
+
 ---
 
 ## 🛠️ 개발

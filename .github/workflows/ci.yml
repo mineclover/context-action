@@ -18,6 +18,32 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: context_action
+          POSTGRES_PASSWORD: context_action
+          POSTGRES_DB: context_action
+        options: >-
+          --health-cmd "pg_isready -U context_action -d context_action"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      REDIS_URL: redis://127.0.0.1:6379
+      DATABASE_URL: postgres://context_action:context_action@127.0.0.1:5432/context_action
     
     strategy:
       fail-fast: false  # 하나 실패해도 다른 버전 테스트 계속 진행
@@ -69,6 +95,23 @@ jobs:
         
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify durable-operation CI endpoint configuration
+        env:
+          DURABLE_OPERATION_ENVIRONMENT: ci
+        run: pnpm tool-durable:verify:env
+
+      - name: Verify Redis durable-operation smoke path
+        run: pnpm tool-durable:verify:redis
+
+      - name: Verify PostgreSQL durable-operation smoke path
+        run: pnpm tool-durable:verify:postgres
+
+      - name: Verify HTTP durable-side-effect bridge smoke path
+        run: pnpm tool-durable:verify:http
+
+      - name: Verify queue durable-side-effect bridge smoke path
+        run: pnpm tool-durable:verify:queue
           
       - name: Verify full repository
         run: pnpm verify:all

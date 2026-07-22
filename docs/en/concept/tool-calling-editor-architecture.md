@@ -262,7 +262,12 @@ serialization is attempted.
 
 ## Standard contract
 
-Core `tool-protocol.ts` preserves provider-neutral execution metadata:
+This section is the semantic source of truth for tool-call timeout, cancellation,
+retry, idempotency, and durable-operation behavior. Package READMEs intentionally
+keep only API-level quick starts and link here; changelogs record release deltas
+without restating the contract.
+
+`@context-action/tool-protocol` preserves provider-neutral execution metadata:
 
 - `ToolCallId` correlates a model call with its result
 - `ToolCallContext` carries transport `source`, execution `mode`, `sessionId`,
@@ -278,19 +283,29 @@ Core `tool-protocol.ts` preserves provider-neutral execution metadata:
 - `ToolCallEvent` exposes `started`, `completed`, and `failed`
 - Each `ToolCallEvent` carries the canonical `tools/call` request so an audit
   observer can correlate arguments with the eventual result
+- Each `ToolCallEvent` also carries additive `provenance` validated against
+  `context-action-tool-execution-provenance.v1`. The started event is `pending`;
+  the final event records `completed`, `failed`, `cancelled`, or `unknown`, plus
+  the logical owner, optional timeout/output budgets, UTF-8 result bytes, and
+  elapsed milliseconds. Provenance contains no raw arguments, credentials, or
+  result payload and is trace evidence, not a second durable-operation state
+  machine.
 - An action's optional `outputSchema` validates structured handler results before
   they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
 
-Core exports `TOOL_CALL_ERROR_CODES` and `ToolCallErrorCode` for the canonical
-managed-call codes. Applications can still attach domain-specific codes when a
-handler needs to report a workspace or product-specific failure.
+`@context-action/tool-protocol` exports `TOOL_CALL_ERROR_CODES` and
+`ToolCallErrorCode` for the canonical managed-call codes. Applications can still
+attach domain-specific codes when a handler needs to report a workspace or
+product-specific failure.
 
 `createToolContext` can set `toolListPageSize` for large catalogs. Canonical
 `toToolListRequest({ cursor })` requests passed to `listTools()` then return an opaque
 `nextCursor`; direct `listTools()` calls and provider batch exports remain the
 complete catalog. Provider adapters that need complete paged discovery use the
-core `listAllTools()` helper, which follows `nextCursor` and rejects a repeated
-cursor.
+shared `listAllTools()` helper, which follows `nextCursor`, rejects a repeated
+cursor, and applies a 1,000-page safety limit by default. A caller that has
+independently bounded the manager may opt into
+`listAllTools(manager, { maxPages: Infinity })`.
 
 The standalone workspace, realtime web-coding, and Live Code Editor catalogs use
 this same output contract for file reads, mutations, preview acknowledgements,
@@ -322,6 +337,8 @@ React ToolContext adds runtime scope:
 - `allowedToolNames`: an allowlist applied to both discovery and execution
 - `toolPolicy`: an `allow`, `ask`, or `deny` decision
 - `onToolCall`: lifecycle observer for traces and audit UI
+- `durableDiagnosticPolicy`: optional `ToolObservabilityPolicy` override for
+  failed/unknown durable projections; the shared default applies when omitted
 
 In strict mode, `tools/call` arguments are validated before `toolPolicy` runs.
 Invalid model input returns `TOOL_VALIDATION_FAILED` with schema issues and
@@ -333,15 +350,242 @@ wait cannot outlive a cancelled provider request. The same signal is forwarded
 through registry handlers and preview waits; cancellation at any of those
 boundaries returns the retryable `TOOL_CANCELLED` result.
 
+Callers can additionally provide `ToolCallOptions.timeout` as a single
+wall-clock budget for policy plus handler execution. Expiry aborts the shared
+signal and returns the retryable `TOOL_TIMEOUT` result with the configured
+`timeoutMs` and `executionState: 'detached'`; invalid negative or non-finite values return
+`TOOL_INVALID_OPTIONS`. Timeout is intentionally distinct from caller
+cancellation so runners can apply separate retry and user-feedback policies.
+
+Callers may set `ToolCallOptions.maxOutputBytes` as an optional result boundary.
+ToolContext measures the serialized `content` and `structuredContent` surface as
+UTF-8 bytes and returns non-retryable `TOOL_OUTPUT_LIMIT_EXCEEDED` when the
+budget is exceeded. The budget is enforced before a durable operation is marked
+completed, while the attempted byte count is retained only as bounded numeric
+provenance/error metadata.
+
+Telemetry and user-facing trace consumers should apply the shared
+`createToolObservabilityPolicy()` and `serializeToolObservabilityValue()` helpers
+before retaining an event or diagnostic. The policy redacts credential/source-like
+fields, bounds depth, collections, strings, and serialized UTF-8 bytes, and
+exposes `retentionMs`/`maxEntries` metadata for the owning store. It is an
+observability boundary only: it does not mutate the durable operation record or
+introduce a second state machine. The standalone Bolt-style trace uses this
+policy for both displayed details and copied JSON.
+When `@context-action/react` persists an ambiguous durable tool result, it uses
+`sanitizeToolCallDiagnostic()` to keep only the error code/retryability and
+bounded redacted details; canonical content and structured payloads are omitted.
+`sanitizeToolCallDiagnosticReason()` also replaces handler-provided error text
+with a stable code-based reason. The same projection is used for known error
+terminal records; only successful terminal results remain lossless for replay.
+Successful terminal results remain lossless so cross-process replay preserves the
+original transport contract.
+
+Mutation retries must use one stable `ToolCallOptions.idempotencyKey` per
+logical operation, not a new key per provider attempt. ToolContext keeps a
+bounded in-memory promise registry for those keys: the same key and argument
+fingerprint share one handler execution, while a different fingerprint returns
+the non-retryable `TOOL_IDEMPOTENCY_CONFLICT` result. This registry prevents a
+retry from duplicating a mutation after the first call has timed out.
+
+Timeout is a detached caller boundary, not a rollback. If a handler ignores the
+abort signal, its promise may continue to drain after the caller receives
+`TOOL_TIMEOUT`. A later replay therefore must not infer success; it may receive
+`TOOL_EXECUTION_ABORTED` when the underlying execution was interrupted or its
+outcome is indeterminate. The recovery flow should query or reconcile the
+domain operation by idempotency key before attempting a new logical operation.
+The built-in registry is bounded to one Provider lifetime. Exactly-once
+behavior across reloads, processes, or multiple hosts requires an
+application-owned durable operation record with an atomic claim, fingerprint,
+pending/completed state, and retention policy.
+
+The repository includes a test-only shared-backend mock at
+`packages/tool-durable-operations/__tests__/support/mock-durable-operation-store.ts`.
+Separate store instances represent tabs or processes while the shared backend
+represents the database, so the durable claim/replay/unknown transitions can be
+tested without a real Redis or SQL service.
+
+Applications opt into the durable boundary with `createToolContext`'s
+`durableOperationStore`, `durableOperationOwnerId`, and
+`durableOperationLeaseMs` options. A second owner receives retryable
+`TOOL_IDEMPOTENCY_PENDING` while the lease is active, can reclaim an expired
+pending lease, and receives non-retryable `TOOL_IDEMPOTENCY_UNKNOWN` when the
+record requires reconciliation. `registry.getOperationStatus(toolName, key,
+context)` reads the record without starting a handler. A store failure is
+reported as retryable `TOOL_IDEMPOTENCY_STORE_FAILED`; it never falls through
+to an unguarded mutation. A failed terminal transition also clears the local
+promise entry, so a later retry can observe the durable pending record instead
+of replaying an unrecorded success from memory.
+
+After a domain query, compensation, or user decision confirms the outcome,
+`registry.reconcileOperation(toolName, idempotencyKey, resolution)` can resolve
+an `unknown` record to `completed` or `failed` with an explicit recovery actor
+and revision check. It records the decision only; it never invokes the tool
+handler or guesses whether an external side effect occurred. A safe retry that
+creates a new logical operation must therefore use a new idempotency key.
+
+For the common status-first flow, `registry.recoverOperation(toolName,
+idempotencyKey, resolver)` reads the record and invokes `resolver` only when
+the observed state is `unknown`; pending and terminal records are returned
+without calling the resolver. The resolver owns the domain query,
+compensation, or user decision, and the resulting reconciliation uses the
+revision observed by the initial read to reject a stale decision.
+
+Handlers that know a partial external side effect may have occurred can return
+`TOOL_EXECUTION_UNKNOWN`. ToolContext marks the durable record `unknown` and
+retains the sanitized tool result as resolver diagnostics. The retained value
+must be bounded and redacted; it is evidence for reconciliation, never a
+permission to replay the mutation.
+
+The dedicated `@context-action/tool-durable-operations` package provides
+`createDurableOperationStore(backend, options)` as the state-machine reference
+adapter. A backend needs durable
+`read`, revision-checked `compareAndSet`, and either a compatibility `list()`
+scan or bounded `listPage()` scan, so Redis, SQL, IndexedDB, or another atomic
+store can be supplied without moving persistence logic into ToolContext.
+Terminal records can be removed through `prune()` after the configured
+retention window.
+
+Server backends should implement the optional `listPage({ cursor, limit })`
+keyset scan when the operation catalog can grow beyond memory. `prunePageSize`
+and `maxPrunePages` bound each cleanup call; cursors must remain valid when a
+previous page's terminal records are deleted. Backends without `listPage()`
+continue to use the compatibility `list()` fallback and should keep that path
+for small, bounded stores only.
+
+The durable-operations package also includes `createRedisDurableOperationBackend()`.
+It stores JSON records in Redis, maintains a lexicographic sorted-set index,
+and performs record/index CAS through one Lua `EVAL`. The injected client bridge
+keeps node-redis and ioredis optional. Use
+`createNodeRedisDurableOperationClient()` or
+`createIoredisDurableOperationClient()` to adapt an existing client; custom
+clients only need to provide `get`, `eval`, and `rangeByLex`. The repository CI
+runs the integration suite against Redis 7, while production still needs a
+retention schedule.
+
+The durable-operations package also provides `createPostgresDurableOperationBackend()` as the
+reference SQL adapter. It accepts a structural `query(text, values)` client and
+does not add a `pg` runtime dependency. The adapter uses parameterized
+conditional `INSERT ... ON CONFLICT DO NOTHING`, revision-checked `UPDATE`, and
+revision-checked `DELETE` statements under PostgreSQL's default `READ COMMITTED`
+isolation. `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL` is an explicit migration
+boundary; the adapter never auto-migrates. The PostgreSQL decision, schema
+ownership, and live-server verification boundary are documented in the
+[PostgreSQL durable-operation adapter decision](../context-layered/architecture/postgres-durable-operation-adapter.md).
+
+Browser applications can use `createIndexedDbDurableOperationBackend()` as the
+reference browser backend. It lazily creates one object store and coordinates
+tabs through IndexedDB read-write transactions plus revision-checked CAS; use
+the same `databaseName` and `storeName` in each tab. `close()` is optional and
+only releases the local connection. This coordinates the durable operation
+record, not the external side effect itself. The shared side-effect runner now
+covers the standalone Bolt filesystem reference,
+`runHttpSideEffect()` provides a thin HTTP bridge, and
+`runQueueSideEffect()` provides a thin enqueue/acknowledgement bridge over the
+same runner. Ambiguous records use the runner's existing `recover()` method.
+Queue/provider completion remains application-owned and still requires an
+adapter-specific idempotency, inbox, or outbox boundary.
+
+### External side-effect adapter boundary
+
+`@context-action/tool-durable-operations` provides
+`createDurableSideEffectRunner()` as the small common adapter for those
+downstream writes. It reuses the existing `DurableOperationStore`; it does not
+introduce a second persistence state machine or provider-specific retry policy.
+Each logical operation supplies one stable `key` and `fingerprint` and returns
+one tagged outcome:
+
+```ts
+const result = await sideEffects.run({
+  key: `provider:charge:${chargeId}`,
+  fingerprint: requestFingerprint,
+  signal,
+  execute: async ({ signal: requestSignal }) => {
+    try {
+      const response = await provider.charge(payload, { signal: requestSignal });
+      return response.accepted
+        ? { state: 'completed', result: response }
+        : { state: 'failed', reason: 'provider rejected the charge', result: response };
+    } catch (error) {
+      // A transport error after transmission is ambiguous.
+      return { state: 'unknown', reason: String(error), diagnostic: { chargeId } };
+    }
+  },
+});
+```
+
+Adapters should use `failed` only when the external system confirms that the
+effect did not happen. A caller timeout or ignored abort signal returns
+immediately with `unknown` while the adapter promise may drain; a second call
+with the same key is therefore blocked. The application must call
+`sideEffects.recover()` after a provider/domain status query and only then
+receive a resolved result. Queue acknowledgements and filesystem confirmation
+follow the same contract. The runner stores only the bounded diagnostic payload
+provided by the application; it does not serialize credentials or raw source.
+
+For HTTP mutations, use the bridge with an injected request and an explicit
+response classifier. The bridge does not assume that a status code proves a
+mutation was rejected: a provider-specific classifier must return `completed`
+only for an authoritative acknowledgement, `failed` only for a confirmed
+pre-send rejection, and `unknown` when transmission or the provider outcome is
+ambiguous. The runner's `recover()` performs status-first reconciliation and
+never issues the HTTP request again.
+
+The repository smoke fixture `pnpm tool-durable:verify:http` uses an ephemeral
+local provider and the real `fetch` transport to verify the `Idempotency-Key`
+boundary, replay without a second mutation, ambiguous acknowledgement retention,
+and status-query reconciliation. The companion
+`pnpm tool-durable:verify:queue` fixture uses an ephemeral in-process publisher
+to verify authoritative acknowledgement, replay without a second publish, a
+lost acknowledgement after publish, and provider-status reconciliation. These
+are bridge contract checks, not production provider evidence; the queue fixture
+does not select or emulate a production broker SDK.
+
+For queue mutations, use `runQueueSideEffect()` with an injected `enqueue`
+function and `onAcknowledgement` classifier. An authoritative broker receipt
+may be `completed`, a confirmed rejection before enqueue may be `failed`, and
+a lost acknowledgement after publish must be `unknown`. The bridge never
+retries or infers completion from a queue SDK response; provider-owned
+idempotency or inbox/outbox reconciliation remains required.
+
+The example Live Code Editor now injects this backend into its browser
+`ToolContext`. Its explicit `editor.saveFile` and `editor.saveAll` commands use
+session-scoped stable idempotency keys. A same-session retry replays the durable
+record; a new user-intended save creates a new session/key pair. This is a
+reference integration, not a claim that the browser filesystem write is
+exactly-once: an `unknown` save still requires a folder status check or explicit
+operator decision followed by `registry.recoverOperation()`. The direct-save
+recovery action in
+`example/src/pages/integrations/live-code-editor/actions/useLiveEditorToolActions.ts`
+uses the package `readFile()` port, compares the external source byte-for-byte
+with the attempted source, and only then records a completed recovery after a
+read-only `editor.getStatus` call. A missing or mismatched file remains
+`unknown`. The multi-file `saveAll` path now preserves a bounded per-file
+source digest/length manifest in the ambiguous durable result and checks every
+file before completing recovery. This is reconciliation evidence, not an
+outbox or an exactly-once guarantee for the browser filesystem.
+
+The standalone Bolt-style editor uses the same runner at a finer-grained
+boundary: every `workspace.saveAll` write or deletion gets a destination-scope,
+revision, and path key plus a source digest fingerprint in a dedicated IndexedDB
+operation store. A
+completed file is replayed on a repeated save, while an adapter error or
+caller timeout becomes `WORKSPACE_SIDE_EFFECT_UNKNOWN` and stops the remaining
+mutation until the folder is reconciled. This keeps partial-save behavior
+explicit without claiming exactly-once semantics from the File System Access
+API.
+
 Provider-specific filtered exports (`toMCPFiltered`, `toOpenAIFiltered`, and
 `toAnthropicFiltered`) use the same allowlist boundary. A tool that is hidden
 from `tools/list` cannot be reintroduced into a provider payload by selecting
 its name directly.
 
 When a blocking handler fails, ToolContext preserves its error message and
-handler ID in the `tools/call` structured error message/details. The UI and
-model therefore receive the concrete validation or workspace cause instead of
-only a generic `Tool call failed` response.
+handler ID in the current caller's `tools/call` structured error message/details.
+The UI and model therefore receive the concrete validation or workspace cause
+instead of only a generic `Tool call failed` response. Durable failed/unknown
+records use the redacted projection described above, so that current-call
+diagnostics and persisted evidence have separate storage contracts.
 Handlers may additionally attach `code`, `retryable`, and `details` metadata to
 their thrown Error. ToolContext preserves that metadata in the canonical result
 instead of flattening it into `TOOL_EXECUTION_FAILED`; the standalone workspace
@@ -397,11 +641,18 @@ an execution trace. Local and OpenRouter requests use the canonical
 `tools/list` discovery (the paginated `listAllTools()` helper delegates to
 `registry.listTools()`) before provider-specific tool serialization. The ToolContext `onToolCall`
 observer then records each `started`, `completed`, and `failed` event with its
-source, duration, and result status. The trace is UI state only; it never sends
+source, duration, result status, and additive execution provenance. The displayed
+and copied details pass through the bounded redaction policy; the trace is UI
+state only and never sends
 file contents or filesystem handles to the model. `Clear` resets that local trace
 view without changing workspace files, tool registry state, or provider history;
 it is disabled while an execution is active so the in-flight lifecycle remains
 visible.
+The standalone Bolt trace keeps bounded redacted argument/result projections for
+local UI inspection, while the example live-editor and realtime web-coding trace
+stores keep metadata and provenance only. None of these stores retains the
+canonical `request` or `result` object; the Bolt Copy/Download actions additionally
+strip the UI diagnostic text and export a metadata-only projection.
 The standalone `agent.request` row now surrounds the same run and records
 running, completed, failed, or cancelled status, so a provider failure remains
 visible even when no `tools/call` was reached.
@@ -426,10 +677,10 @@ character count, so the trace can explain the call without copying file contents
 into the UI. The compact row still shows safe result summaries such as file
 count, path, theme, or revision, and shows both the provider `toolCallId` (when
 present) and internal `traceId`; the full values are available as the row
-tooltip. The trace panel's `Copy` action exports the
-same bounded, already-redacted entries as JSON, making a `tools/list` → call →
-result example reusable in documentation or external tests without exposing
-workspace source.
+tooltip. The trace panel's `Copy` and `Download` actions export a bounded,
+metadata-only projection as JSON, making a `tools/list` → call → result example
+reusable in documentation or external tests without exposing workspace source or
+result content.
 The example realtime web-coding and Live Code Editor traces keep the same
 minimum protocol fields: catalog or agent discovery adds a `method: 'tools/list'`
 row, while registry
@@ -566,9 +817,9 @@ reported as synchronized by a later `DOMContentLoaded` event.
 The full Live Code Editor remains inside `example` because it is a showcase
 surface, not framework runtime. The Bolt-style visual shell is isolated in
 `demos/bolt-style-editor` so it can be deployed as a static page without
-coupling its route to the example application. `@context-action/core` continues
-to own the provider-neutral tool protocol, while `@context-action/react` owns
-ToolContext and the registry.
+coupling its route to the example application. `@context-action/tool-protocol`
+owns the provider-neutral tool protocol and action schemas, while
+`@context-action/react` owns ToolContext and the registry.
 
 The first extraction seam now exists as the private
 `@context-action/live-code-editor` workspace package. It exports the
@@ -1010,6 +1261,16 @@ Open folder → generic FileSystemAdapter
    restoration; pass `WEB_CODING_URL` when checking an already-running server.
 9. Keep destructive workspace tools approval-gated for model calls and make
    explicit folder deletion part of the user-triggered save boundary.
+
+## Follow-up work
+
+The maintained backlog and documentation ownership map live in
+[Next Work and Documentation Ownership](../context-layered/next-work.md). Keep
+this guide focused on the semantic tool-execution contract: deployment and
+incident procedures belong in the
+[Durable Operation Runbook](../context-layered/architecture/durable-operation-operations.md),
+and package READMEs should link to these owners instead of copying a second
+TODO list.
 
 ## Acceptance criteria
 

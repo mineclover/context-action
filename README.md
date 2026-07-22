@@ -760,6 +760,27 @@ npm install @context-action/react
 - 🪝 Advanced React hooks
 - 🏗️ HOC support
 
+### [@context-action/tool-protocol](./packages/tool-protocol)
+**Framework-neutral tool and action contracts** for MCP, OpenAI-compatible,
+Anthropic-compatible, and local tool adapters.
+```bash
+npm install @context-action/tool-protocol zod
+```
+- 🧩 Zod-backed action schemas and JSON Schema conversion
+- 🔌 Provider-neutral tool-call and approval contracts
+- 🧱 No React or action-runtime dependency
+- 📦 Import protocol symbols directly from this package
+
+### [@context-action/tool-durable-operations](./packages/tool-durable-operations)
+**Optional mutation-safety layer** for durable idempotency and external side effects.
+```bash
+npm install @context-action/tool-durable-operations
+```
+- 🧾 Lease-aware durable operation records
+- 🔁 HTTP, queue, filesystem, and provider side-effect adapters
+- 🗄️ IndexedDB, Redis, and PostgreSQL reference backends
+- ⚠️ Ambiguous effects remain `unknown` until application-owned reconciliation
+
 ---
 
 ## 🛠️ Development
