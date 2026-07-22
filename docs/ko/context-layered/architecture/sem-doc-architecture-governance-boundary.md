@@ -20,6 +20,17 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
 심볼 컨텍스트 SSOT이고, Architecture Governance는 authored registry·evidence·policy·snapshot
 계약의 SSOT입니다.
 
+## SEM이 제공하는 핵심 기능
+
+외부 `sem` 실행 파일은 repository 전체의 Source of Truth 자체가 아니라 semantic evidence
+provider입니다. 핵심 기능은 지원하는 소스 파일을 안정적인 entity와 구조 관계로 스캔하고,
+정의·영향도·컨텍스트 질의에 답하는 것입니다. 따라서 LSP나 별도 AST 색인을 추가하지 않고도
+심볼 identity, 정의 위치, dependent file 신호, bounded graph context를 얻을 수 있습니다.
+SEM은 문서 binding을 작성하거나 architecture policy를 결정하지 않으며, revision의 complete
+snapshot을 보장하지도 않습니다. `sem-doc`과 Foundation 계약이 원시 SEM evidence를 버전이
+있는 deterministic artifact로 정규화하고, Architecture Governance는 그 evidence를 활용하되
+자체 registry·policy·revision-bound snapshot을 gate의 기준으로 유지합니다.
+
 ## 계약과 의존성 분리
 
 ```text

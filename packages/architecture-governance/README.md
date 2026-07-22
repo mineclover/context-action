@@ -23,9 +23,10 @@ contract는 이 패키지가 소유하지만, 실제 authored registry와 policy
 두 패키지는 같은 SEM/Foundation primitive을 사용할 수 있으나 runtime 의존성이나 report 계약을
 공유하지 않는다. 자세한 비교는 [sem-doc과 Architecture Governance 경계](../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)를 따른다.
 
-`@context-action/sem-doc`의 소스는 이 저장소의 `packages/sem-doc`에 있는 private workspace PoC로
-관리한다. `pnpm sem-doc:verify`가 sem-doc의 타입 검사, 경계 검사, lint, 테스트, artifact 검증을
-실행하며, 아직 Lerna publish/release 대상에는 포함하지 않는다.
+`@context-action/sem-doc`은 현재 `context-action-documentation-tooling`을 canonical source로
+분리하는 중이다. 이 저장소의 `packages/sem-doc`은 Architecture Governance 호환성을 검증하기
+위한 private migration copy이며, `pnpm sem-doc:verify`로 타입 검사, 경계 검사, lint, 테스트,
+artifact 검증만 실행한다. sem-doc과 Foundation은 이 저장소의 Lerna publish/release 대상이 아니다.
 
 ## 검증 범위
 

@@ -141,7 +141,11 @@ matching platform binary. It also installs `@context-action/sem-foundation-contr
 The CLI resolves the package-local `sem` binary by default, even when analysis changes the
 subprocess cwd to the Git repository root. Set `SEM_BIN` only when using a different executable.
 
-For a consumer repository, install the published package and invoke its CLI directly:
+For a consumer repository, install the published package and invoke its CLI directly. The
+currently checked-out copy under `context-action` is a private migration copy; its canonical
+release is owned by the future `context-action-documentation-tooling` repository. Until that
+repository has a configured remote and a corrected npm release, use this workspace copy for
+validation or the existing npm artifact for compatibility testing:
 
 ```bash
 npm install --save-dev @context-action/sem-doc@^0.1.2
@@ -158,22 +162,20 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context SemClie
 pnpm --filter @context-action/sem-doc verify:poc
 ```
 
-The package is included in the repository's Lerna publish flow. Publish the foundation packages
-before sem-doc when releasing a new foundation contract version; the current `0.1.2` release
-already resolves both foundation packages from npm.
+The package is not included in this repository's Lerna publish flow while the Source-of-Truth
+migration is in progress. The main repository keeps the three packages private and only runs
+their type, boundary, binding, POC, test, and pack checks. The tooling repository must publish
+the foundation packages before sem-doc when releasing a new foundation contract version; its
+release must also pass the published-metadata cutover check.
 
 ## Release through GitHub Actions
 
-Package publication is managed by `.github/workflows/publish-packages.yml`. It can be started from
-the GitHub Actions UI with **Publish Packages**, with `gh workflow run publish-packages.yml --ref main`,
-or by pushing a `v*` tag. The workflow runs the package export, tarball, type, test, documentation,
-and sem-doc contract gates before invoking `lerna publish from-package`. Manual runs select `oidc`
-(npm Trusted Publishing, the default) or `token` (the `NPM_TOKEN` Actions secret) through the
-`publish_auth` input. Tag runs use OIDC. Each package must have a matching npm Trusted Publisher
-configuration before its first OIDC publish. Publishing is serialized across the package workflows,
-retries transient Lerna failures, stores an npm summary artifact (including an empty summary for a
-no-op rerun), and runs a clean-consumer CLI smoke test after npm metadata becomes visible. This
-workflow publishes npm packages; it does not create a GitHub Release entry.
+The historical `.github/workflows/publish-packages.yml` workflow still validates this migration
+copy as part of the consumer checkout, but it no longer includes sem-doc or Foundation in its
+publish set. After the tooling repository has a remote and corrected package metadata, its own
+release workflow should run the equivalent package export, tarball, type, test, and consumer smoke
+gates before publishing. This repository's workflow is not a release path for sem-doc and must not
+be used to infer package ownership.
 
 To use a different sem executable for the direct CLI commands below, run from the `context-action`
 root and set `SEM_BIN` explicitly:
@@ -317,7 +319,9 @@ pnpm --filter @context-action/sem-doc verify:poc
 SEM_BIN=/path/to/sem pnpm --filter @context-action/sem-doc verify:poc
 ```
 
-`context-action/packages/sem-doc` is the implementation home for the publishable package. The former
-standalone checkout and the old `tsdoc-edge` copy are no longer source locations; new sem-doc
-features should land in this workspace package first. The package is included in the Lerna release/
-publish flow and keeps `@context-action/sem-foundation-*` as explicit runtime dependencies.
+`context-action/packages/sem-doc` is the migration-copy implementation used to validate the
+publishable package. The former standalone checkout and the old `tsdoc-edge` copy are no longer
+source locations. New sem-doc features should land in the canonical tooling workspace once its
+remote is configured; changes mirrored here are for consumer compatibility and CI verification.
+The package remains outside this repository's Lerna release/publish flow and keeps
+`@context-action/sem-foundation-*` as explicit runtime dependencies.

@@ -1,6 +1,7 @@
 {
   "name": "@context-action/sem-foundation-repository",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "description": "Bounded Git history, revision, worktree, and project-snapshot primitives for SEM tools",
   "license": "Apache-2.0",
@@ -8,9 +9,6 @@
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
     "directory": "packages/sem-foundation-repository"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

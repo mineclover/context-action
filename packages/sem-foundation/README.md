@@ -1,5 +1,10 @@
 # @context-action/sem-foundation-contracts
 
+This checkout is a private migration copy kept in `context-action` for Architecture Governance
+compatibility checks. The canonical package source and release belong to the planned
+`context-action-documentation-tooling` repository; see the repository
+[Source-of-Truth manifest](../../source-of-truth.json) before changing ownership or release metadata.
+
 Shared, policy-neutral contracts for SEM-backed tools.
 
 This package intentionally does not execute SEM, inspect Git, load architecture registries, or
@@ -20,7 +25,8 @@ JSON-safe `symbolRefKey(SymbolRef)` serializer instead; both represent the same
 `projectId/filePath/entityId` identity and neither creates a second authored symbol ID.
 
 The package is intentionally small enough to publish as a standalone dependency. It does not
-publish SEM execution or repository policy; consumers retain those responsibilities. The workspace
+publish SEM execution or repository policy; consumers retain those responsibilities. The canonical
+tooling workspace
 consumers are `@context-action/architecture-governance` and `@context-action/sem-doc`, but they adapt
 the contracts independently: the former uses authored registry/policy and snapshot evidence, while the
 latter uses work-context, TSDoc binding, and Git diff evidence. Git history/worktree mechanics live in

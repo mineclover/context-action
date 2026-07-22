@@ -1,6 +1,7 @@
 {
   "name": "@context-action/sem-foundation-contracts",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "description": "Shared SEM contracts and deterministic symbol identity utilities",
   "license": "Apache-2.0",
@@ -8,9 +9,6 @@
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
     "directory": "packages/sem-foundation"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

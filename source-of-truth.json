@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "source-of-truth-manifest.v1",
+  "repository": {
+    "name": "context-action",
+    "role": "consumer",
+    "url": "https://github.com/mineclover/context-action"
+  },
+  "toolingRepository": {
+    "name": "context-action-documentation-tooling",
+    "url": "https://github.com/mineclover/context-action-documentation-tooling",
+    "phase": "local-scaffold",
+    "remoteStatus": "not-configured"
+  },
+  "semContract": {
+    "evidenceProvider": "@ataraxy-labs/sem",
+    "primaryPackage": "@context-action/sem-doc",
+    "foundationPackages": [
+      "@context-action/sem-foundation-contracts",
+      "@context-action/sem-foundation-repository"
+    ],
+    "ssotArtifact": "revision-bound-serialized-symbol-context",
+    "artifactSchemas": [
+      "context-action/symbol-snapshot@1.1",
+      "context-action/symbol-snapshot-diff@1.0",
+      "sem-doc-work-context.v5",
+      "sem-doc-context-scope.v3",
+      "sem-doc-context-scope-history.v2",
+      "sem-doc-context-scope-history-stream.v1",
+      "sem-doc-context-scope-diff.v1",
+      "sem-doc-context-scope-branch-compare.v1"
+    ],
+    "nonGoals": [
+      "runtime-call-graph",
+      "lsp-exact-reference-locations",
+      "architecture-policy-ownership"
+    ]
+  },
+  "canonicalPackages": [
+    {
+      "name": "@context-action/sem-foundation-contracts",
+      "path": "packages/sem-foundation",
+      "owner": "context-action-documentation-tooling",
+      "status": "migration-copy"
+    },
+    {
+      "name": "@context-action/sem-foundation-repository",
+      "path": "packages/sem-foundation-repository",
+      "owner": "context-action-documentation-tooling",
+      "status": "migration-copy"
+    },
+    {
+      "name": "@context-action/sem-doc",
+      "path": "packages/sem-doc",
+      "owner": "context-action-documentation-tooling",
+      "status": "migration-copy"
+    }
+  ],
+  "migrationCopyExceptions": [
+    "README.md",
+    "package.json"
+  ],
+  "consumerOwnedPackages": [
+    "@context-action/architecture-governance",
+    "@context-action/typedoc-vitepress-sync",
+    "@context-action/llms-generator"
+  ],
+  "generatedArtifacts": [
+    "architecture/registry.json",
+    "docs/api",
+    "llmsData"
+  ],
+  "publishedArtifactNote": "Published 0.1.x sem-doc/Foundation artifacts still carry legacy context-action repository metadata; the sem-doc 0.1.2 artifact also emits the older sem-doc-work-context.v4 contract, so it is not proof of the tooling-repository cutover.",
+  "cutoverRule": "Remove migration-copy packages only after published or local-tarball consumer verification passes."
+}

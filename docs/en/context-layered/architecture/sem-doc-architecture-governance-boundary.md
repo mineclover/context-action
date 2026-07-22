@@ -23,6 +23,17 @@ The distinction is about responsibility, not implementation size. `sem-doc` is t
 for work-context and document-binding reports. Architecture Governance is the SSOT for authored
 architecture registry, evidence, policy, and snapshot contracts.
 
+## What SEM contributes
+
+The external `sem` executable is the semantic evidence provider, not the repository-level Source of
+Truth by itself. Its core job is to scan supported source files into stable entities and structural
+relationships, then answer definition/impact/context queries. That gives us symbol identity,
+definition locations, dependent-file signals, and bounded graph context without requiring an LSP or a
+second AST index. SEM does not author document bindings, decide architecture policy, or guarantee a
+complete revision snapshot. `sem-doc` and Foundation contracts normalize the raw SEM evidence into
+versioned, deterministic artifacts; Architecture Governance may consume that evidence while its
+registry, policy, and revision-bound snapshot remain authoritative for its own gate.
+
 ## Separate contracts and dependencies
 
 ```text

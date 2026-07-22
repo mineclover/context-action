@@ -1,5 +1,10 @@
 # @context-action/sem-foundation-repository
 
+This checkout is a private migration copy kept in `context-action` for Architecture Governance
+compatibility checks. The canonical package source and release belong to the planned
+`context-action-documentation-tooling` repository; see the repository
+[Source-of-Truth manifest](../../source-of-truth.json) before changing ownership or release metadata.
+
 Shared repository runtime primitives for SEM-backed tools.
 
 This package owns the mechanics that must be identical when a tool analyzes current state or a

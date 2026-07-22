@@ -1,11 +1,9 @@
 {
   "name": "@context-action/sem-doc",
   "version": "0.1.2",
+  "private": true,
   "description": "Symbol-centered work-context, operational ContextScope grouping, document binding, and Git diff analysis for TypeScript repositories",
   "type": "commonjs",
-  "publishConfig": {
-    "access": "public"
-  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

@@ -91,9 +91,6 @@ jobs:
           const expected = {
             'packages/tool-protocol/package.json': '@context-action/tool-protocol',
             'packages/tool-durable-operations/package.json': '@context-action/tool-durable-operations',
-            'packages/sem-foundation/package.json': '@context-action/sem-foundation-contracts',
-            'packages/sem-foundation-repository/package.json': '@context-action/sem-foundation-repository',
-            'packages/sem-doc/package.json': '@context-action/sem-doc',
           };
 
           for (const [file, name] of Object.entries(expected)) {
@@ -129,12 +126,12 @@ jobs:
         run: pnpm verify:package-tarballs
 
       - name: Verify repository conventions and documentation ownership
-        run: pnpm convention:check && pnpm docs:management
+        run: pnpm convention:check && pnpm docs:management && pnpm source-of-truth:check
 
       - name: Type check packages
         run: pnpm type-check
 
-      - name: Verify sem-doc release contract
+      - name: Verify sem-doc migration copy contract
         run: pnpm sem-doc:verify
 
       - name: Test packages
@@ -155,12 +152,6 @@ jobs:
         run: |
           mkdir -p reports
           pnpm publish:packages -- reports/npm-publish-summary.json
-
-      - name: Verify published sem-doc consumer install
-        if: success()
-        env:
-          NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm verify:published-consumer
 
       - name: Verify published tool package consumer install
         if: success()

@@ -10,9 +10,19 @@ if (packageJson.dependencies?.['@ataraxy-labs/sem'] === undefined) {
   );
 }
 
+// pnpm injects npm_config/pnpm_config variables that npm 11 reports as unknown
+// configuration keys. Keep the pack check independent from the caller's package-manager
+// configuration while preserving the runtime variables npm needs to locate Node.
+const npmEnvironment = Object.fromEntries(
+  ['PATH', 'HOME', 'TMPDIR', 'LANG', 'NODE_OPTIONS']
+    .filter((key) => process.env[key] !== undefined)
+    .map((key) => [key, process.env[key]]),
+);
+
 const output = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   cwd: process.cwd(),
   encoding: 'utf8',
+  env: npmEnvironment,
 });
 const packs = JSON.parse(output);
 const files = packs.flatMap((pack) => pack.files ?? []).map((file) => file.path);
