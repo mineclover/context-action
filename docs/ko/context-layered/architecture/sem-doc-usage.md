@@ -10,21 +10,12 @@ TypeDoc 대체재가 아닙니다.
 `sem-doc`은 Node.js 24가 필요합니다. 공개 패키지는 `@ataraxy-labs/sem@0.21.0` runtime wrapper와
 두 Foundation 패키지를 함께 설치하므로, 깨끗한 환경에서도 기본 `sem` 실행 파일을 제공합니다.
 
-기존 0.1.x artifact는 호환성 테스트에 사용할 수 있습니다. 새 release는 canonical
-`context-action-documentation-tooling` 저장소가 소유하며, 이 consumer 저장소의 sem-doc과 Foundation
-디렉터리는 private migration copy입니다.
+새 release는 canonical `context-action-documentation-tooling` 저장소가 소유합니다. 이 consumer는
+published package를 사용하며 sem-doc과 Foundation source copy를 workspace에 보관하지 않습니다.
 
 ```bash
-npm install --save-dev @context-action/sem-doc@^0.1.2
+npm install --save-dev @context-action/sem-doc@^0.2.0
 npx sem-doc version
-```
-
-workspace checkout에서 개발할 때는 로컬 빌드를 사용합니다.
-
-```bash
-pnpm install
-pnpm --filter @context-action/sem-doc build
-node packages/sem-doc/dist/cli.js version
 ```
 
 다른 sem 실행 파일을 명시할 때만 `SEM_BIN`을 설정합니다.
@@ -161,6 +152,7 @@ npx sem-doc context-scope-history HEAD~10 HEAD Dashboard \
   --project-id example --file src/Dashboard.tsx --output managed/history.ndjson --json
 ```
 
-현재 consumer workflow는 migration copy의 package boundary, workspace build, export/tarball, type/test/docs
-gate를 확인하지만 sem-doc과 Foundation을 배포하지 않습니다. canonical tooling 저장소가 자체 release
-workflow와 published-metadata 검증을 통과한 뒤에만 consumer가 migration copy에서 전환합니다.
+tooling 저장소의 release workflow는 package boundary, export/tarball, test, published metadata를
+검증합니다. consumer workflow는 설치된 published package를 대상으로 source-of-truth,
+Architecture Governance, type/test/docs gate를 검증하며 sem-doc/Foundation source copy를 다시
+빌드하거나 배포하지 않습니다.

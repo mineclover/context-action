@@ -163,5 +163,5 @@ provenance, and failure semantics instead of merging them into a new ambiguous â
 - Are Git revision and SEM provenance preserved independently in each report?
 - Would a user understand which command to run and which failure is actionable?
 
-See the package specifications for normative details: [`sem-doc/spec/sem-doc.md`](../../../../packages/sem-doc/spec/sem-doc.md)
+See the package specification for normative details in the [documentation tooling repository](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/sem-doc.md)
 and [`architecture-governance` README](../../../../packages/architecture-governance/README.md).

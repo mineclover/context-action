@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: ko/context-layered/package-boundary-convention.md
 character_limit: 2000
-last_update: '2026-07-20T17:25:11.401Z'
+last_update: '2026-07-22T19:56:24.969Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -17,9 +17,8 @@ workflow_stage: content_generated
 Key points:
 • `core`는 `react`에 의존하지 않는다.
 • `tool-protocol`은 framework-neutral이며 `core`나 `react`에 의존하지 않는다. provider/tool 경계를 소유한다.
+• `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
 • `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
 • `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.
 • `sem-foundation-repository`는 contracts를 사용하고 역방향 의존성은 허용하지 않는다.
-• `architecture-governance`는 foundation과 SEM을 사용한다. foundation은 capability, policy, Context-Action UI,
-• `architecture-governance`와 `sem-doc`은 목적과 계약이 다른 나란한 consumer이며 서로 runtime 의존성을
-• 문서 generator는 소스·문서를 읽을 수 있지만 runtime package가...
+• `architecture-governance`는 foundation과 SEM을 사용한다. foundation은 capability, policy,...

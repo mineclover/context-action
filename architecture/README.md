@@ -59,7 +59,7 @@ role declaration + capabilityId
 Architecture Governance는 내부 함수 호출 횟수, 호출 순서, runtime data flow를 분석하지 않는다. 해당 의미가 필요하면
 별도 LSP/runtime provider 계약으로 추가한다.
 
-작업 전 문서·Git 컨텍스트는 별도 패키지인 [`@context-action/sem-doc`](../packages/sem-doc/README.md)이
+작업 전 문서·Git 컨텍스트는 별도 published 패키지인 [`@context-action/sem-doc`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-doc)이
 담당한다. 두 패키지는 같은 목적의 다른 이름이 아니며, 공통 Foundation primitive만 정책 중립적인
 범위에서 공유한다. 전체 비교와 선택 기준은 [sem-doc과 Architecture Governance 경계](../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)를 참고한다.
 
@@ -88,7 +88,7 @@ pnpm arch:test
 snapshot, history, snapshot-diff, intersect의 상세 옵션은 usage 문서에만 추가한다. Git
 first-parent/worktree lifecycle과 historical `analysisProjects` traversal은
 `@context-action/sem-foundation-repository`가 제공하고, 공통 entity/path/provenance 계약은
-[`@context-action/sem-foundation-contracts`](../packages/sem-foundation/README.md)가 제공한다.
+[`@context-action/sem-foundation-contracts`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation)가 제공한다.
 
 `context-scope` CLI는 complete snapshot과 optional `contexts.json` manifest를 조합해 별도 scope
 artifact를 만든다. manifest는 `arch:check` 입력이 아니며, complete snapshot을 canonical inventory로

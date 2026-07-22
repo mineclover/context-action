@@ -10,7 +10,7 @@
 - `package-boundaries.json`: package manifest에 선언된 dependency 관계
 - `impact-boundaries.json`: sem top-level entity의 dependency 관계
 
-현재 package boundary에는 `@context-action/sem-doc`과
+현재 package boundary에는 published `@context-action/sem-doc`과
 `@context-action/architecture-governance` 사이의 runtime coupling을 금지하는 규칙도 포함한다.
 두 도구는 SEM/Foundation primitive을 공유할 수 있지만 같은 목적의 단일 library로 합치지 않는다.
 책임 선택은 [sem-doc과 Architecture Governance 경계 가이드](../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)를 따른다.

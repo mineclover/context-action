@@ -3,7 +3,7 @@ document_id: context-layered--architecture--sem-doc-usage
 category: context-layered
 source_path: ko/context-layered/architecture/sem-doc-usage.md
 character_limit: 100
-last_update: '2026-07-20T17:25:11.397Z'
+last_update: '2026-07-22T19:56:24.964Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

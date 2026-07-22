@@ -31,8 +31,8 @@ runtime compatibility gate 양쪽에 고정한다.
 | `@microsoft/tsdoc` parser | 미사용 | sem-doc은 Markdown/frontmatter와 `[[Symbol]]` convention을 자체 색인 |
 | tree-sitter | 직접 dependency 없음 | 외부 `sem` 내부 구현을 consumer 계약으로 노출하지 않음 |
 
-`packages/sem-doc/scripts/verify-boundary.cjs`는 ttsc/LSP runtime import를 검사해 이 경계를 자동으로
-보호한다. 후보 provider를 다시 도입하려면 기존 `sem-doc` 또는 governance package에 바로 넣지 않고,
+published `@context-action/sem-doc`과 Architecture Governance는 각자의 package boundary와
+release workflow로 이 경계를 보호한다. 후보 provider를 다시 도입하려면 기존 `sem-doc` 또는 governance package에 바로 넣지 않고,
 별도 provider contract와 provenance/비용 검토를 먼저 추가한다.
 
 ## 실제 결과

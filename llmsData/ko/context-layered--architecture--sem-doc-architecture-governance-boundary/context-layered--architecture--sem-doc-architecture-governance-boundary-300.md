@@ -3,7 +3,7 @@ document_id: context-layered--architecture--sem-doc-architecture-governance-boun
 category: context-layered
 source_path: ko/context-layered/architecture/sem-doc-architecture-governance-boundary.md
 character_limit: 300
-last_update: '2026-07-20T17:25:11.394Z'
+last_update: '2026-07-22T19:56:24.962Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

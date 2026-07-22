@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: en/context-layered/package-boundary-convention.md
 character_limit: 2000
-last_update: '2026-07-20T17:25:11.390Z'
+last_update: '2026-07-22T19:56:24.955Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -17,8 +17,7 @@ Package Boundary and Codebase Management Convention Status: Active for new work 
 Key points:
 • `core` never depends on `react`.
 • `tool-protocol` is framework-neutral and does not depend on `core` or `react`; it owns the provider/tool boundary.
+• `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 • `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
 • `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
-• `sem-foundation-repository` consumes contracts, never the reverse.
-• `architecture-governance` consumes foundation contracts/repository and SEM; foundation packages do not know
 •...

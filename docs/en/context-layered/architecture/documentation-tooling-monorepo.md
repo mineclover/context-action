@@ -1,9 +1,8 @@
 # Documentation tooling monorepo boundary
 
-The reusable documentation-management implementations are being extracted into
-`context-action-documentation-tooling` as the proposed canonical repository for Foundation and sem-doc.
-It is currently a local scaffold with no configured remote, and the consumer has not switched to package
-artifacts. The machine-readable
+The reusable documentation-management implementations live in
+`context-action-documentation-tooling`, the canonical repository for Foundation and sem-doc.
+The repository is remote-backed and publishes the packages consumed by this repository. The machine-readable
 ownership declaration is [`source-of-truth.json`](../../../../source-of-truth.json).
 
 ## Ownership
@@ -38,41 +37,18 @@ without rerunning an implicit in-memory graph. A one-hop projection is a present
 boundary; a complete revision snapshot remains the source for later context grouping and intersection.
 SEM does not claim exact call counts, runtime behavior, or architecture policy ownership.
 
-## Validation gate before removal
+## Published consumer verification
 
-The copied workspace must pass Foundation tests, sem-doc tests, type checks, sem-doc boundary/binding/
-pack verification, and a published-consumer smoke test. The consumer additionally runs
-`pnpm verify:tooling-consumer`, which packs the local canonical Foundation artifacts and proves that
-consumer-owned Architecture Governance can install and use them in an isolated fixture. The
-`source-of-truth:check` command in both
-repositories also validates package names, paths, owners, and repository URLs. Architecture Governance's current integration
-suite intentionally reads consumer-owned `architecture/registry.json`, policy files, and the `core`
-analysis project; it is therefore run from the consumer checkout until a package-owned fixture repository
-is introduced.
+The tooling repository's release workflow validates Foundation tests, sem-doc tests, type checks, package
+exports/tarballs, published metadata, and a clean-consumer smoke. This repository consumes the resulting
+published versions and verifies its own `source-of-truth:check`, Architecture Governance build/type/test
+suite, and package boundary policy. Architecture Governance intentionally reads consumer-owned
+`architecture/registry.json`, policy files, and the `core` analysis project, so its integration checks
+remain in this repository.
 
-When both worktrees are available locally, `pnpm source-of-truth:parity` hashes every canonical package
-file, compares the SEM contract and canonical package paths in both manifests, validates the tooling
-manifest, and detects code/spec/test drift between the tooling source and the consumer migration copy. Root
-`README.md` and `package.json` are excluded because their repository ownership and migration metadata are
-intentionally different; the command skips with an explicit message when the sibling tooling checkout is absent.
-
-The cross-repository readiness report is available as
-`node scripts/verify-tooling-cutover.mjs --json`. Use `--local-only` to validate the two manifests,
-package parity, and both local tarball consumer smokes without touching the registry. The full command
-also checks the tooling remote, published metadata, published consumer smoke, and unused release
-versions, including Architecture Governance against the published Foundation versions; it remains
-non-ready until those external cutover checks pass.
-
-The tooling repository now contains a prepared release workflow that validates this contract, publishes
-Foundation contracts before sem-doc, and runs both published metadata and clean-consumer checks. It is
-not invoked until the tooling remote, npm Trusted Publisher or token configuration, and corrected package
-versions are intentionally configured.
-
-The current published `@context-action/sem-doc@0.1.2` artifact still emits the older
-`sem-doc-work-context.v4` contract, while the local implementation emits v5; this is an observable
-legacy-artifact mismatch rather than a consumer code failure. Only after the tooling remote and
-published artifact metadata are corrected, the published-consumer smoke passes, and that gate passes, should
-`context-action` switch to released or local-tarball dependencies and remove
-the duplicated package directories. Generated docs, API pages, LLMS output, and the authored registry
-stay with each consumer repository. Until then, `architecture-governance`, TypeDoc, and LLMS remain
-consumer-owned and must not be described as extracted tooling.
+The consumer cutover is complete: `@context-action/sem-foundation-contracts@0.1.1`,
+`@context-action/sem-foundation-repository@0.1.1`, and `@context-action/sem-doc@0.2.0` are the published
+inputs. Foundation and sem-doc migration copies and the temporary parity/cutover scripts have been
+removed. Generated docs, API pages, LLMS output, and the authored registry stay with each consumer
+repository. `architecture-governance`, TypeDoc, and LLMS remain consumer-owned and are not part of the
+tooling repository's runtime contract.

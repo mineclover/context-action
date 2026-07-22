@@ -11,21 +11,12 @@ CI policy gate, complete architecture snapshot, or TypeDoc replacement.
 runtime wrapper and the two Foundation packages, so a clean install provides the default `sem`
 executable as well:
 
-The existing 0.1.x artifact remains usable for compatibility tests. New releases are owned by the
-canonical `context-action-documentation-tooling` repository; the sem-doc and Foundation directories
-in this consumer repository are private migration copies.
+New releases are owned by the canonical `context-action-documentation-tooling` repository. This
+consumer uses the published package; no sem-doc or Foundation source copy is kept in this workspace.
 
 ```bash
-npm install --save-dev @context-action/sem-doc@^0.1.2
+npm install --save-dev @context-action/sem-doc@^0.2.0
 npx sem-doc version
-```
-
-For a workspace checkout, use the local build instead:
-
-```bash
-pnpm install
-pnpm --filter @context-action/sem-doc build
-node packages/sem-doc/dist/cli.js version
 ```
 
 `SEM_BIN` is only needed when a repository intentionally uses a different sem executable:
@@ -175,7 +166,7 @@ npx sem-doc context-scope-history HEAD~10 HEAD Dashboard \
   --project-id example --file src/Dashboard.tsx --output managed/history.ndjson --json
 ```
 
-For release verification, the consumer workflow checks the migration copy's package boundaries, builds
-the consumer-owned workspace, verifies exports and tarballs, and runs the sem-doc contract gates. It does
-not publish sem-doc or Foundation. The canonical tooling repository must run its own release workflow
-and published-metadata check before consumers switch away from the migration copy.
+For release verification, the tooling repository validates package boundaries, exports, tarballs, tests,
+and published metadata. The consumer workflow validates the installed published package through its own
+source-of-truth, Architecture Governance, type, test, and documentation gates. It does not rebuild or
+publish sem-doc/Foundation source copies.

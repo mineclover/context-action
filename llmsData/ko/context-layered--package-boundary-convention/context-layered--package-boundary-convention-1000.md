@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: ko/context-layered/package-boundary-convention.md
 character_limit: 1000
-last_update: '2026-07-20T17:25:11.401Z'
+last_update: '2026-07-22T19:56:24.968Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -17,4 +17,4 @@ workflow_stage: content_generated
 Key points:
 • `core`는 `react`에 의존하지 않는다.
 • `tool-protocol`은 framework-neutral이며 `core`나 `react`에 의존하지 않는다. provider/tool 경계를 소유한다.
-• `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을...
+• `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다....

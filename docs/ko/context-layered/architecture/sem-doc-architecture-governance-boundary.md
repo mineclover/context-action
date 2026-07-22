@@ -157,5 +157,5 @@ authored manifest에 묶습니다.
 - 두 report의 Git revision과 SEM provenance를 독립적으로 보존하는가?
 - 사용자가 어느 명령을 실행하고 어떤 실패를 해결해야 하는지 이해할 수 있는가?
 
-Normative detail은 [`sem-doc/spec/sem-doc.md`](../../../../packages/sem-doc/spec/sem-doc.md)와
+Normative detail은 [documentation tooling repository의 sem-doc/spec/sem-doc.md](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/sem-doc.md)와
 [`architecture-governance README`](../../../../packages/architecture-governance/README.md)를 참고합니다.

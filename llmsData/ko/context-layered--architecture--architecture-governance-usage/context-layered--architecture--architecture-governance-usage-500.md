@@ -3,7 +3,7 @@ document_id: context-layered--architecture--architecture-governance-usage
 category: context-layered
 source_path: ko/context-layered/architecture/architecture-governance-usage.md
 character_limit: 500
-last_update: '2026-07-20T17:25:11.392Z'
+last_update: '2026-07-22T19:56:24.958Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

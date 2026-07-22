@@ -46,8 +46,8 @@ architecture inference engine, 문서 editor/generator, LSP/compiler call graph,
 | Complete snapshot/diff | `src/history.ts`, `src/cli/` | PoC 완료 | `symbol-snapshot@1.1`, `symbol-history-report@1.3`, `symbol-snapshot-diff@1.0` 계약과 CLI 제공 |
 | ContextScope manifest projection | `src/context-scope.ts`, `src/cli/` | 완료(PoC) | revision-bound manifest, explicit edges, bounded optional SEM `depends-on` projection, `context-scope@1.0` schema/CLI |
 | Historical project provenance | `src/history.ts`, `@context-action/sem-foundation-repository` | 완료 | revision에 없는 project를 `skipped/missing-at-revision`으로 보존하고 `fileExtensions` 필터를 history/snapshot에 전달 |
-| Shared SEM foundation contracts | `packages/sem-foundation`, `src/history.ts` | 완료 | entity identity, path normalization, advisory envelope, `AnalysisProject`를 정책 중립 shared package로 추출 |
-| Shared Git history/worktree runtime | `packages/sem-foundation-repository`, `src/history.ts` | PoC 완료 | revision, first-parent commit range, detached worktree lifecycle, historical project callback을 공통화 |
+| Shared SEM foundation contracts | published `@context-action/sem-foundation-contracts`, `src/history.ts` | 완료 | entity identity, path normalization, advisory envelope, `AnalysisProject`를 정책 중립 shared package로 추출 |
+| Shared Git history/worktree runtime | published `@context-action/sem-foundation-repository`, `src/history.ts` | 완료 | revision, first-parent commit range, detached worktree lifecycle, historical project callback을 공통화 |
 | Package boundary/codebase lifecycle | `docs/en|ko/context-layered/package-boundary-convention.md`, `architecture/rules/package-boundaries.json` | 완료(PoC) | package ownership map, dependency direction, package lifecycle, cleanup checklist, and enforceable dependency gates |
 | 입력·filesystem·subprocess 경계 | `src/paths.ts`, `src/diagnostics.ts`, `src/sem.ts`, `src/history.ts` | 완료 | catalog 수집을 안전하게 실행하기 위한 runtime boundary |
 
@@ -179,8 +179,9 @@ payload가 커지면 기존 `maxOutputBytes`/timeout 계약으로 실패하며, 
 - snapshot/history/diff contract를 바꾸면 해당 JSON Schema와 package export, CLI help/artifact
   smoke test, 공개 문서를 함께 갱신한다. 현재 기준은 snapshot `1.1`, history `1.3`, snapshot-diff
   `1.0`이다.
-- shared package를 배포할 때는 registry version pinning과 external install/CLI/schema consumption을
-  별도 release decision으로 기록하고, 두 저장소의 compatibility fixture를 release gate에 추가한다.
+- shared package를 변경할 때는 registry version pinning과 external install/CLI/schema consumption을
+  tooling repository release gate에서 검증하고, consumer는 published version을 갱신한 뒤
+  Architecture Governance compatibility fixture를 다시 실행한다.
 
 ## 6. 검증 명령
 

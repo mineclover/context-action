@@ -49,11 +49,10 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 `example/`과 `demos/`는 library가 아니라 integration host다. public package를 조합하고 아키텍처를 보여줄 수
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
 
-`@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. source
-경로와 CLI binary는 유지한다. canonical source와 향후 공개 npm release는
-`context-action-documentation-tooling`이 소유하며, 이 저장소의 복사본은 consumer 호환성과 검증을 위한
-private migration copy다. 이 패키지는 운영용 Symbol Context SSOT이며 임시 staging package나 Architecture Governance
-adapter가 아니다. 구현 중 화면/API/
+`@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. canonical
+source와 공개 npm release는 `context-action-documentation-tooling`이 소유하며, 이 저장소는 published
+package를 사용하고 source copy를 보관하지 않는다. 이 패키지는 운영용 Symbol Context SSOT이며 임시
+staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
 transaction grouping에는 `sem-doc-context-scope.v3`를 유일한 operational projection으로 사용한다.
 Architecture Governance의 기존 `context-action/context-scope@1.0`은 architecture review용 snapshot-bound
 artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취급하지 않는다.
@@ -222,7 +221,7 @@ SSOT가 아니다. `external-reference` 문서는 직접 dependency surface를 �
 저장소의 authoritative docs root에는 strict 검증을 사용한다.
 
 ```bash
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+npx sem-doc docs validate-bindings <docs-root> --strict --json
 ```
 
 Strict 모드는 모든 문서의 `semDocumentKind` 선언, `code` 문서의 정확한 binding, non-code 문서의
@@ -231,11 +230,11 @@ binding 금지를 강제한다.
 code-backed 문서를 변경할 때는 선언된 binding validator와 대표 context query를 모두 실행한다.
 
 ```bash
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context <entity> --docs-root <docs-root> --json
+npx sem-doc docs validate-bindings <docs-root> --strict --json
+npx sem-doc work-context <entity> --docs-root <docs-root> --json
 ```
 
-정확한 규칙은 [sem-doc document entity binding 컨벤션](../../../packages/sem-doc/spec/conventions/document-entity-binding.md)이 소유한다.
+정확한 규칙은 [sem-doc document entity binding 컨벤션](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/conventions/document-entity-binding.md)이 소유한다.
 
 ## 6. 패키지 추가·병합·분리·폐기
 

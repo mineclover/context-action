@@ -203,10 +203,11 @@ it resolves the workspace-installed sem binary by default, including when analys
 subprocess cwd to the repository root. Set `SEM_BIN` only to test a different executable.
 
 ```bash
-pnpm --filter @context-action/sem-doc build
+# Install the published operational Symbol Context package in the consumer project first.
+npm install --save-dev @context-action/sem-doc@^0.2.0
 
 # Context for one top-level entity, including dependent files and document backlinks.
-pnpm --filter @context-action/sem-doc exec node dist/cli.js \
+npx sem-doc \
   work-context SemClient \
   --file src/sem-client.ts \
   --docs-root spec \
@@ -214,17 +215,17 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js \
   --json
 
 # Git working-tree evidence, including untracked files.
-pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
+npx sem-doc diff --json
 
 # Index and validate exact document-to-entity bindings.
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --strict --json
+npx sem-doc docs index spec --json
+npx sem-doc docs validate-bindings spec --strict --json
 ```
 
 Use `--depth 1` for direct relationships and `--depth 2` for a bounded transitive view. The
 `usageFiles` field is a sorted file-level structural signal from SEM dependents; it is not an exact
 reference location, runtime call graph, or function-call count. See the
-[`sem-doc` README](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)
+[`sem-doc` README](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/README.md)
 for document frontmatter and `sem-doc-work-context.v5` details.
 For the decision table and prohibited report/contract conflations, see the
 [sem-doc and Architecture Governance boundary guide](./sem-doc-architecture-governance-boundary).

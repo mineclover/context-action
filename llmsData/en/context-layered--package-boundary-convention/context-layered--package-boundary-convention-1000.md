@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: en/context-layered/package-boundary-convention.md
 character_limit: 1000
-last_update: '2026-07-20T17:25:11.389Z'
+last_update: '2026-07-22T19:56:24.955Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -17,4 +17,4 @@ Package Boundary and Codebase Management Convention Status: Active for new work 
 Key points:
 • `core` never depends on `react`.
 • `tool-protocol` is framework-neutral and does not depend on `core` or `react`; it owns the provider/tool boundary.
-• `react` consumes `core` and...
+• `tool-durable-operations` is...

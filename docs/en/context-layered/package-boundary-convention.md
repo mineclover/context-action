@@ -51,10 +51,10 @@ when an existing package cannot own the responsibility without violating depende
 architecture, but a reusable implementation belongs in a package before it is imported by another package.
 
 `@context-action/sem-doc` has completed the workspace identity migration from the former `@tsdoc-edge/sem-doc`
-name. Its source path and CLI binary are unchanged. The canonical source and future public npm release
-belong to `context-action-documentation-tooling`; the copy in this repository is private and exists only
-for consumer compatibility and verification. It is the operational Symbol Context SSOT, not a temporary
-staging package or an Architecture Governance adapter.
+name. Its canonical source and public releases belong to
+`context-action-documentation-tooling`; this repository consumes the published package and keeps no source
+copy. It is the operational Symbol Context SSOT, not a temporary staging package or an Architecture
+Governance adapter.
 For screen/API/transaction grouping used during implementation, `sem-doc-context-scope.v3` is the single
 operational projection. Architecture Governance's existing `context-action/context-scope@1.0` remains a
 separate snapshot-bound architecture-review artifact and is not a second sem-doc implementation target.
@@ -241,7 +241,7 @@ for a code-backed document is a documentation issue, not a successful fallback t
 Use strict validation for the repository's authoritative docs root:
 
 ```bash
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
+npx sem-doc docs validate-bindings <docs-root> --strict --json
 ```
 
 Strict mode requires every document to declare `semDocumentKind`, requires exact bindings for `code`
@@ -251,11 +251,11 @@ For code-backed documentation changes, reviewers run both the declared-binding v
 representative context query:
 
 ```bash
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings <docs-root> --strict --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js work-context <entity> --docs-root <docs-root> --json
+npx sem-doc docs validate-bindings <docs-root> --strict --json
+npx sem-doc work-context <entity> --docs-root <docs-root> --json
 ```
 
-The exact rules are owned by the [sem-doc document entity binding convention](../../../packages/sem-doc/spec/conventions/document-entity-binding.md).
+The exact rules are owned by the [sem-doc document entity binding convention](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/conventions/document-entity-binding.md).
 
 ## 6. Adding, merging, splitting, or deprecating packages
 

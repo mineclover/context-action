@@ -205,10 +205,11 @@ Architecture Governance의 dependency, verification report, registry 구현이 �
 찾으므로 `SEM_BIN`은 다른 실행 파일을 테스트할 때만 설정합니다.
 
 ```bash
-pnpm --filter @context-action/sem-doc build
+# 먼저 consumer project에 published operational Symbol Context package를 설치한다.
+npm install --save-dev @context-action/sem-doc@^0.2.0
 
 # 한 top-level entity와 dependents, 문서 backlink 수집
-pnpm --filter @context-action/sem-doc exec node dist/cli.js \
+npx sem-doc \
   work-context SemClient \
   --file src/sem-client.ts \
   --docs-root spec \
@@ -216,17 +217,17 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js \
   --json
 
 # untracked 파일을 포함한 Git working-tree 증거
-pnpm --filter @context-action/sem-doc exec node dist/cli.js diff --json
+npx sem-doc diff --json
 
 # 정확한 문서-entity binding 색인과 검증
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs index spec --json
-pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindings spec --strict --json
+npx sem-doc docs index spec --json
+npx sem-doc docs validate-bindings spec --strict --json
 ```
 
 직접 관계만 필요하면 `--depth 1`, 제한된 전이 관계가 필요하면 `--depth 2`를 사용합니다.
 `usageFiles`는 SEM dependents에서 얻은 정렬된 파일 단위 구조 신호이며, 정확한 reference 위치,
 runtime call graph, 함수 호출 횟수가 아닙니다. 문서 frontmatter와 `sem-doc-work-context.v5`는
-[`sem-doc README`](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)를
+[`sem-doc README`](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/README.md)를
 참고하세요. 두 도구의 선택 기준과 report/계약 혼용 금지는
 [sem-doc과 Architecture Governance 경계 가이드](./sem-doc-architecture-governance-boundary)에서 확인합니다.
 
