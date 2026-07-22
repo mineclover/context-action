@@ -10,27 +10,26 @@
  * - Type safety throughout
  */
 
-import path from 'path';
-import { existsSync } from 'fs';
-import { EnhancedLLMSConfig } from '../types/config.js';
-
-// Core command imports
-import { WorkNextCommand } from './commands/WorkNextCommand.js';
-import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
-import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
-import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
-import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
-import { InitCommand } from './commands/InitCommand.js';
-import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
-import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
-import { MismatchDetectionCommand } from './commands/MismatchDetectionCommand.js';
-import { CodeModeCommand } from './commands/CodeModeCommand.js';
-import { CombineReferencesCommand } from './commands/CombineReferencesCommand.js';
-import { CLIConfig } from './types/CLITypes.js';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
-import { HelpDisplay } from './core/HelpDisplay.js';
+import { EnhancedLLMSConfig } from '../types/config.js';
+import { CodeModeCommand } from './commands/CodeModeCommand.js';
+import { CombineReferencesCommand } from './commands/CombineReferencesCommand.js';
+import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
+import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
+import { InitCommand } from './commands/InitCommand.js';
+import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
+import { MismatchDetectionCommand } from './commands/MismatchDetectionCommand.js';
+import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
+import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
+import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
+// Core command imports
+import { WorkNextCommand } from './commands/WorkNextCommand.js';
 import { ErrorHandler } from './core/ErrorHandler.js';
+import { HelpDisplay } from './core/HelpDisplay.js';
+import { CLIConfig } from './types/CLITypes.js';
 import { ArgumentParser } from './utils/ArgumentParser.js';
 
 async function main(): Promise<void> {
@@ -378,8 +377,7 @@ async function handleDetectMismatches(args: string[], argumentParser: ArgumentPa
 }
 
 async function handleCodeMode(args: string[], argumentParser: ArgumentParser): Promise<void> {
-  const config = await loadEnhancedConfig();
-  const codeModeCommand = new CodeModeCommand(config);
+  const codeModeCommand = new CodeModeCommand();
   
   // Parse targets from arguments (e.g., code-mode core react ./src/utils)
   const targets = args.filter(arg => !arg.startsWith('-'));

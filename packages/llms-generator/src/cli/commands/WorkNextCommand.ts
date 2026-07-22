@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 
 export interface WorkItem {
@@ -196,12 +196,12 @@ export class WorkNextCommand {
     if (parts.length >= 2) {
       const [category, ...nameParts] = parts;
       if (!category) return '';
-      const fileName = nameParts.join('-') + '.md';
+      const fileName = `${nameParts.join('-')}.md`;
       return path.join(this.config.paths.docsDir, language, category, fileName);
     }
     
     // Fallback: try direct mapping
-    return path.join(this.config.paths.docsDir, language, documentId + '.md');
+    return path.join(this.config.paths.docsDir, language, `${documentId}.md`);
   }
 
   private extractCategory(documentId: string): string {
@@ -245,7 +245,7 @@ export class WorkNextCommand {
         }
         
         if (!inFrontmatter && frontmatterCount >= 2) {
-          contentAfterFrontmatter += line + '\n';
+          contentAfterFrontmatter += `${line}\n`;
         }
       }
       
@@ -267,22 +267,6 @@ export class WorkNextCommand {
     } catch {
       return false;
     }
-  }
-
-  private extractContentSection(templateContent: string): string {
-    // Extract content from the "템플릿 내용" section
-    const contentMatch = templateContent.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
-    if (contentMatch && contentMatch[1]) {
-      return contentMatch[1].trim();
-    }
-    
-    // Fallback: look for any markdown content blocks
-    const fallbackMatch = templateContent.match(/```markdown\s*([\s\S]*?)\s*```/);
-    if (fallbackMatch && fallbackMatch[1]) {
-      return fallbackMatch[1].trim();
-    }
-    
-    return '';
   }
 
   private filterAndSort(workItems: WorkItem[], options: WorkNextOptions): WorkItem[] {
@@ -457,20 +441,6 @@ export class WorkNextCommand {
     console.log('   • Add `--verbose` for more detailed information');
     console.log('   • Add `--show-completed` to include completed items');
     console.log('   • Use `--sort-by <priority|category|status|modified>` to change ordering');
-    console.log();
-  }
-
-  private displayWorkQueue(items: WorkItem[], _options: WorkNextOptions): void {
-    if (items.length === 0) return;
-
-    console.log(`📋 Work Queue (Next ${items.length} items)\n`);
-    
-    items.forEach((item, index) => {
-      const statusIcon = this.getStatusEmoji(item.status);
-      console.log(`${index + 2}. ${statusIcon} ${item.documentId} (${item.language}/${item.characterLimit})`);
-      console.log(`   Priority: ${item.priority} | Category: ${item.category}`);
-    });
-    
     console.log();
   }
 

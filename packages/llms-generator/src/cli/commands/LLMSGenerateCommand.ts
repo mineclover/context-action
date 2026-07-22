@@ -5,8 +5,8 @@
  * supporting existing minimum and origin patterns.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
@@ -414,7 +414,7 @@ export class LLMSGenerateCommand {
     }
     
     if (result && !result.endsWith('.')) result += '.';
-    return result || cleanContent.substring(0, characterLimit - 10) + '...';
+    return result || `${cleanContent.substring(0, characterLimit - 10)}...`;
   }
 
   private extractContentByCharacterLimit(content: string, characterLimit: number): string {
@@ -437,7 +437,7 @@ export class LLMSGenerateCommand {
     
     return lastSentenceEnd > characterLimit * 0.5 
       ? truncated.substring(0, lastSentenceEnd + 1)
-      : truncated + '...';
+      : `${truncated}...`;
   }
 
   private isPriorityDataValid(priorityData: PriorityData | null): boolean {
@@ -558,13 +558,13 @@ export class LLMSGenerateCommand {
     
     // LEGACY FORMAT: Try to extract from "템플릿 내용" section with markdown code block
     const codeBlockMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch && codeBlockMatch[1]) {
+    if (codeBlockMatch?.[1]) {
       return codeBlockMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
     }
     
     // LEGACY FORMAT: If no code block found, try to extract content from "템플릿 내용" section
     const sectionMatch = content.match(/## 템플릿 내용[^]*?\n\n([\s\S]*?)(?=\n\n|$)/);
-    if (sectionMatch && sectionMatch[1]) {
+    if (sectionMatch?.[1]) {
       return sectionMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
     }
     
@@ -573,7 +573,7 @@ export class LLMSGenerateCommand {
 
   private extractTitle(content: string): string | null {
     const titleMatch = content.match(/^# (.+)/m);
-    return titleMatch && titleMatch[1] ? titleMatch[1].replace(/\s*\(\d+자\)/, '') : null;
+    return titleMatch?.[1] ? titleMatch[1].replace(/\s*\(\d+자\)/, '') : null;
   }
 
   private extractCategory(documentId: string): string {
@@ -583,7 +583,7 @@ export class LLMSGenerateCommand {
 
   private extractCharacterLimit(fileName: string): number | null {
     const match = fileName.match(/-(\d+)\.md$/);
-    return match && match[1] ? parseInt(match[1]) : null;
+    return match?.[1] ? parseInt(match[1], 10) : null;
   }
 
   private isDocumentComplete(document: DocumentContent): boolean {
@@ -621,10 +621,10 @@ export class LLMSGenerateCommand {
         try {
           const priorityPath = this.getPriorityJsonPath(doc);
           if (this.fileExistsSync(priorityPath)) {
-            const priorityData = require('fs').readFileSync(priorityPath, 'utf-8');
+            const priorityData = require('node:fs').readFileSync(priorityPath, 'utf-8');
             const priority = JSON.parse(priorityData);
             
-            if (priority.tags && priority.tags.secondary) {
+            if (priority.tags?.secondary) {
               return priority.tags.secondary.includes(options.category);
             }
           }
@@ -646,7 +646,7 @@ export class LLMSGenerateCommand {
 
   private fileExistsSync(filePath: string): boolean {
     try {
-      require('fs').accessSync(filePath);
+      require('node:fs').accessSync(filePath);
       return true;
     } catch {
       return false;
@@ -717,7 +717,7 @@ export class LLMSGenerateCommand {
       const availableSpace = characterLimit - headerLength - footerLength;
       
       if (availableSpace > 0 && mainContent.length > availableSpace) {
-        mainContent = mainContent.substring(0, availableSpace - 3) + '...';
+        mainContent = `${mainContent.substring(0, availableSpace - 3)}...`;
       }
     }
     
@@ -728,77 +728,6 @@ export class LLMSGenerateCommand {
     content += `*Generated automatically on ${new Date().toISOString().split('T')[0]}*\n`;
 
     return content;
-  }
-
-  private generateStandardHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
-    let title = 'Documentation';
-    
-    if (filters.category) {
-      title += ` - ${filters.category.charAt(0).toUpperCase() + filters.category.slice(1)}`;
-    }
-    
-    if (filters.characterLimit) {
-      title += ` (${filters.characterLimit} chars)`;
-    }
-
-    return [
-      `# ${title}`,
-      '',
-      `Generated: ${new Date().toISOString().split('T')[0]}`,
-      `Type: Standard`,
-      `Language: ${language.toUpperCase()}`,
-      '',
-      `This document contains ${filters.characterLimit ? `${filters.characterLimit}-character` : 'character-limited'} summaries${filters.category ? ` from the ${filters.category} category` : ''} of the documentation.`
-    ].join('\n');
-  }
-
-  private generateMinimumHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
-    return [
-      '# Document Navigation',
-      '',
-      `Generated: ${new Date().toISOString().split('T')[0]}`,
-      'Type: Minimum (Navigation Links)',
-      `Language: ${language.toUpperCase()}`,
-      '',
-      `This document provides quick navigation links to${filters.category ? ` ${filters.category}` : ''} documentation${filters.characterLimit ? ` with ${filters.characterLimit}-character summaries` : ''}, organized by priority tiers.`
-    ].join('\n');
-  }
-
-  private generateOriginHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
-    return [
-      '# Complete Documentation',
-      '',
-      `Generated: ${new Date().toISOString().split('T')[0]}`,
-      'Type: Origin (Full Documents)',
-      `Language: ${language.toUpperCase()}`,
-      '',
-      `This document contains the complete${filters.characterLimit ? ` ${filters.characterLimit}-character` : ''} content${filters.category ? ` from ${filters.category} category` : ''} of documentation, organized by priority.`
-    ].join('\n');
-  }
-
-  private generateMetadata(documents: DocumentContent[], filters: { characterLimit?: number; category?: string; language: string }): string {
-    const stats = {
-      totalDocuments: documents.length,
-      categories: [...new Set(documents.map(d => d.category))],
-      characterLimits: [...new Set(documents.map(d => d.characterLimit))],
-      averageQuality: documents.filter(d => d.metadata.quality_score).reduce((sum, d) => sum + (d.metadata.quality_score || 0), 0) / documents.filter(d => d.metadata.quality_score).length || 0,
-      totalCharacters: documents.reduce((sum, d) => sum + d.metadata.content_length, 0)
-    };
-
-    return [
-      '## Document Collection Metadata',
-      '',
-      `**Total Documents**: ${stats.totalDocuments}`,
-      `**Categories**: ${stats.categories.join(', ')}`,
-      `**Character Limits**: ${stats.characterLimits.join(', ')}`,
-      `**Total Characters**: ${stats.totalCharacters.toLocaleString()}`,
-      `**Average Quality Score**: ${stats.averageQuality.toFixed(1)}`,
-      '',
-      '**Filters Applied**:',
-      `- Language: ${filters.language}`,
-      filters.characterLimit ? `- Character Limit: ${filters.characterLimit}` : '',
-      filters.category ? `- Category: ${filters.category}` : ''
-    ].filter(Boolean).join('\n');
   }
 
   private generateStandardContent(documents: DocumentContent[]): string {
@@ -950,7 +879,7 @@ export class LLMSGenerateCommand {
     try {
       // Construct the full path to the original source file
       const fullPath = path.join(this.config.paths.docsDir, relativePath);
-      const fileContent = require('fs').readFileSync(fullPath, 'utf-8');
+      const fileContent = require('node:fs').readFileSync(fullPath, 'utf-8');
       
       // Remove frontmatter if present
       const { content } = matter(fileContent);

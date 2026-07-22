@@ -5,8 +5,8 @@
  */
 
 import { Command } from 'commander';
-import path from 'path';
-import { existsSync } from 'fs';
+import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { SimpleLLMSCommand } from './SimpleLLMSCommand.js';
 import { EnhancedConfigManager } from '../../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../../index.js';
@@ -64,7 +64,7 @@ async function generateCleanLLMS(characterLimitArg: string | undefined, options:
   
   const simpleLLMSOptions = {
     language: options.language || 'ko',
-    characterLimit: characterLimitArg ? parseInt(characterLimitArg) : undefined,
+    characterLimit: characterLimitArg ? parseInt(characterLimitArg, 10) : undefined,
     category: options.category,
     pattern: options.pattern,
     generateAll: shouldGenerateAll,
@@ -75,8 +75,8 @@ async function generateCleanLLMS(characterLimitArg: string | undefined, options:
 
   // Validate character limit if provided
   if (characterLimitArg) {
-    const limit = parseInt(characterLimitArg);
-    if (isNaN(limit) || limit <= 0) {
+    const limit = parseInt(characterLimitArg, 10);
+    if (Number.isNaN(limit) || limit <= 0) {
       throw new Error(`Invalid character limit: ${characterLimitArg}`);
     }
     simpleLLMSOptions.characterLimit = limit;

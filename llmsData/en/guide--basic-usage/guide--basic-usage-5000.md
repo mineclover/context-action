@@ -48,7 +48,7 @@ Available Hooks
 
 From Prerequisites Setup
 - useEventAction() - Basic action dispatcher (renamed from useActionDispatch)
-- useEventActionHandler() - Register action handlers (renamed from useActionHandler)  
+- useEventActionHandler() - Register action handlers (renamed from useActionHandler)
 - useEventActionWithResult() - Advanced dispatcher with results/abort (renamed from useActionDispatchWithResult)
 
 Generic Pattern (before renaming)

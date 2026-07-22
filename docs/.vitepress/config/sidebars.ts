@@ -245,6 +245,9 @@ const CONCEPT_STRUCTURE = {
             { text: 'sem-doc Usage', link: '/en/context-layered/architecture/sem-doc-usage' },
             { text: 'Architecture Governance Usage', link: '/en/context-layered/architecture/architecture-governance-usage' },
             { text: 'ContextScope Symbol Graph', link: '/en/context-layered/architecture/context-scope-graph' },
+            { text: 'Durable Operation Operations Runbook', link: '/en/context-layered/architecture/durable-operation-operations' },
+            { text: 'PostgreSQL Durable Operation Adapter', link: '/en/context-layered/architecture/postgres-durable-operation-adapter' },
+            { text: 'Next Work and Documentation Ownership', link: '/en/context-layered/next-work' },
             { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
             { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
             { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
@@ -284,6 +287,9 @@ const CONCEPT_STRUCTURE = {
             { text: 'sem-doc 사용 방법', link: '/ko/context-layered/architecture/sem-doc-usage' },
             { text: '아키텍처 거버넌스 사용 방법', link: '/ko/context-layered/architecture/architecture-governance-usage' },
             { text: 'ContextScope 심볼 그래프', link: '/ko/context-layered/architecture/context-scope-graph' },
+            { text: 'Durable Operation 운영 Runbook', link: '/ko/context-layered/architecture/durable-operation-operations' },
+            { text: 'PostgreSQL Durable Operation Adapter 결정', link: '/ko/context-layered/architecture/postgres-durable-operation-adapter' },
+            { text: '다음 작업과 문서 소유권', link: '/ko/context-layered/next-work' },
             { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
             { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
             { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
@@ -337,6 +343,9 @@ const CONTEXT_LAYERED_SIDEBAR = {
       { text: 'sem-doc Usage', link: '/en/context-layered/architecture/sem-doc-usage' },
       { text: 'Architecture Governance Usage', link: '/en/context-layered/architecture/architecture-governance-usage' },
       { text: 'ContextScope Symbol Graph', link: '/en/context-layered/architecture/context-scope-graph' },
+      { text: 'Durable Operation Operations Runbook', link: '/en/context-layered/architecture/durable-operation-operations' },
+      { text: 'PostgreSQL Durable Operation Adapter', link: '/en/context-layered/architecture/postgres-durable-operation-adapter' },
+      { text: 'Next Work and Documentation Ownership', link: '/en/context-layered/next-work' },
       { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
       { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
     ]
@@ -356,6 +365,9 @@ const CONTEXT_LAYERED_SIDEBAR = {
       { text: 'sem-doc 사용 방법', link: '/ko/context-layered/architecture/sem-doc-usage' },
       { text: '아키텍처 거버넌스 사용 방법', link: '/ko/context-layered/architecture/architecture-governance-usage' },
       { text: 'ContextScope 심볼 그래프', link: '/ko/context-layered/architecture/context-scope-graph' },
+      { text: 'Durable Operation 운영 Runbook', link: '/ko/context-layered/architecture/durable-operation-operations' },
+      { text: 'PostgreSQL Durable Operation Adapter 결정', link: '/ko/context-layered/architecture/postgres-durable-operation-adapter' },
+      { text: '다음 작업과 문서 소유권', link: '/ko/context-layered/next-work' },
       { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
       { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
     ]

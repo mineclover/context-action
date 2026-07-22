@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Context-Action Framework Conventions
 
-Context-Action Framework Conventions 이 문서는 Context-Action 프레임워크의 핵심 패턴(Actions, Stores)과 고급 패턴(RefContext 등)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다. 📋 목차 1. 네이밍 컨벤션 2. 파일 구조 3. 패턴 사용법 4. 타입 정의 5. 코드 스타일 6. Import와 모듈 패턴 7. 핵심 프레임워크 원칙 8. Action Handler Registration 컨벤션 9. Store 업데이트 컨벤션 10. 성능 가이드라인 11. 에러 핸들링 12. RefContext 컨벤션 --- 네이밍 컨벤션 🏷️ 리네이밍 패턴 (Renaming Pattern) Context-Action 프레임워크의 핵심 컨벤션은 세 가지 패턴 
+Context-Action Framework Conventions 이 문서는 Context-Action 프레임워크의 핵심 패턴(Actions, Stores)과 고급 패턴(RefContext 등)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다. 📋 목차 1. 네이밍 컨벤션 2. 파일 구조 3. 패턴 사용법 4. 타입 정의 5. 코드 스타일 6. Import와 모듈 패턴 7. 핵심 프레임워크 원칙 8. Action Handler Registration 컨벤션 9. Store 업데이트 컨벤션 10. 성능 가이드라인 11. 에러 핸들링 12. RefContext 컨벤션 --- 네이밍 컨벤션 🏷️ 리네이밍 패턴 (Renaming Pattern) Context-Action 프레임워크의 핵심 컨벤션은 세 가지 패턴
 
 Key points:
 • **트리 쉐이킹**: 번들러가 사용되지 않는 내보내기를 더 효율적으로 제거

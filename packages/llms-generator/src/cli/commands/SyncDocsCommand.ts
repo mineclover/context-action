@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 import {
   CanonicalDocumentIdentity,
@@ -112,7 +112,11 @@ export class SyncDocsCommand {
       }
 
       // 4. 선택적 재생성 수행
-      const updatedFiles = await this.performSelectiveRegeneration(documentChanges, options.quiet);
+      const updatedFiles = await this.performSelectiveRegeneration(
+        documentChanges,
+        options.quiet,
+        options.force,
+      );
 
       // 5. Git 스테이징 업데이트
       if (updatedFiles.length > 0) {
@@ -169,8 +173,6 @@ export class SyncDocsCommand {
           resolvedFile,
         );
       } catch {
-        // 삭제된 파일도 처리할 수 있지만, 현재는 존재하는 파일만 처리
-        continue;
       }
     }
 
@@ -306,7 +308,11 @@ export class SyncDocsCommand {
     }
   }
 
-  private async performSelectiveRegeneration(changes: DocumentChange[], quiet = false): Promise<string[]> {
+  private async performSelectiveRegeneration(
+    changes: DocumentChange[],
+    quiet = false,
+    force = false,
+  ): Promise<string[]> {
     const updatedFiles: string[] = [];
 
     for (const change of changes) {
@@ -317,7 +323,7 @@ export class SyncDocsCommand {
       try {
         // Priority JSON 업데이트 (간단한 버전으로 구현)
         if (change.affectedOutputs.priorityJson) {
-          const priorityFile = await this.ensurePriorityJson(change);
+          const priorityFile = await this.ensurePriorityJson(change, force);
           if (priorityFile) {
             updatedFiles.push(priorityFile);
           }
@@ -325,7 +331,7 @@ export class SyncDocsCommand {
 
         // Template 파일 업데이트 (기존 GenerateTemplatesCommand 활용)
         if (change.affectedOutputs.templates.length > 0) {
-          const templateFiles = await this.updateTemplates(change, quiet);
+          const templateFiles = await this.updateTemplates(change, quiet, force);
           updatedFiles.push(...templateFiles);
         }
 
@@ -337,7 +343,7 @@ export class SyncDocsCommand {
     return updatedFiles;
   }
 
-  private async ensurePriorityJson(change: DocumentChange): Promise<string | null> {
+  private async ensurePriorityJson(change: DocumentChange, force = false): Promise<string | null> {
     const priorityPath = this.getPriorityJsonPath(change);
     
     try {
@@ -360,7 +366,7 @@ export class SyncDocsCommand {
         );
         const sourceModified = new Date(sourceStats.mtime);
         
-        if (sourceModified > priorityModified) {
+        if (force || sourceModified > priorityModified) {
           // 업데이트 필요 - 기존 메타데이터 유지하면서 업데이트
           const updatedPriority = {
             ...existingPriority,
@@ -593,7 +599,11 @@ export class SyncDocsCommand {
     return normalized.length === 0 ? 0 : normalized.split(/\s+/u).length;
   }
 
-  private async updateTemplates(change: DocumentChange, quiet = false): Promise<string[]> {
+  private async updateTemplates(
+    change: DocumentChange,
+    quiet = false,
+    force = false,
+  ): Promise<string[]> {
     const updatedFiles: string[] = [];
     const characterLimits = change.affectedOutputs.templates;
     
@@ -616,7 +626,7 @@ export class SyncDocsCommand {
           const existingTemplate = await fs.readFile(templatePath, 'utf-8');
           
           // 템플릿이 비어있거나 placeholder인 경우에만 업데이트
-          if (this.isTemplateEmpty(existingTemplate)) {
+          if (force || this.isTemplateEmpty(existingTemplate)) {
             const summary = this.generateSummary(sourceContent, limit, change);
             await fs.writeFile(templatePath, summary);
             updatedFiles.push(templatePath);
@@ -663,7 +673,7 @@ export class SyncDocsCommand {
     const lines = content.split('\n');
     for (const line of lines) {
       const match = line.match(/^#\s+(.+)$/);
-      if (match && match[1]) {
+      if (match?.[1]) {
         return match[1].trim();
       }
     }
@@ -675,7 +685,7 @@ export class SyncDocsCommand {
     
     // Extract from keywords in headers
     const keywordMatch = content.match(/##\s*(?:Keywords?|Tags?|Topics?)[:\s]*([^\n]+)/i);
-    if (keywordMatch && keywordMatch[1]) {
+    if (keywordMatch?.[1]) {
       const keywords = keywordMatch[1].split(/[,;]/).map(k => k.trim().toLowerCase());
       tags.push(...keywords.filter(k => k.length > 0));
     }
@@ -702,7 +712,7 @@ export class SyncDocsCommand {
   private generateSummary(content: string, characterLimit: number, change: DocumentChange): string {
     // Extract title
     const titleMatch = content.match(/^#\s+(.+)$/m);
-    const title = titleMatch && titleMatch[1] ? titleMatch[1].trim() : 'Document';
+    const title = titleMatch?.[1] ? titleMatch[1].trim() : 'Document';
     
     // Generate YAML frontmatter
     const frontmatter = `---
@@ -726,6 +736,7 @@ workflow_stage: content_generated
       .replace(/[*_~`]/g, '') // Remove formatting characters
       .replace(/\n\n+/g, ' ') // Replace multiple newlines with space
       .replace(/\n/g, ' ') // Replace single newlines with space
+      .replace(/[ \t]+/g, ' ') // Normalize source spacing before truncation
       .trim();
     
     // Generate content summary based on character limit
@@ -738,17 +749,21 @@ workflow_stage: content_generated
     } else if (availableChars <= 300) {
       // Short summary - title and main points
       const mainPoints = this.extractMainPoints(content, 2);
-      contentSummary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
+      contentSummary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? `\n\nKey points:\n${mainPoints.join('\n')}` : ''}`;
     } else {
       // Longer summary - include more detail
       const mainPoints = this.extractMainPoints(content, Math.floor(availableChars / 100));
-      contentSummary = `${title}\n\n${plainText.slice(0, availableChars * 0.6)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
+      contentSummary = `${title}\n\n${plainText.slice(0, availableChars * 0.6)}${mainPoints.length > 0 ? `\n\nKey points:\n${mainPoints.join('\n')}` : ''}`;
     }
     
     // Truncate content to fit within remaining character limit
     contentSummary = this.truncateText(contentSummary, availableChars);
     
-    return `${frontmatter}\n${contentSummary}`;
+    const normalizedSummary = contentSummary
+      .replace(/[ \t]+\n/g, '\n')
+      .trim();
+
+    return `${frontmatter}\n${normalizedSummary}`;
   }
   
   private getFirstSentence(text: string): string {
@@ -788,10 +803,10 @@ workflow_stage: content_generated
     const lastSpace = truncated.lastIndexOf(' ');
     
     if (lastSpace > limit * 0.8) {
-      return truncated.slice(0, lastSpace) + '...';
+      return `${truncated.slice(0, lastSpace)}...`;
     }
     
-    return truncated + '...';
+    return `${truncated}...`;
   }
 
   private async updateGitStaging(updatedFiles: string[], quiet = false): Promise<void> {

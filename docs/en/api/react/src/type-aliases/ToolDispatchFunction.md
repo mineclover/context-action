@@ -1,0 +1,43 @@
+[**context-action-monorepo v1.0.1**](../../../../README.md)
+
+***
+
+[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ToolDispatchFunction
+
+# Type Alias: ToolDispatchFunction\<TPayloadMap\>
+
+> **ToolDispatchFunction**&lt;`TPayloadMap`&gt; = &lt;`K`&gt;(`toolName`, `payload`, `options?`) => `Promise`&lt;`void`&gt;
+
+Defined in: [packages/react/src/tools/ToolContext.types.ts:256](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/react/src/tools/ToolContext.types.ts#L256)
+
+Return type for useToolDispatch hook
+
+## Type Parameters
+
+### TPayloadMap
+
+Type parameter **TPayloadMap**
+
+## Type Parameters
+
+### Generic type K
+
+`K` *extends* keyof `TPayloadMap`
+
+## Parameters
+
+### toolName
+
+Type parameter **K**
+
+### payload
+
+`TPayloadMap`\[`K`\]
+
+### options?
+
+Type parameter **DispatchOptions**
+
+## Returns
+
+`Promise`&lt;`void`&gt;

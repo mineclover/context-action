@@ -33,14 +33,26 @@ describe('QualityValidator', () => {
   })
 
   describe('markdown validation', () => {
-    it('should detect undefined values', async () => {
+    it('should detect unresolved undefined template placeholders', async () => {
       const testFile = path.join(testDir, 'test.md')
-      fs.writeFileSync(testFile, 'This content has undefined values')
+      fs.writeFileSync(testFile, 'This content has {{undefined}} placeholder')
       
       const result = await validator.validateFile(testFile)
       
       expect(result).not.toBeNull()
-      expect(result?.issues).toContain('Contains "undefined" - possible template error')
+      expect(result?.issues).toContain('Contains unresolved undefined template placeholder')
+    })
+
+    it('should allow TypeDoc signatures containing undefined and union pipes', async () => {
+      const testFile = path.join(testDir, 'typedoc.md')
+      fs.writeFileSync(
+        testFile,
+        '[**package v0.8.8**](../../README.md)\n\n***\n\n> **get** **value**(): string | undefined\n'
+      )
+
+      const result = await validator.validateFile(testFile)
+
+      expect(result).toBeNull()
     })
 
     it('should detect empty links', async () => {
@@ -61,6 +73,16 @@ describe('QualityValidator', () => {
       
       expect(result).not.toBeNull()
       expect(result?.issues).toContain('Unclosed bold markdown syntax (**)')
+    })
+
+    it('should detect malformed pipe tables without treating unions as tables', async () => {
+      const testFile = path.join(testDir, 'table.md')
+      fs.writeFileSync(testFile, '| Name | Value |\n| --- | --- |\n| only one |\n')
+
+      const result = await validator.validateFile(testFile)
+
+      expect(result).not.toBeNull()
+      expect(result?.issues.some(issue => issue.includes('Inconsistent table column count'))).toBe(true)
     })
 
     it('should pass valid markdown', async () => {
@@ -169,7 +191,7 @@ describe('QualityValidator', () => {
       const file1 = path.join(testDir, 'file1.md')
       const file2 = path.join(testDir, 'file2.md')
       
-      fs.writeFileSync(file1, 'This has undefined content')
+      fs.writeFileSync(file1, 'This has {{undefined}} content')
       fs.writeFileSync(file2, '# Valid file')
       
       const results = await validator.validateFiles([file1, file2])
@@ -185,7 +207,7 @@ describe('QualityValidator', () => {
       const file1 = path.join(testDir, 'file1.md')
       const file2 = path.join(testDir, 'file2.md')
       
-      fs.writeFileSync(file1, 'This has undefined content and [empty link]()')
+      fs.writeFileSync(file1, 'This has {{undefined}} content and [empty link]()')
       fs.writeFileSync(file2, '![](image.png)')
       
       await validator.validateFile(file1)

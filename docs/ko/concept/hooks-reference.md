@@ -590,13 +590,13 @@ function CriticalComponent() {
 
 이 훅들은 팩토리 함수에 의해 생성됩니다:
 
-#### `createStoreContext()`에서
+#### `createStoreContext(contextName, initialStores)`에서
 - `Provider` - 컴텍스트 프로바이더 컴포넌트
 - `useStore(name)` - 이름으로 스토어 가져오기
 - `useStoreManager()` - 스토어 매니저 인스턴스 가져오기
 - `withProvider(Component, config?)` - 자동 래핑용 HOC
 
-#### `createActionContext()`에서
+#### `createActionContext<T>(contextName, config?)`에서
 - `Provider` - 액션 컴텍스트 프로바이더
 - `useActionContext()` - 액션 컴텍스트 가져오기
 - `useActionDispatch()` - 디스패치 함수 가져오기

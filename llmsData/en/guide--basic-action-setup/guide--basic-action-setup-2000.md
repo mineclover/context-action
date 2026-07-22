@@ -66,7 +66,7 @@ Common Patterns Reference
 This setup file provides reusable patterns for:
 
 - Action Basic Usage - Uses EventActions pattern
-- Dispatch Access Patterns - Uses AppActions pattern  
+- Dispatch Access Patterns - Uses AppActions pattern
 - Advanced Action Patterns - Uses multiple domain patterns
 - MVVM Architecture - Uses UserActions pattern
 - Domain Context Architecture - Uses multi-domain patterns

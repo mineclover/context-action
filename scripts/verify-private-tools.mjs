@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 const styleTestingDirectory = path.join(repositoryRoot, 'packages/style-testing');
-const testDrivenDocsDirectory = path.join(repositoryRoot, 'packages/test-driven-docs');
 const architectureGovernanceDirectory = path.join(
   repositoryRoot,
   'packages/architecture-governance',
@@ -23,7 +22,6 @@ const securityPackagePaths = [
 ];
 
 const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function run(command, args, cwd, environment = process.env) {
   return new Promise((resolve, reject) => {
@@ -45,15 +43,6 @@ function run(command, args, cwd, environment = process.env) {
     });
   });
 }
-
-// pnpm lifecycle scripts inject npm_config_* values that are meaningful to
-// pnpm but rejected by standalone npm installs (notably allow-scripts). Keep
-// the independent npm package isolated from its parent package manager.
-const standaloneNpmEnvironment = Object.fromEntries(
-  Object.entries(process.env).filter(
-    ([key]) => !key.toLowerCase().startsWith('npm_'),
-  ),
-);
 
 async function verifyArchitectureIntegrationContract() {
   const githubExpression = (expression) => `$${'{' + '{'} ${expression} }}`;
@@ -190,12 +179,4 @@ await run(pnpmCommand, ['type-check'], styleTestingDirectory);
 await run(pnpmCommand, ['test'], styleTestingDirectory);
 await run(pnpmCommand, ['type-check'], architectureGovernanceDirectory);
 await run(pnpmCommand, ['test'], architectureGovernanceDirectory);
-await run(
-  npmCommand,
-  ['ci', '--ignore-scripts'],
-  testDrivenDocsDirectory,
-  standaloneNpmEnvironment,
-);
-await run(npmCommand, ['test'], testDrivenDocsDirectory, standaloneNpmEnvironment);
-
 console.log('Verified workspace-only tool packages.');

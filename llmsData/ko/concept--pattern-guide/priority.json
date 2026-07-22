@@ -39,7 +39,7 @@
   "keywords": {
     "technical": [
       "createActionContext",
-      "createStoreContext", 
+      "createStoreContext",
       "createRefContext",
       "useActionHandler",
       "useStoreValue",
@@ -57,7 +57,7 @@
     ],
     "pattern_specific": [
       "Action-Only-Pattern",
-      "Store-Only-Pattern", 
+      "Store-Only-Pattern",
       "RefContext-Pattern",
       "Pattern-Composition"
     ]

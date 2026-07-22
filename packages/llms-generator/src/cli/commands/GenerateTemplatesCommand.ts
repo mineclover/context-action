@@ -4,8 +4,8 @@
  * Batch generates template files for all documents based on priority.json and source documents
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 
@@ -287,7 +287,7 @@ export class GenerateTemplatesCommand {
         summary = testSummary;
       } else if (!summary) {
         // If first sentence is too long, truncate it
-        summary = trimmedSentence.substring(0, characterLimit - 10) + '...';
+        summary = `${trimmedSentence.substring(0, characterLimit - 10)}...`;
         break;
       } else {
         break;
@@ -323,7 +323,7 @@ export class GenerateTemplatesCommand {
     const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
     const successfulDocs = results.filter(r => r.templatesCreated > 0).length;
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('📊 GENERATION SUMMARY');
     console.log('='.repeat(60));
     console.log(`📁 Documents Processed: ${results.length}`);

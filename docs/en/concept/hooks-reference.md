@@ -605,13 +605,13 @@ function CriticalComponent() {
 
 These hooks are created by factory functions:
 
-#### From `createStoreContext()`
+#### From `createStoreContext(contextName, initialStores)`
 - `Provider` - Context provider component
 - `useStore(name)` - Get store by name
 - `useStoreManager()` - Get store manager instance
 - `withProvider(Component, config?)` - HOC for auto-wrapping
 
-#### From `createActionContext()`
+#### From `createActionContext<T>(contextName, config?)`
 - `Provider` - Action context provider
 - `useActionContext()` - Get action context
 - `useActionDispatch()` - Get dispatch function

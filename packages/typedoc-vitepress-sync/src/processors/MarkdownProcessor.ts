@@ -297,7 +297,7 @@ export class MarkdownProcessor {
       
       // Check heading hierarchy
       const headingMatch = line.match(/^(#{2,6}) /)
-      if (headingMatch && headingMatch[1]) {
+      if (headingMatch?.[1]) {
         const level = headingMatch[1].length
         if (level > prevHeadingLevel + 1) {
           issues.push({

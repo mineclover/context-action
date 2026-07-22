@@ -4,7 +4,7 @@
  * Centralized path generation for all LLMS operations with consistent directory structure
  */
 
-import path from 'path';
+import path from 'node:path';
 import { CLIConfig } from '../cli/types/CLITypes.js';
 import { getRelativeSourcePathFromDocumentId } from './DocumentIdentity.js';
 

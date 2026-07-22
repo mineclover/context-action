@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Performance Optimization Techniques
 
-Performance Optimization Techniques Comprehensive performance optimization patterns and techniques for the Context-Action framework. Prerequisites For setup patterns used in these optimizations, see: - Basic Store Setup - Store performance configurations - Basic Action Setup - Action optimization patterns - RefContext Setup - DOM performance optimization - Provider Composition Setup - 
+Performance Optimization Techniques Comprehensive performance optimization patterns and techniques for the Context-Action framework. Prerequisites For setup patterns used in these optimizations, see: - Basic Store Setup - Store performance configurations - Basic Action Setup - Action optimization patterns - RefContext Setup - DOM performance optimization - Provider Composition Setup -
 
 Key points:
 • **[Basic Store Setup](../setup/basic-store-setup.md)** - Store performance configurations

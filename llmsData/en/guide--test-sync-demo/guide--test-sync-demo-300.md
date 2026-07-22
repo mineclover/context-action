@@ -16,6 +16,6 @@ This is the final version of the test document demonstrating complete sync-docs 
 
 This document has been modified to test:
 1. Priority JSON generation
-2. Template creation  
+2. Template creation
 3. Documentation synchronization
 4.

@@ -12,6 +12,6 @@ workflow_stage: content_generated
 ---
 React Refs 가이드
 
-React Refs 가이드 Context-Action의 RefContext는 제로 React 리렌더링으로 고성능 DOM 조작과 타임아웃 기반 안전한 ref 대기를 위한 현대적 접근법을 제공합니다. RefContext란 무엇인가요? RefContext는 React 상태 
+React Refs 가이드 Context-Action의 RefContext는 제로 React 리렌더링으로 고성능 DOM 조작과 타임아웃 기반 안전한 ref 대기를 위한 현대적 접근법을 제공합니다. RefContext란 무엇인가요? RefContext는 React 상태
 
 Key...

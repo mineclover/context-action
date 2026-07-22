@@ -1,0 +1,223 @@
+{
+  "document": {
+    "id": "context-layered--migration-guide",
+    "title": "마이그레이션 가이드: MVVM에서 Context-Layered로",
+    "category": "concept",
+    "source_path": "ko/context-layered/migration-guide.md",
+    "lastModified": "2026-07-20T23:24:48.103Z",
+    "wordCount": 583
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-20",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in 마이그레이션 가이드: MVVM에서 Context-Layered로."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "text",
+      "bash",
+      "ts",
+      "마이그레이션"
+    ],
+    "technical": [
+      "text",
+      "bash",
+      "ts",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from 마이그레이션 가이드: MVVM에서 Context-Layered로.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "마이그레이션 가이드: MVVM에서 Context-Layered로",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "마이그레이션 가이드: MVVM에서 Context-Layered로",
+        "context-layered",
+        "text"
+      ],
+      "nice_to_have": [
+        "text",
+        "bash",
+        "ts",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "text",
+        "bash",
+        "ts",
+        "마이그레이션"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "text",
+      "bash",
+      "ts",
+      "마이그레이션"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-20"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "마이그레이션 가이드: MVVM에서 Context-Layered로 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-20",
+    "updated": "2026-07-20",
+    "version": "1.0.0",
+    "original_size": 5780,
+    "created_at": "2026-07-20T23:30:19.159Z",
+    "source_last_modified": "2026-07-20T23:24:48.103Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "text",
+        "bash",
+        "ts",
+        "마이그레이션"
+      ],
+      "technical": [
+        "text",
+        "bash",
+        "ts",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

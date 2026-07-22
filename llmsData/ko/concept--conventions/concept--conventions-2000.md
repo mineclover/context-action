@@ -69,7 +69,7 @@ Provider 파일명
 
 Store Only Pattern
 
-Action Only Pattern  
+Action Only Pattern
 
 Pattern Composition
 
@@ -177,7 +177,7 @@ RefContext 에러 처리
 ❓ FAQ
 
 Q: 언제 Store Only vs Action Only vs RefContext vs Composition을 사용해야 하나요. - Store Only: 순수 상태 관리 (폼, 설정, 캐시)
-- Action Only: 순수 이벤트 처리 (로깅, 트래킹, 알림)  
+- Action Only: 순수 이벤트 처리 (로깅, 트래킹, 알림)
 - RefContext Only: 고성능 DOM 조작 (애니메이션, 실시간 상호작용)
 - Composition: 여러 패턴이 필요한 복잡한 비즈니스 로직 (사용자 관리, 상호작용형 쇼핑카트)
 

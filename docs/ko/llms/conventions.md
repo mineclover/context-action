@@ -51,7 +51,7 @@ LLM이나 local agent가 Context-Action workspace를 조작한다면 tool protoc
 import {
   toToolCallRequest,
   toToolListRequest,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 
 const discovery = registry.listTools(toToolListRequest());
 const result = await registry.executeModelToolCall(

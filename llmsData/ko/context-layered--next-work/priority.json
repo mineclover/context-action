@@ -1,0 +1,215 @@
+{
+  "document": {
+    "id": "context-layered--next-work",
+    "title": "다음 작업과 문서 소유권",
+    "category": "context-layered",
+    "source_path": "ko/context-layered/next-work.md",
+    "lastModified": "2026-07-20T10:46:45.201Z",
+    "wordCount": 600
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-20",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in 다음 작업과 문서 소유권.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in 다음 작업과 문서 소유권.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in 다음 작업과 문서 소유권."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "다음",
+      "작업과",
+      "문서",
+      "소유권"
+    ],
+    "technical": [
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from 다음 작업과 문서 소유권.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "다음 작업과 문서 소유권",
+          "context-layered",
+          "다음"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "다음 작업과 문서 소유권",
+        "context-layered",
+        "다음"
+      ],
+      "nice_to_have": [
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "다음",
+        "작업과",
+        "문서",
+        "소유권"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "다음",
+      "작업과",
+      "문서",
+      "소유권"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-20"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "다음 작업과 문서 소유권 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-20",
+    "updated": "2026-07-20",
+    "version": "1.0.0",
+    "original_size": 5549,
+    "created_at": "2026-07-20T10:49:25.953Z",
+    "source_last_modified": "2026-07-21T09:44:30.962Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "다음",
+        "작업과",
+        "문서",
+        "소유권"
+      ],
+      "technical": [
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-07-21T09:44:43.177Z"
+  }
+}

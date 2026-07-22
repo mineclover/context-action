@@ -69,7 +69,7 @@ Provider 파일명
 
 Store Only Pattern
 
-Action Only Pattern  
+Action Only Pattern
 
 Pattern Composition
 
@@ -177,12 +177,12 @@ RefContext 에러 처리
 ❓ FAQ
 
 Q: 언제 Store Only vs Action Only vs RefContext vs Composition을 사용해야 하나요. - Store Only: 순수 상태 관리 (폼, 설정, 캐시)
-- Action Only: 순수 이벤트 처리 (로깅, 트래킹, 알림)  
+- Action Only: 순수 이벤트 처리 (로깅, 트래킹, 알림)
 - RefContext Only: 고성능 DOM 조작 (애니메이션, 실시간 상호작용)
 - Composition: 여러 패턴이 필요한 복잡한 비즈니스 로직 (사용자 관리, 상호작용형 쇼핑카트)
 
 Q: 리네이밍 패턴을 꼭 사용해야 하나요. 네, 리네이밍 패턴은 Context-Action 프레임워크의 핵심 컨벤션입니다. 타입 안전성과 개발자 경험을 크게 향상시킵니다. Q: 성능 최적화는 어떻게 해야 하나요. 1. 적절한 comparison strategy 선택
-2. useCallback으로 핸들러 메모이제이션  
+2. useCallback으로 핸들러 메모이제이션
 3. 큰 데이터는 reference strategy 사용
 4. 필요시 debounce/throttle 적용
 5. 성능 중요한 DOM 조작에 RefContext 사용
@@ -212,21 +212,21 @@ Q: 언제 RefContext를 일반 state 대신 사용해야 하나요. - RefContext
 - 둘 다 사용 시: 데이터 표시와 성능 중요 작업이 함께 필요 (예: 실시간 차트)
 
 Q: RefContext 안전성은 어떻게 보장하나요. 1. DOM 작업 전 항상 ref.target 존재 여부 확인
-   
+
 
 2. 여러 ref가 필요한 작업에는 useWaitForRefs 사용
-   
+
 
 3. 애니메이션과 이벤트 리스너의 적절한 정리 구현
-   
+
 
 4. 에러 경계 처리 및 경고 메시지
-   
+
 
 Q: RefContext 성능 최적화는 어떻게 하나요. 1. 하드웨어 가속을 위한 translate3d() 사용
-   
+
 
 2. 애니메이션을 위한 will-change 속성 관리
-   
+
 
 3. requestAnimationFrame을 사용한 부드러운 애니메이션.

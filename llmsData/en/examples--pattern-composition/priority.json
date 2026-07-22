@@ -40,7 +40,7 @@
     "technical": [
       "pattern-composition",
       "createActionContext",
-      "createStoreContext", 
+      "createStoreContext",
       "createRefContext",
       "mvvm-architecture",
       "typescript",

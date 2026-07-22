@@ -131,7 +131,7 @@ const actionRegister = new ActionRegister<AppActions>({
   registry: {
     debug: true,
     autoCleanup: true,
-    maxHandlers: 50,
+    maxHandlersPerAction: 50,
     defaultExecutionMode: 'sequential'
   }
 });
@@ -153,7 +153,7 @@ interface ActionRegisterConfig {
     autoCleanup?: boolean;
     
     /** Maximum number of handlers per action */
-    maxHandlers?: number;
+    maxHandlersPerAction?: number;
     
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
@@ -650,7 +650,7 @@ interface EcommerceActions extends ActionPayloadMap {
 
 const ecommerceRegister = new ActionRegister<EcommerceActions>({
   name: 'EcommerceRegister',
-  logLevel: LogLevel.INFO
+  registry: { debug: process.env.NODE_ENV === 'development' }
 });
 
 // Order submission pipeline
@@ -690,7 +690,7 @@ interface UserManagementActions extends ActionPayloadMap {
 
 const userRegister = new ActionRegister<UserManagementActions>({
   name: 'UserManagement',
-  logLevel: LogLevel.DEBUG
+  registry: { debug: process.env.NODE_ENV === 'development' }
 });
 
 // User registration pipeline
@@ -1258,7 +1258,7 @@ const actionRegister = new ActionRegister<AppActions>({
   name: 'DebugRegister',
   registry: {
     debug: true,        // Enable debug mode (development only)
-    maxHandlers: 100,   // Increase if needed for debugging
+    maxHandlersPerAction: 100, // Increase if needed for debugging
     autoCleanup: true   // Auto-cleanup for easier debugging
   }
 });

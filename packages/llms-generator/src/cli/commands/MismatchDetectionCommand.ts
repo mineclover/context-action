@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { glob } from 'glob';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 import {
@@ -289,7 +289,7 @@ export class MismatchDetectionCommand {
         const presentLimits = templateFiles
           .map(name => {
             const match = name.match(/-(\d+)\.md$/);
-            return match && match[1] ? parseInt(match[1]) : null;
+            return match?.[1] ? parseInt(match[1], 10) : null;
           })
           .filter(limit => limit !== null) as number[];
 

@@ -12,6 +12,6 @@ workflow_stage: content_generated
 ---
 Getting Started
 
-Getting Started Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns. Quick Start 
+Getting Started Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns. Quick Start
 
 Key...

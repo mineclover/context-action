@@ -3,7 +3,7 @@ document_id: concept--tool-calling-editor-architecture
 category: concept
 source_path: en/concept/tool-calling-editor-architecture.md
 character_limit: 500
-last_update: '2026-07-15T14:31:19.547Z'
+last_update: '2026-07-20T18:03:43.563Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

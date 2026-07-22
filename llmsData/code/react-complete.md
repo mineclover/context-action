@@ -9,13 +9,13 @@ Total Lines: 4418
 
 ```typescript
 import { ReactNode } from 'react';
-import { 
-  ActionRegister, 
-  ActionHandler, 
-  HandlerConfig, 
-  ActionRegisterConfig, 
-  DispatchOptions, 
-  ExecutionResult 
+import {
+  ActionRegister,
+  ActionHandler,
+  HandlerConfig,
+  ActionRegisterConfig,
+  DispatchOptions,
+  ExecutionResult
 } from '@context-action/core';
 export interface ActionContextConfig extends ActionRegisterConfig {
   name?: string;
@@ -252,7 +252,7 @@ export interface SecurityOptions {
   blockedProperties?: RegExp;
 }
 export interface RegistryStoreMap {
-  [key: string]: unknown;  
+  [key: string]: unknown;
 }
 export type StrictStoreDefinitions<T extends Record<string, unknown>> = {
   [K in keyof T]: {
@@ -366,7 +366,7 @@ export function createActionContext<T extends {}>(
         })
       };
       return register.dispatch(action, payload, dispatchOptions);
-    }, [actionRegisterRef]); 
+    }, [actionRegisterRef]);
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
       payload?: T[K],
@@ -431,7 +431,7 @@ export function createActionContext<T extends {}>(
     }, [
       action,
       actionRegisterRef,
-      stableConfig 
+      stableConfig
     ]);
   };
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
@@ -531,7 +531,7 @@ export function createActionContext<T extends {}>(
 ### actions/index.ts
 
 ```typescript
-export { 
+export {
   createActionContext
 } from './ActionContext';
 export type {
@@ -552,7 +552,7 @@ export type {
 
 ```typescript
 export { StoreRegistry } from './stores/core/StoreRegistry';
-export type { 
+export type {
   DynamicStoreOptions,
   HookOptions,
   StoreSyncConfig
@@ -688,10 +688,10 @@ export const debugLog = {
   }
 };
 export function configureDebugForEnvironment(): void {
-  const debugEnabled = process.env.REACT_APP_DEBUG === 'true' || 
+  const debugEnabled = process.env.REACT_APP_DEBUG === 'true' ||
                        process.env.NEXT_PUBLIC_DEBUG === 'true' ||
                        process.env.VITE_DEBUG === 'true';
-  const debugFeatures = process.env.REACT_APP_DEBUG_FEATURES || 
+  const debugFeatures = process.env.REACT_APP_DEBUG_FEATURES ||
                         process.env.NEXT_PUBLIC_DEBUG_FEATURES ||
                         process.env.VITE_DEBUG_FEATURES;
   if (debugEnabled !== undefined) {
@@ -726,7 +726,7 @@ export { useLocalStore } from '../stores/hooks/useLocalStore';
 
 ```typescript
 export { createActionContext } from './actions/ActionContext';
-export type { 
+export type {
   ActionContextConfig,
   ActionContextReturn,
   ActionContextType
@@ -765,10 +765,10 @@ export * from '../actions/ActionContext';
 
 ```typescript
 import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useState, useEffect } from 'react';
-import type { 
-  RefTarget, 
-  RefOperation, 
-  RefOperationOptions, 
+import type {
+  RefTarget,
+  RefOperation,
+  RefOperationOptions,
   RefOperationResult,
   RefDefinitions,
   InferRefTypes
@@ -839,10 +839,10 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   contextName: string,
   refDefinitionsOrOptions?: T extends RefDefinitions ? T : CreateRefContextOptions,
   optionsWhenDefs?: CreateRefContextOptions
-): T extends RefDefinitions 
+): T extends RefDefinitions
   ? RefContextReturn<InferRefTypes<T>>
   : RefContextReturn<T> {
-  const refDefinitions = (typeof refDefinitionsOrOptions === 'object' && 
+  const refDefinitions = (typeof refDefinitionsOrOptions === 'object' &&
     refDefinitionsOrOptions !== null &&
     Object.values(refDefinitionsOrOptions as any).some(
       (value: any) => value && typeof value === 'object' && 'name' in value
@@ -923,7 +923,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           } catch (error) {
             ErrorHandlers.ref(
               'Error in mount callback',
-              { 
+              {
                 refName: String(refName),
                 targetType: typeof target
               },
@@ -970,9 +970,9 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     }, [refNameStr, subscribeToRef]);
     const refState = getRefState(refNameStr);
     const { waitForMount, onMount, isMounted, isWaitingForMount } = useRefMount(
-      refState, 
-      refNameStr, 
-      optionsRef, 
+      refState,
+      refNameStr,
+      optionsRef,
       definitionsRef
     );
     const { withTarget, executeIfMounted } = useRefOperation(refState);
@@ -1005,7 +1005,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         timeout = args[0];
         refNames = args.slice(1) as K[];
       } else {
-        timeout = 1000; 
+        timeout = 1000;
         refNames = args as K[];
       }
       const promises = refNames.map(async (refName) => {
@@ -1097,7 +1097,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     useRefMountChecker: useRefMountCheckerHook,
     contextName,
     refDefinitions
-  } as T extends RefDefinitions 
+  } as T extends RefDefinitions
     ? RefContextReturn<InferRefTypes<T>>
     : RefContextReturn<T>;
 }
@@ -1127,12 +1127,12 @@ function getOrCreateRefState<T>(
 ### refs/helpers.ts
 
 ```typescript
-import type { 
-  RefInitConfig, 
+import type {
+  RefInitConfig,
   RefTarget
 } from './types';
 export function customRef<T extends RefTarget>(
-  config: Partial<RefInitConfig<T>> & { 
+  config: Partial<RefInitConfig<T>> & {
     name: string;
     cleanup?: (target: T) => void | Promise<void>;
   }
@@ -1523,13 +1523,13 @@ export type {
   RefOperation,
   RefInitConfig
 } from './types';
-export { 
+export {
   createRefContext
 } from './createRefContext';
-export type { 
+export type {
   RefContextReturn
 } from './createRefContext';
-export { 
+export {
   customRef
 } from './helpers';
 ```
@@ -1601,9 +1601,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
         },
         error
       );
-      this.setState({ 
+      this.setState({
         error: contextActionError,
-        errorInfo 
+        errorInfo
       });
       this.props.onError?.(contextActionError, errorInfo);
     }
@@ -1692,9 +1692,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
         {error?.context && (
           <div style={{ marginBottom: '15px' }}>
             <strong>Context:</strong>
-            <pre style={{ 
-              background: '#f8f9fa', 
-              padding: '10px', 
+            <pre style={{
+              background: '#f8f9fa',
+              padding: '10px',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '12px'
@@ -1713,9 +1713,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
             <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
               Component Stack
             </summary>
-            <pre style={{ 
-              background: '#f8f9fa', 
-              padding: '10px', 
+            <pre style={{
+              background: '#f8f9fa',
+              padding: '10px',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '11px',
@@ -1780,13 +1780,13 @@ export function withStoreErrorBoundary<P extends object>(
   errorBoundaryProps?: Omit<StoreErrorBoundaryProps, 'children'>
 ): React.ComponentType<P> {
   const WithStoreErrorBoundaryComponent = (props: P) => (
-    <StoreErrorBoundary 
+    <StoreErrorBoundary
       {...errorBoundaryProps}
     >
       <WrappedComponent {...props} />
     </StoreErrorBoundary>
   );
-  WithStoreErrorBoundaryComponent.displayName = 
+  WithStoreErrorBoundaryComponent.displayName =
     `withStoreErrorBoundary(${WrappedComponent.displayName || WrappedComponent.name})`;
   return WithStoreErrorBoundaryComponent;
 }
@@ -1849,13 +1849,13 @@ export class Store<T = unknown> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
   private animationFrameId: number | null = null;
-  private pendingUpdatesCount = 0; 
+  private pendingUpdatesCount = 0;
   private cleanupTasks = new Set<() => void>();
   private isDisposed = false;
   private errorCount = 0;
   private lastErrorTime = 0;
   private readonly MAX_ERROR_COUNT = 5;
-  private readonly ERROR_RESET_TIME = 60000; 
+  private readonly ERROR_RESET_TIME = 60000;
   private subscriptionRegistry = new WeakMap<Listener, {
     subscribedAt: number;
     errorCount: number;
@@ -2051,7 +2051,7 @@ export class Store<T = unknown> implements IStore<T> {
   }
   dispose(): void {
     if (this.isDisposed) {
-      return; 
+      return;
     }
     this.isDisposed = true;
     try {
@@ -2103,7 +2103,7 @@ export class Store<T = unknown> implements IStore<T> {
     try {
       if (this.customComparator) {
         const areEqual = this.customComparator(oldValue, newValue);
-        result = !areEqual; 
+        result = !areEqual;
       }
       else if (this.comparisonOptions) {
         const areEqual = compareValues(oldValue, newValue, this.comparisonOptions);
@@ -2170,7 +2170,7 @@ export class Store<T = unknown> implements IStore<T> {
     }
     ErrorHandlers.store(
       'Error in store listener execution',
-      { 
+      {
         storeName: this.name,
         listenerCount: this.listeners.size,
         errorCount: this.errorCount,
@@ -2195,8 +2195,8 @@ export class Store<T = unknown> implements IStore<T> {
   private _notifyListeners(): void {
     if (this.isDisposed) return;
     this.listeners.forEach(listener => {
-      if (this.isDisposed) return; 
-      listener(); 
+      if (this.isDisposed) return;
+      listener();
     });
   }
 }
@@ -2371,7 +2371,7 @@ export const globalStoreRegistry = new StoreRegistry('global');
 ```typescript
 export { useStoreSelector as useStore } from '../utils/store-selector';
 export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
-export { 
+export {
   useSafeStoreSubscription,
   useConditionalStoreSubscription,
   useMultiStoreSubscription,
@@ -2385,11 +2385,11 @@ export {
   deepEqual,
   defaultEqualityFn
 } from './useStoreSelector';
-export { 
-  useComputedStore, 
-  useMultiComputedStore, 
+export {
+  useComputedStore,
+  useMultiComputedStore,
   useComputedStoreInstance,
-  useAsyncComputedStore 
+  useAsyncComputedStore
 } from './useComputedStore';
 ```
 
@@ -2636,14 +2636,14 @@ export function useComputedStoreInstance<R>(
 export function useAsyncComputedStore<R>(
   dependencies: Store<any>[],
   compute: (values: any[]) => Promise<R>,
-  config: ComputedStoreConfig<R> & { 
+  config: ComputedStoreConfig<R> & {
     loadingValue?: R;
     errorValue?: R;
   } = {}
-): { 
-  value: R; 
-  loading: boolean; 
-  error: Error | null; 
+): {
+  value: R;
+  loading: boolean;
+  error: Error | null;
   reload: () => void;
 } {
   const {
@@ -2678,10 +2678,10 @@ export function useAsyncComputedStore<R>(
       }
     } catch (error) {
       const err = error as Error;
-      setState({ 
-        value: errorValue !== undefined ? errorValue : state.value, 
-        loading: false, 
-        error: err 
+      setState({
+        value: errorValue !== undefined ? errorValue : state.value,
+        loading: false,
+        error: err
       });
       if (onError) {
         onError(err);
@@ -2733,7 +2733,7 @@ export function useLocalStore<T>(
 import { useSyncExternalStore, useCallback, useRef } from 'react';
 import type { Store } from '../core/Store';
 import { equalityFunctions } from '../utils/sync-external-store-utils';
-export const defaultEqualityFn = equalityFunctions.smart; 
+export const defaultEqualityFn = equalityFunctions.smart;
 export const shallowEqual = equalityFunctions.shallow;
 export const deepEqual = equalityFunctions.deep;
 export const smartEqual = equalityFunctions.smart;
@@ -2805,7 +2805,7 @@ export interface StoreValueOptions<R> {
   name?: string;
 }
 export function useStoreValue<T>(
-  store: Store<T>, 
+  store: Store<T>,
   options?: StoreValueOptions<T>
 ): T;
 export function useStoreValue<T>(
@@ -2813,12 +2813,12 @@ export function useStoreValue<T>(
   options?: StoreValueOptions<T>
 ): T | undefined;
 export function useStoreValue<T, R>(
-  store: Store<T>, 
+  store: Store<T>,
   selector: (value: T) => R,
   options?: StoreValueOptions<R>
 ): R;
 export function useStoreValue<T, R>(
-  store: Store<T> | undefined | null, 
+  store: Store<T> | undefined | null,
   selector: (value: T) => R,
   options?: StoreValueOptions<R>
 ): R | undefined;
@@ -2926,21 +2926,21 @@ export interface StoreConfig<T = any> {
   comparisonOptions?: Partial<ComparisonOptions<T>>;
 }
 export type InitialStores<T extends Record<string, any>> = {
-  [K in keyof T]: StoreConfig<T[K]> | T[K];  
+  [K in keyof T]: StoreConfig<T[K]> | T[K];
 };
 export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
 export type InferStoreTypes<T extends StoreDefinitions> = {
-  [K in keyof T]: T[K] extends StoreConfig<infer V> 
-    ? V 
+  [K in keyof T]: T[K] extends StoreConfig<infer V>
+    ? V
     : T[K] extends (...args: any[]) => any
-      ? never  
+      ? never
       : T[K] extends object
         ? T[K] extends { length: number }
-          ? T[K]  
+          ? T[K]
           : T[K] extends Date
-            ? T[K]  
-            : T[K]  
-        : T[K];  
+            ? T[K]
+            : T[K]
+        : T[K];
 };
 export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
 export class StoreManager<T extends Record<string, any>> {
@@ -3041,10 +3041,10 @@ function createStoreContextImpl<T extends Record<string, any>>(
   initialStores: InitialStores<T>
 ) {
   const StoreContext = createContext<StoreContextValue<T> | null>(null);
-  function Provider({ 
-    children, 
-    registryId 
-  }: { 
+  function Provider({
+    children,
+    registryId
+  }: {
     children: ReactNode;
     registryId?: string;
   }) {
@@ -3104,14 +3104,14 @@ function createStoreContextImpl<T extends Record<string, any>>(
         </StoreContext.Provider>
       );
     };
-    WithStoreProvider.displayName = 
+    WithStoreProvider.displayName =
       config?.displayName || `with${contextName}Provider(${Component.displayName || Component.name})`;
     return WithStoreProvider;
   }
   return {
     Provider,
-    useStore,        
-    useStoreManager, 
+    useStore,
+    useStoreManager,
     useStoreInfo,
     useStoreClear,
     withProvider,
@@ -3134,7 +3134,7 @@ export type StoreValues<T extends Record<string, any>> = {
 ### stores/patterns/index.ts
 
 ```typescript
-export { 
+export {
   createStoreContext,
   type InitialStores,
   type StoreConfig,
@@ -3144,7 +3144,7 @@ export {
   type StoreValues,
   type WithProviderConfig
 } from './declarative-store-pattern-v2';
-export { 
+export {
   type StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';
 ```
@@ -3216,8 +3216,8 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
   return true;
 }
 export function deepEquals<T>(
-  oldValue: T, 
-  newValue: T, 
+  oldValue: T,
+  newValue: T,
   options: {
     maxDepth?: number;
     ignoreKeys?: string[];
@@ -3297,8 +3297,8 @@ export function deepEquals<T>(
   return result;
 }
 export function compareValues<T>(
-  oldValue: T, 
-  newValue: T, 
+  oldValue: T,
+  newValue: T,
   options: Partial<ComparisonOptions<T>> = {}
 ): boolean {
   const finalOptions = { ...globalComparisonOptions, ...options };
@@ -3589,7 +3589,7 @@ function isComplexObject(value: unknown): boolean {
   if (Array.isArray(value)) return true;
   if (value.constructor === Object) {
     const obj = value as Record<string, unknown>;
-    return Object.values(obj).some(val => 
+    return Object.values(obj).some(val =>
       typeof val === 'object' && val !== null
     );
   }
@@ -3602,9 +3602,9 @@ const logger = {
   debug: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args)
 };
 export interface ImmutabilityOptions {
-  enableCloning?: boolean;      
-  enableVerification?: boolean; 
-  warnOnFallback?: boolean;     
+  enableCloning?: boolean;
+  enableVerification?: boolean;
+  warnOnFallback?: boolean;
 }
 let globalImmutabilityOptions: ImmutabilityOptions = {
   enableCloning: true,
@@ -3640,7 +3640,7 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
   if (isNonCloneableType(value)) {
     return value;
   }
-  if (typeof value === 'object' && value !== null && 
+  if (typeof value === 'object' && value !== null &&
       '__contextActionRefState' in value && value.__contextActionRefState === true) {
     return value;
   }
@@ -3752,7 +3752,7 @@ function fallbackClone<T>(value: T): T {
     } catch {
     }
     const circularSafeStringify = (obj: unknown): string => {
-      const jsonVisited = new WeakSet(); 
+      const jsonVisited = new WeakSet();
       return JSON.stringify(obj, function(key, val) {
         if (val !== null && typeof val === 'object') {
           if (jsonVisited.has(val)) {
@@ -3815,7 +3815,7 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
     return original === cloned;
   }
   if (typeof original === 'object' && original !== null) {
-    return true; 
+    return true;
   }
   return false;
 }
@@ -3823,7 +3823,7 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) return value;
   if (isPrimitive(value)) return value;
   if (isNonCloneableType(value)) return value;
-  if (typeof value === 'object' && value !== null && 
+  if (typeof value === 'object' && value !== null &&
       '__contextActionRefState' in value && value.__contextActionRefState === true) {
     return value;
   }
@@ -3832,7 +3832,7 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
     if (!isNonCloneableType(value)) {
       const isImmutable = verifyImmutability(value, cloned);
       if (!isImmutable && typeof value === 'object' && value !== null) {
-        if (Math.random() < 0.01) { 
+        if (Math.random() < 0.01) {
           logger.debug('Immer optimization: same reference returned for unchanged object', {
             type: typeof value,
             constructor: value?.constructor?.name,
@@ -3900,22 +3900,22 @@ export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
 ### stores/utils/index.ts
 
 ```typescript
-export { 
+export {
   compareValues,
   setGlobalComparisonOptions,
   getGlobalComparisonOptions,
-  type ComparisonOptions, 
+  type ComparisonOptions,
   type ComparisonStrategy,
-  type CustomComparator 
+  type CustomComparator
 } from './comparison';
-export { 
-  safeGet, 
-  safeSet, 
+export {
+  safeGet,
+  safeSet,
   deepClone,
   getGlobalImmutabilityOptions,
 } from './immutable';
 export { createRegistrySync, RegistryUtils } from './registry-sync';
-export { 
+export {
   composeProviders,
   type ProviderComponent
 } from './provider-composition';
@@ -4091,9 +4091,9 @@ export class SubscriptionManager {
       } catch (error) {
         ErrorHandlers.store(
           'Error during subscription cleanup',
-          { 
+          {
             subscriptionId,
-            storeName: entry.storeName 
+            storeName: entry.storeName
           },
           error instanceof Error ? error : undefined
         );
@@ -4435,7 +4435,7 @@ function isEventLikeObject(value: unknown): boolean {
   const hasReactMarkers = ('nativeEvent' in value) || ('persist' in value) || ('$$typeof' in value) || ('_reactInternalFiber' in value) || ('_owner' in value);
   const constructorName = value?.constructor?.name;
   const hasEventConstructor = constructorName ? (
-    constructorName.includes('Event') || 
+    constructorName.includes('Event') ||
     constructorName === 'SyntheticEvent' ||
     constructorName.includes('MouseEvent') ||
     constructorName.includes('KeyboardEvent') ||
@@ -4583,7 +4583,7 @@ export const TypeUtils = {
 ### utils.ts
 
 ```typescript
-export { 
+export {
   deepClone,
   deepCloneWithImmer,
   safeGet,
@@ -4592,7 +4592,7 @@ export {
   preloadImmer,
   produce
 } from './stores/utils/immutable';
-export { 
+export {
   compareValues,
   setGlobalComparisonOptions,
   getGlobalComparisonOptions
@@ -4624,7 +4624,7 @@ export type {
   PartialBy,
   RequiredBy
 } from './stores/utils/type-helpers';
-export { 
+export {
   composeProviders
 } from './stores/utils/provider-composition';
 export type {

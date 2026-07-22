@@ -4,8 +4,8 @@
  * Automatically fills template files with content extracted from source documents
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 
@@ -157,10 +157,10 @@ export class FillTemplatesCommand {
     
     // Try different path combinations
     const possiblePaths = [
-      path.join(docsDir, ...parts) + '.md',
-      parts[0] ? path.join(docsDir, parts[0], parts.slice(1).join('/')) + '.md' : null,
-      path.join(docsDir, parts.join('/')) + '.md',
-      path.join(docsDir, parts.join('-')) + '.md'
+      `${path.join(docsDir, ...parts)}.md`,
+      parts[0] ? `${path.join(docsDir, parts[0], parts.slice(1).join('/'))}.md` : null,
+      `${path.join(docsDir, parts.join('/'))}.md`,
+      `${path.join(docsDir, parts.join('-'))}.md`
     ].filter((p): p is string => p !== null);
     
     for (const possiblePath of possiblePaths) {
@@ -250,7 +250,7 @@ export class FillTemplatesCommand {
 
   private extractCharacterLimit(filePath: string): number | null {
     const match = path.basename(filePath).match(/-(\d+)\.md$/);
-    return match && match[1] ? parseInt(match[1]) : null;
+    return match?.[1] ? parseInt(match[1], 10) : null;
   }
 
   private generateSummary(
@@ -269,7 +269,7 @@ export class FillTemplatesCommand {
       }
       
       // If too long, truncate but keep markdown formatting
-      return preservedContent.substring(0, characterLimit - 10) + '...';
+      return `${preservedContent.substring(0, characterLimit - 10)}...`;
     }
     
     // For smaller limits, remove markdown formatting for better readability
@@ -296,7 +296,7 @@ export class FillTemplatesCommand {
         summary = testSummary;
       } else if (!summary) {
         // If first sentence is too long, truncate it
-        summary = trimmedSentence.substring(0, characterLimit - 10) + '...';
+        summary = `${trimmedSentence.substring(0, characterLimit - 10)}...`;
         break;
       } else {
         break;

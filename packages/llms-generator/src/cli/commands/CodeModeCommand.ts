@@ -1,6 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { EnhancedLLMSConfig } from '../../types/config.js';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 
 export interface CodeModeOptions {
   targets?: string[];       // 처리할 타겟 (패키지명 또는 경로)
@@ -26,9 +25,6 @@ interface CodeFile {
 export class CodeModeCommand {
   private readonly packageBasePath = 'packages';
   private readonly outputBasePath = 'llmsData/code';
-  
-  constructor(private config: EnhancedLLMSConfig) {}
-
   async execute(options: CodeModeOptions): Promise<void> {
     try {
       if (!options.quiet) {

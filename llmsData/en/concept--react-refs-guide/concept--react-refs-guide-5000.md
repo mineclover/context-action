@@ -17,7 +17,7 @@ This guide covers the React Refs Management System in the Context-Action framewo
 The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the createRefContext() API. It's particularly useful for:
 
 - DOM Element Management: Safe access to DOM elements with proper lifecycle handling
-- Custom Object References: Managing Three.js objects, game engines, or other complex instances  
+- Custom Object References: Managing Three.js objects, game engines, or other complex instances
 - Async Ref Operations: Waiting for refs to mount and performing safe operations
 - Memory Management: Automatic cleanup and leak prevention
 

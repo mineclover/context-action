@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 React Hooks
 
-React Hooks Context-Action provides React hooks for action dispatching and store management. This guide covers how to use the hooks with API examples 
+React Hooks Context-Action provides React hooks for action dispatching and store management. This guide covers how to use the hooks with API examples
 
 Key points:
 • 🔄 **[Hooks...

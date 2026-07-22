@@ -205,7 +205,7 @@ export class ErrorHandler {
    */
   isRecoverable(error: Error): boolean {
     const code = (error as Error & { code?: string }).code
-    return code ? Object.prototype.hasOwnProperty.call(this.recoveryStrategies, code) : false
+    return code ? Object.getOwnPropertyDescriptor(this.recoveryStrategies, code) !== undefined : false
   }
 
   /**

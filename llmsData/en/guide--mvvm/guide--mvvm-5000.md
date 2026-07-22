@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 MVVM Architecture
 
-The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the recommended approach for complex applications requiring perfect separation of concerns. Key Difference from Domain Architecture: 
+The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the recommended approach for complex applications requiring perfect separation of concerns. Key Difference from Domain Architecture:
 - MVVM: Focuses on architectural layers (Model, View, ViewModel, Performance)
 - Domain Architecture: Focuses on business domains (User, Product, Order, etc.)
 
@@ -27,7 +27,7 @@ Both can be used together - MVVM provides the architectural structure while Doma
 4. Data Subscription Hooks - 모듈화된 데이터 구독
 5. Action Hooks - 지연 평가 및 핸들러 정의
 
-📁 File Convention System  
+📁 File Convention System
 6. Action-Based File Convention - 선언적 스펙 기반 관리
    - Folder Structure Convention
    - Action Hook Implementation
@@ -97,7 +97,7 @@ ActionRegister 직접 사용이 필요한 경우
 
 중복 ID 처리 동작 (중요!)
 
-실제 ActionRegister 동작: 
+실제 ActionRegister 동작:
 
 핵심: 같은 ID로 재등록 시도하면 무시되고 기존 핸들러 유지됩니다. > ⚠️ 주의: 같은 ID로 핸들러 등록 시 조용히 무시됩니다. 예상과 다른 동작이 발생할 수 있으니 고유한 ID 사용을 권장합니다. HandlerId 주입의 중요성
 

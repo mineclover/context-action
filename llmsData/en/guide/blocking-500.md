@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Blocking Operations
 
-Blocking Operations Control pipeline execution flow with blocking and non-blocking handler configurations. Blocking vs Non-Blocking Blocking Handlers 
+Blocking Operations Control pipeline execution flow with blocking and non-blocking handler configurations. Blocking vs Non-Blocking Blocking Handlers
 
 Key points:
 •...

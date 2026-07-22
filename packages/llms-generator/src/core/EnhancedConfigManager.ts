@@ -2,9 +2,9 @@
  * Enhanced Configuration Manager - handles enhanced config with categories, tags, and composition strategies
  */
 
-import { readFile, writeFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import type { 
   EnhancedLLMSConfig,
   CategoryConfig,

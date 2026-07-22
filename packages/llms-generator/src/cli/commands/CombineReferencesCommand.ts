@@ -5,8 +5,8 @@
  * into a single unified document. Supports Markdown link parsing and flexible reference patterns.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 
@@ -207,7 +207,7 @@ export class CombineReferencesCommand {
     
     // Parse markdown links: [text](url)
     const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = markdownLinkRegex.exec(content)) !== null) {
       const [, text, url] = match;
@@ -428,8 +428,6 @@ export class CombineReferencesCommand {
           .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
           .trim();
         break;
-      
-      case 'standard':
       default:
         // Keep content as-is but remove comments
         processedContent = processedContent

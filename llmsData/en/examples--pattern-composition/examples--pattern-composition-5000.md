@@ -47,7 +47,7 @@ Perfect Separation of Concerns
 Pattern Composition Benefits
 
 - Action Pattern: Handles complex business logic, API calls, and cross-cutting concerns
-- Store Pattern: Manages reactive state with type safety and computed values  
+- Store Pattern: Manages reactive state with type safety and computed values
 - Clean Integration: Both patterns work together without conflicts or coupling
 
 Type Safety Throughout

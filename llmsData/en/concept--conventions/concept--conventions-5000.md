@@ -69,7 +69,7 @@ Pattern Usage
 
 Store Only Pattern
 
-Action Only Pattern  
+Action Only Pattern
 
 RefContext Only Pattern
 
@@ -208,12 +208,12 @@ Q: When should I use RefContext over regular state. - Use RefContext when: Direc
 - Combine both when: Performance-critical operations alongside data display (e.g., real-time charts)
 
 Q: How do I ensure RefContext safety. 1. Always check ref.target existence before DOM operations
-   
+
 
 2. Use useWaitForRefs for operations requiring multiple refs
-   
+
 
 3. Implement proper cleanup for animations and event listeners
-   
+
 
 4.

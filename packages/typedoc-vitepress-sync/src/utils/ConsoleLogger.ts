@@ -26,9 +26,9 @@ export class ConsoleLogger implements Logger {
 
   private formatMessage(level: LogLevel, message: string, ...args: unknown[]): string {
     const prefix = this.useColors ? this.getColoredPrefix(level) : `[${level.toUpperCase()}]`
-    const formattedArgs = args.length > 0 ? ' ' + args.map(arg => 
+    const formattedArgs = args.length > 0 ? ` ${args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-    ).join(' ') : ''
+    ).join(' ')}` : ''
     
     return `${prefix} ${message}${formattedArgs}`
   }

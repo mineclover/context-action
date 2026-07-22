@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "context-layered--convention-index",
+    "title": "Convention Index",
+    "category": "concept",
+    "source_path": "en/context-layered/convention-index.md",
+    "lastModified": "2026-07-20T10:47:42.254Z",
+    "wordCount": 733
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-20",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Convention Index.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Convention Index.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Convention Index."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "bash",
+      "convention",
+      "index"
+    ],
+    "technical": [
+      "bash",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Convention Index.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Convention Index",
+          "context-layered",
+          "bash"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Convention Index",
+        "context-layered",
+        "bash"
+      ],
+      "nice_to_have": [
+        "bash",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "bash",
+        "convention",
+        "index"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "bash",
+      "convention",
+      "index"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-20"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Convention Index is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-20",
+    "updated": "2026-07-20",
+    "version": "1.0.0",
+    "original_size": 8477,
+    "created_at": "2026-07-20T10:49:31.019Z",
+    "source_last_modified": "2026-07-20T10:47:42.254Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "bash",
+        "convention",
+        "index"
+      ],
+      "technical": [
+        "bash",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

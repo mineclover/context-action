@@ -50,7 +50,7 @@ Available Hooks
 
 🏪 Store Only Pattern (Recommended)
 
-When to use: Pure state management without action dispatching (data layers, simple state). Key Features: 
+When to use: Pure state management without action dispatching (data layers, simple state). Key Features:
 - ✅ Excellent type inference without manual type annotations
 - ✅ Simplified API focused on store management
 - ✅ Direct value or configuration object support

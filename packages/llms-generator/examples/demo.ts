@@ -105,7 +105,7 @@ Context-Action 프레임워크의 API를 사용하는 방법을 설명합니다.
 \`\`\`typescript
 import { createActionContext } from '@context-action/react';
 
-const { Provider, useActionDispatch } = createActionContext();
+const { Provider, useActionDispatch } = createActionContext('LlmDemoActions');
 \`\`\`
 
 ## 고급 기능

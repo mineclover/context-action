@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 MVVM Architecture
 
-The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the recommended approach for complex applications requiring perfect separation of concerns. Key Difference from Domain Architecture: 
+The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the recommended approach for complex applications requiring perfect separation of concerns. Key Difference from Domain Architecture:
 - MVVM: Focuses on architectural layers (Model, View, ViewModel, Performance)
 - Domain Architecture: Focuses on business domains (User, Product, Order, etc.)
 
@@ -27,5 +27,5 @@ Both can be used together - MVVM provides the architectural structure while Doma
 4. Data Subscription Hooks - 모듈화된 데이터 구독
 5. Action Hooks - 지연 평가 및 핸들러 정의
 
-📁 File Convention System  
+📁 File Convention System
 6.

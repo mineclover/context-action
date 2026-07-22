@@ -54,7 +54,7 @@ Canvas Rendering with Progress Tracking
 Common Use Cases
 
 - Form Validation: Wait for form elements + store validation state
-- Animation Sequences: Coordinate animations + track animation progress in stores  
+- Animation Sequences: Coordinate animations + track animation progress in stores
 - Data Visualization: Wait for canvas/SVG + store render status and data
 - Modal Operations: Ensure modal is mounted + manage modal state in stores
 - Drag & Drop: Wait for drop zones + track drag operation state

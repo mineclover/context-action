@@ -18,7 +18,7 @@ export class ArgumentParser {
 
   extractNumberFlag(args: string[], shortFlag: string, longFlag?: string): number | undefined {
     const value = this.extractFlag(args, shortFlag, longFlag);
-    return value ? parseInt(value) : undefined;
+    return value ? parseInt(value, 10) : undefined;
   }
 
   hasFlag(args: string[], ...flags: string[]): boolean {

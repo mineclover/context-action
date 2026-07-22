@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Store Configuration
 
-Store Configuration Performance optimization and custom comparison strategies for complex store scenarios. Prerequisites For basic store setup and configuration patterns, see Basic Store Setup. This document demonstrates advanced configuration using the Setup patterns: - Type definitions → Common Store Patterns - Configuration → Type Inference Configurations - Context creation → Single Domain 
+Store Configuration Performance optimization and custom comparison strategies for complex store scenarios. Prerequisites For basic store setup and configuration patterns, see Basic Store Setup. This document demonstrates advanced configuration using the Setup patterns: - Type definitions → Common Store Patterns - Configuration → Type Inference Configurations - Context creation → Single Domain
 
 Key points:
 • Type definitions → [Common Store Patterns](../setup/basic-store-setup.md#common-store-patterns)

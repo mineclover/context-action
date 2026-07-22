@@ -18,7 +18,7 @@ Prerequisites
 
 For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup. This document uses the AppActions pattern from the setup guide:
 - Type definitions → Extended Action Interface
-- Context creation → Single Domain Context  
+- Context creation → Single Domain Context
 - Provider setup → Single Provider Setup
 
 The examples assume you have configured the following context:

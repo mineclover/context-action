@@ -2,9 +2,9 @@
  * @fileoverview Smart caching system with SHA256 hash-based file change detection
  */
 
-import fs from 'fs'
-import crypto from 'crypto'
-import path from 'path'
+import fs from 'node:fs'
+import crypto from 'node:crypto'
+import path from 'node:path'
 import type { 
   CacheConfig, 
   CacheManifest, 

@@ -2,8 +2,8 @@
  * @fileoverview Comprehensive metrics collection and reporting
  */
 
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import type { 
   MetricsConfig,
   SyncResult,
@@ -142,7 +142,7 @@ export class MetricsCollector {
     return {
       totalFiles,
       filesPerSecond: processingTimeSeconds > 0 ? (totalFiles / processingTimeSeconds).toFixed(2) : '0',
-      averageTimePerFile: totalFiles > 0 ? (result.processingTime / totalFiles).toFixed(2) + 'ms' : '0ms',
+      averageTimePerFile: totalFiles > 0 ? `${(result.processingTime / totalFiles).toFixed(2)}ms` : '0ms',
       cacheEfficiency: {
         hitRate: result.cache.hitRate,
         timesSaved: result.cache.hits,
@@ -235,10 +235,10 @@ export class MetricsCollector {
       platform: process.platform,
       arch: process.arch,
       memory: {
-        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
-        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
+        used: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+        total: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`
       },
-      uptime: Math.round(process.uptime()) + 's'
+      uptime: `${Math.round(process.uptime())}s`
     }
   }
 

@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Context-Action React Hooks Reference
 
-Context-Action React Hooks Reference This document is a comprehensive catalog of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers. Related Guides - 🎯 React Hooks - How to use hooks (API examples and usage patterns) - 🔄 Hooks Lifecycle - How hooks work internally (lifecycle, cleanup, performance)   - 
+Context-Action React Hooks Reference This document is a comprehensive catalog of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers. Related Guides - 🎯 React Hooks - How to use hooks (API examples and usage patterns) - 🔄 Hooks Lifecycle - How hooks work internally (lifecycle, cleanup, performance)   -
 
 Key points:
 • 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)

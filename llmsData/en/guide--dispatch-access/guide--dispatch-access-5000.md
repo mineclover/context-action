@@ -18,7 +18,7 @@ Prerequisites
 
 For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup. This document uses the AppActions pattern from the setup guide:
 - Type definitions → Extended Action Interface
-- Context creation → Single Domain Context  
+- Context creation → Single Domain Context
 - Provider setup → Single Provider Setup
 
 The examples assume you have configured the following context:
@@ -80,7 +80,7 @@ Cons:
 
 Use Cases:
 - Advanced dispatch configurations within React components
-- Testing and debugging scenarios  
+- Testing and debugging scenarios
 - Complex business logic requiring register metadata
 - Service layer implementations within React context
 

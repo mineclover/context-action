@@ -50,11 +50,11 @@ Sequential Processing
 
 Key Benefits
 
-✅ Type Safety: Full TypeScript support with automatic type inference  
-✅ Pipeline Control: Advanced control flow with abort, modify, and result management  
-✅ Priority Execution: Handlers execute in priority order for predictable behavior  
-✅ Error Resilience: Individual handler failures don't stop the entire pipeline  
-✅ Automatic Cleanup: React integration handles registration/cleanup automatically  
+✅ Type Safety: Full TypeScript support with automatic type inference
+✅ Pipeline Control: Advanced control flow with abort, modify, and result management
+✅ Priority Execution: Handlers execute in priority order for predictable behavior
+✅ Error Resilience: Individual handler failures don't stop the entire pipeline
+✅ Automatic Cleanup: React integration handles registration/cleanup automatically
 ✅ Lightweight: No state management overhead, focused on action processing
 
 Best Practices

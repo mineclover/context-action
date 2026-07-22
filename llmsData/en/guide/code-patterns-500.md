@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 Code Patterns
 
-Code Patterns 📁 For comprehensive patterns and implementation guides, visit: Pattern Collection This section has been reorganized into the dedicated 
+Code Patterns 📁 For comprehensive patterns and implementation guides, visit: Pattern Collection This section has been reorganized into the dedicated
 
 Key points:
 •...

@@ -51,7 +51,7 @@ tool protocol in one registry boundary:
 import {
   toToolCallRequest,
   toToolListRequest,
-} from '@context-action/react';
+} from '@context-action/tool-protocol';
 
 const discovery = registry.listTools(toToolListRequest());
 const result = await registry.executeModelToolCall(

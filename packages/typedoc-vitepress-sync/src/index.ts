@@ -2,8 +2,8 @@
  * @fileoverview Main API entry point for TypeDoc VitePress Sync
  */
 
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import type { 
   SyncConfig, 
   SyncResult, 
@@ -200,7 +200,7 @@ export class TypeDocVitePressSync {
       )
 
       // Log summary
-      this.logger.info('\n' + this.metrics.createConsoleSummary(result))
+      this.logger.info(`\n${this.metrics.createConsoleSummary(result)}`)
       
       this.emit('complete', result)
       this.events.complete?.(result)

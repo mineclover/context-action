@@ -17,7 +17,7 @@ Context-Action 프레임워크의 세 가지 핵심 패턴을 사용한 Model-Vi
 MVVM은 명확한 관심사 분리를 통해 복잡한 애플리케이션을 구축하는 구조적 접근 방식을 제공합니다:
 
 - Model Layer: 반응형 상태 관리를 위한 Store Only 패턴
-- ViewModel Layer: 비즈니스 로직과 조정을 위한 Action Only 패턴  
+- ViewModel Layer: 비즈니스 로직과 조정을 위한 Action Only 패턴
 - Performance Layer: 직접 DOM 조작과 싱글톤 객체 관리를 위한 RefContext 패턴
 - View Layer: UI 표현을 위한 순수 React 컴포넌트
 

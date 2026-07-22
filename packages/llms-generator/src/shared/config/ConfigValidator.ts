@@ -2,29 +2,10 @@
  * Config Validator - Validates configuration objects
  */
 
-import { AppConfig, PathConfig, GenerationConfig, QualityConfig } from '../types/ConfigTypes.js';
-import { ValidationResult, ValidationError } from '../types/index.js';
+import { AppConfig, GenerationConfig, PathConfig, QualityConfig } from '../types/ConfigTypes.js';
+import { ValidationError, ValidationResult } from '../types/index.js';
 
-export class ConfigValidator {
-  static validate(config: AppConfig): ValidationResult {
-    const errors: ValidationError[] = [];
-
-    // Validate paths
-    errors.push(...this.validatePaths(config.paths));
-
-    // Validate generation config
-    errors.push(...this.validateGeneration(config.generation));
-
-    // Validate quality config
-    errors.push(...this.validateQuality(config.quality));
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-
-  private static validatePaths(paths: PathConfig): ValidationError[] {
+function validatePaths(paths: PathConfig): ValidationError[] {
     const errors: ValidationError[] = [];
     const requiredPaths = ['docsDir', 'llmContentDir', 'outputDir', 'templatesDir', 'instructionsDir'];
 
@@ -42,7 +23,7 @@ export class ConfigValidator {
     return errors;
   }
 
-  private static validateGeneration(generation: GenerationConfig): ValidationError[] {
+function validateGeneration(generation: GenerationConfig): ValidationError[] {
     const errors: ValidationError[] = [];
 
     // Validate supported languages
@@ -86,7 +67,7 @@ export class ConfigValidator {
     return errors;
   }
 
-  private static validateQuality(quality: QualityConfig): ValidationError[] {
+function validateQuality(quality: QualityConfig): ValidationError[] {
     const errors: ValidationError[] = [];
 
     // Validate completeness threshold
@@ -101,5 +82,24 @@ export class ConfigValidator {
     }
 
     return errors;
-  }
 }
+
+/**
+ * Configuration validation API. Kept as an object to preserve the historical
+ * `ConfigValidator.validate(...)` call shape without introducing a static-only
+ * class.
+ */
+export const ConfigValidator = {
+  validate(config: AppConfig): ValidationResult {
+    const errors: ValidationError[] = [
+      ...validatePaths(config.paths),
+      ...validateGeneration(config.generation),
+      ...validateQuality(config.quality)
+    ];
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+} as const;

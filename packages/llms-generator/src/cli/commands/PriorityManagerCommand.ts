@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 
 // Priority data structure types
@@ -218,7 +218,7 @@ export class PriorityManagerCommand {
     const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     const sortedScores = [...scores].sort((a, b) => a - b);
     const median = sortedScores[Math.floor(sortedScores.length / 2)] ?? 0;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / scores.length;
+    const variance = scores.reduce((sum, score) => sum + (score - averageScore) ** 2, 0) / scores.length;
     const stdDev = Math.sqrt(variance);
 
     return {
@@ -508,7 +508,7 @@ export class PriorityManagerCommand {
     if (values.length === 0) return 0;
     
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + (val - mean) ** 2, 0) / values.length;
     
     return variance;
   }

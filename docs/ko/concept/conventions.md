@@ -450,7 +450,7 @@ const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction
 } = createActionContext<UserActions>('UserActions', {
-  registry: { debug: true, maxHandlers: 10 }
+  registry: { debug: true, maxHandlersPerAction: 10 }
 });
 ```
 

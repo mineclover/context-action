@@ -5,8 +5,8 @@
  * Designed for actual LLM training/inference use cases.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 import { EnhancedLLMSConfig } from '../../types/config.js';
@@ -186,9 +186,9 @@ export class SimpleLLMSCommand {
         
         // Extract character limit from filename
         const charMatch = file.match(/-(\d+)\.md$/);
-        if (!charMatch || !charMatch[1]) continue;
+        if (!charMatch?.[1]) continue;
         
-        const fileCharLimit = parseInt(charMatch[1]);
+        const fileCharLimit = parseInt(charMatch[1], 10);
         if (characterLimit && fileCharLimit !== characterLimit) continue;
 
         const filePath = path.join(folderPath, file);
@@ -279,13 +279,13 @@ export class SimpleLLMSCommand {
     
     // LEGACY FORMAT: Try to extract from "템플릿 내용" section with markdown code block (Korean templates)
     const codeBlockMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch && codeBlockMatch[1]) {
+    if (codeBlockMatch?.[1]) {
       return codeBlockMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
     }
     
     // LEGACY FORMAT: If no code block found, try to extract content from "템플릿 내용" section
     const sectionMatch = content.match(/## 템플릿 내용[^]*?\n\n([\s\S]*?)(?=\n\n|$)/);
-    if (sectionMatch && sectionMatch[1]) {
+    if (sectionMatch?.[1]) {
       return sectionMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
     }
     
@@ -294,7 +294,7 @@ export class SimpleLLMSCommand {
 
   private extractTitle(content: string): string | null {
     const titleMatch = content.match(/^# (.+)/m);
-    return titleMatch && titleMatch[1] ? titleMatch[1] : null;
+    return titleMatch?.[1] ? titleMatch[1] : null;
   }
 
   private isCompleted(document: CleanDocument): boolean {
@@ -564,16 +564,6 @@ export class SimpleLLMSCommand {
         .join(' ');
     }
     return title;
-  }
-
-  private generateFilename(language: string, characterLimit?: number, category?: string, pattern?: string): string {
-    // Delegate to path manager for consistent filename generation
-    return this.pathManager.generateOutputPath({
-      language,
-      characterLimit,
-      category,
-      pattern
-    }).filename;
   }
 
   private async exists(path: string): Promise<boolean> {

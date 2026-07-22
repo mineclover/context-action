@@ -176,7 +176,7 @@ describe('TypeDocVitePressSync', () => {
       
       // Create a problematic file to trigger warnings
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
-      fs.writeFileSync(path.join(packageDir, 'problematic.md'), 'Content with undefined values')
+      fs.writeFileSync(path.join(packageDir, 'problematic.md'), 'Content with {{undefined}} values')
       
       await sync.sync()
       
@@ -208,7 +208,7 @@ describe('TypeDocVitePressSync', () => {
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(
         path.join(packageDir, 'bad.md'), 
-        'This has undefined content'
+        'This has {{undefined}} content'
       )
     })
 

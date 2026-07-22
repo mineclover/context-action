@@ -216,8 +216,8 @@ interface GuardState {
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
   private cleanupInterval: NodeJS.Timeout | undefined;
-  private readonly maxIdleTime: number = 60000; 
-  private readonly cleanupIntervalMs: number = 30000; 
+  private readonly maxIdleTime: number = 60000;
+  private readonly cleanupIntervalMs: number = 30000;
   constructor(autoCleanup: boolean = true) {
     if (autoCleanup) {
       this.startAutoCleanup();
@@ -405,7 +405,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.registryConfig = config.registry;
     this.maxHandlersPerAction = config.registry?.maxHandlersPerAction ?? 1000;
     this.isDebugMode = Boolean(
-      this.registryConfig?.debug && 
+      this.registryConfig?.debug &&
       process.env.NODE_ENV === 'development'
     );
     this.actionGuard = new ActionGuard(this.registryConfig?.autoCleanup !== false);
@@ -441,8 +441,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return `${String(action)}_${this.name}_${++this.handlerIdCounter}`;
   }
   private createAbortSignal(options?: DispatchOptions): [
-    AbortSignal | undefined, 
-    AbortController | undefined, 
+    AbortSignal | undefined,
+    AbortController | undefined,
     () => void
   ] {
     const signals: AbortSignal[] = [];
@@ -504,7 +504,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
         replaceExisting: config.replaceExisting ?? false,
-        cleanup: config.cleanup, 
+        cleanup: config.cleanup,
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -514,7 +514,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const pipeline = this.pipelines.get(action)!;
     if (pipeline.length >= this.maxHandlersPerAction) {
       console.warn(`Handler limit (${this.maxHandlersPerAction}) reached for action "${String(action)}". Registration ignored.`);
-      return () => {}; 
+      return () => {};
     }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
     if (existingIndex !== -1) {
@@ -623,7 +623,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
       return;
     }
-    const filteredHandlers = options?.filter 
+    const filteredHandlers = options?.filter
       ? this.filterHandlers(pipeline, options.filter)
       : pipeline;
     const actionKey = String(action);
@@ -652,22 +652,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (debounceMs !== undefined) {
       const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
       if (!shouldProceed) {
-        return; 
+        return;
       }
     }
     if (throttleMs !== undefined) {
       const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
       if (!shouldProceed) {
-        return; 
+        return;
       }
     }
-    const currentExecutionMode = options?.executionMode || 
-                                this.actionExecutionModes.get(action) || 
+    const currentExecutionMode = options?.executionMode ||
+                                this.actionExecutionModes.get(action) ||
                                 this.executionMode;
     const context: PipelineContext<T[K], any> = {
       action: String(action),
       payload: payload as T[K],
-      handlers: filteredHandlers, 
+      handlers: filteredHandlers,
       aborted: false,
       abortReason: undefined as string | undefined,
       currentIndex: 0,
@@ -751,22 +751,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         errors: [],
       };
     }
-    const filteredHandlers = options?.filter 
+    const filteredHandlers = options?.filter
       ? this.filterHandlers(pipeline, options.filter)
       : pipeline;
     const actionKey = String(action);
     const guardResult = await this.applyActionGuardControlsWithResult<R>(
-      actionKey, 
-      filteredHandlers, 
-      options, 
-      _startTime, 
+      actionKey,
+      filteredHandlers,
+      options,
+      _startTime,
       pipeline.length
     );
     if (guardResult) {
-      return guardResult; 
+      return guardResult;
     }
-    const currentExecutionMode = options?.executionMode || 
-                                this.actionExecutionModes.get(action) || 
+    const currentExecutionMode = options?.executionMode ||
+                                this.actionExecutionModes.get(action) ||
                                 this.executionMode;
     const context: PipelineContext<T[K], R> = {
       action: String(action),
@@ -958,12 +958,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         };
       }
     }
-    return null; 
+    return null;
   }
   private get filterCacheMaxSize(): number {
     const totalHandlers = Array.from(this.pipelines.values())
       .reduce((sum, pipeline) => sum + pipeline.length, 0);
-    return totalHandlers * 10 || 100; 
+    return totalHandlers * 10 || 100;
   }
   private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
     if (!filterOptions) {
@@ -982,7 +982,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.filterCache.clear();
   }
   private getControllerFromPool<K extends keyof T>(
-    context: PipelineContext<T[K], any>, 
+    context: PipelineContext<T[K], any>,
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): PipelineController<T[K], any> {
@@ -1043,20 +1043,20 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     const filtered = handlers.filter(registration => {
       const config = registration.config;
-      if (filterOptions.handlerIds?.length && 
+      if (filterOptions.handlerIds?.length &&
           !filterOptions.handlerIds.includes(config.id)) {
         return false;
       }
-      if (filterOptions.excludeHandlerIds?.length && 
+      if (filterOptions.excludeHandlerIds?.length &&
           filterOptions.excludeHandlerIds.includes(config.id)) {
         return false;
       }
       if (filterOptions.priority) {
-        if (filterOptions.priority.min !== undefined && 
+        if (filterOptions.priority.min !== undefined &&
             config.priority < filterOptions.priority.min) {
           return false;
         }
-        if (filterOptions.priority.max !== undefined && 
+        if (filterOptions.priority.max !== undefined &&
             config.priority > filterOptions.priority.max) {
           return false;
         }
@@ -1089,7 +1089,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (context.terminated && context.terminationResult !== undefined) {
       return context.terminationResult;
     }
-    const limitedResults = resultOptions.maxResults 
+    const limitedResults = resultOptions.maxResults
       ? results.slice(0, resultOptions.maxResults)
       : results;
     if (limitedResults.length === 0) {
@@ -1117,7 +1117,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
   private async executePipeline<K extends keyof T>(
-    context: PipelineContext<T[K], any>, 
+    context: PipelineContext<T[K], any>,
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): Promise<void> {
@@ -1181,7 +1181,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
   getRegistryInfo(): ActionRegistryInfo<T> {
     const totalHandlers = Array.from(this.pipelines.values()).reduce(
-      (total, pipeline) => total + pipeline.length, 
+      (total, pipeline) => total + pipeline.length,
       0
     );
     return {
@@ -1206,7 +1206,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       priorityMap.get(handler.config.priority)!.push(handler);
     });
     const handlersByPriority = Array.from(priorityMap.entries())
-      .sort(([a], [b]) => b - a) 
+      .sort(([a], [b]) => b - a)
       .map(([priority, handlers]) => ({
         priority,
         handlers: handlers.map(h => ({
@@ -1333,7 +1333,7 @@ export class OperationQueue {
   private readonly maxConcurrency: number;
   private readonly runningOperations = new Set<Promise<any>>();
   constructor(
-    private name: string = 'OperationQueue', 
+    private name: string = 'OperationQueue',
     maxConcurrency: number = 1
   ) {
     this.maxConcurrency = Math.max(1, maxConcurrency);
@@ -1439,9 +1439,9 @@ export class OperationQueue {
 ### execution-modes.ts
 
 ```typescript
-import type { 
-  HandlerRegistration, 
-  PipelineContext, 
+import type {
+  HandlerRegistration,
+  PipelineContext,
   PipelineController,
   HandlerError
 } from './types.js';
@@ -1470,7 +1470,7 @@ export async function executeSequential<T, R = void>(
     }
     const registration = context.handlers[i];
     if (!registration) {
-      continue; 
+      continue;
     }
     context.currentIndex = i;
     const controller = createController(registration, i);
@@ -1501,7 +1501,7 @@ export async function executeSequential<T, R = void>(
                 timestamp: handlerError.timestamp,
                 severity: 'non-blocking'
               });
-              return undefined; 
+              return undefined;
             });
           nonBlockingPromises.push(promiseWithErrorHandling);
         } else if (result !== undefined && !context.terminated) {
@@ -1563,11 +1563,11 @@ export async function executeParallel<T, R = void>(
       if (handlerResult !== undefined && !context.terminated) {
         context.results.push(handlerResult);
       }
-      return { 
-        success: true, 
-        handlerId: registration.id, 
+      return {
+        success: true,
+        handlerId: registration.id,
         result: handlerResult,
-        terminated: context.terminated 
+        terminated: context.terminated
       };
     } catch (error: any) {
       const handlerError = handleExecutionError(error, registration);
@@ -1589,7 +1589,7 @@ export async function executeParallel<T, R = void>(
     const firstFailure = failures[0] as PromiseRejectedResult;
     throw firstFailure.reason;
   }
-  const terminatedResults = results.filter(result => 
+  const terminatedResults = results.filter(result =>
     result.status === 'fulfilled' && result.value.terminated
   );
   if (terminatedResults.length > 0) {
@@ -1617,9 +1617,9 @@ export async function executeRace<T, R = void>(
       } else {
         handlerResult = result as R | undefined;
       }
-      return { 
-        success: true, 
-        handlerId: registration.id, 
+      return {
+        success: true,
+        handlerId: registration.id,
         registration,
         result: handlerResult,
         terminated: context.terminated
@@ -1674,9 +1674,9 @@ export {
 ### react-helpers.ts
 
 ```typescript
-import type { 
-  ActionPayloadMap, 
-  ActionHandler, 
+import type {
+  ActionPayloadMap,
+  ActionHandler,
   HandlerConfig,
   UnregisterFunction
 } from './types.js';
@@ -1701,7 +1701,7 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
     once: config?.once ?? false,
     debounce: config?.debounce ?? undefined,
     throttle: config?.throttle ?? undefined,
-    replaceExisting: true, 
+    replaceExisting: true,
   } as Required<HandlerConfig>;
   let currentUnregister: UnregisterFunction | undefined;
   let isRegistered = false;
@@ -1743,7 +1743,7 @@ export const ReactDevUtils = {
     }
   },
   isDebugMode(): boolean {
-    return typeof window !== 'undefined' && 
+    return typeof window !== 'undefined' &&
            Boolean((window as any).__CONTEXT_ACTION_REACT_DEBUG__);
   },
   log(component: string, action: string, message: string, data?: any): void {

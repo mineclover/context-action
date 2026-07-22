@@ -3978,8 +3978,8 @@ RefContext 통합 패턴
 
 3. 아키텍처 패턴
 
-- Action Only 패턴: createActionContext()로 순수 액션 디스패칭
-- 선언적 스토어 패턴: createStoreContext()으로 타입 안전한 상태 관리
+- Action Only 패턴: createActionContext(contextName, config?)로 순수 액션 디스패칭
+- 선언적 스토어 패턴: createStoreContext(contextName, initialStores)로 타입 안전한 상태 관리
 - RefContext 패턴: createRefContext()로 제로 리렌더링 DOM 조작
 - 스토어 통합 패턴: 핸들러 구현을 위한 3단계 프로세스
 - HOC 패턴: 자동 컴포넌트 감싸기를 위한 withProvider() (Store Pattern)

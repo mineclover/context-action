@@ -48,7 +48,7 @@ workflow_stage: content_generated
 
 필수 조건 설정에서
 - useEventAction() - 기본 액션 디스패처 (useActionDispatch에서 이름 변경)
-- useEventActionHandler() - 액션 핸들러 등록 (useActionHandler에서 이름 변경)  
+- useEventActionHandler() - 액션 핸들러 등록 (useActionHandler에서 이름 변경)
 - useEventActionWithResult() - 결과/중단이 있는 고급 디스패처 (useActionDispatchWithResult에서 이름 변경)
 
 일반 패턴 (이름 변경 전)

@@ -2,13 +2,13 @@
  * @fileoverview Quality validation system for generated documentation
  */
 
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import type { 
+  Logger,
   QualityConfig, 
-  QualityStats, 
   QualityIssue,
-  Logger 
+  QualityStats
 } from '../types/index.js'
 
 export class QualityValidator {
@@ -73,9 +73,10 @@ export class QualityValidator {
     try {
       const content = fs.readFileSync(filePath, 'utf8')
 
-      // Check for undefined values (template errors)
-      if (content.includes('undefined')) {
-        issues.push('Contains "undefined" - possible template error')
+      // Only flag explicit template placeholders. TypeDoc signatures commonly
+      // contain the legitimate TypeScript value/type `undefined`.
+      if (/\{\{\s*undefined\s*\}\}|<%=?\s*undefined\s*%>/.test(content)) {
+        issues.push('Contains unresolved undefined template placeholder')
       }
 
       // Check for empty links
@@ -92,32 +93,41 @@ export class QualityValidator {
         }
       }
 
-      // Check for broken markdown syntax
-      const unclosedBold = (content.match(/\*\*/g) || []).length % 2 !== 0
+      // Check for broken markdown syntax. TypeDoc emits `***` horizontal rules;
+      // those are structural markdown, not an unmatched bold marker.
+      const emphasisContent = content
+        .split('\n')
+        .filter(line => !/^\s*\*{3,}\s*$/.test(line))
+        .join('\n')
+      const unclosedBold = (emphasisContent.match(/(?<!\\)\*\*/g) || []).length % 2 !== 0
       if (unclosedBold) {
         issues.push('Unclosed bold markdown syntax (**)') 
       }
 
-      const unclosedItalic = (content.match(/(?<!\*)\*(?!\*)/g) || []).length % 2 !== 0
+      const unclosedItalic = (emphasisContent.match(/(?<!\\)(?<!\*)\*(?!\*)/g) || []).length % 2 !== 0
       if (unclosedItalic) {
         issues.push('Unclosed italic markdown syntax (*)')
       }
 
-      // Check for malformed tables
-      const tableRows = content.split('\n').filter(line => line.includes('|'))
-      if (tableRows.length > 0) {
-        const firstRow = tableRows[0];
-        if (firstRow) {
-          const firstRowCols = (firstRow.match(/\|/g) || []).length
-          for (let i = 1; i < tableRows.length; i++) {
-            const currentRow = tableRows[i];
-            if (currentRow) {
-              const currentRowCols = (currentRow.match(/\|/g) || []).length
-              if (currentRowCols !== firstRowCols) {
-                issues.push(`Inconsistent table column count at line ${i + 1}`)
-                break
-              }
-            }
+      // Check malformed pipe tables only after finding a real separator row.
+      // This avoids treating TypeScript unions (`A | B`) as tables.
+      const tableLines = content.split('\n')
+      const isTableRow = (line: string): boolean => /^\s*\|.*\|\s*$/.test(line)
+      const isTableSeparator = (line: string): boolean =>
+        /^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(line)
+      const countTableColumns = (line: string): number =>
+        line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').length
+
+      for (let i = 0; i < tableLines.length - 1; i++) {
+        if (!isTableRow(tableLines[i] ?? '') || !isTableSeparator(tableLines[i + 1] ?? '')) {
+          continue
+        }
+
+        const expectedColumns = countTableColumns(tableLines[i] ?? '')
+        for (let row = i + 2; row < tableLines.length && isTableRow(tableLines[row] ?? ''); row++) {
+          if (countTableColumns(tableLines[row] ?? '') !== expectedColumns) {
+            issues.push(`Inconsistent table column count at line ${row + 1}`)
+            break
           }
         }
       }
@@ -126,7 +136,16 @@ export class QualityValidator {
       const lines = content.split('\n')
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (line && line.length > 200 && !line.startsWith('```')) {
+        const trimmedLine = line?.trimStart() ?? ''
+        if (
+          line &&
+          line.length > 200 &&
+          !line.startsWith('```') &&
+          !trimmedLine.startsWith('>') &&
+          !trimmedLine.startsWith('|') &&
+          !trimmedLine.startsWith('Defined in:') &&
+          !trimmedLine.startsWith('\\{')
+        ) {
           issues.push(`Very long line (${line.length} chars) at line ${i + 1}`)
           break // Only report first occurrence
         }
@@ -148,7 +167,7 @@ export class QualityValidator {
     try {
       const content = fs.readFileSync(filePath, 'utf8')
       const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
-      let match
+      let match: RegExpExecArray | null
 
       while ((match = linkRegex.exec(content)) !== null) {
         const linkText = match[1]
@@ -185,7 +204,7 @@ export class QualityValidator {
 
           if (cleanPath && !fs.existsSync(cleanPath)) {
             // Try with .md extension if not present
-            if (!cleanPath.endsWith('.md') && !fs.existsSync(cleanPath + '.md')) {
+            if (!cleanPath.endsWith('.md') && !fs.existsSync(`${cleanPath}.md`)) {
               issues.push(`Broken link: "${linkPath}" -> ${cleanPath}`)
             }
           }
@@ -215,7 +234,7 @@ export class QualityValidator {
 
       // Check images for alt text
       const imgRegex = /!\[([^\]]*)\]/g
-      let match
+      let match: RegExpExecArray | null
 
       while ((match = imgRegex.exec(content)) !== null) {
         const altText = match[1]
@@ -271,8 +290,6 @@ export class QualityValidator {
               issues.push(`Very short list item at line ${i + 1}`)
             }
           } else if (inList && line.trim() === '') {
-            // Empty line in list is okay
-            continue
           } else if (inList && line.trim() !== '' && !line.startsWith(' ')) {
             inList = false
           }

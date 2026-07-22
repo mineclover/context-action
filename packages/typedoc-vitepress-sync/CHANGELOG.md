@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.8] (Unreleased)
+
+### Fixed
+
+- Treat TypeDoc horizontal rules, signature blocks, TypeScript `undefined`, and
+  union pipes as valid generated Markdown instead of false quality warnings.
+- Keep genuine unresolved template placeholders, malformed tables, and broken
+  emphasis checks visible to the documentation verification lane.
+
 ## [0.8.7](https://github.com/mineclover/context-action/compare/v0.8.6...v0.8.7) (2026-07-12)
 
 **Note:** Version bump only for package @context-action/typedoc-vitepress-sync

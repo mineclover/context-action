@@ -6,8 +6,8 @@
  * 2. Generate templates for all documents
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { CLIConfig } from '../types/CLITypes.js';
 import { GenerateTemplatesCommand } from './GenerateTemplatesCommand.js';
 
@@ -247,7 +247,7 @@ export class InitCommand {
       
       if (options.quiet) {
         console.log = (message: string) => {
-          output += message + '\n';
+          output += `${message}\n`;
         };
       }
       
@@ -264,8 +264,8 @@ export class InitCommand {
           const createdMatch = output.match(/✅ Templates Created: (\d+)/);
           const skippedMatch = output.match(/⏭️ {2}Templates Skipped: (\d+)/);
           
-          if (createdMatch && createdMatch[1]) totalCreated += parseInt(createdMatch[1]);
-          if (skippedMatch && skippedMatch[1]) totalSkipped += parseInt(skippedMatch[1]);
+          if (createdMatch?.[1]) totalCreated += parseInt(createdMatch[1], 10);
+          if (skippedMatch?.[1]) totalSkipped += parseInt(skippedMatch[1], 10);
         }
         
       } finally {
@@ -312,7 +312,7 @@ export class InitCommand {
       
       for (const line of lines) {
         const match = line.match(/^#\s+(.+)$/);
-        if (match && match[1]) {
+        if (match?.[1]) {
           return match[1].trim();
         }
       }

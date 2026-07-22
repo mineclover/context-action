@@ -81,5 +81,5 @@ React와의 통합
 다음 단계
 
 - 메인 패턴 - Action Only와 Store Only 패턴 알아보기
-- API 참조 - 자세한 ActionRegister API 문서  
+- API 참조 - 자세한 ActionRegister API 문서
 - 예제 - 실제 Action Only 패턴 보기.

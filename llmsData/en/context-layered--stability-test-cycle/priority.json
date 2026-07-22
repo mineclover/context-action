@@ -1,0 +1,218 @@
+{
+  "document": {
+    "id": "context-layered--stability-test-cycle",
+    "title": "Stability Test Cycle for Context-Layered Architecture",
+    "category": "context-layered",
+    "source_path": "en/context-layered/stability-test-cycle.md",
+    "lastModified": "2026-07-20T02:55:53.330Z",
+    "wordCount": 790
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-20",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Stability Test Cycle for Context-Layered Architecture.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Stability Test Cycle for Context-Layered Architecture.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Stability Test Cycle for Context-Layered Architecture."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "mermaid",
+      "stability",
+      "test",
+      "cycle"
+    ],
+    "technical": [
+      "mermaid",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Stability Test Cycle for Context-Layered Architecture.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Stability Test Cycle for Context-Layered Architecture",
+          "context-layered",
+          "mermaid"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Stability Test Cycle for Context-Layered Architecture",
+        "context-layered",
+        "mermaid"
+      ],
+      "nice_to_have": [
+        "mermaid",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "mermaid",
+        "stability",
+        "test",
+        "cycle"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "mermaid",
+      "stability",
+      "test",
+      "cycle"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-20"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Stability Test Cycle for Context-Layered Architecture is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-20",
+    "updated": "2026-07-20",
+    "version": "1.0.0",
+    "original_size": 5633,
+    "created_at": "2026-07-20T02:57:08.853Z",
+    "source_last_modified": "2026-07-20T23:39:01.521Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "mermaid",
+        "stability",
+        "test",
+        "cycle"
+      ],
+      "technical": [
+        "mermaid",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-07-20T23:39:06.649Z"
+  }
+}
