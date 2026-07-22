@@ -8,8 +8,8 @@
   "toolingRepository": {
     "name": "context-action-documentation-tooling",
     "url": "https://github.com/mineclover/context-action-documentation-tooling",
-    "phase": "local-scaffold",
-    "remoteStatus": "not-configured"
+    "phase": "pre-release",
+    "remoteStatus": "configured"
   },
   "semContract": {
     "evidenceProvider": "@ataraxy-labs/sem",

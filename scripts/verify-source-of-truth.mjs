@@ -47,13 +47,11 @@ if (manifest.schemaVersion !== 'source-of-truth-manifest.v1') {
 if (manifest.repository?.role !== 'consumer') {
   throw new Error('context-action must declare itself as the consumer repository.');
 }
-if (manifest.toolingRepository?.phase !== 'local-scaffold') {
+const toolingLifecycleState = `${manifest.toolingRepository?.phase}:${manifest.toolingRepository?.remoteStatus}`;
+if (!['local-scaffold:not-configured', 'pre-release:configured'].includes(toolingLifecycleState)) {
   throw new Error(
-    'The consumer manifest must remain local-scaffold until the tooling repository remote and artifact cutover are complete.',
+    'The consumer manifest must use local-scaffold/not-configured or pre-release/configured before artifact cutover.',
   );
-}
-if (manifest.toolingRepository?.remoteStatus !== 'not-configured') {
-  throw new Error('The consumer manifest must record the tooling repository remote as not-configured.');
 }
 if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArtifactNote.length === 0) {
   throw new Error('The consumer manifest must document the legacy published-artifact metadata state.');
