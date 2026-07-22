@@ -146,6 +146,10 @@ jobs:
       - name: Generate API documentation
         run: |
           pnpm docs:api
+          # CI build artifacts contain published package outputs but the
+          # private TypeDoc sync CLI is not part of that artifact. Build its
+          # local entrypoint before invoking docs:sync in this clean runner.
+          pnpm --filter @context-action/typedoc-vitepress-sync build
           pnpm docs:sync
 
       - name: Build documentation
