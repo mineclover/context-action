@@ -60,7 +60,8 @@ root `README.md`와 `package.json`은 repository ownership과 migration metadata
 `--local-only`를 사용하면 registry에 접근하지 않고 두 manifest, package parity, 양쪽 local
 tarball consumer smoke만 검증합니다. 옵션 없이 실행하면 tooling remote, published metadata,
 published consumer smoke, 미사용 release version까지 확인하며, 외부 cutover 검증이 통과하기 전에는
-ready가 되지 않습니다.
+Architecture Governance가 published Foundation version으로 설치되는지도 확인합니다. 외부
+cutover 검증이 통과하기 전에는 ready가 되지 않습니다.
 
 tooling 저장소에는 이제 이 계약을 검증하고 Foundation contracts를 sem-doc보다 먼저 배포한 뒤
 published metadata와 clean-consumer 검증을 실행하는 release workflow를 준비했습니다. tooling remote,

@@ -17,6 +17,7 @@ const consumerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const toolingRoot = path.resolve(
   process.env.DOCUMENTATION_TOOLING_ROOT ?? path.join(consumerRoot, '..', 'context-action-documentation-tooling'),
 );
+const publishedFoundationMode = process.argv.includes('--published-foundation');
 const architectureRoot = path.join(consumerRoot, 'packages/architecture-governance');
 const foundationPackages = [
   ['@context-action/sem-foundation-contracts', 'packages/sem-foundation'],
@@ -79,14 +80,25 @@ try {
   initializeFixture(fixtureRoot);
 
   run('pnpm', ['arch:build'], consumerRoot, { stdio: 'inherit' });
-  for (const [name] of foundationPackages) {
-    run('pnpm', ['--filter', name, 'build'], toolingRoot, { stdio: 'inherit' });
+  if (!publishedFoundationMode) {
+    for (const [name] of foundationPackages) {
+      run('pnpm', ['--filter', name, 'build'], toolingRoot, { stdio: 'inherit' });
+    }
   }
 
   const architectureArchive = packPackage(architectureRoot, archiveRoot);
-  const foundationArchives = foundationPackages.map(([, relativePath]) => (
-    packPackage(path.join(toolingRoot, relativePath), archiveRoot)
-  ));
+  const foundationArchives = publishedFoundationMode
+    ? []
+    : foundationPackages.map(([, relativePath]) => (
+      packPackage(path.join(toolingRoot, relativePath), archiveRoot)
+    ));
+  const publishedFoundationSpecs = foundationPackages.map(([name, relativePath]) => {
+    const packageJson = JSON.parse(readFileSync(path.join(toolingRoot, relativePath, 'package.json'), 'utf8'));
+    return `${name}@${packageJson.version}`;
+  });
+  const foundationInstallSpecs = publishedFoundationMode
+    ? publishedFoundationSpecs
+    : foundationArchives.map((archive) => `file:${archive}`);
   run('npm', [
     'install',
     '--ignore-scripts',
@@ -99,7 +111,7 @@ try {
     npmGlobalConfig,
     '--registry=https://registry.npmjs.org',
     `file:${architectureArchive}`,
-    ...foundationArchives.map((archive) => `file:${archive}`),
+    ...foundationInstallSpecs,
   ], fixtureRoot, {
     stdio: 'inherit',
     env: {
@@ -118,7 +130,11 @@ try {
   ].join('');
   run(process.execPath, ['--input-type=module', '-e', moduleCheck], fixtureRoot, { stdio: 'inherit' });
   run(path.join(fixtureRoot, 'node_modules/.bin/arch-verify'), ['--help'], fixtureRoot, { stdio: 'inherit' });
-  process.stdout.write('Architecture Governance tooling consumer smoke verified with local Foundation tarballs.\n');
+  process.stdout.write(
+    publishedFoundationMode
+      ? 'Architecture Governance consumer smoke verified with published Foundation versions.\n'
+      : 'Architecture Governance tooling consumer smoke verified with local Foundation tarballs.\n',
+  );
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

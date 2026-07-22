@@ -60,7 +60,8 @@ The cross-repository readiness report is available as
 `node scripts/verify-tooling-cutover.mjs --json`. Use `--local-only` to validate the two manifests,
 package parity, and both local tarball consumer smokes without touching the registry. The full command
 also checks the tooling remote, published metadata, published consumer smoke, and unused release
-versions; it remains non-ready until those external cutover checks pass.
+versions, including Architecture Governance against the published Foundation versions; it remains
+non-ready until those external cutover checks pass.
 
 The tooling repository now contains a prepared release workflow that validates this contract, publishes
 Foundation contracts before sem-doc, and runs both published metadata and clean-consumer checks. It is

@@ -73,6 +73,7 @@
     "source-of-truth:parity": "node scripts/verify-tooling-parity.mjs",
     "source-of-truth:cutover": "node scripts/verify-tooling-cutover.mjs",
     "verify:tooling-consumer": "node scripts/verify-tooling-consumer.mjs",
+    "verify:tooling-consumer:published": "node scripts/verify-tooling-consumer.mjs --published-foundation",
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "node packages/typedoc-vitepress-sync/bin/cli.js sync --config ./typedoc-vitepress-sync.config.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:build",

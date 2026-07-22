@@ -115,6 +115,8 @@ const externalChecks = [
   ['tooling-remote', 'tooling Git remote', checkRemote],
   ['published-metadata', 'published package metadata', () => run('pnpm', ['verify:published-metadata'], toolingRoot)],
   ['published-consumer', 'published consumer smoke', () => run('pnpm', ['verify:published-consumer'], toolingRoot)],
+  ['published-foundation-consumer', 'Architecture Governance with published Foundation versions',
+    () => run('pnpm', ['verify:tooling-consumer:published'], consumerRoot)],
   ['release-versions', 'unused release versions', () => run('pnpm', ['verify:release-versions'], toolingRoot)],
 ];
 
