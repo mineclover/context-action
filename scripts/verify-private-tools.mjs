@@ -165,7 +165,7 @@ async function verifyArchitectureIntegrationContract() {
   ]);
   requireStepLines('Upload architecture report', [
     `if: ${githubExpression("github.event_name == 'pull_request' && always()")}`,
-    'uses: actions/upload-artifact@v6',
+    'uses: actions/upload-artifact@v7',
     `name: architecture-report-${githubExpression('matrix.node-version')}`,
     'path: reports/architecture/pr-report.md',
     'if-no-files-found: ignore',
