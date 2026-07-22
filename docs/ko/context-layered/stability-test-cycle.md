@@ -31,8 +31,8 @@ flowchart LR
 
 계약 테스트는 핵심 팩토리와 경계가 약속하는 보장을 고정합니다.
 
-- `createActionContext()`는 안정적인 dispatch와 안전한 handler 등록을 제공해야 합니다.
-- `createStoreContext()`는 격리된 typed store와 예측 가능한 구독을 제공해야 합니다.
+- `createActionContext(contextName, config?)`는 안정적인 dispatch와 안전한 handler 등록을 제공해야 합니다.
+- `createStoreContext(contextName, initialStores)`는 격리된 typed store와 예측 가능한 구독을 제공해야 합니다.
 - `createRefContext()`는 mount 상태, imperative 접근, cleanup을 안전하게 관리해야 합니다.
 
 이 단계가 답하는 질문은 "이 아키텍처가 무엇을 보장하는가?"입니다.
@@ -110,6 +110,16 @@ flowchart LR
 - React 패키지 전체 테스트
 - example 앱 타입 체크 및 빌드
 - 문서 빌드 및 링크 검증
+
+0.8/0.9 안정화 release lane에서는 다음도 통과해야 합니다.
+
+- `pnpm build`와 `pnpm type-check`
+- `pnpm verify:package-exports`와 `pnpm verify:package-tarballs`
+- `pnpm convention:check`와 활성화된 package-boundary 검사
+- package version/changelog 정합성과
+  `@context-action/sem-doc`, `@context-action/tool-protocol`,
+  `@context-action/tool-durable-operations` published-consumer smoke test
+- 제거된 legacy documentation package/generator가 active workspace/release graph에 남아 있지 않음
 
 ## 추천 Assertion 방식
 

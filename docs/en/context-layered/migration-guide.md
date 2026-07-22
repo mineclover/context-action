@@ -17,6 +17,44 @@ A comprehensive guide for migrating from traditional MVVM patterns to the advanc
 | **Handler Registration** | Component-level | Centralized with registry pattern |
 | **Testing** | Component-focused | Layer-focused with mock injection |
 
+## Current package-boundary migration
+
+The tool protocol is now a separate framework-neutral package. Install it only
+when action schemas or MCP/provider adapters are needed:
+
+```bash
+npm install @context-action/react @context-action/core @context-action/tool-protocol zod
+```
+
+Import `defineAction`, `createActionSchema`, `listAllTools`, and protocol types
+from `@context-action/tool-protocol`. `@context-action/react` owns
+`createToolContext` and React hooks; `@context-action/core` owns the action
+runtime. The old Core and React re-exports are removed.
+
+Durable mutation recovery is intentionally a separate optional package. Add
+`@context-action/tool-durable-operations` when the application needs durable
+operation records, cross-process claims, or HTTP/queue side-effect adapters;
+it is not required for provider-neutral schemas and discovery.
+
+The action context factory now requires an explicit context name:
+
+```ts
+createActionContext<AppActions>('Checkout', { registry: { debug: true } });
+```
+
+For a void action, dispatch options are the second argument so payload and
+options cannot be confused:
+
+```ts
+await register.actions.reset(undefined, { debounce: 100 });
+```
+
+`@context-action/react` supports React 18 and 19 through the same runtime and
+the `react18` entry point is a compatibility path, not a separate runtime.
+The maintained `@context-action/mutative-core` / `@context-action/mutative`
+fork remains the immutable runtime contract; synchronize upstream changes via
+its [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md) record.
+
 ## 🚀 Migration Strategy
 
 ### Phase 1: Structure Reorganization

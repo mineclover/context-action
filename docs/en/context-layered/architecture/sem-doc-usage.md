@@ -33,7 +33,7 @@ SEM_BIN=/opt/tools/sem npx sem-doc version
 ## 2. Build the implementer context
 
 Start with one target symbol and its definition file. The result is the
-`sem-doc-work-context.v4` SSOT used by downstream context projections:
+`sem-doc-work-context.v5` SSOT used by downstream context projections:
 
 ```bash
 npx sem-doc work-context SemClient \
@@ -45,7 +45,8 @@ npx sem-doc work-context SemClient \
 
 Use `--depth 2` when the change crosses one additional relationship. The report contains symbol
 identity, definition files, dependent usage files, affected tests, document bindings, Git revision,
-and exact sem provenance. `usageFiles` is a file-level dependent signal, not a source location or
+and exact sem provenance. Its `execution` record preserves phase, owner, final state, timeout,
+output limits, measured output usage, and elapsed time. `usageFiles` is a file-level dependent signal, not a source location or
 runtime call graph.
 
 For a screen, API, transaction, or workflow with multiple entry points, define a

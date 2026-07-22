@@ -340,7 +340,13 @@ export class GitWorktreeManager {
   }
 
   private runGit(args: readonly string[], cwd: string): void {
-    const result = spawnSync(this.gitBinary, [...args], {
+    // Historical worktrees are analysis sandboxes. Do not execute repository
+    // hooks while creating or removing them: hooks can mutate the checkout,
+    // require unavailable tooling, or perform expensive work unrelated to the
+    // requested snapshot. The hook path is disabled at the Git process level
+    // rather than relying on a particular hook manager (for example Husky).
+    const hooklessArgs = ['-c', `core.hooksPath=${process.platform === 'win32' ? 'NUL' : '/dev/null'}`, ...args];
+    const result = spawnSync(this.gitBinary, hooklessArgs, {
       cwd,
       encoding: 'utf8',
       maxBuffer: this.maxBufferBytes,
@@ -349,7 +355,7 @@ export class GitWorktreeManager {
     if (result.error) {
       throw new RepositoryCommandError(
         `Failed to execute Git worktree command: ${result.error.message}`,
-        args,
+        hooklessArgs,
         cwd,
         result.status,
         result.stderr,
@@ -358,7 +364,7 @@ export class GitWorktreeManager {
     if (result.status !== 0) {
       throw new RepositoryCommandError(
         `Git worktree command failed with status ${String(result.status)}`,
-        args,
+        hooklessArgs,
         cwd,
         result.status,
         result.stderr,

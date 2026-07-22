@@ -139,6 +139,10 @@ test('materializes bounded scopes for Git commit history and cleans worktrees', 
   assert.equal(report.execution.timeoutMs, 120000);
   assert.ok(report.execution.usedOutputBytes > 0);
   assert.ok(report.execution.usedOutputBytes <= report.execution.maxOutputBytes);
+  assert.equal(report.execution.phase, 'context-scope-history');
+  assert.equal(report.execution.ownerId, 'sem-doc-history');
+  assert.equal(report.execution.state, 'completed');
+  assert.ok(Number.isSafeInteger(report.execution.elapsedMs));
   assert.ok(report.base.scope.source.request.impactArgs.includes('--no-default-excludes'));
   assert.ok(report.entries.every((entry) => entry.scope.source.request.contextArgs.includes('--no-default-excludes')));
 });
@@ -220,4 +224,138 @@ test('extracts the common changed symbol set from two branch histories', () => {
   );
   assert.equal(comparison.summary.commonNodes, 1);
   assert.deepEqual(comparison.intersection.nodes, [common]);
+});
+
+test('streams a larger synthetic history without retaining materialized entries', async () => {
+  const repositoryRoot = createFixtureRepository();
+  const baseReport = service().analyze({ repositoryRoot, entity: 'authenticateUser' });
+  const baseCommit = 'a'.repeat(40);
+  const commitId = (index) => {
+    const prefix = index.toString(16).padStart(2, '0');
+    return `${prefix}${'a'.repeat(40 - prefix.length)}`;
+  };
+  const commits = Array.from({ length: 48 }, (_, index) => ({
+    commit: commitId(index + 1),
+    parent: index === 0 ? baseCommit : commitId(index),
+    subject: `synthetic-${index + 1}`,
+  }));
+  const historyReader = {
+    listRange(options) {
+      assert.equal(options.maxCommits, commits.length);
+      return commits;
+    },
+  };
+  const worktreeManager = {
+    resolveCommit(ref) {
+      assert.equal(ref, 'BASE');
+      return baseCommit;
+    },
+    withCommit(_commit, callback) {
+      return callback(repositoryRoot);
+    },
+    async withCommitRange(records, callback, maxCommits) {
+      assert.equal(records.length, commits.length);
+      assert.equal(maxCommits, commits.length);
+      const results = [];
+      for (const record of records) results.push(await callback(record, repositoryRoot));
+      return results;
+    },
+  };
+  const outputPath = path.join(repositoryRoot, 'managed', 'synthetic-history.ndjson');
+  const report = await new ContextScopeHistoryService({
+    historyReader,
+    worktreeManager,
+    workContextServiceFactory: () => ({ analyze: () => baseReport }),
+  }).analyze({
+    repositoryRoot,
+    from: 'BASE',
+    to: 'HEAD',
+    entity: 'authenticateUser',
+    projectId: 'example',
+    maxCommits: commits.length,
+    outputPath,
+  });
+
+  assert.equal(report.storage.mode, 'ndjson');
+  assert.equal(report.entries.length, 0);
+  assert.equal(report.storage.entries, commits.length);
+  assert.equal(report.summary.commits, commits.length);
+  assert.equal(report.summary.changedCommits, 0);
+  const records = readContextScopeHistoryStream(outputPath);
+  assert.equal(records.length, commits.length + 1);
+  assert.equal(records[0].recordType, 'base');
+  assert.deepEqual(
+    records.slice(1, 4).map((record) => record.commit),
+    commits.slice(0, 3).map(({ commit }) => commit),
+  );
+});
+
+test('computes a deterministic intersection for large branch change sets', () => {
+  const repositoryRoot = createFixtureRepository();
+  const report = service().analyze({ repositoryRoot, entity: 'authenticateUser' });
+  const base = createContextScope(report, { projectId: 'example', contextId: 'large-flow' });
+  const symbol = (name) => ({
+    projectId: 'example',
+    filePath: `src/${name}.ts`,
+    entityId: `src/${name}.ts::function::${name}`,
+  });
+  const common = Array.from({ length: 128 }, (_, index) => symbol(`common${index}`));
+  const leftOnly = Array.from({ length: 64 }, (_, index) => symbol(`left${index}`));
+  const rightOnly = Array.from({ length: 64 }, (_, index) => symbol(`right${index}`));
+  const leftScope = { ...base, nodes: [...base.nodes, ...common, ...leftOnly] };
+  const rightScope = { ...base, nodes: [...base.nodes, ...common, ...rightOnly] };
+  const diff = require('../dist').diffContextScopes;
+  const comparison = compareContextScopeBranches(
+    {
+      base: { commit: 'aa', scope: base },
+      entries: [{
+        commit: 'az',
+        parent: 'aa',
+        subject: 'left-large',
+        scope: leftScope,
+        diff: diff(base, leftScope),
+      }],
+    },
+    {
+      base: { commit: 'aa', scope: base },
+      entries: [{
+        commit: 'bz',
+        parent: 'aa',
+        subject: 'right-large',
+        scope: rightScope,
+        diff: diff(base, rightScope),
+      }],
+    },
+  );
+
+  assert.equal(comparison.summary.leftNodes, common.length + leftOnly.length);
+  assert.equal(comparison.summary.rightNodes, common.length + rightOnly.length);
+  assert.equal(comparison.summary.commonNodes, common.length);
+  assert.deepEqual(
+    comparison.intersection.nodes.map(({ entityId }) => entityId).sort(),
+    common.map(({ entityId }) => entityId).sort(),
+  );
+  const repeated = compareContextScopeBranches(
+    {
+      base: { commit: 'aa', scope: base },
+      entries: [{
+        commit: 'az',
+        parent: 'aa',
+        subject: 'left-large',
+        scope: leftScope,
+        diff: diff(base, leftScope),
+      }],
+    },
+    {
+      base: { commit: 'aa', scope: base },
+      entries: [{
+        commit: 'bz',
+        parent: 'aa',
+        subject: 'right-large',
+        scope: rightScope,
+        diff: diff(base, rightScope),
+      }],
+    },
+  );
+  assert.deepEqual(repeated.intersection.nodes, comparison.intersection.nodes);
 });

@@ -20,6 +20,10 @@ import {
   diffContextScopes,
 } from './context-scope-diff';
 import {
+  createExecutionProvenance,
+  type ExecutionProvenance,
+} from './execution-provenance';
+import {
   createSemExecutionBudget,
   SemClient,
   type SemExecutionBudget,
@@ -31,7 +35,7 @@ import {
   WorkContextService,
 } from './work-context';
 
-export const CONTEXT_SCOPE_HISTORY_SCHEMA = 'sem-doc-context-scope-history.v1' as const;
+export const CONTEXT_SCOPE_HISTORY_SCHEMA = 'sem-doc-context-scope-history.v2' as const;
 export const CONTEXT_SCOPE_HISTORY_STREAM_SCHEMA = 'sem-doc-context-scope-history-stream.v1' as const;
 
 export interface ContextScopeHistoryRequest {
@@ -59,6 +63,8 @@ export interface ContextScopeHistoryRequest {
   /** Opt in to SEM's broad include mode and retain only the direct node_modules surface. */
   readonly includeNodeModulesSurface?: boolean;
   readonly engineVersion?: string;
+  /** Stable logical owner recorded in aggregate history provenance. */
+  readonly executionOwnerId?: string;
   readonly maxCommits?: number;
   readonly firstParent?: boolean;
   readonly maxNodes?: number;
@@ -100,11 +106,7 @@ export interface ContextScopeHistoryReport {
     readonly addedNodes: number;
     readonly removedNodes: number;
   };
-  readonly execution: {
-    readonly timeoutMs: number;
-    readonly maxOutputBytes: number;
-    readonly usedOutputBytes: number;
-  };
+  readonly execution: ExecutionProvenance;
 }
 
 interface HistoryStreamBaseRecord {
@@ -142,6 +144,7 @@ export class ContextScopeHistoryService {
   }
 
   public async analyze(request: ContextScopeHistoryRequest): Promise<ContextScopeHistoryReport> {
+    const startedAt = Date.now();
     const repositoryRoot = realpathSync(request.repositoryRoot);
     const historyReader = this.options.historyReader ?? new GitHistoryReader(this.options.git);
     const manager = this.options.worktreeManager
@@ -267,9 +270,15 @@ export class ContextScopeHistoryService {
         removedNodes,
       },
       execution: {
-        timeoutMs: aggregateBudget.timeoutMs,
-        maxOutputBytes: aggregateBudget.maxOutputBytes,
-        usedOutputBytes: aggregateBudget.usedOutputBytes,
+        ...createExecutionProvenance({
+          phase: 'context-scope-history',
+          ownerId: request.executionOwnerId ?? 'sem-doc-history',
+          state: 'completed',
+          timeoutMs: aggregateBudget.timeoutMs,
+          maxOutputBytes: aggregateBudget.maxOutputBytes,
+          usedOutputBytes: aggregateBudget.usedOutputBytes,
+          elapsedMs: Math.max(0, Date.now() - startedAt),
+        }),
       },
     };
   }
@@ -301,6 +310,7 @@ export class ContextScopeHistoryService {
         ? {}
         : { includeNodeModulesSurface: request.includeNodeModulesSurface }),
       ...(request.engineVersion === undefined ? {} : { engineVersion: request.engineVersion }),
+      executionOwnerId: request.executionOwnerId ?? 'sem-doc-history',
     };
     const service = this.options.workContextServiceFactory?.(worktreeRoot)
       ?? new WorkContextService({ client: new SemClient() });

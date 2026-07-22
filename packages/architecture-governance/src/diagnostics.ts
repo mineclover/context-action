@@ -146,7 +146,7 @@ export function assertKnownFields(
           `Known-field scan exceeds ${MAX_KNOWN_FIELD_SCAN_ITEMS} item limit`,
         );
       }
-      if (!Object.hasOwn(value, key) || allowedKeys.has(key)) continue;
+      if (Object.getOwnPropertyDescriptor(value, key) === undefined || allowedKeys.has(key)) continue;
       if (unknown.length === MAX_UNKNOWN_FIELD_DIAGNOSTIC_ITEMS) {
         omitted = true;
         break;

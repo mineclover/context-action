@@ -225,7 +225,7 @@ pnpm --filter @context-action/sem-doc exec node dist/cli.js docs validate-bindin
 
 직접 관계만 필요하면 `--depth 1`, 제한된 전이 관계가 필요하면 `--depth 2`를 사용합니다.
 `usageFiles`는 SEM dependents에서 얻은 정렬된 파일 단위 구조 신호이며, 정확한 reference 위치,
-runtime call graph, 함수 호출 횟수가 아닙니다. 문서 frontmatter와 `sem-doc-work-context.v4`는
+runtime call graph, 함수 호출 횟수가 아닙니다. 문서 frontmatter와 `sem-doc-work-context.v5`는
 [`sem-doc README`](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)를
 참고하세요. 두 도구의 선택 기준과 report/계약 혼용 금지는
 [sem-doc과 Architecture Governance 경계 가이드](./sem-doc-architecture-governance-boundary)에서 확인합니다.

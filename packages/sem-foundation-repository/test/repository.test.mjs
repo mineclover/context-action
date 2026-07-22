@@ -72,6 +72,22 @@ test('resolves symbolic Git refs before materializing a commit worktree', async 
   assert.equal(content, 'export const version = 1;\n');
 });
 
+test('does not execute repository hooks while materializing historical worktrees', async (t) => {
+  const fixture = await fixtureRepository();
+  t.after(() => rm(fixture.root, { recursive: true, force: true }));
+
+  await writeFile(
+    path.join(fixture.root, '.git', 'hooks', 'post-checkout'),
+    '#!/bin/sh\nexit 73\n',
+    { mode: 0o755 },
+  );
+
+  const manager = new GitWorktreeManager(fixture.root);
+  const content = await manager.withCommit(fixture.first, (worktreeRoot) =>
+    readFile(path.join(worktreeRoot, 'packages/core/index.ts'), 'utf8'));
+  assert.equal(content, 'export const version = 1;\n');
+});
+
 test('isolates untracked analysis artifacts between historical commits', async (t) => {
   const fixture = await fixtureRepository();
   t.after(() => rm(fixture.root, { recursive: true, force: true }));

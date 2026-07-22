@@ -29,7 +29,7 @@
     "build": "pnpm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "test": "pnpm run build && node --test test/advisory.test.cjs test/binding-validation.test.cjs test/cli.test.cjs test/context-scope.test.cjs test/document-index.test.cjs test/git-diff.test.cjs test/sem-client.test.cjs test/sem-json.test.cjs test/work-context.test.cjs",
+    "test": "pnpm run build && node --test test/advisory.test.cjs test/binding-validation.test.cjs test/cli.test.cjs test/context-scope.test.cjs test/document-index.test.cjs test/execution-provenance.test.cjs test/git-diff.test.cjs test/sem-client.test.cjs test/sem-json.test.cjs test/work-context.test.cjs",
     "benchmark:scope": "pnpm run build && node scripts/benchmark-scope.cjs",
     "lint": "biome check .",
     "format": "biome format --write .",

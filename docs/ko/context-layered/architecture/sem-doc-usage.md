@@ -31,7 +31,7 @@ SEM_BIN=/opt/tools/sem npx sem-doc version
 
 ## 2. 구현자 컨텍스트 만들기
 
-먼저 대상 심볼과 정의 파일을 지정합니다. 결과인 `sem-doc-work-context.v4`가 이후 ContextScope
+먼저 대상 심볼과 정의 파일을 지정합니다. 결과인 `sem-doc-work-context.v5`가 이후 ContextScope
 projection의 SSOT입니다.
 
 ```bash
@@ -43,7 +43,8 @@ npx sem-doc work-context SemClient \
 ```
 
 변경이 한 단계 더 이어지는 경우에만 `--depth 2`를 사용합니다. 결과에는 심볼 identity, 정의 파일,
-사용 파일, affected test, 문서 binding, Git revision, sem provenance가 포함됩니다. `usageFiles`는
+사용 파일, affected test, 문서 binding, Git revision, sem provenance가 포함됩니다. `execution`에는
+phase, owner, 최종 상태, timeout, 출력 한도, 실제 출력 사용량, 경과 시간이 기록됩니다. `usageFiles`는
 파일 단위 의존 신호이며 정확한 참조 위치나 runtime call graph가 아닙니다.
 
 화면·API·transaction·workflow가 여러 entry point로 구성되면

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added shared execution provenance for work-context and aggregate history reports, including phase,
+  logical owner, final state, configured limits, measured output usage, and elapsed time.
+- Bumped the work-context, ContextScope, and ContextScope history contracts to v5, v3, and v2.
+- Centralized strict execution provenance parsing so serialized ContextScope sources use one validator.
+
 ## 0.1.2
 
 - Resolve the bundled `sem` executable through ancestor `node_modules/.bin` directories so npm-hoisted
@@ -9,8 +16,6 @@
 
 - Include `@ataraxy-labs/sem@0.21.0` as a runtime dependency so a clean npm install
   provides the default `sem` executable required by work-context and context-scope commands.
-
-## Unreleased
 
 - Moved sem-doc into `context-action/packages/sem-doc` as a private workspace package for the PoC.
 - Renamed the private workspace package from `@tsdoc-edge/sem-doc` to `@context-action/sem-doc`; the source path and CLI binary remain unchanged.

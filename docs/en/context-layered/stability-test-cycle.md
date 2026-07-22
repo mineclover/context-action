@@ -31,8 +31,8 @@ If you want to evaluate whether the architecture earns its complexity, read this
 
 Contract tests protect the guarantees of each core factory and boundary.
 
-- `createActionContext()` must provide stable dispatch and safe handler registration.
-- `createStoreContext()` must create isolated typed stores with predictable subscriptions.
+- `createActionContext(contextName, config?)` must provide stable dispatch and safe handler registration.
+- `createStoreContext(contextName, initialStores)` must create isolated typed stores with predictable subscriptions.
 - `createRefContext()` must manage mount state, imperative access, and cleanup safely.
 
 These tests answer the question: "What does the architecture promise?"
@@ -110,6 +110,16 @@ Use multiple lanes instead of one monolithic pipeline.
 - full React package test suite
 - example app type check and build
 - documentation build and link validation
+
+For the 0.8/0.9 stabilization release lane, the following are required:
+
+- `pnpm build` and `pnpm type-check`
+- `pnpm verify:package-exports` and `pnpm verify:package-tarballs`
+- `pnpm convention:check` and the active package-boundary checks
+- a clean package version/changelog set and published-consumer smoke tests for
+  `@context-action/sem-doc`, `@context-action/tool-protocol`, and
+  `@context-action/tool-durable-operations`
+- no removed legacy documentation package or generator reference in the active workspace/release graph
 
 ## Recommended Assertions
 

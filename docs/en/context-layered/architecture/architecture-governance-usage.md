@@ -225,7 +225,7 @@ Use `--depth 1` for direct relationships and `--depth 2` for a bounded transitiv
 `usageFiles` field is a sorted file-level structural signal from SEM dependents; it is not an exact
 reference location, runtime call graph, or function-call count. See the
 [`sem-doc` README](https://github.com/mineclover/context-action/blob/main/packages/sem-doc/README.md)
-for document frontmatter and `sem-doc-work-context.v4` details.
+for document frontmatter and `sem-doc-work-context.v5` details.
 For the decision table and prohibited report/contract conflations, see the
 [sem-doc and Architecture Governance boundary guide](./sem-doc-architecture-governance-boundary).
 

@@ -19,6 +19,7 @@ This document is the central entry point for the implementation-playbook style c
 13. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
 14. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 15. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
+16. [Next Work and Documentation Ownership](/en/context-layered/next-work)
 
 The short path above covers:
 - folder structure
@@ -90,6 +91,8 @@ The short path above covers:
   - how to split contract tests, scenario tests, and stress validation
 - [Architecture Governance Usage](/en/context-layered/architecture/architecture-governance-usage)
   - executable snapshot, history, diff, and intersection recipes
+- [Next Work and Documentation Ownership](/en/context-layered/next-work)
+  - the single backlog and source-of-truth map for follow-up work
 
 The general repository convention gate is:
 

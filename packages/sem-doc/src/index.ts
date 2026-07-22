@@ -101,6 +101,14 @@ export {
   indexDocuments,
 } from './documents';
 export {
+  createExecutionProvenance,
+  type ExecutionProvenance,
+  type ExecutionProvenanceOptions,
+  type ExecutionProvenancePhase,
+  type ExecutionProvenanceState,
+  parseExecutionProvenance,
+} from './execution-provenance';
+export {
   DEFAULT_GIT_DIFF_MAX_BUFFER_BYTES,
   GIT_DIFF_SCHEMA,
   type GitDiffChange,

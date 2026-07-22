@@ -13,7 +13,7 @@ authored rule과 evidence 관리 방식을 시험하는 도구이지, 범용 arc
 
 | 패키지 | 기본 질문 | 주요 입력 | 주요 출력 | 사용자 | gate 여부 |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/sem-doc` | 이 코드를 바꾸기 전에 어떤 컨텍스트·문서·운영 scope를 알아야 하는가? | target entity/path, TSDoc binding, Git working-tree/staged 상태 | `sem-doc-work-context.v4`, canonical `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding·benchmark report | 구현자, reviewer, agent | advisory context; architecture gate 아님 |
+| `@context-action/sem-doc` | 이 코드를 바꾸기 전에 어떤 컨텍스트·문서·운영 scope를 알아야 하는가? | target entity/path, TSDoc binding, Git working-tree/staged 상태 | `sem-doc-work-context.v5`, canonical `sem-doc-context-scope.v3`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding·benchmark report | 구현자, reviewer, agent | advisory context; architecture gate 아님 |
 | `@context-action/architecture-governance` | Context-Action-authored architecture 계약에 구현·경계 증거가 유효한가? | `architecture/registry.json`, policy set, analysis project, SEM 증거, 선택적 revision/context manifest | verification report, complete symbol snapshot/history, snapshot diff, `ContextScope` | CI, maintainer, architecture reviewer | 예; 선택한 finding이 threshold에 도달하면 검증 실패 |
 
 핵심 차이는 구현 규모가 아니라 책임입니다. `sem-doc`은 작업 컨텍스트와 문서 binding report의
@@ -75,7 +75,7 @@ symbol identity와 range 직렬화기를 두 패키지가 각각 다시 소유�
 - dependent file과 affected test를 advisory evidence로 나열
 - 정확한 TSDoc entity binding과 backlink 색인
 - 편집 전 Git working-tree/staged diff 기록
-- 작업 컨텍스트를 화면·API·transaction review용 canonical operational `sem-doc-context-scope.v2` grouping으로 투영
+- 작업 컨텍스트를 화면·API·transaction review용 canonical operational `sem-doc-context-scope.v3` grouping으로 투영
 - bounded commit snapshot/diff를 materialize하고 NDJSON으로 stream하며 두 branch의 변경 symbol 교집합을 추출
 
 `usageFiles`는 SEM dependent에서 만든 중복 제거 파일 단위 신호입니다. 정확한 reference index,
@@ -89,7 +89,7 @@ collection 경계는 그래프에서 참조된 직접 표면만 허용하고 1 h
 직렬화 전에 제거합니다. 실제 전달된 flag는 request provenance에 남습니다. Markdown 색인은
 `node_modules`와 생성 output directory를 순회하지 않습니다.
 
-`sem-doc-work-context.v4`, `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`는 각 컨텍스트 view의 canonical
+`sem-doc-work-context.v5`, `sem-doc-context-scope.v3`, `sem-documents.v3`, `sem-doc-git-diff.v1`는 각 컨텍스트 view의 canonical
 직렬화 artifact입니다. UI·agent·문서 script가 같은 view를 별도로 재구성하지 말고, 동일 report
 provenance와 계약을 재사용해야 합니다.
 
@@ -129,7 +129,7 @@ authored manifest에 묶습니다.
 
 ## 금지해야 할 혼용
 
-- `sem-doc-work-context.v4`를 Architecture Governance verification report 입력으로 직접 사용하지 않습니다.
+- `sem-doc-work-context.v5`를 Architecture Governance verification report 입력으로 직접 사용하지 않습니다.
 - `architecture/registry.json`을 TSDoc document-binding index로 사용하지 않습니다.
 - `usageFiles`를 정확한 symbol reference나 runtime call graph로 해석하지 않습니다.
 - `ContextScope` membership를 UI/API/transaction의 runtime 실행 증거로 사용하지 않습니다.

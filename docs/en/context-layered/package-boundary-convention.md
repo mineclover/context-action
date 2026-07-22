@@ -31,17 +31,18 @@ when an existing package cannot own the responsibility without violating depende
 
 | Package | Boundary role | Owns | Must not own |
 | --- | --- | --- | --- |
-| `@context-action/core` | runtime foundation | action pipeline, handler execution, schemas, core errors | React, browser UI, stores |
+| `@context-action/core` | runtime foundation | action pipeline, handler execution, validation contract, core errors | React, tool transports, Zod, browser UI, stores |
+| `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schemas, MCP/provider adapters, tool calls, approval queue, call idempotency/provenance/observability contracts | React rendering, action registry internals, durable persistence, architecture policy |
+| `@context-action/tool-durable-operations` | mutation safety foundation | durable operation records, side-effect runner, HTTP/queue adapters, IndexedDB/Redis/PostgreSQL reference backends | provider-neutral tool schemas, React rendering, domain-specific idempotency/outbox policy |
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
 | `@context-action/sem-foundation-contracts` | analysis contract foundation | symbol identity, snapshots, revisions, shared limits, wire contracts | SEM subprocesses, Git worktrees, architecture policy |
 | `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree lifecycle | symbol semantics, architecture rules, UI behavior |
 | `@context-action/architecture-governance` | experimental convention control plane | Context-Action-authored capability registry, policy verification, complete snapshots/history, and its snapshot-backed ContextScope projection | generic architecture inference, React runtime features, general-purpose documentation generation |
-| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@context-action/sem-foundation-*` |
+| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v3`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@context-action/sem-foundation-*` |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
-| `@context-action/test-driven-docs` | test documentation tool | test metadata extraction and generated test documentation | package runtime APIs |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
 | `@context-action/live-code-editor` | private integration surface | live editor package experiments | stable public runtime contracts until promoted |
 | `@context-action/openrouter-browser-storage` | private integration surface | browser persistence for the OpenRouter example | generic storage abstractions for core/react |
@@ -53,9 +54,14 @@ architecture, but a reusable implementation belongs in a package before it is im
 name. Its source path and CLI binary are unchanged, and its public npm release is managed by the repository
 publish workflow. It is the operational Symbol Context SSOT, not a temporary staging package or an Architecture
 Governance adapter.
-For screen/API/transaction grouping used during implementation, `sem-doc-context-scope.v2` is the single
+For screen/API/transaction grouping used during implementation, `sem-doc-context-scope.v3` is the single
 operational projection. Architecture Governance's existing `context-action/context-scope@1.0` remains a
 separate snapshot-bound architecture-review artifact and is not a second sem-doc implementation target.
+
+The former test-driven documentation package and its repository-owned examples were removed during the 0.8/0.9
+stabilization. Public API documentation now has one path: exported source and JSDoc → TypeDoc →
+`typedoc-vitepress-sync` → VitePress. LLMS summaries are derived from canonical `docs/` content and are not an
+alternative API SSOT.
 
 ## 3. Dependency direction
 
@@ -63,6 +69,8 @@ The default direction is:
 
 ```text
 @context-action/core          ──→ @context-action/react
+@context-action/tool-protocol ──→ @context-action/react
+@context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
 @context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
@@ -73,6 +81,8 @@ The default direction is:
 The diagram describes ownership, not import syntax. In particular:
 
 - `core` never depends on `react`.
+- `tool-protocol` is framework-neutral and does not depend on `core` or `react`; it owns the provider/tool boundary.
+- `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 - `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
 - `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
 - `sem-foundation-repository` consumes contracts, never the reverse.
@@ -86,6 +96,11 @@ The diagram describes ownership, not import syntax. In particular:
 
 The package-boundary policy files express enforceable cases. When a new dependency direction becomes stable,
 add a named policy rule rather than relying on reviewer memory.
+
+The protocol/durable split is enforced by `CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING` and
+`CA-PKG-TOOL-DURABLE-NO-PROTOCOL-RUNTIME-COUPLING` in
+`architecture/rules/package-boundaries.json`. These rules inspect runtime, peer, and optional dependency
+fields; test-only tooling may remain in `devDependencies` without changing the published boundary.
 
 ### Mutative contract propagation
 

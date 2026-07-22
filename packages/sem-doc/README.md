@@ -21,7 +21,7 @@ that experimental control-plane responsibility belongs to `architecture-governan
 
 ## Symbol Context SSOT
 
-`sem-doc-work-context.v4` is the SSOT for a symbol-centered work context: target identity, bounded
+`sem-doc-work-context.v5` is the SSOT for a symbol-centered work context: target identity, bounded
 relationships, dependent files, affected tests, SEM provenance, Git revision, and document
 definitions/backlinks. Consumers should reuse this serialized report instead of issuing duplicate
 impact/context queries or rebuilding document bindings.
@@ -29,7 +29,7 @@ impact/context queries or rebuilding document bindings.
 This does not make sem-doc the architecture registry or API documentation source. Capability intent,
 owner/role evidence, package policy, complete snapshots, and history belong to
 `@context-action/architecture-governance`; signatures and public API pages remain in the TypeDoc
-pipeline. sem-doc emits the canonical operational `sem-doc-context-scope.v2` projection for
+pipeline. sem-doc emits the canonical operational `sem-doc-context-scope.v3` projection for
 implementer-facing grouping. It is derived from one work-context report and is not a replacement for the
 revision-bound, snapshot-backed Architecture Governance `ContextScope` contract.
 
@@ -44,10 +44,13 @@ inventory contains symbols without corresponding edge evidence, the scope is emi
 order, or call-graph semantics.
 
 The scope also carries a SHA-256 digest of the source work-context, the exact SEM impact/context
-argument vectors, and aggregate execution provenance (`timeoutMs`, `maxOutputBytes`, and
-`usedOutputBytes`). `parseContextScope` strictly rejects unknown fields, duplicate entries, oversized
+argument vectors, and execution provenance (`phase`, `ownerId`, `state`, `timeoutMs`,
+`maxOutputBytes`, `usedOutputBytes`, and measured `elapsedMs`). `parseContextScope` strictly rejects unknown fields, duplicate entries, oversized
 collections, non-canonical symbol paths, missing revision provenance, and contradictory completion status
 before a consumer uses the artifact.
+Use `--execution-owner-id <id>` (or `executionOwnerId` in the API) when a caller needs a stable
+logical owner in serialized evidence; it is not a process identifier and is never used for retry or
+durable-operation identity.
 
 For a screen, API, transaction, or workflow composed from more than one entry point, pass a
 `sem-doc-context-manifest.v1` file with `--manifest`. The resulting scope keeps one context bubble,
@@ -88,9 +91,9 @@ scope must be bound to a complete revision snapshot, manifest digest, and CI/rev
 
 - Uses the external `sem` executable as a read-only analysis engine.
 - Normalizes sem JSON into versioned `sem-advisory.v1` evidence.
-- Provides `sem-doc-work-context.v4` with bounded-hop symbols, a separate complete affected-test
+- Provides `sem-doc-work-context.v5` with bounded-hop symbols, a separate complete affected-test
   list, dependent usage files, context, document definitions, and backlinks.
-- Provides `sem-doc-context-scope.v2` as the canonical operational grouping view over one or more work-context reports.
+- Provides `sem-doc-context-scope.v3` as the canonical operational grouping view over one or more work-context reports.
 - Includes separate `documentEvidence[]` in ContextScope so document binding readiness is visible without
   conflating it with graph completeness.
 - Provides `sem-doc-context-manifest.v1`, ContextScope snapshot diffs, and bounded Git-history scope materialization.

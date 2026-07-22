@@ -38,7 +38,7 @@ its sem-centered ownership boundary.
 - introduce a separate TypeScript AST/local-scope index for that purpose;
 - infer a hop value from lexical containment or from membership in an affected-test list.
 
-This separation was introduced in `sem-doc-work-context.v2` and remains in v4: bounded entities stay
+This separation was introduced in `sem-doc-work-context.v2` and remains in v5: bounded entities stay
 in `symbols`, and the complete test list is returned independently in `affectedTests`.
 
 ## Consequences

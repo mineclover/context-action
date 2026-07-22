@@ -23,7 +23,7 @@ frontmatter provenance); sem-doc does not depend on or embed the `@microsoft/tsd
 ## Symbol Context SSOT
 
 Within its problem space, `sem-doc` is the single source of truth for the serialized context needed to
-work on a symbol. The canonical artifact is `sem-doc-work-context.v4`; its target entity, bounded symbol
+work on a symbol. The canonical artifact is `sem-doc-work-context.v5`; its target entity, bounded symbol
 inventory, dependent `usageFiles`, affected tests, SEM provenance, repository revision, and document
 definitions/backlinks must be read from that report rather than reconstructed by each consumer.
 
@@ -31,11 +31,11 @@ The related contracts have narrower ownership:
 
 | Contract | SSOT meaning |
 | --- | --- |
-| `sem-doc-work-context.v4` | symbol-centered work context, bounded structural relationships, and execution-budget provenance |
-| `sem-doc-context-scope.v2` | canonical operational context grouping derived from one work-context report (`spec/context-scope.schema.json`) |
+| `sem-doc-work-context.v5` | symbol-centered work context, bounded structural relationships, and execution provenance |
+| `sem-doc-context-scope.v3` | canonical operational context grouping derived from one work-context report (`spec/context-scope.schema.json`) |
 | `sem-doc-context-manifest.v1` | explicit multi-anchor context declaration consumed by `context-scope` |
 | `sem-doc-context-scope-diff.v1` | deterministic symbol/edge/group delta between two serialized scopes |
-| `sem-doc-context-scope-history.v1` | commit-ordered scope snapshots with adjacent diffs |
+| `sem-doc-context-scope-history.v2` | commit-ordered scope snapshots with adjacent diffs and aggregate execution provenance |
 | `sem-doc-context-scope-history-stream.v1` | memory-bounded NDJSON base/commit snapshot records |
 | `sem-doc-context-scope-branch-compare.v1` | changed-symbol, edge, and group intersection between two histories |
 | `sem-documents.v3` | Markdown checkpoint, document classification, exact entity binding, and document backlink index |
@@ -45,7 +45,7 @@ This SSOT boundary is contextual, not architectural. It does not own `CA-*` capa
 owner declarations, package/impact policy decisions, complete revision snapshots, or public API
 signatures. Those remain owned by Architecture Governance, Foundation contracts, or the TypeDoc API
 documentation pipeline as described by their respective contracts. sem-doc derives the canonical operational
-`sem-doc-context-scope.v2` grouping from one or more work-context reports; that view is not a complete snapshot or
+`sem-doc-context-scope.v3` grouping from one or more work-context reports; that view is not a complete snapshot or
 architecture gate.
 
 ## Ownership and boundaries
@@ -55,8 +55,8 @@ architecture gate.
 | TypeScript compiler-resolved graph | external provider | canonical graph and provenance; out of scope for sem-doc |
 | Convention and graph lint | separate policy consumer | diagnostics; out of scope for sem-doc |
 | Semantic entity identity, source mapping, and impact/context queries | external `sem` executable | read-only advisory evidence |
-| Work context composition | `sem-doc` | `sem-doc-work-context.v4` |
-| Operational context grouping | `sem-doc` | `sem-doc-context-scope.v2` |
+| Work context composition | `sem-doc` | `sem-doc-work-context.v5` |
+| Operational context grouping | `sem-doc` | `sem-doc-context-scope.v3` |
 | Documentation definitions/backlinks | `sem-doc` | `sem-documents.v3` classified exact entity binding index |
 | Git file/hunk diff | `sem-doc` | `sem-doc-git-diff.v1` |
 | Unsaved overlay and mutating CodeAction | out of scope | no LSP overlay contract |
@@ -68,21 +68,21 @@ separate policy after inspecting the advisory envelope.
 
 `@context-action/architecture-governance` is a separate consumer with a different purpose and contract.
 `sem-doc` owns work-context composition, exact TSDoc entity bindings, and native Git diff evidence for
-an implementer or reviewer. sem-doc also owns the canonical operational `sem-doc-context-scope.v2`
+an implementer or reviewer. sem-doc also owns the canonical operational `sem-doc-context-scope.v3`
 grouping view and its serialized-input validator.
 Architecture Governance owns the authored `architecture/registry.json`, package/impact policy
 verification, complete revision snapshots/history, snapshot diffs, and snapshot-backed `ContextScope`
 projections for CI and architecture review.
 
 The packages may reuse `@context-action/sem-foundation-contracts`, `@context-action/sem-foundation-repository`, and the external `sem`
-executable, but neither package depends on the other at runtime. `sem-doc-work-context.v4`,
+executable, but neither package depends on the other at runtime. `sem-doc-work-context.v5`,
 `sem-documents.v3`, and `sem-doc-git-diff.v1` MUST NOT be treated as Architecture Governance
 verification-report or snapshot inputs without a separately versioned orchestration contract. Likewise,
 the architecture registry is not a TSDoc binding index. See the repository-level
 [boundary guide](../../../docs/en/context-layered/architecture/sem-doc-architecture-governance-boundary.md)
 for the selection checklist.
 
-`sem-doc-context-scope.v2` is an operational projection over `sem-doc-work-context.v4`. It does not
+`sem-doc-context-scope.v3` is an operational projection over `sem-doc-work-context.v5`. It does not
 replace `context-action/context-scope@1.0`, does not claim complete repository inventory, and does not
 upgrade SEM `depends-on` evidence into `renders`, `reads`, `writes`, or runtime execution order.
 Every scope MUST carry an explicit project ID, source work-context digest, revision provenance, and exact
@@ -108,7 +108,7 @@ still have unresolved documentation, and a resolved document does not make an in
 
 ## Work-context contract
 
-`sem-doc work-context <entity>` returns `sem-doc-work-context.v4` and records:
+`sem-doc work-context <entity>` returns `sem-doc-work-context.v5` and records:
 
 - sem version and exact command arguments;
 - Git HEAD and on-disk working-tree digest;
@@ -117,6 +117,11 @@ still have unresolved documentation, and a resolved document does not make an in
 - a sorted, deduplicated `usageFiles` list from sem-reported dependent entities;
 - sem impact/context payloads with provenance;
 - TSDoc document definitions and backlinks.
+
+The `execution` record is immutable report evidence, not the mutable runtime budget. It records the
+logical `ownerId`, `phase`, final `state`, configured `timeoutMs` and `maxOutputBytes`, measured
+`usedOutputBytes`, and measured `elapsedMs`. A successful report records `state: completed`;
+failed or cancelled analyses throw before emitting a misleading successful snapshot.
 
 The `--depth` option is restricted to 1 or 2 and is passed to sem `impact --depth` and
 `context --hops`. `--budget` limits source excerpts only and must not truncate the symbol inventory.
@@ -153,7 +158,7 @@ entity ID directly.
 
 The underlying sem CLI defaults to `impact --depth 2`, while `context --hops 0` means unbounded
 traversal subject to its token budget. sem-doc deliberately sets its own default `depth` to 2 and
-passes that value to both commands, so `sem-doc-work-context.v4` does not inherit sem context's
+passes that value to both commands, so `sem-doc-work-context.v5` does not inherit sem context's
 unbounded default. The explicit `--depth` option remains restricted to 1 or 2.
 
 sem `impact --depth` bounds transitive impact traversal. The `depth` reported on
@@ -163,7 +168,7 @@ labelled as 1-hop merely because it appears in the response; a test receives a h
 same entity is present in bounded `impact.entities[]`, otherwise it remains separate affected-test
 evidence.
 
-In `sem-doc-work-context.v4`, `symbols.entries[]` contains only entities with a justified hop, while
+In `sem-doc-work-context.v5`, `symbols.entries[]` contains only entities with a justified hop, while
 `affectedTests.entries[]` preserves the complete deduplicated affected-test list without inventing
 distance. `affectedTests.complete` is `true` on success; sem test truncation fails the request.
 
@@ -263,10 +268,10 @@ baseline is recorded in
 ## CLI contract
 
 ```text
-sem-doc work-context <entity> [--file <path>] [--docs-root <path>] [--budget <n>] [--depth <1|2>] [--timeout-ms <n>] [--max-output-bytes <n>] [--include-node-modules-surface] [--no-cache] [--engine-version <version>] [--json]
-sem-doc context-scope <entity> [--manifest <path>] [--context-id <id>] [--kind <screen|api|transaction|workflow|document>] [--label <text>] [--project-id <id>] [--file <path>] [--docs-root <path>] [--depth <1|2>] [--max-nodes <n>] [--max-edges <n>] [--max-anchors <n>] [--include-node-modules-surface] [--json]
+sem-doc work-context <entity> [--file <path>] [--docs-root <path>] [--budget <n>] [--depth <1|2>] [--timeout-ms <n>] [--max-output-bytes <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--no-cache] [--engine-version <version>] [--json]
+sem-doc context-scope <entity> [--manifest <path>] [--context-id <id>] [--kind <screen|api|transaction|workflow|document>] [--label <text>] [--project-id <id>] [--file <path>] [--docs-root <path>] [--depth <1|2>] [--max-nodes <n>] [--max-edges <n>] [--max-anchors <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--json]
 sem-doc context-scope-diff <before.json> <after.json> [--json]
-sem-doc context-scope-history <from> <to> <entity> --project-id <id> [--file <path>] [--docs-root <path>] [--max-commits <n>] [--aggregate-timeout-ms <n>] [--aggregate-max-output-bytes <n>] [--commit-timeout-ms <n>] [--commit-max-output-bytes <n>] [--include-node-modules-surface] [--output <path>] [--json]
+sem-doc context-scope-history <from> <to> <entity> --project-id <id> [--file <path>] [--docs-root <path>] [--max-commits <n>] [--aggregate-timeout-ms <n>] [--aggregate-max-output-bytes <n>] [--commit-timeout-ms <n>] [--commit-max-output-bytes <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--output <path>] [--json]
 sem-doc context-scope-compare <left-history.json|ndjson> <right-history.json|ndjson> [--json]
 sem-doc docs index [<docs-root>] [--json]
 sem-doc docs validate-bindings [<docs-root>] [--timeout-ms <n>] [--max-output-bytes <n>] [--no-cache] [--strict] [--json]
@@ -276,8 +281,8 @@ sem-doc sem-diff [sem options]
 sem-doc <impact|blame|log|entities|context> [sem options]
 ```
 
-`context-scope` first obtains the same bounded `sem-doc-work-context.v4` report as `work-context`, then
-projects one or more bounded inventories into `sem-doc-context-scope.v2`. The
+`context-scope` first obtains the same bounded `sem-doc-work-context.v5` report as `work-context`, then
+projects one or more bounded inventories into `sem-doc-context-scope.v3`. The
 `kind` value selects the anchor vocabulary (`root`, `endpoint`, `trigger`, `command`, or `definition`)
 but does not change SEM semantics. `--max-nodes` and `--max-edges` produce an explicit `incomplete` status
 when the operational view cannot include all collected nodes or edges.
@@ -290,6 +295,11 @@ remain compatibility aliases for the aggregate history budget. The aggregate bud
 each commit budget, so neither the whole range nor an individual commit can exceed its limit.
 With `--output`, the report keeps only summary metadata in memory and writes one base record plus one
 record per commit to the repository-relative NDJSON path.
+
+All commit work-context budgets are children of one aggregate history budget. Child budgets preserve
+per-commit limits, while every SEM subprocess charges the same aggregate counters; the history
+`execution.usedOutputBytes` is therefore the total observed output for the complete range, not the
+largest individual commit.
 
 The symbol collection boundary is intentionally asymmetric. The pinned `sem 0.21.0` scanner excludes
 `node_modules` in its default mode. `--include-node-modules-surface` is an explicit opt-in on

@@ -19,6 +19,7 @@
 13. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
 14. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 15. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
+16. [다음 작업과 문서 소유권](/ko/context-layered/next-work)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
@@ -91,6 +92,8 @@
   - 설계 계약, 구현 패턴, 시나리오, 스트레스 테스트를 어떻게 나누는지
 - [아키텍처 거버넌스 사용 방법](/ko/context-layered/architecture/architecture-governance-usage)
   - snapshot, history, diff, intersection 실행 recipe
+- [다음 작업과 문서 소유권](/ko/context-layered/next-work)
+  - 후속 작업과 기준 문서를 한 곳에서 관리하는 backlog
 
 일반 저장소 컨벤션 게이트는 다음 명령입니다.
 

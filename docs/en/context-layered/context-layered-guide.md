@@ -124,21 +124,29 @@ useCheckoutValidateHandler({
 
 ```
 docs/en/context-layered/
-├── usecase-recipe-profile.md     # Facade and design-system Recipe boundary
+├── context-layered-guide.md       # This overview and reading path
+├── convention-index.md             # Convention catalogue and ownership links
+├── implementation-convention.md    # Runtime implementation rules
+├── change-management-convention.md # Issue/spec/test/document lifecycle
+├── package-boundary-convention.md  # Package ownership and dependency direction
 ├── architecture/
-│   ├── folder-structure.md      # 6-Layer structure guide
-│   ├── responsibility-separation.md  # Layer responsibilities
-│   └── handler-registry.md      # Handler ID/Priority management
-├── patterns/
-│   ├── props-based-handlers.md  # Props-based handler patterns
-│   ├── context-integration.md   # React Context integration
-│   └── dependency-injection.md  # DI patterns and best practices
-├── examples/
-│   ├── basic-implementation.md  # Simple example walkthrough
-│   ├── complex-scenarios.md     # Advanced use cases
-│   └── migration-guide.md       # Migration from other patterns
-└── context-layered-guide.md     # This overview document
+│   ├── folder-structure.md         # Six-layer structure
+│   ├── handler-registry.md         # Handler registration and priority
+│   ├── architecture-governance.md  # Architecture evidence contract
+│   ├── sem-doc-usage.md            # Operational symbol/document context
+│   ├── context-scope-graph.md      # Snapshot-bound context grouping
+│   └── durable-operation-operations.md # Deployment and recovery runbook
+├── patterns/                       # Explicit state-machine patterns
+├── usecase-*.md                    # Usecase and recipe conventions
+├── stability-test-cycle.md         # Verification strategy
+└── next-work.md                    # Single backlog and documentation ownership
 ```
+
+The folders above are the maintained documentation surfaces. Package READMEs are
+discovery pages, TypeDoc pages are generated API references, and `llmsData/` is
+derived output; none of them is a second architecture specification. Use the
+[Convention Index](./convention-index.md) when a topic could belong to more than
+one page.
 
 ## 🚀 Getting Started
 
@@ -172,14 +180,13 @@ manifest is available; the catalog and the runtime graph remain separate contrac
 ## 🔗 Related Documentation
 
 - [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
-- [Props-based Handler Patterns](./patterns/props-based-handlers.md) - Handler implementation guides
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
 - [Architecture Governance and Evidence](./architecture/architecture-governance.md) - capability, symbol, and evidence contracts
 - [Architecture Governance Usage](./architecture/architecture-governance-usage.md) - snapshot, history, diff, and intersection commands
 - [ContextScope Symbol Graph](./architecture/context-scope-graph.md) - context grouping over complete symbol snapshots
 - [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
-- [Traditional MVVM Documentation](../guide/architecture/mvvm.md) - Legacy MVVM patterns (for reference)
+- [Next Work and Documentation Ownership](./next-work.md) - single backlog and source-of-truth map
 
 ## 🎯 When to Use Context-Layered Architecture
 

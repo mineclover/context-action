@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://context-action.dev/schemas/sem-doc-context-scope.v2.json",
-  "title": "sem-doc operational ContextScope v2",
+  "$id": "https://context-action.dev/schemas/sem-doc-context-scope.v3.json",
+  "title": "sem-doc operational ContextScope v3",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "source", "context", "anchors", "nodes", "edges", "groups", "status"],
   "properties": {
-    "schemaVersion": { "const": "sem-doc-context-scope.v2" },
+    "schemaVersion": { "const": "sem-doc-context-scope.v3" },
     "source": { "$ref": "#/$defs/source" },
     "context": {
       "type": "object",
@@ -152,7 +152,7 @@
       "additionalProperties": false,
       "required": ["workContext", "repositoryRoot", "revision", "engine", "workContextDigest", "projectId", "request"],
       "properties": {
-        "workContext": { "const": "sem-doc-work-context.v4" },
+        "workContext": { "const": "sem-doc-work-context.v5" },
         "repositoryRoot": { "$ref": "#/$defs/text" },
         "workContextDigest": { "$ref": "#/$defs/sha256" },
         "revision": {
@@ -190,16 +190,7 @@
             "budget": { "type": "integer", "minimum": 1 },
             "impactArgs": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/text" } },
             "contextArgs": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/text" } },
-            "execution": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["timeoutMs", "maxOutputBytes", "usedOutputBytes"],
-              "properties": {
-                "timeoutMs": { "type": "integer", "minimum": 1 },
-                "maxOutputBytes": { "type": "integer", "minimum": 1 },
-                "usedOutputBytes": { "type": "integer", "minimum": 0 }
-              }
-            }
+            "execution": { "$ref": "#/$defs/executionProvenance" }
           }
         }
       }
@@ -236,7 +227,7 @@
       "additionalProperties": false,
       "required": ["workContext", "repositoryRoot", "revision", "engine", "workContextDigest", "request"],
       "properties": {
-        "workContext": { "const": "sem-doc-work-context.v4" },
+        "workContext": { "const": "sem-doc-work-context.v5" },
         "repositoryRoot": { "$ref": "#/$defs/text" },
         "workContextDigest": { "$ref": "#/$defs/sha256" },
         "revision": { "$ref": "#/$defs/revision" },
@@ -260,6 +251,20 @@
       "required": ["name", "version"],
       "properties": { "name": { "const": "sem" }, "version": { "$ref": "#/$defs/text" } }
     },
+    "executionProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "ownerId", "state", "timeoutMs", "maxOutputBytes", "usedOutputBytes", "elapsedMs"],
+      "properties": {
+        "phase": { "enum": ["work-context", "context-scope-history"] },
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000]+$" },
+        "state": { "enum": ["completed", "failed", "cancelled", "unknown"] },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "maxOutputBytes": { "type": "integer", "minimum": 1 },
+        "usedOutputBytes": { "type": "integer", "minimum": 0 },
+        "elapsedMs": { "type": "integer", "minimum": 0 }
+      }
+    },
     "request": {
       "type": "object",
       "additionalProperties": false,
@@ -271,16 +276,7 @@
         "budget": { "type": "integer", "minimum": 1 },
         "impactArgs": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/text" } },
         "contextArgs": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/text" } },
-        "execution": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["timeoutMs", "maxOutputBytes", "usedOutputBytes"],
-          "properties": {
-            "timeoutMs": { "type": "integer", "minimum": 1 },
-            "maxOutputBytes": { "type": "integer", "minimum": 1 },
-            "usedOutputBytes": { "type": "integer", "minimum": 0 }
-          }
-        }
+        "execution": { "$ref": "#/$defs/executionProvenance" }
       }
     }
   }

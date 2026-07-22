@@ -15,6 +15,10 @@ import {
   indexDocuments,
 } from './documents';
 import {
+  createExecutionProvenance,
+  type ExecutionProvenance,
+} from './execution-provenance';
+import {
   createRepositoryRevisionReader,
   type RepositoryRevision,
   type RepositoryRevisionReaderLike,
@@ -36,7 +40,7 @@ import {
   type SemImpactResult,
 } from './sem-json';
 
-export const WORK_CONTEXT_SCHEMA = 'sem-doc-work-context.v4' as const;
+export const WORK_CONTEXT_SCHEMA = 'sem-doc-work-context.v5' as const;
 
 export const DEFAULT_WORK_CONTEXT_TIMEOUT_MS = 120_000;
 export const DEFAULT_WORK_CONTEXT_MAX_OUTPUT_BYTES = 64 * 1024 * 1024;
@@ -52,6 +56,8 @@ export interface WorkContextRequest {
   readonly engineVersion?: string;
   readonly timeoutMs?: number;
   readonly maxOutputBytes?: number;
+  /** Stable logical owner recorded in execution provenance. */
+  readonly executionOwnerId?: string;
   /** Opt in to SEM's broad include mode and retain only the direct node_modules surface. */
   readonly includeNodeModulesSurface?: boolean;
   /** Optional aggregate budget supplied by a history/composite caller. */
@@ -104,11 +110,7 @@ export interface WorkContextAffectedTests {
 }
 
 /** Execution provenance for the aggregate SEM calls behind a work-context. */
-export interface WorkContextExecution {
-  readonly timeoutMs: number;
-  readonly maxOutputBytes: number;
-  readonly usedOutputBytes: number;
-}
+export type WorkContextExecution = ExecutionProvenance;
 
 export interface SemDocWorkContext {
   readonly schemaVersion: typeof WORK_CONTEXT_SCHEMA;
@@ -158,6 +160,7 @@ export class WorkContextService {
   }
 
   public analyze(request: WorkContextRequest): SemDocWorkContext {
+    const startedAt = Date.now();
     const entity = nonEmpty(request.entity, 'entity');
     validateNonNegativeInteger(request.budget, 'budget');
     validatePositiveInteger(request.timeoutMs, 'timeoutMs', MAX_SEM_CLIENT_TIMEOUT_MS);
@@ -241,9 +244,15 @@ export class WorkContextService {
         ),
       },
       execution: {
-        timeoutMs: budget.timeoutMs,
-        maxOutputBytes: budget.maxOutputBytes,
-        usedOutputBytes: budget.usedOutputBytes,
+        ...createExecutionProvenance({
+          phase: 'work-context',
+          ownerId: request.executionOwnerId ?? 'sem-doc',
+          state: 'completed',
+          timeoutMs: budget.timeoutMs,
+          maxOutputBytes: budget.maxOutputBytes,
+          usedOutputBytes: budget.usedOutputBytes,
+          elapsedMs: Math.max(0, Date.now() - startedAt),
+        }),
       },
       symbols,
       affectedTests: buildAffectedTests(

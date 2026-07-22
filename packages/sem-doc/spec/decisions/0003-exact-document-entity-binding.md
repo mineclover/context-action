@@ -48,7 +48,7 @@ The index follows these rules:
 
 ## Consequences
 
-`sem-documents.v3` carries document classification and entity binding provenance, and `sem-doc-work-context.v4` performs exact
+`sem-documents.v3` carries document classification and entity binding provenance, and `sem-doc-work-context.v5` performs exact
 entity lookup. Existing H1-only documents remain valid document checkpoints but do not automatically
 bind to code.
 

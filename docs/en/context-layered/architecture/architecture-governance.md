@@ -189,7 +189,7 @@ The repository documentation system is layered rather than based on one generato
 | Architecture intent, capability, owner, role, policy, and evidence | Architecture Governance registry and reports | architecture guides, CI/reviewer artifacts |
 | Public TypeScript API signatures and JSDoc pages | TypeDoc configuration and exported source | TypeDoc Markdown, VitePress, `typedoc-vitepress-sync` |
 | Symbol-centered work context and document bindings | `sem-doc` versioned reports | implementer/agent context and optional document enrichment |
-| Test-based examples and LLMS summaries | `test-driven-docs` / `llms-generator` sources | derived examples and training artifacts |
+| Test-based examples and LLMS summaries | canonical `docs/` plus `llms-generator` sources | derived examples and training artifacts; not the public API SSOT |
 
 Architecture Governance therefore underpins architecture documentation and evidence management, but it
 does not generate every public or derived document. sem-doc can enrich those documents with contextual

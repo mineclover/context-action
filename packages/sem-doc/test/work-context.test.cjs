@@ -114,6 +114,10 @@ test('composes sem impact/context with canonical document definitions and backli
   assert.equal(report.execution.timeoutMs, 120000);
   assert.equal(report.execution.maxOutputBytes, 64 * 1024 * 1024);
   assert.ok(report.execution.usedOutputBytes > 0);
+  assert.equal(report.execution.phase, 'work-context');
+  assert.equal(report.execution.ownerId, 'sem-doc');
+  assert.equal(report.execution.state, 'completed');
+  assert.ok(Number.isSafeInteger(report.execution.elapsedMs));
 });
 
 test('projects work-context into an operational context scope without changing symbol identity', () => {
@@ -138,6 +142,8 @@ test('projects work-context into an operational context scope without changing s
   assert.match(scope.source.workContextDigest, /^[a-f0-9]{64}$/u);
   assert.equal(scope.source.request.execution.timeoutMs, 120000);
   assert.ok(scope.source.request.execution.usedOutputBytes <= scope.source.request.execution.maxOutputBytes);
+  assert.equal(scope.source.request.execution.phase, 'work-context');
+  assert.equal(scope.source.request.execution.state, 'completed');
   assert.deepEqual(scope.source.request.impactArgs.slice(-1), ['--json']);
   assert.deepEqual(scope.source.request.contextArgs.slice(-1), ['--json']);
   assert.deepEqual(scope.anchors[0], {

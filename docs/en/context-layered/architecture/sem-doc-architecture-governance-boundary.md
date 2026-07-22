@@ -14,7 +14,7 @@ or document editor.
 
 | Package | Primary question | Main input | Main output | Consumer | Gate? |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/sem-doc` | What context, documents, and operational scope does an engineer need before changing this code? | target entity/path, TSDoc bindings, Git working-tree or staged state | `sem-doc-work-context.v4`, canonical `sem-doc-context-scope.v2`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding and benchmark reports | implementer, reviewer, agent | advisory context; not an architecture gate |
+| `@context-action/sem-doc` | What context, documents, and operational scope does an engineer need before changing this code? | target entity/path, TSDoc bindings, Git working-tree or staged state | `sem-doc-work-context.v5`, canonical `sem-doc-context-scope.v3`, `sem-documents.v3`, `sem-doc-git-diff.v1`, binding and benchmark reports | implementer, reviewer, agent | advisory context; not an architecture gate |
 | `@context-action/architecture-governance` | Does the Context-Action-authored architecture contract have valid implementation and boundary evidence? | `architecture/registry.json`, policy sets, analysis projects, SEM evidence, optional revision/context manifest | verification report, complete symbol snapshot/history, snapshot diff, `ContextScope` | CI, maintainer, architecture reviewer | yes; selected findings fail the verification command |
 
 The distinction is about responsibility, not implementation size. `sem-doc` is the Symbol Context SSOT
@@ -77,7 +77,7 @@ Use `sem-doc` when the immediate task is to prepare a change or explain a docume
 - list dependent files and affected tests as advisory evidence;
 - index exact TSDoc entity bindings and backlinks;
 - capture the Git working-tree or staged diff before editing.
-- project the work-context into the canonical operational `sem-doc-context-scope.v2` grouping for a screen, API, or transaction review.
+- project the work-context into the canonical operational `sem-doc-context-scope.v3` grouping for a screen, API, or transaction review.
 - materialize bounded commit snapshots/diffs, stream them as NDJSON, and intersect changed symbols from two branches.
 
 `usageFiles` is a deduplicated file-level signal from SEM dependents. It is not an exact reference
@@ -90,7 +90,7 @@ package files can be observed, then drops package-internal rows beyond one graph
 history, or branch artifacts are serialized. The exact flag is retained in request provenance.
 Markdown indexing still skips `node_modules` and generated output directories.
 
-Treat `sem-doc-work-context.v4`, `sem-doc-context-scope.v2`, `sem-documents.v3`, and `sem-doc-git-diff.v1` as the canonical
+Treat `sem-doc-work-context.v5`, `sem-doc-context-scope.v3`, `sem-documents.v3`, and `sem-doc-git-diff.v1` as the canonical
 serialized artifacts for their respective contextual views. Do not recreate those views independently
 in a UI, agent, or documentation script without preserving the same report provenance and contract.
 
@@ -132,7 +132,7 @@ provenance, and failure semantics instead of merging them into a new ambiguous â
 
 ## Prohibited conflations
 
-- Do not feed `sem-doc-work-context.v4` directly into the Architecture Governance verification report.
+- Do not feed `sem-doc-work-context.v5` directly into the Architecture Governance verification report.
 - Do not treat `architecture/registry.json` as the TSDoc document-binding index.
 - Do not treat `usageFiles` as exact symbol references or a runtime call graph.
 - Do not use `ContextScope` membership as proof that a UI/API/transaction executes at runtime.

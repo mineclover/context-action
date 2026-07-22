@@ -37,6 +37,43 @@ src/pages/checkout/
 └── CheckoutPage.tsx
 ```
 
+## 현재 패키지 경계 migration
+
+tool protocol은 framework-neutral 별도 package가 되었습니다. action schema나
+MCP/provider adapter가 필요한 경우에만 설치합니다.
+
+```bash
+npm install @context-action/react @context-action/core @context-action/tool-protocol zod
+```
+
+`defineAction`, `createActionSchema`, `listAllTools`와 protocol type은
+`@context-action/tool-protocol`에서 import합니다. `@context-action/react`는
+`createToolContext`와 React hook을, `@context-action/core`는 action runtime을
+소유합니다. 기존 Core/React re-export는 제거되었습니다.
+
+Durable mutation recovery는 별도의 선택적 package로 분리되었습니다.
+durable operation record, 프로세스 간 claim, HTTP/queue side-effect adapter가
+필요한 애플리케이션만 `@context-action/tool-durable-operations`를 추가합니다.
+provider-neutral schema와 discovery만 사용하는 경우에는 필요하지 않습니다.
+
+action context factory는 명시적인 context name을 요구합니다.
+
+```ts
+createActionContext<AppActions>('Checkout', { registry: { debug: true } });
+```
+
+void action의 dispatch option은 payload와 혼동되지 않도록 두 번째 인자에
+둡니다.
+
+```ts
+await register.actions.reset(undefined, { debounce: 100 });
+```
+
+`@context-action/react`는 동일 runtime으로 React 18과 19를 지원하며,
+`react18` entry point는 별도 runtime이 아니라 호환성 경로입니다.
+`@context-action/mutative-core` / `@context-action/mutative` fork는 계속
+유지 관리하고 upstream 동기화는 해당 package의 `UPSTREAM.md`에 기록합니다.
+
 ## 권장 마이그레이션 순서
 
 ### 1. Context 정의부터 분리

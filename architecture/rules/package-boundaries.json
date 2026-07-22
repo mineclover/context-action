@@ -100,6 +100,36 @@
       "require": ["@context-action/sem-foundation-contracts"],
       "dependencyFields": ["dependencies"],
       "severity": "error"
+    },
+    {
+      "id": "CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING",
+      "from": "packages/tool-protocol",
+      "disallow": [
+        "@context-action/core",
+        "@context-action/react",
+        "@context-action/tool-durable-operations"
+      ],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "CA-PKG-TOOL-DURABLE-NO-PROTOCOL-RUNTIME-COUPLING",
+      "from": "packages/tool-durable-operations",
+      "disallow": [
+        "@context-action/core",
+        "@context-action/react",
+        "@context-action/tool-protocol"
+      ],
+      "dependencyFields": [
+        "dependencies",
+        "peerDependencies",
+        "optionalDependencies"
+      ],
+      "severity": "error"
     }
   ]
 }

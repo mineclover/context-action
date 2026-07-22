@@ -45,10 +45,10 @@ function printUsage(): void {
   process.stderr.write(
     `${[
       'Usage:',
-      '  sem-doc work-context <entity> [--file <path>] [--docs-root <path>] [--budget <n>] [--depth <1|2>] [--timeout-ms <n>] [--max-output-bytes <n>] [--include-node-modules-surface] [--no-cache] [--json]',
-      '  sem-doc context-scope <entity> [--manifest <path>] [--context-id <id>] [--kind <screen|api|transaction|workflow|document>] [--label <text>] --project-id <id> [--file <path>] [--docs-root <path>] [--depth <1|2>] [--max-nodes <n>] [--max-edges <n>] [--max-anchors <n>] [--include-node-modules-surface] [--json]',
+      '  sem-doc work-context <entity> [--file <path>] [--docs-root <path>] [--budget <n>] [--depth <1|2>] [--timeout-ms <n>] [--max-output-bytes <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--no-cache] [--json]',
+      '  sem-doc context-scope <entity> [--manifest <path>] [--context-id <id>] [--kind <screen|api|transaction|workflow|document>] [--label <text>] --project-id <id> [--file <path>] [--docs-root <path>] [--depth <1|2>] [--max-nodes <n>] [--max-edges <n>] [--max-anchors <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--json]',
       '  sem-doc context-scope-diff <before.json> <after.json> [--json]',
-      '  sem-doc context-scope-history <from> <to> <entity> --project-id <id> [--file <path>] [--docs-root <path>] [--max-commits <n>] [--timeout-ms <n>] [--max-output-bytes <n>] [--aggregate-timeout-ms <n>] [--aggregate-max-output-bytes <n>] [--commit-timeout-ms <n>] [--commit-max-output-bytes <n>] [--include-node-modules-surface] [--output <path>] [--json]',
+      '  sem-doc context-scope-history <from> <to> <entity> --project-id <id> [--file <path>] [--docs-root <path>] [--max-commits <n>] [--timeout-ms <n>] [--max-output-bytes <n>] [--aggregate-timeout-ms <n>] [--aggregate-max-output-bytes <n>] [--commit-timeout-ms <n>] [--commit-max-output-bytes <n>] [--execution-owner-id <id>] [--include-node-modules-surface] [--output <path>] [--json]',
       '  sem-doc context-scope-compare <left-history.json|ndjson> <right-history.json|ndjson> [--json]',
       '  sem-doc docs index [<docs-root>] [--json]',
       '  sem-doc docs validate-bindings [<docs-root>] [--timeout-ms <n>] [--max-output-bytes <n>] [--no-cache] [--strict] [--json]',
@@ -141,6 +141,7 @@ function runWorkContext(args: readonly string[]): void {
       '--engine-version',
       '--timeout-ms',
       '--max-output-bytes',
+      '--execution-owner-id',
     ],
     ['--json', '--no-cache', '--include-node-modules-surface']
   );
@@ -169,6 +170,7 @@ function runWorkContext(args: readonly string[]): void {
     engineVersion: parsed.options.get('--engine-version'),
     timeoutMs: positiveNumberOption(parsed.options, '--timeout-ms'),
     maxOutputBytes: positiveNumberOption(parsed.options, '--max-output-bytes'),
+    executionOwnerId: optionalVisibleOption(parsed.options, '--execution-owner-id'),
     includeNodeModulesSurface: parsed.flags.has('--include-node-modules-surface'),
   });
   if (parsed.flags.has('--json')) {
@@ -181,7 +183,7 @@ function runWorkContext(args: readonly string[]): void {
 function runContextScope(args: readonly string[]): void {
   const parsed = parseOptions(
     args,
-    ['--manifest', '--context-id', '--kind', '--label', '--project-id', '--file', '--docs-root', '--budget', '--depth', '--engine-version', '--timeout-ms', '--max-output-bytes', '--max-nodes', '--max-edges', '--max-anchors'],
+    ['--manifest', '--context-id', '--kind', '--label', '--project-id', '--file', '--docs-root', '--budget', '--depth', '--engine-version', '--timeout-ms', '--max-output-bytes', '--execution-owner-id', '--max-nodes', '--max-edges', '--max-anchors'],
     ['--json', '--no-cache', '--include-node-modules-surface'],
   );
   const entity = parsed.positionals[0];
@@ -212,6 +214,7 @@ function runContextScope(args: readonly string[]): void {
     engineVersion: parsed.options.get('--engine-version'),
     timeoutMs: positiveNumberOption(parsed.options, '--timeout-ms'),
     maxOutputBytes: positiveNumberOption(parsed.options, '--max-output-bytes'),
+    executionOwnerId: optionalVisibleOption(parsed.options, '--execution-owner-id'),
     includeNodeModulesSurface: parsed.flags.has('--include-node-modules-surface'),
   };
   const workContextService = new WorkContextService({ client: new SemClient({ binary: process.env.SEM_BIN }) });
@@ -267,7 +270,7 @@ function runContextScopeDiff(args: readonly string[]): void {
 async function runContextScopeHistory(args: readonly string[]): Promise<void> {
   const parsed = parseOptions(
     args,
-    ['--project-id', '--context-id', '--kind', '--label', '--file', '--docs-root', '--budget', '--depth', '--engine-version', '--timeout-ms', '--max-output-bytes', '--aggregate-timeout-ms', '--aggregate-max-output-bytes', '--commit-timeout-ms', '--commit-max-output-bytes', '--max-commits', '--max-nodes', '--max-edges', '--output'],
+    ['--project-id', '--context-id', '--kind', '--label', '--file', '--docs-root', '--budget', '--depth', '--engine-version', '--timeout-ms', '--max-output-bytes', '--aggregate-timeout-ms', '--aggregate-max-output-bytes', '--commit-timeout-ms', '--commit-max-output-bytes', '--execution-owner-id', '--max-commits', '--max-nodes', '--max-edges', '--output'],
     ['--json', '--no-cache', '--no-first-parent', '--include-node-modules-surface'],
   );
   if (parsed.positionals.length !== 3) throw new Error('context-scope-history requires <from> <to> <entity>');
@@ -293,6 +296,7 @@ async function runContextScopeHistory(args: readonly string[]): Promise<void> {
     aggregateMaxOutputBytes: positiveNumberOption(parsed.options, '--aggregate-max-output-bytes'),
     commitTimeoutMs: positiveNumberOption(parsed.options, '--commit-timeout-ms'),
     commitMaxOutputBytes: positiveNumberOption(parsed.options, '--commit-max-output-bytes'),
+    executionOwnerId: optionalVisibleOption(parsed.options, '--execution-owner-id'),
     maxCommits: positiveNumberOption(parsed.options, '--max-commits'),
     maxNodes: positiveNumberOption(parsed.options, '--max-nodes'),
     maxEdges: positiveNumberOption(parsed.options, '--max-edges'),

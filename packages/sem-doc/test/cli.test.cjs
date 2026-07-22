@@ -36,6 +36,7 @@ test('CLI help exposes the current work-context contract', () => {
   assert.match(result.stderr, /context-scope-history/u);
   assert.match(result.stderr, /--aggregate-max-output-bytes/u);
   assert.match(result.stderr, /--include-node-modules-surface/u);
+  assert.match(result.stderr, /--execution-owner-id/u);
   assert.match(result.stderr, /context-scope-compare/u);
 });
 
@@ -59,15 +60,18 @@ test('CLI composes a JSON work-context report through the current contract', () 
     'src/sem-client.ts',
     '--depth',
     '1',
+    '--execution-owner-id',
+    'cli-test',
     '--json',
   ]);
   assert.equal(result.status, 0);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.schemaVersion, 'sem-doc-work-context.v4');
+  assert.equal(report.schemaVersion, 'sem-doc-work-context.v5');
   assert.equal(report.target.entity.id, 'packages/sem-doc/src/sem-client.ts::class::SemClient');
   assert.equal(report.symbols.maxHops, 1);
   assert.equal(report.affectedTests.complete, true);
   assert.ok(Array.isArray(report.usageFiles));
   assert.equal(report.execution.timeoutMs, 120000);
   assert.equal(report.execution.maxOutputBytes, 64 * 1024 * 1024);
+  assert.equal(report.execution.ownerId, 'cli-test');
 });

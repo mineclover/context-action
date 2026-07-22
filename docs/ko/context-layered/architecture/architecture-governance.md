@@ -191,7 +191,7 @@ diff·`ContextScope` manifest 검증은 Architecture Governance가 담당합니�
 | architecture intent, capability, owner, role, policy, evidence | Architecture Governance registry와 report | architecture guide, CI/reviewer artifact |
 | 공개 TypeScript API signature와 JSDoc 페이지 | TypeDoc 설정과 exported source | TypeDoc Markdown, VitePress, `typedoc-vitepress-sync` |
 | 심볼 중심 작업 컨텍스트와 문서 binding | sem-doc versioned report | 구현자/agent context, 선택적 문서 enrichment |
-| 테스트 기반 예제와 LLMS summary | `test-driven-docs` / `llms-generator` source | 파생 example·training artifact |
+| 테스트 기반 예제와 LLMS summary | canonical `docs/`와 `llms-generator` source | 파생 example·training artifact이며 공개 API SSOT가 아님 |
 
 따라서 Architecture Governance는 architecture 문서와 evidence 관리를 받치는 기반이지만 모든
 공개·파생 문서를 생성하지는 않습니다. sem-doc은 여기에 컨텍스트 link를 보강할 수 있지만 두 번째

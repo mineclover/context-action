@@ -5,6 +5,7 @@ import {
   type SymbolRef,
   symbolRefKey,
 } from '@context-action/sem-foundation-contracts';
+import { parseExecutionProvenance } from './execution-provenance';
 import {
   foundationCanonicalEntityId,
   foundationNormalizeRepositoryPath,
@@ -16,7 +17,7 @@ import {
 } from './work-context';
 
 /** Canonical operational context projection produced by sem-doc. */
-export const CONTEXT_SCOPE_SCHEMA = 'sem-doc-context-scope.v2' as const;
+export const CONTEXT_SCOPE_SCHEMA = 'sem-doc-context-scope.v3' as const;
 export const CONTEXT_SCOPE_MANIFEST_SCHEMA = 'sem-doc-context-manifest.v1' as const;
 
 export type ContextScopeKind =
@@ -630,23 +631,7 @@ export function parseContextScope(value: unknown): ContextScope {
   positiveLimitValue(request.budget, 'source.request.budget');
   parseArgs(request.impactArgs, 'source.request.impactArgs');
   parseArgs(request.contextArgs, 'source.request.contextArgs');
-  const execution = record(request.execution, 'source.request.execution');
-  assertKnownFields(
-    execution,
-    ['timeoutMs', 'maxOutputBytes', 'usedOutputBytes'],
-    'source.request.execution',
-  );
-  positiveLimitValue(execution.timeoutMs, 'source.request.execution.timeoutMs');
-  const maxOutputBytes = positiveLimitValue(
-    execution.maxOutputBytes,
-    'source.request.execution.maxOutputBytes',
-  );
-  if (typeof execution.usedOutputBytes !== 'number'
-    || !Number.isSafeInteger(execution.usedOutputBytes)
-    || execution.usedOutputBytes < 0
-    || execution.usedOutputBytes > maxOutputBytes) {
-    throw new TypeError('source.request.execution.usedOutputBytes is invalid');
-  }
+  parseExecutionProvenance(request.execution, 'source.request.execution');
   const contextId = visibleTextString(context.id, 'context.id');
   if (context.label !== undefined) visibleTextString(context.label, 'context.label');
   if (context.kind !== 'screen' && context.kind !== 'api' && context.kind !== 'transaction'
@@ -878,14 +863,7 @@ function parseWorkContextSource(
   positiveLimitValue(request.budget, `${path}.request.budget`);
   parseArgs(request.impactArgs, `${path}.request.impactArgs`);
   parseArgs(request.contextArgs, `${path}.request.contextArgs`);
-  const execution = record(request.execution, `${path}.request.execution`);
-  assertKnownFields(execution, ['timeoutMs', 'maxOutputBytes', 'usedOutputBytes'], `${path}.request.execution`);
-  positiveLimitValue(execution.timeoutMs, `${path}.request.execution.timeoutMs`);
-  const maxOutputBytes = positiveLimitValue(execution.maxOutputBytes, `${path}.request.execution.maxOutputBytes`);
-  if (typeof execution.usedOutputBytes !== 'number' || !Number.isSafeInteger(execution.usedOutputBytes)
-    || execution.usedOutputBytes < 0 || execution.usedOutputBytes > maxOutputBytes) {
-    throw new TypeError(`${path}.request.execution.usedOutputBytes is invalid`);
-  }
+  parseExecutionProvenance(request.execution, `${path}.request.execution`);
   return value as ContextScopeWorkContextSource;
 }
 

@@ -30,17 +30,18 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 
 | 패키지 | 경계 역할 | 소유하는 것 | 소유하지 않는 것 |
 | --- | --- | --- | --- |
-| `@context-action/core` | runtime foundation | action pipeline, handler execution, schema, core error | React, browser UI, store |
+| `@context-action/core` | runtime foundation | action pipeline, handler execution, validation contract, core error | React, tool transport, Zod, browser UI, store |
+| `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schema, MCP/provider adapter, tool call, approval queue, 호출 idempotency/provenance/observability 계약 | React rendering, action registry internals, durable persistence, architecture policy |
+| `@context-action/tool-durable-operations` | mutation safety foundation | durable operation record, side-effect runner, HTTP/queue adapter, IndexedDB/Redis/PostgreSQL reference backend | provider-neutral tool schema, React rendering, domain별 idempotency/outbox 정책 |
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
 | `@context-action/sem-foundation-contracts` | 분석 contract foundation | symbol identity, snapshot, revision, shared limit, wire contract | SEM subprocess, Git worktree, architecture policy |
 | `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree | symbol semantics, architecture rule, UI behavior |
 | `@context-action/architecture-governance` | 실험적 convention control plane | Context-Action authored capability registry, policy 검증, complete snapshot/history, snapshot-backed ContextScope projection | 범용 architecture 추론, React runtime, 일반 문서 생성 |
-| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v2`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@context-action/sem-foundation-*` 재사용 |
+| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v3`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@context-action/sem-foundation-*` 재사용 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
-| `@context-action/test-driven-docs` | test documentation tool | test metadata와 generated test docs | runtime API |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
 | `@context-action/live-code-editor` | private integration | live editor 실험 | promotion 전 stable runtime contract |
 | `@context-action/openrouter-browser-storage` | private integration | OpenRouter example browser persistence | core/react용 generic storage abstraction |
@@ -51,9 +52,13 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 `@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. source
 경로와 CLI binary는 유지하며, 공개 npm release는 repository publish workflow가 관리한다. 이 패키지는 운영용
 Symbol Context SSOT이며 임시 staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
-transaction grouping에는 `sem-doc-context-scope.v2`를 유일한 operational projection으로 사용한다.
+transaction grouping에는 `sem-doc-context-scope.v3`를 유일한 operational projection으로 사용한다.
 Architecture Governance의 기존 `context-action/context-scope@1.0`은 architecture review용 snapshot-bound
 artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취급하지 않는다.
+
+기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거했다. 공개
+API 문서는 exported source와 JSDoc → TypeDoc → `typedoc-vitepress-sync` → VitePress라는 단일 경로를 사용한다.
+LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아니다.
 
 ## 3. 의존성 방향
 
@@ -61,6 +66,8 @@ artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취
 
 ```text
 @context-action/core          ──→ @context-action/react
+@context-action/tool-protocol ──→ @context-action/react
+@context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
 @context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
@@ -69,6 +76,8 @@ artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취
 ```
 
 - `core`는 `react`에 의존하지 않는다.
+- `tool-protocol`은 framework-neutral이며 `core`나 `react`에 의존하지 않는다. provider/tool 경계를 소유한다.
+- `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
 - `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
 - `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.
 - `sem-foundation-repository`는 contracts를 사용하고 역방향 의존성은 허용하지 않는다.
@@ -81,6 +90,12 @@ artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취
 - example과 demo는 그래프의 leaf다. 패키지가 example/demo를 import하지 않는다.
 
 새로운 안정된 방향이 생기면 reviewer 기억에 의존하지 말고 named policy rule로 추가한다.
+
+protocol/durable 분리는 `architecture/rules/package-boundaries.json`의
+`CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING`과
+`CA-PKG-TOOL-DURABLE-NO-PROTOCOL-RUNTIME-COUPLING` 규칙으로 강제한다. 이 규칙은
+runtime·peer·optional dependency field를 검사하며, test 전용 도구가 `devDependencies`에 있는 것은
+publish boundary를 바꾸지 않는다.
 
 ### Mutative 계약 전파
 
