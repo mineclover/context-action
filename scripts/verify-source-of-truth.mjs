@@ -78,6 +78,11 @@ for (const relativePath of expectedCanonical.values()) {
 const listedCanonical = new Map(
   (manifest.canonicalPackages ?? []).map((entry) => [entry.name, entry]),
 );
+if (listedCanonical.size !== (manifest.canonicalPackages ?? []).length
+  || listedCanonical.size !== expectedCanonical.size
+  || [...listedCanonical.keys()].some((name) => !expectedCanonical.has(name))) {
+  throw new Error('Consumer canonical package manifest must contain exactly the three tooling packages, once each.');
+}
 for (const [name, relativePath] of expectedCanonical) {
   const entry = listedCanonical.get(name);
   if (!entry || entry.path !== relativePath || entry.owner !== manifest.toolingRepository.name) {
