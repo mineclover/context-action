@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "guide--patterns--store--path-based-subscription",
+    "title": "경로 기반 구독 (Path-Based Subscription)",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/store/path-based-subscription.md",
+    "lastModified": "2026-07-18T13:07:35.566Z",
+    "wordCount": 1680
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in 경로 기반 구독 (Path-Based Subscription).",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in 경로 기반 구독 (Path-Based Subscription).",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in 경로 기반 구독 (Path-Based Subscription)."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "tsx",
+      "typescript",
+      "경로",
+      "기반"
+    ],
+    "technical": [
+      "tsx",
+      "typescript",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from 경로 기반 구독 (Path-Based Subscription).",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "경로 기반 구독 (Path-Based Subscription)",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "경로 기반 구독 (Path-Based Subscription)",
+        "guide",
+        "tsx"
+      ],
+      "nice_to_have": [
+        "tsx",
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "tsx",
+        "typescript",
+        "경로",
+        "기반"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "tsx",
+      "typescript",
+      "경로",
+      "기반"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "경로 기반 구독 (Path-Based Subscription) is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 13523,
+    "created_at": "2026-07-24T05:15:02.413Z",
+    "source_last_modified": "2026-07-18T13:07:35.566Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "tsx",
+        "typescript",
+        "경로",
+        "기반"
+      ],
+      "technical": [
+        "tsx",
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "context-layered--change-management-convention",
+    "title": "Specification, Issue, and Documentation Management Convention",
+    "category": "concept",
+    "source_path": "en/context-layered/change-management-convention.md",
+    "lastModified": "2026-07-18T06:08:42.881Z",
+    "wordCount": 1720
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Specification, Issue, and Documentation Management Convention.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Specification, Issue, and Documentation Management Convention.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Specification, Issue, and Documentation Management Convention."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "text",
+      "bash",
+      "specification",
+      "issue"
+    ],
+    "technical": [
+      "text",
+      "bash",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Specification, Issue, and Documentation Management Convention.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Specification, Issue, and Documentation Management Convention",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Specification, Issue, and Documentation Management Convention",
+        "context-layered",
+        "text"
+      ],
+      "nice_to_have": [
+        "text",
+        "bash",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "text",
+        "bash",
+        "specification",
+        "issue"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "text",
+      "bash",
+      "specification",
+      "issue"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Specification, Issue, and Documentation Management Convention is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 11883,
+    "created_at": "2026-07-24T05:15:02.272Z",
+    "source_last_modified": "2026-07-18T06:08:42.881Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "text",
+        "bash",
+        "specification",
+        "issue"
+      ],
+      "technical": [
+        "text",
+        "bash",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

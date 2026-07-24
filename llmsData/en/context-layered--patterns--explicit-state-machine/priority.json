@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "context-layered--patterns--explicit-state-machine",
+    "title": "Explicit State Machine",
+    "category": "concept",
+    "source_path": "en/context-layered/patterns/explicit-state-machine.md",
+    "lastModified": "2026-03-29T15:57:12.439Z",
+    "wordCount": 601
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Explicit State Machine.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Explicit State Machine.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Explicit State Machine."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "ts",
+      "mermaid",
+      "explicit",
+      "state"
+    ],
+    "technical": [
+      "ts",
+      "mermaid",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Explicit State Machine.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Explicit State Machine",
+          "context-layered",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Explicit State Machine",
+        "context-layered",
+        "ts"
+      ],
+      "nice_to_have": [
+        "ts",
+        "mermaid",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "ts",
+        "mermaid",
+        "explicit",
+        "state"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "ts",
+      "mermaid",
+      "explicit",
+      "state"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Explicit State Machine is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 4769,
+    "created_at": "2026-07-24T05:15:02.262Z",
+    "source_last_modified": "2026-03-29T15:57:12.439Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "ts",
+        "mermaid",
+        "explicit",
+        "state"
+      ],
+      "technical": [
+        "ts",
+        "mermaid",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

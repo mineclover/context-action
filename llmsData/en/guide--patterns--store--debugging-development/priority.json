@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "guide--patterns--store--debugging-development",
+    "title": "Debugging & Development",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/debugging-development.md",
+    "lastModified": "2025-12-27T06:25:41.919Z",
+    "wordCount": 586
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Debugging & Development.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Debugging & Development.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Debugging & Development."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "tsx",
+      "debugging",
+      "development"
+    ],
+    "technical": [
+      "tsx",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Debugging & Development.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Debugging & Development",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Debugging & Development",
+        "guide",
+        "tsx"
+      ],
+      "nice_to_have": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "tsx",
+        "debugging",
+        "development"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "tsx",
+      "debugging",
+      "development"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Debugging & Development is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 5436,
+    "created_at": "2026-07-24T05:15:02.220Z",
+    "source_last_modified": "2025-12-27T06:25:41.919Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "tsx",
+        "debugging",
+        "development"
+      ],
+      "technical": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

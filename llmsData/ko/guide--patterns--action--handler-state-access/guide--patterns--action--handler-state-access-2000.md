@@ -1,0 +1,27 @@
+---
+document_id: guide--patterns--action--handler-state-access
+category: guide
+source_path: ko/guide/patterns/action/handler-state-access.md
+character_limit: 2000
+last_update: '2026-07-24T05:15:02.404Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+액션 핸들러 상태 접근 패턴
+
+액션 핸들러 상태 접근 패턴 일반적인 함정을 피하기 위한 중요한 모범 사례를 포함한 액션 핸들러 내에서 상태에 접근하고 관리하는 고급 패턴입니다. Import 필수 조건 🎯 스펙 재사용: 완전한 액션 핸들러 설정 패턴은 기본 액션 설정을 참조하세요. 📖 이 문서의 모든 예제는 아래 설정 스펙을 재사용합니다: - 🎯 액션 타입 → EventActions, UserActions - 🎯 훅 명명 → useEventAction 패턴 - 🎯 핸들러 패턴 → 액션 핸들러 설정 💡 일관된 학습: 설정 가이드를 먼저 읽으면 이 문서의 모든 예제를 즉시 이해할 수 있습니다. 📋 목차 1. 중요: 클로저 함정 피하기 2. 실시간 상태 접근 패턴 3. useEffect 의존성 모범 사례 --- 중요: 클로저 함정 피하기 ⚠️ 클로저 함정 문제 액션 핸들러 내에서 스토어 값에 접근할 때, 컴포넌트 스코프의 값을 사용하지 마세요 - 오래된 데이터가 있는 클로저 함정을 만듭니다. 🔍 왜 클로저 함정이 발생하는가 1. 핸들러 등록 시점: 핸들러가 등록 시점에 렉시컬 스코프에서 변수를 캡처 2. 오래된 참조: 컴포넌트 상태 값이 핸들러 클로저 내부에서 업데이트되지 않음 3. 재등록 문제: useCallback 없이는 모든 렌더링에서 핸들러 재등록 --- 실시간 상태 접근 패턴 패턴 1: 직접 스토어 getValue() 간단한 상태 확인과 단일 스토어 접근에 사용: 패턴 2: 여러 스토어 조정 여러 스토어 상태가 필요한 복잡한 로직에 사용: 패턴 3: 상태 검증 및 업데이트 업데이트 전 현재 상태 검증에 사용: --- useEffect 의존성 모범 사례 스토어와 디스패치 참조는 안정적입니다 Context-Action 프레임워크는 스토어 인스턴스와 디스패치 함수가 안정적인 참조를 갖도록 보장합니다: 의존성 배열 가이드라인 --- 🔧 핸들러 등록 모범 사례 올바른 핸들러 등록 패턴 피해야 할 일반적인 실수 --- 📚 관련 패턴 - 기본 액션 설정 -
+
+Key points:
+• 🎯 액션 타입 → [EventActions, UserActions](../setup/basic-action-setup.md#type-definitions)
+• 🎯 훅 명명 → [useEventAction 패턴](../setup/basic-action-setup.md#context-creation)
+• 🎯 핸들러 패턴 → [액션 핸들러 설정](../setup/basic-action-setup.md#action-handler-patterns)
+• **[기본 액션 설정](../setup/basic-action-setup.md)** - 완전한 액션 컨텍스트 설정 패턴
+• **[액션 기본 사용법](./basic-usage.md)** - 기본 액션 디스패칭 패턴
+• **[디스패치 접근 패턴](./dispatch-access.md)** - 고급 디스패치 사용 패턴
+• [중요: 클로저 함정 피하기](#critical-avoid-closure-traps)
+• [실시간 상태 접근 패턴](#real-time-state-access-patterns)
+• [useEffect 의존성 모범 사례](#useeffect-dependencies-best-practices)
+• **핸들러 등록 시점**: 핸들러가 등록...

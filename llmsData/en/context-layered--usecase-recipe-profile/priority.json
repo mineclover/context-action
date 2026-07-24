@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "context-layered--usecase-recipe-profile",
+    "title": "Context-Layered Usecase and Recipe Profile",
+    "category": "concept",
+    "source_path": "en/context-layered/usecase-recipe-profile.md",
+    "lastModified": "2026-07-16T11:24:22.882Z",
+    "wordCount": 2367
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Context-Layered Usecase and Recipe Profile.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Context-Layered Usecase and Recipe Profile.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Context-Layered Usecase and Recipe Profile."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "text",
+      "tsx",
+      "usecase",
+      "and"
+    ],
+    "technical": [
+      "text",
+      "tsx",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Context-Layered Usecase and Recipe Profile.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Layered Usecase and Recipe Profile",
+          "context-layered",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Context-Layered Usecase and Recipe Profile",
+        "context-layered",
+        "text"
+      ],
+      "nice_to_have": [
+        "text",
+        "tsx",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "text",
+        "tsx",
+        "usecase",
+        "and"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "text",
+      "tsx",
+      "usecase",
+      "and"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Context-Layered Usecase and Recipe Profile is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 18423,
+    "created_at": "2026-07-24T05:15:02.259Z",
+    "source_last_modified": "2026-07-16T11:24:22.882Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "text",
+        "tsx",
+        "usecase",
+        "and"
+      ],
+      "technical": [
+        "text",
+        "tsx",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

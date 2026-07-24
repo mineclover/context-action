@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "examples--access-request-playbook",
+    "title": "Access Request Playbook 예제",
+    "category": "example",
+    "source_path": "ko/examples/access-request-playbook.md",
+    "lastModified": "2026-03-29T17:13:23.967Z",
+    "wordCount": 284
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Access Request Playbook 예제.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the example concepts described in Access Request Playbook 예제.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Access Request Playbook 예제."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "examples",
+      "text",
+      "mermaid",
+      "access",
+      "request"
+    ],
+    "technical": [
+      "text",
+      "mermaid",
+      "examples",
+      "context-action"
+    ],
+    "functional": [
+      "example",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "example-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential example information from Access Request Playbook 예제.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Access Request Playbook 예제",
+          "examples",
+          "text"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Access Request Playbook 예제",
+        "examples",
+        "text"
+      ],
+      "nice_to_have": [
+        "text",
+        "mermaid",
+        "examples",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "examples",
+        "text",
+        "mermaid",
+        "access",
+        "request"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "sample"
+    ],
+    "secondary": [
+      "examples",
+      "text",
+      "mermaid",
+      "access",
+      "request"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Access Request Playbook 예제 is example documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 2936,
+    "created_at": "2026-07-24T05:15:02.540Z",
+    "source_last_modified": "2026-03-29T17:13:23.967Z",
+    "keywords": {
+      "primary": [
+        "examples",
+        "text",
+        "mermaid",
+        "access",
+        "request"
+      ],
+      "technical": [
+        "text",
+        "mermaid",
+        "examples",
+        "context-action"
+      ],
+      "functional": [
+        "example",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "document": {
+    "id": "examples--implementation-playbook-scenarios",
+    "title": "Implementation Playbook 시나리오 라이브러리",
+    "category": "example",
+    "source_path": "ko/examples/implementation-playbook-scenarios.md",
+    "lastModified": "2026-03-29T23:42:17.804Z",
+    "wordCount": 514
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Implementation Playbook 시나리오 라이브러리.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the example concepts described in Implementation Playbook 시나리오 라이브러리.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Implementation Playbook 시나리오 라이브러리."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "examples",
+      "implementation",
+      "playbook",
+      "시나리오",
+      "라이브러리"
+    ],
+    "technical": [
+      "examples",
+      "context-action"
+    ],
+    "functional": [
+      "example",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "example-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential example information from Implementation Playbook 시나리오 라이브러리.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Implementation Playbook 시나리오 라이브러리",
+          "examples",
+          "implementation"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Implementation Playbook 시나리오 라이브러리",
+        "examples",
+        "implementation"
+      ],
+      "nice_to_have": [
+        "examples",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "examples",
+        "implementation",
+        "playbook",
+        "시나리오",
+        "라이브러리"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "sample"
+    ],
+    "secondary": [
+      "examples",
+      "implementation",
+      "playbook",
+      "시나리오",
+      "라이브러리"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Implementation Playbook 시나리오 라이브러리 is example documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 4765,
+    "created_at": "2026-07-24T05:15:02.542Z",
+    "source_last_modified": "2026-03-29T23:42:17.804Z",
+    "keywords": {
+      "primary": [
+        "examples",
+        "implementation",
+        "playbook",
+        "시나리오",
+        "라이브러리"
+      ],
+      "technical": [
+        "examples",
+        "context-action"
+      ],
+      "functional": [
+        "example",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

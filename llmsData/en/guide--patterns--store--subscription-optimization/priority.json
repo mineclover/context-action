@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "guide--patterns--store--subscription-optimization",
+    "title": "Subscription Optimization",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/subscription-optimization.md",
+    "lastModified": "2025-12-27T06:25:41.920Z",
+    "wordCount": 366
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Subscription Optimization.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Subscription Optimization.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Subscription Optimization."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "tsx",
+      "subscription",
+      "optimization"
+    ],
+    "technical": [
+      "tsx",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Subscription Optimization.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Subscription Optimization",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Subscription Optimization",
+        "guide",
+        "tsx"
+      ],
+      "nice_to_have": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "tsx",
+        "subscription",
+        "optimization"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "tsx",
+      "subscription",
+      "optimization"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Subscription Optimization is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 2905,
+    "created_at": "2026-07-24T05:15:02.223Z",
+    "source_last_modified": "2025-12-27T06:25:41.920Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "tsx",
+        "subscription",
+        "optimization"
+      ],
+      "technical": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

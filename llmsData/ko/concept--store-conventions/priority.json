@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "concept--store-conventions",
+    "title": "Store 컨벤션",
+    "category": "concept",
+    "source_path": "ko/concept/store-conventions.md",
+    "lastModified": "2026-07-11T19:07:45.760Z",
+    "wordCount": 2628
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Store 컨벤션.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Store 컨벤션.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Store 컨벤션."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "concept",
+      "typescript",
+      "store",
+      "컨벤션"
+    ],
+    "technical": [
+      "typescript",
+      "concept",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Store 컨벤션.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Store 컨벤션",
+          "concept",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Store 컨벤션",
+        "concept",
+        "typescript"
+      ],
+      "nice_to_have": [
+        "typescript",
+        "concept",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "concept",
+        "typescript",
+        "store",
+        "컨벤션"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "concept",
+      "typescript",
+      "store",
+      "컨벤션"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Store 컨벤션 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 24347,
+    "created_at": "2026-07-24T05:15:02.514Z",
+    "source_last_modified": "2026-07-11T19:07:45.760Z",
+    "keywords": {
+      "primary": [
+        "concept",
+        "typescript",
+        "store",
+        "컨벤션"
+      ],
+      "technical": [
+        "typescript",
+        "concept",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

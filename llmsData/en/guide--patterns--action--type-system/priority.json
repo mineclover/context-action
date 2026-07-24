@@ -1,0 +1,217 @@
+{
+  "document": {
+    "id": "guide--patterns--action--type-system",
+    "title": "Action Type System",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/type-system.md",
+    "lastModified": "2025-12-27T06:25:41.915Z",
+    "wordCount": 673
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Action Type System.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Action Type System.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Action Type System."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "typescript",
+      "action",
+      "type",
+      "system"
+    ],
+    "technical": [
+      "typescript",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Action Type System.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Action Type System",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Action Type System",
+        "guide",
+        "typescript"
+      ],
+      "nice_to_have": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "typescript",
+        "action",
+        "type",
+        "system"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "typescript",
+      "action",
+      "type",
+      "system"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Action Type System is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 6470,
+    "created_at": "2026-07-24T05:15:02.183Z",
+    "source_last_modified": "2025-12-27T06:25:41.915Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "typescript",
+        "action",
+        "type",
+        "system"
+      ],
+      "technical": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

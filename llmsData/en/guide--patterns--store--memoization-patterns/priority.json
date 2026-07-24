@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "guide--patterns--store--memoization-patterns",
+    "title": "Memoization Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/memoization-patterns.md",
+    "lastModified": "2025-12-27T06:25:41.919Z",
+    "wordCount": 263
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Memoization Patterns.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Memoization Patterns.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Memoization Patterns."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "tsx",
+      "memoization",
+      "patterns"
+    ],
+    "technical": [
+      "tsx",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Memoization Patterns.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Memoization Patterns",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Memoization Patterns",
+        "guide",
+        "tsx"
+      ],
+      "nice_to_have": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "tsx",
+        "memoization",
+        "patterns"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "tsx",
+      "memoization",
+      "patterns"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Memoization Patterns is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 2297,
+    "created_at": "2026-07-24T05:15:02.224Z",
+    "source_last_modified": "2025-12-27T06:25:41.919Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "tsx",
+        "memoization",
+        "patterns"
+      ],
+      "technical": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

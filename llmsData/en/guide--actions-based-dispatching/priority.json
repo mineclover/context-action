@@ -1,0 +1,213 @@
+{
+  "document": {
+    "id": "guide--actions-based-dispatching",
+    "title": "Actions-based Dispatching",
+    "category": "guide",
+    "source_path": "en/guide/actions-based-dispatching.md",
+    "lastModified": "2025-12-27T06:25:41.912Z",
+    "wordCount": 1103
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Actions-based Dispatching.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Actions-based Dispatching.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Actions-based Dispatching."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "typescript",
+      "actions-based",
+      "dispatching"
+    ],
+    "technical": [
+      "typescript",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Actions-based Dispatching.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Actions-based Dispatching",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Actions-based Dispatching",
+        "guide",
+        "typescript"
+      ],
+      "nice_to_have": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "typescript",
+        "actions-based",
+        "dispatching"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "typescript",
+      "actions-based",
+      "dispatching"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Actions-based Dispatching is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 9429,
+    "created_at": "2026-07-24T05:15:02.154Z",
+    "source_last_modified": "2025-12-27T06:25:41.912Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "typescript",
+        "actions-based",
+        "dispatching"
+      ],
+      "technical": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

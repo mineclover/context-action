@@ -1,0 +1,217 @@
+{
+  "document": {
+    "id": "guide--patterns--action--react-integration",
+    "title": "React Integration Helpers",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/react-integration.md",
+    "lastModified": "2025-12-27T06:25:41.915Z",
+    "wordCount": 1022
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in React Integration Helpers.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in React Integration Helpers.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in React Integration Helpers."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "typescript",
+      "react",
+      "integration",
+      "helpers"
+    ],
+    "technical": [
+      "typescript",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from React Integration Helpers.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React Integration Helpers",
+          "guide",
+          "typescript"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "React Integration Helpers",
+        "guide",
+        "typescript"
+      ],
+      "nice_to_have": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "typescript",
+        "react",
+        "integration",
+        "helpers"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "typescript",
+      "react",
+      "integration",
+      "helpers"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "React Integration Helpers is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 9969,
+    "created_at": "2026-07-24T05:15:02.189Z",
+    "source_last_modified": "2025-12-27T06:25:41.915Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "typescript",
+        "react",
+        "integration",
+        "helpers"
+      ],
+      "technical": [
+        "typescript",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

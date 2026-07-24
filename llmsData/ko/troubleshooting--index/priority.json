@@ -1,0 +1,206 @@
+{
+  "document": {
+    "id": "troubleshooting--index",
+    "title": "문제 해결",
+    "category": "guide",
+    "source_path": "ko/troubleshooting/index.md",
+    "lastModified": "2025-12-27T06:25:41.967Z",
+    "wordCount": 141
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-07-24",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in 문제 해결.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in 문제 해결.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in 문제 해결."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "troubleshooting",
+      "문제",
+      "해결"
+    ],
+    "technical": [
+      "troubleshooting",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from 문제 해결.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "문제 해결",
+          "troubleshooting",
+          "문제"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "문제 해결",
+        "troubleshooting",
+        "문제"
+      ],
+      "nice_to_have": [
+        "troubleshooting",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "troubleshooting",
+        "문제",
+        "해결"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "troubleshooting",
+      "문제",
+      "해결"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-07-24"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "문제 해결 is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-07-24",
+    "updated": "2026-07-24",
+    "version": "1.0.0",
+    "original_size": 1174,
+    "created_at": "2026-07-24T05:15:02.440Z",
+    "source_last_modified": "2025-12-27T06:25:41.967Z",
+    "keywords": {
+      "primary": [
+        "troubleshooting",
+        "문제",
+        "해결"
+      ],
+      "technical": [
+        "troubleshooting",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}
