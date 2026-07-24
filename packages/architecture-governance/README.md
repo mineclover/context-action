@@ -10,7 +10,7 @@ Authored symbol registry와 `sem` entity/impact 결과를 연결해 심볼의 �
 Architecture Governance 도구다. 심볼의 역할은 registry `role` declaration과 source comment/JSDoc로 관리하며, 컴파일러 graph
 provider나 LSP 수준의 내부 함수 호출 분석·문서 생성 기능은 포함하지 않는다.
 
-공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@context-action/sem-foundation-contracts`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation)
+공통 SEM identity/path/provenance와 `AnalysisProject` 계약은 [`@context-action/sem-foundation-contracts`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation-contracts)
 에서 관리하고, Git revision/history/worktree lifecycle은 [`@context-action/sem-foundation-repository`](https://github.com/mineclover/context-action-documentation-tooling/tree/main/packages/sem-foundation-repository)에서
 관리한다. 외부 SEM subprocess의 실행 adapter와 architecture policy의 loader/evaluator/report
 contract는 이 패키지가 소유하지만, 실제 authored registry와 policy source는 repository의

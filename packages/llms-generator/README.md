@@ -1,4 +1,4 @@
-# @context-action/llms-generator v0.7.3
+# @context-action/llms-generator v0.8.7
 
 **Enterprise-grade LLM content generation framework with comprehensive type safety, mismatch detection, and integrity management.**
 
@@ -11,11 +11,12 @@ TypeScript library and CLI tools for generating optimized content from documenta
 
 ## 📚 Documentation
 
-- [**CLI Reference**](../../docs/en/guide/llms-cli-reference.md) - Core command reference
-- [**Comprehensive Implementation Reference**](../../docs/en/guide/llms-cli-comprehensive-reference.md) - Complete implementation guide
-- [**Korean Documentation**](../../docs/ko/guide/llms-cli-reference.md) - 한국어 문서
+- [**CLI Setup Guide**](./CLI_SETUP_GUIDE.md) - Installation and command reference
+- [**Configuration Reference**](./CONFIG.md) - Complete configuration options
+- [**English framework guide**](https://github.com/mineclover/context-action/blob/main/docs/en/guide/index.md) - Usage patterns
+- [**Korean framework guide**](https://github.com/mineclover/context-action/blob/main/docs/ko/guide/index.md) - 한국어 사용 가이드
 
-## 🆕 What's New in v0.7.3
+## Current package status (v0.8.7)
 
 ### 🛡️ Complete Type Safety Achievement
 - **✅ Zero `any` warnings**: Eliminated all 24 ESLint `any` type warnings
@@ -31,7 +32,7 @@ TypeScript library and CLI tools for generating optimized content from documenta
 - **Automated Reporting**: Generates detailed Markdown reports with severity levels
 
 ### 📊 Build & Performance Status
-- **Build Size**: 181.52 kB CLI bundle (optimized)
+- **Build Size**: approximately 187 kB CLI bundle (optimized; varies by build)
 - **TypeScript Compilation**: ✅ All files pass strict type checking
 - **ESLint Status**: ✅ Zero warnings across all source files
 - **Test Coverage**: Comprehensive test suite with 95%+ coverage
@@ -120,7 +121,8 @@ llms sync-docs --changed-files docs/path/to/file.md  # Specific files
 
 # Integrity checking
 llms detect-mismatches             # Check for inconsistencies
-llms detect-mismatches --verbose   # Detailed analysis with fixes
+llms detect-mismatches --verbose   # Detailed mismatch report
+llms detect-mismatches --check-only --fail-on-mismatch  # CI consistency gate
 ```
 
 ### Advanced Generation
@@ -195,7 +197,7 @@ llmsData/
 
 ## 📊 System Status
 
-- **Version**: 0.7.3 (Latest Stable)
+- **Version**: 0.8.7 (current published package)
 - **Type Safety**: ✅ **Zero `any` warnings** - Complete TypeScript strict mode compliance
 - **Build Status**: ✅ **All packages building successfully** (181.52 kB CLI bundle)
 - **Type Checking**: ✅ **Full type safety** with comprehensive interface definitions
@@ -246,14 +248,15 @@ For detailed installation instructions, see [CLI_SETUP_GUIDE.md](./CLI_SETUP_GUI
 
 ## 🧪 Recent Type Safety Improvements
 
-The v0.7.2 release represents a major milestone in type safety:
+The v0.7.2/v0.7.3 releases established the type-safety baseline that the current
+package maintains:
 
 ### Before (v0.7.2)
 - 33 TypeScript compilation errors
 - 24 ESLint `any` type warnings
 - Manual type assertions throughout codebase
 
-### After (v0.7.3)
+### After (v0.7.3 baseline)
 - ✅ Zero TypeScript errors
 - ✅ Zero ESLint warnings
 - ✅ Comprehensive type system with proper interfaces
@@ -287,5 +290,5 @@ Apache-2.0 - see [LICENSE](./LICENSE) for details.
 
 ---
 
-**Latest Release**: v0.7.3 with complete type safety and zero warnings  
+**Current Release**: v0.8.7; see [CHANGELOG.md](./CHANGELOG.md) for the release history.
 **Enterprise Ready**: Full TypeScript support with comprehensive error handling

@@ -23,7 +23,7 @@ llms priority-stats
 cd packages/llms-generator
 pnpm build
 npm pack
-npm i -g ./context-action-llms-generator-0.7.3.tgz
+npm i -g ./context-action-llms-generator-0.8.7.tgz
 llms --help  # 바로 사용 가능
 ```
 

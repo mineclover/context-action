@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | `docs/en/**`, `docs/ko/**` 가이드·개념 문서 | 사람이 작성하는 원문입니다. 공개 내용은 영문·국문 페이지의 의미를 함께 맞춥니다. | `pnpm docs:build` |
 | `docs/api/generated/**` | 생성 API 참조입니다. TypeScript export와 JSDoc을 먼저 고치고, 출력물을 직접 고치지 말고 다시 생성합니다. | `pnpm docs:api`, `pnpm docs:sync` |
-| `llmsData/**` 및 생성 LLMS 파일 | 파생 학습·컨텍스트 산출물입니다. 정식 설명의 원문으로 취급하지 않습니다. | generator가 지원하면 `pnpm llms:sync-docs --changed-files <paths>` |
+| `llmsData/**` 및 생성 LLMS 파일 | 파생 학습·컨텍스트 산출물입니다. 정식 설명의 원문으로 취급하지 않습니다. | `pnpm llms:sync-docs --changed-files <paths>` 후 `pnpm llms:check` |
 | README와 패키지 README | 발견과 진입을 위한 문서입니다. 설명을 중복하기보다 권위 있는 가이드 또는 API 페이지로 연결합니다. | 관련 빌드와 링크 검증 |
 
 생성 파일도 리뷰할 수 있지만, 동작 수정은 생성물만 고치지 않고 원문, generator,
@@ -55,11 +55,12 @@
 
 | 변경 | 최소 게이트 | 해당할 때 추가 |
 | --- | --- | --- |
-| 사람이 작성한 문서 | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>` |
+| 사람이 작성한 문서 | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>`와 `pnpm llms:check` |
 | 공개 TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
 | 런타임 동작 또는 프레임워크 패턴 | 집중 패키지 테스트와 `pnpm type-check` | `pnpm test`, example build |
 | 예제 앱 또는 브라우저 통합 | `pnpm --filter example build` | 사용자 소유 자격 증명으로 수동 증명, 비밀값 커밋 금지 |
 | 릴리스·패키지 도구 | `pnpm verify:package-exports`, `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
+| LLMS/문서 정합성 | `pnpm llms:check` | 리뷰 증거가 필요하면 `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` |
 
 `pnpm docs:full`은 전체 문서 파이프라인입니다. 광범위한 API 또는 문서 릴리스에는
 사용하고, 집중 개발 중에는 위의 좁은 명령으로 빠르게 피드백을 받습니다.

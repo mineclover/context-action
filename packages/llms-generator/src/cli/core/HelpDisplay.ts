@@ -60,7 +60,7 @@ export class HelpDisplay {
     console.log('');
     console.log('MISMATCH DETECTION:');
     console.log('  detect-mismatches [options]      Detect mismatches between docs/ and llmsData/');
-    console.log('                                   [-o, --output <file>] [--auto-fix] [-v, --verbose] [--check-only]');
+    console.log('                                   [-o, --output <file>] [-v, --verbose] [--check-only] [--fail-on-mismatch]');
     console.log('');
     console.log('CODE MODE (SOURCE CODE DOCUMENTATION):');
     console.log('  code-mode [targets] [options]    Generate complete code documentation for LLM understanding');
@@ -124,6 +124,7 @@ export class HelpDisplay {
     console.log('  # Detect mismatches between source docs and LLMS data');
     console.log('  llms detect-mismatches --verbose');
     console.log('  llms detect-mismatches --output reports/mismatch-report.md --check-only');
+    console.log('  llms detect-mismatches --check-only --fail-on-mismatch');
     console.log('');
     console.log('  # Generate complete code documentation for LLM understanding');
     console.log('  llms code-mode  # Generate for both core and react packages');

@@ -12,6 +12,13 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - Canonical documentation cleanup removed the retired test-driven generator
   from the active documentation workflow.
 
+### Changed
+
+- Removed the unsupported `legacy:*` package scripts and the non-functional
+  `detect-mismatches --auto-fix` flag.
+- Added `detect-mismatches --fail-on-mismatch` and the repository-level
+  `pnpm llms:check` consistency gate for CI.
+
 ## [0.8.7](https://github.com/mineclover/context-action/compare/v0.8.6...v0.8.7) (2026-07-12)
 
 **Note:** Version bump only for package @context-action/llms-generator

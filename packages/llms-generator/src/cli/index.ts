@@ -368,9 +368,9 @@ async function handleDetectMismatches(args: string[], argumentParser: ArgumentPa
   
   const options = {
     outputFile: argumentParser.extractFlag(args, '-o', '--output') || 'docs/llms-mismatch-report.md',
-    autoFix: argumentParser.hasFlag(args, '--auto-fix'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
-    checkOnly: argumentParser.hasFlag(args, '--check-only')
+    checkOnly: argumentParser.hasFlag(args, '--check-only'),
+    failOnMismatch: argumentParser.hasFlag(args, '--fail-on-mismatch'),
   };
 
   await mismatchDetectionCommand.execute(options);

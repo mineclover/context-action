@@ -11,9 +11,9 @@ import {
 
 export interface MismatchDetectionOptions {
   outputFile?: string;           // 미스매치 리포트 출력 파일 경로 (기본: docs/llms-mismatch-report.md)
-  autoFix?: boolean;             // 자동 수정 여부 (현재는 안전상 false만 지원)
   verbose?: boolean;             // 상세 출력
   checkOnly?: boolean;           // 검사만 수행하고 파일 생성 안 함
+  failOnMismatch?: boolean;      // 미스매치가 있으면 실패 상태로 종료
 }
 
 export interface MismatchItem {
@@ -85,6 +85,14 @@ export class MismatchDetectionCommand {
 
       if (options.verbose) {
         console.log(`✅ Mismatch detection completed. Found ${report.totalMismatches} mismatches.`);
+      }
+
+      if (options.failOnMismatch && report.totalMismatches > 0) {
+        throw new Error(
+          `LLMS documentation mismatch check failed: ${report.totalMismatches} mismatch(es) found `
+          + `(orphaned=${report.summary.orphanedLlms}, missing=${report.summary.missingLlms}, `
+          + `inconsistent=${report.summary.inconsistentStructure}).`,
+        );
       }
 
       return report;

@@ -17,7 +17,7 @@ is planned and closed.
 | --- | --- | --- |
 | `docs/en/**`, `docs/ko/**` guides and concepts | Hand-authored source. Keep the English and Korean pages aligned when the content is public. | `pnpm docs:build` |
 | `docs/api/generated/**` | Generated API reference. Change TypeScript exports and JSDoc first; regenerate rather than hand-editing output. | `pnpm docs:api`, `pnpm docs:sync` |
-| `llmsData/**` and generated LLMS files | Derived learning/context artifacts. Do not treat them as the canonical explanation. | `pnpm llms:sync-docs --changed-files <paths>` when supported by the generator |
+| `llmsData/**` and generated LLMS files | Derived learning/context artifacts. Do not treat them as the canonical explanation. | `pnpm llms:sync-docs --changed-files <paths>` followed by `pnpm llms:check` |
 | README and package READMEs | Discovery and package entry points. They must route readers to the authoritative guide or API page rather than duplicate it. | Relevant build and link check |
 
 Generated files may be reviewed, but a behavioral correction belongs in their
@@ -63,11 +63,12 @@ describing it as available.
 
 | Change | Minimum gate | Add when applicable |
 | --- | --- | --- |
-| Hand-authored documentation | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>` |
+| Hand-authored documentation | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>` and `pnpm llms:check` |
 | Public TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
 | Runtime behavior or a framework pattern | Focused package test and `pnpm type-check` | `pnpm test`, example build |
 | Example app or browser integration | `pnpm --filter example build` | Manual proof with user-owned credentials; never commit secrets |
 | Release/package tooling | `pnpm verify:package-exports` and `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
+| LLMS/documentation consistency | `pnpm llms:check` | `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` for review evidence |
 
 `pnpm docs:full` is the complete documentation pipeline. Use it for broad API
 or documentation releases; use the narrower commands above during focused

@@ -48,10 +48,16 @@ if (manifest.schemaVersion !== 'source-of-truth-manifest.v1') {
 if (manifest.repository?.role !== 'consumer') {
   throw new Error('context-action must declare itself as the consumer repository.');
 }
+if (manifest.repository?.url !== 'https://github.com/mineclover/context-action') {
+  throw new Error('The consumer manifest must point to the context-action repository.');
+}
+if (manifest.toolingRepository?.url !== 'https://github.com/mineclover/context-action-documentation-tooling') {
+  throw new Error('The consumer manifest must point to the published documentation tooling repository.');
+}
 const toolingLifecycleState = `${manifest.toolingRepository?.phase}:${manifest.toolingRepository?.remoteStatus}`;
-if (!['local-scaffold:not-configured', 'pre-release:configured', 'published:configured'].includes(toolingLifecycleState)) {
+if (toolingLifecycleState !== 'published:configured') {
   throw new Error(
-    'The consumer manifest must use a supported tooling lifecycle and remote state before migration cutover.',
+    'The consumer manifest must declare the published tooling repository as configured.',
   );
 }
 if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArtifactNote.length === 0) {
@@ -59,6 +65,12 @@ if (typeof manifest.publishedArtifactNote !== 'string' || manifest.publishedArti
 }
 if (manifest.cutoverRule !== expectedCutoverRule) {
   throw new Error('The consumer manifest must declare the completed published-package cutover.');
+}
+const expectedGeneratedArtifacts = new Set(['architecture/registry.json', 'docs/api', 'llmsData']);
+const actualGeneratedArtifacts = new Set(manifest.generatedArtifacts ?? []);
+if (actualGeneratedArtifacts.size !== expectedGeneratedArtifacts.size
+  || [...expectedGeneratedArtifacts].some((artifact) => !actualGeneratedArtifacts.has(artifact))) {
+  throw new Error('The consumer manifest must declare the canonical generated artifact set.');
 }
 
 const expectedPublished = new Map([

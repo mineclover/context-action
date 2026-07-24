@@ -357,21 +357,6 @@ describe('MismatchDetectionCommand', () => {
     });
   });
 
-  describe('auto-fix mode', () => {
-    it('should attempt to fix detected mismatches when autoFix is enabled', async () => {
-      // Create source document without LLMS data
-      await fs.writeFile(
-        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
-        '# Getting Started\n\nThis is a comprehensive guide.'
-      );
-
-      await mismatchDetectionCommand.execute({ autoFix: true, outputFile: testReportPath });
-      
-      // Command executed successfully without error - auto-fix may or may not work
-      expect(true).toBe(true);
-    });
-  });
-
   describe('check-only mode', () => {
     it('should only check for mismatches without generating report file', async () => {
       // Create source document without LLMS data
@@ -389,6 +374,43 @@ describe('MismatchDetectionCommand', () => {
       // Check that no report file was created (checkOnly mode)
       const reportExists = await fs.access(outputFile).then(() => true).catch(() => false);
       expect(reportExists).toBe(false);
+    });
+
+    it('should fail when a consistency gate finds mismatches', async () => {
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        '# Getting Started\n\nThis document has no LLMS data.',
+      );
+
+      await expect(
+        mismatchDetectionCommand.execute({
+          checkOnly: true,
+          failOnMismatch: true,
+        }),
+      ).rejects.toThrow('LLMS documentation mismatch check failed');
+    });
+
+    it('should pass when the consistency gate has no mismatches', async () => {
+      await fs.rm(path.join(testDataDir, 'llmsData'), { recursive: true, force: true });
+      await fs.mkdir(path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started'), { recursive: true });
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        '# Getting Started\n\nThis is a comprehensive guide.',
+      );
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json'),
+        JSON.stringify({ document: { id: 'guide--getting-started' } }),
+      );
+      for (const limit of [100, 300, 1000, 2000, 5000]) {
+        await fs.writeFile(
+          path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', `guide--getting-started-${limit}.md`),
+          `# Getting Started (${limit})`,
+        );
+      }
+
+      await expect(
+        mismatchDetectionCommand.execute({ checkOnly: true, failOnMismatch: true }),
+      ).resolves.toMatchObject({ totalMismatches: 0 });
     });
   });
 
