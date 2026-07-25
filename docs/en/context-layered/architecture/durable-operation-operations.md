@@ -105,10 +105,16 @@ QUEUE_RESULT=success \
 
 pnpm tool-durable:verify:evidence \
   -- --file reports/durable-operation/evidence/evidence.json
+
+# Deployment gate: require every check to be present and successful
+pnpm tool-durable:verify:evidence:complete \
+  -- --file reports/durable-operation/evidence/evidence.json
 ```
 
-The generated JSON and Markdown are deployment evidence artifacts, not a substitute for the
-provider admission checklist or the actual production endpoint checks.
+The ordinary verifier checks schema shape. The `:complete` gate additionally rejects missing,
+unknown, skipped, or failed checks, so it should be the final deployment gate. The generated JSON
+and Markdown are deployment evidence artifacts, not a substitute for the provider admission
+checklist or the actual production endpoint checks.
 
 ## PostgreSQL deployment verification
 

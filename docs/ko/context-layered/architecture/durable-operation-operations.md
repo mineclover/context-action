@@ -98,10 +98,15 @@ QUEUE_RESULT=success \
 
 pnpm tool-durable:verify:evidence \
   -- --file reports/durable-operation/evidence/evidence.json
+
+# 배포 gate: 모든 check가 존재하고 성공했는지 확인
+pnpm tool-durable:verify:evidence:complete \
+  -- --file reports/durable-operation/evidence/evidence.json
 ```
 
-생성된 JSON/Markdown은 deployment evidence artifact이며 provider admission checklist나 실제
-production endpoint 검증을 대신하지 않는다.
+일반 verifier는 schema 형태만 확인한다. `:complete` gate는 누락·unknown·skipped·failed
+check도 거부하므로 배포 마지막 gate로 사용한다. 생성된 JSON/Markdown은 deployment evidence
+artifact이며 provider admission checklist나 실제 production endpoint 검증을 대신하지 않는다.
 
 ## PostgreSQL 배포 검증
 
