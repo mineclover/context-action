@@ -6,7 +6,7 @@
 
 # Interface: QueueSideEffectRunOptions\<TMessage, TAcknowledgement, TResult, TDiagnostic\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:25
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:25](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L25)
 
 ## Extends
 
@@ -36,7 +36,7 @@ Type parameter **TResult**
 
 > `readonly` **runner**: [`DurableSideEffectRunner`](DurableSideEffectRunner.md)\<`TResult`, `TDiagnostic`\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:32
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:32](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L32)
 
 Existing durable runner; this bridge does not create another store.
 
@@ -46,7 +46,7 @@ Existing durable runner; this bridge does not create another store.
 
 > `readonly` **message**: `TMessage`
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:34
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:34](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L34)
 
 Message passed to the injected queue publisher.
 
@@ -56,7 +56,7 @@ Message passed to the injected queue publisher.
 
 > `readonly` **enqueue**: [`QueueSideEffectEnqueue`](../type-aliases/QueueSideEffectEnqueue.md)\<`TMessage`, `TAcknowledgement`\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:36
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:36](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L36)
 
 Queue SDK or transport enqueue function.
 
@@ -66,7 +66,7 @@ Queue SDK or transport enqueue function.
 
 > `readonly` **onAcknowledgement**: [`QueueSideEffectAcknowledgementHandler`](../type-aliases/QueueSideEffectAcknowledgementHandler.md)\<`TAcknowledgement`, `TResult`, `TDiagnostic`\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:38
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:38](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L38)
 
 Provider-specific acknowledgement classification.
 
@@ -76,7 +76,7 @@ Provider-specific acknowledgement classification.
 
 > `readonly` `optional` **onError?**: (`error`, `context`) => [`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\> \| `Promise`\<[`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:44
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:44](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L44)
 
 Optional classification for errors known to happen before enqueue.
 
@@ -100,7 +100,7 @@ Optional classification for errors known to happen before enqueue.
 
 > `readonly` **key**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:122
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:122](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L122)
 
 #### Inherited from
 
@@ -112,7 +112,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:122
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:123
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:123](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L123)
 
 #### Inherited from
 
@@ -124,7 +124,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:123
 
 > `readonly` `optional` **leaseMs?**: `number`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:124
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L124)
 
 #### Inherited from
 
@@ -136,7 +136,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:124
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:125
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L125)
 
 #### Inherited from
 
@@ -148,7 +148,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:125
 
 > `readonly` `optional` **abortDiagnostic?**: `TDiagnostic`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:127
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L127)
 
 Optional bounded diagnostic retained when cancellation wins the race.
 

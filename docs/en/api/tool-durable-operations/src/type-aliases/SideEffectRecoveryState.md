@@ -8,4 +8,4 @@
 
 > **SideEffectRecoveryState** = `"resolved"` \| `"pending"` \| `"completed"` \| `"failed"` \| `"unknown"` \| `"missing"`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:67
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:67](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L67)

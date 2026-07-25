@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationListPage\<TResult\>
 
-Defined in: packages/tool-durable-operations/src/durable-operation.ts:57
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:57](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L57)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: packages/tool-durable-operations/src/durable-operation.ts:57
 
 > `readonly` **records**: readonly [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;[]
 
-Defined in: packages/tool-durable-operations/src/durable-operation.ts:58
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:58](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L58)
 
 ***
 
@@ -28,6 +28,6 @@ Defined in: packages/tool-durable-operations/src/durable-operation.ts:58
 
 > `readonly` `optional` **nextCursor?**: `string`
 
-Defined in: packages/tool-durable-operations/src/durable-operation.ts:60
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:60](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L60)
 
 Omit when the page is the final page.

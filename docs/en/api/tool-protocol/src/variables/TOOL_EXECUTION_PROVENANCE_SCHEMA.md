@@ -8,7 +8,7 @@
 
 > `const` **TOOL\_EXECUTION\_PROVENANCE\_SCHEMA**: `"context-action-tool-execution-provenance.v1"`
 
-Defined in: packages/tool-protocol/src/execution-provenance.ts:8
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:8](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L8)
 
 Additive lifecycle evidence for a managed tool call.
 

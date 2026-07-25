@@ -8,7 +8,7 @@
 
 > **DurableOperationState** = `"pending"` \| `"completed"` \| `"failed"` \| `"unknown"`
 
-Defined in: packages/tool-durable-operations/src/durable-operation.ts:9
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:9](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L9)
 
 Framework-neutral durable operation contracts.
 

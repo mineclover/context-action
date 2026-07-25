@@ -6,7 +6,7 @@
 
 # Interface: MCPToolDefinition
 
-Defined in: packages/tool-protocol/src/json-schema.ts:139
+Defined in: [packages/tool-protocol/src/json-schema.ts:139](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L139)
 
 MCP (Model Context Protocol) Tool 정의
 
@@ -24,7 +24,7 @@ https://modelcontextprotocol.io/docs/concepts/tools
 
 > **name**: `string`
 
-Defined in: packages/tool-protocol/src/json-schema.ts:121
+Defined in: [packages/tool-protocol/src/json-schema.ts:121](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L121)
 
 Tool name (unique identifier)
 
@@ -38,7 +38,7 @@ Tool name (unique identifier)
 
 > `optional` **title?**: `string`
 
-Defined in: packages/tool-protocol/src/json-schema.ts:123
+Defined in: [packages/tool-protocol/src/json-schema.ts:123](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L123)
 
 Optional human-facing title
 
@@ -52,7 +52,7 @@ Optional human-facing title
 
 > `optional` **description?**: `string`
 
-Defined in: packages/tool-protocol/src/json-schema.ts:125
+Defined in: [packages/tool-protocol/src/json-schema.ts:125](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L125)
 
 Description used by the model for tool selection
 
@@ -66,7 +66,7 @@ Description used by the model for tool selection
 
 > **inputSchema**: [`JSONSchema`](JSONSchema.md)
 
-Defined in: packages/tool-protocol/src/json-schema.ts:127
+Defined in: [packages/tool-protocol/src/json-schema.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L127)
 
 Input schema in JSON Schema format
 
@@ -80,7 +80,7 @@ Input schema in JSON Schema format
 
 > `optional` **outputSchema?**: [`JSONSchema`](JSONSchema.md)
 
-Defined in: packages/tool-protocol/src/json-schema.ts:129
+Defined in: [packages/tool-protocol/src/json-schema.ts:129](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L129)
 
 Optional structured output schema
 
@@ -94,7 +94,7 @@ Optional structured output schema
 
 > `optional` **annotations?**: [`ToolAnnotations`](ToolAnnotations.md)
 
-Defined in: packages/tool-protocol/src/json-schema.ts:131
+Defined in: [packages/tool-protocol/src/json-schema.ts:131](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L131)
 
 Optional behavioral hints
 

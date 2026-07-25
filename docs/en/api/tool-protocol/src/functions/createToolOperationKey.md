@@ -8,7 +8,7 @@
 
 > **createToolOperationKey**(`toolName`, `idempotencyKey`, `sessionId?`): `string`
 
-Defined in: packages/tool-protocol/src/idempotency.ts:215
+Defined in: [packages/tool-protocol/src/idempotency.ts:215](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L215)
 
 Build the storage key used by a ToolContext durable operation adapter.
 JSON tuple encoding avoids collisions when a user-controlled session ID

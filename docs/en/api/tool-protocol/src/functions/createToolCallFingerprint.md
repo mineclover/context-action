@@ -8,7 +8,7 @@
 
 > **createToolCallFingerprint**(`toolName`, `argumentsValue`): `string`
 
-Defined in: packages/tool-protocol/src/idempotency.ts:191
+Defined in: [packages/tool-protocol/src/idempotency.ts:191](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L191)
 
 Create a deterministic, non-secret fingerprint for tool name and arguments.
 The fingerprint is for accidental key-reuse detection, not authentication.

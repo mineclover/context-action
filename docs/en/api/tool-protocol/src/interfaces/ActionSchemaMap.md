@@ -6,7 +6,7 @@
 
 # Interface: ActionSchemaMap
 
-Defined in: packages/tool-protocol/src/action-schema.ts:141
+Defined in: [packages/tool-protocol/src/action-schema.ts:141](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L141)
 
 다중 Action 스키마 맵
 

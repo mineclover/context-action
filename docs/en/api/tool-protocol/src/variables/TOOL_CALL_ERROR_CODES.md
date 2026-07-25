@@ -8,7 +8,7 @@
 
 > `const` **TOOL\_CALL\_ERROR\_CODES**: `object`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:20
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:20](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L20)
 
 Canonical error codes emitted by the managed tool-call boundary.
 

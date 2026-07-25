@@ -6,7 +6,7 @@
 
 # Interface: SideEffectRunOptions\<TResult, TDiagnostic\>
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:121
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:121](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L121)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **TResult**
 
 > `readonly` **key**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:122
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:122](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L122)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:122
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:123
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:123](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L123)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:123
 
 > `readonly` `optional` **leaseMs?**: `number`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:124
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L124)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:124
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:125
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L125)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:125
 
 > `readonly` `optional` **abortDiagnostic?**: `TDiagnostic`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:127
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L127)
 
 Optional bounded diagnostic retained when cancellation wins the race.
 
@@ -66,7 +66,7 @@ Optional bounded diagnostic retained when cancellation wins the race.
 
 > `readonly` **execute**: (`context`) => `Promise`\<[`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:128
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:128](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L128)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:128
 
 > `readonly` `optional` **onError?**: (`error`, `context`) => [`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\> \| `Promise`\<[`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:132
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:132](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L132)
 
 Classify a thrown adapter error. The default is `unknown`.
 

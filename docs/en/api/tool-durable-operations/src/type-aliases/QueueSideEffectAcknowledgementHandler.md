@@ -8,7 +8,7 @@
 
 > **QueueSideEffectAcknowledgementHandler**\<`TAcknowledgement`, `TResult`, `TDiagnostic`\> = (`acknowledgement`, `context`) => [`SideEffectOutcome`](SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\> \| `Promise`\<[`SideEffectOutcome`](SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:16
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:16](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L16)
 
 Provider-owned acknowledgement classifier for a queue publish.
 

@@ -8,7 +8,7 @@
 
 > **isDurableOperationState**(`value`): `value is DurableOperationState`
 
-Defined in: packages/tool-durable-operations/src/durable-operation.ts:493
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:493](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L493)
 
 Durable operation records and external side-effect adapters.
 

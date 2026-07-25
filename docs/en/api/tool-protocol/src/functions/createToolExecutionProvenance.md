@@ -8,7 +8,7 @@
 
 > **createToolExecutionProvenance**(`options`): [`ToolExecutionProvenance`](../interfaces/ToolExecutionProvenance.md)
 
-Defined in: packages/tool-protocol/src/execution-provenance.ts:52
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:52](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L52)
 
 ## Parameters
 

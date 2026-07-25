@@ -8,7 +8,7 @@
 
 > **stringifyToolContentBlock**(`block`): `string`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:436
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:436](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L436)
 
 Convert one canonical content block into a readable model/UI message.
 

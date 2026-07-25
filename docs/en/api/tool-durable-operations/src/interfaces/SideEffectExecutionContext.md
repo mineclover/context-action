@@ -6,7 +6,7 @@
 
 # Interface: SideEffectExecutionContext
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:35
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:35](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L35)
 
 Context passed to an HTTP, queue, filesystem, or provider adapter.
 
@@ -16,7 +16,7 @@ Context passed to an HTTP, queue, filesystem, or provider adapter.
 
 > `readonly` **key**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:36
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:36](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L36)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:36
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:37
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:37](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L37)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:37
 
 > `readonly` **ownerId**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:38
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:38](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L38)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:38
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:39
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:39](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L39)

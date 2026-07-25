@@ -8,7 +8,7 @@
 
 > **sanitizeToolCallDiagnosticReason**(`result`): `string`
 
-Defined in: packages/tool-protocol/src/observability.ts:280
+Defined in: [packages/tool-protocol/src/observability.ts:328](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L328)
 
 Returns a stable non-payload reason safe to persist beside an error record.
 

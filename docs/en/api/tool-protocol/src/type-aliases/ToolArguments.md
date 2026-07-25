@@ -8,6 +8,6 @@
 
 > **ToolArguments** = `Record`\<`string`, `unknown`\>
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:48
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:48](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L48)
 
 Arguments passed to a tool call after provider-specific normalization.

@@ -6,7 +6,7 @@
 
 # Interface: ToolApprovalQueue
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:113
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:113](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L113)
 
 Shared approval lifecycle used by browser and host tool surfaces.
 
@@ -16,7 +16,7 @@ Shared approval lifecycle used by browser and host tool surfaces.
 
 > `readonly` **store**: [`ToolApprovalStore`](ToolApprovalStore.md)
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:114
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:114](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L114)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/tool-protocol/src/tool-protocol.ts:114
 
 > `readonly` **request**: (`input`) => `Promise`\<[`ToolApprovalDecision`](../type-aliases/ToolApprovalDecision.md)\>
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:115
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:115](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L115)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: packages/tool-protocol/src/tool-protocol.ts:115
 
 > `readonly` **resolve**: (`id`, `decision`) => `void`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:118
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:118](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L118)
 
 #### Parameters
 
@@ -64,7 +64,7 @@ Defined in: packages/tool-protocol/src/tool-protocol.ts:118
 
 > `readonly` **denyAll**: () => `void`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:119
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:119](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L119)
 
 #### Returns
 

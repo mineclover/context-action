@@ -8,7 +8,7 @@
 
 > **createActionHandler**\<`T`, `K`\>(`registry`, `action`, `handler`, `config?`): `object`
 
-Defined in: [packages/core/src/react-helpers.ts:92](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L92)
+Defined in: [packages/core/src/react-helpers.ts:92](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L92)
 
 🔧 Create action handler registration configuration for React components
 
@@ -100,11 +100,11 @@ import { createActionHandler } from '@context-action/core/react-helpers';
 
 function MyComponent() {
   const registry = useActionRegister();
-
+  
   const handleUserUpdate = useCallback(async (payload, controller) => {
     // Handler logic here
   }, []);
-
+  
   useEffect(() => {
     const { register, unregister } = createActionHandler(
       registry,
@@ -112,7 +112,7 @@ function MyComponent() {
       handleUserUpdate,
       { priority: 10 }
     );
-
+    
     const cleanup = register();
     return () => {
       cleanup();
@@ -138,7 +138,7 @@ useEffect(() => {
     handleUserUpdate,
     { priority: 10 }
   );
-
+  
   // Simplified registration with automatic cleanup
   return handlerManager.registerWithCleanup();
 }, [registry, handleUserUpdate, userId]);

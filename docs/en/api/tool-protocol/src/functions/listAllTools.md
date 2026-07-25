@@ -8,7 +8,7 @@
 
 > **listAllTools**&lt;`TDefinition`&gt;(`manager`, `options?`): `TDefinition`[]
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:602
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:602](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L602)
 
 Collect every page from a canonical tools/list manager.
 

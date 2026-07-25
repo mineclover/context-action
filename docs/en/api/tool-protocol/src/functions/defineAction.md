@@ -8,7 +8,7 @@
 
 > **defineAction**&lt;`TSchema`&gt;(`options`, `zodModule`): [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
 
-Defined in: packages/tool-protocol/src/action-schema.ts:226
+Defined in: [packages/tool-protocol/src/action-schema.ts:226](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L226)
 
 Zod 스키마 기반 Action 정의
 

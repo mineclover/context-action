@@ -6,7 +6,7 @@
 
 # Interface: HttpSideEffectRunOptions\<TResult, TDiagnostic\>
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:29
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:29](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L29)
 
 ## Extends
 
@@ -28,7 +28,7 @@ Type parameter **TResult**
 
 > `readonly` **runner**: [`DurableSideEffectRunner`](DurableSideEffectRunner.md)\<`TResult`, `TDiagnostic`\>
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:35
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:35](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L35)
 
 Existing durable runner; this adapter does not create another store.
 
@@ -38,7 +38,7 @@ Existing durable runner; this adapter does not create another store.
 
 > `readonly` **request**: [`HttpSideEffectRequest`](../type-aliases/HttpSideEffectRequest.md)
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:37
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:37](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L37)
 
 Injected fetch/request function so browser, server, and test transports share the contract.
 
@@ -48,7 +48,7 @@ Injected fetch/request function so browser, server, and test transports share th
 
 > `readonly` **onResponse**: [`HttpSideEffectResponseHandler`](../type-aliases/HttpSideEffectResponseHandler.md)\<`TResult`, `TDiagnostic`\>
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:39
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:39](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L39)
 
 Provider-specific authoritative response classification.
 
@@ -58,7 +58,7 @@ Provider-specific authoritative response classification.
 
 > `readonly` `optional` **onError?**: (`error`, `context`) => [`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\> \| `Promise`\<[`SideEffectOutcome`](../type-aliases/SideEffectOutcome.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:41
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:41](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L41)
 
 Optional classification for errors known to have happened before transmission.
 
@@ -82,7 +82,7 @@ Optional classification for errors known to have happened before transmission.
 
 > `readonly` **key**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:122
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:122](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L122)
 
 #### Inherited from
 
@@ -94,7 +94,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:122
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:123
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:123](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L123)
 
 #### Inherited from
 
@@ -106,7 +106,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:123
 
 > `readonly` `optional` **leaseMs?**: `number`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:124
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L124)
 
 #### Inherited from
 
@@ -118,7 +118,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:124
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:125
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L125)
 
 #### Inherited from
 
@@ -130,7 +130,7 @@ Defined in: packages/tool-durable-operations/src/side-effect.ts:125
 
 > `readonly` `optional` **abortDiagnostic?**: `TDiagnostic`
 
-Defined in: packages/tool-durable-operations/src/side-effect.ts:127
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L127)
 
 Optional bounded diagnostic retained when cancellation wins the race.
 

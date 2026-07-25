@@ -8,7 +8,7 @@
 
 > **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:174](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/react/src/actions/ActionContext.tsx#L174)
+Defined in: [packages/react/src/actions/ActionContext.tsx:174](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/actions/ActionContext.tsx#L174)
 
 Enhanced action context factory with automatic type inference
 

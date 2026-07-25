@@ -8,7 +8,7 @@
 
 > **HttpSideEffectRequest** = (`context`) => `Response` \| `Promise`&lt;`Response`&gt;
 
-Defined in: packages/tool-durable-operations/src/http-side-effect.ts:25
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:25](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L25)
 
 ## Parameters
 

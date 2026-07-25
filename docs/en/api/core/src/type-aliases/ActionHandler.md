@@ -8,7 +8,7 @@
 
 > **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:405](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/types.ts#L405)
+Defined in: [packages/core/src/types.ts:405](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/types.ts#L405)
 
 Action handler function type for processing actions within the pipeline
 
@@ -57,27 +57,27 @@ The result value or Promise resolving to result
 **Store Integration Pattern**
 
 ```typescript
-const updateUserHandler: ActionHandler<{id: string, name: string, email: string}> =
+const updateUserHandler: ActionHandler<{id: string, name: string, email: string}> = 
   async (payload, controller) => {
     // 1. Read current state from stores
     const currentUser = userStore.getValue()
     const settings = settingsStore.getValue()
-
+    
     // 2. Execute business logic
     if (!settings.allowUserUpdates) {
       controller.abort('User updates are disabled')
       return
     }
-
+    
     const updatedUser = {
       ...currentUser,
       ...payload,
       updatedAt: new Date().toISOString()
     }
-
+    
     // 3. Update stores
     userStore.setValue(updatedUser)
-
+    
     // Set result for other handlers or components
     controller.setResult({ success: true, user: updatedUser })
   }
@@ -86,14 +86,14 @@ const updateUserHandler: ActionHandler<{id: string, name: string, email: string}
 **Async Handler with Error Handling**
 
 ```typescript
-const saveUserHandler: ActionHandler<UserData, SaveResult> =
+const saveUserHandler: ActionHandler<UserData, SaveResult> = 
   async (payload, controller) => {
     try {
       const result = await userService.save(payload)
-
+      
       // Update local store with server response
       userStore.setValue(result.user)
-
+      
       return { success: true, userId: result.user.id }
     } catch (error) {
       controller.abort(`Save failed: ${error.message}`)

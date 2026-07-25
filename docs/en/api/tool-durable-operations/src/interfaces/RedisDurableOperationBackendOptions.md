@@ -6,7 +6,7 @@
 
 # Interface: RedisDurableOperationBackendOptions
 
-Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:92
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:92](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L92)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:92
 
 > `readonly` **client**: [`DurableOperationRedisClient`](DurableOperationRedisClient.md)
 
-Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:93
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:93](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L93)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:93
 
 > `readonly` `optional` **keyPrefix?**: `string`
 
-Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:95
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:95](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L95)
 
 Prefix for record keys and the lexicographic index.
 
@@ -32,6 +32,6 @@ Prefix for record keys and the lexicographic index.
 
 > `readonly` `optional` **defaultPageSize?**: `number`
 
-Defined in: packages/tool-durable-operations/src/redis-operation-backend.ts:97
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:97](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L97)
 
 Default page size for direct `listPage()` calls.

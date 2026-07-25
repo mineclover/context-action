@@ -8,7 +8,7 @@
 
 > **createToolCallSuccess**&lt;`TResult`&gt;(`value`, `options?`): [`ToolCallResult`](../interfaces/ToolCallResult.md)&lt;`TResult`&gt;
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:702
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:702](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L702)
 
 Create a successful result while preserving the handler's structured value.
 

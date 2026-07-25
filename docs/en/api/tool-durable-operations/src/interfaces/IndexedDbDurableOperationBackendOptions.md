@@ -6,7 +6,7 @@
 
 # Interface: IndexedDbDurableOperationBackendOptions
 
-Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:6
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:6](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L6)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:
 
 > `readonly` `optional` **databaseName?**: `string`
 
-Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:8
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:8](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L8)
 
 IndexedDB database name. Defaults to `context-action-operations`.
 
@@ -24,7 +24,7 @@ IndexedDB database name. Defaults to `context-action-operations`.
 
 > `readonly` `optional` **storeName?**: `string`
 
-Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:10
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:10](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L10)
 
 Object store name. Defaults to `durable-operations`.
 
@@ -34,7 +34,7 @@ Object store name. Defaults to `durable-operations`.
 
 > `readonly` `optional` **version?**: `number`
 
-Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:12
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:12](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L12)
 
 Schema version used when creating the object store. Defaults to 1.
 
@@ -44,6 +44,6 @@ Schema version used when creating the object store. Defaults to 1.
 
 > `readonly` `optional` **indexedDB?**: `IDBFactory`
 
-Defined in: packages/tool-durable-operations/src/indexeddb-operation-backend.ts:14
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:14](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L14)
 
 Injectable factory for browser tests or a host-owned IndexedDB instance.

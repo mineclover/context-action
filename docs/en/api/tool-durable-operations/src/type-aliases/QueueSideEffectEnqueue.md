@@ -8,7 +8,7 @@
 
 > **QueueSideEffectEnqueue**\<`TMessage`, `TAcknowledgement`\> = (`message`, `context`) => `TAcknowledgement` \| `Promise`&lt;`TAcknowledgement`&gt;
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:10
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:10](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L10)
 
 Injected queue publish/enqueue boundary.
 

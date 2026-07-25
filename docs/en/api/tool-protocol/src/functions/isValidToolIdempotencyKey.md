@@ -8,7 +8,7 @@
 
 > **isValidToolIdempotencyKey**(`value`): `value is string`
 
-Defined in: packages/tool-protocol/src/idempotency.ts:206
+Defined in: [packages/tool-protocol/src/idempotency.ts:206](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L206)
 
 Runtime validation for caller-supplied idempotency keys.
 

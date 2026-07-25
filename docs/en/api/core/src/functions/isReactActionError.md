@@ -8,7 +8,7 @@
 
 > **isReactActionError**(`error`): `error is ReactActionError`
 
-Defined in: [packages/core/src/react-helpers.ts:294](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L294)
+Defined in: [packages/core/src/react-helpers.ts:294](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L294)
 
 🆕 Type guard for React Action Errors
 

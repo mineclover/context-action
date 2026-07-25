@@ -6,7 +6,7 @@
 
 # Interface: ToolTextContent
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:423
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:423](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L423)
 
 Text content block shared by the current ToolContext result bridge.
 
@@ -16,7 +16,7 @@ Text content block shared by the current ToolContext result bridge.
 
 > `readonly` **type**: `"text"`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:424
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:424](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L424)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: packages/tool-protocol/src/tool-protocol.ts:424
 
 > `readonly` **text**: `string`
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:425
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:425](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L425)

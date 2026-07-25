@@ -8,7 +8,7 @@
 
 > **toAnthropicToolDefinition**(`definition`): [`AnthropicToolDefinition`](../interfaces/AnthropicToolDefinition.md)
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:675
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:675](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L675)
 
 Convert one canonical tools/list definition to an Anthropic tool.
 

@@ -8,7 +8,7 @@
 
 > **runQueueSideEffect**\<`TMessage`, `TAcknowledgement`, `TResult`, `TDiagnostic`\>(`options`): `Promise`\<[`SideEffectRunResult`](../interfaces/SideEffectRunResult.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: packages/tool-durable-operations/src/queue-side-effect.ts:55
+Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:55](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/queue-side-effect.ts#L55)
 
 Publish one queue message through an existing durable side-effect runner.
 

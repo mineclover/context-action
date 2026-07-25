@@ -6,7 +6,7 @@
 
 # Class: ActionTimeoutError
 
-Defined in: [packages/core/src/errors.ts:164](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/errors.ts#L164)
+Defined in: [packages/core/src/errors.ts:164](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L164)
 
 Raised when a dispatch exceeds its configured wall-clock timeout.
 The underlying handler receives an aborted controller signal and the internal
@@ -23,7 +23,7 @@ this error.
 
 > **new ActionTimeoutError**(`action`, `timeout`): `ActionTimeoutError`
 
-Defined in: [packages/core/src/errors.ts:167](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/errors.ts#L167)
+Defined in: [packages/core/src/errors.ts:167](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L167)
 
 #### Parameters
 
@@ -49,7 +49,7 @@ Type parameter **ActionTimeoutError**
 
 > **name**: `string` = `'ActionTimeoutError'`
 
-Defined in: [packages/core/src/errors.ts:165](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/errors.ts#L165)
+Defined in: [packages/core/src/errors.ts:165](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L165)
 
 #### Overrides
 
@@ -61,7 +61,7 @@ Defined in: [packages/core/src/errors.ts:165](https://github.com/mineclover/cont
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/errors.ts:168](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/errors.ts#L168)
+Defined in: [packages/core/src/errors.ts:168](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L168)
 
 ***
 
@@ -69,4 +69,4 @@ Defined in: [packages/core/src/errors.ts:168](https://github.com/mineclover/cont
 
 > `readonly` **timeout**: `number`
 
-Defined in: [packages/core/src/errors.ts:169](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/errors.ts#L169)
+Defined in: [packages/core/src/errors.ts:169](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L169)

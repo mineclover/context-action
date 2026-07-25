@@ -6,7 +6,7 @@
 
 # Interface: ToolObservationRequest
 
-Defined in: packages/tool-protocol/src/observability.ts:55
+Defined in: [packages/tool-protocol/src/observability.ts:56](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L56)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: packages/tool-protocol/src/observability.ts:55
 
 > `readonly` **method**: `"tools/call"`
 
-Defined in: packages/tool-protocol/src/observability.ts:56
+Defined in: [packages/tool-protocol/src/observability.ts:57](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L57)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: packages/tool-protocol/src/observability.ts:56
 
 > `readonly` `optional` **toolCallId?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: packages/tool-protocol/src/observability.ts:57
+Defined in: [packages/tool-protocol/src/observability.ts:58](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L58)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: packages/tool-protocol/src/observability.ts:57
 
 > `readonly` **name**: `string`
 
-Defined in: packages/tool-protocol/src/observability.ts:58
+Defined in: [packages/tool-protocol/src/observability.ts:59](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L59)
 
 ***
 
@@ -38,6 +38,6 @@ Defined in: packages/tool-protocol/src/observability.ts:58
 
 > `readonly` **argumentKeys**: readonly `string`[]
 
-Defined in: packages/tool-protocol/src/observability.ts:60
+Defined in: [packages/tool-protocol/src/observability.ts:61](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L61)
 
 Argument names only; argument values are intentionally never projected.

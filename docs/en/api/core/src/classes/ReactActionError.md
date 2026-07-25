@@ -6,7 +6,7 @@
 
 # Class: ReactActionError
 
-Defined in: [packages/core/src/react-helpers.ts:243](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L243)
+Defined in: [packages/core/src/react-helpers.ts:243](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L243)
 
 🆕 React Error Boundary integration
 
@@ -22,7 +22,7 @@ Utilities for integrating ActionRegister errors with React Error Boundaries.
 
 > **new ReactActionError**(`message`, `action`, `payload?`, `handlerId?`, `originalError?`): `ReactActionError`
 
-Defined in: [packages/core/src/react-helpers.ts:249](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L249)
+Defined in: [packages/core/src/react-helpers.ts:249](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L249)
 
 #### Parameters
 
@@ -60,7 +60,7 @@ Type parameter **ReactActionError**
 
 > `static` **fromActionError**(`originalError`, `action`, `payload?`, `handlerId?`): `ReactActionError`
 
-Defined in: [packages/core/src/react-helpers.ts:272](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L272)
+Defined in: [packages/core/src/react-helpers.ts:272](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L272)
 
 Create a React Error Boundary compatible error
 
@@ -92,7 +92,7 @@ Type parameter **ReactActionError**
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/react-helpers.ts:244](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L244)
+Defined in: [packages/core/src/react-helpers.ts:244](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L244)
 
 ***
 
@@ -100,7 +100,7 @@ Defined in: [packages/core/src/react-helpers.ts:244](https://github.com/mineclov
 
 > `readonly` `optional` **payload?**: `unknown`
 
-Defined in: [packages/core/src/react-helpers.ts:245](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L245)
+Defined in: [packages/core/src/react-helpers.ts:245](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L245)
 
 ***
 
@@ -108,7 +108,7 @@ Defined in: [packages/core/src/react-helpers.ts:245](https://github.com/mineclov
 
 > `readonly` **handlerId**: `string` \| `undefined`
 
-Defined in: [packages/core/src/react-helpers.ts:246](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L246)
+Defined in: [packages/core/src/react-helpers.ts:246](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L246)
 
 ***
 
@@ -116,4 +116,4 @@ Defined in: [packages/core/src/react-helpers.ts:246](https://github.com/mineclov
 
 > `readonly` **timestamp**: `number`
 
-Defined in: [packages/core/src/react-helpers.ts:247](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/core/src/react-helpers.ts#L247)
+Defined in: [packages/core/src/react-helpers.ts:247](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L247)

@@ -8,7 +8,7 @@
 
 > **createToolIdempotencyRegistry**&lt;`TResult`&gt;(`options?`): [`ToolIdempotencyRegistry`](../interfaces/ToolIdempotencyRegistry.md)&lt;`TResult`&gt;
 
-Defined in: packages/tool-protocol/src/idempotency.ts:73
+Defined in: [packages/tool-protocol/src/idempotency.ts:73](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L73)
 
 Create a bounded in-memory promise-sharing idempotency registry.
 

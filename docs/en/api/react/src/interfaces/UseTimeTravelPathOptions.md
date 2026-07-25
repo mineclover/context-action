@@ -6,7 +6,7 @@
 
 # Interface: UseTimeTravelPathOptions\<R\>
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:21](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/react/src/stores/hooks/useTimeTravelPath.ts#L21)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:21](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelPath.ts#L21)
 
 Options for useTimeTravelPath
 
@@ -22,7 +22,7 @@ Type parameter **R**
 
 > `optional` **equalityFn?**: (`a`, `b`) => `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:23](https://github.com/mineclover/context-action/blob/dea90ac327b79839bf3b863ae1a23733da7e4ee3/packages/react/src/stores/hooks/useTimeTravelPath.ts#L23)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:23](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelPath.ts#L23)
 
 Custom equality function for the selected value
 

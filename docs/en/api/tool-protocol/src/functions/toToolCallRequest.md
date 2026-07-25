@@ -8,7 +8,7 @@
 
 > **toToolCallRequest**(`call`): [`ToolCallRequest`](../interfaces/ToolCallRequest.md)
 
-Defined in: packages/tool-protocol/src/tool-protocol.ts:572
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:572](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L572)
 
 Create a tools/call request from a provider-neutral model tool call.
 
