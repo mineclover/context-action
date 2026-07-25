@@ -1,0 +1,11 @@
+# Temporary, scoped exception for the React Router RSC advisory.
+#
+# The repository currently consumes the latest published 7.x release and the
+# example uses browser routing, not React Router's RSC action mode. OSV lists
+# 8.3.0 as the first fixed release, but that version is not published for the
+# npm package yet. Re-check this exception when a fixed 8.x release becomes
+# available; do not extend it without reviewing the affected usage.
+[[IgnoredVulns]]
+id = "GHSA-qwww-vcr4-c8h2"
+ignoreUntil = 2026-09-30
+reason = "Example uses browser routing only; React Router 8.3.0 is not published yet. Re-evaluate before expiry."

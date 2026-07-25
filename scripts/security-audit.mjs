@@ -16,6 +16,27 @@ const maxCommandOutputBytes = 32 * 1024 * 1024;
 
 await readFile(path.join(repositoryRoot, 'pnpm-lock.yaml'));
 
+const securityConfigPath = path.join(repositoryRoot, 'osv-scanner.toml');
+const securityConfig = await readFile(securityConfigPath, 'utf8').catch(() => '');
+
+function readActiveIgnoredVulnerabilities(source) {
+  const ignored = new Map();
+  const entries =
+    source.match(/\[\[IgnoredVulns\]\][\s\S]*?(?=\[\[IgnoredVulns\]\]|$)/g) ?? [];
+  const now = Date.now();
+  for (const entry of entries) {
+    const id = entry.match(/^id\s*=\s*["']([^"']+)["']/m)?.[1];
+    if (!id) continue;
+    const ignoreUntil = entry.match(/^ignoreUntil\s*=\s*([0-9-]+)/m)?.[1];
+    if (ignoreUntil && Date.parse(`${ignoreUntil}T23:59:59Z`) < now) continue;
+    const reason = entry.match(/^reason\s*=\s*["']([^"']+)["']/m)?.[1];
+    ignored.set(id, reason || 'configured security exception');
+  }
+  return ignored;
+}
+
+const ignoredVulnerabilities = readActiveIgnoredVulnerabilities(securityConfig);
+
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -184,10 +205,25 @@ const uniqueFindings = [...new Map(
   return leftKey.localeCompare(rightKey);
 });
 
+const actionableFindings = uniqueFindings.filter(
+  (item) => !ignoredVulnerabilities.has(item.id),
+);
+
 console.log(`OSV audit checked ${packages.length} npm package versions.`);
-if (uniqueFindings.length > 0) {
-  console.error(`OSV audit found ${uniqueFindings.length} vulnerability match(es):`);
-  for (const item of uniqueFindings) {
+if (ignoredVulnerabilities.size > 0) {
+  const filtered = uniqueFindings.filter((item) => ignoredVulnerabilities.has(item.id));
+  if (filtered.length > 0) {
+    console.warn(`OSV audit filtered ${filtered.length} configured vulnerability match(es):`);
+    for (const item of filtered) {
+      console.warn(
+        `  ${item.name}@${item.version}: ${item.id} (${ignoredVulnerabilities.get(item.id)})`,
+      );
+    }
+  }
+}
+if (actionableFindings.length > 0) {
+  console.error(`OSV audit found ${actionableFindings.length} vulnerability match(es):`);
+  for (const item of actionableFindings) {
     console.error(`  ${item.name}@${item.version}: ${item.id}`);
   }
   process.exitCode = 1;
