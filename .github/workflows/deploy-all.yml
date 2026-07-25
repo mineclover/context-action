@@ -131,7 +131,10 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: build-artifacts-24
-          path: .
+          # upload-artifact removes the common `packages/` prefix from the
+          # uploaded paths. Restore it here so workspace package exports are
+          # available to the example and documentation builds.
+          path: packages
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
         continue-on-error: true
