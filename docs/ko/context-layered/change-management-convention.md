@@ -204,9 +204,16 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 pnpm docs:build
 pnpm docs:management
 pnpm convention:check
+pnpm change:traceability       # pull request 이슈/스펙 참조 gate
 pnpm docs:full             # 광범위한 API/문서 릴리스
 pnpm llms:sync-docs --changed-files <paths>
 ```
+
+`pnpm change:traceability`는 pull request CI에서 강제됩니다. `packages/`,
+`architecture/`, `docs/`, `scripts/`, `.github/` 아래의 계약 변경이 pull
+request 본문이나 commit message에 `#123` 또는 안정적인 `CA-*` 스펙/결정 ID를
+포함하는지 확인합니다. 직접 push와 pull request 이벤트가 아닌 로컬 실행은
+의도적으로 건너뛰므로 과거 commit을 다시 작성할 필요가 없습니다.
 
 standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-calling-web-studio)에
 기록된 집중 convention, type-check, build, browser 검증도 실행합니다.
@@ -227,10 +234,11 @@ documentation-management gate, architecture SEM gate가 모두 통과했습니�
 | 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify`와 `pnpm arch:check` 통과, registry 상태는 `verified` |
 | 종료 | Dexie migration에 명시적인 v1→v2 browser fixture가 없었음 | `scripts/verify-web-coding-browser.mjs`가 v1 DB를 만들고 upgrade를 검증 |
 | 종료 | 영문·국문 parity와 내부 링크 유효성이 주로 review convention이었음 | `pnpm docs:management`가 pair page, discovery link, handoff metadata를 검사 |
-| P2 | issue→spec→test 연결이 기계적으로 강제되지 않음 | `CA-GOV-TRACE-001`로 추적하며 과거 commit을 다시 쓰지 않고 report 또는 PR check 추가 |
+| 종료 | issue→spec→test 연결이 기계적으로 강제되지 않음 | `pnpm change:traceability`가 변경된 계약 파일을 보고하고 pull request metadata에 `#<issue>` 또는 `CA-*` 참조를 요구 |
 
-남은 추적성 항목은 현재 기능을 막는 이유가 아니라 프로세스 개선 항목입니다.
-이슈 ID가 스펙·커밋·증거에 일관되게 사용될 때까지 governance backlog로 유지합니다.
+추적성 gate는 과거 commit을 다시 쓰지 않고 새로운 pull request에만
+추가적으로 적용됩니다. GitHub issue가 없는 변경은 스펙 또는 결정 ID를
+참조하는 방식이 권장됩니다.
 
 ## 리뷰 및 handoff 체크리스트
 

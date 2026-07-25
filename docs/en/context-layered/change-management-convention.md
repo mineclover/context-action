@@ -210,9 +210,17 @@ Minimum focused gates:
 pnpm docs:build
 pnpm docs:management
 pnpm convention:check
+pnpm change:traceability       # pull-request issue/spec reference gate
 pnpm docs:full             # broad API/documentation releases
 pnpm llms:sync-docs --changed-files <paths>
 ```
+
+`pnpm change:traceability` is enforced by the pull-request CI job. It checks
+contract-bearing changes under `packages/`, `architecture/`, `docs/`,
+`scripts/`, and `.github/` for an issue reference such as `#123` or a stable
+`CA-*` specification/decision ID in the pull-request body or commit messages.
+It intentionally skips direct pushes and local runs outside a pull-request
+event, so historical commits do not need to be rewritten.
 
 For the standalone Web Studio, also run its focused convention, type-check,
 build, and browser verification commands listed in the [Tool-Calling Web
@@ -235,11 +243,11 @@ for traceability:
 | Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` and `pnpm arch:check` pass; registry status is `verified` |
 | Closed | Dexie migration lacked an explicit v1→v2 browser fixture | `scripts/verify-web-coding-browser.mjs` creates a v1 database and verifies the upgrade |
 | Closed | English/Korean parity and internal link validity were mostly review conventions | `pnpm docs:management` checks paired pages, discovery links, and handoff metadata |
-| P2 | Issue-to-spec-to-test links are not machine-enforced | Tracked as `CA-GOV-TRACE-001`; add a small report or PR check without rewriting historical commits |
+| Closed | Issue-to-spec-to-test links were not machine-enforced | `pnpm change:traceability` reports changed contract-bearing files and requires a `#<issue>` or `CA-*` reference in pull-request metadata |
 
-The remaining traceability item is a process improvement, not a reason to
-block the current feature. It should remain in the governance backlog until
-issue IDs are consistently used in specifications, commits, and evidence.
+The traceability gate is intentionally additive: it checks new pull requests
+without rewriting historical commits. A specification or decision ID remains
+the preferred reference when a change does not have a GitHub issue.
 
 ## Review and handoff checklist
 

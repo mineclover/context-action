@@ -68,6 +68,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:management": "node scripts/verify-documentation-management.mjs",
+    "change:traceability": "node scripts/check-change-traceability.mjs",
     "source-of-truth:check": "node scripts/verify-source-of-truth.mjs",
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "node packages/typedoc-vitepress-sync/bin/cli.js sync --config ./typedoc-vitepress-sync.config.js",

@@ -96,6 +96,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify change traceability
+        if: github.event_name == 'pull_request'
+        run: pnpm change:traceability
+
       - name: Verify durable-operation CI endpoint configuration
         env:
           DURABLE_OPERATION_ENVIRONMENT: ci

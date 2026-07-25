@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--change-management-convention",
     "title": "스펙·이슈·문서 관리 컨벤션",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "ko/context-layered/change-management-convention.md",
     "lastModified": "2026-07-18T06:08:42.881Z",
     "wordCount": 1399
@@ -195,7 +195,7 @@
     "version": "1.0.0",
     "original_size": 12151,
     "created_at": "2026-07-24T05:15:02.454Z",
-    "source_last_modified": "2026-07-18T06:08:42.881Z",
+    "source_last_modified": "2026-07-25T10:18:32.244Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -215,6 +215,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-07-25T10:19:27.020Z"
   }
 }
