@@ -167,13 +167,22 @@ trace store also enforces the policy's string bound and retention window; this i
 `pnpm --filter example verify:trace` and the standalone trace verifier. The shared
 `createToolObservationSink()` adapter now gives application-owned provider/server sinks a
 serialized metadata-only record plus retention policy metadata and never forwards the raw
-`ToolCallEvent`. **Remaining:** an application owner must register the first external sink,
-choose its retention/deletion schedule, and provide a no-raw-request export check. This must
-not change the durable state transition contract.
+`ToolCallEvent`. An external sink remains optional and deferred because this repository has no
+external sink owner or deployment target. This must not change the durable state transition
+contract.
 
 **Acceptance:** sem-doc snapshots and tool-protocol lifecycle events produce validated records
 without credentials or raw source text; every production sink uses the shared bounded policy and
 has an owner, retention window, deletion path, and no-raw-request verification.
+
+## External target scope
+
+This repository intentionally owns no production endpoint, queue, telemetry sink, or production
+PostgreSQL deployment. The local Redis/PostgreSQL containers and HTTP/queue fixtures are the full
+repository verification surface. Do not invent a synthetic external target to close the rows
+below. When an application supplies a real target and owner, resume from the provider admission
+checklist and use the strict evidence gate; until then these rows are deferred, not repository
+blockers.
 
 ## Next execution order
 
@@ -182,9 +191,9 @@ items that require an environment owner or a product decision:
 
 | Order | Work | Exit evidence | Current status |
 | --- | --- | --- | --- |
-| 1 | Select and adopt the side-effect runner in the first real HTTP or queue mutation | Provider-owned idempotency/inbox-outbox contract plus duplicate, ambiguity, and recovery tests | Blocked on an application-owned endpoint/queue; repository scan found no production target |
-| 2 | Close the external telemetry sink audit | Sink owner, effective retention/deletion job, `createToolObservationSink()` configuration, and no-raw-request check | Safe adapter is ready; external owner and deployment evidence remain |
-| 3 | Verify the PostgreSQL adapter against the production SQL target | Versioned migration, actual pool wrapper, concurrent-claim integration output, isolation setting, owner, and rollback decision | Reference adapter and decision are implemented; live production verification remains |
+| 1 | Select and adopt the side-effect runner in the first real HTTP or queue mutation | Provider-owned idempotency/inbox-outbox contract plus duplicate, ambiguity, and recovery tests | Deferred: no application-owned endpoint or queue exists in scope |
+| 2 | Close the external telemetry sink audit | Sink owner, effective retention/deletion job, `createToolObservationSink()` configuration, and no-raw-request check | Deferred: no external sink owner or deployment target exists in scope |
+| 3 | Verify the PostgreSQL adapter against the production SQL target | Versioned migration, actual pool wrapper, concurrent-claim integration output, isolation setting, owner, and rollback decision | Deferred: no production SQL target exists in scope |
 
 Do not open a second durable state machine while completing any of these items. A package change
 belongs in `@context-action/tool-durable-operations`; deployment and retention evidence belongs in the

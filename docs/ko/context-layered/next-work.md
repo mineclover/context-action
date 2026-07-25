@@ -154,13 +154,21 @@ trace store도 policy의 string 상한과 retention window를 강제하며
 `pnpm --filter example verify:trace`와 standalone trace verifier가 이를 검증한다.
 공통 `createToolObservationSink()` adapter는 application 소유 provider/server sink에
 serialized metadata-only record와 retention policy metadata만 전달하고 raw
-`ToolCallEvent`는 전달하지 않는다. **남은 작업:** application owner가 첫 external sink를
-등록하고 retention·삭제 주기와 raw request가 없는 export 검사를 제공해야 한다. durable
-state transition 계약은 변경하지 않는다.
+`ToolCallEvent`는 전달하지 않는다. 이 저장소에는 external sink owner나 배포 target이
+없으므로 external sink는 선택적 deferred 항목이다. durable state transition 계약은
+변경하지 않는다.
 
 **완료 기준:** sem-doc snapshot과 tool-protocol lifecycle 이벤트가 credential/raw source text
 없이 검증 가능한 record를 만들고, 모든 production sink가 공통 bounded policy·owner·retention
 window·삭제 경로·no-raw-request 검증을 갖춘다.
+
+## 외부 target 범위
+
+이 저장소는 의도적으로 production endpoint, queue, telemetry sink, production PostgreSQL
+배포를 소유하지 않는다. 로컬 Redis/PostgreSQL container와 HTTP/queue fixture가 저장소의
+전체 검증 범위다. 아래 항목을 닫기 위해 synthetic external target을 만들지 않는다.
+application이 실제 target과 owner를 제공할 때 provider admission checklist와 strict evidence
+gate부터 재개하며, 그 전까지는 repository blocker가 아닌 deferred 항목으로 둔다.
 
 ## 다음 실행 순서
 
@@ -169,9 +177,9 @@ backlog를 실제 작업으로 바꿀 때는 다음 순서를 사용한다. 저�
 
 | 순서 | 작업 | 종료 증거 | 현재 상태 |
 | --- | --- | --- | --- |
-| 1 | 첫 실제 HTTP 또는 queue mutation을 선택하고 side-effect runner 도입 | provider 소유 idempotency/inbox-outbox 계약과 duplicate·ambiguity·recovery 테스트 | 애플리케이션 소유 endpoint/queue가 필요하며 저장소 스캔 결과 production target이 없음 |
-| 2 | 외부 telemetry sink 감사 완료 | sink 담당자·실제 retention/삭제 job·`createToolObservationSink()` 설정·no-raw-request 검증 | safe adapter는 준비됐고 외부 담당자와 배포 증거가 남음 |
-| 3 | production SQL target에서 PostgreSQL adapter 검증 | versioned migration·실제 pool wrapper·동시 claim integration 결과·isolation setting·담당자·rollback 판단 | reference adapter와 결정은 구현됐고 live production 검증이 남음 |
+| 1 | 첫 실제 HTTP 또는 queue mutation을 선택하고 side-effect runner 도입 | provider 소유 idempotency/inbox-outbox 계약과 duplicate·ambiguity·recovery 테스트 | Deferred: 범위에 application 소유 endpoint/queue가 없음 |
+| 2 | 외부 telemetry sink 감사 완료 | sink 담당자·실제 retention/삭제 job·`createToolObservationSink()` 설정·no-raw-request 검증 | Deferred: 범위에 external sink owner/deployment target이 없음 |
+| 3 | production SQL target에서 PostgreSQL adapter 검증 | versioned migration·실제 pool wrapper·동시 claim integration 결과·isolation setting·담당자·rollback 판단 | Deferred: 범위에 production SQL target이 없음 |
 
 이 작업들에서 두 번째 durable state machine을 만들지 않는다. package 변경은
 `@context-action/tool-durable-operations`, 배포·retention 증거는 runbook, 의미 계약 변경은 architecture
