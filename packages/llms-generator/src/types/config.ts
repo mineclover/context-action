@@ -33,11 +33,6 @@ export interface LLMSConfig {
     strictMode: boolean;
   };
   
-  sync?: {
-    enabled: boolean;
-    serverUrl: string;
-    apiKey: string;
-  };
 }
 
 export interface SummaryConfig {

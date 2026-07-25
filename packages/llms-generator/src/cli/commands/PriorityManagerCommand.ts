@@ -38,8 +38,7 @@ export interface PriorityCriteria {
 }
 
 export interface PriorityManagerOptions {
-  mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest' | 'upgrade';
-  server?: string;
+  mode: 'stats' | 'health' | 'auto-calc' | 'suggest' | 'upgrade';
   criteria?: string;
   documentId?: string;
   force?: boolean;
@@ -83,9 +82,6 @@ export class PriorityManagerCommand {
         case 'health':
           await this.checkPriorityHealth(options.quiet);
           break;
-        case 'sync':
-          await this.syncWithServer(options.server, options.quiet);
-          break;
         case 'auto-calc':
           await this.autoCalculatePriorities(options.criteria, options.force, options.quiet);
           break;
@@ -128,19 +124,6 @@ export class PriorityManagerCommand {
     if (!quiet) {
       this.displayPriorityHealth(health);
     }
-  }
-
-  private async syncWithServer(serverUrl?: string, quiet = false): Promise<void> {
-    if (!serverUrl) {
-      throw new Error('Server URL is required for sync operation');
-    }
-
-    if (!quiet) {
-      console.log(`🔄 Syncing with server: ${serverUrl}`);
-    }
-
-    // TODO: Implement server synchronization
-    throw new Error('Server sync not yet implemented. Use --help for available commands.');
   }
 
   private async autoCalculatePriorities(criteriaFile?: string, force = false, quiet = false): Promise<void> {

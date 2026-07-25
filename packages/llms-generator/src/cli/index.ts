@@ -81,10 +81,6 @@ async function main(): Promise<void> {
         await handlePriorityManager(commandArgs, argumentParser, 'health');
         break;
 
-      case 'priority-sync':
-        await handlePriorityManager(commandArgs, argumentParser, 'sync');
-        break;
-
       case 'priority-auto':
         await handlePriorityManager(commandArgs, argumentParser, 'auto-calc');
         break;
@@ -94,7 +90,7 @@ async function main(): Promise<void> {
         break;
 
       case 'priority-upgrade':
-        await handlePriorityManager(commandArgs, argumentParser, 'auto-calc');
+        await handlePriorityManager(commandArgs, argumentParser, 'upgrade');
         break;
 
       case 'priority-tasks':
@@ -227,13 +223,16 @@ async function handleInit(args: string[], argumentParser: ArgumentParser): Promi
   await initCommand.execute(options);
 }
 
-async function handlePriorityManager(args: string[], argumentParser: ArgumentParser, mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest'): Promise<void> {
+async function handlePriorityManager(
+  args: string[],
+  argumentParser: ArgumentParser,
+  mode: 'stats' | 'health' | 'auto-calc' | 'suggest' | 'upgrade'
+): Promise<void> {
   const enhancedConfig = await loadEnhancedConfig();
   const priorityManager = new PriorityManagerCommand(enhancedConfig);
   
   const options = {
     mode,
-    server: argumentParser.extractFlag(args, '--server'),
     criteria: argumentParser.extractFlag(args, '--criteria'),
     documentId: argumentParser.extractFlag(args, '--document-id'),
     force: argumentParser.hasFlag(args, '--force'),
