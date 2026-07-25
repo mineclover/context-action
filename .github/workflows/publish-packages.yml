@@ -137,6 +137,15 @@ jobs:
       - name: Build docs
         run: pnpm docs:full
 
+      - name: Verify generated docs are reproducible
+        run: |
+          if ! git diff --quiet -- docs/en/api; then
+            echo 'Generated API docs changed during publish.' >&2
+            echo 'Regenerate and commit docs/en/api before publishing.' >&2
+            git diff --stat -- docs/en/api >&2
+            exit 1
+          fi
+
       - name: Build example
         run: pnpm --dir example build:fast
 
