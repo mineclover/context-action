@@ -77,6 +77,32 @@ production endpoint의 TLS·ACL·failover·latency·migration·rollback 속성�
 `context-action/durable-operation-verification@1` record를 만들 때에는 허용된
 host/version/isolation/check 필드만 남기고 원본 log와 credential을 제외해야 한다.
 
+저장소에는 이 record를 만드는 결정적 writer가 포함되어 있다. raw command log
+(`preflight.log`, `redis.log`, `integration.log`, `postgres.log`, `queue.log`) 디렉터리와
+환경 메타데이터만 전달하면 endpoint credential을 redaction하고 host/version/isolation/check
+필드만 남긴다.
+
+```bash
+TARGET_ENVIRONMENT=staging \
+COMMIT_SHA="$GITHUB_SHA" \
+RUN_ID="$GITHUB_RUN_ID" \
+OPERATOR=durable-operations-ci \
+PREFLIGHT_RESULT=success \
+REDIS_RESULT=success \
+INTEGRATION_RESULT=success \
+POSTGRES_RESULT=success \
+QUEUE_RESULT=success \
+  pnpm tool-durable:write:evidence \
+    -- --input reports/durable-operation/raw \
+    --output reports/durable-operation/evidence
+
+pnpm tool-durable:verify:evidence \
+  -- --file reports/durable-operation/evidence/evidence.json
+```
+
+생성된 JSON/Markdown은 deployment evidence artifact이며 provider admission checklist나 실제
+production endpoint 검증을 대신하지 않는다.
+
 ## PostgreSQL 배포 검증
 
 PostgreSQL adapter는 driver-neutral이며 `pg`를 포함하거나 migration을 자동 실행하지 않는다.

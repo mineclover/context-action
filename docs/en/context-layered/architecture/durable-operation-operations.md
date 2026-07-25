@@ -84,6 +84,32 @@ pipeline emits the optional `context-action/durable-operation-verification@1`
 record, it must keep only allow-listed host/version/isolation/check fields and
 omit raw logs and credentials.
 
+The repository includes a deterministic writer for that record. Give it a directory of raw command
+logs (`preflight.log`, `redis.log`, `integration.log`, `postgres.log`, and `queue.log`) and pass
+only metadata through environment variables; the writer redacts endpoint credentials and keeps
+host/version/isolation/check fields only:
+
+```bash
+TARGET_ENVIRONMENT=staging \
+COMMIT_SHA="$GITHUB_SHA" \
+RUN_ID="$GITHUB_RUN_ID" \
+OPERATOR=durable-operations-ci \
+PREFLIGHT_RESULT=success \
+REDIS_RESULT=success \
+INTEGRATION_RESULT=success \
+POSTGRES_RESULT=success \
+QUEUE_RESULT=success \
+  pnpm tool-durable:write:evidence \
+    -- --input reports/durable-operation/raw \
+    --output reports/durable-operation/evidence
+
+pnpm tool-durable:verify:evidence \
+  -- --file reports/durable-operation/evidence/evidence.json
+```
+
+The generated JSON and Markdown are deployment evidence artifacts, not a substitute for the
+provider admission checklist or the actual production endpoint checks.
+
 ## PostgreSQL deployment verification
 
 The PostgreSQL adapter is driver-neutral and does not ship `pg` or run

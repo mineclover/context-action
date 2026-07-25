@@ -48,6 +48,7 @@
     "tool-durable:verify:http": "pnpm --filter @context-action/tool-durable-operations verify:http",
     "tool-durable:verify:queue": "pnpm --filter @context-action/tool-durable-operations verify:queue",
     "tool-durable:verify:env": "pnpm --filter @context-action/tool-durable-operations verify:env",
+    "tool-durable:write:evidence": "pnpm --filter @context-action/tool-durable-operations write:evidence",
     "tool-durable:verify:evidence": "node scripts/verify-durable-operation-evidence-schema.mjs",
     "test:live-code-editor": "pnpm --filter @context-action/live-code-editor test",
     "lint": "biome lint packages/core/src packages/tool-protocol/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/architecture-governance/src packages/architecture-governance/scripts/verify-artifacts.mjs packages/architecture-governance/scripts/prepare-foundation-deps.mjs scripts/security-audit.mjs scripts/verify-private-tools.mjs",

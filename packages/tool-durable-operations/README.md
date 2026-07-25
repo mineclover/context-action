@@ -84,6 +84,27 @@ and writer can be used by an application deployment pipeline. They are not
 coupled to this repository's CI workflow, and raw command logs and endpoint
 credentials must never be uploaded as evidence.
 
+The root command writes a sanitized JSON/Markdown pair from raw step logs:
+
+```bash
+TARGET_ENVIRONMENT=staging \
+COMMIT_SHA="$GITHUB_SHA" \
+RUN_ID="$GITHUB_RUN_ID" \
+OPERATOR=durable-operations-ci \
+  pnpm tool-durable:write:evidence \
+    -- --input reports/durable-operation/raw \
+    --output reports/durable-operation/evidence
+
+pnpm tool-durable:verify:evidence \
+  -- --file reports/durable-operation/evidence/evidence.json
+```
+
+The published package also exposes the writer as
+`tool-durable-write-evidence`; it can be invoked from an application-owned
+deployment job after installing this package. The schema remains in the
+published `spec/` directory so the deployment pipeline can validate the
+generated artifact with its own JSON Schema gate.
+
 The uploaded JSON evidence is validated against
 [`spec/durable-operation-verification-evidence.schema.json`](./spec/durable-operation-verification-evidence.schema.json)
 before the artifact is accepted.

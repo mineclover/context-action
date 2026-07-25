@@ -1,11 +1,14 @@
 {
   "name": "@context-action/tool-durable-operations",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Durable idempotency and external side-effect adapters for Context-Action tool mutations",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "tool-durable-write-evidence": "scripts/write-verification-evidence.mjs"
+  },
   "exports": {
     ".": {
       "import": {
@@ -22,6 +25,7 @@
   "files": [
     "dist",
     "spec",
+    "scripts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -37,6 +41,7 @@
     "verify:http": "pnpm run build && node scripts/verify-http-side-effect.mjs",
     "verify:queue": "pnpm run build && node scripts/verify-queue-side-effect.mjs",
     "verify:env": "node scripts/verify-durable-operation-env.mjs",
+    "write:evidence": "node scripts/write-verification-evidence.mjs",
     "type-check:src": "tsc --noEmit",
     "test:type-check": "tsc -p __tests__/tsconfig.json --pretty false",
     "type-check": "pnpm run type-check:src && pnpm run test:type-check",
