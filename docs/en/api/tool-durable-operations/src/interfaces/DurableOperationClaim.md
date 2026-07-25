@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationClaim\<TResult\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:40](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L40)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:40](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L40)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:40](https
 
 > `readonly` **status**: [`DurableOperationClaimStatus`](../type-aliases/DurableOperationClaimStatus.md)
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:41](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L41)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:41](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L41)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:41](https
 
 > `readonly` **record**: [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:42](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L42)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:42](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L42)

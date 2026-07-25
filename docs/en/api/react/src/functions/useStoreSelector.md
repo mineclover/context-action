@@ -8,7 +8,7 @@
 
 > **useStoreSelector**\<`T`, `R`\>(`store`, `selector`, `equalityFn?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:41](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useStoreSelector.ts#L41)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:41](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreSelector.ts#L41)
 
 Hook for selective store subscription with performance optimization
 

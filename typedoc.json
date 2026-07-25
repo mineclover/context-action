@@ -26,6 +26,8 @@
   "excludeInternal": true,
   "hideGenerator": true,
   "disableSources": false,
+  "sourceLinkTemplate": "https://github.com/mineclover/context-action/blob/main/packages/{path}#L{line}",
+  "disableGit": true,
   "includeVersion": true,
   "categorizeByGroup": false,
   "categoryOrder": [

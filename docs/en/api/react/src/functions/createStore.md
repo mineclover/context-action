@@ -8,7 +8,7 @@
 
 > **createStore**&lt;`T`&gt;(`name`, `initialValue`): [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:1023](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/Store.ts#L1023)
+Defined in: [packages/react/src/stores/core/Store.ts:1023](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L1023)
 
 Factory function for creating type-safe Store instances
 

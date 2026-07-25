@@ -8,7 +8,7 @@
 
 > **getToolCallErrorMetadata**(`error`): [`ToolCallErrorMetadata`](../type-aliases/ToolCallErrorMetadata.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:254](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L254)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:254](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L254)
 
 Read optional structured error metadata from a handler-thrown value.
 Applications can use a custom Error subclass without coupling handlers to a

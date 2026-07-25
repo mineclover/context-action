@@ -8,7 +8,7 @@
 
 > **ToolIdempotencyClaimStatus** = `"owner"` \| `"replay"` \| `"conflict"`
 
-Defined in: [packages/tool-protocol/src/idempotency.ts:10](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L10)
+Defined in: [packages/tool-protocol/src/idempotency.ts:10](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/idempotency.ts#L10)
 
 Small, framework-neutral idempotency primitives for managed tool calls.
 

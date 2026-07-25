@@ -8,7 +8,7 @@
 
 > **createDurableSideEffectRunner**\<`TResult`, `TDiagnostic`\>(`options`): [`DurableSideEffectRunner`](../interfaces/DurableSideEffectRunner.md)\<`TResult`, `TDiagnostic`\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:270](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L270)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:270](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L270)
 
 Execute an external side effect behind an existing durable operation store.
 

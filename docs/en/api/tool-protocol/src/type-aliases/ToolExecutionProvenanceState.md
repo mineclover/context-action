@@ -8,4 +8,4 @@
 
 > **ToolExecutionProvenanceState** = `"pending"` \| `"completed"` \| `"failed"` \| `"cancelled"` \| `"unknown"`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:11](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L11)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:11](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L11)

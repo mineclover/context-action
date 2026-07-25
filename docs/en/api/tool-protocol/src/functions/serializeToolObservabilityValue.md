@@ -8,7 +8,7 @@
 
 > **serializeToolObservabilityValue**(`value`, `policy?`): `string`
 
-Defined in: [packages/tool-protocol/src/observability.ts:183](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L183)
+Defined in: [packages/tool-protocol/src/observability.ts:183](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L183)
 
 Serializes an observation within the policy byte budget.
 

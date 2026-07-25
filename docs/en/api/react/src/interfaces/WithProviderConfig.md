@@ -6,7 +6,7 @@
 
 # Interface: WithProviderConfig
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:482](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L482)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:482](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L482)
 
 Enhanced configuration for withProvider HOC with additional safety features
 
@@ -16,7 +16,7 @@ Enhanced configuration for withProvider HOC with additional safety features
 
 > `optional` **displayName?**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:484](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L484)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:484](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L484)
 
 Custom display name for debugging
 
@@ -26,7 +26,7 @@ Custom display name for debugging
 
 > `optional` **registryId?**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:486](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L486)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:486](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L486)
 
 Custom registry identifier for isolation
 
@@ -36,7 +36,7 @@ Custom registry identifier for isolation
 
 > `optional` **autoCleanup?**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:488](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L488)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:488](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L488)
 
 Enable automatic cleanup on unmount
 
@@ -46,6 +46,6 @@ Enable automatic cleanup on unmount
 
 > `optional` **errorBoundary?**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:490](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L490)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:490](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L490)
 
 Enable error boundary integration

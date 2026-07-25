@@ -8,7 +8,7 @@
 
 > **createActionSchema**&lt;`T`&gt;(`actions`): `T`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:321](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L321)
+Defined in: [packages/tool-protocol/src/action-schema.ts:321](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L321)
 
 다중 Action 스키마 생성
 

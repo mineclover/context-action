@@ -6,7 +6,7 @@
 
 # Interface: ToolCallContext
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:59](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L59)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:59](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L59)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:59](https://github.com/
 
 > `readonly` `optional` **source?**: [`ToolCallSource`](../type-aliases/ToolCallSource.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:60](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L60)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:60](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L60)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:60](https://github.com/
 
 > `readonly` `optional` **mode?**: [`ToolCallMode`](../type-aliases/ToolCallMode.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:62](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L62)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:62](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L62)
 
 `agent` is model/prompt orchestration; `direct` is an explicit command.
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:62](https://github.com/
 
 > `readonly` `optional` **sessionId?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:63](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L63)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:63](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L63)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:63](https://github.com/
 
 > `readonly` `optional` **revision?**: `string` \| `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:65](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L65)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:65](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L65)
 
 Provider/session revision token; browser workspaces commonly use a number.
 
@@ -50,4 +50,4 @@ Provider/session revision token; browser workspaces commonly use a number.
 
 > `readonly` `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:66](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L66)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:66](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L66)

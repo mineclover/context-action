@@ -6,7 +6,7 @@
 
 # Interface: ToolRegistry\<TSchema\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:139](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L139)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:139](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L139)
 
 Tool Registry - provides access to all defined tools
 and their export methods for LLM integration
@@ -27,7 +27,7 @@ and their export methods for LLM integration
 
 > **getTool**&lt;`K`&gt;(`name`): `TSchema`\[`K`\]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:145](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L145)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:145](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L145)
 
 Get a specific tool by name
 
@@ -53,7 +53,7 @@ Type parameter **K**
 
 > **getToolNames**(): keyof `TSchema`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:148](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L148)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:148](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L148)
 
 Get all tool names
 
@@ -67,7 +67,7 @@ keyof `TSchema`[]
 
 > **toMCP**(): `MCPToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:153](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L153)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:153](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L153)
 
 Export all tools as MCP format
 
@@ -81,7 +81,7 @@ Export all tools as MCP format
 
 > **toOpenAI**(): `OpenAIToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:156](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L156)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:156](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L156)
 
 Export all tools as OpenAI format
 
@@ -95,7 +95,7 @@ Export all tools as OpenAI format
 
 > **toAnthropic**(): `AnthropicToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:159](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L159)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:159](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L159)
 
 Export all tools as Anthropic format
 
@@ -109,7 +109,7 @@ Export all tools as Anthropic format
 
 > **toMCPFiltered**&lt;`K`&gt;(`toolNames`): `MCPToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:162](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L162)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:162](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L162)
 
 Export specific tools as MCP format
 
@@ -135,7 +135,7 @@ Export specific tools as MCP format
 
 > **toOpenAIFiltered**&lt;`K`&gt;(`toolNames`): `OpenAIToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:165](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L165)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:165](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L165)
 
 Export specific tools as OpenAI format
 
@@ -161,7 +161,7 @@ Export specific tools as OpenAI format
 
 > **toAnthropicFiltered**&lt;`K`&gt;(`toolNames`): `AnthropicToolDefinition`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:168](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L168)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:168](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L168)
 
 Export specific tools as Anthropic format
 
@@ -187,7 +187,7 @@ Export specific tools as Anthropic format
 
 > **listTools**(`request?`): `ToolListResult`&lt;`MCPToolDefinition`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:171](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L171)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L171)
 
 Discover tools using the standard tools/list contract
 
@@ -211,7 +211,7 @@ Type parameter **ToolListRequest**
 
 > **getToolDefinition**(`name`): `MCPToolDefinition` \| `undefined`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:174](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L174)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:174](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L174)
 
 Resolve a canonical definition for one tool
 
@@ -235,7 +235,7 @@ Resolve a canonical definition for one tool
 
 > **callTool**(`request`, `options?`): `Promise`\<`ToolCallResult`&lt;`unknown`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:177](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L177)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:177](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L177)
 
 Execute a canonical tools/call request
 
@@ -263,7 +263,7 @@ Type parameter **ToolCallOptions**
 
 > **executeModelToolCall**(`call`, `options?`): `Promise`\<`ToolCallResult`&lt;`unknown`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:183](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L183)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L183)
 
 Normalize and execute a model-side tool call
 
@@ -291,7 +291,7 @@ Type parameter **ToolCallOptions**
 
 > **getOperationStatus**(`toolName`, `idempotencyKey`, `context?`): `Promise`\<`DurableOperationRecord`\<`ToolCallResult`&lt;`unknown`&gt;\> \| `undefined`\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:189](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L189)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:189](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L189)
 
 Query a durable operation without starting or retrying its handler.
 
@@ -319,7 +319,7 @@ Type parameter **ToolCallContext**
 
 > **reconcileOperation**(`toolName`, `idempotencyKey`, `resolution`, `context?`, `expectedRevision?`): `Promise`\<`DurableOperationRecord`\<`ToolCallResult`&lt;`unknown`&gt;\> \| `undefined`\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:200](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L200)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:200](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L200)
 
 Record a domain-confirmed outcome for an `unknown` durable operation.
 This does not invoke the tool handler or decide whether compensation is
@@ -357,7 +357,7 @@ Type parameter **ToolCallContext**
 
 > **recoverOperation**(`toolName`, `idempotencyKey`, `resolver`, `context?`): `Promise`\<`DurableOperationRecord`\<`ToolCallResult`&lt;`unknown`&gt;\> \| `undefined`\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:213](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L213)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:213](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L213)
 
 Query an operation and invoke the resolver only for an unknown record.
 The resolver owns domain status checks and compensation; this method never
@@ -391,6 +391,6 @@ Type parameter **ToolCallContext**
 
 > `readonly` **tools**: `TSchema`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:142](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L142)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:142](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L142)
 
 Get all tool definitions

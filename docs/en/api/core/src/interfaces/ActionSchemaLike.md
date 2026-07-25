@@ -6,7 +6,7 @@
 
 # Interface: ActionSchemaLike
 
-Defined in: [packages/core/src/types.ts:29](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/types.ts#L29)
+Defined in: [packages/core/src/types.ts:29](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L29)
 
 Minimal runtime contract consumed by ActionRegister for payload validation.
 
@@ -20,7 +20,7 @@ avoids coupling the action runtime to transport and schema adapters.
 
 > **safeParse**(`value`): \{ `success`: `true`; `data`: `unknown`; \} \| \{ `success`: `false`; `error`: \{ `message`: `string`; `issues`: readonly `object`[]; \}; \}
 
-Defined in: [packages/core/src/types.ts:30](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/types.ts#L30)
+Defined in: [packages/core/src/types.ts:30](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L30)
 
 #### Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: TimeTravelControlsState
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:24](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L24)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:24](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L24)
 
 Time travel control state with functions
 
@@ -20,7 +20,7 @@ Time travel control state with functions
 
 > **canUndo**: `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:15](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L15)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L15)
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:15](https:
 
 > **canRedo**: `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:16](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L16)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:16](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L16)
 
 #### Inherited from
 
@@ -44,7 +44,7 @@ Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:16](https:
 
 > **position**: `number`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:17](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L17)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L17)
 
 #### Inherited from
 
@@ -56,7 +56,7 @@ Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:17](https:
 
 > **historyLength**: `number`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:18](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L18)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L18)
 
 #### Inherited from
 
@@ -68,7 +68,7 @@ Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:18](https:
 
 > **undo**: (`steps?`) => `void`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:26](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L26)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:26](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L26)
 
 Undo function
 
@@ -88,7 +88,7 @@ Undo function
 
 > **redo**: (`steps?`) => `void`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:28](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L28)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:28](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L28)
 
 Redo function
 
@@ -108,7 +108,7 @@ Redo function
 
 > **goTo**: (`position`) => `void`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:30](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L30)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:30](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L30)
 
 Go to specific position
 
@@ -128,7 +128,7 @@ Go to specific position
 
 > **reset**: () => `void`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:32](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelControls.ts#L32)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelControls.ts:32](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelControls.ts#L32)
 
 Reset to initial state
 

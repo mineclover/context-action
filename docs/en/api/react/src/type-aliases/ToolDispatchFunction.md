@@ -8,7 +8,7 @@
 
 > **ToolDispatchFunction**&lt;`TPayloadMap`&gt; = &lt;`K`&gt;(`toolName`, `payload`, `options?`) => `Promise`&lt;`void`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:256](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/tools/ToolContext.types.ts#L256)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:256](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L256)
 
 Return type for useToolDispatch hook
 

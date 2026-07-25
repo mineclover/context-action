@@ -6,7 +6,7 @@
 
 # Interface: PostgresDurableOperationQueryResult\<TRow\>
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:24](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/postgres-operation-backend.ts#L24)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:24](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L24)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:
 
 > `readonly` **rows**: readonly `TRow`[]
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:25](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/postgres-operation-backend.ts#L25)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:25](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L25)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:
 
 > `readonly` `optional` **rowCount?**: `number` \| `null`
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:26](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/postgres-operation-backend.ts#L26)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:26](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L26)

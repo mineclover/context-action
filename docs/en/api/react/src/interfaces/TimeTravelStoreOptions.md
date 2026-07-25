@@ -6,7 +6,7 @@
 
 # Interface: TimeTravelStoreOptions\<T\>
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:21](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/TimeTravelStore.ts#L21)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:21](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L21)
 
 Configuration options for TimeTravelStore
 
@@ -22,7 +22,7 @@ Type parameter **T**
 
 > `optional` **maxHistory?**: `number`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:23](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/TimeTravelStore.ts#L23)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:23](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L23)
 
 Maximum number of history entries
 
@@ -32,7 +32,7 @@ Maximum number of history entries
 
 > `optional` **mutable?**: `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:30](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/TimeTravelStore.ts#L30)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:30](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L30)
 
 Enable mutable mode for structural sharing (default: true)
 
@@ -45,7 +45,7 @@ enabling selective re-rendering with path-based subscriptions.
 
 > `optional` **isEqual?**: (`a`, `b`) => `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:32](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/TimeTravelStore.ts#L32)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:32](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L32)
 
 Custom equality function
 
@@ -69,6 +69,6 @@ Type parameter **T**
 
 > `optional` **notificationMode?**: `"batched"` \| `"immediate"`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:34](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/TimeTravelStore.ts#L34)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:34](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L34)
 
 Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate')

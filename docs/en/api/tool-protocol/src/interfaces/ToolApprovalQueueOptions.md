@@ -6,7 +6,7 @@
 
 # Interface: ToolApprovalQueueOptions
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:101](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L101)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:101](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L101)
 
 Configuration for a canonical approval queue.
 
@@ -16,7 +16,7 @@ Configuration for a canonical approval queue.
 
 > `readonly` `optional` **idPrefix?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L102)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L102)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com
 
 > `readonly` `optional` **safeArgumentNames?**: readonly `string`[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:103](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L103)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:103](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L103)

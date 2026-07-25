@@ -8,6 +8,6 @@
 
 > **ToolCallMode** = `"agent"` \| `"direct"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:57](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/tool-protocol.ts#L57)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:57](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L57)
 
 Execution intent, independent of the transport source.

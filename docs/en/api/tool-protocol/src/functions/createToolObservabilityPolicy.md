@@ -8,7 +8,7 @@
 
 > **createToolObservabilityPolicy**(`options?`): [`ToolObservabilityPolicy`](../interfaces/ToolObservabilityPolicy.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:139](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L139)
+Defined in: [packages/tool-protocol/src/observability.ts:139](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L139)
 
 Creates a validated policy without creating a store or a second state machine.
 

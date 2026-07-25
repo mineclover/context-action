@@ -6,7 +6,7 @@
 
 # Interface: SideEffectRecordPayload\<TResult, TDiagnostic\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:43](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L43)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:43](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L43)
 
 The payload persisted in a durable operation record.
 
@@ -26,7 +26,7 @@ Type parameter **TResult**
 
 > `readonly` `optional` **result?**: `TResult`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:44](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L44)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:44](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L44)
 
 ***
 
@@ -34,4 +34,4 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:44](https://git
 
 > `readonly` `optional` **diagnostic?**: `TDiagnostic`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:45](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L45)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:45](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L45)

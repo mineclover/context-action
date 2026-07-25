@@ -8,7 +8,7 @@
 
 > **InferActionPayloadMap**&lt;`T`&gt; = `{ [K in keyof T]: T[K] extends UnifiedAction<infer P> ? P : never }`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:163](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L163)
+Defined in: [packages/tool-protocol/src/action-schema.ts:163](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L163)
 
 ActionSchemaMap에서 ActionPayloadMap 타입 추론
 

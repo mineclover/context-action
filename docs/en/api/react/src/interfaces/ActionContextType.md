@@ -6,7 +6,7 @@
 
 # Interface: ActionContextType\<T\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:57](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/actions/ActionContext.types.ts#L57)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:57](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L57)
 
 Context type for ActionRegister with enhanced type safety and abort support
 
@@ -22,7 +22,7 @@ Context type for ActionRegister with enhanced type safety and abort support
 
 > **actionRegisterRef**: `RefObject`\<`ActionRegister`&lt;`T`&gt; \| `null`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:58](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/actions/ActionContext.types.ts#L58)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L58)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:58](https://githu
 
 > **dispatchLifecycle**: `ProviderDispatchLifecycle`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:59](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/actions/ActionContext.types.ts#L59)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L59)

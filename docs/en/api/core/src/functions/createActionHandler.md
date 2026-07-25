@@ -8,7 +8,7 @@
 
 > **createActionHandler**\<`T`, `K`\>(`registry`, `action`, `handler`, `config?`): `object`
 
-Defined in: [packages/core/src/react-helpers.ts:92](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/react-helpers.ts#L92)
+Defined in: [packages/core/src/react-helpers.ts:92](https://github.com/mineclover/context-action/blob/main/packages/core/src/react-helpers.ts#L92)
 
 🔧 Create action handler registration configuration for React components
 

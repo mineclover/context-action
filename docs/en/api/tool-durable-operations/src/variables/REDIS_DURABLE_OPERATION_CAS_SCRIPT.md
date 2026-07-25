@@ -8,6 +8,6 @@
 
 > `const` **REDIS\_DURABLE\_OPERATION\_CAS\_SCRIPT**: `string`
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:163](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L163)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:163](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L163)
 
 Atomic record/index update used by the Redis backend.

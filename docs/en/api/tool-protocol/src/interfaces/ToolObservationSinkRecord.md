@@ -6,7 +6,7 @@
 
 # Interface: ToolObservationSinkRecord
 
-Defined in: [packages/tool-protocol/src/observability.ts:89](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L89)
+Defined in: [packages/tool-protocol/src/observability.ts:89](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L89)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:89](https://github.com/
 
 > `readonly` **schemaVersion**: `"context-action-tool-observation-sink.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:90](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L90)
+Defined in: [packages/tool-protocol/src/observability.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L90)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:90](https://github.com/
 
 > `readonly` **observationSchemaVersion**: `"context-action-tool-observation.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:91](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L91)
+Defined in: [packages/tool-protocol/src/observability.ts:91](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L91)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:91](https://github.com/
 
 > `readonly` **serializedObservation**: `string`
 
-Defined in: [packages/tool-protocol/src/observability.ts:93](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L93)
+Defined in: [packages/tool-protocol/src/observability.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L93)
 
 Serialized metadata-only observation; it never contains raw request/result values.
 
@@ -40,7 +40,7 @@ Serialized metadata-only observation; it never contains raw request/result value
 
 > `readonly` **policy**: `object`
 
-Defined in: [packages/tool-protocol/src/observability.ts:94](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L94)
+Defined in: [packages/tool-protocol/src/observability.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L94)
 
 #### schemaVersion
 

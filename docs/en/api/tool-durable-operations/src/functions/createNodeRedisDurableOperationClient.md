@@ -8,7 +8,7 @@
 
 > **createNodeRedisDurableOperationClient**(`client`): [`DurableOperationRedisClient`](../interfaces/DurableOperationRedisClient.md)
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:113](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L113)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:113](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L113)
 
 Adapt a node-redis client to the driver-neutral backend surface.
 

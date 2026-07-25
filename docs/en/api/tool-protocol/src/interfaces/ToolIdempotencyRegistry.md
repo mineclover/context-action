@@ -6,7 +6,7 @@
 
 # Interface: ToolIdempotencyRegistry\<TResult\>
 
-Defined in: [packages/tool-protocol/src/idempotency.ts:26](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L26)
+Defined in: [packages/tool-protocol/src/idempotency.ts:26](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/idempotency.ts#L26)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/tool-protocol/src/idempotency.ts:26](https://github.com/mi
 
 > **claim**(`key`, `fingerprint`, `create`): [`ToolIdempotencyClaim`](ToolIdempotencyClaim.md)&lt;`TResult`&gt;
 
-Defined in: [packages/tool-protocol/src/idempotency.ts:27](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L27)
+Defined in: [packages/tool-protocol/src/idempotency.ts:27](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/idempotency.ts#L27)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: [packages/tool-protocol/src/idempotency.ts:27](https://github.com/mi
 
 > **clear**(`key?`): `void`
 
-Defined in: [packages/tool-protocol/src/idempotency.ts:32](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L32)
+Defined in: [packages/tool-protocol/src/idempotency.ts:32](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/idempotency.ts#L32)
 
 #### Parameters
 
@@ -64,4 +64,4 @@ Defined in: [packages/tool-protocol/src/idempotency.ts:32](https://github.com/mi
 
 > `readonly` **size**: `number`
 
-Defined in: [packages/tool-protocol/src/idempotency.ts:33](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/idempotency.ts#L33)
+Defined in: [packages/tool-protocol/src/idempotency.ts:33](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/idempotency.ts#L33)

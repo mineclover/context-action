@@ -6,7 +6,7 @@
 
 # Interface: DurableSideEffectRunnerOptions\<TResult, TDiagnostic\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:112](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L112)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:112](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L112)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **TResult**
 
 > `readonly` **store**: [`DurableOperationStore`](DurableOperationStore.md)\<[`SideEffectRecordPayload`](SideEffectRecordPayload.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:114](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L114)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:114](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L114)
 
 Existing durable store; the runner does not create a second state machine.
 
@@ -34,6 +34,6 @@ Existing durable store; the runner does not create a second state machine.
 
 > `readonly` **ownerId**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:118](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L118)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:118](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L118)
 
 Stable owner identity for one worker/tab/process lifetime.

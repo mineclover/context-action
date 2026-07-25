@@ -6,7 +6,7 @@
 
 # Interface: JSONSchema
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:48](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L48)
+Defined in: [packages/tool-protocol/src/json-schema.ts:48](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L48)
 
 JSON Schema 인터페이스 (draft-07 호환)
 
@@ -36,7 +36,7 @@ const schema: JSONSchema = {
 
 > `optional` **type?**: [`JSONSchemaType`](../type-aliases/JSONSchemaType.md) \| [`JSONSchemaType`](../type-aliases/JSONSchemaType.md)[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:50](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L50)
+Defined in: [packages/tool-protocol/src/json-schema.ts:50](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L50)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:50](https://github.com/mi
 
 > `optional` **title?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:53](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L53)
+Defined in: [packages/tool-protocol/src/json-schema.ts:53](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L53)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:53](https://github.com/mi
 
 > `optional` **description?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:54](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L54)
+Defined in: [packages/tool-protocol/src/json-schema.ts:54](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L54)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:54](https://github.com/mi
 
 > `optional` **default?**: `unknown`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:55](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L55)
+Defined in: [packages/tool-protocol/src/json-schema.ts:55](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L55)
 
 ***
 
@@ -68,7 +68,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:55](https://github.com/mi
 
 > `optional` **examples?**: `unknown`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:56](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L56)
+Defined in: [packages/tool-protocol/src/json-schema.ts:56](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L56)
 
 ***
 
@@ -76,7 +76,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:56](https://github.com/mi
 
 > `optional` **minLength?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:59](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L59)
+Defined in: [packages/tool-protocol/src/json-schema.ts:59](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L59)
 
 ***
 
@@ -84,7 +84,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:59](https://github.com/mi
 
 > `optional` **maxLength?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:60](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L60)
+Defined in: [packages/tool-protocol/src/json-schema.ts:60](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L60)
 
 ***
 
@@ -92,7 +92,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:60](https://github.com/mi
 
 > `optional` **pattern?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:61](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L61)
+Defined in: [packages/tool-protocol/src/json-schema.ts:61](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L61)
 
 ***
 
@@ -100,7 +100,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:61](https://github.com/mi
 
 > `optional` **format?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:62](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L62)
+Defined in: [packages/tool-protocol/src/json-schema.ts:62](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L62)
 
 ***
 
@@ -108,7 +108,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:62](https://github.com/mi
 
 > `optional` **minimum?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:65](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L65)
+Defined in: [packages/tool-protocol/src/json-schema.ts:65](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L65)
 
 ***
 
@@ -116,7 +116,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:65](https://github.com/mi
 
 > `optional` **maximum?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:66](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L66)
+Defined in: [packages/tool-protocol/src/json-schema.ts:66](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L66)
 
 ***
 
@@ -124,7 +124,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:66](https://github.com/mi
 
 > `optional` **exclusiveMinimum?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:67](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L67)
+Defined in: [packages/tool-protocol/src/json-schema.ts:67](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L67)
 
 ***
 
@@ -132,7 +132,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:67](https://github.com/mi
 
 > `optional` **exclusiveMaximum?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:68](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L68)
+Defined in: [packages/tool-protocol/src/json-schema.ts:68](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L68)
 
 ***
 
@@ -140,7 +140,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:68](https://github.com/mi
 
 > `optional` **multipleOf?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:69](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L69)
+Defined in: [packages/tool-protocol/src/json-schema.ts:69](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L69)
 
 ***
 
@@ -148,7 +148,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:69](https://github.com/mi
 
 > `optional` **items?**: `JSONSchema`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:72](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L72)
+Defined in: [packages/tool-protocol/src/json-schema.ts:72](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L72)
 
 ***
 
@@ -156,7 +156,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:72](https://github.com/mi
 
 > `optional` **minItems?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:73](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L73)
+Defined in: [packages/tool-protocol/src/json-schema.ts:73](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L73)
 
 ***
 
@@ -164,7 +164,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:73](https://github.com/mi
 
 > `optional` **maxItems?**: `number`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:74](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L74)
+Defined in: [packages/tool-protocol/src/json-schema.ts:74](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L74)
 
 ***
 
@@ -172,7 +172,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:74](https://github.com/mi
 
 > `optional` **uniqueItems?**: `boolean`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:75](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L75)
+Defined in: [packages/tool-protocol/src/json-schema.ts:75](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L75)
 
 ***
 
@@ -180,7 +180,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:75](https://github.com/mi
 
 > `optional` **properties?**: `Record`\<`string`, `JSONSchema`\>
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:78](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L78)
+Defined in: [packages/tool-protocol/src/json-schema.ts:78](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L78)
 
 ***
 
@@ -188,7 +188,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:78](https://github.com/mi
 
 > `optional` **required?**: `string`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:79](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L79)
+Defined in: [packages/tool-protocol/src/json-schema.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L79)
 
 ***
 
@@ -196,7 +196,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:79](https://github.com/mi
 
 > `optional` **additionalProperties?**: `boolean` \| `JSONSchema`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:80](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L80)
+Defined in: [packages/tool-protocol/src/json-schema.ts:80](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L80)
 
 ***
 
@@ -204,7 +204,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:80](https://github.com/mi
 
 > `optional` **enum?**: `unknown`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:83](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L83)
+Defined in: [packages/tool-protocol/src/json-schema.ts:83](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L83)
 
 ***
 
@@ -212,7 +212,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:83](https://github.com/mi
 
 > `optional` **const?**: `unknown`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:84](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L84)
+Defined in: [packages/tool-protocol/src/json-schema.ts:84](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L84)
 
 ***
 
@@ -220,7 +220,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:84](https://github.com/mi
 
 > `optional` **allOf?**: `JSONSchema`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:87](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L87)
+Defined in: [packages/tool-protocol/src/json-schema.ts:87](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L87)
 
 ***
 
@@ -228,7 +228,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:87](https://github.com/mi
 
 > `optional` **anyOf?**: `JSONSchema`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:88](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L88)
+Defined in: [packages/tool-protocol/src/json-schema.ts:88](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L88)
 
 ***
 
@@ -236,7 +236,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:88](https://github.com/mi
 
 > `optional` **oneOf?**: `JSONSchema`[]
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:89](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L89)
+Defined in: [packages/tool-protocol/src/json-schema.ts:89](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L89)
 
 ***
 
@@ -244,7 +244,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:89](https://github.com/mi
 
 > `optional` **not?**: `JSONSchema`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:90](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L90)
+Defined in: [packages/tool-protocol/src/json-schema.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L90)
 
 ***
 
@@ -252,7 +252,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:90](https://github.com/mi
 
 > `optional` **$ref?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:93](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L93)
+Defined in: [packages/tool-protocol/src/json-schema.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L93)
 
 ***
 
@@ -260,4 +260,4 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:93](https://github.com/mi
 
 > `optional` **$defs?**: `Record`\<`string`, `JSONSchema`\>
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:94](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L94)
+Defined in: [packages/tool-protocol/src/json-schema.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L94)

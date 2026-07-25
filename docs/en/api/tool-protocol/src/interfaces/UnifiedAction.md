@@ -6,7 +6,7 @@
 
 # Interface: UnifiedAction\<TPayload\>
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:90](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L90)
+Defined in: [packages/tool-protocol/src/action-schema.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L90)
 
 통합 Action 인터페이스
 
@@ -27,7 +27,7 @@ Zod 스키마 기반 Action 정의로 다음을 제공:
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:93](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L93)
+Defined in: [packages/tool-protocol/src/action-schema.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L93)
 
 Action 이름
 
@@ -37,7 +37,7 @@ Action 이름
 
 > `readonly` `optional` **title?**: `string`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:95](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L95)
+Defined in: [packages/tool-protocol/src/action-schema.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L95)
 
 Optional human-facing tool title
 
@@ -47,7 +47,7 @@ Optional human-facing tool title
 
 > `readonly` `optional` **description?**: `string`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:97](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L97)
+Defined in: [packages/tool-protocol/src/action-schema.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L97)
 
 Action 설명
 
@@ -57,7 +57,7 @@ Action 설명
 
 > `readonly` `optional` **annotations?**: [`ToolAnnotations`](ToolAnnotations.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:99](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L99)
+Defined in: [packages/tool-protocol/src/action-schema.ts:99](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L99)
 
 Optional tool-selection and safety hints
 
@@ -67,7 +67,7 @@ Optional tool-selection and safety hints
 
 > `readonly` **zodSchema**: `ZodObject`\<`Readonly`\<\{\[`k`: `string`\]: `$ZodType`\<`unknown`, `unknown`, `$ZodTypeInternals`\<`unknown`, `unknown`\>\>; \}\>\>
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:101](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L101)
+Defined in: [packages/tool-protocol/src/action-schema.ts:101](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L101)
 
 원본 Zod 스키마
 
@@ -77,7 +77,7 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:101](https://github.com
 
 > `readonly` **jsonSchema**: [`JSONSchema`](JSONSchema.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:103](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L103)
+Defined in: [packages/tool-protocol/src/action-schema.ts:103](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L103)
 
 JSON Schema (Tool chain 호환용)
 
@@ -87,7 +87,7 @@ JSON Schema (Tool chain 호환용)
 
 > `readonly` `optional` **outputSchema?**: [`JSONSchema`](JSONSchema.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:105](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L105)
+Defined in: [packages/tool-protocol/src/action-schema.ts:105](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L105)
 
 Optional structured result JSON Schema (Tool chain 호환용)
 
@@ -97,7 +97,7 @@ Optional structured result JSON Schema (Tool chain 호환용)
 
 > `readonly` `optional` **safeParseOutput?**: (`value`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`unknown`&gt;
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:108](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L108)
+Defined in: [packages/tool-protocol/src/action-schema.ts:108](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L108)
 
 Safely validate a structured tool result when an output schema is defined
 
@@ -117,7 +117,7 @@ Safely validate a structured tool result when an output schema is defined
 
 > **validate**: (`payload`) => `TPayload`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:115](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L115)
+Defined in: [packages/tool-protocol/src/action-schema.ts:115](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L115)
 
 Payload 검증 (strict mode)
 
@@ -141,7 +141,7 @@ ZodError if validation fails
 
 > **safeParse**: (`payload`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`TPayload`&gt;
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:121](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L121)
+Defined in: [packages/tool-protocol/src/action-schema.ts:121](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L121)
 
 Payload 검증 (safe mode)
 
@@ -163,7 +163,7 @@ SafeParseResult with success/error
 
 > **toJSONSchema**: () => [`JSONSchema`](JSONSchema.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:125](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L125)
+Defined in: [packages/tool-protocol/src/action-schema.ts:125](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L125)
 
 JSON Schema 반환
 
@@ -177,7 +177,7 @@ JSON Schema 반환
 
 > **toMCP**: () => [`MCPToolDefinition`](MCPToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L127)
+Defined in: [packages/tool-protocol/src/action-schema.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L127)
 
 MCP 포맷 변환
 
@@ -191,7 +191,7 @@ MCP 포맷 변환
 
 > **toOpenAI**: () => [`OpenAIToolDefinition`](OpenAIToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:129](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L129)
+Defined in: [packages/tool-protocol/src/action-schema.ts:129](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L129)
 
 OpenAI 포맷 변환
 
@@ -205,7 +205,7 @@ OpenAI 포맷 변환
 
 > **toAnthropic**: () => [`AnthropicToolDefinition`](AnthropicToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:131](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L131)
+Defined in: [packages/tool-protocol/src/action-schema.ts:131](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L131)
 
 Anthropic 포맷 변환
 

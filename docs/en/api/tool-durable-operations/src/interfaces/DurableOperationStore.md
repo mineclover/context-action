@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationStore\<TResult\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:119](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L119)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:119](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L119)
 
 Application-owned persistence boundary for exactly-once-like mutation
 handling. Implementations must make `claim` atomic for a given key.
@@ -23,7 +23,7 @@ handling. Implementations must make `claim` atomic for a given key.
 
 > **claim**(`key`, `fingerprint`, `ownerId`, `options?`): [`DurableOperationClaim`](DurableOperationClaim.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationClaim`](DurableOperationClaim.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:120](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L120)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:120](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L120)
 
 #### Parameters
 
@@ -53,7 +53,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:120](http
 
 > **complete**(`key`, `ownerId`, `result`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:127](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L127)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L127)
 
 #### Parameters
 
@@ -79,7 +79,7 @@ Type parameter **TResult**
 
 > **fail**(`key`, `ownerId`, `reason`, `result?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:133](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L133)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:133](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L133)
 
 #### Parameters
 
@@ -109,7 +109,7 @@ Type parameter **TResult**
 
 > **markUnknown**(`key`, `ownerId`, `reason`, `result?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:140](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L140)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:140](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L140)
 
 #### Parameters
 
@@ -141,7 +141,7 @@ Optional diagnostic result retained for a later domain resolver.
 
 > **resolveUnknown**(`key`, `reconcilerId`, `resolution`, `expectedRevision?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:149](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L149)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:149](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L149)
 
 Resolve an `unknown` record after a domain status/reconcile decision.
 
@@ -173,7 +173,7 @@ Resolve an `unknown` record after a domain status/reconcile decision.
 
 > **get**(`key`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `undefined`\> \| `undefined`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:156](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L156)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:156](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L156)
 
 #### Parameters
 
@@ -191,7 +191,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:156](http
 
 > **prune**(`before?`): `number` \| `Promise`&lt;`number`&gt;
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:162](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L162)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:162](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L162)
 
 Remove terminal records older than the configured retention window.
 

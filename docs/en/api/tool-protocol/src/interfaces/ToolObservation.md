@@ -6,7 +6,7 @@
 
 # Interface: ToolObservation
 
-Defined in: [packages/tool-protocol/src/observability.ts:72](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L72)
+Defined in: [packages/tool-protocol/src/observability.ts:72](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L72)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:72](https://github.com/
 
 > `readonly` **schemaVersion**: `"context-action-tool-observation.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:73](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L73)
+Defined in: [packages/tool-protocol/src/observability.ts:73](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L73)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:73](https://github.com/
 
 > `readonly` **type**: `"completed"` \| `"failed"` \| `"started"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:74](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L74)
+Defined in: [packages/tool-protocol/src/observability.ts:74](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L74)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:74](https://github.com/
 
 > `readonly` `optional` **toolCallId?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:75](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L75)
+Defined in: [packages/tool-protocol/src/observability.ts:75](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L75)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:75](https://github.com/
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/tool-protocol/src/observability.ts:76](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L76)
+Defined in: [packages/tool-protocol/src/observability.ts:76](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L76)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:76](https://github.com/
 
 > `readonly` `optional` **context?**: [`ToolObservationContext`](ToolObservationContext.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:77](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L77)
+Defined in: [packages/tool-protocol/src/observability.ts:77](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L77)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:77](https://github.com/
 
 > `readonly` **timestamp**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:78](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L78)
+Defined in: [packages/tool-protocol/src/observability.ts:78](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L78)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:78](https://github.com/
 
 > `readonly` `optional` **durationMs?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:79](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L79)
+Defined in: [packages/tool-protocol/src/observability.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L79)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:79](https://github.com/
 
 > `readonly` **provenance**: [`ToolExecutionProvenance`](ToolExecutionProvenance.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:80](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L80)
+Defined in: [packages/tool-protocol/src/observability.ts:80](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L80)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:80](https://github.com/
 
 > `readonly` **request**: [`ToolObservationRequest`](ToolObservationRequest.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:81](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L81)
+Defined in: [packages/tool-protocol/src/observability.ts:81](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L81)
 
 ***
 
@@ -86,4 +86,4 @@ Defined in: [packages/tool-protocol/src/observability.ts:81](https://github.com/
 
 > `readonly` `optional` **result?**: [`ToolObservationResult`](ToolObservationResult.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:82](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L82)
+Defined in: [packages/tool-protocol/src/observability.ts:82](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L82)

@@ -8,7 +8,7 @@
 
 > **asStoreValue**&lt;`T`&gt;(`value`): [`ExplicitStoreValue`](../interfaces/ExplicitStoreValue.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/store-definition.ts:24](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/patterns/store-definition.ts#L24)
+Defined in: [packages/react/src/stores/patterns/store-definition.ts:24](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/store-definition.ts#L24)
 
 Marks a definition as a direct store value without changing the value stored.
 

@@ -8,7 +8,7 @@
 
 > **parseToolExecutionProvenance**(`value`, `path?`): [`ToolExecutionProvenance`](../interfaces/ToolExecutionProvenance.md)
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:74](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L74)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:74](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L74)
 
 Strictly validates a provenance record before it is persisted or exported.
 

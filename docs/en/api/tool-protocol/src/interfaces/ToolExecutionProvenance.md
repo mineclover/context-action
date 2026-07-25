@@ -6,7 +6,7 @@
 
 # Interface: ToolExecutionProvenance
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:18](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L18)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:18](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L18)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/execution-provenance.ts:18](https://gith
 
 > `readonly` **schemaVersion**: `"context-action-tool-execution-provenance.v1"`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:19](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L19)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:19](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L19)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-protocol/src/execution-provenance.ts:19](https://gith
 
 > `readonly` **phase**: `"tool-call"`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:20](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L20)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:20](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L20)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/tool-protocol/src/execution-provenance.ts:20](https://gith
 
 > `readonly` **ownerId**: `string`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:22](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L22)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:22](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L22)
 
 Logical owner for the caller/worker lifetime, never a secret or payload.
 
@@ -40,7 +40,7 @@ Logical owner for the caller/worker lifetime, never a secret or payload.
 
 > `readonly` **state**: [`ToolExecutionProvenanceState`](../type-aliases/ToolExecutionProvenanceState.md)
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:23](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L23)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:23](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L23)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/tool-protocol/src/execution-provenance.ts:23](https://gith
 
 > `readonly` `optional` **timeoutMs?**: `number`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:25](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L25)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:25](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L25)
 
 Configured wall-clock limit, when the caller supplied one.
 
@@ -58,7 +58,7 @@ Configured wall-clock limit, when the caller supplied one.
 
 > `readonly` `optional` **maxOutputBytes?**: `number`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:27](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L27)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:27](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L27)
 
 Configured output limit, when the caller supplied one.
 
@@ -68,7 +68,7 @@ Configured output limit, when the caller supplied one.
 
 > `readonly` **usedOutputBytes**: `number`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:29](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L29)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:29](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L29)
 
 UTF-8 bytes observed at the tool result boundary.
 
@@ -78,6 +78,6 @@ UTF-8 bytes observed at the tool result boundary.
 
 > `readonly` **elapsedMs**: `number`
 
-Defined in: [packages/tool-protocol/src/execution-provenance.ts:31](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/execution-provenance.ts#L31)
+Defined in: [packages/tool-protocol/src/execution-provenance.ts:31](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/execution-provenance.ts#L31)
 
 Wall-clock elapsed time measured by the caller, in milliseconds.

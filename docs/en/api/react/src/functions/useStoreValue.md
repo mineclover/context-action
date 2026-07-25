@@ -10,7 +10,7 @@
 
 > **useStoreValue**&lt;`S`&gt;(`store`, `options?`): `ReturnType`\<`S`\[`"getValue"`\]\>
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:60](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useStoreValue.ts#L60)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:60](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreValue.ts#L60)
 
 ### Type Parameters
 
@@ -36,7 +36,7 @@ Type parameter **S**
 
 > **useStoreValue**&lt;`S`&gt;(`store`, `options?`): `ReturnType`\<`S`\[`"getValue"`\]\> \| `undefined`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:66](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useStoreValue.ts#L66)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:66](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreValue.ts#L66)
 
 ### Type Parameters
 
@@ -62,7 +62,7 @@ Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:66](https://github
 
 > **useStoreValue**\<`S`, `R`\>(`store`, `selector`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:72](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useStoreValue.ts#L72)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreValue.ts#L72)
 
 ### Type Parameters
 
@@ -96,7 +96,7 @@ Type parameter **R**
 
 > **useStoreValue**\<`S`, `R`\>(`store`, `selector`, `options?`): `R` \| `undefined`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:79](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useStoreValue.ts#L79)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:79](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreValue.ts#L79)
 
 ### Type Parameters
 

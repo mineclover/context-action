@@ -6,7 +6,7 @@
 
 # Interface: OpenAIToolDefinition
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:146](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L146)
+Defined in: [packages/tool-protocol/src/json-schema.ts:146](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L146)
 
 OpenAI API Tool 정의
 
@@ -20,7 +20,7 @@ https://platform.openai.com/docs/guides/function-calling
 
 > **type**: `"function"`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:147](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L147)
+Defined in: [packages/tool-protocol/src/json-schema.ts:147](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L147)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:147](https://github.com/m
 
 > **function**: `object`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:148](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L148)
+Defined in: [packages/tool-protocol/src/json-schema.ts:148](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L148)
 
 #### name
 

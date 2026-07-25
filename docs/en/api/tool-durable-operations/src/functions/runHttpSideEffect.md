@@ -8,7 +8,7 @@
 
 > **runHttpSideEffect**\<`TResult`, `TDiagnostic`\>(`options`): `Promise`\<[`SideEffectRunResult`](../interfaces/SideEffectRunResult.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:53](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/http-side-effect.ts#L53)
+Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:53](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/http-side-effect.ts#L53)
 
 Execute one HTTP mutation through an existing durable side-effect runner.
 

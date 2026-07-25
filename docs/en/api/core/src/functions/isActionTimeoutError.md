@@ -8,7 +8,7 @@
 
 > **isActionTimeoutError**(`error`): `error is ActionTimeoutError`
 
-Defined in: [packages/core/src/errors.ts:203](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/errors.ts#L203)
+Defined in: [packages/core/src/errors.ts:203](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L203)
 
 ActionTimeoutError type guard.
 

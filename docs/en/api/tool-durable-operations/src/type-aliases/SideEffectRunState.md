@@ -8,4 +8,4 @@
 
 > **SideEffectRunState** = `"completed"` \| `"failed"` \| `"replayed"` \| `"pending"` \| `"unknown"` \| `"conflict"` \| `"cancelled"`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:48](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L48)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:48](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L48)

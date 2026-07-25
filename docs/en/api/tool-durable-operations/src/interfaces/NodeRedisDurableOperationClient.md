@@ -6,7 +6,7 @@
 
 # Interface: NodeRedisDurableOperationClient
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:45](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L45)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:45](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L45)
 
 Structural subset of the node-redis v5 client used by the reference
 backend. Keeping this type structural avoids a runtime dependency on the
@@ -19,7 +19,7 @@ already use node-redis.
 
 > **get**(`key`): [`DurableOperationRedisMaybePromise`](../type-aliases/DurableOperationRedisMaybePromise.md)\<`string` \| `Uint8Array`&lt;`ArrayBufferLike`&gt; \| `null` \| `undefined`\>
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:46](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L46)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:46](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L46)
 
 #### Parameters
 
@@ -37,7 +37,7 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:46]
 
 > **eval**(`script`, `options`): `unknown`
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:49](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L49)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:49](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L49)
 
 #### Parameters
 
@@ -65,7 +65,7 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:49]
 
 > **zRangeByLex**(`key`, `min`, `max`, `options`): [`DurableOperationRedisMaybePromise`](../type-aliases/DurableOperationRedisMaybePromise.md)\<readonly `string`[]\>
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:56](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/redis-operation-backend.ts#L56)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:56](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L56)
 
 #### Parameters
 

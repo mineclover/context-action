@@ -8,7 +8,7 @@
 
 > **PatchAwareListener** = (`patches`) => `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:13](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/core/Store.ts#L13)
+Defined in: [packages/react/src/stores/core/Store.ts:13](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L13)
 
 Listener that receives patches information for path-based optimization
 

@@ -8,7 +8,7 @@
 
 > **SideEffectOutcome**\<`TResult`, `TDiagnostic`\> = \{ `state`: `"completed"`; `result`: `TResult`; `reason?`: `string`; \} \| \{ `state`: `"failed"`; `reason`: `string`; `result?`: `TResult`; `diagnostic?`: `TDiagnostic`; \} \| \{ `state`: `"unknown"`; `reason`: `string`; `diagnostic?`: `TDiagnostic`; \}
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:16](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/side-effect.ts#L16)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:16](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L16)
 
 Result of an external side-effect attempt.
 

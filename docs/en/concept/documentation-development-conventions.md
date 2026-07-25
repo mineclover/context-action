@@ -22,6 +22,9 @@ is planned and closed.
 
 Generated files may be reviewed, but a behavioral correction belongs in their
 source document, generator, or exported API—not only in generated output.
+API source links are generated against the `main` branch so that running the
+documentation pipeline after a commit does not create commit-hash-only drift;
+the generated file remains reproducible until the source path or line changes.
 
 ## 2. Change Classification
 

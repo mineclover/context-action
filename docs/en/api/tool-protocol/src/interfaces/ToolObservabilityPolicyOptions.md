@@ -6,7 +6,7 @@
 
 # Interface: ToolObservabilityPolicyOptions
 
-Defined in: [packages/tool-protocol/src/observability.ts:13](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L13)
+Defined in: [packages/tool-protocol/src/observability.ts:13](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/observability.ts:13](https://github.com/
 
 > `readonly` `optional` **maxBytes?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:15](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L15)
+Defined in: [packages/tool-protocol/src/observability.ts:15](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L15)
 
 Maximum UTF-8 bytes emitted by serializeToolObservabilityValue().
 
@@ -24,7 +24,7 @@ Maximum UTF-8 bytes emitted by serializeToolObservabilityValue().
 
 > `readonly` `optional` **maxDepth?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:17](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L17)
+Defined in: [packages/tool-protocol/src/observability.ts:17](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L17)
 
 Maximum recursive object/array depth before a value is omitted.
 
@@ -34,7 +34,7 @@ Maximum recursive object/array depth before a value is omitted.
 
 > `readonly` `optional` **maxStringLength?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:19](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L19)
+Defined in: [packages/tool-protocol/src/observability.ts:19](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L19)
 
 Maximum characters retained for a non-sensitive string value.
 
@@ -44,7 +44,7 @@ Maximum characters retained for a non-sensitive string value.
 
 > `readonly` `optional` **maxArrayEntries?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:21](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L21)
+Defined in: [packages/tool-protocol/src/observability.ts:21](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L21)
 
 Maximum array items retained per object/array node.
 
@@ -54,7 +54,7 @@ Maximum array items retained per object/array node.
 
 > `readonly` `optional` **maxObjectEntries?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:23](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L23)
+Defined in: [packages/tool-protocol/src/observability.ts:23](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L23)
 
 Maximum object fields retained per object node.
 
@@ -64,7 +64,7 @@ Maximum object fields retained per object node.
 
 > `readonly` `optional` **retentionMs?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:25](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L25)
+Defined in: [packages/tool-protocol/src/observability.ts:25](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L25)
 
 Suggested lifetime for an observation in a telemetry store.
 
@@ -74,7 +74,7 @@ Suggested lifetime for an observation in a telemetry store.
 
 > `readonly` `optional` **maxEntries?**: `number`
 
-Defined in: [packages/tool-protocol/src/observability.ts:27](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L27)
+Defined in: [packages/tool-protocol/src/observability.ts:27](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L27)
 
 Suggested maximum number of observations retained by a telemetry store.
 
@@ -84,6 +84,6 @@ Suggested maximum number of observations retained by a telemetry store.
 
 > `readonly` `optional` **redactedKeys?**: readonly `string`[]
 
-Defined in: [packages/tool-protocol/src/observability.ts:29](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/observability.ts#L29)
+Defined in: [packages/tool-protocol/src/observability.ts:29](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L29)
 
 Additional case-insensitive field names whose values must be redacted.

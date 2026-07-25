@@ -8,7 +8,7 @@
 
 > **SafeParseResult**&lt;`T`&gt; = \{ `success`: `true`; `data`: `T`; \} \| \{ `success`: `false`; `error`: `z.ZodError`; \}
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:52](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/action-schema.ts#L52)
+Defined in: [packages/tool-protocol/src/action-schema.ts:52](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L52)
 
 Safe parse 결과 타입 (Zod 4 호환)
 

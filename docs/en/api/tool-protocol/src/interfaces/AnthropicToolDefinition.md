@@ -6,7 +6,7 @@
 
 # Interface: AnthropicToolDefinition
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:163](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L163)
+Defined in: [packages/tool-protocol/src/json-schema.ts:163](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L163)
 
 Anthropic API Tool 정의
 
@@ -20,7 +20,7 @@ https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 
 > **name**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:165](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L165)
+Defined in: [packages/tool-protocol/src/json-schema.ts:165](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L165)
 
 Tool 이름
 
@@ -30,7 +30,7 @@ Tool 이름
 
 > `optional` **description?**: `string`
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:167](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L167)
+Defined in: [packages/tool-protocol/src/json-schema.ts:167](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L167)
 
 Tool 설명
 
@@ -40,6 +40,6 @@ Tool 설명
 
 > **input\_schema**: [`JSONSchema`](JSONSchema.md)
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:169](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-protocol/src/json-schema.ts#L169)
+Defined in: [packages/tool-protocol/src/json-schema.ts:169](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L169)
 
 Input 스키마 (JSON Schema 형식)

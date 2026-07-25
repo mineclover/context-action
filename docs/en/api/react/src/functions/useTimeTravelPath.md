@@ -8,7 +8,7 @@
 
 > **useTimeTravelPath**\<`T`, `R`\>(`store`, `path`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:96](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/stores/hooks/useTimeTravelPath.ts#L96)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:96](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L96)
 
 Hook for subscribing to a specific path in TimeTravelStore
 

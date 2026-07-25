@@ -8,7 +8,7 @@
 
 > **DurableOperationResolution**&lt;`TResult`&gt; = \{ `state`: `"completed"`; `result`: `TResult`; `reason?`: `string`; \} \| \{ `state`: `"failed"`; `reason`: `string`; `result?`: `TResult`; \}
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:63](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/tool-durable-operations/src/durable-operation.ts#L63)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:63](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L63)
 
 ## Type Parameters
 

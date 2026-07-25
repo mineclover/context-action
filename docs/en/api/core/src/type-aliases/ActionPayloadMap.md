@@ -8,7 +8,7 @@
 
 > **ActionPayloadMap** = `object`
 
-Defined in: [packages/core/src/types.ts:20](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/core/src/types.ts#L20)
+Defined in: [packages/core/src/types.ts:20](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L20)
 
 Marker type for action payload maps.
 

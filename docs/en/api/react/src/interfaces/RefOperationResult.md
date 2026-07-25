@@ -6,7 +6,7 @@
 
 # Interface: RefOperationResult\<T\>
 
-Defined in: [packages/react/src/refs/types.ts:45](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L45)
+Defined in: [packages/react/src/refs/types.ts:45](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L45)
 
 참조 작업의 결과
 
@@ -22,7 +22,7 @@ Defined in: [packages/react/src/refs/types.ts:45](https://github.com/mineclover/
 
 > **success**: `boolean`
 
-Defined in: [packages/react/src/refs/types.ts:46](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L46)
+Defined in: [packages/react/src/refs/types.ts:46](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L46)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/refs/types.ts:46](https://github.com/mineclover/
 
 > `optional` **result?**: `T`
 
-Defined in: [packages/react/src/refs/types.ts:47](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L47)
+Defined in: [packages/react/src/refs/types.ts:47](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L47)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/react/src/refs/types.ts:47](https://github.com/mineclover/
 
 > `optional` **error?**: `Error`
 
-Defined in: [packages/react/src/refs/types.ts:48](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L48)
+Defined in: [packages/react/src/refs/types.ts:48](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L48)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/react/src/refs/types.ts:48](https://github.com/mineclover/
 
 > `optional` **duration?**: `number`
 
-Defined in: [packages/react/src/refs/types.ts:49](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L49)
+Defined in: [packages/react/src/refs/types.ts:49](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L49)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [packages/react/src/refs/types.ts:49](https://github.com/mineclover/
 
 > **timestamp**: `number`
 
-Defined in: [packages/react/src/refs/types.ts:50](https://github.com/mineclover/context-action/blob/bafa0b51cfbdb9acbddc23c96a5ee1060e42d446/packages/react/src/refs/types.ts#L50)
+Defined in: [packages/react/src/refs/types.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/types.ts#L50)
