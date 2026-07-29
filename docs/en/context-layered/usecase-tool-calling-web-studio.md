@@ -146,6 +146,8 @@ the registry. Do not hand-build a second provider-specific schema in a view or
 transport adapter.
 
 ```tsx
+import { createToolContext } from '@context-action/react/tools';
+
 const { Provider, useToolHandler, useToolRegistry } = createToolContext(
   'WebStudio',
   { schema: webStudioToolSchema }

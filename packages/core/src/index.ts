@@ -20,14 +20,6 @@ export { ActionGuard } from './action-guard.js';
 
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 
-// 🆕 React integration helpers (optional)
-export {
-  createActionHandler,
-  ReactDevUtils,
-  ReactActionError,
-  isReactActionError
-} from './react-helpers.js';
-
 // Validation Errors
 export {
   ActionValidationError,

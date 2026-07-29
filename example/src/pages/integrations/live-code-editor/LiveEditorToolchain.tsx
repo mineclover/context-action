@@ -2,7 +2,7 @@ import {
   createWorkspaceSavePlan,
   createWorkspaceSaveUnknownDetails,
 } from '@context-action/live-code-editor';
-import { createToolContext } from '@context-action/react';
+import { createToolContext } from '@context-action/react/tools';
 import {
   createDurableOperationStore,
   createIndexedDbDurableOperationBackend,

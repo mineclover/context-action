@@ -259,6 +259,25 @@ export type ToolDispatchFunction<TPayloadMap> = <K extends keyof TPayloadMap>(
   options?: DispatchOptions
 ) => Promise<void>;
 
+/** Options for a direct React-originated canonical tool call. */
+export interface DirectToolCallOptions extends ToolCallOptions {
+  /** Optional stable ID used to correlate the canonical `tools/call` request. */
+  readonly toolCallId?: ToolCallRequest['id'];
+}
+
+/**
+ * The canonical UI-side tool invocation contract.
+ *
+ * Unlike the raw dispatch hooks, this always crosses the ToolRegistry boundary
+ * and therefore applies policy, lifecycle observation, output budgets,
+ * idempotency, and durable-operation handling.
+ */
+export type ToolCallFunction<TPayloadMap> = <K extends keyof TPayloadMap>(
+  toolName: K,
+  payload: TPayloadMap[K],
+  options?: DirectToolCallOptions
+) => Promise<ToolCallResult>;
+
 /**
  * Return type for useToolDispatchWithResult hook
  */
@@ -288,6 +307,12 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
    * @returns Dispatch function that validates and executes tools
    */
   useToolDispatch: () => ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
+
+  /**
+   * Invoke a tool through the canonical `tools/call` path.
+   * Direct UI calls default to `{ source: 'local', mode: 'direct' }`.
+   */
+  useToolCall: () => ToolCallFunction<InferActionPayloadMap<TSchema>>;
 
   /**
    * Hook to register tool handlers

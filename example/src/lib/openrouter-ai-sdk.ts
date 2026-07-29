@@ -6,7 +6,7 @@
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import type { ToolRegistry } from '@context-action/react';
+import type { ToolRegistry } from '@context-action/react/tools';
 import {
   type ActionSchemaMap,
   listAllTools,

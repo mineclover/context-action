@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ToolDispatchWithResultReturn
+[context-action-monorepo](../../../../../README.md) / [packages/react/src/tools](../README.md) / ToolDispatchWithResultReturn
 
 # Interface: ToolDispatchWithResultReturn\<TPayloadMap\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:265](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L265)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:284](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L284)
 
 Return type for useToolDispatchWithResult hook
 
@@ -22,7 +22,7 @@ Type parameter **TPayloadMap**
 
 > **dispatch**: [`ToolDispatchFunction`](../type-aliases/ToolDispatchFunction.md)&lt;`TPayloadMap`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:266](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L266)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:285](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L285)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:266](https://github.c
 
 > **dispatchWithResult**: \<`K`, `R`\>(`toolName`, `payload`, `options?`) => `Promise`\<[`ToolExecutionResult`](ToolExecutionResult.md)&lt;`R`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:267](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L267)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:286](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L286)
 
 #### Type Parameters
 
@@ -66,7 +66,7 @@ Type parameter **DispatchOptions**
 
 > **abortAll**: () => `void`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:272](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L272)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:291](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L291)
 
 #### Returns
 

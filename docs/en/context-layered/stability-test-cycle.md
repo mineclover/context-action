@@ -111,7 +111,31 @@ Use multiple lanes instead of one monolithic pipeline.
 - example app type check and build
 - documentation build and link validation
 
-For the 0.8/0.9 stabilization release lane, the following are required:
+## 0.9.x Release Policy and Gate
+
+`0.9.x` is the pre-1.0 stabilization line. Packages version independently and
+do not claim the long-term compatibility guarantee of a 1.0 release. An API
+move or removal is allowed only when its package changelog marks it as breaking,
+the migration documentation names the replacement import, and the release gate
+tests the resulting public artifact.
+
+For this line, `@context-action/react/tools` is the authoritative ToolContext
+entry. The default `@context-action/react` entry remains deliberately free of
+the tool protocol runtime; applications must migrate ToolContext imports to the
+explicit subpath.
+
+Before a tag or manual publish, run:
+
+```bash
+pnpm release:check
+```
+
+It runs the full local verification set, regenerates API docs, verifies that
+generated docs are committed, and executes the canonical example. The publish
+workflow repeats the same gate before publication and performs the
+post-publication consumer install check.
+
+For the 0.8/0.9 stabilization release lane, the gate requires:
 
 - `pnpm build` and `pnpm type-check`
 - `pnpm verify:package-exports` and `pnpm verify:package-tarballs`

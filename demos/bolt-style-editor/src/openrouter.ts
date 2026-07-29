@@ -3,7 +3,7 @@ import {
   saveOpenRouterApiKey,
   subscribeStoredOpenRouterApiKey,
 } from '@context-action/openrouter-browser-storage';
-import type { ToolRegistry } from '@context-action/react';
+import type { ToolRegistry } from '@context-action/react/tools';
 import {
   type ActionSchemaMap,
   listAllTools,

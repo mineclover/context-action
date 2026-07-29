@@ -56,7 +56,7 @@ revision/storage metadata to the model. Model-originated calls enter through
 use `callTool()` with `mode: 'direct'` in its action hook.
 
 ```ts
-import { createToolContext } from '@context-action/react';
+import { createToolContext } from '@context-action/react/tools';
 import {
   WorkspaceDocumentManager,
   WorkspaceToolError,

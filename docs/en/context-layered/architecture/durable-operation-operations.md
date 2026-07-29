@@ -3,7 +3,7 @@
 This runbook is the operational companion to the semantic contract in the
 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md).
 It covers deployment verification for the Redis and PostgreSQL reference backends and the
-recovery boundary exposed by `@context-action/react`.
+recovery boundary exposed by `@context-action/react/tools`.
 
 The guide above is the semantic source of truth. This page intentionally keeps
 only deployment, incident, and resolver-operating procedures; package READMEs
@@ -13,7 +13,7 @@ should link here instead of repeating the durable state machine.
 
 - `@context-action/tool-durable-operations` owns the durable-operation state
   machine and Redis/PostgreSQL backends.
-- `@context-action/react` owns `ToolContext` and the
+- `@context-action/react/tools` owns `ToolContext` and the
   `getOperationStatus()`/`recoverOperation()` registry surface.
 - The application owns the domain status query, compensation decision, and
   downstream idempotency/outbox behavior.
@@ -208,7 +208,7 @@ the application-owned sink. Prefer `createToolObservationSink(sink, policy)`
 for this boundary: its callback receives only a serialized projection and
 policy/retention metadata, never the canonical event. A custom sink must still
 apply both helpers before persistence.
-`@context-action/react` applies `sanitizeToolCallDiagnostic()` automatically to
+`@context-action/react/tools` applies `sanitizeToolCallDiagnostic()` automatically to
 ambiguous and failed durable `ToolCallResult` values; custom durable runners remain
 application-owned and must sanitize both diagnostic and reason before
 `markUnknown()`.

@@ -11,7 +11,7 @@
  * @example
  * ```typescript
  * import { z } from 'zod';
- * import { createToolContext } from '@context-action/react';
+ * import { createToolContext } from '@context-action/react/tools';
  * import { defineAction, createActionSchema } from '@context-action/tool-protocol';
  *
  * const toolSchema = createActionSchema({
@@ -42,19 +42,14 @@
  */
 
 import type {
-  ModelToolCall,
   ToolCallContext,
   ToolCallEvent,
-  ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
-  ToolListRequest,
   ToolIdempotencyRegistry,
 } from '@context-action/tool-protocol';
 import type {
   DurableOperationClaim,
-  DurableOperationRecord,
-  DurableOperationResolution,
 } from '@context-action/tool-durable-operations';
 import {
   ActionHandler,
@@ -75,14 +70,10 @@ import {
   createToolIdempotencyRegistry,
   createToolOperationKey,
   isValidToolIdempotencyKey,
-  isToolListRequest,
   measureToolOutputBytes,
   sanitizeToolCallDiagnostic,
   sanitizeToolCallDiagnosticReason,
   TOOL_CALL_ERROR_CODES,
-  toAnthropicToolDefinitions,
-  toOpenAIToolDefinitions,
-  toToolCallRequest,
   withToolCallId,
 } from '@context-action/tool-protocol';
 import React, {
@@ -102,32 +93,18 @@ import type {
   ToolContextConfig,
   ToolContextReturn,
   ToolContextType,
+  ToolCallFunction,
+  DirectToolCallOptions,
   ToolExecutionResult,
   ToolPolicy,
   ToolRegistry,
 } from './ToolContext.types';
-
-/**
- * Creates a ToolRegistry from an ActionSchemaMap
- */
-type ToolCallExecutor = (
-  request: ToolCallRequest,
-  options?: ToolCallOptions
-) => Promise<ToolCallResult>;
-
-type ToolOperationStatusReader = (
-  toolName: string,
-  idempotencyKey: string,
-  context?: ToolCallContext
-) => Promise<DurableOperationRecord<ToolCallResult> | undefined>;
-
-type ToolOperationReconciler = (
-  toolName: string,
-  idempotencyKey: string,
-  resolution: DurableOperationResolution<ToolCallResult>,
-  context?: ToolCallContext,
-  expectedRevision?: number
-) => Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+import {
+  createToolRegistry,
+  type ToolCallExecutor,
+  type ToolOperationReconciler,
+  type ToolOperationStatusReader,
+} from './tool-registry';
 
 const DEFAULT_DURABLE_OPERATION_LEASE_MS = 5 * 60 * 1000;
 
@@ -312,181 +289,6 @@ function observedToolOutputBytes(result: ToolCallResult): number {
   });
 }
 
-const TOOL_LIST_CURSOR_PREFIX = 'offset:';
-
-function encodeToolListCursor(offset: number): string {
-  return `${TOOL_LIST_CURSOR_PREFIX}${offset}`;
-}
-
-function parseToolListCursor(cursor: string, toolCount: number): number {
-  if (!cursor.startsWith(TOOL_LIST_CURSOR_PREFIX)) {
-    throw new Error('Invalid tools/list cursor.');
-  }
-  const offset = Number(cursor.slice(TOOL_LIST_CURSOR_PREFIX.length));
-  if (!Number.isInteger(offset) || offset < 0 || offset > toolCount) {
-    throw new Error('Invalid tools/list cursor.');
-  }
-  return offset;
-}
-
-function createToolRegistry<TSchema extends ActionSchemaMap>(
-  schema: TSchema,
-  executeToolCall: ToolCallExecutor,
-  allowedToolNames?: readonly string[],
-  toolListPageSize?: number,
-  getOperationStatus?: ToolOperationStatusReader,
-  reconcileOperation?: ToolOperationReconciler
-): ToolRegistry<TSchema> {
-  if (
-    toolListPageSize !== undefined &&
-    (!Number.isInteger(toolListPageSize) || toolListPageSize <= 0)
-  ) {
-    throw new Error('toolListPageSize must be a positive integer.');
-  }
-
-  const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
-  const toolNames = (Object.keys(schema).filter(name => !allowedNames || allowedNames.has(name))) as (keyof TSchema)[];
-  const hasOwnTool = (name: string): boolean =>
-    Object.getOwnPropertyDescriptor(schema, name) !== undefined &&
-    (!allowedNames || allowedNames.has(name));
-  const getExportableTool = <K extends keyof TSchema>(name: K): TSchema[K] => {
-    if (!hasOwnTool(String(name))) {
-      throw new Error(`Tool "${String(name)}" is not available in registry`);
-    }
-
-    const tool = schema[name];
-    if (!tool) {
-      throw new Error(`Tool "${String(name)}" is not available in registry`);
-    }
-    return tool;
-  };
-  const listTools = (request?: ToolListRequest) => {
-    if (request !== undefined && !isToolListRequest(request)) {
-      throw new Error('Invalid tools/list request.');
-    }
-    // A direct registry call without a protocol request remains the complete
-    // catalog. Canonical tools/list requests can opt into cursor pagination.
-    if (!request || toolListPageSize === undefined) {
-      return { tools: toolNames.map((name) => schema[name]!.toMCP()) };
-    }
-
-    const start = request.params?.cursor
-      ? parseToolListCursor(request.params.cursor, toolNames.length)
-      : 0;
-    const end = Math.min(start + toolListPageSize, toolNames.length);
-    return {
-      tools: toolNames.slice(start, end).map((name) => schema[name]!.toMCP()),
-      ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
-    };
-  };
-
-  return {
-    tools: schema,
-
-    getTool<K extends keyof TSchema>(name: K): TSchema[K] {
-      if (Object.getOwnPropertyDescriptor(schema, String(name)) === undefined) {
-        throw new Error(`Tool "${String(name)}" not found in registry`);
-      }
-      return getExportableTool(name);
-    },
-
-    hasTool(name: string): boolean {
-      return hasOwnTool(name);
-    },
-
-    listTools,
-
-    getToolDefinition(name: string) {
-      if (!hasOwnTool(name)) return undefined;
-      const tool = schema[name];
-      return tool?.toMCP();
-    },
-
-    callTool(request, options) {
-      return executeToolCall(request, options);
-    },
-
-    executeModelToolCall(call: ModelToolCall, options) {
-      return executeToolCall(toToolCallRequest(call), {
-        ...options,
-        context: {
-          ...options?.context,
-          source: options?.context?.source ?? 'model',
-          mode: options?.context?.mode ?? 'agent',
-        },
-      });
-    },
-
-    async getOperationStatus(toolName, idempotencyKey, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      return getOperationStatus?.(toolName, idempotencyKey, context);
-    },
-
-    async reconcileOperation(toolName, idempotencyKey, resolution, context, expectedRevision) {
-      if (!hasOwnTool(toolName)) return undefined;
-      return reconcileOperation?.(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        expectedRevision
-      );
-    },
-
-    async recoverOperation(toolName, idempotencyKey, resolver, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      if (typeof resolver !== 'function') {
-        throw new TypeError('Tool operation recovery resolver must be a function.');
-      }
-      const record = await getOperationStatus?.(toolName, idempotencyKey, context);
-      if (record?.state !== 'unknown') return record;
-      if (!reconcileOperation) return record;
-      const resolution = await resolver(record, context);
-      return reconcileOperation(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        record.revision
-      );
-    },
-
-    getToolNames(): (keyof TSchema)[] {
-      return toolNames;
-    },
-
-    // ---- Batch Export Methods ----
-
-    toMCP() {
-      return listTools().tools;
-    },
-
-    toOpenAI() {
-      return toOpenAIToolDefinitions(listTools().tools);
-    },
-
-    toAnthropic() {
-      return toAnthropicToolDefinitions(listTools().tools);
-    },
-
-    toMCPFiltered<K extends keyof TSchema>(names: K[]) {
-      return names.map((name) => getExportableTool(name).toMCP());
-    },
-
-    toOpenAIFiltered<K extends keyof TSchema>(names: K[]) {
-      return toOpenAIToolDefinitions(
-        names.map((name) => getExportableTool(name).toMCP())
-      );
-    },
-
-    toAnthropicFiltered<K extends keyof TSchema>(names: K[]) {
-      return toAnthropicToolDefinitions(
-        names.map((name) => getExportableTool(name).toMCP())
-      );
-    },
-  };
-}
-
 /**
  * Creates a unified Tool Context for LLM integration
  *
@@ -502,7 +304,7 @@ function createToolRegistry<TSchema extends ActionSchemaMap>(
  *
  * @example
  * ```typescript
- * const { Provider, useToolDispatch, useToolRegistry } = createToolContext('MyTools', {
+ * const { Provider, useToolCall, useToolRegistry } = createToolContext('MyTools', {
  *   schema: myToolSchema,
  *   validationMode: 'strict',
  * });
@@ -1254,12 +1056,53 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   };
 
   /**
-   * Hook to dispatch tools
-   * Returns the singleton dispatch function
+   * Raw ActionRegister dispatch for compatibility with existing ActionContext
+   * code. It intentionally bypasses the canonical tool policy, lifecycle,
+   * idempotency, durable-operation, and output-budget boundaries.
+   *
+   * @deprecated Use useToolCall() for new tool invocations.
    */
   const useToolDispatch = () => {
     const { dispatch: contextDispatch } = useToolContext();
     return contextDispatch;
+  };
+
+  /**
+   * Invoke a UI-originated tool through the canonical ToolRegistry boundary.
+   * This keeps direct UI use in the same policy and provenance path as model
+   * and MCP calls without making React a transport implementation.
+   */
+  const useToolCall = (): ToolCallFunction<TPayloadMap> => {
+    const { registry } = useToolContext();
+    const hookId = useId();
+    const sequenceRef = useRef(0);
+
+    return useMemo(() => (
+      <K extends keyof TPayloadMap>(
+        toolName: K,
+        payload: TPayloadMap[K],
+        options?: DirectToolCallOptions
+      ): Promise<ToolCallResult> => {
+        const { toolCallId, context, ...callOptions } = options ?? {};
+        const name = String(toolName);
+        const id = toolCallId ?? `${contextName}:direct:${hookId}:${++sequenceRef.current}`;
+        const params = payload === undefined
+          ? { name }
+          : { name, arguments: payload as Record<string, unknown> };
+
+        return registry.callTool(
+          { id, method: 'tools/call', params },
+          {
+            ...callOptions,
+            context: {
+              ...context,
+              source: context?.source ?? 'local',
+              mode: context?.mode ?? 'direct',
+            },
+          }
+        );
+      }
+    ), [hookId, registry]);
   };
 
   /**
@@ -1379,7 +1222,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   };
 
   /**
-   * Hook for dispatch with detailed result
+   * Raw ActionRegister result API for advanced ActionContext integrations.
+   * It is not a canonical tool invocation path; use useToolCall() for tools.
    */
   const useToolDispatchWithResult = () => {
     const { actionRegisterRef, dispatchLifecycle } = useToolContext();
@@ -1497,6 +1341,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   return {
     Provider,
     useToolDispatch,
+    useToolCall,
     useToolHandler,
     useToolRegistry,
     useToolDispatchWithResult,

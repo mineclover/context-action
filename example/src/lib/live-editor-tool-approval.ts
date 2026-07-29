@@ -1,7 +1,7 @@
 import type {
   ToolPolicyDecision,
   ToolPolicyInput,
-} from '@context-action/react';
+} from '@context-action/react/tools';
 import type { ToolApprovalSnapshot } from '@context-action/tool-protocol';
 import { createToolApprovalQueue } from '@context-action/tool-protocol';
 

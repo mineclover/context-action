@@ -111,6 +111,28 @@ flowchart LR
 - example 앱 타입 체크 및 빌드
 - 문서 빌드 및 링크 검증
 
+## 0.9.x 릴리즈 정책과 게이트
+
+`0.9.x`는 1.0 이전 안정화 라인입니다. 패키지는 독립적으로 버전이 올라가며,
+1.0 장기 호환성 보장을 주장하지 않습니다. API 이동이나 제거는 해당 package
+changelog에 breaking 변경으로 기록하고, migration 문서에 대체 import를 명시하며,
+release gate가 결과 public artifact를 검증할 때만 허용합니다.
+
+이 라인에서 ToolContext의 권위 있는 entry는
+`@context-action/react/tools`입니다. 기본 `@context-action/react` entry는
+tool protocol runtime을 의도적으로 포함하지 않으므로 ToolContext 사용처는 명시적
+subpath로 migration해야 합니다.
+
+tag 또는 수동 publish 전에는 다음을 실행합니다.
+
+```bash
+pnpm release:check
+```
+
+이 명령은 전체 로컬 검증, API 문서 재생성 및 committed 상태 확인, canonical
+example 실행을 묶습니다. publish workflow도 publish 전에 같은 gate를 반복하고,
+publish 뒤에는 consumer install 검증을 수행합니다.
+
 0.8/0.9 안정화 release lane에서는 다음도 통과해야 합니다.
 
 - `pnpm build`와 `pnpm type-check`

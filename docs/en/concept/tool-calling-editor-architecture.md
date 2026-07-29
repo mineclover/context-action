@@ -372,7 +372,7 @@ exposes `retentionMs`/`maxEntries` metadata for the owning store. It is an
 observability boundary only: it does not mutate the durable operation record or
 introduce a second state machine. The standalone Bolt-style trace uses this
 policy for both displayed details and copied JSON.
-When `@context-action/react` persists an ambiguous durable tool result, it uses
+When `@context-action/react/tools` persists an ambiguous durable tool result, it uses
 `sanitizeToolCallDiagnostic()` to keep only the error code/retryability and
 bounded redacted details; canonical content and structured payloads are omitted.
 `sanitizeToolCallDiagnosticReason()` also replaces handler-provided error text
@@ -821,7 +821,7 @@ surface, not framework runtime. The Bolt-style visual shell is isolated in
 `demos/bolt-style-editor` so it can be deployed as a static page without
 coupling its route to the example application. `@context-action/tool-protocol`
 owns the provider-neutral tool protocol and action schemas, while
-`@context-action/react` owns ToolContext and the registry.
+`@context-action/react/tools` owns ToolContext and the registry.
 
 The first extraction seam now exists as the private
 `@context-action/live-code-editor` workspace package. It exports the

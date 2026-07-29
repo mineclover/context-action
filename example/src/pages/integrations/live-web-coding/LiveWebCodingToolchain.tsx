@@ -1,4 +1,4 @@
-import { createToolContext } from '@context-action/react';
+import { createToolContext } from '@context-action/react/tools';
 import { liveWebCodingToolsSchema } from '../../../lib/live-web-coding-tools-schema';
 import { recordLiveWebCodingToolCall } from '../../../lib/live-web-coding-trace';
 

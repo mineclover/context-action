@@ -7,7 +7,7 @@ Context-Action 프레임워크를 위한 **심플하고 안전한 참조 관리 
 ### 방법 1: 심플한 타입 지정
 
 ```typescript
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext } from '@context-action/react';
 
 // 심플한 타입 지정
 const GameRefs = createRefContext<{

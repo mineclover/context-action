@@ -6,7 +6,7 @@
  * can therefore share the same ToolContext execution boundary.
  */
 
-import type { ToolRegistry } from '@context-action/react';
+import type { ToolRegistry } from '@context-action/react/tools';
 import type { ActionSchemaMap } from '@context-action/tool-protocol';
 import type { ModelMessage } from 'ai';
 

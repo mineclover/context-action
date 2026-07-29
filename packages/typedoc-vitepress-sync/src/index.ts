@@ -152,6 +152,7 @@ export class TypeDocVitePressSync {
         }
 
         this.logger.info(`📦 Processing package: ${packageName}`)
+        this.removeStaleTargetFiles(sourcePackagePath, targetPackagePath)
         const packageFiles = await this.processor.processDirectory(
           sourcePackagePath,
           targetPackagePath
@@ -213,6 +214,70 @@ export class TypeDocVitePressSync {
       this.errorHandler.handleError(syncError, 'sync')
       throw syncError
     }
+  }
+
+  /**
+   * Keep the generated VitePress tree a projection of the current TypeDoc tree.
+   *
+   * TypeDoc can remove an API page when a public export disappears. Without
+   * this cleanup, the sync cache preserves the old target page and the sidebar
+   * continues to advertise a removed API.
+   */
+  private removeStaleTargetFiles(sourceDir: string, targetDir: string): void {
+    if (!fs.existsSync(targetDir)) {
+      return
+    }
+
+    const sourceFiles = new Set(this.collectMarkdownRelativePaths(sourceDir))
+    const staleFiles = this.collectMarkdownRelativePaths(targetDir)
+      .filter((relativePath) => !sourceFiles.has(relativePath))
+
+    for (const relativePath of staleFiles) {
+      const targetPath = path.join(targetDir, relativePath)
+      fs.unlinkSync(targetPath)
+      this.cache.removeTarget(targetPath)
+    }
+
+    this.removeEmptyDirectories(targetDir)
+
+    if (staleFiles.length > 0) {
+      this.logger.info(`Removed ${staleFiles.length} stale generated API file(s) from ${targetDir}`)
+    }
+  }
+
+  private collectMarkdownRelativePaths(directory: string, prefix = ''): string[] {
+    if (!fs.existsSync(directory)) {
+      return []
+    }
+
+    const files: string[] = []
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const relativePath = path.join(prefix, entry.name)
+      const absolutePath = path.join(directory, entry.name)
+
+      if (entry.isDirectory()) {
+        files.push(...this.collectMarkdownRelativePaths(absolutePath, relativePath))
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        files.push(relativePath)
+      }
+    }
+
+    return files
+  }
+
+  private removeEmptyDirectories(directory: string): boolean {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        this.removeEmptyDirectories(path.join(directory, entry.name))
+      }
+    }
+
+    if (fs.readdirSync(directory).length === 0) {
+      fs.rmdirSync(directory)
+      return true
+    }
+
+    return false
   }
 
   /**

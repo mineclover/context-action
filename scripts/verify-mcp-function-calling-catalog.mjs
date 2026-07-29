@@ -102,8 +102,8 @@ const standaloneSchemaSource = readSource(
 );
 const aiRunnerContractSource = readSource('example/src/lib/ai-tool-runner.ts');
 const aiRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
-const toolContextSource = readSource(
-  'packages/react/src/tools/ToolContext.tsx'
+const toolRegistrySource = readSource(
+  'packages/react/src/tools/tool-registry.ts'
 );
 const actionSchemaSource = readSource('packages/tool-protocol/src/action-schema.ts');
 const aiDemoSource = readSource(
@@ -200,17 +200,17 @@ assertNotContains(
   'example provider second registry schema lookup'
 );
 assertContains(
-  toolContextSource,
+  toolRegistrySource,
   /toOpenAIToolDefinitions\(listTools\(\)\.tools\)/,
   'registry canonical OpenAI batch export'
 );
 assertContains(
-  toolContextSource,
+  toolRegistrySource,
   /toAnthropicToolDefinitions\(listTools\(\)\.tools\)/,
   'registry canonical Anthropic batch export'
 );
 assertNotContains(
-  toolContextSource,
+  toolRegistrySource,
   /schema\[name\]!\.toOpenAI\(\)/,
   'registry action-level OpenAI batch serializer'
 );

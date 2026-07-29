@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ToolPolicyInput
+[context-action-monorepo](../../../../../README.md) / [packages/react/src/tools](../README.md) / ToolPolicyInput
 
 # Type Alias: ToolPolicyInput
 

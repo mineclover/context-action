@@ -78,6 +78,14 @@ describe('CacheManager', () => {
       expect(shouldProcess).toBe(false)
     })
 
+    it('removes the cache entry when its generated target is deleted', () => {
+      cacheManager.updateCache(testSourceFile, testTargetFile)
+
+      cacheManager.removeTarget(testTargetFile)
+
+      expect(cacheManager.getSize()).toBe(0)
+    })
+
     it('should detect file changes', () => {
       // Cache the file
       cacheManager.shouldProcess(testSourceFile, testTargetFile)

@@ -1,4 +1,4 @@
-import type { ToolRegistry } from '@context-action/react';
+import type { ToolRegistry } from '@context-action/react/tools';
 import {
   listAllTools,
   type ToolCallResult,

@@ -1,6 +1,6 @@
 {
   "name": "@context-action/core",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "type": "module",
   "description": "Type-safe action pipeline management library for JavaScript/TypeScript",
   "main": "dist/index.cjs",

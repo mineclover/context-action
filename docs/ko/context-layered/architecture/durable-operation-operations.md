@@ -1,7 +1,7 @@
 # Durable Operation 운영 Runbook
 
 이 문서는 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md)의
-의미론적 계약을 실제 Redis·PostgreSQL 배포 검증과 `@context-action/react` recovery 경계에
+의미론적 계약을 실제 Redis·PostgreSQL 배포 검증과 `@context-action/react/tools` recovery 경계에
 적용하기 위한 운영 문서다.
 
 위 guide가 semantic SSOT다. 이 페이지에는 배포·장애·resolver 운영 절차만 두며,
@@ -11,7 +11,7 @@ package README가 durable state machine을 다시 복사하지 않고 이 문서
 ## 경계와 사전 조건
 
 - `@context-action/tool-durable-operations`가 durable-operation 상태 머신과 Redis/PostgreSQL backend를 소유한다.
-- `@context-action/react`가 `ToolContext`와
+- `@context-action/react/tools`가 `ToolContext`와
   `getOperationStatus()`/`recoverOperation()` registry surface를 소유한다.
 - 애플리케이션이 domain status query, compensation 결정, downstream
   idempotency/outbox 동작을 소유한다.
@@ -191,7 +191,7 @@ application 소유 sink에 전달한다. 이 경계에는
 `createToolObservationSink(sink, policy)` 사용을 권장한다. callback은 canonical
 event가 아니라 serialized projection과 policy/retention metadata만 전달하므로
 raw event를 sink에 넘기지 않는다. custom sink는 두 helper를 적용한 뒤에만 저장한다.
-`@context-action/react`는 ambiguous·failed durable `ToolCallResult`에
+`@context-action/react/tools`는 ambiguous·failed durable `ToolCallResult`에
 `sanitizeToolCallDiagnostic()`를 자동 적용한다. custom durable runner는 여전히
 application 소유이므로 `markUnknown()` 전에 diagnostic과 reason을 직접 sanitize해야 한다.
 

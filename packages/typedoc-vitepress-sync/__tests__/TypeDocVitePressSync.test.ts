@@ -130,6 +130,21 @@ describe('TypeDocVitePressSync', () => {
       expect(result2.cache.hits).toBeGreaterThan(0)
     })
 
+    it('removes target pages and cache entries when TypeDoc removes a source page', async () => {
+      const sync = createSync(config)
+      const packageDir = path.join(sourceDir, 'packages', 'test-package')
+      const sourcePage = path.join(packageDir, 'TestClass.md')
+      const targetPage = path.join(targetDir, 'test', 'TestClass.md')
+
+      await sync.sync()
+      expect(fs.existsSync(targetPage)).toBe(true)
+
+      fs.unlinkSync(sourcePage)
+      await sync.sync()
+
+      expect(fs.existsSync(targetPage)).toBe(false)
+    })
+
     it('should track events', async () => {
       const sync = createSync(config)
       const events: string[] = []

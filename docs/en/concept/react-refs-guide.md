@@ -43,7 +43,7 @@ The refs system is built around `createRefContext()`, which provides a clean, de
 
 #### 1. Simple Type Definition (Legacy)
 ```typescript
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext } from '@context-action/react';
 
 // Simple type specification
 const GameRefs = createRefContext<{
@@ -172,7 +172,7 @@ const videoPlayer = useMediaRefHandler('videoPlayer');
 ### Setting Up Refs
 
 ```typescript
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext } from '@context-action/react';
 
 // ✅ Recommended: Renaming Pattern for refs
 const {
@@ -707,7 +707,7 @@ RefContext simplifies complex object lifecycle management in games and 3D applic
 ### Key Pattern
 
 ```typescript
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext } from '@context-action/react';
 import * as THREE from 'three';
 
 // 1. Create RefContext with cleanup configuration

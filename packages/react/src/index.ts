@@ -71,22 +71,13 @@ export type {
 
 export { ActionRegister } from '@context-action/core';
 
-// ==============================================
-// Tool Context (LLM Tool Registry)
-// ==============================================
+// React-specific lifecycle helpers belong to the React adapter, not core.
+export {
+  createActionHandler,
+  ReactDevUtils,
+  ReactActionError,
+  isReactActionError,
+} from './actions/react-helpers';
 
-export { createToolContext } from './tools/ToolContext';
-export type {
-  ToolContextConfig,
-  ToolPolicy,
-  ToolPolicyDecision,
-  ToolPolicyInput,
-  ToolContextReturn,
-  ToolContextType,
-  ToolRegistry,
-  ToolDispatchFunction,
-  ToolDispatchWithResultReturn,
-  ToolExecutionResult,
-  ToolOperationRecoveryResolver,
-  ToolValidationMode,
-} from './tools/ToolContext.types';
+// ToolContext intentionally lives at @context-action/react/tools so ordinary
+// store/action consumers do not load the tool protocol runtime.

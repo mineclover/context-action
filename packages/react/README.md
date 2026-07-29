@@ -17,9 +17,9 @@ React integration for the Context-Action framework - providing React hooks, comp
 ### Installation
 
 ```bash
-npm install @context-action/react @context-action/core @context-action/tool-protocol
+npm install @context-action/react
 # or
-pnpm add @context-action/react @context-action/core @context-action/tool-protocol
+pnpm add @context-action/react
 ```
 
 ### Basic Usage
@@ -109,7 +109,7 @@ approval and schema validation inside the ToolContext boundary.
 import { useCallback, useMemo } from 'react';
 import {
   createToolContext,
-} from '@context-action/react';
+} from '@context-action/react/tools';
 import {
   isToolCallResult,
   listAllTools,
@@ -154,16 +154,39 @@ function ToolRuntime({ children }: { children: React.ReactNode }) {
   void runModelCall;
   return children;
 }
+
+function RefreshButton() {
+  const callTool = StudioTools.useToolCall();
+
+  return (
+    <button onClick={() => void callTool('workspace.readFile', { path: 'README.md' })}>
+      Refresh preview
+    </button>
+  );
+}
 ```
 
-Use `callTool()` with `context.mode: 'direct'` for an explicit palette or
-command action. Model and MCP calls should use `mode: 'agent'` so the same
-policy, revision checks, lifecycle trace, and structured error result apply to
-every mutation path. The reusable browser convention and complete usecases are
-documented in [`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
+Use `useToolCall()` for a direct UI action such as a palette or button. It
+constructs a canonical `tools/call` request with
+`{ source: 'local', mode: 'direct' }`; pass `context` only when the caller has
+more specific provenance. Model and MCP calls should use `mode: 'agent'` so the
+same policy, revision checks, lifecycle trace, and structured error result
+apply to every mutation path. `useToolDispatch()` remains a raw ActionRegister
+compatibility hook and intentionally bypasses those tool boundaries. The
+reusable browser convention and complete usecases are documented in
+[`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
 
-`callTool()` and `executeModelToolCall()` accept a wall-clock `timeout` and
-`createToolContext()` can receive a durable operation store from
+Tool calling is an opt-in entry point. Install the protocol and schema runtime
+only when using it; the default `@context-action/react` entry does not import
+either runtime:
+
+```bash
+pnpm add @context-action/tool-protocol zod
+```
+
+`useToolCall()` (and the lower-level `registry.callTool()`) and
+`executeModelToolCall()` accept a wall-clock `timeout`; `createToolContext()`
+can also receive a durable operation store from
 `@context-action/tool-durable-operations`. The precise timeout,
 cancellation, idempotency, and recovery outcomes are defined by the linked
 semantic guide rather than repeated in this package quick start.

@@ -12,7 +12,6 @@
 - [ActionValidationError](classes/ActionValidationError.md)
 - [ActionTimeoutError](classes/ActionTimeoutError.md)
 - [ActionRegisterDestroyedError](classes/ActionRegisterDestroyedError.md)
-- [ReactActionError](classes/ReactActionError.md)
 
 ## Interfaces
 
@@ -39,9 +38,3 @@
 - [executeSequential](functions/executeSequential.md)
 - [executeParallel](functions/executeParallel.md)
 - [executeRace](functions/executeRace.md)
-- [createActionHandler](functions/createActionHandler.md)
-- [isReactActionError](functions/isReactActionError.md)
-
-## Variables
-
-- [ReactDevUtils](variables/ReactDevUtils.md)

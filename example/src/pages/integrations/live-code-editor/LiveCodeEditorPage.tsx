@@ -88,16 +88,37 @@ function CheckoutApp() {
     label: 'ToolContext',
     file: 'ui-tools.tsx',
     description: '툴 호출을 UI action으로 연결하는 흐름입니다.',
-    code: `import { createToolContext } from '@context-action/react';
+    code: `import { z } from 'zod';
+import { createToolContext } from '@context-action/react/tools';
+import { createActionSchema, defineAction } from '@context-action/tool-protocol';
 
-const UITools = createToolContext('UITools');
+const uiToolSchema = createActionSchema({
+  set_theme: defineAction({
+    name: 'set_theme',
+    description: 'Apply a UI theme',
+    parameters: z.object({ theme: z.string() }),
+  }, z),
+});
 
-UITools.useToolHandler('set_theme', ({ theme }) => {
-  document.documentElement.dataset.theme = theme;
-  return { applied: theme };
-}, { id: 'theme-switcher' });
+const { Provider, useToolCall, useToolHandler } = createToolContext('UITools', {
+  schema: uiToolSchema,
+});
 
-await UITools.dispatch('set_theme', { theme: 'violet' });`,
+function ThemeButton() {
+  const callTool = useToolCall();
+  useToolHandler('set_theme', ({ theme }) => {
+    document.documentElement.dataset.theme = theme;
+    return { applied: theme };
+  }, { id: 'theme-switcher' });
+
+  return <button onClick={() => void callTool('set_theme', { theme: 'violet' })}>
+    Apply violet theme
+  </button>;
+}
+
+export function App() {
+  return <Provider><ThemeButton /></Provider>;
+}`,
   },
   store: {
     label: 'Store selector',

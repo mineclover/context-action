@@ -147,6 +147,10 @@ definition, MCP definition, catalog inspector, validation은 registry에서
 파생시킵니다. view나 transport adapter에서 provider별 schema를 다시 만들지
 않습니다.
 
+```tsx
+import { createToolContext } from '@context-action/react/tools';
+```
+
 ### 2. Model transport는 provider-neutral로 유지한다
 
 OpenRouter, local fallback 등 provider별 conversation format은 달라도

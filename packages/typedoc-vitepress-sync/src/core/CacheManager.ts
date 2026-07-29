@@ -196,6 +196,20 @@ export class CacheManager {
   }
 
   /**
+   * Remove cache entries for a generated target that no longer has a source.
+   *
+   * Keeping these entries would make a later reintroduced file appear fresh
+   * even though the target was deliberately removed during synchronization.
+   */
+  removeTarget(targetPath: string): void {
+    for (const [key, entry] of Object.entries(this.manifest)) {
+      if (entry.targetPath === targetPath) {
+        delete this.manifest[key]
+      }
+    }
+  }
+
+  /**
    * Clean expired cache entries
    */
   private cleanExpiredCache(): void {

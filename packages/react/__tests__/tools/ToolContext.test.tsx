@@ -7,7 +7,7 @@
 import React, { useCallback } from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
-import { createToolContext } from '../../src';
+import { createToolContext } from '../../src/tools';
 import {
   createMockDurableOperationBackend,
   createMockDurableOperationStore,
@@ -68,6 +68,7 @@ describe('createToolContext', () => {
   const {
     Provider: ToolProvider,
     useToolDispatch,
+    useToolCall,
     useToolHandler,
     useToolRegistry,
     useToolDispatchWithResult,
@@ -96,6 +97,56 @@ describe('createToolContext', () => {
       }).toThrow(/must be used within a TestTools ToolContext Provider/);
 
       consoleSpy.mockRestore();
+    });
+
+    it('routes direct UI calls through the canonical policy and lifecycle boundary', async () => {
+      const policy = jest.fn().mockReturnValue('allow');
+      const events: Array<{ type: string; source?: string; mode?: string }> = [];
+      const DirectTools = createToolContext('DirectTools', {
+        schema: testSchema,
+        toolPolicy: policy,
+        onToolCall: event => events.push({
+          type: event.type,
+          source: event.context?.source,
+          mode: event.context?.mode,
+        }),
+      });
+      const directWrapper = ({ children }: { children: React.ReactNode }) => (
+        <DirectTools.Provider>{children}</DirectTools.Provider>
+      );
+      const handler = jest.fn(async ({ query }: { query: string }) => ({ query }));
+
+      const { result } = renderHook(() => {
+        DirectTools.useToolHandler('searchProducts', handler, { blocking: true });
+        return DirectTools.useToolCall();
+      }, { wrapper: directWrapper });
+
+      const toolResult = await act(async () => result.current(
+        'searchProducts',
+        { query: 'laptop', maxResults: 10 },
+        { toolCallId: 'direct-ui-call' }
+      ));
+
+      expect(toolResult).toMatchObject({
+        toolCallId: 'direct-ui-call',
+        structuredContent: { query: 'laptop' },
+      });
+      expect(policy).toHaveBeenCalledWith(expect.objectContaining({
+        request: expect.objectContaining({
+          id: 'direct-ui-call',
+          method: 'tools/call',
+          params: {
+            name: 'searchProducts',
+            arguments: { query: 'laptop', maxResults: 10 },
+          },
+        }),
+        context: expect.objectContaining({ source: 'local', mode: 'direct' }),
+      }));
+      expect(events).toEqual([
+        { type: 'started', source: 'local', mode: 'direct' },
+        { type: 'completed', source: 'local', mode: 'direct' },
+      ]);
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('should destroy the action register when the provider unmounts', async () => {

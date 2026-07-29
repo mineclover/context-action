@@ -2,25 +2,19 @@
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ReactDevUtils
+[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ReactDevUtils
 
 # Variable: ReactDevUtils
 
 > `const` **ReactDevUtils**: `object`
 
-Defined in: [packages/core/src/react-helpers.ts:169](https://github.com/mineclover/context-action/blob/main/packages/core/src/react-helpers.ts#L169)
-
-🆕 React development utilities
-
-Provides debugging and development helpers specifically for React environments.
+Defined in: [packages/react/src/actions/react-helpers.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L58)
 
 ## Type Declaration
 
 ### enableDebugMode()
 
 > **enableDebugMode**(): `void`
-
-Enable detailed React integration debugging
 
 #### Returns
 
@@ -30,8 +24,6 @@ Enable detailed React integration debugging
 
 > **disableDebugMode**(): `void`
 
-Disable React integration debugging
-
 #### Returns
 
 `void`
@@ -40,8 +32,6 @@ Disable React integration debugging
 
 > **isDebugMode**(): `boolean`
 
-Check if React debug mode is enabled
-
 #### Returns
 
 `boolean`
@@ -49,8 +39,6 @@ Check if React debug mode is enabled
 ### log()
 
 > **log**(`component`, `action`, `message`, `data?`): `void`
-
-Log React-specific debugging information
 
 #### Parameters
 
@@ -76,15 +64,19 @@ Log React-specific debugging information
 
 ### getStats()
 
-> **getStats**(`registry`): `object`
+> **getStats**&lt;`T`&gt;(`registry`): `object`
 
-Get React integration statistics
+#### Type Parameters
+
+##### T
+
+`T` *extends* `object`
 
 #### Parameters
 
 ##### registry
 
-[`ActionRegister`](../classes/ActionRegister.md)&lt;`any`&gt;
+`ActionRegister`&lt;`T`&gt;
 
 #### Returns
 
@@ -100,4 +92,4 @@ Get React integration statistics
 
 ##### registryInfo
 
-> **registryInfo**: `ActionRegistryInfo`&lt;`any`&gt;
+> **registryInfo**: `ActionRegistryInfo`&lt;`T`&gt;

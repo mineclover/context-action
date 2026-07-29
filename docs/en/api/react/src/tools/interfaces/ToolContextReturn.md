@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ToolContextReturn
+[context-action-monorepo](../../../../../README.md) / [packages/react/src/tools](../README.md) / ToolContextReturn
 
 # Interface: ToolContextReturn\<TSchema\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:282](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L282)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:301](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L301)
 
 Return type for createToolContext factory
 
@@ -22,7 +22,7 @@ Return type for createToolContext factory
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:284](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L284)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:303](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L303)
 
 Provider component that wraps children with tool context
 
@@ -32,7 +32,7 @@ Provider component that wraps children with tool context
 
 > **useToolDispatch**: () => [`ToolDispatchFunction`](../type-aliases/ToolDispatchFunction.md)\<`InferActionPayloadMap`&lt;`TSchema`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:290](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L290)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:309](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L309)
 
 Hook to dispatch tools (execute with validation)
 
@@ -44,11 +44,26 @@ Dispatch function that validates and executes tools
 
 ***
 
+### useToolCall
+
+> **useToolCall**: () => `ToolCallFunction`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\>
+
+Defined in: [packages/react/src/tools/ToolContext.types.ts:315](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L315)
+
+Invoke a tool through the canonical `tools/call` path.
+Direct UI calls default to `{ source: 'local', mode: 'direct' }`.
+
+#### Returns
+
+`ToolCallFunction`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\>
+
+***
+
 ### useToolHandler
 
 > **useToolHandler**: \<`K`, `R`\>(`toolName`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:296](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L296)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:321](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L321)
 
 Hook to register tool handlers
 Similar to useActionHandler but for tool execution
@@ -87,7 +102,7 @@ Type parameter **K**
 
 > **useToolRegistry**: () => [`ToolRegistry`](ToolRegistry.md)&lt;`TSchema`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:306](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L306)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:331](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L331)
 
 Hook to access the tool registry
 Provides methods to export tools in various formats
@@ -102,7 +117,7 @@ Provides methods to export tools in various formats
 
 > **useToolDispatchWithResult**: () => [`ToolDispatchWithResultReturn`](ToolDispatchWithResultReturn.md)\<`InferActionPayloadMap`&lt;`TSchema`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:311](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L311)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:336](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L336)
 
 Hook for dispatch with detailed result
 
@@ -116,7 +131,7 @@ Hook for dispatch with detailed result
 
 > **useActionRegister**: () => `ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\> \| `null`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:317](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L317)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:342](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L342)
 
 Hook to access raw ActionRegister
 For advanced use cases
@@ -131,6 +146,6 @@ For advanced use cases
 
 > **context**: `Context`\<[`ToolContextType`](ToolContextType.md)&lt;`TSchema`&gt; \| `null`\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:320](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L320)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:345](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L345)
 
 The underlying React Context

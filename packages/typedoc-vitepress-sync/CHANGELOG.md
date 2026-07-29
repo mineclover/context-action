@@ -11,6 +11,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   union pipes as valid generated Markdown instead of false quality warnings.
 - Keep genuine unresolved template placeholders, malformed tables, and broken
   emphasis checks visible to the documentation verification lane.
+- Remove stale generated Markdown targets before a sync so an API entry-point
+  move cannot leave obsolete reference pages behind.
 
 ## [0.8.7](https://github.com/mineclover/context-action/compare/v0.8.6...v0.8.7) (2026-07-12)
 

@@ -113,44 +113,8 @@ jobs:
           NODE
           node --check scripts/publish-packages.cjs
 
-      - name: Build private live-code-editor dependency
-        run: pnpm build:live-code-editor
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Verify package exports
-        run: pnpm verify:package-exports
-
-      - name: Verify package tarballs
-        run: pnpm verify:package-tarballs
-
-      - name: Verify repository conventions and documentation ownership
-        run: pnpm convention:check && pnpm docs:management && pnpm source-of-truth:check
-
-      - name: Type check packages
-        run: pnpm type-check
-
-      - name: Test packages
-        run: pnpm test
-
-      - name: Build docs
-        run: pnpm docs:full
-
-      - name: Verify generated docs are reproducible
-        run: |
-          if ! git diff --quiet -- docs/en/api; then
-            echo 'Generated API docs changed during publish.' >&2
-            echo 'Regenerate and commit docs/en/api before publishing.' >&2
-            git diff --stat -- docs/en/api >&2
-            exit 1
-          fi
-
-      - name: Build example
-        run: pnpm --dir example build:fast
-
-      - name: Run canonical example test
-        run: pnpm test:canonical-example
+      - name: Run release gate
+        run: pnpm release:check
 
       - name: Publish packages
         env:

@@ -8,6 +8,7 @@
 
 ## Classes
 
+- [ReactActionError](classes/ReactActionError.md)
 - [StoreErrorBoundary](classes/StoreErrorBoundary.md)
 - [Store](classes/Store.md)
 - [TimeTravelStore](classes/TimeTravelStore.md)
@@ -37,12 +38,6 @@
 - [ExplicitStoreValue](interfaces/ExplicitStoreValue.md)
 - [TimeTravelStoreConfig](interfaces/TimeTravelStoreConfig.md)
 - [TimeTravelContextControlsState](interfaces/TimeTravelContextControlsState.md)
-- [ToolContextConfig](interfaces/ToolContextConfig.md)
-- [ToolRegistry](interfaces/ToolRegistry.md)
-- [ToolExecutionResult](interfaces/ToolExecutionResult.md)
-- [ToolContextType](interfaces/ToolContextType.md)
-- [ToolDispatchWithResultReturn](interfaces/ToolDispatchWithResultReturn.md)
-- [ToolContextReturn](interfaces/ToolContextReturn.md)
 
 ## Type Aliases
 
@@ -52,16 +47,12 @@
 - [InitialStores](type-aliases/InitialStores.md)
 - [TimeTravelInitialStores](type-aliases/TimeTravelInitialStores.md)
 - [InferTimeTravelStoreTypes](type-aliases/InferTimeTravelStoreTypes.md)
-- [ToolValidationMode](type-aliases/ToolValidationMode.md)
-- [ToolPolicyDecision](type-aliases/ToolPolicyDecision.md)
-- [ToolPolicyInput](type-aliases/ToolPolicyInput.md)
-- [ToolPolicy](type-aliases/ToolPolicy.md)
-- [ToolOperationRecoveryResolver](type-aliases/ToolOperationRecoveryResolver.md)
-- [ToolDispatchFunction](type-aliases/ToolDispatchFunction.md)
 
 ## Functions
 
 - [createActionContext](functions/createActionContext.md)
+- [createActionHandler](functions/createActionHandler.md)
+- [isReactActionError](functions/isReactActionError.md)
 - [createRefContext](functions/createRefContext.md)
 - [createStore](functions/createStore.md)
 - [createTimeTravelStore](functions/createTimeTravelStore.md)
@@ -76,4 +67,7 @@
 - [createStoreContext](functions/createStoreContext.md)
 - [asStoreValue](functions/asStoreValue.md)
 - [createTimeTravelStoreContext](functions/createTimeTravelStoreContext.md)
-- [createToolContext](functions/createToolContext.md)
+
+## Variables
+
+- [ReactDevUtils](variables/ReactDevUtils.md)

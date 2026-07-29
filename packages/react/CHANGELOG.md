@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.9.1] (Unreleased)
+
+### Breaking Changes
+
+- Move `createToolContext` and its ToolContext types to the explicit
+  `@context-action/react/tools` entry. The default React entry stays focused
+  on actions, stores, refs, and React lifecycle helpers.
+
+### Features
+
+- Add `useToolCall()` for direct UI-originated canonical `tools/call`
+  execution with policy, lifecycle, idempotency, durable-operation, and output
+  budget handling.
+- Add the public `./tools` ESM/CJS/type export and keep protocol/durable
+  dependencies opt-in for ordinary React consumers.
+
 ## [0.9.0] (2026-07-21)
 
 ### Bug Fixes

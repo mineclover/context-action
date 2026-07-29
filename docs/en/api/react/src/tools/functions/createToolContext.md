@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createToolContext
+[context-action-monorepo](../../../../../README.md) / [packages/react/src/tools](../README.md) / createToolContext
 
 # Function: createToolContext()
 
 > **createToolContext**&lt;`TSchema`&gt;(`contextName`, `config`): [`ToolContextReturn`](../interfaces/ToolContextReturn.md)&lt;`TSchema`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.tsx:511](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.tsx#L511)
+Defined in: [packages/react/src/tools/ToolContext.tsx:313](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.tsx#L313)
 
 Creates a unified Tool Context for LLM integration
 
@@ -47,7 +47,7 @@ Tool context with Provider, hooks, and registry access
 ## Example
 
 ```typescript
-const { Provider, useToolDispatch, useToolRegistry } = createToolContext('MyTools', {
+const { Provider, useToolCall, useToolRegistry } = createToolContext('MyTools', {
   schema: myToolSchema,
   validationMode: 'strict',
 });

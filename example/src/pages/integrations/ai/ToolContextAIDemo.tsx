@@ -5,7 +5,7 @@
  * for function calling with UI control tools
  */
 
-import { createToolContext } from '@context-action/react';
+import { createToolContext } from '@context-action/react/tools';
 import type { ModelMessage } from 'ai';
 import React, {
   useCallback,
@@ -34,7 +34,7 @@ import styles from './ToolContextAIDemo.module.css';
 // Create Tool Context
 const {
   Provider: UIToolProvider,
-  useToolDispatch,
+  useToolCall,
   useToolHandler,
   useToolRegistry,
 } = createToolContext('UITools', {
@@ -245,8 +245,22 @@ function DemoUI({ uiState }: { uiState: UIState }) {
   const [input, setInput] = useState('');
   const [executing, setExecuting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const dispatch = useToolDispatch();
+  const callTool = useToolCall();
   const registry = useToolRegistry();
+  const notify = useCallback(
+    (message: string, duration: number) => {
+      void callTool('showNotification', {
+        message,
+        type: 'error',
+        duration,
+      }).then((result) => {
+        if (result.isError) {
+          console.error('Failed to show tool notification:', result.error);
+        }
+      });
+    },
+    [callTool]
+  );
   const handleApiKeyChange = (value: string) => {
     saveOpenRouterApiKey(value);
   };
@@ -311,14 +325,10 @@ function DemoUI({ uiState }: { uiState: UIState }) {
       })
       .catch((err) => {
         console.error('Failed to load models:', err);
-        dispatch('showNotification', {
-          message: 'Failed to load OpenRouter models',
-          type: 'error',
-          duration: 3000,
-        });
+        notify('Failed to load OpenRouter models', 3000);
       })
       .finally(() => setLoading(false));
-  }, [dispatch]);
+  }, [notify]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -361,11 +371,7 @@ function DemoUI({ uiState }: { uiState: UIState }) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setInput(userMessage);
       setRequestError(errorMsg);
-      dispatch('showNotification', {
-        message: `Error: ${errorMsg}`,
-        type: 'error',
-        duration: 5000,
-      });
+      notify(`Error: ${errorMsg}`, 5000);
     } finally {
       setExecuting(false);
     }

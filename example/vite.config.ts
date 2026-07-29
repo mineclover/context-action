@@ -29,7 +29,8 @@ export default defineConfig({
     // 워크스페이스 패키지들은 사전 번들링에서 제외
     exclude: [
       '@context-action/core',
-      '@context-action/react'
+      '@context-action/react',
+      '@context-action/react/tools'
     ],
   },
   build: {
@@ -63,6 +64,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
     alias: {
       '@context-action/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
+      '@context-action/react/tools': path.resolve(__dirname, '../packages/react/src/tools/index.ts'),
       '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
       // Path mapping for refactored directories
       '@': path.resolve(__dirname, './src'),
