@@ -1480,19 +1480,14 @@ function validateSemDiffEnvelope(value: unknown, parsed: SemChangeSet): void {
       );
     }
   }
-  const exactModified = observedCounts.modified;
-  const structuralOverlapModified = exactModified
-    + observedCounts.moved
-    + observedCounts.renamed
-    + observedCounts.reordered;
-  if (
-    counts.modified !== exactModified
-    && counts.modified !== structuralOverlapModified
-  ) {
-    throw new InputContractError(
-      `sem diff summary.modified ${counts.modified} must equal exact modified count ${exactModified} or sem 0.21 structural-overlap count ${structuralOverlapModified}`,
-    );
-  }
+  // sem 0.21 treats `summary.modified` and `summary.fileCount` as display
+  // counters rather than a lossless projection of the entity list. In
+  // particular, structural changes can be folded into `modified`, and a
+  // single diff can report a fileCount below the number of distinct current
+  // paths present in `changes`. The evidence contract is the typed change
+  // list; retain the fields as required, bounded provider metadata, but do
+  // not reject otherwise coherent evidence based on these presentation
+  // counters.
   if (!Array.isArray(diff.binaryChanges)) {
     throw new InputContractError('sem diff binaryChanges must be an array');
   }
@@ -1512,15 +1507,6 @@ function validateSemDiffEnvelope(value: unknown, parsed: SemChangeSet): void {
   if (orphanCount !== counts.orphan) {
     throw new InputContractError(
       `sem diff orphan changes count is ${orphanCount}, expected summary.orphan ${counts.orphan}`,
-    );
-  }
-  const changedFiles = new Set([
-    ...parsed.changes.map((change) => change.filePath),
-    ...(parsed.binaryChanges ?? []).map((change) => change.filePath),
-  ]);
-  if (changedFiles.size !== counts.fileCount) {
-    throw new InputContractError(
-      `sem diff unique changed file count is ${changedFiles.size}, expected summary.fileCount ${counts.fileCount}`,
     );
   }
 }

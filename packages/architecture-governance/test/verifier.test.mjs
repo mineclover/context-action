@@ -2964,13 +2964,13 @@ process.stdout.write(JSON.stringify({
   );
 });
 
-test('sem adapter accepts the sem 0.21 modified structural overlap', async () => {
+test('sem adapter accepts sem 0.21 presentation counters that overlap entity changes', async () => {
   const root = await fixture();
   const command = path.join(root, 'sem-overlapping-rename-summary.mjs');
   await writeFile(command, `#!/usr/bin/env node
 process.stdout.write(JSON.stringify({
   summary: {
-    fileCount: 1, added: 0, modified: 1, deleted: 0, moved: 0,
+    fileCount: 0, added: 0, modified: 141, deleted: 0, moved: 0,
     renamed: 1, reordered: 0, binary: 0, orphan: 0, total: 1
   },
   changes: [{
@@ -2994,7 +2994,7 @@ process.stdout.write(JSON.stringify({
   assert.equal(changes.changes[0]?.changeType, 'renamed');
 });
 
-test('sem adapter verifies provider file, orphan, and entity uniqueness summaries', async () => {
+test('sem adapter verifies provider orphan and entity uniqueness summaries', async () => {
   const root = await fixture();
   const validChange = {
     entityId: 'packages/core/src/index.ts::class::Core',
@@ -3003,18 +3003,6 @@ test('sem adapter verifies provider file, orphan, and entity uniqueness summarie
     filePath: 'packages/core/src/index.ts',
   };
   const cases = [
-    {
-      name: 'file-count',
-      output: {
-        summary: {
-          fileCount: 1, added: 0, modified: 0, deleted: 0, moved: 0,
-          renamed: 0, reordered: 0, binary: 0, orphan: 0, total: 0,
-        },
-        changes: [],
-        binaryChanges: [],
-      },
-      detail: /unique changed file count is 0, expected summary\.fileCount 1/,
-    },
     {
       name: 'orphan-count',
       output: {
@@ -3050,18 +3038,6 @@ test('sem adapter verifies provider file, orphan, and entity uniqueness summarie
         binaryChanges: [],
       },
       detail: /entityId is duplicated/,
-    },
-    {
-      name: 'invalid-modified-overlap',
-      output: {
-        summary: {
-          fileCount: 1, added: 0, modified: 2, deleted: 0, moved: 0,
-          renamed: 1, reordered: 0, binary: 0, orphan: 0, total: 1,
-        },
-        changes: [{ ...validChange, changeType: 'renamed' }],
-        binaryChanges: [],
-      },
-      detail: /summary\.modified 2 must equal exact modified count 0 or sem 0\.21 structural-overlap count 1/,
     },
   ];
   for (const fixtureCase of cases) {

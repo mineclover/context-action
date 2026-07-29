@@ -415,10 +415,11 @@ options object, 알려진 field, path/project/change source 타입을 subprocess
 우회한 direct API 입력이 raw property `TypeError`나 schema-invalid evidence를 만들지 않는다.
 가벼운 직접 parser는 summary가 없는 최소 diff도 허용하지만, subprocess provider 경로는 SEM 0.21의
 전체 `summary`, `changes`, `binaryChanges` envelope를 요구한다. `changes` 길이는 `summary.total`과,
-각 실제 change type 개수는 대응 summary와 일치해야 한다. 단, SEM 0.21 binary가 structural
-`moved`/`renamed`/`reordered`를 `modified`에도 중복 집계하는 경우가 있어 `summary.modified`는 정확한
-modified 개수 또는 structural subtype을 포함한 개수만 허용한다. 그 밖의 count 불일치는
-`invalid-output`이다. binary 개수도 `summary.binary`와 일치해야 한다. `summary.fileCount`는 semantic+binary 현재 경로의 유일 개수와, `summary.orphan`은
+`modified`를 제외한 실제 change type 개수는 대응 summary와 일치해야 한다. SEM 0.21의
+`summary.modified`와 `summary.fileCount`는 structural change를 포함하거나 current path를 덜 세는
+표시용 집계여서 entity evidence의 lossless projection이 아니다. 두 값은 non-negative provider
+metadata로만 검증하고, 변경 근거와 집계는 typed `changes`/`binaryChanges` 배열에서 계산한다. 그 밖의
+count 불일치는 `invalid-output`이다. binary 개수도 `summary.binary`와 일치해야 한다. `summary.orphan`은
 필수 `entityType`이 `orphan`인 change 개수와 일치해야 한다. entity ID, binary path, untracked path의
 중복과 semantic/binary/untracked 집합 간 충돌도 거부한다. 따라서 잘린 JSON이나 내부적으로 모순된
 provider 출력은 change evidence로 채택되지 않는다. 세 change evidence collection의 합계도
