@@ -3,7 +3,7 @@ document_id: context-layered--next-work
 category: context-layered
 source_path: ko/context-layered/next-work.md
 character_limit: 1000
-last_update: '2026-07-20T18:05:45.087Z'
+last_update: '2026-07-30T23:07:59.033Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -16,6 +16,6 @@ workflow_stage: content_generated
 
 Key points:
 • durable operation record에 lease 기반 claim/replay/complete/fail/unknown 전이와
-• IndexedDB·Redis reference backend, 선택적 Redis client bridge, bounded keyset
+• IndexedDB·Redis·PostgreSQL reference backend, 선택적 Redis client bridge,
 • Live Code Editor recovery는 `editor.saveFile`과 `editor.saveAll`을 모두 지원한다.
 •...

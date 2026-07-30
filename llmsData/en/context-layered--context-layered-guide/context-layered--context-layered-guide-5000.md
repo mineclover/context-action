@@ -3,7 +3,7 @@ document_id: context-layered--context-layered-guide
 category: context-layered
 source_path: en/context-layered/context-layered-guide.md
 character_limit: 5000
-last_update: '2026-07-20T10:49:26.184Z'
+last_update: '2026-07-30T23:07:57.940Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -35,9 +35,15 @@ Key points:
 • Maintainable codebase structure
 • [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 • [Handler Registry](./architecture/handler-registry.md) - ID and priority management
-• [Architecture Governance and Evidence](./architecture/architecture-governance.md) - capability, symbol, and evidence contracts
-• [Architecture Governance Usage](./architecture/architecture-governance-usage.md) - snapshot, history, diff, and intersection commands
-• [ContextScope Symbol Graph](./architecture/context-scope-graph.md) - context grouping over complete symbol snapshots
 • [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
 • [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
-• [Next Work and Documentation Ownership](./next-work.md) - single backlog and...
+• [Next Work and Documentation Ownership](./next-work.md) - single backlog and source-of-truth map
+• Medium to large React applications
+• Projects requiring clear separation of concerns
+• Applications with complex business logic
+• Teams needing consistent architectural patterns
+• Projects using Context-Action framework
+• Simple applications with minimal business logic
+• Prototypes or proof-of-concept projects
+• Applications not using React Context extensively
+• **Layer...

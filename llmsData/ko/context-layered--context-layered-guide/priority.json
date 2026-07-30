@@ -4,14 +4,14 @@
     "title": "Context-Layered 아키텍처 가이드",
     "category": "concept",
     "source_path": "ko/context-layered/context-layered-guide.md",
-    "lastModified": "2026-07-20T10:48:02.028Z",
-    "wordCount": 797
+    "lastModified": "2026-07-30T23:06:19.180Z",
+    "wordCount": 776
   },
   "priority": {
     "score": 50,
     "tier": "reference",
     "rationale": "Default priority assigned during documentation synchronization.",
-    "reviewDate": "2026-07-20",
+    "reviewDate": "2026-07-30",
     "autoCalculated": true
   },
   "purpose": {
@@ -180,7 +180,7 @@
       "framework-users"
     ],
     "complexity": "basic",
-    "lastUpdated": "2026-07-20"
+    "lastUpdated": "2026-07-30"
   },
   "dependencies": {
     "prerequisites": [],
@@ -192,12 +192,12 @@
   "metadata": {
     "description": "Context-Layered 아키텍처 가이드 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
     "language": "ko",
-    "created": "2026-07-20",
-    "updated": "2026-07-20",
+    "created": "2026-07-30",
+    "updated": "2026-07-30",
     "version": "1.0.0",
-    "original_size": 7779,
-    "created_at": "2026-07-20T10:49:26.408Z",
-    "source_last_modified": "2026-07-20T10:48:02.028Z",
+    "original_size": 7329,
+    "created_at": "2026-07-30T23:07:58.846Z",
+    "source_last_modified": "2026-07-30T23:06:19.180Z",
     "keywords": {
       "primary": [
         "context-layered",

@@ -13,20 +13,14 @@
 7. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
 8. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
 9. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-10. [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-11. [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
-12. [sem-doc 사용 방법](/ko/context-layered/architecture/sem-doc-usage)
-13. [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
-14. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
-15. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
-16. [다음 작업과 문서 소유권](/ko/context-layered/next-work)
+10. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+11. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
+12. [다음 작업과 문서 소유권](/ko/context-layered/next-work)
 
 위의 짧은 순서를 따라가면
 - 폴더 구조
 - 상태 전이 원칙
 - 도메인별 확장 방식
-- capability·심볼·context identity
-- snapshot 증거와 context boundary 파생 방식
 - 테스트 기준
 을 빠르게 공유할 수 있습니다.
 
@@ -54,14 +48,6 @@
   - `contexts / business / handlers / actions / hooks / views` 책임 구분
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
   - handler 등록과 분리 기준
-- [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-  - capability identity, `SymbolRef`, snapshot 증거, 검증 경계
-- [sem-doc과 Architecture Governance 경계](/ko/context-layered/architecture/sem-doc-architecture-governance-boundary)
-  - 작업 컨텍스트/문서 도구와 authored architecture 검증을 분리
-- [sem-doc 사용 방법](/ko/context-layered/architecture/sem-doc-usage)
-  - 공개 설치, ContextScope, 문서 binding, 히스토리, CI 실행 recipe
-- [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
-  - 완전한 심볼 snapshot 위의 screen/transaction grouping 계약
 
 ### 2. 상태 전이와 로직 분리를 설명하는 문서
 
@@ -90,8 +76,6 @@
 
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
   - 설계 계약, 구현 패턴, 시나리오, 스트레스 테스트를 어떻게 나누는지
-- [아키텍처 거버넌스 사용 방법](/ko/context-layered/architecture/architecture-governance-usage)
-  - snapshot, history, diff, intersection 실행 recipe
 - [다음 작업과 문서 소유권](/ko/context-layered/next-work)
   - 후속 작업과 기준 문서를 한 곳에서 관리하는 backlog
 

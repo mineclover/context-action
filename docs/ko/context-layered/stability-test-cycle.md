@@ -139,7 +139,7 @@ publish 뒤에는 consumer install 검증을 수행합니다.
 - `pnpm verify:package-exports`와 `pnpm verify:package-tarballs`
 - `pnpm convention:check`와 활성화된 package-boundary 검사
 - package version/changelog 정합성과
-  `@context-action/sem-doc`, `@context-action/tool-protocol`,
+  `@context-action/tool-protocol`,
   `@context-action/tool-durable-operations` published-consumer smoke test
 - 제거된 legacy documentation package/generator가 active workspace/release graph에 남아 있지 않음
 

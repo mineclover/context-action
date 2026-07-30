@@ -4,14 +4,14 @@
     "title": "개발 컨벤션 인덱스",
     "category": "concept",
     "source_path": "ko/context-layered/convention-index.md",
-    "lastModified": "2026-07-20T10:47:42.254Z",
-    "wordCount": 688
+    "lastModified": "2026-07-30T23:03:53.930Z",
+    "wordCount": 598
   },
   "priority": {
     "score": 50,
     "tier": "reference",
     "rationale": "Default priority assigned during documentation synchronization.",
-    "reviewDate": "2026-07-20",
+    "reviewDate": "2026-07-30",
     "autoCalculated": true
   },
   "purpose": {
@@ -176,7 +176,7 @@
       "framework-users"
     ],
     "complexity": "basic",
-    "lastUpdated": "2026-07-20"
+    "lastUpdated": "2026-07-30"
   },
   "dependencies": {
     "prerequisites": [],
@@ -188,12 +188,12 @@
   "metadata": {
     "description": "개발 컨벤션 인덱스 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
     "language": "ko",
-    "created": "2026-07-20",
-    "updated": "2026-07-20",
+    "created": "2026-07-30",
+    "updated": "2026-07-30",
     "version": "1.0.0",
-    "original_size": 8734,
-    "created_at": "2026-07-20T10:49:31.481Z",
-    "source_last_modified": "2026-07-20T10:47:42.254Z",
+    "original_size": 7408,
+    "created_at": "2026-07-30T23:07:58.934Z",
+    "source_last_modified": "2026-07-30T23:03:53.930Z",
     "keywords": {
       "primary": [
         "context-layered",

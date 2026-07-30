@@ -37,10 +37,6 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
-| `@context-action/sem-foundation-contracts` | analysis contract foundation | symbol identity, snapshots, revisions, shared limits, wire contracts | SEM subprocesses, Git worktrees, architecture policy |
-| `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree lifecycle | symbol semantics, architecture rules, UI behavior |
-| `@context-action/architecture-governance` | experimental convention control plane | Context-Action-authored capability registry, policy verification, complete snapshots/history, and its snapshot-backed ContextScope projection | generic architecture inference, React runtime features, general-purpose documentation generation |
-| `@context-action/sem-doc` | operational Symbol Context plane | standalone advisory symbol/document context, canonical operational `sem-doc-context-scope.v3`, bindings, and Git diff integration | architecture convention/policy and snapshot-backed governance; reuse `@context-action/sem-foundation-*` |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
@@ -49,15 +45,6 @@ when an existing package cannot own the responsibility without violating depende
 
 `example/` and `demos/` are integration hosts, not libraries. They may compose public packages and demonstrate
 architecture, but a reusable implementation belongs in a package before it is imported by another package.
-
-`@context-action/sem-doc` has completed the workspace identity migration from the former `@tsdoc-edge/sem-doc`
-name. Its canonical source and public releases belong to
-`context-action-documentation-tooling`; this repository consumes the published package and keeps no source
-copy. It is the operational Symbol Context SSOT, not a temporary staging package or an Architecture
-Governance adapter.
-For screen/API/transaction grouping used during implementation, `sem-doc-context-scope.v3` is the single
-operational projection. Architecture Governance's existing `context-action/context-scope@1.0` remains a
-separate snapshot-bound architecture-review artifact and is not a second sem-doc implementation target.
 
 The former test-driven documentation package and its repository-owned examples were removed during the 0.8/0.9
 stabilization. Public API documentation now has one path: exported source and JSDoc → TypeDoc →
@@ -74,9 +61,6 @@ The default direction is:
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
-@context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
-                         ├──→ @context-action/architecture-governance ← @ataraxy-labs/sem
-                         └──→ @context-action/sem-doc (operational Symbol Context plane)
 ```
 
 The diagram describes ownership, not import syntax. In particular:
@@ -86,22 +70,12 @@ The diagram describes ownership, not import syntax. In particular:
 - `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 - `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
 - `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
-- `sem-foundation-repository` consumes contracts, never the reverse.
-- `architecture-governance` consumes foundation contracts/repository and SEM; foundation packages do not know
-  about capabilities, policies, Context-Action UI, or registry files.
-- `architecture-governance` and `sem-doc` are side-by-side consumers with different contracts; neither may
-  add a runtime dependency on the other. Use [their boundary guide](./architecture/sem-doc-architecture-governance-boundary)
-  when a change appears to cross both responsibilities.
 - documentation generators may inspect source and docs, but runtime packages must not depend on generators.
 - examples and demos are leaves in the dependency graph. A package must not import an example or demo.
 
-The package-boundary policy files express enforceable cases. When a new dependency direction becomes stable,
-add a named policy rule rather than relying on reviewer memory.
-
-The protocol/durable split is enforced by `CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING` and
-`CA-PKG-TOOL-DURABLE-NO-PROTOCOL-RUNTIME-COUPLING` in
-`architecture/rules/package-boundaries.json`. These rules inspect runtime, peer, and optional dependency
-fields; test-only tooling may remain in `devDependencies` without changing the published boundary.
+The protocol/durable split is maintained through focused package-boundary tests and review of runtime,
+peer, and optional dependency fields; test-only tooling may remain in `devDependencies` without changing
+the published boundary.
 
 ### Mutative contract propagation
 
@@ -161,7 +135,6 @@ Choose one primary class before editing:
 | public API | Does an exported type or entry point change? | package source/JSDoc, API docs, migration note |
 | runtime behavior | Does state, action, store, or tool behavior change? | package spec, focused test, runnable example |
 | boundary | Does ownership or dependency direction change? | this convention, policy rule, decision record |
-| analysis contract | Does a snapshot, manifest, schema, or identity change? | schema, parser/validator, fixture, architecture guide |
 | documentation/tooling | Does only a generated or authored documentation flow change? | generator source, authoritative guide, docs gate |
 
 ### Step 2 — select the owning package
@@ -182,8 +155,7 @@ For a new capability or boundary, record:
 - migration and removal conditions for transitional code.
 
 Use the [Specification, Issue, and Documentation Management Convention](./change-management-convention) for
-issue and decision records, and [Architecture Governance](./architecture/architecture-governance) for stable
-symbol evidence.
+issue and decision records.
 
 ### Step 4 — implement and verify in package order
 
@@ -197,15 +169,6 @@ pnpm --filter example check
 pnpm example:build
 ```
 
-For analysis and architecture changes:
-
-```bash
-pnpm arch:type-check
-pnpm arch:test
-pnpm arch:check:registry
-pnpm docs:build
-```
-
 Add package-specific tests and package export/tarball checks when the public surface changes.
 
 ### Step 5 — update the ownership graph
@@ -215,47 +178,9 @@ Before handoff, update all affected layers:
 1. package manifest and exports;
 2. package README and authoritative guide;
 3. tests and fixtures;
-4. dependency policy or architecture registry/decision;
+4. dependency policy or decision record;
 5. English/Korean public pages when the behavior is public;
 6. generated artifacts only after their source is correct.
-
-### Document-to-symbol binding convention
-
-When a Markdown or MDX document is intended to explain one implementation symbol, treat it as a
-code-backed SSOT document and require `semDocumentKind: code` plus the four sem-doc frontmatter fields:
-
-```yaml
-semDocumentKind: code
-semEntityId: src/auth.ts::function::authenticateUser
-semEntityName: authenticateUser
-semEntityType: function
-semEntityFile: src/auth.ts
-```
-
-The document must also contain exactly one canonical H1 checkpoint, for example `# [[Authentication
-Entry Point]]`. Concept, architecture, process, and tooling guides may remain document-only, but they
-are not a resolved symbol SSOT. `external-reference` documents may describe direct dependency surface
-evidence but must not claim ownership of a `node_modules` entity. An `unresolved` work-context result
-for a code-backed document is a documentation issue, not a successful fallback to a same-named symbol.
-
-Use strict validation for the repository's authoritative docs root:
-
-```bash
-npx sem-doc docs validate-bindings <docs-root> --strict --json
-```
-
-Strict mode requires every document to declare `semDocumentKind`, requires exact bindings for `code`
-documents, and rejects bindings on non-code documents.
-
-For code-backed documentation changes, reviewers run both the declared-binding validator and a
-representative context query:
-
-```bash
-npx sem-doc docs validate-bindings <docs-root> --strict --json
-npx sem-doc work-context <entity> --docs-root <docs-root> --json
-```
-
-The exact rules are owned by the [sem-doc document entity binding convention](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/conventions/document-entity-binding.md).
 
 ## 6. Adding, merging, splitting, or deprecating packages
 
@@ -304,8 +229,7 @@ stop adding new cross-package consumers, and add a verification gate that preven
 - [ ] Cross-package imports use declared exports only.
 - [ ] No lower-level package imports a higher-level adapter, example, or generator.
 - [ ] Tests live with the contract they prove and include a boundary regression where needed.
-- [ ] Registry, policy, schema, and decision evidence are updated for durable boundaries.
-- [ ] Code-backed SSOT documents declare exact sem entity frontmatter and resolve in a representative work-context.
+- [ ] Policy, schema, and decision evidence are updated for durable boundaries.
 - [ ] English/Korean docs and discovery links are aligned for public behavior.
 - [ ] Generated files were regenerated from source, not hand-edited.
 - [ ] The proportional package and repository gates were run and recorded.
@@ -315,5 +239,3 @@ stop adding new cross-package consumers, and add a verification gate that preven
 - [Convention Index](./convention-index)
 - [Implementation Convention](./implementation-convention)
 - [Specification, Issue, and Documentation Management](./change-management-convention)
-- [Architecture Governance](./architecture/architecture-governance)
-- [Architecture Policy Sets](./architecture/../../../../architecture/rules/README.md)

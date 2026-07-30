@@ -120,36 +120,6 @@ jobs:
       - name: Verify full repository
         run: pnpm verify:all
 
-      - name: Report architecture change scope
-        if: ${{ github.event_name == 'pull_request' && always() }}
-        run: |
-          status=0
-          pnpm arch:build || status=$?
-          if [[ "$status" -eq 0 ]]; then
-            node packages/architecture-governance/dist/cli.js check \
-              --root . \
-              --registry architecture/registry.json \
-              --sem \
-              --from "${{ github.event.pull_request.base.sha }}" \
-              --to "${{ github.event.pull_request.head.sha }}" \
-              --format markdown \
-              --output reports/architecture/pr-report.md || status=$?
-          fi
-          if [[ -f reports/architecture/pr-report.md ]]; then
-            cat reports/architecture/pr-report.md >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Architecture report was not generated (exit $status)." >> "$GITHUB_STEP_SUMMARY"
-          fi
-          exit "$status"
-
-      - name: Upload architecture report
-        if: ${{ github.event_name == 'pull_request' && always() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: architecture-report-${{ matrix.node-version }}
-          path: reports/architecture/pr-report.md
-          if-no-files-found: ignore
-          retention-days: 7
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7

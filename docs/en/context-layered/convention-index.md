@@ -13,20 +13,14 @@ This document is the central entry point for the implementation-playbook style c
 7. [Canonical Order Form Example](/en/examples/canonical-order-form)
 8. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
 9. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-10. [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
-11. [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
-12. [sem-doc Usage](/en/context-layered/architecture/sem-doc-usage)
-13. [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
-14. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
-15. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
-16. [Next Work and Documentation Ownership](/en/context-layered/next-work)
+10. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+11. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
+12. [Next Work and Documentation Ownership](/en/context-layered/next-work)
 
 The short path above covers:
 - folder structure
 - workflow transition rules
 - domain-level expansion
-- capability, symbol, and context identity
-- snapshot evidence and context-boundary projection
 - testing expectations
 
 ## Grouped by Role
@@ -53,14 +47,6 @@ The short path above covers:
   - responsibility split across `contexts / business / handlers / actions / hooks / views`
 - [Handler Registry](/en/context-layered/architecture/handler-registry)
   - handler registration and separation rules
-- [Architecture Governance and Evidence](/en/context-layered/architecture/architecture-governance)
-  - capability identity, `SymbolRef`, snapshot evidence, and verification boundaries
-- [sem-doc and Architecture Governance Boundary](/en/context-layered/architecture/sem-doc-architecture-governance-boundary)
-  - separate work-context/document tooling from authored architecture verification
-- [sem-doc Usage](/en/context-layered/architecture/sem-doc-usage)
-  - published installation, ContextScope, document binding, history, and CI recipes
-- [ContextScope Symbol Graph](/en/context-layered/architecture/context-scope-graph)
-  - screen/transaction grouping contract over the complete symbol snapshot
 
 ### 2. Documents that explain logic and transitions
 
@@ -89,8 +75,6 @@ The short path above covers:
 
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
   - how to split contract tests, scenario tests, and stress validation
-- [Architecture Governance Usage](/en/context-layered/architecture/architecture-governance-usage)
-  - executable snapshot, history, diff, and intersection recipes
 - [Next Work and Documentation Ownership](/en/context-layered/next-work)
   - the single backlog and source-of-truth map for follow-up work
 

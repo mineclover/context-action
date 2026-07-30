@@ -3,7 +3,7 @@ document_id: context-layered--context-layered-guide
 category: context-layered
 source_path: ko/context-layered/context-layered-guide.md
 character_limit: 5000
-last_update: '2026-07-20T10:49:26.412Z'
+last_update: '2026-07-30T23:07:58.852Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -39,9 +39,6 @@ Key points:
 • 팀이 아직 레이어 분리 규칙에 익숙하지 않은 상태
 • [폴더 구조](/ko/context-layered/architecture/folder-structure)
 • [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
-• [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-• [아키텍처 거버넌스 사용 방법](/ko/context-layered/architecture/architecture-governance-usage)
-• [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
 • [Usecase 및 Recipe Profile](./usecase-recipe-profile.md)
 • [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 • [Canonical Order Form 예제](/ko/examples/canonical-order-form)
@@ -55,4 +52,6 @@ Key points:
 • 이 문서에서 전체 그림을 잡습니다.
 • [폴더 구조](/ko/context-layered/architecture/folder-structure)로 각 레이어의 책임을 봅니다.
 • [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)로 왜 이 구조가 안정성과 연결되는지 확인합니다.
-• [Canonical Order Form 예제](/ko/examples/canonical-order-form)로 실제...
+• [Canonical Order Form 예제](/ko/examples/canonical-order-form)로 실제 구현 흐름을 따라갑니다.
+• [마이그레이션 가이드](/ko/context-layered/migration-guide)로 기존 구조를 어떻게 옮길지 확인합니다.
+• [다음 작업과 문서 소유권](/ko/context-layered/next-work)에서 후속 작업과 기준 문서를 확인합니다.

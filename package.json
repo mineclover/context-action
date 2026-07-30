@@ -15,24 +15,13 @@
     "build:mutative": "lerna run build --scope=@context-action/mutative",
     "build:live-code-editor": "pnpm --filter @context-action/live-code-editor build",
     "check:live-code-editor": "pnpm --filter @context-action/live-code-editor check",
-    "arch:build": "pnpm --filter @context-action/architecture-governance build",
-    "arch:type-check": "pnpm arch:build && pnpm --filter @context-action/architecture-governance type-check",
-    "arch:test": "pnpm --filter @context-action/architecture-governance test",
-    "arch:check": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem",
-    "arch:check:changed": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem --changed",
-    "arch:check:staged": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json --sem --staged",
-    "arch:check:registry": "pnpm arch:build && node packages/architecture-governance/dist/cli.js check --root . --registry architecture/registry.json",
-    "arch:snapshot": "pnpm arch:build && node packages/architecture-governance/dist/cli.js snapshot --root . --registry architecture/registry.json --format json",
-    "arch:history": "pnpm arch:build && node packages/architecture-governance/dist/cli.js history --root . --registry architecture/registry.json --format json",
-    "arch:intersect": "pnpm arch:build && node packages/architecture-governance/dist/cli.js intersect --root .",
-    "arch:snapshot-diff": "pnpm arch:build && node packages/architecture-governance/dist/cli.js snapshot-diff --root .",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
     "verify:react-artifact-boundary": "node scripts/verify-react-artifact-boundary.mjs",
     "verify:published-tool-consumers": "node scripts/verify-published-tool-consumers.cjs",
     "verify:local-tool-consumers": "node scripts/verify-published-tool-consumers.cjs --local",
     "publish:packages": "node scripts/publish-packages.cjs",
-    "verify:all": "pnpm build:live-code-editor && pnpm build && pnpm verify:react-artifact-boundary && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:local-tool-consumers && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm source-of-truth:check && pnpm llms:check && pnpm type-check && pnpm arch:type-check && pnpm test && pnpm arch:test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools && pnpm arch:check",
+    "verify:all": "pnpm build:live-code-editor && pnpm build && pnpm verify:react-artifact-boundary && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:local-tool-consumers && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && pnpm --filter example check && pnpm --filter example build && pnpm docs:build && pnpm verify:private-tools",
     "release:check": "pnpm verify:all && pnpm docs:api && pnpm docs:sync && pnpm docs:build && pnpm test:canonical-example && git diff --exit-code -- docs/en/api docs/.vitepress/config/api-spec.ts",
     "dev": "cd example && pnpm dev",
     "example:build": "cd example && pnpm build",
@@ -55,7 +44,7 @@
     "tool-durable:verify:evidence:complete": "node scripts/verify-durable-operation-evidence-schema.mjs --require-success",
     "tool-durable:test:evidence": "node --test scripts/verify-durable-operation-evidence-schema.test.mjs",
     "test:live-code-editor": "pnpm --filter @context-action/live-code-editor test",
-    "lint": "biome lint packages/core/src packages/tool-protocol/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/architecture-governance/src packages/architecture-governance/scripts/verify-artifacts.mjs packages/architecture-governance/scripts/prepare-foundation-deps.mjs scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-react-artifact-boundary.mjs",
+    "lint": "biome lint packages/core/src packages/tool-protocol/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-react-artifact-boundary.mjs",
     "convention:check": "node scripts/check-context-layered-conventions.mjs",
     "type-check": "lerna run type-check",
     "type-check:live-code-editor": "pnpm --filter @context-action/live-code-editor type-check",
@@ -74,7 +63,6 @@
     "docs:build": "vitepress build docs",
     "docs:management": "node scripts/verify-documentation-management.mjs",
     "change:traceability": "node scripts/check-change-traceability.mjs",
-    "source-of-truth:check": "node scripts/verify-source-of-truth.mjs",
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "pnpm --filter @context-action/typedoc-vitepress-sync build && node packages/typedoc-vitepress-sync/bin/cli.js sync --config ./typedoc-vitepress-sync.config.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:build",
@@ -171,9 +159,7 @@
       "esbuild",
       "nx"
     ],
-    "onlyBuiltDependencies": [
-      "@ataraxy-labs/sem"
-    ]
+    "onlyBuiltDependencies": []
   },
   "author": "mineclover",
   "license": "Apache-2.0"

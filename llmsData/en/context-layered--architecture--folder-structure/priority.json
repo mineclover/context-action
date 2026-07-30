@@ -4,14 +4,14 @@
     "title": "Context-Layered Architecture - Folder Structure Guide",
     "category": "concept",
     "source_path": "en/context-layered/architecture/folder-structure.md",
-    "lastModified": "2026-07-18T05:40:17.526Z",
-    "wordCount": 1083
+    "lastModified": "2026-07-30T23:03:32.540Z",
+    "wordCount": 1042
   },
   "priority": {
     "score": 50,
     "tier": "reference",
     "rationale": "Default priority assigned during documentation synchronization.",
-    "reviewDate": "2026-07-24",
+    "reviewDate": "2026-07-30",
     "autoCalculated": true
   },
   "purpose": {
@@ -178,7 +178,7 @@
       "framework-users"
     ],
     "complexity": "basic",
-    "lastUpdated": "2026-07-24"
+    "lastUpdated": "2026-07-30"
   },
   "dependencies": {
     "prerequisites": [],
@@ -190,12 +190,12 @@
   "metadata": {
     "description": "Context-Layered Architecture - Folder Structure Guide is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
     "language": "en",
-    "created": "2026-07-24",
-    "updated": "2026-07-24",
+    "created": "2026-07-30",
+    "updated": "2026-07-30",
     "version": "1.0.0",
-    "original_size": 10106,
-    "created_at": "2026-07-24T05:15:02.302Z",
-    "source_last_modified": "2026-07-18T05:40:17.526Z",
+    "original_size": 9763,
+    "created_at": "2026-07-30T23:07:57.749Z",
+    "source_last_modified": "2026-07-30T23:03:32.540Z",
     "keywords": {
       "primary": [
         "context-layered",

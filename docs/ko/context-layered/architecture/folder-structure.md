@@ -149,7 +149,5 @@ export default function CheckoutPage() {
 
 - [Context-Layered 개요](/ko/context-layered/context-layered-guide)
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
-- [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-- [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)

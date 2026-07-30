@@ -36,10 +36,6 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
-| `@context-action/sem-foundation-contracts` | 분석 contract foundation | symbol identity, snapshot, revision, shared limit, wire contract | SEM subprocess, Git worktree, architecture policy |
-| `@context-action/sem-foundation-repository` | repository runtime foundation | Git revision, first-parent history, detached worktree | symbol semantics, architecture rule, UI behavior |
-| `@context-action/architecture-governance` | 실험적 convention control plane | Context-Action authored capability registry, policy 검증, complete snapshot/history, snapshot-backed ContextScope projection | 범용 architecture 추론, React runtime, 일반 문서 생성 |
-| `@context-action/sem-doc` | 운영용 Symbol Context plane | 독립 advisory symbol/document context, canonical operational `sem-doc-context-scope.v3`, binding, Git diff 연동 | architecture convention/policy와 snapshot-backed governance; `@context-action/sem-foundation-*` 재사용 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
@@ -48,14 +44,6 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 
 `example/`과 `demos/`는 library가 아니라 integration host다. public package를 조합하고 아키텍처를 보여줄 수
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
-
-`@context-action/sem-doc`은 기존 `@tsdoc-edge/sem-doc`에서 workspace identity migration을 완료했다. canonical
-source와 공개 npm release는 `context-action-documentation-tooling`이 소유하며, 이 저장소는 published
-package를 사용하고 source copy를 보관하지 않는다. 이 패키지는 운영용 Symbol Context SSOT이며 임시
-staging package나 Architecture Governance adapter가 아니다. 구현 중 화면/API/
-transaction grouping에는 `sem-doc-context-scope.v3`를 유일한 operational projection으로 사용한다.
-Architecture Governance의 기존 `context-action/context-scope@1.0`은 architecture review용 snapshot-bound
-artifact로 그대로 유지하며 sem-doc의 두 번째 구현 대상으로 취급하지 않는다.
 
 기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거했다. 공개
 API 문서는 exported source와 JSDoc → TypeDoc → `typedoc-vitepress-sync` → VitePress라는 단일 경로를 사용한다.
@@ -71,9 +59,6 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
-@context-action/sem-foundation-contracts ──→ @context-action/sem-foundation-repository
-                         ├──→ @context-action/architecture-governance ← @ataraxy-labs/sem
-                         └──→ @context-action/sem-doc (운영용 Symbol Context plane)
 ```
 
 - `core`는 `react`에 의존하지 않는다.
@@ -81,22 +66,13 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 - `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
 - `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
 - `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.
-- `sem-foundation-repository`는 contracts를 사용하고 역방향 의존성은 허용하지 않는다.
-- `architecture-governance`는 foundation과 SEM을 사용한다. foundation은 capability, policy, Context-Action UI,
-  registry를 알지 않는다.
-- `architecture-governance`와 `sem-doc`은 목적과 계약이 다른 나란한 consumer이며 서로 runtime 의존성을
-  추가하지 않는다. 두 책임을 동시에 건드리는 변경은 [두 도구의 경계 가이드](./architecture/sem-doc-architecture-governance-boundary)를
-  먼저 확인한다.
 - 문서 generator는 소스·문서를 읽을 수 있지만 runtime package가 generator에 의존하지 않는다.
 - example과 demo는 그래프의 leaf다. 패키지가 example/demo를 import하지 않는다.
 
 새로운 안정된 방향이 생기면 reviewer 기억에 의존하지 말고 named policy rule로 추가한다.
 
-protocol/durable 분리는 `architecture/rules/package-boundaries.json`의
-`CA-PKG-TOOL-PROTOCOL-NO-RUNTIME-COUPLING`과
-`CA-PKG-TOOL-DURABLE-NO-PROTOCOL-RUNTIME-COUPLING` 규칙으로 강제한다. 이 규칙은
-runtime·peer·optional dependency field를 검사하며, test 전용 도구가 `devDependencies`에 있는 것은
-publish boundary를 바꾸지 않는다.
+protocol/durable 분리는 runtime/peer/optional dependency 검토와 focused package-boundary test로 유지한다.
+test 전용 도구가 `devDependencies`에 있는 것은 publish boundary를 바꾸지 않는다.
 
 ### Mutative 계약 전파
 
@@ -155,7 +131,6 @@ public guide를 대체하지 않는다. capability anchor는 owner package 내�
 | public API | export type/entry point가 바뀌는가? | source/JSDoc, API docs, migration note |
 | runtime behavior | state/action/store/tool behavior가 바뀌는가? | package spec, focused test, runnable example |
 | boundary | ownership/dependency 방향이 바뀌는가? | 본 컨벤션, policy, decision |
-| analysis contract | snapshot/manifest/schema/identity가 바뀌는가? | schema, parser/validator, fixture, architecture guide |
 | documentation/tooling | docs flow 또는 generated output만 바뀌는가? | generator source, guide, docs gate |
 
 ### 2단계 — owner package 선택
@@ -168,8 +143,7 @@ contract를 가로지르면 lower-level owner에 안정 contract를 두고 highe
 
 새 capability/boundary에는 stable ID, owner, scope/non-goal, dependency/export 변경, invariant 또는 schema
 revision, focused test, 문서 경로, migration/removal 조건을 기록한다. 이슈·decision은
-[스펙·이슈·문서 관리 컨벤션](./change-management-convention), symbol evidence는
-[아키텍처 거버넌스](./architecture/architecture-governance)를 사용한다.
+[스펙·이슈·문서 관리 컨벤션](./change-management-convention)을 사용한다.
 
 ### 4단계 — package 순서로 구현·검증
 
@@ -183,58 +157,12 @@ pnpm --filter example check
 pnpm example:build
 ```
 
-분석·아키텍처 변경:
-
-```bash
-pnpm arch:type-check
-pnpm arch:test
-pnpm arch:check:registry
-pnpm docs:build
-```
-
 public surface 변경이면 package export/tarball check도 추가한다.
 
 ### 5단계 — ownership graph 갱신
 
-handoff 전에 package manifest/export, README/authoritative guide, test/fixture, policy 또는 registry/decision,
+handoff 전에 package manifest/export, README/authoritative guide, test/fixture, policy 또는 decision,
 영·한 public page, generated artifact를 순서대로 갱신한다.
-
-### 문서-심볼 binding 컨벤션
-
-Markdown 또는 MDX 문서가 하나의 구현 심볼을 설명한다면 code-backed SSOT 문서로 취급하고
-`semDocumentKind: code`와 다음 sem-doc frontmatter 네 필드를 요구한다.
-
-```yaml
-semDocumentKind: code
-semEntityId: src/auth.ts::function::authenticateUser
-semEntityName: authenticateUser
-semEntityType: function
-semEntityFile: src/auth.ts
-```
-
-문서에는 `# [[Authentication Entry Point]]`와 같은 canonical H1 checkpoint도 정확히 하나 있어야
-한다. Concept·architecture·process·tooling guide는 document-only로 남을 수 있지만 resolved symbol
-SSOT가 아니다. `external-reference` 문서는 직접 dependency surface를 설명할 수 있지만
-`node_modules` 심볼의 소유권을 주장하지 않는다. code-backed 문서의 `unresolved` work-context 결과는
-동일 이름 fallback이 성공한 것이 아니라 문서 계약 이슈로 기록한다.
-
-저장소의 authoritative docs root에는 strict 검증을 사용한다.
-
-```bash
-npx sem-doc docs validate-bindings <docs-root> --strict --json
-```
-
-Strict 모드는 모든 문서의 `semDocumentKind` 선언, `code` 문서의 정확한 binding, non-code 문서의
-binding 금지를 강제한다.
-
-code-backed 문서를 변경할 때는 선언된 binding validator와 대표 context query를 모두 실행한다.
-
-```bash
-npx sem-doc docs validate-bindings <docs-root> --strict --json
-npx sem-doc work-context <entity> --docs-root <docs-root> --json
-```
-
-정확한 규칙은 [sem-doc document entity binding 컨벤션](https://github.com/mineclover/context-action-documentation-tooling/blob/main/packages/sem-doc/spec/conventions/document-entity-binding.md)이 소유한다.
 
 ## 6. 패키지 추가·병합·분리·폐기
 
@@ -265,8 +193,7 @@ npx sem-doc work-context <entity> --docs-root <docs-root> --json
 - [ ] package 간 import가 선언된 export만 사용한다.
 - [ ] lower-level package가 adapter, example, generator를 import하지 않는다.
 - [ ] test와 fixture가 contract 가까이에 있고 boundary regression이 필요한 경우 포함한다.
-- [ ] registry, policy, schema, decision evidence가 갱신되었다.
-- [ ] code-backed SSOT 문서가 정확한 sem entity frontmatter를 선언하고 대표 work-context에서 resolve된다.
+- [ ] policy, schema, decision evidence가 갱신되었다.
 - [ ] public behavior라면 영·한 문서와 discovery link가 정합하다.
 - [ ] generated file은 source에서 재생성했다.
 - [ ] 비례하는 package/repository gate 결과를 기록했다.
@@ -276,5 +203,3 @@ npx sem-doc work-context <entity> --docs-root <docs-root> --json
 - [개발 컨벤션 인덱스](./convention-index)
 - [표준 구현 컨벤션](./implementation-convention)
 - [스펙·이슈·문서 관리](./change-management-convention)
-- [아키텍처 거버넌스](./architecture/architecture-governance)
-- [아키텍처 policy set](./architecture/../../../../architecture/rules/README.md)

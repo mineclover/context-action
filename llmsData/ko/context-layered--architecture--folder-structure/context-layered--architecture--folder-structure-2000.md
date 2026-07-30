@@ -3,7 +3,7 @@ document_id: context-layered--architecture--folder-structure
 category: context-layered
 source_path: ko/context-layered/architecture/folder-structure.md
 character_limit: 2000
-last_update: '2026-07-24T05:15:02.481Z'
+last_update: '2026-07-30T23:07:58.590Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

@@ -3,7 +3,7 @@ document_id: context-layered--convention-index
 category: context-layered
 source_path: ko/context-layered/convention-index.md
 character_limit: 1000
-last_update: '2026-07-20T10:49:31.484Z'
+last_update: '2026-07-30T23:07:58.940Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -18,6 +18,6 @@ Key points:
 • 폴더 구조
 • 상태 전이 원칙
 • 도메인별 확장 방식
-• capability·심볼·context identity
-• snapshot 증거와 context boundary 파생 방식
 • 테스트 기준
+• [컨벤션 정합성 계획](/ko/context-layered/convention-alignment-plan)
+• [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)

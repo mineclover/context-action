@@ -7,8 +7,7 @@
 This document defines the operating layer between a request and a verified
 change. It complements the [Implementation Convention](./implementation-convention),
 the [Package Boundary and Codebase Management Convention](./package-boundary-convention),
-the [Documentation and Development Management Conventions](../concept/documentation-development-conventions),
-and [Architecture Governance and Evidence](./architecture/architecture-governance).
+and the [Documentation and Development Management Conventions](../concept/documentation-development-conventions).
 
 ## Review decision
 
@@ -20,8 +19,6 @@ The repository already has strong implementation and verification conventions:
   `tools/call` → structured result path;
 - runtime examples have focused convention and browser gates;
 - public and generated documentation have separate ownership rules;
-- architecture governance can connect a capability to an implementation anchor,
-  test evidence, and public documentation.
 
 The remaining management risk is traceability. An issue can describe intent,
 while a specification describes the contract, but neither should be inferred
@@ -240,7 +237,7 @@ for traceability:
 | Status | Item | Evidence or next action |
 | --- | --- | --- |
 | Closed | Issue templates and lifecycle were previously implicit | `.github/ISSUE_TEMPLATE/*` is checked by `pnpm docs:management` |
-| Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` and `pnpm arch:check` pass; registry status is `verified` |
+| Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` passes; release checks are clean |
 | Closed | Dexie migration lacked an explicit v1→v2 browser fixture | `scripts/verify-web-coding-browser.mjs` creates a v1 database and verifies the upgrade |
 | Closed | English/Korean parity and internal link validity were mostly review conventions | `pnpm docs:management` checks paired pages, discovery links, and handoff metadata |
 | Closed | Issue-to-spec-to-test links were not machine-enforced | `pnpm change:traceability` reports changed contract-bearing files and requires a `#<issue>` or `CA-*` reference in pull-request metadata |

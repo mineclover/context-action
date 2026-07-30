@@ -132,9 +132,6 @@ docs/en/context-layered/
 ├── architecture/
 │   ├── folder-structure.md         # Six-layer structure
 │   ├── handler-registry.md         # Handler registration and priority
-│   ├── architecture-governance.md  # Architecture evidence contract
-│   ├── sem-doc-usage.md            # Operational symbol/document context
-│   ├── context-scope-graph.md      # Snapshot-bound context grouping
 │   └── durable-operation-operations.md # Deployment and recovery runbook
 ├── patterns/                       # Explicit state-machine patterns
 ├── usecase-*.md                    # Usecase and recipe conventions
@@ -170,20 +167,10 @@ Mount the Handler Registry with props and compose `Action Provider → Store Pro
 
 For product-facing features, the recommended composition is `Provider → Handler Registry → Facade → Recipe → Primitive`.
 
-### 7. Record architecture evidence
-
-After the runtime layers are composed, register the capability and its `SymbolRef` implementation anchors
-in [Architecture Governance and Evidence](./architecture/architecture-governance.md). Use the planned
-[ContextScope Symbol Graph](./architecture/context-scope-graph.md) only when a revision-bound context
-manifest is available; the catalog and the runtime graph remain separate contracts.
-
 ## 🔗 Related Documentation
 
 - [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
-- [Architecture Governance and Evidence](./architecture/architecture-governance.md) - capability, symbol, and evidence contracts
-- [Architecture Governance Usage](./architecture/architecture-governance-usage.md) - snapshot, history, diff, and intersection commands
-- [ContextScope Symbol Graph](./architecture/context-scope-graph.md) - context grouping over complete symbol snapshots
 - [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
 - [Next Work and Documentation Ownership](./next-work.md) - single backlog and source-of-truth map

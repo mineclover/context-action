@@ -13,8 +13,6 @@ backlog다. 의미 계약 문서, 운영 runbook, package README, 생성 API 문
 | package API와 consumer quickstart | package `README.md` | 두 번째 state-machine 명세 |
 | Durable mutation 실행, side-effect adapter, backend 운영 | [`@context-action/tool-durable-operations`](../../../packages/tool-durable-operations/README.md)와 [Durable Operation Runbook](./architecture/durable-operation-operations) | provider-neutral tool schema 또는 domain outbox 정책 |
 | 공개 TypeScript signature | TypeDoc 출력과 `typedoc-vitepress-sync` | 손으로 작성한 동작 주장 |
-| 심볼/문서 work context | `@context-action/sem-doc` report와 [경계 가이드](./architecture/sem-doc-architecture-governance-boundary) | architecture gate 정책 |
-| architecture evidence, snapshot, history, `ContextScope` | [Architecture Governance](./architecture/architecture-governance) | 운영 work-context binding |
 | 짧은 요약 | `llmsData/`와 `llms-generator` | 수동 backlog 결정 |
 
 계약이 바뀌면 먼저 소유 문서를 수정하고, 그 다음 영문/국문 문서와 생성
@@ -49,12 +47,6 @@ artifact를 갱신한다. Package README는 전체 계약을 복사하지 말고
   실행하지 않고 `unknown`으로 남긴다.
 - `TOOL_EXECUTION_UNKNOWN` 진단 결과는 정제 후 durable record에 보존되어
   resolver가 확인할 수 있으며 source text는 저장하지 않는다.
-- `sem-doc`은 operational Symbol Context SSOT이고 Architecture Governance는
-  실험적 authored-evidence/control-plane package로 분리되어 있다.
-- complete symbol snapshot, commit history, context intersection, 명시적 one-hop
-  `node_modules` surface 정책이 서로 다른 계약으로 문서화되어 있다.
-- `tool-protocol`/`tool-durable-operations` 분리는 named Architecture Governance
-  package-boundary rule로 강제하며, 두 package는 서로 runtime dependency를 추가할 수 없다.
 - repository CI workflow가 Redis 7과 PostgreSQL 16 service container에서
   persistence smoke/integration을 실행하며, GitHub Environment 배포 gate는 이
   저장소의 CI/CD 범위에서 의도적으로 제외한다.
@@ -125,11 +117,6 @@ query-client 테스트만으로는 live database 검증이 되지 않는다.
 
 ### P2 — 실행 provenance와 운영 정책
 
-**sem-doc 부분 완료:** `sem-doc-work-context.v5`, `sem-doc-context-scope.v3`,
-`sem-doc-context-scope-history.v2`에 phase, 논리 owner, 최종 상태, timeout/output 한도,
-실제 출력 사용량, 경과 시간을 additive provenance로 기록한다. 히스토리 커밋은 하나의
-aggregate budget을 공유하고 strict parser도 공통화했다.
-
 **tool-protocol 부분 완료:** `ToolCallEvent.provenance`가 pending/final lifecycle 상태,
 논리 owner, 선택적 timeout/output budget, 측정된 UTF-8 output 사용량, 경과 시간을 검증된
 additive record로 전달한다. `maxOutputBytes`는 durable completion 전 적용되며 결과 payload를
@@ -158,9 +145,9 @@ serialized metadata-only record와 retention policy metadata만 전달하고 raw
 없으므로 external sink는 선택적 deferred 항목이다. durable state transition 계약은
 변경하지 않는다.
 
-**완료 기준:** sem-doc snapshot과 tool-protocol lifecycle 이벤트가 credential/raw source text
-없이 검증 가능한 record를 만들고, 모든 production sink가 공통 bounded policy·owner·retention
-window·삭제 경로·no-raw-request 검증을 갖춘다.
+**완료 기준:** tool-protocol lifecycle 이벤트가 credential/raw source text 없이 검증 가능한
+record를 만들고, 모든 production sink가 공통 bounded policy·owner·retention window·삭제 경로·
+no-raw-request 검증을 갖춘다.
 
 ## 외부 target 범위
 

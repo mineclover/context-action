@@ -144,16 +144,12 @@ handler는 필요할 때 store에서 최신 값을 읽고, 그 결과를 다시 
 3. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)로 왜 이 구조가 안정성과 연결되는지 확인합니다.
 4. [Canonical Order Form 예제](/ko/examples/canonical-order-form)로 실제 구현 흐름을 따라갑니다.
 5. [마이그레이션 가이드](/ko/context-layered/migration-guide)로 기존 구조를 어떻게 옮길지 확인합니다.
-6. [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)로 capability, `SymbolRef`, evidence를 연결합니다.
 7. [다음 작업과 문서 소유권](/ko/context-layered/next-work)에서 후속 작업과 기준 문서를 확인합니다.
 
 ## 관련 문서
 
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
-- [아키텍처 거버넌스와 증거](/ko/context-layered/architecture/architecture-governance)
-- [아키텍처 거버넌스 사용 방법](/ko/context-layered/architecture/architecture-governance-usage)
-- [ContextScope 심볼 그래프](/ko/context-layered/architecture/context-scope-graph)
 - [Usecase 및 Recipe Profile](./usecase-recipe-profile.md)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)

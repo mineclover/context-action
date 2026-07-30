@@ -3,7 +3,7 @@ document_id: context-layered--change-management-convention
 category: context-layered
 source_path: ko/context-layered/change-management-convention.md
 character_limit: 1000
-last_update: '2026-07-24T05:15:02.455Z'
+last_update: '2026-07-30T23:07:58.732Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -12,7 +12,7 @@ workflow_stage: content_generated
 ---
 스펙·이슈·문서 관리 컨벤션
 
-스펙·이슈·문서 관리 컨벤션 상태: Active 최종 검토: 2026-07-17 범위: 기능 개발, 아키텍처 변경, 버그 수정, 공개 문서 이 문서는 요청을 검증된 변경으로 연결하는 운영 계층을 정의합니다. 구현 컨벤션, 패키지 경계 및 코드베이스 관리 컨벤션, 문서 및 개발 관리 컨벤션, 아키텍처 거버넌스와 증거를 보완합니다. 리뷰 판정 현재 저장소는 구현과 검증 컨벤션이 잘 정리되어 있습니다. - contexts, business, handlers, actions, hooks, views 간 Context-Layered 소유권이 명시되어 있습니다. - tool-calling 작업은 tools/list → model tool call → tools/call → str
+스펙·이슈·문서 관리 컨벤션 상태: Active 최종 검토: 2026-07-17 범위: 기능 개발, 아키텍처 변경, 버그 수정, 공개 문서 이 문서는 요청을 검증된 변경으로 연결하는 운영 계층을 정의합니다. 구현 컨벤션, 패키지 경계 및 코드베이스 관리 컨벤션, 문서 및 개발 관리 컨벤션, 구현·테스트·문서의 소유권을 한 흐름으로 관리합니다. 리뷰 판정 현재 저장소는 구현과 검증 컨벤션이 잘 정리되어 있습니다. - contexts, business, handlers, actions, hooks, views 간 Context-Layered 소유권이 명시되어 있습니다. - tool-calling 작업은 tools/list → model tool call → tools/ca
 
 Key points:
 • `contexts`, `business`, `handlers`, `actions`, `hooks`, `views` 간

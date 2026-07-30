@@ -8,7 +8,6 @@ packages:
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
   - packages/style-testing
-  - packages/architecture-governance
   - packages/live-code-editor
   - packages/openrouter-browser-storage
   - example

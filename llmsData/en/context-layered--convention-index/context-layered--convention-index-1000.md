@@ -3,7 +3,7 @@ document_id: context-layered--convention-index
 category: context-layered
 source_path: en/context-layered/convention-index.md
 character_limit: 1000
-last_update: '2026-07-20T10:49:31.023Z'
+last_update: '2026-07-30T23:07:58.021Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -18,6 +18,6 @@ Key points:
 • folder structure
 • workflow transition rules
 • domain-level expansion
-• capability, symbol, and context identity
-• snapshot evidence and context-boundary projection
 • testing expectations
+• [Convention Alignment Plan](/en/context-layered/convention-alignment-plan)
+• [Package Boundary and Codebase...

@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: en/context-layered/package-boundary-convention.md
 character_limit: 5000
-last_update: '2026-07-22T19:56:24.956Z'
+last_update: '2026-07-30T23:07:58.193Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -20,9 +20,6 @@ Key points:
 • `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 • `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
 • `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
-• `sem-foundation-repository` consumes contracts, never the reverse.
-• `architecture-governance` consumes foundation contracts/repository and SEM; foundation packages do not know
-• `architecture-governance` and `sem-doc` are side-by-side consumers with different contracts; neither may
 • documentation generators may inspect source and docs, but runtime packages must not depend on generators.
 • examples and demos are leaves in the dependency graph. A package must not import an example or demo.
 • adapter `freeze` maps to core `enableAutoFreeze`; `strict` remains separate;
@@ -35,4 +32,7 @@ Key points:
 • focused tests and documentation route;
 • migration and removal conditions for transitional code.
 • Remove duplicate implementations only after identifying the canonical owner and adding a re-export or migration
-• Keep `utils` local to a package unless the function is a versioned, policy-neutral contract. Shared...
+• Keep `utils` local to a package unless the function is a versioned, policy-neutral contract. Shared utility
+• Keep tests beside the package they prove. Cross-package integration tests belong in the integration host or the
+• Keep architecture and documentation tooling out of runtime packages. A runtime package may expose metadata or
+• Do not use `dist` or generated API files to resolve...

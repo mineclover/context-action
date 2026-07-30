@@ -8,7 +8,7 @@
 [구현 컨벤션](./implementation-convention),
 [패키지 경계 및 코드베이스 관리 컨벤션](./package-boundary-convention),
 [문서 및 개발 관리 컨벤션](../concept/documentation-development-conventions),
-[아키텍처 거버넌스와 증거](./architecture/architecture-governance)를 보완합니다.
+구현·테스트·문서의 소유권을 한 흐름으로 관리합니다.
 
 ## 리뷰 판정
 
@@ -231,7 +231,7 @@ documentation-management gate, architecture SEM gate가 모두 통과했습니�
 | 상태 | 항목 | 증거 또는 다음 액션 |
 | --- | --- | --- |
 | 종료 | 이슈 template과 lifecycle이 이전에는 암묵적이었음 | `.github/ISSUE_TEMPLATE/*`를 `pnpm docs:management`가 검사 |
-| 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify`와 `pnpm arch:check` 통과, registry 상태는 `verified` |
+| 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify` 통과와 release check clean 상태 |
 | 종료 | Dexie migration에 명시적인 v1→v2 browser fixture가 없었음 | `scripts/verify-web-coding-browser.mjs`가 v1 DB를 만들고 upgrade를 검증 |
 | 종료 | 영문·국문 parity와 내부 링크 유효성이 주로 review convention이었음 | `pnpm docs:management`가 pair page, discovery link, handoff metadata를 검사 |
 | 종료 | issue→spec→test 연결이 기계적으로 강제되지 않음 | `pnpm change:traceability`가 변경된 계약 파일을 보고하고 pull request metadata에 `#<issue>` 또는 `CA-*` 참조를 요구 |

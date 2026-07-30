@@ -2,16 +2,16 @@
   "document": {
     "id": "context-layered--package-boundary-convention",
     "title": "패키지 경계 및 코드베이스 관리 컨벤션",
-    "category": "context-layered",
+    "category": "concept",
     "source_path": "ko/context-layered/package-boundary-convention.md",
-    "lastModified": "2026-07-20T04:37:26.192Z",
-    "wordCount": 1662
+    "lastModified": "2026-07-30T23:06:10.372Z",
+    "wordCount": 1297
   },
   "priority": {
     "score": 50,
     "tier": "reference",
     "rationale": "Default priority assigned during documentation synchronization.",
-    "reviewDate": "2026-07-20",
+    "reviewDate": "2026-07-30",
     "autoCalculated": true
   },
   "purpose": {
@@ -32,13 +32,12 @@
       "context-layered",
       "text",
       "bash",
-      "yaml",
-      "패키지"
+      "패키지",
+      "경계"
     ],
     "technical": [
       "text",
       "bash",
-      "yaml",
       "context-layered",
       "context-action"
     ],
@@ -152,7 +151,6 @@
       "nice_to_have": [
         "text",
         "bash",
-        "yaml",
         "context-layered",
         "context-action"
       ],
@@ -160,8 +158,8 @@
         "context-layered",
         "text",
         "bash",
-        "yaml",
-        "패키지"
+        "패키지",
+        "경계"
       ]
     }
   },
@@ -173,14 +171,14 @@
       "context-layered",
       "text",
       "bash",
-      "yaml",
-      "패키지"
+      "패키지",
+      "경계"
     ],
     "audience": [
       "framework-users"
     ],
     "complexity": "basic",
-    "lastUpdated": "2026-07-20"
+    "lastUpdated": "2026-07-30"
   },
   "dependencies": {
     "prerequisites": [],
@@ -192,24 +190,23 @@
   "metadata": {
     "description": "패키지 경계 및 코드베이스 관리 컨벤션 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
     "language": "ko",
-    "created": "2026-07-20",
-    "updated": "2026-07-20",
+    "created": "2026-07-30",
+    "updated": "2026-07-30",
     "version": "1.0.0",
-    "original_size": 16307,
-    "created_at": "2026-07-20T04:37:51.584Z",
-    "source_last_modified": "2026-07-22T19:49:44.549Z",
+    "original_size": 12200,
+    "created_at": "2026-07-30T23:07:59.121Z",
+    "source_last_modified": "2026-07-30T23:06:10.372Z",
     "keywords": {
       "primary": [
         "context-layered",
         "text",
         "bash",
-        "yaml",
-        "패키지"
+        "패키지",
+        "경계"
       ],
       "technical": [
         "text",
         "bash",
-        "yaml",
         "context-layered",
         "context-action"
       ],
@@ -218,7 +215,6 @@
         "documentation",
         "framework"
       ]
-    },
-    "last_updated": "2026-07-22T19:56:24.966Z"
+    }
   }
 }

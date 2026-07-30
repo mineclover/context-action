@@ -141,7 +141,7 @@ For the 0.8/0.9 stabilization release lane, the gate requires:
 - `pnpm verify:package-exports` and `pnpm verify:package-tarballs`
 - `pnpm convention:check` and the active package-boundary checks
 - a clean package version/changelog set and published-consumer smoke tests for
-  `@context-action/sem-doc`, `@context-action/tool-protocol`, and
+  `@context-action/tool-protocol` and
   `@context-action/tool-durable-operations`
 - no removed legacy documentation package or generator reference in the active workspace/release graph
 
