@@ -189,6 +189,13 @@ export function createActionContext<T extends {}>(
 
   let effectiveConfig: ActionContextConfig & Pick<ActionRegisterConfig, 'name'> = {
     ...config,
+    registry: {
+      ...config?.registry,
+      // A Provider owns handler teardown and exposes a serialized lifecycle to
+      // its descendants. Keep that higher-level guarantee explicit instead of
+      // relying on the lightweight core default.
+      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? true,
+    },
     // The positional name is canonical; a legacy config.name must not
     // silently change the identity advertised by the factory call.
     name: contextName,

@@ -361,6 +361,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           schema: schema as ActionSchemaMap,
           validationMode,
           validateOnDispatch,
+          // Tool provider teardown must reject queued calls before handler
+          // cleanup. Core queueing is opt-in, so this boundary opts in.
+          useConcurrencyQueue: true,
         },
       });
     }

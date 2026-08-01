@@ -602,7 +602,7 @@ export interface PipelineContext<T = unknown, R = void> {
  * const devRegister = new ActionRegister<AppActions>({
  *   name: 'DevRegister',
  *   registry: {
- *     debug: process.env.NODE_ENV === 'development',
+ *     debug: true,
  *     autoCleanup: true,
  *     defaultExecutionMode: 'parallel'
  *   }
@@ -626,11 +626,21 @@ export interface ActionRegisterConfig {
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
 
-    /** Use concurrency queue for thread safety. Default: true */
+    /** Serialize independent dispatches through the optional queue. Default: false. */
     useConcurrencyQueue?: boolean;
 
-    /** Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended) */
+    /**
+     * Optional maximum number of handlers per action. Defaults to `Infinity`.
+     * A configured finite limit rejects an overflowing registration instead of
+     * silently dropping the handler.
+     */
     maxHandlersPerAction?: number;
+
+    /**
+     * Maximum controller priority jumps in one dispatch. Default: 10; use
+     * `Infinity` only when the caller owns a separate termination invariant.
+     */
+    maxJumps?: number;
 
     /** Global error handler for unhandled errors */
     errorHandler?: (error: Error, context: unknown) => void | Promise<void>;
@@ -736,8 +746,9 @@ export interface DispatchOptions {
   queuePriority?: number;
   
   /**
-   * Wall-clock timeout in milliseconds, including queue wait and retry delay.
-   * Rejects with ActionTimeoutError and aborts the dispatch signal.
+   * Non-negative finite wall-clock timeout in milliseconds, including queue
+   * wait and retry delay. Rejects with ActionTimeoutError and aborts the
+   * dispatch signal. Invalid values throw RangeError.
    */
   timeout?: number;
   

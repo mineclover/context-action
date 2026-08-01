@@ -36,41 +36,23 @@ describe('Memory Management Tests - v0.4.1', () => {
       const unregister2 = limitedRegister.register('testAction', jest.fn());
       expect(limitedRegister.getHandlerCount('testAction')).toBe(2);
       
-      // 3번째는 무시됨
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      const unregister3 = limitedRegister.register('testAction', jest.fn());
-      
-      expect(limitedRegister.getHandlerCount('testAction')).toBe(2);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Handler limit (2) reached')
+      // An explicit bound must fail loudly instead of dropping a handler.
+      expect(() => limitedRegister.register('testAction', jest.fn())).toThrow(
+        'Handler limit (2) reached',
       );
-      expect(typeof unregister3).toBe('function'); // no-op function
-      
-      consoleSpy.mockRestore();
+      expect(limitedRegister.getHandlerCount('testAction')).toBe(2);
       limitedRegister.destroy();
     });
 
-    it('should handle default handler limit (1000)', () => {
+    it('does not impose a default handler limit', () => {
       const handlers: (() => void)[] = [];
       
-      // Register up to limit
-      for (let i = 0; i < 1000; i++) {
+      for (let i = 0; i < 1001; i++) {
         const unregister = actionRegister.register('testAction', jest.fn());
         handlers.push(unregister);
       }
       
-      expect(actionRegister.getHandlerCount('testAction')).toBe(1000);
-      
-      // Attempt to exceed limit
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      const exceededUnregister = actionRegister.register('testAction', jest.fn());
-      
-      expect(actionRegister.getHandlerCount('testAction')).toBe(1000);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Handler limit (1000) reached')
-      );
-      
-      consoleSpy.mockRestore();
+      expect(actionRegister.getHandlerCount('testAction')).toBe(1001);
       
       // Cleanup
       handlers.forEach(unregister => unregister());
@@ -88,14 +70,12 @@ describe('Memory Management Tests - v0.4.1', () => {
       
       expect(customRegister.getHandlerCount('testAction')).toBe(5);
       
-      // 6th should be rejected
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      customRegister.register('testAction', jest.fn());
+      // The limit is an explicit contract failure.
+      expect(() => customRegister.register('testAction', jest.fn())).toThrow(
+        'Handler limit (5) reached',
+      );
       
       expect(customRegister.getHandlerCount('testAction')).toBe(5);
-      expect(consoleSpy).toHaveBeenCalled();
-      
-      consoleSpy.mockRestore();
       customRegister.destroy();
     });
 
@@ -104,17 +84,12 @@ describe('Memory Management Tests - v0.4.1', () => {
         registry: { maxHandlersPerAction: Infinity }
       });
       
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
       // Register many handlers (should not be limited)
       for (let i = 0; i < 2000; i++) {
         unlimitedRegister.register('testAction', jest.fn());
       }
       
       expect(unlimitedRegister.getHandlerCount('testAction')).toBe(2000);
-      expect(consoleSpy).not.toHaveBeenCalled(); // No warnings
-      
-      consoleSpy.mockRestore();
       unlimitedRegister.destroy();
     });
 
@@ -278,32 +253,47 @@ describe('Memory Management Tests - v0.4.1', () => {
   });
 
   describe('⚡ Performance Under Memory Constraints', () => {
-    it('should maintain performance with handler limit warnings', () => {
+    it('should reject handler limit overflow without losing registered handlers', () => {
       const limitedRegister = new ActionRegister<MemoryTestActions>({
         registry: { maxHandlersPerAction: 10 }
       });
-      
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       const startTime = Date.now();
-      
+
       // Fill to capacity
       for (let i = 0; i < 10; i++) {
         limitedRegister.register('testAction', jest.fn());
       }
-      
-      // Attempt to exceed (should be fast despite warnings)
+
+      // A finite limit is an explicit safety contract, rather than a
+      // best-effort warning that silently drops registrations.
       for (let i = 0; i < 5; i++) {
-        limitedRegister.register('testAction', jest.fn());
+        expect(() => limitedRegister.register('testAction', jest.fn()))
+          .toThrow('Handler limit (10) reached');
       }
-      
+
       const totalTime = Date.now() - startTime;
-      
+
       expect(totalTime).toBeLessThan(100);
       expect(limitedRegister.getHandlerCount('testAction')).toBe(10);
-      expect(consoleSpy).toHaveBeenCalledTimes(5); // One warning per exceeded registration
-      
-      consoleSpy.mockRestore();
+
+      limitedRegister.destroy();
+    });
+
+    it('allows replacement at a finite handler limit because it does not grow the pipeline', () => {
+      const limitedRegister = new ActionRegister<MemoryTestActions>({
+        registry: { maxHandlersPerAction: 1 }
+      });
+      const first = jest.fn();
+      const replacement = jest.fn();
+
+      limitedRegister.register('testAction', first, { id: 'stable-handler' });
+      expect(() => limitedRegister.register('testAction', replacement, {
+        id: 'stable-handler',
+        replaceExisting: true,
+      })).not.toThrow();
+
+      expect(limitedRegister.getHandlerCount('testAction')).toBe(1);
       limitedRegister.destroy();
     });
 

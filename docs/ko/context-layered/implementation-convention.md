@@ -1,6 +1,6 @@
 # Implementation Playbook 표준 컨벤션
 
-이 문서는 implementation-playbook에서 정리한 구조를 저장소 전반에서 재사용할 수 있도록 고정한 표준 컨벤션입니다. 목표는 “예제가 잘 보이는 것”이 아니라, 복잡한 로직이 늘어나도 같은 방식으로 설계, 구현, 테스트, 문서화할 수 있게 만드는 데 있습니다.
+이 문서는 implementation-playbook에서 정리한 구조를 canonical example과 usecase 표면에서 재사용할 수 있도록 고정한 표준 컨벤션입니다. 목표는 “예제가 잘 보이는 것”이 아니라, 복잡한 로직이 늘어나도 같은 방식으로 설계, 구현, 테스트, 문서화할 수 있게 만드는 데 있습니다. 모든 workspace package나 demo에 이 폴더 구조를 강제하지는 않습니다.
 
 ## 언제 이 컨벤션을 쓰는가
 
@@ -94,7 +94,7 @@ scenario/
 
 ## 구조 컨벤션 게이트
 
-`pnpm convention:check`는 같은 feature root에 `contexts/`와 `handlers/`
+`pnpm convention:check`는 `example/src` 아래에서 같은 feature root에 `contexts/`와 `handlers/`
 디렉터리가 함께 있을 때 이를 canonical 표면으로 식별합니다. 그 아래의
 직접 레이어 디렉터리만 검사하므로, 아직 마이그레이션하지 않은 advanced 및
 compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습니다.
@@ -127,7 +127,8 @@ pnpm --filter example check
 
 현재 게이트는 canonical root 31곳을 검사하며 레이어 경로·명명 위반은
 0건입니다. advanced 및 compatibility root는 마이그레이션 분류가 바뀔
-때까지 이 자동 명명 범위에서 명시적으로 제외합니다.
+때까지 이 자동 명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
+import는 별도로 `pnpm package-boundary:check`가 관리합니다.
 
 비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
 `tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는

@@ -1,7 +1,7 @@
 # Package Boundary and Codebase Management Convention
 
 **Status:** Active for new work and boundary changes
-**Scope:** workspace packages, examples, demos, architecture evidence, and documentation ownership
+**Scope:** workspace packages, examples, demos, decision records, and documentation ownership
 
 This convention defines how the Context-Action repository is divided into packages and how a change moves
 through the codebase. The package boundary is an ownership and dependency boundary, not only a folder name.
@@ -73,9 +73,10 @@ The diagram describes ownership, not import syntax. In particular:
 - documentation generators may inspect source and docs, but runtime packages must not depend on generators.
 - examples and demos are leaves in the dependency graph. A package must not import an example or demo.
 
-The protocol/durable split is maintained through focused package-boundary tests and review of runtime,
-peer, and optional dependency fields; test-only tooling may remain in `devDependencies` without changing
-the published boundary.
+`pnpm package-boundary:check` verifies workspace imports against dependency declarations and the target
+package's public `exports`, and rejects runtime relative imports that escape the owning package or integration host. It scans runtime source in every workspace package plus the integration-host
+sources in `example/` and `demos/`. Package tests, scripts, and package-local examples may use declared
+`devDependencies`; runtime source may not. Test-only tooling does not change the published boundary.
 
 ### Mutative contract propagation
 
@@ -103,7 +104,7 @@ Peer/optional dependencies:
 Owned source directories:
 Test and verification commands:
 Authoritative guide:
-Architecture capability or decision:
+Specification or decision ID:
 Migration/deprecation plan, if any:
 ```
 
@@ -120,9 +121,9 @@ packages/<package>/
 └── dist/                 # generated output; never edit by hand
 ```
 
-`architecture/registry.json` records stable capability identity and evidence. It does not replace a package
-manifest, package README, or public guide. A capability anchor must point into the owning package, and a package
-boundary change must update the affected capability or decision record.
+Stable package-boundary choices belong in [Architecture Decision Records](./decisions/). A decision record does
+not replace a package manifest, package README, or public guide. Its implementation and evidence anchors must
+point into the owning package.
 
 ## 5. Development lifecycle for a package-scoped change
 
@@ -134,7 +135,7 @@ Choose one primary class before editing:
 | --- | --- | --- |
 | public API | Does an exported type or entry point change? | package source/JSDoc, API docs, migration note |
 | runtime behavior | Does state, action, store, or tool behavior change? | package spec, focused test, runnable example |
-| boundary | Does ownership or dependency direction change? | this convention, policy rule, decision record |
+| boundary | Does ownership or dependency direction change? | this convention, decision record, focused boundary check |
 | documentation/tooling | Does only a generated or authored documentation flow change? | generator source, authoritative guide, docs gate |
 
 ### Step 2 — select the owning package
@@ -178,7 +179,7 @@ Before handoff, update all affected layers:
 1. package manifest and exports;
 2. package README and authoritative guide;
 3. tests and fixtures;
-4. dependency policy or decision record;
+4. dependency declaration, boundary check, or decision record;
 5. English/Korean public pages when the behavior is public;
 6. generated artifacts only after their source is correct.
 
@@ -187,8 +188,8 @@ Before handoff, update all affected layers:
 ### Add
 
 A new package needs a package ID, owner, stability status, one-sentence responsibility, public/private
-decision, dependency graph, export contract, focused test command, README, authoritative guide, and boundary
-policy. If it is private or experimental, state the promotion criteria.
+decision, dependency graph, export contract, focused test command, README, authoritative guide, and a
+boundary check or decision record. If it is private or experimental, state the promotion criteria.
 
 ### Merge
 
@@ -229,7 +230,7 @@ stop adding new cross-package consumers, and add a verification gate that preven
 - [ ] Cross-package imports use declared exports only.
 - [ ] No lower-level package imports a higher-level adapter, example, or generator.
 - [ ] Tests live with the contract they prove and include a boundary regression where needed.
-- [ ] Policy, schema, and decision evidence are updated for durable boundaries.
+- [ ] Relevant dependency, schema, decision, and verification evidence is updated for durable boundaries.
 - [ ] English/Korean docs and discovery links are aligned for public behavior.
 - [ ] Generated files were regenerated from source, not hand-edited.
 - [ ] The proportional package and repository gates were run and recorded.

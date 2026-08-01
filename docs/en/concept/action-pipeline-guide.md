@@ -131,7 +131,7 @@ const actionRegister = new ActionRegister<AppActions>({
   registry: {
     debug: true,
     autoCleanup: true,
-    maxHandlersPerAction: 50,
+    maxHandlersPerAction: 50, // Optional finite limit; overflow rejects registration.
     defaultExecutionMode: 'sequential'
   }
 });
@@ -152,7 +152,7 @@ interface ActionRegisterConfig {
     /** Auto-cleanup configuration for one-time handlers */
     autoCleanup?: boolean;
     
-    /** Maximum number of handlers per action */
+    /** Optional finite handler limit; defaults to Infinity and rejects overflow */
     maxHandlersPerAction?: number;
     
     /** Default execution mode for actions */
@@ -213,7 +213,7 @@ const unregisterValidation = actionRegister.register(
     category: 'validation',  // Handler category
     description: 'Validates email format for user updates',
     version: '1.0.0',       // Handler version
-    timeout: 5000,          // Handler timeout
+    timeout: 5000,          // Non-negative finite wall-clock timeout
     environment: 'production', // Target environment
     metrics: {
       collectTiming: true,
@@ -1257,8 +1257,8 @@ function GoodComponent() {
 const actionRegister = new ActionRegister<AppActions>({
   name: 'DebugRegister',
   registry: {
-    debug: true,        // Enable debug mode (development only)
-    maxHandlersPerAction: 100, // Increase if needed for debugging
+    debug: true,        // Explicitly enable diagnostics
+    maxHandlersPerAction: 100, // Optional finite registration budget
     autoCleanup: true   // Auto-cleanup for easier debugging
   }
 });

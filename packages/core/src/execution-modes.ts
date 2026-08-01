@@ -86,25 +86,21 @@ export async function executeSequential<T, R = void>(
     context.currentIndex = i;
     const controller = createController(registration, i);
 
+    // A condition is part of the dispatch contract, not a best-effort handler.
+    // Evaluate it outside the non-blocking handler error path so a broken
+    // predicate is never silently converted into a skipped handler.
+    if (registration.config.condition) {
+      const shouldExecute = registration.config.condition(context.payload);
+      if (!shouldExecute) {
+        i++;
+        continue;
+      }
+    }
+
     try {
       // Check for abort before executing handler
       if (context.aborted) {
         break;
-      }
-
-      // 🔧 Fix: Check handler condition before execution
-      if (registration.config.condition) {
-        try {
-          const shouldExecute = registration.config.condition(context.payload);
-          if (!shouldExecute) {
-            i++; // Skip this handler
-            continue;
-          }
-        } catch {
-          // If condition function throws, skip the handler
-          i++;
-          continue;
-        }
       }
 
       (context.executedHandlers ??= []).push(registration);
@@ -162,10 +158,6 @@ export async function executeSequential<T, R = void>(
         // Check if we've exceeded maximum jumps to prevent infinite loops
         context.jumpCount = (context.jumpCount || 0) + 1;
         if (context.jumpCount > (context.maxJumps || 10)) {
-          console.error(
-            `[ActionRegister] ERROR: Maximum jump limit (${context.maxJumps || 10}) exceeded. ` +
-            `Aborting to prevent infinite loop. Check your jumpToPriority logic and conditions.`
-          );
           context.aborted = true;
           context.abortReason = `Maximum jump limit exceeded (${context.jumpCount} jumps)`;
           context.jumpToPriority = undefined;
@@ -178,20 +170,8 @@ export async function executeSequential<T, R = void>(
         );
 
         if (jumpIndex !== -1 && jumpIndex !== i) {
-          if (jumpIndex < i) {
-            // ⚠️ WARNING: Backward jump detected - risk of infinite loop!
-            // Only allow backward jumps if handler has condition to prevent infinite loops
-            const targetHandler = context.handlers[jumpIndex];
-            if (targetHandler && !targetHandler.config.condition) {
-              console.warn(
-                `[ActionRegister] WARNING: Backward jumpToPriority to handler '${targetHandler.config.id || 'unnamed'}' without condition. ` +
-                `This may cause infinite loops! Consider adding a condition to prevent re-execution. ` +
-                `Jump count: ${context.jumpCount}/${context.maxJumps || 10}`
-              );
-            }
-          }
-
-          // Allow both forward and backward jumps
+          // The bounded jump counter protects both forward and backward jumps
+          // without emitting diagnostics from the execution primitive.
           i = jumpIndex;
           context.jumpToPriority = undefined;
         } else {
@@ -262,40 +242,20 @@ export async function executeParallel<T, R = void>(
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
-  /** All handlers are runnable */
-  const runnableHandlers = context.handlers;
+  /**
+   * Conditions are dispatch preconditions in concurrent modes. Evaluate them
+   * before any handler starts so a predicate error rejects the dispatch rather
+   * than being mistaken for a non-blocking handler failure.
+   */
+  const runnableHandlers = context.handlers.filter(registration =>
+    !registration.config.condition || registration.config.condition(context.payload),
+  );
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
     const controller = createController(registration, _index);
 
     try {
-      // 🔧 Fix: Check handler condition before execution
-      if (registration.config.condition) {
-        try {
-          const shouldExecute = registration.config.condition(context.payload);
-          if (!shouldExecute) {
-            // Return a skipped result for conditions that don't pass
-            return {
-              success: true,
-              handlerId: registration.id,
-              result: undefined,
-              terminated: false,
-              skipped: true
-            };
-          }
-        } catch {
-          // If condition function throws, skip the handler
-          return {
-            success: true,
-            handlerId: registration.id,
-            result: undefined,
-            terminated: false,
-            skipped: true
-          };
-        }
-      }
-
       (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
       
@@ -392,8 +352,10 @@ export async function executeRace<T, R = void>(
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
-  /** All handlers are runnable */
-  const runnableHandlers = context.handlers;
+  /** See executeParallel: condition errors are dispatch errors in concurrent modes. */
+  const runnableHandlers = context.handlers.filter(registration =>
+    !registration.config.condition || registration.config.condition(context.payload),
+  );
 
   if (runnableHandlers.length === 0) {
     return;
@@ -404,34 +366,6 @@ export async function executeRace<T, R = void>(
     const controller = createController(registration, _index);
 
     try {
-      // 🔧 Fix: Check handler condition before execution
-      if (registration.config.condition) {
-        try {
-          const shouldExecute = registration.config.condition(context.payload);
-          if (!shouldExecute) {
-            // Return a skipped result for conditions that don't pass
-            return {
-              success: true,
-              handlerId: registration.id,
-              registration,
-              result: undefined,
-              terminated: false,
-              skipped: true
-            };
-          }
-        } catch {
-          // If condition function throws, skip the handler
-          return {
-            success: true,
-            handlerId: registration.id,
-            registration,
-            result: undefined,
-            terminated: false,
-            skipped: true
-          };
-        }
-      }
-
       (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
       

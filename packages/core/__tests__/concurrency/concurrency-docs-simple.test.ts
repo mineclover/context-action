@@ -233,15 +233,15 @@ describe('Concurrency Documentation Features - Simplified', () => {
   });
 
   describe('Use Case Patterns from Documentation', () => {
-    test('user state management pattern (safe by default)', async () => {
+    test('user state management pattern with explicit queueing when ordering is required', async () => {
       interface UserStateActions {
         login: { username: string; password: string };
         updateProfile: { userId: string; changes: { name?: string; email?: string } };
       }
 
       const userManager = new ActionRegister<UserStateActions>({
-        name: 'UserStateManager'
-        // useConcurrencyQueue: true (default)
+        name: 'UserStateManager',
+        registry: { useConcurrencyQueue: true },
       });
 
       const userState = { id: '', name: '', email: '', isAuthenticated: false };
@@ -285,8 +285,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       const analytics = new ActionRegister<AnalyticsActions>({
         name: 'AnalyticsTracker',
         registry: {
-          useConcurrencyQueue: false,     // Performance optimization
-          defaultExecutionMode: 'parallel'
+          defaultExecutionMode: 'parallel',
         }
       });
 
@@ -327,7 +326,9 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(memoryRegister.getHandlerCount('test')).toBe(3);
 
       // Attempt to exceed limit
-      memoryRegister.register('test', () => ({ result: 'handler4' }), { id: 'handler4' });
+      expect(() => memoryRegister.register('test', () => ({ result: 'handler4' }), {
+        id: 'handler4',
+      })).toThrow('Handler limit (3) reached');
 
       // Should still be at limit
       expect(memoryRegister.getHandlerCount('test')).toBeLessThanOrEqual(3);

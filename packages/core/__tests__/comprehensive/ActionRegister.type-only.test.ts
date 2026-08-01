@@ -19,6 +19,14 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
   let actionRegister: ActionRegister<TestActions>;
   let consoleSpy: jest.SpyInstance;
 
+  const enableDebugDiagnostics = () => {
+    actionRegister.destroy();
+    actionRegister = new ActionRegister<TestActions>({
+      name: 'TypeOnlyTestRegister',
+      registry: { debug: true },
+    });
+  };
+
   beforeEach(() => {
     actionRegister = new ActionRegister<TestActions>({
       name: 'TypeOnlyTestRegister',
@@ -36,11 +44,7 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
 
   describe('type-only actions (no handlers registered)', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should show warning for type-only actions with payload', async () => {
@@ -104,11 +108,7 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
 
   describe('mixed scenario (some handlers registered, some not)', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should show warning for unregistered actions even when others are registered', async () => {
@@ -144,11 +144,7 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
 
   describe('actions getter with type-only actions', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should return undefined for type-only actions in actions getter', () => {
@@ -174,15 +170,7 @@ describe('ActionRegister - Type-Only Actions Tests', () => {
   });
 
   describe('production mode behavior with type-only actions', () => {
-    beforeEach(() => {
-      process.env.NODE_ENV = 'production';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
-    });
-
-    it('should not show warnings for type-only actions in production', async () => {
+    it('does not show warnings for type-only actions when diagnostics are disabled', async () => {
       await actionRegister.dispatch('typeOnlyAction', { value: 'test' });
       await actionRegister.dispatch('anotherTypeOnly');
 

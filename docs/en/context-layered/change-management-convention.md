@@ -19,6 +19,7 @@ The repository already has strong implementation and verification conventions:
   `tools/call` → structured result path;
 - runtime examples have focused convention and browser gates;
 - public and generated documentation have separate ownership rules;
+- durable architectural choices have a tracked decision-record home.
 
 The remaining management risk is traceability. An issue can describe intent,
 while a specification describes the contract, but neither should be inferred
@@ -36,14 +37,14 @@ replace another.
 | Specification | What contract must remain true? | types, transitions, invariants, compatibility, migration, failure behavior | a task checklist or progress log |
 | Code and tests | Does the contract work? | implementation anchors and executable evidence | the only explanation of user behavior |
 | Public documentation | How should a user or contributor understand it? | current behavior, usage, limits, verification path | an unimplemented future design |
-| Architecture registry/decision | Which boundary is stable and who owns it? | capability identity, owner, evidence, decision record | a file inventory without semantics |
+| Tracked specification/decision | Which boundary is stable and who owns it? | stable ID, owner, evidence, decision record | a file inventory without semantics |
 | Generated output | Which derived artifact is published? | generator source and reproducible command | the canonical source |
 
 The preferred trace is:
 
 ```text
 issue → specification/decision → implementation → focused proof
-      → authoritative docs → architecture evidence → review → close
+      → authoritative docs → review → close
 ```
 
 ## 2. Change classification
@@ -54,7 +55,7 @@ Every non-trivial issue selects one primary class before implementation:
 | --- | --- | --- |
 | Public API | exported type/API behavior and compatibility rule | package test, API docs, migration note |
 | Behavior or pattern | user-visible state, action, tool, or workflow behavior | focused test, runnable example, guide |
-| Architecture | ownership, boundary, provider order, persistence, or schema decision | decision record, architecture check, representative test |
+| Architecture | ownership, boundary, provider order, persistence, or schema decision | decision record, focused boundary check, representative test |
 | Bug | reproducible failure and expected behavior | regression test, reproduction steps, fix |
 | Documentation/maintenance | command, ownership, link, translation, or generated-output correction | docs build, link/source check |
 
@@ -121,10 +122,9 @@ introduces a durable contract.
 
 ### Stable identity
 
-Give a durable capability or contract a stable ID such as `CA-WEB-001` or an
-existing architecture capability ID. Do not encode a volatile file path in the
-ID. Renames keep the ID; splits, mergers, and replacements must link a decision
-record.
+Give a durable contract a stable ID such as `CA-WEB-001`. Do not encode a
+volatile file path in the ID. Renames keep the ID; splits, mergers, and
+replacements must link a decision record.
 
 ### Contract contents
 
@@ -158,6 +158,10 @@ Create a short decision record when a change affects any of these boundaries:
 The decision should record context, options considered, decision, consequences,
 reversal conditions, owner, and linked issue/capability. A prose update alone
 is not enough when the choice will constrain future work.
+
+Store the record under [Architecture Decision Records](./decisions/). The
+record owns the choice; package source, tests, and public guides own the
+implementation and behavior evidence.
 
 ## 6. Development and commit convention
 
@@ -194,27 +198,37 @@ in the commit or PR body. Do not use a commit hash as the only issue link.
   current behavior aligned.
 - The canonical guide owns the explanation. README files provide discovery and
   link to it; they should not create a second, divergent contract.
-- API pages and LLMS artifacts are generated or derived. Change their source
-  first and run the appropriate generator.
+- API pages and LLMS artifacts are derived. Change their source first and run
+  the appropriate generator.
 - A document must say when a feature is unavailable, best-effort, experimental,
   or dependent on manual credentials.
 - New conventions need a discovery link in the Convention Index and the
   VitePress sidebar.
 
-Minimum focused gates:
+Use the smallest command set that proves the changed surface:
 
 ```bash
-pnpm docs:build
-pnpm docs:management
-pnpm convention:check
-pnpm change:traceability       # pull-request issue/spec reference gate
-pnpm docs:full             # broad API/documentation releases
+# Hand-authored guide or convention
 pnpm llms:sync-docs --changed-files <paths>
+pnpm docs:check
+
+# Exported API or API JSDoc
+pnpm docs:api && pnpm docs:sync
+pnpm docs:build
+
+# Pull-request traceability and canonical example structure, when applicable
+pnpm change:traceability
+pnpm convention:check
 ```
 
+`pnpm docs:check` checks documentation-management metadata, LLMS freshness,
+and VitePress rendering. It does not generate output. `pnpm docs:full` is the
+API-reference refresh flow (`docs:api` → `docs:sync` → `docs:build`); it does
+not regenerate LLMS artifacts.
+
 `pnpm change:traceability` is enforced by the pull-request CI job. It checks
-contract-bearing changes under `packages/`, `architecture/`, `docs/`,
-`scripts/`, and `.github/` for an issue reference such as `#123` or a stable
+contract-bearing changes under `packages/`, `docs/`, `scripts/`, and `.github/`
+for an issue reference such as `#123` or a stable
 `CA-*` specification/decision ID in the pull-request body or commit messages.
 It intentionally skips direct pushes and local runs outside a pull-request
 event, so historical commits do not need to be rewritten.
@@ -223,24 +237,18 @@ For the standalone Web Studio, also run its focused convention, type-check,
 build, and browser verification commands listed in the [Tool-Calling Web
 Studio Convention](./usecase-tool-calling-web-studio).
 
-## 8. Current feedback and next actions
+## 8. What the gates prove
 
-The recent Dexie panel-layout change is in good shape: it has a typed contract,
-a repository port, a schema migration, focused browser evidence, and paired
-documentation. The standalone Web Studio is now registered as the
-`web-coding-demo` architecture analysis project with the
-`CA-WEB-CODING-STUDIO` capability at `verified`. The full standalone
-verification, browser migration proof, documentation-management gate, and
-architecture SEM gate now pass. The following management items are recorded
-for traceability:
+The documentation system is deliberately layered: no single command proves
+semantic accuracy, package ownership, generated freshness, and rendered links.
 
-| Status | Item | Evidence or next action |
-| --- | --- | --- |
-| Closed | Issue templates and lifecycle were previously implicit | `.github/ISSUE_TEMPLATE/*` is checked by `pnpm docs:management` |
-| Closed | `CA-WEB-CODING-STUDIO` evidence was not yet promoted | `pnpm web-coding:verify` passes; release checks are clean |
-| Closed | Dexie migration lacked an explicit v1→v2 browser fixture | `scripts/verify-web-coding-browser.mjs` creates a v1 database and verifies the upgrade |
-| Closed | English/Korean parity and internal link validity were mostly review conventions | `pnpm docs:management` checks paired pages, discovery links, and handoff metadata |
-| Closed | Issue-to-spec-to-test links were not machine-enforced | `pnpm change:traceability` reports changed contract-bearing files and requires a `#<issue>` or `CA-*` reference in pull-request metadata |
+| Question | Source of truth | Automated evidence | Still requires review |
+| --- | --- | --- | --- |
+| Are the paired pages and required discovery routes present? | `docs/en/**`, `docs/ko/**`, sidebar | `pnpm docs:management` | equivalent meaning and correct audience level |
+| Are derived LLMS summaries current? | hand-authored source page | `pnpm llms:check` | summary usefulness and priority |
+| Does the site render and resolve links? | VitePress source/configuration | `pnpm docs:build` | browser interaction and visual quality |
+| Is the PR connected to a request or durable contract? | issue/spec/decision reference | `pnpm change:traceability` in PR CI | whether the selected contract is sufficient |
+| Does an implementation keep its declared ownership? | manifests, `exports`, runtime source | `pnpm package-boundary:check` | whether the chosen package boundary is the right design |
 
 The traceability gate is intentionally additive: it checks new pull requests
 without rewriting historical commits. A specification or decision ID remains

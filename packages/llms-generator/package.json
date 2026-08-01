@@ -74,6 +74,7 @@
     "gray-matter": "4.0.3"
   },
   "devDependencies": {
+    "@context-action/react": "workspace:*",
     "@swc/core": "1.15.46",
     "@swc/helpers": "0.5.23",
     "@swc/jest": "0.2.39",

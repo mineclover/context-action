@@ -2,26 +2,21 @@
 
 This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model.
 
-## Short Recommended Reading Path
+## Start Here by Task
 
-1. [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
-2. [Implementation Convention](/en/context-layered/implementation-convention)
-3. [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
-4. [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
-5. [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
-6. [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
-7. [Canonical Order Form Example](/en/examples/canonical-order-form)
-8. [Playbook Scenario Library](/en/examples/implementation-playbook-scenarios)
-9. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-10. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
-11. [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
-12. [Next Work and Documentation Ownership](/en/context-layered/next-work)
+Choose the path that matches the change; do not read the whole library before
+you know which artifact you own.
 
-The short path above covers:
-- folder structure
-- workflow transition rules
-- domain-level expansion
-- testing expectations
+| If you are changing… | Read first | Then use |
+| --- | --- | --- |
+| a package responsibility, dependency, or export | [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
+| a public guide, API reference, README route, or generated document | [Documentation and Development Management](/en/concept/documentation-development-conventions) | `pnpm docs:check` |
+| a durable architectural boundary or compatibility exception | [Architecture Decision Records](/en/context-layered/decisions/) | the linked package/guide and focused proof |
+| a feature, bug, or workflow contract | [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention) | its change-class gate |
+| a canonical example/usecase | [Implementation Convention](/en/context-layered/implementation-convention) | `pnpm convention:check` and example checks |
+
+For a release candidate, use `pnpm verify:all`; it composes the repository
+checks rather than replacing focused evidence.
 
 ## Grouped by Role
 
@@ -37,6 +32,8 @@ The short path above covers:
   - the standard implementation-playbook rule set
 - [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
   - issue lifecycle, contract traceability, decision records, and handoff evidence
+- [Architecture Decision Records](/en/context-layered/decisions/)
+  - durable home and template for package, protocol, persistence, and compatibility decisions
 - [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscriptions, and live preview boundaries
 - [Panel Layout Preference Convention](/en/context-layered/usecase-panel-layout)
@@ -137,5 +134,5 @@ The docs make more sense when paired with the live demos:
 
 ## One-Line Summary
 
-To turn this into a team convention, follow:
-`Implementation Convention -> Explicit State Machine -> Canonical Example -> Scenario Demos -> Stability Test Cycle`
+Choose the source of truth first, make the smallest matching change, update
+only its derived artifacts, and run the gate that proves that boundary.

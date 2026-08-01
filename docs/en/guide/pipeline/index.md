@@ -456,8 +456,8 @@ actionRegister.register('updateUserData', async (payload, controller) => {
 - Leverage results for handler coordination
 
 ### 5. Concurrency Guidelines
-- **Keep default** queue system for thread safety
-- **Consider disabling** only for pure analytics or read-only operations
+- **Enable queueing explicitly** when independent dispatches mutate shared state
+- **Keep the default independent dispatches** for pure analytics and read-only operations
 - **Use debounce/throttle** for high-frequency user interactions
 
 ## Advanced Patterns

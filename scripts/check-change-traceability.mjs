@@ -8,7 +8,6 @@ import process from 'node:process';
 const REFERENCE_PATTERN = /(?:#[0-9]+|CA-[A-Z0-9]+(?:-[A-Z0-9]+)*)/i;
 const TRACKED_PREFIXES = [
   '.github/',
-  'architecture/',
   'docs/',
   'packages/',
   'scripts/',

@@ -6,7 +6,7 @@
 
 # Interface: ActionDispatcher()\<T\>
 
-Defined in: [packages/core/src/types.ts:1024](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1024)
+Defined in: [packages/core/src/types.ts:1035](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1035)
 
 Type-safe action dispatcher interface
 
@@ -43,7 +43,7 @@ The action payload map interface
 
 > **ActionDispatcher**&lt;`K`&gt;(`action`, `options?`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:1026](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1026)
+Defined in: [packages/core/src/types.ts:1037](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1037)
 
 Dispatch an action that doesn't require a payload
 
@@ -71,7 +71,7 @@ Type parameter **K**
 
 > **ActionDispatcher**&lt;`K`&gt;(`action`, `payload?`, `options?`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:1032](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1032)
+Defined in: [packages/core/src/types.ts:1043](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1043)
 
 Dispatch an action with optional payload parameter
 
@@ -103,7 +103,7 @@ Type parameter **K**
 
 > **ActionDispatcher**&lt;`K`&gt;(`action`, `payload`, `options?`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:1039](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1039)
+Defined in: [packages/core/src/types.ts:1050](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1050)
 
 Dispatch an action that requires a payload
 

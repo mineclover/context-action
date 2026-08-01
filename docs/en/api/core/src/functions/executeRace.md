@@ -8,7 +8,7 @@
 
 > **executeRace**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:390](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L390)
+Defined in: [packages/core/src/execution-modes.ts:350](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L350)
 
 Execute handlers in race mode (first to complete wins)
 

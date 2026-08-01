@@ -20,8 +20,7 @@
   structured result 순서를 기준으로 합니다.
 - 실행 가능한 예제에 집중 컨벤션 검사와 browser gate가 있습니다.
 - 공개 문서와 생성 문서의 소유권이 분리되어 있습니다.
-- 아키텍처 거버넌스가 capability와 구현 anchor, 테스트 증거, 공개 문서를
-  연결할 수 있습니다.
+- 지속되는 아키텍처 선택은 추적 가능한 결정 기록 위치를 가집니다.
 
 남은 관리 리스크는 traceability입니다. 이슈는 의도를 기록하고 스펙은 계약을
 기록하지만, 둘 중 어느 것도 commit message나 완료된 diff에서 역추론해서는
@@ -38,14 +37,14 @@
 | 스펙 | 어떤 계약이 계속 참이어야 하는가? | type, 전이, invariant, 호환성, migration, 실패 동작 | 작업 체크리스트나 진행 로그 |
 | 코드·테스트 | 계약이 실제로 동작하는가? | 구현 anchor와 실행 가능한 증거 | 사용자 동작에 대한 유일한 설명 |
 | 공개 문서 | 사용자·기여자가 어떻게 이해해야 하는가? | 현재 동작, 사용법, 제한, 검증 경로 | 아직 구현되지 않은 미래 설계 |
-| Architecture registry/decision | 어떤 경계가 안정적이고 누가 소유하는가? | capability identity, owner, evidence, 결정 기록 | 의미 없는 파일 목록 |
+| 추적되는 스펙/결정 | 어떤 경계가 안정적이고 누가 소유하는가? | 안정적인 ID, owner, evidence, 결정 기록 | 의미 없는 파일 목록 |
 | 생성물 | 어떤 파생 산출물을 배포하는가? | generator 원본과 재현 명령 | 정식 원본 문서 |
 
 권장 추적 흐름은 다음과 같습니다.
 
 ```text
 이슈 → 스펙/decision → 구현 → 집중 증명
-     → 권위 문서 → 아키텍처 증거 → 리뷰 → 종료
+     → 권위 문서 → 리뷰 → 종료
 ```
 
 ## 2. 변경 분류
@@ -56,7 +55,7 @@
 | --- | --- | --- |
 | 공개 API | export type/API 동작과 호환성 규칙 | 패키지 테스트, API 문서, migration note |
 | 동작 또는 패턴 | 사용자에게 보이는 state, action, tool, workflow 동작 | 집중 테스트, 실행 예제, 가이드 |
-| 아키텍처 | 소유권, 경계, provider 순서, persistence, schema 결정 | decision record, architecture check, 대표 테스트 |
+| 아키텍처 | 소유권, 경계, provider 순서, persistence, schema 결정 | decision record, 집중 boundary check, 대표 테스트 |
 | 버그 | 재현 가능한 실패와 기대 동작 | regression test, 재현 단계, 수정 |
 | 문서/유지보수 | 명령, 소유권, 링크, 번역, 생성물 수정 | docs build, link/source check |
 
@@ -122,10 +121,9 @@ form은 최소 메타데이터를 수집하며, 지속되는 계약을 도입하
 
 ### 안정적인 identity
 
-지속되는 capability나 계약에는 `CA-WEB-001` 또는 기존 architecture
-capability ID 같은 안정적인 ID를 부여합니다. 변하기 쉬운 파일 경로를 ID에
-넣지 않습니다. 이름만 바뀌면 ID를 유지하고, 분리·병합·대체는 decision
-record로 연결합니다.
+지속되는 계약에는 `CA-WEB-001`처럼 안정적인 ID를 부여합니다. 변하기 쉬운
+파일 경로를 ID에 넣지 않습니다. 이름만 바뀌면 ID를 유지하고,
+분리·병합·대체는 decision record로 연결합니다.
 
 ### 계약 내용
 
@@ -158,6 +156,9 @@ upgrade 동작, fallback, 기존 데이터 보존 또는 의도적 삭제 증거
 decision에는 context, 검토한 선택지, 결정, 결과, 되돌림 조건, owner,
 연결된 issue/capability를 기록합니다. 미래 작업을 제한하는 선택이라면 단순
 문장 수정만으로는 부족합니다.
+
+기록은 [아키텍처 결정 기록](./decisions/) 아래에 둡니다. 결정 자체는 이
+기록이 소유하고, 구현·테스트·공개 가이드는 각각 동작 증거를 소유합니다.
 
 ## 6. 개발 및 commit 컨벤션
 
@@ -192,53 +193,58 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 - 공개 영문·국문 페이지는 pair source이며 의미와 현재 동작을 맞춥니다.
 - 권위 가이드가 설명을 소유합니다. README는 발견과 연결을 담당하며 별도
   계약을 만들지 않습니다.
-- API 페이지와 LLMS 산출물은 생성/파생물입니다. 원본을 먼저 수정하고
+- API 페이지와 LLMS 산출물은 파생물입니다. 원본을 먼저 수정하고 관련
   generator를 실행합니다.
 - 사용할 수 없거나 best-effort, experimental, 수동 credential 의존 기능은
   문서에 그 상태를 표시합니다.
 - 새 컨벤션은 Convention Index와 VitePress sidebar에 discovery link를 추가합니다.
 
-최소 집중 gate:
+변경한 영역을 증명하는 가장 작은 명령 집합을 사용합니다.
 
 ```bash
-pnpm docs:build
-pnpm docs:management
-pnpm convention:check
-pnpm change:traceability       # pull request 이슈/스펙 참조 gate
-pnpm docs:full             # 광범위한 API/문서 릴리스
+# 사람이 작성한 가이드 또는 컨벤션
 pnpm llms:sync-docs --changed-files <paths>
+pnpm docs:check
+
+# export API 또는 API JSDoc
+pnpm docs:api && pnpm docs:sync
+pnpm docs:build
+
+# 해당하는 경우 pull request 추적성과 canonical example 구조
+pnpm change:traceability
+pnpm convention:check
 ```
 
+`pnpm docs:check`는 문서 관리 metadata, LLMS 최신성, VitePress 렌더링을
+검사합니다. 파일을 생성하지는 않습니다. `pnpm docs:full`은 API 참조 갱신
+흐름(`docs:api` → `docs:sync` → `docs:build`)이며 LLMS 산출물은 재생성하지
+않습니다.
+
 `pnpm change:traceability`는 pull request CI에서 강제됩니다. `packages/`,
-`architecture/`, `docs/`, `scripts/`, `.github/` 아래의 계약 변경이 pull
-request 본문이나 commit message에 `#123` 또는 안정적인 `CA-*` 스펙/결정 ID를
+`docs/`, `scripts/`, `.github/` 아래의 계약 변경이 pull request 본문이나
+commit message에 `#123` 또는 안정적인 `CA-*` 스펙/결정 ID를
 포함하는지 확인합니다. 직접 push와 pull request 이벤트가 아닌 로컬 실행은
 의도적으로 건너뛰므로 과거 commit을 다시 작성할 필요가 없습니다.
 
 standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-calling-web-studio)에
 기록된 집중 convention, type-check, build, browser 검증도 실행합니다.
 
-## 8. 현재 피드백과 다음 액션
+## 8. 게이트가 증명하는 범위
 
-최근 Dexie panel-layout 변경은 typed contract, repository port, schema
-migration, 집중 browser 증거, 영문·국문 문서를 갖추어 상태가 좋습니다.
-standalone Web Studio도 이제 `web-coding-demo` architecture analysis project와
-`CA-WEB-CODING-STUDIO` capability로 등록되었으며, 현재 상태는
-`verified`입니다. standalone 전체 검증, browser migration 증거,
-documentation-management gate, architecture SEM gate가 모두 통과했습니다.
-추적성을 위해 다음 관리 항목을 기록합니다.
+문서 시스템은 의도적으로 계층화되어 있습니다. 하나의 명령으로 의미적 정확성,
+패키지 소유권, 생성물 최신성, 렌더된 링크를 모두 증명하지는 않습니다.
 
-| 상태 | 항목 | 증거 또는 다음 액션 |
-| --- | --- | --- |
-| 종료 | 이슈 template과 lifecycle이 이전에는 암묵적이었음 | `.github/ISSUE_TEMPLATE/*`를 `pnpm docs:management`가 검사 |
-| 종료 | `CA-WEB-CODING-STUDIO` 증거가 아직 승격되지 않았음 | `pnpm web-coding:verify` 통과와 release check clean 상태 |
-| 종료 | Dexie migration에 명시적인 v1→v2 browser fixture가 없었음 | `scripts/verify-web-coding-browser.mjs`가 v1 DB를 만들고 upgrade를 검증 |
-| 종료 | 영문·국문 parity와 내부 링크 유효성이 주로 review convention이었음 | `pnpm docs:management`가 pair page, discovery link, handoff metadata를 검사 |
-| 종료 | issue→spec→test 연결이 기계적으로 강제되지 않음 | `pnpm change:traceability`가 변경된 계약 파일을 보고하고 pull request metadata에 `#<issue>` 또는 `CA-*` 참조를 요구 |
+| 질문 | 정식 원본 | 자동 증거 | 여전히 리뷰가 필요한 것 |
+| --- | --- | --- | --- |
+| 짝을 이루는 페이지와 필요한 discovery 경로가 있는가? | `docs/en/**`, `docs/ko/**`, sidebar | `pnpm docs:management` | 의미 동등성과 독자 수준 |
+| 파생 LLMS 요약이 최신인가? | 사람이 작성한 원본 페이지 | `pnpm llms:check` | 요약의 유용성과 priority |
+| 사이트가 렌더되고 링크가 해석되는가? | VitePress source/configuration | `pnpm docs:build` | browser 상호작용과 시각 품질 |
+| PR이 요청 또는 지속 계약에 연결되는가? | issue/spec/decision 참조 | PR CI의 `pnpm change:traceability` | 선택한 계약이 충분한지 |
+| 구현이 선언된 소유권을 지키는가? | manifest, `exports`, runtime source | `pnpm package-boundary:check` | 선택한 package 경계가 올바른 설계인지 |
 
 추적성 gate는 과거 commit을 다시 쓰지 않고 새로운 pull request에만
-추가적으로 적용됩니다. GitHub issue가 없는 변경은 스펙 또는 결정 ID를
-참조하는 방식이 권장됩니다.
+적용됩니다. GitHub issue가 없는 변경은 스펙 또는 결정 ID를 참조하는 방식이
+권장됩니다.
 
 ## 리뷰 및 handoff 체크리스트
 

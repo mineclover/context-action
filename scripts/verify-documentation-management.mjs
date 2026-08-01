@@ -7,6 +7,11 @@ const repositoryRoot = path.resolve(
   '..'
 );
 const docsRoot = path.join(repositoryRoot, 'docs');
+const rootManifest = JSON.parse(read('package.json'));
+
+if (rootManifest.scripts?.['docs:check'] !== 'pnpm docs:management && pnpm llms:check && pnpm docs:build') {
+  throw new Error('package.json must expose the canonical docs:check command');
+}
 
 function collectMarkdown(relativeDirectory) {
   const directory = path.join(docsRoot, relativeDirectory);
@@ -38,6 +43,12 @@ function read(relativePath) {
 function assertContains(relativePath, source, pattern, description) {
   if (!pattern.test(source)) {
     throw new Error(`${relativePath} does not expose ${description}`);
+  }
+}
+
+function assertDoesNotContain(relativePath, source, pattern, description) {
+  if (pattern.test(source)) {
+    throw new Error(`${relativePath} retains removed ${description}`);
   }
 }
 
@@ -105,6 +116,18 @@ assertContains(
   /\/ko\/context-layered\/change-management-convention/,
   'the change-management discovery link'
 );
+assertContains(
+  'docs/en/context-layered/convention-index.md',
+  englishConventionIndex,
+  /\/en\/context-layered\/decisions\//,
+  'the decision-record discovery link'
+);
+assertContains(
+  'docs/ko/context-layered/convention-index.md',
+  koreanConventionIndex,
+  /\/ko\/context-layered\/decisions\//,
+  'the decision-record discovery link'
+);
 
 for (const [locale, relativePath] of [
   ['en', 'docs/en/context-layered/change-management-convention.md'],
@@ -114,6 +137,38 @@ for (const [locale, relativePath] of [
   assertContains(relativePath, source, /\*\*(?:Status|상태):\*\*/, `${locale} status metadata`);
   assertContains(relativePath, source, /## (?:Review decision|리뷰 판정)/, `${locale} review decision`);
   assertContains(relativePath, source, /## (?:Review and handoff checklist|리뷰 및 handoff 체크리스트)/, `${locale} handoff checklist`);
+  assertContains(relativePath, source, /\.\/decisions\//, `${locale} decision-record home`);
+  assertContains(relativePath, source, /pnpm docs:check/, `${locale} canonical documentation check`);
+  assertContains(relativePath, source, /## (?:\d+\. )?(?:What the gates prove|게이트가 증명하는 범위)/, `${locale} gate scope`);
+  assertDoesNotContain(relativePath, source, /architecture SEM gate/i, 'SEM gate reference');
+  assertDoesNotContain(relativePath, source, /아키텍처 거버넌스/, 'architecture-governance reference');
+}
+
+for (const [locale, relativePath] of [
+  ['en', 'docs/en/concept/documentation-development-conventions.md'],
+  ['ko', 'docs/ko/concept/documentation-development-conventions.md'],
+]) {
+  const source = read(relativePath);
+  assertContains(relativePath, source, /pnpm docs:check/, `${locale} canonical documentation check`);
+  assertContains(relativePath, source, /## (?:\d+\. )?(?:Choose the Source Before Editing|편집 전 원본 선택)/, `${locale} source-selection route`);
+  assertContains(relativePath, source, /does \*\*not\*\* regenerate\s+LLMS artifacts|LLMS 산출물은 재생성하지 않습니다/, `${locale} API/LLMS boundary`);
+}
+
+for (const [locale, relativePath] of [
+  ['en', 'docs/en/context-layered/package-boundary-convention.md'],
+  ['ko', 'docs/ko/context-layered/package-boundary-convention.md'],
+]) {
+  const source = read(relativePath);
+  assertContains(relativePath, source, /pnpm package-boundary:check/, `${locale} package-boundary gate`);
+  assertDoesNotContain(relativePath, source, /architecture\/registry\.json/i, 'architecture registry reference');
+}
+
+for (const [locale, relativePath] of [
+  ['en', 'docs/en/context-layered/decisions/index.md'],
+  ['ko', 'docs/ko/context-layered/decisions/index.md'],
+]) {
+  const source = read(relativePath);
+  assertContains(relativePath, source, /CA-AREA-001/, `${locale} decision-record template`);
 }
 
 console.log('Documentation management verification');
@@ -121,3 +176,4 @@ console.log(`- paired directories checked: ${pairedDirectories.length}`);
 console.log(`- issue forms checked: ${Object.keys(issueTemplates).length}`);
 console.log('- convention discovery links checked: en, ko');
 console.log('- change-management metadata and handoff checklist checked: en, ko');
+console.log('- decision-record home and package-boundary gate checked: en, ko');

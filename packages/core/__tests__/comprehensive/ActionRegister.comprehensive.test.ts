@@ -819,7 +819,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
         expect(handler).toHaveBeenCalledTimes(1);
       });
 
-      it('should handle condition errors gracefully', async () => {
+      it('surfaces condition errors instead of silently skipping a handler', async () => {
         const handler = jest.fn();
         actionRegister.register('testAction', handler, {
           condition: (payload) => {
@@ -827,7 +827,8 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
           }
         });
 
-        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 })).resolves.not.toThrow();
+        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 }))
+          .rejects.toThrow('Condition error');
         expect(handler).not.toHaveBeenCalled();
       });
     });
@@ -1013,7 +1014,23 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
           }
         });
 
-        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 })).resolves.not.toThrow();
+        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 }))
+          .rejects.toThrow('Condition error');
+        expect(handler).not.toHaveBeenCalled();
+      });
+
+      it.each(['parallel', 'race'] as const)('rejects condition errors in %s mode', async executionMode => {
+        const handler = jest.fn();
+
+        actionRegister.register('testAction', handler, {
+          condition: () => {
+            throw new Error(`${executionMode} condition error`);
+          }
+        });
+
+        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 }, {
+          executionMode,
+        })).rejects.toThrow(`${executionMode} condition error`);
         expect(handler).not.toHaveBeenCalled();
       });
     });

@@ -1,8 +1,8 @@
 # 문서 및 개발 관리 컨벤션
 
-이 문서는 구현, 공개 문서, 생성 API 참조, LLM용 산출물을 일치시키기 위한
-기준 문서입니다. [컨벤션](./conventions.md)의 코딩 규칙을 보완하며, 패키지별
-소유권이나 릴리스 규칙을 대체하지는 않습니다.
+이 문서는 문서를 생산하고 검증하기 위한 기준 문서입니다. 사람이 작성하는 원문과
+파생 API·LLMS 산출물을 구분합니다. [컨벤션](./conventions.md)의 코딩 규칙을
+보완하며, 패키지별 소유권이나 릴리스 규칙을 대체하지는 않습니다.
 
 이슈 lifecycle, 스펙 추적, decision record, 리뷰 handoff는
 [스펙·이슈·문서 관리 컨벤션](../context-layered/change-management-convention)을
@@ -24,7 +24,22 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 다시 실행해도 커밋 해시만 달라지는 drift가 발생하지 않으며, 소스 경로나 줄이 바뀔 때만
 생성 파일이 달라집니다.
 
-## 2. 변경 분류
+## 2. 편집 전 원본 선택
+
+변경하려는 질문에서 출발해 정식 원본을 수정합니다. drift를 발견한 위치가 생성
+페이지라고 해서 생성물을 먼저 수정하지 않습니다.
+
+| 변경 | 수정할 정식 원본 | 파생물/갱신 경로 | 최소 증명 |
+| --- | --- | --- | --- |
+| 공개 가이드 또는 컨벤션 | 짝을 이루는 `docs/en/**`, `docs/ko/**` 페이지 | 영향을 받은 LLMS 요약 재생성 | `pnpm docs:check` |
+| export API signature 또는 API JSDoc | TypeScript export와 JSDoc | `pnpm docs:api && pnpm docs:sync` | type check와 `pnpm docs:build` |
+| package 발견 경로 또는 소비자 진입점 | package `README.md`와 정식 가이드 링크 | 계약이 바뀐 경우에만 연결된 guide 갱신 | 집중 package 검증 |
+| 지속되는 아키텍처 선택 | decision record와 소유 guide/package contract | 구현·테스트 anchor 추가 | 집중 boundary/test 증거 |
+
+`pnpm docs:check`는 문서 관리 metadata, LLMS 최신성, VitePress build를
+검증합니다. 이 명령은 정합성을 검사할 뿐 파일을 생성하지는 않습니다.
+
+## 3. 변경 분류
 
 구현 전 변경을 다음 중 하나로 분류합니다.
 
@@ -40,7 +55,7 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 관련 없는 문서 재작성과 동작 변경을 한 커밋에 섞지 않습니다. 문서만 독립적으로
 리뷰할 수 있으면 `docs(<area>):` 커밋을 사용합니다.
 
-## 3. 필수 개발 루프
+## 4. 필수 개발 루프
 
 기능과 유지보수 작업은 다음 순서를 따릅니다.
 
@@ -54,19 +69,21 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 문서는 미래 계획이 아니라 현재 동작을 설명해야 합니다. 구현이 미완이면 사용할 수
 있는 것처럼 쓰지 말고, 제한과 필요한 증명을 적습니다.
 
-## 4. 검증 게이트
+## 5. 검증 게이트
 
 | 변경 | 최소 게이트 | 해당할 때 추가 |
 | --- | --- | --- |
-| 사람이 작성한 문서 | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>`와 `pnpm llms:check` |
+| 사람이 작성한 문서 | `pnpm llms:sync-docs --changed-files <paths>` 후 `pnpm docs:check` | 렌더된 상호작용이 바뀌면 집중 link/browser 증명 |
 | 공개 TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
 | 런타임 동작 또는 프레임워크 패턴 | 집중 패키지 테스트와 `pnpm type-check` | `pnpm test`, example build |
 | 예제 앱 또는 브라우저 통합 | `pnpm --filter example build` | 사용자 소유 자격 증명으로 수동 증명, 비밀값 커밋 금지 |
 | 릴리스·패키지 도구 | `pnpm verify:package-exports`, `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
 | LLMS/문서 정합성 | `pnpm llms:check` | 리뷰 증거가 필요하면 `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` |
 
-`pnpm docs:full`은 전체 문서 파이프라인입니다. 광범위한 API 또는 문서 릴리스에는
-사용하고, 집중 개발 중에는 위의 좁은 명령으로 빠르게 피드백을 받습니다.
+`pnpm docs:full`은 API 참조 갱신 파이프라인입니다. TypeDoc을 생성하고 VitePress에
+동기화한 뒤 사이트를 빌드합니다. **LLMS 산출물은 재생성하지 않습니다.** 사람이 작성한
+가이드 변경에는 해당 원본을 `pnpm llms:sync-docs`로 갱신한 뒤 `pnpm docs:check`를
+실행합니다. 릴리스에서 API와 가이드가 함께 바뀌면 두 흐름을 모두 실행합니다.
 
 패키지 빌드, runtime export 로딩, 배포 archive 내용, lint, 테스트, 예제 앱, 문서,
 private tooling을 모두 포함한 저장소 전체 pre-merge 검증은 `pnpm verify:all`로
@@ -96,7 +113,7 @@ pnpm example:build
 실제 API 문제가 아닌데도 missing export 또는 타입 오류처럼 보이는 실패가
 발생할 수 있습니다.
 
-## 5. 리뷰 및 handoff 기록
+## 6. 리뷰 및 handoff 기록
 
 문서에 영향을 주는 PR 또는 handoff에는 다음을 적습니다.
 

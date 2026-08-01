@@ -33,7 +33,7 @@ const register = new ActionRegister<AppActions>({
 const devRegister = new ActionRegister<AppActions>({
   name: 'DevRegister',
   registry: {
-    debug: process.env.NODE_ENV === 'development',
+    debug: true,
     autoCleanup: true,
     defaultExecutionMode: 'parallel'
   }
@@ -82,13 +82,22 @@ Default execution mode for actions
 
 > `optional` **useConcurrencyQueue?**: `boolean`
 
-Use concurrency queue for thread safety. Default: true
+Serialize independent dispatches through the optional queue. Default: false.
 
 #### maxHandlersPerAction?
 
 > `optional` **maxHandlersPerAction?**: `number`
 
-Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended)
+Optional maximum number of handlers per action. Defaults to `Infinity`.
+A configured finite limit rejects an overflowing registration instead of
+silently dropping the handler.
+
+#### maxJumps?
+
+> `optional` **maxJumps?**: `number`
+
+Maximum controller priority jumps in one dispatch. Default: 10; use
+`Infinity` only when the caller owns a separate termination invariant.
 
 #### errorHandler?
 

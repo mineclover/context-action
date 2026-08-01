@@ -1,6 +1,6 @@
 # Implementation Playbook Standard Convention
 
-This document turns the implementation-playbook example into a reusable standard convention for the repository. The goal is not just to keep one demo readable, but to make it possible to design, implement, test, and document more complex flows in the same way.
+This document turns the implementation-playbook example into a reusable standard convention for canonical example and usecase surfaces. The goal is not just to keep one demo readable, but to make it possible to design, implement, test, and document more complex flows in the same way. It does not impose this folder structure on every workspace package or demo.
 
 ## When to Use This Convention
 
@@ -94,7 +94,7 @@ Every handler, including a single-handler feature, is registered through the dom
 
 ## Structural Convention Gate
 
-`pnpm convention:check` automatically recognizes a canonical feature root when
+`pnpm convention:check` scans canonical feature roots under `example/src`. It automatically recognizes a root when
 it contains sibling `contexts/` and `handlers/` directories. The gate then
 checks the direct layer folders without applying the canonical naming rules to
 advanced or compatibility surfaces that have not entered migration.
@@ -125,7 +125,8 @@ pnpm --filter example check
 
 The gate currently covers 31 canonical roots with zero layer-path/name
 violations. Advanced and compatibility roots remain explicitly outside this
-automatic naming scope until their migration classification changes.
+automatic naming scope until their migration classification changes. Repository-wide package imports are governed
+separately by `pnpm package-boundary:check`.
 
 Non-canonical `handlers/` directories are not silently ignored. Their current
 classification and rationale live in

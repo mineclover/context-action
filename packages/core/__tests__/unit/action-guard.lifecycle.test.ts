@@ -29,4 +29,15 @@ describe('ActionGuard lifecycle', () => {
     await expect(pendingDebounce).resolves.toBe(false);
     expect(jest.getTimerCount()).toBe(0);
   });
+
+  it('keeps distinct timing guards until their idle cleanup, without an LRU cap', () => {
+    const guard = new ActionGuard(false);
+
+    for (let index = 0; index < 1001; index++) {
+      guard.throttle(`action-${index}`, 1_000);
+    }
+
+    expect(guard.getAllGuardStates().size).toBe(1001);
+    guard.destroy();
+  });
 });

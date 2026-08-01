@@ -15,6 +15,14 @@ describe('ActionRegister - Warning Messages Tests', () => {
   let actionRegister: ActionRegister<TestActions>;
   let consoleSpy: jest.SpyInstance;
 
+  const enableDebugDiagnostics = () => {
+    actionRegister.destroy();
+    actionRegister = new ActionRegister<TestActions>({
+      name: 'WarningTestRegister',
+      registry: { debug: true },
+    });
+  };
+
   beforeEach(() => {
     actionRegister = new ActionRegister<TestActions>({
       name: 'WarningTestRegister',
@@ -32,13 +40,7 @@ describe('ActionRegister - Warning Messages Tests', () => {
 
   describe('development mode warnings', () => {
     beforeEach(() => {
-      // Set NODE_ENV to development
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      // Reset NODE_ENV
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should show warning when dispatching to non-existent action', async () => {
@@ -89,17 +91,7 @@ describe('ActionRegister - Warning Messages Tests', () => {
   });
 
   describe('production mode behavior', () => {
-    beforeEach(() => {
-      // Set NODE_ENV to production
-      process.env.NODE_ENV = 'production';
-    });
-
-    afterEach(() => {
-      // Reset NODE_ENV
-      delete process.env.NODE_ENV;
-    });
-
-    it('should not show console warnings in production mode', async () => {
+    it('does not show console warnings when diagnostics are disabled', async () => {
       await actionRegister.dispatch('userLogin', { userId: '123', email: 'user@example.com' });
 
       expect(consoleSpy).not.toHaveBeenCalled();
@@ -117,11 +109,7 @@ describe('ActionRegister - Warning Messages Tests', () => {
 
   describe('warning message content', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should include action name in warning message', async () => {
@@ -152,11 +140,7 @@ describe('ActionRegister - Warning Messages Tests', () => {
 
   describe('multiple warnings', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should show warning for each dispatch to non-existent action', async () => {
@@ -164,26 +148,22 @@ describe('ActionRegister - Warning Messages Tests', () => {
       await actionRegister.dispatch('userLogout');
       await actionRegister.dispatch('processData', { data: { name: 'test' }, type: 'json' });
 
-      // Should show 3 warnings (one for each action)
-      expect(consoleSpy).toHaveBeenCalledTimes(9); // 3 warnings × 3 console.warn calls each
+      // Three user-facing warnings plus one debug trace per missing action.
+      expect(consoleSpy).toHaveBeenCalledTimes(12);
     });
 
     it('should show warning for same action multiple times', async () => {
       await actionRegister.dispatch('userLogin', { userId: '123', email: 'user@example.com' });
       await actionRegister.dispatch('userLogin', { userId: '456', email: 'user2@example.com' });
 
-      // Should show 2 warnings (one for each dispatch)
-      expect(consoleSpy).toHaveBeenCalledTimes(6); // 2 warnings × 3 console.warn calls each
+      // Two user-facing warning groups plus debug traces.
+      expect(consoleSpy).toHaveBeenCalledTimes(8);
     });
   });
 
   describe('actions getter warnings', () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
-    });
-
-    afterEach(() => {
-      delete process.env.NODE_ENV;
+      enableDebugDiagnostics();
     });
 
     it('should not show warnings when accessing actions getter', () => {

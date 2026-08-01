@@ -27,6 +27,19 @@ import {
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
 
+function normalizePositiveLimit(
+  value: number | undefined,
+  fallback: number,
+  label: string,
+): number {
+  const limit = value ?? fallback;
+  if (limit === Infinity) return limit;
+  if (!Number.isSafeInteger(limit) || limit <= 0) {
+    throw new RangeError(`${label} must be a positive safe integer or Infinity.`);
+  }
+  return limit;
+}
+
 /**
  * Action Register for managing action handlers with priority-based execution
  * 
@@ -63,6 +76,7 @@ export class ActionRegister<
   // 🆕 Performance optimizations
   private readonly isDebugMode: boolean;
   private readonly maxHandlersPerAction: number;
+  private readonly maxJumps: number;
 
   // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
   private dispatchQueue?: OperationQueue;
@@ -101,19 +115,23 @@ export class ActionRegister<
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
-    this.maxHandlersPerAction = config.registry?.maxHandlersPerAction ?? 1000;
-    
-    // 🆕 Environment variable check cached (performance optimization)
-    this.isDebugMode = Boolean(
-      this.registryConfig?.debug && 
-      process.env.NODE_ENV === 'development'
+    this.maxHandlersPerAction = normalizePositiveLimit(
+      config.registry?.maxHandlersPerAction,
+      Infinity,
+      'maxHandlersPerAction',
     );
+    this.maxJumps = normalizePositiveLimit(
+      config.registry?.maxJumps,
+      10,
+      'maxJumps',
+    );
+    this.isDebugMode = this.registryConfig?.debug === true;
     
     // Guard creation with improved cleanup handling
     this.actionGuard = new ActionGuard(this.registryConfig?.autoCleanup !== false);
     
     // 🆕 Conditional queue system initialization
-    if (config.registry?.useConcurrencyQueue !== false) {
+    if (config.registry?.useConcurrencyQueue === true) {
       this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
     }
     
@@ -413,12 +431,15 @@ export class ActionRegister<
 
     const pipeline = this.pipelines.get(action)!;
     
-    // Check handler limit
-    if (pipeline.length >= this.maxHandlersPerAction) {
-      console.warn(`Handler limit (${this.maxHandlersPerAction}) reached for action "${String(action)}". Registration ignored.`);
-      return () => {}; // No-op unregister
-    }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
+
+    // Replacement keeps the pipeline size stable. Apply a finite limit only
+    // when the registration would add a distinct handler.
+    if (existingIndex === -1 && pipeline.length >= this.maxHandlersPerAction) {
+      throw new RangeError(
+        `Handler limit (${this.maxHandlersPerAction}) reached for action "${String(action)}".`,
+      );
+    }
 
     // 🆕 Enhanced duplicate ID handling with replaceExisting support and cleanup
     if (existingIndex !== -1) {
@@ -728,8 +749,15 @@ export class ActionRegister<
     cleanup: () => void;
     cleanupSignals: () => void;
   } {
-    const hasTimeout = options?.timeout !== undefined && Number.isFinite(options.timeout);
-    const timeout = hasTimeout ? Math.max(0, options!.timeout!) : undefined;
+    const configuredTimeout = options?.timeout;
+    if (
+      configuredTimeout !== undefined &&
+      (!Number.isFinite(configuredTimeout) || configuredTimeout < 0)
+    ) {
+      throw new RangeError('timeout must be a non-negative finite number.');
+    }
+    const hasTimeout = configuredTimeout !== undefined;
+    const timeout = configuredTimeout;
     const timeoutController = hasTimeout ? new AbortController() : undefined;
     const signalCleanups: Array<() => void> = [];
     const timeoutCallbacks = new Set<(error: ActionTimeoutError) => void>();
@@ -967,8 +995,8 @@ export class ActionRegister<
       timestamp: new Date().toISOString()
     });
     
-    // Simple Event object detection for development
-    if (payload instanceof Event && process.env.NODE_ENV === 'development') {
+    // Event object detection is diagnostics-only and explicitly opt-in.
+    if (this.isDebugMode && typeof Event !== 'undefined' && payload instanceof Event) {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
 
@@ -1000,7 +1028,7 @@ export class ActionRegister<
       // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
       const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
       
-      if (process.env.NODE_ENV === 'development') {
+      if (this.isDebugMode) {
         console.warn(warningMessage);
         console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
         console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
@@ -1095,7 +1123,7 @@ export class ActionRegister<
       currentIndex: 0,
       jumpToPriority: undefined as number | undefined,
       jumpCount: 0,
-      maxJumps: 10, // Default max jumps to prevent infinite loops
+      maxJumps: this.maxJumps,
       executionMode: currentExecutionMode,
       
       // New result collection fields
@@ -1278,7 +1306,7 @@ export class ActionRegister<
       // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
       const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
       
-      if (process.env.NODE_ENV === 'development') {
+      if (this.isDebugMode) {
         console.warn(warningMessage);
         console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
         console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
@@ -1358,7 +1386,7 @@ export class ActionRegister<
       currentIndex: 0,
       jumpToPriority: undefined as number | undefined,
       jumpCount: 0,
-      maxJumps: 10, // Default max jumps to prevent infinite loops
+      maxJumps: this.maxJumps,
       executionMode: currentExecutionMode,
       
       // Result collection fields
@@ -2032,7 +2060,7 @@ export class ActionRegister<
   setExecutionMode(mode: ExecutionMode): void {
     this.executionMode = mode;
     
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+    if (this.isDebugMode) {
       console.log(`🎯 Global execution mode set to: ${mode}`);
     }
   }
@@ -2046,7 +2074,7 @@ export class ActionRegister<
   setActionExecutionMode<K extends keyof T>(action: K, mode: ExecutionMode): void {
     this.actionExecutionModes.set(action, mode);
     
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+    if (this.isDebugMode) {
       console.log(`🎯 Execution mode set for action '${String(action)}': ${mode}`);
     }
   }
@@ -2069,7 +2097,7 @@ export class ActionRegister<
   removeActionExecutionMode<K extends keyof T>(action: K): void {
     this.actionExecutionModes.delete(action);
     
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+    if (this.isDebugMode) {
       console.log(`🎯 Execution mode reset for action '${String(action)}' to default: ${this.executionMode}`);
     }
   }

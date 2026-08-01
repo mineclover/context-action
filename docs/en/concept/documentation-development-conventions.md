@@ -1,9 +1,9 @@
 # Documentation and Development Management Conventions
 
-This document is the source of truth for keeping implementation, public
-documentation, generated references, and LLM-oriented artifacts aligned.
-It complements the coding rules in [Conventions](./conventions.md); it does
-not replace package-specific ownership or release rules.
+This document is the source of truth for producing and verifying documentation.
+It distinguishes the human-authored source from derived API and LLM artifacts.
+It complements the coding rules in [Conventions](./conventions.md); it does not
+replace package-specific ownership or release rules.
 
 For issue lifecycle, specification traceability, decision records, and review
 handoff, use the [Specification, Issue, and Documentation Management
@@ -26,7 +26,22 @@ API source links are generated against the `main` branch so that running the
 documentation pipeline after a commit does not create commit-hash-only drift;
 the generated file remains reproducible until the source path or line changes.
 
-## 2. Change Classification
+## 2. Choose the Source Before Editing
+
+Start from the question being changed, then edit its canonical source. Do not
+start from a generated page merely because it is where the drift was noticed.
+
+| Change | Canonical source to edit | Derived/update path | Minimum proof |
+| --- | --- | --- | --- |
+| Public guide or convention | paired `docs/en/**` and `docs/ko/**` pages | regenerate the affected LLMS summaries | `pnpm docs:check` |
+| Exported API signature or API JSDoc | TypeScript export and JSDoc | `pnpm docs:api && pnpm docs:sync` | type check and `pnpm docs:build` |
+| Package discovery or consumer entry point | package `README.md`, with a link to its authoritative guide | update the linked guide only when the contract changed | focused package verification |
+| Durable architecture choice | decision record plus the owning guide/package contract | add implementation and test anchors | focused boundary/test evidence |
+
+`pnpm docs:check` verifies documentation management metadata, LLMS freshness,
+and the VitePress build. It checks consistency; it does not generate files.
+
+## 3. Change Classification
 
 Before implementation, record the change in one of these classes:
 
@@ -44,7 +59,7 @@ Do not combine an unrelated documentation rewrite with a behavior change in
 the same commit. Use a `docs(<area>):` commit when documentation can be
 reviewed independently.
 
-## 3. Required Development Loop
+## 4. Required Development Loop
 
 Use this order for feature and maintenance work:
 
@@ -62,20 +77,22 @@ Document current behavior, not an intended future design. If an implementation
 is incomplete, state the limitation and the required proof rather than
 describing it as available.
 
-## 4. Verification Gates
+## 5. Verification Gates
 
 | Change | Minimum gate | Add when applicable |
 | --- | --- | --- |
-| Hand-authored documentation | `pnpm docs:build` | `pnpm llms:sync-docs --changed-files <paths>` and `pnpm llms:check` |
+| Hand-authored documentation | `pnpm llms:sync-docs --changed-files <paths>` then `pnpm docs:check` | focused link/browser proof when a rendered interaction changed |
 | Public TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
 | Runtime behavior or a framework pattern | Focused package test and `pnpm type-check` | `pnpm test`, example build |
 | Example app or browser integration | `pnpm --filter example build` | Manual proof with user-owned credentials; never commit secrets |
 | Release/package tooling | `pnpm verify:package-exports` and `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
 | LLMS/documentation consistency | `pnpm llms:check` | `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` for review evidence |
 
-`pnpm docs:full` is the complete documentation pipeline. Use it for broad API
-or documentation releases; use the narrower commands above during focused
-development to keep feedback fast.
+`pnpm docs:full` is the API-reference refresh pipeline: it regenerates TypeDoc,
+synchronizes it into VitePress, and builds the site. It does **not** regenerate
+LLMS artifacts. For authored-guide work, run `pnpm llms:sync-docs` for the
+changed source pages and then `pnpm docs:check`. Use both flows when a release
+changes API and guide content.
 
 For a repository-wide pre-merge check—including package builds, runtime export
 loading, packed archive contents, linting, tests, the example app,
@@ -105,7 +122,7 @@ after a package source change can read stale declarations from `packages/*/dist`
 The resulting missing-export or type errors may be caused by build order rather
 than by the source change itself.
 
-## 5. Review and Handoff Record
+## 6. Review and Handoff Record
 
 Each documentation-affecting pull request or handoff should state:
 

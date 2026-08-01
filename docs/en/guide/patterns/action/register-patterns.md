@@ -661,7 +661,7 @@ function MemoryManagedSetup() {
   // Configure ActionRegister with memory management
   const actionRegister = new ActionRegister<AppActions>({
     registry: {
-      maxHandlersPerAction: 1000,    // Default: 1000 handlers per action
+      maxHandlersPerAction: 1000,    // Optional finite limit; overflow throws
       debug: false                   // Disable debug for production
     }
   });
@@ -694,10 +694,9 @@ function MemoryStrategies() {
     }
   });
   
-  // Development/Testing - Unlimited (use with caution)
-  const devRegister = new ActionRegister<AppActions>({
+  // Default registry - no arbitrary handler cap
+  const defaultRegister = new ActionRegister<AppActions>({
     registry: {
-      maxHandlersPerAction: Infinity, // No limits - for controlled environments only
       debug: true
     }
   });
@@ -706,7 +705,7 @@ function MemoryStrategies() {
 }
 ```
 
-### Handling Handler Limit Warnings
+### Handling Handler Limit Errors
 
 ```typescript
 function HandlerLimitManagement() {
@@ -732,7 +731,7 @@ function HandlerLimitManagement() {
     const stats = register.getActionStats('testAction');
     console.log('Handler stats:', {
       handlerCount: stats?.handlerCount || 0,
-      maxLimit: 1000 // Default limit
+      maxLimit: 'configured explicitly'
     });
   }, [register]);
   
@@ -815,7 +814,7 @@ function ProductionMemorySetup() {
       debug: false,                    // Disable debug logging
       maxHandlersPerAction: 500,       // Conservative limit for production
       autoCleanup: true,               // Enable automatic cleanup
-      useConcurrencyQueue: true        // Enable thread-safe operations
+      useConcurrencyQueue: true        // Serialize dispatches that share mutable state
     }
   });
   
@@ -881,9 +880,9 @@ function MemoryMonitoring() {
 | Application Type | Recommended Limit | Use Case |
 |------------------|-------------------|----------|
 | **Small Apps** | 100-500 | Simple applications, limited features |
-| **Medium Apps** | 1000 (default) | Most standard applications |
+| **Medium Apps** | 1000 | Most standard applications with bounded registration ownership |
 | **Large Apps** | 5000-10000 | Enterprise applications, complex workflows |
-| **Development** | Infinity | Testing environments only (not recommended for production) |
+| **Default** | Unbounded | Use when registration ownership is not statically bounded |
 
 ### Memory Best Practices
 
@@ -895,11 +894,10 @@ function MemoryMonitoring() {
 - Set appropriate limits based on your application's complexity
 
 ❌ **Anti-patterns to avoid:**
-- Unlimited handlers (`Infinity`) in production environments
+- Treating a finite-limit registration error as a warning to ignore
 - Accumulating handlers without cleanup
 - Missing handler IDs leading to handler duplication
 - Registering handlers in render loops
-- Ignoring memory limit warnings
 
 ## Real-World Examples
 

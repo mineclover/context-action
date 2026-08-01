@@ -1,7 +1,7 @@
 # 패키지 경계 및 코드베이스 관리 컨벤션
 
 **상태:** 신규 작업과 경계 변경에 적용
-**범위:** workspace package, example, demo, 아키텍처 근거, 문서 ownership
+**범위:** workspace package, example, demo, 결정 기록, 문서 ownership
 
 Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라 ownership과 의존성 경계다. 각 패키지는 하나의
 주 책임, 하나의 public contract, 하나의 명확한 검증 경로를 가져야 한다.
@@ -71,8 +71,10 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 
 새로운 안정된 방향이 생기면 reviewer 기억에 의존하지 말고 named policy rule로 추가한다.
 
-protocol/durable 분리는 runtime/peer/optional dependency 검토와 focused package-boundary test로 유지한다.
-test 전용 도구가 `devDependencies`에 있는 것은 publish boundary를 바꾸지 않는다.
+`pnpm package-boundary:check`는 workspace import가 dependency 선언과 대상 package의 public `exports`를
+따르는지 검사하고, 소유 package 또는 integration host를 벗어나는 runtime 상대 경로 import를 거부한다. 모든 workspace package의 runtime source와 `example/`, `demos/` integration host source를
+검사한다. package test, script, package-local example은 선언된 `devDependencies`를 사용할 수 있지만 runtime
+source는 사용할 수 없다. test 전용 도구는 publish boundary를 바꾸지 않는다.
 
 ### Mutative 계약 전파
 
@@ -101,7 +103,7 @@ Peer/optional dependency:
 소유 source directory:
 Test/verification command:
 Authoritative guide:
-Architecture capability 또는 decision:
+스펙 또는 decision ID:
 Migration/deprecation 계획:
 ```
 
@@ -118,9 +120,8 @@ packages/<package>/
 └── dist/                 # generated output; 직접 수정하지 않음
 ```
 
-`architecture/registry.json`은 stable capability identity와 evidence를 기록한다. package manifest, README,
-public guide를 대체하지 않는다. capability anchor는 owner package 내부를 가리켜야 하며 package 경계 변경 시
-관련 capability 또는 decision도 갱신한다.
+지속되는 package 경계 선택은 [아키텍처 결정 기록](./decisions/)에 둔다. decision record는 package manifest,
+README, public guide를 대체하지 않는다. 구현과 evidence anchor는 owner package 내부를 가리켜야 한다.
 
 ## 5. 패키지 단위 개발 라이프사이클
 
@@ -130,7 +131,7 @@ public guide를 대체하지 않는다. capability anchor는 owner package 내�
 | --- | --- | --- |
 | public API | export type/entry point가 바뀌는가? | source/JSDoc, API docs, migration note |
 | runtime behavior | state/action/store/tool behavior가 바뀌는가? | package spec, focused test, runnable example |
-| boundary | ownership/dependency 방향이 바뀌는가? | 본 컨벤션, policy, decision |
+| boundary | ownership/dependency 방향이 바뀌는가? | 본 컨벤션, decision record, focused boundary check |
 | documentation/tooling | docs flow 또는 generated output만 바뀌는가? | generator source, guide, docs gate |
 
 ### 2단계 — owner package 선택
@@ -161,13 +162,13 @@ public surface 변경이면 package export/tarball check도 추가한다.
 
 ### 5단계 — ownership graph 갱신
 
-handoff 전에 package manifest/export, README/authoritative guide, test/fixture, policy 또는 decision,
+handoff 전에 package manifest/export, README/authoritative guide, test/fixture, dependency 선언·boundary check 또는 decision,
 영·한 public page, generated artifact를 순서대로 갱신한다.
 
 ## 6. 패키지 추가·병합·분리·폐기
 
 - **추가:** ID, owner, stability, 주 책임, public/private 결정, dependency graph, export, focused test, README,
-  authoritative guide, boundary policy를 갖춘다. private/experimental이면 승격 조건을 적는다.
+  authoritative guide, boundary check 또는 decision record를 갖춘다. private/experimental이면 승격 조건을 적는다.
 - **병합:** release cadence, owner, dependency 방향, public contract가 같을 때만 병합한다. source/test를 함께
   옮기고 stable ID를 보존하며 old export와 migration decision을 정리한다.
 - **분리:** independent release contract가 생기거나 upward dependency가 생기거나 runtime/analysis/docs가
@@ -193,7 +194,7 @@ handoff 전에 package manifest/export, README/authoritative guide, test/fixture
 - [ ] package 간 import가 선언된 export만 사용한다.
 - [ ] lower-level package가 adapter, example, generator를 import하지 않는다.
 - [ ] test와 fixture가 contract 가까이에 있고 boundary regression이 필요한 경우 포함한다.
-- [ ] policy, schema, decision evidence가 갱신되었다.
+- [ ] 관련 dependency, schema, decision, verification evidence가 갱신되었다.
 - [ ] public behavior라면 영·한 문서와 discovery link가 정합하다.
 - [ ] generated file은 source에서 재생성했다.
 - [ ] 비례하는 package/repository gate 결과를 기록했다.

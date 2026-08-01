@@ -161,19 +161,16 @@ console.log('Result:', result.successResults);
 ### Memory Management
 
 ```typescript
-// Configure handler limits for memory safety (v0.4.1+)
+// A finite limit is opt-in and fails registration explicitly on overflow.
 const actions = new ActionRegister<MyActions>({
   registry: {
-    maxHandlersPerAction: 1000      // Default: 1000, prevents memory issues
-    // maxHandlersPerAction: 5000   // Higher limit for complex applications
-    // maxHandlersPerAction: Infinity // Disable limit (use with caution)
+    maxHandlersPerAction: 1000
   }
 });
 
-// Use cases for different limits:
-// - 1000 (default): Most applications
-// - 5000-10000: Large enterprise applications  
-// - Infinity: Only for controlled environments with trusted code
+// Omit maxHandlersPerAction for the default unbounded registry.
+// Use a finite limit only where registration ownership is bounded and overflow
+// should be treated as a programming error.
 ```
 
 ## 🚀 New Features (v0.4.0+)
@@ -232,30 +229,38 @@ actions.register('myAction', handler, {
 ### Immediate Execution & Queue Control
 
 ```typescript
-// Bypass queue for immediate execution
-await actions.dispatch('urgentAction', data, {
+// Queueing is opt-in for shared mutable state or explicit ordering.
+const queuedActions = new ActionRegister<MyActions>({
+  registry: { useConcurrencyQueue: true }
+});
+
+// Bypass an enabled queue for immediate execution.
+await queuedActions.dispatch('urgentAction', data, {
   immediate: true
 });
 
-// Queue with custom priority
-await actions.dispatch('backgroundTask', data, {
+// Prioritize work within an enabled queue.
+await queuedActions.dispatch('backgroundTask', data, {
   queuePriority: 5
 });
 
-// Wall-clock timeout (queue wait + retry delay included).
+// Wall-clock timeout (including enabled-queue wait and retry delay).
 // Rejects with ActionTimeoutError while the internal operation drains safely.
 await actions.dispatch('timedAction', data, { timeout: 5000 });
 ```
 
-The default queue is single-slot. When a handler awaits another dispatch on
-the **same** register, make that nested call explicit with `{ immediate: true }`
-so it can run inside the current queue turn. Likewise, do not set
-`queuePriority` on an awaited nested `dispatchWithResult` call. Independent
-top-level dispatches should keep the queue defaults.
+Dispatches run independently by default. When queueing is enabled, it is
+single-slot. A handler that awaits another dispatch on the **same** register
+must make that nested call explicit with `{ immediate: true }`; likewise, do
+not set `queuePriority` on an awaited nested `dispatchWithResult` call.
 
 Handlers that perform cancellable I/O can observe `controller.signal`. It is
 aborted for caller cancellation, timeout, provider teardown, and register
 shutdown.
+
+A timeout is a caller boundary, not a rollback. A handler that ignores its
+signal can continue while the register drains it for lifecycle cleanup; do not
+retry a mutation after timeout unless its operation is idempotent.
 
 ### Result Collection with Strategies
 
@@ -321,11 +326,11 @@ const stats = ReactDevUtils.getStats(registry);
 - **Multiple execution modes** - sequential, parallel, race
 
 ### ⚡ Performance & Memory Optimizations
-- **Cached environment checks** for better performance
+- **Explicit debug mode** — logs are emitted only with `registry.debug: true`
 - **Optimized handler ID generation** without random numbers
 - **Smart array filtering** - only copies when needed
 - **Automatic memory cleanup** with idle handler cleanup
-- **Optional concurrency queues** for thread safety
+- **Opt-in concurrency queue** for explicit ordering
 
 ### 🔧 Advanced Configuration
 
@@ -522,9 +527,9 @@ interface DispatchOptions {
   throttle?: number;
   executionMode?: 'sequential' | 'parallel' | 'race';
   signal?: AbortSignal;
-  immediate?: boolean;         // Bypass queue
-  queuePriority?: number;      // Queue priority
-  timeout?: number;           // Execution timeout
+  immediate?: boolean;         // Bypass an enabled queue
+  queuePriority?: number;      // Priority within an enabled queue
+  timeout?: number;           // Non-negative finite wall-clock timeout
   
   retryOnError?: {
     maxAttempts: number;
@@ -605,7 +610,7 @@ actions.destroy();
 
 1. **Use handler IDs** for better debugging and filtering
 2. **Enable replaceExisting** for React components to prevent duplicates
-3. **Use immediate: false** (default) to benefit from queue optimizations  
+3. **Enable `useConcurrencyQueue` only** when independent dispatches must be ordered
 4. **Await destroyAsync()** when shutdown completion must be guaranteed
 5. **Use priority filtering** instead of excludeHandlerIds for better performance
 6. **Cache ActionRegister instances** - don't create new ones frequently

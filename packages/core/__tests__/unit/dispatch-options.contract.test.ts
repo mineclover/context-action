@@ -15,7 +15,7 @@ describe('DispatchOptions runtime contract', () => {
 
   beforeEach(() => {
     register = new ActionRegister<ContractActions>({
-      registry: { autoCleanup: false },
+      registry: { autoCleanup: false, useConcurrencyQueue: true },
     });
   });
 
@@ -36,6 +36,56 @@ describe('DispatchOptions runtime contract', () => {
     })).resolves.toBeUndefined();
 
     expect(attempts).toBe(3);
+  });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects an invalid timeout value (%p) before dispatching',
+    timeout => {
+      const handler = jest.fn();
+      register.register('work', handler);
+
+      expect(() => register.dispatch('work', { id: 'invalid-timeout' }, { timeout }))
+        .toThrow('timeout must be a non-negative finite number');
+      expect(handler).not.toHaveBeenCalled();
+    },
+  );
+
+  it('releases a timed-out caller but drains a non-cooperative handler during shutdown', async () => {
+    jest.useFakeTimers();
+    let releaseHandler: (() => void) | undefined;
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>(resolve => {
+      markStarted = resolve;
+    });
+    const gate = new Promise<void>(resolve => {
+      releaseHandler = resolve;
+    });
+
+    register.register('work', async () => {
+      markStarted?.();
+      // Intentionally ignore controller.signal: timeout cannot force-stop JS.
+      await gate;
+    }, { blocking: true });
+
+    const dispatch = register.dispatch('work', { id: 'non-cooperative' }, {
+      immediate: true,
+      timeout: 10,
+    });
+    await started;
+
+    await jest.advanceTimersByTimeAsync(10);
+    await expect(dispatch).rejects.toBeInstanceOf(ActionTimeoutError);
+
+    let shutdownFinished = false;
+    const shutdown = register.destroyAsync().then(() => {
+      shutdownFinished = true;
+    });
+    await Promise.resolve();
+    expect(shutdownFinished).toBe(false);
+
+    releaseHandler?.();
+    await shutdown;
+    expect(shutdownFinished).toBe(true);
   });
 
   it('retries failed result dispatches and returns the successful attempt', async () => {

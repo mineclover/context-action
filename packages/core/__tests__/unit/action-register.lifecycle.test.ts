@@ -83,6 +83,39 @@ describe('ActionRegister handler lifecycle', () => {
     register.destroy();
   });
 
+  it('runs independent dispatches concurrently unless queueing is enabled', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    let started = 0;
+    let markBothStarted: (() => void) | undefined;
+    let release: (() => void) | undefined;
+    const bothStarted = new Promise<void>(resolve => {
+      markBothStarted = resolve;
+    });
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+
+    register.register('queued', async () => {
+      started += 1;
+      if (started === 2) {
+        markBothStarted?.();
+      }
+      await gate;
+    }, { blocking: true });
+
+    const first = register.dispatch('queued', { id: 'first' });
+    const second = register.dispatch('queued', { id: 'second' });
+
+    try {
+      await bothStarted;
+      expect(started).toBe(2);
+    } finally {
+      release?.();
+      await Promise.all([first, second]);
+      register.destroy();
+    }
+  });
+
   it('does not delay one-time cleanup for an unrelated active dispatch', async () => {
     const register = new ActionRegister<LifecycleActions>({
       registry: { autoCleanup: false, useConcurrencyQueue: false },
@@ -309,7 +342,7 @@ describe('ActionRegister handler lifecycle', () => {
 
   it('rejects queued dispatches on destroy without unhandled rejections', async () => {
     const register = new ActionRegister<LifecycleActions>({
-      registry: { autoCleanup: false },
+      registry: { autoCleanup: false, useConcurrencyQueue: true },
     });
     const handledPayloads: string[] = [];
     let releaseRunning: (() => void) | undefined;
@@ -361,7 +394,7 @@ describe('ActionRegister handler lifecycle', () => {
 
   it('honors dispatch queue priority for pending actions', async () => {
     const register = new ActionRegister<LifecycleActions>({
-      registry: { autoCleanup: false },
+      registry: { autoCleanup: false, useConcurrencyQueue: true },
     });
     const executionOrder: string[] = [];
     let releaseFirst: (() => void) | undefined;

@@ -2,27 +2,21 @@
 
 이 문서는 Context-Action 저장소에서 implementation-playbook 계열 개발 컨벤션을 굳히기 위해 가장 먼저 봐야 할 중심 인덱스입니다. 문서가 많아졌기 때문에, 어떤 문서가 “원칙”, 어떤 문서가 “예제”, 어떤 문서가 “검증”인지 한 번에 묶어보는 용도로 씁니다.
 
-## 가장 짧은 추천 순서
+## 작업별 시작점
 
-1. [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
-2. [Implementation Convention](/ko/context-layered/implementation-convention)
-3. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
-4. [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
-5. [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
-6. [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
-7. [Canonical Order Form 예제](/ko/examples/canonical-order-form)
-8. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
-9. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-10. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
-11. [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
-12. [다음 작업과 문서 소유권](/ko/context-layered/next-work)
+어떤 산출물을 소유하는지 먼저 정하고 그에 맞는 경로를 선택합니다. 필요한 모든
+문서를 처음부터 읽을 필요는 없습니다.
 
-위의 짧은 순서를 따라가면
-- 폴더 구조
-- 상태 전이 원칙
-- 도메인별 확장 방식
-- 테스트 기준
-을 빠르게 공유할 수 있습니다.
+| 바꾸려는 대상 | 먼저 읽을 문서 | 이어서 사용할 것 |
+| --- | --- | --- |
+| package 책임, dependency, export | [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
+| 공개 가이드, API 참조, README 경로, 생성 문서 | [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions) | `pnpm docs:check` |
+| 지속되는 아키텍처 경계 또는 compatibility 예외 | [아키텍처 결정 기록](/ko/context-layered/decisions/) | 연결된 package/guide와 집중 증거 |
+| 기능, 버그, workflow 계약 | [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention) | 변경 분류에 맞는 gate |
+| canonical example/usecase | [Implementation Convention](/ko/context-layered/implementation-convention) | `pnpm convention:check`와 example check |
+
+릴리스 후보에는 `pnpm verify:all`을 사용합니다. 이 명령은 저장소 검사를
+조합할 뿐 집중 증거를 대체하지는 않습니다.
 
 ## 문서 역할별 분류
 
@@ -38,6 +32,8 @@
   - implementation-playbook 계열 개발의 표준 규칙
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
   - 이슈 lifecycle, 계약 추적, decision record, handoff 증거
+- [아키텍처 결정 기록](/ko/context-layered/decisions/)
+  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscription, live preview 경계
 - [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
@@ -139,6 +135,5 @@ build·filesystem·provider·preview·browser release 검사는
 
 ## 한 줄 요약
 
-팀 컨벤션으로 굳힐 때는
-`Implementation Convention -> Explicit State Machine -> Canonical Example -> Scenario Demos -> Stability Test Cycle`
-순서로 보면 됩니다.
+먼저 source of truth를 고르고, 그 경계에 맞는 최소 변경을 한 뒤, 필요한
+파생물만 갱신하고 해당 경계를 증명하는 gate를 실행합니다.
