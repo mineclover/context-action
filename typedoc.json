@@ -2,6 +2,7 @@
   "entryPoints": [
     "./packages/core/src/index.ts",
     "./packages/tool-protocol/src/index.ts",
+    "./packages/ai-sdk/src/index.ts",
     "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts",
     "./packages/react/src/tools/index.ts"
@@ -35,6 +36,7 @@
   "categoryOrder": [
     "Core",
     "Tool Protocol",
+    "AI SDK",
     "Tool Durable Operations",
     "React",
     "*"

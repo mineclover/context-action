@@ -186,3 +186,50 @@ ActionRegister의 포괄적 개선을 통해 **14개 실패 테스트를 모두 
 특히 **cleanup 함수 보존 문제 해결**이 핵심적이었으며, 이를 통해 메모리 안전성과 API 완성도를 크게 향상시켰습니다.
 
 테스트 실행 시간을 **50배 단축**(20초 → 0.4초)시켜 개발자 경험도 대폭 개선되었으며, 이제 ActionRegister는 안정적이고 신뢰할 수 있는 상태로 프로덕션 환경에서 사용할 준비가 완료되었습니다.
+---
+
+# 2026년 정적 리뷰 반영 계획
+
+아래 내용은 이번 안정화 검토에서 확인한 개선 항목을 실행 가능한 backlog로 정리한 것이다. 현재 구현은 패키지 경계, 생명주기 종료, CI 기반은 강하지만, 공개 타입·실행 결과·문서가 동일한 계약을 설명하지 않는 부분이 남아 있다.
+
+## 리뷰 총평
+
+> 기능과 엔지니어링 인프라는 강하지만, 핵심 공개 계약의 정확성이 아직 1.0 수준에 도달하지 않은 라이브러리다.
+
+### 우선순위 평가
+
+| 영역 | 평가 | 핵심 판단 |
+| --- | --- | --- |
+| 패키지 아키텍처 | 강점 | Core, React, Tool Protocol, Durable Operations 경계가 비교적 명확하다. |
+| 취소·종료 생명주기 | 강점 | AbortSignal, active dispatch drain, async destroy가 세밀하다. |
+| 공개 TypeScript API | P0 | 필수 payload 여부와 결과 타입이 런타임·문서 계약과 완전히 일치하지 않는다. |
+| 실행 모드 | P0 | parallel/race가 공유 mutable context를 사용해 의미론과 결과가 비결정적일 수 있다. |
+| 실행 결과·관측성 | P0 | handler별 duration/result/error와 실행 개수의 정확성을 보강해야 한다. |
+| React·SSR | P1 | server snapshot, RAF 의존성, Store 소유권·dispose를 정리해야 한다. |
+| CI·보안·배포 | P2 | 소비자 tarball, Node/React matrix, bundle budget 검증을 추가해야 한다. |
+| 문서·온보딩 | P2 | 실제 exports와 README 예제 및 Core/React 경계 사이에 드리프트가 있다. |
+
+## 핵심 발견 사항
+
+1. `dispatch`의 payload 없는 overload가 모든 action에 적용되어 필수 payload가 누락될 수 있다. `VoidActions`도 `void`가 아닌 `undefined | undefined`를 검사한다. `dispatchWithResult`, `actions`, React dispatch hook에도 같은 계약을 적용해야 한다.
+2. `actions` Proxy는 타입상 항상 함수지만 handler가 등록된 action만 런타임에서 함수를 반환한다. handler가 없는 action도 일관된 dispatcher를 제공하고, property 접근마다 생성되는 closure를 캐시해야 한다.
+3. `ExecutionResult`는 handler별 duration/result/error와 정확한 executed/skipped/failed count를 약속하지만 현재 `currentIndex`를 parallel/race 결과 계산에 사용한다. 실행 결과는 각 executor가 반환하는 명시적 outcome에서 파생해야 한다.
+4. parallel/race에서 payload, results, termination 상태를 공유 mutable context로 다루므로 `modifyPayload`, `setResult`, `return`, `abort`의 의미론을 실행 모드별로 명시해야 한다. parallel은 handler-local 결과, race는 완료 순서로 확정된 winner와 loser 취소가 필요하다.
+5. `dispatch`와 `dispatchWithResult`의 queue 정책, handler limit/duplicate ID의 문서와 구현, `blocking` 이름의 의미가 일치하지 않는다.
+6. 결과 타입 `R`을 호출자가 임의로 지정할 수 있어 payload와 result가 같은 action 계약에 묶이지 않는다. 호환성을 위해 기존 payload map을 유지하되 이후 `ActionSpec<Payload, Result>`를 병행 도입하는 방안을 검토한다.
+7. React 쪽은 실제 Store snapshot을 사용하지 않는 SSR snapshot, 구독 알림 자체의 debounce/throttle, DOM 전용 RAF scheduler, Provider unmount 시 owned Store 미정리 문제가 있다.
+8. `./utils` export, README 예제, Node 지원 범위, 소비자 package smoke test, GitHub Actions SHA pinning, CONTRIBUTING 문서가 실제 상태와 맞는지 검증해야 한다.
+
+## 권장 PR 순서
+
+| 순서 | 범위 | 완료 기준 |
+| ---: | --- | --- |
+| 1 | Dispatch 타입 계약 | 필수 payload 누락이 컴파일 실패하고 void action은 payload 없이 호출된다. |
+| 2 | Handler outcome 결과 모델 | sequential/parallel/race의 count, duration, result, error severity가 실제 실행과 일치한다. |
+| 3 | 실행 모드·queue 의미론 | 두 dispatch API의 queue 정책이 일관되고 nested dispatch footgun이 문서화 또는 제거된다. |
+| 4 | React SSR·scheduler·dispose | hydration, RAF 없는 환경, Provider unmount cleanup 테스트가 통과한다. |
+| 5 | 패키지·문서 검증 | packed package consumer test와 README snippet compilation이 통과한다. |
+| 6 | 호환성·공급망 | Node 22/24, React 18/19, bundle budget, Actions SHA 검증이 구성된다. |
+| 7 | 1.0 API 설계 | payload/result 연결, deprecation, migration 정책이 확정된다. |
+
+이번 작업에서는 우선순위 1의 타입 계약과 우선순위 2의 Proxy 런타임 계약부터 수정하고, 실행 결과 집계는 회귀 테스트로 현재 위험을 고정한다. parallel/race의 완전한 local context 분리는 별도 변경으로 분리한다.

@@ -2,6 +2,7 @@
  * @fileoverview 범용 객체 컨텍스트의 Action → Manager → Store 동기화 레지스트리
  */
 
+import type { DispatchArgs } from '@context-action/core';
 import type { ActionContextReturn, StoreManager } from '@context-action/react';
 import { ObjectContextManager } from '../ObjectContextManager';
 import type {
@@ -102,7 +103,10 @@ export function useObjectContextHandlerRegistry<T extends ManagedObject>({
     actionType: K,
     payload: BaseObjectActions<T>[K]
   ) => {
-    await manager.dispatch(actionType, payload);
+    await manager.dispatch(
+      actionType,
+      ...([payload] as unknown as DispatchArgs<BaseObjectActions<T>[K]>)
+    );
 
     const objectMetadata = manager.getMetadata(payload.id);
     if (objectMetadata) {

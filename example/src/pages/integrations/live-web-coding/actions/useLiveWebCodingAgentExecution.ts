@@ -166,6 +166,7 @@ export function useLiveWebCodingAgentExecution({
             model: selectedModel,
             messages: requestMessages,
             registry: toolActions.registry,
+            toolNames: toolActions.registry.getToolNames(),
             signal: controller.signal,
             sessionId,
           });

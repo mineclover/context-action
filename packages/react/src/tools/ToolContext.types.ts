@@ -5,6 +5,7 @@
  * combining ActionContext patterns with Zod schema-based definitions.
  */
 
+import type { DispatchArgs } from '@context-action/core';
 import {
   ActionHandler,
   ActionRegister,
@@ -12,6 +13,11 @@ import {
   ExecutionResult,
   HandlerConfig,
 } from '@context-action/core';
+import type {
+  DurableOperationRecord,
+  DurableOperationResolution,
+  DurableOperationStore,
+} from '@context-action/tool-durable-operations';
 import type {
   ActionSchemaMap,
   AnthropicToolDefinition,
@@ -31,11 +37,6 @@ import type {
   ToolManagementInterface,
   ToolObservabilityPolicy,
 } from '@context-action/tool-protocol';
-import type {
-  DurableOperationRecord,
-  DurableOperationResolution,
-  DurableOperationStore,
-} from '@context-action/tool-durable-operations';
 import { ReactNode } from 'react';
 import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
 
@@ -285,8 +286,7 @@ export interface ToolDispatchWithResultReturn<TPayloadMap> {
   dispatch: ToolDispatchFunction<TPayloadMap>;
   dispatchWithResult: <K extends keyof TPayloadMap, R = void>(
     toolName: K,
-    payload: TPayloadMap[K],
-    options?: DispatchOptions
+    ...args: DispatchArgs<TPayloadMap[K]>
   ) => Promise<ToolExecutionResult<R>>;
   abortAll: () => void;
 }

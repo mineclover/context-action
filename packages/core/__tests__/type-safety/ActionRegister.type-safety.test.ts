@@ -44,6 +44,20 @@ describe('ActionRegister - Type Safety Tests', () => {
   });
 
   describe('🔒 Compile-time Type Safety', () => {
+    it('requires payloads for payload-bearing actions', () => {
+      // These calls are intentionally not executed; the assertions are checked by tsc.
+      const invalidCalls = () => {
+        // @ts-expect-error required payload
+        actionRegister.dispatch('numberAction');
+        // @ts-expect-error void actions do not accept a payload
+        actionRegister.dispatch('voidAction', 1);
+        // @ts-expect-error required payload for result dispatch
+        actionRegister.dispatchWithResult('objectAction');
+      };
+
+      expect(invalidCalls).toBeInstanceOf(Function);
+    });
+
     it('should enforce correct payload types for string actions', async () => {
       const handler = jest.fn((payload: string) => payload.toUpperCase());
       actionRegister.register('stringAction', handler);

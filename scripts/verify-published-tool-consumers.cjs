@@ -20,15 +20,57 @@ const summary = existsSync(summaryPath)
 
 const packages = [
   {
+    name: '@context-action/core',
+    directory: 'packages/core',
+    imports: [{ specifier: '@context-action/core', exports: ['ActionRegister'] }],
+  },
+  {
+    name: '@context-action/mutative-core',
+    directory: 'packages/mutative-core',
+    imports: [{ specifier: '@context-action/mutative-core', exports: ['create'] }],
+  },
+  {
+    name: '@context-action/mutative',
+    directory: 'packages/mutative',
+    imports: [{ specifier: '@context-action/mutative', exports: ['create'] }],
+  },
+  {
     name: '@context-action/tool-protocol',
     directory: 'packages/tool-protocol',
-    exports: ['createActionSchema', 'createToolCallFingerprint'],
+    imports: [{
+      specifier: '@context-action/tool-protocol',
+      exports: ['createActionSchema', 'createToolCallFingerprint'],
+    }],
   },
   {
     name: '@context-action/tool-durable-operations',
     directory: 'packages/tool-durable-operations',
-    exports: ['createDurableOperationStore', 'createDurableSideEffectRunner'],
+    imports: [{
+      specifier: '@context-action/tool-durable-operations',
+      exports: ['createDurableOperationStore', 'createDurableSideEffectRunner'],
+    }],
   },
+  {
+    name: '@context-action/react',
+    directory: 'packages/react',
+    imports: [{
+      specifier: '@context-action/react/tools',
+      exports: ['createToolContext'],
+    }],
+  },
+  {
+    name: '@context-action/ai-sdk',
+    directory: 'packages/ai-sdk',
+    imports: [{
+      specifier: '@context-action/ai-sdk',
+      exports: ['createAISDKToolScope'],
+    }],
+  },
+];
+
+const consumerRuntimeDependencies = [
+  { name: 'react', spec: 'react@19.2.8' },
+  { name: 'ai', spec: 'ai@7.0.34' },
 ];
 
 const repositoryRoot = path.resolve(__dirname, '..');
@@ -104,9 +146,9 @@ function createLocalPackageSpecs(consumerRoot) {
 }
 
 function runConsumerSmoke(consumerRoot, packageSpecs) {
-  const moduleNames = packageSpecs.map(({ name }) => name);
+  const moduleNames = packages.flatMap(({ imports }) => imports.map(({ specifier }) => specifier));
   const expectedExports = Object.fromEntries(
-    packages.map(({ name, exports }) => [name, exports]),
+    packages.flatMap(({ imports }) => imports.map(({ specifier, exports }) => [specifier, exports])),
   );
   const source = `
 const expected = ${JSON.stringify(expectedExports)};
@@ -147,6 +189,7 @@ function main() {
           return { name, spec: `${name}@${version}` };
         });
     if (!local) packageSpecs.forEach(({ spec }) => waitForPublishedVersion(spec));
+    packageSpecs.push(...consumerRuntimeDependencies);
 
     writeFileSync(
       path.join(consumerRoot, 'package.json'),

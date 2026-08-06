@@ -6,19 +6,9 @@
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import type { ToolRegistry } from '@context-action/react/tools';
-import {
-  type ActionSchemaMap,
-  listAllTools,
-  stringifyToolContent,
-} from '@context-action/tool-protocol';
-import {
-  dynamicTool,
-  generateText,
-  jsonSchema,
-  stepCountIs,
-  type ToolSet,
-} from 'ai';
+import { createAISDKToolScope } from '@context-action/ai-sdk';
+import { type ActionSchemaMap } from '@context-action/tool-protocol';
+import { generateText, stepCountIs } from 'ai';
 import type {
   ToolTextGenerationRequest,
   ToolTextGenerator,
@@ -28,60 +18,6 @@ import { createToolCallSessionId } from './tool-call-trace';
 export interface BrowserOpenRouterToolRunnerOptions {
   apiKey: string;
   referer: string;
-}
-
-function createToolSet<TSchema extends ActionSchemaMap>(
-  registry: ToolRegistry<TSchema>,
-  sessionId: string
-): ToolSet {
-  const listedTools = listAllTools(registry);
-  return Object.fromEntries(
-    listedTools.map((listedTool) => {
-      const toolName = listedTool.name;
-
-      return [
-        toolName,
-        dynamicTool({
-          description: listedTool.description,
-          inputSchema: jsonSchema(listedTool.inputSchema),
-          execute: async (input, executionOptions) => {
-            const result = await registry.executeModelToolCall(
-              {
-                id: executionOptions.toolCallId,
-                name: toolName,
-                arguments: input as Record<string, unknown>,
-              },
-              {
-                signal: executionOptions.abortSignal,
-                context: { source: 'model', mode: 'agent', sessionId },
-              }
-            );
-            const resultText = stringifyToolContent(result.content);
-
-            if (result.isError) {
-              return {
-                tool: String(toolName),
-                status: 'error',
-                error: result.error ?? {
-                  code: 'TOOL_EXECUTION_FAILED',
-                  message: resultText || `Tool ${toolName} failed`,
-                },
-                message: resultText,
-              };
-            }
-
-            return (
-              result.structuredContent ?? {
-                tool: toolName,
-                status: 'completed',
-                message: resultText,
-              }
-            );
-          },
-        }),
-      ];
-    })
-  );
 }
 
 /**
@@ -108,10 +44,15 @@ export function createBrowserOpenRouterToolRunner(
       request: ToolTextGenerationRequest<TSchema>
     ) {
       const sessionId = request.sessionId ?? createToolCallSessionId();
+      const toolScope = createAISDKToolScope(request.registry, {
+        sessionId,
+        toolNames: request.toolNames,
+      });
       const response = await generateText({
         model: openrouter.chatModel(request.model),
         messages: request.messages,
-        tools: createToolSet(request.registry, sessionId),
+        tools: toolScope.tools,
+        activeTools: toolScope.activeTools,
         maxOutputTokens: 1024,
         stopWhen: stepCountIs(5),
         abortSignal: request.signal,

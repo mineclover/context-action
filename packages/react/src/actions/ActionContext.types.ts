@@ -8,6 +8,7 @@
 import {
   ActionRegister,
   ActionRegisterConfig,
+  DispatchArgs,
   DispatchOptions,
   ExecutionResult,
   HandlerConfig,
@@ -91,8 +92,7 @@ export interface ActionContextReturn<T extends {}> {
     ) => Promise<void>;
     dispatchWithResult: <K extends keyof T, R = void>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ) => Promise<ExecutionResult<R>>;
     abortAll: () => void;
     resetAbortScope: () => void;

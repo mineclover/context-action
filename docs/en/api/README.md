@@ -6,6 +6,7 @@
 
 ## Modules
 
+- [packages/ai-sdk/src](packages/ai-sdk/src/README.md)
 - [packages/core/src](packages/core/src/README.md)
 - [packages/react/src](packages/react/src/README.md)
 - [packages/react/src/tools](packages/react/src/tools/README.md)

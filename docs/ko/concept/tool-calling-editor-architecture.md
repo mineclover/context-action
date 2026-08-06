@@ -100,9 +100,14 @@ standalone provider payload는 `tools/list`에 사용한 동일한
 `listAllTools(registry)` 결과를 core의 `toOpenAIToolDefinitions()` adapter로
 변환해 만든다. 두 번째 registry export를 조회하지 않으므로 discovery에서
 노출한 이름과 schema가 그대로 model 요청에 전달된다.
-example AI SDK runner도 같은 규칙을 따른다. canonical list definition에서
-dynamic tool을 만들고 `listedTool.inputSchema`를 AI SDK `jsonSchema()` adapter로
-전달하며, registry는 실행 bridge로만 사용한다.
+AI SDK 연동은 example이나 protocol이 아니라 `@context-action/ai-sdk`가
+소유한다. 이 adapter는 `ToolManagementInterface`를 dynamic AI SDK ToolSet으로
+바꾸고 `toolCallId`를 기본 replay key로 유지하며 ContextScope에서 나온 turn별
+scope를 필수로 받는다. tool이 없는 turn은 전체 registry fallback 대신 `[]`를
+사용한다. 같은 선택 이름을 `activeTools`로도 반환하므로 model에 전달되는
+catalog가 canonical 실행 경계보다 넓어지지 않는다. ToolContext는 validation,
+policy, provenance, durable operation의 최종 경계로 유지하며 AI SDK approval은
+실행 전에만 동작하는 UI gate다.
 example AI runner는 provider의 완전한 `responseMessages`도 반환하며,
 ToolContext AI와 realtime web-coding showcase는 assistant tool-call와 tool-result를
 다음 model turn에 추가한다. 화면에 표시하는 chat transcript는 별도의

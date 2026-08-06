@@ -14,6 +14,8 @@ export interface ToolTextGenerationRequest<TSchema extends ActionSchemaMap> {
   model: string;
   messages: ModelMessage[];
   registry: ToolRegistry<TSchema>;
+  /** Explicit per-turn capability scope, usually derived from ContextScope. */
+  toolNames: readonly string[];
   signal?: AbortSignal;
   sessionId?: string;
 }

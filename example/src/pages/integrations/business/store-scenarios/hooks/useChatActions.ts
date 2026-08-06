@@ -127,7 +127,7 @@ export function useChatActions({
       logger.logAction('clearChat', {
         messageCount: currentCount,
       });
-      storeActionRegister.dispatch('clearChat');
+      storeActionRegister.dispatch('clearChat', {});
     }
   }, [messagesStore, logger]);
 

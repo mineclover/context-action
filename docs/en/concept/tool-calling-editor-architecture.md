@@ -106,9 +106,16 @@ The standalone provider payload is derived from the same `listAllTools(registry)
 result used for `tools/list`, through core's `toOpenAIToolDefinitions()` adapter.
 It does not query a second registry export, so discovery names and schemas remain
 the definitions sent to the model.
-The example AI SDK runner follows the same rule: it creates dynamic tools from
-each canonical listed definition and passes `listedTool.inputSchema` through the
-AI SDK `jsonSchema()` adapter; the registry is retained as the execution bridge.
+The AI SDK integration is owned by `@context-action/ai-sdk`, not the example or
+the protocol. It adapts `ToolManagementInterface` into a dynamic AI SDK ToolSet,
+keeps `toolCallId` as the default replay key, and accepts an explicit per-turn
+scope derived from ContextScope. That scope is required; `[]` represents a
+tool-free turn instead of falling back to the whole registry. The same selected
+names are returned as
+`activeTools`, so the model never receives a broader catalog than the canonical
+execution boundary. ToolContext remains the final validation, policy,
+provenance, and durable-operation boundary; AI SDK approval is only a UI gate
+before that boundary executes.
 The example AI runner also returns the provider's complete `responseMessages`,
 and the ToolContext AI and realtime web-coding showcases append those assistant
 tool-call and tool-result messages to the next model turn. The visible chat

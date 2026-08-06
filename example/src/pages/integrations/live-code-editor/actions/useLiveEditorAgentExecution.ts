@@ -71,6 +71,7 @@ export function useLiveEditorAgentExecution({
         model: selectedModel,
         messages,
         registry,
+        toolNames: listedTools.map((tool) => tool.name),
         signal: controller.signal,
         sessionId,
       });

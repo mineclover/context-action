@@ -1,22 +1,5 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: heterogeneous runtime pipeline storage.
 
-import {
-  ActionPayloadMap,
-  ActionHandler,
-  HandlerConfig,
-  HandlerRegistration,
-  PipelineContext,
-  PipelineController,
-  ActionRegisterConfig,
-  UnregisterFunction,
-  ExecutionMode,
-  ExecutionResult,
-  ActionRegistryInfo,
-  ActionHandlerStats,
-  DispatchOptions,
-  HandlerError,
-} from './types.js';
-import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
 import {
@@ -24,6 +7,24 @@ import {
   ActionTimeoutError,
   ActionValidationError,
 } from './errors.js';
+import { executeParallel, executeRace, executeSequential } from './execution-modes.js';
+import {
+  ActionHandler,
+  ActionHandlerStats,
+  ActionPayloadMap,
+  ActionRegisterConfig,
+  ActionRegistryInfo,
+  DispatchArgs,
+  DispatchOptions,
+  ExecutionMode,
+  ExecutionResult,
+  HandlerConfig,
+  HandlerError,
+  HandlerRegistration,
+  PipelineContext,
+  PipelineController,
+  UnregisterFunction,
+} from './types.js';
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
 
@@ -96,21 +97,19 @@ export class ActionRegister<
 
   // 🔧 Performance optimization: Cached Proxy instances for actions getters
   private _actionsProxy?: {
-    [K in keyof T]: T[K] extends void
-      ? (
-          payload?: undefined,
-          options?: DispatchOptions
-        ) => Promise<void>
-      : (payload: T[K], options?: DispatchOptions) => Promise<void>
+    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<void>
   };
   private _actionsWithResultProxy?: {
-    [K in keyof T]: T[K] extends void
-      ? (
-          payload?: undefined,
-          options?: DispatchOptions
-        ) => Promise<ExecutionResult<any>>
-      : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
+    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<any>>
   };
+  private readonly actionDispatchers = new Map<
+    PropertyKey,
+    (...args: any[]) => Promise<unknown>
+  >();
+  private readonly actionResultDispatchers = new Map<
+    PropertyKey,
+    (...args: any[]) => Promise<unknown>
+  >();
 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
@@ -171,32 +170,26 @@ export class ActionRegister<
    * @public
    */
   get actions(): {
-    [K in keyof T]: T[K] extends void
-      ? (
-          payload?: undefined,
-          options?: DispatchOptions
-        ) => Promise<void>
-      : (payload: T[K], options?: DispatchOptions) => Promise<void>
+    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<void>
   } {
     // 🔧 Performance: Return cached Proxy instance
     if (!this._actionsProxy) {
       this._actionsProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
-          // Type guard to ensure prop is a valid action key
+          if (typeof prop !== 'string') return undefined;
           const actionKey = prop as keyof T;
-          if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
-            return (
-              payload?: T[typeof actionKey],
-              options?: DispatchOptions
-            ) => {
-              return this.dispatch(
+          if (!this.pipelines.has(actionKey)) return undefined;
+
+          let dispatcher = this.actionDispatchers.get(prop);
+          if (!dispatcher) {
+            dispatcher = (payload?: T[typeof actionKey], options?: DispatchOptions) =>
+              this.dispatch(
                 actionKey,
-                payload as T[typeof actionKey],
-                options
+                ...( [payload, options] as DispatchArgs<T[typeof actionKey]> )
               );
-            };
+            this.actionDispatchers.set(prop, dispatcher);
           }
-          return undefined;
+          return dispatcher;
         }
       });
     }
@@ -231,28 +224,26 @@ export class ActionRegister<
    * @returns Proxy object with action functions that return ExecutionResult
    */
   get actionsWithResult(): {
-    [K in keyof T]: T[K] extends void
-      ? (
-          payload?: undefined,
-          options?: DispatchOptions
-        ) => Promise<ExecutionResult<any>>
-      : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
+    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<any>>
   } {
     // 🔧 Performance: Return cached Proxy instance
     if (!this._actionsWithResultProxy) {
       this._actionsWithResultProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
-          // Type guard to ensure prop is a valid action key
+          if (typeof prop !== 'string') return undefined;
           const actionKey = prop as keyof T;
-          if (typeof prop === 'string' && this.pipelines.has(actionKey)) {
-            return (
-              payload?: T[typeof actionKey],
-              options?: DispatchOptions
-            ) => {
-              return this.dispatchWithResult(actionKey, payload, options);
-            };
+          if (!this.pipelines.has(actionKey)) return undefined;
+
+          let dispatcher = this.actionResultDispatchers.get(prop);
+          if (!dispatcher) {
+            dispatcher = (payload?: T[typeof actionKey], options?: DispatchOptions) =>
+              this.dispatchWithResult(
+                actionKey,
+                ...( [payload, options] as DispatchArgs<T[typeof actionKey]> )
+              );
+            this.actionResultDispatchers.set(prop, dispatcher);
           }
-          return undefined;
+          return dispatcher;
         }
       });
     }
@@ -548,25 +539,11 @@ export class ActionRegister<
    * @public
    */
   // Overload for actions with payload (more specific)
-  dispatch<K extends keyof T>(
-    action: K,
-    payload: T[K],
-    options?: DispatchOptions
-  ): Promise<void>;
-  
-  // Overload for actions without payload
-  dispatch<K extends keyof T>(
-    action: K,
-    payload?: undefined,
-    options?: DispatchOptions
-  ): Promise<void>;
+  dispatch<K extends keyof T>(action: K, ...args: DispatchArgs<T[K]>): Promise<void>;
   
   // Implementation (least specific)
-  dispatch<K extends keyof T>(
-    action: K,
-    payload?: T[K],
-    options?: DispatchOptions
-  ): Promise<void> {
+  dispatch<K extends keyof T>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
+    const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
     if (this.lifecycleState !== 'active') {
       return this.rejectedLifecyclePromise<void>();
     }
@@ -1181,9 +1158,9 @@ export class ActionRegister<
    */
   dispatchWithResult<K extends keyof T, R = void>(
     action: K,
-    payload?: T[K],
-    options?: DispatchOptions
+    ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>> {
+    const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
     if (this.lifecycleState !== 'active') {
       return this.rejectedLifecyclePromise<ExecutionResult<R>>();
     }
@@ -1445,18 +1422,6 @@ export class ActionRegister<
       const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
       errors = contextWithErrors.collectedErrors || [];
       
-      // Mark executed handlers based on context.currentIndex
-      // In sequential mode, handlers 0 to currentIndex were executed
-      // In parallel/race mode, all handlers that didn't error were executed
-      const executedCount = Math.min(context.currentIndex + (context.aborted ? 0 : 1), filteredHandlers.length);
-      for (let i = 0; i < executedCount; i++) {
-        const handler = filteredHandlers[i];
-        if (!handler) continue;
-        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
-        if (handlerResult) {
-          handlerResult.executed = true;
-        }
-      }
     } catch (error) {
       // 🔧 Collect errors from execution context before adding pipeline error
       const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
@@ -1470,16 +1435,6 @@ export class ActionRegister<
         severity: 'blocking'
       });
       
-      // Mark executed handlers even when there's an error
-      const executedCount = Math.min(context.currentIndex + 1, filteredHandlers.length);
-      for (let i = 0; i < executedCount; i++) {
-        const handler = filteredHandlers[i];
-        if (!handler) continue;
-        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
-        if (handlerResult) {
-          handlerResult.executed = true;
-        }
-      }
     } finally {
       executedHandlers.push(...(context.executedHandlers ?? []));
       if (effectiveSignal && abortHandler) {
@@ -1493,9 +1448,29 @@ export class ActionRegister<
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
 
+    // Derive execution metrics from registrations actually invoked by the
+    // executor. currentIndex only describes sequential control flow and is
+    // therefore not meaningful for parallel/race execution.
+    const executedHandlerIds = new Set(
+      (context.executedHandlers ?? []).map(handler => handler.id)
+    );
+    filteredHandlers.forEach(handler => {
+      const handlerResult = handlerResults.find(result => result.id === handler.config.id);
+      if (handlerResult) {
+        handlerResult.executed = executedHandlerIds.has(handler.id);
+      }
+    });
+    const handlerErrors = errors.filter(error => error.handlerId !== 'pipeline');
+    const reportedErrors = executionError
+      ? errors.filter(error => error.handlerId === 'pipeline')
+      : errors;
+    const executionHandlersCount = context.aborted && currentExecutionMode === 'sequential'
+      ? Math.min(context.currentIndex, filteredHandlers.length)
+      : executedHandlerIds.size;
+
     // 🔧 Type safety: Separate successful results from failed ones
     const successResults = context.results.filter((result): result is R => result !== undefined);
-    const failedResults = errors.map(err => ({
+    const failedResults = handlerErrors.map(err => ({
       handlerId: err.handlerId,
       error: err.error,
       expectedType: typeof processedResult
@@ -1514,18 +1489,18 @@ export class ActionRegister<
       failedResults,
       execution: {
         duration: endTime - _startTime,
-        handlersExecuted: filteredHandlers.length === 0 ? 0 : context.currentIndex + (context.aborted ? 0 : 1),
-        handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
-        handlersFailed: errors.length,
+        handlersExecuted: executionHandlersCount,
+        handlersSkipped: Math.max(0, filteredHandlers.length - executionHandlersCount),
+        handlersFailed: handlerErrors.length,
         startTime: _startTime,
         endTime,
       },
       handlers: handlerResults,
-      errors: errors.map(err => ({
+      errors: reportedErrors.map(err => ({
         handlerId: err.handlerId,
         error: err.error,
         timestamp: err.timestamp,
-        severity: 'non-blocking' as const
+        severity: err.severity
       })),
     };
 

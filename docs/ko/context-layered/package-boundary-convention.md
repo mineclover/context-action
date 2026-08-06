@@ -32,6 +32,7 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | --- | --- | --- | --- |
 | `@context-action/core` | runtime foundation | action pipeline, handler execution, validation contract, core error | React, tool transport, Zod, browser UI, store |
 | `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schema, MCP/provider adapter, tool call, approval queue, 호출 idempotency/provenance/observability 계약 | React rendering, action registry internals, durable persistence, architecture policy |
+| `@context-action/ai-sdk` | provider adapter | AI SDK ToolSet 변환, turn별 tool scope, model-call correlation, native approval/error adaptation | action 실행, React rendering, provider credential, durable persistence |
 | `@context-action/tool-durable-operations` | mutation safety foundation | durable operation record, side-effect runner, HTTP/queue adapter, IndexedDB/Redis/PostgreSQL reference backend | provider-neutral tool schema, React rendering, domain별 idempotency/outbox 정책 |
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
@@ -56,6 +57,7 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 ```text
 @context-action/core          ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/react
+@context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
@@ -63,6 +65,7 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 
 - `core`는 `react`에 의존하지 않는다.
 - `tool-protocol`은 framework-neutral이며 `core`나 `react`에 의존하지 않는다. provider/tool 경계를 소유한다.
+- `ai-sdk`는 얇은 선택적 provider adapter다. `tool-protocol`에 의존하고 `ai`를 필수 peer로 요구하지만 React, core 실행, provider credential, application model client에는 의존하지 않는다.
 - `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
 - `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
 - `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.

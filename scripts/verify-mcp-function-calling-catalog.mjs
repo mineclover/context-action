@@ -102,6 +102,7 @@ const standaloneSchemaSource = readSource(
 );
 const aiRunnerContractSource = readSource('example/src/lib/ai-tool-runner.ts');
 const aiRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
+const aiSdkAdapterSource = readSource('packages/ai-sdk/src/index.ts');
 const toolRegistrySource = readSource(
   'packages/react/src/tools/tool-registry.ts'
 );
@@ -186,18 +187,33 @@ assertContains(
 );
 assertContains(
   aiRunnerSource,
-  /listAllTools\(registry\)/,
-  'example provider canonical tools/list discovery'
+  /createAISDKToolScope\(request\.registry,\s*\{[\s\S]*?toolNames:\s*request\.toolNames/,
+  'example provider explicit AI SDK tool scope'
 );
 assertContains(
   aiRunnerSource,
-  /jsonSchema\(listedTool\.inputSchema\)/,
-  'example provider canonical input schema adapter'
+  /activeTools:\s*toolScope\.activeTools/,
+  'example provider active AI SDK tool scope'
 );
 assertNotContains(
   aiRunnerSource,
-  /registry\.getTool\(/,
-  'example provider second registry schema lookup'
+  /(?:listAllTools\(request\.registry\)|request\.registry\.getTool)/,
+  'example provider parallel registry discovery'
+);
+assertContains(
+  aiSdkAdapterSource,
+  /inputSchema:\s*jsonSchema\(definition\.inputSchema\)/,
+  'AI SDK canonical input schema adapter'
+);
+assertContains(
+  aiSdkAdapterSource,
+  /manager\.executeModelToolCall\(/,
+  'AI SDK canonical model tool-call execution'
+);
+assertContains(
+  aiSdkAdapterSource,
+  /toolNames must be an array for every generation/,
+  'AI SDK explicit tool scope requirement'
 );
 assertContains(
   toolRegistrySource,

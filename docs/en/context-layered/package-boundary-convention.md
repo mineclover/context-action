@@ -33,6 +33,7 @@ when an existing package cannot own the responsibility without violating depende
 | --- | --- | --- | --- |
 | `@context-action/core` | runtime foundation | action pipeline, handler execution, validation contract, core errors | React, tool transports, Zod, browser UI, stores |
 | `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schemas, MCP/provider adapters, tool calls, approval queue, call idempotency/provenance/observability contracts | React rendering, action registry internals, durable persistence, architecture policy |
+| `@context-action/ai-sdk` | provider adapter | AI SDK ToolSet conversion, per-turn tool scope, model-call correlation, native approval/error adaptation | action execution, React rendering, provider credentials, durable persistence |
 | `@context-action/tool-durable-operations` | mutation safety foundation | durable operation records, side-effect runner, HTTP/queue adapters, IndexedDB/Redis/PostgreSQL reference backends | provider-neutral tool schemas, React rendering, domain-specific idempotency/outbox policy |
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
@@ -58,6 +59,7 @@ The default direction is:
 ```text
 @context-action/core          ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/react
+@context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 
@@ -67,6 +69,7 @@ The diagram describes ownership, not import syntax. In particular:
 
 - `core` never depends on `react`.
 - `tool-protocol` is framework-neutral and does not depend on `core` or `react`; it owns the provider/tool boundary.
+- `ai-sdk` is a thin optional provider adapter. It depends on `tool-protocol` and has `ai` as a required peer, but it never depends on React, core execution, provider credentials, or an application model client.
 - `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 - `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
 - `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.

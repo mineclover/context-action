@@ -21,10 +21,24 @@
 - **주요 구성요소**: durable operation store, side-effect runner, HTTP/queue adapter, IndexedDB/Redis/PostgreSQL reference backend
 - **대상 환경**: 브라우저, Node.js 및 server worker
 
+#### @context-action/ai-sdk
+- **목적**: canonical tool manager를 scoped model ToolSet으로 바꾸는 선택적 AI SDK v7 adapter
+- **의존성**: `@context-action/tool-protocol` runtime dependency와 필수 `ai` peer. React, core, provider, credential 의존성 없음
+- **주요 구성요소**: `createAISDKToolScope`, native approval mapping, tool-call idempotency correlation, structured error mode
+- **대상 환경**: AI SDK model client를 소유하는 browser 또는 server application
+
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 18 또는 19, @context-action/core, @context-action/tool-protocol, 그리고 직접 선언된 @context-action/tool-durable-operations 타입 의존성. durable 실행은 런타임에서 opt-in
+- **의존성**: React 18 또는 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations. durable 실행은 런타임에서 opt-in
 - **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅
+
+### 릴리스 및 보안 기준
+
+- **패키지 기준 버전**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0
+- **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, TypeScript `6.0.3`
+- **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm.overrides`에서 강제한다.
+- **임시 예외**: `GHSA-qwww-vcr4-c8h2`에 대해 `react-router@7.18.1`을 기간 한정 예외로 유지한다. 예제는 browser routing만 사용하고 `react-router-dom` 8.3.0은 아직 공개되지 않았으므로 2026-09-30 전에 재검토한다.
+- **검증 기준**: 의존성 변경은 `pnpm security:audit`, `pnpm type-check`, `pnpm test`, `pnpm docs:build`, 예제 `check`/`build`를 통과해야 한다.
 
 ### API 인터페이스
 
@@ -45,13 +59,16 @@
 - **핸들러 등록**: Map을 통한 O(1) 조회
 - **스토어 업데이트**: React 상태 업데이트 배치 처리
 - **메모리 사용**: 언마운트 시 자동 정리
-- **번들 크기**: React 패키지 약 15KB gzipped
+- **번들 크기**: 빌드와 압축기에 따라 달라지며, 현재 `pnpm --filter @context-action/react bundle-report` 기준 기본 React ESM 엔트리는 gzip 13.46 kB
 
 ### TypeScript 통합
 
 - strict 모드로 완전한 타입 안전성
 - 스토어 및 액션에 대한 제네릭 타입 추론
 - 컴파일 타임 페이로드 검증
+- 페이로드 액션은 페이로드가 필수이고 `void` 액션은 생략할 수 있음
+- `DispatchOptions`는 dispatch 및 결과 dispatch의 선택적 두 번째 인자
+- `ExecutionResult`는 실제 파이프라인 실행 결과에서 실행·건너뜀·실패 핸들러 수를 집계
 
 ### 호환성
 

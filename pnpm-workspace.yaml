@@ -1,6 +1,7 @@
 packages:
   - packages/core
   - packages/tool-protocol
+  - packages/ai-sdk
   - packages/tool-durable-operations
   - packages/react
   - packages/mutative-core

@@ -967,13 +967,24 @@ export type UnregisterFunction = () => void;
 /**
  * Helper types for better ActionDispatcher type safety
  */
-type VoidActions<T extends ActionPayloadMap> = {
-  [K in keyof T]: T[K] extends undefined | undefined ? K : never
+export type VoidActions<T extends ActionPayloadMap> = {
+  // biome-ignore lint/suspicious/noConfusingVoidType: void is the public no-payload marker.
+  [K in keyof T]: [T[K]] extends [void] ? K : never
 }[keyof T];
 
-type PayloadActions<T extends ActionPayloadMap> = {
-  [K in keyof T]: T[K] extends undefined | undefined ? never : K
+export type PayloadActions<T extends ActionPayloadMap> = {
+  // biome-ignore lint/suspicious/noConfusingVoidType: void is the public no-payload marker.
+  [K in keyof T]: [T[K]] extends [void] ? never : K
 }[keyof T];
+
+/**
+ * Arguments accepted by a dispatch method for a single action payload.
+ * Payload-bearing actions must provide their payload; void actions may omit it.
+ */
+// biome-ignore lint/suspicious/noConfusingVoidType: void is the public no-payload marker.
+export type DispatchArgs<P> = [P] extends [void]
+  ? [payload?: undefined, options?: DispatchOptions]
+  : [payload: P, options?: DispatchOptions];
 
 /**
  * Type-safe dispatchWithResult interface
@@ -983,27 +994,11 @@ type PayloadActions<T extends ActionPayloadMap> = {
  * 
  * @template T - The action payload map interface
  */
-export interface ActionDispatcherWithResult<T extends ActionPayloadMap> {
-  /** Dispatch an action that doesn't require a payload and get result */
-  <K extends VoidActions<T>, R = unknown>(
-    action: K,
-    options?: DispatchOptions
-  ): Promise<ExecutionResult<R>>;
-  
-  /** Dispatch an action with optional payload parameter and get result */
-  <K extends VoidActions<T>, R = unknown>(
-    action: K,
-    payload?: undefined,
-    options?: DispatchOptions
-  ): Promise<ExecutionResult<R>>;
-  
-  /** Dispatch an action that requires a payload and get result */
-  <K extends PayloadActions<T>, R = unknown>(
-    action: K,
-    payload: T[K],
-    options?: DispatchOptions
-  ): Promise<ExecutionResult<R>>;
-}
+/** Dispatch an action with the payload contract defined by its action key. */
+export type ActionDispatcherWithResult<T extends ActionPayloadMap> = <
+  K extends keyof T,
+  R = unknown
+>(action: K, ...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<R>>;
 
 /**
  * Type-safe action dispatcher interface
@@ -1032,27 +1027,11 @@ export interface ActionDispatcherWithResult<T extends ActionPayloadMap> {
  * 
  * @public
  */
-export interface ActionDispatcher<T extends ActionPayloadMap> {
-  /** Dispatch an action that doesn't require a payload */
-  <K extends VoidActions<T>>(
-    action: K,
-    options?: DispatchOptions
-  ): Promise<void>;
-  
-  /** Dispatch an action with optional payload parameter */
-  <K extends VoidActions<T>>(
-    action: K,
-    payload?: undefined,
-    options?: DispatchOptions
-  ): Promise<void>;
-  
-  /** Dispatch an action that requires a payload */
-  <K extends PayloadActions<T>>(
-    action: K,
-    payload: T[K],
-    options?: DispatchOptions
-  ): Promise<void>;
-}
+/** Dispatch an action with the payload contract defined by its action key. */
+export type ActionDispatcher<T extends ActionPayloadMap> = <K extends keyof T>(
+  action: K,
+  ...args: DispatchArgs<T[K]>
+) => Promise<void>;
 
 /**
  * Registry information interface for ActionRegister introspection

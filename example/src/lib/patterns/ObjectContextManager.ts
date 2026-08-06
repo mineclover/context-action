@@ -3,7 +3,7 @@
  * 단일 엔드포인트를 통한 객체 생명주기 관리
  */
 
-import { ActionRegister } from '@context-action/core';
+import { ActionRegister, type DispatchArgs } from '@context-action/core';
 import {
   BaseObjectActions,
   ManagedObject,
@@ -584,12 +584,9 @@ export class ObjectContextManager<T extends ManagedObject> {
    */
   public dispatch<K extends keyof BaseObjectActions<T>>(
     action: K,
-    payload?: BaseObjectActions<T>[K]
+    ...args: DispatchArgs<BaseObjectActions<T>[K]>
   ): Promise<void> {
-    if (payload === undefined) {
-      return this.actionRegister.dispatch(action);
-    }
-    return this.actionRegister.dispatch(action, payload);
+    return this.actionRegister.dispatch(action, ...args);
   }
 
   /**

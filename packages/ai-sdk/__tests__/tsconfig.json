@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["jest", "node"],
+    "paths": {
+      "@context-action/tool-protocol": ["../../tool-protocol/src/index"]
+    }
+  },
+  "include": ["**/*.ts", "../src/**/*.ts", "../../tool-protocol/src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

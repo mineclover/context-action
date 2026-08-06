@@ -2,6 +2,7 @@ import {
   ActionHandler,
   ActionRegister,
   ActionRegisterConfig,
+  DispatchArgs,
   DispatchOptions,
   ExecutionResult,
   HandlerConfig,
@@ -304,8 +305,7 @@ export function createActionContext<T extends {}>(
         [options?.signal],
         signal => register.dispatch(
           action,
-          payload as T[K],
-          withProviderDispatchSignal(options, signal)
+          ...([payload as T[K], withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )
       );
     }, [actionRegisterRef, dispatchLifecycle]);
@@ -313,9 +313,9 @@ export function createActionContext<T extends {}>(
     // Stable dispatchWithResult function
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<ExecutionResult<R>> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       const register = actionRegisterRef.current;
       if (!register) {
         throw new Error('ActionRegister not initialized');
@@ -325,8 +325,7 @@ export function createActionContext<T extends {}>(
         [options?.signal],
         signal => register.dispatchWithResult<K, R>(
           action,
-          payload,
-          withProviderDispatchSignal(options, signal)
+          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )
       );
     }, [actionRegisterRef, dispatchLifecycle]);
@@ -504,8 +503,7 @@ export function createActionContext<T extends {}>(
         [options?.signal, scopeController.signal],
         signal => register.dispatch(
           action,
-          payload as T[K],
-          withProviderDispatchSignal(options, signal)
+          ...([payload as T[K], withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )
       ).finally(() => {
         activeControllersRef.current.delete(scopeController);
@@ -517,9 +515,9 @@ export function createActionContext<T extends {}>(
     // Create wrapped dispatchWithResult using core's autoAbort
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<ExecutionResult<R>> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       const register = context.actionRegisterRef.current;
       if (!register) {
         throw new Error('ActionRegister not initialized');
@@ -532,8 +530,7 @@ export function createActionContext<T extends {}>(
         [options?.signal, scopeController.signal],
         signal => register.dispatchWithResult<K, R>(
           action,
-          payload,
-          withProviderDispatchSignal(options, signal)
+          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )
       ).finally(() => {
         activeControllersRef.current.delete(scopeController);

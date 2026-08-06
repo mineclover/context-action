@@ -383,7 +383,6 @@ assertContains(
 
 const discoveryRequestAdapters = [
   'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts',
-  'example/src/lib/openrouter-ai-sdk.ts',
   'example/src/pages/integrations/live-web-coding/actions/useLiveWebCodingToolActions.ts',
 ];
 for (const relativeFile of discoveryRequestAdapters) {
@@ -394,15 +393,27 @@ for (const relativeFile of discoveryRequestAdapters) {
     /(?:registry\.listTools\(toToolListRequest\(\)\)|listAllTools\(registry\))/,
     'canonical tools/list request construction'
   );
-  if (relativeFile === 'example/src/lib/openrouter-ai-sdk.ts') {
-    assertNotContains(
-      relativeFile,
-      source,
-      /registry\.getToolNames\(\)/,
-      'parallel provider tool-name discovery'
-    );
-  }
 }
+
+const aiSdkRunnerSource = readSource('example/src/lib/openrouter-ai-sdk.ts');
+assertContains(
+  'example/src/lib/openrouter-ai-sdk.ts',
+  aiSdkRunnerSource,
+  /createAISDKToolScope\(request\.registry,\s*\{[\s\S]*?toolNames:\s*request\.toolNames/,
+  'explicit provider AI SDK tool scope'
+);
+assertContains(
+  'example/src/lib/openrouter-ai-sdk.ts',
+  aiSdkRunnerSource,
+  /activeTools:\s*toolScope\.activeTools/,
+  'provider active tool scope forwarding'
+);
+assertNotContains(
+  'example/src/lib/openrouter-ai-sdk.ts',
+  aiSdkRunnerSource,
+  /(?:listAllTools\(request\.registry\)|request\.registry\.getTool)/,
+  'parallel provider registry discovery'
+);
 
 const catalogModelSource = readSource(
   'demos/bolt-style-editor/src/hooks/use-tool-catalog-model.ts'

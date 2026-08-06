@@ -33,11 +33,20 @@ describe('ActionRegister - Simple Actions Tests', () => {
     expect(actionRegister.actionsWithResult).toBeDefined();
   });
 
-  it('should return undefined for non-existent actions', () => {
-    // @ts-expect-error - Testing runtime behavior
-    expect(actionRegister.actions.nonExistentAction).toBeUndefined();
-    // @ts-expect-error - Testing runtime behavior
-    expect(actionRegister.actionsWithResult.nonExistentAction).toBeUndefined();
+  it('should cache dispatchers after handler registration', async () => {
+    actionRegister.register('testAction', () => 'registered', { id: 'test-handler' });
+    const dispatcher = actionRegister.actions.testAction;
+    const resultDispatcher = actionRegister.actionsWithResult.testAction;
+
+    expect(typeof dispatcher).toBe('function');
+    expect(dispatcher).toBe(actionRegister.actions.testAction);
+    expect(resultDispatcher).toBe(actionRegister.actionsWithResult.testAction);
+
+    await expect(dispatcher({ value: 'ignored' })).resolves.toBeUndefined();
+    await expect(resultDispatcher({ value: 'ignored' })).resolves.toMatchObject({
+      success: true,
+      execution: { handlersExecuted: 1 },
+    });
   });
 
   it('should work with registered actions', async () => {

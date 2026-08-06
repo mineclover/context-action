@@ -176,13 +176,11 @@ compatibility hook and intentionally bypasses those tool boundaries. The
 reusable browser convention and complete usecases are documented in
 [`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
 
-Tool calling is an opt-in entry point. Install the protocol and schema runtime
-only when using it; the default `@context-action/react` entry does not import
-either runtime:
-
-```bash
-pnpm add @context-action/tool-protocol zod
-```
+Tool calling is an opt-in entry point at `@context-action/react/tools`; the
+default `@context-action/react` entry still does not load its runtime. The
+tools subpath declares its protocol and durable-operation packages directly so
+its published CJS entry always resolves. Add `@context-action/ai-sdk` only
+when an application chooses Vercel AI SDK as its model adapter.
 
 `useToolCall()` (and the lower-level `registry.callTool()`) and
 `executeModelToolCall()` accept a wall-clock `timeout`; `createToolContext()`
@@ -195,12 +193,8 @@ The complete timeout, retry, abort-drain, idempotency, and durable-operation
 contract is maintained in the [Tool-calling editor architecture
 guide](../../docs/en/concept/tool-calling-editor-architecture.md). This README
 only documents the package API entry point; durable behavior across reloads or
-processes remains application-owned. Install the dedicated package when using
-`durableOperationStore`:
-
-```bash
-pnpm add @context-action/tool-durable-operations
-```
+processes remains application-owned. Pass the already-resolved durable package
+implementation as `durableOperationStore` when that behavior is needed.
 
 ## Core Patterns
 

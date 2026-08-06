@@ -41,6 +41,17 @@
  * ```
  */
 
+import {
+  ActionHandler,
+  ActionRegister,
+  DispatchArgs,
+  DispatchOptions,
+  ExecutionResult,
+  HandlerConfig,
+} from '@context-action/core';
+import type {
+  DurableOperationClaim,
+} from '@context-action/tool-durable-operations';
 import type {
   ToolCallContext,
   ToolCallEvent,
@@ -48,27 +59,17 @@ import type {
   ToolCallResult,
   ToolIdempotencyRegistry,
 } from '@context-action/tool-protocol';
-import type {
-  DurableOperationClaim,
-} from '@context-action/tool-durable-operations';
-import {
-  ActionHandler,
-  ActionRegister,
-  DispatchOptions,
-  ExecutionResult,
-  HandlerConfig,
-} from '@context-action/core';
 import {
   ActionSchemaMap,
   createToolCallError,
+  createToolCallFingerprint,
   createToolCallSuccess,
   createToolExecutionProvenance,
+  createToolIdempotencyRegistry,
+  createToolOperationKey,
   getToolCallErrorMetadata,
   InferActionPayloadMap,
   isToolCallRequest,
-  createToolCallFingerprint,
-  createToolIdempotencyRegistry,
-  createToolOperationKey,
   isValidToolIdempotencyKey,
   measureToolOutputBytes,
   sanitizeToolCallDiagnostic,
@@ -90,11 +91,11 @@ import {
   withProviderDispatchSignal,
 } from '../actions/ActionContext';
 import type {
+  DirectToolCallOptions,
+  ToolCallFunction,
   ToolContextConfig,
   ToolContextReturn,
   ToolContextType,
-  ToolCallFunction,
-  DirectToolCallOptions,
   ToolExecutionResult,
   ToolPolicy,
   ToolRegistry,
@@ -413,8 +414,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           [options?.signal],
           signal => register.dispatch(
             toolName,
-            payload,
-            withProviderDispatchSignal(options, signal)
+            ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
           )
         );
         void trackedPromise.catch(() => {});
@@ -654,11 +654,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           const runExecution = (): Promise<ExecutionResult<unknown>> =>
             dispatchLifecycle.run(
               [options?.signal, timeoutState?.signal],
-              signal =>
-                register.dispatchWithResult(
+                signal => register.dispatchWithResult(
                   toolName,
-                  payload,
-                  withProviderDispatchSignal({ signal }, signal)
+                  ...([payload, withProviderDispatchSignal({ signal }, signal)] as DispatchArgs<TPayloadMap[typeof toolName]>)
                 )
             );
 
@@ -1267,8 +1265,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           [options?.signal, scopeController.signal],
           signal => register.dispatch(
             toolName,
-            payload,
-            withProviderDispatchSignal(options, signal)
+            ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
           )
         ).finally(() => {
           activeControllersRef.current.delete(scopeController);
@@ -1281,9 +1278,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const dispatchWithResult = useMemo(() => {
       return <K extends keyof TPayloadMap, R = void>(
         toolName: K,
-        payload: TPayloadMap[K],
-        options?: DispatchOptions
+        ...args: DispatchArgs<TPayloadMap[K]>
       ): Promise<ToolExecutionResult<R>> => {
+        const [payload, options] = args as [TPayloadMap[K] | undefined, DispatchOptions | undefined];
         const register = actionRegisterRef.current;
         if (!register) {
           throw new Error(`ActionRegister not initialized in ${contextName}`);
@@ -1297,8 +1294,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             [options?.signal, scopeController.signal],
             signal => register.dispatchWithResult<K, R>(
               toolName,
-              payload,
-              withProviderDispatchSignal(options, signal)
+              ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
             )
           )
           .then((result) => {

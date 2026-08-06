@@ -353,6 +353,7 @@ function DemoUI({ uiState }: { uiState: UIState }) {
         model: selectedModel,
         messages: requestMessages,
         registry,
+        toolNames: registry.getToolNames(),
       });
 
       const finalContent =

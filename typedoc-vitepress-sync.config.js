@@ -38,6 +38,7 @@ export default {
   packageMapping: {
     'core': 'core',
     'tool-protocol': 'tool-protocol',
+    'ai-sdk': 'ai-sdk',
     'tool-durable-operations': 'tool-durable-operations',
     'react': 'react'
   },

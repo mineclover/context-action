@@ -8,10 +8,10 @@
  */
 
 import type { 
+  HandlerError,
   HandlerRegistration, 
   PipelineContext, 
-  PipelineController,
-  HandlerError
+  PipelineController
 } from './types.js';
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
@@ -187,6 +187,7 @@ export async function executeSequential<T, R = void>(
       // 🔧 Fix: Handle errors gracefully and continue pipeline execution
       const handlerError = handleExecutionError(error, registration);
       errors.push(handlerError);
+      (context.collectedErrors ??= []).push(handlerError);
 
       // 🔧 Fix: Only fail pipeline for blocking handlers, let non-blocking continue
       if (registration.config.blocking) {
@@ -205,16 +206,8 @@ export async function executeSequential<T, R = void>(
 
   // 🔧 Store collected errors in context for ExecutionResult with proper typing
   if (errors.length > 0) {
-    // Convert to proper HandlerError format
-    const handlerErrors: HandlerError[] = errors.map(err => ({
-      handlerId: err.handlerId,
-      error: err.error,
-      timestamp: err.timestamp,
-      severity: 'non-blocking' as const
-    }));
-    
-    // Add to context with proper typing
-    context.collectedErrors = handlerErrors;
+    // Add to context with the original severity preserved.
+    context.collectedErrors = errors;
   }
 }
 
@@ -278,6 +271,7 @@ export async function executeParallel<T, R = void>(
     } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
+      (context.collectedErrors ??= []).push(handlerError);
       
       if (handlerError.severity === 'blocking') {
         throw handlerError.error;
@@ -384,6 +378,7 @@ export async function executeRace<T, R = void>(
     } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
+      (context.collectedErrors ??= []).push(handlerError);
       return { success: false, handlerId: registration.id, error: handlerError.error, registration };
     }
   });
