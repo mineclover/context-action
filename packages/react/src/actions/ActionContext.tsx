@@ -1,7 +1,11 @@
 import {
   ActionHandler,
+  ActionPayloadMap,
   ActionRegister,
   ActionRegisterConfig,
+  ActionResult,
+  ActionResultHandler,
+  ActionResultMap,
   DispatchArgs,
   DispatchOptions,
   ExecutionResult,
@@ -116,7 +120,7 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
-  shutdown(register: ActionRegister<any>): Promise<void> {
+  shutdown(register: ActionRegister<any, any>): Promise<void> {
     if (this.shutdownPromise) return this.shutdownPromise;
 
     this.accepting = false;
@@ -172,16 +176,22 @@ export function withProviderDispatchSignal(
 
 // Context name is explicit so registrations remain discoverable in source and
 // the public API has one unambiguous construction form.
-export function createActionContext<T extends {}>(
+export function createActionContext<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+>(
   contextName: string,
   config?: ActionContextConfig
-): ActionContextReturn<T>;
+): ActionContextReturn<T, TResultMap>;
 
 // Implementation
-export function createActionContext<T extends {}>(
+export function createActionContext<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+>(
   contextName: string,
   config?: ActionContextConfig
-): ActionContextReturn<T> {
+): ActionContextReturn<T, TResultMap> {
   if (typeof contextName !== 'string' || contextName.trim().length === 0) {
     throw new TypeError(
       'createActionContext requires a non-empty context name as its first argument.'
@@ -214,15 +224,15 @@ export function createActionContext<T extends {}>(
   }
   
   // Create the factory-specific context with a default value
-  const FactoryActionContext = createContext<ActionContextType<T> | null>(null);
+  const FactoryActionContext = createContext<ActionContextType<T, TResultMap> | null>(null);
 
   // Provider component with abort support
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T> | null>(null);
+    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
     const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
     const lifecycleGenerationRef = useRef(0);
     if (!actionRegisterRef.current) {
-      actionRegisterRef.current = new ActionRegister<T>(effectiveConfig);
+      actionRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
     }
     if (!dispatchLifecycleRef.current) {
       dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
@@ -258,7 +268,7 @@ export function createActionContext<T extends {}>(
   };
 
   // Hook to get the factory action context (different from simple ActionContext)
-  const useFactoryActionContext = (): ActionContextType<T> => {
+  const useFactoryActionContext = (): ActionContextType<T, TResultMap> => {
     const context = useContext(FactoryActionContext);
     if (!context) {
       throw new Error('useFactoryActionContext must be used within a factory ActionContext Provider');
@@ -321,9 +331,17 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
       
+      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
+        ActionKey extends keyof T,
+        Result = void,
+      >(
+        action: ActionKey,
+        ...dispatchArgs: DispatchArgs<T[ActionKey]>
+      ) => Promise<ExecutionResult<Result>>;
+
       return dispatchLifecycle.run(
         [options?.signal],
-        signal => register.dispatchWithResult<K, R>(
+        signal => dispatchResult<K, R>(
           action,
           ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )
@@ -334,22 +352,24 @@ export function createActionContext<T extends {}>(
   };
 
   // Legacy hook for backwards compatibility
-  const useAction = (): ActionRegister<T>['dispatch'] => {
+  const useAction = (): ActionRegister<T, TResultMap>['dispatch'] => {
     const { dispatch } = useActionDispatcher();
     return dispatch;
   };
 
   // Hook to register action handlers with automatic cleanup and ref optimization
-  const useActionHandler = <K extends keyof T, R = void>(
+  const useActionHandler = <K extends keyof T, R = ActionResult<TResultMap, K>>(
     action: K,
-    handler: ActionHandler<T[K], R>,
+    handler: K extends keyof TResultMap
+      ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
+      : ActionHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
     const effectGenerationRef = useRef(0);
     const registrationRef = useRef<{
-      register: ActionRegister<T>;
+      register: ActionRegister<T, TResultMap>;
       action: keyof T;
       config: HandlerConfig<T[K]>;
       active: boolean;
@@ -411,20 +431,26 @@ export function createActionContext<T extends {}>(
         };
         const wrapperHandler: ActionHandler<T[K], R> = (payload, controller) => {
           if (!nextLease.active) return;
-          return handlerRef.current(payload, controller);
+          return (handlerRef.current as ActionHandler<T[K], R>)(payload, controller);
         };
 
         if (process.env.NODE_ENV === 'development') {
           console.log(`Registering handler for '${String(action)}'`);
         }
 
-        nextLease.unregister = register.register<K, R>(action, wrapperHandler, stableConfig);
+        const registerHandler = register.register.bind(register) as unknown as (
+          action: K,
+          handler: ActionHandler<T[K], R>,
+          config: HandlerConfig<T[K]>,
+        ) => () => void;
+        nextLease.unregister = registerHandler(action, wrapperHandler, stableConfig);
         registrationRef.current = nextLease;
         lease = nextLease;
       } else {
         lease.active = true;
       }
 
+      if (!lease) return;
       const currentLease = lease;
       return () => {
         currentLease.active = false;
@@ -461,7 +487,7 @@ export function createActionContext<T extends {}>(
    * 
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
    */
-  const useFactoryActionRegister = (): ActionRegister<T> | null => {
+  const useFactoryActionRegister = (): ActionRegister<T, TResultMap> | null => {
     const context = useFactoryActionContext();
     return context.actionRegisterRef.current;
   };
@@ -526,9 +552,17 @@ export function createActionContext<T extends {}>(
       const scopeController = new AbortController();
       activeControllersRef.current.add(scopeController);
 
+      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
+        ActionKey extends keyof T,
+        Result = void,
+      >(
+        action: ActionKey,
+        ...dispatchArgs: DispatchArgs<T[ActionKey]>
+      ) => Promise<ExecutionResult<Result>>;
+
       const trackedPromise = context.dispatchLifecycle.run(
         [options?.signal, scopeController.signal],
-        signal => register.dispatchWithResult<K, R>(
+        signal => dispatchResult<K, R>(
           action,
           ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
         )

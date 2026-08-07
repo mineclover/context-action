@@ -6,7 +6,7 @@
 
 # Interface: AISDKToolScope
 
-Defined in: [packages/ai-sdk/src/index.ts:104](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L104)
+Defined in: [packages/ai-sdk/src/index.ts:109](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L109)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/ai-sdk/src/index.ts:104](https://github.com/mineclover/con
 
 > `readonly` **tools**: `ToolSet`
 
-Defined in: [packages/ai-sdk/src/index.ts:106](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L106)
+Defined in: [packages/ai-sdk/src/index.ts:111](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L111)
 
 Tool definitions ready for `generateText` or `streamText`.
 
@@ -24,6 +24,6 @@ Tool definitions ready for `generateText` or `streamText`.
 
 > `readonly` **activeTools**: readonly `string`[]
 
-Defined in: [packages/ai-sdk/src/index.ts:108](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L108)
+Defined in: [packages/ai-sdk/src/index.ts:113](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L113)
 
 Mirrors the exact capability scope for AI SDK's `activeTools` option.

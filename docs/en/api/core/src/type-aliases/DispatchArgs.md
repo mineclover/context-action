@@ -8,7 +8,7 @@
 
 > **DispatchArgs**&lt;`P`&gt; = \[`P`\] *extends* \[`void`\] ? \[`undefined`, [`DispatchOptions`](../interfaces/DispatchOptions.md)\] : \[`P`, [`DispatchOptions`](../interfaces/DispatchOptions.md)\]
 
-Defined in: [packages/core/src/types.ts:1056](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1056)
+Defined in: [packages/core/src/types.ts:1081](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1081)
 
 Arguments accepted by a dispatch method for a single action payload.
 Payload-bearing actions must provide their payload; void actions may omit it.

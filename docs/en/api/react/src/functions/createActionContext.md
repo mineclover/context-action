@@ -6,9 +6,9 @@
 
 # Function: createActionContext()
 
-> **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+> **createActionContext**\<`T`, `TResultMap`\>(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`, `TResultMap`\>
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:175](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L175)
+Defined in: [packages/react/src/actions/ActionContext.tsx:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L179)
 
 Enhanced action context factory with automatic type inference
 
@@ -19,6 +19,10 @@ Enhanced action context factory with automatic type inference
 `T` *extends* `object`
 
 Action payload map type for complete type safety
+
+### TResultMap
+
+`TResultMap` *extends* `Partial`\<`Record`\<keyof `T`, `unknown`\>\> = \{ \}
 
 ## Parameters
 
@@ -36,7 +40,7 @@ Optional configuration for the ActionRegister
 
 ## Returns
 
-[`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+[`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`, `TResultMap`\>
 
 Object containing Provider, hooks, and utility functions
 

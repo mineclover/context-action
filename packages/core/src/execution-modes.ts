@@ -335,10 +335,10 @@ export async function executeParallel<T, R = void>(
     runnableHandlers.push(registration);
   }
 
-  const terminationCandidates: Array<{
-    state: PipelineControllerState<T, R>;
-    outcome: HandlerExecutionOutcome<R>;
-  }> = [];
+  const terminationSlots: Array<{
+    requested: boolean;
+    result: R | undefined;
+  }> = runnableHandlers.map(() => ({ requested: false, result: undefined }));
   const resultSlots: R[][] = runnableHandlers.map(() => []);
 
   /** Create promises for all handlers */
@@ -369,7 +369,10 @@ export async function executeParallel<T, R = void>(
       outcome.terminationRequested = state.terminated;
       if (state.terminated) {
         outcome.terminationResult = state.terminationResult;
-        terminationCandidates.push({ state, outcome });
+        terminationSlots[_index] = {
+          requested: true,
+          result: state.terminationResult,
+        };
       }
       appendLocalResults(context, state, handlerResult, resultSlots[_index]);
       return { 
@@ -429,12 +432,10 @@ export async function executeParallel<T, R = void>(
   }
 
   /** Check if any handler terminated the pipeline */
-  if (terminationCandidates.length > 0) {
+  const firstTerminated = terminationSlots.find(slot => slot.requested);
+  if (firstTerminated) {
     context.terminated = true;
-    const firstTerminated = terminationCandidates[0];
-    if (firstTerminated) {
-      context.terminationResult = firstTerminated.state.terminationResult;
-    }
+    context.terminationResult = firstTerminated.result;
   }
 }
 

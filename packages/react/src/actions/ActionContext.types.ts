@@ -8,8 +8,10 @@
 import {
   ActionRegister,
   ActionRegisterConfig,
-  DispatchArgs,
-  ExecutionResult,
+  ActionResult,
+  ActionResultHandler,
+  ActionResultMap,
+  ActionPayloadMap,
   HandlerConfig,
   PipelineController,
 } from '@context-action/core';
@@ -54,8 +56,11 @@ export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> 
 /**
  * Context type for ActionRegister with enhanced type safety and abort support
  */
-export interface ActionContextType<T extends {}> {
-  actionRegisterRef: React.RefObject<ActionRegister<T> | null>;
+export interface ActionContextType<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  actionRegisterRef: React.RefObject<ActionRegister<T, TResultMap> | null>;
   dispatchLifecycle: ProviderDispatchLifecycle;
 }
 
@@ -67,33 +72,32 @@ export interface ProviderDispatchLifecycle {
   ): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
-  shutdown(register: ActionRegister<any>): Promise<void>;
+  shutdown(register: ActionRegister<any, any>): Promise<void>;
 }
 
 /**
  * Return type for createActionContext with abort support
  */
-export interface ActionContextReturn<T extends {}> {
+export interface ActionContextReturn<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
   Provider: React.FC<{ children: ReactNode }>;
-  useActionContext: () => ActionContextType<T>;
-  useActionDispatch: () => ActionRegister<T>['dispatch'];
-  useActionHandler: <K extends keyof T, R = void>(
+  useActionContext: () => ActionContextType<T, TResultMap>;
+  useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
+  useActionHandler: <K extends keyof T, R = ActionResult<TResultMap, K>>(
     action: K,
-    handler: ActionContextHandler<T[K], R>,
+    handler: K extends keyof TResultMap
+      ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
+      : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  useActionRegister: () => ActionRegister<T> | null;
+  useActionRegister: () => ActionRegister<T, TResultMap> | null;
   useActionDispatchWithResult: () => {
-    dispatch: <K extends keyof T>(
-      action: K,
-      ...args: DispatchArgs<T[K]>
-    ) => Promise<void>;
-    dispatchWithResult: <K extends keyof T, R = void>(
-      action: K,
-      ...args: DispatchArgs<T[K]>
-    ) => Promise<ExecutionResult<R>>;
+    dispatch: ActionRegister<T, TResultMap>['dispatch'];
+    dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
     abortAll: () => void;
     resetAbortScope: () => void;
   };
-  context: React.Context<ActionContextType<T> | null>;
+  context: React.Context<ActionContextType<T, TResultMap> | null>;
 }

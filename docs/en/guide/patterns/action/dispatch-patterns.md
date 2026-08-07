@@ -269,7 +269,9 @@ function BestEffortComponent() {
     const result = await register.dispatchWithResult('bestEffortAction', payload, {
       result: { collect: true }
     });
-    if (!result.success) console.error('Some handlers failed:', result.errors);
+    if (result.outcome === 'completed_with_errors') {
+      console.error('Some handlers failed:', result.errors);
+    }
   };
   
   return <button onClick={() => handleBestEffortAction(effortData)}>Best Effort Action</button>;

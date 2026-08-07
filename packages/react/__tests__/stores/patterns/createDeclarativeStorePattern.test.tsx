@@ -174,7 +174,7 @@ describe('createStoreContext', () => {
     expect(providerDisposeSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps useStoreInfo reactive when the manager creates a store', () => {
+  it('keeps useStoreInfo reactive when the manager creates a store', async () => {
     const Stores = createStoreContext('ReactiveInfo', {
       counter: { initialValue: 0 },
     });
@@ -193,11 +193,42 @@ describe('createStoreContext', () => {
     );
 
     expect(rendered.getByTestId('store-count').textContent).toBe('0');
-    act(() => {
+    await act(async () => {
       manager?.getStore('counter');
+      await Promise.resolve();
     });
     expect(rendered.getByTestId('store-count').textContent).toBe('1');
     rendered.unmount();
+  });
+
+  it('does not synchronously notify an info subscriber during store consumer render', () => {
+    const Stores = createStoreContext('RenderPhaseInfo', {
+      counter: { initialValue: 0 },
+    });
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    function InfoConsumer() {
+      Stores.useStoreInfo();
+      return null;
+    }
+
+    function StoreConsumer() {
+      Stores.useStore('counter');
+      return null;
+    }
+
+    render(
+      <Stores.Provider>
+        <InfoConsumer />
+        <StoreConsumer />
+      </Stores.Provider>,
+    );
+
+    expect(consoleError).not.toHaveBeenCalledWith(
+      expect.stringContaining('Cannot update a component'),
+      expect.anything(),
+    );
+    consoleError.mockRestore();
   });
 
   it('makes StoreManager.dispose terminal and idempotent', () => {

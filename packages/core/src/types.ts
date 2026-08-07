@@ -427,6 +427,16 @@ export type ActionHandler<T = unknown, R = void> = (
 ) => R | Promise<R> | void | Promise<void>;
 
 /**
+ * Strict handler contract used when an action result map declares a result.
+ * Unlike the legacy ActionHandler type, a mapped handler must return the
+ * declared result (or a promise of it).
+ */
+export type ActionResultHandler<T = unknown, R = void> = (
+  payload: T,
+  controller: PipelineController<T, R>
+) => R | Promise<R>;
+
+/**
  * Handler configuration interface for controlling handler behavior within the pipeline
  * 
  * Configuration options that control how handlers are executed,
@@ -485,9 +495,24 @@ export interface HandlerConfig<T = unknown> {
   metadata?: Record<string, unknown>;
 }
 
-/** Internal handler configuration with defaults resolved while preserving optional metadata. */
-export type ResolvedHandlerConfig<T = unknown> = Omit<Required<HandlerConfig<T>>, 'metadata'> &
-  Pick<HandlerConfig<T>, 'metadata'>;
+/**
+ * Internal handler configuration with defaults resolved.
+ *
+ * Timing, cleanup, and condition values remain optional because registration
+ * does not synthesize them when they are omitted at runtime.
+ */
+export interface ResolvedHandlerConfig<T = unknown> {
+  priority: number;
+  id: string;
+  blocking: boolean;
+  once: boolean;
+  replaceExisting: boolean;
+  debounce?: number;
+  throttle?: number;
+  cleanup?: () => void;
+  condition?: (payload: T) => boolean;
+  metadata?: Record<string, unknown>;
+}
 
 
 /**
@@ -920,7 +945,7 @@ export interface ExecutionResult<R = void> {
   /** Whether the execution completed successfully */
   success: boolean;
   
-  /** Whether the execution was aborted */
+  /** Whether caller or pipeline cancellation aborted the execution */
   aborted: boolean;
   
   /** Reason for abortion if aborted */
@@ -930,7 +955,7 @@ export interface ExecutionResult<R = void> {
   terminated: boolean;
 
   /** High-level terminal state, including timing-guard rejections. */
-  outcome: 'completed' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  outcome: 'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
 
   /** Runtime payload validation outcome when a schema was configured */
   validation?: {

@@ -159,7 +159,22 @@ describe('DispatchOptions runtime contract', () => {
 
     expect(completed.outcome).toBe('completed');
     expect(throttled.outcome).toBe('throttled');
+    expect(throttled.aborted).toBe(false);
     expect(cancelled.outcome).toBe('cancelled');
+  });
+
+  it('reports non-blocking handler failures as coherent partial success', async () => {
+    register.register('work', () => {
+      throw new Error('best effort failed');
+    }, { blocking: false });
+
+    const result = await register.dispatchWithResult('work', { id: 'partial-success' });
+
+    expect(result.success).toBe(true);
+    expect(result.aborted).toBe(false);
+    expect(result.outcome).toBe('completed_with_errors');
+    expect(result.execution.handlersFailed).toBe(1);
+    expect(result.failedResults).toHaveLength(1);
   });
 
   it('validates only once when an execution is retried', async () => {

@@ -6,7 +6,7 @@
 
 # Interface: HandlerConfig\<T\>
 
-Defined in: [packages/core/src/types.ts:456](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L456)
+Defined in: [packages/core/src/types.ts:466](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L466)
 
 Handler configuration interface for controlling handler behavior within the pipeline
 
@@ -48,7 +48,7 @@ register.register('processPayment', paymentHandler, {
 
 > `optional` **priority?**: `number`
 
-Defined in: [packages/core/src/types.ts:458](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L458)
+Defined in: [packages/core/src/types.ts:468](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L468)
 
 Priority level (higher numbers execute first). Default: 0
 
@@ -58,7 +58,7 @@ Priority level (higher numbers execute first). Default: 0
 
 > `optional` **id?**: `string`
 
-Defined in: [packages/core/src/types.ts:461](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L461)
+Defined in: [packages/core/src/types.ts:471](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L471)
 
 Unique identifier for the handler. Auto-generated if not provided
 
@@ -68,7 +68,7 @@ Unique identifier for the handler. Auto-generated if not provided
 
 > `optional` **blocking?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:464](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L464)
+Defined in: [packages/core/src/types.ts:474](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L474)
 
 Whether to wait for async handlers to complete. Default: false
 
@@ -78,7 +78,7 @@ Whether to wait for async handlers to complete. Default: false
 
 > `optional` **once?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:467](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L467)
+Defined in: [packages/core/src/types.ts:477](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L477)
 
 Whether this handler should run once and then be removed. Default: false
 
@@ -88,7 +88,7 @@ Whether this handler should run once and then be removed. Default: false
 
 > `optional` **debounce?**: `number`
 
-Defined in: [packages/core/src/types.ts:470](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L470)
+Defined in: [packages/core/src/types.ts:480](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L480)
 
 Debounce delay in milliseconds
 
@@ -98,7 +98,7 @@ Debounce delay in milliseconds
 
 > `optional` **throttle?**: `number`
 
-Defined in: [packages/core/src/types.ts:473](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L473)
+Defined in: [packages/core/src/types.ts:483](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L483)
 
 Throttle delay in milliseconds
 
@@ -108,7 +108,7 @@ Throttle delay in milliseconds
 
 > `optional` **replaceExisting?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:476](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L476)
+Defined in: [packages/core/src/types.ts:486](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L486)
 
 Replace existing handler with same ID. Default: true for backward compatibility
 
@@ -118,7 +118,7 @@ Replace existing handler with same ID. Default: true for backward compatibility
 
 > `optional` **cleanup?**: () => `void`
 
-Defined in: [packages/core/src/types.ts:479](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L479)
+Defined in: [packages/core/src/types.ts:489](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L489)
 
 Cleanup function to call when handler is unregistered
 
@@ -132,7 +132,7 @@ Cleanup function to call when handler is unregistered
 
 > `optional` **condition?**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:482](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L482)
+Defined in: [packages/core/src/types.ts:492](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L492)
 
 Condition function to determine if handler should execute. Default: always execute
 
@@ -152,6 +152,6 @@ Type parameter **T**
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/core/src/types.ts:485](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L485)
+Defined in: [packages/core/src/types.ts:495](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L495)
 
 Optional metadata copied into execution outcomes for diagnostics.

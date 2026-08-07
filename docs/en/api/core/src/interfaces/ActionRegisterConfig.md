@@ -6,7 +6,7 @@
 
 # Interface: ActionRegisterConfig
 
-Defined in: [packages/core/src/types.ts:678](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L678)
+Defined in: [packages/core/src/types.ts:703](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L703)
 
 Configuration options for ActionRegister initialization
 
@@ -46,7 +46,7 @@ const devRegister = new ActionRegister<AppActions>({
 
 > `optional` **name?**: `string`
 
-Defined in: [packages/core/src/types.ts:680](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L680)
+Defined in: [packages/core/src/types.ts:705](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L705)
 
 Name identifier for this ActionRegister instance
 
@@ -56,7 +56,7 @@ Name identifier for this ActionRegister instance
 
 > `optional` **registry?**: `object`
 
-Defined in: [packages/core/src/types.ts:683](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L683)
+Defined in: [packages/core/src/types.ts:708](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L708)
 
 Registry-specific configuration options
 

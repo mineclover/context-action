@@ -1010,14 +1010,16 @@ actionRegister.register('searchUsers', searchHandler, {
 
 // ✅ DO: Use throttling for frequent events
 actionRegister.register('trackMouseMovement', trackingHandler, {
-  throttle: 100, // Max once per 100ms
+  throttle: 100, // Max once per 100ms at dispatch admission
   priority: 0
 });
 ```
 
 Timing guards are evaluated when a dispatch is admitted, before it enters the
 serial dispatch queue. Calls rejected by debounce or throttle do not occupy a
-queue slot; admitted executions are still serialized by the queue.
+queue slot; admitted executions are still serialized by the queue. Therefore,
+`throttle` limits admission frequency, not the wall-clock start time of a
+handler after queue wait.
 
 ### 5. Memory Management
 

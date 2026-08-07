@@ -509,7 +509,7 @@ describe('createTimeTravelStoreContext', () => {
       expect(manager.getInfo().storeCount).toBe(0);
     });
 
-    it('keeps useStoreInfo reactive when the manager creates a store', () => {
+    it('keeps useStoreInfo reactive when the manager creates a store', async () => {
       const context = createTimeTravelStoreContext<TestStores>('ReactiveInfo', {
         counter: { initialValue: { count: 0, lastAction: 'init' } },
         user: { initialValue: { name: 'Guest', age: 0 } },
@@ -530,11 +530,42 @@ describe('createTimeTravelStoreContext', () => {
       );
 
       expect(rendered.getByTestId('store-count').textContent).toBe('0');
-      act(() => {
+      await act(async () => {
         manager?.getStore('counter');
+        await Promise.resolve();
       });
       expect(rendered.getByTestId('store-count').textContent).toBe('1');
       rendered.unmount();
+    });
+
+    it('does not synchronously notify an info subscriber during store consumer render', () => {
+      const context = createTimeTravelStoreContext('RenderPhaseInfo', {
+        counter: { initialValue: 0 },
+      });
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      function InfoConsumer() {
+        context.useStoreInfo();
+        return null;
+      }
+
+      function StoreConsumer() {
+        context.useStore('counter');
+        return null;
+      }
+
+      render(
+        <context.Provider>
+          <InfoConsumer />
+          <StoreConsumer />
+        </context.Provider>,
+      );
+
+      expect(consoleError).not.toHaveBeenCalledWith(
+        expect.stringContaining('Cannot update a component'),
+        expect.anything(),
+      );
+      consoleError.mockRestore();
     });
 
     it('makes TimeTravelStoreManager.dispose terminal and idempotent', () => {

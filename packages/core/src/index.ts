@@ -14,6 +14,7 @@ export { executeParallel, executeRace, executeSequential } from './execution-mod
 export type {
   ActionDispatcher,
   ActionHandler,
+  ActionResultHandler,
   ActionPayloadMap,
   ActionResult,
   ActionResultMap,

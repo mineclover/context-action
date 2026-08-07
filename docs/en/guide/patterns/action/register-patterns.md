@@ -182,7 +182,7 @@ function PerformanceHandlerSetup() {
       scrollService.updatePosition(payload.position);
       controller.setResult({ updated: true });
     }, {
-      throttle: 100,  // Max once per 100ms
+      throttle: 100,  // Max once per 100ms at dispatch admission
       id: 'updateScrollPositionHandler'
     });
     
@@ -286,7 +286,7 @@ function FullConfigurationSetup() {
       blocking: true,         // Wait for async handlers to complete
       once: false,            // Can execute multiple times
       debounce: 200,          // Debounce calls (ms)
-      throttle: 1000          // Throttle execution (ms)
+      throttle: 1000          // Dispatch-admission throttle (ms)
     });
     
     return unregister;

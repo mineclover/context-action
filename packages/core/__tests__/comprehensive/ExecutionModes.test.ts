@@ -226,6 +226,26 @@ describe('Execution Modes - Comprehensive', () => {
       expect(result.errors[0].handlerId).toBe('task-2');
       expect(result.results).toHaveLength(2);
     });
+
+    it('arbitrates multiple parallel termination requests by priority order', async () => {
+      actionRegister.setActionExecutionMode('performTask', 'parallel');
+      actionRegister.register<'performTask', string>('performTask', async (_payload, controller) => {
+        await new Promise(resolve => setTimeout(resolve, 20));
+        controller.return('high-priority-termination');
+      }, { id: 'high-priority', priority: 20 });
+      actionRegister.register<'performTask', string>('performTask', async (_payload, controller) => {
+        await new Promise(resolve => setTimeout(resolve, 5));
+        controller.return('low-priority-termination');
+      }, { id: 'low-priority', priority: 10 });
+
+      const result = await actionRegister.dispatchWithResult<'performTask', string>(
+        'performTask',
+        { taskId: 'parallel-termination' },
+      );
+
+      expect(result.terminated).toBe(true);
+      expect(result.result).toBe('high-priority-termination');
+    });
   });
 
   describe('Race Execution Mode', () => {

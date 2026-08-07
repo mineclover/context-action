@@ -154,6 +154,7 @@ export class StoreManager<T extends Record<string, any>> {
   private infoVersion = 0;
   private readonly listeners = new Set<() => void>();
   private readonly infoListeners = new Set<() => void>();
+  private infoNotificationScheduled = false;
 
   constructor(
     public readonly name: string,
@@ -254,7 +255,7 @@ export class StoreManager<T extends Record<string, any>> {
     // Cache the store
     this.stores.set(storeName, store);
     this.infoVersion += 1;
-    this.infoListeners.forEach(listener => listener());
+    this.scheduleInfoNotification();
 
     return store;
   }
@@ -273,7 +274,7 @@ export class StoreManager<T extends Record<string, any>> {
     this.version += 1;
     this.infoVersion += 1;
     this.listeners.forEach(listener => listener());
-    this.infoListeners.forEach(listener => listener());
+    this.scheduleInfoNotification();
   }
 
   /** Dispose all stores and registry resources owned by this manager. */
@@ -303,6 +304,21 @@ export class StoreManager<T extends Record<string, any>> {
 
   getInfoVersion(): number {
     return this.infoVersion;
+  }
+
+  /**
+   * Store creation can happen during render through useStore(). Defer the
+   * metadata notification so one component never synchronously updates a
+   * sibling that is still rendering.
+   */
+  private scheduleInfoNotification(): void {
+    if (this.infoNotificationScheduled) return;
+    this.infoNotificationScheduled = true;
+    queueMicrotask(() => {
+      this.infoNotificationScheduled = false;
+      if (this.lifecycle === 'disposed') return;
+      this.infoListeners.forEach(listener => listener());
+    });
   }
 
   /**

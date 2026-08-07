@@ -52,6 +52,27 @@ describe('ActionRegister - Type Safety Tests', () => {
   });
 
   describe('🔒 Compile-time Type Safety', () => {
+    it('enforces action result map types for handlers and result dispatches', () => {
+      const typedRegister = new ActionRegister<TypeSafetyActions, TypeSafetyResults>({
+        name: 'MappedResultTypeSafetyRegister',
+      });
+
+      typedRegister.register('stringAction', payload => ({
+        normalized: payload.toUpperCase(),
+      }));
+
+      // @ts-expect-error mapped handler results must match TypeSafetyResults[stringAction]
+      typedRegister.register('stringAction', () => 42);
+
+      // @ts-expect-error mapped result types cannot be overridden at the call site
+      typedRegister.dispatchWithResult<'stringAction', string>('stringAction', 'value');
+
+      const resultPromise: Promise<ExecutionResult<TypeSafetyResults['stringAction']>> =
+        typedRegister.dispatchWithResult('stringAction', 'value');
+      expect(resultPromise).toBeInstanceOf(Promise);
+      typedRegister.destroy();
+    });
+
     it('requires payloads for payload-bearing actions', () => {
       // These calls are intentionally not executed; the assertions are checked by tsc.
       const invalidCalls = () => {

@@ -5,12 +5,16 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import React, { useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
-import type { ActionPayloadMap } from '@context-action/core';
+import type { ActionPayloadMap, ExecutionResult } from '@context-action/core';
 
 interface UserActions extends ActionPayloadMap {
   login: { username: string; password: string };
   logout: void;
   updateProfile: { name: string; email: string };
+}
+
+interface UserActionResults {
+  login: { sessionId: string };
 }
 
 describe('createActionContext', () => {
@@ -29,6 +33,27 @@ describe('createActionContext', () => {
     expect(UserActionContext.useActionHandler).toBeDefined();
     expect(UserActionContext.useActionRegister).toBeDefined();
     expect(UserActionContext.useActionContext).toBeDefined();
+  });
+
+  it('propagates action result maps through React hooks', () => {
+    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedActions');
+    const resultApi = MappedContext.useActionDispatchWithResult;
+
+    function ResultTypeComponent() {
+      MappedContext.useActionHandler('login', async payload => ({
+        sessionId: payload.username,
+      }));
+
+      const { dispatchWithResult } = resultApi();
+      const typedResult: Promise<ExecutionResult<UserActionResults['login']>> =
+        dispatchWithResult('login', { username: 'user', password: 'secret' });
+
+      // @ts-expect-error mapped result types cannot be overridden at the React boundary
+      dispatchWithResult<'login', string>('login', { username: 'user', password: 'secret' });
+      return typedResult;
+    }
+
+    expect(ResultTypeComponent).toBeDefined();
   });
 
   it('should provide type-safe action dispatching', async () => {

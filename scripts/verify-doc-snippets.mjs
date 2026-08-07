@@ -9,6 +9,8 @@ const execFileAsync = promisify(execFile);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const docsRoot = join(repositoryRoot, 'docs');
 const packageTypes = join(repositoryRoot, 'packages', 'core', 'dist', 'index.d.ts');
+const reactPackageTypes = join(repositoryRoot, 'packages', 'react', 'dist', 'index.d.ts');
+const aiSDKPackageTypes = join(repositoryRoot, 'packages', 'ai-sdk', 'dist', 'index.d.ts');
 
 async function collectMarkdownFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -24,10 +26,10 @@ async function collectMarkdownFiles(directory) {
 const snippets = [];
 for (const file of await collectMarkdownFiles(docsRoot)) {
   const source = await readFile(file, 'utf8');
-  const expression = /<!--\s*@context-action-compile\s*-->\s*```(?:ts|typescript)\n([\s\S]*?)```/g;
+  const expression = /<!--\s*@context-action-compile\s*-->\s*```(ts|typescript|tsx)\n([\s\S]*?)```/g;
   let match;
   while ((match = expression.exec(source)) !== null) {
-    snippets.push({ file, source: match[1] });
+    snippets.push({ file, language: match[1], source: match[2] });
   }
 }
 
@@ -38,7 +40,8 @@ if (snippets.length === 0) {
 const temporaryDirectory = await mkdtemp(join(tmpdir(), 'context-action-doc-snippets-'));
 try {
   const files = snippets.map((snippet, index) => {
-    const output = join(temporaryDirectory, `snippet-${index + 1}.ts`);
+    const extension = snippet.language === 'tsx' ? 'tsx' : 'ts';
+    const output = join(temporaryDirectory, `snippet-${index + 1}.${extension}`);
     return writeFile(output, snippet.source, 'utf8').then(() => output);
   });
   const snippetFiles = await Promise.all(files);
@@ -52,9 +55,14 @@ try {
       strict: true,
       skipLibCheck: true,
       noEmit: true,
+      jsx: 'react-jsx',
       ignoreDeprecations: '6.0',
       baseUrl: temporaryDirectory,
-      paths: { '@context-action/core': [packageTypes] },
+      paths: {
+        '@context-action/core': [packageTypes],
+        '@context-action/react': [reactPackageTypes],
+        '@context-action/ai-sdk': [aiSDKPackageTypes],
+      },
     },
     files: snippetFiles,
   }, null, 2), 'utf8');

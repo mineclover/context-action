@@ -28,6 +28,7 @@
 - [ActionResultMap](type-aliases/ActionResultMap.md)
 - [ActionResult](type-aliases/ActionResult.md)
 - [ActionHandler](type-aliases/ActionHandler.md)
+- [ActionResultHandler](type-aliases/ActionResultHandler.md)
 - [ExecutionMode](type-aliases/ExecutionMode.md)
 - [UnregisterFunction](type-aliases/UnregisterFunction.md)
 - [DispatchArgs](type-aliases/DispatchArgs.md)

@@ -268,7 +268,9 @@ function BestEffortComponent() {
     const result = await register.dispatchWithResult('bestEffortAction', payload, {
       result: { collect: true }
     });
-    if (!result.success) console.error('일부 핸들러 실패:', result.errors);
+    if (result.outcome === 'completed_with_errors') {
+      console.error('일부 핸들러 실패:', result.errors);
+    }
   };
   
   return <button onClick={() => handleBestEffortAction(effortData)}>최선 액션</button>;

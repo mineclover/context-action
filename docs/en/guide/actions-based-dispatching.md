@@ -41,6 +41,12 @@ if (loginResult.outcome === 'completed') {
 }
 ```
 
+`ActionResultMap` connects each action key to its handler and dispatch result
+type. A non-blocking handler error is reported as `outcome:
+'completed_with_errors'` while `success` remains `true` because the pipeline
+itself completed. Use `outcome` when distinguishing complete, partial, failed,
+cancelled, debounced, and throttled states.
+
 ## Basic Usage
 
 ### 1. Define Action Types

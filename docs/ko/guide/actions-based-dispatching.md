@@ -41,6 +41,11 @@ if (loginResult.outcome === 'completed') {
 }
 ```
 
+`ActionResultMap`은 액션 키와 핸들러·디스패치 결과 타입을 연결합니다.
+비차단 핸들러 오류는 파이프라인 자체가 완료됐으므로 `success`는 `true`로
+유지되고 `outcome: 'completed_with_errors'`로 보고됩니다. 완료, 부분 성공,
+실패, 취소, 디바운스, 스로틀 상태를 구분할 때는 `outcome`을 사용하세요.
+
 ## 기본 사용법
 
 ### 1. 액션 타입 정의

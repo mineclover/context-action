@@ -217,20 +217,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Select React runtime and types
-        run: >-
-          pnpm --filter @context-action/react add --save-dev --save-exact
-          --lockfile=false
-          react@${{ matrix.react-version }}
-          react-dom@${{ matrix.react-version }}
-          @types/react@${{ matrix.react-types }}
-          @types/react-dom@${{ matrix.react-dom-types }}
-
       - name: Verify React package
         run: |
           pnpm --filter @context-action/core build
           pnpm --filter @context-action/react build
-          pnpm --filter @context-action/react type-check
+          node scripts/verify-react-compatibility.mjs \
+            --react-version "${{ matrix.react-version }}" \
+            --react-types "${{ matrix.react-types }}" \
+            --react-dom-types "${{ matrix.react-dom-types }}"
           pnpm --filter @context-action/react exec jest --runInBand
 
   security:

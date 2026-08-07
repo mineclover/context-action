@@ -15,6 +15,7 @@ import {
   ActionRegisterConfig,
   ActionRegistryInfo,
   ActionResult,
+  ActionResultHandler,
   ActionResultMap,
   DispatchArgs,
   DispatchOptions,
@@ -294,6 +295,16 @@ export class ActionRegister<
    * 
    * @public
    */
+  register<K extends keyof T & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
+    config?: HandlerConfig<T[K]>
+  ): UnregisterFunction;
+  register<K extends Exclude<keyof T, keyof TResultMap>, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config?: HandlerConfig<T[K]>
+  ): UnregisterFunction;
   register<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
@@ -1057,7 +1068,9 @@ export class ActionRegister<
     const endTime = Date.now();
     return {
       success: false,
-      aborted: true,
+      // A timing guard rejects admission; it does not cancel an in-flight
+      // dispatch or consume a caller AbortSignal.
+      aborted: false,
       abortReason: reason,
       terminated: false,
       outcome: reason === 'Debounced execution' ? 'debounced' : 'throttled',
@@ -1291,6 +1304,14 @@ export class ActionRegister<
    * 
    * @public
    */
+  dispatchWithResult<K extends keyof T & keyof TResultMap>(
+    action: K,
+    ...args: DispatchArgs<T[K]>
+  ): Promise<ExecutionResult<ActionResult<TResultMap, K>>>;
+  dispatchWithResult<K extends Exclude<keyof T, keyof TResultMap>, R = void>(
+    action: K,
+    ...args: DispatchArgs<T[K]>
+  ): Promise<ExecutionResult<R>>;
   dispatchWithResult<K extends keyof T, R = ActionResult<TResultMap, K>>(
     action: K,
     ...args: DispatchArgs<T[K]>
@@ -1327,8 +1348,7 @@ export class ActionRegister<
           );
         }
       }, timeoutScope.options, attemptState, result => (
-        !result.success &&
-        !result.aborted &&
+        result.outcome === 'failed' &&
         this.getHandlerCount(action) > 0
       ), () => this.getHandlerCount(action) > 0);
 
@@ -1404,7 +1424,7 @@ export class ActionRegister<
       dispatchHandlerPromises
     );
     const observedPromise = exposedPromise.then(result => {
-      if (!result.success && !result.aborted) {
+      if (result.outcome === 'failed') {
         const terminalError = result.errors[result.errors.length - 1]?.error
           ?? new Error(`Action "${String(action)}" failed`);
         this.invokeErrorHandler(
@@ -1638,9 +1658,11 @@ export class ActionRegister<
       terminated: context.terminated,
       outcome: context.aborted
         ? 'cancelled'
-        : executionError || handlerErrors.length > 0
+        : executionError
           ? 'failed'
-          : 'completed',
+          : handlerErrors.length > 0
+            ? 'completed_with_errors'
+            : 'completed',
       validation,
       result: processedResult,
       successResults: successResults,

@@ -182,7 +182,7 @@ function PerformanceHandlerSetup() {
       scrollService.updatePosition(payload.position);
       controller.setResult({ updated: true });
     }, {
-      throttle: 100,  // 100ms당 최대 한 번
+      throttle: 100,  // 디스패치 admission 기준 100ms당 최대 한 번
       id: 'updateScrollPositionHandler'
     });
     
@@ -286,7 +286,7 @@ function FullConfigurationSetup() {
       blocking: true,         // 비동기 핸들러 완료 대기
       once: false,            // 여러 번 실행 가능
       debounce: 200,          // 호출 디바운스 (ms)
-      throttle: 1000          // 실행 스로틀 (ms)
+      throttle: 1000          // 디스패치 admission 스로틀 (ms)
     });
     
     return unregister;

@@ -16,5 +16,6 @@ packages:
 
 overrides:
   esbuild@<=0.24.2: '0.25.0'
-  # Prevent @types/react duplication by forcing single version
+  # Prevent @types/react duplication in the workspace install. React 18
+  # compatibility is validated in an isolated consumer matrix job.
   "@types/react": "19.2.17"

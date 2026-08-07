@@ -90,7 +90,12 @@ export interface AISDKToolSetOptions {
    */
   readonly getIdempotencyKey?: AISDKToolIdempotencyKeyFactory;
 
-  /** Native AI SDK approval gate, evaluated before the tool's execute function. */
+  /**
+   * Native AI SDK approval gate, evaluated before the tool's execute function.
+   * @deprecated AI SDK may move approval configuration to generation-level
+   * options. Keep this adapter option for v7 compatibility and mirror the
+   * same policy in the caller's generation configuration when available.
+   */
   readonly needsApproval?: AISDKToolApprovalPolicy;
 
   /**

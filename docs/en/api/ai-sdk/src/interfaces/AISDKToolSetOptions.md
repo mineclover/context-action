@@ -62,13 +62,19 @@ Supply a domain operation identity when recovery must span a new model call.
 
 ***
 
-### needsApproval?
+### ~~needsApproval?~~
 
 > `readonly` `optional` **needsApproval?**: [`AISDKToolApprovalPolicy`](../type-aliases/AISDKToolApprovalPolicy.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:94](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L94)
+Defined in: [packages/ai-sdk/src/index.ts:99](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L99)
 
 Native AI SDK approval gate, evaluated before the tool's execute function.
+
+#### Deprecated
+
+AI SDK may move approval configuration to generation-level
+options. Keep this adapter option for v7 compatibility and mirror the
+same policy in the caller's generation configuration when available.
 
 ***
 
@@ -76,7 +82,7 @@ Native AI SDK approval gate, evaluated before the tool's execute function.
 
 > `readonly` `optional` **errorMode?**: [`AISDKToolErrorMode`](../type-aliases/AISDKToolErrorMode.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:101](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L101)
+Defined in: [packages/ai-sdk/src/index.ts:106](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L106)
 
 Preserve canonical errors as data, or expose them as AI SDK tool errors.
 The adapter only exposes a definition output schema in `throw` mode;
