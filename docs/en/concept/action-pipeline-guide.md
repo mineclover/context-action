@@ -209,16 +209,8 @@ const unregisterValidation = actionRegister.register(
     id: 'email-validator',   // Unique identifier
     blocking: true,          // Wait for completion
     condition: () => isLoggedIn(), // Conditional execution
-    tags: ['validation', 'email'], // Handler tags
-    category: 'validation',  // Handler category
-    description: 'Validates email format for user updates',
-    version: '1.0.0',       // Handler version
-    timeout: 5000,          // Non-negative finite wall-clock timeout
-    environment: 'production', // Target environment
-    metrics: {
-      collectTiming: true,
-      collectErrors: true
-    }
+    debounce: 100,           // Optional handler-level timing guard
+    replaceExisting: true
   }
 );
 ```
@@ -386,16 +378,12 @@ actionRegister.setActionExecutionMode('fetchUserData', 'race');
 The ActionRegister now supports advanced handler filtering during dispatch:
 
 ```typescript
-// Filter handlers by tags
+// Filter handlers by IDs and priority
 await actionRegister.dispatch('updateUser', payload, {
   filter: {
-    tags: ['validation', 'business'],     // Only validation and business handlers
-    excludeTags: ['logging', 'analytics'], // Exclude logging handlers
-    category: 'critical',                  // Only critical category handlers
-    environment: 'production',             // Only production handlers
-    feature: 'newUserFlow',               // Only handlers with this feature flag
     handlerIds: ['validator-1', 'saver-2'], // Specific handler IDs
     excludeHandlerIds: ['debug-logger'],   // Exclude specific handlers
+    priority: { min: 50 },                 // Minimum priority
     custom: (config) => config.priority > 50 // Custom filter function
   }
 });
@@ -899,8 +887,8 @@ async function processOrderWithDetails(orderData: OrderData) {
       }
     },
     filter: {
-      tags: ['validation', 'business'], // Only these handlers
-      excludeTags: ['logging']          // Exclude logging
+      handlerIds: ['validator', 'business'], // Only these handlers
+      excludeHandlerIds: ['logging']         // Exclude logging
     }
   });
   
@@ -1030,6 +1018,10 @@ actionRegister.register('trackMouseMovement', trackingHandler, {
 });
 ```
 
+Timing guards are evaluated when a dispatch is admitted, before it enters the
+serial dispatch queue. Calls rejected by debounce or throttle do not occupy a
+queue slot; admitted executions are still serialized by the queue.
+
 ### 5. Memory Management
 
 ```typescript
@@ -1057,22 +1049,16 @@ actionRegister.register('appInitialized', initHandler, {
 ### 6. Handler Organization (New)
 
 ```typescript
-// ✅ DO: Use tags and categories for organization
+// ✅ DO: Use stable IDs and priorities for organization
 actionRegister.register('processPayment', validatePayment, {
   priority: 100,
-  tags: ['validation', 'payment', 'critical'],
-  category: 'validation',
-  description: 'Validates payment information before processing',
-  environment: 'production'
+  id: 'payment-validator'
 });
 
 // ✅ DO: Use meaningful handler IDs
 actionRegister.register('processPayment', processPaymentLogic, {
   id: 'payment-processor-v2',
-  priority: 50,
-  tags: ['business', 'payment'],
-  category: 'core-logic',
-  version: '2.1.0'
+  priority: 50
 });
 ```
 

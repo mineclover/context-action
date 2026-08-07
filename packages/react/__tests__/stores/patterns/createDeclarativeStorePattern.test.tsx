@@ -2,7 +2,7 @@
  * @fileoverview Tests for createStoreContext factory
  */
 
-import { renderHook, act, render } from '@testing-library/react';
+import { renderHook, act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import {
   createStoreContext,
@@ -135,7 +135,7 @@ describe('createStoreContext', () => {
     expect(typeof result.current.manager.getStore).toBe('function');
   });
 
-  it('disposes manager-owned stores when clearing and unmounting a provider', () => {
+  it('disposes manager-owned stores when clearing and unmounting a provider', async () => {
     const manager = new StoreManager('lifecycle', {
       value: { initialValue: 0 },
     });
@@ -166,8 +166,73 @@ describe('createStoreContext', () => {
     const providerDisposeSpy = jest.spyOn(providerStore!, 'dispose');
     rendered.unmount();
 
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     expect(providerManager?.getInfo().storeCount).toBe(0);
     expect(providerDisposeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps stores alive through StrictMode effect replay', async () => {
+    const Stores = createStoreContext('StrictModeStores', {
+      count: { initialValue: 0 },
+    });
+    let store: ReturnType<typeof Stores.useStore<'count'>> | undefined;
+
+    function Consumer() {
+      store = Stores.useStore('count');
+      useStoreValue(store);
+      return null;
+    }
+
+    const rendered = render(
+      <React.StrictMode>
+        <Stores.Provider>
+          <Consumer />
+        </Stores.Provider>
+      </React.StrictMode>,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(store?.isStoreDisposed()).toBe(false);
+
+    rendered.unmount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(store?.isStoreDisposed()).toBe(true);
+  });
+
+  it('rebinds mounted consumers after useStoreClear disposes their stores', () => {
+    const Stores = createStoreContext('ClearStores', {
+      count: { initialValue: 0 },
+    });
+    const stores: Array<ReturnType<typeof Stores.useStore<'count'>>> = [];
+
+    function Consumer() {
+      const store = Stores.useStore('count');
+      const clear = Stores.useStoreClear();
+      useStoreValue(store);
+      stores.push(store);
+      return <button onClick={clear}>clear</button>;
+    }
+
+    const rendered = render(
+      <Stores.Provider>
+        <Consumer />
+      </Stores.Provider>,
+    );
+
+    fireEvent.click(rendered.getByRole('button', { name: 'clear' }));
+
+    expect(stores[0]?.isStoreDisposed()).toBe(true);
+    const latestStore = stores[stores.length - 1];
+    expect(latestStore).not.toBe(stores[0]);
+    expect(latestStore?.isStoreDisposed()).toBe(false);
+    rendered.unmount();
   });
 
   it('should work with withProvider HOC', async () => {

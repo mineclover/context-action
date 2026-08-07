@@ -30,9 +30,9 @@ await register.dispatch('searchUsers', { query: 'john' }, {
 ```typescript
 await register.dispatch('updateUser', userData, {
   filter: {
-    tags: ['validation', 'business-logic'],  // Only these tags
-    excludeCategory: 'analytics',            // Skip analytics handlers
-    environment: 'production'                // Production handlers only
+    handlerIds: ['validator', 'business-logic'], // Only these handlers
+    excludeHandlerIds: ['analytics'],            // Skip selected handlers
+    priority: { min: 10 }                        // Minimum priority
   }
 })
 ```

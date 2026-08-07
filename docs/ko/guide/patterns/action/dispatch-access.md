@@ -165,8 +165,8 @@ function AdvancedComponent() {
     }, {
       executionMode: 'parallel',
       filter: {
-        tags: ['critical'],
-        excludeTags: ['analytics']
+        handlerIds: ['critical-handler'],
+        excludeHandlerIds: ['analytics-handler']
       }
     })
     

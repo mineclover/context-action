@@ -60,6 +60,33 @@ describe('createTimeTravelStoreContext', () => {
       );
     }
 
+    it('keeps time-travel stores alive through StrictMode effect replay', async () => {
+      const Stores = createTimeTravelStoreContext('StrictTimeTravel', {
+        counter: { initialValue: { count: 0, lastAction: 'init' } },
+      });
+      let store: ReturnType<typeof Stores.useStore<'counter'>> | undefined;
+
+      function Consumer() {
+        store = Stores.useStore('counter');
+        useStoreValue(store);
+        return null;
+      }
+
+      const rendered = render(
+        <React.StrictMode>
+          <Stores.Provider>
+            <Consumer />
+          </Stores.Provider>
+        </React.StrictMode>,
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(store && 'isStoreDisposed' in store && store.isStoreDisposed()).toBe(false);
+      rendered.unmount();
+    });
+
     function CounterControls() {
       const store = useTimeTravelStore('counter');
       const { canUndo, canRedo, undo, redo, position, historyLength } = useTimeTravelControls('counter');

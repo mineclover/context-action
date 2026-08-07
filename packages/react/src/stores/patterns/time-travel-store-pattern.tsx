@@ -127,6 +127,8 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: TimeTravelInitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any> | TimeTravelStore<any>>();
+  private version = 0;
+  private readonly listeners = new Set<() => void>();
 
   constructor(
     public readonly name: string,
@@ -226,12 +228,23 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
     this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
+    this.version += 1;
+    this.listeners.forEach(listener => listener());
   }
 
   /** Dispose all stores and registry resources owned by this manager. */
   dispose(): void {
     this.clear();
     this.registry.dispose();
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  getVersion(): number {
+    return this.version;
   }
 
   getInfo() {
@@ -292,6 +305,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   }) {
     const effectiveRegistryId = registryId || contextName;
     const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
+    const lifecycleGenerationRef = useRef(0);
 
     if (!managerRef.current) {
       managerRef.current = new TimeTravelStoreManager(
@@ -303,7 +317,15 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
     useEffect(() => {
       const manager = managerRef.current;
-      return () => manager?.dispose();
+      const generation = ++lifecycleGenerationRef.current;
+
+      return () => {
+        queueMicrotask(() => {
+          if (lifecycleGenerationRef.current !== generation) return;
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
+        });
+      };
     }, []);
 
     return (
@@ -326,9 +348,13 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
       );
     }
 
-    return useMemo(() => {
-      return context.managerRef.current!.getStore(storeName);
-    }, [context.managerRef, storeName]);
+    const manager = context.managerRef.current;
+    const subscribe = useMemo(() => manager.subscribe.bind(manager), [manager]);
+    const getVersion = useMemo(() => manager.getVersion.bind(manager), [manager]);
+    useSyncExternalStore(subscribe, getVersion, getVersion);
+
+    // getStore returns the cached instance until clear() invalidates it.
+    return manager.getStore(storeName);
   }
 
   /**
@@ -593,6 +619,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
     const WithTimeTravelStoreProvider = (props: P) => {
       const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
+      const lifecycleGenerationRef = useRef(0);
 
       if (!managerRef.current) {
         managerRef.current = new TimeTravelStoreManager(
@@ -604,10 +631,15 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
       useEffect(() => {
         const manager = managerRef.current;
+        const generation = ++lifecycleGenerationRef.current;
+
         return () => {
-          if (config?.autoCleanup !== false) {
+          if (config?.autoCleanup === false) return;
+          queueMicrotask(() => {
+            if (lifecycleGenerationRef.current !== generation) return;
             manager?.dispose();
-          }
+            if (managerRef.current === manager) managerRef.current = null;
+          });
         };
       }, []);
 

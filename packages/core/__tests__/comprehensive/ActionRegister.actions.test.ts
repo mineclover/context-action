@@ -79,6 +79,13 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       await actionRegister.actions.sendNotification({ message: 'Hello!', userId: '123' });
     });
 
+    it('does not expose a callable then property that makes the proxy thenable', async () => {
+      expect((actionRegister.actions as unknown as { then?: unknown }).then)
+        .toBeUndefined();
+      await expect(Promise.resolve(actionRegister.actions))
+        .resolves.toBe(actionRegister.actions);
+    });
+
     it('should provide function-based dispatching for actions without payload', async () => {
       // Test actions without payload
       await actionRegister.actions.userLogout();

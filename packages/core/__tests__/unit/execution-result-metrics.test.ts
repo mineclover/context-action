@@ -97,4 +97,50 @@ describe('ExecutionResult metrics', () => {
 
     register.destroy();
   });
+
+  it('freezes race handler outcomes at result resolution', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseSlow: (() => void) | undefined;
+    const slowGate = new Promise<void>(resolve => {
+      releaseSlow = resolve;
+    });
+    register.setActionExecutionMode('run', 'race');
+    register.register<'run', string>('run', async () => {
+      await slowGate;
+      return 'slow';
+    }, { id: 'slow' });
+    register.register<'run', string>('run', () => 'fast', { id: 'fast' });
+
+    const result = await register.dispatchWithResult('run', { id: 'race' });
+    const slowOutcome = result.handlers.find(handler => handler.id === 'slow');
+    expect(slowOutcome?.status).toBe('running');
+
+    releaseSlow?.();
+    await Promise.resolve();
+    expect(slowOutcome?.status).toBe('running');
+    register.destroy();
+  });
+
+  it('does not let a losing race handler abort a successful winner', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseLoser: (() => void) | undefined;
+    const loserGate = new Promise<void>(resolve => {
+      releaseLoser = resolve;
+    });
+    register.setActionExecutionMode('run', 'race');
+    register.register<'run', string>('run', async (_payload, controller) => {
+      controller.abort('loser failed');
+      await loserGate;
+      return 'loser';
+    }, { id: 'loser' });
+    register.register<'run', string>('run', () => 'winner', { id: 'winner' });
+
+    const result = await register.dispatchWithResult('run', { id: 'race-abort' });
+    expect(result.success).toBe(true);
+    expect(result.aborted).toBe(false);
+    expect(result.result).toBe('winner');
+
+    releaseLoser?.();
+    register.destroy();
+  });
 });

@@ -50,7 +50,6 @@ function useUserHandlers() {
     const unregister = addHandler('updateProfile', updateProfileHandler, {
       priority: 100,      // 높은 우선순위가 먼저 실행
       blocking: true,     // 순차 모드에서 비동기 완료 대기
-      tags: ['business'], // 필터링용
       id: 'profile-updater' // 디버깅을 위한 명시적 ID
     });
     
@@ -201,8 +200,8 @@ function useOrderProcessing() {
         maxResults: 10         // 결과 제한
       },
       filter: {
-        tags: ['validation', 'business'], // 이 핸들러들만
-        excludeTags: ['logging']          // 로깅 제외
+        handlerIds: ['validator', 'business'], // 이 핸들러들만
+        excludeHandlerIds: ['logging']         // 로깅 제외
       }
     });
     

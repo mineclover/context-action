@@ -143,8 +143,8 @@ function UserManagementComponent() {
   const handleUserUpdate = async (payload) => {
     await dispatch('updateUser', payload, {
       filter: {
-        tags: ['validation', 'business-logic'],
-        excludeTags: ['analytics', 'logging']
+        handlerIds: ['validator', 'business-logic'],
+        excludeHandlerIds: ['analytics', 'logging']
       }
     });
   };
@@ -153,7 +153,7 @@ function UserManagementComponent() {
 }
 ```
 
-### 카테고리 필터링
+### 핸들러 ID 필터링
 
 ```typescript
 function SecurityComponent() {
@@ -163,8 +163,8 @@ function SecurityComponent() {
     // 보안 관련 핸들러만 실행
     await dispatch('sensitiveOperation', data, {
       filter: {
-        category: 'security',
-        excludeCategory: 'analytics'
+        handlerIds: ['security-check'],
+        excludeHandlerIds: ['analytics']
       }
     });
   };
@@ -185,8 +185,7 @@ function DynamicActionComponent() {
         custom: (config) => {
           // 복잡한 필터링 로직
           return config.priority > 50 && 
-                 config.tags.includes('critical') &&
-                 config.environment === 'production';
+                 !config.id?.includes('optional');
         }
       }
     });
@@ -258,13 +257,14 @@ function RiskyActionComponent() {
 
 ```typescript
 function BestEffortComponent() {
-  const dispatch = useAppDispatch();
+  const register = useAppRegister();
   
   const handleBestEffortAction = async (payload) => {
-    // 일부 핸들러가 실패해도 실행 계속
-    await dispatch('bestEffortAction', payload, {
-      continueOnError: true
+    // 핸들러별 실패 정보가 필요하면 dispatchWithResult를 사용합니다.
+    const result = await register.dispatchWithResult('bestEffortAction', payload, {
+      result: { collect: true }
     });
+    if (!result.success) console.error('일부 핸들러 실패:', result.errors);
   };
   
   return <button onClick={() => handleBestEffortAction(effortData)}>최선 액션</button>;

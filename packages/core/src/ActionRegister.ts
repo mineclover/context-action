@@ -30,6 +30,23 @@ import {
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
 
+const RESERVED_PROXY_KEYS = new Set([
+  'then',
+  'catch',
+  'finally',
+  'toJSON',
+  'constructor',
+  '__proto__',
+  'prototype',
+]);
+
+function snapshotHandlerOutcome<R>(outcome: HandlerExecutionOutcome<R>): HandlerExecutionOutcome<R> {
+  return {
+    ...outcome,
+    metadata: outcome.metadata ? { ...outcome.metadata } : undefined,
+  };
+}
+
 function normalizePositiveLimit(
   value: number | undefined,
   fallback: number,
@@ -88,7 +105,6 @@ export class ActionRegister<
   private handlerIdCounter = 0;
 
   // 🔧 Performance optimization: PipelineController pool for object reuse
-  private controllerPool: PipelineController<any, any>[] = [];
 
   private lifecycleState: 'active' | 'closing' | 'destroyed' = 'active';
   private readonly lifecycleController = new AbortController();
@@ -179,6 +195,7 @@ export class ActionRegister<
       this._actionsProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
+          if (RESERVED_PROXY_KEYS.has(prop)) return undefined;
           const actionKey = prop as keyof T;
 
           let dispatcher = this.actionDispatchers.get(prop);
@@ -232,6 +249,7 @@ export class ActionRegister<
       this._actionsWithResultProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
+          if (RESERVED_PROXY_KEYS.has(prop)) return undefined;
           const actionKey = prop as keyof T;
 
           let dispatcher = this.actionResultDispatchers.get(prop);
@@ -255,7 +273,7 @@ export class ActionRegister<
    * 
    * @param action - The action type to register handler for
    * @param handler - The handler function to execute
-   * @param config - Optional handler configuration including priority, tags, etc.
+   * @param config - Optional handler configuration including priority, timing, and lifecycle options.
    * 
    * @returns Unregister function to remove this handler
    * 
@@ -552,7 +570,13 @@ export class ActionRegister<
     const timeoutScope = this.createTimeoutScope(action, options);
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
+    const hasTimingGuard = this.hasTimingGuard(action, options);
+    const timingGuardPromise = hasTimingGuard
+      ? this.evaluateTimingGuards(action, timeoutScope.options)
+      : undefined;
     const operation = async () => {
+      if (timingGuardPromise && (await timingGuardPromise)) return;
+      if (timeoutScope.options?.signal?.aborted) return;
       if (!timeoutScope.options?.signal?.aborted) {
         this.validatePayload(action, payload);
       }
@@ -564,7 +588,7 @@ export class ActionRegister<
             action,
             payload,
             timeoutScope.options,
-            attemptState.count > 1,
+            Boolean(timingGuardPromise) || attemptState.count > 1,
             executedHandlers,
             dispatchHandlerPromises
           );
@@ -578,22 +602,10 @@ export class ActionRegister<
       }, timeoutScope.options, attemptState, undefined, () => this.getHandlerCount(action) > 0);
     };
 
-    const hasTimingGuard = (
-      options?.debounce !== undefined ||
-      options?.throttle !== undefined ||
-      this.pipelines.get(action)?.some(handler => (
-        handler.config.debounce !== undefined ||
-        handler.config.throttle !== undefined
-      )) === true
-    );
-
     let dispatchPromise: Promise<void>;
     this.dispatchConstructionDepth += 1;
     try {
-      // Timing guards must observe rapid calls when they are dispatched. If
-      // they enter the serial queue first, each debounce window completes
-      // before the next call starts and every call is executed.
-      if (timeoutScope.options?.immediate || hasTimingGuard || !this.dispatchQueue) {
+      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
         dispatchPromise = operation();
       } else {
         const queued = this.dispatchQueue.enqueueWithHandle(
@@ -954,6 +966,79 @@ export class ActionRegister<
     };
   }
 
+  private getTimingGuardSettings<K extends keyof T>(
+    action: K,
+    options?: DispatchOptions,
+  ): { debounceMs?: number; throttleMs?: number } {
+    const pipeline = this.pipelines.get(action) ?? [];
+    const handlers = options?.filter
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
+
+    let debounceMs = options?.debounce;
+    let throttleMs = options?.throttle;
+
+    if (debounceMs === undefined) {
+      debounceMs = handlers.find(handler => handler.config.debounce !== undefined)
+        ?.config.debounce;
+    }
+    if (throttleMs === undefined) {
+      throttleMs = handlers.find(handler => handler.config.throttle !== undefined)
+        ?.config.throttle;
+    }
+
+    return { debounceMs, throttleMs };
+  }
+
+  private hasTimingGuard<K extends keyof T>(action: K, options?: DispatchOptions): boolean {
+    const { debounceMs, throttleMs } = this.getTimingGuardSettings(action, options);
+    return debounceMs !== undefined || throttleMs !== undefined;
+  }
+
+  private async evaluateTimingGuards<K extends keyof T>(
+    action: K,
+    options?: DispatchOptions,
+  ): Promise<string | undefined> {
+    const { debounceMs, throttleMs } = this.getTimingGuardSettings(action, options);
+    const actionKey = String(action);
+
+    if (debounceMs !== undefined && !(await this.actionGuard.debounce(actionKey, debounceMs))) {
+      return 'Debounced execution';
+    }
+    if (throttleMs !== undefined && !this.actionGuard.throttle(actionKey, throttleMs)) {
+      return 'Throttled execution';
+    }
+    return undefined;
+  }
+
+  private createTimingGuardResult<R>(
+    reason: string,
+    startTime: number,
+    handlersSkipped: number,
+  ): ExecutionResult<R> {
+    const endTime = Date.now();
+    return {
+      success: false,
+      aborted: true,
+      abortReason: reason,
+      terminated: false,
+      result: undefined,
+      successResults: [],
+      results: [],
+      failedResults: [],
+      execution: {
+        duration: endTime - startTime,
+        handlersExecuted: 0,
+        handlersSkipped,
+        handlersFailed: 0,
+        startTime,
+        endTime,
+      },
+      handlers: [],
+      errors: [],
+    };
+  }
+
   /**
    * 🆕 실제 디스패치 작업 수행 (큐에서 호출됨)
    */
@@ -1171,8 +1256,28 @@ export class ActionRegister<
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
     let validation: ExecutionResult<R>['validation'];
+    const hasTimingGuard = this.hasTimingGuard(action, options);
+    const timingGuardPromise = hasTimingGuard
+      ? this.evaluateTimingGuards(action, timeoutScope.options)
+      : undefined;
 
     const operation = async () => {
+      const timingGuardReason = timingGuardPromise
+        ? await timingGuardPromise
+        : undefined;
+      if (timingGuardReason) {
+        return this.createTimingGuardResult<R>(
+          timingGuardReason,
+          Date.now(),
+          this.getHandlerCount(action),
+        );
+      }
+      if (timeoutScope.options?.signal?.aborted) {
+        return this.createAbortedExecutionResult<R>(
+          Date.now(),
+          this.getHandlerCount(action),
+        );
+      }
       if (!timeoutScope.options?.signal?.aborted) {
         validation = this.validatePayload(action, payload);
       }
@@ -1185,7 +1290,7 @@ export class ActionRegister<
             payload,
             timeoutScope.options,
             validation,
-            attemptState.count > 1,
+            Boolean(timingGuardPromise) || attemptState.count > 1,
             executedHandlers,
             dispatchHandlerPromises
           );
@@ -1203,17 +1308,8 @@ export class ActionRegister<
       ), () => this.getHandlerCount(action) > 0);
     };
 
-    const hasTimingGuard = (
-      options?.debounce !== undefined ||
-      options?.throttle !== undefined ||
-      this.pipelines.get(action)?.some(handler => (
-        handler.config.debounce !== undefined ||
-        handler.config.throttle !== undefined
-      )) === true
-    );
     const shouldQueue = (
       !timeoutScope.options?.immediate &&
-      !hasTimingGuard &&
       Boolean(this.dispatchQueue)
     );
     let dispatchPromise: Promise<ExecutionResult<R>>;
@@ -1436,17 +1532,20 @@ export class ActionRegister<
 
     const recordedOutcomes = context.handlerOutcomes ?? [];
     const outcomesById = new Map(recordedOutcomes.map(outcome => [outcome.id, outcome]));
-    const handlerResults: HandlerExecutionOutcome<R>[] = filteredHandlers.map(handler => (
-      outcomesById.get(handler.id) ?? {
-        id: handler.id,
-        status: 'skipped',
-        executed: false,
-        duration: 0,
-        result: undefined,
-        error: undefined,
-        metadata: undefined,
-      }
-    ));
+    const handlerResults: HandlerExecutionOutcome<R>[] = filteredHandlers.map(handler => {
+      const outcome = outcomesById.get(handler.id);
+      return outcome
+        ? snapshotHandlerOutcome(outcome)
+        : {
+            id: handler.id,
+            status: 'skipped' as const,
+            executed: false,
+            duration: 0,
+            result: undefined,
+            error: undefined,
+            metadata: undefined,
+          };
+    });
     const handlerErrors = errors.filter(error => error.handlerId !== 'pipeline');
     const reportedErrors = executionError
       ? errors.filter(error => error.handlerId === 'pipeline')
@@ -1587,22 +1686,14 @@ export class ActionRegister<
 
   // Cache invalidation removed for memory stability
 
-  /**
-   * 🔧 Create or reuse PipelineController from pool for better performance
-   */
-  private getControllerFromPool<K extends keyof T>(
+  /** Create a pipeline controller for one handler execution. */
+  private createController<K extends keyof T>(
     context: PipelineContext<T[K], any>, 
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean },
     isolatedState?: PipelineControllerState<T[K], any>,
   ): PipelineController<T[K], any> {
-    // Try to reuse from pool
-    let controller = this.controllerPool.pop();
-    
-    if (!controller) {
-      // Create new controller if pool is empty
-      controller = {} as PipelineController<T[K], any>;
-    }
+    const controller = {} as PipelineController<T[K], any>;
 
     // Configure/reset the controller for current context
     (controller as { signal: AbortSignal }).signal =
@@ -1613,11 +1704,14 @@ export class ActionRegister<
     controller.abort = (reason?: string) => {
       state.aborted = true;
       state.abortReason = reason;
-      context.aborted = true;
-      context.abortReason = reason;
+      const propagateAbort = !isolatedState || context.executionMode !== 'race';
+      if (propagateAbort) {
+        context.aborted = true;
+        context.abortReason = reason;
+      }
       
       // Auto-abort: Handler can trigger pipeline abort if enabled
-      if (autoAbortController && autoAbortOptions?.allowHandlerAbort) {
+      if (propagateAbort && autoAbortController && autoAbortOptions?.allowHandlerAbort) {
         autoAbortController.abort(reason);
       }
     };
@@ -1790,7 +1884,7 @@ export class ActionRegister<
       _index: number,
       state?: PipelineControllerState<T[K], any>,
     ): PipelineController<T[K], any> => {
-      return this.getControllerFromPool(
+      return this.createController(
         context,
         autoAbortController,
         autoAbortOptions,
@@ -2282,7 +2376,6 @@ export class ActionRegister<
 
     this.clearAll();
     this.actionExecutionModes.clear();
-    this.controllerPool.length = 0;
     this.lifecycleState = 'destroyed';
     this.log('ActionRegister destroyed');
   }

@@ -551,6 +551,10 @@ export async function executeRace<T, R = void>(
   /** Only the winner contributes results to the race snapshot. */
   if (winner.success) {
     appendLocalResults(context, winner.state, winner.result);
+    if (winner.state.aborted) {
+      context.aborted = true;
+      context.abortReason = winner.state.abortReason;
+    }
   }
 
   /** Check if the winning handler terminated the pipeline */

@@ -453,7 +453,7 @@ export interface HandlerConfig<T = unknown> {
   /** Throttle delay in milliseconds */
   throttle?: number;
   
-  /** Replace existing handler with same ID. Default: false for backward compatibility */
+  /** Replace existing handler with same ID. Default: true for backward compatibility */
   replaceExisting?: boolean;
   
   /** Cleanup function to call when handler is unregistered */
@@ -727,9 +727,9 @@ export interface ActionRegisterConfig {
  * ```typescript
  * await register.dispatch('updateUser', userData, {
  *   filter: {
- *     tags: ['validation', 'business-logic'],  // Only these tags
- *     excludeCategory: 'analytics',            // Skip analytics handlers
- *     environment: 'production'                // Production handlers only
+ *     handlerIds: ['validation', 'business-logic'], // Only these handlers
+ *     excludeHandlerIds: ['analytics'],              // Skip selected handlers
+ *     priority: { min: 10 }                          // Minimum priority
  *   }
  * })
  * ```

@@ -439,6 +439,39 @@ describe('DispatchOptions runtime contract', () => {
     );
   });
 
+  it('serializes timing-guarded executions after they are admitted', async () => {
+    jest.useFakeTimers();
+    const executionOrder: string[] = [];
+    let releaseFirst: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    const firstStarted = new Promise<void>(resolve => {
+      markFirstStarted = resolve;
+    });
+    const firstGate = new Promise<void>(resolve => {
+      releaseFirst = resolve;
+    });
+
+    register.register('work', async payload => {
+      executionOrder.push(payload.id);
+      if (payload.id === 'first') {
+        markFirstStarted?.();
+        await firstGate;
+      }
+    }, { blocking: true });
+
+    const first = register.dispatch('work', { id: 'first' });
+    await firstStarted;
+    const debounced = register.dispatch('work', { id: 'debounced' }, { debounce: 20 });
+    const after = register.dispatch('work', { id: 'after' });
+
+    await jest.advanceTimersByTimeAsync(20);
+    expect(executionOrder).toEqual(['first']);
+
+    releaseFirst?.();
+    await Promise.all([first, debounced, after]);
+    expect(executionOrder).toEqual(['first', 'debounced', 'after']);
+  });
+
   it('requires immediate mode for nested result dispatches in a serial queue', async () => {
     const inner = jest.fn(() => 'inner-result');
     register.register('nestedInner', inner, { blocking: true });

@@ -11,7 +11,7 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { Store } from '../core/Store';
 import { createStore } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
@@ -148,6 +148,8 @@ export class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();
+  private version = 0;
+  private readonly listeners = new Set<() => void>();
 
   constructor(
     public readonly name: string,
@@ -254,12 +256,23 @@ export class StoreManager<T extends Record<string, any>> {
     this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
+    this.version += 1;
+    this.listeners.forEach(listener => listener());
   }
 
   /** Dispose all stores and registry resources owned by this manager. */
   dispose(): void {
     this.clear();
     this.registry.dispose();
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  getVersion(): number {
+    return this.version;
   }
 
   /**
@@ -367,6 +380,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
   }) {
     const effectiveRegistryId = registryId || contextName;
     const managerRef = useRef<StoreManager<T> | null>(null);
+    const lifecycleGenerationRef = useRef(0);
     
     if (!managerRef.current) {
       managerRef.current = new StoreManager(effectiveRegistryId, initialStores);
@@ -374,7 +388,15 @@ function createStoreContextImpl<T extends Record<string, any>>(
 
     useEffect(() => {
       const manager = managerRef.current;
-      return () => manager?.dispose();
+      const generation = ++lifecycleGenerationRef.current;
+
+      return () => {
+        queueMicrotask(() => {
+          if (lifecycleGenerationRef.current !== generation) return;
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
+        });
+      };
     }, []);
     
     return (
@@ -397,11 +419,14 @@ function createStoreContextImpl<T extends Record<string, any>>(
         `Wrap your component with <${contextName}.Provider>`
       );
     }
-    
-    // Memoize store to prevent infinite re-renders in useEffect dependencies
-    return useMemo(() => {
-      return context.managerRef.current!.getStore(storeName);
-    }, [context.managerRef, storeName]);
+
+    const manager = context.managerRef.current;
+    const subscribe = useMemo(() => manager.subscribe.bind(manager), [manager]);
+    const getVersion = useMemo(() => manager.getVersion.bind(manager), [manager]);
+    useSyncExternalStore(subscribe, getVersion, getVersion);
+
+    // getStore returns the cached instance until clear() invalidates it.
+    return manager.getStore(storeName);
   }
 
   /**
@@ -444,6 +469,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
     
     const WithStoreProvider = (props: P) => {
       const managerRef = useRef<StoreManager<T> | null>(null);
+      const lifecycleGenerationRef = useRef(0);
       
       if (!managerRef.current) {
         managerRef.current = new StoreManager(registryId, initialStores);
@@ -451,10 +477,15 @@ function createStoreContextImpl<T extends Record<string, any>>(
 
       useEffect(() => {
         const manager = managerRef.current;
+        const generation = ++lifecycleGenerationRef.current;
+
         return () => {
-          if (config?.autoCleanup !== false) {
+          if (config?.autoCleanup === false) return;
+          queueMicrotask(() => {
+            if (lifecycleGenerationRef.current !== generation) return;
             manager?.dispose();
-          }
+            if (managerRef.current === manager) managerRef.current = null;
+          });
         };
       }, []);
       

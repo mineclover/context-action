@@ -143,8 +143,8 @@ function UserManagementComponent() {
   const handleUserUpdate = async (payload) => {
     await dispatch('updateUser', payload, {
       filter: {
-        tags: ['validation', 'business-logic'],
-        excludeTags: ['analytics', 'logging']
+        handlerIds: ['validator', 'business-logic'],
+        excludeHandlerIds: ['analytics', 'logging']
       }
     });
   };
@@ -153,7 +153,7 @@ function UserManagementComponent() {
 }
 ```
 
-### Category Filtering
+### Handler ID Filtering
 
 ```typescript
 function SecurityComponent() {
@@ -163,8 +163,8 @@ function SecurityComponent() {
     // Only execute security-related handlers
     await dispatch('sensitiveOperation', data, {
       filter: {
-        category: 'security',
-        excludeCategory: 'analytics'
+        handlerIds: ['security-check'],
+        excludeHandlerIds: ['analytics']
       }
     });
   };
@@ -185,8 +185,7 @@ function DynamicActionComponent() {
         custom: (config) => {
           // Complex filtering logic
           return config.priority > 50 && 
-                 config.tags.includes('critical') &&
-                 config.environment === 'production';
+                 !config.id?.includes('optional');
         }
       }
     });
@@ -258,13 +257,14 @@ function RiskyActionComponent() {
 
 ```typescript
 function BestEffortComponent() {
-  const dispatch = useAppDispatch();
+  const register = useAppRegister();
   
   const handleBestEffortAction = async (payload) => {
-    // Continue execution even if some handlers fail
-    await dispatch('bestEffortAction', payload, {
-      continueOnError: true
+    // Use dispatchWithResult when callers need per-handler failure details.
+    const result = await register.dispatchWithResult('bestEffortAction', payload, {
+      result: { collect: true }
     });
+    if (!result.success) console.error('Some handlers failed:', result.errors);
   };
   
   return <button onClick={() => handleBestEffortAction(effortData)}>Best Effort Action</button>;

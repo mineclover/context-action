@@ -110,7 +110,7 @@ Throttle delay in milliseconds
 
 Defined in: [packages/core/src/types.ts:457](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L457)
 
-Replace existing handler with same ID. Default: false for backward compatibility
+Replace existing handler with same ID. Default: true for backward compatibility
 
 ***
 
