@@ -20,7 +20,7 @@ Internal context type for ToolContext
 
 ### actionRegisterRef
 
-> **actionRegisterRef**: `RefObject`\<`ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\> \| `null`\>
+> **actionRegisterRef**: `RefObject`\<`ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;, \{ \}\> \| `null`\>
 
 Defined in: [packages/react/src/tools/ToolContext.types.ts:244](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L244)
 

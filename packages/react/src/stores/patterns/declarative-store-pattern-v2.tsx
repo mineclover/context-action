@@ -151,7 +151,9 @@ export class StoreManager<T extends Record<string, any>> {
   public readonly stores = new Map<keyof T, Store<any>>();
   private lifecycle: 'active' | 'disposed' = 'active';
   private version = 0;
+  private infoVersion = 0;
   private readonly listeners = new Set<() => void>();
+  private readonly infoListeners = new Set<() => void>();
 
   constructor(
     public readonly name: string,
@@ -251,6 +253,8 @@ export class StoreManager<T extends Record<string, any>> {
 
     // Cache the store
     this.stores.set(storeName, store);
+    this.infoVersion += 1;
+    this.infoListeners.forEach(listener => listener());
 
     return store;
   }
@@ -267,7 +271,9 @@ export class StoreManager<T extends Record<string, any>> {
     this.registry.clear();
     this.stores.clear();
     this.version += 1;
+    this.infoVersion += 1;
     this.listeners.forEach(listener => listener());
+    this.infoListeners.forEach(listener => listener());
   }
 
   /** Dispose all stores and registry resources owned by this manager. */
@@ -277,6 +283,7 @@ export class StoreManager<T extends Record<string, any>> {
     this.stores.forEach(store => store.dispose());
     this.stores.clear();
     this.listeners.clear();
+    this.infoListeners.clear();
     this.registry.dispose();
   }
 
@@ -287,6 +294,15 @@ export class StoreManager<T extends Record<string, any>> {
 
   getVersion(): number {
     return this.version;
+  }
+
+  subscribeInfo(listener: () => void): () => void {
+    this.infoListeners.add(listener);
+    return () => this.infoListeners.delete(listener);
+  }
+
+  getInfoVersion(): number {
+    return this.infoVersion;
   }
 
   /**
@@ -463,6 +479,11 @@ function createStoreContextImpl<T extends Record<string, any>>(
    */
   function useStoreInfo() {
     const manager = useStoreManager();
+    useSyncExternalStore(
+      listener => manager.subscribeInfo(listener),
+      () => manager.getInfoVersion(),
+      () => manager.getInfoVersion(),
+    );
     return manager.getInfo();
   }
 

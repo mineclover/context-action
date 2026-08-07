@@ -25,10 +25,14 @@
 ## Type Aliases
 
 - [ActionPayloadMap](type-aliases/ActionPayloadMap.md)
+- [ActionResultMap](type-aliases/ActionResultMap.md)
+- [ActionResult](type-aliases/ActionResult.md)
 - [ActionHandler](type-aliases/ActionHandler.md)
 - [ExecutionMode](type-aliases/ExecutionMode.md)
 - [UnregisterFunction](type-aliases/UnregisterFunction.md)
 - [DispatchArgs](type-aliases/DispatchArgs.md)
+- [ReservedActionKey](type-aliases/ReservedActionKey.md)
+- [ProxyActionKey](type-aliases/ProxyActionKey.md)
 - [ActionDispatcher](type-aliases/ActionDispatcher.md)
 
 ## Functions

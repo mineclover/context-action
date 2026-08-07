@@ -22,7 +22,7 @@ Time Travel Store Manager
 
 > **new TimeTravelStoreManager**&lt;`T`&gt;(`name`, `initialStores`, `defaultMaxHistory?`): `TimeTravelStoreManager`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:135](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L135)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:137](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L137)
 
 #### Parameters
 
@@ -48,7 +48,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:13
 
 > **getStore**&lt;`K`&gt;(`storeName`): [`Store`](Store.md)\<`T`\[`K`\]\> \| [`TimeTravelStore`](TimeTravelStore.md)\<`T`\[`K`\]\>
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:144](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L144)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:146](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L146)
 
 #### Type Parameters
 
@@ -72,7 +72,7 @@ Type parameter **K**
 
 > **hasTimeTravel**&lt;`K`&gt;(`storeName`): `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:228](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L228)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:232](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L232)
 
 Check if a store has time travel enabled
 
@@ -98,7 +98,7 @@ Type parameter **K**
 
 > **clear**(): `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:233](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L233)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:237](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L237)
 
 #### Returns
 
@@ -110,7 +110,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:23
 
 > **dispose**(): `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:246](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L246)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:252](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L252)
 
 Dispose all stores and registry resources owned by this manager.
 
@@ -124,7 +124,7 @@ Dispose all stores and registry resources owned by this manager.
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:255](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L255)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:262](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L262)
 
 #### Parameters
 
@@ -142,7 +142,37 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:25
 
 > **getVersion**(): `number`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:260](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L260)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:267](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L267)
+
+#### Returns
+
+`number`
+
+***
+
+### subscribeInfo()
+
+> **subscribeInfo**(`listener`): () => `void`
+
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:271](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L271)
+
+#### Parameters
+
+##### listener
+
+() => `void`
+
+#### Returns
+
+() => `void`
+
+***
+
+### getInfoVersion()
+
+> **getInfoVersion**(): `number`
+
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:276](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L276)
 
 #### Returns
 
@@ -154,7 +184,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:26
 
 > **getInfo**(): `object`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:264](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L264)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:280](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L280)
 
 #### Returns
 
@@ -202,4 +232,4 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:13
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:136](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L136)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:138](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L138)

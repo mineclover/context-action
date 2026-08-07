@@ -214,6 +214,25 @@ export type ActionNames<T extends ActionPayloadMap> = keyof T;
 export type ActionPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
 
 /**
+ * Optional action-keyed result contract for `dispatchWithResult`.
+ *
+ * The legacy API allows callers to provide an explicit result generic. New
+ * code can instead associate result types with action keys at the register
+ * level so the result type is inferred from the dispatched action.
+ */
+export type ActionResultMap<T extends ActionPayloadMap> = Partial<
+  Record<keyof T, unknown>
+>;
+
+/** Resolve the configured result type for an action, falling back to void. */
+export type ActionResult<
+  TResultMap extends ActionPayloadMap,
+  K extends PropertyKey,
+> = K extends keyof TResultMap ? TResultMap[K]
+  // biome-ignore lint/suspicious/noConfusingVoidType: void preserves the legacy no-result dispatch contract.
+  : void;
+
+/**
  * Pipeline controller interface for managing execution flow and payload modification
  * 
  * Provides action handlers with powerful control over the action pipeline execution,
@@ -839,7 +858,7 @@ export interface DispatchOptions {
   
   /** Result collection and processing options */
   result?: {
-    /** How to handle multiple results. In parallel mode, results follow completion order. */
+    /** How to handle multiple results. In parallel mode, results follow priority order. */
     strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
     
     /** Custom result merger function (used with 'merge' or 'custom' strategy) */
@@ -909,6 +928,9 @@ export interface ExecutionResult<R = void> {
   
   /** Whether the execution was terminated early via controller.return() */
   terminated: boolean;
+
+  /** High-level terminal state, including timing-guard rejections. */
+  outcome: 'completed' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
 
   /** Runtime payload validation outcome when a schema was configured */
   validation?: {
@@ -1035,6 +1057,19 @@ export type DispatchArgs<P> = [P] extends [void]
   ? [payload?: undefined, options?: DispatchOptions]
   : [payload: P, options?: DispatchOptions];
 
+/** Property names reserved by the callable action proxy protocol. */
+export type ReservedActionKey =
+  | 'then'
+  | 'catch'
+  | 'finally'
+  | 'toJSON'
+  | 'constructor'
+  | '__proto__'
+  | 'prototype';
+
+/** Action keys that can be exposed through `register.actions` proxies. */
+export type ProxyActionKey<T extends ActionPayloadMap> = Exclude<keyof T, ReservedActionKey>;
+
 /**
  * Type-safe dispatchWithResult interface
  * 
@@ -1044,9 +1079,12 @@ export type DispatchArgs<P> = [P] extends [void]
  * @template T - The action payload map interface
  */
 /** Dispatch an action with the payload contract defined by its action key. */
-export type ActionDispatcherWithResult<T extends ActionPayloadMap> = <
+export type ActionDispatcherWithResult<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> = <
   K extends keyof T,
-  R = unknown
+  R = ActionResult<TResultMap, K>
 >(action: K, ...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<R>>;
 
 /**

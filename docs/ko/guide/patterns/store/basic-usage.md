@@ -157,7 +157,7 @@ function UserProfile() {
 ## 사용 가능한 훅
 - `useUserStore(name)` - 이름으로 타입이 지정된 사용자 도메인 스토어 가져오기 (주요 API)
 - `useUserStoreManager()` - 사용자 스토어 매니저 접근 (고급 사용)
-- `useStoreInfo()` - 레지스트리 정보 가져오기 (설정 컨텍스트에서)
+- `useStoreInfo()` - 반응형 레지스트리 정보 가져오기 (스토어 생성·초기화 시 갱신)
 - `useStoreClear()` - 모든 스토어 지우기 (설정 컨텍스트에서)
 
 ## 실제 예제

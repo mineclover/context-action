@@ -32,6 +32,18 @@ describe('StoreRegistry', () => {
       expect(registry.getStoreCount()).toBe(2);
     });
 
+    it('should replace references without disposing stores it does not own', () => {
+      const firstDispose = jest.spyOn(store1, 'dispose');
+      registry.register('shared-store', store1);
+      registry.register('shared-store', store2);
+
+      expect(registry.getStore('shared-store')).toBe(store2);
+      expect(firstDispose).not.toHaveBeenCalled();
+
+      store1.dispose();
+      store2.dispose();
+    });
+
     it('should unregister stores correctly', () => {
       registry.register('string-store', store1);
       expect(registry.hasStore('string-store')).toBe(true);

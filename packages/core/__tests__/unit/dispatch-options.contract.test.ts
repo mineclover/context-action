@@ -142,6 +142,26 @@ describe('DispatchOptions runtime contract', () => {
     expect(attempts).toBe(2);
   });
 
+  it('distinguishes cancellation from throttle rejection', async () => {
+    register.register('work', () => 'completed', { blocking: true });
+
+    const completed = await register.dispatchWithResult('work', { id: 'allowed' }, {
+      throttle: 10_000,
+    });
+    const throttled = await register.dispatchWithResult('work', { id: 'blocked' }, {
+      throttle: 10_000,
+    });
+    const controller = new AbortController();
+    controller.abort('caller cancelled');
+    const cancelled = await register.dispatchWithResult('work', { id: 'cancelled' }, {
+      signal: controller.signal,
+    });
+
+    expect(completed.outcome).toBe('completed');
+    expect(throttled.outcome).toBe('throttled');
+    expect(cancelled.outcome).toBe('cancelled');
+  });
+
   it('validates only once when an execution is retried', async () => {
     const safeParse = jest.fn(() => ({ success: true as const, data: { id: 'validated' } }));
     register.destroy();
@@ -555,6 +575,7 @@ describe('DispatchOptions runtime contract', () => {
     ]);
 
     const rejected = [firstResult, secondResult].find(result => result.abortReason === 'Debounced execution');
+    expect(rejected?.outcome).toBe('debounced');
     expect(rejected?.execution.handlersSkipped).toBe(1);
     expect(rejected?.handlers.map(handler => handler.id)).toEqual(['included']);
   });

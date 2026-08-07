@@ -8,7 +8,7 @@
 
 > **createTimeTravelStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`, `options?`): `object`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:305](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L305)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:321](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L321)
 
 Create a time travel store context with undo/redo capabilities
 

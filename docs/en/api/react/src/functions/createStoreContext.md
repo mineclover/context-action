@@ -12,7 +12,7 @@ Implementation function that handles both overloads
 
 > **createStoreContext**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `StoreContextReturn`\<`InferStoreTypes`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:338](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L338)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:354](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L354)
 
 Overload 1: Type inference - Types inferred from store definitions
 
@@ -44,7 +44,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 > **createStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`): `StoreContextReturn`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:348](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L348)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:364](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L364)
 
 Overload 2: Explicit generic types - User provides explicit type interface
 
@@ -76,7 +76,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 > **createStoreContext**(`contextName`, `initialStores`): `StoreContextReturn`&lt;`any`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:358](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L358)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:374](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L374)
 
 Reflection-friendly overload used by utilities such as
 `ReturnType<typeof createStoreContext>`. Specific calls continue to resolve

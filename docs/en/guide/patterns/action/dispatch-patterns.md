@@ -111,6 +111,11 @@ function EventComponent() {
 
 Best for independent operations like analytics, logging, and notifications.
 
+When result collection is enabled, results are assembled in the registered
+priority order after all parallel handlers settle. Completion timing affects
+when side effects finish, but does not change the meaning of `first`, `last`,
+or `all` result strategies.
+
 ### Race Execution
 
 ```typescript

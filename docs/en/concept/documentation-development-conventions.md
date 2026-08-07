@@ -88,6 +88,18 @@ describing it as available.
 | Release/package tooling | `pnpm verify:package-exports` and `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
 | LLMS/documentation consistency | `pnpm llms:check` | `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` for review evidence |
 
+Canonical TypeScript examples that are intended to be self-contained may be
+marked with `<!-- @context-action-compile -->` immediately before a `ts` or
+`typescript` fence. `pnpm verify:doc-snippets` extracts those marked blocks,
+compiles them against the built Core declaration, and is included in
+`pnpm verify:all`. Unmarked explanatory fragments may remain illustrative and
+are not treated as standalone consumer programs.
+
+The AI SDK adapter also has a real-runtime smoke gate:
+`pnpm test:ai-sdk-integration`. It builds the local protocol and adapter,
+invokes the installed AI SDK `dynamicTool` output, and verifies the approval
+and execution callback contracts.
+
 `pnpm docs:full` is the API-reference refresh pipeline: it regenerates TypeDoc,
 synchronizes it into VitePress, and builds the site. It does **not** regenerate
 LLMS artifacts. For authored-guide work, run `pnpm llms:sync-docs` for the

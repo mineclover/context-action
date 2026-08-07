@@ -20,7 +20,7 @@ Context type for ActionRegister with enhanced type safety and abort support
 
 ### actionRegisterRef
 
-> **actionRegisterRef**: `RefObject`\<`ActionRegister`&lt;`T`&gt; \| `null`\>
+> **actionRegisterRef**: `RefObject`\<`ActionRegister`\<`T`, \{ \}\> \| `null`\>
 
 Defined in: [packages/react/src/actions/ActionContext.types.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L58)
 

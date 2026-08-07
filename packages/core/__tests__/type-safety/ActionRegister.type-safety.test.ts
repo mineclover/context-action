@@ -5,11 +5,14 @@
 import {
   ActionRegister,
   type ActionPayloadMap,
+  type ExecutionResult,
   type PipelineController
 } from '../../src';
 
 // Test type definitions
 interface TypeSafetyActions extends ActionPayloadMap {
+  then: void;
+  toJSON: void;
   stringAction: string;
   numberAction: number;
   booleanAction: boolean;
@@ -28,6 +31,11 @@ interface TypeSafetyActions extends ActionPayloadMap {
     data: string | { nested: boolean } | number[];
     type: 'string' | 'object' | 'array';
   };
+}
+
+interface TypeSafetyResults {
+  stringAction: { normalized: string };
+  numberAction: { doubled: number };
 }
 
 describe('ActionRegister - Type Safety Tests', () => {
@@ -56,6 +64,15 @@ describe('ActionRegister - Type Safety Tests', () => {
       };
 
       expect(invalidCalls).toBeInstanceOf(Function);
+    });
+
+    it('does not expose reserved proxy keys through callable action access', () => {
+      // Direct dispatch remains available for compatibility, but proxy access
+      // reserves protocol properties to avoid thenable assimilation.
+      // @ts-expect-error reserved proxy key
+      actionRegister.actions.then;
+      // @ts-expect-error reserved proxy key
+      actionRegister.actionsWithResult.toJSON;
     });
 
     it('should enforce correct payload types for string actions', async () => {
@@ -384,6 +401,17 @@ describe('ActionRegister - Type Safety Tests', () => {
   });
 
   describe('📊 Result Type Safety', () => {
+    it('infers dispatch result types from the action result map', async () => {
+      const typedRegister = new ActionRegister<TypeSafetyActions, TypeSafetyResults>();
+      typedRegister.register('stringAction', payload => ({ normalized: payload.toUpperCase() }));
+
+      const result = await typedRegister.dispatchWithResult('stringAction', 'hello');
+      const typedResult: ExecutionResult<{ normalized: string }> = result;
+
+      expect(typedResult.result).toEqual({ normalized: 'HELLO' });
+      typedRegister.destroy();
+    });
+
     it('should preserve result types in dispatchWithResult', async () => {
       const handler1 = jest.fn((payload: string) => ({ handler: 1, length: payload.length }));
       const handler2 = jest.fn((payload: string) => ({ handler: 2, upper: payload.toUpperCase() }));

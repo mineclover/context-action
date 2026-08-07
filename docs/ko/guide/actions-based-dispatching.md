@@ -14,6 +14,33 @@ await registry.dispatch('userLogin', { userId: '123', email: 'user@example.com' 
 await registry.actions.userLogin({ userId: '123', email: 'user@example.com' });
 ```
 
+<!-- @context-action-compile -->
+```typescript
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+
+interface AppActions extends ActionPayloadMap {
+  userLogin: { userId: string; email: string };
+}
+
+interface AppResults {
+  userLogin: { accepted: boolean };
+}
+
+const registry = new ActionRegister<AppActions, AppResults>();
+registry.register('userLogin', payload => ({
+  accepted: payload.email.includes('@'),
+}));
+
+const loginResult = await registry.actionsWithResult.userLogin({
+  userId: '123',
+  email: 'user@example.com',
+});
+
+if (loginResult.outcome === 'completed') {
+  console.log(loginResult.result);
+}
+```
+
 ## 기본 사용법
 
 ### 1. 액션 타입 정의
@@ -71,6 +98,12 @@ await registry.actions.sendNotification({ message: '안녕하세요!', userId: '
 await registry.actions.userLogout();
 await registry.actions.resetApp();
 ```
+
+호출 가능한 `actions` 및 `actionsWithResult` Proxy는 `then`, `catch`,
+`finally`, `toJSON`, `constructor`, `__proto__`, `prototype` 등의 프로토콜
+속성명을 예약합니다. Promise/직렬화 프로토콜 충돌을 방지하기 위해 이
+이름들은 Proxy 타입에서 제외됩니다. 기존 액션이 이 이름을 사용한다면
+`dispatch()` 또는 `dispatchWithResult()`를 직접 사용하세요.
 
 ### 5. 결과 수집이 있는 액션
 

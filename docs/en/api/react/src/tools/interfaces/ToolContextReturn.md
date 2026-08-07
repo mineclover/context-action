@@ -129,7 +129,7 @@ Hook for dispatch with detailed result
 
 ### useActionRegister
 
-> **useActionRegister**: () => `ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\> \| `null`
+> **useActionRegister**: () => `ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;, \{ \}\> \| `null`
 
 Defined in: [packages/react/src/tools/ToolContext.types.ts:342](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L342)
 
@@ -138,7 +138,7 @@ For advanced use cases
 
 #### Returns
 
-`ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\> \| `null`
+`ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;, \{ \}\> \| `null`
 
 ***
 

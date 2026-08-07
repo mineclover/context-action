@@ -88,13 +88,13 @@ Type parameter **K**
 
 ### useActionRegister
 
-> **useActionRegister**: () => `ActionRegister`&lt;`T`&gt; \| `null`
+> **useActionRegister**: () => `ActionRegister`\<`T`, \{ \}\> \| `null`
 
 Defined in: [packages/react/src/actions/ActionContext.types.ts:85](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L85)
 
 #### Returns
 
-`ActionRegister`&lt;`T`&gt; \| `null`
+`ActionRegister`\<`T`, \{ \}\> \| `null`
 
 ***
 

@@ -509,6 +509,34 @@ describe('createTimeTravelStoreContext', () => {
       expect(manager.getInfo().storeCount).toBe(0);
     });
 
+    it('keeps useStoreInfo reactive when the manager creates a store', () => {
+      const context = createTimeTravelStoreContext<TestStores>('ReactiveInfo', {
+        counter: { initialValue: { count: 0, lastAction: 'init' } },
+        user: { initialValue: { name: 'Guest', age: 0 } },
+        settings: { initialValue: { theme: 'light' } },
+      });
+      let manager: TimeTravelStoreManager<TestStores> | undefined;
+
+      function InfoConsumer() {
+        manager = context.useStoreManager();
+        const info = context.useStoreInfo();
+        return <span data-testid="store-count">{info.storeCount}</span>;
+      }
+
+      const rendered = render(
+        <context.Provider>
+          <InfoConsumer />
+        </context.Provider>,
+      );
+
+      expect(rendered.getByTestId('store-count').textContent).toBe('0');
+      act(() => {
+        manager?.getStore('counter');
+      });
+      expect(rendered.getByTestId('store-count').textContent).toBe('1');
+      rendered.unmount();
+    });
+
     it('makes TimeTravelStoreManager.dispose terminal and idempotent', () => {
       const manager = new TimeTravelStoreManager<TestStores>('terminal', {
         counter: { initialValue: { count: 0, lastAction: 'init' } },

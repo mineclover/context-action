@@ -190,6 +190,8 @@ describe('Execution Modes - Comprehensive', () => {
 
       expect(result.success).toBe(true);
       expect(result.results).toHaveLength(3);
+      expect(result.results.map(value => (value as unknown as { operation: string }).operation))
+        .toEqual(['sum', 'average', 'max']);
       expect(result.results).toContainEqual({ operation: 'sum', result: 15 });
       expect(result.results).toContainEqual({ operation: 'average', result: 3 });
       expect(result.results).toContainEqual({ operation: 'max', result: 5 });

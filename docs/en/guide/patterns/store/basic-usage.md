@@ -157,7 +157,7 @@ function UserProfile() {
 ## Available Hooks
 - `useUserStore(name)` - Get typed user domain store by name (primary API)
 - `useUserStoreManager()` - Access user store manager (advanced use)
-- `useStoreInfo()` - Get registry information (from setup context)
+- `useStoreInfo()` - Get reactive registry information (updates when stores are created or cleared)
 - `useStoreClear()` - Clear all stores (from setup context)
 
 ## Real-World Examples

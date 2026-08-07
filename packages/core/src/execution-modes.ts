@@ -55,10 +55,11 @@ function appendLocalResults<T, R>(
   context: PipelineContext<T, R>,
   state: PipelineControllerState<T, R>,
   returnedResult: R | undefined,
+  target: R[] = context.results,
 ): void {
-  if (state.results.length > 0) context.results.push(...state.results);
+  if (state.results.length > 0) target.push(...state.results);
   if (returnedResult !== undefined && !state.terminated) {
-    context.results.push(returnedResult);
+    target.push(returnedResult);
   }
 }
 
@@ -338,6 +339,7 @@ export async function executeParallel<T, R = void>(
     state: PipelineControllerState<T, R>;
     outcome: HandlerExecutionOutcome<R>;
   }> = [];
+  const resultSlots: R[][] = runnableHandlers.map(() => []);
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
@@ -369,7 +371,7 @@ export async function executeParallel<T, R = void>(
         outcome.terminationResult = state.terminationResult;
         terminationCandidates.push({ state, outcome });
       }
-      appendLocalResults(context, state, handlerResult);
+      appendLocalResults(context, state, handlerResult, resultSlots[_index]);
       return { 
         success: true, 
         handlerId: registration.id, 
@@ -406,6 +408,11 @@ export async function executeParallel<T, R = void>(
 
   /** Wait for all handlers to complete */
   const results = await Promise.allSettled(trackedHandlerPromises);
+
+  // Completion timing is intentionally concurrent, but collected result
+  // order follows the priority-sorted handler order. This makes first/last/
+  // all strategies deterministic across runs.
+  context.results.push(...resultSlots.flat());
   
   /** Check for any rejected blocking handlers */
   const failures = results.filter((result, index) => {

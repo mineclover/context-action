@@ -80,6 +80,16 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 | 릴리스·패키지 도구 | `pnpm verify:package-exports`, `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
 | LLMS/문서 정합성 | `pnpm llms:check` | 리뷰 증거가 필요하면 `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` |
 
+독립 실행이 가능한 정식 TypeScript 예제는 `ts` 또는 `typescript` fence 바로 앞에
+`<!-- @context-action-compile -->` marker를 붙일 수 있습니다. `pnpm verify:doc-snippets`가
+이 marker가 붙은 block을 추출해 빌드된 Core declaration을 기준으로 컴파일하며,
+`pnpm verify:all`에도 포함됩니다. marker가 없는 설명용 fragment는 standalone
+consumer program으로 취급하지 않습니다.
+
+AI SDK adapter에는 실제 runtime smoke gate인 `pnpm test:ai-sdk-integration`도 있습니다.
+이 명령은 local protocol과 adapter를 빌드한 뒤 설치된 AI SDK의 `dynamicTool` 결과를
+호출해 approval 및 execution callback 계약을 검증합니다.
+
 `pnpm docs:full`은 API 참조 갱신 파이프라인입니다. TypeDoc을 생성하고 VitePress에
 동기화한 뒤 사이트를 빌드합니다. **LLMS 산출물은 재생성하지 않습니다.** 사람이 작성한
 가이드 변경에는 해당 원본을 `pnpm llms:sync-docs`로 갱신한 뒤 `pnpm docs:check`를

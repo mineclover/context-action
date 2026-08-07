@@ -14,6 +14,33 @@ await registry.dispatch('userLogin', { userId: '123', email: 'user@example.com' 
 await registry.actions.userLogin({ userId: '123', email: 'user@example.com' });
 ```
 
+<!-- @context-action-compile -->
+```typescript
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+
+interface AppActions extends ActionPayloadMap {
+  userLogin: { userId: string; email: string };
+}
+
+interface AppResults {
+  userLogin: { accepted: boolean };
+}
+
+const registry = new ActionRegister<AppActions, AppResults>();
+registry.register('userLogin', payload => ({
+  accepted: payload.email.includes('@'),
+}));
+
+const loginResult = await registry.actionsWithResult.userLogin({
+  userId: '123',
+  email: 'user@example.com',
+});
+
+if (loginResult.outcome === 'completed') {
+  console.log(loginResult.result);
+}
+```
+
 ## Basic Usage
 
 ### 1. Define Action Types
@@ -71,6 +98,12 @@ await registry.actions.sendNotification({ message: 'Hello!', userId: '123' });
 await registry.actions.userLogout();
 await registry.actions.resetApp();
 ```
+
+The callable `actions` and `actionsWithResult` proxies reserve protocol
+properties such as `then`, `catch`, `finally`, `toJSON`, `constructor`,
+`__proto__`, and `prototype`. These keys are excluded from the proxy type to
+prevent Promise/serialization protocol collisions. Use `dispatch()` or
+`dispatchWithResult()` directly when a legacy action uses one of these names.
 
 ### 5. Actions with Result Collection
 

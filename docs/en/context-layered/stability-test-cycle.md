@@ -12,6 +12,18 @@ The recommended message is:
 - That extra structure creates strong runtime boundaries.
 - Those boundaries are continuously verified by a layered test cycle.
 
+## Supported Runtime Matrix
+
+The published React package declares React 18 and React 19 as peer runtimes.
+CI verifies both versions on Node 24, which matches the repository engine
+requirement (`node >=24.11.0`). Node 22 is intentionally outside the support
+contract until the engine requirement is lowered and the package matrix is
+updated together.
+
+The compatibility job rebuilds Core and React, then runs React type-checks and
+the full React test suite against each peer version. Package export checks also
+cover both ESM and CommonJS entry points.
+
 ## The Stability-Oriented Test Cycle
 
 ```mermaid

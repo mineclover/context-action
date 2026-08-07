@@ -15,6 +15,8 @@ export type {
   ActionDispatcher,
   ActionHandler,
   ActionPayloadMap,
+  ActionResult,
+  ActionResultMap,
   ActionRegisterConfig,
   ActionSchemaLike,
   DispatchArgs,
@@ -25,5 +27,7 @@ export type {
   HandlerRegistration,
   PipelineContext,
   PipelineController,
+  ProxyActionKey,
+  ReservedActionKey,
   UnregisterFunction,
 } from './types.js';

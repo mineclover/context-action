@@ -174,6 +174,32 @@ describe('createStoreContext', () => {
     expect(providerDisposeSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps useStoreInfo reactive when the manager creates a store', () => {
+    const Stores = createStoreContext('ReactiveInfo', {
+      counter: { initialValue: 0 },
+    });
+    let manager: StoreManager<{ counter: number }> | undefined;
+
+    function InfoConsumer() {
+      manager = Stores.useStoreManager();
+      const info = Stores.useStoreInfo();
+      return <span data-testid="store-count">{info.storeCount}</span>;
+    }
+
+    const rendered = render(
+      <Stores.Provider>
+        <InfoConsumer />
+      </Stores.Provider>,
+    );
+
+    expect(rendered.getByTestId('store-count').textContent).toBe('0');
+    act(() => {
+      manager?.getStore('counter');
+    });
+    expect(rendered.getByTestId('store-count').textContent).toBe('1');
+    rendered.unmount();
+  });
+
   it('makes StoreManager.dispose terminal and idempotent', () => {
     const manager = new StoreManager('terminal', {
       value: { initialValue: 0 },

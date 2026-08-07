@@ -28,7 +28,7 @@ Record of store names to their value types
 
 > **new StoreManager**&lt;`T`&gt;(`name`, `initialStores`): `StoreManager`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:156](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L156)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:158](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L158)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > **clear**(): `void`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:261](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L261)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:265](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L265)
 
 Clear all stores
 
@@ -64,7 +64,7 @@ Clear all stores
 
 > **dispose**(): `void`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:274](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L274)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:280](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L280)
 
 Dispose all stores and registry resources owned by this manager.
 
@@ -78,7 +78,7 @@ Dispose all stores and registry resources owned by this manager.
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:283](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L283)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:290](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L290)
 
 #### Parameters
 
@@ -96,7 +96,37 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > **getVersion**(): `number`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:288](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L288)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:295](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L295)
+
+#### Returns
+
+`number`
+
+***
+
+### subscribeInfo()
+
+> **subscribeInfo**(`listener`): () => `void`
+
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:299](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L299)
+
+#### Parameters
+
+##### listener
+
+() => `void`
+
+#### Returns
+
+() => `void`
+
+***
+
+### getInfoVersion()
+
+> **getInfoVersion**(): `number`
+
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:304](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L304)
 
 #### Returns
 
@@ -108,7 +138,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > **getInfo**(): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:295](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L295)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:311](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L311)
 
 Get registry info
 
@@ -158,4 +188,4 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:157](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L157)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:159](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L159)

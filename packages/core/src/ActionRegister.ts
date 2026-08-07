@@ -14,6 +14,8 @@ import {
   ActionPayloadMap,
   ActionRegisterConfig,
   ActionRegistryInfo,
+  ActionResult,
+  ActionResultMap,
   DispatchArgs,
   DispatchOptions,
   ExecutionMode,
@@ -25,6 +27,8 @@ import {
   PipelineContext,
   PipelineController,
   PipelineControllerState,
+  ProxyActionKey,
+  ReservedActionKey,
   ResolvedHandlerConfig,
   UnregisterFunction,
 } from './types.js';
@@ -36,7 +40,7 @@ type TimingGuardAdmission = {
   aborted: boolean;
 };
 
-const RESERVED_PROXY_KEYS = new Set([
+const RESERVED_PROXY_KEYS = new Set<ReservedActionKey>([
   'then',
   'catch',
   'finally',
@@ -83,7 +87,8 @@ function normalizePositiveLimit(
  */
 
 export class ActionRegister<
-  T extends ActionPayloadMap = Record<string, unknown>
+  T extends ActionPayloadMap = Record<string, unknown>,
+  TResultMap extends ActionResultMap<T> = {},
 > {
   private pipelines = new Map<keyof T, Array<HandlerRegistration<any, any>>>();
   private readonly actionGuard: ActionGuard;
@@ -121,10 +126,10 @@ export class ActionRegister<
 
   // 🔧 Performance optimization: Cached Proxy instances for actions getters
   private _actionsProxy?: {
-    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<void>
+    [K in ProxyActionKey<T>]: (...args: DispatchArgs<T[K]>) => Promise<void>
   };
   private _actionsWithResultProxy?: {
-    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<any>>
+    [K in ProxyActionKey<T>]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<ActionResult<TResultMap, K>>>
   };
   private readonly actionDispatchers = new Map<
     PropertyKey,
@@ -194,14 +199,14 @@ export class ActionRegister<
    * @public
    */
   get actions(): {
-    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<void>
+    [K in ProxyActionKey<T>]: (...args: DispatchArgs<T[K]>) => Promise<void>
   } {
     // 🔧 Performance: Return cached Proxy instance
     if (!this._actionsProxy) {
       this._actionsProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
-          if (RESERVED_PROXY_KEYS.has(prop)) return undefined;
+          if (RESERVED_PROXY_KEYS.has(prop as ReservedActionKey)) return undefined;
           const actionKey = prop as keyof T;
 
           let dispatcher = this.actionDispatchers.get(prop);
@@ -248,14 +253,14 @@ export class ActionRegister<
    * @returns Proxy object with action functions that return ExecutionResult
    */
   get actionsWithResult(): {
-    [K in keyof T]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<any>>
+    [K in ProxyActionKey<T>]: (...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<ActionResult<TResultMap, K>>>
   } {
     // 🔧 Performance: Return cached Proxy instance
     if (!this._actionsWithResultProxy) {
       this._actionsWithResultProxy = new Proxy({} as any, {
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
-          if (RESERVED_PROXY_KEYS.has(prop)) return undefined;
+          if (RESERVED_PROXY_KEYS.has(prop as ReservedActionKey)) return undefined;
           const actionKey = prop as keyof T;
 
           let dispatcher = this.actionResultDispatchers.get(prop);
@@ -962,6 +967,7 @@ export class ActionRegister<
       aborted: true,
       abortReason: 'Action dispatch aborted by signal',
       terminated: false,
+      outcome: 'cancelled',
       validation,
       result: undefined,
       successResults: [],
@@ -1054,6 +1060,7 @@ export class ActionRegister<
       aborted: true,
       abortReason: reason,
       terminated: false,
+      outcome: reason === 'Debounced execution' ? 'debounced' : 'throttled',
       validation,
       result: undefined,
       successResults: [],
@@ -1284,7 +1291,7 @@ export class ActionRegister<
    * 
    * @public
    */
-  dispatchWithResult<K extends keyof T, R = void>(
+  dispatchWithResult<K extends keyof T, R = ActionResult<TResultMap, K>>(
     action: K,
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>> {
@@ -1460,6 +1467,7 @@ export class ActionRegister<
         aborted: false,
         abortReason: undefined as string | undefined,
         terminated: false,
+        outcome: 'completed',
         validation,
         result: undefined as any,
         successResults: [] as any,
@@ -1628,6 +1636,11 @@ export class ActionRegister<
       aborted: context.aborted,
       abortReason: context.abortReason,
       terminated: context.terminated,
+      outcome: context.aborted
+        ? 'cancelled'
+        : executionError || handlerErrors.length > 0
+          ? 'failed'
+          : 'completed',
       validation,
       result: processedResult,
       successResults: successResults,
@@ -1698,6 +1711,7 @@ export class ActionRegister<
           aborted: true,
           abortReason: 'Debounced execution',
           terminated: false,
+          outcome: 'debounced',
           result: undefined as any,
           successResults: [] as any,
           results: [],
@@ -1725,6 +1739,7 @@ export class ActionRegister<
           aborted: true,
           abortReason: 'Throttled execution',
           terminated: false,
+          outcome: 'throttled',
           result: undefined as any,
           successResults: [] as any,
           results: [],

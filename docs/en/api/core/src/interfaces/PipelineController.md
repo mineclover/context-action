@@ -6,7 +6,7 @@
 
 # Interface: PipelineController\<T, R\>
 
-Defined in: [packages/core/src/types.ts:276](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L276)
+Defined in: [packages/core/src/types.ts:295](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L295)
 
 Pipeline controller interface for managing execution flow and payload modification
 
@@ -87,7 +87,7 @@ The result type for this action
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:287](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L287)
+Defined in: [packages/core/src/types.ts:306](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L306)
 
 Abort the pipeline execution with an optional reason
 
@@ -107,7 +107,7 @@ Abort the pipeline execution with an optional reason
 
 > **modifyPayload**(`modifier`): `void`
 
-Defined in: [packages/core/src/types.ts:290](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L290)
+Defined in: [packages/core/src/types.ts:309](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L309)
 
 Modify the payload that will be passed to subsequent handlers
 
@@ -127,7 +127,7 @@ Modify the payload that will be passed to subsequent handlers
 
 > **getPayload**(): `T`
 
-Defined in: [packages/core/src/types.ts:293](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L293)
+Defined in: [packages/core/src/types.ts:312](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L312)
 
 Get the current payload
 
@@ -141,7 +141,7 @@ Type parameter **T**
 
 > **jumpToPriority**(`priority`): `void`
 
-Defined in: [packages/core/src/types.ts:324](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L324)
+Defined in: [packages/core/src/types.ts:343](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L343)
 
 Jump to a specific priority level in the pipeline
 
@@ -190,7 +190,7 @@ register.register('validate', (payload) => {
 
 > **return**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:328](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L328)
+Defined in: [packages/core/src/types.ts:347](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L347)
 
 Return a result and terminate the pipeline
 
@@ -210,7 +210,7 @@ Type parameter **R**
 
 > **setResult**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:331](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L331)
+Defined in: [packages/core/src/types.ts:350](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L350)
 
 Set a result but continue pipeline execution
 
@@ -230,7 +230,7 @@ Type parameter **R**
 
 > **getResults**(): `R`[]
 
-Defined in: [packages/core/src/types.ts:334](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L334)
+Defined in: [packages/core/src/types.ts:353](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L353)
 
 Get all results from previously executed handlers
 
@@ -244,7 +244,7 @@ Get all results from previously executed handlers
 
 > **mergeResult**(`merger`): `void`
 
-Defined in: [packages/core/src/types.ts:337](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L337)
+Defined in: [packages/core/src/types.ts:356](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L356)
 
 Merge current result with previous results using a custom merger function
 
@@ -264,7 +264,7 @@ Merge current result with previous results using a custom merger function
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:284](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L284)
+Defined in: [packages/core/src/types.ts:303](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L303)
 
 Signal for the current dispatch lifecycle.
 

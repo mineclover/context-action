@@ -15,7 +15,11 @@ export interface StoreMetadata {
 }
 
 /**
- * Centralized store registry for managing multiple Store instances
+ * Centralized non-owning registry for tracking multiple Store instances.
+ *
+ * The registry stores references and metadata only; callers that create stores
+ * remain responsible for disposing them. This prevents a registry replacement
+ * or clear operation from unexpectedly disposing stores owned by a manager.
  */
 export class StoreRegistry implements IStoreRegistry {
   // Store 인스턴스들 직접 저장
@@ -48,15 +52,8 @@ export class StoreRegistry implements IStoreRegistry {
    * Register a new store in the registry
    */
   register(name: string, store: IStore<any>, metadata?: Partial<StoreMetadata>): void {
-    // Store already exists check - cleanup old reference
-    if (this.stores.has(name)) {
-      const oldStore = this.stores.get(name);
-      if (oldStore) {
-        // Clean up old store if needed
-      }
-    }
-    
-    // Store directly
+    // Re-registration replaces the reference without disposing the previous
+    // store. Store ownership and cleanup remain with the creating manager.
     this.stores.set(name, store);
     
     // Store metadata
