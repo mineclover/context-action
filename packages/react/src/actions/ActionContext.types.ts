@@ -9,7 +9,6 @@ import {
   ActionRegister,
   ActionRegisterConfig,
   DispatchArgs,
-  DispatchOptions,
   ExecutionResult,
   HandlerConfig,
   PipelineController,
@@ -81,14 +80,13 @@ export interface ActionContextReturn<T extends {}> {
   useActionHandler: <K extends keyof T, R = void>(
     action: K,
     handler: ActionContextHandler<T[K], R>,
-    config?: HandlerConfig
+    config?: HandlerConfig<T[K]>
   ) => void;
   useActionRegister: () => ActionRegister<T> | null;
   useActionDispatchWithResult: () => {
     dispatch: <K extends keyof T>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ) => Promise<void>;
     dispatchWithResult: <K extends keyof T, R = void>(
       action: K,

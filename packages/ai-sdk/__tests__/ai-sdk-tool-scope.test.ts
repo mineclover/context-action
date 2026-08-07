@@ -80,7 +80,7 @@ describe('createAISDKToolScope', () => {
     expect(scope.activeTools).toEqual(['search']);
     expect(Object.keys(scope.tools)).toEqual(['search']);
     expect((scope.tools.search as { outputSchema?: unknown }).outputSchema)
-      .toEqual(searchDefinition.outputSchema);
+      .toBeUndefined();
   });
 
   it('rejects unavailable tools before a model generation begins', () => {
@@ -181,6 +181,34 @@ describe('createAISDKToolScope', () => {
     expect(execute.mock.calls[0]?.[1]).toMatchObject({
       idempotencyKey: 'remove:asset-1',
     });
+  });
+
+  it('allows an explicit undefined idempotency key to disable replay protection', async () => {
+    const execute = jest.fn(async (
+      _call: ModelToolCall,
+      _options?: ToolCallOptions,
+    ) => ({ content: [] }));
+    const scope = createAISDKToolScope(createManager(execute), {
+      sessionId: 'session-1',
+      toolNames: ['remove'],
+      getIdempotencyKey: () => undefined,
+    });
+
+    await executeTool(scope, 'remove', { id: 'asset-1' });
+    expect(execute.mock.calls[0]?.[1]).toMatchObject({
+      idempotencyKey: undefined,
+    });
+  });
+
+  it('retains an output schema when errors are configured to throw', () => {
+    const scope = createAISDKToolScope(createManager(), {
+      sessionId: 'session-1',
+      toolNames: ['search'],
+      errorMode: 'throw',
+    });
+
+    expect((scope.tools.search as { outputSchema?: unknown }).outputSchema)
+      .toEqual(searchDefinition.outputSchema);
   });
 
   it('rejects an invalid provider tool call identity before execution', async () => {

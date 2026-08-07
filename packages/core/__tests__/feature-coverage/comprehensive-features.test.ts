@@ -518,7 +518,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
 
       register.register('testAction', async () => {
         return 'should-not-execute';
-      }, { id: 'after-abort', priority: 1 });
+      }, { id: 'after-abort', priority: -1 });
 
       const result = await register.dispatchWithResult('testAction', 
         { message: 'test' },

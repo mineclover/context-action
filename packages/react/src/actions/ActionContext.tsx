@@ -282,9 +282,9 @@ export function createActionContext<T extends {}>(
     // Stable dispatch function with useCallback optimization
     const dispatch = useCallback(<K extends keyof T>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       if (process.env.NODE_ENV === 'development') {
         console.log(`React dispatch called for '${String(action)}':`, {
           hasPayload: payload !== undefined,
@@ -343,7 +343,7 @@ export function createActionContext<T extends {}>(
   const useActionHandler = <K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
-    config?: HandlerConfig
+    config?: HandlerConfig<T[K]>
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
@@ -351,7 +351,7 @@ export function createActionContext<T extends {}>(
     const registrationRef = useRef<{
       register: ActionRegister<T>;
       action: keyof T;
-      config: HandlerConfig;
+      config: HandlerConfig<T[K]>;
       active: boolean;
       unregister: () => void;
     } | null>(null);
@@ -372,7 +372,7 @@ export function createActionContext<T extends {}>(
     const replaceExisting = config?.replaceExisting ?? true;
     
     // Memoize config to prevent unnecessary re-registrations
-    const stableConfig = useMemo((): HandlerConfig => ({
+    const stableConfig = useMemo((): HandlerConfig<T[K]> => ({
       priority,
       id,
       blocking,

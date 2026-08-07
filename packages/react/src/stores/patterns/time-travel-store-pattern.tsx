@@ -7,19 +7,18 @@
  * Provides the same API as createStoreContext but with time travel functionality.
  */
 
-import React, { createContext, useContext, ReactNode, useRef, useMemo, useCallback } from 'react';
-import { useSyncExternalStore } from 'react';
-import { StoreRegistry } from '../core/StoreRegistry';
-import { createStore, Store } from '../core/Store';
-import { createTimeTravelStore, TimeTravelStore, isTimeTravelStore } from '../core/TimeTravelStore';
-import type { ComparisonOptions } from '../utils/comparison';
 import type { Patches } from '@context-action/mutative';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { createStore, Store } from '../core/Store';
+import { StoreRegistry } from '../core/StoreRegistry';
+import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
 import type { StorePath } from '../hooks/useTimeTravelPath';
+import type { ComparisonOptions } from '../utils/comparison';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import {
+  type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
-  type ExplicitStoreValue,
 } from './store-definition';
 
 const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
@@ -224,8 +223,15 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   }
 
   clear(): void {
+    this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
+  }
+
+  /** Dispose all stores and registry resources owned by this manager. */
+  dispose(): void {
+    this.clear();
+    this.registry.dispose();
   }
 
   getInfo() {
@@ -294,6 +300,11 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
         defaultMaxHistory
       );
     }
+
+    useEffect(() => {
+      const manager = managerRef.current;
+      return () => manager?.dispose();
+    }, []);
 
     return (
       <StoreContext.Provider value={{ managerRef }}>
@@ -576,7 +587,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
   function withProvider<P extends {}>(
     Component: React.ComponentType<P>,
-    config?: { displayName?: string; registryId?: string }
+    config?: { displayName?: string; registryId?: string; autoCleanup?: boolean }
   ): React.FC<P> {
     const registryId = config?.registryId || contextName;
 
@@ -590,6 +601,15 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
           defaultMaxHistory
         );
       }
+
+      useEffect(() => {
+        const manager = managerRef.current;
+        return () => {
+          if (config?.autoCleanup !== false) {
+            manager?.dispose();
+          }
+        };
+      }, []);
 
       return (
         <StoreContext.Provider value={{ managerRef }}>

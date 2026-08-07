@@ -5,9 +5,9 @@
  * 모든 Store 훅들이 공유하는 핵심 로직을 제공
  */
 
-import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { IStore } from '../core/types';
-import { referenceEquals, shallowEquals, deepEquals } from './comparison';
+import { deepEquals, referenceEquals, shallowEquals } from './comparison';
 
 /**
  * 향상된 구독 옵션
@@ -26,74 +26,6 @@ export interface EnhancedSubscriptionOptions {
 }
 
 /**
- * 향상된 구독 함수 생성 (내부 사용)
- * 디바운싱, 스로틀링, 조건부 구독 기능 제공
- */
-function createEnhancedSubscriber<T>(
-  store: IStore<T>,
-  options: EnhancedSubscriptionOptions = {}
-) {
-  const { debounce, throttle, condition, debug, name = 'unknown' } = options;
-
-  return (callback: () => void) => {
-    if (!store) return () => {};
-
-    let debounceTimer: NodeJS.Timeout | null = null;
-    let throttleTimer: NodeJS.Timeout | null = null;
-    let lastThrottleTime = 0;
-
-    const enhancedCallback = () => {
-      // 조건 체크
-      if (condition && !condition()) {
-        if (debug) {
-          console.debug(`[${name}] Subscription suspended due to condition`);
-        }
-        return;
-      }
-
-      const now = performance.now();
-
-      // 스로틀링 처리
-      if (throttle && throttle > 0) {
-        if (now - lastThrottleTime < throttle) {
-          if (throttleTimer) clearTimeout(throttleTimer);
-          throttleTimer = setTimeout(() => {
-            lastThrottleTime = performance.now();
-            callback();
-          }, throttle - (now - lastThrottleTime));
-          return;
-        }
-        lastThrottleTime = now;
-      }
-
-      // 디바운싱 처리
-      if (debounce && debounce > 0) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          callback();
-          if (debug) {
-            console.debug(`[${name}] Debounced callback executed after ${debounce}ms`);
-          }
-        }, debounce);
-        return;
-      }
-
-      // 즉시 실행
-      callback();
-    };
-
-    const unsubscribe = store.subscribe(enhancedCallback);
-
-    // 정리 함수
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      if (throttleTimer) clearTimeout(throttleTimer);
-      unsubscribe();
-    };
-  };
-}
-
-/**
  * Null-safe Store 구독 훅
  * useSyncExternalStore를 기반으로 한 안전한 구독
  */
@@ -107,30 +39,13 @@ export function useSafeStoreSubscription<T, R = T>(
 ): R | T | undefined {
   const { initialValue, equalityFn, debounce, throttle, condition, debug, name } = options;
 
-  // 🔧 Performance: Memoize subscription options to prevent unnecessary re-subscriptions
-  const stableSubscriptionOptions = useMemo((): EnhancedSubscriptionOptions => ({
-    debounce,
-    throttle,
-    condition,
-    debug,
-    name
-  }), [debounce, throttle, condition, debug, name]);
-
-  // 🔧 Performance: Check if enhanced subscription is needed (stable boolean)
-  const needsEnhancedSubscription = Boolean(debounce || throttle || condition);
-
-  // 구독 함수 생성
+  // `useSyncExternalStore` must receive every store notification immediately.
+  // Timing and conditions are applied to the rendered value below instead of
+  // delaying the external-store callback itself.
   const subscribe = useCallback((callback: () => void) => {
     if (!store) return () => {};
-
-    // 향상된 구독이 필요한 경우
-    if (needsEnhancedSubscription) {
-      return createEnhancedSubscriber(store, stableSubscriptionOptions)(callback);
-    }
-
-    // 기본 구독
     return store.subscribe(callback);
-  }, [store, needsEnhancedSubscription, stableSubscriptionOptions]);
+  }, [store]);
 
   // 스냅샷 가져오기 함수 - 안정적인 참조 유지
   const getSnapshot = useCallback((): R | T | undefined => {
@@ -160,8 +75,12 @@ export function useSafeStoreSubscription<T, R = T>(
 
   // 서버 사이드 스냅샷
   const getServerSnapshot = useCallback((): R | T | undefined => {
-    return initialValue;
-  }, [initialValue]);
+    if (!store) return initialValue;
+
+    const snapshot = store.getSnapshot();
+    const value = selector ? selector(snapshot.value) : snapshot.value;
+    return value as R | T;
+  }, [store, selector, initialValue]);
 
   // React의 useSyncExternalStore 사용 - 캐시된 스냅샷 함수 사용
   const currentValue = useSyncExternalStore(
@@ -170,7 +89,37 @@ export function useSafeStoreSubscription<T, R = T>(
     getServerSnapshot
   );
 
-  return currentValue;
+  const [visibleValue, setVisibleValue] = useState(currentValue);
+  const lastVisibleAtRef = useRef(0);
+
+  useEffect(() => {
+    const delay = Math.max(debounce ?? 0, throttle ?? 0);
+    if (!condition && delay <= 0) return;
+
+    if (condition && !condition()) return;
+
+    if (delay <= 0) {
+      lastVisibleAtRef.current = Date.now();
+      setVisibleValue(currentValue);
+      return;
+    }
+
+    const elapsed = Date.now() - lastVisibleAtRef.current;
+    const wait = throttle && elapsed < throttle
+      ? throttle - elapsed
+      : debounce ?? 0;
+    const timer = setTimeout(() => {
+      lastVisibleAtRef.current = Date.now();
+      setVisibleValue(currentValue);
+      if (debug && name) {
+        console.debug(`[${name}] Delayed store value committed after ${wait}ms`);
+      }
+    }, Math.max(0, wait));
+
+    return () => clearTimeout(timer);
+  }, [condition, currentValue, debounce, debug, name, throttle]);
+
+  return debounce || throttle || condition ? visibleValue : currentValue;
 }
 
 /**

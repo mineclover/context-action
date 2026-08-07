@@ -4,7 +4,10 @@
 
 import { renderHook, act, render } from '@testing-library/react';
 import React from 'react';
-import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import {
+  createStoreContext,
+  StoreManager,
+} from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 describe('createStoreContext', () => {
@@ -130,6 +133,41 @@ describe('createStoreContext', () => {
 
     expect(result.current.manager).toBeDefined();
     expect(typeof result.current.manager.getStore).toBe('function');
+  });
+
+  it('disposes manager-owned stores when clearing and unmounting a provider', () => {
+    const manager = new StoreManager('lifecycle', {
+      value: { initialValue: 0 },
+    });
+    const store = manager.getStore('value');
+    const disposeSpy = jest.spyOn(store, 'dispose');
+
+    manager.clear();
+    expect(disposeSpy).toHaveBeenCalledTimes(1);
+
+    const AppStores = createStoreContext('LifecycleProvider', {
+      value: { initialValue: 0 },
+    });
+    let providerManager: ReturnType<typeof AppStores.useStoreManager> | undefined;
+    let providerStore: ReturnType<typeof AppStores.useStore<'value'>> | undefined;
+
+    function Consumer() {
+      providerManager = AppStores.useStoreManager();
+      providerStore = AppStores.useStore('value');
+      return null;
+    }
+
+    const rendered = render(
+      <AppStores.Provider>
+        <Consumer />
+      </AppStores.Provider>,
+    );
+
+    const providerDisposeSpy = jest.spyOn(providerStore!, 'dispose');
+    rendered.unmount();
+
+    expect(providerManager?.getInfo().storeCount).toBe(0);
+    expect(providerDisposeSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should work with withProvider HOC', async () => {

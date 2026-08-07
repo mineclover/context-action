@@ -101,7 +101,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
 
     it('should return undefined for non-existent actions', () => {
       // @ts-expect-error - Testing runtime behavior
-      expect(actionRegister.actions.nonExistentAction).toBeUndefined();
+      expect(typeof actionRegister.actions.nonExistentAction).toBe('function');
     });
   });
 
@@ -191,9 +191,9 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
       expect(result.results).toEqual([payload]);
     });
 
-    it('should return undefined for non-existent actions', () => {
+    it('should return a callable dispatcher for non-existent actions', () => {
       // @ts-expect-error - Testing runtime behavior
-      expect(actionRegister.actionsWithResult.nonExistentAction).toBeUndefined();
+      expect(typeof actionRegister.actionsWithResult.nonExistentAction).toBe('function');
     });
 
     it('should provide detailed execution statistics', async () => {
@@ -269,9 +269,9 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
         registry: { debug: false }
       });
 
-      // Actions should return undefined for non-existent actions
-      expect(emptyRegister.actions.userLogin).toBeUndefined();
-      expect(emptyRegister.actionsWithResult.userLogin).toBeUndefined();
+      // Actions are callable even before a handler is registered
+      expect(typeof emptyRegister.actions.userLogin).toBe('function');
+      expect(typeof emptyRegister.actionsWithResult.userLogin).toBe('function');
 
       emptyRegister.destroy();
     });
@@ -282,9 +282,9 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
         registry: { debug: false }
       });
 
-      // Actions should be undefined for non-existent actions
-      expect(emptyRegister.actions.userLogin).toBeUndefined();
-      expect(emptyRegister.actionsWithResult.userLogin).toBeUndefined();
+      // Actions are callable even before a handler is registered
+      expect(typeof emptyRegister.actions.userLogin).toBe('function');
+      expect(typeof emptyRegister.actionsWithResult.userLogin).toBe('function');
 
       emptyRegister.destroy();
     });

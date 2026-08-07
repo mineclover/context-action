@@ -65,6 +65,23 @@ describe('ActionRegister handler lifecycle', () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps same-id unregister functions isolated by action', () => {
+    const register = new ActionRegister<LifecycleActions>();
+    const firstHandler = jest.fn();
+    const secondHandler = jest.fn();
+
+    const unregisterFirst = register.register('first', firstHandler, { id: 'shared-id' });
+    register.register('second', secondHandler, { id: 'shared-id' });
+
+    unregisterFirst();
+
+    expect(register.getHandlerCount('first')).toBe(0);
+    expect(register.getHandlerCount('second')).toBe(1);
+    expect(register.hasUnregisterFunction('shared-id')).toBe(true);
+
+    register.destroy();
+  });
+
   it('removes abort listeners after dispatch completion', async () => {
     const register = new ActionRegister<LifecycleActions>();
     const controller = new AbortController();

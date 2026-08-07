@@ -11,15 +11,15 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, useContext, ReactNode, useRef, useMemo } from 'react';
-import { StoreRegistry } from '../core/StoreRegistry';
-import { createStore } from '../core/Store';
+import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef } from 'react';
 import type { Store } from '../core/Store';
+import { createStore } from '../core/Store';
+import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
+  type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
-  type ExplicitStoreValue,
 } from './store-definition';
 
 const STORE_CONFIG_KEYS = new Set<PropertyKey>([
@@ -251,8 +251,15 @@ export class StoreManager<T extends Record<string, any>> {
    * Clear all stores
    */
   clear(): void {
+    this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
+  }
+
+  /** Dispose all stores and registry resources owned by this manager. */
+  dispose(): void {
+    this.clear();
+    this.registry.dispose();
   }
 
   /**
@@ -364,6 +371,11 @@ function createStoreContextImpl<T extends Record<string, any>>(
     if (!managerRef.current) {
       managerRef.current = new StoreManager(effectiveRegistryId, initialStores);
     }
+
+    useEffect(() => {
+      const manager = managerRef.current;
+      return () => manager?.dispose();
+    }, []);
     
     return (
       <StoreContext.Provider value={{ managerRef }}>
@@ -436,6 +448,15 @@ function createStoreContextImpl<T extends Record<string, any>>(
       if (!managerRef.current) {
         managerRef.current = new StoreManager(registryId, initialStores);
       }
+
+      useEffect(() => {
+        const manager = managerRef.current;
+        return () => {
+          if (config?.autoCleanup !== false) {
+            manager?.dispose();
+          }
+        };
+      }, []);
       
       return (
         <StoreContext.Provider value={{ managerRef }}>
@@ -497,5 +518,5 @@ export type StoreValues<T extends Record<string, any>> = {
   [K in keyof T]: InferStoreDefinitionValue<T[K]>;
 };
 
-export { asStoreValue } from './store-definition';
 export type { ExplicitStoreValue } from './store-definition';
+export { asStoreValue } from './store-definition';

@@ -321,7 +321,7 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   useToolHandler: <K extends keyof TSchema, R = void>(
     toolName: K,
     handler: ActionHandler<InferActionPayloadMap<TSchema>[K], R>,
-    config?: HandlerConfig
+    config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
   ) => void;
 
   /**

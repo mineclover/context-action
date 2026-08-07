@@ -93,7 +93,11 @@ export interface AISDKToolSetOptions {
   /** Native AI SDK approval gate, evaluated before the tool's execute function. */
   readonly needsApproval?: AISDKToolApprovalPolicy;
 
-  /** Preserve canonical errors as data, or expose them as AI SDK tool errors. */
+  /**
+   * Preserve canonical errors as data, or expose them as AI SDK tool errors.
+   * The adapter only exposes a definition output schema in `throw` mode;
+   * structured error envelopes are intentionally outside business schemas.
+   */
   readonly errorMode?: AISDKToolErrorMode;
 }
 
@@ -148,7 +152,7 @@ function createAISDKTool(
       ? {}
       : { description: definition.description }),
     inputSchema: jsonSchema(definition.inputSchema),
-    ...(definition.outputSchema === undefined
+    ...(definition.outputSchema === undefined || options.errorMode !== 'throw'
       ? {}
       : { outputSchema: jsonSchema(definition.outputSchema) }),
     ...(options.needsApproval === undefined
@@ -178,7 +182,9 @@ function createAISDKTool(
         {
           ...options.callOptions,
           signal: executionOptions.abortSignal,
-          idempotencyKey: options.getIdempotencyKey?.(invocation) ?? toolCallId,
+          idempotencyKey: options.getIdempotencyKey
+            ? options.getIdempotencyKey(invocation)
+            : toolCallId,
           context: {
             ...options.context,
             source: 'model',

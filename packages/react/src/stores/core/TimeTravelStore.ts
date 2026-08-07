@@ -5,15 +5,17 @@
  * Provides time-travel functionality through Mutative JSON patches.
  */
 
-import { TimeTravel, createTimeTravel, safeGet, type TimeTravelOptions, type TimeTravelControls, type Patches } from '@context-action/mutative';
-import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions } from '@context-action/mutative';
+import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 /**
  * Listener that receives patches information
  */
 export type PatchAwareListener = (patches: Patches | null) => void;
-import { TypeGuards } from '../utils/type-guards';
+
 import { ErrorHandlers } from '../utils/error-handling';
+import { TypeGuards } from '../utils/type-guards';
+import { type FrameHandle, scheduleFrame } from './frame-scheduler';
 
 /**
  * Configuration options for TimeTravelStore
@@ -70,7 +72,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   // RAF-based notification batching
   private notificationMode: 'batched' | 'immediate' = 'immediate';
   private pendingNotification = false;
-  private animationFrameId: number | null = null;
+  private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
 
   constructor(
@@ -231,7 +233,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
 
     // Cancel pending RAF
     if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId.cancel();
       this.animationFrameId = null;
     }
     this.pendingNotification = false;
@@ -452,7 +454,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     // RAF batching
     if (!this.pendingNotification) {
       this.pendingNotification = true;
-      this.animationFrameId = requestAnimationFrame(() => {
+      this.animationFrameId = scheduleFrame(() => {
         this.pendingNotification = false;
         this.animationFrameId = null;
         this._executeNotification();

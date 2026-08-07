@@ -53,4 +53,48 @@ describe('ExecutionResult metrics', () => {
 
     register.destroy();
   });
+
+  it('preserves controller.return values in parallel mode', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'parallel');
+    register.register('run', (_payload, controller) => {
+      controller.return({ source: 'cache' } as never);
+    }, { id: 'cache' });
+    register.register('run', () => undefined, { id: 'fallback' });
+
+    const result = await register.dispatchWithResult<'run', { source: string }>(
+      'run',
+      { id: 'termination' },
+    );
+
+    expect(result.terminated).toBe(true);
+    expect(result.result).toEqual({ source: 'cache' });
+    expect(result.handlers.find(handler => handler.id === 'cache')).toMatchObject({
+      executed: true,
+      status: 'succeeded',
+    });
+
+    register.destroy();
+  });
+
+  it('counts a handler that aborts after invocation', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.register('run', (_payload, controller) => {
+      controller.abort('stop');
+    }, { id: 'aborting' });
+    register.register('run', () => 'not-run', { id: 'after-abort' });
+
+    const result = await register.dispatchWithResult('run', { id: 'abort' });
+
+    expect(result.execution.handlersExecuted).toBe(1);
+    expect(result.execution.handlersSkipped).toBe(1);
+    expect(result.handlers.find(handler => handler.id === 'aborting')).toMatchObject({
+      executed: true,
+      status: 'succeeded',
+    });
+    expect(result.handlers.find(handler => handler.id === 'aborting')?.duration)
+      .toEqual(expect.any(Number));
+
+    register.destroy();
+  });
 });

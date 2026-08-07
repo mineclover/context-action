@@ -72,18 +72,16 @@ describe('ActionRegister - No Handlers Registered Tests', () => {
   });
 
   describe('actions getter behavior', () => {
-    it('should return undefined for actions when no handlers are registered', () => {
-      // Actions getter should return undefined for non-existent actions
-      expect(actionRegister.actions.userLogin).toBeUndefined();
-      expect(actionRegister.actions.userLogout).toBeUndefined();
-      expect(actionRegister.actions.processData).toBeUndefined();
+    it('should return callable actions when no handlers are registered', () => {
+      expect(typeof actionRegister.actions.userLogin).toBe('function');
+      expect(typeof actionRegister.actions.userLogout).toBe('function');
+      expect(typeof actionRegister.actions.processData).toBe('function');
     });
 
-    it('should return undefined for actionsWithResult when no handlers are registered', () => {
-      // ActionsWithResult getter should return undefined for non-existent actions
-      expect(actionRegister.actionsWithResult.userLogin).toBeUndefined();
-      expect(actionRegister.actionsWithResult.userLogout).toBeUndefined();
-      expect(actionRegister.actionsWithResult.processData).toBeUndefined();
+    it('should return callable actionsWithResult when no handlers are registered', () => {
+      expect(typeof actionRegister.actionsWithResult.userLogin).toBe('function');
+      expect(typeof actionRegister.actionsWithResult.userLogout).toBe('function');
+      expect(typeof actionRegister.actionsWithResult.processData).toBe('function');
     });
   });
 

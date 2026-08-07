@@ -133,7 +133,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
 
     it('should return undefined for non-existent actions', () => {
       // @ts-expect-error - Deliberately probe an action outside TestActions.
-      expect(actionRegister.actions.nonExistentAction).toBeUndefined();
+      expect(typeof actionRegister.actions.nonExistentAction).toBe('function');
     });
   });
 
@@ -282,7 +282,7 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
 
     it('should return undefined for non-existent actions', () => {
       // @ts-expect-error - Deliberately probe an action outside TestActions.
-      expect(actionRegister.actionsWithResult.nonExistentAction).toBeUndefined();
+      expect(typeof actionRegister.actionsWithResult.nonExistentAction).toBe('function');
     });
 
     it('should provide detailed execution statistics', async () => {
@@ -385,9 +385,9 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
 
       // Actions should return undefined for non-existent actions
       
-      expect(emptyRegister.actions.userLogin).toBeUndefined();
+      expect(typeof emptyRegister.actions.userLogin).toBe('function');
       
-      expect(emptyRegister.actionsWithResult.userLogin).toBeUndefined();
+      expect(typeof emptyRegister.actionsWithResult.userLogin).toBe('function');
 
       emptyRegister.destroy();
     });

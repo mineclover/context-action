@@ -27,6 +27,16 @@
         "default": "./dist/advanced.cjs"
       }
     },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
+    },
     "./react18": {
       "import": {
         "types": "./dist/react18.d.ts",

@@ -20,9 +20,11 @@ import {
   ExecutionResult,
   HandlerConfig,
   HandlerError,
+  HandlerExecutionOutcome,
   HandlerRegistration,
   PipelineContext,
   PipelineController,
+  PipelineControllerState,
   UnregisterFunction,
 } from './types.js';
 
@@ -66,7 +68,7 @@ export class ActionRegister<
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
   
   // 🆕 Advanced unregister function management system
-  private unregisterFunctions = new Map<string, UnregisterFunction>();
+  private unregisterFunctions = new Map<keyof T, Map<string, UnregisterFunction>>();
 
   // 🔧 Fix: Track last registration timestamps for getActionStats
   private lastRegisteredTimestamps = new Map<keyof T, Date>();
@@ -178,7 +180,6 @@ export class ActionRegister<
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
           const actionKey = prop as keyof T;
-          if (!this.pipelines.has(actionKey)) return undefined;
 
           let dispatcher = this.actionDispatchers.get(prop);
           if (!dispatcher) {
@@ -232,7 +233,6 @@ export class ActionRegister<
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
           const actionKey = prop as keyof T;
-          if (!this.pipelines.has(actionKey)) return undefined;
 
           let dispatcher = this.actionResultDispatchers.get(prop);
           if (!dispatcher) {
@@ -421,6 +421,7 @@ export class ActionRegister<
     }
 
     const pipeline = this.pipelines.get(action)!;
+    const actionUnregisterFunctions = this.getUnregisterFunctions(action);
     
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
 
@@ -435,7 +436,7 @@ export class ActionRegister<
     // 🆕 Enhanced duplicate ID handling with replaceExisting support and cleanup
     if (existingIndex !== -1) {
       const existing = pipeline[existingIndex];
-      const existingUnregister = this.unregisterFunctions.get(handlerId);
+      const existingUnregister = actionUnregisterFunctions.get(handlerId);
       
       if (registration.config.replaceExisting) {
         // 🔧 Fix: Clean up existing handler properly without removing from pipeline
@@ -451,7 +452,7 @@ export class ActionRegister<
 
         // Clean up existing unregister function
         if (existingUnregister) {
-          this.unregisterFunctions.delete(handlerId);
+          actionUnregisterFunctions.delete(handlerId);
         }
 
         // Replace existing handler directly in pipeline
@@ -464,7 +465,7 @@ export class ActionRegister<
 
         // Create new unregister function and store it
         const newUnregister = this.createUnregisterFunction(action, handlerId, registration);
-        this.unregisterFunctions.set(handlerId, newUnregister);
+        actionUnregisterFunctions.set(handlerId, newUnregister);
         
         this.log(`Handler replaced: ${String(action)}`, {
           handlerId,
@@ -495,7 +496,7 @@ export class ActionRegister<
         } else {
           // Create new unregister function if somehow missing
           const newUnregister = this.createUnregisterFunction(action, handlerId, existing);
-          this.unregisterFunctions.set(handlerId, newUnregister);
+          actionUnregisterFunctions.set(handlerId, newUnregister);
           return newUnregister;
         }
       }
@@ -511,7 +512,7 @@ export class ActionRegister<
 
     // Create and store unregister function
     const unregister = this.createUnregisterFunction(action, handlerId, registration);
-    this.unregisterFunctions.set(handlerId, unregister);
+    actionUnregisterFunctions.set(handlerId, unregister);
 
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
@@ -1089,6 +1090,7 @@ export class ActionRegister<
       payload: payload as T[K],
       handlers: [...filteredHandlers],
       executedHandlers: [],
+      handlerOutcomes: [],
       deferOnceCleanup: true,
       signal: effectiveSignal ?? this.lifecycleController.signal,
       trackHandlerPromise: promise => this.trackHandlerPromise(
@@ -1201,13 +1203,18 @@ export class ActionRegister<
       ), () => this.getHandlerCount(action) > 0);
     };
 
-    // Result dispatches historically executed immediately. Preserve that
-    // behavior for nested dispatch and debounce compatibility; queuePriority is
-    // the explicit opt-in to shared queue ordering.
+    const hasTimingGuard = (
+      options?.debounce !== undefined ||
+      options?.throttle !== undefined ||
+      this.pipelines.get(action)?.some(handler => (
+        handler.config.debounce !== undefined ||
+        handler.config.throttle !== undefined
+      )) === true
+    );
     const shouldQueue = (
       !timeoutScope.options?.immediate &&
-      Boolean(this.dispatchQueue) &&
-      timeoutScope.options?.queuePriority !== undefined
+      !hasTimingGuard &&
+      Boolean(this.dispatchQueue)
     );
     let dispatchPromise: Promise<ExecutionResult<R>>;
     this.dispatchConstructionDepth += 1;
@@ -1352,6 +1359,7 @@ export class ActionRegister<
       payload: payload as T[K],
       handlers: [...filteredHandlers],
       executedHandlers: [],
+      handlerOutcomes: [],
       deferOnceCleanup: true,
       signal: effectiveSignal ?? this.lifecycleController.signal,
       trackHandlerPromise: promise => this.trackHandlerPromise(
@@ -1373,28 +1381,6 @@ export class ActionRegister<
     };
 
     let executionError: Error | undefined;
-    const handlerResults: Array<{
-      id: string;
-      executed: boolean;
-      duration: number | undefined;
-      result: R | undefined;
-      error: Error | undefined;
-      metadata: Record<string, any> | undefined;
-    }> = [];
-
-
-    // Initialize handler tracking - all handlers start as not executed
-    filteredHandlers.forEach(handler => {
-      handlerResults.push({
-        id: handler.config.id,
-        executed: false,
-        duration: undefined as number | undefined,
-        result: undefined as R | undefined,
-        error: undefined as Error | undefined,
-        metadata: undefined as Record<string, any> | undefined,
-      });
-    });
-
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
@@ -1448,32 +1434,31 @@ export class ActionRegister<
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
 
-    // Derive execution metrics from registrations actually invoked by the
-    // executor. currentIndex only describes sequential control flow and is
-    // therefore not meaningful for parallel/race execution.
-    const executedHandlerIds = new Set(
-      (context.executedHandlers ?? []).map(handler => handler.id)
-    );
-    filteredHandlers.forEach(handler => {
-      const handlerResult = handlerResults.find(result => result.id === handler.config.id);
-      if (handlerResult) {
-        handlerResult.executed = executedHandlerIds.has(handler.id);
+    const recordedOutcomes = context.handlerOutcomes ?? [];
+    const outcomesById = new Map(recordedOutcomes.map(outcome => [outcome.id, outcome]));
+    const handlerResults: HandlerExecutionOutcome<R>[] = filteredHandlers.map(handler => (
+      outcomesById.get(handler.id) ?? {
+        id: handler.id,
+        status: 'skipped',
+        executed: false,
+        duration: 0,
+        result: undefined,
+        error: undefined,
+        metadata: undefined,
       }
-    });
+    ));
     const handlerErrors = errors.filter(error => error.handlerId !== 'pipeline');
     const reportedErrors = executionError
       ? errors.filter(error => error.handlerId === 'pipeline')
       : errors;
-    const executionHandlersCount = context.aborted && currentExecutionMode === 'sequential'
-      ? Math.min(context.currentIndex, filteredHandlers.length)
-      : executedHandlerIds.size;
+    const executionHandlersCount = handlerResults.filter(handler => handler.executed).length;
 
     // 🔧 Type safety: Separate successful results from failed ones
     const successResults = context.results.filter((result): result is R => result !== undefined);
     const failedResults = handlerErrors.map(err => ({
       handlerId: err.handlerId,
       error: err.error,
-      expectedType: typeof processedResult
+      expectedType: 'unknown'
     }));
 
     // Build execution result with improved type safety
@@ -1608,7 +1593,8 @@ export class ActionRegister<
   private getControllerFromPool<K extends keyof T>(
     context: PipelineContext<T[K], any>, 
     autoAbortController?: AbortController,
-    autoAbortOptions?: { allowHandlerAbort?: boolean }
+    autoAbortOptions?: { allowHandlerAbort?: boolean },
+    isolatedState?: PipelineControllerState<T[K], any>,
   ): PipelineController<T[K], any> {
     // Try to reuse from pool
     let controller = this.controllerPool.pop();
@@ -1622,7 +1608,11 @@ export class ActionRegister<
     (controller as { signal: AbortSignal }).signal =
       context.signal ?? this.lifecycleController.signal;
 
+    const state = isolatedState ?? context;
+
     controller.abort = (reason?: string) => {
+      state.aborted = true;
+      state.abortReason = reason;
       context.aborted = true;
       context.abortReason = reason;
       
@@ -1634,7 +1624,7 @@ export class ActionRegister<
 
     controller.modifyPayload = (modifier: (payload: T[K]) => T[K]) => {
       try {
-        context.payload = modifier(context.payload);
+        state.payload = modifier(state.payload);
       } catch (modificationError) {
         // 🔧 Fix: Don't let payload modification errors crash the pipeline
         this.log('Payload modification error', modificationError, 'warn');
@@ -1642,30 +1632,34 @@ export class ActionRegister<
       }
     };
 
-    controller.getPayload = () => context.payload;
+    controller.getPayload = () => state.payload;
 
     controller.jumpToPriority = (priority: number) => {
-      context.jumpToPriority = priority;
+      state.jumpToPriority = priority;
     };
 
     controller.return = (result: any) => {
-      context.terminated = true;
-      context.terminationResult = result;
+      state.terminated = true;
+      state.terminationResult = result;
+      if (!isolatedState) {
+        context.terminated = true;
+        context.terminationResult = result;
+      }
     };
 
     controller.setResult = (result: any) => {
-      context.results.push(result);
+      state.results.push(result);
     };
 
     controller.getResults = () => {
-      return [...context.results];
+      return [...state.results];
     };
 
     controller.mergeResult = (merger: (previousResults: any[], currentResult: any) => any) => {
-      const currentResult = context.results[context.results.length - 1];
-      const previousResults = context.results.slice(0, -1);
+      const currentResult = state.results[state.results.length - 1];
+      const previousResults = state.results.slice(0, -1);
       const mergedResult = merger(previousResults, currentResult);
-      context.results[context.results.length - 1] = mergedResult;
+      state.results[state.results.length - 1] = mergedResult;
     };
 
     return controller;
@@ -1791,8 +1785,17 @@ export class ActionRegister<
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): Promise<void> {
-    const createController = (_registration: HandlerRegistration<T[K], any>, _index: number): PipelineController<T[K], any> => {
-      return this.getControllerFromPool(context, autoAbortController, autoAbortOptions);
+    const createController = (
+      _registration: HandlerRegistration<T[K], any>,
+      _index: number,
+      state?: PipelineControllerState<T[K], any>,
+    ): PipelineController<T[K], any> => {
+      return this.getControllerFromPool(
+        context,
+        autoAbortController,
+        autoAbortOptions,
+        state,
+      );
     };
 
     switch (context.executionMode) {
@@ -1934,6 +1937,7 @@ export class ActionRegister<
 
     this.pipelines.clear();
     this.lastRegisteredTimestamps.clear();
+    this.unregisterFunctions.forEach(unregisters => unregisters.clear());
     this.unregisterFunctions.clear();
     this.actionGuard.clearAll();
   }
@@ -2121,6 +2125,15 @@ export class ActionRegister<
     };
   }
 
+  private getUnregisterFunctions<K extends keyof T>(action: K): Map<string, UnregisterFunction> {
+    let unregisters = this.unregisterFunctions.get(action);
+    if (!unregisters) {
+      unregisters = new Map();
+      this.unregisterFunctions.set(action, unregisters);
+    }
+    return unregisters;
+  }
+
   /** Remove a registration and release every resource owned by it exactly once. */
   private removeRegistration<K extends keyof T>(
     action: K,
@@ -2134,7 +2147,8 @@ export class ActionRegister<
     if (index === -1) return false;
 
     pipeline.splice(index, 1);
-    this.unregisterFunctions.delete(registration.id);
+    const actionUnregisterFunctions = this.unregisterFunctions.get(action);
+    actionUnregisterFunctions?.delete(registration.id);
 
     if (runCleanup) {
       this.runRegistrationCleanup(action, registration);
@@ -2143,6 +2157,7 @@ export class ActionRegister<
     if (pipeline.length === 0) {
       this.pipelines.delete(action);
       this.lastRegisteredTimestamps.delete(action);
+      this.unregisterFunctions.delete(action);
     }
 
     return true;
@@ -2168,7 +2183,11 @@ export class ActionRegister<
    * @public
    */
   getUnregisterFunctionCount(): number {
-    return this.unregisterFunctions.size;
+    let count = 0;
+    this.unregisterFunctions.forEach(unregisters => {
+      count += unregisters.size;
+    });
+    return count;
   }
   
   /**
@@ -2179,7 +2198,10 @@ export class ActionRegister<
    * @public
    */
   hasUnregisterFunction(handlerId: string): boolean {
-    return this.unregisterFunctions.has(handlerId);
+    for (const unregisters of this.unregisterFunctions.values()) {
+      if (unregisters.has(handlerId)) return true;
+    }
+    return false;
   }
 
   /** Reject queued dispatches without releasing registered handlers. */

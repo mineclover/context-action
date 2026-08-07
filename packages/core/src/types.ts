@@ -487,6 +487,41 @@ export interface HandlerRegistration<T = unknown, R = void> {
   id: string;
 }
 
+/** The lifecycle state recorded for one handler invocation. */
+export type HandlerExecutionStatus =
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'skipped'
+  | 'cancelled';
+
+/**
+ * Concrete outcome produced by an execution mode. Keeping this record beside
+ * the executor avoids reconstructing execution metrics from cursor indexes.
+ */
+export interface HandlerExecutionOutcome<R = void> {
+  id: string;
+  status: HandlerExecutionStatus;
+  executed: boolean;
+  duration: number | undefined;
+  result: R | undefined;
+  error: Error | undefined;
+  metadata: Record<string, unknown> | undefined;
+  terminationRequested?: boolean;
+  terminationResult?: R;
+}
+
+/** Controller state isolated to one concurrent handler invocation. */
+export interface PipelineControllerState<T = unknown, R = void> {
+  payload: T;
+  aborted: boolean;
+  abortReason: string | undefined;
+  jumpToPriority: number | undefined;
+  terminated: boolean;
+  terminationResult: R | undefined;
+  results: R[];
+}
+
 /**
  * Execution mode for action handler pipeline
  * 
@@ -536,6 +571,9 @@ export interface PipelineContext<T = unknown, R = void> {
 
   /** Registrations whose handler functions were actually invoked */
   executedHandlers?: HandlerRegistration<T, R>[];
+
+  /** Outcomes recorded directly by the execution mode. */
+  handlerOutcomes?: HandlerExecutionOutcome<R>[];
 
   /** Defer once-handler removal to the outer retry lifecycle */
   deferOnceCleanup?: boolean;
@@ -916,6 +954,9 @@ export interface ExecutionResult<R = void> {
     
     /** Whether this handler was executed */
     executed: boolean;
+
+    /** Final lifecycle state observed for this handler */
+    status: HandlerExecutionStatus;
     
     /** Handler execution duration in milliseconds (only present if executed) */
     duration: number | undefined;

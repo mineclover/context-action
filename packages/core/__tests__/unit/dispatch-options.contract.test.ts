@@ -388,6 +388,38 @@ describe('DispatchOptions runtime contract', () => {
     expect(executionOrder).toEqual(['first', 'high', 'low']);
   });
 
+  it('queues result dispatches by default when the registry queue is enabled', async () => {
+    let releaseFirst: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    const firstStarted = new Promise<void>(resolve => {
+      markFirstStarted = resolve;
+    });
+    const firstGate = new Promise<void>(resolve => {
+      releaseFirst = resolve;
+    });
+    const handled: string[] = [];
+
+    register.register('work', async payload => {
+      handled.push(payload.id);
+      if (payload.id === 'first') {
+        markFirstStarted?.();
+        await firstGate;
+      }
+      return payload.id;
+    }, { blocking: true });
+
+    const first = register.dispatchWithResult('work', { id: 'first' });
+    await firstStarted;
+    const second = register.dispatchWithResult('work', { id: 'second' });
+
+    expect(handled).toEqual(['first']);
+    releaseFirst?.();
+
+    await expect(first).resolves.toMatchObject({ success: true, result: 'first' });
+    await expect(second).resolves.toMatchObject({ success: true, result: 'second' });
+    expect(handled).toEqual(['first', 'second']);
+  });
+
   it('preserves debounce behavior for default immediate result dispatches', async () => {
     jest.useFakeTimers();
     const handler = jest.fn();
@@ -407,11 +439,13 @@ describe('DispatchOptions runtime contract', () => {
     );
   });
 
-  it('allows nested result dispatch by default without queue deadlock', async () => {
+  it('requires immediate mode for nested result dispatches in a serial queue', async () => {
     const inner = jest.fn(() => 'inner-result');
     register.register('nestedInner', inner, { blocking: true });
     register.register('nestedOuter', async () => {
-      const result = await register.dispatchWithResult<'nestedInner', string>('nestedInner');
+      const result = await register.dispatchWithResult<'nestedInner', string>('nestedInner', undefined, {
+        immediate: true,
+      });
       return result.result;
     }, { blocking: true });
 

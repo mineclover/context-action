@@ -1113,7 +1113,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   const useToolHandler = <K extends keyof TSchema, R = void>(
     toolName: K,
     handler: ActionHandler<TPayloadMap[K], R>,
-    handlerConfig?: HandlerConfig
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useToolContext();
     const handlerId = useId();
@@ -1121,7 +1121,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const registrationRef = useRef<{
       register: ActionRegister<TPayloadMap>;
       toolName: keyof TPayloadMap;
-      config: HandlerConfig;
+      config: HandlerConfig<TPayloadMap[K]>;
       active: boolean;
       unregister: () => void;
     } | null>(null);
@@ -1138,7 +1138,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const throttle = handlerConfig?.throttle;
     const cleanup = handlerConfig?.cleanup;
     const condition = handlerConfig?.condition;
-    const stableHandlerConfig = useMemo((): HandlerConfig => ({
+    const stableHandlerConfig = useMemo((): HandlerConfig<TPayloadMap[K]> => ({
       priority,
       id,
       blocking,

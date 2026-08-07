@@ -417,8 +417,8 @@ describe('Execution Modes Unit Tests', () => {
       await executeParallel(context, createController);
 
       expect(context.terminated).toBe(true);
-      // In parallel mode, the handler's return value becomes the termination result
-      expect(context.terminationResult).toBe('terminating-handler-result');
+      // `controller.return()` is authoritative for the termination result.
+      expect(context.terminationResult).toBe('termination-result');
       // In parallel mode, all handlers run simultaneously, so results depend on timing
       expect(context.results.length).toBeGreaterThanOrEqual(1);
     });
@@ -514,7 +514,7 @@ describe('Execution Modes Unit Tests', () => {
       await executeRace(context, createController);
 
       expect(context.terminated).toBe(true);
-      expect(context.terminationResult).toBe('handler-result');
+      expect(context.terminationResult).toBe('termination-result');
       expect(context.results).toEqual(['handler-result']);
     });
 

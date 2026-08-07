@@ -282,28 +282,31 @@ console.log('Success:', result.success);
 ### React Integration Helpers
 
 ```typescript
-import { 
-  useActionHandler, 
-  ReactDevUtils 
-} from '@context-action/core';
+import {
+  createActionContext,
+  ReactDevUtils,
+} from '@context-action/react';
+
+// `useActionHandler` and `useActionRegister` are returned by the action
+// context factory from `@context-action/react`; the core package is framework-agnostic.
+const { useActionHandler, useActionRegister } = createActionContext<MyActions>('MyActions');
 
 // React hook pattern
 function MyComponent() {
   const registry = useActionRegister();
   
   // Auto-cleanup on unmount, HMR support
-  const handlerConfig = useActionHandler(
-    registry,
-    'userAction', 
+  useActionHandler(
+    'userAction',
     async (payload) => {
       // Handler logic
     },
-    { priority: 10 },
-    [] // dependencies
+    { priority: 10 }
   );
   
   // Direct registry dispatch with error handling
   const handleDispatch = useCallback(async (action, payload) => {
+    if (!registry) return;
     try {
       await registry.dispatch(action, payload);
     } catch (error) {
@@ -455,12 +458,7 @@ console.log(`Total handlers: ${info.totalHandlers}`);
 const stats = actions.getActionStats('updateUser');
 if (stats) {
   console.log(`Handler count: ${stats.handlerCount}`);
-  console.log(`Success rate: ${stats.executionStats?.successRate}%`);
-  console.log(`Average duration: ${stats.executionStats?.averageDuration}ms`);
 }
-
-// Clear statistics
-actions.clearExecutionStats();
 ```
 
 ### Cleanup & Resource Management

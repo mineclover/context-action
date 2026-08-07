@@ -1,11 +1,12 @@
-import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
-import { safeGet, safeSet, produceWithPatches, type Patches } from '@context-action/mutative';
+import { type Patches, produceWithPatches, safeGet, safeSet } from '@context-action/mutative';
 import {
-  compareValues,
-  ComparisonOptions
+  ComparisonOptions,
+  compareValues
 } from '../utils/comparison';
-import { TypeGuards } from '../utils/type-guards';
 import { ErrorHandlers } from '../utils/error-handling';
+import { TypeGuards } from '../utils/type-guards';
+import { type FrameHandle, scheduleFrame } from './frame-scheduler';
+import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 /**
  * Listener that receives patches information for path-based optimization
@@ -99,7 +100,7 @@ export class Store<T = unknown> implements IStore<T> {
   private pendingNotification = false;
   
   // 🚀 requestAnimationFrame 기반 알림 시스템
-  private animationFrameId: number | null = null;
+  private animationFrameId: FrameHandle | null = null;
   private pendingUpdatesCount = 0; // 누적된 업데이트 수 추적
   // Batched patch-aware notifications must retain every transition in the frame
   private pendingPatches: Patches | null = null;
@@ -709,7 +710,7 @@ export class Store<T = unknown> implements IStore<T> {
       
       // Clean requestAnimationFrame
       if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId.cancel();
         this.animationFrameId = null;
       }
       this.pendingNotification = false;
@@ -884,7 +885,7 @@ export class Store<T = unknown> implements IStore<T> {
       this.pendingNotification = true;
       
       // 다음 프레임에서 알림 실행
-      this.animationFrameId = requestAnimationFrame(() => {
+      this.animationFrameId = scheduleFrame(() => {
         this._executeNotification();
       });
     }

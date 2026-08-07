@@ -9,9 +9,11 @@
 
 import type { 
   HandlerError,
+  HandlerExecutionOutcome,
   HandlerRegistration, 
-  PipelineContext, 
-  PipelineController
+  PipelineContext,
+  PipelineController,
+  PipelineControllerState,
 } from './types.js';
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
@@ -20,6 +22,42 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
     value !== null &&
     typeof (value as { then?: unknown }).then === 'function'
   );
+}
+
+function beginOutcome<T, R>(registration: HandlerRegistration<T, R>): HandlerExecutionOutcome<R> {
+  return {
+    id: registration.id,
+    status: 'running',
+    executed: true,
+    duration: undefined,
+    result: undefined,
+    error: undefined,
+    metadata: undefined,
+  };
+}
+
+function finishOutcome<R>(
+  outcome: HandlerExecutionOutcome<R>,
+  startedAt: number,
+  status: 'succeeded' | 'failed',
+  result?: R,
+  error?: Error,
+): void {
+  outcome.status = status;
+  outcome.duration = Date.now() - startedAt;
+  outcome.result = result;
+  outcome.error = error;
+}
+
+function appendLocalResults<T, R>(
+  context: PipelineContext<T, R>,
+  state: PipelineControllerState<T, R>,
+  returnedResult: R | undefined,
+): void {
+  if (state.results.length > 0) context.results.push(...state.results);
+  if (returnedResult !== undefined && !state.terminated) {
+    context.results.push(returnedResult);
+  }
 }
 
 /**
@@ -92,14 +130,30 @@ export async function executeSequential<T, R = void>(
     if (registration.config.condition) {
       const shouldExecute = registration.config.condition(context.payload);
       if (!shouldExecute) {
+        (context.handlerOutcomes ??= []).push({
+          id: registration.id,
+          status: 'skipped',
+          executed: false,
+          duration: 0,
+          result: undefined,
+          error: undefined,
+          metadata: undefined,
+        });
         i++;
         continue;
       }
     }
 
+    const outcome = beginOutcome(registration);
+    const startedAt = Date.now();
+    (context.handlerOutcomes ??= []).push(outcome);
+
     try {
       // Check for abort before executing handler
       if (context.aborted) {
+        outcome.status = 'cancelled';
+        outcome.executed = false;
+        outcome.duration = 0;
         break;
       }
 
@@ -115,6 +169,8 @@ export async function executeSequential<T, R = void>(
         const handlerResult = trackedResult
           ? await trackedResult
           : result;
+        outcome.result = handlerResult as R | undefined;
+        finishOutcome(outcome, startedAt, 'succeeded', handlerResult as R | undefined);
         if (handlerResult !== undefined && !context.terminated) {
           context.results.push(handlerResult as R);
         }
@@ -124,6 +180,7 @@ export async function executeSequential<T, R = void>(
           // Non-blocking async: Track promise with error handling
           const promiseWithErrorHandling = trackedResult
             .then(asyncResult => {
+              finishOutcome(outcome, startedAt, 'succeeded', asyncResult as R | undefined);
               if (asyncResult !== undefined && !context.terminated) {
                 context.results.push(asyncResult as R);
               }
@@ -138,15 +195,28 @@ export async function executeSequential<T, R = void>(
                 timestamp: handlerError.timestamp,
                 severity: 'non-blocking'
               });
+              finishOutcome(
+                outcome,
+                startedAt,
+                'failed',
+                undefined,
+                handlerError.error,
+              );
               return undefined; // Return undefined for failed non-blocking handlers
             });
           
           nonBlockingPromises.push(promiseWithErrorHandling);
         } else if (result !== undefined && !context.terminated) {
           // Non-blocking sync: Immediately collect result
+          finishOutcome(outcome, startedAt, 'succeeded', result as R);
           context.results.push(result as R);
+        } else {
+          finishOutcome(outcome, startedAt, 'succeeded', result as R | undefined);
         }
       }
+
+      outcome.terminationRequested = context.terminated;
+      if (context.terminated) outcome.terminationResult = context.terminationResult;
 
       /** Check if pipeline was terminated by controller.return() */
       if (context.terminated) {
@@ -186,6 +256,7 @@ export async function executeSequential<T, R = void>(
     } catch (error: unknown) {
       // 🔧 Fix: Handle errors gracefully and continue pipeline execution
       const handlerError = handleExecutionError(error, registration);
+      finishOutcome(outcome, startedAt, 'failed', undefined, handlerError.error);
       errors.push(handlerError);
       (context.collectedErrors ??= []).push(handlerError);
 
@@ -232,7 +303,11 @@ export async function executeSequential<T, R = void>(
  */
 export async function executeParallel<T, R = void>(
   context: PipelineContext<T, R>,
-  createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
+  createController: (
+    registration: HandlerRegistration<T, R>,
+    index: number,
+    state: PipelineControllerState<T, R>,
+  ) => PipelineController<T, R>
 ): Promise<void> {
 
   /**
@@ -240,44 +315,86 @@ export async function executeParallel<T, R = void>(
    * before any handler starts so a predicate error rejects the dispatch rather
    * than being mistaken for a non-blocking handler failure.
    */
-  const runnableHandlers = context.handlers.filter(registration =>
-    !registration.config.condition || registration.config.condition(context.payload),
-  );
+  const runnableHandlers: HandlerRegistration<T, R>[] = [];
+  for (const registration of context.handlers) {
+    if (registration.config.condition && !registration.config.condition(context.payload)) {
+      (context.handlerOutcomes ??= []).push({
+        id: registration.id,
+        status: 'skipped',
+        executed: false,
+        duration: 0,
+        result: undefined,
+        error: undefined,
+        metadata: undefined,
+      });
+      continue;
+    }
+    runnableHandlers.push(registration);
+  }
+
+  const terminationCandidates: Array<{
+    state: PipelineControllerState<T, R>;
+    outcome: HandlerExecutionOutcome<R>;
+  }> = [];
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const controller = createController(registration, _index);
+    const state: PipelineControllerState<T, R> = {
+      payload: context.payload,
+      aborted: false,
+      abortReason: undefined,
+      jumpToPriority: undefined,
+      terminated: false,
+      terminationResult: undefined,
+      results: [],
+    };
+    const controller = createController(registration, _index, state);
+    const outcome = beginOutcome(registration);
+    const startedAt = Date.now();
+    (context.handlerOutcomes ??= []).push(outcome);
 
     try {
       (context.executedHandlers ??= []).push(registration);
-      const result = registration.handler(context.payload, controller);
+      const result = registration.handler(state.payload, controller);
       
       const handlerResult = (
         isPromiseLike(result) ? await Promise.resolve(result) : result
       ) as R | undefined;
       
-      /** Collect result if handler returned something and pipeline wasn't terminated */
-      if (handlerResult !== undefined && !context.terminated) {
-        context.results.push(handlerResult);
+      finishOutcome(outcome, startedAt, 'succeeded', handlerResult);
+      outcome.terminationRequested = state.terminated;
+      if (state.terminated) {
+        outcome.terminationResult = state.terminationResult;
+        terminationCandidates.push({ state, outcome });
       }
-      
+      appendLocalResults(context, state, handlerResult);
       return { 
         success: true, 
         handlerId: registration.id, 
         result: handlerResult,
-        terminated: context.terminated 
+        terminated: state.terminated,
+        state,
+        outcome,
       };
       
     } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
+      finishOutcome(outcome, startedAt, 'failed', undefined, handlerError.error);
       (context.collectedErrors ??= []).push(handlerError);
       
       if (handlerError.severity === 'blocking') {
         throw handlerError.error;
       }
       
-      return { success: false, handlerId: registration.id, error: handlerError.error };
+      return {
+        success: false,
+        handlerId: registration.id,
+        error: handlerError.error,
+        state,
+        outcome,
+        registration,
+      };
     }
   });
 
@@ -303,19 +420,12 @@ export async function executeParallel<T, R = void>(
   }
 
   /** Check if any handler terminated the pipeline */
-  const terminatedResults = results.filter(result => 
-    result.status === 'fulfilled' && result.value.terminated
-  );
-  
-  if (terminatedResults.length > 0) {
+  if (terminationCandidates.length > 0) {
     context.terminated = true;
-    // In parallel mode, we can't determine which handler's termination result to use,
-    // so we use the first one that terminated
-    const firstTerminated = terminatedResults[0] as PromiseFulfilledResult<{
-      terminated: boolean;
-      result: R | undefined;
-    }>;
-    context.terminationResult = firstTerminated.value.result;
+    const firstTerminated = terminationCandidates[0];
+    if (firstTerminated) {
+      context.terminationResult = firstTerminated.state.terminationResult;
+    }
   }
 }
 
@@ -343,13 +453,30 @@ export async function executeParallel<T, R = void>(
  */
 export async function executeRace<T, R = void>(
   context: PipelineContext<T, R>,
-  createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
+  createController: (
+    registration: HandlerRegistration<T, R>,
+    index: number,
+    state: PipelineControllerState<T, R>,
+  ) => PipelineController<T, R>
 ): Promise<void> {
 
   /** See executeParallel: condition errors are dispatch errors in concurrent modes. */
-  const runnableHandlers = context.handlers.filter(registration =>
-    !registration.config.condition || registration.config.condition(context.payload),
-  );
+  const runnableHandlers: HandlerRegistration<T, R>[] = [];
+  for (const registration of context.handlers) {
+    if (registration.config.condition && !registration.config.condition(context.payload)) {
+      (context.handlerOutcomes ??= []).push({
+        id: registration.id,
+        status: 'skipped',
+        executed: false,
+        duration: 0,
+        result: undefined,
+        error: undefined,
+        metadata: undefined,
+      });
+      continue;
+    }
+    runnableHandlers.push(registration);
+  }
 
   if (runnableHandlers.length === 0) {
     return;
@@ -357,29 +484,55 @@ export async function executeRace<T, R = void>(
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const controller = createController(registration, _index);
+    const state: PipelineControllerState<T, R> = {
+      payload: context.payload,
+      aborted: false,
+      abortReason: undefined,
+      jumpToPriority: undefined,
+      terminated: false,
+      terminationResult: undefined,
+      results: [],
+    };
+    const controller = createController(registration, _index, state);
+    const outcome = beginOutcome(registration);
+    const startedAt = Date.now();
+    (context.handlerOutcomes ??= []).push(outcome);
 
     try {
       (context.executedHandlers ??= []).push(registration);
-      const result = registration.handler(context.payload, controller);
+      const result = registration.handler(state.payload, controller);
       
       const handlerResult = (
         isPromiseLike(result) ? await Promise.resolve(result) : result
       ) as R | undefined;
       
-      return { 
+      finishOutcome(outcome, startedAt, 'succeeded', handlerResult);
+      outcome.terminationRequested = state.terminated;
+      if (state.terminated) outcome.terminationResult = state.terminationResult;
+
+      return {
         success: true, 
         handlerId: registration.id, 
         registration,
         result: handlerResult,
-        terminated: context.terminated
+        terminated: state.terminated,
+        state,
+        outcome,
       };
       
     } catch (error: unknown) {
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
+      finishOutcome(outcome, startedAt, 'failed', undefined, handlerError.error);
       (context.collectedErrors ??= []).push(handlerError);
-      return { success: false, handlerId: registration.id, error: handlerError.error, registration };
+      return {
+        success: false,
+        handlerId: registration.id,
+        error: handlerError.error,
+        registration,
+        state,
+        outcome,
+      };
     }
   });
 
@@ -395,14 +548,14 @@ export async function executeRace<T, R = void>(
     throw winner.error;
   }
 
-  /** Collect result from the winning handler */
-  if (winner.success && winner.result !== undefined) {
-    context.results.push(winner.result);
+  /** Only the winner contributes results to the race snapshot. */
+  if (winner.success) {
+    appendLocalResults(context, winner.state, winner.result);
   }
 
   /** Check if the winning handler terminated the pipeline */
   if (winner.success && winner.terminated) {
     context.terminated = true;
-    context.terminationResult = winner.result;
+    context.terminationResult = winner.state.terminationResult;
   }
 }
