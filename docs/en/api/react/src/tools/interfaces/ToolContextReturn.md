@@ -90,7 +90,7 @@ Type parameter **K**
 
 ##### config?
 
-`HandlerConfig`&lt;`unknown`&gt;
+`HandlerConfig`\<`InferActionPayloadMap`&lt;`TSchema`&gt;\[`K`\]\>
 
 #### Returns
 

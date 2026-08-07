@@ -76,6 +76,8 @@ Native AI SDK approval gate, evaluated before the tool's execute function.
 
 > `readonly` `optional` **errorMode?**: [`AISDKToolErrorMode`](../type-aliases/AISDKToolErrorMode.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:97](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L97)
+Defined in: [packages/ai-sdk/src/index.ts:101](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L101)
 
 Preserve canonical errors as data, or expose them as AI SDK tool errors.
+The adapter only exposes a definition output schema in `throw` mode;
+structured error envelopes are intentionally outside business schemas.

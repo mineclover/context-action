@@ -130,7 +130,7 @@ Prevent indefinite hanging with timeouts:
 const result = await actionRegister.dispatchWithResult('longOperation', 
   { data: 'large-dataset' },
   { 
-    result: { collect: true },
+        result: { collect: true },
     timeout: 10000  // 10 second timeout
   }
 );
@@ -150,22 +150,16 @@ const fullResult = await actionRegister.dispatchWithResult('operation', payload,
   result: { collect: true }
 });
 
-// Collect only successful results
+// Errors are always available on result.errors and result.failedResults.
 const successResult = await actionRegister.dispatchWithResult('operation', payload, {
-  result: { 
-    collect: true,
-    includeErrors: false  // Filter out failed handlers
-  }
+  result: { collect: true }
 });
 
 // Collect results with metadata
 const detailedResult = await actionRegister.dispatchWithResult('operation', payload, {
-  result: { 
-    collect: true,
-    includeMetadata: true,  // Include handler IDs, priorities, timing
-    includePayload: true    // Include final payload state
-  }
+  result: { collect: true }
 });
+console.log(detailedResult.handlers); // Per-handler status, timing, and metadata
 ```
 
 ## Advanced Dispatch Patterns
@@ -442,10 +436,7 @@ if (result.success) {
 const result = await dispatchWithResult('complexOperation', 
   { operation: 'data-migration' },
   { 
-    result: { 
-      collect: true,
-      includeMetadata: true 
-    }
+    result: { collect: true }
   }
 );
 

@@ -164,9 +164,9 @@ register.register('syncData', async (payload, controller) => {
   } catch (error) {
     controller.abort(`Sync failed: ${error.message}`)
   }
-}, { 
-  timeout: 30000,
-  tags: ['data', 'async'] 
+}, {
+  id: 'sync-data-handler',
+  metadata: { domain: 'data', mode: 'async' }
 })
 ```
 
@@ -178,11 +178,10 @@ Type-safe handler configuration with comprehensive options.
 
 ```typescript
 register.register('processPayment', paymentHandler, {
+  id: 'payment-handler',
   priority: 100,           // Higher number = higher priority
-  tags: ['payment', 'critical'],
-  category: 'business-logic',
   once: false,            // Can be executed multiple times
-  timeout: 5000           // 5 second timeout
+  metadata: { domain: 'payment' }
 })
 ```
 
@@ -190,15 +189,12 @@ register.register('processPayment', paymentHandler, {
 
 ```typescript
 register.register('analyticsTracker', trackingHandler, {
+  id: 'analytics-tracker',
   priority: 10,
-  tags: ['analytics', 'tracking'],
-  category: 'monitoring',
   once: false,
-  timeout: 2000,
   debounce: 100,         // Debounce rapid calls
   throttle: 500,         // Throttle execution frequency
-  environment: 'production',  // Only in production
-  feature: 'analytics'   // Feature flag
+  metadata: { domain: 'analytics' }
 })
 ```
 
@@ -207,11 +203,8 @@ register.register('analyticsTracker', trackingHandler, {
 ```typescript
 register.register('featureHandler', handler, {
   priority: 50,
-  condition: (payload, context) => {
-    // Only execute if user is premium
-    return context.user?.isPremium === true
-  },
-  tags: ['premium', 'feature']
+  condition: payload => Boolean(payload),
+  metadata: { feature: 'premium' }
 })
 ```
 

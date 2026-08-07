@@ -22,8 +22,11 @@
 type TimerHandle = ReturnType<typeof setTimeout>;
 
 interface GuardState {
-  /** Timestamp of last successful execution for throttling calculations */
-  lastExecuted: number;
+  /** Timestamp of the last successful throttle admission. */
+  lastThrottleExecutedAt: number;
+
+  /** Timestamp of the last successful debounce settlement. */
+  lastDebounceSettledAt: number;
   
   /** Active debounce timer - cleared when new debounce requests arrive */
   debounceTimer: TimerHandle | undefined;
@@ -36,6 +39,12 @@ interface GuardState {
   
   /** Resolve function for current debounce promise */
   debounceResolve: ((value: boolean) => void) | undefined;
+
+  /** Cleanup for the current debounce AbortSignal listener. */
+  debounceAbortCleanup: (() => void) | undefined;
+
+  /** Identifies the current debounce request so stale timers cannot settle it. */
+  debounceRequestId: number;
 }
 
 /**
@@ -120,7 +129,10 @@ export class ActionGuard {
 
     const now = Date.now();
     for (const [key, state] of this.guards) {
-      const isIdle = now - state.lastExecuted > this.maxIdleTime;
+      const isIdle = now - Math.max(
+        state.lastThrottleExecutedAt,
+        state.lastDebounceSettledAt,
+      ) > this.maxIdleTime;
       const hasActiveTimers = state.debounceTimer || state.throttleTimer;
       if (isIdle && !hasActiveTimers) {
         this.guards.delete(key);
@@ -154,19 +166,28 @@ export class ActionGuard {
    * 
    * @internal
    */
-  async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
+  async debounce(
+    actionKey: string,
+    debounceMs: number,
+    signal?: AbortSignal,
+  ): Promise<boolean> {
     this.ensureAutoCleanup();
+
+    if (signal?.aborted) return false;
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
     if (!state) {
       /** Initialize new guard state with default values */
       state = {
-        lastExecuted: 0,
+        lastThrottleExecutedAt: 0,
+        lastDebounceSettledAt: 0,
         isThrottled: false,
         debounceTimer: undefined,
         throttleTimer: undefined,
         debounceResolve: undefined as ((value: boolean) => void) | undefined,
+        debounceAbortCleanup: undefined,
+        debounceRequestId: 0,
       };
       this.guards.set(actionKey, state);
     }
@@ -179,22 +200,42 @@ export class ActionGuard {
         state.debounceResolve(false);
         state.debounceResolve = undefined as ((value: boolean) => void) | undefined;
       }
+      state.debounceAbortCleanup?.();
+      state.debounceAbortCleanup = undefined;
     }
 
-    /** Create new debounce promise */
+    const requestId = ++state.debounceRequestId;
+
+    /** Create a new abort-aware debounce promise. */
     return new Promise<boolean>((resolve) => {
-      // Store new resolve function
-      state!.debounceResolve = resolve;
-      
-      // Set new timer
-      state!.debounceTimer = setTimeout(() => {
-        /** Clean up timer and resolver references */
-        state!.debounceTimer = undefined;
-        state!.debounceResolve = undefined as ((value: boolean) => void) | undefined;
-        /** Update last execution timestamp */
-        state!.lastExecuted = Date.now();
-        resolve(true);
-      }, debounceMs);
+      let settled = false;
+      let abortCleanup: (() => void) | undefined;
+
+      const finish = (allowed: boolean) => {
+        if (settled) return;
+        settled = true;
+
+        if (state!.debounceRequestId === requestId) {
+          if (state!.debounceTimer) clearTimeout(state!.debounceTimer);
+          state!.debounceTimer = undefined;
+          state!.debounceResolve = undefined;
+          state!.debounceAbortCleanup = undefined;
+          if (allowed) state!.lastDebounceSettledAt = Date.now();
+        }
+
+        abortCleanup?.();
+        resolve(allowed);
+      };
+
+      state!.debounceResolve = finish;
+      state!.debounceTimer = setTimeout(() => finish(true), debounceMs);
+
+      if (signal) {
+        const abort = () => finish(false);
+        signal.addEventListener('abort', abort, { once: true });
+        abortCleanup = () => signal.removeEventListener('abort', abort);
+        state!.debounceAbortCleanup = abortCleanup;
+      }
     });
   }
 
@@ -220,31 +261,36 @@ export class ActionGuard {
    * 
    * @internal
    */
-  throttle(actionKey: string, throttleMs: number): boolean {
+  throttle(actionKey: string, throttleMs: number, signal?: AbortSignal): boolean {
     this.ensureAutoCleanup();
+
+    if (signal?.aborted) return false;
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
     if (!state) {
       /** Initialize new guard state with default values */
       state = {
-        lastExecuted: 0,
+        lastThrottleExecutedAt: 0,
+        lastDebounceSettledAt: 0,
         isThrottled: false,
         debounceTimer: undefined,
         throttleTimer: undefined,
         debounceResolve: undefined as ((value: boolean) => void) | undefined,
+        debounceAbortCleanup: undefined,
+        debounceRequestId: 0,
       };
       this.guards.set(actionKey, state);
     }
 
     const now = Date.now();
-    const timeSinceLastExecution = now - state.lastExecuted;
+    const timeSinceLastExecution = now - state.lastThrottleExecutedAt;
 
     /** Check if enough time has passed since last execution */
     /** If throttle period has elapsed, allow immediate execution */
     if (timeSinceLastExecution >= throttleMs) {
       /** Update execution timestamp and clear throttled state */
-      state.lastExecuted = now;
+      state.lastThrottleExecutedAt = now;
       state.isThrottled = false;
       
       
@@ -295,6 +341,8 @@ export class ActionGuard {
         }
         state.debounceTimer = undefined;
       }
+      state.debounceAbortCleanup?.();
+      state.debounceAbortCleanup = undefined;
       
       // Clear throttle timer to prevent memory leaks
       if (state.throttleTimer) {
@@ -332,6 +380,7 @@ export class ActionGuard {
           state.debounceResolve(false);
         }
       }
+      state.debounceAbortCleanup?.();
       /** Clear any active throttle timers */
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);

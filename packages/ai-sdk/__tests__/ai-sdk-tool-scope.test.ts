@@ -268,9 +268,9 @@ describe('createAISDKToolScope', () => {
         (input as { id: string }).id === 'asset-1',
     });
     const tool = scope.tools.remove as unknown as {
-      needsApproval: (input: unknown) => Promise<boolean>;
+      needsApproval: (input: unknown, options?: unknown) => Promise<boolean>;
     };
 
-    expect(await tool.needsApproval({ id: 'asset-1' })).toBe(true);
+    expect(await tool.needsApproval({ id: 'asset-1' }, { toolCallId: 'call-1' })).toBe(true);
   });
 });

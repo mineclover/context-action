@@ -164,9 +164,9 @@ register.register('syncData', async (payload, controller) => {
   } catch (error) {
     controller.abort(`동기화 실패: ${error.message}`)
   }
-}, { 
-  timeout: 30000,
-  tags: ['data', 'async'] 
+}, {
+  id: 'sync-data-handler',
+  metadata: { domain: 'data', mode: 'async' }
 })
 ```
 
@@ -178,11 +178,10 @@ register.register('syncData', async (payload, controller) => {
 
 ```typescript
 register.register('processPayment', paymentHandler, {
+  id: 'payment-handler',
   priority: 100,           // 높은 숫자 = 높은 우선순위
-  tags: ['payment', 'critical'],
-  category: 'business-logic',
   once: false,            // 여러 번 실행 가능
-  timeout: 5000           // 5초 타임아웃
+  metadata: { domain: 'payment' }
 })
 ```
 
@@ -190,15 +189,12 @@ register.register('processPayment', paymentHandler, {
 
 ```typescript
 register.register('analyticsTracker', trackingHandler, {
+  id: 'analytics-tracker',
   priority: 10,
-  tags: ['analytics', 'tracking'],
-  category: 'monitoring',
   once: false,
-  timeout: 2000,
   debounce: 100,         // 빠른 호출 디바운스
   throttle: 500,         // 실행 빈도 스로틀
-  environment: 'production',  // 프로덕션에서만
-  feature: 'analytics'   // 기능 플래그
+  metadata: { domain: 'analytics' }
 })
 ```
 
@@ -207,11 +203,8 @@ register.register('analyticsTracker', trackingHandler, {
 ```typescript
 register.register('featureHandler', handler, {
   priority: 50,
-  condition: (payload, context) => {
-    // 사용자가 프리미엄인 경우에만 실행
-    return context.user?.isPremium === true
-  },
-  tags: ['premium', 'feature']
+  condition: payload => Boolean(payload),
+  metadata: { feature: 'premium' }
 })
 ```
 

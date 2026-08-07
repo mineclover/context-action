@@ -21,7 +21,6 @@
 - [ActionRegisterConfig](interfaces/ActionRegisterConfig.md)
 - [DispatchOptions](interfaces/DispatchOptions.md)
 - [ExecutionResult](interfaces/ExecutionResult.md)
-- [ActionDispatcher](interfaces/ActionDispatcher.md)
 
 ## Type Aliases
 
@@ -29,6 +28,8 @@
 - [ActionHandler](type-aliases/ActionHandler.md)
 - [ExecutionMode](type-aliases/ExecutionMode.md)
 - [UnregisterFunction](type-aliases/UnregisterFunction.md)
+- [DispatchArgs](type-aliases/DispatchArgs.md)
+- [ActionDispatcher](type-aliases/ActionDispatcher.md)
 
 ## Functions
 

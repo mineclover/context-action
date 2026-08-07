@@ -104,13 +104,13 @@ function ConfiguredHandlerSetup() {
   const register = useAppRegister();
   
   useEffect(() => {
-    // Handler with priority and tags
+    // Handler with priority and diagnostic metadata
     const unregister = register.register('updateUser', async (payload, controller) => {
       const user = await userService.update(payload.id, payload);
       controller.setResult(user);
     }, {
       priority: 100,
-      tags: ['user', 'crud']
+      metadata: { labels: ['user', 'crud'] }
     });
     
     return unregister;
@@ -139,7 +139,7 @@ function PriorityHandlerSetup() {
       controller.setResult({ validated: true });
     }, {
       priority: 100,  // High priority - executes first
-      tags: ['validation']
+      metadata: { labels: ['validation'] }
     });
     
     const unregisterSave = register.register('saveUser', async (payload, controller) => {
@@ -147,7 +147,7 @@ function PriorityHandlerSetup() {
       controller.setResult(user);
     }, {
       priority: 50,   // Lower priority - executes after validation
-      tags: ['persistence']
+      metadata: { labels: ['persistence'] }
     });
     
     return () => {
@@ -384,8 +384,7 @@ function CircuitBreakerHandlerSetup() {
         throw error;
       }
     }, {
-      tags: ['external', 'api'],
-      timeout: 5000
+      metadata: { labels: ['external', 'api'] }
     });
     
     return unregister;
@@ -426,7 +425,7 @@ function ValidationHandlerSetup() {
       }));
     }, {
       priority: 1000,  // Execute first
-      tags: ['validation']
+      metadata: { labels: ['validation'] }
     });
     
     return unregister;
@@ -454,7 +453,7 @@ function DynamicHandlerSetup() {
         const result = await adminService.executeAction(payload);
         controller.setResult(result);
       }, {
-        tags: ['admin', 'privileged']
+        metadata: { labels: ['admin', 'privileged'] }
       });
       unregisterFunctions.push(unregister);
     }
@@ -464,7 +463,7 @@ function DynamicHandlerSetup() {
         const result = await moderationService.moderate(payload);
         controller.setResult(result);
       }, {
-        tags: ['moderation']
+        metadata: { labels: ['moderation'] }
       });
       unregisterFunctions.push(unregister);
     }
@@ -505,7 +504,7 @@ function HandlerCleanupSetup() {
       const result = await tempService.process(payload);
       controller.setResult(result);
     }, {
-      tags: ['temporary']
+      metadata: { labels: ['temporary'] }
     });
     
     unregisterFunctions.add(unregister);
@@ -568,7 +567,7 @@ function BulkRegistrationSetup() {
     const unregisterFunctions = Object.entries(handlersConfig).map(([action, config]) => {
       return register.register(action as any, config.handler, {
         priority: config.priority,
-        tags: ['user', 'bulk-registered']
+      metadata: { labels: ['user', 'bulk-registered'] }
       });
     });
     
@@ -595,14 +594,7 @@ function MetricsHandlerSetup() {
       const result = await businessService.processWithMetrics(payload);
       controller.setResult(result);
     }, {
-      metrics: {
-        collectTiming: true,
-        collectErrors: true,
-        customMetrics: {
-          businessMetric: (payload: any, result: any) => result.userCount || 0
-        }
-      },
-      tags: ['monitored']
+      metadata: { labels: ['monitored'] }
     });
     
     return unregister;

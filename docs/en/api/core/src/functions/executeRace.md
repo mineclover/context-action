@@ -8,7 +8,7 @@
 
 > **executeRace**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:350](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L350)
+Defined in: [packages/core/src/execution-modes.ts:456](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L456)
 
 Execute handlers in race mode (first to complete wins)
 
@@ -43,7 +43,7 @@ Pipeline execution context containing handlers and state
 
 ### createController
 
-(`registration`, `index`) => [`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
+(`registration`, `index`, `state`) => [`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
 
 Factory function for creating pipeline controllers
 

@@ -6,7 +6,7 @@
 
 # Interface: ToolDispatchWithResultReturn\<TPayloadMap\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:284](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L284)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:285](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L285)
 
 Return type for useToolDispatchWithResult hook
 
@@ -22,15 +22,15 @@ Type parameter **TPayloadMap**
 
 > **dispatch**: [`ToolDispatchFunction`](../type-aliases/ToolDispatchFunction.md)&lt;`TPayloadMap`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:285](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L285)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:286](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L286)
 
 ***
 
 ### dispatchWithResult
 
-> **dispatchWithResult**: \<`K`, `R`\>(`toolName`, `payload`, `options?`) => `Promise`\<[`ToolExecutionResult`](ToolExecutionResult.md)&lt;`R`&gt;\>
+> **dispatchWithResult**: \<`K`, `R`\>(`toolName`, ...`args`) => `Promise`\<[`ToolExecutionResult`](ToolExecutionResult.md)&lt;`R`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:286](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L286)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:287](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L287)
 
 #### Type Parameters
 
@@ -48,13 +48,9 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:286](https://github.c
 
 Type parameter **K**
 
-##### payload
+##### args
 
-`TPayloadMap`\[`K`\]
-
-##### options?
-
-Type parameter **DispatchOptions**
+...`DispatchArgs`\<`TPayloadMap`\[`K`\]\>
 
 #### Returns
 

@@ -150,22 +150,16 @@ const fullResult = await actionRegister.dispatchWithResult('operation', payload,
   result: { collect: true }
 });
 
-// 성공한 결과만 수집
+// 오류는 result.errors와 result.failedResults에서 항상 확인할 수 있습니다.
 const successResult = await actionRegister.dispatchWithResult('operation', payload, {
-  result: { 
-    collect: true,
-    includeErrors: false  // 실패한 핸들러 제외
-  }
+  result: { collect: true }
 });
 
 // 메타데이터와 함께 결과 수집
 const detailedResult = await actionRegister.dispatchWithResult('operation', payload, {
-  result: { 
-    collect: true,
-    includeMetadata: true,  // 핸들러 ID, 우선순위, 타이밍 포함
-    includePayload: true    // 최종 페이로드 상태 포함
-  }
+  result: { collect: true }
 });
+console.log(detailedResult.handlers); // 핸들러별 상태, 타이밍, 메타데이터
 ```
 
 ## 고급 디스패치 패턴
@@ -442,10 +436,7 @@ if (result.success) {
 const result = await dispatchWithResult('complexOperation', 
   { operation: 'data-migration' },
   { 
-    result: { 
-      collect: true,
-      includeMetadata: true 
-    }
+    result: { collect: true }
   }
 );
 

@@ -12,6 +12,7 @@
  */
 
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
 import type { Store } from '../core/Store';
 import { createStore } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
@@ -148,6 +149,7 @@ export class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();
+  private lifecycle: 'active' | 'disposed' = 'active';
   private version = 0;
   private readonly listeners = new Set<() => void>();
 
@@ -173,6 +175,10 @@ export class StoreManager<T extends Record<string, any>> {
    * @internal
    */
   getStore<K extends keyof T>(storeName: K): Store<T[K]> {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`StoreManager "${this.name}" is disposed`);
+    }
+
     // Return existing store if available
     const existing = this.stores.get(storeName);
     if (existing) {
@@ -253,6 +259,10 @@ export class StoreManager<T extends Record<string, any>> {
    * Clear all stores
    */
   clear(): void {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`StoreManager "${this.name}" is disposed`);
+    }
+
     this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
@@ -262,7 +272,11 @@ export class StoreManager<T extends Record<string, any>> {
 
   /** Dispose all stores and registry resources owned by this manager. */
   dispose(): void {
-    this.clear();
+    if (this.lifecycle === 'disposed') return;
+    this.lifecycle = 'disposed';
+    this.stores.forEach(store => store.dispose());
+    this.stores.clear();
+    this.listeners.clear();
     this.registry.dispose();
   }
 
@@ -489,11 +503,15 @@ function createStoreContextImpl<T extends Record<string, any>>(
         };
       }, []);
       
-      return (
+      const provider = (
         <StoreContext.Provider value={{ managerRef }}>
           <Component {...props} />
         </StoreContext.Provider>
       );
+
+      return config?.errorBoundary ? (
+        <StoreErrorBoundary>{provider}</StoreErrorBoundary>
+      ) : provider;
     };
     
     WithStoreProvider.displayName = 

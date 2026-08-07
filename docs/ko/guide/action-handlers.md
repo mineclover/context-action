@@ -65,10 +65,11 @@ function useUserHandlers() {
 interface HandlerConfig {
   priority?: number;        // 실행 순서 (높을수록 먼저)
   blocking?: boolean;       // 비동기 완료 대기
-  tags?: string[];         // 필터링과 분류를 위함
   id?: string;            // 명시적 핸들러 ID
-  category?: string;      // 핸들러 카테고리
-  returnType?: 'value';   // 반환 값 수집 활성화
+  once?: boolean;          // 한 번 실행 후 자동 해제
+  debounce?: number;       // 디바운스 지연 시간
+  throttle?: number;       // 스로틀 간격
+  metadata?: Record<string, unknown>; // 결과 진단 메타데이터
 }
 ```
 
@@ -196,9 +197,9 @@ function useOrderProcessing() {
       result: {
         collect: true,         // 수집 활성화
         strategy: 'all',       // 모든 결과 수집
-        timeout: 5000,         // 5초 타임아웃
         maxResults: 10         // 결과 제한
       },
+      timeout: 5000,
       filter: {
         handlerIds: ['validator', 'business'], // 이 핸들러들만
         excludeHandlerIds: ['logging']         // 로깅 제외

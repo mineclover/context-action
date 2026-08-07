@@ -6,7 +6,7 @@
 
 # Interface: ToolExecutionResult\<R\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:228](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L228)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:229](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L229)
 
 Result of tool execution with validation info
 
@@ -26,7 +26,7 @@ Result of tool execution with validation info
 
 > **validationPassed**: `boolean`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:230](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L230)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:231](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L231)
 
 Whether validation passed
 
@@ -36,6 +36,6 @@ Whether validation passed
 
 > `optional` **validationErrors?**: `string`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:232](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L232)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:233](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L233)
 
 Validation errors if any

@@ -145,3 +145,13 @@ Type parameter **T**
 #### Returns
 
 `boolean`
+
+***
+
+### metadata?
+
+> `optional` **metadata?**: `Record`\<`string`, `unknown`\>
+
+Defined in: [packages/core/src/types.ts:466](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L466)
+
+Optional metadata copied into execution outcomes for diagnostics.

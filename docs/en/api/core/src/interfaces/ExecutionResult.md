@@ -6,7 +6,7 @@
 
 # Interface: ExecutionResult\<R\>
 
-Defined in: [packages/core/src/types.ts:855](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L855)
+Defined in: [packages/core/src/types.ts:900](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L900)
 
 Comprehensive result of pipeline execution with detailed execution information
 
@@ -62,7 +62,7 @@ The result type for this execution
 
 > **success**: `boolean`
 
-Defined in: [packages/core/src/types.ts:857](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L857)
+Defined in: [packages/core/src/types.ts:902](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L902)
 
 Whether the execution completed successfully
 
@@ -72,7 +72,7 @@ Whether the execution completed successfully
 
 > **aborted**: `boolean`
 
-Defined in: [packages/core/src/types.ts:860](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L860)
+Defined in: [packages/core/src/types.ts:905](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L905)
 
 Whether the execution was aborted
 
@@ -82,7 +82,7 @@ Whether the execution was aborted
 
 > **abortReason**: `string` \| `undefined`
 
-Defined in: [packages/core/src/types.ts:863](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L863)
+Defined in: [packages/core/src/types.ts:908](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L908)
 
 Reason for abortion if aborted
 
@@ -92,7 +92,7 @@ Reason for abortion if aborted
 
 > **terminated**: `boolean`
 
-Defined in: [packages/core/src/types.ts:866](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L866)
+Defined in: [packages/core/src/types.ts:911](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L911)
 
 Whether the execution was terminated early via controller.return()
 
@@ -102,7 +102,7 @@ Whether the execution was terminated early via controller.return()
 
 > `optional` **validation?**: `object`
 
-Defined in: [packages/core/src/types.ts:869](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L869)
+Defined in: [packages/core/src/types.ts:914](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L914)
 
 Runtime payload validation outcome when a schema was configured
 
@@ -120,7 +120,7 @@ Runtime payload validation outcome when a schema was configured
 
 > **result**: `R` \| `R`[] \| `undefined`
 
-Defined in: [packages/core/src/types.ts:875](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L875)
+Defined in: [packages/core/src/types.ts:920](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L920)
 
 Final result based on result strategy - only present for non-void results
 
@@ -130,7 +130,7 @@ Final result based on result strategy - only present for non-void results
 
 > **successResults**: `R`[]
 
-Defined in: [packages/core/src/types.ts:879](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L879)
+Defined in: [packages/core/src/types.ts:924](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L924)
 
 All successful handler results (guaranteed non-undefined)
 
@@ -140,7 +140,7 @@ All successful handler results (guaranteed non-undefined)
 
 > **results**: (`R` \| `undefined`)[]
 
-Defined in: [packages/core/src/types.ts:882](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L882)
+Defined in: [packages/core/src/types.ts:927](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L927)
 
 All handler results including undefined from failed handlers (legacy compatibility)
 
@@ -150,7 +150,7 @@ All handler results including undefined from failed handlers (legacy compatibili
 
 > **failedResults**: `object`[]
 
-Defined in: [packages/core/src/types.ts:885](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L885)
+Defined in: [packages/core/src/types.ts:930](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L930)
 
 Failed handler results with error context
 
@@ -162,9 +162,13 @@ Failed handler results with error context
 
 > **error**: `Error`
 
-#### expectedType
+#### ~~expectedType~~
 
 > **expectedType**: `string`
+
+##### Deprecated
+
+Runtime execution cannot infer the TypeScript result type.
 
 ***
 
@@ -172,7 +176,7 @@ Failed handler results with error context
 
 > **execution**: `object`
 
-Defined in: [packages/core/src/types.ts:892](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L892)
+Defined in: [packages/core/src/types.ts:938](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L938)
 
 Execution metadata
 
@@ -218,7 +222,7 @@ Execution end timestamp
 
 > **handlers**: `object`[]
 
-Defined in: [packages/core/src/types.ts:913](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L913)
+Defined in: [packages/core/src/types.ts:959](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L959)
 
 Detailed information about each handler
 
@@ -233,6 +237,12 @@ Handler unique identifier
 > **executed**: `boolean`
 
 Whether this handler was executed
+
+#### status
+
+> **status**: `HandlerExecutionStatus`
+
+Final lifecycle state observed for this handler
 
 #### duration
 
@@ -264,6 +274,6 @@ Custom metadata for this handler
 
 > **errors**: `HandlerError`[]
 
-Defined in: [packages/core/src/types.ts:934](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L934)
+Defined in: [packages/core/src/types.ts:983](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L983)
 
 Errors that occurred during execution

@@ -174,6 +174,21 @@ describe('createStoreContext', () => {
     expect(providerDisposeSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('makes StoreManager.dispose terminal and idempotent', () => {
+    const manager = new StoreManager('terminal', {
+      value: { initialValue: 0 },
+    });
+
+    const store = manager.getStore('value');
+    const disposeSpy = jest.spyOn(store, 'dispose');
+    manager.dispose();
+    manager.dispose();
+
+    expect(disposeSpy).toHaveBeenCalledTimes(1);
+    expect(() => manager.getStore('value')).toThrow('StoreManager "terminal" is disposed');
+    expect(() => manager.clear()).toThrow('StoreManager "terminal" is disposed');
+  });
+
   it('keeps stores alive through StrictMode effect replay', async () => {
     const Stores = createStoreContext('StrictModeStores', {
       count: { initialValue: 0 },
@@ -255,6 +270,23 @@ describe('createStoreContext', () => {
     // Test that the wrapped component can render properly
     const { container } = render(<ComponentWithProvider />);
     expect(container).toBeDefined();
+  });
+
+  it('should honor the errorBoundary option in withProvider', () => {
+    const Stores = createStoreContext('ErrorBoundary', {
+      value: { initialValue: 1 },
+    });
+
+    function ThrowingComponent(): React.ReactElement {
+      throw new Error('render failed');
+    }
+
+    const WrappedComponent = Stores.withProvider(ThrowingComponent, {
+      errorBoundary: true,
+    });
+    const { container } = render(<WrappedComponent />);
+
+    expect(container.textContent).toContain('Something went wrong');
   });
 
   it('should support complex nested initial values', () => {

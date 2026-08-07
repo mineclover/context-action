@@ -9,6 +9,7 @@
 
 import type { Patches } from '@context-action/mutative';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
 import { createStore, Store } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
@@ -127,6 +128,7 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: TimeTravelInitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any> | TimeTravelStore<any>>();
+  private lifecycle: 'active' | 'disposed' = 'active';
   private version = 0;
   private readonly listeners = new Set<() => void>();
 
@@ -140,6 +142,10 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   }
 
   getStore<K extends keyof T>(storeName: K): Store<T[K]> | TimeTravelStore<T[K]> {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`TimeTravelStoreManager "${this.name}" is disposed`);
+    }
+
     const existing = this.stores.get(storeName);
     if (existing) {
       return existing;
@@ -225,6 +231,10 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   }
 
   clear(): void {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`TimeTravelStoreManager "${this.name}" is disposed`);
+    }
+
     this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
@@ -234,7 +244,11 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
 
   /** Dispose all stores and registry resources owned by this manager. */
   dispose(): void {
-    this.clear();
+    if (this.lifecycle === 'disposed') return;
+    this.lifecycle = 'disposed';
+    this.stores.forEach(store => store.dispose());
+    this.stores.clear();
+    this.listeners.clear();
     this.registry.dispose();
   }
 
@@ -613,7 +627,12 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
   function withProvider<P extends {}>(
     Component: React.ComponentType<P>,
-    config?: { displayName?: string; registryId?: string; autoCleanup?: boolean }
+    config?: {
+      displayName?: string;
+      registryId?: string;
+      autoCleanup?: boolean;
+      errorBoundary?: boolean;
+    }
   ): React.FC<P> {
     const registryId = config?.registryId || contextName;
 
@@ -643,11 +662,15 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
         };
       }, []);
 
-      return (
+      const provider = (
         <StoreContext.Provider value={{ managerRef }}>
           <Component {...props} />
         </StoreContext.Provider>
       );
+
+      return config?.errorBoundary ? (
+        <StoreErrorBoundary>{provider}</StoreErrorBoundary>
+      ) : provider;
     };
 
     WithTimeTravelStoreProvider.displayName =

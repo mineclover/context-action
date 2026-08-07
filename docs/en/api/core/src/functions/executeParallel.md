@@ -8,7 +8,7 @@
 
 > **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:240](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L240)
+Defined in: [packages/core/src/execution-modes.ts:306](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L306)
 
 Execute handlers in parallel mode (all at once)
 
@@ -40,7 +40,7 @@ Pipeline execution context containing handlers and state
 
 ### createController
 
-(`registration`, `index`) => [`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
+(`registration`, `index`, `state`) => [`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
 
 Factory function for creating pipeline controllers
 

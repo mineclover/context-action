@@ -8,7 +8,7 @@
 
 > **createToolContext**&lt;`TSchema`&gt;(`contextName`, `config`): [`ToolContextReturn`](../interfaces/ToolContextReturn.md)&lt;`TSchema`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.tsx:313](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.tsx#L313)
+Defined in: [packages/react/src/tools/ToolContext.tsx:314](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.tsx#L314)
 
 Creates a unified Tool Context for LLM integration
 

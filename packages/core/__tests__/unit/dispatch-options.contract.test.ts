@@ -439,6 +439,167 @@ describe('DispatchOptions runtime contract', () => {
     );
   });
 
+  it('executes the debounced winner when debounce and throttle are combined', async () => {
+    jest.useFakeTimers();
+    const handler = jest.fn();
+    register.register('work', handler, { blocking: true });
+
+    const first = register.dispatchWithResult('work', { id: 'first' }, {
+      debounce: 20,
+      throttle: 100,
+    });
+    const second = register.dispatchWithResult('work', { id: 'second' }, {
+      debounce: 20,
+      throttle: 100,
+    });
+
+    await jest.advanceTimersByTimeAsync(20);
+    const results = await Promise.all([first, second]);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith({ id: 'second' }, expect.any(Object));
+    expect(results.find(result => result.success)?.success).toBe(true);
+  });
+
+  it('does not let a pending timing admission occupy a queue slot', async () => {
+    jest.useFakeTimers();
+    let releaseFirst: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    const firstStarted = new Promise<void>(resolve => {
+      markFirstStarted = resolve;
+    });
+    const firstGate = new Promise<void>(resolve => {
+      releaseFirst = resolve;
+    });
+    const executionOrder: string[] = [];
+
+    register.register('work', async payload => {
+      executionOrder.push(payload.id);
+      if (payload.id === 'first') {
+        markFirstStarted?.();
+        await firstGate;
+      }
+    }, { blocking: true });
+
+    const first = register.dispatch('work', { id: 'first' });
+    await firstStarted;
+    const debounced = register.dispatch('work', { id: 'debounced' }, { debounce: 20 });
+    const after = register.dispatch('work', { id: 'after' });
+
+    expect((register as any).dispatchQueue.getQueueInfo().queueLength).toBe(1);
+    await jest.advanceTimersByTimeAsync(20);
+    expect(executionOrder).toEqual(['first']);
+
+    releaseFirst?.();
+    await Promise.all([first, debounced, after]);
+    expect(executionOrder).toEqual(['first', 'after', 'debounced']);
+  });
+
+  it('does not let timeout during timing admission block unrelated dispatches', async () => {
+    jest.useFakeTimers();
+    const handled: string[] = [];
+    register.register('work', payload => {
+      handled.push(payload.id);
+    }, { blocking: true });
+
+    const pending = register.dispatch('work', { id: 'debounced' }, {
+      debounce: 1_000,
+      timeout: 50,
+    });
+    const unrelated = register.dispatch('work', { id: 'unrelated' });
+
+    await unrelated;
+    expect(handled).toEqual(['unrelated']);
+
+    await jest.advanceTimersByTimeAsync(50);
+    await expect(pending).rejects.toBeInstanceOf(ActionTimeoutError);
+    await jest.advanceTimersByTimeAsync(1_000);
+    expect(handled).toEqual(['unrelated']);
+  });
+
+  it('cancels pending timing admission timers during destroyAsync', async () => {
+    jest.useFakeTimers();
+    register.register('work', jest.fn(), { blocking: true });
+
+    const pending = register.dispatch('work', { id: 'shutdown' }, {
+      debounce: 30_000,
+    });
+
+    const shutdown = register.destroyAsync();
+
+    await expect(pending).resolves.toBeUndefined();
+    await shutdown;
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('reports only filtered handlers when timing admission rejects a result dispatch', async () => {
+    jest.useFakeTimers();
+    register.register('work', jest.fn(), { id: 'included', blocking: true });
+    register.register('work', jest.fn(), { id: 'excluded', blocking: true });
+
+    const first = register.dispatchWithResult('work', { id: 'first' }, {
+      debounce: 20,
+      filter: { handlerIds: ['included'] },
+    });
+    const second = register.dispatchWithResult('work', { id: 'second' }, {
+      debounce: 20,
+      filter: { handlerIds: ['included'] },
+    });
+
+    const [firstResult, secondResult] = await Promise.all([
+      first,
+      (async () => {
+        await jest.advanceTimersByTimeAsync(20);
+        return second;
+      })(),
+    ]);
+
+    const rejected = [firstResult, secondResult].find(result => result.abortReason === 'Debounced execution');
+    expect(rejected?.execution.handlersSkipped).toBe(1);
+    expect(rejected?.handlers.map(handler => handler.id)).toEqual(['included']);
+  });
+
+  it('validates before consuming throttle state', async () => {
+    const safeParse = jest.fn((value: { id: string }) => {
+      if (value.id === 'invalid') throw new Error('invalid payload');
+      return { success: true as const, data: value };
+    });
+    register.destroy();
+    register = new ActionRegister<ContractActions>({
+      registry: {
+        autoCleanup: false,
+        schema: { work: { safeParse } } as any,
+      },
+    });
+    const handler = jest.fn();
+    register.register('work', handler, { blocking: true });
+
+    await expect(register.dispatch('work', { id: 'invalid' }, { throttle: 5_000 }))
+      .rejects.toMatchObject({ name: 'ActionValidationError' });
+    await expect(register.dispatch('work', { id: 'valid' }, { throttle: 5_000 }))
+      .resolves.toBeUndefined();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reset another debounce for an already-aborted dispatch', async () => {
+    jest.useFakeTimers();
+    const handler = jest.fn();
+    register.register('work', handler, { blocking: true });
+    const first = register.dispatch('work', { id: 'first' }, { debounce: 20 });
+    const controller = new AbortController();
+    controller.abort();
+    const ignored = register.dispatch('work', { id: 'ignored' }, {
+      debounce: 20,
+      signal: controller.signal,
+    });
+
+    await jest.advanceTimersByTimeAsync(20);
+    await Promise.all([first, ignored]);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith({ id: 'first' }, expect.any(Object));
+  });
+
   it('serializes timing-guarded executions after they are admitted', async () => {
     jest.useFakeTimers();
     const executionOrder: string[] = [];
@@ -469,7 +630,7 @@ describe('DispatchOptions runtime contract', () => {
 
     releaseFirst?.();
     await Promise.all([first, debounced, after]);
-    expect(executionOrder).toEqual(['first', 'debounced', 'after']);
+    expect(executionOrder).toEqual(['first', 'after', 'debounced']);
   });
 
   it('requires immediate mode for nested result dispatches in a serial queue', async () => {

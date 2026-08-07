@@ -461,7 +461,14 @@ export interface HandlerConfig<T = unknown> {
 
   /** Condition function to determine if handler should execute. Default: always execute */
   condition?: (payload: T) => boolean;
+
+  /** Optional metadata copied into execution outcomes for diagnostics. */
+  metadata?: Record<string, unknown>;
 }
+
+/** Internal handler configuration with defaults resolved while preserving optional metadata. */
+export type ResolvedHandlerConfig<T = unknown> = Omit<Required<HandlerConfig<T>>, 'metadata'> &
+  Pick<HandlerConfig<T>, 'metadata'>;
 
 
 /**
@@ -481,7 +488,7 @@ export interface HandlerRegistration<T = unknown, R = void> {
   handler: ActionHandler<T, R>;
   
   /** Complete handler configuration with all defaults applied */
-  config: Required<HandlerConfig<T>>;
+  config: ResolvedHandlerConfig<T>;
   
   /** Unique identifier for this handler registration */
   id: string;
@@ -827,12 +834,12 @@ export interface DispatchOptions {
     };
     
     /** Custom filter function */
-    custom?: (config: Required<HandlerConfig>) => boolean;
+    custom?: (config: ResolvedHandlerConfig) => boolean;
   };
   
   /** Result collection and processing options */
   result?: {
-    /** How to handle multiple results */
+    /** How to handle multiple results. In parallel mode, results follow completion order. */
     strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
     
     /** Custom result merger function (used with 'merge' or 'custom' strategy) */
@@ -844,7 +851,7 @@ export interface DispatchOptions {
     /** Maximum number of results to collect */
     maxResults?: number;
     
-    /** Include errors in results */
+    /** @deprecated Errors are always exposed through ExecutionResult.errors and failedResults. */
     includeErrors?: boolean;
   };
 }
@@ -923,6 +930,7 @@ export interface ExecutionResult<R = void> {
   failedResults: Array<{
     handlerId: string;
     error: Error;
+    /** @deprecated Runtime execution cannot infer the TypeScript result type. */
     expectedType: string;
   }>;
   

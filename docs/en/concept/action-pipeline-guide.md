@@ -400,11 +400,11 @@ const result = await actionRegister.dispatchWithResult('processOrder', orderData
     collect: true,                    // Enable result collection
     strategy: 'all',                  // Collect all results
     maxResults: 10,                   // Limit to 10 results
-    timeout: 5000,                    // 5 second timeout
     merger: (results) => {            // Custom result merger
       return results.reduce((acc, curr) => ({ ...acc, ...curr }), {});
     }
-  }
+  },
+  timeout: 5000,                      // 5 second timeout
 });
 
 console.log('Execution successful:', result.success);
@@ -412,6 +412,10 @@ console.log('Results:', result.results);
 console.log('Execution duration:', result.execution.duration);
 console.log('Handlers executed:', result.execution.handlersExecuted);
 ```
+
+In `parallel` mode, `results` and collection strategies use handler completion
+order. Use the per-handler `handlers` records when you need to inspect which
+handler produced each result.
 
 ### Auto AbortController Management (New)
 
@@ -653,11 +657,11 @@ ecommerceRegister.register('submitOrder', sendConfirmationEmail, { priority: 30 
 ecommerceRegister.register('submitOrder', updateAnalytics, { priority: 10 });
 
 // Parallel post-processing
-ecommerceRegister.setExecutionMode('submitOrder', 'sequential'); // Main flow
+ecommerceRegister.setActionExecutionMode('submitOrder', 'sequential'); // Main flow
 ecommerceRegister.register('orderConfirmed', updateRecommendations, { priority: 10 });
 ecommerceRegister.register('orderConfirmed', notifyWarehouse, { priority: 10 });
 ecommerceRegister.register('orderConfirmed', updateLoyaltyPoints, { priority: 10 });
-ecommerceRegister.setExecutionMode('orderConfirmed', 'parallel'); // Post-processing
+ecommerceRegister.setActionExecutionMode('orderConfirmed', 'parallel'); // Post-processing
 ```
 
 ### User Management System
@@ -790,19 +794,12 @@ allStats.forEach(stats => {
 
 ### Handler Discovery
 
-Find handlers by tags or categories:
+Inspect registered handler counts and execution statistics:
 
 ```typescript
-// Find all validation handlers across actions
-const validationHandlers = actionRegister.getHandlersByTag('validation');
-for (const [action, handlers] of validationHandlers) {
-  console.log(`Action ${action} has ${handlers.length} validation handlers`);
-}
-
-// Find all critical handlers
-const criticalHandlers = actionRegister.getHandlersByCategory('critical');
-for (const [action, handlers] of criticalHandlers) {
-  console.log(`Action ${action} has ${handlers.length} critical handlers`);
+const actionStats = actionRegister.getAllActionStats();
+for (const stats of actionStats) {
+  console.log(`Action ${stats.action} has ${stats.handlerCount} handlers`);
 }
 ```
 
@@ -880,12 +877,12 @@ async function processOrderWithDetails(orderData: OrderData) {
     result: {
       collect: true,         // Enable result collection
       strategy: 'merge',     // Merge all results
-      timeout: 10000,        // 10 second timeout
       maxResults: 20,        // Limit results
       merger: (results) => { // Custom merger function
         return results.reduce((acc, curr) => ({ ...acc, ...curr }), {});
       }
     },
+    timeout: 10000,           // 10 second timeout
     filter: {
       handlerIds: ['validator', 'business'], // Only these handlers
       excludeHandlerIds: ['logging']         // Exclude logging
@@ -1002,8 +999,8 @@ actionRegister.register('processPayment', async (payload, controller) => {
 
 ```typescript
 // ✅ DO: Use appropriate execution modes
-actionRegister.setExecutionMode('trackAnalytics', 'parallel'); // Independent operations
-actionRegister.setExecutionMode('validateOrder', 'sequential'); // Dependent validations
+actionRegister.setActionExecutionMode('trackAnalytics', 'parallel'); // Independent operations
+actionRegister.setActionExecutionMode('validateOrder', 'sequential'); // Dependent validations
 
 // ✅ DO: Use debouncing for user input
 actionRegister.register('searchUsers', searchHandler, {
@@ -1308,14 +1305,10 @@ async function debugDispatch(action: string, payload: any) {
   return result;
 }
 
-// Enable metrics collection for specific handlers
+// Handler metadata is returned in ExecutionResult.handlers
 actionRegister.register('updateUser', userHandler, {
   priority: 50,
-  metrics: {
-    collectTiming: true,
-    collectErrors: true,
-    customMetrics: { trackUserUpdates: true }
-  }
+  metadata: { metric: 'trackUserUpdates' }
 });
 ```
 
@@ -1330,7 +1323,7 @@ The ActionPayloadMap and ActionRegister system provides a powerful, type-safe fo
 1. **Type Safety First**: Always define clear ActionPayloadMap interfaces
 2. **Natural Handler Flow**: Use natural completion, early returns, and explicit aborts for clean handler termination
 3. **Advanced Configuration**: Leverage the new registry configuration options for better control
-4. **Handler Organization**: Use tags, categories, and metadata for better organization
+4. **Handler Organization**: Use stable IDs, priorities, and metadata for better organization
 5. **Result Management**: Take advantage of the new result collection and processing system
 6. **Performance Monitoring**: Use ExecutionResult and statistics APIs for comprehensive monitoring
 7. **Filtering & Control**: Utilize advanced filtering options for precise handler execution
@@ -1340,7 +1333,7 @@ The ActionPayloadMap and ActionRegister system provides a powerful, type-safe fo
 
 ### Latest Features Summary:
 
-- **Enhanced HandlerConfig** with tags, categories, metadata, and environment controls
+- **Enhanced HandlerConfig** with timing controls, lifecycle options, and metadata
 - **Advanced Filtering System** for selective handler execution  
 - **Result Collection & Processing** with multiple strategies and custom mergers
 - **Auto AbortController Management** for better cancellation control

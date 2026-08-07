@@ -220,6 +220,9 @@ function toAISDKApprovalPolicy(
   sessionId: string,
 ) {
   if (typeof policy !== 'function') return policy;
+
+  // AI SDK v7 invokes needsApproval(input, context); the input is not wrapped
+  // in an { args } object in the installed runtime contract.
   return (input: unknown) => policy({
     toolName: definition.name,
     input,

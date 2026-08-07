@@ -40,13 +40,13 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:78](https://githu
 
 ### useActionDispatch
 
-> **useActionDispatch**: () => \{&lt;`K`&gt;(`action`, `payload`, `options?`): `Promise`&lt;`void`&gt;; &lt;`K`&gt;(`action`, `payload?`, `options?`): `Promise`&lt;`void`&gt;; \}
+> **useActionDispatch**: () => &lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
 Defined in: [packages/react/src/actions/ActionContext.types.ts:79](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L79)
 
 #### Returns
 
-\{&lt;`K`&gt;(`action`, `payload`, `options?`): `Promise`&lt;`void`&gt;; &lt;`K`&gt;(`action`, `payload?`, `options?`): `Promise`&lt;`void`&gt;; \}
+&lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
 ***
 
@@ -78,7 +78,7 @@ Type parameter **K**
 
 ##### config?
 
-`HandlerConfig`&lt;`unknown`&gt;
+`HandlerConfig`\<`T`\[`K`\]\>
 
 #### Returns
 
@@ -110,7 +110,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:86](https://githu
 
 ##### dispatch
 
-> **dispatch**: &lt;`K`&gt;(`action`, `payload?`, `options?`) => `Promise`&lt;`void`&gt;
+> **dispatch**: &lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
 ###### Type Parameters
 
@@ -124,13 +124,9 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:86](https://githu
 
 Type parameter **K**
 
-###### payload?
+###### args
 
-`T`\[`K`\]
-
-###### options?
-
-Type parameter **DispatchOptions**
+...`DispatchArgs`\<`T`\[`K`\]\>
 
 ###### Returns
 
@@ -138,7 +134,7 @@ Type parameter **DispatchOptions**
 
 ##### dispatchWithResult
 
-> **dispatchWithResult**: \<`K`, `R`\>(`action`, `payload?`, `options?`) => `Promise`\<`ExecutionResult`&lt;`R`&gt;\>
+> **dispatchWithResult**: \<`K`, `R`\>(`action`, ...`args`) => `Promise`\<`ExecutionResult`&lt;`R`&gt;\>
 
 ###### Type Parameters
 
@@ -156,13 +152,9 @@ Type parameter **DispatchOptions**
 
 Type parameter **K**
 
-###### payload?
+###### args
 
-`T`\[`K`\]
-
-###### options?
-
-Type parameter **DispatchOptions**
+...`DispatchArgs`\<`T`\[`K`\]\>
 
 ###### Returns
 
@@ -190,4 +182,4 @@ Type parameter **DispatchOptions**
 
 > **context**: `Context`\<[`ActionContextType`](ActionContextType.md)&lt;`T`&gt; \| `null`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:100](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L100)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:98](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L98)

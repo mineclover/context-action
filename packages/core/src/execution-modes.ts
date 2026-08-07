@@ -32,7 +32,9 @@ function beginOutcome<T, R>(registration: HandlerRegistration<T, R>): HandlerExe
     duration: undefined,
     result: undefined,
     error: undefined,
-    metadata: undefined,
+    metadata: registration.config.metadata
+      ? { ...registration.config.metadata }
+      : undefined,
   };
 }
 

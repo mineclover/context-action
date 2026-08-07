@@ -6,7 +6,7 @@
 
 # Interface: DispatchOptions
 
-Defined in: [packages/core/src/types.ts:729](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L729)
+Defined in: [packages/core/src/types.ts:774](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L774)
 
 Comprehensive dispatch options for controlling action execution
 
@@ -30,9 +30,9 @@ await register.dispatch('searchUsers', { query: 'john' }, {
 ```typescript
 await register.dispatch('updateUser', userData, {
   filter: {
-    handlerIds: ['validator', 'business-logic'], // Only these handlers
-    excludeHandlerIds: ['analytics'],            // Skip selected handlers
-    priority: { min: 10 }                        // Minimum priority
+    handlerIds: ['validation', 'business-logic'], // Only these handlers
+    excludeHandlerIds: ['analytics'],              // Skip selected handlers
+    priority: { min: 10 }                          // Minimum priority
   }
 })
 ```
@@ -73,7 +73,7 @@ await register.dispatch('longRunningTask', data, {
 
 > `optional` **debounce?**: `number`
 
-Defined in: [packages/core/src/types.ts:731](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L731)
+Defined in: [packages/core/src/types.ts:776](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L776)
 
 Debounce delay in milliseconds - wait for this delay after last call
 
@@ -83,7 +83,7 @@ Debounce delay in milliseconds - wait for this delay after last call
 
 > `optional` **throttle?**: `number`
 
-Defined in: [packages/core/src/types.ts:734](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L734)
+Defined in: [packages/core/src/types.ts:779](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L779)
 
 Throttle delay in milliseconds - limit execution to once per this period
 
@@ -93,7 +93,7 @@ Throttle delay in milliseconds - limit execution to once per this period
 
 > `optional` **executionMode?**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Defined in: [packages/core/src/types.ts:737](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L737)
+Defined in: [packages/core/src/types.ts:782](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L782)
 
 Execution mode override for this specific dispatch
 
@@ -103,7 +103,7 @@ Execution mode override for this specific dispatch
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:740](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L740)
+Defined in: [packages/core/src/types.ts:785](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L785)
 
 Abort signal for cancelling the dispatch
 
@@ -113,7 +113,7 @@ Abort signal for cancelling the dispatch
 
 > `optional` **immediate?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:743](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L743)
+Defined in: [packages/core/src/types.ts:788](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L788)
 
 Bypass queue and execute immediately
 
@@ -123,7 +123,7 @@ Bypass queue and execute immediately
 
 > `optional` **queuePriority?**: `number`
 
-Defined in: [packages/core/src/types.ts:746](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L746)
+Defined in: [packages/core/src/types.ts:791](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L791)
 
 Priority in dispatch queue (higher = earlier execution)
 
@@ -133,7 +133,7 @@ Priority in dispatch queue (higher = earlier execution)
 
 > `optional` **timeout?**: `number`
 
-Defined in: [packages/core/src/types.ts:753](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L753)
+Defined in: [packages/core/src/types.ts:798](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L798)
 
 Non-negative finite wall-clock timeout in milliseconds, including queue
 wait and retry delay. Rejects with ActionTimeoutError and aborts the
@@ -145,7 +145,7 @@ dispatch signal. Invalid values throw RangeError.
 
 > `optional` **retryOnError?**: `object`
 
-Defined in: [packages/core/src/types.ts:756](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L756)
+Defined in: [packages/core/src/types.ts:801](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L801)
 
 Retry configuration for error recovery
 
@@ -167,7 +167,7 @@ Delay between retries in milliseconds
 
 > `optional` **autoAbort?**: `object`
 
-Defined in: [packages/core/src/types.ts:764](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L764)
+Defined in: [packages/core/src/types.ts:809](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L809)
 
 Auto-abort options for automatic AbortController management
 
@@ -205,7 +205,7 @@ Enable pipeline abort trigger from handlers
 
 > `optional` **filter?**: `object`
 
-Defined in: [packages/core/src/types.ts:776](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L776)
+Defined in: [packages/core/src/types.ts:821](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L821)
 
 Handler filtering options
 
@@ -249,7 +249,7 @@ Custom filter function
 
 ###### config
 
-`Required`\<[`HandlerConfig`](HandlerConfig.md)\>
+Type parameter **ResolvedHandlerConfig**
 
 ##### Returns
 
@@ -261,7 +261,7 @@ Custom filter function
 
 > `optional` **result?**: `object`
 
-Defined in: [packages/core/src/types.ts:796](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L796)
+Defined in: [packages/core/src/types.ts:841](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L841)
 
 Result collection and processing options
 
@@ -269,7 +269,7 @@ Result collection and processing options
 
 > `optional` **strategy?**: `"first"` \| `"last"` \| `"all"` \| `"merge"` \| `"custom"`
 
-How to handle multiple results
+How to handle multiple results. In parallel mode, results follow completion order.
 
 #### merger?
 
@@ -305,8 +305,10 @@ Whether to collect results from all handlers
 
 Maximum number of results to collect
 
-#### includeErrors?
+#### ~~includeErrors?~~
 
 > `optional` **includeErrors?**: `boolean`
 
-Include errors in results
+##### Deprecated
+
+Errors are always exposed through ExecutionResult.errors and failedResults.

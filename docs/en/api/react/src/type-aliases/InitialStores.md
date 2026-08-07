@@ -8,7 +8,7 @@
 
 > **InitialStores**&lt;`T`&gt; = \{ \[K in keyof T\]: StoreConfig\<T\[K\]\> \| ExplicitStoreValue\<T\[K\]\> \| T\[K\] \}
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:73](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L73)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:74](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L74)
 
 Initial stores type mapping for declarative store pattern
 

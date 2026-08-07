@@ -43,7 +43,7 @@ Advanced result aggregation for complex business workflows across domain boundar
 ### ⚙️ Registration Patterns
 Domain-aware handler registration with MVVM layer configuration and cross-context coordination.
 
-- **Domain-Specific Configuration**: Priority and tags based on business domains
+- **Domain-Specific Configuration**: Priority and metadata labels based on business domains
 - **Layer-Aware Registration**: Model, ViewModel, Performance layer targeting
 - **Cross-Context Coordination**: Event bus integration and context bridge patterns
 

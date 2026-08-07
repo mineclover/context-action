@@ -25,10 +25,16 @@ import {
   PipelineContext,
   PipelineController,
   PipelineControllerState,
+  ResolvedHandlerConfig,
   UnregisterFunction,
 } from './types.js';
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
+
+type TimingGuardAdmission = {
+  reason?: 'Debounced execution' | 'Throttled execution';
+  aborted: boolean;
+};
 
 const RESERVED_PROXY_KEYS = new Set([
   'then',
@@ -429,7 +435,8 @@ export class ActionRegister<
         replaceExisting: config.replaceExisting ?? true, // 🔧 Fix: Default to true for backward compatibility
         cleanup: config.cleanup, // 🔧 Preserve cleanup function from config
         condition: config.condition, // 🔧 Fix: Preserve condition function from config
-      } as Required<HandlerConfig<T[K]>>,
+        metadata: config.metadata,
+      } as ResolvedHandlerConfig<T[K]>,
       id: handlerId,
     };
     
@@ -571,24 +578,14 @@ export class ActionRegister<
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
     const hasTimingGuard = this.hasTimingGuard(action, options);
-    const timingGuardPromise = hasTimingGuard
-      ? this.evaluateTimingGuards(action, timeoutScope.options)
-      : undefined;
-    const operation = async () => {
-      if (timingGuardPromise && (await timingGuardPromise)) return;
-      if (timeoutScope.options?.signal?.aborted) return;
-      if (!timeoutScope.options?.signal?.aborted) {
-        this.validatePayload(action, payload);
-      }
-
-      return this.executeWithRetry(async () => {
+    const pipelineOperation = async () => this.executeWithRetry(async () => {
         const executedHandlers: HandlerRegistration<any, any>[] = [];
         try {
           return await this._performDispatch(
             action,
             payload,
             timeoutScope.options,
-            Boolean(timingGuardPromise) || attemptState.count > 1,
+            hasTimingGuard || attemptState.count > 1,
             executedHandlers,
             dispatchHandlerPromises
           );
@@ -600,21 +597,38 @@ export class ActionRegister<
           );
         }
       }, timeoutScope.options, attemptState, undefined, () => this.getHandlerCount(action) > 0);
+    const operation = async () => {
+      if (timeoutScope.options?.signal?.aborted) return;
+
+      // Strict validation must complete before timing guards mutate admission state.
+      this.validatePayload(action, payload);
+      if (timeoutScope.options?.signal?.aborted) return;
+
+      if (hasTimingGuard) {
+        const admission = await this.evaluateTimingGuards(action, timeoutScope.options);
+        if (admission.aborted || timeoutScope.options?.signal?.aborted || admission.reason) {
+          return;
+        }
+      }
+
+      if (timeoutScope.options?.signal?.aborted) return;
+
+      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+        return pipelineOperation();
+      }
+
+      const queued = this.dispatchQueue.enqueueWithHandle(
+        pipelineOperation,
+        timeoutScope.options?.queuePriority ?? 0
+      );
+      timeoutScope.onTimeout(error => queued.cancel(error));
+      return queued.promise;
     };
 
     let dispatchPromise: Promise<void>;
     this.dispatchConstructionDepth += 1;
     try {
-      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
-        dispatchPromise = operation();
-      } else {
-        const queued = this.dispatchQueue.enqueueWithHandle(
-          operation,
-          timeoutScope.options?.queuePriority ?? 0
-        );
-        timeoutScope.onTimeout(error => queued.cancel(error));
-        dispatchPromise = queued.promise;
-      }
+      dispatchPromise = operation();
       this.trackDispatchPromise(dispatchPromise);
     } finally {
       this.dispatchConstructionDepth -= 1;
@@ -966,6 +980,16 @@ export class ActionRegister<
     };
   }
 
+  private getFilteredHandlers<K extends keyof T>(
+    action: K,
+    options?: DispatchOptions,
+  ): HandlerRegistration<any, any>[] {
+    const pipeline = this.pipelines.get(action) ?? [];
+    return options?.filter
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
+  }
+
   private getTimingGuardSettings<K extends keyof T>(
     action: K,
     options?: DispatchOptions,
@@ -998,23 +1022,31 @@ export class ActionRegister<
   private async evaluateTimingGuards<K extends keyof T>(
     action: K,
     options?: DispatchOptions,
-  ): Promise<string | undefined> {
+  ): Promise<TimingGuardAdmission> {
     const { debounceMs, throttleMs } = this.getTimingGuardSettings(action, options);
     const actionKey = String(action);
+    const signal = options?.signal;
 
-    if (debounceMs !== undefined && !(await this.actionGuard.debounce(actionKey, debounceMs))) {
-      return 'Debounced execution';
+    if (signal?.aborted) return { aborted: true };
+
+    if (debounceMs !== undefined && !(await this.actionGuard.debounce(actionKey, debounceMs, signal))) {
+      return signal?.aborted
+        ? { aborted: true }
+        : { aborted: false, reason: 'Debounced execution' };
     }
-    if (throttleMs !== undefined && !this.actionGuard.throttle(actionKey, throttleMs)) {
-      return 'Throttled execution';
+    if (throttleMs !== undefined && !this.actionGuard.throttle(actionKey, throttleMs, signal)) {
+      return signal?.aborted
+        ? { aborted: true }
+        : { aborted: false, reason: 'Throttled execution' };
     }
-    return undefined;
+    return { aborted: false };
   }
 
   private createTimingGuardResult<R>(
     reason: string,
     startTime: number,
-    handlersSkipped: number,
+    handlers: HandlerRegistration<any, any>[],
+    validation?: ExecutionResult<R>['validation'],
   ): ExecutionResult<R> {
     const endTime = Date.now();
     return {
@@ -1022,6 +1054,7 @@ export class ActionRegister<
       aborted: true,
       abortReason: reason,
       terminated: false,
+      validation,
       result: undefined,
       successResults: [],
       results: [],
@@ -1029,12 +1062,20 @@ export class ActionRegister<
       execution: {
         duration: endTime - startTime,
         handlersExecuted: 0,
-        handlersSkipped,
+        handlersSkipped: handlers.length,
         handlersFailed: 0,
         startTime,
         endTime,
       },
-      handlers: [],
+      handlers: handlers.map(handler => ({
+        id: handler.id,
+        status: 'skipped' as const,
+        executed: false,
+        duration: 0,
+        result: undefined,
+        error: undefined,
+        metadata: undefined,
+      })),
       errors: [],
     };
   }
@@ -1253,36 +1294,13 @@ export class ActionRegister<
     }
 
     const timeoutScope = this.createTimeoutScope(action, options);
+    const dispatchStartTime = Date.now();
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
     let validation: ExecutionResult<R>['validation'];
     const hasTimingGuard = this.hasTimingGuard(action, options);
-    const timingGuardPromise = hasTimingGuard
-      ? this.evaluateTimingGuards(action, timeoutScope.options)
-      : undefined;
 
-    const operation = async () => {
-      const timingGuardReason = timingGuardPromise
-        ? await timingGuardPromise
-        : undefined;
-      if (timingGuardReason) {
-        return this.createTimingGuardResult<R>(
-          timingGuardReason,
-          Date.now(),
-          this.getHandlerCount(action),
-        );
-      }
-      if (timeoutScope.options?.signal?.aborted) {
-        return this.createAbortedExecutionResult<R>(
-          Date.now(),
-          this.getHandlerCount(action),
-        );
-      }
-      if (!timeoutScope.options?.signal?.aborted) {
-        validation = this.validatePayload(action, payload);
-      }
-
-      return this.executeWithRetry(async () => {
+    const pipelineOperation = async () => this.executeWithRetry(async () => {
         const executedHandlers: HandlerRegistration<any, any>[] = [];
         try {
           return await this._performDispatchWithResult<K, R>(
@@ -1290,7 +1308,7 @@ export class ActionRegister<
             payload,
             timeoutScope.options,
             validation,
-            Boolean(timingGuardPromise) || attemptState.count > 1,
+            hasTimingGuard || attemptState.count > 1,
             executedHandlers,
             dispatchHandlerPromises
           );
@@ -1306,25 +1324,69 @@ export class ActionRegister<
         !result.aborted &&
         this.getHandlerCount(action) > 0
       ), () => this.getHandlerCount(action) > 0);
+
+    const operation = async () => {
+      if (timeoutScope.options?.signal?.aborted) {
+        return this.createAbortedExecutionResult<R>(
+          dispatchStartTime,
+          this.getFilteredHandlers(action, options).length,
+        );
+      }
+
+      // Strict validation must complete before timing guards mutate admission state.
+      validation = this.validatePayload(action, payload);
+      if (timeoutScope.options?.signal?.aborted) {
+        return this.createAbortedExecutionResult<R>(
+          dispatchStartTime,
+          this.getFilteredHandlers(action, options).length,
+          validation,
+        );
+      }
+
+      const eligibleHandlers = this.getFilteredHandlers(action, options);
+      if (hasTimingGuard) {
+        const admission = await this.evaluateTimingGuards(action, timeoutScope.options);
+        if (admission.aborted || timeoutScope.options?.signal?.aborted) {
+          return this.createAbortedExecutionResult<R>(
+            dispatchStartTime,
+            eligibleHandlers.length,
+            validation,
+          );
+        }
+        if (admission.reason) {
+          return this.createTimingGuardResult<R>(
+            admission.reason,
+            dispatchStartTime,
+            eligibleHandlers,
+            validation,
+          );
+        }
+      }
+
+      if (timeoutScope.options?.signal?.aborted) {
+        return this.createAbortedExecutionResult<R>(
+          dispatchStartTime,
+          eligibleHandlers.length,
+          validation,
+        );
+      }
+
+      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+        return pipelineOperation();
+      }
+
+      const queued = this.dispatchQueue.enqueueWithHandle(
+        pipelineOperation,
+        timeoutScope.options?.queuePriority ?? 0
+      );
+      timeoutScope.onTimeout(error => queued.cancel(error));
+      return queued.promise;
     };
 
-    const shouldQueue = (
-      !timeoutScope.options?.immediate &&
-      Boolean(this.dispatchQueue)
-    );
     let dispatchPromise: Promise<ExecutionResult<R>>;
     this.dispatchConstructionDepth += 1;
     try {
-      if (shouldQueue) {
-        const queued = this.dispatchQueue!.enqueueWithHandle(
-          operation,
-          timeoutScope.options!.queuePriority!
-        );
-        timeoutScope.onTimeout(error => queued.cancel(error));
-        dispatchPromise = queued.promise;
-      } else {
-        dispatchPromise = operation();
-      }
+      dispatchPromise = operation();
       this.trackDispatchPromise(dispatchPromise);
     } finally {
       this.dispatchConstructionDepth -= 1;

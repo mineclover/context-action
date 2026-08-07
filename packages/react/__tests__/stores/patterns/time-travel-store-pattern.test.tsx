@@ -508,6 +508,27 @@ describe('createTimeTravelStoreContext', () => {
 
       expect(manager.getInfo().storeCount).toBe(0);
     });
+
+    it('makes TimeTravelStoreManager.dispose terminal and idempotent', () => {
+      const manager = new TimeTravelStoreManager<TestStores>('terminal', {
+        counter: { initialValue: { count: 0, lastAction: 'init' } },
+        user: { initialValue: { name: 'Guest', age: 0 } },
+        settings: { initialValue: { theme: 'light' } },
+      });
+
+      const store = manager.getStore('counter');
+      const disposeSpy = jest.spyOn(store, 'dispose');
+      manager.dispose();
+      manager.dispose();
+
+      expect(disposeSpy).toHaveBeenCalledTimes(1);
+      expect(() => manager.getStore('counter')).toThrow(
+        'TimeTravelStoreManager "terminal" is disposed',
+      );
+      expect(() => manager.clear()).toThrow(
+        'TimeTravelStoreManager "terminal" is disposed',
+      );
+    });
   });
 
   describe('withProvider HOC', () => {
@@ -537,6 +558,19 @@ describe('createTimeTravelStoreContext', () => {
       });
 
       expect(WrappedComponent.displayName).toBe('CustomWrapped');
+    });
+
+    it('should honor the errorBoundary option', () => {
+      function ThrowingComponent(): React.ReactElement {
+        throw new Error('render failed');
+      }
+
+      const WrappedComponent = withProvider(ThrowingComponent, {
+        errorBoundary: true,
+      });
+      const { container } = render(<WrappedComponent />);
+
+      expect(container.textContent).toContain('Something went wrong');
     });
   });
 

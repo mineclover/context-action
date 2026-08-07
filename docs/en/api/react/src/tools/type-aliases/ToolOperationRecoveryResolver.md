@@ -8,7 +8,7 @@
 
 > **ToolOperationRecoveryResolver** = (`record`, `context?`) => `DurableOperationResolution`&lt;`ToolCallResult`&gt; \| `Promise`\<`DurableOperationResolution`&lt;`ToolCallResult`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:64](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L64)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:65](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L65)
 
 Domain-owned decision used by `recoverOperation` after an unknown durable
 operation has been queried, compensated, or confirmed by the application.

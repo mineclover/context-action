@@ -22,6 +22,19 @@ describe('ExecutionResult metrics', () => {
     register.destroy();
   });
 
+  it('copies handler metadata into execution outcomes', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.register('run', () => 'ok', {
+      id: 'annotated',
+      metadata: { source: 'test', sensitive: false },
+    });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'metadata' });
+
+    expect(result.handlers[0]?.metadata).toEqual({ source: 'test', sensitive: false });
+    register.destroy();
+  });
+
   it('counts conditional handlers as skipped', async () => {
     const register = new ActionRegister<MetricsActions>();
     register.register('run', () => 'executed', { id: 'executed' });
