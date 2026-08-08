@@ -1,5 +1,4 @@
 import { defineConfig } from 'tsdown'
-import babel from '@rolldown/plugin-babel'
 
 export default defineConfig({
   entry: [
@@ -30,14 +29,4 @@ export default defineConfig({
   },
   target: 'es2022',
   platform: 'browser', // Explicitly target browser platform
-  plugins: [
-    babel({
-      plugins: [
-        ['babel-plugin-react-compiler', {
-          target: '19',
-          compilationMode: 'annotation',
-        }],
-      ],
-    }),
-  ],
 })

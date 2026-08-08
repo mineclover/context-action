@@ -1132,7 +1132,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 
     const priority = handlerConfig?.priority ?? 0;
     const id = handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`;
-    const blocking = handlerConfig?.blocking ?? false;
+    const blocking = handlerConfig?.blocking;
+    const scheduling = handlerConfig?.scheduling;
+    const errorPolicy = handlerConfig?.errorPolicy;
     const once = handlerConfig?.once ?? false;
     const debounce = handlerConfig?.debounce;
     const throttle = handlerConfig?.throttle;
@@ -1141,14 +1143,16 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const stableHandlerConfig = useMemo((): HandlerConfig<TPayloadMap[K]> => ({
       priority,
       id,
-      blocking,
+      ...(blocking !== undefined && { blocking }),
+      ...(scheduling !== undefined && { scheduling }),
+      ...(errorPolicy !== undefined && { errorPolicy }),
       once,
       replaceExisting: true,
       ...(cleanup !== undefined && { cleanup }),
       ...(condition !== undefined && { condition }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle }),
-    }), [priority, id, blocking, once, cleanup, condition, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, cleanup, condition, debounce, throttle]);
 
     useEffect(() => {
       const register = actionRegisterRef.current;

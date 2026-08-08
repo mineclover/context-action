@@ -56,6 +56,22 @@ describe('createActionContext', () => {
     expect(ResultTypeComponent).toBeDefined();
   });
 
+  it('supports effect-only React handlers for mapped result actions', () => {
+    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedEffects');
+
+    function EffectComponent() {
+      MappedContext.useActionEffectHandler('login', payload => {
+        expect(payload.username).toBe('user');
+      });
+      MappedContext.useActionResultHandler('login', payload => ({
+        sessionId: payload.username,
+      }));
+      return null;
+    }
+
+    expect(EffectComponent).toBeDefined();
+  });
+
   it('should provide type-safe action dispatching', async () => {
     const AppActions = createActionContext<UserActions>('AppActions');
     let receivedPayload: any = null;
@@ -373,6 +389,33 @@ describe('createActionContext', () => {
 
     expect(receivedA).toBe('message-A');
     expect(receivedB).toBe('message-B');
+  });
+
+  it('preserves useActionHandler metadata in execution outcomes', async () => {
+    const TestActions = createActionContext<
+      { work: { id: string } },
+      { work: string }
+    >('MetadataActions');
+
+    function TestComponent() {
+      const { dispatchWithResult } = TestActions.useActionDispatchWithResult();
+      TestActions.useActionHandler('work', () => 'completed', {
+        metadata: { source: 'react-handler' },
+      });
+      return dispatchWithResult;
+    }
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TestActions.Provider>{children}</TestActions.Provider>
+    );
+    const { result } = renderHook(() => TestComponent(), { wrapper: Wrapper });
+
+    let execution: ExecutionResult<string> | undefined;
+    await act(async () => {
+      execution = await result.current('work', { id: 'metadata' });
+    });
+
+    expect(execution?.handlers[0]?.metadata).toEqual({ source: 'react-handler' });
   });
 
   it('should cleanup handlers on component unmount', async () => {

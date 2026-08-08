@@ -65,6 +65,17 @@ export type AISDKToolApprovalPolicy = boolean | (
   (invocation: Omit<AISDKToolInvocation, 'toolCallId'>) => boolean | Promise<boolean>
 );
 
+/**
+ * Generation-level approval policy compatible with AI SDK's `toolApproval`
+ * option. Pass this directly alongside `tools` and `activeTools`.
+ */
+export type AISDKGenerationToolApproval = (options: {
+  readonly toolCall: {
+    readonly toolName: string;
+    readonly input: unknown;
+  };
+}) => 'user-approval' | 'not-applicable' | Promise<'user-approval' | 'not-applicable'>;
+
 export interface AISDKToolSetOptions {
   /** Stable identifier for one model conversation or agent run. */
   readonly sessionId: string;
@@ -111,6 +122,11 @@ export interface AISDKToolScope {
   readonly tools: ToolSet;
   /** Mirrors the exact capability scope for AI SDK's `activeTools` option. */
   readonly activeTools: readonly string[];
+  /**
+   * Native AI SDK generation-level approval policy. Supply this as
+   * `toolApproval` to `generateText`, `streamText`, or an AI SDK agent.
+   */
+  readonly toolApproval?: AISDKGenerationToolApproval;
 }
 
 /**
@@ -133,8 +149,11 @@ export function createAISDKToolScope(
       createAISDKTool(manager, definition, sessionId, options),
     ]),
   ) as ToolSet;
+  const toolApproval = options.needsApproval === undefined
+    ? undefined
+    : toAISDKGenerationApprovalPolicy(options.needsApproval, definitions, sessionId);
 
-  return { tools, activeTools };
+  return { tools, activeTools, ...(toolApproval === undefined ? {} : { toolApproval }) };
 }
 
 /** Convenience form for callers that do not need to pass `activeTools` separately. */
@@ -160,15 +179,6 @@ function createAISDKTool(
     ...(definition.outputSchema === undefined || options.errorMode !== 'throw'
       ? {}
       : { outputSchema: jsonSchema(definition.outputSchema) }),
-    ...(options.needsApproval === undefined
-      ? {}
-      : {
-          needsApproval: toAISDKApprovalPolicy(
-            options.needsApproval,
-            definition,
-            sessionId,
-          ),
-    }),
     execute: async (input, executionOptions) => {
       const toolCallId = canonicalToolCallId(executionOptions.toolCallId);
       const invocation: AISDKToolInvocation = {
@@ -219,21 +229,24 @@ function createAISDKTool(
   });
 }
 
-function toAISDKApprovalPolicy(
+function toAISDKGenerationApprovalPolicy(
   policy: AISDKToolApprovalPolicy,
-  definition: ToolDefinition,
+  definitions: readonly ToolDefinition[],
   sessionId: string,
-) {
-  if (typeof policy !== 'function') return policy;
-
-  // AI SDK v7 invokes needsApproval(input, context); the input is not wrapped
-  // in an { args } object in the installed runtime contract.
-  return (input: unknown) => policy({
-    toolName: definition.name,
-    input,
-    definition,
-    sessionId,
-  });
+): AISDKGenerationToolApproval {
+  return async ({ toolCall }) => {
+    const definition = definitions.find(candidate => candidate.name === toolCall.toolName);
+    if (definition === undefined) return 'not-applicable';
+    const requiresApproval = typeof policy === 'function'
+      ? await policy({
+          toolName: definition.name,
+          input: toolCall.input,
+          definition,
+          sessionId,
+        })
+      : policy;
+    return requiresApproval ? 'user-approval' : 'not-applicable';
+  };
 }
 
 function resolveDefinitions(

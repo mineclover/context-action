@@ -70,6 +70,19 @@ describe('Filter Functionality Tests', () => {
     });
   });
 
+  it('evaluates a custom filter once per handler for the entire dispatch', async () => {
+    const custom = jest.fn(() => true);
+    actionRegister.register('testAction', () => {}, { id: 'timed', debounce: 1 });
+    actionRegister.register('testAction', () => {}, { id: 'second' });
+    actionRegister.register('testAction', () => {}, { id: 'third' });
+
+    await actionRegister.dispatchWithResult('testAction', { value: 'test' }, {
+      filter: { custom },
+    });
+
+    expect(custom).toHaveBeenCalledTimes(actionRegister.getHandlerCount('testAction'));
+  });
+
   describe('🎯 Priority Filtering', () => {
     it('should filter by minimum priority', async () => {
       // Register handlers with different priorities

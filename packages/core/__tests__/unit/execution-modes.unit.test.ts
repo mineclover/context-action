@@ -60,6 +60,8 @@ describe('Execution Modes Unit Tests', () => {
         id,
         priority,
         blocking,
+        scheduling: blocking ? 'await-before-next' : 'start-and-continue',
+        errorPolicy: blocking ? 'fatal' : 'collect',
         once: false,
         throttle: 0,
         debounce: 0,

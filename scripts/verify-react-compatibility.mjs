@@ -86,6 +86,28 @@ void Consumer;
     cwd: consumer,
     stdio: 'inherit',
   });
+  writeFileSync(join(consumer, 'consumer-runtime.mjs'), `
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { createActionContext } from '@context-action/react';
+
+const Context = createActionContext('CompatibilityRuntime');
+function Consumer() {
+  Context.useActionEffectHandler('save', () => {});
+  return React.createElement('div', { 'data-context-action': 'ready' }, 'ready');
+}
+
+const html = renderToString(
+  React.createElement(Context.Provider, null, React.createElement(Consumer)),
+);
+if (!html.includes('data-context-action="ready"')) {
+  throw new Error('React runtime compatibility render did not produce the expected output.');
+}
+`);
+  execFileSync(process.execPath, [join(consumer, 'consumer-runtime.mjs')], {
+    cwd: consumer,
+    stdio: 'inherit',
+  });
   console.log(`React ${reactVersion} compatibility passed with @types/react ${reactTypesVersion}.`);
 } finally {
   rmSync(consumer, { recursive: true, force: true });

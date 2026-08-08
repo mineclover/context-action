@@ -52,6 +52,8 @@ describe('Execution Modes (Memory Optimized)', () => {
         id,
         priority: 0,
         blocking: false,
+        scheduling: 'start-and-continue',
+        errorPolicy: 'collect',
         once: false,
         throttle: 0,
         debounce: 0,

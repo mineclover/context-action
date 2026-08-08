@@ -383,26 +383,32 @@ export function createActionContext<
     // Extract config properties to stable variables
     const priority = config?.priority ?? 0;
     const id = config?.id || `react_${String(action)}_${actionId}`;
-    const blocking = config?.blocking ?? false;
+    const blocking = config?.blocking;
+    const scheduling = config?.scheduling;
+    const errorPolicy = config?.errorPolicy;
     const once = config?.once ?? false;
     const debounce = config?.debounce;
     const throttle = config?.throttle;
     const cleanup = config?.cleanup;
     const condition = config?.condition;
+    const metadata = config?.metadata;
     const replaceExisting = config?.replaceExisting ?? true;
     
     // Memoize config to prevent unnecessary re-registrations
     const stableConfig = useMemo((): HandlerConfig<T[K]> => ({
       priority,
       id,
-      blocking,
+      ...(blocking !== undefined && { blocking }),
+      ...(scheduling !== undefined && { scheduling }),
+      ...(errorPolicy !== undefined && { errorPolicy }),
       once,
       replaceExisting,
       ...(cleanup !== undefined && { cleanup }),
       ...(condition !== undefined && { condition }),
+      ...(metadata !== undefined && { metadata }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, once, replaceExisting, cleanup, condition, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, cleanup, condition, metadata, debounce, throttle]);
 
     useEffect(() => {
       const register = actionRegisterRef.current;
@@ -490,6 +496,22 @@ export function createActionContext<
   const useFactoryActionRegister = (): ActionRegister<T, TResultMap> | null => {
     const context = useFactoryActionContext();
     return context.actionRegisterRef.current;
+  };
+
+  const useActionEffectHandler = <K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config?: HandlerConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config);
+  };
+
+  const useActionResultHandler = <K extends keyof T & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
+    config?: HandlerConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config);
   };
 
   // Hook to get the dispatchWithResult function with full type safety
@@ -612,6 +634,8 @@ export function createActionContext<
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
     useActionHandler,
+    useActionEffectHandler,
+    useActionResultHandler,
     useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,

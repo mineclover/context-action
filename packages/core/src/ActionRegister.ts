@@ -41,6 +41,22 @@ type TimingGuardAdmission = {
   aborted: boolean;
 };
 
+/** Immutable handler selection and scheduling decisions for one dispatch. */
+type DispatchPlan = {
+  pipelineSnapshot: readonly HandlerRegistration<any, any>[];
+  eligibleHandlers: readonly HandlerRegistration<any, any>[];
+  debounceMs?: number;
+  throttleMs?: number;
+  executionMode: ExecutionMode;
+};
+
+class ActionResultProcessingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ActionResultProcessingError';
+  }
+}
+
 const RESERVED_PROXY_KEYS = new Set<ReservedActionKey>([
   'then',
   'catch',
@@ -208,7 +224,7 @@ export class ActionRegister<
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
           if (RESERVED_PROXY_KEYS.has(prop as ReservedActionKey)) return undefined;
-          const actionKey = prop as keyof T;
+          const actionKey = prop as ProxyActionKey<T>;
 
           let dispatcher = this.actionDispatchers.get(prop);
           if (!dispatcher) {
@@ -262,12 +278,16 @@ export class ActionRegister<
         get: (_target, prop: string | symbol) => {
           if (typeof prop !== 'string') return undefined;
           if (RESERVED_PROXY_KEYS.has(prop as ReservedActionKey)) return undefined;
-          const actionKey = prop as keyof T;
+          const actionKey = prop as ProxyActionKey<T>;
 
           let dispatcher = this.actionResultDispatchers.get(prop);
           if (!dispatcher) {
+            const dispatchAction = this.dispatchWithResult.bind(this) as (
+              action: ProxyActionKey<T>,
+              ...args: DispatchArgs<T[ProxyActionKey<T>]>
+            ) => Promise<ExecutionResult<unknown>>;
             dispatcher = (payload?: T[typeof actionKey], options?: DispatchOptions) =>
-              this.dispatchWithResult(
+              dispatchAction(
                 actionKey,
                 ...( [payload, options] as DispatchArgs<T[typeof actionKey]> )
               );
@@ -310,17 +330,37 @@ export class ActionRegister<
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]> = {}
   ): UnregisterFunction {
+    return this.registerEffect(action, handler, config);
+  }
+
+  /**
+   * Register a side-effect-only handler. This is the explicit route for
+   * validation, logging, and abort guards on actions with mapped results.
+   *
+   * @public
+   */
+  registerEffect<K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config: HandlerConfig<T[K]> = {}
+  ): UnregisterFunction {
+    this.assertStringActionKey(action);
     this.assertAcceptingWork();
-    // 🔄 임시로 기존 구현 유지하되 개선된 방식 적용
-    // 동기적 API를 유지하면서 내부적으로만 동시성 보호
-    
-    // 🆕 Optimized handler ID generation
     const handlerId = config.id || this.generateHandlerId(action);
-    
-    // 🆕 Direct synchronous registration
-    const unregisterFn = this._performRegistrationSync(action, handler, config, handlerId);
-    
-    return unregisterFn;
+    return this._performRegistrationSync(action, handler, config, handlerId);
+  }
+
+  /**
+   * Register a handler that contributes the result declared for an action.
+   *
+   * @public
+   */
+  registerResult<K extends keyof T & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
+    config?: HandlerConfig<T[K]>,
+  ): UnregisterFunction {
+    return this.registerEffect(action, handler, config);
   }
 
   /**
@@ -336,6 +376,12 @@ export class ActionRegister<
   private assertAcceptingWork(): void {
     if (this.lifecycleState !== 'active') {
       throw new ActionRegisterDestroyedError(this.name, this.lifecycleState);
+    }
+  }
+
+  private assertStringActionKey(action: PropertyKey): void {
+    if (typeof action !== 'string') {
+      throw new TypeError('Action keys must be strings.');
     }
   }
 
@@ -444,7 +490,13 @@ export class ActionRegister<
       config: {
         priority: config.priority ?? 0,
         id: handlerId,
-        blocking: config.blocking ?? false,
+        // Keep `blocking` as a resolved compatibility view while execution
+        // uses the independently configured scheduling and error policy.
+        blocking: config.errorPolicy === 'fatal' || config.blocking === true,
+        scheduling: config.scheduling
+          ?? (config.blocking === false ? 'start-and-continue' : 'await-before-next'),
+        errorPolicy: config.errorPolicy
+          ?? (config.blocking === true ? 'fatal' : 'collect'),
         once: config.once ?? false,
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
@@ -585,6 +637,7 @@ export class ActionRegister<
   
   // Implementation (least specific)
   dispatch<K extends keyof T>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
+    this.assertStringActionKey(action);
     const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
     if (this.lifecycleState !== 'active') {
       return this.rejectedLifecyclePromise<void>();
@@ -593,7 +646,8 @@ export class ActionRegister<
     const timeoutScope = this.createTimeoutScope(action, options);
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
-    const hasTimingGuard = this.hasTimingGuard(action, options);
+    const plan = this.resolveDispatchPlan(action, options);
+    const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
     const pipelineOperation = async () => this.executeWithRetry(async () => {
         const executedHandlers: HandlerRegistration<any, any>[] = [];
         try {
@@ -601,7 +655,7 @@ export class ActionRegister<
             action,
             payload,
             timeoutScope.options,
-            hasTimingGuard || attemptState.count > 1,
+            plan,
             executedHandlers,
             dispatchHandlerPromises
           );
@@ -621,7 +675,11 @@ export class ActionRegister<
       if (timeoutScope.options?.signal?.aborted) return;
 
       if (hasTimingGuard) {
-        const admission = await this.evaluateTimingGuards(action, timeoutScope.options);
+        const admission = await this.evaluateTimingGuards(
+          String(action),
+          plan,
+          timeoutScope.options?.signal,
+        );
         if (admission.aborted || timeoutScope.options?.signal?.aborted || admission.reason) {
           return;
         }
@@ -986,6 +1044,9 @@ export class ActionRegister<
       failedResults: [],
       execution: {
         duration: endTime - startTime,
+        admissionDuration: endTime - startTime,
+        queueWaitDuration: 0,
+        pipelineDuration: 0,
         handlersExecuted: 0,
         handlersSkipped,
         handlersFailed: 0,
@@ -997,52 +1058,36 @@ export class ActionRegister<
     };
   }
 
-  private getFilteredHandlers<K extends keyof T>(
+  private resolveDispatchPlan<K extends keyof T>(
     action: K,
     options?: DispatchOptions,
-  ): HandlerRegistration<any, any>[] {
-    const pipeline = this.pipelines.get(action) ?? [];
-    return options?.filter
-      ? this.filterHandlers(pipeline, options.filter)
-      : pipeline;
+  ): DispatchPlan {
+    const pipelineSnapshot = [...(this.pipelines.get(action) ?? [])];
+    const eligibleHandlers = options?.filter
+      ? this.filterHandlers(pipelineSnapshot, options.filter)
+      : pipelineSnapshot;
+    const debounceMs = options?.debounce
+      ?? eligibleHandlers.find(handler => handler.config.debounce !== undefined)?.config.debounce;
+    const throttleMs = options?.throttle
+      ?? eligibleHandlers.find(handler => handler.config.throttle !== undefined)?.config.throttle;
+
+    return {
+      pipelineSnapshot,
+      eligibleHandlers,
+      debounceMs,
+      throttleMs,
+      executionMode: options?.executionMode
+        ?? this.actionExecutionModes.get(action)
+        ?? this.executionMode,
+    };
   }
 
-  private getTimingGuardSettings<K extends keyof T>(
-    action: K,
-    options?: DispatchOptions,
-  ): { debounceMs?: number; throttleMs?: number } {
-    const pipeline = this.pipelines.get(action) ?? [];
-    const handlers = options?.filter
-      ? this.filterHandlers(pipeline, options.filter)
-      : pipeline;
-
-    let debounceMs = options?.debounce;
-    let throttleMs = options?.throttle;
-
-    if (debounceMs === undefined) {
-      debounceMs = handlers.find(handler => handler.config.debounce !== undefined)
-        ?.config.debounce;
-    }
-    if (throttleMs === undefined) {
-      throttleMs = handlers.find(handler => handler.config.throttle !== undefined)
-        ?.config.throttle;
-    }
-
-    return { debounceMs, throttleMs };
-  }
-
-  private hasTimingGuard<K extends keyof T>(action: K, options?: DispatchOptions): boolean {
-    const { debounceMs, throttleMs } = this.getTimingGuardSettings(action, options);
-    return debounceMs !== undefined || throttleMs !== undefined;
-  }
-
-  private async evaluateTimingGuards<K extends keyof T>(
-    action: K,
-    options?: DispatchOptions,
+  private async evaluateTimingGuards(
+    actionKey: string,
+    plan: DispatchPlan,
+    signal?: AbortSignal,
   ): Promise<TimingGuardAdmission> {
-    const { debounceMs, throttleMs } = this.getTimingGuardSettings(action, options);
-    const actionKey = String(action);
-    const signal = options?.signal;
+    const { debounceMs, throttleMs } = plan;
 
     if (signal?.aborted) return { aborted: true };
 
@@ -1059,10 +1104,24 @@ export class ActionRegister<
     return { aborted: false };
   }
 
+  /**
+   * Keep the dispatch plan stable across retries while honoring handlers that
+   * were consumed by the `once` lifecycle after an earlier attempt.
+   */
+  private getAttemptHandlers<K extends keyof T>(
+    action: K,
+    plan: DispatchPlan,
+  ): HandlerRegistration<any, any>[] {
+    const activePipeline = this.pipelines.get(action) ?? [];
+    return plan.eligibleHandlers.filter(
+      handler => !handler.config.once || activePipeline.includes(handler),
+    );
+  }
+
   private createTimingGuardResult<R>(
     reason: string,
     startTime: number,
-    handlers: HandlerRegistration<any, any>[],
+    handlers: readonly HandlerRegistration<any, any>[],
     validation?: ExecutionResult<R>['validation'],
   ): ExecutionResult<R> {
     const endTime = Date.now();
@@ -1081,6 +1140,9 @@ export class ActionRegister<
       failedResults: [],
       execution: {
         duration: endTime - startTime,
+        admissionDuration: endTime - startTime,
+        queueWaitDuration: 0,
+        pipelineDuration: 0,
         handlersExecuted: 0,
         handlersSkipped: handlers.length,
         handlersFailed: 0,
@@ -1094,7 +1156,7 @@ export class ActionRegister<
         duration: 0,
         result: undefined,
         error: undefined,
-        metadata: undefined,
+        metadata: handler.config.metadata ? { ...handler.config.metadata } : undefined,
       })),
       errors: [],
     };
@@ -1107,7 +1169,7 @@ export class ActionRegister<
     action: K,
     payload: T[K] | undefined,
     options: DispatchOptions | undefined,
-    skipGuards: boolean,
+    plan: DispatchPlan,
     executedHandlers: HandlerRegistration<any, any>[],
     dispatchHandlerPromises: DispatchHandlerPromises
   ): Promise<void> {
@@ -1138,7 +1200,7 @@ export class ActionRegister<
       return;
     }
     
-    const pipeline = this.pipelines.get(action);
+    const pipeline = plan.pipelineSnapshot;
     
     // 🔍 파이프라인 존재 여부 디버그
     this.log(`Pipeline lookup for '${String(action)}'`, {
@@ -1163,72 +1225,7 @@ export class ActionRegister<
       return;
     }
 
-    // 🆕 Optimize filtering - only copy array if filtering is needed
-    const filteredHandlers = options?.filter 
-      ? this.filterHandlers(pipeline, options.filter)
-      : pipeline;
-
-    // Apply ActionGuard controls - check both dispatch options and handler configs
-    const actionKey = String(action);
-    
-    // Get throttle/debounce settings from dispatch options or handler configs
-    let throttleMs: number | undefined;
-    let debounceMs: number | undefined;
-    
-    // Priority: dispatch options > handler config
-    if (options?.throttle !== undefined) {
-      throttleMs = options.throttle;
-    } else if (filteredHandlers.length > 0) {
-      // Use throttle from the first handler that has it (handlers are sorted by priority)
-      for (const handler of filteredHandlers) {
-        if (handler.config.throttle !== undefined) {
-          throttleMs = handler.config.throttle;
-          break;
-        }
-      }
-    }
-    
-    if (options?.debounce !== undefined) {
-      debounceMs = options.debounce;
-    } else if (filteredHandlers.length > 0) {
-      // Use debounce from the first handler that has it (handlers are sorted by priority)
-      for (const handler of filteredHandlers) {
-        if (handler.config.debounce !== undefined) {
-          debounceMs = handler.config.debounce;
-          break;
-        }
-      }
-    }
-    
-    // Apply debounce if specified
-    if (!skipGuards && debounceMs !== undefined) {
-      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
-      if (!shouldProceed) {
-        cleanup();
-        return; // Debounced - don't execute
-      }
-    }
-    
-    // Apply throttle if specified
-    if (!skipGuards && throttleMs !== undefined) {
-      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
-      if (!shouldProceed) {
-        cleanup();
-        return; // Throttled - don't execute
-      }
-    }
-
-    // The signal may have been aborted while awaiting debounce.
-    if (effectiveSignal?.aborted) {
-      this.log(`Dispatch aborted during guard processing for '${String(action)}'`);
-      cleanup();
-      return;
-    }
-
-    // Determine execution mode for this action (with option override)
-    const currentExecutionMode = options?.executionMode || 
-                                this.actionExecutionModes.get(action) || 
-                                this.executionMode;
+    const filteredHandlers = this.getAttemptHandlers(action, plan);
 
     // Create pipeline execution context
     const context: PipelineContext<T[K], any> = {
@@ -1249,7 +1246,7 @@ export class ActionRegister<
       jumpToPriority: undefined as number | undefined,
       jumpCount: 0,
       maxJumps: this.maxJumps,
-      executionMode: currentExecutionMode,
+      executionMode: plan.executionMode,
       
       // New result collection fields
       results: [],
@@ -1316,6 +1313,7 @@ export class ActionRegister<
     action: K,
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>> {
+    this.assertStringActionKey(action);
     const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
     if (this.lifecycleState !== 'active') {
       return this.rejectedLifecyclePromise<ExecutionResult<R>>();
@@ -1326,77 +1324,104 @@ export class ActionRegister<
     const dispatchHandlerPromises: DispatchHandlerPromises = new Set();
     const attemptState = { count: 0 };
     let validation: ExecutionResult<R>['validation'];
-    const hasTimingGuard = this.hasTimingGuard(action, options);
+    let admissionEndedAt = dispatchStartTime;
+    let pipelineStartedAt: number | undefined;
+    const plan = this.resolveDispatchPlan(action, options);
+    const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
 
-    const pipelineOperation = async () => this.executeWithRetry(async () => {
-        const executedHandlers: HandlerRegistration<any, any>[] = [];
-        try {
-          return await this._performDispatchWithResult<K, R>(
-            action,
-            payload,
-            timeoutScope.options,
-            validation,
-            hasTimingGuard || attemptState.count > 1,
-            executedHandlers,
-            dispatchHandlerPromises
-          );
-        } finally {
-          this.cleanupOneTimeHandlers(
-            action,
-            executedHandlers,
-            dispatchHandlerPromises
-          );
-        }
-      }, timeoutScope.options, attemptState, result => (
-        result.outcome === 'failed' &&
-        this.getHandlerCount(action) > 0
-      ), () => this.getHandlerCount(action) > 0);
+    const pipelineOperation = async () => {
+      pipelineStartedAt = Date.now();
+      const rawExecution = await this.executeWithRetry(async () => {
+          const executedHandlers: HandlerRegistration<any, any>[] = [];
+          try {
+            return await this._performDispatchWithResult<K, R>(
+              action,
+              payload,
+              timeoutScope.options,
+              validation,
+              plan,
+              executedHandlers,
+              dispatchHandlerPromises
+            );
+          } finally {
+            this.cleanupOneTimeHandlers(
+              action,
+              executedHandlers,
+              dispatchHandlerPromises
+            );
+          }
+        }, timeoutScope.options, attemptState, result => (
+          result.outcome === 'failed' &&
+          this.getHandlerCount(action) > 0
+        ), () => this.getHandlerCount(action) > 0);
+
+      return {
+        ...rawExecution,
+        result: this.processResults(
+          rawExecution.results,
+          rawExecution.terminated,
+          rawExecution.terminated ? rawExecution.result : undefined,
+          options?.result,
+        ),
+      };
+    };
 
     const operation = async () => {
       if (timeoutScope.options?.signal?.aborted) {
+        admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          this.getFilteredHandlers(action, options).length,
+          plan.eligibleHandlers.length,
         );
       }
 
       // Strict validation must complete before timing guards mutate admission state.
       validation = this.validatePayload(action, payload);
       if (timeoutScope.options?.signal?.aborted) {
+        admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          this.getFilteredHandlers(action, options).length,
+          plan.eligibleHandlers.length,
           validation,
         );
       }
 
-      const eligibleHandlers = this.getFilteredHandlers(action, options);
+      this.validateResultOptions(options?.result);
       if (hasTimingGuard) {
-        const admission = await this.evaluateTimingGuards(action, timeoutScope.options);
+        const admission = await this.evaluateTimingGuards(
+          String(action),
+          plan,
+          timeoutScope.options?.signal,
+        );
         if (admission.aborted || timeoutScope.options?.signal?.aborted) {
+          admissionEndedAt = Date.now();
           return this.createAbortedExecutionResult<R>(
             dispatchStartTime,
-            eligibleHandlers.length,
+            plan.eligibleHandlers.length,
             validation,
           );
         }
         if (admission.reason) {
+          admissionEndedAt = Date.now();
           return this.createTimingGuardResult<R>(
             admission.reason,
             dispatchStartTime,
-            eligibleHandlers,
+            plan.eligibleHandlers,
             validation,
           );
         }
       }
 
       if (timeoutScope.options?.signal?.aborted) {
+        admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          eligibleHandlers.length,
+          plan.eligibleHandlers.length,
           validation,
         );
       }
+
+      admissionEndedAt = Date.now();
 
       if (timeoutScope.options?.immediate || !this.dispatchQueue) {
         return pipelineOperation();
@@ -1424,8 +1449,26 @@ export class ActionRegister<
       dispatchHandlerPromises
     );
     const observedPromise = exposedPromise.then(result => {
-      if (result.outcome === 'failed') {
-        const terminalError = result.errors[result.errors.length - 1]?.error
+      const dispatchEndedAt = Date.now();
+      const pipelineDuration = pipelineStartedAt === undefined
+        ? 0
+        : result.execution.pipelineDuration;
+      const completedResult: ExecutionResult<R> = {
+        ...result,
+        execution: {
+          ...result.execution,
+          duration: dispatchEndedAt - dispatchStartTime,
+          admissionDuration: Math.max(0, admissionEndedAt - dispatchStartTime),
+          queueWaitDuration: pipelineStartedAt === undefined
+            ? 0
+            : Math.max(0, pipelineStartedAt - admissionEndedAt),
+          pipelineDuration,
+          startTime: dispatchStartTime,
+          endTime: dispatchEndedAt,
+        },
+      };
+      if (completedResult.outcome === 'failed') {
+        const terminalError = completedResult.errors[completedResult.errors.length - 1]?.error
           ?? new Error(`Action "${String(action)}" failed`);
         this.invokeErrorHandler(
           terminalError,
@@ -1435,7 +1478,7 @@ export class ActionRegister<
           attemptState.count
         );
       }
-      return result;
+      return completedResult;
     }, error => {
       this.invokeErrorHandler(error, action, payload, options, attemptState.count);
       throw error;
@@ -1450,7 +1493,7 @@ export class ActionRegister<
     payload: T[K] | undefined,
     options: DispatchOptions | undefined,
     validation: ExecutionResult<R>['validation'],
-    skipGuards: boolean,
+    plan: DispatchPlan,
     executedHandlers: HandlerRegistration<any, any>[],
     dispatchHandlerPromises: DispatchHandlerPromises
   ): Promise<ExecutionResult<R>> {
@@ -1469,7 +1512,7 @@ export class ActionRegister<
       return this.createAbortedExecutionResult<R>(_startTime, 0, validation);
     }
     
-    const pipeline = this.pipelines.get(action);
+    const pipeline = plan.pipelineSnapshot;
     
     if (!pipeline || pipeline.length === 0) {
       // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
@@ -1495,6 +1538,9 @@ export class ActionRegister<
         failedResults: [],
         execution: {
           duration: 0,
+          admissionDuration: 0,
+          queueWaitDuration: 0,
+          pipelineDuration: 0,
           handlersExecuted: 0,
           handlersSkipped: 0,
           handlersFailed: 0,
@@ -1506,38 +1552,7 @@ export class ActionRegister<
       };
     }
 
-    // 🆕 Optimize filtering - only copy array if filtering is needed
-    const filteredHandlers = options?.filter 
-      ? this.filterHandlers(pipeline, options.filter)
-      : pipeline;
-
-    // 🔧 Apply ActionGuard controls using unified method with ExecutionResult return
-    const actionKey = String(action);
-    const guardResult = skipGuards
-      ? null
-      : await this.applyActionGuardControlsWithResult<R>(
-          actionKey,
-          filteredHandlers,
-          options,
-          _startTime,
-          pipeline.length
-        );
-
-    // The signal may have been aborted while awaiting debounce.
-    if (effectiveSignal?.aborted) {
-      cleanup();
-      return this.createAbortedExecutionResult<R>(_startTime, pipeline.length, validation);
-    }
-
-    if (guardResult) {
-      cleanup();
-      return { ...guardResult, validation }; // Throttled or debounced
-    }
-
-    // Determine execution mode for this action (with option override)
-    const currentExecutionMode = options?.executionMode || 
-                                this.actionExecutionModes.get(action) || 
-                                this.executionMode;
+    const filteredHandlers = this.getAttemptHandlers(action, plan);
 
     // Create pipeline execution context
     const context: PipelineContext<T[K], R> = {
@@ -1558,7 +1573,7 @@ export class ActionRegister<
       jumpToPriority: undefined as number | undefined,
       jumpCount: 0,
       maxJumps: this.maxJumps,
-      executionMode: currentExecutionMode,
+      executionMode: plan.executionMode,
       
       // Result collection fields
       results: [],
@@ -1617,9 +1632,6 @@ export class ActionRegister<
 
     const endTime = Date.now();
     
-    // Process results based on options
-    const processedResult = this.processResults(context, options?.result);
-
     const recordedOutcomes = context.handlerOutcomes ?? [];
     const outcomesById = new Map(recordedOutcomes.map(outcome => [outcome.id, outcome]));
     const handlerResults: HandlerExecutionOutcome<R>[] = filteredHandlers.map(handler => {
@@ -1633,7 +1645,7 @@ export class ActionRegister<
             duration: 0,
             result: undefined,
             error: undefined,
-            metadata: undefined,
+            metadata: handler.config.metadata ? { ...handler.config.metadata } : undefined,
           };
     });
     const handlerErrors = errors.filter(error => error.handlerId !== 'pipeline');
@@ -1664,12 +1676,17 @@ export class ActionRegister<
             ? 'completed_with_errors'
             : 'completed',
       validation,
-      result: processedResult,
+      // Result aggregation happens after the retry boundary in dispatchWithResult.
+      // Preserve controller.return() here so the post-processing step can retain it.
+      result: context.terminated ? context.terminationResult : undefined,
       successResults: successResults,
       results: context.results,
       failedResults,
       execution: {
         duration: endTime - _startTime,
+        admissionDuration: 0,
+        queueWaitDuration: 0,
+        pipelineDuration: endTime - _startTime,
         handlersExecuted: executionHandlersCount,
         handlersSkipped: Math.max(0, filteredHandlers.length - executionHandlersCount),
         handlersFailed: handlerErrors.length,
@@ -1687,103 +1704,6 @@ export class ActionRegister<
 
     return executionResult;
   }
-
-  /**
-   * 🔧 Unified method for dispatchWithResult that returns ExecutionResult on guard rejection
-   */
-  private async applyActionGuardControlsWithResult<R>(
-    actionKey: string,
-    filteredHandlers: HandlerRegistration<any, any>[],
-    options: DispatchOptions | undefined,
-    startTime: number,
-    pipelineLength: number
-  ): Promise<ExecutionResult<R> | null> {
-    // Get throttle/debounce settings (same logic as above)
-    let throttleMs: number | undefined;
-    let debounceMs: number | undefined;
-    
-    if (options?.throttle !== undefined) {
-      throttleMs = options.throttle;
-    } else if (filteredHandlers.length > 0) {
-      for (const handler of filteredHandlers) {
-        if (handler.config.throttle !== undefined) {
-          throttleMs = handler.config.throttle;
-          break;
-        }
-      }
-    }
-    
-    if (options?.debounce !== undefined) {
-      debounceMs = options.debounce;
-    } else if (filteredHandlers.length > 0) {
-      for (const handler of filteredHandlers) {
-        if (handler.config.debounce !== undefined) {
-          debounceMs = handler.config.debounce;
-          break;
-        }
-      }
-    }
-    
-    // Apply debounce if specified
-    if (debounceMs !== undefined) {
-      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
-      if (!shouldProceed) {
-        return {
-          success: false,
-          aborted: true,
-          abortReason: 'Debounced execution',
-          terminated: false,
-          outcome: 'debounced',
-          result: undefined as any,
-          successResults: [] as any,
-          results: [],
-          failedResults: [],
-          execution: {
-            duration: Date.now() - startTime,
-            handlersExecuted: 0,
-            handlersSkipped: pipelineLength,
-            handlersFailed: 0,
-            startTime: startTime,
-            endTime: Date.now(),
-          },
-          handlers: [],
-          errors: [],
-        };
-      }
-    }
-    
-    // Apply throttle if specified
-    if (throttleMs !== undefined) {
-      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
-      if (!shouldProceed) {
-        return {
-          success: false,
-          aborted: true,
-          abortReason: 'Throttled execution',
-          terminated: false,
-          outcome: 'throttled',
-          result: undefined as any,
-          successResults: [] as any,
-          results: [],
-          failedResults: [],
-          execution: {
-            duration: Date.now() - startTime,
-            handlersExecuted: 0,
-            handlersSkipped: pipelineLength,
-            handlersFailed: 0,
-            startTime: startTime,
-            endTime: Date.now(),
-          },
-          handlers: [],
-          errors: [],
-        };
-      }
-    }
-
-    return null; // No guard intervention, proceed with execution
-  }
-
-  // Cache invalidation removed for memory stability
 
   /** Create a pipeline controller for one handler execution. */
   private createController<K extends keyof T>(
@@ -1838,6 +1758,7 @@ export class ActionRegister<
         context.terminated = true;
         context.terminationResult = result;
       }
+      return result;
     };
 
     controller.setResult = (result: any) => {
@@ -1899,9 +1820,18 @@ export class ActionRegister<
         }
       }
 
-      // Custom filter (not cached)
-      if (filterOptions.custom && !filterOptions.custom(config)) {
-        return false;
+      // Evaluate user code against a frozen snapshot. This prevents a custom
+      // filter from changing the registration that the current plan executes.
+      if (filterOptions.custom) {
+        const configSnapshot = Object.freeze({
+          ...config,
+          metadata: config.metadata
+            ? Object.freeze({ ...config.metadata })
+            : undefined,
+        });
+        if (!filterOptions.custom(configSnapshot)) {
+          return false;
+        }
       }
 
       return true;
@@ -1912,15 +1842,32 @@ export class ActionRegister<
     return filtered;
   }
 
+  private validateResultOptions(resultOptions?: DispatchOptions['result']): void {
+    if (!resultOptions) return;
+
+    if (resultOptions.strategy === 'custom' && typeof resultOptions.merger !== 'function') {
+      throw new ActionResultProcessingError(
+        'Custom result strategy requires a merger function',
+      );
+    }
+
+    if (
+      resultOptions.maxResults !== undefined &&
+      (!Number.isSafeInteger(resultOptions.maxResults) || resultOptions.maxResults < 0)
+    ) {
+      throw new RangeError('maxResults must be a non-negative safe integer.');
+    }
+  }
+
   private processResults<R>(
-    context: PipelineContext<any, R>,
+    results: Array<R | undefined>,
+    terminated: boolean,
+    terminationResult: R | R[] | undefined,
     resultOptions?: DispatchOptions['result']
   ): R | R[] | undefined {
-    const results = context.results;
-
     // 🔧 Fix: Always handle termination result regardless of collect option
-    if (context.terminated && context.terminationResult !== undefined) {
-      return context.terminationResult;
+    if (terminated && terminationResult !== undefined) {
+      return terminationResult;
     }
 
     // 🔧 Fix: Return undefined only if no results options specified AND no results available
@@ -1935,11 +1882,18 @@ export class ActionRegister<
     }
 
     // Apply maxResults limit
-    const limitedResults = resultOptions.maxResults
-      ? results.slice(0, resultOptions.maxResults)
-      : results;
+    const collectedResults = results.filter((result): result is R => result !== undefined);
+    const limitedResults = resultOptions.maxResults !== undefined
+      ? collectedResults.slice(0, resultOptions.maxResults)
+      : collectedResults;
 
     if (limitedResults.length === 0) {
+      if (resultOptions.strategy === 'all' || (resultOptions.collect && !resultOptions.strategy)) {
+        return [];
+      }
+      if (resultOptions.strategy === 'custom' || (resultOptions.strategy === 'merge' && resultOptions.merger)) {
+        return resultOptions.merger!(limitedResults);
+      }
       return undefined;
     }
 

@@ -106,6 +106,46 @@ describe('DispatchOptions runtime contract', () => {
     expect(result.result).toBe('recovered');
   });
 
+  it('rejects invalid result options before any handler side effect', async () => {
+    const handler = jest.fn(() => 'completed');
+    register.register('work', handler, { blocking: true });
+
+    await expect(register.dispatchWithResult<'work', string>('work', { id: 'missing-merger' }, {
+      retryOnError: { maxAttempts: 3, delay: 0 },
+      result: { strategy: 'custom' },
+    })).rejects.toThrow('Custom result strategy requires a merger function');
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('does not retry handlers when result aggregation throws', async () => {
+    const handler = jest.fn(() => 'completed');
+    const merger = jest.fn(() => {
+      throw new Error('aggregation failed');
+    });
+    register.register('work', handler, { blocking: true });
+
+    await expect(register.dispatchWithResult<'work', string>('work', { id: 'merger-failure' }, {
+      retryOnError: { maxAttempts: 3, delay: 0 },
+      result: { collect: true, strategy: 'custom', merger },
+    })).rejects.toThrow('aggregation failed');
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(merger).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats maxResults: 0 as an explicit empty result limit', async () => {
+    register.register('work', () => 'first', { blocking: true, priority: 2 });
+    register.register('work', () => 'second', { blocking: true, priority: 1 });
+
+    const result = await register.dispatchWithResult<'work', string>('work', { id: 'no-results' }, {
+      result: { collect: true, strategy: 'all', maxResults: 0 },
+    });
+
+    expect(result.results).toEqual(['first', 'second']);
+    expect(result.result).toEqual([]);
+  });
+
   it('does not turn a failed once handler into a no-handler retry success', async () => {
     const handler = jest.fn(() => {
       throw new Error('once failed');
@@ -175,6 +215,20 @@ describe('DispatchOptions runtime contract', () => {
     expect(result.outcome).toBe('completed_with_errors');
     expect(result.execution.handlersFailed).toBe(1);
     expect(result.failedResults).toHaveLength(1);
+  });
+
+  it('preserves handler metadata when a condition skips execution', async () => {
+    register.register('work', () => 'not-run', {
+      condition: () => false,
+      metadata: { source: 'conditioned-handler' },
+    });
+
+    const result = await register.dispatchWithResult<'work', string>('work', { id: 'skipped' });
+
+    expect(result.handlers[0]).toMatchObject({
+      status: 'skipped',
+      metadata: { source: 'conditioned-handler' },
+    });
   });
 
   it('validates only once when an execution is retried', async () => {
@@ -453,6 +507,52 @@ describe('DispatchOptions runtime contract', () => {
     await expect(first).resolves.toMatchObject({ success: true, result: 'first' });
     await expect(second).resolves.toMatchObject({ success: true, result: 'second' });
     expect(handled).toEqual(['first', 'second']);
+  });
+
+  it('separates admission, queue wait, and pipeline timing in result telemetry', async () => {
+    let now = 1_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    let releaseFirst: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    const firstStarted = new Promise<void>(resolve => {
+      markFirstStarted = resolve;
+    });
+    const firstGate = new Promise<void>(resolve => {
+      releaseFirst = resolve;
+    });
+
+    register.register('work', async payload => {
+      if (payload.id === 'first') {
+        markFirstStarted?.();
+        await firstGate;
+      }
+      return payload.id;
+    }, { blocking: true });
+
+    try {
+      const first = register.dispatchWithResult('work', { id: 'first' });
+      await firstStarted;
+      const queued = register.dispatchWithResult('work', { id: 'queued' });
+
+      now += 25;
+      releaseFirst?.();
+      const [firstResult, queuedResult] = await Promise.all([first, queued]);
+
+      expect(firstResult.execution).toMatchObject({
+        admissionDuration: 0,
+        queueWaitDuration: 0,
+        pipelineDuration: 25,
+        duration: 25,
+      });
+      expect(queuedResult.execution).toMatchObject({
+        admissionDuration: 0,
+        queueWaitDuration: 25,
+        pipelineDuration: 0,
+        duration: 25,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('preserves debounce behavior for default immediate result dispatches', async () => {

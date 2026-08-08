@@ -8,6 +8,7 @@
 import {
   ActionRegister,
   ActionRegisterConfig,
+  ActionHandler,
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
@@ -90,6 +91,16 @@ export interface ActionContextReturn<
     handler: K extends keyof TResultMap
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionContextHandler<T[K], R>,
+    config?: HandlerConfig<T[K]>
+  ) => void;
+  useActionEffectHandler: <K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config?: HandlerConfig<T[K]>
+  ) => void;
+  useActionResultHandler: <K extends keyof T & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
     config?: HandlerConfig<T[K]>
   ) => void;
   useActionRegister: () => ActionRegister<T, TResultMap> | null;

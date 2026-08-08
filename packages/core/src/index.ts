@@ -14,6 +14,7 @@ export { executeParallel, executeRace, executeSequential } from './execution-mod
 export type {
   ActionDispatcher,
   ActionHandler,
+  ActionNames,
   ActionResultHandler,
   ActionPayloadMap,
   ActionResult,
@@ -25,7 +26,9 @@ export type {
   ExecutionMode,
   ExecutionResult,
   HandlerConfig,
+  HandlerErrorPolicy,
   HandlerRegistration,
+  HandlerScheduling,
   PipelineContext,
   PipelineController,
   ProxyActionKey,

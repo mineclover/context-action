@@ -198,7 +198,8 @@ export namespace TypeUtils {
  * type MyActions = ActionNames<AppActions> // 'updateUser' | 'deleteUser' | 'resetUser'
  * ```
  */
-export type ActionNames<T extends ActionPayloadMap> = keyof T;
+/** String action names supported by the registry and action proxies. */
+export type ActionNames<T extends ActionPayloadMap> = Extract<keyof T, string>;
 
 /**
  * Utility type to extract payload type for a specific action
@@ -221,7 +222,7 @@ export type ActionPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
  * level so the result type is inferred from the dispatched action.
  */
 export type ActionResultMap<T extends ActionPayloadMap> = Partial<
-  Record<keyof T, unknown>
+  Record<ActionNames<T>, unknown>
 >;
 
 /** Resolve the configured result type for an action, falling back to void. */
@@ -343,8 +344,8 @@ export interface PipelineController<T = unknown, R = void> {
   jumpToPriority(priority: number): void;
   
   // New result handling methods
-  /** Return a result and terminate the pipeline */
-  return(result: R): void;
+  /** Return a result and terminate the pipeline. The result is returned for ergonomic result handlers. */
+  return(result: R): R;
   
   /** Set a result but continue pipeline execution */
   setResult(result: R): void;
@@ -436,6 +437,12 @@ export type ActionResultHandler<T = unknown, R = void> = (
   controller: PipelineController<T, R>
 ) => R | Promise<R>;
 
+/** Controls whether an async handler must settle before the next sequential handler starts. */
+export type HandlerScheduling = 'await-before-next' | 'start-and-continue';
+
+/** Controls whether a handler failure terminates the pipeline or is reported as a collected error. */
+export type HandlerErrorPolicy = 'fatal' | 'collect';
+
 /**
  * Handler configuration interface for controlling handler behavior within the pipeline
  * 
@@ -470,8 +477,17 @@ export interface HandlerConfig<T = unknown> {
   /** Unique identifier for the handler. Auto-generated if not provided */
   id?: string;
   
-  /** Whether to wait for async handlers to complete. Default: false */
+  /**
+   * @deprecated Use `scheduling` and `errorPolicy`. `true` maps to
+   * `await-before-next` + `fatal`; `false` maps to `start-and-continue` + `collect`.
+   */
   blocking?: boolean;
+
+  /** Async scheduling in sequential mode. Default: `await-before-next`. */
+  scheduling?: HandlerScheduling;
+
+  /** Error behavior for this handler. Default: `collect`. */
+  errorPolicy?: HandlerErrorPolicy;
   
   /** Whether this handler should run once and then be removed. Default: false */
   once?: boolean;
@@ -505,6 +521,8 @@ export interface ResolvedHandlerConfig<T = unknown> {
   priority: number;
   id: string;
   blocking: boolean;
+  scheduling: HandlerScheduling;
+  errorPolicy: HandlerErrorPolicy;
   once: boolean;
   replaceExisting: boolean;
   debounce?: number;
@@ -841,7 +859,11 @@ export interface DispatchOptions {
    */
   timeout?: number;
   
-  /** Retry configuration for error recovery */
+  /**
+   * Retry configuration for error recovery. Retries reuse the handler
+   * selection and timing settings resolved when the dispatch starts, except
+   * handlers already consumed by the `once` lifecycle.
+   */
   retryOnError?: {
     /** Maximum total attempts, including the initial attempt. Minimum: 1 */
     maxAttempts: number;
@@ -877,8 +899,8 @@ export interface DispatchOptions {
       max?: number;
     };
     
-    /** Custom filter function */
-    custom?: (config: ResolvedHandlerConfig) => boolean;
+    /** Custom filter function. Receives an immutable config snapshot. */
+    custom?: (config: Readonly<ResolvedHandlerConfig>) => boolean;
   };
   
   /** Result collection and processing options */
@@ -892,7 +914,7 @@ export interface DispatchOptions {
     /** Whether to collect results from all handlers */
     collect?: boolean;
     
-    /** Maximum number of results to collect */
+    /** Maximum number of results to aggregate. A value of 0 produces no aggregated results. */
     maxResults?: number;
     
     /** @deprecated Errors are always exposed through ExecutionResult.errors and failedResults. */
@@ -983,8 +1005,17 @@ export interface ExecutionResult<R = void> {
   
   /** Execution metadata */
   execution: {
-    /** Total execution duration in milliseconds */
+    /** Total dispatch duration in milliseconds, including admission and queue wait. */
     duration: number;
+
+    /** Validation and timing-guard admission duration in milliseconds. */
+    admissionDuration: number;
+
+    /** Time spent waiting in the dispatch queue in milliseconds. */
+    queueWaitDuration: number;
+
+    /** Handler pipeline duration in milliseconds. */
+    pipelineDuration: number;
     
     /** Number of handlers that were executed */
     handlersExecuted: number;
@@ -1093,7 +1124,7 @@ export type ReservedActionKey =
   | 'prototype';
 
 /** Action keys that can be exposed through `register.actions` proxies. */
-export type ProxyActionKey<T extends ActionPayloadMap> = Exclude<keyof T, ReservedActionKey>;
+export type ProxyActionKey<T extends ActionPayloadMap> = Exclude<ActionNames<T>, ReservedActionKey>;
 
 /**
  * Type-safe dispatchWithResult interface
@@ -1108,7 +1139,7 @@ export type ActionDispatcherWithResult<
   T extends ActionPayloadMap,
   TResultMap extends ActionResultMap<T> = {},
 > = <
-  K extends keyof T,
+  K extends ActionNames<T>,
   R = ActionResult<TResultMap, K>
 >(action: K, ...args: DispatchArgs<T[K]>) => Promise<ExecutionResult<R>>;
 
@@ -1140,7 +1171,7 @@ export type ActionDispatcherWithResult<
  * @public
  */
 /** Dispatch an action with the payload contract defined by its action key. */
-export type ActionDispatcher<T extends ActionPayloadMap> = <K extends keyof T>(
+export type ActionDispatcher<T extends ActionPayloadMap> = <K extends ActionNames<T>>(
   action: K,
   ...args: DispatchArgs<T[K]>
 ) => Promise<void>;

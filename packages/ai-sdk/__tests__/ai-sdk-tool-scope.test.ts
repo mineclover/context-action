@@ -259,7 +259,7 @@ describe('createAISDKToolScope', () => {
       .rejects.toBeInstanceOf(AISDKToolExecutionError);
   });
 
-  it('maps adapter approval policy to AI SDK native approval before execution', async () => {
+  it('maps adapter approval policy to the AI SDK generation-level approval gate', async () => {
     const scope = createAISDKToolScope(createManager(), {
       sessionId: 'session-1',
       toolNames: ['remove'],
@@ -267,10 +267,12 @@ describe('createAISDKToolScope', () => {
         definition.annotations?.destructiveHint === true &&
         (input as { id: string }).id === 'asset-1',
     });
-    const tool = scope.tools.remove as unknown as {
-      needsApproval: (input: unknown, options?: unknown) => Promise<boolean>;
-    };
-
-    expect(await tool.needsApproval({ id: 'asset-1' }, { toolCallId: 'call-1' })).toBe(true);
+    expect(scope.toolApproval).toBeDefined();
+    await expect(scope.toolApproval?.({
+      toolCall: { toolName: 'remove', input: { id: 'asset-1' } },
+    })).resolves.toBe('user-approval');
+    await expect(scope.toolApproval?.({
+      toolCall: { toolName: 'remove', input: { id: 'asset-2' } },
+    })).resolves.toBe('not-applicable');
   });
 });

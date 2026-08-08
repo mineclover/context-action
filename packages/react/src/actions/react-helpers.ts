@@ -27,6 +27,8 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
     priority: config?.priority ?? 0,
     id: config?.id ?? `react_${String(action)}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     blocking: config?.blocking ?? false,
+    scheduling: config?.scheduling ?? 'await-before-next',
+    errorPolicy: config?.errorPolicy ?? 'collect',
     once: config?.once ?? false,
     debounce: config?.debounce ?? undefined,
     throttle: config?.throttle ?? undefined,

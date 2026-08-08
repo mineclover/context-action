@@ -17,6 +17,7 @@ const result = await streamText({
   model,
   tools: toolScope.tools,
   activeTools: toolScope.activeTools,
+  toolApproval: toolScope.toolApproval,
 });
 ```
 
@@ -24,10 +25,9 @@ const result = await streamText({
 operation boundary. AI SDK approval is a user-interaction gate; it never
 replaces the final ToolContext policy check.
 
-`needsApproval` is retained for the AI SDK v7 adapter contract and is marked
-deprecated because newer AI SDK flows may configure approval at generation
-level. When using such a flow, mirror the same policy in the generation
-options while keeping the ToolContext policy as the final authorization gate.
+`needsApproval` is retained as the Context-Action policy input and is mapped
+to the AI SDK generation-level approval contract. Keep the ToolContext policy
+as the final authorization gate.
 
 ## Execution contract
 

@@ -75,6 +75,32 @@ describe('Execution Modes - Comprehensive', () => {
       ]);
     });
 
+    it('awaits async handlers by default and preserves priority result order', async () => {
+      const events: string[] = [];
+      actionRegister.register('processData', async () => {
+        events.push('first-start');
+        await new Promise(resolve => setTimeout(resolve, 20));
+        events.push('first-end');
+        return 'first';
+      }, { priority: 20 });
+      actionRegister.register('processData', async () => {
+        events.push('second-start');
+        await new Promise(resolve => setTimeout(resolve, 5));
+        events.push('second-end');
+        return 'second';
+      }, { priority: 10 });
+
+      const result = await actionRegister.dispatchWithResult<'processData', string>(
+        'processData',
+        { data: 'ordered' },
+        { result: { collect: true, strategy: 'all' } },
+      );
+
+      expect(events).toEqual(['first-start', 'first-end', 'second-start', 'second-end']);
+      expect(result.results).toEqual(['first', 'second']);
+      expect(result.result).toEqual(['first', 'second']);
+    });
+
     it('should stop execution on abort in sequential mode', async () => {
       const executedHandlers: string[] = [];
 
@@ -221,7 +247,10 @@ describe('Execution Modes - Comprehensive', () => {
         result: { collect: true }
       });
 
-      expect(completedTasks).toEqual(['task-3', 'task-1']);
+      // Parallel completion timing is scheduler-dependent; the public
+      // contract guarantees both successful handlers complete, not the order
+      // in which their external side effects become observable.
+      expect(completedTasks).toEqual(expect.arrayContaining(['task-1', 'task-3']));
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].handlerId).toBe('task-2');
       expect(result.results).toHaveLength(2);

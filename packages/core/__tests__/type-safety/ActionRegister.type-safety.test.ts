@@ -38,6 +38,10 @@ interface TypeSafetyResults {
   numberAction: { doubled: number };
 }
 
+interface NonStringKeyActions extends ActionPayloadMap {
+  1: void;
+}
+
 describe('ActionRegister - Type Safety Tests', () => {
   let actionRegister: ActionRegister<TypeSafetyActions>;
 
@@ -73,6 +77,29 @@ describe('ActionRegister - Type Safety Tests', () => {
       typedRegister.destroy();
     });
 
+    it('separates mapped result handlers from effect-only handlers', () => {
+      const typedRegister = new ActionRegister<TypeSafetyActions, TypeSafetyResults>({
+        name: 'ResultRoleTypeSafetyRegister',
+      });
+
+      typedRegister.registerEffect('stringAction', payload => {
+        expect(payload).toBeDefined();
+      });
+      typedRegister.registerEffect('stringAction', (_payload, controller) => {
+        if (false) controller.abort('guarded');
+      });
+      typedRegister.registerResult('stringAction', payload => ({
+        normalized: payload.toUpperCase(),
+      }));
+      typedRegister.registerResult('stringAction', (_payload, controller) =>
+        controller.return({ normalized: 'cached' }),
+      );
+
+      // @ts-expect-error result handlers must return the mapped action result
+      typedRegister.registerResult('stringAction', () => undefined);
+      typedRegister.destroy();
+    });
+
     it('requires payloads for payload-bearing actions', () => {
       // These calls are intentionally not executed; the assertions are checked by tsc.
       const invalidCalls = () => {
@@ -94,6 +121,17 @@ describe('ActionRegister - Type Safety Tests', () => {
       actionRegister.actions.then;
       // @ts-expect-error reserved proxy key
       actionRegister.actionsWithResult.toJSON;
+    });
+
+    it('accepts only string action keys at the public boundary', () => {
+      const numericRegister = new ActionRegister<NonStringKeyActions>();
+
+      // Runtime guards also protect JavaScript callers and unsafe casts.
+      expect(() => numericRegister.registerEffect(1 as never, () => {}))
+        .toThrow('Action keys must be strings');
+      expect(() => numericRegister.dispatch(1 as never))
+        .toThrow('Action keys must be strings');
+      numericRegister.destroy();
     });
 
     it('should enforce correct payload types for string actions', async () => {

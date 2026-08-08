@@ -35,14 +35,16 @@ const scope = createAISDKToolScope(manager, {
 });
 
 const tool = scope.tools.remove;
-assert.equal(typeof tool.needsApproval, 'function');
+assert.equal(typeof scope.toolApproval, 'function');
 
-// AI SDK v7 invokes needsApproval(input, context) with the raw validated input.
-// Calling the real dynamicTool output here protects the adapter from drifting
-// toward the `{ args }` callback shape used by other tool APIs.
+// Generation-level approval is the AI SDK v7 contract. Calling the adapter's
+// returned policy directly protects the `{ toolCall: { toolName, input } }`
+// shape passed to generateText/streamText.
 assert.equal(
-  await tool.needsApproval({ id: 'asset-1' }, { toolCallId: 'call-1' }),
-  true,
+  await scope.toolApproval({
+    toolCall: { toolName: 'remove', input: { id: 'asset-1' } },
+  }),
+  'user-approval',
 );
 
 const result = await tool.execute(

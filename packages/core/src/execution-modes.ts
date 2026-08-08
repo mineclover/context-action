@@ -38,6 +38,22 @@ function beginOutcome<T, R>(registration: HandlerRegistration<T, R>): HandlerExe
   };
 }
 
+function createSkippedOutcome<T, R>(
+  registration: HandlerRegistration<T, R>,
+): HandlerExecutionOutcome<R> {
+  return {
+    id: registration.id,
+    status: 'skipped',
+    executed: false,
+    duration: 0,
+    result: undefined,
+    error: undefined,
+    metadata: registration.config.metadata
+      ? { ...registration.config.metadata }
+      : undefined,
+  };
+}
+
 function finishOutcome<R>(
   outcome: HandlerExecutionOutcome<R>,
   startedAt: number,
@@ -81,7 +97,7 @@ function handleExecutionError<T, R>(
     handlerId: registration.id,
     error: errorObj,
     timestamp: Date.now(),
-    severity: registration.config.blocking ? 'blocking' : 'non-blocking'
+    severity: registration.config.errorPolicy === 'fatal' ? 'blocking' : 'non-blocking'
   };
 }
 
@@ -133,15 +149,7 @@ export async function executeSequential<T, R = void>(
     if (registration.config.condition) {
       const shouldExecute = registration.config.condition(context.payload);
       if (!shouldExecute) {
-        (context.handlerOutcomes ??= []).push({
-          id: registration.id,
-          status: 'skipped',
-          executed: false,
-          duration: 0,
-          result: undefined,
-          error: undefined,
-          metadata: undefined,
-        });
+        (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
         i++;
         continue;
       }
@@ -167,8 +175,9 @@ export async function executeSequential<T, R = void>(
         ? context.trackHandlerPromise<unknown>(asyncResult)
         : asyncResult;
 
-      if (registration.config.blocking) {
-        // 🆕 Blocking handlers: Wait for completion (sync or async)
+      if (registration.config.scheduling === 'await-before-next') {
+        // Sequential mode is genuinely sequential by default: an async
+        // handler settles before the next priority slot starts.
         const handlerResult = trackedResult
           ? await trackedResult
           : result;
@@ -263,8 +272,8 @@ export async function executeSequential<T, R = void>(
       errors.push(handlerError);
       (context.collectedErrors ??= []).push(handlerError);
 
-      // 🔧 Fix: Only fail pipeline for blocking handlers, let non-blocking continue
-      if (registration.config.blocking) {
+      // Fatal errors terminate the pipeline; collected errors let it continue.
+      if (registration.config.errorPolicy === 'fatal') {
         throw handlerError.error;
       }
 
@@ -321,15 +330,7 @@ export async function executeParallel<T, R = void>(
   const runnableHandlers: HandlerRegistration<T, R>[] = [];
   for (const registration of context.handlers) {
     if (registration.config.condition && !registration.config.condition(context.payload)) {
-      (context.handlerOutcomes ??= []).push({
-        id: registration.id,
-        status: 'skipped',
-        executed: false,
-        duration: 0,
-        result: undefined,
-        error: undefined,
-        metadata: undefined,
-      });
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
       continue;
     }
     runnableHandlers.push(registration);
@@ -421,7 +422,7 @@ export async function executeParallel<T, R = void>(
   const failures = results.filter((result, index) => {
     if (result.status === 'rejected') {
       const registration = runnableHandlers[index];
-      return registration?.config.blocking ?? false;
+      return registration?.config.errorPolicy === 'fatal';
     }
     return false;
   });
@@ -474,15 +475,7 @@ export async function executeRace<T, R = void>(
   const runnableHandlers: HandlerRegistration<T, R>[] = [];
   for (const registration of context.handlers) {
     if (registration.config.condition && !registration.config.condition(context.payload)) {
-      (context.handlerOutcomes ??= []).push({
-        id: registration.id,
-        status: 'skipped',
-        executed: false,
-        duration: 0,
-        result: undefined,
-        error: undefined,
-        metadata: undefined,
-      });
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
       continue;
     }
     runnableHandlers.push(registration);
@@ -554,7 +547,7 @@ export async function executeRace<T, R = void>(
   const winner = await Promise.race(trackedHandlerPromises);
 
   /** If the winner failed and was blocking, throw the error */
-  if (!winner.success && winner.registration?.config.blocking) {
+  if (!winner.success && winner.registration?.config.errorPolicy === 'fatal') {
     throw winner.error;
   }
 

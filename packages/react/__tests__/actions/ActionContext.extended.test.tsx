@@ -289,10 +289,10 @@ describe('ActionContext - Extended Coverage', () => {
         await result.current('asyncAction', { delay: 10 });
       });
 
-      // Verify priority order execution - lower number means higher priority in ActionRegister
-      // So priority: 5 executes before priority: 10
-      expect(results[0]).toContain('low-priority');
-      expect(results[1]).toContain('high-priority');
+      // Higher numbers run first, and default sequential scheduling waits for
+      // the higher-priority async handler before starting the next slot.
+      expect(results[0]).toContain('high-priority');
+      expect(results[1]).toContain('low-priority');
     });
   });
 
