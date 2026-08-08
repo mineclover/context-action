@@ -6,21 +6,18 @@
 
 # Type Alias: WebMCPBeforeExecute
 
-> **WebMCPBeforeExecute** = (`invocation`, `client`) => `void` \| `Promise`&lt;`void`&gt;
+> **WebMCPBeforeExecute** = (`invocation`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/webmcp/src/index.ts:64](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L64)
+Defined in: [packages/webmcp/src/index.ts:66](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L66)
 
-Runs before the canonical manager so browser-native interaction can be bridged explicitly.
+Runs before canonical execution. The hook receives cancellation, but callers
+must not treat it as a replacement for canonical policy/approval checks.
 
 ## Parameters
 
 ### invocation
 
 [`WebMCPToolInvocation`](../interfaces/WebMCPToolInvocation.md)
-
-### client
-
-[`WebMCPModelContextClient`](../interfaces/WebMCPModelContextClient.md) \| `undefined`
 
 ## Returns
 

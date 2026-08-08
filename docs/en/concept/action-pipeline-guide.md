@@ -990,7 +990,11 @@ actionRegister.register('processPayment', async (payload, controller) => {
     // Rollback any partial changes
     await rollbackPayment(payload.orderId);
     
-    controller.abort('Payment system unavailable', error);
+    controller.abort(
+      `Payment system unavailable: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 }, { priority: 50, blocking: true });
 ```

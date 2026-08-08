@@ -52,3 +52,13 @@ Defined in: [packages/tool-protocol/src/json-schema.ts:114](https://github.com/m
 > `optional` **openWorldHint?**: `boolean`
 
 Defined in: [packages/tool-protocol/src/json-schema.ts:115](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L115)
+
+***
+
+### untrustedContentHint?
+
+> `optional` **untrustedContentHint?**: `boolean`
+
+Defined in: [packages/tool-protocol/src/json-schema.ts:117](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L117)
+
+Tool output may include untrusted, model-visible content.

@@ -4,7 +4,7 @@ import {
   type WebMCPToolScopeOptions,
 } from '@context-action/webmcp';
 import type { ToolManagementInterface } from '@context-action/tool-protocol';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface WebMCPToolScopeState {
   readonly supported: boolean;
@@ -16,14 +16,6 @@ const INITIAL_SCOPE_STATE: WebMCPToolScopeState = {
   supported: false,
   activeTools: [],
 };
-
-function stableValueKey(value: unknown): string {
-  try {
-    return JSON.stringify(value) ?? '';
-  } catch {
-    return String(value);
-  }
-}
 
 function mergeSignals(
   external: AbortSignal | undefined,
@@ -60,10 +52,25 @@ export function useWebMCPToolScope(
   options: WebMCPToolScopeOptions,
 ): WebMCPToolScopeState {
   const [state, setState] = useState<WebMCPToolScopeState>(INITIAL_SCOPE_STATE);
-  const toolNamesKey = stableValueKey(options.toolNames);
-  const exposedToKey = stableValueKey(options.exposedTo);
-  const contextKey = stableValueKey(options.context);
-  const callOptionsKey = stableValueKey(options.callOptions);
+  const toolNamesKey = options.toolNames.join('\u0000');
+  const exposedToKey = (options.exposedTo ?? []).join('\u0000');
+  // Execution options are intentionally read through a ref. They can contain
+  // non-serializable domain metadata, and should not tear down a browser
+  // capability scope merely because a caller recreated an options object.
+  const executionOptionsRef = useRef({
+    context: options.context,
+    callOptions: options.callOptions,
+    getIdempotencyKey: options.getIdempotencyKey,
+    beforeExecute: options.beforeExecute,
+    errorMode: options.errorMode,
+  });
+  executionOptionsRef.current = {
+    context: options.context,
+    callOptions: options.callOptions,
+    getIdempotencyKey: options.getIdempotencyKey,
+    beforeExecute: options.beforeExecute,
+    errorMode: options.errorMode,
+  };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: WebMCP registration is keyed by the semantic option fields below, not the caller's transient object identity.
   useEffect(() => {
@@ -75,8 +82,16 @@ export function useWebMCPToolScope(
     const lifecycleController = new AbortController();
     const mergedSignal = mergeSignals(options.signal, lifecycleController.signal);
     const scopeOptions: WebMCPToolScopeOptions = {
-      ...options,
+      sessionId: options.sessionId,
+      toolNames: options.toolNames,
+      document: options.document,
+      exposedTo: options.exposedTo,
       signal: mergedSignal.signal,
+      get context() { return executionOptionsRef.current.context; },
+      get callOptions() { return executionOptionsRef.current.callOptions; },
+      get getIdempotencyKey() { return executionOptionsRef.current.getIdempotencyKey; },
+      get beforeExecute() { return executionOptionsRef.current.beforeExecute; },
+      get errorMode() { return executionOptionsRef.current.errorMode; },
     };
     let disposed = false;
     let scope: WebMCPToolScope | undefined;
@@ -111,12 +126,8 @@ export function useWebMCPToolScope(
     options.sessionId,
     options.document,
     options.signal,
-    options.getIdempotencyKey,
-    options.beforeExecute,
     toolNamesKey,
     exposedToKey,
-    contextKey,
-    callOptionsKey,
   ]);
 
   return state;

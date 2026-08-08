@@ -17,18 +17,18 @@ import {
 
 export interface WebMCPToolDefinition {
   readonly name: string;
+  readonly title?: string;
   readonly description: string;
   readonly inputSchema: JSONSchema;
-  readonly annotations?: ToolDefinition['annotations'];
-  readonly execute: (
-    input: Record<string, unknown>,
-    client?: WebMCPModelContextClient,
-  ) => Promise<unknown>;
+  readonly annotations?: WebMCPAnnotations;
+  /** Current WebMCP Draft callback contract. */
+  readonly execute: (input: Record<string, unknown>) => Promise<unknown>;
 }
 
-/** Structural native client shape supplied by the experimental WebMCP API. */
-export interface WebMCPModelContextClient {
-  requestUserInteraction?: (...args: unknown[]) => Promise<unknown>;
+/** The current Draft exposes only these annotations to page agents. */
+export interface WebMCPAnnotations {
+  readonly readOnlyHint?: boolean;
+  readonly untrustedContentHint?: boolean;
 }
 
 export interface WebMCPRegistrationOptions {
@@ -54,17 +54,21 @@ export interface WebMCPToolInvocation {
   readonly input: Record<string, unknown>;
   readonly definition: ToolDefinition;
   readonly sessionId: string;
+  readonly signal: AbortSignal;
 }
 
 export type WebMCPIdempotencyKeyFactory = (
   invocation: WebMCPToolInvocation,
 ) => string | undefined;
 
-/** Runs before the canonical manager so browser-native interaction can be bridged explicitly. */
+/** Runs before canonical execution. The hook receives cancellation, but callers
+ * must not treat it as a replacement for canonical policy/approval checks. */
 export type WebMCPBeforeExecute = (
   invocation: WebMCPToolInvocation,
-  client: WebMCPModelContextClient | undefined,
 ) => void | Promise<void>;
+
+/** Context-Action error representation for the WebMCP callback. */
+export type WebMCPErrorMode = 'result' | 'throw';
 
 export interface WebMCPToolScopeOptions {
   /** Stable identity for the page agent session. */
@@ -79,8 +83,10 @@ export interface WebMCPToolScopeOptions {
   readonly signal?: AbortSignal;
   readonly context?: Omit<ToolCallContext, 'source' | 'mode' | 'sessionId'>;
   readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey'>;
-  /** Optional bridge for WebMCP's native user-interaction client. */
+  /** Optional application hook; this is not a native WebMCP client bridge. */
   readonly beforeExecute?: WebMCPBeforeExecute;
+  /** Default `result` preserves Context-Action's structured error envelope. */
+  readonly errorMode?: WebMCPErrorMode;
   /** Domain-owned retry identity; omitted by default because WebMCP has no native call ID. */
   readonly getIdempotencyKey?: WebMCPIdempotencyKeyFactory;
 }
@@ -105,6 +111,7 @@ export async function createWebMCPToolScope(
 ): Promise<WebMCPToolScope> {
   const sessionId = canonicalSessionId(options.sessionId);
   const definitions = resolveDefinitions(manager, options.toolNames);
+  validateDefinitions(definitions);
   const documentRef = options.document ?? getAmbientDocument();
   const modelContext = documentRef?.modelContext;
   if (!modelContext) return unsupportedScope();
@@ -130,12 +137,14 @@ export async function createWebMCPToolScope(
   try {
     for (const definition of definitions) {
       if (controller.signal.aborted) break;
+      const annotations = toWebMCPAnnotations(definition.annotations);
       await modelContext.registerTool({
         name: definition.name,
-        description: definition.description ?? `Execute ${definition.name}.`,
+        ...(definition.title === undefined ? {} : { title: definition.title }),
+        description: definition.description!,
         inputSchema: definition.inputSchema,
-        ...(definition.annotations === undefined ? {} : { annotations: definition.annotations }),
-        execute: async (input, client) => {
+        ...(annotations === undefined ? {} : { annotations }),
+        execute: async (input) => {
           const toolCallId = `webmcp:${scopeId}:${++sequence}`;
           const invocation: WebMCPToolInvocation = {
             toolName: definition.name,
@@ -143,8 +152,11 @@ export async function createWebMCPToolScope(
             input,
             definition,
             sessionId,
+            signal: controller.signal,
           };
-          await options.beforeExecute?.(invocation, client);
+          throwIfAborted(controller.signal);
+          await options.beforeExecute?.(invocation);
+          throwIfAborted(controller.signal);
           const result = await manager.executeModelToolCall({
             id: toolCallId,
             name: definition.name,
@@ -164,7 +176,7 @@ export async function createWebMCPToolScope(
               },
             },
           });
-          return toWebMCPResult(result);
+          return toWebMCPResult(result, options.errorMode ?? 'result');
         },
       }, {
         signal: controller.signal,
@@ -183,6 +195,39 @@ export async function createWebMCPToolScope(
     activeTools: registeredNames,
     dispose,
   };
+}
+
+const WEBMCP_TOOL_NAME = /^[A-Za-z0-9_.-]{1,128}$/;
+
+function validateDefinitions(definitions: readonly ToolDefinition[]): void {
+  for (const definition of definitions) {
+    if (!WEBMCP_TOOL_NAME.test(definition.name)) {
+      throw new TypeError(`WebMCP tool name "${definition.name}" must use 1-128 ASCII letters, digits, _, -, or ..`);
+    }
+    if (!definition.description?.trim()) {
+      throw new TypeError(`WebMCP tool "${definition.name}" requires a non-empty description.`);
+    }
+  }
+}
+
+function toWebMCPAnnotations(
+  annotations: ToolDefinition['annotations'],
+): WebMCPAnnotations | undefined {
+  if (!annotations) return undefined;
+  const mapped: WebMCPAnnotations = {
+    ...(annotations.readOnlyHint === undefined ? {} : { readOnlyHint: annotations.readOnlyHint }),
+    ...(annotations.untrustedContentHint === undefined
+      ? {}
+      : { untrustedContentHint: annotations.untrustedContentHint }),
+  };
+  return Object.keys(mapped).length === 0 ? undefined : mapped;
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+  if (!signal.aborted) return;
+  throw signal.reason instanceof Error
+    ? signal.reason
+    : new DOMException('WebMCP tool scope was disposed.', 'AbortError');
 }
 
 function unsupportedScope(): WebMCPToolScope {
@@ -259,11 +304,14 @@ function normalizeExposedOrigins(origins: readonly string[] | undefined): readon
   });
 }
 
-function toWebMCPResult(result: ToolCallResult): unknown {
+function toWebMCPResult(result: ToolCallResult, errorMode: WebMCPErrorMode): unknown {
   if (!result.isError && result.structuredContent !== undefined) {
     return result.structuredContent;
   }
   if (!result.isError) return stringifyToolContent(result.content);
+  if (errorMode === 'throw') {
+    throw new Error(result.error?.message ?? stringifyToolContent(result.content));
+  }
   return {
     isError: true,
     content: result.content,

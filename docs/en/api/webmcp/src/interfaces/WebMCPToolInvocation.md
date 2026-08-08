@@ -47,3 +47,11 @@ Defined in: [packages/webmcp/src/index.ts:55](https://github.com/mineclover/cont
 > `readonly` **sessionId**: `string`
 
 Defined in: [packages/webmcp/src/index.ts:56](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L56)
+
+***
+
+### signal
+
+> `readonly` **signal**: `AbortSignal`
+
+Defined in: [packages/webmcp/src/index.ts:57](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L57)

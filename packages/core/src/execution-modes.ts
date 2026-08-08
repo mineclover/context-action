@@ -74,7 +74,7 @@ function appendLocalResults<T, R>(
   registration: HandlerRegistration<T, R>,
   target: R[] = context.results,
 ): void {
-  if (registration.role === 'effect') return;
+  if (registration.role === 'effect' || registration.role === 'guard') return;
   if (state.results.length > 0) target.push(...state.results);
   if (returnedResult !== undefined && !state.terminated) {
     target.push(returnedResult);
@@ -187,10 +187,10 @@ export async function executeSequential<T, R = void>(
           outcome,
           startedAt,
           'succeeded',
-          registration.role === 'effect' ? undefined : handlerResult as R | undefined,
+          registration.role === 'effect' || registration.role === 'guard' ? undefined : handlerResult as R | undefined,
         );
         if (
-          registration.role !== 'effect' &&
+          registration.role !== 'effect' && registration.role !== 'guard' &&
           handlerResult !== undefined &&
           !context.terminated
         ) {
@@ -206,10 +206,10 @@ export async function executeSequential<T, R = void>(
                 outcome,
                 startedAt,
                 'succeeded',
-                registration.role === 'effect' ? undefined : asyncResult as R | undefined,
+                registration.role === 'effect' || registration.role === 'guard' ? undefined : asyncResult as R | undefined,
               );
               if (
-                registration.role !== 'effect' &&
+                registration.role !== 'effect' && registration.role !== 'guard' &&
                 asyncResult !== undefined &&
                 !context.terminated
               ) {
@@ -233,7 +233,7 @@ export async function executeSequential<T, R = void>(
           
           nonBlockingPromises.push(promiseWithErrorHandling);
         } else if (
-          registration.role !== 'effect' &&
+          registration.role !== 'effect' && registration.role !== 'guard' &&
           result !== undefined &&
           !context.terminated
         ) {
@@ -245,7 +245,7 @@ export async function executeSequential<T, R = void>(
             outcome,
             startedAt,
             'succeeded',
-            registration.role === 'effect' ? undefined : result as R | undefined,
+            registration.role === 'effect' || registration.role === 'guard' ? undefined : result as R | undefined,
           );
         }
       }
@@ -396,10 +396,10 @@ export async function executeParallel<T, R = void>(
         outcome,
         startedAt,
         'succeeded',
-        registration.role === 'effect' ? undefined : handlerResult,
+        registration.role === 'effect' || registration.role === 'guard' ? undefined : handlerResult,
       );
       outcome.terminationRequested = state.terminated;
-      if (state.terminated) {
+      if (state.terminated && registration.role !== 'effect' && registration.role !== 'guard') {
         outcome.terminationResult = state.terminationResult;
         terminationSlots[_index] = {
           requested: true,
@@ -544,7 +544,7 @@ export async function executeRace<T, R = void>(
         outcome,
         startedAt,
         'succeeded',
-        registration.role === 'effect' ? undefined : handlerResult,
+        registration.role === 'effect' || registration.role === 'guard' ? undefined : handlerResult,
       );
       outcome.terminationRequested = state.terminated;
       if (state.terminated) outcome.terminationResult = state.terminationResult;
@@ -578,15 +578,20 @@ export async function executeRace<T, R = void>(
     ? handlerPromises.map(promise => context.trackHandlerPromise!(promise))
     : handlerPromises;
 
-  // Effects still run in race mode, but a result-producing handler wins when
-  // one exists. An effect's synchronous completion must not suppress a mapped
-  // result from another candidate.
-  const winnerCandidates = runnableHandlers.some(handler => handler.role !== 'effect')
-    ? trackedHandlerPromises.filter((_, index) => runnableHandlers[index]?.role !== 'effect')
+  // Effects and guards are executed by the register before race arbitration.
+  // Retain this filtering for callers of this low-level primitive.
+  const winnerCandidates = runnableHandlers.some(handler => handler.role !== 'effect' && handler.role !== 'guard')
+    ? trackedHandlerPromises.filter((_, index) => (
+      runnableHandlers[index]?.role !== 'effect' && runnableHandlers[index]?.role !== 'guard'
+    ))
     : trackedHandlerPromises;
 
   /** Race all handlers while retaining every loser for lifecycle draining. */
   const winner = await Promise.race(winnerCandidates);
+  context.raceWinnerId = winner.handlerId;
+  context.raceLoserOutcomes = (context.handlerOutcomes ?? [])
+    .filter(outcome => outcome.id !== winner.handlerId)
+    .map(outcome => ({ ...outcome, metadata: outcome.metadata ? { ...outcome.metadata } : undefined }));
 
   /** If the winner failed and was blocking, throw the error */
   if (!winner.success && winner.registration?.config.errorPolicy === 'fatal') {

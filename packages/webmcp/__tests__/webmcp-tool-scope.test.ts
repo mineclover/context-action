@@ -25,6 +25,7 @@ const searchDefinition: ToolDefinition = {
 
 const saveDefinition: ToolDefinition = {
   name: 'save',
+  description: 'Save the catalog.',
   inputSchema: { type: 'object' },
 };
 
@@ -187,7 +188,7 @@ describe('createWebMCPToolScope', () => {
     second.dispose();
   });
 
-  it('accepts an explicit domain idempotency key and forwards the native client bridge', async () => {
+  it('accepts an explicit domain idempotency key and forwards a cancellable hook', async () => {
     const registered: WebMCPToolDefinition[] = [];
     const beforeExecute = jest.fn();
     const executeModelToolCall = jest.fn(async () => ({ content: [] }));
@@ -198,13 +199,12 @@ describe('createWebMCPToolScope', () => {
       beforeExecute,
       document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
     });
-    const client = { requestUserInteraction: async () => ({ approved: true }) };
-
-    await registered[0]!.execute({ query: 'coffee' }, client);
+    await registered[0]!.execute({ query: 'coffee' });
 
     expect(beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
       toolName: 'search', sessionId: 'page-session',
-    }), client);
+      signal: expect.any(AbortSignal),
+    }));
     expect(executeModelToolCall).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
       idempotencyKey: 'order:42',
     }));
@@ -242,5 +242,91 @@ describe('createWebMCPToolScope', () => {
       document: { modelContext: { registerTool } },
     })).rejects.toThrow('unavailable tool');
     expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it('maps the current Draft title and annotations without leaking canonical-only hints', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const definition: ToolDefinition = {
+      ...searchDefinition,
+      title: 'Catalog search',
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+        untrustedContentHint: true,
+      },
+    };
+    const manager = createManager();
+    manager.getToolDefinition = () => definition;
+    const scope = await createWebMCPToolScope(manager, {
+      sessionId: 'page-session', toolNames: ['search'],
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+    expect(registered[0]).toMatchObject({
+      title: 'Catalog search',
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
+    });
+    scope.dispose();
+  });
+
+  it('preflights invalid definitions before the first browser registration', async () => {
+    const registerTool = jest.fn(async () => {});
+    const invalid: ToolDefinition = { ...searchDefinition, name: 'invalid tool', description: '' };
+    const manager = createManager();
+    manager.getToolDefinition = () => invalid;
+    manager.hasTool = () => true;
+    await expect(createWebMCPToolScope(manager, {
+      sessionId: 'page-session', toolNames: ['invalid tool'],
+      document: { modelContext: { registerTool } },
+    })).rejects.toThrow('tool name');
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty description before the first browser registration', async () => {
+    const registerTool = jest.fn(async () => {});
+    const invalid: ToolDefinition = { ...searchDefinition, description: '' };
+    const manager = createManager();
+    manager.getToolDefinition = () => invalid;
+    await expect(createWebMCPToolScope(manager, {
+      sessionId: 'page-session', toolNames: ['search'],
+      document: { modelContext: { registerTool } },
+    })).rejects.toThrow('non-empty description');
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it('supports explicit structured-result and rejected-promise error modes', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const manager = createManager(async () => ({
+      content: [{ type: 'text', text: 'denied' }], isError: true,
+      error: { code: 'DENIED', message: 'denied' },
+    }));
+    const scope = await createWebMCPToolScope(manager, {
+      sessionId: 'page-session', toolNames: ['search'], errorMode: 'throw',
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+    await expect(registered[0]!.execute({ query: 'coffee' })).rejects.toThrow('denied');
+    scope.dispose();
+  });
+
+  it('cancels beforeExecute when a scope is disposed', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    let invocationSignal: AbortSignal | undefined;
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const scope = await createWebMCPToolScope(createManager(), {
+      sessionId: 'page-session', toolNames: ['search'],
+      beforeExecute: async invocation => {
+        invocationSignal = invocation.signal;
+        await gate;
+      },
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+    const execution = registered[0]!.execute({ query: 'coffee' });
+    await Promise.resolve();
+    scope.dispose();
+    expect(invocationSignal?.aborted).toBe(true);
+    release?.();
+    await expect(execution).rejects.toThrow('disposed');
   });
 });

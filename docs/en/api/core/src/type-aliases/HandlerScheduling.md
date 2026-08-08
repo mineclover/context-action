@@ -8,6 +8,6 @@
 
 > **HandlerScheduling** = `"await-before-next"` \| `"start-and-continue"`
 
-Defined in: [packages/core/src/types.ts:441](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L441)
+Defined in: [packages/core/src/types.ts:466](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L466)
 
 Controls whether an async handler must settle before the next sequential handler starts.

@@ -357,6 +357,19 @@ export interface PipelineController<T = unknown, R = void> {
   mergeResult(merger: (previousResults: R[], currentResult: R) => R): void;
 }
 
+/** Controller available to observer-only effect handlers. */
+export interface ActionEffectController<T = unknown> {
+  readonly signal?: AbortSignal;
+  getPayload(): T;
+}
+
+/** Controller available to preflight guards. Guards may reject or normalize input,
+ * but cannot publish a result or terminate a result pipeline. */
+export interface ActionGuardController<T = unknown> extends ActionEffectController<T> {
+  abort(reason?: string): void;
+  modifyPayload(modifier: (payload: T) => T): void;
+}
+
 /**
  * Action handler function type for processing actions within the pipeline
  * 
@@ -426,6 +439,18 @@ export type ActionHandler<T = unknown, R = void> = (
   payload: T,
   controller: PipelineController<T, R>
 ) => R | Promise<R> | void | Promise<void>;
+
+/** A side-effect observer. Its return value and result APIs are intentionally unavailable. */
+export type ActionEffectHandler<T = unknown> = (
+  payload: T,
+  controller: ActionEffectController<T>,
+) => void | Promise<void>;
+
+/** A preflight validator/authorizer. */
+export type ActionGuardHandler<T = unknown> = (
+  payload: T,
+  controller: ActionGuardController<T>,
+) => void | Promise<void>;
 
 /**
  * Strict handler contract used when an action result map declares a result.
@@ -586,7 +611,7 @@ export interface HandlerRegistration<T = unknown, R = void> {
    * Runtime execution role. Effect handlers can control flow but never add a
    * value to result collection; result and legacy handlers may do both.
    */
-  role?: 'effect' | 'result' | 'legacy';
+  role?: 'guard' | 'effect' | 'result' | 'legacy';
 }
 
 /** The lifecycle state recorded for one handler invocation. */
@@ -676,6 +701,10 @@ export interface PipelineContext<T = unknown, R = void> {
 
   /** Outcomes recorded directly by the execution mode. */
   handlerOutcomes?: HandlerExecutionOutcome<R>[];
+
+  /** Race arbitration is reported separately from loser diagnostics. */
+  raceWinnerId?: string;
+  raceLoserOutcomes?: HandlerExecutionOutcome<R>[];
 
   /** Defer once-handler removal to the outer retry lifecycle */
   deferOnceCleanup?: boolean;
@@ -1061,7 +1090,7 @@ export interface ExecutionResult<R = void> {
       startTime: number;
       endTime: number;
       duration: number;
-      outcome: 'succeeded' | 'failed' | 'retried';
+      outcome: 'succeeded' | 'failed' | 'retried' | 'cancelled';
     }>;
     
     /** Number of handlers that were executed */
@@ -1103,6 +1132,12 @@ export interface ExecutionResult<R = void> {
     /** Custom metadata for this handler */
     metadata: Record<string, unknown> | undefined;
   }>;
+
+  /** Race-only snapshots. Loser failures never change the winner contract. */
+  raceDiagnostics?: {
+    winnerId?: string;
+    loserSnapshots: Array<HandlerExecutionOutcome<R>>;
+  };
   
   /** Errors that occurred during execution */
   errors: HandlerError[];

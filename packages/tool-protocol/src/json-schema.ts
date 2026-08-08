@@ -113,6 +113,8 @@ export interface ToolAnnotations {
   destructiveHint?: boolean;
   idempotentHint?: boolean;
   openWorldHint?: boolean;
+  /** Tool output may include untrusted, model-visible content. */
+  untrustedContentHint?: boolean;
 }
 
 /** Canonical tool definition shared by MCP and local tool managers. */

@@ -156,4 +156,99 @@ describe('ExecutionResult metrics', () => {
     releaseLoser?.();
     register.destroy();
   });
+
+  it('runs race guards before a result candidate can succeed', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    const resultHandler = jest.fn(() => 'sensitive');
+    register.registerGuard('run', (_payload, controller) => {
+      controller.abort('permission denied');
+    }, { id: 'authorization', errorPolicy: 'fatal', priority: 100 });
+    register.register('run', resultHandler, { id: 'result' });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'guarded' });
+    expect(result.aborted).toBe(true);
+    expect(result.result).toBeUndefined();
+    expect(resultHandler).not.toHaveBeenCalled();
+    register.destroy();
+  });
+
+  it('does not let a fatal race effect failure be ignored by result arbitration', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    const resultHandler = jest.fn(() => 'sensitive');
+    register.registerEffect('run', () => {
+      throw new Error('audit gate failed');
+    }, { id: 'effect-gate', errorPolicy: 'fatal' });
+    register.register('run', resultHandler, { id: 'result' });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'effect-failed' });
+    expect(result.outcome).toBe('failed');
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(result.errors[result.errors.length - 1]?.error.message).toBe('audit gate failed');
+    register.destroy();
+  });
+
+  it('keeps race loser failures in diagnostics, not the winner result contract', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    register.register('run', () => 'winner', { id: 'winner' });
+    register.register('run', () => { throw new Error('loser failed'); }, {
+      id: 'loser', errorPolicy: 'collect',
+    });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'diagnostics' });
+    expect(result.success).toBe(true);
+    expect(result.execution.handlersFailed).toBe(0);
+    expect(result.raceDiagnostics?.winnerId).toBe('winner');
+    expect(result.raceDiagnostics?.loserSnapshots).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'loser', status: 'failed' }),
+    ]));
+    register.destroy();
+  });
+
+  it('drains race losers before starting a whole-action retry', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    let fastAttempts = 0;
+    let releaseLoser: (() => void) | undefined;
+    const loserGate = new Promise<void>(resolve => { releaseLoser = resolve; });
+    register.register('run', async () => {
+      fastAttempts += 1;
+      if (fastAttempts === 1) throw new Error('first provider failed');
+      return 'recovered';
+    }, { id: 'fast', errorPolicy: 'fatal' });
+    register.register('run', async () => {
+      await loserGate;
+      return 'slow';
+    }, { id: 'slow' });
+
+    const execution = register.dispatchWithResult<'run', string>('run', { id: 'retry' }, {
+      retryOnError: { maxAttempts: 2, delay: 0 },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(fastAttempts).toBe(1);
+    releaseLoser?.();
+    await expect(execution).resolves.toMatchObject({ result: 'recovered' });
+    expect(fastAttempts).toBe(2);
+    register.destroy();
+  });
+
+  it('does not create an extra retry attempt when cancellation interrupts backoff', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const controller = new AbortController();
+    const handler = jest.fn(() => { throw new Error('retry me'); });
+    register.register('run', handler, { errorPolicy: 'fatal' });
+
+    const execution = register.dispatchWithResult('run', { id: 'abort-backoff' }, {
+      signal: controller.signal,
+      retryOnError: { maxAttempts: 3, delay: 10_000 },
+    });
+    await Promise.resolve();
+    controller.abort('cancel retry');
+    await execution;
+    expect(handler).toHaveBeenCalledTimes(1);
+    register.destroy();
+  });
 });

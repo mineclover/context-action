@@ -2,9 +2,11 @@ import React, { useMemo } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useWebMCPToolScope } from '../../src/tools';
 import type { ToolDefinition, ToolManagementInterface } from '@context-action/tool-protocol';
+import type { WebMCPToolDefinition } from '@context-action/webmcp';
 
 const definition: ToolDefinition = {
   name: 'search',
+  description: 'Search the catalog.',
   inputSchema: { type: 'object' },
 };
 
@@ -75,5 +77,30 @@ describe('useWebMCPToolScope', () => {
 
     await waitFor(() => expect(result.current.activeTools).toEqual(['search']));
     expect(registerTool).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the latest non-serializable execution options without re-registering', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const document = {
+      modelContext: { registerTool: async (tool: WebMCPToolDefinition) => { registered.push(tool); } },
+    };
+    const first = jest.fn();
+    const second = jest.fn();
+    const { rerender } = renderHook(({ beforeExecute, metadata }) => useWebMCPToolScope(manager, {
+      sessionId: 'latest-options',
+      toolNames: ['search'],
+      document,
+      context: { metadata: { payload: metadata } },
+      beforeExecute,
+    }), {
+      initialProps: { beforeExecute: first, metadata: new Map([['version', 1]]) },
+    });
+
+    await waitFor(() => expect(registered).toHaveLength(1));
+    rerender({ beforeExecute: second, metadata: new Map([['version', 2]]) });
+    await registered[0]!.execute({ query: 'coffee' });
+    expect(registered).toHaveLength(1);
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
   });
 });

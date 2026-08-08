@@ -8,7 +8,7 @@
 
 > **useWebMCPToolScope**(`manager`, `options`): [`WebMCPToolScopeState`](../interfaces/WebMCPToolScopeState.md)
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L58)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L50)
 
 Connect a canonical tool registry to the current component lifecycle.
 Memoize `options` so unrelated renders do not re-register WebMCP tools.

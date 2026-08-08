@@ -11,6 +11,8 @@ import {
 import { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 import {
   ActionHandler,
+  ActionEffectHandler,
+  ActionGuardHandler,
   ActionNames,
   ActionHandlerStats,
   ActionPayloadMap,
@@ -342,10 +344,20 @@ export class ActionRegister<
    */
   registerEffect<K extends ActionNames<T>, R = void>(
     action: K,
-    handler: ActionHandler<T[K], R>,
+    handler: ActionEffectHandler<T[K]>,
     config: HandlerConfig<T[K]> = {}
   ): UnregisterFunction {
-    return this.registerWithRole(action, handler, config, 'effect');
+    return this.registerWithRole(action, handler as ActionHandler<T[K], R>, config, 'effect');
+  }
+
+  /** Register an authorization or validation guard that always runs before
+   * concurrent result arbitration. */
+  registerGuard<K extends ActionNames<T>>(
+    action: K,
+    handler: ActionGuardHandler<T[K]>,
+    config: HandlerConfig<T[K]> = {},
+  ): UnregisterFunction {
+    return this.registerWithRole(action, handler as ActionHandler<T[K], void>, config, 'guard');
   }
 
   /**
@@ -365,7 +377,7 @@ export class ActionRegister<
     action: K,
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]>,
-    role: 'effect' | 'result' | 'legacy',
+    role: 'guard' | 'effect' | 'result' | 'legacy',
   ): UnregisterFunction {
     this.assertStringActionKey(action);
     this.assertAcceptingWork();
@@ -493,7 +505,7 @@ export class ActionRegister<
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]>,
     handlerId: string,
-    role: 'effect' | 'result' | 'legacy' = 'legacy',
+    role: 'guard' | 'effect' | 'result' | 'legacy' = 'legacy',
   ): UnregisterFunction {
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K], R> = {
@@ -663,7 +675,7 @@ export class ActionRegister<
         }
       }, timeoutScope.options, attemptState, undefined, () => (
         this.getAttemptHandlers(action, plan).length > 0
-      ));
+      ), undefined, () => this.drainAttemptHandlers(dispatchHandlerPromises));
     const operation = async () => {
       if (timeoutScope.options?.signal?.aborted) return;
 
@@ -728,6 +740,7 @@ export class ActionRegister<
     shouldRetryResult?: (result: R) => boolean,
     canRetry: () => boolean = () => true,
     telemetry?: RetryTelemetry,
+    beforeRetry?: () => Promise<void>,
   ): Promise<R> {
     const configuredAttempts = options?.retryOnError?.maxAttempts ?? 1;
     const maxAttempts = Number.isFinite(configuredAttempts)
@@ -758,9 +771,17 @@ export class ActionRegister<
             : 'succeeded',
         });
         if (telemetry) telemetry.pipelineDuration += attemptEndedAt - attemptStartedAt;
-        if (
-          !canRetryAttempt
-        ) {
+        if (!canRetryAttempt) {
+          return result;
+        }
+        await beforeRetry?.();
+        const retryStartedAt = Date.now();
+        const shouldContinue = await this.waitForRetry(retryDelay, options?.signal);
+        if (telemetry) telemetry.retryDelayDuration += Date.now() - retryStartedAt;
+        if (!shouldContinue) {
+          telemetry?.attempts.push({
+            startTime: Date.now(), endTime: Date.now(), duration: 0, outcome: 'cancelled',
+          });
           return result;
         }
       } catch (error) {
@@ -778,16 +799,15 @@ export class ActionRegister<
           outcome: canRetryAttempt ? 'retried' : 'failed',
         });
         if (telemetry) telemetry.pipelineDuration += attemptEndedAt - attemptStartedAt;
-        if (
-          !canRetryAttempt
-        ) {
+        if (!canRetryAttempt) {
           throw error;
         }
+        await beforeRetry?.();
+        const retryStartedAt = Date.now();
+        const shouldContinue = await this.waitForRetry(retryDelay, options?.signal);
+        if (telemetry) telemetry.retryDelayDuration += Date.now() - retryStartedAt;
+        if (!shouldContinue) throw error;
       }
-
-      const retryStartedAt = Date.now();
-      await this.waitForRetry(retryDelay, options?.signal);
-      if (telemetry) telemetry.retryDelayDuration += Date.now() - retryStartedAt;
     }
 
     // The loop always returns or throws. This protects the generic return type
@@ -816,6 +836,15 @@ export class ActionRegister<
     return promise;
   }
 
+  /** Do not begin a whole-action retry while a previous race loser is still
+   * running. Handlers should still observe their signal for cancellation. */
+  private async drainAttemptHandlers(
+    dispatchHandlerPromises: DispatchHandlerPromises,
+  ): Promise<void> {
+    const pending = [...dispatchHandlerPromises];
+    if (pending.length > 0) await Promise.allSettled(pending);
+  }
+
   private trackGlobalHandlerPromise<R>(promise: Promise<R>): Promise<R> {
     this.activeHandlerPromises.add(promise);
     const remove = () => this.activeHandlerPromises.delete(promise);
@@ -824,17 +853,18 @@ export class ActionRegister<
   }
 
   /** Abort-aware retry delay so cancellation does not wait for the full backoff. */
-  private waitForRetry(delay: number, signal?: AbortSignal): Promise<void> {
-    if (delay <= 0 || signal?.aborted) return Promise.resolve();
+  private waitForRetry(delay: number, signal?: AbortSignal): Promise<boolean> {
+    if (signal?.aborted) return Promise.resolve(false);
+    if (delay <= 0) return Promise.resolve(true);
 
     return new Promise(resolve => {
       const timer = setTimeout(finish, delay);
-      const abort = () => finish();
+      const abort = () => finish(false);
 
-      function finish() {
+      function finish(shouldContinue = true) {
         clearTimeout(timer);
         signal?.removeEventListener('abort', abort);
-        resolve();
+        resolve(shouldContinue);
       }
 
       signal?.addEventListener('abort', abort, { once: true });
@@ -1382,7 +1412,8 @@ export class ActionRegister<
           }
         }, timeoutScope.options, attemptState, result => (
           result.outcome === 'failed'
-        ), () => this.getAttemptHandlers(action, plan).length > 0, retryTelemetry);
+        ), () => this.getAttemptHandlers(action, plan).length > 0, retryTelemetry,
+        () => this.drainAttemptHandlers(dispatchHandlerPromises));
 
       const resultProcessingStartedAt = Date.now();
       const result = this.processResults(
@@ -1731,11 +1762,19 @@ export class ActionRegister<
         pipelineDuration: endTime - _startTime,
         handlersExecuted: executionHandlersCount,
         handlersSkipped: Math.max(0, filteredHandlers.length - executionHandlersCount),
-        handlersFailed: handlerResults.filter(handler => handler.status === 'failed').length,
+        handlersFailed: context.executionMode === 'race'
+          ? (context.raceWinnerId && outcomesById.get(context.raceWinnerId)?.status === 'failed' ? 1 : 0)
+          : handlerResults.filter(handler => handler.status === 'failed').length,
         startTime: _startTime,
         endTime,
       },
       handlers: handlerResults,
+      ...(context.executionMode !== 'race' ? {} : {
+        raceDiagnostics: {
+          ...(context.raceWinnerId === undefined ? {} : { winnerId: context.raceWinnerId }),
+          loserSnapshots: (context.raceLoserOutcomes ?? []).map(snapshotHandlerOutcome),
+        },
+      }),
       errors: reportedErrors.map(err => ({
         handlerId: err.handlerId,
         error: err.error,
@@ -1975,14 +2014,50 @@ export class ActionRegister<
       _index: number,
       state?: PipelineControllerState<T[K], any>,
     ): PipelineController<T[K], any> => {
-      return this.createController(
+      const controller = this.createController(
         context,
         autoAbortController,
         autoAbortOptions,
         state,
-        registration.role !== 'effect',
+        registration.role !== 'effect' && registration.role !== 'guard',
       );
+      // Runtime mirrors the narrow public controller contracts. This also
+      // prevents JavaScript consumers from accidentally publishing effect or
+      // guard results through an API that would be ignored.
+      if (registration.role === 'effect') {
+        return {
+          signal: controller.signal,
+          getPayload: controller.getPayload,
+        } as PipelineController<T[K], any>;
+      }
+      if (registration.role === 'guard') {
+        return {
+          signal: controller.signal,
+          getPayload: controller.getPayload,
+          modifyPayload: controller.modifyPayload,
+          abort: controller.abort,
+        } as PipelineController<T[K], any>;
+      }
+      return controller;
     };
+
+    // Guards are a preflight phase in every mode. In race mode, legacy
+    // effects historically served as guards, so run them before arbitration
+    // as well: an authorization failure can never lose to a fast result.
+    const originalHandlers = context.handlers;
+    const preflightHandlers = originalHandlers.filter(handler => (
+      handler.role === 'guard'
+      || (context.executionMode === 'race' && handler.role === 'effect')
+    ));
+    if (preflightHandlers.length > 0) {
+      context.handlers = preflightHandlers;
+      await executeSequential<T[K], any>(context, createController);
+      if (context.aborted || context.terminated) {
+        context.handlers = originalHandlers;
+        return;
+      }
+    }
+    context.handlers = originalHandlers.filter(handler => !preflightHandlers.includes(handler));
 
     switch (context.executionMode) {
       case 'sequential':
@@ -1997,6 +2072,7 @@ export class ActionRegister<
       default:
         throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
+    context.handlers = originalHandlers;
 
     if (!context.deferOnceCleanup) {
       this.cleanupOneTimeHandlers(

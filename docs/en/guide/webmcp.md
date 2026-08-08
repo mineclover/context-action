@@ -34,11 +34,19 @@ canonical context with `source: 'model'`, `mode: 'agent'`, and
 identity, so idempotency is disabled by default. Supply `getIdempotencyKey`
 only when the surrounding workflow has a domain-owned stable retry key.
 
-The WebMCP callback also receives its native `ModelContextClient`. If a tool
-needs the browser's interaction gate, use `beforeExecute(invocation, client)`
-to bridge `client.requestUserInteraction()` into the page's approval UI before
-the canonical manager runs. This does not replace the registry's policy or
-authorization checks.
+The adapter follows the 2026-07-21 Community Group Draft callback shape:
+`execute(input)`. It does not expose the older experimental
+`ModelContextClient` parameter. `beforeExecute(invocation)` is an
+application-owned, abortable hook; use `invocation.signal` to stop UI work when
+the scope is disposed. Keep validation, policy, and approval in the canonical
+manager—this hook is not an authorization boundary.
+
+Tool names and non-empty descriptions are preflight-validated before anything
+is registered. The adapter maps `title`, `readOnlyHint`, and
+`untrustedContentHint` to the current Draft; other canonical hints remain
+internal. Canonical tool errors resolve to Context-Action's `{ isError: true,
+content, error }` envelope by default. Set `errorMode: 'throw'` to reject the
+callback instead.
 
 The returned scope reports whether the current document supports WebMCP. In
 SSR or unsupported browsers it is inert (`supported: false`) rather than
@@ -48,8 +56,9 @@ throwing, so feature detection belongs at the UI boundary.
 
 `@context-action/react/tools` provides a hook that owns registration for a
 component lifetime. Obtain the canonical registry from your `ToolContext`, and
-memoize the options object so unrelated renders do not unregister and register
-the tools again.
+the registration fields (`sessionId`, `toolNames`, `exposedTo`) so unrelated
+renders do not unregister and register the tools again. Execution metadata and
+callbacks are read from the latest render without JSON serialization.
 
 ```tsx
 import { useMemo } from 'react';

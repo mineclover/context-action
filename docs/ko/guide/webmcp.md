@@ -35,11 +35,17 @@ retry identity를 제공하지 않으므로 idempotency는 기본적으로 비�
 워크플로에 domain 소유의 안정적인 재시도 키가 있을 때만
 `getIdempotencyKey`를 제공하세요.
 
-WebMCP callback에는 native `ModelContextClient`도 전달됩니다. 브라우저의
-interaction gate가 필요한 도구는 canonical manager가 실행되기 전에
-`beforeExecute(invocation, client)`에서
-`client.requestUserInteraction()`을 페이지 승인 UI와 연결할 수 있습니다.
-이 기능은 registry의 policy·authorization 검사를 대체하지 않습니다.
+adapter는 2026-07-21 Community Group Draft의 `execute(input)` callback 계약을
+따릅니다. 이전 실험 구현의 `ModelContextClient` 인자는 제공하지 않습니다.
+`beforeExecute(invocation)`은 애플리케이션 소유의 취소 가능한 hook이며,
+scope가 해제되면 `invocation.signal`로 UI 작업을 중지해야 합니다. 이 hook은
+인가 경계가 아니므로 검증·policy·approval은 canonical manager에 유지하세요.
+
+도구 이름과 비어 있지 않은 설명은 등록 전에 모두 검증됩니다. adapter는
+현재 Draft의 `title`, `readOnlyHint`, `untrustedContentHint`만 매핑하며 나머지
+canonical hint는 내부에 유지합니다. canonical 오류는 기본적으로
+`{ isError: true, content, error }` Context-Action envelope로 resolve됩니다.
+Promise reject가 필요하면 `errorMode: 'throw'`를 사용하세요.
 
 반환된 scope는 현재 문서가 WebMCP를 지원하는지 알려줍니다. SSR 또는 미지원
 브라우저에서는 예외 대신 `supported: false`인 inert scope를 반환하므로,
@@ -48,8 +54,9 @@ interaction gate가 필요한 도구는 canonical manager가 실행되기 전에
 ## React 수명 주기 통합
 
 `@context-action/react/tools`는 컴포넌트 수명 주기에 맞춰 등록을 관리하는
-훅을 제공합니다. `ToolContext`에서 canonical registry를 얻고, 관련 없는
-렌더링에서 도구가 재등록되지 않도록 options 객체를 메모이즈하세요.
+훅을 제공합니다. `ToolContext`에서 canonical registry를 얻고,
+`sessionId`, `toolNames`, `exposedTo` 등록 필드를 메모이즈하세요. 실행
+metadata와 callback은 JSON 직렬화 없이 최신 render 값을 사용합니다.
 
 ```tsx
 import { useMemo } from 'react';

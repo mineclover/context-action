@@ -85,8 +85,12 @@ describe('ActionRegister - Type Safety Tests', () => {
       typedRegister.registerEffect('stringAction', payload => {
         expect(payload).toBeDefined();
       });
-      typedRegister.registerEffect('stringAction', (_payload, controller) => {
+      typedRegister.registerGuard('stringAction', (_payload, controller) => {
         if (false) controller.abort('guarded');
+      });
+      typedRegister.registerEffect('stringAction', (_payload, controller) => {
+        // @ts-expect-error effects cannot publish results
+        controller.setResult({ normalized: 'ignored' });
       });
       typedRegister.registerResult('stringAction', payload => ({
         normalized: payload.toUpperCase(),
@@ -151,11 +155,9 @@ describe('ActionRegister - Type Safety Tests', () => {
       }
       const register = new ActionRegister<SaveActions, SaveResults>();
 
-      const merger = jest.fn(() => 'merged-effect-result');
-      register.registerEffect<'save', string>('save', (_payload, controller) => {
-        controller.setResult('effect-local-result' as never);
-        controller.mergeResult(merger as never);
-        return 'effect-return-value';
+      register.registerEffect('save', (_payload, controller) => {
+        // @ts-expect-error effects cannot merge public results
+        controller.mergeResult(() => ({ accepted: false }));
       });
       register.registerResult('save', () => ({ accepted: true }));
 
@@ -166,7 +168,6 @@ describe('ActionRegister - Type Safety Tests', () => {
       expect(execution.results).toEqual([{ accepted: true }]);
       expect(execution.result).toEqual([{ accepted: true }]);
       expect(execution.handlers[0]?.result).toBeUndefined();
-      expect(merger).not.toHaveBeenCalled();
       register.destroy();
     });
 
@@ -181,7 +182,6 @@ describe('ActionRegister - Type Safety Tests', () => {
       const effect = jest.fn();
       register.registerEffect('save', () => {
         effect();
-        return 'ignored';
       }, { priority: 10 });
       register.registerResult('save', async () => ({ accepted: true }), { priority: 0 });
 
