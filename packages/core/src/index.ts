@@ -13,6 +13,7 @@ export {
 } from './errors.js';
 
 export { executeParallel, executeRace, executeSequential } from './execution-modes.js';
+export { resolveHandlerConfig } from './types.js';
 export type {
   ActionDispatcher,
   ActionHandler,

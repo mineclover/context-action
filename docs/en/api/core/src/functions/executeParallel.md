@@ -8,7 +8,7 @@
 
 > **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:330](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L330)
+Defined in: [packages/core/src/execution-modes.ts:342](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L342)
 
 Execute handlers in parallel mode (all at once)
 

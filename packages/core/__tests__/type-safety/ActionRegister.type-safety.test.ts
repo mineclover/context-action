@@ -151,8 +151,10 @@ describe('ActionRegister - Type Safety Tests', () => {
       }
       const register = new ActionRegister<SaveActions, SaveResults>();
 
+      const merger = jest.fn(() => 'merged-effect-result');
       register.registerEffect<'save', string>('save', (_payload, controller) => {
         controller.setResult('effect-local-result' as never);
+        controller.mergeResult(merger as never);
         return 'effect-return-value';
       });
       register.registerResult('save', () => ({ accepted: true }));
@@ -163,6 +165,33 @@ describe('ActionRegister - Type Safety Tests', () => {
 
       expect(execution.results).toEqual([{ accepted: true }]);
       expect(execution.result).toEqual([{ accepted: true }]);
+      expect(execution.handlers[0]?.result).toBeUndefined();
+      expect(merger).not.toHaveBeenCalled();
+      register.destroy();
+    });
+
+    it('does not let an effect win a mixed race over result handlers', async () => {
+      interface SaveActions extends ActionPayloadMap {
+        save: { id: string };
+      }
+      interface SaveResults {
+        save: { accepted: boolean };
+      }
+      const register = new ActionRegister<SaveActions, SaveResults>();
+      const effect = jest.fn();
+      register.registerEffect('save', () => {
+        effect();
+        return 'ignored';
+      }, { priority: 10 });
+      register.registerResult('save', async () => ({ accepted: true }), { priority: 0 });
+
+      const execution = await register.dispatchWithResult('save', { id: 'save-race' }, {
+        executionMode: 'race',
+      });
+
+      expect(effect).toHaveBeenCalledTimes(1);
+      expect(execution.result).toEqual({ accepted: true });
+      expect(execution.handlers.find(handler => handler.id !== undefined)?.result).toBeUndefined();
       register.destroy();
     });
 
@@ -185,6 +214,25 @@ describe('ActionRegister - Type Safety Tests', () => {
       register.destroy();
     });
 
+    it('preserves failed handler metadata for fatal background failures', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      register.register('stringAction', async () => {
+        throw new Error('fatal background failure');
+      }, {
+        id: 'fatal-background',
+        scheduling: 'start-and-continue',
+        errorPolicy: 'fatal',
+      });
+
+      const execution = await register.dispatchWithResult('stringAction', 'value');
+
+      expect(execution.outcome).toBe('failed');
+      expect(execution.handlers[0]).toMatchObject({ id: 'fatal-background', status: 'failed' });
+      expect(execution.execution.handlersFailed).toBe(1);
+      expect(execution.failedResults).toHaveLength(1);
+      register.destroy();
+    });
+
     it('does not report a losing race handler error on a successful winner', async () => {
       const register = new ActionRegister<TypeSafetyActions>();
       register.register('stringAction', () => 'winner', { priority: 10 });
@@ -199,6 +247,23 @@ describe('ActionRegister - Type Safety Tests', () => {
       expect(execution.outcome).toBe('completed');
       expect(execution.errors).toEqual([]);
       expect(execution.result).toBe('winner');
+      register.destroy();
+    });
+
+    it('preserves failed handler metadata for a fatal race winner', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      register.register('stringAction', () => {
+        throw new Error('fatal race winner');
+      }, { id: 'fatal-race', errorPolicy: 'fatal' });
+
+      const execution = await register.dispatchWithResult('stringAction', 'value', {
+        executionMode: 'race',
+      });
+
+      expect(execution.outcome).toBe('failed');
+      expect(execution.handlers[0]).toMatchObject({ id: 'fatal-race', status: 'failed' });
+      expect(execution.execution.handlersFailed).toBe(1);
+      expect(execution.failedResults).toHaveLength(1);
       register.destroy();
     });
 
@@ -223,6 +288,22 @@ describe('ActionRegister - Type Safety Tests', () => {
       );
       expect(execution.execution.retryDelayDuration).toBeGreaterThanOrEqual(0);
       expect(execution.execution.resultProcessingDuration).toBeGreaterThanOrEqual(0);
+      register.destroy();
+    });
+
+    it('records the final failed retry attempt as failed', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      register.register('stringAction', () => {
+        throw new Error('always fails');
+      }, { errorPolicy: 'fatal' });
+
+      const execution = await register.dispatchWithResult('stringAction', 'value', {
+        retryOnError: { maxAttempts: 2, delay: 0 },
+      });
+
+      expect(execution.outcome).toBe('failed');
+      expect(execution.execution.attempts?.map(attempt => attempt.outcome))
+        .toEqual(['retried', 'failed']);
       register.destroy();
     });
 

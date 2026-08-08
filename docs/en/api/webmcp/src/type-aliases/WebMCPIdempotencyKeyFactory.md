@@ -8,7 +8,7 @@
 
 > **WebMCPIdempotencyKeyFactory** = (`invocation`) => `string` \| `undefined`
 
-Defined in: [packages/webmcp/src/index.ts:51](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L51)
+Defined in: [packages/webmcp/src/index.ts:59](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L59)
 
 ## Parameters
 

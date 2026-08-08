@@ -40,7 +40,7 @@ describe('useWebMCPToolScope', () => {
     expect(registrationSignal?.aborted).toBe(true);
   });
 
-  it('disposes a registration that resolves after the component unmounts', async () => {
+  it('aborts a pending registration immediately when the component unmounts', async () => {
     let registrationSignal: AbortSignal | undefined;
     let releaseRegistration: (() => void) | undefined;
     const registration = new Promise<void>((resolve) => { releaseRegistration = resolve; });
@@ -59,7 +59,21 @@ describe('useWebMCPToolScope', () => {
 
     await waitFor(() => expect(registrationSignal).toBeDefined());
     unmount();
+    expect(registrationSignal?.aborted).toBe(true);
     releaseRegistration?.();
     await waitFor(() => expect(registrationSignal?.aborted).toBe(true));
+  });
+
+  it('does not re-register when callers pass a fresh options object with unchanged values', async () => {
+    const registerTool = jest.fn(async () => {});
+    const document = { modelContext: { registerTool } };
+    const { result } = renderHook(() => useWebMCPToolScope(manager, {
+      sessionId: 'inline-options-page',
+      toolNames: ['search'],
+      document,
+    }));
+
+    await waitFor(() => expect(result.current.activeTools).toEqual(['search']));
+    expect(registerTool).toHaveBeenCalledTimes(1);
   });
 });

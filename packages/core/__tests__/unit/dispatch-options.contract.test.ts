@@ -152,18 +152,23 @@ describe('DispatchOptions runtime contract', () => {
     });
     const cleanup = jest.fn();
     register.register('work', handler, {
+      id: 'included-once',
       blocking: true,
       once: true,
       cleanup,
     });
+    const excluded = jest.fn();
+    register.register('work', excluded, { id: 'excluded-from-plan' });
 
     const result = await register.dispatchWithResult('work', { id: 'once' }, {
+      filter: { handlerIds: ['included-once'] },
       retryOnError: { maxAttempts: 2, delay: 0 },
     });
 
     expect(result.success).toBe(false);
     expect(result.errors[0]?.error.message).toBe('once failed');
     expect(handler).toHaveBeenCalledTimes(1);
+    expect(excluded).not.toHaveBeenCalled();
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 

@@ -27,12 +27,19 @@ const scope = await createWebMCPToolScope(registry, {
 scope.dispose();
 ```
 
-등록된 각 WebMCP 호출에는 도구 호출 ID가 생성되며
+등록된 각 WebMCP 호출에는 scope마다 고유한 도구 호출 ID가 생성되며
 `registry.executeModelToolCall()`을 통해 실행됩니다. adapter는 canonical
 context에 `source: 'model'`, `mode: 'agent'`,
-`metadata.transport: 'webmcp'`를 기록합니다. 기본적으로 호출 ID가
-idempotency key가 되며, 워크플로에 안정적인 재시도 키가 있다면
+`metadata.transport: 'webmcp'`를 기록합니다. WebMCP는 안정적인 native
+retry identity를 제공하지 않으므로 idempotency는 기본적으로 비활성화됩니다.
+워크플로에 domain 소유의 안정적인 재시도 키가 있을 때만
 `getIdempotencyKey`를 제공하세요.
+
+WebMCP callback에는 native `ModelContextClient`도 전달됩니다. 브라우저의
+interaction gate가 필요한 도구는 canonical manager가 실행되기 전에
+`beforeExecute(invocation, client)`에서
+`client.requestUserInteraction()`을 페이지 승인 UI와 연결할 수 있습니다.
+이 기능은 registry의 policy·authorization 검사를 대체하지 않습니다.
 
 반환된 scope는 현재 문서가 WebMCP를 지원하는지 알려줍니다. SSR 또는 미지원
 브라우저에서는 예외 대신 `supported: false`인 inert scope를 반환하므로,

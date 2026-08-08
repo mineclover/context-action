@@ -20,7 +20,15 @@ export interface WebMCPToolDefinition {
   readonly description: string;
   readonly inputSchema: JSONSchema;
   readonly annotations?: ToolDefinition['annotations'];
-  readonly execute: (input: Record<string, unknown>) => Promise<unknown>;
+  readonly execute: (
+    input: Record<string, unknown>,
+    client?: WebMCPModelContextClient,
+  ) => Promise<unknown>;
+}
+
+/** Structural native client shape supplied by the experimental WebMCP API. */
+export interface WebMCPModelContextClient {
+  requestUserInteraction?: (...args: unknown[]) => Promise<unknown>;
 }
 
 export interface WebMCPRegistrationOptions {
@@ -52,6 +60,12 @@ export type WebMCPIdempotencyKeyFactory = (
   invocation: WebMCPToolInvocation,
 ) => string | undefined;
 
+/** Runs before the canonical manager so browser-native interaction can be bridged explicitly. */
+export type WebMCPBeforeExecute = (
+  invocation: WebMCPToolInvocation,
+  client: WebMCPModelContextClient | undefined,
+) => void | Promise<void>;
+
 export interface WebMCPToolScopeOptions {
   /** Stable identity for the page agent session. */
   readonly sessionId: string;
@@ -65,6 +79,9 @@ export interface WebMCPToolScopeOptions {
   readonly signal?: AbortSignal;
   readonly context?: Omit<ToolCallContext, 'source' | 'mode' | 'sessionId'>;
   readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey'>;
+  /** Optional bridge for WebMCP's native user-interaction client. */
+  readonly beforeExecute?: WebMCPBeforeExecute;
+  /** Domain-owned retry identity; omitted by default because WebMCP has no native call ID. */
   readonly getIdempotencyKey?: WebMCPIdempotencyKeyFactory;
 }
 
@@ -100,6 +117,8 @@ export async function createWebMCPToolScope(
     else options.signal.addEventListener('abort', abortExternal, { once: true });
   }
 
+  const scopeId = createScopeId();
+  const registeredNames: string[] = [];
   let sequence = 0;
   const dispose = () => {
     controller.abort();
@@ -110,13 +129,14 @@ export async function createWebMCPToolScope(
 
   try {
     for (const definition of definitions) {
+      if (controller.signal.aborted) break;
       await modelContext.registerTool({
         name: definition.name,
         description: definition.description ?? `Execute ${definition.name}.`,
         inputSchema: definition.inputSchema,
         ...(definition.annotations === undefined ? {} : { annotations: definition.annotations }),
-        execute: async (input) => {
-          const toolCallId = `webmcp:${sessionId}:${definition.name}:${++sequence}`;
+        execute: async (input, client) => {
+          const toolCallId = `webmcp:${scopeId}:${++sequence}`;
           const invocation: WebMCPToolInvocation = {
             toolName: definition.name,
             toolCallId,
@@ -124,6 +144,7 @@ export async function createWebMCPToolScope(
             definition,
             sessionId,
           };
+          await options.beforeExecute?.(invocation, client);
           const result = await manager.executeModelToolCall({
             id: toolCallId,
             name: definition.name,
@@ -131,9 +152,7 @@ export async function createWebMCPToolScope(
           }, {
             ...options.callOptions,
             signal: controller.signal,
-            idempotencyKey: options.getIdempotencyKey
-              ? options.getIdempotencyKey(invocation)
-              : toolCallId,
+            idempotencyKey: options.getIdempotencyKey?.(invocation),
             context: {
               ...options.context,
               source: 'model',
@@ -151,6 +170,8 @@ export async function createWebMCPToolScope(
         signal: controller.signal,
         ...(exposedTo.length === 0 ? {} : { exposedTo }),
       });
+      if (controller.signal.aborted) break;
+      registeredNames.push(definition.name);
     }
   } catch (error) {
     dispose();
@@ -159,7 +180,7 @@ export async function createWebMCPToolScope(
 
   return {
     supported: true,
-    activeTools: definitions.map(definition => definition.name),
+    activeTools: registeredNames,
     dispose,
   };
 }
@@ -200,12 +221,20 @@ function resolveDefinitions(
     if (seen.has(name)) throw new Error(`WebMCP tool scope has duplicate tool "${name}".`);
     seen.add(name);
     const definition = manager.getToolDefinition(name);
-    if (!definition) throw new Error(`WebMCP tool scope contains unavailable tool "${name}".`);
+    if (!manager.hasTool(name) || !definition) {
+      throw new Error(`WebMCP tool scope contains unavailable tool "${name}".`);
+    }
     if (definition.name !== name) {
       throw new Error(`WebMCP tool scope received mismatched definition for "${name}".`);
     }
     return definition;
   });
+}
+
+function createScopeId(): string {
+  const cryptoRef = globalThis.crypto;
+  if (cryptoRef?.randomUUID) return cryptoRef.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
 function normalizeExposedOrigins(origins: readonly string[] | undefined): readonly string[] {

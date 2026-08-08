@@ -6,7 +6,7 @@
 
 # Interface: WebMCPDocument
 
-Defined in: [packages/webmcp/src/index.ts:39](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L39)
+Defined in: [packages/webmcp/src/index.ts:47](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L47)
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [packages/webmcp/src/index.ts:39](https://github.com/mineclover/cont
 
 > `readonly` `optional` **modelContext?**: [`WebMCPModelContext`](WebMCPModelContext.md)
 
-Defined in: [packages/webmcp/src/index.ts:40](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L40)
+Defined in: [packages/webmcp/src/index.ts:48](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L48)

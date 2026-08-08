@@ -27,12 +27,18 @@ const scope = await createWebMCPToolScope(registry, {
 scope.dispose();
 ```
 
-Each registered WebMCP invocation receives a generated tool-call ID and is
-executed through `registry.executeModelToolCall()`. The adapter labels the
+Each registered WebMCP invocation receives a scope-unique generated tool-call
+ID and is executed through `registry.executeModelToolCall()`. The adapter labels the
 canonical context with `source: 'model'`, `mode: 'agent'`, and
-`metadata.transport: 'webmcp'`. By default, that call ID is also the
-idempotency key; supply `getIdempotencyKey` when the surrounding workflow has a
-stable retry key.
+`metadata.transport: 'webmcp'`. WebMCP does not provide a stable native retry
+identity, so idempotency is disabled by default. Supply `getIdempotencyKey`
+only when the surrounding workflow has a domain-owned stable retry key.
+
+The WebMCP callback also receives its native `ModelContextClient`. If a tool
+needs the browser's interaction gate, use `beforeExecute(invocation, client)`
+to bridge `client.requestUserInteraction()` into the page's approval UI before
+the canonical manager runs. This does not replace the registry's policy or
+authorization checks.
 
 The returned scope reports whether the current document supports WebMCP. In
 SSR or unsupported browsers it is inert (`supported: false`) rather than

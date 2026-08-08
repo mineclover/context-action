@@ -51,6 +51,52 @@ describe('React action helpers', () => {
     expect(registry.getHandlerCount('resetApp')).toBe(0);
   });
 
+  it('preserves Core legacy blocking semantics and registration metadata', async () => {
+    const cleanup = jest.fn();
+    const condition = jest.fn(() => true);
+    const manager = createActionHandler(registry, 'updateUser', () => {
+      throw new Error('fatal React helper failure');
+    }, {
+      blocking: true,
+      cleanup,
+      condition,
+      metadata: { source: 'react-helper' },
+    });
+
+    manager.register();
+    await expect(registry.dispatch('updateUser', { id: 'u1', name: 'Ada' }))
+      .rejects.toThrow('fatal React helper failure');
+    expect(condition).toHaveBeenCalledWith({ id: 'u1', name: 'Ada' });
+    expect(manager.config).toMatchObject({
+      blocking: true,
+      scheduling: 'await-before-next',
+      errorPolicy: 'fatal',
+      metadata: { source: 'react-helper' },
+    });
+    manager.unregister();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps legacy non-blocking handlers start-and-continue', async () => {
+    let release: (() => void) | undefined;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    const manager = createActionHandler(registry, 'updateUser', async () => {
+      await pending;
+    }, { blocking: false });
+    const next = jest.fn();
+    manager.register();
+    registry.register('updateUser', next, { priority: -1 });
+
+    const dispatch = registry.dispatch('updateUser', { id: 'u1', name: 'Ada' });
+    expect(next).toHaveBeenCalledTimes(1);
+    release?.();
+    await dispatch;
+    expect(manager.config).toMatchObject({
+      scheduling: 'start-and-continue',
+      errorPolicy: 'collect',
+    });
+  });
+
   it('keeps React diagnostics in the React adapter', () => {
     const logger = jest.spyOn(console, 'log').mockImplementation();
     ReactDevUtils.enableDebugMode();

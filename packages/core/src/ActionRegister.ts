@@ -32,7 +32,7 @@ import {
   PipelineControllerState,
   ProxyActionKey,
   ReservedActionKey,
-  ResolvedHandlerConfig,
+  resolveHandlerConfig,
   UnregisterFunction,
 } from './types.js';
 
@@ -498,24 +498,7 @@ export class ActionRegister<
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K], R> = {
       handler,
-      config: {
-        priority: config.priority ?? 0,
-        id: handlerId,
-        // Keep `blocking` as a resolved compatibility view while execution
-        // uses the independently configured scheduling and error policy.
-        blocking: config.errorPolicy === 'fatal' || config.blocking === true,
-        scheduling: config.scheduling
-          ?? (config.blocking === false ? 'start-and-continue' : 'await-before-next'),
-        errorPolicy: config.errorPolicy
-          ?? (config.blocking === true ? 'fatal' : 'collect'),
-        once: config.once ?? false,
-        debounce: config.debounce ?? undefined,
-        throttle: config.throttle ?? undefined,
-        replaceExisting: config.replaceExisting ?? true, // 🔧 Fix: Default to true for backward compatibility
-        cleanup: config.cleanup, // 🔧 Preserve cleanup function from config
-        condition: config.condition, // 🔧 Fix: Preserve condition function from config
-        metadata: config.metadata,
-      } as ResolvedHandlerConfig<T[K]>,
+      config: resolveHandlerConfig(config, handlerId),
       id: handlerId,
       role,
     };
@@ -678,7 +661,9 @@ export class ActionRegister<
             dispatchHandlerPromises
           );
         }
-      }, timeoutScope.options, attemptState, undefined, () => this.getHandlerCount(action) > 0);
+      }, timeoutScope.options, attemptState, undefined, () => (
+        this.getAttemptHandlers(action, plan).length > 0
+      ));
     const operation = async () => {
       if (timeoutScope.options?.signal?.aborted) return;
 
@@ -768,7 +753,9 @@ export class ActionRegister<
           startTime: attemptStartedAt,
           endTime: attemptEndedAt,
           duration: attemptEndedAt - attemptStartedAt,
-          outcome: canRetryAttempt ? 'retried' : 'succeeded',
+          outcome: shouldRetry
+            ? (canRetryAttempt ? 'retried' : 'failed')
+            : 'succeeded',
         });
         if (telemetry) telemetry.pipelineDuration += attemptEndedAt - attemptStartedAt;
         if (
@@ -1394,9 +1381,8 @@ export class ActionRegister<
             );
           }
         }, timeoutScope.options, attemptState, result => (
-          result.outcome === 'failed' &&
-          this.getHandlerCount(action) > 0
-        ), () => this.getHandlerCount(action) > 0, retryTelemetry);
+          result.outcome === 'failed'
+        ), () => this.getAttemptHandlers(action, plan).length > 0, retryTelemetry);
 
       const resultProcessingStartedAt = Date.now();
       const result = this.processResults(
@@ -1702,6 +1688,9 @@ export class ActionRegister<
           };
     });
     const handlerErrors = errors.filter(error => error.handlerId !== 'pipeline');
+    // Keep the public terminal-error view backward compatible: fatal pipeline
+    // failures are represented by the pipeline error, while per-handler
+    // diagnostics remain available through `handlers` and `failedResults`.
     const reportedErrors = executionError
       ? errors.filter(error => error.handlerId === 'pipeline')
       : errors;
@@ -1742,7 +1731,7 @@ export class ActionRegister<
         pipelineDuration: endTime - _startTime,
         handlersExecuted: executionHandlersCount,
         handlersSkipped: Math.max(0, filteredHandlers.length - executionHandlersCount),
-        handlersFailed: handlerErrors.length,
+        handlersFailed: handlerResults.filter(handler => handler.status === 'failed').length,
         startTime: _startTime,
         endTime,
       },
@@ -1818,6 +1807,7 @@ export class ActionRegister<
     };
 
     controller.mergeResult = (merger: (previousResults: any[], currentResult: any) => any) => {
+      if (!collectResults) return;
       const currentResult = state.results[state.results.length - 1];
       const previousResults = state.results.slice(0, -1);
       const mergedResult = merger(previousResults, currentResult);

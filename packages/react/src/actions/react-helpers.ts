@@ -13,6 +13,7 @@ import type {
   ResolvedHandlerConfig,
   UnregisterFunction,
 } from '@context-action/core';
+import { resolveHandlerConfig } from '@context-action/core';
 
 export function createActionHandler<T extends ActionPayloadMap, K extends ActionNames<T>>(
   registry: ActionRegister<T>,
@@ -25,17 +26,13 @@ export function createActionHandler<T extends ActionPayloadMap, K extends Action
   registerWithCleanup: () => () => void;
   config: ResolvedHandlerConfig<T[K]>;
 } {
-  const finalConfig: ResolvedHandlerConfig<T[K]> = {
-    priority: config?.priority ?? 0,
-    id: config?.id ?? `react_${String(action)}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    blocking: config?.blocking ?? false,
-    scheduling: config?.scheduling ?? 'await-before-next',
-    errorPolicy: config?.errorPolicy ?? 'collect',
-    once: config?.once ?? false,
-    debounce: config?.debounce ?? undefined,
-    throttle: config?.throttle ?? undefined,
-    replaceExisting: config?.replaceExisting ?? true,
-  };
+  const handlerId = config?.id
+    ?? `react_${String(action)}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const registrationConfig: HandlerConfig<T[K]> = { ...config, id: handlerId };
+  const finalConfig: ResolvedHandlerConfig<T[K]> = resolveHandlerConfig(
+    registrationConfig,
+    handlerId,
+  );
   let unregister: UnregisterFunction | undefined;
 
   const unregisterCurrent = (): void => {
@@ -46,13 +43,13 @@ export function createActionHandler<T extends ActionPayloadMap, K extends Action
   return {
     register: () => {
       unregisterCurrent();
-      unregister = registry.register(action, handler, finalConfig);
+      unregister = registry.register(action, handler, registrationConfig);
       return unregister;
     },
     unregister: unregisterCurrent,
     registerWithCleanup: () => {
       unregisterCurrent();
-      unregister = registry.register(action, handler, finalConfig);
+      unregister = registry.register(action, handler, registrationConfig);
       return unregisterCurrent;
     },
     config: finalConfig,

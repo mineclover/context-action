@@ -9,6 +9,7 @@
 ## Interfaces
 
 - [WebMCPToolDefinition](interfaces/WebMCPToolDefinition.md)
+- [WebMCPModelContextClient](interfaces/WebMCPModelContextClient.md)
 - [WebMCPRegistrationOptions](interfaces/WebMCPRegistrationOptions.md)
 - [WebMCPModelContext](interfaces/WebMCPModelContext.md)
 - [WebMCPDocument](interfaces/WebMCPDocument.md)
@@ -19,6 +20,7 @@
 ## Type Aliases
 
 - [WebMCPIdempotencyKeyFactory](type-aliases/WebMCPIdempotencyKeyFactory.md)
+- [WebMCPBeforeExecute](type-aliases/WebMCPBeforeExecute.md)
 
 ## Functions
 

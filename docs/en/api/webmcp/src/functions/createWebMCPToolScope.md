@@ -8,7 +8,7 @@
 
 > **createWebMCPToolScope**(`manager`, `options`): `Promise`\<[`WebMCPToolScope`](../interfaces/WebMCPToolScope.md)\>
 
-Defined in: [packages/webmcp/src/index.ts:85](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L85)
+Defined in: [packages/webmcp/src/index.ts:102](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L102)
 
 Register an explicit canonical capability scope with WebMCP's imperative
 API. Unsupported browsers return an inert scope instead of failing SSR or

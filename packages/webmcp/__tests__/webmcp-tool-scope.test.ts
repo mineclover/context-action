@@ -23,6 +23,11 @@ const searchDefinition: ToolDefinition = {
   annotations: { readOnlyHint: true },
 };
 
+const saveDefinition: ToolDefinition = {
+  name: 'save',
+  inputSchema: { type: 'object' },
+};
+
 function createManager(
   execute: (
     call: ModelToolCall,
@@ -31,11 +36,14 @@ function createManager(
     content: [{ type: 'json', json: { count: 1 } }],
     structuredContent: { count: 1 },
   }),
+  hasTool = (name: string) => name === searchDefinition.name || name === saveDefinition.name,
 ): ToolManagementInterface {
   return {
-    listTools: () => ({ tools: [searchDefinition] }),
-    getToolDefinition: (name) => name === searchDefinition.name ? searchDefinition : undefined,
-    hasTool: (name) => name === searchDefinition.name,
+    listTools: () => ({ tools: [searchDefinition, saveDefinition] }),
+    getToolDefinition: (name) => name === searchDefinition.name
+      ? searchDefinition
+      : name === saveDefinition.name ? saveDefinition : undefined,
+    hasTool,
     callTool: async () => ({ content: [] }),
     executeModelToolCall: execute,
   };
@@ -145,6 +153,92 @@ describe('createWebMCPToolScope', () => {
     await expect(createWebMCPToolScope(createManager(), {
       sessionId: 'page-session',
       toolNames: ['missing'],
+      document: { modelContext: { registerTool } },
+    })).rejects.toThrow('unavailable tool');
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it('uses a unique scope call ID without enabling idempotency by default', async () => {
+    const calls: Array<{ id: string; options?: ToolCallOptions }> = [];
+    const registered: WebMCPToolDefinition[] = [];
+    const document = {
+      modelContext: {
+        registerTool: async (tool: WebMCPToolDefinition) => { registered.push(tool); },
+      },
+    };
+    const manager = createManager(async (call, options) => {
+      calls.push({ id: call.id, options });
+      return { content: [] };
+    });
+
+    const first = await createWebMCPToolScope(manager, {
+      sessionId: 'same-session', toolNames: ['search'], document,
+    });
+    const second = await createWebMCPToolScope(manager, {
+      sessionId: 'same-session', toolNames: ['search'], document,
+    });
+    await registered[0]!.execute({ query: 'first' });
+    await registered[1]!.execute({ query: 'different-input' });
+
+    expect(calls.map(call => call.id)).toHaveLength(2);
+    expect(calls[0]?.id).not.toBe(calls[1]?.id);
+    expect(calls.map(call => call.options?.idempotencyKey)).toEqual([undefined, undefined]);
+    first.dispose();
+    second.dispose();
+  });
+
+  it('accepts an explicit domain idempotency key and forwards the native client bridge', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const beforeExecute = jest.fn();
+    const executeModelToolCall = jest.fn(async () => ({ content: [] }));
+    const scope = await createWebMCPToolScope(createManager(executeModelToolCall), {
+      sessionId: 'page-session',
+      toolNames: ['search'],
+      getIdempotencyKey: () => 'order:42',
+      beforeExecute,
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+    const client = { requestUserInteraction: async () => ({ approved: true }) };
+
+    await registered[0]!.execute({ query: 'coffee' }, client);
+
+    expect(beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
+      toolName: 'search', sessionId: 'page-session',
+    }), client);
+    expect(executeModelToolCall).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
+      idempotencyKey: 'order:42',
+    }));
+    scope.dispose();
+  });
+
+  it('stops registering further tools when its signal aborts while registration is pending', async () => {
+    const controller = new AbortController();
+    let releaseFirst: (() => void) | undefined;
+    const firstRegistration = new Promise<void>(resolve => { releaseFirst = resolve; });
+    const registerTool = jest.fn(async () => {
+      await firstRegistration;
+    });
+    const pendingScope = createWebMCPToolScope(createManager(), {
+      sessionId: 'page-session',
+      toolNames: ['search', 'save'],
+      signal: controller.signal,
+      document: { modelContext: { registerTool } },
+    });
+
+    await Promise.resolve();
+    controller.abort('page removed');
+    releaseFirst?.();
+    const scope = await pendingScope;
+
+    expect(registerTool).toHaveBeenCalledTimes(1);
+    expect(scope.activeTools).toEqual([]);
+  });
+
+  it('does not expose definitions that the manager marks unavailable', async () => {
+    const registerTool = jest.fn(async () => {});
+    await expect(createWebMCPToolScope(createManager(undefined, () => false), {
+      sessionId: 'page-session',
+      toolNames: ['search'],
       document: { modelContext: { registerTool } },
     })).rejects.toThrow('unavailable tool');
     expect(registerTool).not.toHaveBeenCalled();

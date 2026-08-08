@@ -6,7 +6,7 @@
 
 # Class: ReactActionError
 
-Defined in: [packages/react/src/actions/react-helpers.ts:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L101)
+Defined in: [packages/react/src/actions/react-helpers.ts:98](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L98)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [packages/react/src/actions/react-helpers.ts:101](https://github.com
 
 > **new ReactActionError**(`message`, `action`, `payload?`, `handlerId?`, `originalError?`): `ReactActionError`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:104](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L104)
+Defined in: [packages/react/src/actions/react-helpers.ts:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L101)
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Type parameter **ReactActionError**
 
 > `static` **fromActionError**(`originalError`, `action`, `payload?`, `handlerId?`): `ReactActionError`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:116](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L116)
+Defined in: [packages/react/src/actions/react-helpers.ts:113](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L113)
 
 #### Parameters
 
@@ -86,7 +86,7 @@ Type parameter **ReactActionError**
 
 > `readonly` **timestamp**: `number`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L102)
+Defined in: [packages/react/src/actions/react-helpers.ts:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L99)
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [packages/react/src/actions/react-helpers.ts:102](https://github.com
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:106](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L106)
+Defined in: [packages/react/src/actions/react-helpers.ts:103](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L103)
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: [packages/react/src/actions/react-helpers.ts:106](https://github.com
 
 > `readonly` `optional` **payload?**: `unknown`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:107](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L107)
+Defined in: [packages/react/src/actions/react-helpers.ts:104](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L104)
 
 ***
 
@@ -110,4 +110,4 @@ Defined in: [packages/react/src/actions/react-helpers.ts:107](https://github.com
 
 > `readonly` `optional` **handlerId?**: `string`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:108](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L108)
+Defined in: [packages/react/src/actions/react-helpers.ts:105](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L105)

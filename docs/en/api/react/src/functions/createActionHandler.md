@@ -8,7 +8,7 @@
 
 > **createActionHandler**\<`T`, `K`\>(`registry`, `action`, `handler`, `config?`): `object`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L17)
+Defined in: [packages/react/src/actions/react-helpers.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L18)
 
 ## Type Parameters
 

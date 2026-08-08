@@ -44,7 +44,7 @@ Defined in: [packages/webmcp/src/index.ts:22](https://github.com/mineclover/cont
 
 ### execute
 
-> `readonly` **execute**: (`input`) => `Promise`&lt;`unknown`&gt;
+> `readonly` **execute**: (`input`, `client?`) => `Promise`&lt;`unknown`&gt;
 
 Defined in: [packages/webmcp/src/index.ts:23](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L23)
 
@@ -53,6 +53,10 @@ Defined in: [packages/webmcp/src/index.ts:23](https://github.com/mineclover/cont
 ##### input
 
 `Record`\<`string`, `unknown`\>
+
+##### client?
+
+[`WebMCPModelContextClient`](WebMCPModelContextClient.md)
 
 #### Returns
 

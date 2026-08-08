@@ -8,7 +8,7 @@
 
 > **isReactActionError**(`error`): `error is ReactActionError`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:132](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L132)
+Defined in: [packages/react/src/actions/react-helpers.ts:129](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L129)
 
 ## Parameters
 

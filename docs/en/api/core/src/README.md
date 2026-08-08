@@ -50,3 +50,4 @@
 - [executeSequential](functions/executeSequential.md)
 - [executeParallel](functions/executeParallel.md)
 - [executeRace](functions/executeRace.md)
+- [resolveHandlerConfig](functions/resolveHandlerConfig.md)

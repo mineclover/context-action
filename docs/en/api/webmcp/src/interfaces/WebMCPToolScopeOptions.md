@@ -6,7 +6,7 @@
 
 # Interface: WebMCPToolScopeOptions
 
-Defined in: [packages/webmcp/src/index.ts:55](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L55)
+Defined in: [packages/webmcp/src/index.ts:69](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L69)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/webmcp/src/index.ts:55](https://github.com/mineclover/cont
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:57](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L57)
+Defined in: [packages/webmcp/src/index.ts:71](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L71)
 
 Stable identity for the page agent session.
 
@@ -24,7 +24,7 @@ Stable identity for the page agent session.
 
 > `readonly` **toolNames**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:59](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L59)
+Defined in: [packages/webmcp/src/index.ts:73](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L73)
 
 Explicit capability scope; an omitted list never exposes a whole registry.
 
@@ -34,7 +34,7 @@ Explicit capability scope; an omitted list never exposes a whole registry.
 
 > `readonly` `optional` **document?**: [`WebMCPDocument`](WebMCPDocument.md)
 
-Defined in: [packages/webmcp/src/index.ts:61](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L61)
+Defined in: [packages/webmcp/src/index.ts:75](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L75)
 
 Defaults to the ambient browser document when it is available.
 
@@ -44,7 +44,7 @@ Defaults to the ambient browser document when it is available.
 
 > `readonly` `optional` **exposedTo?**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:63](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L63)
+Defined in: [packages/webmcp/src/index.ts:77](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L77)
 
 Optional cross-origin documents allowed to discover and execute these tools.
 
@@ -54,7 +54,7 @@ Optional cross-origin documents allowed to discover and execute these tools.
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/webmcp/src/index.ts:65](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L65)
+Defined in: [packages/webmcp/src/index.ts:79](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L79)
 
 Unregister all registered tools when aborted.
 
@@ -64,7 +64,7 @@ Unregister all registered tools when aborted.
 
 > `readonly` `optional` **context?**: `Omit`\<`ToolCallContext`, `"source"` \| `"mode"` \| `"sessionId"`\>
 
-Defined in: [packages/webmcp/src/index.ts:66](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L66)
+Defined in: [packages/webmcp/src/index.ts:80](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L80)
 
 ***
 
@@ -72,7 +72,17 @@ Defined in: [packages/webmcp/src/index.ts:66](https://github.com/mineclover/cont
 
 > `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"signal"` \| `"context"` \| `"idempotencyKey"`\>
 
-Defined in: [packages/webmcp/src/index.ts:67](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L67)
+Defined in: [packages/webmcp/src/index.ts:81](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L81)
+
+***
+
+### beforeExecute?
+
+> `readonly` `optional` **beforeExecute?**: [`WebMCPBeforeExecute`](../type-aliases/WebMCPBeforeExecute.md)
+
+Defined in: [packages/webmcp/src/index.ts:83](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L83)
+
+Optional bridge for WebMCP's native user-interaction client.
 
 ***
 
@@ -80,4 +90,6 @@ Defined in: [packages/webmcp/src/index.ts:67](https://github.com/mineclover/cont
 
 > `readonly` `optional` **getIdempotencyKey?**: [`WebMCPIdempotencyKeyFactory`](../type-aliases/WebMCPIdempotencyKeyFactory.md)
 
-Defined in: [packages/webmcp/src/index.ts:68](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L68)
+Defined in: [packages/webmcp/src/index.ts:85](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L85)
+
+Domain-owned retry identity; omitted by default because WebMCP has no native call ID.

@@ -532,6 +532,33 @@ export interface ResolvedHandlerConfig<T = unknown> {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Resolve the legacy `blocking` compatibility flag and all registration
+ * defaults in one place. Adapters should pass their original config to the
+ * registry and use this helper only when they need to expose resolved values.
+ */
+export function resolveHandlerConfig<T = unknown>(
+  config: HandlerConfig<T> | undefined,
+  handlerId: string,
+): ResolvedHandlerConfig<T> {
+  return {
+    priority: config?.priority ?? 0,
+    id: handlerId,
+    blocking: config?.errorPolicy === 'fatal' || config?.blocking === true,
+    scheduling: config?.scheduling
+      ?? (config?.blocking === false ? 'start-and-continue' : 'await-before-next'),
+    errorPolicy: config?.errorPolicy
+      ?? (config?.blocking === true ? 'fatal' : 'collect'),
+    once: config?.once ?? false,
+    debounce: config?.debounce,
+    throttle: config?.throttle,
+    replaceExisting: config?.replaceExisting ?? true,
+    cleanup: config?.cleanup,
+    condition: config?.condition,
+    metadata: config?.metadata,
+  };
+}
+
 
 /**
  * Internal handler registration container
