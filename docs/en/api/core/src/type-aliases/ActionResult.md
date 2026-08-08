@@ -8,7 +8,7 @@
 
 > **ActionResult**\<`TResultMap`, `K`\> = `K` *extends* keyof `TResultMap` ? `TResultMap`\[`K`\] : `void`
 
-Defined in: [packages/core/src/types.ts:228](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L228)
+Defined in: [packages/core/src/types.ts:229](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L229)
 
 Resolve the configured result type for an action, falling back to void.
 

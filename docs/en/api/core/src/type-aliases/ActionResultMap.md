@@ -6,9 +6,9 @@
 
 # Type Alias: ActionResultMap\<T\>
 
-> **ActionResultMap**&lt;`T`&gt; = `Partial`\<`Record`\<keyof `T`, `unknown`\>\>
+> **ActionResultMap**&lt;`T`&gt; = `Partial`\<`Record`\<[`ActionNames`](ActionNames.md)&lt;`T`&gt;, `unknown`\>\>
 
-Defined in: [packages/core/src/types.ts:223](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L223)
+Defined in: [packages/core/src/types.ts:224](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L224)
 
 Optional action-keyed result contract for `dispatchWithResult`.
 

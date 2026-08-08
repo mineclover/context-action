@@ -6,7 +6,7 @@
 
 # Interface: AISDKToolSetOptions
 
-Defined in: [packages/ai-sdk/src/index.ts:68](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L68)
+Defined in: [packages/ai-sdk/src/index.ts:79](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L79)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/ai-sdk/src/index.ts:68](https://github.com/mineclover/cont
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/ai-sdk/src/index.ts:70](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L70)
+Defined in: [packages/ai-sdk/src/index.ts:81](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L81)
 
 Stable identifier for one model conversation or agent run.
 
@@ -24,7 +24,7 @@ Stable identifier for one model conversation or agent run.
 
 > `readonly` **toolNames**: readonly `string`[]
 
-Defined in: [packages/ai-sdk/src/index.ts:76](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L76)
+Defined in: [packages/ai-sdk/src/index.ts:87](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L87)
 
 Explicit capability scope for this generation. Derive this from the active
 ContextScope; use an empty array for a model turn that must not call tools.
@@ -33,9 +33,9 @@ ContextScope; use an empty array for a model turn that must not call tools.
 
 ### context?
 
-> `readonly` `optional` **context?**: `Omit`\<`ToolCallContext`, `"source"` \| `"mode"` \| `"sessionId"`\>
+> `readonly` `optional` **context?**: `Omit`\<`ToolCallContext`, `"sessionId"` \| `"source"` \| `"mode"`\>
 
-Defined in: [packages/ai-sdk/src/index.ts:79](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L79)
+Defined in: [packages/ai-sdk/src/index.ts:90](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L90)
 
 Extra provenance fields; source/mode/session are adapter-owned.
 
@@ -43,9 +43,9 @@ Extra provenance fields; source/mode/session are adapter-owned.
 
 ### callOptions?
 
-> `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"signal"` \| `"context"` \| `"idempotencyKey"`\>
+> `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"context"` \| `"signal"` \| `"idempotencyKey"`\>
 
-Defined in: [packages/ai-sdk/src/index.ts:82](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L82)
+Defined in: [packages/ai-sdk/src/index.ts:93](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L93)
 
 Per-call execution budgets applied by the canonical manager.
 
@@ -55,7 +55,7 @@ Per-call execution budgets applied by the canonical manager.
 
 > `readonly` `optional` **getIdempotencyKey?**: [`AISDKToolIdempotencyKeyFactory`](../type-aliases/AISDKToolIdempotencyKeyFactory.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:91](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L91)
+Defined in: [packages/ai-sdk/src/index.ts:102](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L102)
 
 Defaults to the AI SDK `toolCallId`, which is safe for same-call retries.
 Supply a domain operation identity when recovery must span a new model call.
@@ -66,7 +66,7 @@ Supply a domain operation identity when recovery must span a new model call.
 
 > `readonly` `optional` **needsApproval?**: [`AISDKToolApprovalPolicy`](../type-aliases/AISDKToolApprovalPolicy.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:99](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L99)
+Defined in: [packages/ai-sdk/src/index.ts:110](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L110)
 
 Native AI SDK approval gate, evaluated before the tool's execute function.
 
@@ -82,7 +82,7 @@ same policy in the caller's generation configuration when available.
 
 > `readonly` `optional` **errorMode?**: [`AISDKToolErrorMode`](../type-aliases/AISDKToolErrorMode.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:106](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L106)
+Defined in: [packages/ai-sdk/src/index.ts:117](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L117)
 
 Preserve canonical errors as data, or expose them as AI SDK tool errors.
 The adapter only exposes a definition output schema in `throw` mode;

@@ -8,7 +8,7 @@
 
 > **createAISDKToolScope**(`manager`, `options`): [`AISDKToolScope`](../interfaces/AISDKToolScope.md)
 
-Defined in: [packages/ai-sdk/src/index.ts:123](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L123)
+Defined in: [packages/ai-sdk/src/index.ts:148](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L148)
 
 Build an AI SDK ToolSet from the canonical manager.
 

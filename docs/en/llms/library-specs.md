@@ -27,14 +27,20 @@
 - **Key Components**: `createAISDKToolScope`, native approval mapping, tool-call idempotency correlation, structured error mode
 - **Target Environment**: Browser or server applications that own an AI SDK model client
 
+#### @context-action/webmcp
+- **Purpose**: Optional browser adapter that exposes an explicit canonical tool scope through the experimental WebMCP imperative API
+- **Dependencies**: `@context-action/tool-protocol`; no React or model-provider dependency
+- **Key Components**: `createWebMCPToolScope`, explicit tool-name allowlist, WebMCP call ID/idempotency correlation, model/agent provenance, abort-based unregistration
+- **Target Environment**: Visible, cross-origin-isolated browser or webview documents that provide `document.modelContext`
+
 #### @context-action/react
 - **Purpose**: React integration with Context API and hooks
-- **Dependencies**: React 18 or 19, @context-action/core, @context-action/tool-protocol, and @context-action/tool-durable-operations; durable execution remains opt-in at runtime
-- **Key Features**: Store management, action contexts, hooks
+- **Dependencies**: React 18 or 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations, and @context-action/webmcp; durable execution and WebMCP registration remain opt-in at runtime
+- **Key Features**: Store management, action contexts, hooks, and `useWebMCPToolScope` lifecycle integration
 
 ### Release and Security Baseline
 
-- **Package baseline**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, and `@context-action/ai-sdk` 0.1.0.
+- **Package baseline**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0, and `@context-action/webmcp` 0.1.0.
 - **Runtime baseline**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, and TypeScript `6.0.3`.
 - **Dependency security**: `pnpm security:audit` is the required OSV check and currently reports no actionable vulnerability matches. Fixed dependency floors are enforced by the root `pnpm.overrides` configuration.
 - **Temporary exception**: `react-router@7.18.1` remains a time-bounded exception for `GHSA-qwww-vcr4-c8h2`; the example uses browser routing only, and `react-router-dom` 8.3.0 is not published. Re-evaluate before 2026-09-30.

@@ -8,7 +8,7 @@
 
 > **executeSequential**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:108](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L108)
+Defined in: [packages/core/src/execution-modes.ts:126](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L126)
 
 Execute handlers in sequential mode (one after another)
 

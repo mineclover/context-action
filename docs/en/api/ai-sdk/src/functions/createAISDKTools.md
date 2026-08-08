@@ -8,7 +8,7 @@
 
 > **createAISDKTools**(`manager`, `options`): `ToolSet`
 
-Defined in: [packages/ai-sdk/src/index.ts:141](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L141)
+Defined in: [packages/ai-sdk/src/index.ts:169](https://github.com/mineclover/context-action/blob/main/packages/ai-sdk/src/index.ts#L169)
 
 Convenience form for callers that do not need to pass `activeTools` separately.
 
@@ -20,7 +20,7 @@ Type parameter **ToolManagementInterface**
 
 ### options
 
-[`AISDKToolSetOptions`](../interfaces/AISDKToolSetOptions.md)
+[`AISDKToolsOnlyOptions`](../type-aliases/AISDKToolsOnlyOptions.md)
 
 ## Returns
 

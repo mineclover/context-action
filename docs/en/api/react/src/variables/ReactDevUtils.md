@@ -8,7 +8,7 @@
 
 > `const` **ReactDevUtils**: `object`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L58)
+Defined in: [packages/react/src/actions/react-helpers.ts:62](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L62)
 
 ## Type Declaration
 

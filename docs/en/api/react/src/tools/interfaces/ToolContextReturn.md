@@ -72,7 +72,7 @@ Similar to useActionHandler but for tool execution
 
 ##### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ##### R
 

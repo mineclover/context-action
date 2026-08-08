@@ -2,6 +2,7 @@ packages:
   - packages/core
   - packages/tool-protocol
   - packages/ai-sdk
+  - packages/webmcp
   - packages/tool-durable-operations
   - packages/react
   - packages/mutative-core

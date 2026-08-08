@@ -6,7 +6,7 @@
 
 # Class: ActionRegisterDestroyedError
 
-Defined in: [packages/core/src/errors.ts:177](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L177)
+Defined in: [packages/core/src/errors.ts:193](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L193)
 
 Raised when work is submitted after an ActionRegister begins shutdown.
 
@@ -20,7 +20,7 @@ Raised when work is submitted after an ActionRegister begins shutdown.
 
 > **new ActionRegisterDestroyedError**(`registerName`, `state`): `ActionRegisterDestroyedError`
 
-Defined in: [packages/core/src/errors.ts:180](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L180)
+Defined in: [packages/core/src/errors.ts:196](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L196)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Type parameter **ActionRegisterDestroyedError**
 
 > **name**: `string` = `'ActionRegisterDestroyedError'`
 
-Defined in: [packages/core/src/errors.ts:178](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L178)
+Defined in: [packages/core/src/errors.ts:194](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L194)
 
 #### Overrides
 
@@ -58,7 +58,7 @@ Defined in: [packages/core/src/errors.ts:178](https://github.com/mineclover/cont
 
 > `readonly` **registerName**: `string`
 
-Defined in: [packages/core/src/errors.ts:181](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L181)
+Defined in: [packages/core/src/errors.ts:197](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L197)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: [packages/core/src/errors.ts:181](https://github.com/mineclover/cont
 
 > `readonly` **state**: `"closing"` \| `"destroyed"`
 
-Defined in: [packages/core/src/errors.ts:182](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L182)
+Defined in: [packages/core/src/errors.ts:198](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L198)

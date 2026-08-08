@@ -8,7 +8,7 @@
 
 > **createActionHandler**\<`T`, `K`\>(`registry`, `action`, `handler`, `config?`): `object`
 
-Defined in: [packages/react/src/actions/react-helpers.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L15)
+Defined in: [packages/react/src/actions/react-helpers.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/react-helpers.ts#L17)
 
 ## Type Parameters
 
@@ -18,7 +18,7 @@ Defined in: [packages/react/src/actions/react-helpers.ts:15](https://github.com/
 
 ### Generic type K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ## Parameters
 
@@ -68,4 +68,4 @@ Type parameter **UnregisterFunction**
 
 ### config
 
-> **config**: `Required`\<`HandlerConfig`\<`T`\[`K`\]\>\>
+> **config**: `ResolvedHandlerConfig`\<`T`\[`K`\]\>

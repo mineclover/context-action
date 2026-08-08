@@ -6,7 +6,7 @@
 
 # Interface: ActionContextConfig
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:47](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L47)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:49](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L49)
 
 Configuration options for createActionContext
 
@@ -34,7 +34,7 @@ const { Provider } = createActionContext<UserActions>('User', {
 
 > `optional` **schema?**: `ActionSchemaMap`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L53)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:55](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L55)
 
 Action schema map for runtime payload validation
 When provided, enables Zod-based validation on dispatch

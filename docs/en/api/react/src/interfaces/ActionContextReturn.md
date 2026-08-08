@@ -6,7 +6,7 @@
 
 # Interface: ActionContextReturn\<T, TResultMap\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:81](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L81)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:83](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L83)
 
 Return type for createActionContext with abort support
 
@@ -26,7 +26,7 @@ Return type for createActionContext with abort support
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:85](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L85)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:87](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L87)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:85](https://githu
 
 > **useActionContext**: () => [`ActionContextType`](ActionContextType.md)\<`T`, `TResultMap`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:86](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L86)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:88](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L88)
 
 #### Returns
 
@@ -46,7 +46,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:86](https://githu
 
 > **useActionDispatch**: () => &lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:87](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L87)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:89](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L89)
 
 #### Returns
 
@@ -58,13 +58,13 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:87](https://githu
 
 > **useActionHandler**: \<`K`, `R`\>(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:88](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L88)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:90](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L90)
 
 #### Type Parameters
 
 ##### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ##### R
 
@@ -90,11 +90,79 @@ Type parameter **K**
 
 ***
 
+### useActionEffectHandler
+
+> **useActionEffectHandler**: \<`K`, `R`\>(`action`, `handler`, `config?`) => `void`
+
+Defined in: [packages/react/src/actions/ActionContext.types.ts:97](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L97)
+
+#### Type Parameters
+
+##### K
+
+`K` *extends* `string`
+
+##### R
+
+`R` = `void`
+
+#### Parameters
+
+##### action
+
+Type parameter **K**
+
+##### handler
+
+`ActionHandler`\<`T`\[`K`\], `R`\>
+
+##### config?
+
+`HandlerConfig`\<`T`\[`K`\]\>
+
+#### Returns
+
+`void`
+
+***
+
+### useActionResultHandler
+
+> **useActionResultHandler**: &lt;`K`&gt;(`action`, `handler`, `config?`) => `void`
+
+Defined in: [packages/react/src/actions/ActionContext.types.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L102)
+
+#### Type Parameters
+
+##### K
+
+`K` *extends* `string`
+
+#### Parameters
+
+##### action
+
+Type parameter **K**
+
+##### handler
+
+`ActionResultHandler`\<`T`\[`K`\], `ActionResult`\<`TResultMap`, `K`\>\>
+
+##### config?
+
+`HandlerConfig`\<`T`\[`K`\]\>
+
+#### Returns
+
+`void`
+
+***
+
 ### useActionRegister
 
 > **useActionRegister**: () => `ActionRegister`\<`T`, `TResultMap`\> \| `null`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:95](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L95)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:107](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L107)
 
 #### Returns
 
@@ -106,7 +174,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:95](https://githu
 
 > **useActionDispatchWithResult**: () => `object`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:96](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L96)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:108](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L108)
 
 #### Returns
 
@@ -120,7 +188,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:96](https://githu
 
 ###### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ###### Parameters
 
@@ -148,7 +216,7 @@ Type parameter **K**
 
 ###### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ###### Parameters
 
@@ -172,7 +240,7 @@ Type parameter **K**
 
 ###### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ###### R
 
@@ -214,4 +282,4 @@ Type parameter **K**
 
 > **context**: `Context`\<[`ActionContextType`](ActionContextType.md)\<`T`, `TResultMap`\> \| `null`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L102)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:114](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L114)

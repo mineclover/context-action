@@ -8,7 +8,7 @@
 
 > **createActionContext**\<`T`, `TResultMap`\>(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`, `TResultMap`\>
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L179)
+Defined in: [packages/react/src/actions/ActionContext.tsx:180](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L180)
 
 Enhanced action context factory with automatic type inference
 
@@ -22,7 +22,7 @@ Action payload map type for complete type safety
 
 ### TResultMap
 
-`TResultMap` *extends* `Partial`\<`Record`\<keyof `T`, `unknown`\>\> = \{ \}
+`TResultMap` *extends* `Partial`\<`Record`\<`Extract`\<keyof `T`, `string`\>, `unknown`\>\> = \{ \}
 
 ## Parameters
 

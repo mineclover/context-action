@@ -4,6 +4,7 @@
     "includes": [
       "packages/core/src/**/*.ts",
       "packages/tool-protocol/src/**/*.ts",
+      "packages/webmcp/src/**/*.ts",
       "packages/tool-durable-operations/src/**/*.ts",
       "packages/react/src/**/*.ts",
       "packages/react/src/**/*.tsx",

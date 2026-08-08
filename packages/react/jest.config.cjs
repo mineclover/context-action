@@ -6,6 +6,7 @@ module.exports = {
     '^@context-action/react$': '<rootDir>/src/index',
     '^@context-action/core$': '<rootDir>/../core/src/index',
     '^@context-action/tool-protocol$': '<rootDir>/../tool-protocol/src/index',
+    '^@context-action/webmcp$': '<rootDir>/../webmcp/src/index',
     '^@context-action/tool-durable-operations$': '<rootDir>/../tool-durable-operations/src/index',
     '^@context-action/mutative$': '<rootDir>/../mutative/dist/index.cjs',
     '^react$': '<rootDir>/node_modules/react',

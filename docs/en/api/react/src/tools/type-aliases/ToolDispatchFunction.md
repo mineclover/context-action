@@ -22,7 +22,7 @@ Type parameter **TPayloadMap**
 
 ### Generic type K
 
-`K` *extends* keyof `TPayloadMap`
+`K` *extends* `Extract`\<keyof `TPayloadMap`, `string`\>
 
 ## Parameters
 

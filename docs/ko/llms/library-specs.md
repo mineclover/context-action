@@ -27,14 +27,20 @@
 - **주요 구성요소**: `createAISDKToolScope`, native approval mapping, tool-call idempotency correlation, structured error mode
 - **대상 환경**: AI SDK model client를 소유하는 browser 또는 server application
 
+#### @context-action/webmcp
+- **목적**: 실험적 WebMCP imperative API를 통해 명시적인 canonical 도구 scope를 노출하는 선택적 browser adapter
+- **의존성**: `@context-action/tool-protocol`; React 또는 model provider 의존성 없음
+- **주요 구성요소**: `createWebMCPToolScope`, 명시적 tool-name allowlist, WebMCP call ID/idempotency correlation, model/agent provenance, abort 기반 등록 해제
+- **대상 환경**: `document.modelContext`를 제공하는 표시 가능하고 cross-origin isolation이 적용된 browser 또는 webview document
+
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 18 또는 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations. durable 실행은 런타임에서 opt-in
-- **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅
+- **의존성**: React 18 또는 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations, @context-action/webmcp. durable 실행과 WebMCP 등록은 런타임에서 opt-in
+- **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅, `useWebMCPToolScope` 수명 주기 통합
 
 ### 릴리스 및 보안 기준
 
-- **패키지 기준 버전**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0
+- **패키지 기준 버전**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.0
 - **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, TypeScript `6.0.3`
 - **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm.overrides`에서 강제한다.
 - **임시 예외**: `GHSA-qwww-vcr4-c8h2`에 대해 `react-router@7.18.1`을 기간 한정 예외로 유지한다. 예제는 browser routing만 사용하고 `react-router-dom` 8.3.0은 아직 공개되지 않았으므로 2026-09-30 전에 재검토한다.

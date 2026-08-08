@@ -18,7 +18,8 @@ const GUIDE_STRUCTURE = {
         { text: 'Actions-based Dispatching', link: '/en/guide/actions-based-dispatching' },
         { text: 'Code Patterns', link: '/en/guide/code-patterns' },
         { text: 'Best Practices', link: '/en/guide/best-practices' },
-        { text: 'React Context Migration', link: '/en/guide/react-context-migration' }
+        { text: 'React Context Migration', link: '/en/guide/react-context-migration' },
+        { text: 'WebMCP Browser Tools', link: '/en/guide/webmcp' }
       ]
     },
     pipeline: {
@@ -100,7 +101,8 @@ const GUIDE_STRUCTURE = {
         { text: 'Actions 기반 디스패칭', link: '/ko/guide/actions-based-dispatching' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' },
-        { text: 'React Context 마이그레이션', link: '/ko/guide/react-context-migration' }
+        { text: 'React Context 마이그레이션', link: '/ko/guide/react-context-migration' },
+        { text: 'WebMCP 브라우저 도구', link: '/ko/guide/webmcp' }
       ]
     },
     pipeline: {

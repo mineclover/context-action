@@ -114,6 +114,7 @@
   "dependencies": {
     "@context-action/core": "^0.9.2",
     "@context-action/mutative": "^0.8.8",
+    "@context-action/webmcp": "^0.1.0",
     "@context-action/tool-durable-operations": "^0.1.1",
     "@context-action/tool-protocol": "^0.8.8"
   },
@@ -132,6 +133,7 @@
     "@types/react-dom": "19.2.3",
     "@context-action/tool-durable-operations": "workspace:*",
     "@context-action/tool-protocol": "workspace:*",
+    "@context-action/webmcp": "workspace:*",
     "jest": "30.4.2",
     "jest-environment-jsdom": "30.4.1",
     "react": "19.2.8",

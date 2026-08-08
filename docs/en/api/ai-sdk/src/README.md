@@ -21,6 +21,8 @@
 - [AISDKToolErrorMode](type-aliases/AISDKToolErrorMode.md)
 - [AISDKToolIdempotencyKeyFactory](type-aliases/AISDKToolIdempotencyKeyFactory.md)
 - [AISDKToolApprovalPolicy](type-aliases/AISDKToolApprovalPolicy.md)
+- [AISDKGenerationToolApproval](type-aliases/AISDKGenerationToolApproval.md)
+- [AISDKToolsOnlyOptions](type-aliases/AISDKToolsOnlyOptions.md)
 
 ## Functions
 

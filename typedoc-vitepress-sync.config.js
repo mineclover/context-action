@@ -39,6 +39,7 @@ export default {
     'core': 'core',
     'tool-protocol': 'tool-protocol',
     'ai-sdk': 'ai-sdk',
+    'webmcp': 'webmcp',
     'tool-durable-operations': 'tool-durable-operations',
     'react': 'react'
   },

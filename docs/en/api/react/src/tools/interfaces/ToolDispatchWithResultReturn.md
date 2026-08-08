@@ -36,7 +36,7 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:287](https://github.c
 
 ##### K
 
-`K` *extends* `string` \| `number` \| `symbol`
+`K` *extends* `string`
 
 ##### R
 

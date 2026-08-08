@@ -3,6 +3,7 @@
     "./packages/core/src/index.ts",
     "./packages/tool-protocol/src/index.ts",
     "./packages/ai-sdk/src/index.ts",
+    "./packages/webmcp/src/index.ts",
     "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts",
     "./packages/react/src/tools/index.ts"
@@ -37,6 +38,7 @@
     "Core",
     "Tool Protocol",
     "AI SDK",
+    "WebMCP",
     "Tool Durable Operations",
     "React",
     "*"

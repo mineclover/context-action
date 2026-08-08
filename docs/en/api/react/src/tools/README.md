@@ -14,6 +14,7 @@
 - [ToolContextType](interfaces/ToolContextType.md)
 - [ToolDispatchWithResultReturn](interfaces/ToolDispatchWithResultReturn.md)
 - [ToolContextReturn](interfaces/ToolContextReturn.md)
+- [WebMCPToolScopeState](interfaces/WebMCPToolScopeState.md)
 
 ## Type Aliases
 
@@ -27,3 +28,4 @@
 ## Functions
 
 - [createToolContext](functions/createToolContext.md)
+- [useWebMCPToolScope](functions/useWebMCPToolScope.md)

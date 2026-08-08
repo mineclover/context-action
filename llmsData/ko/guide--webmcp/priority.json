@@ -1,0 +1,220 @@
+{
+  "document": {
+    "id": "guide--webmcp",
+    "title": "WebMCP 브라우저 도구",
+    "category": "guide",
+    "source_path": "ko/guide/webmcp.md",
+    "lastModified": "2026-08-08T10:19:11.076Z",
+    "wordCount": 367
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-08",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in WebMCP 브라우저 도구.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in WebMCP 브라우저 도구.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in WebMCP 브라우저 도구."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "ts",
+      "tsx",
+      "webmcp",
+      "브라우저"
+    ],
+    "technical": [
+      "ts",
+      "tsx",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from WebMCP 브라우저 도구.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "WebMCP 브라우저 도구",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "WebMCP 브라우저 도구",
+        "guide",
+        "ts"
+      ],
+      "nice_to_have": [
+        "ts",
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "ts",
+        "tsx",
+        "webmcp",
+        "브라우저"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "ts",
+      "tsx",
+      "webmcp",
+      "브라우저"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-08"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "WebMCP 브라우저 도구 is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-08-08",
+    "updated": "2026-08-08",
+    "version": "1.0.0",
+    "original_size": 4079,
+    "created_at": "2026-08-08T10:19:46.825Z",
+    "source_last_modified": "2026-08-08T10:19:11.076Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "ts",
+        "tsx",
+        "webmcp",
+        "브라우저"
+      ],
+      "technical": [
+        "ts",
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}
