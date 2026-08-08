@@ -11,6 +11,7 @@ import {
   type ToolCallContext,
   type ToolCallOptions,
   type ToolCallResult,
+  type ToolInteractionHandler,
   type ToolDefinition,
   type ToolManagementInterface,
 } from '@context-action/tool-protocol';
@@ -21,8 +22,8 @@ export interface WebMCPToolDefinition {
   readonly description: string;
   readonly inputSchema: JSONSchema;
   readonly annotations?: WebMCPAnnotations;
-  /** Current WebMCP Draft callback contract. */
-  readonly execute: (input: Record<string, unknown>) => Promise<unknown>;
+  /** Current profiles use the first argument; legacy profiles may pass a client. */
+  readonly execute: (input: Record<string, unknown>, client?: unknown) => Promise<unknown>;
 }
 
 /** The current Draft exposes only these annotations to page agents. */
@@ -41,12 +42,40 @@ export interface WebMCPModelContext {
   registerTool(
     tool: WebMCPToolDefinition,
     options?: WebMCPRegistrationOptions,
-  ): Promise<void>;
+  ): void | Promise<void>;
 }
 
 export interface WebMCPDocument {
   readonly modelContext?: WebMCPModelContext;
 }
+
+/**
+ * Isolates the volatile browser API surface from the canonical tool manager.
+ * Profiles may adapt callback/registration shapes, but must receive the same
+ * normalized browser tool definition.
+ */
+export interface WebMCPRuntimeProfile {
+  readonly id: string;
+  isSupported(document: unknown): boolean;
+  registerTool(
+    document: unknown,
+    tool: WebMCPToolDefinition,
+    options: WebMCPRegistrationOptions,
+  ): Promise<void>;
+}
+
+/** Current browser draft profile. */
+export const currentWebMCPProfile: WebMCPRuntimeProfile = {
+  id: 'webmcp-current',
+  isSupported(document): boolean {
+    return Boolean((document as WebMCPDocument | undefined)?.modelContext);
+  },
+  registerTool(document, tool, options): Promise<void> {
+    const modelContext = (document as WebMCPDocument).modelContext;
+    if (!modelContext) return Promise.reject(new Error('WebMCP modelContext is unavailable.'));
+    return Promise.resolve(modelContext.registerTool(tool, options));
+  },
+};
 
 export interface WebMCPToolInvocation {
   readonly toolName: string;
@@ -61,34 +90,52 @@ export type WebMCPIdempotencyKeyFactory = (
   invocation: WebMCPToolInvocation,
 ) => string | undefined;
 
-/** Runs before canonical execution. The hook receives cancellation, but callers
- * must not treat it as a replacement for canonical policy/approval checks. */
+/**
+ * @deprecated This notification runs only after canonical execution. Use the
+ * canonical `interaction` option for policy-gated user confirmation.
+ */
 export type WebMCPBeforeExecute = (
   invocation: WebMCPToolInvocation,
 ) => void | Promise<void>;
 
 /** Context-Action error representation for the WebMCP callback. */
-export type WebMCPErrorMode = 'result' | 'throw';
+export type WebMCPErrorMode = 'structured' | 'result' | 'throw';
 
-export interface WebMCPToolScopeOptions {
+/** Values that change browser capability registration and require a new scope. */
+export interface WebMCPRegistrationConfig {
   /** Stable identity for the page agent session. */
   readonly sessionId: string;
   /** Explicit capability scope; an omitted list never exposes a whole registry. */
   readonly toolNames: readonly string[];
   /** Defaults to the ambient browser document when it is available. */
   readonly document?: WebMCPDocument;
+  /** Defaults to the current WebMCP draft profile. */
+  readonly profile?: WebMCPRuntimeProfile;
   /** Optional cross-origin documents allowed to discover and execute these tools. */
   readonly exposedTo?: readonly string[];
   /** Unregister all registered tools when aborted. */
   readonly signal?: AbortSignal;
+}
+
+/** Values read at browser-tool invocation time without re-registering tools. */
+export interface WebMCPExecutionOptions {
   readonly context?: Omit<ToolCallContext, 'source' | 'mode' | 'sessionId'>;
-  readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey'>;
-  /** Optional application hook; this is not a native WebMCP client bridge. */
+  readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey' | 'interaction'>;
+  /** @deprecated Post-execution compatibility notification. */
   readonly beforeExecute?: WebMCPBeforeExecute;
-  /** Default `result` preserves Context-Action's structured error envelope. */
+  /** Canonical approval handler, called only after validation and policy ask. */
+  readonly interaction?: ToolInteractionHandler;
+  /** Default `structured` preserves Context-Action's structured error envelope. */
   readonly errorMode?: WebMCPErrorMode;
   /** Domain-owned retry identity; omitted by default because WebMCP has no native call ID. */
   readonly getIdempotencyKey?: WebMCPIdempotencyKeyFactory;
+}
+
+export interface WebMCPToolScopeOptions extends WebMCPRegistrationConfig, WebMCPExecutionOptions {
+  /** Optional lazy execution configuration for UI frameworks with changing props. */
+  readonly getExecutionOptions?: (
+    invocation: WebMCPToolInvocation,
+  ) => WebMCPExecutionOptions;
 }
 
 export interface WebMCPToolScope {
@@ -113,8 +160,8 @@ export async function createWebMCPToolScope(
   const definitions = resolveDefinitions(manager, options.toolNames);
   validateDefinitions(definitions);
   const documentRef = options.document ?? getAmbientDocument();
-  const modelContext = documentRef?.modelContext;
-  if (!modelContext) return unsupportedScope();
+  const profile = options.profile ?? currentWebMCPProfile;
+  if (!profile.isSupported(documentRef)) return unsupportedScope();
 
   const exposedTo = normalizeExposedOrigins(options.exposedTo);
   const controller = new AbortController();
@@ -137,8 +184,8 @@ export async function createWebMCPToolScope(
   try {
     for (const definition of definitions) {
       if (controller.signal.aborted) break;
-      const annotations = toWebMCPAnnotations(definition.annotations);
-      await modelContext.registerTool({
+      const annotations = toWebMCPAnnotations(definition);
+      await profile.registerTool(documentRef, {
         name: definition.name,
         ...(definition.title === undefined ? {} : { title: definition.title }),
         description: definition.description!,
@@ -154,29 +201,33 @@ export async function createWebMCPToolScope(
             sessionId,
             signal: controller.signal,
           };
-          throwIfAborted(controller.signal);
-          await options.beforeExecute?.(invocation);
+          const executionOptions = options.getExecutionOptions?.(invocation) ?? options;
           throwIfAborted(controller.signal);
           const result = await manager.executeModelToolCall({
             id: toolCallId,
             name: definition.name,
             arguments: input,
           }, {
-            ...options.callOptions,
+            ...executionOptions.callOptions,
             signal: controller.signal,
-            idempotencyKey: options.getIdempotencyKey?.(invocation),
+            interaction: executionOptions.interaction,
+            idempotencyKey: executionOptions.getIdempotencyKey?.(invocation),
             context: {
-              ...options.context,
+              ...executionOptions.context,
               source: 'model',
               mode: 'agent',
               sessionId,
               metadata: {
-                ...options.context?.metadata,
+                ...executionOptions.context?.metadata,
                 transport: 'webmcp',
               },
             },
           });
-          return toWebMCPResult(result, options.errorMode ?? 'result');
+          // Retained only as a migration notification. It cannot initiate UI
+          // before canonical validation/policy and cannot change the result.
+          await executionOptions.beforeExecute?.(invocation);
+          throwIfAborted(controller.signal);
+          return toWebMCPResult(result, executionOptions.errorMode ?? 'structured');
         },
       }, {
         signal: controller.signal,
@@ -211,14 +262,14 @@ function validateDefinitions(definitions: readonly ToolDefinition[]): void {
 }
 
 function toWebMCPAnnotations(
-  annotations: ToolDefinition['annotations'],
+  definition: ToolDefinition,
 ): WebMCPAnnotations | undefined {
-  if (!annotations) return undefined;
+  const annotations = definition.annotations;
   const mapped: WebMCPAnnotations = {
-    ...(annotations.readOnlyHint === undefined ? {} : { readOnlyHint: annotations.readOnlyHint }),
-    ...(annotations.untrustedContentHint === undefined
+    ...(annotations?.readOnlyHint === undefined ? {} : { readOnlyHint: annotations.readOnlyHint }),
+    ...(definition.transports?.webmcp?.untrustedContentHint === undefined
       ? {}
-      : { untrustedContentHint: annotations.untrustedContentHint }),
+      : { untrustedContentHint: definition.transports.webmcp.untrustedContentHint }),
   };
   return Object.keys(mapped).length === 0 ? undefined : mapped;
 }

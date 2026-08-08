@@ -36,10 +36,12 @@ only when the surrounding workflow has a domain-owned stable retry key.
 
 The adapter follows the 2026-07-21 Community Group Draft callback shape:
 `execute(input)`. It does not expose the older experimental
-`ModelContextClient` parameter. `beforeExecute(invocation)` is an
-application-owned, abortable hook; use `invocation.signal` to stop UI work when
-the scope is disposed. Keep validation, policy, and approval in the canonical
-manager—this hook is not an authorization boundary.
+`ModelContextClient` parameter. Use `interaction` for a policy `ask` decision:
+it runs after validation and policy evaluation, receives the dispatch signal,
+and returns `approved` or `denied`. `beforeExecute` is a deprecated
+post-execution notification, never an approval boundary. Browser API variation
+is isolated through `currentWebMCPProfile` or
+`@context-action/webmcp/profiles/chrome-legacy`.
 
 Tool names and non-empty descriptions are preflight-validated before anything
 is registered. The adapter maps `title`, `readOnlyHint`, and

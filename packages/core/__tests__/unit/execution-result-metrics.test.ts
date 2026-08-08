@@ -173,13 +173,67 @@ describe('ExecutionResult metrics', () => {
     register.destroy();
   });
 
+  it('prepares guard payload once and reuses it across retries', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let guardRuns = 0;
+    let resultRuns = 0;
+    register.registerGuard('run', (_payload, controller) => {
+      guardRuns += 1;
+      controller.modifyPayload(payload => ({ id: `prepared:${payload.id}` }));
+    });
+    register.register<'run', string>('run', payload => {
+      resultRuns += 1;
+      if (resultRuns === 1) throw new Error('retry');
+      return payload.id;
+    }, { errorPolicy: 'fatal' });
+
+    await expect(register.dispatchWithResult<'run', string>('run', { id: 'source' }, {
+      retryOnError: { maxAttempts: 2, delay: 0 },
+    })).resolves.toMatchObject({ result: 'prepared:source' });
+    expect(guardRuns).toBe(1);
+    register.destroy();
+  });
+
+  it('runs observers after aggregation without letting them affect a race winner', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    register.register<'run', string>('run', () => 'winner', { id: 'winner' });
+    const observer = jest.fn(event => {
+      expect(event.result).toBe('winner');
+      expect(event.outcome).toBe('completed');
+    });
+    register.registerObserver('run', observer, { id: 'audit' });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'observed' });
+    expect(result.result).toBe('winner');
+    expect(result.handlers.find(handler => handler.id === 'audit')).toBeUndefined();
+    expect(observer).toHaveBeenCalledTimes(1);
+    register.destroy();
+  });
+
+  it('notifies failure observers when a void dispatch is rejected by a guard', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const observer = jest.fn();
+    register.registerGuard('run', (_payload, controller) => {
+      controller.abort('not authorized');
+    });
+    register.registerObserver('run', observer, { when: 'failure' });
+
+    await expect(register.dispatch('run', { id: 'guarded-void' })).resolves.toBeUndefined();
+    expect(observer).toHaveBeenCalledWith(expect.objectContaining({
+      outcome: 'cancelled',
+      payload: { id: 'guarded-void' },
+    }));
+    register.destroy();
+  });
+
   it('does not let a fatal race effect failure be ignored by result arbitration', async () => {
     const register = new ActionRegister<MetricsActions>();
     register.setActionExecutionMode('run', 'race');
     const resultHandler = jest.fn(() => 'sensitive');
     register.registerEffect('run', () => {
       throw new Error('audit gate failed');
-    }, { id: 'effect-gate', errorPolicy: 'fatal' });
+    }, { id: 'effect-gate', errorPolicy: 'fatal', effectKind: 'guard' });
     register.register('run', resultHandler, { id: 'result' });
 
     const result = await register.dispatchWithResult<'run', string>('run', { id: 'effect-failed' });
@@ -232,6 +286,30 @@ describe('ExecutionResult metrics', () => {
     releaseLoser?.();
     await expect(execution).resolves.toMatchObject({ result: 'recovered' });
     expect(fastAttempts).toBe(2);
+    register.destroy();
+  });
+
+  it('aborts the prior race attempt before its retry barrier drains', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    let attempts = 0;
+    let loserAborted = false;
+    register.register<'run', string>('run', () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error('retry');
+      return 'recovered';
+    }, { id: 'fast', errorPolicy: 'fatal' });
+    register.register('run', (_payload, controller) => new Promise<void>(resolve => {
+      controller.signal?.addEventListener('abort', () => {
+        loserAborted = true;
+        resolve();
+      }, { once: true });
+    }), { id: 'loser' });
+
+    await expect(register.dispatchWithResult<'run', string>('run', { id: 'abort-attempt' }, {
+      retryOnError: { maxAttempts: 2, delay: 0 },
+    })).resolves.toMatchObject({ result: 'recovered' });
+    expect(loserAborted).toBe(true);
     register.destroy();
   });
 

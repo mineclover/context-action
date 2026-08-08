@@ -97,6 +97,17 @@ export interface ToolApprovalRequestInput {
   readonly signal?: AbortSignal;
 }
 
+/** Request passed to a transport-neutral, canonical interaction boundary. */
+export interface ToolInteractionRequest extends ToolApprovalRequestInput {
+  readonly kind: 'approval' | 'user-interaction';
+  readonly call: ModelToolCall;
+}
+
+/** An interaction may approve or deny policy-gated execution. */
+export type ToolInteractionHandler = (
+  request: ToolInteractionRequest,
+) => Promise<'approved' | 'denied'>;
+
 /** Configuration for a canonical approval queue. */
 export interface ToolApprovalQueueOptions {
   readonly idPrefix?: string;
@@ -516,6 +527,8 @@ export interface ToolCallOptions {
   readonly executionOwnerId?: string;
   /** Stable key for one logical mutation across provider retries. */
   readonly idempotencyKey?: string;
+  /** Invoked only after argument validation and a policy `ask` decision. */
+  readonly interaction?: ToolInteractionHandler;
   readonly context?: ToolCallContext;
 }
 

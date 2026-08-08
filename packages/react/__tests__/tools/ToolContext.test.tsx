@@ -1023,6 +1023,38 @@ describe('createToolContext', () => {
       );
     });
 
+    it('runs canonical interaction only after validation and a policy ask', async () => {
+      const interaction = jest.fn(async () => 'approved' as const);
+      const policy = jest.fn(() => 'ask' as const);
+      const InteractionTools = createToolContext('InteractionTools', {
+        schema: testSchema,
+        toolPolicy: policy,
+      });
+      const interactionWrapper = ({ children }: { children: React.ReactNode }) => (
+        <InteractionTools.Provider>{children}</InteractionTools.Provider>
+      );
+      const handler = jest.fn(() => ({ ok: true }));
+      const { result } = renderHook(() => {
+        InteractionTools.useToolHandler('searchProducts', handler, { blocking: true });
+        return InteractionTools.useToolRegistry();
+      }, { wrapper: interactionWrapper });
+
+      const malformed = await act(async () => result.current.executeModelToolCall({
+        name: 'searchProducts', arguments: { query: '' },
+      }, { interaction }));
+      expect(malformed.error?.code).toBe(TOOL_CALL_ERROR_CODES.VALIDATION_FAILED);
+      expect(interaction).not.toHaveBeenCalled();
+
+      const approved = await act(async () => result.current.executeModelToolCall({
+        name: 'searchProducts', arguments: { query: 'laptop', maxResults: 1 },
+      }, { interaction }));
+      expect(approved.isError).toBeFalsy();
+      expect(interaction).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'approval', definition: expect.objectContaining({ name: 'searchProducts' }),
+      }));
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
     it('should cancel a policy wait when the tool call signal aborts', async () => {
       const policyContext = createToolContext('AbortPolicyTools', {
         schema: testSchema,

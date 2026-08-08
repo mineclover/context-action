@@ -62,7 +62,7 @@ describe('createActionContext', () => {
     function EffectComponent() {
       MappedContext.useActionEffectHandler('login', payload => {
         expect(payload.username).toBe('user');
-      });
+      }, { effectKind: 'observer' });
       MappedContext.useActionResultHandler('login', payload => ({
         sessionId: payload.username,
       }));
@@ -79,7 +79,9 @@ describe('createActionContext', () => {
     );
 
     const { result } = renderHook(() => {
-      MappedContext.useActionEffectHandler('login', () => 'audit-only');
+      MappedContext.useActionEffectHandler('login', () => {
+        void 'audit-only';
+      }, { effectKind: 'observer' });
       MappedContext.useActionResultHandler('login', payload => ({
         sessionId: payload.username,
       }));

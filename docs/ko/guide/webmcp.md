@@ -37,9 +37,11 @@ retry identity를 제공하지 않으므로 idempotency는 기본적으로 비�
 
 adapter는 2026-07-21 Community Group Draft의 `execute(input)` callback 계약을
 따릅니다. 이전 실험 구현의 `ModelContextClient` 인자는 제공하지 않습니다.
-`beforeExecute(invocation)`은 애플리케이션 소유의 취소 가능한 hook이며,
-scope가 해제되면 `invocation.signal`로 UI 작업을 중지해야 합니다. 이 hook은
-인가 경계가 아니므로 검증·policy·approval은 canonical manager에 유지하세요.
+policy가 `ask`를 반환하면 canonical `interaction` 옵션을 사용합니다. 이는
+검증과 policy 평가 뒤에 호출되고 dispatch signal을 받으며 `approved` 또는
+`denied`를 반환합니다. `beforeExecute`는 deprecated 사후 실행 알림으로,
+승인 경계가 아닙니다. 브라우저 API 차이는 `currentWebMCPProfile` 또는
+`@context-action/webmcp/profiles/chrome-legacy`로 격리됩니다.
 
 도구 이름과 비어 있지 않은 설명은 등록 전에 모두 검증됩니다. adapter는
 현재 Draft의 `title`, `readOnlyHint`, `untrustedContentHint`만 매핑하며 나머지

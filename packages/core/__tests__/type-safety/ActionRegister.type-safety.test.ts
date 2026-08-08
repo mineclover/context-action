@@ -84,20 +84,40 @@ describe('ActionRegister - Type Safety Tests', () => {
 
       typedRegister.registerEffect('stringAction', payload => {
         expect(payload).toBeDefined();
-      });
+      }, { effectKind: 'observer' });
+      if (false) {
+        // @ts-expect-error deprecated effects must select a guard or observer role
+        typedRegister.registerEffect('stringAction', () => {});
+      }
       typedRegister.registerGuard('stringAction', (_payload, controller) => {
         if (false) controller.abort('guarded');
+        // @ts-expect-error guards cannot publish results
+        controller.setResult({ normalized: 'ignored' });
       });
+      typedRegister.registerObserver('stringAction', event => {
+        expect(event.payload).toBeDefined();
+        // @ts-expect-error observers do not receive a pipeline controller
+        event.abort('ignored');
+      });
+      if (false) {
+        // @ts-expect-error observer handlers cannot return a result value
+        typedRegister.registerObserver('stringAction', () => ({ normalized: 'ignored' }));
+      }
       typedRegister.registerEffect('stringAction', (_payload, controller) => {
         // @ts-expect-error effects cannot publish results
         controller.setResult({ normalized: 'ignored' });
-      });
+      }, { effectKind: 'observer' });
       typedRegister.registerResult('stringAction', payload => ({
         normalized: payload.toUpperCase(),
       }));
       typedRegister.registerResult('stringAction', (_payload, controller) =>
         controller.return({ normalized: 'cached' }),
       );
+      typedRegister.registerResult('stringAction', (_payload, controller) => {
+        // @ts-expect-error result handlers cannot mutate shared payloads
+        controller.modifyPayload(value => value);
+        return { normalized: 'result' };
+      });
 
       // @ts-expect-error result handlers must return the mapped action result
       typedRegister.registerResult('stringAction', () => undefined);
@@ -134,12 +154,12 @@ describe('ActionRegister - Type Safety Tests', () => {
         // @ts-expect-error action keys must be strings at compile time
         numericRegister.dispatch(1);
         // @ts-expect-error action keys must be strings at compile time
-        numericRegister.registerEffect(1, () => {});
+        numericRegister.registerEffect(1, () => {}, { effectKind: 'observer' });
       };
       expect(invalidCalls).toBeInstanceOf(Function);
 
       // Runtime guards also protect JavaScript callers and unsafe casts.
-      expect(() => numericRegister.registerEffect(1 as never, () => {}))
+      expect(() => numericRegister.registerEffect(1 as never, () => {}, { effectKind: 'observer' }))
         .toThrow('Action keys must be strings');
       expect(() => numericRegister.dispatch(1 as never))
         .toThrow('Action keys must be strings');
@@ -158,7 +178,7 @@ describe('ActionRegister - Type Safety Tests', () => {
       register.registerEffect('save', (_payload, controller) => {
         // @ts-expect-error effects cannot merge public results
         controller.mergeResult(() => ({ accepted: false }));
-      });
+      }, { effectKind: 'observer' });
       register.registerResult('save', () => ({ accepted: true }));
 
       const execution = await register.dispatchWithResult('save', { id: 'save-1' }, {
@@ -167,7 +187,8 @@ describe('ActionRegister - Type Safety Tests', () => {
 
       expect(execution.results).toEqual([{ accepted: true }]);
       expect(execution.result).toEqual([{ accepted: true }]);
-      expect(execution.handlers[0]?.result).toBeUndefined();
+      expect(execution.handlers).toHaveLength(1);
+      expect(execution.handlers[0]?.result).toEqual({ accepted: true });
       register.destroy();
     });
 
@@ -182,7 +203,7 @@ describe('ActionRegister - Type Safety Tests', () => {
       const effect = jest.fn();
       register.registerEffect('save', () => {
         effect();
-      }, { priority: 10 });
+      }, { priority: 10, effectKind: 'guard' });
       register.registerResult('save', async () => ({ accepted: true }), { priority: 0 });
 
       const execution = await register.dispatchWithResult('save', { id: 'save-race' }, {

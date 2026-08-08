@@ -38,6 +38,16 @@ export class ActionResultProcessingError extends Error {
   }
 }
 
+/** Signals work from a completed race attempt to stop before the next retry. */
+export class ActionAttemptSupersededError extends Error {
+  override name = 'ActionAttemptSupersededError';
+
+  constructor(public readonly attempt: number) {
+    super(`Action attempt ${attempt} was superseded by a retry.`);
+    Object.setPrototypeOf(this, ActionAttemptSupersededError.prototype);
+  }
+}
+
 export function isActionResultProcessingError(
   error: unknown,
 ): error is ActionResultProcessingError {

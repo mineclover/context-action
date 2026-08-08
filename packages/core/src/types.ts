@@ -370,6 +370,47 @@ export interface ActionGuardController<T = unknown> extends ActionEffectControll
   modifyPayload(modifier: (payload: T) => T): void;
 }
 
+/** Controller for a result-producing handler. Concurrent result handlers do
+ * not receive payload mutation or priority-jump capabilities. */
+export interface ActionResultController<T = unknown, R = void>
+  extends ActionEffectController<T> {
+  abort(reason?: string): void;
+  return(result: R): R;
+  setResult(result: R): void;
+  getResults(): readonly R[];
+  mergeResult(merger: (previousResults: readonly R[], currentResult: R) => R): void;
+}
+
+/** The explicit execution role of a registered handler. */
+export type HandlerRole = 'guard' | 'result' | 'observer' | 'legacy';
+
+/** Immutable terminal event delivered to observer handlers. */
+export interface ActionObserverEvent<T = unknown, R = void> {
+  readonly action: string;
+  readonly payload: Readonly<T>;
+  readonly outcome: ExecutionResult<R>['outcome'];
+  readonly result: R | readonly R[] | undefined;
+  readonly errors: readonly HandlerError[];
+  readonly signal?: AbortSignal;
+}
+
+/** A post-result side effect. Observer return values are deliberately ignored. */
+export type ActionObserverHandler<T = unknown, R = void> = (
+  event: ActionObserverEvent<T, R>,
+) => void | Promise<void>;
+
+/** Scheduling and terminal-path selection for a post-result observer. */
+export interface ObserverConfig<T = unknown> extends HandlerConfig<T> {
+  when?: 'success' | 'failure' | 'always';
+}
+
+/** Migration configuration for the deprecated `registerEffect()` API.
+ * New code should call `registerGuard()` or `registerObserver()` directly. */
+export interface EffectConfig<T = unknown> extends HandlerConfig<T> {
+  /** Select the explicit phase that owns this legacy effect. */
+  effectKind: 'guard' | 'observer';
+}
+
 /**
  * Action handler function type for processing actions within the pipeline
  * 
@@ -459,7 +500,7 @@ export type ActionGuardHandler<T = unknown> = (
  */
 export type ActionResultHandler<T = unknown, R = void> = (
   payload: T,
-  controller: PipelineController<T, R>
+  controller: ActionResultController<T, R>
 ) => R | Promise<R>;
 
 /** Controls whether an async handler must settle before the next sequential handler starts. */
@@ -534,6 +575,9 @@ export interface HandlerConfig<T = unknown> {
 
   /** Optional metadata copied into execution outcomes for diagnostics. */
   metadata?: Record<string, unknown>;
+
+  /** Terminal path selection; consumed only by `registerObserver()`. */
+  when?: 'success' | 'failure' | 'always';
 }
 
 /**
@@ -611,7 +655,7 @@ export interface HandlerRegistration<T = unknown, R = void> {
    * Runtime execution role. Effect handlers can control flow but never add a
    * value to result collection; result and legacy handlers may do both.
    */
-  role?: 'guard' | 'effect' | 'result' | 'legacy';
+  role?: HandlerRole;
 }
 
 /** The lifecycle state recorded for one handler invocation. */
@@ -931,6 +975,12 @@ export interface DispatchOptions {
     maxAttempts: number;
     /** Delay between retries in milliseconds */
     delay: number;
+    /**
+     * Retry boundary for work started by a race attempt. `abort-and-drain` is
+     * the safe default for race; `overlap` is an explicit opt-in for
+     * idempotent/read-only handlers.
+     */
+    attemptBarrier?: 'immediate' | 'abort-and-drain' | 'overlap';
   };
   
   /** Auto-abort options for automatic AbortController management */
@@ -1136,7 +1186,13 @@ export interface ExecutionResult<R = void> {
   /** Race-only snapshots. Loser failures never change the winner contract. */
   raceDiagnostics?: {
     winnerId?: string;
+    /** Immutable winner outcome captured at dispatch return. */
+    winner?: HandlerExecutionOutcome<R>;
     loserSnapshots: Array<HandlerExecutionOutcome<R>>;
+    /** Losers still running when the canonical winner result was returned. */
+    pendingLosersAtReturn: number;
+    /** Failed losers observable at that same snapshot point. */
+    observedLoserFailures: number;
   };
   
   /** Errors that occurred during execution */

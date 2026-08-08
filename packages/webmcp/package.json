@@ -16,6 +16,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./profiles/chrome-legacy": {
+      "import": {
+        "types": "./dist/profiles/chrome-legacy.d.ts",
+        "default": "./dist/profiles/chrome-legacy.js"
+      },
+      "require": {
+        "types": "./dist/profiles/chrome-legacy.d.cts",
+        "default": "./dist/profiles/chrome-legacy.cjs"
+      }
     }
   },
   "sideEffects": false,

@@ -131,6 +131,12 @@ export interface ToolDefinition {
   outputSchema?: JSONSchema;
   /** Optional behavioral hints */
   annotations?: ToolAnnotations;
+  /** Transport-specific hints are intentionally separate from canonical tool metadata. */
+  transports?: {
+    webmcp?: {
+      untrustedContentHint?: boolean;
+    };
+  };
 }
 
 /**

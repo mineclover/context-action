@@ -2,6 +2,7 @@ export { ActionRegister } from './ActionRegister.js';
 export { ActionGuard } from './action-guard.js';
 // Validation Errors
 export {
+  ActionAttemptSupersededError,
   ActionRegisterDestroyedError,
   ActionResultProcessingError,
   ActionTimeoutError,
@@ -15,6 +16,14 @@ export {
 export { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 export { resolveHandlerConfig } from './types.js';
 export type {
+  ActionEffectController,
+  ActionEffectHandler,
+  EffectConfig,
+  ActionGuardController,
+  ActionGuardHandler,
+  ActionObserverEvent,
+  ActionObserverHandler,
+  ActionResultController,
   ActionDispatcher,
   ActionHandler,
   ActionNames,
@@ -31,6 +40,8 @@ export type {
   HandlerConfig,
   HandlerErrorPolicy,
   HandlerRegistration,
+  HandlerRole,
+  ObserverConfig,
   HandlerScheduling,
   PipelineContext,
   PipelineController,

@@ -3,6 +3,7 @@ import {
   type WebMCPRegistrationOptions,
   type WebMCPToolDefinition,
 } from '../src/index';
+import { chromeLegacyWebMCPProfile } from '../src/profiles/chrome-legacy';
 import type {
   ModelToolCall,
   ToolCallOptions,
@@ -51,6 +52,20 @@ function createManager(
 }
 
 describe('createWebMCPToolScope', () => {
+  it('delegates browser registration to the selected runtime profile', async () => {
+    const registerTool = jest.fn(async () => {});
+    const scope = await createWebMCPToolScope(createManager(), {
+      sessionId: 'page-session',
+      toolNames: ['search'],
+      document: { modelContext: { registerTool } },
+      profile: chromeLegacyWebMCPProfile,
+    });
+
+    expect(scope.activeTools).toEqual(['search']);
+    expect(registerTool).toHaveBeenCalledTimes(1);
+    scope.dispose();
+  });
+
   it('is inert when WebMCP is not available, so non-browser consumers remain safe', async () => {
     const scope = await createWebMCPToolScope(createManager(), {
       sessionId: 'page-session',
@@ -256,6 +271,7 @@ describe('createWebMCPToolScope', () => {
         openWorldHint: true,
         untrustedContentHint: true,
       },
+      transports: { webmcp: { untrustedContentHint: true } },
     };
     const manager = createManager();
     manager.getToolDefinition = () => definition;

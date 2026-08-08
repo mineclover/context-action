@@ -103,6 +103,8 @@ export type {
   ToolApprovalQueue,
   ToolApprovalQueueOptions,
   ToolApprovalRequestInput,
+  ToolInteractionHandler,
+  ToolInteractionRequest,
   ToolApprovalStore,
   ToolCallSource,
   ToolCallMode,

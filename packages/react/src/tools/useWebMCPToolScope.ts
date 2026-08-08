@@ -62,6 +62,7 @@ export function useWebMCPToolScope(
     callOptions: options.callOptions,
     getIdempotencyKey: options.getIdempotencyKey,
     beforeExecute: options.beforeExecute,
+    interaction: options.interaction,
     errorMode: options.errorMode,
   });
   executionOptionsRef.current = {
@@ -69,6 +70,7 @@ export function useWebMCPToolScope(
     callOptions: options.callOptions,
     getIdempotencyKey: options.getIdempotencyKey,
     beforeExecute: options.beforeExecute,
+    interaction: options.interaction,
     errorMode: options.errorMode,
   };
 
@@ -85,13 +87,10 @@ export function useWebMCPToolScope(
       sessionId: options.sessionId,
       toolNames: options.toolNames,
       document: options.document,
+      profile: options.profile,
       exposedTo: options.exposedTo,
       signal: mergedSignal.signal,
-      get context() { return executionOptionsRef.current.context; },
-      get callOptions() { return executionOptionsRef.current.callOptions; },
-      get getIdempotencyKey() { return executionOptionsRef.current.getIdempotencyKey; },
-      get beforeExecute() { return executionOptionsRef.current.beforeExecute; },
-      get errorMode() { return executionOptionsRef.current.errorMode; },
+      getExecutionOptions: () => executionOptionsRef.current,
     };
     let disposed = false;
     let scope: WebMCPToolScope | undefined;
@@ -125,6 +124,7 @@ export function useWebMCPToolScope(
     manager,
     options.sessionId,
     options.document,
+    options.profile,
     options.signal,
     toolNamesKey,
     exposedToKey,

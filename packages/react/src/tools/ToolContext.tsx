@@ -614,6 +614,46 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               }
             ));
           }
+          if (decision === 'ask' && options?.interaction) {
+            try {
+              const interactionDecision = await awaitWithAbort(
+                options.interaction({
+                  kind: 'approval',
+                  call: {
+                    ...(request.id === undefined ? {} : { id: request.id }),
+                    name: request.params.name,
+                    arguments: request.params.arguments ?? {},
+                  },
+                  request,
+                  definition: tool.toMCP(),
+                  context,
+                  signal: callSignal,
+                }),
+                callSignal,
+              );
+              decision = interactionDecision === 'approved' ? 'allow' : 'deny';
+            } catch (error) {
+              if (timeoutState && (timeoutState.signal.aborted || isToolCallTimeoutError(error))) {
+                return finish(timeoutResult());
+              }
+              if (options?.signal?.aborted) {
+                return finish(createToolCallError('Tool call cancelled while waiting for interaction.', {
+                  code: TOOL_CALL_ERROR_CODES.CANCELLED,
+                  retryable: true,
+                  toolCallId: request.id,
+                }));
+              }
+              return finish(createToolCallError(
+                error instanceof Error ? error.message : String(error),
+                {
+                  code: TOOL_CALL_ERROR_CODES.POLICY_FAILED,
+                  retryable: true,
+                  toolCallId: request.id,
+                },
+              ));
+            }
+          }
+
           if (decision !== 'allow') {
             return finish(createToolCallError(
               decision === 'ask'

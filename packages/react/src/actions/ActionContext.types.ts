@@ -10,11 +10,16 @@ import {
   ActionRegister,
   ActionRegisterConfig,
   ActionHandler,
+  ActionEffectHandler,
+  ActionGuardHandler,
+  ActionObserverHandler,
+  ObserverConfig,
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
   ActionPayloadMap,
   HandlerConfig,
+  EffectConfig,
   PipelineController,
 } from '@context-action/core';
 import type { ActionSchemaMap } from '@context-action/tool-protocol';
@@ -96,8 +101,18 @@ export interface ActionContextReturn<
   ) => void;
   useActionEffectHandler: <K extends ActionNames<T>, R = void>(
     action: K,
-    handler: ActionHandler<T[K], R>,
+    handler: ActionEffectHandler<T[K]>,
+    config: EffectConfig<T[K]>
+  ) => void;
+  useActionGuard: <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionGuardHandler<T[K]>,
     config?: HandlerConfig<T[K]>
+  ) => void;
+  useActionObserver: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
+    action: K,
+    handler: ActionObserverHandler<T[K], R>,
+    config?: ObserverConfig<T[K]>
   ) => void;
   useActionResultHandler: <K extends ActionNames<T> & keyof TResultMap>(
     action: K,

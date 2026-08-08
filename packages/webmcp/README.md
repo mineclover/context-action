@@ -23,10 +23,13 @@ pass a memoized options object; the hook unregisters the scope on unmount.
 
 Each scope creates unique correlation IDs for canonical calls. WebMCP does not
 provide a stable native retry identity, so idempotency is disabled by default;
-pass `getIdempotencyKey` only with a domain-owned retry key. Use
-`beforeExecute(invocation)` for application-owned, abortable UI preparation.
-The package follows the current `execute(input)` Draft callback and does not
-claim support for the older `ModelContextClient` experiment.
+pass `getIdempotencyKey` only with a domain-owned retry key. Use `interaction`
+for canonical policy-gated approval: it runs only after argument validation and
+a policy `ask` decision. `beforeExecute` is a deprecated post-execution
+notification, not an authorization boundary. Select `currentWebMCPProfile` by
+default or import `@context-action/webmcp/profiles/chrome-legacy` for Chrome's
+older registration shape. `errorMode` defaults to `structured`; use `throw`
+when the host requires rejected browser callbacks.
 
 The adapter is safe to import during SSR and in unsupported browsers: it
 returns `{ supported: false, activeTools: [] }` when `document.modelContext`
