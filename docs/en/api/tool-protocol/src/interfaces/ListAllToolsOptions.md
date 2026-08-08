@@ -6,7 +6,7 @@
 
 # Interface: ListAllToolsOptions
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:294](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L294)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:305](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L305)
 
 Bounds a paged discovery walk without preventing explicit unbounded use.
 
@@ -16,6 +16,6 @@ Bounds a paged discovery walk without preventing explicit unbounded use.
 
 > `readonly` `optional` **maxPages?**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:296](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L296)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:307](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L307)
 
 Maximum number of pages, including the first page. Defaults to 1000.

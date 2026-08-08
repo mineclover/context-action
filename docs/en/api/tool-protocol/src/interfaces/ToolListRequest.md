@@ -6,7 +6,7 @@
 
 # Interface: ToolListRequest
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:273](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L273)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:284](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L284)
 
 JSON-RPC-shaped request for MCP tools/list.
 
@@ -16,7 +16,7 @@ JSON-RPC-shaped request for MCP tools/list.
 
 > `readonly` **method**: `"tools/list"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:274](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L274)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:285](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L285)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:274](https://github.com
 
 > `readonly` `optional` **params?**: `object`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:275](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L275)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:286](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L286)
 
 #### cursor?
 

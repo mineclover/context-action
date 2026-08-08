@@ -13,16 +13,25 @@
 - [WebMCPRegistrationOptions](interfaces/WebMCPRegistrationOptions.md)
 - [WebMCPModelContext](interfaces/WebMCPModelContext.md)
 - [WebMCPDocument](interfaces/WebMCPDocument.md)
+- [WebMCPRuntimeProfile](interfaces/WebMCPRuntimeProfile.md)
 - [WebMCPToolInvocation](interfaces/WebMCPToolInvocation.md)
+- [WebMCPRegistrationConfig](interfaces/WebMCPRegistrationConfig.md)
+- [WebMCPExecutionOptions](interfaces/WebMCPExecutionOptions.md)
 - [WebMCPToolScopeOptions](interfaces/WebMCPToolScopeOptions.md)
 - [WebMCPToolScope](interfaces/WebMCPToolScope.md)
 
 ## Type Aliases
 
 - [WebMCPIdempotencyKeyFactory](type-aliases/WebMCPIdempotencyKeyFactory.md)
-- [WebMCPBeforeExecute](type-aliases/WebMCPBeforeExecute.md)
+- [~~WebMCPBeforeExecute~~](type-aliases/WebMCPBeforeExecute.md)
+- [WebMCPAfterExecute](type-aliases/WebMCPAfterExecute.md)
+- [~~WebMCPResultErrorMode~~](type-aliases/WebMCPResultErrorMode.md)
 - [WebMCPErrorMode](type-aliases/WebMCPErrorMode.md)
 
 ## Functions
 
 - [createWebMCPToolScope](functions/createWebMCPToolScope.md)
+
+## Variables
+
+- [currentWebMCPProfile](variables/currentWebMCPProfile.md)

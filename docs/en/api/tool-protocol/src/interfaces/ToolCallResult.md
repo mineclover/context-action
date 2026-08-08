@@ -6,7 +6,7 @@
 
 # Interface: ToolCallResult\<TResult\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:451](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L451)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:462](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L462)
 
 Standard tool result; content blocks and structuredContent are both preserved.
 
@@ -22,7 +22,7 @@ Standard tool result; content blocks and structuredContent are both preserved.
 
 > `readonly` `optional` **toolCallId?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:452](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L452)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:463](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L463)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:452](https://github.com
 
 > `readonly` **content**: [`ToolContent`](../type-aliases/ToolContent.md)[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:454](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L454)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:465](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L465)
 
 Content remains the stable transport surface; structuredContent carries JSON output.
 
@@ -40,7 +40,7 @@ Content remains the stable transport surface; structuredContent carries JSON out
 
 > `readonly` `optional` **structuredContent?**: `TResult`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:455](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L455)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:466](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L466)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:455](https://github.com
 
 > `readonly` `optional` **isError?**: `boolean`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:456](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L456)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:467](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L467)
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:456](https://github.com
 
 > `readonly` `optional` **error?**: [`ToolCallError`](ToolCallError.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:457](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L457)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:468](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L468)

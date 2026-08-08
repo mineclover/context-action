@@ -8,4 +8,4 @@
 
 > **ToolContent** = [`ToolTextContent`](../interfaces/ToolTextContent.md) \| [`ToolJsonContent`](../interfaces/ToolJsonContent.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:433](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L433)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:444](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L444)

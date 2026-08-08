@@ -204,9 +204,35 @@ describe('ExecutionResult metrics', () => {
     register.register<'run', string>('run', () => 'ok');
     register.registerObserver('run', () => {}, { debounce: 50 } as never);
 
-    const startedAt = Date.now();
+    const debounce = jest.spyOn((register as any).actionGuard, 'debounce');
     await register.dispatchWithResult<'run', string>('run', { id: 'admission' });
-    expect(Date.now() - startedAt).toBeLessThan(45);
+    expect(debounce).not.toHaveBeenCalled();
+    register.destroy();
+  });
+
+  it('does not allow dispatch filters to bypass guards', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const resultHandler = jest.fn(() => 'sensitive');
+    register.registerGuard('run', (_payload, controller) => controller.abort('denied'), {
+      id: 'authorization',
+    });
+    register.register('run', resultHandler, { id: 'mutation' });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'filtered' }, {
+      filter: { handlerIds: ['mutation'] },
+    });
+    expect(result.outcome).toBe('cancelled');
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(result.handlers.find(handler => handler.id === 'authorization')?.executed).toBe(true);
+    register.destroy();
+  });
+
+  it('rejects void dispatch when a guard throws but resolves explicit aborts', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.registerGuard('run', () => { throw new Error('authorization unavailable'); });
+
+    await expect(register.dispatch('run', { id: 'guard-error' }))
+      .rejects.toThrow('authorization unavailable');
     register.destroy();
   });
 
@@ -219,6 +245,20 @@ describe('ExecutionResult metrics', () => {
 
     await expect(register.dispatchWithResult<'run', { accepted: boolean }>('run', { id: 'condition' }))
       .resolves.toMatchObject({ result: { accepted: true } });
+    register.destroy();
+  });
+
+  it('does not let an observer snapshot failure reject the canonical result', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const resultValue = new Proxy({}, {
+      getPrototypeOf: () => { throw new Error('snapshot denied'); },
+    });
+    register.register('run', () => resultValue);
+    register.registerObserver('run', () => {});
+
+    const result = await register.dispatchWithResult<'run', object>('run', { id: 'proxy-result' });
+    expect(result.result).toBe(resultValue);
+    expect(result.outcome).toBe('completed');
     register.destroy();
   });
 
@@ -307,6 +347,41 @@ describe('ExecutionResult metrics', () => {
       outcome: 'cancelled',
       payload: { id: 'guarded-void' },
     }));
+    register.destroy();
+  });
+
+  it('runs a once observer only once across concurrent detached dispatches', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseObserver: (() => void) | undefined;
+    const observerGate = new Promise<void>(resolve => { releaseObserver = resolve; });
+    const observer = jest.fn(async () => { await observerGate; });
+    register.register('run', () => 'committed');
+    register.registerObserver('run', observer, { once: true, scheduling: 'start-and-continue' });
+
+    await Promise.all([
+      register.dispatch('run', { id: 'first' }),
+      register.dispatch('run', { id: 'second' }),
+    ]);
+    expect(observer).toHaveBeenCalledTimes(1);
+    releaseObserver?.();
+    await register.destroyAsync();
+  });
+
+  it('runs a once awaited observer only once while its first dispatch is pending', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseObserver: (() => void) | undefined;
+    const observerGate = new Promise<void>(resolve => { releaseObserver = resolve; });
+    const observer = jest.fn(async () => { await observerGate; });
+    register.register('run', () => 'committed');
+    register.registerObserver('run', observer, { once: true });
+
+    const first = register.dispatch('run', { id: 'first' });
+    await Promise.resolve();
+    const second = register.dispatch('run', { id: 'second' });
+    await second;
+    expect(observer).toHaveBeenCalledTimes(1);
+    releaseObserver?.();
+    await first;
     register.destroy();
   });
 

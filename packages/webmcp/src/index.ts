@@ -54,21 +54,21 @@ export interface WebMCPDocument {
  * Profiles may adapt callback/registration shapes, but must receive the same
  * normalized browser tool definition.
  */
-export interface WebMCPRuntimeProfile {
+export interface WebMCPRuntimeProfile<TDocument = unknown> {
   readonly id: string;
-  isSupported(document: unknown): boolean;
+  isSupported(document: unknown): document is TDocument;
   registerTool(
-    document: unknown,
+    document: TDocument,
     tool: WebMCPToolDefinition,
     options: WebMCPRegistrationOptions,
   ): Promise<void>;
 }
 
 /** Current browser draft profile. */
-export const currentWebMCPProfile: WebMCPRuntimeProfile = {
+export const currentWebMCPProfile: WebMCPRuntimeProfile<WebMCPDocument> = {
   id: 'webmcp-current',
-  isSupported(document): boolean {
-    return Boolean((document as WebMCPDocument | undefined)?.modelContext);
+  isSupported(document): document is WebMCPDocument {
+    return typeof (document as WebMCPDocument | undefined)?.modelContext?.registerTool === 'function';
   },
   registerTool(document, tool, options): Promise<void> {
     const modelContext = (document as WebMCPDocument).modelContext;
@@ -106,19 +106,22 @@ export type WebMCPAfterExecute = (event: {
   readonly result: ToolCallResult;
 }) => void | Promise<void>;
 
+/** @deprecated `result` is a compatibility alias for `structured`. */
+export type WebMCPResultErrorMode = 'result';
+
 /** Context-Action error representation for the WebMCP callback. */
-export type WebMCPErrorMode = 'structured' | 'result' | 'throw';
+export type WebMCPErrorMode = 'structured' | WebMCPResultErrorMode | 'throw';
 
 /** Values that change browser capability registration and require a new scope. */
-export interface WebMCPRegistrationConfig {
+export interface WebMCPRegistrationConfig<TDocument = WebMCPDocument> {
   /** Stable identity for the page agent session. */
   readonly sessionId: string;
   /** Explicit capability scope; an omitted list never exposes a whole registry. */
   readonly toolNames: readonly string[];
   /** Defaults to the ambient browser document when it is available. */
-  readonly document?: WebMCPDocument;
+  readonly document?: TDocument;
   /** Defaults to the current WebMCP draft profile. */
-  readonly profile?: WebMCPRuntimeProfile;
+  readonly profile?: WebMCPRuntimeProfile<TDocument>;
   /** Optional cross-origin documents allowed to discover and execute these tools. */
   readonly exposedTo?: readonly string[];
   /** Unregister all registered tools when aborted. */
@@ -143,7 +146,8 @@ export interface WebMCPExecutionOptions {
   readonly getIdempotencyKey?: WebMCPIdempotencyKeyFactory;
 }
 
-export interface WebMCPToolScopeOptions extends WebMCPRegistrationConfig, WebMCPExecutionOptions {
+export interface WebMCPToolScopeOptions<TDocument = WebMCPDocument>
+  extends WebMCPRegistrationConfig<TDocument>, WebMCPExecutionOptions {
   /** Optional lazy execution configuration for UI frameworks with changing props. */
   readonly getExecutionOptions?: (
     invocation: WebMCPToolInvocation,
@@ -164,15 +168,17 @@ export interface WebMCPToolScope {
  * API. Unsupported browsers return an inert scope instead of failing SSR or
  * non-browser consumers.
  */
-export async function createWebMCPToolScope(
+export async function createWebMCPToolScope<TDocument = WebMCPDocument>(
   manager: ToolManagementInterface,
-  options: WebMCPToolScopeOptions,
+  options: WebMCPToolScopeOptions<TDocument>,
 ): Promise<WebMCPToolScope> {
   const sessionId = canonicalSessionId(options.sessionId);
   const definitions = resolveDefinitions(manager, options.toolNames);
   validateDefinitions(definitions);
-  const documentRef = options.document ?? getAmbientDocument();
-  const profile = options.profile ?? currentWebMCPProfile;
+  const documentRef = options.document
+    ?? getAmbientDocument() as TDocument | undefined;
+  const profile: WebMCPRuntimeProfile<TDocument> = options.profile
+    ?? currentWebMCPProfile as unknown as WebMCPRuntimeProfile<TDocument>;
   if (!profile.isSupported(documentRef)) return unsupportedScope();
 
   const exposedTo = normalizeExposedOrigins(options.exposedTo);
@@ -240,7 +246,10 @@ export async function createWebMCPToolScope(
           // call into a rejected browser result.
           void Promise.resolve().then(async () => {
             if (executionOptions.afterExecute) {
-              await executionOptions.afterExecute({ invocation, result });
+              await executionOptions.afterExecute({
+                invocation: snapshotWebMCPInvocation(invocation),
+                result: snapshotToolCallResult(result),
+              });
             } else {
               await executionOptions.beforeExecute?.(invocation);
             }
@@ -378,6 +387,55 @@ function normalizeExposedOrigins(origins: readonly string[] | undefined): readon
     if (seen.has(value)) throw new Error(`WebMCP exposedTo contains duplicate origin "${value}".`);
     seen.add(value);
     return value;
+  });
+}
+
+/** Notifications are diagnostic-only. Clone JSON-compatible transport values
+ * so a post-execution hook cannot mutate the browser result after commit. */
+function snapshotToolValue<T>(value: T): T | undefined {
+  try {
+    return freezeToolSnapshot(structuredClone(value));
+  } catch {
+    try {
+      return freezeToolSnapshot(JSON.parse(JSON.stringify(value)) as T);
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+function freezeToolSnapshot<T>(value: T, seen = new WeakSet<object>()): T {
+  if (value === null || typeof value !== 'object' || seen.has(value)) return value;
+  seen.add(value);
+  for (const child of Object.values(value)) {
+    freezeToolSnapshot(child, seen);
+  }
+  return Object.freeze(value);
+}
+
+function snapshotToolCallResult(result: ToolCallResult): ToolCallResult {
+  const content = Object.freeze(result.content.map(block => Object.freeze(
+    block.type === 'text'
+      ? { type: 'text' as const, text: block.text }
+      : { type: 'json' as const, json: snapshotToolValue(block.json) },
+  ))) as ToolCallResult['content'];
+  const structuredContent = snapshotToolValue(result.structuredContent);
+  return Object.freeze({
+    ...(result.toolCallId === undefined ? {} : { toolCallId: result.toolCallId }),
+    content,
+    ...(structuredContent === undefined ? {} : { structuredContent }),
+    ...(result.isError === undefined ? {} : { isError: result.isError }),
+    ...(result.error === undefined ? {} : { error: Object.freeze({ ...result.error }) }),
+  });
+}
+
+function snapshotWebMCPInvocation(
+  invocation: WebMCPToolInvocation,
+): WebMCPToolInvocation {
+  return Object.freeze({
+    ...invocation,
+    input: snapshotToolValue(invocation.input) ?? {},
+    definition: snapshotToolValue(invocation.definition) ?? invocation.definition,
   });
 }
 

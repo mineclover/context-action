@@ -40,7 +40,7 @@
 
 ### 릴리스 및 보안 기준
 
-- **패키지 기준 버전**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.8, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.0
+- **패키지 기준 버전**: `@context-action/core` 0.9.2, `@context-action/react` 0.9.2, `@context-action/tool-protocol` 0.8.9, `@context-action/tool-durable-operations` 0.1.1, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.0
 - **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, TypeScript `6.0.3`
 - **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm.overrides`에서 강제한다.
 - **임시 예외**: `GHSA-qwww-vcr4-c8h2`에 대해 `react-router@7.18.1`을 기간 한정 예외로 유지한다. 예제는 browser routing만 사용하고 `react-router-dom` 8.3.0은 아직 공개되지 않았으므로 2026-09-30 전에 재검토한다.

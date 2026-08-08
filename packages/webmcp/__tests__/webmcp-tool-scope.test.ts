@@ -53,7 +53,8 @@ function createManager(
 
 describe('createWebMCPToolScope', () => {
   it('delegates browser registration to the selected runtime profile', async () => {
-    const registerTool = jest.fn(async () => {});
+    // Deliberately void-returning: this is the legacy profile's type contract.
+    const registerTool = jest.fn(() => {});
     const scope = await createWebMCPToolScope(createManager(), {
       sessionId: 'page-session',
       toolNames: ['search'],
@@ -334,5 +335,31 @@ describe('createWebMCPToolScope', () => {
     const execution = registered[0]!.execute({ query: 'coffee' });
     scope.dispose();
     await expect(execution).resolves.toEqual({ count: 1 });
+  });
+
+  it('gives post-execution notifications a result snapshot, not the browser result', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    let resolveNotification: (() => void) | undefined;
+    const settled = new Promise<void>(resolve => { resolveNotification = resolve; });
+    const scope = await createWebMCPToolScope(createManager(async () => ({
+        content: [{ type: 'json', json: { accepted: true } }],
+        structuredContent: { accepted: true },
+      })), {
+        sessionId: 'page-session',
+        toolNames: ['search'],
+        afterExecute: ({ result }) => {
+          try {
+            (result.structuredContent as { accepted: boolean }).accepted = false;
+          } catch {
+            // The diagnostic snapshot may be frozen; it must never be shared.
+          }
+          resolveNotification?.();
+        },
+        document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+      });
+
+    await expect(registered[0]!.execute({ query: 'coffee' })).resolves.toEqual({ accepted: true });
+    await settled;
+    scope.dispose();
   });
 });

@@ -8,7 +8,7 @@
 
 > **isToolListRequest**(`value`): `value is ToolListRequest`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:343](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L343)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:354](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L354)
 
 Runtime guard for JSON received at the canonical tools/list boundary.
 

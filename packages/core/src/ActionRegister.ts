@@ -782,6 +782,13 @@ export class ActionRegister<
           errors: guard.errors,
           signal: timeoutScope.options?.signal,
         });
+        // An explicit controller abort is an expected cancellation. A thrown
+        // guard error remains fatal for dispatch(), matching errorPolicy.
+        if (!guard.aborted && guard.errors.length > 0) {
+          throw guard.error
+            ?? guard.errors[0]?.error
+            ?? new Error(`Guard phase failed for "${String(action)}"`);
+        }
         return;
       }
       const execution = await this.executeWithRetry(async attemptSignal => {
@@ -845,7 +852,9 @@ export class ActionRegister<
         if (admission.aborted || timeoutScope.options?.signal?.aborted || admission.reason) {
           await notifyObservers({
             action: String(action), payload: payload as T[K],
-            outcome: admission.aborted || timeoutScope.options?.signal?.aborted ? 'cancelled' : 'failed',
+            outcome: admission.aborted || timeoutScope.options?.signal?.aborted
+              ? 'cancelled'
+              : admission.reason === 'Debounced execution' ? 'debounced' : 'throttled',
             result: undefined, errors: admission.reason ? [{
               handlerId: 'admission', error: new Error(admission.reason),
               timestamp: Date.now(), severity: 'blocking',
@@ -1338,9 +1347,14 @@ export class ActionRegister<
     options?: DispatchOptions,
   ): DispatchPlan {
     const pipelineSnapshot = [...(this.pipelines.get(action) ?? [])];
-    const eligibleHandlers = options?.filter
-      ? this.filterHandlers(pipelineSnapshot, options.filter)
-      : pipelineSnapshot;
+    // Guards are admission controls. Ordinary dispatch filters can select
+    // result/observer work, but may never bypass validation or authorization.
+    const guards = pipelineSnapshot.filter(handler => handler.role === 'guard');
+    const filterableHandlers = pipelineSnapshot.filter(handler => handler.role !== 'guard');
+    const filteredHandlers = options?.filter
+      ? this.filterHandlers(filterableHandlers, options.filter)
+      : filterableHandlers;
+    const eligibleHandlers = [...guards, ...filteredHandlers];
     const admissionHandlers = eligibleHandlers.filter(handler => handler.role !== 'observer');
     const debounceMs = options?.debounce
       ?? admissionHandlers.find(handler => handler.config.debounce !== undefined)?.config.debounce;
@@ -1350,11 +1364,9 @@ export class ActionRegister<
     return {
       pipelineSnapshot,
       eligibleHandlers,
-      guards: eligibleHandlers.filter(handler => handler.role === 'guard'),
-      results: eligibleHandlers.filter(handler => (
-        handler.role !== 'guard' && handler.role !== 'observer'
-      )),
-      observers: eligibleHandlers.filter(handler => handler.role === 'observer'),
+      guards,
+      results: filteredHandlers.filter(handler => handler.role !== 'observer'),
+      observers: filteredHandlers.filter(handler => handler.role === 'observer'),
       debounceMs,
       throttleMs,
       executionMode: options?.executionMode
@@ -1428,7 +1440,7 @@ export class ActionRegister<
     plan: DispatchPlan,
     event: ActionObserverEvent<T[K], R>,
   ): Promise<void> {
-    const observerEvent = this.snapshotObserverEvent(event);
+    const observerEvent = this.safeSnapshotObserverEvent(event);
     for (const [registration, observerEntry] of this.getObservers(action, plan)) {
       const successful = observerEvent.outcome === 'completed' || observerEvent.outcome === 'completed_with_errors';
       if (observerEntry.when === 'success' && !successful) continue;
@@ -1441,10 +1453,14 @@ export class ActionRegister<
         continue;
       }
       if (!shouldRun) continue;
-      const invocation = Promise.resolve().then(() => observerEntry.handler(observerEvent));
+      // Detach before invocation so a concurrent dispatch cannot observe and
+      // invoke the same once observer. Cleanup remains tied to settlement.
+      const detachedOnce = registration.config.once
+        && this.removeRegistration(action, registration, false);
       const cleanupOnce = () => {
-        if (registration.config.once) this.removeRegistration(action, registration);
+        if (detachedOnce) this.runRegistrationCleanup(action, registration);
       };
+      const invocation = Promise.resolve().then(() => observerEntry.handler(observerEvent));
       if (registration.config.scheduling === 'start-and-continue') {
         void this.trackGlobalHandlerPromise(invocation).then(cleanupOnce, error => {
           this.log(`Observer failed for ${String(action)}`, error, 'warn');
@@ -1481,6 +1497,26 @@ export class ActionRegister<
       result: freezeValue(event.result),
       errors: Object.freeze(event.errors.map(error => Object.freeze({ ...error }))),
     });
+  }
+
+  /** A diagnostic observer must never make an already constructed canonical
+   * result reject, including when shallow-copying a Proxy/getter throws. */
+  private safeSnapshotObserverEvent<TPayload, R>(
+    event: ActionObserverEvent<TPayload, R>,
+  ): ActionObserverEvent<TPayload, R> {
+    try {
+      return this.snapshotObserverEvent(event);
+    } catch (error) {
+      this.log('Observer snapshot failed', error, 'warn');
+      return Object.freeze({
+        action: event.action,
+        payload: event.payload,
+        outcome: event.outcome,
+        result: undefined,
+        errors: Object.freeze([]),
+        ...(event.signal === undefined ? {} : { signal: event.signal }),
+      });
+    }
   }
 
   /** Execute the selected guard snapshot once for the whole dispatch. Guards
@@ -1851,7 +1887,7 @@ export class ActionRegister<
           pipelineStartedAt,
           validation,
           guard,
-          plan.eligibleHandlers,
+          [...plan.guards, ...plan.results],
         );
       }
       const rawExecution = await this.executeWithRetry(async attemptSignal => {
@@ -1972,7 +2008,7 @@ export class ActionRegister<
           return this.createTimingGuardResult<R>(
             admission.reason,
             dispatchStartTime,
-            plan.eligibleHandlers,
+            [...plan.guards, ...plan.results],
             validation,
           );
         }

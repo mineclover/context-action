@@ -8,6 +8,6 @@
 
 > **ToolCallErrorMetadata** = `Partial`\<`Pick`\<[`ToolCallError`](../interfaces/ToolCallError.md), `"code"` \| `"retryable"` \| `"details"`\>\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:245](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L245)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:256](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L256)
 
 Metadata that a handler error may carry into the canonical tool result.

@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.8.9] (2026-08-09)
+
+- Added `ToolInteractionHandler`, `ToolCallOptions.interaction`, transport
+  metadata, and WebMCP untrusted-content annotations to the public contract.
+
 ## [0.8.8] (2026-07-21)
 
 - Durable operation records, side-effect runners, provider bridges, and

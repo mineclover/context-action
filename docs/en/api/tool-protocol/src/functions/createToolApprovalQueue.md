@@ -8,7 +8,7 @@
 
 > **createToolApprovalQueue**(`options?`): [`ToolApprovalQueue`](../interfaces/ToolApprovalQueue.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:129](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L129)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:140](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L140)
 
 Create a provider-neutral approval queue for `tools/call` requests.
 

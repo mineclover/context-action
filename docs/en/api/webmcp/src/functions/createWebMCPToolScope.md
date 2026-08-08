@@ -6,13 +6,19 @@
 
 # Function: createWebMCPToolScope()
 
-> **createWebMCPToolScope**(`manager`, `options`): `Promise`\<[`WebMCPToolScope`](../interfaces/WebMCPToolScope.md)\>
+> **createWebMCPToolScope**&lt;`TDocument`&gt;(`manager`, `options`): `Promise`\<[`WebMCPToolScope`](../interfaces/WebMCPToolScope.md)\>
 
-Defined in: [packages/webmcp/src/index.ts:108](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L108)
+Defined in: [packages/webmcp/src/index.ts:171](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L171)
 
 Register an explicit canonical capability scope with WebMCP's imperative
 API. Unsupported browsers return an inert scope instead of failing SSR or
 non-browser consumers.
+
+## Type Parameters
+
+### TDocument
+
+`TDocument` = [`WebMCPDocument`](../interfaces/WebMCPDocument.md)
 
 ## Parameters
 
@@ -22,7 +28,7 @@ Type parameter **ToolManagementInterface**
 
 ### options
 
-[`WebMCPToolScopeOptions`](../interfaces/WebMCPToolScopeOptions.md)
+[`WebMCPToolScopeOptions`](../interfaces/WebMCPToolScopeOptions.md)&lt;`TDocument`&gt;
 
 ## Returns
 

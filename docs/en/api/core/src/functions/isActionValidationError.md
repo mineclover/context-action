@@ -8,7 +8,7 @@
 
 > **isActionValidationError**(`error`): `error is ActionValidationError`
 
-Defined in: [packages/core/src/errors.ts:212](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L212)
+Defined in: [packages/core/src/errors.ts:222](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L222)
 
 ActionValidationError 타입 가드
 

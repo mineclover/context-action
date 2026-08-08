@@ -6,7 +6,7 @@
 
 # Interface: WebMCPToolInvocation
 
-Defined in: [packages/webmcp/src/index.ts:51](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L51)
+Defined in: [packages/webmcp/src/index.ts:80](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L80)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/webmcp/src/index.ts:51](https://github.com/mineclover/cont
 
 > `readonly` **toolName**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:52](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L52)
+Defined in: [packages/webmcp/src/index.ts:81](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L81)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/webmcp/src/index.ts:52](https://github.com/mineclover/cont
 
 > `readonly` **toolCallId**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:53](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L53)
+Defined in: [packages/webmcp/src/index.ts:82](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L82)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/webmcp/src/index.ts:53](https://github.com/mineclover/cont
 
 > `readonly` **input**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/webmcp/src/index.ts:54](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L54)
+Defined in: [packages/webmcp/src/index.ts:83](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L83)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/webmcp/src/index.ts:54](https://github.com/mineclover/cont
 
 > `readonly` **definition**: `ToolDefinition`
 
-Defined in: [packages/webmcp/src/index.ts:55](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L55)
+Defined in: [packages/webmcp/src/index.ts:84](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L84)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/webmcp/src/index.ts:55](https://github.com/mineclover/cont
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:56](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L56)
+Defined in: [packages/webmcp/src/index.ts:85](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L85)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [packages/webmcp/src/index.ts:56](https://github.com/mineclover/cont
 
 > `readonly` **signal**: `AbortSignal`
 
-Defined in: [packages/webmcp/src/index.ts:57](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L57)
+Defined in: [packages/webmcp/src/index.ts:86](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L86)

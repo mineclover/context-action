@@ -6,7 +6,7 @@
 
 # Interface: WebMCPAnnotations
 
-Defined in: [packages/webmcp/src/index.ts:29](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L29)
+Defined in: [packages/webmcp/src/index.ts:30](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L30)
 
 The current Draft exposes only these annotations to page agents.
 
@@ -16,7 +16,7 @@ The current Draft exposes only these annotations to page agents.
 
 > `readonly` `optional` **readOnlyHint?**: `boolean`
 
-Defined in: [packages/webmcp/src/index.ts:30](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L30)
+Defined in: [packages/webmcp/src/index.ts:31](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L31)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/webmcp/src/index.ts:30](https://github.com/mineclover/cont
 
 > `readonly` `optional` **untrustedContentHint?**: `boolean`
 
-Defined in: [packages/webmcp/src/index.ts:31](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L31)
+Defined in: [packages/webmcp/src/index.ts:32](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L32)

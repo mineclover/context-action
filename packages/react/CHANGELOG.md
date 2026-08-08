@@ -18,6 +18,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   budget handling.
 - Add the public `./tools` ESM/CJS/type export and keep protocol/durable
   dependencies opt-in for ordinary React consumers.
+- Add `useActionGuard()` and `useActionObserver()` phase hooks, and require
+  `effectKind` when using the compatibility `useActionEffectHandler()` API.
+- Keep result-handler scheduling options and guard admission options distinct
+  in the React adapter's public and implementation types.
 
 ## [0.9.0] (2026-07-21)
 

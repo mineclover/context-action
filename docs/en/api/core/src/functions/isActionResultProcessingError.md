@@ -8,7 +8,7 @@
 
 > **isActionResultProcessingError**(`error`): `error is ActionResultProcessingError`
 
-Defined in: [packages/core/src/errors.ts:41](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L41)
+Defined in: [packages/core/src/errors.ts:51](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L51)
 
 ## Parameters
 

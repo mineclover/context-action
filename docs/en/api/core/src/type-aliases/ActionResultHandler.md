@@ -8,7 +8,7 @@
 
 > **ActionResultHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt;
 
-Defined in: [packages/core/src/types.ts:460](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L460)
+Defined in: [packages/core/src/types.ts:508](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L508)
 
 Strict handler contract used when an action result map declares a result.
 Unlike the legacy ActionHandler type, a mapped handler must return the
@@ -32,7 +32,7 @@ Type parameter **T**
 
 ### controller
 
-[`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
+[`ActionResultController`](../interfaces/ActionResultController.md)\<`T`, `R`\>
 
 ## Returns
 

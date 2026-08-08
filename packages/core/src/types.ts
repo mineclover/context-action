@@ -1124,7 +1124,9 @@ export interface ExecutionResult<R = void> {
   
   /** Execution metadata */
   execution: {
-    /** Total dispatch duration in milliseconds, including admission and queue wait. */
+    /** Total canonical dispatch duration in milliseconds, including admission
+     * and queue wait. Awaited observer notification time is intentionally
+     * excluded because observers cannot alter the terminal result. */
     duration: number;
 
     /** Validation and timing-guard admission duration in milliseconds. */

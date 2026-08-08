@@ -6,7 +6,7 @@
 
 # Interface: ToolApprovalStore
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:107](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L107)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:118](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L118)
 
 Reactive snapshot boundary for approval surfaces.
 
@@ -16,7 +16,7 @@ Reactive snapshot boundary for approval surfaces.
 
 > `readonly` **getSnapshot**: () => readonly [`ToolApprovalSnapshot`](ToolApprovalSnapshot.md)[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:108](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L108)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:119](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L119)
 
 #### Returns
 
@@ -28,7 +28,7 @@ readonly [`ToolApprovalSnapshot`](ToolApprovalSnapshot.md)[]
 
 > `readonly` **subscribe**: (`listener`) => () => `void`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:109](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L109)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:120](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L120)
 
 #### Parameters
 

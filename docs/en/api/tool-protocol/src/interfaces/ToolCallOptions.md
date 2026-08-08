@@ -6,7 +6,7 @@
 
 # Interface: ToolCallOptions
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:509](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L509)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:520](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L520)
 
 Transport-independent options accepted by a managed tool call.
 
@@ -16,7 +16,7 @@ Transport-independent options accepted by a managed tool call.
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:510](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L510)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:521](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L521)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:510](https://github.com
 
 > `readonly` `optional` **timeout?**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:512](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L512)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:523](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L523)
 
 Wall-clock timeout covering policy evaluation and tool execution.
 
@@ -34,7 +34,7 @@ Wall-clock timeout covering policy evaluation and tool execution.
 
 > `readonly` `optional` **maxOutputBytes?**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:514](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L514)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:525](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L525)
 
 Optional output budget enforced at the canonical result boundary.
 
@@ -44,7 +44,7 @@ Optional output budget enforced at the canonical result boundary.
 
 > `readonly` `optional` **executionOwnerId?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:516](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L516)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:527](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L527)
 
 Optional logical owner override for execution provenance.
 
@@ -54,9 +54,19 @@ Optional logical owner override for execution provenance.
 
 > `readonly` `optional` **idempotencyKey?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:518](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L518)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:529](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L529)
 
 Stable key for one logical mutation across provider retries.
+
+***
+
+### interaction?
+
+> `readonly` `optional` **interaction?**: [`ToolInteractionHandler`](../type-aliases/ToolInteractionHandler.md)
+
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:531](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L531)
+
+Invoked only after argument validation and a policy `ask` decision.
 
 ***
 
@@ -64,4 +74,4 @@ Stable key for one logical mutation across provider retries.
 
 > `readonly` `optional` **context?**: [`ToolCallContext`](ToolCallContext.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:519](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L519)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:532](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L532)

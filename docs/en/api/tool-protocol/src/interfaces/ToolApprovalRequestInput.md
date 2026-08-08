@@ -10,6 +10,10 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:93](https://github.com/
 
 Provider-neutral input used to create a pending approval snapshot.
 
+## Extended by
+
+- [`ToolInteractionRequest`](ToolInteractionRequest.md)
+
 ## Properties
 
 ### request

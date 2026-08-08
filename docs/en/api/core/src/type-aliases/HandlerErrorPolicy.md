@@ -8,6 +8,6 @@
 
 > **HandlerErrorPolicy** = `"fatal"` \| `"collect"`
 
-Defined in: [packages/core/src/types.ts:469](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L469)
+Defined in: [packages/core/src/types.ts:517](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L517)
 
 Controls whether a handler failure terminates the pipeline or is reported as a collected error.

@@ -73,3 +73,21 @@ Optional structured output schema
 Defined in: [packages/tool-protocol/src/json-schema.ts:133](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L133)
 
 Optional behavioral hints
+
+***
+
+### transports?
+
+> `optional` **transports?**: `object`
+
+Defined in: [packages/tool-protocol/src/json-schema.ts:135](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L135)
+
+Transport-specific hints are intentionally separate from canonical tool metadata.
+
+#### webmcp?
+
+> `optional` **webmcp?**: `object`
+
+##### webmcp.untrustedContentHint?
+
+> `optional` **untrustedContentHint?**: `boolean`

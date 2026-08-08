@@ -6,7 +6,7 @@
 
 # Interface: MCPToolDefinition
 
-Defined in: [packages/tool-protocol/src/json-schema.ts:141](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L141)
+Defined in: [packages/tool-protocol/src/json-schema.ts:147](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L147)
 
 MCP (Model Context Protocol) Tool 정의
 
@@ -101,3 +101,25 @@ Optional behavioral hints
 #### Inherited from
 
 [`ToolDefinition`](ToolDefinition.md).[`annotations`](ToolDefinition.md#annotations)
+
+***
+
+### transports?
+
+> `optional` **transports?**: `object`
+
+Defined in: [packages/tool-protocol/src/json-schema.ts:135](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/json-schema.ts#L135)
+
+Transport-specific hints are intentionally separate from canonical tool metadata.
+
+#### webmcp?
+
+> `optional` **webmcp?**: `object`
+
+##### webmcp.untrustedContentHint?
+
+> `optional` **untrustedContentHint?**: `boolean`
+
+#### Inherited from
+
+[`ToolDefinition`](ToolDefinition.md).[`transports`](ToolDefinition.md#transports)

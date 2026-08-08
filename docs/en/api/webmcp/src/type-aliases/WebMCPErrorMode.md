@@ -6,8 +6,8 @@
 
 # Type Alias: WebMCPErrorMode
 
-> **WebMCPErrorMode** = `"result"` \| `"throw"`
+> **WebMCPErrorMode** = `"structured"` \| [`WebMCPResultErrorMode`](WebMCPResultErrorMode.md) \| `"throw"`
 
-Defined in: [packages/webmcp/src/index.ts:71](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L71)
+Defined in: [packages/webmcp/src/index.ts:113](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L113)
 
 Context-Action error representation for the WebMCP callback.

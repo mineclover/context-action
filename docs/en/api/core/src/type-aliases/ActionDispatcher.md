@@ -8,7 +8,7 @@
 
 > **ActionDispatcher**&lt;`T`&gt; = &lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:1256](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1256)
+Defined in: [packages/core/src/types.ts:1321](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1321)
 
 Dispatch an action with the payload contract defined by its action key.
 

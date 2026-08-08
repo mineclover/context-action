@@ -8,7 +8,7 @@
 
 > **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:438](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L438)
+Defined in: [packages/core/src/types.ts:486](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L486)
 
 Action handler function type for processing actions within the pipeline
 

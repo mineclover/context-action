@@ -4,9 +4,21 @@
 
 [context-action-monorepo](../../../../README.md) / [packages/webmcp/src](../README.md) / WebMCPToolScopeOptions
 
-# Interface: WebMCPToolScopeOptions
+# Interface: WebMCPToolScopeOptions\<TDocument\>
 
-Defined in: [packages/webmcp/src/index.ts:73](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L73)
+Defined in: [packages/webmcp/src/index.ts:149](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L149)
+
+Values that change browser capability registration and require a new scope.
+
+## Extends
+
+- [`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md)&lt;`TDocument`&gt;.[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md)
+
+## Type Parameters
+
+### TDocument
+
+`TDocument` = [`WebMCPDocument`](WebMCPDocument.md)
 
 ## Properties
 
@@ -14,9 +26,13 @@ Defined in: [packages/webmcp/src/index.ts:73](https://github.com/mineclover/cont
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:75](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L75)
+Defined in: [packages/webmcp/src/index.ts:118](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L118)
 
 Stable identity for the page agent session.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`sessionId`](WebMCPRegistrationConfig.md#sessionid)
 
 ***
 
@@ -24,19 +40,41 @@ Stable identity for the page agent session.
 
 > `readonly` **toolNames**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:77](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L77)
+Defined in: [packages/webmcp/src/index.ts:120](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L120)
 
 Explicit capability scope; an omitted list never exposes a whole registry.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`toolNames`](WebMCPRegistrationConfig.md#toolnames)
 
 ***
 
 ### document?
 
-> `readonly` `optional` **document?**: [`WebMCPDocument`](WebMCPDocument.md)
+> `readonly` `optional` **document?**: `TDocument`
 
-Defined in: [packages/webmcp/src/index.ts:79](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L79)
+Defined in: [packages/webmcp/src/index.ts:122](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L122)
 
 Defaults to the ambient browser document when it is available.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`document`](WebMCPRegistrationConfig.md#document)
+
+***
+
+### profile?
+
+> `readonly` `optional` **profile?**: [`WebMCPRuntimeProfile`](WebMCPRuntimeProfile.md)&lt;`TDocument`&gt;
+
+Defined in: [packages/webmcp/src/index.ts:124](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L124)
+
+Defaults to the current WebMCP draft profile.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`profile`](WebMCPRegistrationConfig.md#profile)
 
 ***
 
@@ -44,9 +82,13 @@ Defaults to the ambient browser document when it is available.
 
 > `readonly` `optional` **exposedTo?**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:81](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L81)
+Defined in: [packages/webmcp/src/index.ts:126](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L126)
 
 Optional cross-origin documents allowed to discover and execute these tools.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`exposedTo`](WebMCPRegistrationConfig.md#exposedto)
 
 ***
 
@@ -54,9 +96,13 @@ Optional cross-origin documents allowed to discover and execute these tools.
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/webmcp/src/index.ts:83](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L83)
+Defined in: [packages/webmcp/src/index.ts:128](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L128)
 
 Unregister all registered tools when aborted.
+
+#### Inherited from
+
+[`WebMCPRegistrationConfig`](WebMCPRegistrationConfig.md).[`signal`](WebMCPRegistrationConfig.md#signal)
 
 ***
 
@@ -64,25 +110,91 @@ Unregister all registered tools when aborted.
 
 > `readonly` `optional` **context?**: `Omit`\<`ToolCallContext`, `"source"` \| `"mode"` \| `"sessionId"`\>
 
-Defined in: [packages/webmcp/src/index.ts:84](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L84)
+Defined in: [packages/webmcp/src/index.ts:133](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L133)
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`context`](WebMCPExecutionOptions.md#context)
 
 ***
 
 ### callOptions?
 
-> `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"signal"` \| `"context"` \| `"idempotencyKey"`\>
+> `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"signal"` \| `"context"` \| `"idempotencyKey"` \| `"interaction"`\>
 
-Defined in: [packages/webmcp/src/index.ts:85](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L85)
+Defined in: [packages/webmcp/src/index.ts:134](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L134)
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`callOptions`](WebMCPExecutionOptions.md#calloptions)
 
 ***
 
-### beforeExecute?
+### ~~beforeExecute?~~
 
 > `readonly` `optional` **beforeExecute?**: [`WebMCPBeforeExecute`](../type-aliases/WebMCPBeforeExecute.md)
 
-Defined in: [packages/webmcp/src/index.ts:87](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L87)
+Defined in: [packages/webmcp/src/index.ts:136](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L136)
 
-Optional application hook; this is not a native WebMCP client bridge.
+#### Deprecated
+
+Post-execution compatibility notification.
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`beforeExecute`](WebMCPExecutionOptions.md#beforeexecute)
+
+***
+
+### afterExecute?
+
+> `readonly` `optional` **afterExecute?**: [`WebMCPAfterExecute`](../type-aliases/WebMCPAfterExecute.md)
+
+Defined in: [packages/webmcp/src/index.ts:138](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L138)
+
+Detached notification after canonical execution has committed.
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`afterExecute`](WebMCPExecutionOptions.md#afterexecute)
+
+***
+
+### onObserverError?
+
+> `readonly` `optional` **onObserverError?**: (`error`) => `void`
+
+Defined in: [packages/webmcp/src/index.ts:140](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L140)
+
+Receives detached post-execution notification failures.
+
+#### Parameters
+
+##### error
+
+`unknown`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`onObserverError`](WebMCPExecutionOptions.md#onobservererror)
+
+***
+
+### interaction?
+
+> `readonly` `optional` **interaction?**: `ToolInteractionHandler`
+
+Defined in: [packages/webmcp/src/index.ts:142](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L142)
+
+Canonical approval handler, called only after validation and policy ask.
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`interaction`](WebMCPExecutionOptions.md#interaction)
 
 ***
 
@@ -90,9 +202,13 @@ Optional application hook; this is not a native WebMCP client bridge.
 
 > `readonly` `optional` **errorMode?**: [`WebMCPErrorMode`](../type-aliases/WebMCPErrorMode.md)
 
-Defined in: [packages/webmcp/src/index.ts:89](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L89)
+Defined in: [packages/webmcp/src/index.ts:144](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L144)
 
-Default `result` preserves Context-Action's structured error envelope.
+Default `structured` preserves Context-Action's structured error envelope.
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`errorMode`](WebMCPExecutionOptions.md#errormode)
 
 ***
 
@@ -100,6 +216,30 @@ Default `result` preserves Context-Action's structured error envelope.
 
 > `readonly` `optional` **getIdempotencyKey?**: [`WebMCPIdempotencyKeyFactory`](../type-aliases/WebMCPIdempotencyKeyFactory.md)
 
-Defined in: [packages/webmcp/src/index.ts:91](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L91)
+Defined in: [packages/webmcp/src/index.ts:146](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L146)
 
 Domain-owned retry identity; omitted by default because WebMCP has no native call ID.
+
+#### Inherited from
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md).[`getIdempotencyKey`](WebMCPExecutionOptions.md#getidempotencykey)
+
+***
+
+### getExecutionOptions?
+
+> `readonly` `optional` **getExecutionOptions?**: (`invocation`) => [`WebMCPExecutionOptions`](WebMCPExecutionOptions.md)
+
+Defined in: [packages/webmcp/src/index.ts:152](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L152)
+
+Optional lazy execution configuration for UI frameworks with changing props.
+
+#### Parameters
+
+##### invocation
+
+[`WebMCPToolInvocation`](WebMCPToolInvocation.md)
+
+#### Returns
+
+[`WebMCPExecutionOptions`](WebMCPExecutionOptions.md)

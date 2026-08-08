@@ -66,11 +66,20 @@ const packages = [
       exports: ['createAISDKToolScope'],
     }],
   },
+  {
+    name: '@context-action/webmcp',
+    directory: 'packages/webmcp',
+    imports: [{
+      specifier: '@context-action/webmcp',
+      exports: ['createWebMCPToolScope'],
+    }],
+  },
 ];
 
 const consumerRuntimeDependencies = [
   { name: 'react', spec: 'react@19.2.8' },
   { name: 'ai', spec: 'ai@7.0.34' },
+  { name: 'typescript', spec: 'typescript@6.0.3' },
 ];
 
 const repositoryRoot = path.resolve(__dirname, '..');
@@ -160,6 +169,7 @@ for (const [name, exports] of Object.entries(expected)) {
     }
   }
 }
+
 console.log('published tool package consumer imports passed: ' + ${JSON.stringify(moduleNames.join(', '))});
 `;
 
@@ -168,6 +178,42 @@ console.log('published tool package consumer imports passed: ' + ${JSON.stringif
     stdio: 'inherit',
     env: { ...process.env },
   });
+}
+
+/** Verify the public declarations from the same tarballs a consumer installs.
+ * This specifically guards WebMCP's dependency on the newest tool-protocol
+ * contract rather than relying on workspace declaration resolution. */
+function runLocalConsumerTypecheck(consumerRoot) {
+  const sourcePath = path.join(consumerRoot, 'index.ts');
+  writeFileSync(sourcePath, `
+import type {
+  ToolCallOptions,
+  ToolDefinition,
+  ToolInteractionHandler,
+} from '@context-action/tool-protocol';
+import type { WebMCPToolScopeOptions } from '@context-action/webmcp';
+
+const interaction: ToolInteractionHandler = async () => 'approved';
+const callOptions: ToolCallOptions = { interaction };
+const definition: ToolDefinition = {
+  name: 'consumer-check',
+  description: 'Verifies packed public declarations.',
+  inputSchema: { type: 'object' },
+  transports: { webmcp: { untrustedContentHint: true } },
+};
+const scope: WebMCPToolScopeOptions = {
+  sessionId: 'consumer-check',
+  toolNames: [definition.name],
+  interaction,
+};
+void callOptions;
+void scope;
+`);
+  execFileSync(
+    process.execPath,
+    [path.join(consumerRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', sourcePath],
+    { cwd: consumerRoot, stdio: 'inherit', env: { ...process.env } },
+  );
 }
 
 function isolatedNpmEnvironment() {
@@ -225,6 +271,7 @@ function main() {
       },
     );
     runConsumerSmoke(consumerRoot, packageSpecs);
+    if (local) runLocalConsumerTypecheck(consumerRoot);
     process.stdout.write(
       `${local ? 'Local tarball' : 'Published'} tool package consumer smoke test passed: ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
     );

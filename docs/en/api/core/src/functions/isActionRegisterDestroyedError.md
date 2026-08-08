@@ -8,7 +8,7 @@
 
 > **isActionRegisterDestroyedError**(`error`): `error is ActionRegisterDestroyedError`
 
-Defined in: [packages/core/src/errors.ts:226](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L226)
+Defined in: [packages/core/src/errors.ts:236](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L236)
 
 ActionRegisterDestroyedError type guard.
 

@@ -1,6 +1,6 @@
 {
   "name": "@context-action/tool-protocol",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "type": "module",
   "description": "Framework-neutral action schemas and tool protocol contracts for Context-Action",
   "main": "dist/index.cjs",

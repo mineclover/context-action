@@ -6,7 +6,7 @@
 
 # Interface: WebMCPModelContext
 
-Defined in: [packages/webmcp/src/index.ts:40](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L40)
+Defined in: [packages/webmcp/src/index.ts:41](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L41)
 
 Structural API shape so this package has no dependency on experimental DOM typings.
 
@@ -16,7 +16,7 @@ Structural API shape so this package has no dependency on experimental DOM typin
 
 > **registerTool**(`tool`, `options?`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/webmcp/src/index.ts:41](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L41)
+Defined in: [packages/webmcp/src/index.ts:42](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L42)
 
 #### Parameters
 

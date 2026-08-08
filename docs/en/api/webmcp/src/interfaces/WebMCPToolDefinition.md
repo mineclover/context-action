@@ -6,7 +6,7 @@
 
 # Interface: WebMCPToolDefinition
 
-Defined in: [packages/webmcp/src/index.ts:18](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L18)
+Defined in: [packages/webmcp/src/index.ts:19](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L19)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/webmcp/src/index.ts:18](https://github.com/mineclover/cont
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:19](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L19)
+Defined in: [packages/webmcp/src/index.ts:20](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L20)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/webmcp/src/index.ts:19](https://github.com/mineclover/cont
 
 > `readonly` `optional` **title?**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:20](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L20)
+Defined in: [packages/webmcp/src/index.ts:21](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L21)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/webmcp/src/index.ts:20](https://github.com/mineclover/cont
 
 > `readonly` **description**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:21](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L21)
+Defined in: [packages/webmcp/src/index.ts:22](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L22)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/webmcp/src/index.ts:21](https://github.com/mineclover/cont
 
 > `readonly` **inputSchema**: `JSONSchema`
 
-Defined in: [packages/webmcp/src/index.ts:22](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L22)
+Defined in: [packages/webmcp/src/index.ts:23](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L23)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/webmcp/src/index.ts:22](https://github.com/mineclover/cont
 
 > `readonly` `optional` **annotations?**: [`WebMCPAnnotations`](WebMCPAnnotations.md)
 
-Defined in: [packages/webmcp/src/index.ts:23](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L23)
+Defined in: [packages/webmcp/src/index.ts:24](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L24)
 
 ***
 
@@ -54,9 +54,9 @@ Defined in: [packages/webmcp/src/index.ts:23](https://github.com/mineclover/cont
 
 > `readonly` **execute**: (`input`) => `Promise`&lt;`unknown`&gt;
 
-Defined in: [packages/webmcp/src/index.ts:25](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L25)
+Defined in: [packages/webmcp/src/index.ts:26](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L26)
 
-Current WebMCP Draft callback contract.
+Current WebMCP Draft callback shape: exactly one input object.
 
 #### Parameters
 

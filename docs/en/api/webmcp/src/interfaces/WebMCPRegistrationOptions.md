@@ -6,7 +6,7 @@
 
 # Interface: WebMCPRegistrationOptions
 
-Defined in: [packages/webmcp/src/index.ts:34](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L34)
+Defined in: [packages/webmcp/src/index.ts:35](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L35)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/webmcp/src/index.ts:34](https://github.com/mineclover/cont
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/webmcp/src/index.ts:35](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L35)
+Defined in: [packages/webmcp/src/index.ts:36](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L36)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [packages/webmcp/src/index.ts:35](https://github.com/mineclover/cont
 
 > `readonly` `optional` **exposedTo?**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:36](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L36)
+Defined in: [packages/webmcp/src/index.ts:37](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L37)

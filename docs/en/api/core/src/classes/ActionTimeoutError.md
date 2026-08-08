@@ -6,7 +6,7 @@
 
 # Class: ActionTimeoutError
 
-Defined in: [packages/core/src/errors.ts:180](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L180)
+Defined in: [packages/core/src/errors.ts:190](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L190)
 
 Raised when a dispatch exceeds its configured wall-clock timeout.
 The underlying handler receives an aborted controller signal and the internal
@@ -23,7 +23,7 @@ this error.
 
 > **new ActionTimeoutError**(`action`, `timeout`): `ActionTimeoutError`
 
-Defined in: [packages/core/src/errors.ts:183](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L183)
+Defined in: [packages/core/src/errors.ts:193](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L193)
 
 #### Parameters
 
@@ -49,7 +49,7 @@ Type parameter **ActionTimeoutError**
 
 > **name**: `string` = `'ActionTimeoutError'`
 
-Defined in: [packages/core/src/errors.ts:181](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L181)
+Defined in: [packages/core/src/errors.ts:191](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L191)
 
 #### Overrides
 
@@ -61,7 +61,7 @@ Defined in: [packages/core/src/errors.ts:181](https://github.com/mineclover/cont
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/errors.ts:184](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L184)
+Defined in: [packages/core/src/errors.ts:194](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L194)
 
 ***
 
@@ -69,4 +69,4 @@ Defined in: [packages/core/src/errors.ts:184](https://github.com/mineclover/cont
 
 > `readonly` **timeout**: `number`
 
-Defined in: [packages/core/src/errors.ts:185](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L185)
+Defined in: [packages/core/src/errors.ts:195](https://github.com/mineclover/context-action/blob/main/packages/core/src/errors.ts#L195)

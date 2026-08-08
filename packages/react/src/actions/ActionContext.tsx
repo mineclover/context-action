@@ -531,7 +531,7 @@ export function createActionContext<
   const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
-    config?: GuardConfig<T[K]>,
+    config?: HandlerConfig<T[K]>,
   ): void => {
     useActionHandler(action, handler as never, config, 'result');
   };
@@ -539,7 +539,7 @@ export function createActionContext<
   const useActionGuard = <K extends ActionNames<T>>(
     action: K,
     handler: ActionGuardHandler<T[K]>,
-    config?: HandlerConfig<T[K]>,
+    config?: GuardConfig<T[K]>,
   ): void => {
     useActionHandler(action, handler as never, config, 'guard');
   };
@@ -679,5 +679,5 @@ export function createActionContext<
     useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,
-  };
+  } satisfies ActionContextReturn<T, TResultMap>;
 }

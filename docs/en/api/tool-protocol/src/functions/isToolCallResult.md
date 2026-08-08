@@ -8,7 +8,7 @@
 
 > **isToolCallResult**&lt;`TResult`&gt;(`value`): `value is ToolCallResult<TResult>`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:490](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L490)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:501](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L501)
 
 Runtime guard for JSON returned by the canonical tools/call boundary.
 
