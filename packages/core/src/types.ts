@@ -554,6 +554,12 @@ export interface HandlerRegistration<T = unknown, R = void> {
   
   /** Unique identifier for this handler registration */
   id: string;
+
+  /**
+   * Runtime execution role. Effect handlers can control flow but never add a
+   * value to result collection; result and legacy handlers may do both.
+   */
+  role?: 'effect' | 'result' | 'legacy';
 }
 
 /** The lifecycle state recorded for one handler invocation. */
@@ -1016,6 +1022,20 @@ export interface ExecutionResult<R = void> {
 
     /** Handler pipeline duration in milliseconds. */
     pipelineDuration: number;
+
+    /** Backoff time consumed between whole-action retry attempts. */
+    retryDelayDuration?: number;
+
+    /** Time spent aggregating raw handler values into the public result. */
+    resultProcessingDuration?: number;
+
+    /** Per-attempt pipeline timing, including attempts that are retried. */
+    attempts?: Array<{
+      startTime: number;
+      endTime: number;
+      duration: number;
+      outcome: 'succeeded' | 'failed' | 'retried';
+    }>;
     
     /** Number of handlers that were executed */
     handlersExecuted: number;

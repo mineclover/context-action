@@ -10,6 +10,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - Move React-oriented helper exports (`createActionHandler`, `ReactDevUtils`,
   `ReactActionError`, and `isReactActionError`) to `@context-action/react`.
   Core remains a framework-neutral action runtime.
+- Sequential handlers now await completion by default. To retain the prior
+  start-and-continue behavior, set `scheduling: 'start-and-continue'` and
+  explicitly choose an `errorPolicy` (normally `'collect'`).
 
 ## [0.9.0] (2026-07-21)
 

@@ -4,12 +4,14 @@ import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
 import {
   ActionRegisterDestroyedError,
+  ActionResultProcessingError,
   ActionTimeoutError,
   ActionValidationError,
 } from './errors.js';
 import { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 import {
   ActionHandler,
+  ActionNames,
   ActionHandlerStats,
   ActionPayloadMap,
   ActionRegisterConfig,
@@ -36,6 +38,12 @@ import {
 
 type DispatchHandlerPromises = Set<Promise<unknown>>;
 
+type RetryTelemetry = {
+  pipelineDuration: number;
+  retryDelayDuration: number;
+  attempts: NonNullable<ExecutionResult<unknown>['execution']['attempts']>;
+};
+
 type TimingGuardAdmission = {
   reason?: 'Debounced execution' | 'Throttled execution';
   aborted: boolean;
@@ -49,13 +57,6 @@ type DispatchPlan = {
   throttleMs?: number;
   executionMode: ExecutionMode;
 };
-
-class ActionResultProcessingError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ActionResultProcessingError';
-  }
-}
 
 const RESERVED_PROXY_KEYS = new Set<ReservedActionKey>([
   'then',
@@ -315,22 +316,22 @@ export class ActionRegister<
    * 
    * @public
    */
-  register<K extends keyof T & keyof TResultMap>(
+  register<K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
     config?: HandlerConfig<T[K]>
   ): UnregisterFunction;
-  register<K extends Exclude<keyof T, keyof TResultMap>, R = void>(
+  register<K extends Exclude<ActionNames<T>, keyof TResultMap>, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ): UnregisterFunction;
-  register<K extends keyof T, R = void>(
+  register<K extends ActionNames<T>, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]> = {}
   ): UnregisterFunction {
-    return this.registerEffect(action, handler, config);
+    return this.registerWithRole(action, handler, config, 'legacy');
   }
 
   /**
@@ -339,15 +340,12 @@ export class ActionRegister<
    *
    * @public
    */
-  registerEffect<K extends keyof T, R = void>(
+  registerEffect<K extends ActionNames<T>, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]> = {}
   ): UnregisterFunction {
-    this.assertStringActionKey(action);
-    this.assertAcceptingWork();
-    const handlerId = config.id || this.generateHandlerId(action);
-    return this._performRegistrationSync(action, handler, config, handlerId);
+    return this.registerWithRole(action, handler, config, 'effect');
   }
 
   /**
@@ -355,12 +353,24 @@ export class ActionRegister<
    *
    * @public
    */
-  registerResult<K extends keyof T & keyof TResultMap>(
+  registerResult<K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
     config?: HandlerConfig<T[K]>,
   ): UnregisterFunction {
-    return this.registerEffect(action, handler, config);
+    return this.registerWithRole(action, handler, config ?? {}, 'result');
+  }
+
+  private registerWithRole<K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config: HandlerConfig<T[K]>,
+    role: 'effect' | 'result' | 'legacy',
+  ): UnregisterFunction {
+    this.assertStringActionKey(action);
+    this.assertAcceptingWork();
+    const handlerId = config.id || this.generateHandlerId(action);
+    return this._performRegistrationSync(action, handler, config, handlerId, role);
   }
 
   /**
@@ -482,7 +492,8 @@ export class ActionRegister<
     action: K,
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig<T[K]>,
-    handlerId: string
+    handlerId: string,
+    role: 'effect' | 'result' | 'legacy' = 'legacy',
   ): UnregisterFunction {
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K], R> = {
@@ -506,6 +517,7 @@ export class ActionRegister<
         metadata: config.metadata,
       } as ResolvedHandlerConfig<T[K]>,
       id: handlerId,
+      role,
     };
     
     // Initialize pipeline if it doesn't exist
@@ -633,10 +645,10 @@ export class ActionRegister<
    * @public
    */
   // Overload for actions with payload (more specific)
-  dispatch<K extends keyof T>(action: K, ...args: DispatchArgs<T[K]>): Promise<void>;
+  dispatch<K extends ActionNames<T>>(action: K, ...args: DispatchArgs<T[K]>): Promise<void>;
   
   // Implementation (least specific)
-  dispatch<K extends keyof T>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
+  dispatch<K extends ActionNames<T>>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
     this.assertStringActionKey(action);
     const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
     if (this.lifecycleState !== 'active') {
@@ -729,7 +741,8 @@ export class ActionRegister<
     options: DispatchOptions | undefined,
     attemptState: { count: number },
     shouldRetryResult?: (result: R) => boolean,
-    canRetry: () => boolean = () => true
+    canRetry: () => boolean = () => true,
+    telemetry?: RetryTelemetry,
   ): Promise<R> {
     const configuredAttempts = options?.retryOnError?.maxAttempts ?? 1;
     const maxAttempts = Number.isFinite(configuredAttempts)
@@ -739,30 +752,55 @@ export class ActionRegister<
 
     while (attemptState.count < maxAttempts) {
       attemptState.count += 1;
+      const attemptStartedAt = Date.now();
 
       try {
         const result = await operation();
         const shouldRetry = shouldRetryResult?.(result) ?? false;
+        const canRetryAttempt = (
+          shouldRetry &&
+          attemptState.count < maxAttempts &&
+          !options?.signal?.aborted &&
+          canRetry()
+        );
+        const attemptEndedAt = Date.now();
+        telemetry?.attempts.push({
+          startTime: attemptStartedAt,
+          endTime: attemptEndedAt,
+          duration: attemptEndedAt - attemptStartedAt,
+          outcome: canRetryAttempt ? 'retried' : 'succeeded',
+        });
+        if (telemetry) telemetry.pipelineDuration += attemptEndedAt - attemptStartedAt;
         if (
-          !shouldRetry ||
-          attemptState.count >= maxAttempts ||
-          options?.signal?.aborted ||
-          !canRetry()
+          !canRetryAttempt
         ) {
           return result;
         }
       } catch (error) {
-        if (
+        const attemptEndedAt = Date.now();
+        const canRetryAttempt = !(
           error instanceof ActionValidationError ||
           attemptState.count >= maxAttempts ||
           options?.signal?.aborted ||
           !canRetry()
+        );
+        telemetry?.attempts.push({
+          startTime: attemptStartedAt,
+          endTime: attemptEndedAt,
+          duration: attemptEndedAt - attemptStartedAt,
+          outcome: canRetryAttempt ? 'retried' : 'failed',
+        });
+        if (telemetry) telemetry.pipelineDuration += attemptEndedAt - attemptStartedAt;
+        if (
+          !canRetryAttempt
         ) {
           throw error;
         }
       }
 
+      const retryStartedAt = Date.now();
       await this.waitForRetry(retryDelay, options?.signal);
+      if (telemetry) telemetry.retryDelayDuration += Date.now() - retryStartedAt;
     }
 
     // The loop always returns or throws. This protects the generic return type
@@ -1301,15 +1339,15 @@ export class ActionRegister<
    * 
    * @public
    */
-  dispatchWithResult<K extends keyof T & keyof TResultMap>(
+  dispatchWithResult<K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<ActionResult<TResultMap, K>>>;
-  dispatchWithResult<K extends Exclude<keyof T, keyof TResultMap>, R = void>(
+  dispatchWithResult<K extends Exclude<ActionNames<T>, keyof TResultMap>, R = void>(
     action: K,
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>>;
-  dispatchWithResult<K extends keyof T, R = ActionResult<TResultMap, K>>(
+  dispatchWithResult<K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>> {
@@ -1326,6 +1364,11 @@ export class ActionRegister<
     let validation: ExecutionResult<R>['validation'];
     let admissionEndedAt = dispatchStartTime;
     let pipelineStartedAt: number | undefined;
+    const retryTelemetry: RetryTelemetry = {
+      pipelineDuration: 0,
+      retryDelayDuration: 0,
+      attempts: [],
+    };
     const plan = this.resolveDispatchPlan(action, options);
     const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
 
@@ -1353,16 +1396,26 @@ export class ActionRegister<
         }, timeoutScope.options, attemptState, result => (
           result.outcome === 'failed' &&
           this.getHandlerCount(action) > 0
-        ), () => this.getHandlerCount(action) > 0);
+        ), () => this.getHandlerCount(action) > 0, retryTelemetry);
 
+      const resultProcessingStartedAt = Date.now();
+      const result = this.processResults(
+        rawExecution.results,
+        rawExecution.terminated,
+        rawExecution.terminated ? rawExecution.result : undefined,
+        options?.result,
+      );
+      const resultProcessingDuration = Date.now() - resultProcessingStartedAt;
       return {
         ...rawExecution,
-        result: this.processResults(
-          rawExecution.results,
-          rawExecution.terminated,
-          rawExecution.terminated ? rawExecution.result : undefined,
-          options?.result,
-        ),
+        result,
+        execution: {
+          ...rawExecution.execution,
+          pipelineDuration: retryTelemetry.pipelineDuration,
+          retryDelayDuration: retryTelemetry.retryDelayDuration,
+          resultProcessingDuration,
+          attempts: retryTelemetry.attempts,
+        },
       };
     };
 
@@ -1711,6 +1764,7 @@ export class ActionRegister<
     autoAbortController?: AbortController,
     autoAbortOptions?: { allowHandlerAbort?: boolean },
     isolatedState?: PipelineControllerState<T[K], any>,
+    collectResults = true,
   ): PipelineController<T[K], any> {
     const controller = {} as PipelineController<T[K], any>;
 
@@ -1736,13 +1790,7 @@ export class ActionRegister<
     };
 
     controller.modifyPayload = (modifier: (payload: T[K]) => T[K]) => {
-      try {
-        state.payload = modifier(state.payload);
-      } catch (modificationError) {
-        // 🔧 Fix: Don't let payload modification errors crash the pipeline
-        this.log('Payload modification error', modificationError, 'warn');
-        // Keep original payload on modification error
-      }
+      state.payload = modifier(state.payload);
     };
 
     controller.getPayload = () => state.payload;
@@ -1753,16 +1801,16 @@ export class ActionRegister<
 
     controller.return = (result: any) => {
       state.terminated = true;
-      state.terminationResult = result;
+      state.terminationResult = collectResults ? result : undefined;
       if (!isolatedState) {
         context.terminated = true;
-        context.terminationResult = result;
+        context.terminationResult = collectResults ? result : undefined;
       }
       return result;
     };
 
     controller.setResult = (result: any) => {
-      state.results.push(result);
+      if (collectResults) state.results.push(result);
     };
 
     controller.getResults = () => {
@@ -1933,7 +1981,7 @@ export class ActionRegister<
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): Promise<void> {
     const createController = (
-      _registration: HandlerRegistration<T[K], any>,
+      registration: HandlerRegistration<T[K], any>,
       _index: number,
       state?: PipelineControllerState<T[K], any>,
     ): PipelineController<T[K], any> => {
@@ -1942,6 +1990,7 @@ export class ActionRegister<
         autoAbortController,
         autoAbortOptions,
         state,
+        registration.role !== 'effect',
       );
     };
 
@@ -1997,7 +2046,7 @@ export class ActionRegister<
 
         this.log(`One-time handler removed: ${String(action)}`, {
           handlerId: registration.id,
-          remainingHandlers: this.getHandlerCount(action)
+          remainingHandlers: this.pipelines.get(action)?.length ?? 0
         });
       }
     });
@@ -2015,7 +2064,7 @@ export class ActionRegister<
    * 
    * @public
    */
-  getHandlerCount<K extends keyof T>(action: K): number {
+  getHandlerCount<K extends ActionNames<T>>(action: K): number {
     const pipeline = this.pipelines.get(action);
     return pipeline ? pipeline.length : 0;
   }
@@ -2031,7 +2080,7 @@ export class ActionRegister<
    * 
    * @public
    */
-  hasHandlers<K extends keyof T>(action: K): boolean {
+  hasHandlers<K extends ActionNames<T>>(action: K): boolean {
     return this.getHandlerCount(action) > 0;
   }
 
@@ -2057,7 +2106,7 @@ export class ActionRegister<
    * 
    * @public
    */
-  clearAction<K extends keyof T>(action: K): void {
+  clearAction<K extends ActionNames<T>>(action: K): void {
     const pipeline = this.pipelines.get(action);
     if (pipeline) {
       [...pipeline].forEach(registration => {
@@ -2079,7 +2128,7 @@ export class ActionRegister<
    */
   clearAll(): void {
     [...this.pipelines.keys()].forEach(action => {
-      this.clearAction(action);
+      this.clearAction(action as ActionNames<T>);
     });
 
     this.pipelines.clear();
@@ -2129,7 +2178,7 @@ export class ActionRegister<
    * @param action Action name to get statistics for
    * @returns Detailed handler statistics
    */
-  getActionStats<K extends keyof T>(action: K): ActionHandlerStats<T> | null {
+  getActionStats<K extends ActionNames<T>>(action: K): ActionHandlerStats<T> | null {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) {
       return null;
@@ -2173,7 +2222,7 @@ export class ActionRegister<
    */
   getAllActionStats(): Array<ActionHandlerStats<T>> {
     return Array.from(this.pipelines.keys())
-      .map(action => this.getActionStats(action))
+      .map(action => this.getActionStats(action as ActionNames<T>))
       .filter((stats): stats is ActionHandlerStats<T> => stats !== null);
   }
 
@@ -2197,7 +2246,7 @@ export class ActionRegister<
    * @param action Action name
    * @param mode Execution mode to set
    */
-  setActionExecutionMode<K extends keyof T>(action: K, mode: ExecutionMode): void {
+  setActionExecutionMode<K extends ActionNames<T>>(action: K, mode: ExecutionMode): void {
     this.actionExecutionModes.set(action, mode);
     
     if (this.isDebugMode) {
@@ -2211,7 +2260,7 @@ export class ActionRegister<
    * @param action Action name
    * @returns Execution mode for the action, or default if not set
    */
-  getActionExecutionMode<K extends keyof T>(action: K): ExecutionMode {
+  getActionExecutionMode<K extends ActionNames<T>>(action: K): ExecutionMode {
     return this.actionExecutionModes.get(action) || this.executionMode;
   }
 
@@ -2220,7 +2269,7 @@ export class ActionRegister<
    * 
    * @param action Action name
    */
-  removeActionExecutionMode<K extends keyof T>(action: K): void {
+  removeActionExecutionMode<K extends ActionNames<T>>(action: K): void {
     this.actionExecutionModes.delete(action);
     
     if (this.isDebugMode) {
@@ -2265,7 +2314,7 @@ export class ActionRegister<
       if (this.removeRegistration(action, registration)) {
         this.log(`Handler unregistered: ${String(action)}`, {
           handlerId,
-          remainingHandlers: this.getHandlerCount(action),
+          remainingHandlers: this.pipelines.get(action)?.length ?? 0,
           actionRemoved: !this.pipelines.has(action)
         });
       }

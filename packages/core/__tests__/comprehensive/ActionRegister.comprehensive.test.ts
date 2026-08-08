@@ -1036,21 +1036,22 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
     });
 
     describe('Payload modification errors', () => {
-      it('should handle errors in payload modification', async () => {
+      it('routes payload modification failures through the handler error policy', async () => {
         let finalPayload: any;
 
         actionRegister.register('testAction', (payload, controller) => {
           controller.modifyPayload(() => {
             throw new Error('Payload modification error');
           });
-        }, { priority: 20 });
+        }, { priority: 20, errorPolicy: 'fatal' });
 
         actionRegister.register('testAction', (payload) => {
           finalPayload = payload;
         }, { priority: 10 });
 
-        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 })).resolves.not.toThrow();
-        expect(finalPayload).toEqual({ value: 'test', count: 1 }); // Original payload preserved
+        await expect(actionRegister.dispatch('testAction', { value: 'test', count: 1 }))
+          .rejects.toThrow('Payload modification error');
+        expect(finalPayload).toBeUndefined();
       });
     });
 

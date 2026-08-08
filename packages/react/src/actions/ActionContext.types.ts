@@ -6,6 +6,7 @@
  */
 
 import {
+  ActionNames,
   ActionRegister,
   ActionRegisterConfig,
   ActionHandler,
@@ -86,19 +87,19 @@ export interface ActionContextReturn<
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T, TResultMap>;
   useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
-  useActionHandler: <K extends keyof T, R = ActionResult<TResultMap, K>>(
+  useActionHandler: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
     handler: K extends keyof TResultMap
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  useActionEffectHandler: <K extends keyof T, R = void>(
+  useActionEffectHandler: <K extends ActionNames<T>, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  useActionResultHandler: <K extends keyof T & keyof TResultMap>(
+  useActionResultHandler: <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
     config?: HandlerConfig<T[K]>

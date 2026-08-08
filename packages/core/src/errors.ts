@@ -28,6 +28,22 @@ export interface ZodErrorLike {
   flatten?: () => unknown;
 }
 
+/** Raised when dispatch result aggregation options cannot be processed. */
+export class ActionResultProcessingError extends Error {
+  override name = 'ActionResultProcessingError';
+
+  constructor(message: string) {
+    super(message);
+    Object.setPrototypeOf(this, ActionResultProcessingError.prototype);
+  }
+}
+
+export function isActionResultProcessingError(
+  error: unknown,
+): error is ActionResultProcessingError {
+  return error instanceof ActionResultProcessingError;
+}
+
 // ============================================
 // Action Validation Error
 // ============================================

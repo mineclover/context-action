@@ -6,13 +6,15 @@
  */
 import type {
   ActionHandler,
+  ActionNames,
   ActionPayloadMap,
   ActionRegister,
   HandlerConfig,
+  ResolvedHandlerConfig,
   UnregisterFunction,
 } from '@context-action/core';
 
-export function createActionHandler<T extends ActionPayloadMap, K extends keyof T>(
+export function createActionHandler<T extends ActionPayloadMap, K extends ActionNames<T>>(
   registry: ActionRegister<T>,
   action: K,
   handler: ActionHandler<T[K]>,
@@ -21,9 +23,9 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
   register: () => UnregisterFunction;
   unregister: () => void;
   registerWithCleanup: () => () => void;
-  config: Required<HandlerConfig<T[K]>>;
+  config: ResolvedHandlerConfig<T[K]>;
 } {
-  const finalConfig: Required<HandlerConfig<T[K]>> = {
+  const finalConfig: ResolvedHandlerConfig<T[K]> = {
     priority: config?.priority ?? 0,
     id: config?.id ?? `react_${String(action)}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     blocking: config?.blocking ?? false,
@@ -32,8 +34,8 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
     once: config?.once ?? false,
     debounce: config?.debounce ?? undefined,
     throttle: config?.throttle ?? undefined,
-    replaceExisting: true,
-  } as Required<HandlerConfig<T[K]>>;
+    replaceExisting: config?.replaceExisting ?? true,
+  };
   let unregister: UnregisterFunction | undefined;
 
   const unregisterCurrent = (): void => {
@@ -86,7 +88,7 @@ export const ReactDevUtils = {
     const registryInfo = registry.getRegistryInfo();
     let reactHandlers = 0;
     registry.getRegisteredActions().forEach((action) => {
-      registry.getActionStats(action)?.handlersByPriority.forEach((group) => {
+      registry.getActionStats(action as ActionNames<T>)?.handlersByPriority.forEach((group) => {
         group.handlers.forEach((handler) => {
           if (handler.id.includes('react')) reactHandlers += 1;
         });

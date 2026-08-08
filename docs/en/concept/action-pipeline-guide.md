@@ -1021,6 +1021,12 @@ queue slot; admitted executions are still serialized by the queue. Therefore,
 `throttle` limits admission frequency, not the wall-clock start time of a
 handler after queue wait.
 
+Handler eligibility is snapshotted when `dispatch()` is called. A handler
+unregistered or replaced while that dispatch is debounced or queued can still
+run for that already-admitted request; later dispatches see the updated
+pipeline. `once` handlers are rechecked before a retry so they are not run
+again after being consumed.
+
 ### 5. Memory Management
 
 ```typescript

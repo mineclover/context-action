@@ -126,12 +126,104 @@ describe('ActionRegister - Type Safety Tests', () => {
     it('accepts only string action keys at the public boundary', () => {
       const numericRegister = new ActionRegister<NonStringKeyActions>();
 
+      const invalidCalls = () => {
+        // @ts-expect-error action keys must be strings at compile time
+        numericRegister.dispatch(1);
+        // @ts-expect-error action keys must be strings at compile time
+        numericRegister.registerEffect(1, () => {});
+      };
+      expect(invalidCalls).toBeInstanceOf(Function);
+
       // Runtime guards also protect JavaScript callers and unsafe casts.
       expect(() => numericRegister.registerEffect(1 as never, () => {}))
         .toThrow('Action keys must be strings');
       expect(() => numericRegister.dispatch(1 as never))
         .toThrow('Action keys must be strings');
       numericRegister.destroy();
+    });
+
+    it('keeps effect return values and controller results out of mapped results', async () => {
+      interface SaveActions extends ActionPayloadMap {
+        save: { id: string };
+      }
+      interface SaveResults {
+        save: { accepted: boolean };
+      }
+      const register = new ActionRegister<SaveActions, SaveResults>();
+
+      register.registerEffect<'save', string>('save', (_payload, controller) => {
+        controller.setResult('effect-local-result' as never);
+        return 'effect-return-value';
+      });
+      register.registerResult('save', () => ({ accepted: true }));
+
+      const execution = await register.dispatchWithResult('save', { id: 'save-1' }, {
+        result: { collect: true, strategy: 'all' },
+      });
+
+      expect(execution.results).toEqual([{ accepted: true }]);
+      expect(execution.result).toEqual([{ accepted: true }]);
+      register.destroy();
+    });
+
+    it('fails a dispatch when a fatal start-and-continue handler rejects', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      const lowerPriorityHandler = jest.fn();
+
+      register.register('stringAction', async () => {
+        throw new Error('fatal background failure');
+      }, {
+        priority: 10,
+        scheduling: 'start-and-continue',
+        errorPolicy: 'fatal',
+      });
+      register.register('stringAction', lowerPriorityHandler, { priority: 0 });
+
+      await expect(register.dispatch('stringAction', 'value'))
+        .rejects.toThrow('fatal background failure');
+      expect(lowerPriorityHandler).toHaveBeenCalledTimes(1);
+      register.destroy();
+    });
+
+    it('does not report a losing race handler error on a successful winner', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      register.register('stringAction', () => 'winner', { priority: 10 });
+      register.register('stringAction', () => {
+        throw new Error('loser failure');
+      }, { priority: 0 });
+
+      const execution = await register.dispatchWithResult('stringAction', 'value', {
+        executionMode: 'race',
+      });
+
+      expect(execution.outcome).toBe('completed');
+      expect(execution.errors).toEqual([]);
+      expect(execution.result).toBe('winner');
+      register.destroy();
+    });
+
+    it('reports every retry attempt and retry delay in execution telemetry', async () => {
+      const register = new ActionRegister<TypeSafetyActions>();
+      let attempts = 0;
+      register.register('stringAction', () => {
+        attempts += 1;
+        if (attempts === 1) throw new Error('retry once');
+        return 'recovered';
+      }, { errorPolicy: 'fatal' });
+
+      const execution = await register.dispatchWithResult('stringAction', 'value', {
+        retryOnError: { maxAttempts: 2, delay: 1 },
+      });
+
+      expect(execution.execution.attempts).toHaveLength(2);
+      expect(execution.execution.attempts?.map(attempt => attempt.outcome))
+        .toEqual(['retried', 'succeeded']);
+      expect(execution.execution.pipelineDuration).toBeGreaterThanOrEqual(
+        execution.execution.attempts?.reduce((total, attempt) => total + attempt.duration, 0) ?? 0,
+      );
+      expect(execution.execution.retryDelayDuration).toBeGreaterThanOrEqual(0);
+      expect(execution.execution.resultProcessingDuration).toBeGreaterThanOrEqual(0);
+      register.destroy();
     });
 
     it('should enforce correct payload types for string actions', async () => {

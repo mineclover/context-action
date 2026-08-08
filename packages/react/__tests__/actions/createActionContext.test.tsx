@@ -72,6 +72,36 @@ describe('createActionContext', () => {
     expect(EffectComponent).toBeDefined();
   });
 
+  it('does not collect values returned by React effect handlers', async () => {
+    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedEffectRuntime');
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <MappedContext.Provider>{children}</MappedContext.Provider>
+    );
+
+    const { result } = renderHook(() => {
+      MappedContext.useActionEffectHandler('login', () => 'audit-only');
+      MappedContext.useActionResultHandler('login', payload => ({
+        sessionId: payload.username,
+      }));
+      return MappedContext.useActionDispatchWithResult();
+    }, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(result.current.dispatchWithResult).toBeDefined();
+    });
+    let execution: ExecutionResult<UserActionResults['login']> | undefined;
+    await act(async () => {
+      execution = await result.current.dispatchWithResult(
+        'login',
+        { username: 'user', password: 'secret' },
+        { result: { collect: true, strategy: 'all' } },
+      );
+    });
+
+    expect(execution?.results).toEqual([{ sessionId: 'user' }]);
+    expect(execution?.result).toEqual([{ sessionId: 'user' }]);
+  });
+
   it('should provide type-safe action dispatching', async () => {
     const AppActions = createActionContext<UserActions>('AppActions');
     let receivedPayload: any = null;

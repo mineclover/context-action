@@ -3,9 +3,11 @@ export { ActionGuard } from './action-guard.js';
 // Validation Errors
 export {
   ActionRegisterDestroyedError,
+  ActionResultProcessingError,
   ActionTimeoutError,
   ActionValidationError,
   isActionRegisterDestroyedError,
+  isActionResultProcessingError,
   isActionTimeoutError,
   isActionValidationError,
 } from './errors.js';
@@ -33,5 +35,6 @@ export type {
   PipelineController,
   ProxyActionKey,
   ReservedActionKey,
+  ResolvedHandlerConfig,
   UnregisterFunction,
 } from './types.js';

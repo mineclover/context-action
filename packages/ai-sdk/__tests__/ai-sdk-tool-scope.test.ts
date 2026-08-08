@@ -1,5 +1,6 @@
 import {
   AISDKToolExecutionError,
+  createAISDKTools,
   createAISDKToolScope,
 } from '../src/index';
 import type {
@@ -274,5 +275,15 @@ describe('createAISDKToolScope', () => {
     await expect(scope.toolApproval?.({
       toolCall: { toolName: 'remove', input: { id: 'asset-2' } },
     })).resolves.toBe('not-applicable');
+  });
+
+  it('rejects approval policies passed to the tools-only helper', () => {
+    expect(() => createAISDKTools(createManager(), {
+      sessionId: 'session-1',
+      toolNames: ['remove'],
+      needsApproval: true,
+      // JavaScript callers can still provide this field, so cover the runtime guard.
+    } as unknown as Parameters<typeof createAISDKTools>[1]))
+      .toThrow('createAISDKTools cannot preserve toolApproval');
   });
 });

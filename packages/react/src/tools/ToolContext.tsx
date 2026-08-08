@@ -396,7 +396,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 
     // Create dispatch function (singleton)
     const dispatch = useMemo(() => {
-      return <K extends keyof TPayloadMap>(
+      return <K extends Extract<keyof TPayloadMap, string>>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DispatchOptions
@@ -413,7 +413,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         const trackedPromise = dispatchLifecycle.run(
           [options?.signal],
           signal => register.dispatch(
-            toolName,
+            toolName as Extract<keyof TPayloadMap, string>,
             ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
           )
         );
@@ -655,7 +655,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             dispatchLifecycle.run(
               [options?.signal, timeoutState?.signal],
                 signal => register.dispatchWithResult(
-                  toolName,
+                  toolName as Extract<keyof TPayloadMap, string>,
                   ...([payload, withProviderDispatchSignal({ signal }, signal)] as DispatchArgs<TPayloadMap[typeof toolName]>)
                 )
             );
@@ -1079,7 +1079,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const sequenceRef = useRef(0);
 
     return useMemo(() => (
-      <K extends keyof TPayloadMap>(
+      <K extends Extract<keyof TPayloadMap, string>>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DirectToolCallOptions
@@ -1110,7 +1110,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * Hook to register tool handlers
    * Handler is kept up-to-date via ref to always call the latest version
    */
-  const useToolHandler = <K extends keyof TSchema, R = void>(
+  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
     handler: ActionHandler<TPayloadMap[K], R>,
     handlerConfig?: HandlerConfig<TPayloadMap[K]>
@@ -1158,7 +1158,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
       const register = actionRegisterRef.current;
       if (!register) return;
       const generation = ++effectGenerationRef.current;
-      const normalizedToolName = toolName as unknown as K & keyof TPayloadMap;
+      const normalizedToolName = toolName as K;
       let lease = registrationRef.current;
 
       if (lease && (
@@ -1252,7 +1252,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     }, []);
 
     const dispatch = useMemo(() => {
-      return <K extends keyof TPayloadMap>(
+      return <K extends Extract<keyof TPayloadMap, string>>(
         toolName: K,
         payload: TPayloadMap[K],
         options?: DispatchOptions
@@ -1268,7 +1268,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         const trackedPromise = dispatchLifecycle.run(
           [options?.signal, scopeController.signal],
           signal => register.dispatch(
-            toolName,
+            toolName as Extract<keyof TPayloadMap, string>,
             ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
           )
         ).finally(() => {
@@ -1280,7 +1280,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     }, [actionRegisterRef, dispatchLifecycle]);
 
     const dispatchWithResult = useMemo(() => {
-      return <K extends keyof TPayloadMap, R = void>(
+      return <K extends Extract<keyof TPayloadMap, string>, R = void>(
         toolName: K,
         ...args: DispatchArgs<TPayloadMap[K]>
       ): Promise<ToolExecutionResult<R>> => {
@@ -1296,8 +1296,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         const trackedPromise = dispatchLifecycle
           .run(
             [options?.signal, scopeController.signal],
-            signal => register.dispatchWithResult<K, R>(
-              toolName,
+            signal => register.dispatchWithResult<Extract<K, string>, R>(
+              toolName as Extract<K, string>,
               ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
             )
           )

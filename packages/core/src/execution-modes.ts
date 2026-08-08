@@ -71,8 +71,10 @@ function appendLocalResults<T, R>(
   context: PipelineContext<T, R>,
   state: PipelineControllerState<T, R>,
   returnedResult: R | undefined,
+  registration: HandlerRegistration<T, R>,
   target: R[] = context.results,
 ): void {
+  if (registration.role === 'effect') return;
   if (state.results.length > 0) target.push(...state.results);
   if (returnedResult !== undefined && !state.terminated) {
     target.push(returnedResult);
@@ -183,7 +185,11 @@ export async function executeSequential<T, R = void>(
           : result;
         outcome.result = handlerResult as R | undefined;
         finishOutcome(outcome, startedAt, 'succeeded', handlerResult as R | undefined);
-        if (handlerResult !== undefined && !context.terminated) {
+        if (
+          registration.role !== 'effect' &&
+          handlerResult !== undefined &&
+          !context.terminated
+        ) {
           context.results.push(handlerResult as R);
         }
       } else {
@@ -193,7 +199,11 @@ export async function executeSequential<T, R = void>(
           const promiseWithErrorHandling = trackedResult
             .then(asyncResult => {
               finishOutcome(outcome, startedAt, 'succeeded', asyncResult as R | undefined);
-              if (asyncResult !== undefined && !context.terminated) {
+              if (
+                registration.role !== 'effect' &&
+                asyncResult !== undefined &&
+                !context.terminated
+              ) {
                 context.results.push(asyncResult as R);
               }
               return asyncResult;
@@ -201,12 +211,7 @@ export async function executeSequential<T, R = void>(
             .catch(error => {
               // 🆕 Non-blocking async handler error collection
               const handlerError = handleExecutionError(error, registration);
-              errors.push({
-                handlerId: handlerError.handlerId,
-                error: handlerError.error,
-                timestamp: handlerError.timestamp,
-                severity: 'non-blocking'
-              });
+              errors.push(handlerError);
               finishOutcome(
                 outcome,
                 startedAt,
@@ -218,7 +223,11 @@ export async function executeSequential<T, R = void>(
             });
           
           nonBlockingPromises.push(promiseWithErrorHandling);
-        } else if (result !== undefined && !context.terminated) {
+        } else if (
+          registration.role !== 'effect' &&
+          result !== undefined &&
+          !context.terminated
+        ) {
           // Non-blocking sync: Immediately collect result
           finishOutcome(outcome, startedAt, 'succeeded', result as R);
           context.results.push(result as R);
@@ -286,6 +295,11 @@ export async function executeSequential<T, R = void>(
   if (nonBlockingPromises.length > 0) {
     await Promise.allSettled(nonBlockingPromises);
   }
+
+  // A fatal handler may already have allowed lower-priority work to start,
+  // but it must still reject the final dispatch once that work has settled.
+  const fatalError = errors.find(error => error.severity === 'blocking');
+  if (fatalError) throw fatalError.error;
 
   // 🔧 Store collected errors in context for ExecutionResult with proper typing
   if (errors.length > 0) {
@@ -375,7 +389,7 @@ export async function executeParallel<T, R = void>(
           result: state.terminationResult,
         };
       }
-      appendLocalResults(context, state, handlerResult, resultSlots[_index]);
+      appendLocalResults(context, state, handlerResult, registration, resultSlots[_index]);
       return { 
         success: true, 
         handlerId: registration.id, 
@@ -527,7 +541,6 @@ export async function executeRace<T, R = void>(
       // 🆕 Consistent error object creation
       const handlerError = handleExecutionError(error, registration);
       finishOutcome(outcome, startedAt, 'failed', undefined, handlerError.error);
-      (context.collectedErrors ??= []).push(handlerError);
       return {
         success: false,
         handlerId: registration.id,
@@ -551,9 +564,18 @@ export async function executeRace<T, R = void>(
     throw winner.error;
   }
 
+  // Losers are diagnostics-only. Their asynchronous completion must not
+  // change the result, outcome, or errors selected by the winning handler.
+  if (!winner.success) {
+    (context.collectedErrors ??= []).push(handleExecutionError(
+      winner.error,
+      winner.registration,
+    ));
+  }
+
   /** Only the winner contributes results to the race snapshot. */
   if (winner.success) {
-    appendLocalResults(context, winner.state, winner.result);
+    appendLocalResults(context, winner.state, winner.result, winner.registration);
     if (winner.state.aborted) {
       context.aborted = true;
       context.abortReason = winner.state.abortReason;

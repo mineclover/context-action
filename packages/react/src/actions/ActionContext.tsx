@@ -1,5 +1,6 @@
 import {
   ActionHandler,
+  ActionNames,
   ActionPayloadMap,
   ActionRegister,
   ActionRegisterConfig,
@@ -290,7 +291,7 @@ export function createActionContext<
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     
     // Stable dispatch function with useCallback optimization
-    const dispatch = useCallback(<K extends keyof T>(
+    const dispatch = useCallback(<K extends ActionNames<T>>(
       action: K,
       ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
@@ -321,7 +322,7 @@ export function createActionContext<
     }, [actionRegisterRef, dispatchLifecycle]);
 
     // Stable dispatchWithResult function
-    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+    const dispatchWithResult = useCallback(<K extends ActionNames<T>, R = void>(
       action: K,
       ...args: DispatchArgs<T[K]>
     ): Promise<ExecutionResult<R>> => {
@@ -332,7 +333,7 @@ export function createActionContext<
       }
       
       const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-        ActionKey extends keyof T,
+        ActionKey extends ActionNames<T>,
         Result = void,
       >(
         action: ActionKey,
@@ -358,12 +359,13 @@ export function createActionContext<
   };
 
   // Hook to register action handlers with automatic cleanup and ref optimization
-  const useActionHandler = <K extends keyof T, R = ActionResult<TResultMap, K>>(
+  const useActionHandler = <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
     handler: K extends keyof TResultMap
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionHandler<T[K], R>,
-    config?: HandlerConfig<T[K]>
+    config?: HandlerConfig<T[K]>,
+    registrationRole: 'legacy' | 'effect' | 'result' = 'legacy',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
@@ -444,7 +446,12 @@ export function createActionContext<
           console.log(`Registering handler for '${String(action)}'`);
         }
 
-        const registerHandler = register.register.bind(register) as unknown as (
+        const registerMethod = registrationRole === 'effect'
+          ? register.registerEffect
+          : registrationRole === 'result'
+            ? register.registerResult
+            : register.register;
+        const registerHandler = registerMethod.bind(register) as unknown as (
           action: K,
           handler: ActionHandler<T[K], R>,
           config: HandlerConfig<T[K]>,
@@ -498,20 +505,20 @@ export function createActionContext<
     return context.actionRegisterRef.current;
   };
 
-  const useActionEffectHandler = <K extends keyof T, R = void>(
+  const useActionEffectHandler = <K extends ActionNames<T>, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config?: HandlerConfig<T[K]>,
   ): void => {
-    useActionHandler(action, handler as never, config);
+    useActionHandler(action, handler as never, config, 'effect');
   };
 
-  const useActionResultHandler = <K extends keyof T & keyof TResultMap>(
+  const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
     config?: HandlerConfig<T[K]>,
   ): void => {
-    useActionHandler(action, handler as never, config);
+    useActionHandler(action, handler as never, config, 'result');
   };
 
   // Hook to get the dispatchWithResult function with full type safety
@@ -534,7 +541,7 @@ export function createActionContext<
     const cleanupGenerationRef = useRef(0);
 
     // Create wrapped dispatch using core's autoAbort
-    const dispatch = useCallback(<K extends keyof T>(
+    const dispatch = useCallback(<K extends ActionNames<T>>(
       action: K,
       payload?: T[K],
       options?: DispatchOptions
@@ -561,7 +568,7 @@ export function createActionContext<
     }, [context.actionRegisterRef, context.dispatchLifecycle]);
 
     // Create wrapped dispatchWithResult using core's autoAbort
-    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+    const dispatchWithResult = useCallback(<K extends ActionNames<T>, R = void>(
       action: K,
       ...args: DispatchArgs<T[K]>
     ): Promise<ExecutionResult<R>> => {
@@ -575,7 +582,7 @@ export function createActionContext<
       activeControllersRef.current.add(scopeController);
 
       const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-        ActionKey extends keyof T,
+        ActionKey extends ActionNames<T>,
         Result = void,
       >(
         action: ActionKey,

@@ -130,6 +130,15 @@ export interface AISDKToolScope {
 }
 
 /**
+ * Options accepted by the tools-only convenience helper. Approval is a
+ * generation-level AI SDK option, so callers that need it must retain the
+ * complete scope returned by `createAISDKToolScope`.
+ */
+export type AISDKToolsOnlyOptions = Omit<AISDKToolSetOptions, 'needsApproval'> & {
+  readonly needsApproval?: never;
+};
+
+/**
  * Build an AI SDK ToolSet from the canonical manager.
  *
  * The returned `activeTools` is intentionally redundant with the ToolSet: it
@@ -159,8 +168,13 @@ export function createAISDKToolScope(
 /** Convenience form for callers that do not need to pass `activeTools` separately. */
 export function createAISDKTools(
   manager: ToolManagementInterface,
-  options: AISDKToolSetOptions,
+  options: AISDKToolsOnlyOptions,
 ): ToolSet {
+  if ((options as AISDKToolSetOptions).needsApproval !== undefined) {
+    throw new Error(
+      'createAISDKTools cannot preserve toolApproval. Use createAISDKToolScope instead.',
+    );
+  }
   return createAISDKToolScope(manager, options).tools;
 }
 

@@ -254,7 +254,7 @@ export interface ToolContextType<TSchema extends ActionSchemaMap> {
 /**
  * Return type for useToolDispatch hook
  */
-export type ToolDispatchFunction<TPayloadMap> = <K extends keyof TPayloadMap>(
+export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
   toolName: K,
   payload: TPayloadMap[K],
   options?: DispatchOptions
@@ -273,7 +273,7 @@ export interface DirectToolCallOptions extends ToolCallOptions {
  * and therefore applies policy, lifecycle observation, output budgets,
  * idempotency, and durable-operation handling.
  */
-export type ToolCallFunction<TPayloadMap> = <K extends keyof TPayloadMap>(
+export type ToolCallFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
   toolName: K,
   payload: TPayloadMap[K],
   options?: DirectToolCallOptions
@@ -284,7 +284,7 @@ export type ToolCallFunction<TPayloadMap> = <K extends keyof TPayloadMap>(
  */
 export interface ToolDispatchWithResultReturn<TPayloadMap> {
   dispatch: ToolDispatchFunction<TPayloadMap>;
-  dispatchWithResult: <K extends keyof TPayloadMap, R = void>(
+  dispatchWithResult: <K extends Extract<keyof TPayloadMap, string>, R = void>(
     toolName: K,
     ...args: DispatchArgs<TPayloadMap[K]>
   ) => Promise<ToolExecutionResult<R>>;
@@ -318,7 +318,7 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
    * Hook to register tool handlers
    * Similar to useActionHandler but for tool execution
    */
-  useToolHandler: <K extends keyof TSchema, R = void>(
+  useToolHandler: <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
     handler: ActionHandler<InferActionPayloadMap<TSchema>[K], R>,
     config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>

@@ -34,6 +34,7 @@ describe('React action helpers', () => {
     const second = manager.register();
 
     expect(manager.config).toMatchObject({ id: 'profile-handler', replaceExisting: true });
+    expect(manager.config.cleanup).toBeUndefined();
     expect(registry.getHandlerCount('updateUser')).toBe(1);
     first();
     expect(registry.getHandlerCount('updateUser')).toBe(1);
