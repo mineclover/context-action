@@ -400,9 +400,16 @@ export type ActionObserverHandler<T = unknown, R = void> = (
 ) => void | Promise<void>;
 
 /** Scheduling and terminal-path selection for a post-result observer. */
-export interface ObserverConfig<T = unknown> extends HandlerConfig<T> {
+export interface ObserverConfig<T = unknown> extends Omit<HandlerConfig<T>,
+  'debounce' | 'throttle' | 'blocking' | 'errorPolicy'> {
   when?: 'success' | 'failure' | 'always';
 }
+
+/** Configuration accepted by an admission guard. Guard failures always deny
+ * admission, so scheduling and error-policy controls are intentionally not
+ * configurable. */
+export interface GuardConfig<T = unknown> extends Omit<HandlerConfig<T>,
+  'blocking' | 'scheduling' | 'errorPolicy' | 'debounce' | 'throttle' | 'when'> {}
 
 /** Migration configuration for the deprecated `registerEffect()` API.
  * New code should call `registerGuard()` or `registerObserver()` directly. */

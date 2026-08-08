@@ -1,8 +1,6 @@
 import type {
   WebMCPDocument,
-  WebMCPRegistrationOptions,
   WebMCPRuntimeProfile,
-  WebMCPToolDefinition,
 } from '../index.js';
 
 /**

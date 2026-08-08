@@ -41,6 +41,7 @@ export type {
   HandlerErrorPolicy,
   HandlerRegistration,
   HandlerRole,
+  GuardConfig,
   ObserverConfig,
   HandlerScheduling,
   PipelineContext,

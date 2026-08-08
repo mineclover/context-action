@@ -271,7 +271,6 @@ describe('createWebMCPToolScope', () => {
         openWorldHint: true,
         untrustedContentHint: true,
       },
-      transports: { webmcp: { untrustedContentHint: true } },
     };
     const manager = createManager();
     manager.getToolDefinition = () => definition;
@@ -325,24 +324,15 @@ describe('createWebMCPToolScope', () => {
     scope.dispose();
   });
 
-  it('cancels beforeExecute when a scope is disposed', async () => {
+  it('does not let a post-execution notification or later scope disposal reject a committed tool call', async () => {
     const registered: WebMCPToolDefinition[] = [];
-    let invocationSignal: AbortSignal | undefined;
-    let release: (() => void) | undefined;
-    const gate = new Promise<void>(resolve => { release = resolve; });
     const scope = await createWebMCPToolScope(createManager(), {
       sessionId: 'page-session', toolNames: ['search'],
-      beforeExecute: async invocation => {
-        invocationSignal = invocation.signal;
-        await gate;
-      },
+      beforeExecute: () => { throw new Error('notification failed'); },
       document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
     });
     const execution = registered[0]!.execute({ query: 'coffee' });
-    await Promise.resolve();
     scope.dispose();
-    expect(invocationSignal?.aborted).toBe(true);
-    release?.();
-    await expect(execution).rejects.toThrow('disposed');
+    await expect(execution).resolves.toEqual({ count: 1 });
   });
 });

@@ -13,6 +13,15 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - Sequential handlers now await completion by default. To retain the prior
   start-and-continue behavior, set `scheduling: 'start-and-continue'` and
   explicitly choose an `errorPolicy` (normally `'collect'`).
+- `registerEffect()` now requires `effectKind`. Migrate admission logic to
+  `registerGuard(action, handler)` and post-result effects to
+  `registerObserver(action, handler)`. Temporary compatibility calls must use
+  `registerEffect(action, handler, { effectKind: 'guard' | 'observer' })`.
+
+### Bug Fixes
+
+- Make guard failures fail closed, keep awaited observers within dispatch
+  timeout/shutdown ownership, and preserve terminal observer outcomes.
 
 ## [0.9.0] (2026-07-21)
 

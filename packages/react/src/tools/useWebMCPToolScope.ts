@@ -62,6 +62,8 @@ export function useWebMCPToolScope(
     callOptions: options.callOptions,
     getIdempotencyKey: options.getIdempotencyKey,
     beforeExecute: options.beforeExecute,
+    afterExecute: options.afterExecute,
+    onObserverError: options.onObserverError,
     interaction: options.interaction,
     errorMode: options.errorMode,
   });
@@ -70,6 +72,8 @@ export function useWebMCPToolScope(
     callOptions: options.callOptions,
     getIdempotencyKey: options.getIdempotencyKey,
     beforeExecute: options.beforeExecute,
+    afterExecute: options.afterExecute,
+    onObserverError: options.onObserverError,
     interaction: options.interaction,
     errorMode: options.errorMode,
   };

@@ -163,13 +163,77 @@ describe('ExecutionResult metrics', () => {
     const resultHandler = jest.fn(() => 'sensitive');
     register.registerGuard('run', (_payload, controller) => {
       controller.abort('permission denied');
-    }, { id: 'authorization', errorPolicy: 'fatal', priority: 100 });
+    }, { id: 'authorization', priority: 100 });
     register.register('run', resultHandler, { id: 'result' });
 
     const result = await register.dispatchWithResult<'run', string>('run', { id: 'guarded' });
     expect(result.aborted).toBe(true);
     expect(result.result).toBeUndefined();
     expect(resultHandler).not.toHaveBeenCalled();
+    register.destroy();
+  });
+
+  it('fails closed when an unsafe runtime guard configuration requests collect', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const resultHandler = jest.fn(() => 'must not run');
+    register.registerGuard('run', () => {
+      throw new Error('authorization unavailable');
+    }, { errorPolicy: 'collect' } as never);
+    register.register('run', resultHandler);
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'protected' });
+    expect(result.outcome).toBe('failed');
+    expect(resultHandler).not.toHaveBeenCalled();
+    expect(result.errors).toHaveLength(1);
+    register.destroy();
+  });
+
+  it('includes guard outcomes in final execution metrics', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.registerGuard('run', () => {});
+    register.register<'run', string>('run', () => 'ok');
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'metrics' });
+    expect(result.handlers).toHaveLength(2);
+    expect(result.execution.handlersExecuted).toBe(2);
+    register.destroy();
+  });
+
+  it('does not let an observer configuration alter dispatch admission', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.register<'run', string>('run', () => 'ok');
+    register.registerObserver('run', () => {}, { debounce: 50 } as never);
+
+    const startedAt = Date.now();
+    await register.dispatchWithResult<'run', string>('run', { id: 'admission' });
+    expect(Date.now() - startedAt).toBeLessThan(45);
+    register.destroy();
+  });
+
+  it('isolates observer condition errors and preserves the canonical result', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.register<'run', { accepted: boolean }>('run', () => ({ accepted: true }));
+    register.registerObserver('run', () => {
+      throw new Error('must not run');
+    }, { condition: () => { throw new Error('condition failed'); } });
+
+    await expect(register.dispatchWithResult<'run', { accepted: boolean }>('run', { id: 'condition' }))
+      .resolves.toMatchObject({ result: { accepted: true } });
+    register.destroy();
+  });
+
+  it('preserves an existing observer for a duplicate id with replaceExisting false', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const original = jest.fn();
+    const replacement = jest.fn();
+    register.register<'run', string>('run', () => 'ok');
+    register.registerObserver('run', original, { id: 'audit' });
+    const ignoredUnregister = register.registerObserver('run', replacement, { id: 'audit', replaceExisting: false });
+    ignoredUnregister();
+
+    await register.dispatchWithResult('run', { id: 'duplicate' });
+    expect(original).toHaveBeenCalledTimes(1);
+    expect(replacement).not.toHaveBeenCalled();
     register.destroy();
   });
 
@@ -209,6 +273,25 @@ describe('ExecutionResult metrics', () => {
     expect(result.handlers.find(handler => handler.id === 'audit')).toBeUndefined();
     expect(observer).toHaveBeenCalledTimes(1);
     register.destroy();
+  });
+
+  it('keeps awaited observers inside timeout and async shutdown ownership', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseObserver: (() => void) | undefined;
+    const observerGate = new Promise<void>(resolve => { releaseObserver = resolve; });
+    register.register<'run', string>('run', () => 'committed');
+    register.registerObserver('run', async () => { await observerGate; });
+
+    await expect(register.dispatchWithResult<'run', string>('run', { id: 'timeout' }, {
+      timeout: 10,
+    })).rejects.toMatchObject({ name: 'ActionTimeoutError' });
+
+    let shutdownComplete = false;
+    const shutdown = register.destroyAsync().then(() => { shutdownComplete = true; });
+    await Promise.resolve();
+    expect(shutdownComplete).toBe(false);
+    releaseObserver?.();
+    await expect(shutdown).resolves.toBeUndefined();
   });
 
   it('notifies failure observers when a void dispatch is rejected by a guard', async () => {
@@ -325,7 +408,7 @@ describe('ExecutionResult metrics', () => {
     });
     await Promise.resolve();
     controller.abort('cancel retry');
-    await execution;
+    await expect(execution).resolves.toMatchObject({ outcome: 'cancelled', aborted: true });
     expect(handler).toHaveBeenCalledTimes(1);
     register.destroy();
   });

@@ -16,6 +16,7 @@ import {
   ExecutionResult,
   HandlerConfig,
   EffectConfig,
+  GuardConfig,
 } from '@context-action/core';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useId, useMemo, useRef } from 'react';
 import type {
@@ -491,11 +492,12 @@ export function createActionContext<
           });
         });
       };
-    }, [
-      action,
-      actionRegisterRef,
-      dispatchLifecycle,
-      stableConfig // Only re-register if config actually changes
+      }, [
+        action,
+        actionRegisterRef,
+        dispatchLifecycle,
+        stableConfig, // Only re-register if config actually changes
+        registrationRole,
       // Note: handler is NOT in dependencies - it's accessed via ref
     ]);
   };
@@ -518,9 +520,9 @@ export function createActionContext<
     return context.actionRegisterRef.current;
   };
 
-  const useActionEffectHandler = <K extends ActionNames<T>, R = void>(
+  const useActionEffectHandler = <K extends ActionNames<T>>(
     action: K,
-    handler: ActionEffectHandler<T[K]>,
+    handler: ActionEffectHandler<T[K]> | ActionGuardHandler<T[K]>,
     config: EffectConfig<T[K]>,
   ): void => {
     useActionHandler(action, handler as never, config, 'effect');
@@ -529,7 +531,7 @@ export function createActionContext<
   const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
-    config?: HandlerConfig<T[K]>,
+    config?: GuardConfig<T[K]>,
   ): void => {
     useActionHandler(action, handler as never, config, 'result');
   };

@@ -22,8 +22,8 @@ export interface WebMCPToolDefinition {
   readonly description: string;
   readonly inputSchema: JSONSchema;
   readonly annotations?: WebMCPAnnotations;
-  /** Current profiles use the first argument; legacy profiles may pass a client. */
-  readonly execute: (input: Record<string, unknown>, client?: unknown) => Promise<unknown>;
+  /** Current WebMCP Draft callback shape: exactly one input object. */
+  readonly execute: (input: Record<string, unknown>) => Promise<unknown>;
 }
 
 /** The current Draft exposes only these annotations to page agents. */
@@ -42,7 +42,7 @@ export interface WebMCPModelContext {
   registerTool(
     tool: WebMCPToolDefinition,
     options?: WebMCPRegistrationOptions,
-  ): void | Promise<void>;
+  ): Promise<void>;
 }
 
 export interface WebMCPDocument {
@@ -98,6 +98,14 @@ export type WebMCPBeforeExecute = (
   invocation: WebMCPToolInvocation,
 ) => void | Promise<void>;
 
+/** Post-commit notification. It is deliberately detached from the browser
+ * tool result, so notification failures cannot make a completed mutation look
+ * retryable to an agent. */
+export type WebMCPAfterExecute = (event: {
+  readonly invocation: WebMCPToolInvocation;
+  readonly result: ToolCallResult;
+}) => void | Promise<void>;
+
 /** Context-Action error representation for the WebMCP callback. */
 export type WebMCPErrorMode = 'structured' | 'result' | 'throw';
 
@@ -123,6 +131,10 @@ export interface WebMCPExecutionOptions {
   readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey' | 'interaction'>;
   /** @deprecated Post-execution compatibility notification. */
   readonly beforeExecute?: WebMCPBeforeExecute;
+  /** Detached notification after canonical execution has committed. */
+  readonly afterExecute?: WebMCPAfterExecute;
+  /** Receives detached post-execution notification failures. */
+  readonly onObserverError?: (error: unknown) => void;
   /** Canonical approval handler, called only after validation and policy ask. */
   readonly interaction?: ToolInteractionHandler;
   /** Default `structured` preserves Context-Action's structured error envelope. */
@@ -223,10 +235,22 @@ export async function createWebMCPToolScope(
               },
             },
           });
-          // Retained only as a migration notification. It cannot initiate UI
-          // before canonical validation/policy and cannot change the result.
-          await executionOptions.beforeExecute?.(invocation);
-          throwIfAborted(controller.signal);
+          // Retained only as a migration notification. Neither this legacy
+          // callback nor a disposed scope may turn an already committed tool
+          // call into a rejected browser result.
+          void Promise.resolve().then(async () => {
+            if (executionOptions.afterExecute) {
+              await executionOptions.afterExecute({ invocation, result });
+            } else {
+              await executionOptions.beforeExecute?.(invocation);
+            }
+          }).catch(error => {
+            try {
+              executionOptions.onObserverError?.(error);
+            } catch {
+              // Diagnostic callbacks are isolated just like observers.
+            }
+          });
           return toWebMCPResult(result, executionOptions.errorMode ?? 'structured');
         },
       }, {
@@ -267,9 +291,11 @@ function toWebMCPAnnotations(
   const annotations = definition.annotations;
   const mapped: WebMCPAnnotations = {
     ...(annotations?.readOnlyHint === undefined ? {} : { readOnlyHint: annotations.readOnlyHint }),
-    ...(definition.transports?.webmcp?.untrustedContentHint === undefined
+    ...((definition.transports?.webmcp?.untrustedContentHint
+      ?? annotations?.untrustedContentHint) === undefined
       ? {}
-      : { untrustedContentHint: definition.transports.webmcp.untrustedContentHint }),
+      : { untrustedContentHint: definition.transports?.webmcp?.untrustedContentHint
+        ?? annotations?.untrustedContentHint }),
   };
   return Object.keys(mapped).length === 0 ? undefined : mapped;
 }

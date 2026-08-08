@@ -30,6 +30,7 @@ import {
   ExecutionMode,
   ExecutionResult,
   HandlerConfig,
+  GuardConfig,
   HandlerError,
   HandlerExecutionOutcome,
   HandlerRegistration,
@@ -66,6 +67,7 @@ type GuardPhaseResult<T> = {
   errors: HandlerError[];
   outcomes: HandlerExecutionOutcome<unknown>[];
   executedHandlers: HandlerRegistration<any, any>[];
+  duration: number;
 };
 
 /** Immutable handler selection and scheduling decisions for one dispatch. */
@@ -377,19 +379,25 @@ export class ActionRegister<
    * arbitration.
    * @public
    */
-  registerEffect<K extends ActionNames<T>, R = void>(
+  registerEffect<K extends ActionNames<T>>(
+    action: K,
+    handler: ActionGuardHandler<T[K]>,
+    config: EffectConfig<T[K]> & { effectKind: 'guard' },
+  ): UnregisterFunction;
+  registerEffect<K extends ActionNames<T>>(
     action: K,
     handler: ActionEffectHandler<T[K]>,
+    config: EffectConfig<T[K]> & { effectKind: 'observer' },
+  ): UnregisterFunction;
+  registerEffect<K extends ActionNames<T>>(
+    action: K,
+    handler: ActionEffectHandler<T[K]> | ActionGuardHandler<T[K]>,
     config: EffectConfig<T[K]>,
   ): UnregisterFunction {
     if (config.effectKind === 'guard') {
-      return this.registerWithRole(action, handler as ActionHandler<T[K], R>, {
-        ...config,
-        scheduling: 'await-before-next',
-        errorPolicy: config.errorPolicy ?? 'fatal',
-      }, 'guard');
+      return this.registerGuard(action, handler as ActionGuardHandler<T[K]>, config);
     }
-    return this.registerObserver(action, event => handler(event.payload as T[K], {
+    return this.registerObserver(action, event => (handler as ActionEffectHandler<T[K]>)(event.payload as T[K], {
       signal: event.signal,
       getPayload: () => event.payload as T[K],
     }), config);
@@ -400,12 +408,14 @@ export class ActionRegister<
   registerGuard<K extends ActionNames<T>>(
     action: K,
     handler: ActionGuardHandler<T[K]>,
-    config: ObserverConfig<T[K]> = {},
+    config: GuardConfig<T[K]> = {},
   ): UnregisterFunction {
+    // Runtime callers can still pass an unsafe cast or plain JavaScript
+    // configuration. Admission must never become fail-open as a result.
     return this.registerWithRole(action, handler as ActionHandler<T[K], void>, {
       ...config,
       scheduling: 'await-before-next',
-      errorPolicy: config.errorPolicy ?? 'fatal',
+      errorPolicy: 'fatal',
     }, 'guard');
   }
 
@@ -418,9 +428,13 @@ export class ActionRegister<
   >(
     action: K,
     handler: H & (ReturnType<H> extends void | Promise<void> ? unknown : never),
-    config: HandlerConfig<T[K]> = {},
+    config: ObserverConfig<T[K]> = {},
   ): UnregisterFunction {
     const handlerId = config.id ?? this.generateHandlerId(action);
+    const existing = this.pipelines.get(action)?.find(item => item.id === handlerId);
+    // A duplicate observer must not acquire ownership of another registration
+    // (or overwrite its callback) when replacement was explicitly disabled.
+    if (existing && config.replaceExisting === false) return () => {};
     const unregister = this.registerWithRole(
       action,
       (() => undefined) as ActionHandler<T[K], void>,
@@ -743,6 +757,12 @@ export class ActionRegister<
     const attemptState = { count: 0 };
     const plan = this.resolveDispatchPlan(action, options);
     const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
+    let observerNotified = false;
+    const notifyObservers = async (event: ActionObserverEvent<T[K], void>) => {
+      if (observerNotified) return;
+      observerNotified = true;
+      await this.executeObservers(action, plan, event);
+    };
     const pipelineOperation = async () => {
       const guard = plan.guards.length > 0
         ? await this.executeGuardPhase(
@@ -750,11 +770,11 @@ export class ActionRegister<
         )
         : {
           allowed: true, payload: payload as T[K], aborted: false,
-          abortReason: undefined, error: undefined, errors: [], outcomes: [], executedHandlers: [],
+          abortReason: undefined, error: undefined, errors: [], outcomes: [], executedHandlers: [], duration: 0,
         };
       this.cleanupOneTimeHandlers(action, guard.executedHandlers, dispatchHandlerPromises);
       if (!guard.allowed) {
-        await this.executeObservers(action, plan, {
+        await notifyObservers({
           action: String(action),
           payload: guard.payload,
           outcome: guard.aborted ? 'cancelled' : 'failed',
@@ -764,13 +784,14 @@ export class ActionRegister<
         });
         return;
       }
-      await this.executeWithRetry(async attemptSignal => {
+      const execution = await this.executeWithRetry(async attemptSignal => {
         const executedHandlers: HandlerRegistration<any, any>[] = [];
         try {
-          return await this._performDispatch(
+          return await this._performDispatchWithResult<K, void>(
             action,
             guard.payload,
             this.withAttemptSignal(timeoutScope.options, attemptSignal),
+            undefined,
             plan,
             executedHandlers,
             dispatchHandlerPromises
@@ -782,26 +803,38 @@ export class ActionRegister<
             dispatchHandlerPromises
           );
         }
-      }, timeoutScope.options, attemptState, undefined, () => (
+      }, timeoutScope.options, attemptState, result => result.outcome === 'failed', () => (
         this.getAttemptHandlers(action, plan).length > 0
       ), undefined, this.shouldDrainBeforeRetry(plan, timeoutScope.options)
         ? () => this.drainAttemptHandlers(dispatchHandlerPromises)
         : undefined);
-      await this.executeObservers(action, plan, {
+      if (execution.outcome === 'failed') {
+        throw execution.errors[execution.errors.length - 1]?.error
+          ?? new Error(`Action "${String(action)}" failed`);
+      }
+      await notifyObservers({
         action: String(action),
         payload: guard.payload,
-        outcome: 'completed',
-        result: undefined,
-        errors: [],
+        outcome: execution.outcome,
+        result: execution.result,
+        errors: execution.errors,
         signal: timeoutScope.options?.signal,
       });
     };
     const operation = async () => {
-      if (timeoutScope.options?.signal?.aborted) return;
+      if (timeoutScope.options?.signal?.aborted) {
+        await notifyObservers({ action: String(action), payload: payload as T[K], outcome: 'cancelled',
+          result: undefined, errors: [], signal: timeoutScope.options?.signal });
+        return;
+      }
 
       // Strict validation must complete before timing guards mutate admission state.
       this.validatePayload(action, payload);
-      if (timeoutScope.options?.signal?.aborted) return;
+      if (timeoutScope.options?.signal?.aborted) {
+        await notifyObservers({ action: String(action), payload: payload as T[K], outcome: 'cancelled',
+          result: undefined, errors: [], signal: timeoutScope.options?.signal });
+        return;
+      }
 
       if (hasTimingGuard) {
         const admission = await this.evaluateTimingGuards(
@@ -810,11 +843,24 @@ export class ActionRegister<
           timeoutScope.options?.signal,
         );
         if (admission.aborted || timeoutScope.options?.signal?.aborted || admission.reason) {
+          await notifyObservers({
+            action: String(action), payload: payload as T[K],
+            outcome: admission.aborted || timeoutScope.options?.signal?.aborted ? 'cancelled' : 'failed',
+            result: undefined, errors: admission.reason ? [{
+              handlerId: 'admission', error: new Error(admission.reason),
+              timestamp: Date.now(), severity: 'blocking',
+            }] : [],
+            signal: timeoutScope.options?.signal,
+          });
           return;
         }
       }
 
-      if (timeoutScope.options?.signal?.aborted) return;
+      if (timeoutScope.options?.signal?.aborted) {
+        await notifyObservers({ action: String(action), payload: payload as T[K], outcome: 'cancelled',
+          result: undefined, errors: [], signal: timeoutScope.options?.signal });
+        return;
+      }
 
       if (timeoutScope.options?.immediate || !this.dispatchQueue) {
         return pipelineOperation();
@@ -829,33 +875,37 @@ export class ActionRegister<
     };
 
     let dispatchPromise: Promise<void>;
+    let observedDispatchPromise: Promise<void>;
     this.dispatchConstructionDepth += 1;
     try {
       dispatchPromise = operation();
-      this.trackDispatchPromise(dispatchPromise);
+      observedDispatchPromise = dispatchPromise.catch(async error => {
+        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        await notifyObservers({
+          action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
+          errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
+            timestamp: Date.now(), severity: 'blocking' }], signal: timeoutScope.options?.signal,
+        });
+        throw error;
+      });
+      this.trackDispatchPromise(observedDispatchPromise);
     } finally {
       this.dispatchConstructionDepth -= 1;
     }
     const exposedPromise = this.raceWithTimeout(
-      dispatchPromise,
+      observedDispatchPromise!,
       timeoutScope,
       dispatchHandlerPromises
     );
     const observedPromise = exposedPromise.catch(async error => {
-      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
-      await this.executeObservers(action, plan, {
-        action: String(action),
-        payload: payload as T[K],
-        outcome: 'failed',
-        result: undefined,
-        errors: [{
-          handlerId: 'dispatch',
-          error: error instanceof Error ? error : new Error(String(error)),
-          timestamp: Date.now(),
-          severity: 'blocking',
-        }],
-        signal: timeoutScope.options?.signal,
-      });
+      if (!observerNotified) {
+        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        await this.trackGlobalHandlerPromise(notifyObservers({
+          action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
+          errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
+            timestamp: Date.now(), severity: 'blocking' }], signal: timeoutScope.options?.signal,
+        }));
+      }
       throw error;
     });
 
@@ -1291,10 +1341,11 @@ export class ActionRegister<
     const eligibleHandlers = options?.filter
       ? this.filterHandlers(pipelineSnapshot, options.filter)
       : pipelineSnapshot;
+    const admissionHandlers = eligibleHandlers.filter(handler => handler.role !== 'observer');
     const debounceMs = options?.debounce
-      ?? eligibleHandlers.find(handler => handler.config.debounce !== undefined)?.config.debounce;
+      ?? admissionHandlers.find(handler => handler.config.debounce !== undefined)?.config.debounce;
     const throttleMs = options?.throttle
-      ?? eligibleHandlers.find(handler => handler.config.throttle !== undefined)?.config.throttle;
+      ?? admissionHandlers.find(handler => handler.config.throttle !== undefined)?.config.throttle;
 
     return {
       pipelineSnapshot,
@@ -1377,26 +1428,59 @@ export class ActionRegister<
     plan: DispatchPlan,
     event: ActionObserverEvent<T[K], R>,
   ): Promise<void> {
+    const observerEvent = this.snapshotObserverEvent(event);
     for (const [registration, observerEntry] of this.getObservers(action, plan)) {
-      const successful = event.outcome === 'completed' || event.outcome === 'completed_with_errors';
+      const successful = observerEvent.outcome === 'completed' || observerEvent.outcome === 'completed_with_errors';
       if (observerEntry.when === 'success' && !successful) continue;
       if (observerEntry.when === 'failure' && successful) continue;
-      const shouldRun = registration.config.condition?.(event.payload as T[K]) ?? true;
+      let shouldRun = true;
+      try {
+        shouldRun = registration.config.condition?.(observerEvent.payload as T[K]) ?? true;
+      } catch (error) {
+        this.log(`Observer condition failed for ${String(action)}`, error, 'warn');
+        continue;
+      }
       if (!shouldRun) continue;
-      const invocation = Promise.resolve().then(() => observerEntry.handler(event));
+      const invocation = Promise.resolve().then(() => observerEntry.handler(observerEvent));
+      const cleanupOnce = () => {
+        if (registration.config.once) this.removeRegistration(action, registration);
+      };
       if (registration.config.scheduling === 'start-and-continue') {
-        void this.trackGlobalHandlerPromise(invocation).catch(error => {
+        void this.trackGlobalHandlerPromise(invocation).then(cleanupOnce, error => {
           this.log(`Observer failed for ${String(action)}`, error, 'warn');
+          cleanupOnce();
         });
       } else {
         try {
           await invocation;
         } catch (error) {
           this.log(`Observer failed for ${String(action)}`, error, 'warn');
+        } finally {
+          cleanupOnce();
         }
       }
-      if (registration.config.once) this.removeRegistration(action, registration);
     }
+  }
+
+  /** Give JavaScript observers an isolated, shallowly immutable terminal view.
+   * Result payloads are intentionally not deep-cloned: arbitrary result values
+   * may be class instances, streams, or identity-bearing domain objects. */
+  private snapshotObserverEvent<TPayload, R>(
+    event: ActionObserverEvent<TPayload, R>,
+  ): ActionObserverEvent<TPayload, R> {
+    const freezeValue = <V>(value: V): V => {
+      if (Array.isArray(value)) return Object.freeze([...value]) as V;
+      if (value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+        return Object.freeze({ ...(value as Record<string, unknown>) }) as V;
+      }
+      return value;
+    };
+    return Object.freeze({
+      ...event,
+      payload: freezeValue(event.payload),
+      result: freezeValue(event.result),
+      errors: Object.freeze(event.errors.map(error => Object.freeze({ ...error }))),
+    });
   }
 
   /** Execute the selected guard snapshot once for the whole dispatch. Guards
@@ -1412,7 +1496,7 @@ export class ActionRegister<
     if (plan.guards.length === 0) {
       return {
         allowed: true, payload, aborted: false, abortReason: undefined,
-        error: undefined, errors: [], outcomes: [], executedHandlers: [],
+        error: undefined, errors: [], outcomes: [], executedHandlers: [], duration: 0,
       };
     }
     const [signal, autoAbortController, cleanup] = this.createAbortSignal(options);
@@ -1468,14 +1552,14 @@ export class ActionRegister<
         (options as AttemptDispatchOptions | undefined)?.[ATTEMPT_SIGNAL_CLEANUP]?.();
       }, dispatchHandlerPromises);
     }
-    const errors = context.collectedErrors ?? [];
-    if (error) {
+    const errors = [...(context.collectedErrors ?? [])];
+    if (error && !errors.some(entry => entry.error === error)) {
       errors.push({
         handlerId: 'guard', error, timestamp: Date.now(), severity: 'blocking',
       });
     }
     return {
-      allowed: !context.aborted && error === undefined,
+      allowed: !context.aborted && error === undefined && errors.length === 0,
       payload: context.payload,
       aborted: context.aborted,
       abortReason: context.abortReason,
@@ -1483,6 +1567,7 @@ export class ActionRegister<
       errors,
       outcomes: (context.handlerOutcomes ?? []).map(snapshotHandlerOutcome),
       executedHandlers: context.executedHandlers ?? [],
+      duration: (context.handlerOutcomes ?? []).reduce((total, outcome) => total + (outcome.duration ?? 0), 0),
     };
   }
 
@@ -1575,6 +1660,7 @@ export class ActionRegister<
   /**
    * 🆕 실제 디스패치 작업 수행 (큐에서 호출됨)
    */
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: retained as the legacy void executor during the dispatch-result migration.
   private async _performDispatch<K extends keyof T>(
     action: K,
     payload: T[K] | undefined,
@@ -1756,7 +1842,7 @@ export class ActionRegister<
         )
         : {
           allowed: true, payload: payload as T[K], aborted: false,
-          abortReason: undefined, error: undefined, errors: [], outcomes: [], executedHandlers: [],
+          abortReason: undefined, error: undefined, errors: [], outcomes: [], executedHandlers: [], duration: 0,
         };
       this.cleanupOneTimeHandlers(action, guard.executedHandlers, dispatchHandlerPromises);
       observerPayload = guard.payload;
@@ -1794,6 +1880,20 @@ export class ActionRegister<
           ? () => this.drainAttemptHandlers(dispatchHandlerPromises)
           : undefined);
 
+      // A cancellation during retry backoff is terminal for the dispatch, not
+      // merely telemetry attached to the preceding failed attempt.
+      if (timeoutScope.options?.signal?.aborted) {
+        return {
+          ...rawExecution,
+          success: false,
+          aborted: true,
+          abortReason: typeof timeoutScope.options.signal.reason === 'string'
+            ? timeoutScope.options.signal.reason
+            : 'Action dispatch aborted by signal',
+          outcome: 'cancelled' as const,
+        };
+      }
+
       const executionWithGuards: ExecutionResult<R> = {
         ...rawExecution,
         handlers: [
@@ -1822,8 +1922,8 @@ export class ActionRegister<
         ...executionWithGuards,
         result,
         execution: {
-          ...rawExecution.execution,
-          pipelineDuration: retryTelemetry.pipelineDuration,
+          ...executionWithGuards.execution,
+          pipelineDuration: guard.duration + retryTelemetry.pipelineDuration,
           retryDelayDuration: retryTelemetry.retryDelayDuration,
           resultProcessingDuration,
           attempts: retryTelemetry.attempts,
@@ -1901,60 +2001,84 @@ export class ActionRegister<
       return queued.promise;
     };
 
+    let observerNotified = false;
+    const notifyObservers = async (event: ActionObserverEvent<T[K], R>) => {
+      if (observerNotified) return;
+      observerNotified = true;
+      await this.executeObservers(action, plan, event);
+    };
     let dispatchPromise: Promise<ExecutionResult<R>>;
+    let observedDispatchPromise: Promise<ExecutionResult<R>>;
     this.dispatchConstructionDepth += 1;
     try {
       dispatchPromise = operation();
-      this.trackDispatchPromise(dispatchPromise);
+      observedDispatchPromise = dispatchPromise.then(async result => {
+        const dispatchEndedAt = Date.now();
+        const pipelineDuration = pipelineStartedAt === undefined
+          ? 0
+          : result.execution.pipelineDuration;
+        const completedResult: ExecutionResult<R> = {
+          ...result,
+          execution: {
+            ...result.execution,
+            duration: dispatchEndedAt - dispatchStartTime,
+            admissionDuration: Math.max(0, admissionEndedAt - dispatchStartTime),
+            queueWaitDuration: pipelineStartedAt === undefined
+              ? 0
+              : Math.max(0, pipelineStartedAt - admissionEndedAt),
+            pipelineDuration,
+            startTime: dispatchStartTime,
+            endTime: dispatchEndedAt,
+          },
+        };
+        if (completedResult.outcome === 'failed') {
+          const terminalError = completedResult.errors[completedResult.errors.length - 1]?.error
+            ?? new Error(`Action "${String(action)}" failed`);
+          this.invokeErrorHandler(terminalError, action, payload, options, attemptState.count);
+        }
+        await notifyObservers({
+          action: String(action), payload: observerPayload,
+          outcome: completedResult.outcome, result: completedResult.result,
+          errors: completedResult.errors, signal: timeoutScope.options?.signal,
+        });
+        return completedResult;
+      }, async error => {
+        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        await notifyObservers({
+          action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
+          errors: [{
+            handlerId: 'dispatch',
+            error: error instanceof Error ? error : new Error(String(error)),
+            timestamp: Date.now(), severity: 'blocking',
+          }],
+          signal: timeoutScope.options?.signal,
+        });
+        throw error;
+      });
+      this.trackDispatchPromise(observedDispatchPromise);
     } finally {
       this.dispatchConstructionDepth -= 1;
     }
     const exposedPromise = this.raceWithTimeout(
-      dispatchPromise,
+      observedDispatchPromise!,
       timeoutScope,
       dispatchHandlerPromises
     );
-    const observedPromise = exposedPromise.then(async result => {
-      const dispatchEndedAt = Date.now();
-      const pipelineDuration = pipelineStartedAt === undefined
-        ? 0
-        : result.execution.pipelineDuration;
-      const completedResult: ExecutionResult<R> = {
-        ...result,
-        execution: {
-          ...result.execution,
-          duration: dispatchEndedAt - dispatchStartTime,
-          admissionDuration: Math.max(0, admissionEndedAt - dispatchStartTime),
-          queueWaitDuration: pipelineStartedAt === undefined
-            ? 0
-            : Math.max(0, pipelineStartedAt - admissionEndedAt),
-          pipelineDuration,
-          startTime: dispatchStartTime,
-          endTime: dispatchEndedAt,
-        },
-      };
-      if (completedResult.outcome === 'failed') {
-        const terminalError = completedResult.errors[completedResult.errors.length - 1]?.error
-          ?? new Error(`Action "${String(action)}" failed`);
-        this.invokeErrorHandler(
-          terminalError,
-          action,
-          payload,
-          options,
-          attemptState.count
-        );
+    const observedPromise = exposedPromise.catch(async error => {
+      // A timeout rejects the exposed promise before the canonical operation
+      // settles. Notify once and track that observer work for shutdown.
+      if (!observerNotified) {
+        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        await this.trackGlobalHandlerPromise(notifyObservers({
+          action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
+          errors: [{
+            handlerId: 'dispatch',
+            error: error instanceof Error ? error : new Error(String(error)),
+            timestamp: Date.now(), severity: 'blocking',
+          }],
+          signal: timeoutScope.options?.signal,
+        }));
       }
-      await this.executeObservers(action, plan, {
-        action: String(action),
-        payload: observerPayload,
-        outcome: completedResult.outcome,
-        result: completedResult.result,
-        errors: completedResult.errors,
-        signal: timeoutScope.options?.signal,
-      });
-      return completedResult;
-    }, error => {
-      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
       throw error;
     });
 
@@ -1989,6 +2113,11 @@ export class ActionRegister<
     const pipeline = plan.pipelineSnapshot;
     
     if (!pipeline || pipeline.length === 0) {
+      this.log(`Pipeline lookup for '${String(action)}'`, {
+        pipelineExists: false,
+        handlersCount: 0,
+        allRegisteredActions: Array.from(this.pipelines.keys()),
+      });
       // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
       const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
       
@@ -1997,6 +2126,7 @@ export class ActionRegister<
         console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
         console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
       }
+      this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
       
       cleanup();
       return {

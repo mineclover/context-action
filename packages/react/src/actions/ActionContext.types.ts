@@ -9,7 +9,6 @@ import {
   ActionNames,
   ActionRegister,
   ActionRegisterConfig,
-  ActionHandler,
   ActionEffectHandler,
   ActionGuardHandler,
   ActionObserverHandler,
@@ -20,6 +19,7 @@ import {
   ActionPayloadMap,
   HandlerConfig,
   EffectConfig,
+  GuardConfig,
   PipelineController,
 } from '@context-action/core';
 import type { ActionSchemaMap } from '@context-action/tool-protocol';
@@ -99,15 +99,22 @@ export interface ActionContextReturn<
       : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  useActionEffectHandler: <K extends ActionNames<T>, R = void>(
-    action: K,
-    handler: ActionEffectHandler<T[K]>,
-    config: EffectConfig<T[K]>
-  ) => void;
+  useActionEffectHandler: {
+    <K extends ActionNames<T>>(
+      action: K,
+      handler: ActionGuardHandler<T[K]>,
+      config: EffectConfig<T[K]> & { effectKind: 'guard' },
+    ): void;
+    <K extends ActionNames<T>>(
+      action: K,
+      handler: ActionEffectHandler<T[K]>,
+      config: EffectConfig<T[K]> & { effectKind: 'observer' },
+    ): void;
+  };
   useActionGuard: <K extends ActionNames<T>>(
     action: K,
     handler: ActionGuardHandler<T[K]>,
-    config?: HandlerConfig<T[K]>
+    config?: GuardConfig<T[K]>
   ) => void;
   useActionObserver: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
