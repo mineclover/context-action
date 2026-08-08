@@ -37,7 +37,9 @@
   "metadata": {
     "description": "Complete guide to building type-safe action pipelines with Context-Action framework.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.312Z"
+    "created_at": "2025-08-21T02:13:42.312Z",
+    "last_updated": "2026-08-08T09:19:41.126Z",
+    "source_last_modified": "2026-08-08T09:15:37.054Z"
   },
   "lastUpdated": "2025-09-22T07:48:39.233Z",
   "source": {
