@@ -43,8 +43,13 @@ async function main() {
     ? `${actionRefs.length} external action references use full commit SHAs`
     : mutableActions.map(({ workflow, action, reference }) => `${workflow}: ${action}@${reference}`).join(', '));
 
-  const publishWorkflow = workflows.find(workflow => workflow.name === 'publish-packages.yml')?.source ?? '';
-  check('npm provenance permission', /id-token:\s*write/u.test(publishWorkflow), 'publish-packages.yml must grant id-token: write for npm provenance');
+  const publishWorkflows = ['publish-packages.yml', 'publish-prerelease.yml']
+    .map(name => ({ name, source: workflows.find(workflow => workflow.name === name)?.source ?? '' }));
+  check(
+    'npm provenance permission',
+    publishWorkflows.every(workflow => /id-token:\s*write/u.test(workflow.source)),
+    'all npm publish workflows must grant id-token: write for npm provenance',
+  );
 
   const publicPackages = [];
   for (const entry of packageEntries.filter(item => item.isDirectory())) {

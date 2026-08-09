@@ -5,10 +5,10 @@
   "release": "context-action-v1.0.0",
   "commit": null,
   "packages": {
-    "@context-action/core": "1.0.0",
-    "@context-action/react": "1.0.0",
-    "@context-action/tool-protocol": "1.0.0",
-    "@context-action/webmcp": "0.x-experimental"
+    "@context-action/core": "1.0.0-rc.0",
+    "@context-action/react": "1.0.0-rc.0",
+    "@context-action/tool-protocol": "1.0.0-rc.0",
+    "@context-action/webmcp": "0.1.0-rc.0"
   },
   "stableSurfaces": [
     "@context-action/core",
@@ -20,9 +20,8 @@
     "@context-action/react/webmcp"
   ],
   "requiredBeforeCertification": [
-    "Approve the package/subpath scope and target version map.",
-    "Set the immutable RC commit and exact package versions.",
-    "Update internal dependency ranges as part of the approved RC versioning change.",
-    "Record a clean, strict evidence bundle and external-consumer results."
+    "Set the immutable RC commit for the published candidate.",
+    "Record provenance and external-consumer results for the published candidate.",
+    "Obtain the independent adversarial audit required for RC certification."
   ]
 }

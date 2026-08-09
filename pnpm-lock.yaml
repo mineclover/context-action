@@ -450,7 +450,7 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^0.9.2
+        specifier: 1.0.0-rc.0
         version: link:../core
       '@context-action/mutative':
         specifier: ^0.8.8
@@ -459,10 +459,10 @@ importers:
         specifier: ^0.1.1
         version: link:../tool-durable-operations
       '@context-action/tool-protocol':
-        specifier: ^0.8.9
+        specifier: 1.0.0-rc.0
         version: link:../tool-protocol
       '@context-action/webmcp':
-        specifier: ^0.1.0
+        specifier: 0.1.0-rc.0
         version: link:../webmcp
     devDependencies:
       '@babel/core':
@@ -694,7 +694,7 @@ importers:
   packages/webmcp:
     dependencies:
       '@context-action/tool-protocol':
-        specifier: ^0.8.9
+        specifier: 1.0.0-rc.0
         version: link:../tool-protocol
     devDependencies:
       '@swc/core':

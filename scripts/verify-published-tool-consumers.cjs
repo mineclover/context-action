@@ -17,6 +17,15 @@ const summaryPath = path.resolve('reports/npm-publish-summary.json');
 const summary = existsSync(summaryPath)
   ? JSON.parse(readFileSync(summaryPath, 'utf8'))
   : [];
+const cliArguments = process.argv.slice(2);
+
+function optionValue(name) {
+  const index = cliArguments.indexOf(name);
+  if (index === -1) return undefined;
+  const value = cliArguments[index + 1];
+  if (!value || value.startsWith('--')) throw new Error(`${name} requires a value`);
+  return value;
+}
 
 const packages = [
   {
@@ -89,7 +98,7 @@ function validVersion(value) {
     && /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/u.test(value);
 }
 
-function publishedVersion(name) {
+function publishedVersion(name, tag) {
   const entry = Array.isArray(summary)
     ? summary.find((item) => item?.packageName === name)
     : undefined;
@@ -97,7 +106,7 @@ function publishedVersion(name) {
 
   const output = execFileSync(
     'npm',
-    ['view', name, 'version', '--registry=https://registry.npmjs.org'],
+    ['view', tag ? `${name}@${tag}` : name, 'version', '--registry=https://registry.npmjs.org'],
     { encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } },
   ).trim();
   if (!validVersion(output)) {
@@ -154,10 +163,10 @@ function createLocalPackageSpecs(consumerRoot) {
   });
 }
 
-function runConsumerSmoke(consumerRoot, packageSpecs) {
-  const moduleNames = packages.flatMap(({ imports }) => imports.map(({ specifier }) => specifier));
+function runConsumerSmoke(consumerRoot, selectedPackages) {
+  const moduleNames = selectedPackages.flatMap(({ imports }) => imports.map(({ specifier }) => specifier));
   const expectedExports = Object.fromEntries(
-    packages.flatMap(({ imports }) => imports.map(({ specifier, exports }) => [specifier, exports])),
+    selectedPackages.flatMap(({ imports }) => imports.map(({ specifier, exports }) => [specifier, exports])),
   );
   const source = `
 const expected = ${JSON.stringify(expectedExports)};
@@ -183,7 +192,9 @@ console.log('published tool package consumer imports passed: ' + ${JSON.stringif
 /** Verify the public declarations from the same tarballs a consumer installs.
  * This specifically guards WebMCP's dependency on the newest tool-protocol
  * contract rather than relying on workspace declaration resolution. */
-function runLocalConsumerTypecheck(consumerRoot) {
+function runLocalConsumerTypecheck(consumerRoot, selectedPackages) {
+  const names = new Set(selectedPackages.map(({ name }) => name));
+  if (!names.has('@context-action/tool-protocol') || !names.has('@context-action/webmcp')) return;
   const sourcePath = path.join(consumerRoot, 'index.ts');
   writeFileSync(sourcePath, `
 import type {
@@ -225,13 +236,22 @@ function isolatedNpmEnvironment() {
 }
 
 function main() {
-  const local = process.argv.includes('--local');
+  const local = cliArguments.includes('--local');
+  const tag = optionValue('--tag');
+  if (tag && !/^[a-z][a-z0-9._-]*$/u.test(tag)) throw new Error(`Invalid npm dist-tag: ${tag}`);
+  const requestedPackages = optionValue('--packages')?.split(',').filter(Boolean);
+  const selectedPackages = requestedPackages
+    ? packages.filter(({ name }) => requestedPackages.includes(name))
+    : packages;
+  if (selectedPackages.length === 0 || (requestedPackages && selectedPackages.length !== requestedPackages.length)) {
+    throw new Error('Requested published consumer packages must be known package names');
+  }
   const consumerRoot = mkdtempSync(path.join(os.tmpdir(), 'context-action-tool-consumer-'));
   try {
     const packageSpecs = local
-      ? createLocalPackageSpecs(consumerRoot)
-      : packages.map(({ name }) => {
-          const version = publishedVersion(name);
+      ? createLocalPackageSpecs(consumerRoot).filter(({ name }) => selectedPackages.some(pkg => pkg.name === name))
+      : selectedPackages.map(({ name }) => {
+          const version = publishedVersion(name, tag);
           return { name, spec: `${name}@${version}` };
         });
     if (!local) packageSpecs.forEach(({ spec }) => waitForPublishedVersion(spec));
@@ -244,6 +264,15 @@ function main() {
           name: 'context-action-tool-consumer-smoke',
           private: true,
           allowScripts: [],
+          dependencies: Object.fromEntries(packageSpecs.map(({ name, spec }) => [
+            name,
+            spec.startsWith(`${name}@`) ? spec.slice(name.length + 1) : spec,
+          ])),
+          overrides: local
+            ? Object.fromEntries(packageSpecs
+              .filter(({ name }) => name.startsWith('@context-action/'))
+              .map(({ name, spec }) => [name, spec]))
+            : undefined,
         },
         null,
         2,
@@ -262,7 +291,6 @@ function main() {
         '--userconfig',
         npmConfigPath,
         '--registry=https://registry.npmjs.org',
-        ...packageSpecs.map(({ spec }) => spec),
       ],
       {
         cwd: consumerRoot,
@@ -270,8 +298,8 @@ function main() {
         env: isolatedNpmEnvironment(),
       },
     );
-    runConsumerSmoke(consumerRoot, packageSpecs);
-    if (local) runLocalConsumerTypecheck(consumerRoot);
+    runConsumerSmoke(consumerRoot, selectedPackages);
+    if (local) runLocalConsumerTypecheck(consumerRoot, selectedPackages);
     process.stdout.write(
       `${local ? 'Local tarball' : 'Published'} tool package consumer smoke test passed: ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
     );

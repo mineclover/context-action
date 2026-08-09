@@ -16,6 +16,20 @@
 6. Promote to `latest` only after external smoke and approval succeed; deploy
    the matching documentation.
 
+## v1 RC prerelease
+
+The approved v1 RC package set is `@context-action/core`,
+`@context-action/react`, `@context-action/tool-protocol`, and
+`@context-action/webmcp`. Publish it only through
+`Publish Prerelease` (`.github/workflows/publish-prerelease.yml`) using the
+`rc` or `next` dist-tag. That workflow rejects non-prerelease versions,
+publishes only this four-package set, and installs the exact dist-tagged
+versions in an isolated consumer before completing.
+
+It must not be replaced with the general `Publish Packages` workflow: its
+default `from-package` behavior is intended for regular releases and does not
+make a prerelease tag selection by itself.
+
 ## Recovery
 
 Do not overwrite a published package. For a release defect, first stop
