@@ -19,6 +19,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: read
 
 concurrency:
   group: npm-publish
@@ -90,6 +91,11 @@ jobs:
             --commit "$RELEASE_COMMIT" \
             --governance-commit "$GITHUB_SHA"
 
+      - name: Verify independent audit review on GitHub
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm verify:v1-audit-review
+
       - name: Promote the complete cohort and verify latest consumers
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
@@ -137,9 +143,24 @@ jobs:
           trap - EXIT
 
       - name: Capture promotion registry evidence
+        id: capture-promotion-evidence
+        continue-on-error: true
         run: |
           pnpm capture:published-release -- --tag latest --packages "$STABLE_CANDIDATE_PACKAGES" \
             --consumer-status passed --output reports/npm-v1-promotion-registry-evidence.json
+
+      - name: Record promotion evidence state
+        if: always()
+        env:
+          EVIDENCE_OUTCOME: ${{ steps.capture-promotion-evidence.outcome }}
+        run: |
+          if [ "$EVIDENCE_OUTCOME" = success ]; then
+            echo '## v1 promotion evidence' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Registry evidence capture completed after latest promotion.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '## v1 promotion evidence pending' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Latest promotion and its consumer matrix completed, but registry evidence capture must be retried before the manifest can be marked promoted.' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload promotion evidence
         if: always()

@@ -55,6 +55,13 @@ checkout. It verifies the current guarded workflow and release-process
 configuration; it does not retroactively alter or certify the immutable npm
 tarballs that were published before those controls existed.
 
+It is no longer sufficient for the current promotion implementation: later
+governance changes added live-artifact revalidation, rollback through the
+consumer matrix, a cohort exclusion for the general publish workflow, and a
+promotion-governance fingerprint. After those changes are committed, generate
+a fresh clean bundle and record its SHA-256 and fingerprint in the release
+manifest before seeking approval.
+
 ## Published candidate state
 
 The four-package cohort is already published to npm under `next` from
@@ -77,10 +84,12 @@ metadata. A release defect requires a corrected patch version.
 2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
    record in [release-approval.md](./release-approval.md).
 3. Configure named required reviewers for the `npm-stable` GitHub environment.
-4. Preserve the current strict clean
-   evidence for it; this documents the release process but does not alter the
-   immutable published tarballs.
-5. Only then move the manifest through `audited` and `approved-for-stable`
+4. Clear the WebMCP RC `latest` tag, record registry-hygiene evidence, and run
+   a separated-actor `npm-stable` dry run to rule out self-review deadlock.
+5. Generate and record strict evidence for the final governance commit and
+   promotion-governance fingerprint; this documents the release process but
+   does not alter the immutable published tarballs.
+6. Only then move the manifest through `audited` and `approved-for-stable`
    before the guarded `latest` promotion.
 
 No status in this report authorizes a release to `latest`.

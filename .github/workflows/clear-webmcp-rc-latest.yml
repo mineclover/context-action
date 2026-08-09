@@ -1,0 +1,106 @@
+name: Clear WebMCP RC Latest Hygiene
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this protected dist-tag change'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
+      confirmation:
+        description: 'Type remove-rc-latest to remove only the accidental WebMCP RC latest tag'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  WEBMCP_PACKAGE: '@context-action/webmcp'
+  RC_VERSION: '0.1.0-rc.0'
+  NEXT_VERSION: '0.1.0'
+
+jobs:
+  clear-rc-latest:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - name: Verify main and explicit operator confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$CONFIRMATION" = remove-rc-latest
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Confirm only the accidental RC tag is targeted
+        run: |
+          npm view "$WEBMCP_PACKAGE" dist-tags --json --registry=https://registry.npmjs.org > before-tags.json
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const tags = JSON.parse(fs.readFileSync('before-tags.json', 'utf8'));
+          if (tags.latest !== process.env.RC_VERSION || tags.next !== process.env.NEXT_VERSION) {
+            throw new Error(`Refusing tag cleanup: expected latest=${process.env.RC_VERSION} and next=${process.env.NEXT_VERSION}, received ${JSON.stringify(tags)}`);
+          }
+          NODE
+
+      - name: Remove only the accidental latest tag
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: npm dist-tag rm "$WEBMCP_PACKAGE" latest
+
+      - name: Verify tag cleanup and capture evidence
+        run: |
+          npm view "$WEBMCP_PACKAGE" dist-tags --json --registry=https://registry.npmjs.org > after-tags.json
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const tags = JSON.parse(fs.readFileSync('after-tags.json', 'utf8'));
+          if (Object.hasOwn(tags, 'latest') || tags.next !== process.env.NEXT_VERSION || tags.rc !== process.env.RC_VERSION) {
+            throw new Error(`WebMCP dist-tag hygiene verification failed: ${JSON.stringify(tags)}`);
+          }
+          NODE
+
+      - name: Upload tag-cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: webmcp-rc-latest-hygiene
+          path: |
+            before-tags.json
+            after-tags.json
+          if-no-files-found: ignore
+          retention-days: 30

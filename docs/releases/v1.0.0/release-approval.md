@@ -26,8 +26,16 @@ and does not authorize a dist-tag change by itself.
 2. Hash this record, `scope.md`, `contract-candidates.md`, and
    `legacy-ledger.md` with SHA-256.
 3. Record those hashes, the owner, and the reviewed source commit in
-   `release-manifest.json` under `releaseApproval`.
+   `release-manifest.json` under `releaseApproval`. In the same approval change,
+   record the clean promotion-governance evidence commit, its manifest SHA-256,
+   and the governed-file fingerprint under `promotionGovernance`. Copy all
+   three values again into `releaseApproval.promotionGovernanceCommit`,
+   `promotionGovernanceEvidenceSha256`, and
+   `promotionGovernanceFingerprintSha256`; the hashed owner record must bind
+   the exact governance record rather than merely coexist with it.
 
 `verify:v1-release-manifest` and the promotion authorization verifier reject
 `approved-for-stable` unless the acceptance record is bound to the provenance
-source commit and all four hashed files still match.
+source commit and all four hashed files still match. They also reject any
+promotion whose governed workflow/verifier files do not match the fingerprint
+reviewed with that approval.

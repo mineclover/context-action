@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `d0d84fbccc93edcd4ccb86e01edff70a4e56e6f8`<br>
+**Baseline commit:** `f493c9a7cb21c59e5d6a4183fa521672afc9b2e4` (superseded when the current governance changes are committed)<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-09
 
@@ -21,7 +21,7 @@ and command results/artifact hashes belong in
 | G5 Tool adapters | `partial` | isolation and Tool Protocol/AI SDK/WebMCP checks and clean evidence exist; complete provenance/audit certification |
 | G6 Consumer packages | `partial` | published `next` CJS/ESM/NodeNext/React 18/19 SSR matrix and npm provenance verification passed; independent audit remains |
 | G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and clean governance evidence exist; public-contract approval remains |
-| G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
+| G8 Independent audit | `not-started` | fresh-context audit plus traceable GitHub approval record are required |
 | G9 Security/supply chain | `partial` | clean local supply-chain and npm registry provenance reports are recorded; independent artifact audit remains |
 
 ## Blocking conditions
@@ -33,8 +33,9 @@ and command results/artifact hashes belong in
   `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
   verified all four registry signatures and SLSA provenance bundles; the
   independent adversarial audit is still required. `@context-action/webmcp@0.1.0-rc.0`
-  still owns `latest`; the dedicated promotion workflow cannot run until audit
-  and approval gates pass.
+  still owns `latest`. This registry-hygiene blocker must be cleared before the
+  manifest can reach `approved-for-stable`; the dedicated promotion workflow
+  cannot run until it, the audit, and approval gates pass.
 - Legacy API candidate outcomes await public-contract approval.
 - The published consumer matrix and provenance verification are recorded, but
   the published artifact has not received the required independent audit.
@@ -42,15 +43,47 @@ and command results/artifact hashes belong in
   `mineclover` reviewer, prevents self-review, and disallows administrator
   bypass. It is the non-bypassable stable-release environment used by both
   guarded publication workflows.
+- Existing strict evidence ends at an earlier governance commit. The current
+  promotion-governance controls require a fresh clean evidence bundle and a
+  recorded file fingerprint before approval; past bundles remain historical.
+- `@context-action/tool-protocol@1.0.0` has the accepted bundled-CHANGELOG
+  limitation recorded in the manifest and known-limitations document. A patch
+  cohort is required if bundled release notes are a certification requirement.
+- A successful `latest` tag mutation with failed registry-evidence capture is
+  represented as `promotion-evidence-pending`, never as `promoted`. That state
+  is retriable but still blocks release declaration until fresh evidence is
+  captured and recorded.
+
+## Live external configuration check
+
+On 2026-08-10, read-only npm and GitHub API checks confirmed the recorded
+external state:
+
+- `@context-action/webmcp`: `latest` is still `0.1.0-rc.0`, while `next` is
+  `0.1.0`; registry hygiene remains blocked.
+- `npm-stable` allows only `main`, requires review by `mineclover`, permits the
+  owner-authorized self-review exception, and disallows administrator bypass.
+
+The protected environment configuration is present, but its sole configured
+reviewer created a self-review deadlock for `mineclover`. On 2026-08-10, the
+release owner authorized and applied the narrow exception
+`prevent_self_review: false`; the main-only branch policy, required reviewer,
+and administrator-bypass prohibition remain in force. This exception is an
+owner risk acceptance, not proof of independent audit.
 
 ## Immediate next work
 
-1. Obtain an independent audit of the exact registry-installed `next` artifact.
-2. Complete the hashed G0/G1 owner record in
+1. Clear the accidental WebMCP RC `latest` tag and record fresh registry
+   hygiene evidence.
+2. Generate strict clean evidence for the final committed governance controls,
+   then record its commit, hash, and promotion-governance fingerprint.
+3. Obtain an independent audit of the exact registry-installed `next` artifact
+   with the traceable GitHub approval record.
+4. Complete the hashed G0/G1 owner record in
    [release-approval.md](./release-approval.md) for the target map, M1
    candidates, and M2 legacy decisions.
-3. Preserve the recorded strict evidence while external audit
-   decisions are completed; regenerate it if the chosen release commit changes.
+5. Run an `npm-stable` no-op or intentionally failing dry run with separate
+   dispatcher and reviewer identities before any `latest` promotion.
 
 ## Development evidence
 
@@ -91,6 +124,13 @@ and it passes `pnpm release:evidence:verify -- --require-success` when checked
 out at that commit. It records current governance/process readiness only; it
 does not verify registry provenance, replace the independent audit, or permit
 `latest` promotion.
+
+The later `f493c9a7cb21c59e5d6a4183fa521672afc9b2e4` governance change added
+live registry tarball revalidation and consumer-matrix rollback coverage, so
+none of the earlier clean bundles is strict evidence for that later code. The
+final committed governance baseline must generate a new strict bundle; its
+manifest hash and governed-file fingerprint are then copied into
+`release-manifest.json` before `approved-for-stable`.
 
 `release-evidence/v1.0.0-clean-precheck-1/manifest.json` was generated from
 commit `13086d07a6d70a06d27c3af0ec9f18767b00f1ad` with a `clean` source working

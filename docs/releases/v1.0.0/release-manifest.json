@@ -1,6 +1,6 @@
 {
   "$schema": "./release-manifest.schema.json",
-  "schemaVersion": "context-action-v1-release-manifest.v3",
+  "schemaVersion": "context-action-v1-release-manifest.v5",
   "status": "published-unapproved",
   "release": "context-action-v1.0.0",
   "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
@@ -78,6 +78,13 @@
   },
   "audit": null,
   "releaseApproval": null,
+  "promotionGovernance": null,
+  "promotionEvidence": null,
+  "registryHygiene": {
+    "status": "blocked",
+    "evidence": "Read-only npm dist-tag check on 2026-08-10 confirmed that @context-action/webmcp latest remains 0.1.0-rc.0 while next is 0.1.0; remove the accidental prerelease latest tag before certification.",
+    "checkedAt": "2026-08-10T00:00:00.000Z"
+  },
   "packages": {
     "@context-action/core": "1.0.0",
     "@context-action/react": "1.0.0",
@@ -112,6 +119,11 @@
     "@context-action/webmcp": "latest"
   },
   "requiredBeforeCertification": [
-    "Obtain the independent adversarial audit required for RC certification."
+    "Clear the WebMCP prerelease latest-tag hygiene blocker.",
+    "Obtain the independent published-artifact audit.",
+    "Approve the G0/G1 scope and public-contract record."
+  ],
+  "acceptedLimitations": [
+    "tool-protocol@1.0.0 includes a bundled CHANGELOG.md whose newest entry is 0.8.9; canonical v1.0.0 release notes are the repository and GitHub release documents. This does not affect runtime or declaration artifacts."
   ]
 }

@@ -5,6 +5,11 @@ manifest schema is [schema.json](./schema.json). A recorded command is not
 release certification by itself: use the applicable roadmap gate and strict
 verification before marking a gate complete.
 
+Keep committed evidence compact: retain the manifest, hashes, and a short
+summary here. Store full logs, lockfile snapshots, and tarballs in the related
+GitHub Actions artifact or release asset, and link its immutable identifier
+from the compact release record instead of committing repeated large snapshots.
+
 Create a new evidence bundle with a fresh, stage-specific directory:
 
 ```sh

@@ -19,9 +19,11 @@ function requireOrder(errors, source, before, after, description) {
 }
 
 async function main() {
-  const [stableCandidate, promotion, manifestSource] = await Promise.all([
+  const [stableCandidate, promotion, generalPublish, hygiene, manifestSource] = await Promise.all([
     readFile(path.join(workflowDirectory, 'publish-v1-stable-candidate.yml'), 'utf8'),
     readFile(path.join(workflowDirectory, 'promote-v1-to-latest.yml'), 'utf8'),
+    readFile(path.join(workflowDirectory, 'publish-packages.yml'), 'utf8'),
+    readFile(path.join(workflowDirectory, 'clear-webmcp-rc-latest.yml'), 'utf8'),
     readFile(manifestPath, 'utf8'),
   ]);
   const manifest = JSON.parse(manifestSource);
@@ -55,10 +57,15 @@ async function main() {
   requireText(errors, promotion, '--governance-commit "$GITHUB_SHA"', 'Promotion authorization must receive the checked-out governance SHA');
   requireText(errors, promotion, 'pnpm verify:v1-published-provenance', 'Promotion workflow must independently reverify registry provenance');
   requireOrder(errors, promotion, 'pnpm verify:v1-published-provenance', 'pnpm verify:v1-promotion-authorization', 'Promotion must verify provenance before authorization');
+  requireText(errors, promotion, 'pull-requests: read', 'Promotion workflow must have read access to verify the independent audit review');
+  requireText(errors, promotion, 'pnpm verify:v1-audit-review', 'Promotion workflow must verify the recorded GitHub independent-audit review');
+  requireOrder(errors, promotion, 'pnpm verify:v1-audit-review', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion must verify the independent audit review before any latest dist-tag mutation');
   requireOrder(errors, promotion, 'pnpm verify:v1-promotion-authorization', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion authorization must occur before any latest dist-tag mutation');
   requireText(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'Promotion workflow must rerun the latest-tag consumer matrix');
   requireOrder(errors, promotion, 'trap rollback EXIT', 'verify:published-tool-consumers -- --tag latest', 'Promotion must preserve rollback until the latest consumer matrix passes');
   requireOrder(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'trap - EXIT', 'Promotion may clear rollback only after the latest consumer matrix passes');
+  requireText(errors, promotion, 'continue-on-error: true', 'Promotion must model post-promotion evidence capture as retriable rather than silently rolling back a verified cohort');
+  requireText(errors, promotion, 'promotion evidence pending', 'Promotion must report a retriable evidence-pending state');
 
   const expectedOrder = [
     '@context-action/tool-protocol',
@@ -81,6 +88,28 @@ async function main() {
   }
   requireText(errors, stableCandidate, `STABLE_CANDIDATE_PACKAGES: '${packageNames}'`, 'Stable candidate consumer cohort must match the manifest package cohort');
   requireText(errors, promotion, `STABLE_CANDIDATE_PACKAGES: '${packageNames}'`, 'Promotion consumer cohort must match the manifest package cohort');
+  const regularPublishPackages = [
+    '@context-action/typedoc-vitepress-sync',
+    '@context-action/mutative-core',
+    '@context-action/mutative',
+    '@context-action/ai-sdk',
+    '@context-action/tool-durable-operations',
+    '@context-action/llms-generator',
+  ];
+  for (const name of regularPublishPackages) {
+    requireText(errors, generalPublish, `--scope ${name}`, `General publish workflow must use the approved regular-package allow-list entry ${name}`);
+  }
+  for (const [name] of packages) {
+    if (generalPublish.includes(`--scope ${name}`)) {
+      errors.push(`General publish workflow must not scope into the v1 cohort package ${name}`);
+    }
+  }
+  requireText(errors, hygiene, 'workflow_dispatch:', 'WebMCP hygiene workflow must be manually dispatched');
+  requireText(errors, hygiene, 'name: npm-stable', 'WebMCP hygiene workflow must use the npm-stable environment');
+  requireText(errors, hygiene, 'test "$CONFIRMATION" = remove-rc-latest', 'WebMCP hygiene workflow must require explicit destructive-operation confirmation');
+  requireText(errors, hygiene, 'tags.latest !== process.env.RC_VERSION', 'WebMCP hygiene workflow must refuse unexpected latest tags');
+  requireText(errors, hygiene, 'npm dist-tag rm "$WEBMCP_PACKAGE" latest', 'WebMCP hygiene workflow must remove only the latest tag');
+  requireText(errors, hygiene, "Object.hasOwn(tags, 'latest')", 'WebMCP hygiene workflow must verify that latest is absent after cleanup');
 
   if (errors.length > 0) {
     console.error(`v1 release workflow contract failed:\n${errors.map(error => `- ${error}`).join('\n')}`);

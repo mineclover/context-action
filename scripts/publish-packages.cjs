@@ -63,7 +63,7 @@ function commandSucceeded(command, args, options = {}) {
   return result.status === 0 ? result : undefined;
 }
 
-function publishScopedPrerelease() {
+function publishScopedPackages() {
   if (!distTag) throw new Error('Scoped publishing requires --dist-tag');
   const listResult = commandSucceeded('pnpm', ['exec', 'lerna', 'list', '--all', '--json']);
   if (!listResult) throw new Error('Could not read the Lerna package list for scoped publishing');
@@ -130,7 +130,7 @@ function publishScopedPrerelease() {
 }
 
 if (scopes.length > 0) {
-  publishScopedPrerelease();
+  publishScopedPackages();
   process.exit(0);
 }
 

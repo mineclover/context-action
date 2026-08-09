@@ -28,6 +28,10 @@ env:
   # A publish workflow must never advance the default install tag. Promotion to
   # latest is a separate, post-verification operation.
   PUBLISH_DIST_TAG: next
+  # This allow-list deliberately omits the immutable v1 cohort. Those packages
+  # may be published only through their dedicated approval workflow.
+  REGULAR_PUBLISH_PACKAGES: '@context-action/typedoc-vitepress-sync,@context-action/mutative-core,@context-action/mutative,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator'
+  REGULAR_CONSUMER_PACKAGES: '@context-action/mutative-core,@context-action/mutative,@context-action/ai-sdk,@context-action/tool-durable-operations'
 
 jobs:
   publish:
@@ -124,20 +128,26 @@ jobs:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           mkdir -p reports
-          pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag "$PUBLISH_DIST_TAG"
+          pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag "$PUBLISH_DIST_TAG" \
+            --scope @context-action/typedoc-vitepress-sync \
+            --scope @context-action/mutative-core \
+            --scope @context-action/mutative \
+            --scope @context-action/ai-sdk \
+            --scope @context-action/tool-durable-operations \
+            --scope @context-action/llms-generator
 
       - name: Verify published tool package consumer install
         if: success()
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm verify:published-tool-consumers -- --tag "$PUBLISH_DIST_TAG"
+        run: pnpm verify:published-tool-consumers -- --tag "$PUBLISH_DIST_TAG" --packages "$REGULAR_CONSUMER_PACKAGES"
 
       - name: Capture registry evidence
         if: success()
         run: |
           pnpm capture:published-release -- --tag "$PUBLISH_DIST_TAG" \
-            --packages '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp' \
-            --consumer-status passed --output reports/npm-publish-registry-evidence.json
+            --packages "$REGULAR_PUBLISH_PACKAGES" \
+            --consumer-status not-run --output reports/npm-publish-registry-evidence.json
 
       - name: Upload npm publish evidence
         if: always()
