@@ -1,6 +1,7 @@
 import {
   createWebMCPToolScope,
   type WebMCPToolScope,
+  type WebMCPDocument,
   type WebMCPToolScopeOptions,
 } from '@context-action/webmcp';
 import type { ToolManagementInterface } from '@context-action/tool-protocol';
@@ -47,9 +48,9 @@ function mergeSignals(
  * Connect a canonical tool registry to the current component lifecycle.
  * Memoize `options` so unrelated renders do not re-register WebMCP tools.
  */
-export function useWebMCPToolScope(
+export function useWebMCPToolScope<TDocument = WebMCPDocument>(
   manager: ToolManagementInterface | null | undefined,
-  options: WebMCPToolScopeOptions,
+  options: WebMCPToolScopeOptions<TDocument>,
 ): WebMCPToolScopeState {
   const [state, setState] = useState<WebMCPToolScopeState>(INITIAL_SCOPE_STATE);
   const toolNamesKey = options.toolNames.join('\u0000');
@@ -66,6 +67,7 @@ export function useWebMCPToolScope(
     onObserverError: options.onObserverError,
     interaction: options.interaction,
     errorMode: options.errorMode,
+    getExecutionOptions: options.getExecutionOptions,
   });
   executionOptionsRef.current = {
     context: options.context,
@@ -76,6 +78,7 @@ export function useWebMCPToolScope(
     onObserverError: options.onObserverError,
     interaction: options.interaction,
     errorMode: options.errorMode,
+    getExecutionOptions: options.getExecutionOptions,
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: WebMCP registration is keyed by the semantic option fields below, not the caller's transient object identity.
@@ -87,14 +90,20 @@ export function useWebMCPToolScope(
 
     const lifecycleController = new AbortController();
     const mergedSignal = mergeSignals(options.signal, lifecycleController.signal);
-    const scopeOptions: WebMCPToolScopeOptions = {
+    const scopeOptions: WebMCPToolScopeOptions<TDocument> = {
       sessionId: options.sessionId,
       toolNames: options.toolNames,
       document: options.document,
       profile: options.profile,
       exposedTo: options.exposedTo,
       signal: mergedSignal.signal,
-      getExecutionOptions: () => executionOptionsRef.current,
+      getExecutionOptions: invocation => {
+        const { getExecutionOptions, ...current } = executionOptionsRef.current;
+        return {
+          ...current,
+          ...getExecutionOptions?.(invocation),
+        };
+      },
     };
     let disposed = false;
     let scope: WebMCPToolScope | undefined;

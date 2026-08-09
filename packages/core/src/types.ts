@@ -760,6 +760,14 @@ export interface PipelineContext<T = unknown, R = void> {
   /** Defer once-handler removal to the outer retry lifecycle */
   deferOnceCleanup?: boolean;
 
+  /**
+   * Atomically reserve a once registration immediately before invocation.
+   * A false return means another concurrent dispatch already consumed it.
+   *
+   * @internal
+   */
+  claimOnce?(registration: HandlerRegistration<T, R>): boolean;
+
   /** Effective signal shared with controllers for cooperative cancellation */
   signal?: AbortSignal;
 
@@ -984,10 +992,11 @@ export interface DispatchOptions {
     delay: number;
     /**
      * Retry boundary for work started by a race attempt. `abort-and-drain` is
-     * the safe default for race; `overlap` is an explicit opt-in for
-     * idempotent/read-only handlers.
+     * the safe default for race; `abort-and-overlap` is an explicit opt-in for
+     * idempotent/read-only handlers. Both modes abort the superseded attempt;
+     * only the former waits for its started work to settle.
      */
-    attemptBarrier?: 'immediate' | 'abort-and-drain' | 'overlap';
+    attemptBarrier?: 'abort-and-drain' | 'abort-and-overlap';
   };
   
   /** Auto-abort options for automatic AbortController management */

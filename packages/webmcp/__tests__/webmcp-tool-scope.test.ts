@@ -227,6 +227,32 @@ describe('createWebMCPToolScope', () => {
     scope.dispose();
   });
 
+  it('gives deprecated beforeExecute an immutable invocation snapshot', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    let notified: (() => void) | undefined;
+    const notification = new Promise<void>(resolve => { notified = resolve; });
+    const scope = await createWebMCPToolScope(createManager(), {
+      sessionId: 'page-session',
+      toolNames: ['search'],
+      beforeExecute: invocation => {
+        try {
+          (invocation.input as { query: string }).query = 'mutated';
+          (invocation.definition as { name: string }).name = 'mutated';
+        } catch {
+          // The notification view is intentionally frozen.
+        }
+        notified?.();
+      },
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+
+    await registered[0]!.execute({ query: 'coffee' });
+    await notification;
+    await registered[0]!.execute({ query: 'tea' });
+    expect(searchDefinition.name).toBe('search');
+    scope.dispose();
+  });
+
   it('stops registering further tools when its signal aborts while registration is pending', async () => {
     const controller = new AbortController();
     let releaseFirst: (() => void) | undefined;
@@ -360,6 +386,40 @@ describe('createWebMCPToolScope', () => {
 
     await expect(registered[0]!.execute({ query: 'coffee' })).resolves.toEqual({ accepted: true });
     await settled;
+    scope.dispose();
+  });
+
+  it('deeply snapshots nested error details for post-execution notifications', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const error = {
+      code: 'DENIED',
+      message: 'denied',
+      details: { reason: { policy: 'original' } },
+    };
+    let notified: (() => void) | undefined;
+    const notification = new Promise<void>(resolve => { notified = resolve; });
+    const scope = await createWebMCPToolScope(createManager(async () => ({
+      content: [{ type: 'text', text: 'denied' }],
+      isError: true,
+      error,
+    })), {
+      sessionId: 'page-session',
+      toolNames: ['search'],
+      afterExecute: ({ result }) => {
+        try {
+          ((result.error?.details as { reason: { policy: string } }).reason.policy) = 'mutated';
+        } catch {
+          // The notification view is intentionally frozen.
+        }
+        notified?.();
+      },
+      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
+    });
+
+    const result = await registered[0]!.execute({ query: 'coffee' }) as { error: typeof error };
+    await notification;
+    expect(result.error.details.reason.policy).toBe('original');
+    expect(error.details.reason.policy).toBe('original');
     scope.dispose();
   });
 });

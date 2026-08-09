@@ -6,12 +6,18 @@
 
 # Function: useWebMCPToolScope()
 
-> **useWebMCPToolScope**(`manager`, `options`): [`WebMCPToolScopeState`](../interfaces/WebMCPToolScopeState.md)
+> **useWebMCPToolScope**&lt;`TDocument`&gt;(`manager`, `options`): [`WebMCPToolScopeState`](../interfaces/WebMCPToolScopeState.md)
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L50)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:51](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L51)
 
 Connect a canonical tool registry to the current component lifecycle.
 Memoize `options` so unrelated renders do not re-register WebMCP tools.
+
+## Type Parameters
+
+### TDocument
+
+`TDocument` = `WebMCPDocument`
 
 ## Parameters
 
@@ -21,7 +27,7 @@ Memoize `options` so unrelated renders do not re-register WebMCP tools.
 
 ### options
 
-Type parameter **WebMCPToolScopeOptions**
+`WebMCPToolScopeOptions`&lt;`TDocument`&gt;
 
 ## Returns
 

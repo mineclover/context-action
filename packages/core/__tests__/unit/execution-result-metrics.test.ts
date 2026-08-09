@@ -227,6 +227,71 @@ describe('ExecutionResult metrics', () => {
     register.destroy();
   });
 
+  it('rejects cross-role replacement of an authorization guard', () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.registerGuard('run', () => {}, { id: 'access-control' });
+
+    expect(() => register.registerObserver('run', () => {}, {
+      id: 'access-control',
+    })).toThrow('role conflict');
+    expect(() => register.register<'run', string>('run', () => 'unsafe', {
+      id: 'access-control',
+    })).toThrow('role conflict');
+    register.destroy();
+  });
+
+  it('claims once guards before concurrent dispatches can invoke them', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseGuard: (() => void) | undefined;
+    const guardGate = new Promise<void>(resolve => { releaseGuard = resolve; });
+    const guard = jest.fn(async () => { await guardGate; });
+    register.registerGuard('run', guard, { once: true });
+    register.register<'run', string>('run', () => 'ok');
+
+    const first = register.dispatchWithResult<'run', string>('run', { id: 'first' });
+    await Promise.resolve();
+    const second = register.dispatchWithResult<'run', string>('run', { id: 'second' });
+    await second;
+    expect(guard).toHaveBeenCalledTimes(1);
+    releaseGuard?.();
+    await first;
+    register.destroy();
+  });
+
+  it('claims once result handlers before concurrent dispatches can invoke them', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    let releaseHandler: (() => void) | undefined;
+    const handlerGate = new Promise<void>(resolve => { releaseHandler = resolve; });
+    const handler = jest.fn(async () => {
+      await handlerGate;
+      return 'once';
+    });
+    register.register<'run', string>('run', handler, { once: true });
+
+    const first = register.dispatchWithResult<'run', string>('run', { id: 'first' });
+    await Promise.resolve();
+    const second = register.dispatchWithResult<'run', string>('run', { id: 'second' });
+    await second;
+    expect(handler).toHaveBeenCalledTimes(1);
+    releaseHandler?.();
+    await first;
+    register.destroy();
+  });
+
+  it('gives void-dispatch observers the aggregated handler result', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const observer = jest.fn();
+    register.register<'run', { accepted: boolean }>('run', () => ({ accepted: true }));
+    register.registerObserver('run', observer);
+
+    await register.dispatch('run', { id: 'void-observer' });
+    expect(observer).toHaveBeenCalledWith(expect.objectContaining({
+      result: { accepted: true },
+      outcome: 'completed',
+    }));
+    register.destroy();
+  });
+
   it('rejects void dispatch when a guard throws but resolves explicit aborts', async () => {
     const register = new ActionRegister<MetricsActions>();
     register.registerGuard('run', () => { throw new Error('authorization unavailable'); });
@@ -332,6 +397,41 @@ describe('ExecutionResult metrics', () => {
     expect(shutdownComplete).toBe(false);
     releaseObserver?.();
     await expect(shutdown).resolves.toBeUndefined();
+  });
+
+  it('reports an awaited observer timeout to the global error handler', async () => {
+    const errorHandler = jest.fn();
+    const register = new ActionRegister<MetricsActions>({ registry: { errorHandler } });
+    let releaseObserver: (() => void) | undefined;
+    const observerGate = new Promise<void>(resolve => { releaseObserver = resolve; });
+    register.register<'run', string>('run', () => 'committed');
+    register.registerObserver('run', async () => { await observerGate; });
+
+    await expect(register.dispatchWithResult<'run', string>('run', { id: 'observer-timeout' }, {
+      timeout: 10,
+    })).rejects.toMatchObject({ name: 'ActionTimeoutError' });
+    expect(errorHandler).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'ActionTimeoutError',
+    }), expect.any(Object));
+    releaseObserver?.();
+    await register.destroyAsync();
+  });
+
+  it('keeps cancelled preflight metrics aligned with skipped handler outcomes', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const register = new ActionRegister<MetricsActions>();
+    register.registerGuard('run', () => {}, { id: 'guard' });
+    register.register<'run', string>('run', () => 'never', { id: 'result' });
+    register.registerObserver('run', () => {}, { id: 'observer' });
+
+    const result = await register.dispatchWithResult<'run', string>('run', { id: 'cancelled' }, {
+      signal: controller.signal,
+    });
+    expect(result.execution.handlersSkipped).toBe(result.handlers.length);
+    expect(result.handlers.map(handler => handler.id).sort()).toEqual(['guard', 'result']);
+    expect(result.handlers.every(handler => handler.status === 'skipped')).toBe(true);
+    register.destroy();
   });
 
   it('notifies failure observers when a void dispatch is rejected by a guard', async () => {
@@ -445,6 +545,32 @@ describe('ExecutionResult metrics', () => {
     await expect(execution).resolves.toMatchObject({ result: 'recovered' });
     expect(fastAttempts).toBe(2);
     register.destroy();
+  });
+
+  it('starts a retry without draining losers when abort-and-overlap is selected', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.setActionExecutionMode('run', 'race');
+    let attempts = 0;
+    let releaseLoser: (() => void) | undefined;
+    const loserGate = new Promise<void>(resolve => { releaseLoser = resolve; });
+    register.register<'run', string>('run', () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error('retry');
+      return 'recovered';
+    }, { id: 'fast', errorPolicy: 'fatal' });
+    register.register('run', async () => {
+      await loserGate;
+      return 'slow';
+    }, { id: 'slow' });
+
+    const execution = register.dispatchWithResult<'run', string>('run', { id: 'overlap' }, {
+      retryOnError: { maxAttempts: 2, delay: 0, attemptBarrier: 'abort-and-overlap' },
+    });
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    expect(attempts).toBe(2);
+    releaseLoser?.();
+    await expect(execution).resolves.toMatchObject({ result: 'recovered' });
+    await register.destroyAsync();
   });
 
   it('aborts the prior race attempt before its retry barrier drains', async () => {

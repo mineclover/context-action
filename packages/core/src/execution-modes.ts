@@ -157,6 +157,12 @@ export async function executeSequential<T, R = void>(
       }
     }
 
+    if (context.claimOnce && !context.claimOnce(registration)) {
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
+      i++;
+      continue;
+    }
+
     const outcome = beginOutcome(registration);
     const startedAt = Date.now();
     (context.handlerOutcomes ??= []).push(outcome);
@@ -359,6 +365,10 @@ export async function executeParallel<T, R = void>(
       (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
       continue;
     }
+    if (context.claimOnce && !context.claimOnce(registration)) {
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
+      continue;
+    }
     runnableHandlers.push(registration);
   }
 
@@ -506,6 +516,10 @@ export async function executeRace<T, R = void>(
   const runnableHandlers: HandlerRegistration<T, R>[] = [];
   for (const registration of context.handlers) {
     if (registration.config.condition && !registration.config.condition(context.payload)) {
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
+      continue;
+    }
+    if (context.claimOnce && !context.claimOnce(registration)) {
       (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
       continue;
     }

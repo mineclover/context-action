@@ -6,7 +6,7 @@
 
 # Interface: WebMCPToolScopeState
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:9](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L9)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:10](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L10)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:9](https://github.co
 
 > `readonly` **supported**: `boolean`
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:10](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L10)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:11](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L11)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:10](https://github.c
 
 > `readonly` **activeTools**: readonly `string`[]
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:11](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L11)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:12](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L12)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:11](https://github.c
 
 > `readonly` `optional` **error?**: `Error`
 
-Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:12](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L12)
+Defined in: [packages/react/src/tools/useWebMCPToolScope.ts:13](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/useWebMCPToolScope.ts#L13)

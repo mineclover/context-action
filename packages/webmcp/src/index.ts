@@ -251,7 +251,7 @@ export async function createWebMCPToolScope<TDocument = WebMCPDocument>(
                 result: snapshotToolCallResult(result),
               });
             } else {
-              await executionOptions.beforeExecute?.(invocation);
+              await executionOptions.beforeExecute?.(snapshotWebMCPInvocation(invocation));
             }
           }).catch(error => {
             try {
@@ -420,22 +420,31 @@ function snapshotToolCallResult(result: ToolCallResult): ToolCallResult {
       : { type: 'json' as const, json: snapshotToolValue(block.json) },
   ))) as ToolCallResult['content'];
   const structuredContent = snapshotToolValue(result.structuredContent);
+  const error = snapshotToolValue(result.error);
   return Object.freeze({
     ...(result.toolCallId === undefined ? {} : { toolCallId: result.toolCallId }),
     content,
     ...(structuredContent === undefined ? {} : { structuredContent }),
     ...(result.isError === undefined ? {} : { isError: result.isError }),
-    ...(result.error === undefined ? {} : { error: Object.freeze({ ...result.error }) }),
+    ...(error === undefined ? {} : { error }),
   });
 }
 
 function snapshotWebMCPInvocation(
   invocation: WebMCPToolInvocation,
 ): WebMCPToolInvocation {
+  const definition = snapshotToolValue(invocation.definition) ?? Object.freeze({
+    name: invocation.definition.name,
+    description: invocation.definition.description,
+    inputSchema: {},
+  }) as ToolDefinition;
   return Object.freeze({
-    ...invocation,
+    toolName: invocation.toolName,
+    toolCallId: invocation.toolCallId,
     input: snapshotToolValue(invocation.input) ?? {},
-    definition: snapshotToolValue(invocation.definition) ?? invocation.definition,
+    definition,
+    sessionId: invocation.sessionId,
+    signal: invocation.signal,
   });
 }
 

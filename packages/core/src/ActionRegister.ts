@@ -144,6 +144,9 @@ export class ActionRegister<
     HandlerRegistration<any, any>,
     { handler: ActionObserverHandler<any, any>; when: 'success' | 'failure' | 'always' }
   >();
+  /** A once handler is removed from the registry before its callback starts.
+   * Keep its claim separately so resource cleanup can still run on settlement. */
+  private readonly claimedOnceHandlers = new WeakSet<HandlerRegistration<any, any>>();
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
@@ -432,6 +435,12 @@ export class ActionRegister<
   ): UnregisterFunction {
     const handlerId = config.id ?? this.generateHandlerId(action);
     const existing = this.pipelines.get(action)?.find(item => item.id === handlerId);
+    if (existing && (existing.role ?? 'legacy') !== 'observer') {
+      throw new Error(
+        `Action handler role conflict for "${String(action)}" and id "${handlerId}": `
+        + `cannot replace ${(existing.role ?? 'legacy')} with observer.`,
+      );
+    }
     // A duplicate observer must not acquire ownership of another registration
     // (or overwrite its callback) when replacement was explicitly disabled.
     if (existing && config.replaceExisting === false) return () => {};
@@ -638,6 +647,13 @@ export class ActionRegister<
     if (existingIndex !== -1) {
       const existing = pipeline[existingIndex];
       const existingUnregister = actionUnregisterFunctions.get(handlerId);
+
+      if (existing && (existing.role ?? 'legacy') !== role) {
+        throw new Error(
+          `Action handler role conflict for "${String(action)}" and id "${handlerId}": `
+          + `cannot replace ${(existing.role ?? 'legacy')} with ${role}.`,
+        );
+      }
       
       if (registration.config.replaceExisting) {
         // 🔧 Fix: Clean up existing handler properly without removing from pipeline
@@ -758,6 +774,12 @@ export class ActionRegister<
     const plan = this.resolveDispatchPlan(action, options);
     const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
     let observerNotified = false;
+    let terminalErrorReported = false;
+    const reportTerminalError = (error: unknown) => {
+      if (terminalErrorReported) return;
+      terminalErrorReported = true;
+      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+    };
     const notifyObservers = async (event: ActionObserverEvent<T[K], void>) => {
       if (observerNotified) return;
       observerNotified = true;
@@ -819,11 +841,17 @@ export class ActionRegister<
         throw execution.errors[execution.errors.length - 1]?.error
           ?? new Error(`Action "${String(action)}" failed`);
       }
+      const result = this.processResults<unknown>(
+        execution.results as unknown[],
+        execution.terminated,
+        execution.terminated ? execution.result : undefined,
+        options?.result,
+      );
       await notifyObservers({
         action: String(action),
         payload: guard.payload,
         outcome: execution.outcome,
-        result: execution.result,
+        result: result as void,
         errors: execution.errors,
         signal: timeoutScope.options?.signal,
       });
@@ -837,6 +865,7 @@ export class ActionRegister<
 
       // Strict validation must complete before timing guards mutate admission state.
       this.validatePayload(action, payload);
+      this.validateResultOptions(options?.result);
       if (timeoutScope.options?.signal?.aborted) {
         await notifyObservers({ action: String(action), payload: payload as T[K], outcome: 'cancelled',
           result: undefined, errors: [], signal: timeoutScope.options?.signal });
@@ -889,7 +918,7 @@ export class ActionRegister<
     try {
       dispatchPromise = operation();
       observedDispatchPromise = dispatchPromise.catch(async error => {
-        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        reportTerminalError(error);
         await notifyObservers({
           action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
           errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
@@ -907,8 +936,8 @@ export class ActionRegister<
       dispatchHandlerPromises
     );
     const observedPromise = exposedPromise.catch(async error => {
+      reportTerminalError(error);
       if (!observerNotified) {
-        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
         await this.trackGlobalHandlerPromise(notifyObservers({
           action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
           errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
@@ -1061,7 +1090,7 @@ export class ActionRegister<
     options: DispatchOptions | undefined,
   ): boolean {
     const barrier = options?.retryOnError?.attemptBarrier
-      ?? (plan.executionMode === 'race' ? 'abort-and-drain' : 'immediate');
+      ?? (plan.executionMode === 'race' ? 'abort-and-drain' : 'abort-and-overlap');
     return barrier === 'abort-and-drain';
   }
 
@@ -1310,10 +1339,19 @@ export class ActionRegister<
 
   private createAbortedExecutionResult<R>(
     startTime: number,
-    handlersSkipped: number = 0,
+    skippedRegistrations: readonly HandlerRegistration<any, any>[] = [],
     validation?: ExecutionResult<R>['validation']
   ): ExecutionResult<R> {
     const endTime = Date.now();
+    const handlers = skippedRegistrations.map(registration => ({
+      id: registration.id,
+      status: 'skipped' as const,
+      executed: false,
+      duration: 0,
+      result: undefined,
+      error: undefined,
+      metadata: registration.config.metadata ? { ...registration.config.metadata } : undefined,
+    }));
 
     return {
       success: false,
@@ -1332,12 +1370,12 @@ export class ActionRegister<
         queueWaitDuration: 0,
         pipelineDuration: 0,
         handlersExecuted: 0,
-        handlersSkipped,
+        handlersSkipped: handlers.length,
         handlersFailed: 0,
         startTime,
         endTime,
       },
-      handlers: [],
+      handlers,
       errors: [],
     };
   }
@@ -1542,6 +1580,7 @@ export class ActionRegister<
       handlers: [...plan.guards] as HandlerRegistration<T[K], unknown>[],
       executedHandlers: [],
       handlerOutcomes: [],
+      claimOnce: registration => this.claimOnceRegistration(action, registration),
       signal: signal ?? this.lifecycleController.signal,
       trackHandlerPromise: promise => this.trackHandlerPromise(promise, dispatchHandlerPromises),
       aborted: false,
@@ -1973,7 +2012,7 @@ export class ActionRegister<
         admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          plan.eligibleHandlers.length,
+          [...plan.guards, ...plan.results],
         );
       }
 
@@ -1983,7 +2022,7 @@ export class ActionRegister<
         admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          plan.eligibleHandlers.length,
+          [...plan.guards, ...plan.results],
           validation,
         );
       }
@@ -1999,7 +2038,7 @@ export class ActionRegister<
           admissionEndedAt = Date.now();
           return this.createAbortedExecutionResult<R>(
             dispatchStartTime,
-            plan.eligibleHandlers.length,
+            [...plan.guards, ...plan.results],
             validation,
           );
         }
@@ -2018,7 +2057,7 @@ export class ActionRegister<
         admissionEndedAt = Date.now();
         return this.createAbortedExecutionResult<R>(
           dispatchStartTime,
-          plan.eligibleHandlers.length,
+          [...plan.guards, ...plan.results],
           validation,
         );
       }
@@ -2038,6 +2077,12 @@ export class ActionRegister<
     };
 
     let observerNotified = false;
+    let terminalErrorReported = false;
+    const reportTerminalError = (error: unknown) => {
+      if (terminalErrorReported) return;
+      terminalErrorReported = true;
+      this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+    };
     const notifyObservers = async (event: ActionObserverEvent<T[K], R>) => {
       if (observerNotified) return;
       observerNotified = true;
@@ -2070,7 +2115,7 @@ export class ActionRegister<
         if (completedResult.outcome === 'failed') {
           const terminalError = completedResult.errors[completedResult.errors.length - 1]?.error
             ?? new Error(`Action "${String(action)}" failed`);
-          this.invokeErrorHandler(terminalError, action, payload, options, attemptState.count);
+          reportTerminalError(terminalError);
         }
         await notifyObservers({
           action: String(action), payload: observerPayload,
@@ -2079,7 +2124,7 @@ export class ActionRegister<
         });
         return completedResult;
       }, async error => {
-        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
+        reportTerminalError(error);
         await notifyObservers({
           action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
           errors: [{
@@ -2103,8 +2148,8 @@ export class ActionRegister<
     const observedPromise = exposedPromise.catch(async error => {
       // A timeout rejects the exposed promise before the canonical operation
       // settles. Notify once and track that observer work for shutdown.
+      reportTerminalError(error);
       if (!observerNotified) {
-        this.invokeErrorHandler(error, action, payload, options, attemptState.count);
         await this.trackGlobalHandlerPromise(notifyObservers({
           action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
           errors: [{
@@ -2143,7 +2188,7 @@ export class ActionRegister<
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
       cleanup();
-      return this.createAbortedExecutionResult<R>(_startTime, 0, validation);
+      return this.createAbortedExecutionResult<R>(_startTime, plan.results, validation);
     }
     
     const pipeline = plan.pipelineSnapshot;
@@ -2202,6 +2247,7 @@ export class ActionRegister<
       executedHandlers: [],
       handlerOutcomes: [],
       deferOnceCleanup: true,
+      claimOnce: registration => this.claimOnceRegistration(action, registration),
       signal: effectiveSignal ?? this.lifecycleController.signal,
       trackHandlerPromise: promise => this.trackHandlerPromise(
         promise,
@@ -2681,7 +2727,12 @@ export class ActionRegister<
     const shouldDeferCleanup = handlersStillRunning.length > 0;
 
     oneTimeHandlers.forEach(registration => {
-      if (this.removeRegistration(action, registration, !shouldDeferCleanup)) {
+      const claimed = this.claimedOnceHandlers.delete(registration);
+      const removed = claimed || this.removeRegistration(action, registration, !shouldDeferCleanup);
+      if (removed) {
+        if (claimed && !shouldDeferCleanup) {
+          this.runRegistrationCleanup(action, registration);
+        }
         if (
           shouldDeferCleanup &&
           typeof registration.config.cleanup === 'function'
@@ -2698,6 +2749,19 @@ export class ActionRegister<
         });
       }
     });
+  }
+
+  /** Reserve a once registration before user code starts. This is synchronous,
+   * so independent dispatches cannot both invoke the same registration. */
+  private claimOnceRegistration<K extends keyof T>(
+    action: K,
+    registration: HandlerRegistration<any, any>,
+  ): boolean {
+    if (!registration.config.once) return true;
+    if (this.claimedOnceHandlers.has(registration)) return false;
+    if (!this.removeRegistration(action, registration, false)) return false;
+    this.claimedOnceHandlers.add(registration);
+    return true;
   }
 
 

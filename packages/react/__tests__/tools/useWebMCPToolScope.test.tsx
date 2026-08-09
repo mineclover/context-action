@@ -3,6 +3,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useWebMCPToolScope } from '../../src/tools';
 import type { ToolDefinition, ToolManagementInterface } from '@context-action/tool-protocol';
 import type { WebMCPToolDefinition } from '@context-action/webmcp';
+import {
+  chromeLegacyWebMCPProfile,
+  type ChromeLegacyWebMCPDocument,
+} from '@context-action/webmcp/profiles/chrome-legacy';
 
 const definition: ToolDefinition = {
   name: 'search',
@@ -102,5 +106,41 @@ describe('useWebMCPToolScope', () => {
     expect(registered).toHaveLength(1);
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves a caller execution-options resolver', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const document = {
+      modelContext: { registerTool: async (tool: WebMCPToolDefinition) => { registered.push(tool); } },
+    };
+    const fromResolver = jest.fn();
+    const resolver = jest.fn(() => ({ beforeExecute: fromResolver }));
+    renderHook(() => useWebMCPToolScope(manager, {
+      sessionId: 'resolver-options',
+      toolNames: ['search'],
+      document,
+      getExecutionOptions: resolver,
+    }));
+
+    await waitFor(() => expect(registered).toHaveLength(1));
+    await registered[0]!.execute({ query: 'coffee' });
+    expect(resolver).toHaveBeenCalledTimes(1);
+    expect(fromResolver).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts the Chrome legacy profile without a document cast', async () => {
+    const registered: WebMCPToolDefinition[] = [];
+    const document: ChromeLegacyWebMCPDocument = {
+      modelContext: { registerTool: tool => { registered.push(tool); } },
+    };
+    const { result } = renderHook(() => useWebMCPToolScope(manager, {
+      sessionId: 'legacy-profile',
+      toolNames: ['search'],
+      document,
+      profile: chromeLegacyWebMCPProfile,
+    }));
+
+    await waitFor(() => expect(result.current.activeTools).toEqual(['search']));
+    expect(registered).toHaveLength(1);
   });
 });
