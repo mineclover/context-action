@@ -24,6 +24,15 @@ async function validateAcceptedAudit(audit, manifestCommit) {
   if (audit.reviewedCommit !== manifestCommit) {
     errors.push('Accepted audit must bind the provenance-attested manifest commit');
   }
+  const review = audit.review;
+  if (!review || typeof review !== 'object'
+    || typeof review.login !== 'string' || review.login.trim().length === 0
+    || typeof review.pullRequest !== 'number' || !Number.isInteger(review.pullRequest) || review.pullRequest <= 0
+    || typeof review.reviewId !== 'number' || !Number.isInteger(review.reviewId) || review.reviewId <= 0
+    || typeof review.reviewCommit !== 'string' || !/^[a-f0-9]{40}$/u.test(review.reviewCommit)
+    || review.decision !== 'APPROVED') {
+    errors.push('Accepted audit requires a GitHub approval identity, PR, review ID, commit, and APPROVED decision');
+  }
   for (const [label, target, expectedHash] of [
     ['report', audit.report, audit.reportSha256],
     ['evidence', audit.evidence, audit.evidenceSha256],
@@ -74,7 +83,7 @@ async function validateAcceptedPrePublicationAudit(audit, manifestCommit) {
   return errors;
 }
 
-async function validateReleaseApproval(approval, manifestCommit) {
+async function validateReleaseApproval(approval, manifestCommit, governance) {
   const errors = [];
   if (approval?.status !== 'accepted') return ['G0/G1 release approval is not accepted'];
   if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
@@ -82,6 +91,13 @@ async function validateReleaseApproval(approval, manifestCommit) {
   }
   if (approval.reviewedCommit !== manifestCommit) {
     errors.push('Accepted release approval must bind the provenance-attested manifest commit');
+  }
+  if (governance && (
+    approval.promotionGovernanceCommit !== governance.commit
+    || approval.promotionGovernanceEvidenceSha256 !== governance.evidenceSha256
+    || approval.promotionGovernanceFingerprintSha256 !== governance.fingerprintSha256
+  )) {
+    errors.push('Accepted release approval must bind the exact promotion-governance commit, evidence hash, and fingerprint');
   }
   const files = [
     ['record', approval.record, approval.recordSha256],
@@ -106,6 +122,41 @@ async function validateReleaseApproval(approval, manifestCommit) {
     } catch {
       errors.push(`Accepted release approval ${label} is missing`);
     }
+  }
+  return errors;
+}
+
+async function validatePromotionGovernance(governance) {
+  const errors = [];
+  if (!governance || typeof governance !== 'object') return ['an approved promotion-governance record'];
+  if (typeof governance.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(governance.commit)) {
+    errors.push('a promotion-governance commit');
+  }
+  for (const [label, target, expectedHash] of [
+    ['evidence', governance.evidence, governance.evidenceSha256],
+  ]) {
+    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
+      errors.push(`a hashed promotion-governance ${label} path`);
+      continue;
+    }
+    const resolved = path.resolve(repositoryRoot, target);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push(`a repository-local promotion-governance ${label} path`);
+      continue;
+    }
+    try {
+      const contents = await readFile(resolved);
+      if (sha256(contents) !== expectedHash) errors.push(`a matching promotion-governance ${label} hash`);
+      const evidence = JSON.parse(contents);
+      if (evidence.commit !== governance.commit || evidence.workingTree !== 'clean' || evidence.status !== 'recorded') {
+        errors.push('strict evidence bound to the promotion-governance commit');
+      }
+    } catch {
+      errors.push(`an existing promotion-governance ${label}`);
+    }
+  }
+  if (typeof governance.fingerprintSha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(governance.fingerprintSha256)) {
+    errors.push('a promotion-governance fingerprint');
   }
   return errors;
 }
@@ -143,12 +194,13 @@ async function main() {
   }
 
   const packageEntries = Object.entries(packages);
-  const publishedStages = new Set(['published-unapproved', 'audited', 'approved-for-stable', 'promoted']);
+  const publishedStages = new Set(['published-unapproved', 'audited', 'approved-for-stable', 'promotion-evidence-pending', 'promoted']);
   const registryEvidence = manifest.registryEvidence;
   const audit = manifest.audit;
   const releaseApproval = manifest.releaseApproval;
   const prePublicationAudit = manifest.prePublicationAudit;
   const promotionTargets = manifest.promotionTargets ?? {};
+  const registryHygiene = manifest.registryHygiene;
   const testedExternalDependencies = manifest.testedExternalDependencies ?? {};
   const reactDependencies = reactPackage.dependencies ?? {};
 
@@ -260,17 +312,31 @@ async function main() {
         errors.push(`Certified stable surface requires an exact SemVer version: ${surface}`);
       }
     }
-    if (['audited', 'approved-for-stable', 'promoted'].includes(manifest.status)) {
+    if (['audited', 'approved-for-stable', 'promotion-evidence-pending', 'promoted'].includes(manifest.status)) {
       for (const error of await validateAcceptedAudit(audit, manifest.commit)) {
         errors.push(`${manifest.status} manifest requires ${error}`);
       }
     }
-    if (['approved-for-stable', 'promoted'].includes(manifest.status)) {
-      for (const error of await validateReleaseApproval(releaseApproval, manifest.commit)) {
+    if (['approved-for-stable', 'promotion-evidence-pending', 'promoted'].includes(manifest.status)) {
+      for (const error of await validateReleaseApproval(releaseApproval, manifest.commit, manifest.promotionGovernance)) {
         errors.push(`${manifest.status} manifest requires ${error}`);
+      }
+      for (const error of await validatePromotionGovernance(manifest.promotionGovernance)) {
+        errors.push(`${manifest.status} manifest requires ${error}`);
+      }
+      if (registryHygiene?.status !== 'cleared') {
+        errors.push(`${manifest.status} manifest requires cleared registry hygiene`);
+      }
+    }
+    if (manifest.status === 'promotion-evidence-pending') {
+      if (manifest.promotionEvidence?.status !== 'pending' || typeof manifest.promotionEvidence.workflowRun !== 'string') {
+        errors.push('Promotion-evidence-pending manifest requires the failed promotion workflow run record');
       }
     }
     if (manifest.status === 'promoted') {
+      if (manifest.promotionEvidence?.status !== 'captured' || typeof manifest.promotionEvidence.workflowRun !== 'string') {
+        errors.push('Promoted manifest requires captured promotion evidence and workflow run record');
+      }
       for (const [name, tag] of Object.entries(promotionTargets)) {
         if (registryEvidence?.[name]?.distTags?.[tag] !== packages[name]) {
           errors.push(`Promoted package must be tagged ${tag}: ${name}`);

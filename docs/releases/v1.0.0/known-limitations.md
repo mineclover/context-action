@@ -15,6 +15,11 @@
 - The published `next` consumer matrix and npm registry provenance verification
   have passed, but the independent published-artifact audit has not yet been
   performed. The release verdict therefore remains `NOT READY`.
+- `@context-action/tool-protocol@1.0.0` bundles a `CHANGELOG.md` whose newest
+  entry is `0.8.9`. The immutable artifact cannot be repaired in place; the
+  canonical v1.0.0 notes are this release document set and the GitHub release.
+  Runtime and declaration artifacts are unaffected. A stricter artifact-docs
+  policy requires a corrected patch cohort rather than silent promotion.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
 affected gate before approving an RC.

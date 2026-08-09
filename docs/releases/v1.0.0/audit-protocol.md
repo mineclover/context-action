@@ -34,3 +34,10 @@ Any P0/P1 finding reopens the affected gate; only the auditor may set the audit
 result to accepted. A `READY` result must also satisfy the hashed acceptance
 record in [audit-report.md](./audit-report.md); the manifest and promotion
 verifiers reject an unhashed, altered, or differently bound audit report.
+The accepted manifest record must also identify the GitHub PR review that
+approved the audit. Record its reviewer login, PR number, immutable review ID,
+reviewed commit, and `APPROVED` decision; this preserves a queryable
+independence trail rather than treating a prose reviewer field as proof. The
+promotion workflow calls the GitHub REST API with read-only pull-request access
+and rejects promotion unless that exact review still resolves to the recorded
+reviewer, commit, and approved state.

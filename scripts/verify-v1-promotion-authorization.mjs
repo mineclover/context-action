@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promotionGovernanceFingerprint } from './verify-v1-promotion-governance.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = path.join(repositoryRoot, 'docs/releases/v1.0.0/release-manifest.json');
@@ -26,6 +27,15 @@ async function verifyAcceptedAudit(audit, expectedCommit) {
   }
   if (audit.reviewedCommit !== expectedCommit) {
     errors.push('Accepted audit must bind the requested release commit');
+  }
+  const review = audit.review;
+  if (!review || typeof review !== 'object'
+    || typeof review.login !== 'string' || review.login.trim().length === 0
+    || typeof review.pullRequest !== 'number' || !Number.isInteger(review.pullRequest) || review.pullRequest <= 0
+    || typeof review.reviewId !== 'number' || !Number.isInteger(review.reviewId) || review.reviewId <= 0
+    || typeof review.reviewCommit !== 'string' || !/^[a-f0-9]{40}$/u.test(review.reviewCommit)
+    || review.decision !== 'APPROVED') {
+    errors.push('Accepted audit requires a GitHub approval identity, PR, review ID, commit, and APPROVED decision');
   }
   for (const [label, target, expectedHash] of [
     ['report', audit.report, audit.reportSha256],
@@ -52,7 +62,7 @@ async function verifyAcceptedAudit(audit, expectedCommit) {
   return errors;
 }
 
-async function verifyReleaseApproval(approval, expectedCommit) {
+async function verifyReleaseApproval(approval, expectedCommit, governance) {
   const errors = [];
   if (approval?.status !== 'accepted') return ['Promotion requires an accepted G0/G1 release approval'];
   if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
@@ -60,6 +70,11 @@ async function verifyReleaseApproval(approval, expectedCommit) {
   }
   if (approval.reviewedCommit !== expectedCommit) {
     errors.push('Accepted release approval must bind the requested release commit');
+  }
+  if (!governance || approval.promotionGovernanceCommit !== governance.commit
+    || approval.promotionGovernanceEvidenceSha256 !== governance.evidenceSha256
+    || approval.promotionGovernanceFingerprintSha256 !== governance.fingerprintSha256) {
+    errors.push('Accepted release approval must bind the exact promotion-governance commit, evidence hash, and fingerprint');
   }
   const files = [
     ['record', approval.record, approval.recordSha256],
@@ -89,6 +104,53 @@ async function verifyReleaseApproval(approval, expectedCommit) {
   return errors;
 }
 
+async function verifyPromotionGovernance(governance, checkedOutCommit) {
+  const errors = [];
+  if (!governance || typeof governance !== 'object') return ['Promotion requires a bound promotion-governance record'];
+  if (typeof governance.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(governance.commit)) {
+    errors.push('Promotion governance requires an immutable evidence commit');
+  }
+  if (typeof governance.commit === 'string' && /^[a-f0-9]{40}$/u.test(governance.commit)) {
+    try {
+      execFileSync('git', ['merge-base', '--is-ancestor', governance.commit, checkedOutCommit], {
+        cwd: repositoryRoot,
+        stdio: 'ignore',
+      });
+    } catch {
+      errors.push('Checked-out governance must descend from the approved governance evidence commit');
+    }
+  }
+  if (typeof governance.evidence !== 'string' || typeof governance.evidenceSha256 !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(governance.evidenceSha256)) {
+    errors.push('Promotion governance requires a hashed strict evidence manifest');
+  } else {
+    const resolved = path.resolve(repositoryRoot, governance.evidence);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push('Promotion-governance evidence must stay within the repository');
+    } else {
+      try {
+        const contents = await readFile(resolved);
+        if (createHash('sha256').update(contents).digest('hex') !== governance.evidenceSha256) {
+          errors.push('Promotion-governance evidence hash does not match');
+        }
+        const evidence = JSON.parse(contents);
+        if (evidence.commit !== governance.commit || evidence.workingTree !== 'clean' || evidence.status !== 'recorded') {
+          errors.push('Promotion-governance evidence is not a clean record for its declared commit');
+        }
+      } catch {
+        errors.push('Promotion-governance evidence is missing or invalid');
+      }
+    }
+  }
+  if (typeof governance.fingerprintSha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(governance.fingerprintSha256)) {
+    errors.push('Promotion governance requires a fingerprint');
+  } else if (await promotionGovernanceFingerprint() !== governance.fingerprintSha256) {
+    errors.push('Checked-out promotion governance differs from the approved fingerprint');
+  }
+  if (checkedOutCommit !== currentCommit()) errors.push('Checked-out governance commit changed during authorization');
+  return errors;
+}
+
 async function main() {
   const expectedCommit = option('--commit');
   const governanceCommit = option('--governance-commit');
@@ -109,7 +171,11 @@ async function main() {
     errors.push('Checked-out governance commit does not match the requested governance commit');
   }
   errors.push(...await verifyAcceptedAudit(manifest.audit, expectedCommit));
-  errors.push(...await verifyReleaseApproval(manifest.releaseApproval, expectedCommit));
+  errors.push(...await verifyReleaseApproval(manifest.releaseApproval, expectedCommit, manifest.promotionGovernance));
+  errors.push(...await verifyPromotionGovernance(manifest.promotionGovernance, governanceCommit));
+  if (manifest.registryHygiene?.status !== 'cleared') {
+    errors.push('Promotion requires cleared registry hygiene');
+  }
 
   for (const [name, version] of Object.entries(manifest.packages ?? {})) {
     const evidence = manifest.registryEvidence?.[name];
