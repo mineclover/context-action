@@ -75,6 +75,33 @@ function publishScopedPrerelease() {
   });
   const summary = [];
 
+  function removeAccidentalLatest(manifest, packageDirectory) {
+    if (!manifest.version.includes('-')) return;
+    let tags;
+    for (let attempt = 1; attempt <= 6; attempt += 1) {
+      const tagsResult = commandSucceeded(
+        'npm',
+        ['view', manifest.name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'],
+      );
+      if (tagsResult) {
+        tags = JSON.parse(tagsResult.stdout);
+        break;
+      }
+      if (attempt < 6) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10_000);
+    }
+    if (!tags) throw new Error(`Could not read dist-tags for ${manifest.name}`);
+    if (tags.latest !== manifest.version) return;
+    const remove = spawnSync(
+      'npm',
+      ['dist-tag', 'rm', manifest.name, 'latest'],
+      { cwd: packageDirectory, stdio: 'inherit', env: { ...process.env } },
+    );
+    if (remove.status !== 0) {
+      throw new Error(`Could not remove accidental latest tag from ${manifest.name}`);
+    }
+    process.stdout.write(`Removed accidental latest tag from ${manifest.name}@${manifest.version}.\n`);
+  }
+
   for (const packageEntry of selected) {
     const manifest = JSON.parse(readFileSync(path.join(packageEntry.location, 'package.json'), 'utf8'));
     const published = commandSucceeded(
@@ -84,6 +111,7 @@ function publishScopedPrerelease() {
     if (published?.stdout.trim() === manifest.version) {
       process.stdout.write(`${manifest.name}@${manifest.version} is already published; skipping.\n`);
       summary.push({ packageName: manifest.name, version: manifest.version, status: 'already-published' });
+      removeAccidentalLatest(manifest, packageEntry.location);
       continue;
     }
 
@@ -96,6 +124,7 @@ function publishScopedPrerelease() {
       throw new Error(`${manifest.name}@${manifest.version} failed to publish`);
     }
     summary.push({ packageName: manifest.name, version: manifest.version, status: 'published' });
+    removeAccidentalLatest(manifest, packageEntry.location);
   }
 
   writeFileSync(summaryFile, `${JSON.stringify(summary, null, 2)}\n`);
