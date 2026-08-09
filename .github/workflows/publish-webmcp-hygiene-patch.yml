@@ -117,10 +117,14 @@ jobs:
         run: |
           node - <<'NODE'
           const { execFileSync } = require('node:child_process');
-          const tags = JSON.parse(execFileSync('npm', ['view', process.env.WEBMCP_PACKAGE, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'], { encoding: 'utf8' }));
-          if (tags.latest !== process.env.WEBMCP_VERSION || tags.next !== '0.1.0' || tags.rc !== '0.1.0-rc.0') {
-            throw new Error(`Unexpected WebMCP tags: ${JSON.stringify(tags)}`);
+          const delay = new Int32Array(new SharedArrayBuffer(4));
+          let tags;
+          for (let attempt = 1; attempt <= 12; attempt += 1) {
+            tags = JSON.parse(execFileSync('npm', ['view', process.env.WEBMCP_PACKAGE, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'], { encoding: 'utf8' }));
+            if (tags.latest === process.env.WEBMCP_VERSION && tags.next === '0.1.0' && tags.rc === '0.1.0-rc.0') process.exit(0);
+            if (attempt < 12) Atomics.wait(delay, 0, 0, 5_000);
           }
+          throw new Error(`WebMCP tags did not converge after publication: ${JSON.stringify(tags)}`);
           NODE
           pnpm verify:published-tool-consumers -- --tag latest --packages "$WEBMCP_PACKAGE"
           pnpm capture:published-release -- --tag latest --packages "$WEBMCP_PACKAGE" \
