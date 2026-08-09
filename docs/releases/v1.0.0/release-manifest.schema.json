@@ -14,14 +14,75 @@
   ],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "context-action-v1-release-manifest.v1" },
-    "status": { "enum": ["candidate-unapproved", "rc-certified", "published"] },
+    "schemaVersion": { "const": "context-action-v1-release-manifest.v2" },
+    "status": {
+      "enum": [
+        "candidate-unapproved",
+        "published-unapproved",
+        "audited",
+        "approved-for-stable",
+        "promoted"
+      ]
+    },
     "release": { "const": "context-action-v1.0.0" },
     "commit": { "type": ["string", "null"] },
     "packages": { "type": "object", "additionalProperties": { "type": "string" } },
     "stableSurfaces": { "type": "array", "items": { "type": "string" } },
     "experimentalSurfaces": { "type": "array", "items": { "type": "string" } },
-    "requiredBeforeCertification": { "type": "array", "items": { "type": "string" } }
+    "requiredBeforeCertification": { "type": "array", "items": { "type": "string" } },
+    "distTag": { "type": ["string", "null"] },
+    "registryEvidence": {
+      "type": ["object", "null"],
+      "additionalProperties": { "$ref": "#/$defs/registryPackage" }
+    },
+    "audit": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "report"],
+      "properties": {
+        "status": { "enum": ["not-started", "accepted", "rejected"] },
+        "report": { "type": "string", "minLength": 1 }
+      }
+    }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "registryPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "integrity",
+        "sha256",
+        "tarball",
+        "publishedAt",
+        "distTags",
+        "provenance",
+        "externalConsumer"
+      ],
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+        "integrity": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "tarball": { "type": "string", "format": "uri" },
+        "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+        "distTags": { "type": "object", "additionalProperties": { "type": "string" } },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "sourceCommit"],
+          "properties": {
+            "status": { "enum": ["pending-verification", "verified", "failed"] },
+            "sourceCommit": { "type": ["string", "null"] }
+          }
+        },
+        "externalConsumer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": { "status": { "enum": ["passed", "failed", "not-run"] } }
+        }
+      }
+    }
+  }
 }

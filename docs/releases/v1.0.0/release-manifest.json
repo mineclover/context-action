@@ -1,14 +1,17 @@
 {
   "$schema": "./release-manifest.schema.json",
-  "schemaVersion": "context-action-v1-release-manifest.v1",
+  "schemaVersion": "context-action-v1-release-manifest.v2",
   "status": "candidate-unapproved",
   "release": "context-action-v1.0.0",
   "commit": null,
+  "distTag": null,
+  "registryEvidence": null,
+  "audit": null,
   "packages": {
-    "@context-action/core": "1.0.0-rc.0",
-    "@context-action/react": "1.0.0-rc.0",
-    "@context-action/tool-protocol": "1.0.0-rc.0",
-    "@context-action/webmcp": "0.1.0-rc.0"
+    "@context-action/core": "1.0.0",
+    "@context-action/react": "1.0.0",
+    "@context-action/tool-protocol": "1.0.0",
+    "@context-action/webmcp": "0.1.0"
   },
   "stableSurfaces": [
     "@context-action/core",

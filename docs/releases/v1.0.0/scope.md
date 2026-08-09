@@ -19,6 +19,12 @@ evidence bundle before approval.
 `@context-action/react/tools` remains the stable-candidate ToolContext entry.
 It must not re-export experimental WebMCP APIs.
 
+React 1.0.0 keeps `@context-action/webmcp@^0.1.0` as a direct runtime
+dependency so the existing `@context-action/react/webmcp` integration remains
+installable. This does not promote WebMCP to the React 1.x public-contract
+promise: its API remains experimental and the React release owner owns the
+compatibility of that declared dependency range.
+
 ## Approval checklist
 
 - Name the release owner and approve the package/subpath classification.

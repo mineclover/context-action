@@ -1,0 +1,126 @@
+name: Publish V1 Stable Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this candidate publish'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
+
+jobs:
+  publish-stable-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate stable candidate cohort
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const expected = {
+            'packages/core/package.json': ['@context-action/core', '1.0.0'],
+            'packages/react/package.json': ['@context-action/react', '1.0.0'],
+            'packages/tool-protocol/package.json': ['@context-action/tool-protocol', '1.0.0'],
+            'packages/webmcp/package.json': ['@context-action/webmcp', '0.1.0'],
+          };
+          for (const [file, [name, version]] of Object.entries(expected)) {
+            const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+            if (pkg.name !== name || pkg.version !== version) {
+              throw new Error(`${file} must contain ${name}@${version}`);
+            }
+          }
+          const react = JSON.parse(fs.readFileSync('packages/react/package.json', 'utf8'));
+          const webmcp = JSON.parse(fs.readFileSync('packages/webmcp/package.json', 'utf8'));
+          const expectedDependencies = {
+            '@context-action/core': '^1.0.0',
+            '@context-action/tool-protocol': '^1.0.0',
+            '@context-action/webmcp': '^0.1.0',
+          };
+          for (const [name, version] of Object.entries(expectedDependencies)) {
+            if (react.dependencies?.[name] !== version) throw new Error(`React dependency must be ${name}@${version}`);
+          }
+          if (webmcp.dependencies?.['@context-action/tool-protocol'] !== '^1.0.0') {
+            throw new Error('WebMCP dependency must be @context-action/tool-protocol@^1.0.0');
+          }
+          NODE
+
+      - name: Run release gate
+        run: pnpm release:check
+
+      - name: Publish stable candidate to next
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm publish:packages -- --summary-file reports/npm-stable-candidate-summary.json --dist-tag next \
+            --scope @context-action/tool-protocol \
+            --scope @context-action/core \
+            --scope @context-action/webmcp \
+            --scope @context-action/react
+
+      - name: Verify published stable candidate consumer matrix
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm verify:published-tool-consumers -- --tag next --packages "$STABLE_CANDIDATE_PACKAGES"
+
+      - name: Capture registry evidence
+        run: |
+          pnpm capture:published-release -- --tag next --packages "$STABLE_CANDIDATE_PACKAGES" \
+            --consumer-status passed --output reports/npm-stable-candidate-registry-evidence.json
+
+      - name: Upload stable candidate evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-stable-candidate-evidence
+          path: reports/npm-stable-candidate-*.json
+          if-no-files-found: ignore
+          retention-days: 30
