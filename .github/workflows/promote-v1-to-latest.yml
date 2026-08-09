@@ -96,6 +96,18 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: pnpm verify:v1-audit-review
 
+      - name: Refuse to overwrite a newer WebMCP hygiene patch
+        run: |
+          node - <<'NODE'
+          const { execFileSync } = require('node:child_process');
+          const manifest = require('./docs/releases/v1.0.0/release-manifest.json');
+          const candidate = manifest.packages['@context-action/webmcp'];
+          const tags = JSON.parse(execFileSync('npm', ['view', '@context-action/webmcp', 'dist-tags', '--json', '--registry=https://registry.npmjs.org'], { encoding: 'utf8' }));
+          if (tags.latest !== candidate && !tags.latest.startsWith(`${candidate}-rc.`)) {
+            throw new Error(`WebMCP latest (${tags.latest}) differs from candidate (${candidate}); re-baseline the v1 manifest instead of downgrading a newer patch.`);
+          }
+          NODE
+
       - name: Promote the complete cohort and verify latest consumers
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}

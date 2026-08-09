@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const governedFiles = [
+  '.github/workflows/publish-webmcp-hygiene-patch.yml',
   '.github/workflows/promote-v1-to-latest.yml',
   'docs/releases/v1.0.0/release-manifest.schema.json',
   'package.json',

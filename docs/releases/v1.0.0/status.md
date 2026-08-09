@@ -33,9 +33,9 @@ and command results/artifact hashes belong in
   `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
   verified all four registry signatures and SLSA provenance bundles; the
   independent adversarial audit is still required. `@context-action/webmcp@0.1.0-rc.0`
-  still owns `latest`. This registry-hygiene blocker must be cleared before the
-  manifest can reach `approved-for-stable`; the dedicated promotion workflow
-  cannot run until it, the audit, and approval gates pass.
+  still owns `latest`; publish the dedicated `0.1.1` hygiene patch to replace
+  it. The existing candidate must then be re-baselined for WebMCP before the
+  manifest can reach `approved-for-stable`.
 - Legacy API candidate outcomes await public-contract approval.
 - The published consumer matrix and provenance verification are recorded, but
   the published artifact has not received the required independent audit.
@@ -71,22 +71,19 @@ release owner authorized and applied the narrow exception
 and administrator-bypass prohibition remain in force. This exception is an
 owner risk acceptance, not proof of independent audit.
 
-The protected WebMCP hygiene rehearsal run `31328409822` reached the exact tag
-precondition, then failed closed with npm `E401` on `dist-tag rm`; before-tag
-evidence shows that no npm tag changed. The token-gated retry `31328975435`
-passed `npm whoami` but failed closed with `E403` on the same deletion. The
-repository `NPM_TOKEN` therefore exists but lacks WebMCP dist-tag management
-permission. The workflow performs this authentication preflight before any
-mutation; OIDC trusted publishing alone is not an authorized path for this
-tag-removal operation.
+The protected WebMCP hygiene rehearsals `31328409822` and `31328975435`
+confirmed that direct `dist-tag rm` is not a viable repair path (OIDC failed
+with `E401`; the configured token failed with `E403`). The repair is now the
+versioned `@context-action/webmcp@0.1.1` hygiene patch, published through a
+separate protected workflow. Its token preflight and exact-version validation
+remain fail-closed before any publication attempt.
 
 ## Immediate next work
 
-1. Grant or replace the repository `NPM_TOKEN` with WebMCP dist-tag management
-   permission, rerun the guarded tag cleanup, and record before/after
-   registry-hygiene evidence.
-2. Refresh strict clean evidence for the final committed token-gated hygiene
-   workflow and record its promotion-governance fingerprint.
+1. Publish the protected `@context-action/webmcp@0.1.1` hygiene patch to
+   `latest`, then record its registry and consumer evidence.
+2. Re-baseline the WebMCP leg of the v1 manifest, provenance audit, and strict
+   governance evidence before any future stable promotion.
 3. Obtain an independent audit of the exact registry-installed `next` artifact
    with the traceable GitHub approval record.
 4. Complete the hashed G0/G1 owner record in

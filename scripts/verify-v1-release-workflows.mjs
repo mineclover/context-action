@@ -19,11 +19,11 @@ function requireOrder(errors, source, before, after, description) {
 }
 
 async function main() {
-  const [stableCandidate, promotion, generalPublish, hygiene, manifestSource] = await Promise.all([
+  const [stableCandidate, promotion, generalPublish, hygienePatch, manifestSource] = await Promise.all([
     readFile(path.join(workflowDirectory, 'publish-v1-stable-candidate.yml'), 'utf8'),
     readFile(path.join(workflowDirectory, 'promote-v1-to-latest.yml'), 'utf8'),
     readFile(path.join(workflowDirectory, 'publish-packages.yml'), 'utf8'),
-    readFile(path.join(workflowDirectory, 'clear-webmcp-rc-latest.yml'), 'utf8'),
+    readFile(path.join(workflowDirectory, 'publish-webmcp-hygiene-patch.yml'), 'utf8'),
     readFile(manifestPath, 'utf8'),
   ]);
   const manifest = JSON.parse(manifestSource);
@@ -60,6 +60,8 @@ async function main() {
   requireText(errors, promotion, 'pull-requests: read', 'Promotion workflow must have read access to verify the independent audit review');
   requireText(errors, promotion, 'pnpm verify:v1-audit-review', 'Promotion workflow must verify the recorded GitHub independent-audit review');
   requireOrder(errors, promotion, 'pnpm verify:v1-audit-review', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion must verify the independent audit review before any latest dist-tag mutation');
+  requireText(errors, promotion, 'Refuse to overwrite a newer WebMCP hygiene patch', 'Promotion workflow must refuse to downgrade a newer WebMCP hygiene patch');
+  requireOrder(errors, promotion, 'Refuse to overwrite a newer WebMCP hygiene patch', 'npm dist-tag add "${packages[$index]}" latest', 'WebMCP re-baseline guard must run before any latest dist-tag mutation');
   requireOrder(errors, promotion, 'pnpm verify:v1-promotion-authorization', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion authorization must occur before any latest dist-tag mutation');
   requireText(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'Promotion workflow must rerun the latest-tag consumer matrix');
   requireOrder(errors, promotion, 'trap rollback EXIT', 'verify:published-tool-consumers -- --tag latest', 'Promotion must preserve rollback until the latest consumer matrix passes');
@@ -104,15 +106,17 @@ async function main() {
       errors.push(`General publish workflow must not scope into the v1 cohort package ${name}`);
     }
   }
-  requireText(errors, hygiene, 'workflow_dispatch:', 'WebMCP hygiene workflow must be manually dispatched');
-  requireText(errors, hygiene, 'name: npm-stable', 'WebMCP hygiene workflow must use the npm-stable environment');
-  requireText(errors, hygiene, 'test "$CONFIRMATION" = remove-rc-latest', 'WebMCP hygiene workflow must require explicit destructive-operation confirmation');
-  requireText(errors, hygiene, 'npm whoami', 'WebMCP hygiene workflow must fail before mutation when its automation token is unavailable');
-  requireText(errors, hygiene, 'NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}', 'WebMCP hygiene workflow must use the configured npm automation token');
-  requireOrder(errors, hygiene, 'npm whoami', 'npm dist-tag rm "$WEBMCP_PACKAGE" latest', 'WebMCP hygiene workflow must verify its npm token before tag mutation');
-  requireText(errors, hygiene, 'tags.latest !== process.env.RC_VERSION', 'WebMCP hygiene workflow must refuse unexpected latest tags');
-  requireText(errors, hygiene, 'npm dist-tag rm "$WEBMCP_PACKAGE" latest', 'WebMCP hygiene workflow must remove only the latest tag');
-  requireText(errors, hygiene, "Object.hasOwn(tags, 'latest')", 'WebMCP hygiene workflow must verify that latest is absent after cleanup');
+  requireText(errors, hygienePatch, 'workflow_dispatch:', 'WebMCP hygiene-patch workflow must be manually dispatched');
+  requireText(errors, hygienePatch, 'release_commit:', 'WebMCP hygiene-patch workflow must require an immutable release commit');
+  requireText(errors, hygienePatch, 'name: npm-stable', 'WebMCP hygiene-patch workflow must use the npm-stable environment');
+  requireText(errors, hygienePatch, 'test "$CONFIRMATION" = publish-webmcp-0.1.1', 'WebMCP hygiene-patch workflow must require explicit publish confirmation');
+  requireText(errors, hygienePatch, 'WEBMCP_VERSION: \'0.1.1\'', 'WebMCP hygiene-patch workflow must pin the remediation version');
+  requireText(errors, hygienePatch, 'npm whoami', 'WebMCP hygiene-patch workflow must verify its automation token before publication');
+  requireText(errors, hygienePatch, 'NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}', 'WebMCP hygiene-patch workflow must use the configured npm automation token');
+  requireText(errors, hygienePatch, '--dist-tag latest --scope @context-action/webmcp', 'WebMCP hygiene-patch workflow must publish only WebMCP to latest');
+  requireText(errors, hygienePatch, 'verify:published-tool-consumers -- --tag latest --packages "$WEBMCP_PACKAGE"', 'WebMCP hygiene-patch workflow must run an isolated latest consumer check');
+  requireText(errors, hygienePatch, 'capture:published-release -- --tag latest --packages "$WEBMCP_PACKAGE"', 'WebMCP hygiene-patch workflow must capture post-publish registry evidence');
+  if (hygienePatch.includes('npm dist-tag rm')) errors.push('WebMCP hygiene-patch workflow must not delete a dist-tag');
 
   if (errors.length > 0) {
     console.error(`v1 release workflow contract failed:\n${errors.map(error => `- ${error}`).join('\n')}`);
