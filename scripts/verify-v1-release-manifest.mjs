@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +10,43 @@ import addFormats from 'ajv-formats';
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = path.join(repositoryRoot, 'docs/releases/v1.0.0/release-manifest.json');
 const schemaPath = path.join(repositoryRoot, 'docs/releases/v1.0.0/release-manifest.schema.json');
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+async function validateAcceptedAudit(audit, manifestCommit) {
+  const errors = [];
+  if (audit?.status !== 'accepted') return ['Independent published-artifact audit is not accepted'];
+  if (typeof audit.reviewer !== 'string' || audit.reviewer.trim().length === 0) {
+    errors.push('Accepted audit requires a named independent reviewer');
+  }
+  if (audit.reviewedCommit !== manifestCommit) {
+    errors.push('Accepted audit must bind the provenance-attested manifest commit');
+  }
+  for (const [label, target, expectedHash] of [
+    ['report', audit.report, audit.reportSha256],
+    ['evidence', audit.evidence, audit.evidenceSha256],
+  ]) {
+    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
+      errors.push(`Accepted audit requires a hashed ${label} path`);
+      continue;
+    }
+    const resolved = path.resolve(repositoryRoot, target);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push(`Accepted audit ${label} must stay within the repository`);
+      continue;
+    }
+    try {
+      if (sha256(await readFile(resolved)) !== expectedHash) {
+        errors.push(`Accepted audit ${label} hash does not match`);
+      }
+    } catch {
+      errors.push(`Accepted audit ${label} is missing`);
+    }
+  }
+  return errors;
+}
 
 async function main() {
   const [manifestSource, schemaSource, reactPackageSource] = await Promise.all([
@@ -161,9 +199,10 @@ async function main() {
         errors.push(`Certified stable surface requires an exact SemVer version: ${surface}`);
       }
     }
-    if (['audited', 'approved-for-stable', 'promoted'].includes(manifest.status)
-      && audit?.status !== 'accepted') {
-      errors.push(`${manifest.status} manifest requires an accepted independent audit`);
+    if (['audited', 'approved-for-stable', 'promoted'].includes(manifest.status)) {
+      for (const error of await validateAcceptedAudit(audit, manifest.commit)) {
+        errors.push(`${manifest.status} manifest requires ${error}`);
+      }
     }
     if (manifest.status === 'promoted') {
       for (const [name, tag] of Object.entries(promotionTargets)) {

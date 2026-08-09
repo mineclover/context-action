@@ -31,4 +31,6 @@ report, and external-consumer results. The recorded npm CLI provenance check is
 `release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json`; rerun
 `pnpm verify:v1-published-provenance` rather than trusting its summary alone.
 Any P0/P1 finding reopens the affected gate; only the auditor may set the audit
-result to accepted.
+result to accepted. A `READY` result must also satisfy the hashed acceptance
+record in [audit-report.md](./audit-report.md); the manifest and promotion
+verifiers reject an unhashed, altered, or differently bound audit report.

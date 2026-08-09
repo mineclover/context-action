@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -17,6 +18,40 @@ function currentCommit() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
 }
 
+async function verifyAcceptedAudit(audit, expectedCommit) {
+  const errors = [];
+  if (audit?.status !== 'accepted') return ['Promotion requires an accepted independent published-artifact audit'];
+  if (typeof audit.reviewer !== 'string' || audit.reviewer.trim().length === 0) {
+    errors.push('Accepted audit requires a named independent reviewer');
+  }
+  if (audit.reviewedCommit !== expectedCommit) {
+    errors.push('Accepted audit must bind the requested release commit');
+  }
+  for (const [label, target, expectedHash] of [
+    ['report', audit.report, audit.reportSha256],
+    ['evidence', audit.evidence, audit.evidenceSha256],
+  ]) {
+    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
+      errors.push(`Accepted audit requires a hashed ${label} path`);
+      continue;
+    }
+    const resolved = path.resolve(repositoryRoot, target);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push(`Accepted audit ${label} must stay within the repository`);
+      continue;
+    }
+    try {
+      const contents = await readFile(resolved);
+      if (createHash('sha256').update(contents).digest('hex') !== expectedHash) {
+        errors.push(`Accepted audit ${label} hash does not match`);
+      }
+    } catch {
+      errors.push(`Accepted audit ${label} is missing`);
+    }
+  }
+  return errors;
+}
+
 async function main() {
   const expectedCommit = option('--commit');
   if (!expectedCommit || !/^[a-f0-9]{40}$/u.test(expectedCommit)) {
@@ -31,9 +66,7 @@ async function main() {
   if (manifest.commit !== expectedCommit || currentCommit() !== expectedCommit) {
     errors.push('Requested, manifest, and checked-out commits must match');
   }
-  if (manifest.audit?.status !== 'accepted') {
-    errors.push('Promotion requires an accepted independent published-artifact audit');
-  }
+  errors.push(...await verifyAcceptedAudit(manifest.audit, expectedCommit));
 
   for (const [name, version] of Object.entries(manifest.packages ?? {})) {
     const evidence = manifest.registryEvidence?.[name];
