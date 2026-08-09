@@ -82,12 +82,11 @@ metadata. A release defect requires a corrected patch version.
    recorded source commit.
 2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
    record in [release-approval.md](./release-approval.md).
-3. Grant or replace the repository `NPM_TOKEN` with permission to remove the
-   WebMCP `latest` dist-tag. The protected-environment rehearsal showed both
-   that OIDC alone fails closed and that the current token authenticates but is
-   rejected with `E403` for this package mutation.
-4. Clear the WebMCP RC `latest` tag, record registry-hygiene evidence, and run
-   a separated-actor `npm-stable` rehearsal for the normal promotion policy.
+3. Publish the protected WebMCP `0.1.1` hygiene patch to replace the RC
+   `latest` tag. The prior rehearsal showed that direct tag deletion is not an
+   authorized path; the new workflow uses a normal versioned publish instead.
+4. Record the hygiene-patch registry/provenance evidence and re-baseline the
+   WebMCP leg of the v1 candidate before any future stable promotion.
 5. Generate and record strict evidence for the final governance commit and
    promotion-governance fingerprint; this documents the release process but
    does not alter the immutable published tarballs.

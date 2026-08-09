@@ -15,19 +15,20 @@ release approvals are still missing. Do not invoke the stable-candidate
 workflow again for these versions. Complete the remaining audit and approvals,
 then use the guarded promotion workflow or publish a corrected patch.
 
-Before certification, clear the accidental `@context-action/webmcp@0.1.0-rc.0`
-`latest` tag through **Clear WebMCP RC Latest Hygiene**. The protected workflow
-requires the exact confirmation `remove-rc-latest`, verifies that `latest` is
-the known RC and `next` is `0.1.0`, removes only `latest`, then uploads before
-and after tag evidence. This operation requires the repository `NPM_TOKEN`
-automation secret with permission to manage this package's dist-tags: npm
-trusted-publishing OIDC credentials authenticate package publication but did
-not authorize a `dist-tag rm` request in the rehearsal on 2026-08-10. Run
-`31328975435` proved the configured token's identity with `npm whoami`, then
-failed closed with `E403` on the deletion; no tag changed. Replace or grant the
-token the package-level tag-management permission before retrying. The workflow
-runs `npm whoami` before any mutation and fails closed when authentication is
-unavailable. Do not run a broad dist-tag command from a local shell.
+The accidental `@context-action/webmcp@0.1.0-rc.0` `latest` tag is corrected
+by publishing `@context-action/webmcp@0.1.1` through **Publish WebMCP Hygiene
+Patch**, not by deleting a dist-tag. The protected workflow requires the exact
+confirmation `publish-webmcp-0.1.1`, an immutable main commit, and a successful
+`npm whoami` before it builds, tests, and publishes that one package with the
+normal npm `latest` publish behavior. It then verifies that `latest` is
+`0.1.1`, preserves the existing `next`/`rc` records for `0.1.0`, and uploads
+registry and consumer evidence. Do not run a broad dist-tag command from a
+local shell.
+
+The existing `0.1.0` v1 candidate remains immutable evidence for the published
+`next` cohort. After the hygiene patch succeeds, that candidate is superseded
+for the WebMCP leg: do not approve or promote it until the v1 manifest and
+audit record are re-baselined to the new package provenance.
 
 1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
    for the approved release commit. Record the accepted pre-publication audit
