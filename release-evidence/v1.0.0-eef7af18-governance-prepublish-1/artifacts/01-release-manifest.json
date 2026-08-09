@@ -79,10 +79,10 @@
   "audit": null,
   "releaseApproval": null,
   "promotionGovernance": {
-    "commit": "eef7af18639dc2431e95e2f68b4489bb368a2c16",
-    "evidence": "release-evidence/v1.0.0-eef7af18-governance-prepublish-1/manifest.json",
-    "evidenceSha256": "ba143274f09727762b549787ec520f6e50530dc2594eff51809fbb4a0a6d2fa4",
-    "fingerprintSha256": "9cb4b0cb548905ff5cdea688925b69740b540f8bbd73fea547c311f28e225766"
+    "commit": "afdba2363d121c6b7d12c0ac2f86ab40f5191f99",
+    "evidence": "release-evidence/v1.0.0-afdba236-governance-prepublish-1/manifest.json",
+    "evidenceSha256": "d2ee1ce1d81846964ae26f9f827975370872321d763f0f66fc4b973a856c3cbd",
+    "fingerprintSha256": "c4b2b57796b1c083c537a9952bbe3217ffdc0b8bbd28180daf62b04ac5363303"
   },
   "promotionEvidence": null,
   "registryHygiene": {

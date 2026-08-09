@@ -47,19 +47,19 @@ documentation changed after the recorded commit.
 
 ## Current clean governance verification
 
-`v1.0.0-afdba236-governance-prepublish-1` records a successful full
-`pnpm release:check` (390828 ms), release inventory, manifest validation,
+`v1.0.0-eef7af18-governance-prepublish-1` records a successful full
+`pnpm release:check` (209677 ms), release inventory, manifest validation,
 workflow-contract validation, roadmap alignment, and governed-file fingerprint
-from clean commit `afdba2363d121c6b7d12c0ac2f86ab40f5191f99`. Its manifest
+from clean commit `eef7af18639dc2431e95e2f68b4489bb368a2c16`. Its manifest
 SHA-256 and fingerprint are recorded in `release-manifest.json`, and it passes
 strict `--require-success` verification at that checkout. It verifies the
 guarded workflow and release-process configuration; it does not retroactively
 alter or certify the immutable npm tarballs published before those controls.
 
-The 2026-08-10 WebMCP tag-hygiene rehearsal subsequently identified a missing
-automation-token prerequisite for `dist-tag rm`. Refresh strict governance
-evidence after the resulting token-gated workflow update before seeking
-approval.
+The 2026-08-10 WebMCP tag-hygiene rehearsal identified a missing
+automation-token prerequisite for `dist-tag rm`; this bundle covers the
+resulting token-gated workflow update. It still cannot clear the registry
+hygiene blocker until the repository automation token is configured.
 
 ## Published candidate state
 
