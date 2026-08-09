@@ -53,6 +53,40 @@ function App() {
 }
 ```
 
+### v1 Phase-Specific Registration
+
+For new code, register each role with its phase-specific API. This makes the
+admission boundary, typed result production, and terminal side effects visible
+at the registration site. `register()` is retained for compatibility with
+legacy pipelines.
+
+```typescript
+import { ActionRegister, type ActionPayloadMap, type ActionResultMap } from '@context-action/core';
+
+interface SaveActions extends ActionPayloadMap {
+  save: { documentId: string; canSave: boolean };
+}
+
+interface SaveResults extends ActionResultMap<SaveActions> {
+  save: { documentId: string; savedAt: string };
+}
+
+const register = new ActionRegister<SaveActions, SaveResults>({ name: 'Save' });
+
+register.registerGuard('save', (payload, controller) => {
+  if (!payload.canSave) controller.abort('Saving is not allowed.');
+}, { id: 'save-permission', priority: 100 });
+
+register.registerResult('save', async (payload) => {
+  await documentService.save(payload.documentId);
+  return { documentId: payload.documentId, savedAt: new Date().toISOString() };
+}, { id: 'save-document', priority: 50, blocking: true });
+
+register.registerObserver('save', ({ outcome, result }) => {
+  auditLog.write({ action: 'save', outcome, result });
+}, { id: 'save-audit', when: 'always', scheduling: 'start-and-continue' });
+```
+
 ### Action Register Access
 ```typescript
 // Component with handler registration

@@ -15,9 +15,10 @@ Action Only 패턴은 다음과 같은 경우에 적합합니다:
 
 ```typescript
 import { createActionContext } from '@context-action/react';
+import type { ActionPayloadMap } from '@context-action/core';
 
 // 액션 타입 정의
-interface EventActions {
+interface EventActions extends ActionPayloadMap {
   trackPageView: { page: string; userId?: string };
   trackUserAction: { action: string; data: any };
   sendAnalytics: { event: string; properties: Record<string, any> };
@@ -30,6 +31,57 @@ const {
   useActionDispatch: useEventAction,
   useActionHandler: useEventActionHandler
 } = createActionContext<EventActions>('Events');
+```
+
+## v1 권장 Lifecycle
+
+새 pipeline에서는 handler 역할을 명시적으로 구분합니다. guard는 작업 전에
+입력과 정책을 검사하고, result handler는 타입이 지정된 결과를 만들며, observer는
+변경할 수 없는 최종 이벤트만 받습니다. `useActionHandler`는 호환성을 위해 유지되지만,
+새 코드에는 역할별 훅을 권장합니다.
+
+```tsx
+import { useCallback } from 'react';
+import type { ActionPayloadMap, ActionResultMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+
+interface ReportActions extends ActionPayloadMap {
+  publishReport: { reportId: string; approved: boolean };
+}
+
+interface ReportResults extends ActionResultMap<ReportActions> {
+  publishReport: { reportId: string; publishedAt: string };
+}
+
+const {
+  Provider: ReportActionProvider,
+  useActionDispatch: useReportAction,
+  useActionGuard: useReportGuard,
+  useActionResultHandler: useReportResultHandler,
+  useActionObserver: useReportObserver,
+} = createActionContext<ReportActions, ReportResults>('Reports');
+
+function ReportPipeline() {
+  useReportGuard('publishReport', useCallback((payload, controller) => {
+    if (!payload.approved) controller.abort('보고서 승인이 필요합니다.');
+  }, []), { id: 'report-approval', priority: 100 });
+
+  useReportResultHandler('publishReport', useCallback(async (payload) => {
+    await reportApi.publish(payload.reportId);
+    return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
+  }, []), { id: 'report-publish', priority: 50, blocking: true });
+
+  useReportObserver('publishReport', useCallback(({ outcome, result }) => {
+    auditLog.write({ action: 'publishReport', outcome, result });
+  }, []), { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' });
+
+  return null;
+}
+
+function PublishButton({ reportId }: { reportId: string }) {
+  const dispatch = useReportAction();
+  return <button onClick={() => dispatch('publishReport', { reportId, approved: true })}>게시</button>;
+}
 ```
 
 ## 이벤트 추적 시스템
@@ -103,7 +155,7 @@ function EventTracker() {
 ```typescript
 import { useCallback } from 'react';
 
-interface NotificationActions {
+interface NotificationActions extends ActionPayloadMap {
   showNotification: { 
     message: string; 
     type: 'success' | 'error' | 'warning' | 'info';
@@ -168,7 +220,7 @@ function NotificationSystem() {
 ```typescript
 import { useCallback } from 'react';
 
-interface ApiActions {
+interface ApiActions extends ActionPayloadMap {
   fetchUserData: { userId: string };
   updateUserProfile: { userId: string; data: any };
   deleteUser: { userId: string };

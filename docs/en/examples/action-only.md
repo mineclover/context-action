@@ -10,6 +10,57 @@ This example demonstrates the **Action Only Pattern** for pure action dispatchin
 - Side effects and API calls
 - User interaction handling
 
+## v1 Recommended Lifecycle
+
+For new pipelines, make each handler's role explicit. Guards run before work,
+result handlers publish typed values, and observers receive only the immutable
+terminal event. `useActionHandler` remains available for compatibility, but it
+does not communicate those boundaries as clearly.
+
+```tsx
+import { useCallback } from 'react';
+import type { ActionPayloadMap, ActionResultMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+
+interface ReportActions extends ActionPayloadMap {
+  publishReport: { reportId: string; approved: boolean };
+}
+
+interface ReportResults extends ActionResultMap<ReportActions> {
+  publishReport: { reportId: string; publishedAt: string };
+}
+
+const {
+  Provider: ReportActionProvider,
+  useActionDispatch: useReportAction,
+  useActionGuard: useReportGuard,
+  useActionResultHandler: useReportResultHandler,
+  useActionObserver: useReportObserver,
+} = createActionContext<ReportActions, ReportResults>('Reports');
+
+function ReportPipeline() {
+  useReportGuard('publishReport', useCallback((payload, controller) => {
+    if (!payload.approved) controller.abort('The report must be approved first.');
+  }, []), { id: 'report-approval', priority: 100 });
+
+  useReportResultHandler('publishReport', useCallback(async (payload) => {
+    await reportApi.publish(payload.reportId);
+    return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
+  }, []), { id: 'report-publish', priority: 50, blocking: true });
+
+  useReportObserver('publishReport', useCallback(({ outcome, result }) => {
+    auditLog.write({ action: 'publishReport', outcome, result });
+  }, []), { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' });
+
+  return null;
+}
+
+function PublishButton({ reportId }: { reportId: string }) {
+  const dispatch = useReportAction();
+  return <button onClick={() => dispatch('publishReport', { reportId, approved: true })}>Publish</button>;
+}
+```
+
 ## Complete Example
 
 ### 1. Define Action Types

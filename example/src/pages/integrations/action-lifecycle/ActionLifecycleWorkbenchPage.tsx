@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui';
 import {
-  type HandlerOutput,
   LifecycleContext,
   type RunMode,
   type TraceEntry,
@@ -42,14 +41,14 @@ function ActionLifecycleWorkbenchContent() {
     setIsRunning(true);
 
     try {
-      const result = await dispatchWithResult<'run', HandlerOutput>('run', {
+      const result = await dispatchWithResult('run', {
         mode,
       });
       const completed = result.successResults.length;
       setSummary(
         result.aborted
-          ? `중단됨: ${result.abortReason ?? '알 수 없는 이유'} (${completed}개 handler 결과 수집)`
-          : `완료됨: ${completed}개 handler 결과를 수집했습니다.`
+          ? `중단됨: ${result.abortReason ?? '알 수 없는 이유'} (결과 ${completed}개 수집)`
+          : `완료됨: 결과 ${completed}개를 수집했습니다.`
       );
     } catch (error) {
       setSummary(
@@ -74,8 +73,8 @@ function ActionLifecycleWorkbenchContent() {
             </h1>
             <p className="mt-3 max-w-3xl text-slate-700">
               하나의 action이 검증, 정책, 비즈니스 작업, 감사 기록을 우선순위
-              순서로 통과하는 과정을 확인합니다. 각 handler의 반환값과 pipeline
-              중단 사유를 같은 화면에서 확인할 수 있습니다.
+              순서로 통과하는 과정을 확인합니다. v1의 guard, result, observer
+              역할과 pipeline 중단 사유를 같은 화면에서 확인할 수 있습니다.
             </p>
           </section>
 
@@ -147,10 +146,10 @@ function ActionLifecycleWorkbenchContent() {
                   {summary}
                 </div>
                 <ul className="space-y-2 text-sm text-slate-700">
-                  <li>• `dispatchWithResult`로 handler 결과를 수집</li>
-                  <li>• `blocking: true`로 순서가 보장되는 pipeline 구성</li>
-                  <li>• `controller.abort()`가 후속 처리를 중단</li>
-                  <li>• handler ID와 priority가 운영 추적 기준이 됨</li>
+                  <li>• guard가 결과 handler보다 먼저 입력·정책을 검사</li>
+                  <li>• `dispatchWithResult`로 result handler의 결과를 수집</li>
+                  <li>• `controller.abort()`가 후속 result 처리를 중단</li>
+                  <li>• observer는 최종 outcome을 감사 기록으로 남김</li>
                 </ul>
               </CardContent>
             </Card>

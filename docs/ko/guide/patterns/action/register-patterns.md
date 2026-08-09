@@ -53,6 +53,39 @@ function App() {
 }
 ```
 
+### v1 역할별 등록
+
+새 코드에서는 역할별 API로 등록합니다. 등록 지점에서 admission 경계, 타입이 지정된
+결과 생성, 종료 후 부수 효과를 명확히 볼 수 있습니다. `register()`는 기존 pipeline과의
+호환성을 위해 유지됩니다.
+
+```typescript
+import { ActionRegister, type ActionPayloadMap, type ActionResultMap } from '@context-action/core';
+
+interface SaveActions extends ActionPayloadMap {
+  save: { documentId: string; canSave: boolean };
+}
+
+interface SaveResults extends ActionResultMap<SaveActions> {
+  save: { documentId: string; savedAt: string };
+}
+
+const register = new ActionRegister<SaveActions, SaveResults>({ name: 'Save' });
+
+register.registerGuard('save', (payload, controller) => {
+  if (!payload.canSave) controller.abort('저장 권한이 없습니다.');
+}, { id: 'save-permission', priority: 100 });
+
+register.registerResult('save', async (payload) => {
+  await documentService.save(payload.documentId);
+  return { documentId: payload.documentId, savedAt: new Date().toISOString() };
+}, { id: 'save-document', priority: 50, blocking: true });
+
+register.registerObserver('save', ({ outcome, result }) => {
+  auditLog.write({ action: 'save', outcome, result });
+}, { id: 'save-audit', when: 'always', scheduling: 'start-and-continue' });
+```
+
 ### 액션 등록 접근
 ```typescript
 // 핸들러 등록이 있는 컴포넌트
