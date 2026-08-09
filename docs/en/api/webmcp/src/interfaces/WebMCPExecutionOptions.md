@@ -6,7 +6,7 @@
 
 # Interface: WebMCPExecutionOptions
 
-Defined in: [packages/webmcp/src/index.ts:132](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L132)
+Defined in: [packages/webmcp/src/index.ts:121](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L121)
 
 Values read at browser-tool invocation time without re-registering tools.
 
@@ -20,7 +20,7 @@ Values read at browser-tool invocation time without re-registering tools.
 
 > `readonly` `optional` **context?**: `Omit`\<`ToolCallContext`, `"source"` \| `"mode"` \| `"sessionId"`\>
 
-Defined in: [packages/webmcp/src/index.ts:133](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L133)
+Defined in: [packages/webmcp/src/index.ts:122](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L122)
 
 ***
 
@@ -28,19 +28,7 @@ Defined in: [packages/webmcp/src/index.ts:133](https://github.com/mineclover/con
 
 > `readonly` `optional` **callOptions?**: `Omit`\<`ToolCallOptions`, `"signal"` \| `"context"` \| `"idempotencyKey"` \| `"interaction"`\>
 
-Defined in: [packages/webmcp/src/index.ts:134](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L134)
-
-***
-
-### ~~beforeExecute?~~
-
-> `readonly` `optional` **beforeExecute?**: [`WebMCPBeforeExecute`](../type-aliases/WebMCPBeforeExecute.md)
-
-Defined in: [packages/webmcp/src/index.ts:136](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L136)
-
-#### Deprecated
-
-Post-execution compatibility notification.
+Defined in: [packages/webmcp/src/index.ts:123](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L123)
 
 ***
 
@@ -48,7 +36,7 @@ Post-execution compatibility notification.
 
 > `readonly` `optional` **afterExecute?**: [`WebMCPAfterExecute`](../type-aliases/WebMCPAfterExecute.md)
 
-Defined in: [packages/webmcp/src/index.ts:138](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L138)
+Defined in: [packages/webmcp/src/index.ts:125](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L125)
 
 Detached notification after canonical execution has committed.
 
@@ -58,7 +46,7 @@ Detached notification after canonical execution has committed.
 
 > `readonly` `optional` **onObserverError?**: (`error`) => `void`
 
-Defined in: [packages/webmcp/src/index.ts:140](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L140)
+Defined in: [packages/webmcp/src/index.ts:127](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L127)
 
 Receives detached post-execution notification failures.
 
@@ -78,7 +66,7 @@ Receives detached post-execution notification failures.
 
 > `readonly` `optional` **interaction?**: `ToolInteractionHandler`
 
-Defined in: [packages/webmcp/src/index.ts:142](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L142)
+Defined in: [packages/webmcp/src/index.ts:129](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L129)
 
 Canonical approval handler, called only after validation and policy ask.
 
@@ -88,7 +76,7 @@ Canonical approval handler, called only after validation and policy ask.
 
 > `readonly` `optional` **errorMode?**: [`WebMCPErrorMode`](../type-aliases/WebMCPErrorMode.md)
 
-Defined in: [packages/webmcp/src/index.ts:144](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L144)
+Defined in: [packages/webmcp/src/index.ts:131](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L131)
 
 Default `structured` preserves Context-Action's structured error envelope.
 
@@ -98,6 +86,6 @@ Default `structured` preserves Context-Action's structured error envelope.
 
 > `readonly` `optional` **getIdempotencyKey?**: [`WebMCPIdempotencyKeyFactory`](../type-aliases/WebMCPIdempotencyKeyFactory.md)
 
-Defined in: [packages/webmcp/src/index.ts:146](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L146)
+Defined in: [packages/webmcp/src/index.ts:133](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L133)
 
 Domain-owned retry identity; omitted by default because WebMCP has no native call ID.

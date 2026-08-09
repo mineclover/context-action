@@ -38,8 +38,8 @@ The adapter follows the 2026-07-21 Community Group Draft callback shape:
 `execute(input)`. It does not expose the older experimental
 `ModelContextClient` parameter. Use `interaction` for a policy `ask` decision:
 it runs after validation and policy evaluation, receives the dispatch signal,
-and returns `approved` or `denied`. `beforeExecute` is a deprecated
-post-execution notification, never an approval boundary. Browser API variation
+and returns `approved` or `denied`. Use detached `afterExecute` for a
+post-execution notification; it is never an approval boundary. Browser API variation
 is isolated through `currentWebMCPProfile` or
 `@context-action/webmcp/profiles/chrome-legacy`.
 
@@ -56,7 +56,7 @@ throwing, so feature detection belongs at the UI boundary.
 
 ## React lifecycle integration
 
-`@context-action/react/tools` provides a hook that owns registration for a
+`@context-action/react/webmcp` provides an **experimental** hook that owns registration for a
 component lifetime. Obtain the canonical registry from your `ToolContext`, and
 the registration fields (`sessionId`, `toolNames`, `exposedTo`) so unrelated
 renders do not unregister and register the tools again. Execution metadata and
@@ -64,7 +64,7 @@ callbacks are read from the latest render without JSON serialization.
 
 ```tsx
 import { useMemo } from 'react';
-import { useWebMCPToolScope } from '@context-action/react/tools';
+import { useWebMCPToolScope } from '@context-action/react/webmcp';
 
 function ShoppingPageTools() {
   const registry = useShoppingToolsRegistry();

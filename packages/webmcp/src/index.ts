@@ -90,14 +90,6 @@ export type WebMCPIdempotencyKeyFactory = (
   invocation: WebMCPToolInvocation,
 ) => string | undefined;
 
-/**
- * @deprecated This notification runs only after canonical execution. Use the
- * canonical `interaction` option for policy-gated user confirmation.
- */
-export type WebMCPBeforeExecute = (
-  invocation: WebMCPToolInvocation,
-) => void | Promise<void>;
-
 /** Post-commit notification. It is deliberately detached from the browser
  * tool result, so notification failures cannot make a completed mutation look
  * retryable to an agent. */
@@ -106,11 +98,8 @@ export type WebMCPAfterExecute = (event: {
   readonly result: ToolCallResult;
 }) => void | Promise<void>;
 
-/** @deprecated `result` is a compatibility alias for `structured`. */
-export type WebMCPResultErrorMode = 'result';
-
 /** Context-Action error representation for the WebMCP callback. */
-export type WebMCPErrorMode = 'structured' | WebMCPResultErrorMode | 'throw';
+export type WebMCPErrorMode = 'structured' | 'throw';
 
 /** Values that change browser capability registration and require a new scope. */
 export interface WebMCPRegistrationConfig<TDocument = WebMCPDocument> {
@@ -132,8 +121,6 @@ export interface WebMCPRegistrationConfig<TDocument = WebMCPDocument> {
 export interface WebMCPExecutionOptions {
   readonly context?: Omit<ToolCallContext, 'source' | 'mode' | 'sessionId'>;
   readonly callOptions?: Omit<ToolCallOptions, 'signal' | 'context' | 'idempotencyKey' | 'interaction'>;
-  /** @deprecated Post-execution compatibility notification. */
-  readonly beforeExecute?: WebMCPBeforeExecute;
   /** Detached notification after canonical execution has committed. */
   readonly afterExecute?: WebMCPAfterExecute;
   /** Receives detached post-execution notification failures. */
@@ -241,18 +228,13 @@ export async function createWebMCPToolScope<TDocument = WebMCPDocument>(
               },
             },
           });
-          // Retained only as a migration notification. Neither this legacy
-          // callback nor a disposed scope may turn an already committed tool
-          // call into a rejected browser result.
+          // Detached observer failures and a disposed scope cannot turn an
+          // already committed canonical tool call into a rejected browser result.
           void Promise.resolve().then(async () => {
-            if (executionOptions.afterExecute) {
-              await executionOptions.afterExecute({
-                invocation: snapshotWebMCPInvocation(invocation),
-                result: snapshotToolCallResult(result),
-              });
-            } else {
-              await executionOptions.beforeExecute?.(snapshotWebMCPInvocation(invocation));
-            }
+            await executionOptions.afterExecute?.({
+              invocation: snapshotWebMCPInvocation(invocation),
+              result: snapshotToolCallResult(result),
+            });
           }).catch(error => {
             try {
               executionOptions.onObserverError?.(error);

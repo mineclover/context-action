@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "context-action-v1-lifecycle-report.v1",
+  "release": "context-action-v1.0.0",
+  "generatedAt": "2026-08-09T02:50:54.382Z",
+  "status": "passed",
+  "command": {
+    "command": "pnpm",
+    "args": [
+      "--filter",
+      "@context-action/core",
+      "exec",
+      "jest",
+      "--runInBand",
+      "--runTestsByPath",
+      "__tests__/unit/action-register.lifecycle.test.ts",
+      "__tests__/unit/execution-result-metrics.test.ts",
+      "__tests__/type-safety/ActionRegister.type-safety.test.ts"
+    ],
+    "exitCode": 0,
+    "output": "Test Suites: 3 passed, 3 total\nTests:       93 passed, 93 total\nSnapshots:   0 total\nTime:        0.33 s, estimated 1 s\nRan all test suites within paths \"__tests__/unit/action-register.lifecycle.test.ts\", \"__tests__/unit/execution-result-metrics.test.ts\", \"__tests__/type-safety/ActionRegister.type-safety.test.ts\".\n"
+  },
+  "coverage": [
+    "queue wait cancellation and destroy rejection",
+    "debounce cancellation",
+    "retry telemetry and terminal outcomes",
+    "reentrant destroyAsync and active-handler drain",
+    "race loser drain before cleanup",
+    "ExecutionResult metric and immutable-snapshot contracts"
+  ],
+  "sourceInvariants": [
+    {
+      "name": "three-state lifecycle",
+      "passed": true
+    },
+    {
+      "name": "reentrant stable shutdown promise",
+      "passed": true
+    },
+    {
+      "name": "abort before drain",
+      "passed": true
+    },
+    {
+      "name": "drain dispatches and handlers",
+      "passed": true
+    },
+    {
+      "name": "finalize only after drain",
+      "passed": true
+    }
+  ]
+}

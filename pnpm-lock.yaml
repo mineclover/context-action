@@ -20,7 +20,7 @@ overrides:
   vitepress>vite: 6.4.3
   vitest>vite: 8.0.16
   follow-redirects@<=1.15.11: 1.16.0
-  dompurify@<3.4.12: 3.4.12
+  dompurify@<3.4.13: 3.4.13
   axios@>=1.0.0 <1.18.0: 1.18.0
   fast-uri@<3.1.5: 3.1.5
   ip-address@<10.3.1: 10.3.1
@@ -261,7 +261,7 @@ importers:
   packages/ai-sdk:
     dependencies:
       '@context-action/tool-protocol':
-        specifier: ^0.8.8
+        specifier: ^0.8.9
         version: link:../tool-protocol
     devDependencies:
       '@swc/core':
@@ -459,7 +459,7 @@ importers:
         specifier: ^0.1.1
         version: link:../tool-durable-operations
       '@context-action/tool-protocol':
-        specifier: ^0.8.8
+        specifier: ^0.8.9
         version: link:../tool-protocol
       '@context-action/webmcp':
         specifier: ^0.1.0
@@ -694,7 +694,7 @@ importers:
   packages/webmcp:
     dependencies:
       '@context-action/tool-protocol':
-        specifier: ^0.8.8
+        specifier: ^0.8.9
         version: link:../tool-protocol
     devDependencies:
       '@swc/core':
@@ -4210,8 +4210,8 @@ packages:
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
-  dompurify@3.4.12:
-    resolution: {integrity: sha512-zQvGet8Z2sWbQhCmfFz/T5QWH2oBmjnqK3qvOjaqaNLrLEF912WamU+ohnTp0TCep/MFVHpdJuCZEdFOdTnEFg==}
+  dompurify@3.4.13:
+    resolution: {integrity: sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==}
 
   dot-prop@5.3.0:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
@@ -10513,7 +10513,7 @@ snapshots:
 
   dom-accessibility-api@0.6.3: {}
 
-  dompurify@3.4.12:
+  dompurify@3.4.13:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -11979,7 +11979,7 @@ snapshots:
       d3-sankey: 0.12.3
       dagre-d3-es: 7.0.14
       dayjs: 1.11.20
-      dompurify: 3.4.12
+      dompurify: 3.4.13
       es-toolkit: 1.49.0
       katex: 0.16.47
       khroma: 2.1.0

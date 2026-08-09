@@ -236,7 +236,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ***
 
-### ~~registerEffect()~~
+### registerEffect()
 
 #### Call Signature
 
@@ -244,8 +244,13 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 Defined in: [packages/core/src/ActionRegister.ts:385](https://github.com/mineclover/context-action/blob/main/packages/core/src/ActionRegister.ts#L385)
 
-Register a side-effect-only handler. This is the explicit route for
-validation, logging, and abort guards on actions with mapped results.
+Register a side-effect-only handler in an explicit guard or observer
+phase. This is a supported 1.x compatibility convenience for callers
+that configure the phase dynamically.
+
+Prefer `registerGuard()` for admission and `registerObserver()` for a
+statically known post-result effect. `effectKind` remains required so this
+API cannot participate in result arbitration implicitly.
 
 ##### Type Parameters
 
@@ -271,21 +276,19 @@ Type parameter **K**
 
 [`UnregisterFunction`](../type-aliases/UnregisterFunction.md)
 
-##### Deprecated
-
-Use `registerGuard()` for admission or `registerObserver()`
-for post-result effects. `effectKind` is required so legacy effects enter
-an explicit guard or observer phase rather than participating in result
-arbitration.
-
 #### Call Signature
 
 > **registerEffect**&lt;`K`&gt;(`action`, `handler`, `config`): [`UnregisterFunction`](../type-aliases/UnregisterFunction.md)
 
 Defined in: [packages/core/src/ActionRegister.ts:390](https://github.com/mineclover/context-action/blob/main/packages/core/src/ActionRegister.ts#L390)
 
-Register a side-effect-only handler. This is the explicit route for
-validation, logging, and abort guards on actions with mapped results.
+Register a side-effect-only handler in an explicit guard or observer
+phase. This is a supported 1.x compatibility convenience for callers
+that configure the phase dynamically.
+
+Prefer `registerGuard()` for admission and `registerObserver()` for a
+statically known post-result effect. `effectKind` remains required so this
+API cannot participate in result arbitration implicitly.
 
 ##### Type Parameters
 
@@ -310,13 +313,6 @@ Type parameter **K**
 ##### Returns
 
 [`UnregisterFunction`](../type-aliases/UnregisterFunction.md)
-
-##### Deprecated
-
-Use `registerGuard()` for admission or `registerObserver()`
-for post-result effects. `effectKind` is required so legacy effects enter
-an explicit guard or observer phase rather than participating in result
-arbitration.
 
 ***
 

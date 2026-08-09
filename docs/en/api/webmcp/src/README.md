@@ -23,9 +23,7 @@
 ## Type Aliases
 
 - [WebMCPIdempotencyKeyFactory](type-aliases/WebMCPIdempotencyKeyFactory.md)
-- [~~WebMCPBeforeExecute~~](type-aliases/WebMCPBeforeExecute.md)
 - [WebMCPAfterExecute](type-aliases/WebMCPAfterExecute.md)
-- [~~WebMCPResultErrorMode~~](type-aliases/WebMCPResultErrorMode.md)
 - [WebMCPErrorMode](type-aliases/WebMCPErrorMode.md)
 
 ## Functions

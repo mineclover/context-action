@@ -8,7 +8,7 @@
 
 > **ActionEffectHandler**&lt;`T`&gt; = (`payload`, `controller`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:492](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L492)
+Defined in: [packages/core/src/types.ts:493](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L493)
 
 A side-effect observer. Its return value and result APIs are intentionally unavailable.
 

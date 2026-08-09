@@ -56,6 +56,16 @@
         "types": "./dist/tools/index.d.cts",
         "default": "./dist/tools/index.cjs"
       }
+    },
+    "./webmcp": {
+      "import": {
+        "types": "./dist/webmcp.d.ts",
+        "default": "./dist/webmcp.js"
+      },
+      "require": {
+        "types": "./dist/webmcp.d.cts",
+        "default": "./dist/webmcp.cjs"
+      }
     }
   },
   "sideEffects": false,

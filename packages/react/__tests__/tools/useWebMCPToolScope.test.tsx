@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useWebMCPToolScope } from '../../src/tools';
+import { useWebMCPToolScope } from '../../src/webmcp';
 import type { ToolDefinition, ToolManagementInterface } from '@context-action/tool-protocol';
 import type { WebMCPToolDefinition } from '@context-action/webmcp';
 import {
@@ -90,18 +90,18 @@ describe('useWebMCPToolScope', () => {
     };
     const first = jest.fn();
     const second = jest.fn();
-    const { rerender } = renderHook(({ beforeExecute, metadata }) => useWebMCPToolScope(manager, {
+    const { rerender } = renderHook(({ afterExecute, metadata }) => useWebMCPToolScope(manager, {
       sessionId: 'latest-options',
       toolNames: ['search'],
       document,
       context: { metadata: { payload: metadata } },
-      beforeExecute,
+      afterExecute,
     }), {
-      initialProps: { beforeExecute: first, metadata: new Map([['version', 1]]) },
+      initialProps: { afterExecute: first, metadata: new Map([['version', 1]]) },
     });
 
     await waitFor(() => expect(registered).toHaveLength(1));
-    rerender({ beforeExecute: second, metadata: new Map([['version', 2]]) });
+    rerender({ afterExecute: second, metadata: new Map([['version', 2]]) });
     await registered[0]!.execute({ query: 'coffee' });
     expect(registered).toHaveLength(1);
     expect(first).not.toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe('useWebMCPToolScope', () => {
       modelContext: { registerTool: async (tool: WebMCPToolDefinition) => { registered.push(tool); } },
     };
     const fromResolver = jest.fn();
-    const resolver = jest.fn(() => ({ beforeExecute: fromResolver }));
+    const resolver = jest.fn(() => ({ afterExecute: fromResolver }));
     renderHook(() => useWebMCPToolScope(manager, {
       sessionId: 'resolver-options',
       toolNames: ['search'],

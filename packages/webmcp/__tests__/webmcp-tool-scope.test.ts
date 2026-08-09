@@ -204,52 +204,20 @@ describe('createWebMCPToolScope', () => {
     second.dispose();
   });
 
-  it('accepts an explicit domain idempotency key and forwards a cancellable hook', async () => {
+  it('accepts an explicit domain idempotency key', async () => {
     const registered: WebMCPToolDefinition[] = [];
-    const beforeExecute = jest.fn();
     const executeModelToolCall = jest.fn(async () => ({ content: [] }));
     const scope = await createWebMCPToolScope(createManager(executeModelToolCall), {
       sessionId: 'page-session',
       toolNames: ['search'],
       getIdempotencyKey: () => 'order:42',
-      beforeExecute,
       document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
     });
     await registered[0]!.execute({ query: 'coffee' });
 
-    expect(beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
-      toolName: 'search', sessionId: 'page-session',
-      signal: expect.any(AbortSignal),
-    }));
     expect(executeModelToolCall).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
       idempotencyKey: 'order:42',
     }));
-    scope.dispose();
-  });
-
-  it('gives deprecated beforeExecute an immutable invocation snapshot', async () => {
-    const registered: WebMCPToolDefinition[] = [];
-    let notified: (() => void) | undefined;
-    const notification = new Promise<void>(resolve => { notified = resolve; });
-    const scope = await createWebMCPToolScope(createManager(), {
-      sessionId: 'page-session',
-      toolNames: ['search'],
-      beforeExecute: invocation => {
-        try {
-          (invocation.input as { query: string }).query = 'mutated';
-          (invocation.definition as { name: string }).name = 'mutated';
-        } catch {
-          // The notification view is intentionally frozen.
-        }
-        notified?.();
-      },
-      document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
-    });
-
-    await registered[0]!.execute({ query: 'coffee' });
-    await notification;
-    await registered[0]!.execute({ query: 'tea' });
-    expect(searchDefinition.name).toBe('search');
     scope.dispose();
   });
 
@@ -355,7 +323,7 @@ describe('createWebMCPToolScope', () => {
     const registered: WebMCPToolDefinition[] = [];
     const scope = await createWebMCPToolScope(createManager(), {
       sessionId: 'page-session', toolNames: ['search'],
-      beforeExecute: () => { throw new Error('notification failed'); },
+      afterExecute: () => { throw new Error('notification failed'); },
       document: { modelContext: { registerTool: async tool => { registered.push(tool); } } },
     });
     const execution = registered[0]!.execute({ query: 'coffee' });

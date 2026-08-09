@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-dev-full",
+  "commit": "ea5e3662355b971f0703915f8fad7bbc8472cdc5",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T03:04:43.579Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "verify-all",
+      "command": "pnpm verify:all",
+      "startedAt": "2026-08-09T03:02:47.739Z",
+      "completedAt": "2026-08-09T03:04:43.339Z",
+      "durationMs": 115600,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/verify-all.log",
+        "sha256": "213b68aeaefaedf81aa301626a00684ece12e02d645d287de5ca067d9db6f4df"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T03:04:43.343Z",
+      "completedAt": "2026-08-09T03:04:43.568Z",
+      "durationMs": 225,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "a6397257031ab3026f8acee7dc889c475ed02913f65f01dc4702c589cf422b6a"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "579a16a8ca2061c8399c090c1e87381f5e4e17fd3afc92fba0e8976d21e259c6",
+      "bytes": 942
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/test-results/lifecycle-report.json",
+      "path": "artifacts/02-lifecycle-report.json",
+      "sha256": "033308b0b0259e7ad25c575d556b13727e9b9126e5a43a237e84c80f66802f11",
+      "bytes": 1616
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/security-report.json",
+      "path": "artifacts/03-security-report.json",
+      "sha256": "85ba7e988b2e1d8d0d065ae884a60bf36706337d1754f769024981a206774eb9",
+      "bytes": 3314
+    }
+  ],
+  "notes": [
+    "Development evidence captured from a dirty working tree; it is not release certification."
+  ]
+}

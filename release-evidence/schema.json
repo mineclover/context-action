@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/release-evidence.v1.json",
+  "title": "Context-Action Release Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "release",
+    "stage",
+    "commit",
+    "roadmapRevision",
+    "status",
+    "generatedAt",
+    "workingTree",
+    "environment",
+    "commands",
+    "artifacts",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "context-action-release-evidence.v1" },
+    "release": { "type": "string", "minLength": 1 },
+    "stage": { "type": "string", "minLength": 1 },
+    "commit": { "type": "string", "minLength": 1 },
+    "roadmapRevision": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["not-certified", "recorded", "failed", "certified"] },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "workingTree": { "enum": ["clean", "dirty", "unknown"] },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "pnpm", "typescript"],
+      "properties": {
+        "node": { "type": ["string", "null"] },
+        "pnpm": { "type": ["string", "null"] },
+        "typescript": { "type": ["string", "null"] }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/command" }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/artifact" }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "startedAt", "completedAt", "durationMs", "exitCode", "status", "log"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "command": { "type": "string", "minLength": 1 },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "exitCode": { "type": "integer", "minimum": 0 },
+        "status": { "enum": ["passed", "failed"] },
+        "log": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/digest" }
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourcePath", "path", "sha256", "bytes"],
+      "properties": {
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "bytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

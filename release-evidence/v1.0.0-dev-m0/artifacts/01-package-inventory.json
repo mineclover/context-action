@@ -1,0 +1,764 @@
+{
+  "schemaVersion": "context-action-release-inventory.v1",
+  "release": "context-action-v1.0.0",
+  "generatedAt": "2026-08-09T02:53:32.617Z",
+  "source": {
+    "workspace": "pnpm-workspace.yaml",
+    "versioning": "lerna-independent",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "packages": [
+    {
+      "name": "@context-action/ai-sdk",
+      "directory": "packages/ai-sdk",
+      "sourceVersion": "0.1.0",
+      "candidateClassification": "experimental-or-supporting-stable",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "not-found"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {
+          "ai": "^7.0.0"
+        }
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/core",
+      "directory": "packages/core",
+      "sourceVersion": "0.9.2",
+      "candidateClassification": "stable-1x",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.9.2"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": null
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/llms-generator",
+      "directory": "packages/llms-generator",
+      "sourceVersion": "0.8.7",
+      "candidateClassification": "internal",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.8.7"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "./dist/index.js",
+        "module": null,
+        "types": "./dist/index.d.ts",
+        "sideEffects": null
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": "./cli",
+          "conditions": [
+            "import"
+          ],
+          "target": "./dist/cli/index.js"
+        },
+        {
+          "subpath": "./cli",
+          "conditions": [
+            "types"
+          ],
+          "target": "./dist/cli/index.d.ts"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/mutative",
+      "directory": "packages/mutative",
+      "sourceVersion": "0.8.8",
+      "candidateClassification": "decision-needed",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.8.8"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/mutative-core",
+      "directory": "packages/mutative-core",
+      "sourceVersion": "0.8.8",
+      "candidateClassification": "decision-needed",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.8.8"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=14.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/react",
+      "directory": "packages/react",
+      "sourceVersion": "0.9.2",
+      "candidateClassification": "stable-1x",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.9.2"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {
+          "react": "^18.0.0 || ^19.0.0"
+        }
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        },
+        {
+          "subpath": "./advanced",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/advanced.d.ts"
+        },
+        {
+          "subpath": "./advanced",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/advanced.js"
+        },
+        {
+          "subpath": "./advanced",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/advanced.d.cts"
+        },
+        {
+          "subpath": "./advanced",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/advanced.cjs"
+        },
+        {
+          "subpath": "./utils",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/utils.d.ts"
+        },
+        {
+          "subpath": "./utils",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/utils.js"
+        },
+        {
+          "subpath": "./utils",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/utils.d.cts"
+        },
+        {
+          "subpath": "./utils",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/utils.cjs"
+        },
+        {
+          "subpath": "./react18",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/react18.d.ts"
+        },
+        {
+          "subpath": "./react18",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/react18.js"
+        },
+        {
+          "subpath": "./react18",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/react18.d.cts"
+        },
+        {
+          "subpath": "./react18",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/react18.cjs"
+        },
+        {
+          "subpath": "./tools",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/tools/index.d.ts"
+        },
+        {
+          "subpath": "./tools",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/tools/index.js"
+        },
+        {
+          "subpath": "./tools",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/tools/index.d.cts"
+        },
+        {
+          "subpath": "./tools",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/tools/index.cjs"
+        },
+        {
+          "subpath": "./webmcp",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/webmcp.d.ts"
+        },
+        {
+          "subpath": "./webmcp",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/webmcp.js"
+        },
+        {
+          "subpath": "./webmcp",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/webmcp.d.cts"
+        },
+        {
+          "subpath": "./webmcp",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/webmcp.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/tool-durable-operations",
+      "directory": "packages/tool-durable-operations",
+      "sourceVersion": "0.1.1",
+      "candidateClassification": "decision-needed",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.1.1"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/tool-protocol",
+      "directory": "packages/tool-protocol",
+      "sourceVersion": "0.8.9",
+      "candidateClassification": "supporting-stable",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.8.8"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/typedoc-vitepress-sync",
+      "directory": "packages/typedoc-vitepress-sync",
+      "sourceVersion": "0.8.8",
+      "candidateClassification": "internal",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "published",
+        "version": "0.8.8"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {
+          "typedoc": "^0.28.20",
+          "vitepress": "^1.6.4"
+        }
+      },
+      "packageFields": {
+        "main": "dist/index.js",
+        "module": null,
+        "types": "dist/index.d.ts",
+        "sideEffects": null
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": "./cli",
+          "conditions": [
+            "import"
+          ],
+          "target": "./bin/cli.js"
+        }
+      ]
+    },
+    {
+      "name": "@context-action/webmcp",
+      "directory": "packages/webmcp",
+      "sourceVersion": "0.1.0",
+      "candidateClassification": "experimental",
+      "requiredDecision": "Approve final v1 scope and target version; candidate classifications are not a release approval.",
+      "published": {
+        "status": "not-found"
+      },
+      "runtime": {
+        "engines": {
+          "node": ">=24.11.0"
+        },
+        "peerDependencies": {}
+      },
+      "packageFields": {
+        "main": "dist/index.cjs",
+        "module": "dist/index.js",
+        "types": "dist/index.d.ts",
+        "sideEffects": false
+      },
+      "exports": [
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/index.d.ts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/index.js"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/index.d.cts"
+        },
+        {
+          "subpath": ".",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/index.cjs"
+        },
+        {
+          "subpath": "./profiles/chrome-legacy",
+          "conditions": [
+            "import",
+            "types"
+          ],
+          "target": "./dist/profiles/chrome-legacy.d.ts"
+        },
+        {
+          "subpath": "./profiles/chrome-legacy",
+          "conditions": [
+            "import",
+            "default"
+          ],
+          "target": "./dist/profiles/chrome-legacy.js"
+        },
+        {
+          "subpath": "./profiles/chrome-legacy",
+          "conditions": [
+            "require",
+            "types"
+          ],
+          "target": "./dist/profiles/chrome-legacy.d.cts"
+        },
+        {
+          "subpath": "./profiles/chrome-legacy",
+          "conditions": [
+            "require",
+            "default"
+          ],
+          "target": "./dist/profiles/chrome-legacy.cjs"
+        }
+      ]
+    }
+  ]
+}

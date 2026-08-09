@@ -5,8 +5,6 @@
  */
 
 export { createToolContext } from './ToolContext';
-export { useWebMCPToolScope } from './useWebMCPToolScope';
-export type { WebMCPToolScopeState } from './useWebMCPToolScope';
 export type {
   ToolContextConfig,
   ToolPolicy,

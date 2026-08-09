@@ -5,6 +5,8 @@
   "commit": "0d6047b99961a33ef0d09704ae39c577d3b89cd8",
   "roadmapRevision": "v1-r2",
   "status": "not-certified",
+  "generatedAt": "2026-08-09T00:00:00.000Z",
+  "workingTree": "unknown",
   "environment": {
     "node": null,
     "pnpm": null,

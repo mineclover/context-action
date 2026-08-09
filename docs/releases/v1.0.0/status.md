@@ -12,29 +12,42 @@ command results and artifact hashes belong in
 
 | Gate | Status | Next evidence or decision |
 | --- | --- | --- |
-| G0 Scope/versioning | `partial` | `CA-1X-SCOPE-001`, `CA-1X-VERSION-001` |
-| G1 Public API | `partial` | public-contract registry and legacy outcome ledger |
-| G2 Core execution | `implemented-unverified` | release-gate Core test/type evidence |
-| G3 Lifecycle/metrics | `implemented-unverified` | lifecycle stress and invariant report |
-| G4 React contract | `partial` | React 18/19 and SSR consumer evidence |
-| G5 Tool adapters | `partial` | WebMCP isolation and adapter-boundary evidence |
-| G6 Consumer packages | `partial` | packed consumer-matrix evidence |
-| G7 Docs/migration | `partial` | canonical release document set and migration fixture |
-| G8 Independent audit | `not-started` | fresh-context adversarial audit |
-| G9 Security/supply chain | `partial` | security/provenance/workflow report |
+| G0 Scope/versioning | `partial` | candidate scope/manifest and inventory are recorded in `v1.0.0-dev-m0`; approve the target map |
+| G1 Public API | `partial` | contract candidates and candidate legacy outcomes exist; public-contract approval remains |
+| G2 Core execution | `partial` | Core tests are recorded in `v1.0.0-dev-m3`; rerun from a clean RC commit |
+| G3 Lifecycle/metrics | `partial` | lifecycle report and focused suite are recorded in `v1.0.0-dev-m3`; certify the RC artifact |
+| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks are recorded in `v1.0.0-dev-m4-m5`; rerun from the RC commit |
+| G5 Tool adapters | `partial` | WebMCP isolation and Tool Protocol/AI SDK/WebMCP checks are recorded; external consumer certification remains |
+| G6 Consumer packages | `partial` | 10 tarball contracts and local tool-consumer smoke are recorded; certify the RC package matrix |
+| G7 Docs/migration | `partial` | canonical scope, migration, and readiness documents plus the packed fixture exist; approval and RC evidence remain |
+| G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
+| G9 Security/supply chain | `partial` | OSV and local supply-chain reports are recorded in `v1.0.0-dev-g9`; registry provenance remains |
 
 ## Blocking conditions
 
 - Package, subpath, and named-surface stability classification is not approved.
-- The v1 target version map and independent release manifest are not approved.
-- Legacy APIs have not each been marked remove, retain, or isolate.
+- The v1 target version map and independent release manifest are candidate-only
+  and not approved.
+- Legacy API candidate outcomes await public-contract approval.
 - A full release evidence bundle, external consumer certification, and
   independent audit have not been recorded.
 
 ## Immediate next work
 
 1. Create the G0 package/subpath inventory and target version map.
-2. Record existing Core/WebMCP behavior as M1 contract candidates.
-3. Decide the M2 legacy outcomes and create migration fixtures.
-4. Implement the evidence manifest writer before treating any focused suite as
-   release certification.
+2. Approve the target version map, M1 candidates, and M2 legacy decisions.
+3. Obtain an independent audit of the canonical M6 document set and RC artifact.
+4. From the clean RC commit, generate a new immutable evidence bundle, run
+   strict verification, and complete the external-consumer and provenance gates.
+
+## Development evidence
+
+`release-evidence/v1.0.0-dev-m0/manifest.json`,
+`release-evidence/v1.0.0-dev-m3/manifest.json`, and
+`release-evidence/v1.0.0-dev-m4-m5/manifest.json`, and
+`release-evidence/v1.0.0-dev-g9/manifest.json`, and
+`release-evidence/v1.0.0-dev-full/manifest.json` record successful local
+inventory, Core/lifecycle, tarball, React 18/19, adapter, migration, and OSV
+checks. Their working trees are deliberately `dirty`, so they are development
+evidence only and cannot be used with `--require-success` for release
+certification.

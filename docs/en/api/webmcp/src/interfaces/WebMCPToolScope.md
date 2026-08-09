@@ -6,7 +6,7 @@
 
 # Interface: WebMCPToolScope
 
-Defined in: [packages/webmcp/src/index.ts:157](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L157)
+Defined in: [packages/webmcp/src/index.ts:144](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L144)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/webmcp/src/index.ts:157](https://github.com/mineclover/con
 
 > `readonly` **supported**: `boolean`
 
-Defined in: [packages/webmcp/src/index.ts:159](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L159)
+Defined in: [packages/webmcp/src/index.ts:146](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L146)
 
 Whether this page exposes the experimental WebMCP API.
 
@@ -24,7 +24,7 @@ Whether this page exposes the experimental WebMCP API.
 
 > `readonly` **activeTools**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:161](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L161)
+Defined in: [packages/webmcp/src/index.ts:148](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L148)
 
 Names successfully registered with the page's model context.
 
@@ -34,7 +34,7 @@ Names successfully registered with the page's model context.
 
 > `readonly` **dispose**: () => `void`
 
-Defined in: [packages/webmcp/src/index.ts:163](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L163)
+Defined in: [packages/webmcp/src/index.ts:150](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L150)
 
 Abort the registration signal and unregister every tool in this scope.
 

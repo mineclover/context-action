@@ -6,7 +6,8 @@ export default defineConfig({
     'src/advanced.ts',   // Advanced features
     'src/utils.ts',      // Utility functions
     'src/react18.ts',    // React 18/19 compatibility entry point
-    'src/tools/index.ts' // Explicit tool-calling entry point
+    'src/tools/index.ts', // Stable ToolContext entry point
+    'src/webmcp.ts', // Experimental browser adapter entry point
   ],
   format: ['esm', 'cjs'],
   dts: true,

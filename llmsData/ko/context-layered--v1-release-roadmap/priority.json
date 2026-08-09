@@ -1,0 +1,223 @@
+{
+  "document": {
+    "id": "context-layered--v1-release-roadmap",
+    "title": "Context-Action v1.0 릴리스 로드맵",
+    "category": "concept",
+    "source_path": "ko/context-layered/v1-release-roadmap.md",
+    "lastModified": "2026-08-09T01:33:11.563Z",
+    "wordCount": 3220
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-09",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Context-Action v1.0 릴리스 로드맵.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in Context-Action v1.0 릴리스 로드맵.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Context-Action v1.0 릴리스 로드맵."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "md",
+      "text",
+      "json",
+      "context-action"
+    ],
+    "technical": [
+      "md",
+      "text",
+      "json",
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from Context-Action v1.0 릴리스 로드맵.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Context-Action v1.0 릴리스 로드맵",
+          "context-layered",
+          "md"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Context-Action v1.0 릴리스 로드맵",
+        "context-layered",
+        "md"
+      ],
+      "nice_to_have": [
+        "md",
+        "text",
+        "json",
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "md",
+        "text",
+        "json",
+        "context-action"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "md",
+      "text",
+      "json",
+      "context-action"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-09"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Context-Action v1.0 릴리스 로드맵 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-08-09",
+    "updated": "2026-08-09",
+    "version": "1.0.0",
+    "original_size": 28187,
+    "created_at": "2026-08-09T02:32:10.340Z",
+    "source_last_modified": "2026-08-09T01:33:11.563Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "md",
+        "text",
+        "json",
+        "context-action"
+      ],
+      "technical": [
+        "md",
+        "text",
+        "json",
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

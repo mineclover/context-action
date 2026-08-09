@@ -411,8 +411,9 @@ export interface ObserverConfig<T = unknown> extends Omit<HandlerConfig<T>,
 export interface GuardConfig<T = unknown> extends Omit<HandlerConfig<T>,
   'blocking' | 'scheduling' | 'errorPolicy' | 'debounce' | 'throttle' | 'when'> {}
 
-/** Migration configuration for the deprecated `registerEffect()` API.
- * New code should call `registerGuard()` or `registerObserver()` directly. */
+/** Configuration for the supported `registerEffect()` convenience API.
+ * New code with a statically known role may call `registerGuard()` or
+ * `registerObserver()` directly. */
 export interface EffectConfig<T = unknown> extends HandlerConfig<T> {
   /** Select the explicit phase that owns this legacy effect. */
   effectKind: 'guard' | 'observer';
@@ -551,8 +552,9 @@ export interface HandlerConfig<T = unknown> {
   id?: string;
   
   /**
-   * @deprecated Use `scheduling` and `errorPolicy`. `true` maps to
+   * Supported 1.x shorthand for scheduling and error policy. `true` maps to
    * `await-before-next` + `fatal`; `false` maps to `start-and-continue` + `collect`.
+   * Explicit `scheduling` or `errorPolicy` takes precedence for that field.
    */
   blocking?: boolean;
 
@@ -609,7 +611,7 @@ export interface ResolvedHandlerConfig<T = unknown> {
 }
 
 /**
- * Resolve the legacy `blocking` compatibility flag and all registration
+ * Resolve the supported `blocking` shorthand and all registration
  * defaults in one place. Adapters should pass their original config to the
  * registry and use this helper only when they need to expose resolved values.
  */

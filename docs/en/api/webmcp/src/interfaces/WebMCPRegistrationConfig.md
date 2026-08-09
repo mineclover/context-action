@@ -6,7 +6,7 @@
 
 # Interface: WebMCPRegistrationConfig\<TDocument\>
 
-Defined in: [packages/webmcp/src/index.ts:116](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L116)
+Defined in: [packages/webmcp/src/index.ts:105](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L105)
 
 Values that change browser capability registration and require a new scope.
 
@@ -26,7 +26,7 @@ Values that change browser capability registration and require a new scope.
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/webmcp/src/index.ts:118](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L118)
+Defined in: [packages/webmcp/src/index.ts:107](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L107)
 
 Stable identity for the page agent session.
 
@@ -36,7 +36,7 @@ Stable identity for the page agent session.
 
 > `readonly` **toolNames**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:120](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L120)
+Defined in: [packages/webmcp/src/index.ts:109](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L109)
 
 Explicit capability scope; an omitted list never exposes a whole registry.
 
@@ -46,7 +46,7 @@ Explicit capability scope; an omitted list never exposes a whole registry.
 
 > `readonly` `optional` **document?**: `TDocument`
 
-Defined in: [packages/webmcp/src/index.ts:122](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L122)
+Defined in: [packages/webmcp/src/index.ts:111](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L111)
 
 Defaults to the ambient browser document when it is available.
 
@@ -56,7 +56,7 @@ Defaults to the ambient browser document when it is available.
 
 > `readonly` `optional` **profile?**: [`WebMCPRuntimeProfile`](WebMCPRuntimeProfile.md)&lt;`TDocument`&gt;
 
-Defined in: [packages/webmcp/src/index.ts:124](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L124)
+Defined in: [packages/webmcp/src/index.ts:113](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L113)
 
 Defaults to the current WebMCP draft profile.
 
@@ -66,7 +66,7 @@ Defaults to the current WebMCP draft profile.
 
 > `readonly` `optional` **exposedTo?**: readonly `string`[]
 
-Defined in: [packages/webmcp/src/index.ts:126](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L126)
+Defined in: [packages/webmcp/src/index.ts:115](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L115)
 
 Optional cross-origin documents allowed to discover and execute these tools.
 
@@ -76,6 +76,6 @@ Optional cross-origin documents allowed to discover and execute these tools.
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/webmcp/src/index.ts:128](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L128)
+Defined in: [packages/webmcp/src/index.ts:117](https://github.com/mineclover/context-action/blob/main/packages/webmcp/src/index.ts#L117)
 
 Unregister all registered tools when aborted.

@@ -6,10 +6,11 @@
 
 # Interface: EffectConfig\<T\>
 
-Defined in: [packages/core/src/types.ts:416](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L416)
+Defined in: [packages/core/src/types.ts:417](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L417)
 
-Migration configuration for the deprecated `registerEffect()` API.
-New code should call `registerGuard()` or `registerObserver()` directly.
+Configuration for the supported `registerEffect()` convenience API.
+New code with a statically known role may call `registerGuard()` or
+`registerObserver()` directly.
 
 ## Extends
 
@@ -27,7 +28,7 @@ New code should call `registerGuard()` or `registerObserver()` directly.
 
 > **effectKind**: `"guard"` \| `"observer"`
 
-Defined in: [packages/core/src/types.ts:418](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L418)
+Defined in: [packages/core/src/types.ts:419](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L419)
 
 Select the explicit phase that owns this legacy effect.
 
@@ -37,7 +38,7 @@ Select the explicit phase that owns this legacy effect.
 
 > `optional` **priority?**: `number`
 
-Defined in: [packages/core/src/types.ts:548](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L548)
+Defined in: [packages/core/src/types.ts:549](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L549)
 
 Priority level (higher numbers execute first). Default: 0
 
@@ -51,7 +52,7 @@ Priority level (higher numbers execute first). Default: 0
 
 > `optional` **id?**: `string`
 
-Defined in: [packages/core/src/types.ts:551](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L551)
+Defined in: [packages/core/src/types.ts:552](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L552)
 
 Unique identifier for the handler. Auto-generated if not provided
 
@@ -61,16 +62,15 @@ Unique identifier for the handler. Auto-generated if not provided
 
 ***
 
-### ~~blocking?~~
+### blocking?
 
 > `optional` **blocking?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:557](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L557)
+Defined in: [packages/core/src/types.ts:559](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L559)
 
-#### Deprecated
-
-Use `scheduling` and `errorPolicy`. `true` maps to
+Supported 1.x shorthand for scheduling and error policy. `true` maps to
 `await-before-next` + `fatal`; `false` maps to `start-and-continue` + `collect`.
+Explicit `scheduling` or `errorPolicy` takes precedence for that field.
 
 #### Inherited from
 
@@ -82,7 +82,7 @@ Use `scheduling` and `errorPolicy`. `true` maps to
 
 > `optional` **scheduling?**: [`HandlerScheduling`](../type-aliases/HandlerScheduling.md)
 
-Defined in: [packages/core/src/types.ts:560](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L560)
+Defined in: [packages/core/src/types.ts:562](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L562)
 
 Async scheduling in sequential mode. Default: `await-before-next`.
 
@@ -96,7 +96,7 @@ Async scheduling in sequential mode. Default: `await-before-next`.
 
 > `optional` **errorPolicy?**: [`HandlerErrorPolicy`](../type-aliases/HandlerErrorPolicy.md)
 
-Defined in: [packages/core/src/types.ts:563](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L563)
+Defined in: [packages/core/src/types.ts:565](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L565)
 
 Error behavior for this handler. Default: `collect`.
 
@@ -110,7 +110,7 @@ Error behavior for this handler. Default: `collect`.
 
 > `optional` **once?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:566](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L566)
+Defined in: [packages/core/src/types.ts:568](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L568)
 
 Whether this handler should run once and then be removed. Default: false
 
@@ -124,7 +124,7 @@ Whether this handler should run once and then be removed. Default: false
 
 > `optional` **debounce?**: `number`
 
-Defined in: [packages/core/src/types.ts:569](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L569)
+Defined in: [packages/core/src/types.ts:571](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L571)
 
 Debounce delay in milliseconds
 
@@ -138,7 +138,7 @@ Debounce delay in milliseconds
 
 > `optional` **throttle?**: `number`
 
-Defined in: [packages/core/src/types.ts:572](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L572)
+Defined in: [packages/core/src/types.ts:574](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L574)
 
 Throttle delay in milliseconds
 
@@ -152,7 +152,7 @@ Throttle delay in milliseconds
 
 > `optional` **replaceExisting?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:575](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L575)
+Defined in: [packages/core/src/types.ts:577](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L577)
 
 Replace existing handler with same ID. Default: true for backward compatibility
 
@@ -166,7 +166,7 @@ Replace existing handler with same ID. Default: true for backward compatibility
 
 > `optional` **cleanup?**: () => `void`
 
-Defined in: [packages/core/src/types.ts:578](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L578)
+Defined in: [packages/core/src/types.ts:580](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L580)
 
 Cleanup function to call when handler is unregistered
 
@@ -184,7 +184,7 @@ Cleanup function to call when handler is unregistered
 
 > `optional` **condition?**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:581](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L581)
+Defined in: [packages/core/src/types.ts:583](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L583)
 
 Condition function to determine if handler should execute. Default: always execute
 
@@ -208,7 +208,7 @@ Type parameter **T**
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/core/src/types.ts:584](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L584)
+Defined in: [packages/core/src/types.ts:586](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L586)
 
 Optional metadata copied into execution outcomes for diagnostics.
 
@@ -222,7 +222,7 @@ Optional metadata copied into execution outcomes for diagnostics.
 
 > `optional` **when?**: `"success"` \| `"failure"` \| `"always"`
 
-Defined in: [packages/core/src/types.ts:587](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L587)
+Defined in: [packages/core/src/types.ts:589](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L589)
 
 Terminal path selection; consumed only by `registerObserver()`.
 
