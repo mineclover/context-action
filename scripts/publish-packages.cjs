@@ -3,7 +3,7 @@
 
 const { spawnSync } = require('node:child_process');
 const { dirname } = require('node:path');
-const { existsSync, mkdirSync, writeFileSync } = require('node:fs');
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 
 const argumentsList = process.argv.slice(2).filter((argument) => argument !== '--');
@@ -53,6 +53,58 @@ const maxAttempts = 3;
 const retryDelayMs = 15_000;
 
 mkdirSync(dirname(summaryFile), { recursive: true });
+
+function commandSucceeded(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    encoding: 'utf8',
+    env: { ...process.env },
+    ...options,
+  });
+  return result.status === 0 ? result : undefined;
+}
+
+function publishScopedPrerelease() {
+  if (!distTag) throw new Error('Scoped publishing requires --dist-tag');
+  const listResult = commandSucceeded('pnpm', ['exec', 'lerna', 'list', '--all', '--json']);
+  if (!listResult) throw new Error('Could not read the Lerna package list for scoped publishing');
+  const packages = JSON.parse(listResult.stdout);
+  const selected = scopes.map((name) => {
+    const packageEntry = packages.find((entry) => entry.name === name);
+    if (!packageEntry) throw new Error(`Requested package is not publishable: ${name}`);
+    return packageEntry;
+  });
+  const summary = [];
+
+  for (const packageEntry of selected) {
+    const manifest = JSON.parse(readFileSync(path.join(packageEntry.location, 'package.json'), 'utf8'));
+    const published = commandSucceeded(
+      'npm',
+      ['view', `${manifest.name}@${manifest.version}`, 'version', '--registry=https://registry.npmjs.org'],
+    );
+    if (published?.stdout.trim() === manifest.version) {
+      process.stdout.write(`${manifest.name}@${manifest.version} is already published; skipping.\n`);
+      summary.push({ packageName: manifest.name, version: manifest.version, status: 'already-published' });
+      continue;
+    }
+
+    const publish = spawnSync(
+      'npm',
+      ['publish', '--access', 'public', '--tag', distTag, '--provenance'],
+      { cwd: packageEntry.location, stdio: 'inherit', env: { ...process.env } },
+    );
+    if (publish.status !== 0) {
+      throw new Error(`${manifest.name}@${manifest.version} failed to publish`);
+    }
+    summary.push({ packageName: manifest.name, version: manifest.version, status: 'published' });
+  }
+
+  writeFileSync(summaryFile, `${JSON.stringify(summary, null, 2)}\n`);
+}
+
+if (scopes.length > 0) {
+  publishScopedPrerelease();
+  process.exit(0);
+}
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
   const result = spawnSync(
