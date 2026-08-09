@@ -82,9 +82,10 @@ metadata. A release defect requires a corrected patch version.
    recorded source commit.
 2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
    record in [release-approval.md](./release-approval.md).
-3. Configure a repository `NPM_TOKEN` automation secret permitted to remove
-   the WebMCP `latest` dist-tag; the protected-environment rehearsal already
-   demonstrated that OIDC alone fails closed for this operation.
+3. Grant or replace the repository `NPM_TOKEN` with permission to remove the
+   WebMCP `latest` dist-tag. The protected-environment rehearsal showed both
+   that OIDC alone fails closed and that the current token authenticates but is
+   rejected with `E403` for this package mutation.
 4. Clear the WebMCP RC `latest` tag, record registry-hygiene evidence, and run
    a separated-actor `npm-stable` rehearsal for the normal promotion policy.
 5. Generate and record strict evidence for the final governance commit and

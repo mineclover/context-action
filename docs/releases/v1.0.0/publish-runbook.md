@@ -20,11 +20,14 @@ Before certification, clear the accidental `@context-action/webmcp@0.1.0-rc.0`
 requires the exact confirmation `remove-rc-latest`, verifies that `latest` is
 the known RC and `next` is `0.1.0`, removes only `latest`, then uploads before
 and after tag evidence. This operation requires the repository `NPM_TOKEN`
-automation secret: npm trusted-publishing OIDC credentials authenticate package
-publication but did not authorize a `dist-tag rm` request in the rehearsal on
-2026-08-10. The workflow runs `npm whoami` with that token before any mutation
-and fails closed when it is unavailable. Do not run a broad dist-tag command
-from a local shell.
+automation secret with permission to manage this package's dist-tags: npm
+trusted-publishing OIDC credentials authenticate package publication but did
+not authorize a `dist-tag rm` request in the rehearsal on 2026-08-10. Run
+`31328975435` proved the configured token's identity with `npm whoami`, then
+failed closed with `E403` on the deletion; no tag changed. Replace or grant the
+token the package-level tag-management permission before retrying. The workflow
+runs `npm whoami` before any mutation and fails closed when authentication is
+unavailable. Do not run a broad dist-tag command from a local shell.
 
 1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
    for the approved release commit. Record the accepted pre-publication audit
@@ -123,10 +126,12 @@ lockfile/log snapshot to Git merely to refresh a status record.
 Before promotion, run a no-op or intentionally failing deployment to
 `npm-stable` using distinct identities and record the outcome in the approval
 evidence. A 2026-08-10 protected hygiene rehearsal confirmed that the
-owner-authorized self-review exception can approve the environment, then failed
-closed at `npm dist-tag rm` with `E401` because no usable `NPM_TOKEN` was
-configured; it made no registry mutation. The normal promotion policy remains
-separated identities:
+owner-authorized self-review exception can approve the environment. The first
+run (`31328409822`) failed with `E401` under OIDC-only credentials; the
+token-gated retry (`31328975435`) authenticated successfully but failed with
+`E403` because that token lacks WebMCP dist-tag management permission. Neither
+run made a registry mutation. The normal promotion policy remains separated
+identities:
 
 | Role | Required separation |
 | --- | --- |
