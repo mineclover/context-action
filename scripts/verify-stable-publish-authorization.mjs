@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -15,6 +16,31 @@ function option(name) {
 
 function currentCommit() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
+}
+
+async function verifyPrePublicationAudit(audit, expectedCommit) {
+  const errors = [];
+  if (audit?.status !== 'accepted') return ['An accepted pre-publication audit is required'];
+  if (audit.rcCommit !== expectedCommit) errors.push('Pre-publication audit is not bound to the requested release commit');
+  if (typeof audit.evidence !== 'string' || typeof audit.evidenceSha256 !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(audit.evidenceSha256)) {
+    errors.push('Pre-publication audit requires an evidence path and SHA-256');
+    return errors;
+  }
+  const resolved = path.resolve(repositoryRoot, audit.evidence);
+  if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+    errors.push('Pre-publication audit evidence must stay within the repository');
+    return errors;
+  }
+  try {
+    const evidence = await readFile(resolved);
+    if (createHash('sha256').update(evidence).digest('hex') !== audit.evidenceSha256) {
+      errors.push('Pre-publication audit evidence hash does not match');
+    }
+  } catch {
+    errors.push('Pre-publication audit evidence is missing');
+  }
+  return errors;
 }
 
 async function main() {
@@ -34,11 +60,7 @@ async function main() {
   if (currentCommit() !== expectedCommit) {
     errors.push('Checked-out commit does not match the requested release commit');
   }
-  if (manifest.prePublicationAudit?.status !== 'accepted'
-    || manifest.prePublicationAudit.rcCommit !== expectedCommit
-    || !/^[a-f0-9]{64}$/u.test(manifest.prePublicationAudit.evidenceManifest ?? '')) {
-    errors.push('An accepted pre-publication audit bound to this commit and evidence hash is required');
-  }
+  errors.push(...await verifyPrePublicationAudit(manifest.prePublicationAudit, expectedCommit));
   if (manifest.distTag !== null || manifest.registryEvidence !== null || manifest.audit !== null) {
     errors.push('Pre-publication authorization must not include published-artifact evidence');
   }

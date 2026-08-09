@@ -38,12 +38,14 @@ async function main() {
     requireText(errors, source, 'id-token: write', `${name} workflow must permit npm provenance through OIDC`);
     requireText(errors, source, 'name: npm-stable', `${name} workflow must use the npm-stable environment`);
     requireText(errors, source, 'test "$GITHUB_REF" = "refs/heads/main"', `${name} workflow must reject runs outside main`);
-    requireText(errors, source, 'git merge-base --is-ancestor "${{ inputs.release_commit }}" origin/main', `${name} workflow must require a main-ancestry artifact source`);
+    requireText(errors, source, 'RELEASE_COMMIT: ${{ inputs.release_commit }}', `${name} workflow must pass the requested release commit through a shell-safe environment variable`);
+    requireText(errors, source, '[[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]', `${name} workflow must require a full immutable commit SHA`);
+    requireText(errors, source, 'git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main', `${name} workflow must require a main-ancestry artifact source`);
   }
 
   requireText(errors, stableCandidate, 'ref: ${{ inputs.release_commit }}', 'Stable candidate workflow must checkout the requested immutable artifact source');
-  requireText(errors, stableCandidate, 'test "$(git rev-parse HEAD)" = "${{ inputs.release_commit }}"', 'Stable candidate workflow must bind checkout to the requested artifact source');
-  requireText(errors, stableCandidate, 'pnpm verify:stable-publish-authorization -- --commit "${{ inputs.release_commit }}"', 'Stable candidate workflow must verify publish authorization for the requested artifact source');
+  requireText(errors, stableCandidate, 'test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"', 'Stable candidate workflow must bind checkout to the requested artifact source');
+  requireText(errors, stableCandidate, 'pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT"', 'Stable candidate workflow must verify publish authorization for the requested artifact source');
   requireOrder(errors, stableCandidate, 'pnpm verify:stable-publish-authorization', 'pnpm publish:packages', 'Stable candidate authorization must occur before publication');
   requireText(errors, stableCandidate, '--dist-tag next', 'Stable candidate workflow must publish only to next');
   requireText(errors, stableCandidate, 'verify:published-tool-consumers -- --tag next', 'Stable candidate workflow must rerun the next-tag consumer matrix');
@@ -55,6 +57,8 @@ async function main() {
   requireOrder(errors, promotion, 'pnpm verify:v1-published-provenance', 'pnpm verify:v1-promotion-authorization', 'Promotion must verify provenance before authorization');
   requireOrder(errors, promotion, 'pnpm verify:v1-promotion-authorization', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion authorization must occur before any latest dist-tag mutation');
   requireText(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'Promotion workflow must rerun the latest-tag consumer matrix');
+  requireOrder(errors, promotion, 'trap rollback EXIT', 'verify:published-tool-consumers -- --tag latest', 'Promotion must preserve rollback until the latest consumer matrix passes');
+  requireOrder(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'trap - EXIT', 'Promotion may clear rollback only after the latest consumer matrix passes');
 
   const expectedOrder = [
     '@context-action/tool-protocol',

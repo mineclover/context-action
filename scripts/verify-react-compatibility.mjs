@@ -18,6 +18,13 @@ if (!reactVersion || !reactTypesVersion || !reactDomTypesVersion) {
   throw new Error('Expected --react-version, --react-types, and --react-dom-types.');
 }
 
+function buildPackage(packageName) {
+  execFileSync('pnpm', ['--filter', packageName, 'build'], {
+    cwd: root,
+    stdio: 'inherit',
+  });
+}
+
 function isolatedNpmEnvironment() {
   return Object.fromEntries(Object.entries(process.env).filter(
     ([key]) => !/^(npm_config|pnpm_config)_/iu.test(key),
@@ -26,6 +33,20 @@ function isolatedNpmEnvironment() {
 
 const consumer = mkdtempSync(join(tmpdir(), 'context-action-react-compat-'));
 try {
+  // npm pack only includes files that already exist. Build the complete
+  // runtime dependency chain so this verifier works from a clean checkout.
+  for (const packageName of [
+    '@context-action/mutative-core',
+    '@context-action/mutative',
+    '@context-action/core',
+    '@context-action/tool-protocol',
+    '@context-action/tool-durable-operations',
+    '@context-action/webmcp',
+    '@context-action/react',
+  ]) {
+    buildPackage(packageName);
+  }
+
   const candidatePackages = [
     'core',
     'mutative-core',

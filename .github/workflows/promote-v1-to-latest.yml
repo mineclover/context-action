@@ -42,10 +42,13 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Verify governance and published-artifact commits
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_REF" = "refs/heads/main"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git merge-base --is-ancestor "${{ inputs.release_commit }}" origin/main
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
 
       - name: Clear npm config before registry setup
         run: |
@@ -80,12 +83,14 @@ jobs:
             --output reports/npm-v1-provenance-verification.json
 
       - name: Verify promotion authorization
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
           pnpm verify:v1-promotion-authorization -- \
-            --commit "${{ inputs.release_commit }}" \
+            --commit "$RELEASE_COMMIT" \
             --governance-commit "$GITHUB_SHA"
 
-      - name: Promote the complete cohort in dependency order
+      - name: Promote the complete cohort and verify latest consumers
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
@@ -128,13 +133,8 @@ jobs:
             npm dist-tag add "${packages[$index]}" latest
             promoted+=("${packages[$index]}")
           done
-          trap - EXIT
-
-      - name: Verify latest consumer matrix
-        env:
-          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: |
           pnpm verify:published-tool-consumers -- --tag latest --packages "$STABLE_CANDIDATE_PACKAGES"
+          trap - EXIT
 
       - name: Capture promotion registry evidence
         run: |

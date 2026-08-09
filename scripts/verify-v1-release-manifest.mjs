@@ -48,6 +48,32 @@ async function validateAcceptedAudit(audit, manifestCommit) {
   return errors;
 }
 
+async function validateAcceptedPrePublicationAudit(audit, manifestCommit) {
+  const errors = [];
+  if (audit?.status !== 'accepted') return ['accepted pre-publication audit is required'];
+  if (audit.rcCommit !== manifestCommit) {
+    errors.push('pre-publication audit must bind the manifest commit');
+  }
+  if (typeof audit.evidence !== 'string' || typeof audit.evidenceSha256 !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(audit.evidenceSha256)) {
+    errors.push('pre-publication audit requires an evidence path and SHA-256');
+    return errors;
+  }
+  const resolved = path.resolve(repositoryRoot, audit.evidence);
+  if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+    errors.push('pre-publication audit evidence must stay within the repository');
+    return errors;
+  }
+  try {
+    if (sha256(await readFile(resolved)) !== audit.evidenceSha256) {
+      errors.push('pre-publication audit evidence hash does not match');
+    }
+  } catch {
+    errors.push('pre-publication audit evidence is missing');
+  }
+  return errors;
+}
+
 async function validateReleaseApproval(approval, manifestCommit) {
   const errors = [];
   if (approval?.status !== 'accepted') return ['G0/G1 release approval is not accepted'];
@@ -159,10 +185,8 @@ async function main() {
     if (typeof manifest.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(manifest.commit)) {
       errors.push('Publish-approved candidate requires a 40-character Git commit');
     }
-    if (prePublicationAudit?.status !== 'accepted'
-      || prePublicationAudit.rcCommit !== manifest.commit
-      || !/^[a-f0-9]{64}$/u.test(prePublicationAudit.evidenceManifest ?? '')) {
-      errors.push('Publish-approved candidate requires an accepted audit bound to the manifest commit and evidence hash');
+    for (const error of await validateAcceptedPrePublicationAudit(prePublicationAudit, manifest.commit)) {
+      errors.push(`Publish-approved candidate requires ${error}`);
     }
     if (manifest.distTag !== null || registryEvidence !== null || audit !== null) {
       errors.push('Publish-approved candidate must not claim registry evidence or a published-artifact audit');

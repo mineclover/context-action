@@ -31,11 +31,12 @@
     "prePublicationAudit": {
       "type": ["object", "null"],
       "additionalProperties": false,
-      "required": ["status", "rcCommit", "evidenceManifest"],
+      "required": ["status", "rcCommit", "evidence", "evidenceSha256"],
       "properties": {
         "status": { "const": "accepted" },
         "rcCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-        "evidenceManifest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "evidence": { "type": "string", "minLength": 1 },
+        "evidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
     "packages": { "type": "object", "additionalProperties": { "type": "string" } },
