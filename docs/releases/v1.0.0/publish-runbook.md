@@ -36,6 +36,10 @@ then use the guarded promotion workflow or publish a corrected patch.
 
    Strict verification rejects a dirty source tree and an evidence commit that
    does not match the checkout being verified.
+   The release gate also runs `pnpm verify:v1-release-workflows`, which binds
+   both workflows to their exact SHA roles, the complete cohort, `npm-stable`,
+   main-branch ancestry, authorization-before-mutation ordering, and the
+   required post-publish consumer checks.
 2. The promotion workflow receives the provenance-attested published-artifact
    source commit, but checks out the current protected `main` governance
    commit that contains the verifier and approval records. It rejects a
