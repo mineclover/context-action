@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `069d4d55d414a7381abb8712b461da6a6d17a6fc` (current governance controls; strict evidence refresh pending)<br>
+**Baseline commit:** `afdba2363d121c6b7d12c0ac2f86ab40f5191f99` (current governance controls; strict evidence recorded)<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-10
 
@@ -97,7 +97,21 @@ checks. Their working trees are deliberately `dirty`, so they are development
 evidence only and cannot be used with `--require-success` for release
 certification.
 
-## Clean pre-RC evidence
+## Current clean governance evidence
+
+`release-evidence/v1.0.0-afdba236-governance-prepublish-1/manifest.json` was
+generated from clean commit `afdba2363d121c6b7d12c0ac2f86ab40f5191f99`.
+Its independently rerun `release:check` completed successfully in 390828 ms,
+and its inventory, manifest, workflow-contract, roadmap, and governed-file
+fingerprint commands also passed. The bundle's manifest SHA-256 is
+`d2ee1ce1d81846964ae26f9f827975370872321d763f0f66fc4b973a856c3cbd`; the
+promotion-governance fingerprint is
+`c4b2b57796b1c083c537a9952bbe3217ffdc0b8bbd28180daf62b04ac5363303`.
+These values are recorded in the release manifest and must be copied into the
+future G0/G1 acceptance record. This evidence proves the governance controls,
+not independent audit approval or readiness to promote `latest`.
+
+## Historical clean pre-RC evidence
 
 `release-evidence/v1.0.0-d0d84fbc-governance-prepublish-1/manifest.json` was
 generated from clean commit `d0d84fbccc93edcd4ccb86e01edff70a4e56e6f8`. Its

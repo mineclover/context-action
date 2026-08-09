@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-afdba236-governance-prepublish-1",
+  "commit": "afdba2363d121c6b7d12c0ac2f86ab40f5191f99",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T18:04:54.066Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.18.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "release-check",
+      "command": "pnpm release:check",
+      "startedAt": "2026-08-09T17:58:08.488Z",
+      "completedAt": "2026-08-09T18:04:39.322Z",
+      "durationMs": 390828,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-check.log",
+        "sha256": "6360fd4435d706228c559f5b735004e3cd1d347155fa39baae8e1ac0771824e4"
+      }
+    },
+    {
+      "id": "inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T18:04:39.346Z",
+      "completedAt": "2026-08-09T18:04:52.906Z",
+      "durationMs": 13560,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/inventory.log",
+        "sha256": "efcc16a75e26a95efd6affb2914eae37eb27c1ee41074d9226521109e2d80ff9"
+      }
+    },
+    {
+      "id": "manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T18:04:52.907Z",
+      "completedAt": "2026-08-09T18:04:53.312Z",
+      "durationMs": 405,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/manifest.log",
+        "sha256": "7a8c37fab219d5d7104de623d142905dc8d073be9cbd945806d6fd0f2467f822"
+      }
+    },
+    {
+      "id": "workflows",
+      "command": "pnpm verify:v1-release-workflows",
+      "startedAt": "2026-08-09T18:04:53.313Z",
+      "completedAt": "2026-08-09T18:04:53.601Z",
+      "durationMs": 288,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/workflows.log",
+        "sha256": "b9c67857892aff7e2f8c991834fd00d8d3a9e290419414538b46c58a14ffd265"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T18:04:53.602Z",
+      "completedAt": "2026-08-09T18:04:54.015Z",
+      "durationMs": 413,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "7e604a21f03fb2f68b6fb7547c4bb0b8106c830a8f6693c65a5d75df00b8888e"
+      }
+    },
+    {
+      "id": "governance-fingerprint",
+      "command": "node scripts/verify-v1-promotion-governance.mjs",
+      "startedAt": "2026-08-09T18:04:54.016Z",
+      "completedAt": "2026-08-09T18:04:54.064Z",
+      "durationMs": 48,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/governance-fingerprint.log",
+        "sha256": "bee6159b64f23cd689eb78c96be7e2b75f3bf093e1ff211972df5b9fc677f409"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "17ca7a8c4d6fac9cac86c7fbd010a6471d6a7a45ee5f8101aa6c4db8fbbe8bf0",
+      "bytes": 5621
+    }
+  ],
+  "notes": [
+    "Strict clean evidence for the final governance controls; it does not replace independent audit approval."
+  ]
+}
