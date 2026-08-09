@@ -23,15 +23,24 @@ local checks for:
 - the packed Core migration fixture; and
 - an OSV audit with no actionable findings.
 
-The manifest was intentionally recorded from a dirty working tree. It passes
-integrity verification but is not strict release evidence.
+The development manifests were intentionally recorded from dirty working trees.
+They pass integrity verification but are not strict release evidence.
+
+## Clean pre-RC verification
+
+`v1.0.0-clean-precheck-1` records a successful `pnpm verify:all` and roadmap
+alignment check from a clean source checkout of
+`13086d07a6d70a06d27c3af0ec9f18767b00f1ad`. The manifest passes strict
+`--require-success` integrity verification. This narrows the remaining work to
+release governance and external validation; it is not an approved RC or a
+publication authorization.
 
 ## Remaining release blockers
 
 1. Approve the G0 package/subpath scope and target version map.
 2. Approve G1 public-contract and legacy ledger decisions.
-3. Repeat the evidence bundle from a clean RC commit, then validate it with
-   `--require-success`.
+3. Create an approved RC artifact and record strict evidence for that exact
+   artifact.
 4. Publish an approved RC to `next`/`rc`, run external-consumer smoke tests,
    capture provenance, and obtain an independent adversarial audit.
 
