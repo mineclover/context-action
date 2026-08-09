@@ -219,6 +219,8 @@ jobs:
 
       - name: Verify React package
         run: |
+          pnpm --filter @context-action/mutative-core build
+          pnpm --filter @context-action/mutative build
           pnpm --filter @context-action/core build
           pnpm --filter @context-action/react build
           node scripts/verify-react-compatibility.mjs \

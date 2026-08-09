@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
@@ -47,6 +48,32 @@ function outputPath(value) {
   return resolved;
 }
 
+async function verifyRegistryEvidence(name, version, evidence, distTag) {
+  if (!evidence || typeof evidence !== 'object') {
+    throw new Error(`Release manifest has no registry evidence for ${name}@${version}`);
+  }
+  const metadata = JSON.parse(run('npm', [
+    'view', `${name}@${version}`, 'dist', '--json', '--registry=https://registry.npmjs.org',
+  ], repositoryRoot));
+  const distTags = JSON.parse(run('npm', [
+    'view', name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org',
+  ], repositoryRoot));
+  if (!metadata?.tarball || !metadata?.integrity) {
+    throw new Error(`npm registry metadata is incomplete for ${name}@${version}`);
+  }
+  const response = await fetch(metadata.tarball);
+  if (!response.ok) throw new Error(`Could not download ${name}@${version}: HTTP ${response.status}`);
+  const tarballSha256 = createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex');
+  if (evidence.integrity !== metadata.integrity
+    || evidence.tarball !== metadata.tarball
+    || evidence.sha256 !== tarballSha256) {
+    throw new Error(`Live npm artifact does not match recorded registry evidence for ${name}@${version}`);
+  }
+  if (distTags?.[distTag] !== version) {
+    throw new Error(`Live npm ${distTag} tag does not resolve to ${name}@${version}`);
+  }
+}
+
 async function main() {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   const packageEntries = Object.entries(manifest.packages ?? {});
@@ -73,6 +100,7 @@ async function main() {
     const verified = new Map((audit.verified ?? []).map(entry => [`${entry.name}@${entry.version}`, entry]));
     const results = [];
     for (const [name, version] of packageEntries) {
+      await verifyRegistryEvidence(name, version, manifest.registryEvidence?.[name], manifest.distTag);
       const entry = verified.get(`${name}@${version}`);
       if (!entry) throw new Error(`npm audit signatures did not verify ${name}@${version}`);
       const slsa = entry.attestationBundles?.find(bundle => bundle.predicateType === 'https://slsa.dev/provenance/v1');

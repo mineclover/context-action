@@ -42,10 +42,13 @@ jobs:
           ref: ${{ inputs.release_commit }}
 
       - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_REF" = "refs/heads/main"
-          test "$(git rev-parse HEAD)" = "${{ inputs.release_commit }}"
-          git merge-base --is-ancestor "${{ inputs.release_commit }}" origin/main
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
 
       - name: Clear npm config before registry setup
         run: |
@@ -106,7 +109,9 @@ jobs:
           NODE
 
       - name: Verify stable publish authorization
-        run: pnpm verify:stable-publish-authorization -- --commit "${{ inputs.release_commit }}"
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT"
 
       - name: Run release gate
         run: pnpm release:check

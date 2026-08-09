@@ -18,7 +18,10 @@ then use the guarded promotion workflow or publish a corrected patch.
 1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
    for the approved release commit. Record the accepted pre-publication audit
    and move `release-manifest.json` to `candidate-approved-for-publish` before
-   invoking `Publish V1 Stable Candidate`.
+   invoking `Publish V1 Stable Candidate`. Its `prePublicationAudit.evidence`
+   must name the strict evidence manifest in the repository and
+   `evidenceSha256` must be the SHA-256 of that exact file; a bare hash is not
+   an authorization record.
 
    ```bash
    pnpm release:evidence:write -- \
@@ -35,7 +38,8 @@ then use the guarded promotion workflow or publish a corrected patch.
    ```
 
    Strict verification rejects a dirty source tree and an evidence commit that
-   does not match the checkout being verified.
+   does not match the checkout being verified. The stable publish authorization
+   repeats the path and digest check from the checked-out release commit.
    The release gate also runs `pnpm verify:v1-release-workflows`, which binds
    both workflows to their exact SHA roles, the complete cohort, `npm-stable`,
    main-branch ancestry, authorization-before-mutation ordering, and the
@@ -52,7 +56,10 @@ then use the guarded promotion workflow or publish a corrected patch.
    evidence artifact. Run `pnpm verify:v1-published-provenance` to verify each
    registry signature and provenance attestation before copying its integrity,
    SHA-256, tags, consumer result, and immutable commit into
-   `release-manifest.json` as `published-unapproved`.
+   `release-manifest.json` as `published-unapproved`. The promotion workflow
+   independently re-downloads every pinned tarball, compares its integrity and
+   SHA-256 with the recorded evidence, and verifies that the live `next` tag
+   still resolves to the approved version before any `latest` tag changes.
 4. Publish only the approved packages to `next` or `rc` with npm provenance
    enabled by the GitHub Actions `id-token: write` permission.
 5. In a clean external consumer, install the published versions and run CJS,
@@ -64,8 +71,9 @@ then use the guarded promotion workflow or publish a corrected patch.
    external smoke and approval succeed. It promotes the manifest's complete
    cohort in dependency order, reruns the `latest` consumer matrix, and uploads
    promotion evidence. Before changing a tag it records each package's prior
-   `latest` value; if a promotion command fails, it restores tags already
-   changed in that run. This is compensating recovery rather than a
+   `latest` value; if a promotion command or the required `latest` consumer
+   matrix fails, it restores tags already changed in that run. This is
+   compensating recovery rather than a
    cross-package npm transaction, so operators must still inspect the uploaded
    evidence after a failed run. Commit the resulting verified tags and
    `promoted` manifest state before declaring the release complete.
