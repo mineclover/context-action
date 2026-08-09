@@ -3,7 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [0.9.2] (Unreleased)
+## [1.0.0] (2026-08-09)
+
+### Stable Contracts
+
+- Establish `createActionContext`, the Guard/Result/Observer hooks, React
+  18/19 compatibility, and Strict Mode-safe handler lifecycle ownership as
+  stable React contracts.
+- Keep `@context-action/react/tools` as the stable ToolContext entry point.
+
+### Experimental
+
+- `@context-action/react/webmcp` remains an explicit experimental subpath;
+  WebMCP compatibility is tested independently of the stable default entry.
+
+### Breaking Changes from 0.x
 
 ### Breaking Changes
 

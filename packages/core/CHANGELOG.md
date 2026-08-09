@@ -3,7 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [0.9.2] (Unreleased)
+## [1.0.0] (2026-08-09)
+
+### Stable Contracts
+
+- Establish the Guard → Result → Observer phase model, typed action result
+  maps, deterministic result handling, race diagnostics, retry barriers, and
+  atomic `once` semantics as the v1 runtime contract.
+
+### Breaking Changes from 0.x
 
 ### Breaking Changes
 
@@ -22,6 +30,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - Make guard failures fail closed, keep awaited observers within dispatch
   timeout/shutdown ownership, and preserve terminal observer outcomes.
+
+### Deprecated but Supported in 1.x
+
+- `registerEffect()` remains available only with an explicit `effectKind`.
+- `HandlerConfig.blocking` remains a compatibility shorthand; new code should
+  use `scheduling` and `errorPolicy` explicitly.
+- Generic `register()` remains supported for legacy pipelines; prefer the
+  phase-specific registration APIs for new code.
 
 ## [0.9.0] (2026-07-21)
 

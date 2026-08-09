@@ -79,7 +79,12 @@ register.registerGuard('save', (payload, controller) => {
 register.registerResult('save', async (payload) => {
   await documentService.save(payload.documentId);
   return { documentId: payload.documentId, savedAt: new Date().toISOString() };
-}, { id: 'save-document', priority: 50, blocking: true });
+}, {
+  id: 'save-document',
+  priority: 50,
+  scheduling: 'await-before-next',
+  errorPolicy: 'fatal',
+});
 
 register.registerObserver('save', ({ outcome, result }) => {
   auditLog.write({ action: 'save', outcome, result });

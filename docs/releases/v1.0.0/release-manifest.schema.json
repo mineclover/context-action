@@ -14,10 +14,12 @@
   ],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "context-action-v1-release-manifest.v2" },
+    "schemaVersion": { "const": "context-action-v1-release-manifest.v3" },
     "status": {
       "enum": [
         "candidate-unapproved",
+        "candidate-approved-for-publish",
+        "published-pending-provenance",
         "published-unapproved",
         "audited",
         "approved-for-stable",
@@ -26,9 +28,27 @@
     },
     "release": { "const": "context-action-v1.0.0" },
     "commit": { "type": ["string", "null"] },
+    "prePublicationAudit": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "rcCommit", "evidenceManifest"],
+      "properties": {
+        "status": { "const": "accepted" },
+        "rcCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "evidenceManifest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
     "packages": { "type": "object", "additionalProperties": { "type": "string" } },
     "stableSurfaces": { "type": "array", "items": { "type": "string" } },
     "experimentalSurfaces": { "type": "array", "items": { "type": "string" } },
+    "testedExternalDependencies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/testedExternalDependency" }
+    },
+    "promotionTargets": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[a-z][a-z0-9._-]*$" }
+    },
     "requiredBeforeCertification": { "type": "array", "items": { "type": "string" } },
     "distTag": { "type": ["string", "null"] },
     "registryEvidence": {
@@ -82,6 +102,16 @@
           "required": ["status"],
           "properties": { "status": { "enum": ["passed", "failed", "not-run"] } }
         }
+      }
+    },
+    "testedExternalDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "supportedRange", "testedVersion"],
+      "properties": {
+        "classification": { "const": "tested-external-dependency" },
+        "supportedRange": { "type": "string", "minLength": 1 },
+        "testedVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" }
       }
     }
   }

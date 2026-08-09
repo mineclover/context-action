@@ -3,22 +3,63 @@
 **Status:** `prepared — execution requires release approval`  
 **Roadmap revision:** `v1-r2`
 
-1. Confirm G0–G9, the independent audit verdict, a clean strict evidence
-   manifest, and exact tarball hashes for the approved RC commit.
-2. Publish the approved RC to `next` or `rc`, then capture the registry
+## Existing v1.0.0 registry cohort
+
+`@context-action/core@1.0.0`, `@context-action/react@1.0.0`,
+`@context-action/tool-protocol@1.0.0`, and `@context-action/webmcp@0.1.0`
+are already published under `next`. They were published before this protected
+authorization workflow existed and are immutable. Their current state is
+`published-pending-provenance`; do not invoke the stable-candidate workflow
+again for these versions. Complete provenance verification and the independent
+audit, then use the guarded promotion workflow or publish a corrected patch.
+
+1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
+   for the approved release commit. Record the accepted pre-publication audit
+   and move `release-manifest.json` to `candidate-approved-for-publish` before
+   invoking `Publish V1 Stable Candidate`.
+
+   ```bash
+   pnpm release:evidence:write -- \
+     --release context-action-v1.0.0 \
+     --stage v1.0.0-<release-sha>-prepublication \
+     --require-clean \
+     --command release-check='pnpm release:check' \
+     --command inventory='pnpm release:inventory' \
+     --command manifest='pnpm verify:v1-release-manifest' \
+     --artifact docs/releases/v1.0.0/release-manifest.json
+   pnpm release:evidence:verify -- \
+     --file release-evidence/v1.0.0-<release-sha>-prepublication/manifest.json \
+     --require-success
+   ```
+
+   Strict verification rejects a dirty source tree and an evidence commit that
+   does not match the checkout being verified.
+2. The workflow must receive that exact immutable `main` commit. It runs in
+   the protected `npm-stable` environment and rejects a checkout, manifest, or
+   audit record that does not match the requested SHA.
+   Repository administrators must configure `npm-stable` with the required
+   reviewers; selecting an environment in workflow YAML alone cannot create
+   that repository-level protection.
+3. Publish the approved candidate to `next`, then capture the registry
    evidence artifact. Verify each npm provenance attestation's source commit
    before copying its integrity, SHA-256, tags, consumer result, and immutable
    commit into `release-manifest.json` as `published-unapproved`.
-3. Publish only the approved packages to `next` or `rc` with npm provenance
+4. Publish only the approved packages to `next` or `rc` with npm provenance
    enabled by the GitHub Actions `id-token: write` permission.
-4. In a clean external consumer, install the published versions and run CJS,
+5. In a clean external consumer, install the published versions and run CJS,
    ESM, NodeNext declaration checks, React 18/19 SSR, and representative
    runtime smoke tests.
-5. Obtain the independent published-artifact audit. Only then move the manifest
+6. Obtain the independent published-artifact audit. Only then move the manifest
    through `audited` and `approved-for-stable`.
-6. Publish the final stable versions to `next` first. Promote dependency
-   packages and React last to `latest` only after that external smoke and
-   approval succeed; deploy the matching documentation.
+7. Invoke the dedicated `Promote V1 to Latest` workflow only after that
+   external smoke and approval succeed. It promotes the manifest's complete
+   cohort in dependency order, reruns the `latest` consumer matrix, and uploads
+   promotion evidence. Before changing a tag it records each package's prior
+   `latest` value; if a promotion command fails, it restores tags already
+   changed in that run. This is compensating recovery rather than a
+   cross-package npm transaction, so operators must still inspect the uploaded
+   evidence after a failed run. Commit the resulting verified tags and
+   `promoted` manifest state before declaring the release complete.
 
 ## v1 RC prerelease
 

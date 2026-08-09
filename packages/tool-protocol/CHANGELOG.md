@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.0.0] (2026-08-09)
+
+### Stable Contracts
+
+- Establish the framework-neutral action schema, JSON Schema, tool-call,
+  approval, provider-adapter, and transport metadata contracts as the v1
+  Tool Protocol surface.
+- Keep durable-operation implementations in
+  `@context-action/tool-durable-operations`; this package owns the portable
+  contracts rather than a persistence backend.
+
+### Breaking Changes from 0.x
+
+- Consumers must import protocol and schema symbols from
+  `@context-action/tool-protocol` rather than relying on Core or React
+  re-exports removed during the v1 migration.
+
 ## [0.8.9] (2026-08-09)
 
 - Added `ToolInteractionHandler`, `ToolCallOptions.interaction`, transport

@@ -5,9 +5,9 @@
 
 This report links the current implementation work to the release gates. The
 authoritative operational status is [status.md](./status.md).
-The candidate version topology is in
+The recorded package topology and registry state are in
 [release-manifest.json](./release-manifest.json); it is deliberately not a
-publish authorization.
+publish or promotion authorization.
 
 ## Recorded development checks
 
@@ -35,22 +35,39 @@ alignment check from a clean source checkout of
 release governance and external validation; it is not an approved RC or a
 publication authorization.
 
-## Current clean pre-approval verification
+## Historical clean pre-approval verification
 
 `v1.0.0-rc.0-preapproval-1` records successful `pnpm release:check`,
 `pnpm release:inventory`, candidate-manifest validation, and roadmap-alignment
 validation from clean commit `05a57d526cad64bad78526fededa9df567840fe1`. Its
-evidence manifest passes strict `--require-success` verification. This is the
-current local pre-approval evidence, not an approved RC artifact or a
-publication authorization.
+evidence manifest passes strict `--require-success` verification from that
+checkout. It is historical evidence, not an approved RC artifact or a
+publication authorization, because the release workflow, manifest, and
+documentation changed after the recorded commit.
+
+## Published candidate state
+
+The four-package cohort is already published to npm under `next` from
+`63f790a521e3428a7a2825677747338f8f05ccf3`. The manifest records exact
+integrity, tarball SHA-256, publish time, dist-tags, and an external consumer
+matrix result. Its npm provenance bundles expose that source commit but remain
+`pending-verification` until an independent verifier validates the Sigstore
+attestations.
+
+This publication predates the protected publish authorization gate. The final
+versions are immutable; do not republish them to “repair” documentation or
+metadata. A release defect requires a corrected patch version.
 
 ## Remaining release blockers
 
-1. Approve the G0 package/subpath scope and target version map.
-2. Approve G1 public-contract and legacy ledger decisions.
-3. Create an approved RC artifact and record strict evidence for that exact
-   artifact.
-4. Publish an approved RC to `next`/`rc`, run external-consumer smoke tests,
-   capture provenance, and obtain an independent adversarial audit.
+1. Independently verify the npm provenance bundle for every published package.
+2. Obtain an independent adversarial audit of the exact `next` artifacts and
+   recorded source commit.
+3. Approve G0/G1 scope, public-contract, and legacy ledger decisions.
+4. Freeze the current release governance/docs commit and record strict clean
+   evidence for it; this documents the release process but does not alter the
+   immutable published tarballs.
+5. Only then move the manifest through `published-unapproved`, `audited`, and
+   `approved-for-stable` before the guarded `latest` promotion.
 
 No status in this report authorizes a release to `latest`.

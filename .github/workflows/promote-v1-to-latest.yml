@@ -1,0 +1,143 @@
+name: Promote V1 to Latest
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this approved promotion'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
+      release_commit:
+        description: 'Audited immutable main commit to promote'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
+
+jobs:
+  promote-v1-to-latest:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 30
+    steps:
+      - name: Checkout approved release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify approved main release commit
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "${{ inputs.release_commit }}"
+          git merge-base --is-ancestor "${{ inputs.release_commit }}" origin/main
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify promotion authorization
+        run: pnpm verify:v1-promotion-authorization -- --commit "${{ inputs.release_commit }}"
+
+      - name: Promote the complete cohort in dependency order
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          set -euo pipefail
+
+          packages=(
+            '@context-action/tool-protocol@1.0.0'
+            '@context-action/core@1.0.0'
+            '@context-action/webmcp@0.1.0'
+            '@context-action/react@1.0.0'
+          )
+          previous_tags=()
+          promoted=()
+
+          for package_spec in "${packages[@]}"; do
+            package_name="${package_spec%@*}"
+            previous_tag="$(npm view "$package_name" dist-tags.latest --json | tr -d '\"')"
+            if [ -z "$previous_tag" ] || [ "$previous_tag" = "null" ]; then
+              echo "Refusing promotion without a recoverable prior latest tag: $package_name" >&2
+              exit 1
+            fi
+            previous_tags+=("$previous_tag")
+          done
+
+          rollback() {
+            status=$?
+            if [ "$status" -ne 0 ] && [ "${#promoted[@]}" -gt 0 ]; then
+              echo 'Promotion failed; restoring previously promoted latest tags.' >&2
+              for index in "${!promoted[@]}"; do
+                package_spec="${promoted[$index]}"
+                package_name="${package_spec%@*}"
+                npm dist-tag add "$package_name@${previous_tags[$index]}" latest || true
+              done
+            fi
+            exit "$status"
+          }
+          trap rollback EXIT
+
+          for index in "${!packages[@]}"; do
+            npm dist-tag add "${packages[$index]}" latest
+            promoted+=("${packages[$index]}")
+          done
+          trap - EXIT
+
+      - name: Verify latest consumer matrix
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm verify:published-tool-consumers -- --tag latest --packages "$STABLE_CANDIDATE_PACKAGES"
+
+      - name: Capture promotion registry evidence
+        run: |
+          pnpm capture:published-release -- --tag latest --packages "$STABLE_CANDIDATE_PACKAGES" \
+            --consumer-status passed --output reports/npm-v1-promotion-registry-evidence.json
+
+      - name: Upload promotion evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-v1-promotion-evidence
+          path: reports/npm-v1-promotion-*.json
+          if-no-files-found: ignore
+          retention-days: 30

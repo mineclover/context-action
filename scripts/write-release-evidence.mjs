@@ -18,7 +18,8 @@ Options:
   --command <id=command>  Run a command and preserve its output in logs/<id>.log (repeatable)
   --artifact <path>       Copy an existing output into artifacts/ and record its SHA-256 (repeatable)
   --output <directory>    Evidence directory (default: release-evidence/<stage>)
-  --commit <sha>          Commit to record (default: git HEAD)
+  --commit <sha>          Commit to record; must equal git HEAD
+  --require-clean         Refuse to create evidence from a dirty source tree
   --roadmap-revision <id> Roadmap revision (default: v1-r2)
   --note <text>           Additional manifest note (repeatable)`);
   process.exitCode = 2;
@@ -29,6 +30,10 @@ function readOptions(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const name = argv[index];
     if (!name.startsWith('--')) return { error: `Unexpected argument: ${name}` };
+    if (name === '--require-clean') {
+      options.requireClean = true;
+      continue;
+    }
     const value = argv[index + 1];
     if (value === undefined || value.startsWith('--')) return { error: `Missing value for ${name}` };
     index += 1;
@@ -151,6 +156,13 @@ async function main() {
   // Evidence files are created in the repository. Capture the source snapshot
   // before creating them so a clean RC can produce a strict evidence bundle.
   const sourceWorkingTree = workingTree();
+  const sourceCommit = gitCommit();
+  if (options.requireClean && sourceWorkingTree !== 'clean') {
+    throw new Error('Strict release evidence requires a clean working tree');
+  }
+  if (options.commit && options.commit !== sourceCommit) {
+    throw new Error(`--commit must match git HEAD (${sourceCommit})`);
+  }
 
   try {
     await mkdir(path.join(outputDirectory, 'logs'), { recursive: true });
@@ -180,7 +192,7 @@ async function main() {
       schemaVersion: 'context-action-release-evidence.v1',
       release: options.release,
       stage: options.stage,
-      commit: options.commit ?? gitCommit(),
+      commit: sourceCommit,
       roadmapRevision: options.roadmapRevision ?? 'v1-r2',
       status: hasFailure ? 'failed' : commands.length === 0 ? 'not-certified' : 'recorded',
       generatedAt: timestamp(),

@@ -82,7 +82,12 @@ export function ActionLifecycleHandlerRegistry({
       record({ ...output, priority: 50 });
       return output;
     }, [record]),
-    { id: 'lifecycle-business-operation', priority: 50, blocking: true }
+    {
+      id: 'lifecycle-business-operation',
+      priority: 50,
+      scheduling: 'await-before-next',
+      errorPolicy: 'fatal',
+    }
   );
 
   LifecycleContext.useActionObserver(

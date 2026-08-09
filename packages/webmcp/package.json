@@ -29,7 +29,7 @@
     }
   },
   "sideEffects": false,
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "scripts": {
     "build": "tsdown",
     "test": "jest --runInBand",

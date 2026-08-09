@@ -1,25 +1,26 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `0d6047b99961a33ef0d09704ae39c577d3b89cd8`<br>
+**Baseline commit:** `pending clean release freeze`<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-09
 
 This is the committed mirror of release readiness until a dedicated v1.0 GitHub
 Project is provisioned. It records status, blockers, and next work; immutable
-command results and artifact hashes belong in
+registry facts are mirrored in [release-manifest.json](./release-manifest.json)
+and command results/artifact hashes belong in
 `release-evidence/v1.0.0-*/manifest.json`.
 
 | Gate | Status | Next evidence or decision |
 | --- | --- | --- |
 | G0 Scope/versioning | `partial` | candidate scope/manifest and inventory are recorded; approve the target map |
 | G1 Public API | `partial` | contract candidates and candidate legacy outcomes exist; public-contract approval remains |
-| G2 Core execution | `partial` | clean pre-approval evidence records the full verification suite; certify an approved RC artifact |
-| G3 Lifecycle/metrics | `partial` | a current clean lifecycle report is recorded; certify the approved RC artifact |
-| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and current clean verification are recorded; external consumer certification remains |
-| G5 Tool adapters | `partial` | current clean evidence covers isolation and Tool Protocol/AI SDK/WebMCP checks; external consumer certification remains |
-| G6 Consumer packages | `partial` | workflow now runs published CJS/ESM/NodeNext/React 18/19 SSR matrix; certify the approved RC package matrix |
-| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and current clean pre-approval verification exist; approval remains |
+| G2 Core execution | `partial` | recreate clean evidence for the frozen release commit, then certify the approved RC artifact |
+| G3 Lifecycle/metrics | `partial` | recreate the lifecycle report from the frozen release commit, then certify the approved RC artifact |
+| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks exist; recreate clean evidence and complete external consumer certification |
+| G5 Tool adapters | `partial` | isolation and Tool Protocol/AI SDK/WebMCP checks exist; recreate clean evidence and complete external consumer certification |
+| G6 Consumer packages | `partial` | published `next` CJS/ESM/NodeNext/React 18/19 SSR matrix passed; provenance verification and independent audit remain |
+| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, and packed fixture exist; regenerate clean evidence after documentation freeze |
 | G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
 | G9 Security/supply chain | `partial` | a clean local supply-chain report is recorded; registry provenance remains |
 
@@ -28,20 +29,26 @@ command results and artifact hashes belong in
 - Package, subpath, and named-surface stability classification is not approved.
 - The v1 target version map and independent release manifest are candidate-only
   and not approved.
-- Registry tag verification currently detects `@context-action/webmcp@0.1.0-rc.0`
-  at `latest`; move or remove that tag before RC certification. The other three
-  RC packages keep `latest` on their prior stable versions.
+- Registry evidence records the published `next` cohort from
+  `63f790a521e3428a7a2825677747338f8f05ccf3`, but each npm provenance bundle
+  remains pending independent verification. `@context-action/webmcp@0.1.0-rc.0`
+  still owns `latest`; the dedicated promotion workflow cannot run until
+  provenance and audit gates pass.
 - Legacy API candidate outcomes await public-contract approval.
-- The clean pre-RC bundle is not an approved RC artifact; external consumer
-  certification, registry provenance, and an independent audit are unrecorded.
+- The published consumer matrix is recorded, but its provenance has not been
+  independently verified and the published artifact has not received the
+  required independent audit.
+- The historical clean evidence predates the current workflow, manifest, and
+  changelog changes. It cannot certify the next canonical release commit.
 
 ## Immediate next work
 
-1. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
-2. Create an approved RC artifact and generate its immutable, strict evidence bundle.
-3. Obtain an independent audit of the canonical M6 document set and registry-installed RC artifact.
-4. Complete external-consumer certification and registry provenance before any
-   `latest` publication decision.
+1. Independently verify the npm provenance bundle for every `next` package and
+   move the manifest to `published-unapproved` only with that evidence.
+2. Obtain an independent audit of the exact registry-installed `next` artifact.
+3. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
+4. Freeze the current governance/docs commit and generate immutable strict
+   evidence with `--require-clean` before any `latest` decision.
 
 ## Development evidence
 
@@ -64,12 +71,12 @@ tree. Its `verify-all` and roadmap-alignment commands passed, and
 reproducibility of the pre-RC candidate only; it does not approve the candidate
 manifest or authorize publication.
 
-## Current clean pre-approval evidence
+## Historical clean pre-approval evidence
 
 `release-evidence/v1.0.0-rc.0-preapproval-1/manifest.json` was generated from
 the clean RC-preparation commit `05a57d526cad64bad78526fededa9df567840fe1`.
 It records successful `pnpm release:check`, `pnpm release:inventory`, candidate
 manifest validation, and roadmap-alignment validation, and it passes
-`pnpm release:evidence:verify -- --require-success`. It supersedes the older
-precheck as current local evidence only; the candidate manifest is still
-unapproved and this bundle does not authorize publication.
+`pnpm release:evidence:verify -- --require-success` when verified from its
+recorded commit. It is now historical because the workflow, manifest, and
+documentation changed after that commit; it does not authorize publication.

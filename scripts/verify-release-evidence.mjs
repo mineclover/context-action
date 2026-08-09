@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +30,14 @@ function isDigest(value) {
 
 function fail(errors, message) {
   errors.push(message);
+}
+
+function currentCommit() {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
+  } catch {
+    return null;
+  }
 }
 
 async function verifyFile(root, relativePath, expectedHash, errors, label) {
@@ -112,6 +121,11 @@ async function main() {
     if (manifest.workingTree !== 'clean') fail(errors, 'Strict verification requires a clean working tree');
     if (commands.length === 0) fail(errors, 'Strict verification requires at least one command');
     for (const command of commands) if (command.status !== 'passed' || command.exitCode !== 0) fail(errors, `Strict verification rejects failed command: ${command.id}`);
+    if (!/^[a-f0-9]{40}$/u.test(manifest.commit ?? '')) {
+      fail(errors, 'Strict verification requires a 40-character Git commit');
+    } else if (currentCommit() !== manifest.commit) {
+      fail(errors, 'Strict verification requires the current checkout to match the evidence commit');
+    }
   }
   if (errors.length > 0) {
     console.error(JSON.stringify({ status: 'invalid', errors }, null, 2));

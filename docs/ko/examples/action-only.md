@@ -69,7 +69,12 @@ function ReportPipeline() {
   useReportResultHandler('publishReport', useCallback(async (payload) => {
     await reportApi.publish(payload.reportId);
     return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
-  }, []), { id: 'report-publish', priority: 50, blocking: true });
+  }, []), {
+    id: 'report-publish',
+    priority: 50,
+    scheduling: 'await-before-next',
+    errorPolicy: 'fatal',
+  });
 
   useReportObserver('publishReport', useCallback(({ outcome, result }) => {
     auditLog.write({ action: 'publishReport', outcome, result });
