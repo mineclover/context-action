@@ -1,9 +1,9 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `f493c9a7cb21c59e5d6a4183fa521672afc9b2e4` (superseded when the current governance changes are committed)<br>
+**Baseline commit:** `069d4d55d414a7381abb8712b461da6a6d17a6fc` (current governance controls; strict evidence refresh pending)<br>
 **Roadmap revision:** `v1-r2`<br>
-**Last synchronized:** 2026-08-09
+**Last synchronized:** 2026-08-10
 
 This is the committed mirror of release readiness until a dedicated v1.0 GitHub
 Project is provisioned. It records status, blockers, and next work; immutable
@@ -40,9 +40,9 @@ and command results/artifact hashes belong in
 - The published consumer matrix and provenance verification are recorded, but
   the published artifact has not received the required independent audit.
 - The `npm-stable` environment now limits deployments to `main`, requires the
-  `mineclover` reviewer, prevents self-review, and disallows administrator
-  bypass. It is the non-bypassable stable-release environment used by both
-  guarded publication workflows.
+  `mineclover` reviewer, permits the documented owner-authorized self-review
+  exception, and disallows administrator bypass. It is the protected
+  stable-release environment used by both guarded publication workflows.
 - Existing strict evidence ends at an earlier governance commit. The current
   promotion-governance controls require a fresh clean evidence bundle and a
   recorded file fingerprint before approval; past bundles remain historical.
