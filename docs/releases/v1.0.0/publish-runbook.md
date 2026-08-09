@@ -15,7 +15,7 @@ release approvals are still missing. Do not invoke the stable-candidate
 workflow again for these versions. Complete the remaining audit and approvals,
 then use the guarded promotion workflow or publish a corrected patch.
 
-The accidental `@context-action/webmcp@0.1.0-rc.0` `latest` tag is corrected
+The accidental `@context-action/webmcp@0.1.0-rc.0` `latest` tag was corrected
 by publishing `@context-action/webmcp@0.1.1` through **Publish WebMCP Hygiene
 Patch**, not by deleting a dist-tag. The protected workflow requires the exact
 confirmation `publish-webmcp-0.1.1`, an immutable main commit, and a successful
@@ -23,7 +23,10 @@ confirmation `publish-webmcp-0.1.1`, an immutable main commit, and a successful
 normal npm `latest` publish behavior. It then verifies that `latest` is
 `0.1.1`, preserves the existing `next`/`rc` records for `0.1.0`, and uploads
 registry and consumer evidence. Do not run a broad dist-tag command from a
-local shell.
+local shell. Publication run `31340779674` completed the versioned publish;
+evidence run `31341251251` then passed the idempotent tag check and stored the
+captured evidence at
+`release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
 
 The existing `0.1.0` v1 candidate remains immutable evidence for the published
 `next` cohort. After the hygiene patch succeeds, that candidate is superseded

@@ -20,11 +20,13 @@
   canonical v1.0.0 notes are this release document set and the GitHub release.
   Runtime and declaration artifacts are unaffected. A stricter artifact-docs
   policy requires a corrected patch cohort rather than silent promotion.
-- The accidental WebMCP RC `latest` tag remains until the protected
-  `@context-action/webmcp@0.1.1` hygiene patch is published. Direct tag deletion
-  is intentionally not used: it failed under OIDC (`E401`) and the configured
-  automation token (`E403` in run `31328975435`). The v1 candidate then needs a
-  WebMCP provenance and audit re-baseline before any stable promotion.
+- The accidental WebMCP RC `latest` tag has been replaced by the protected
+  `@context-action/webmcp@0.1.1` hygiene patch. Run `31341251251` recorded
+  `latest=0.1.1`, `next=0.1.0`, `rc=0.1.0-rc.0`, and a passing external
+  consumer check. Direct tag deletion is intentionally not used: it failed
+  under OIDC (`E401`) and the configured automation token (`E403` in run
+  `31328975435`). The old v1 candidate still needs a WebMCP provenance and
+  audit re-baseline before any stable promotion.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
 affected gate before approving an RC.
