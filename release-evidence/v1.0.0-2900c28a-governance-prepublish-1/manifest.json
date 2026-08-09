@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-2900c28a-governance-prepublish-1",
+  "commit": "2900c28a48dcc750645d1ee546223973d068e33a",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T13:14:59.023Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.18.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "release-check",
+      "command": "pnpm release:check",
+      "startedAt": "2026-08-09T13:11:56.046Z",
+      "completedAt": "2026-08-09T13:14:48.303Z",
+      "durationMs": 172256,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-check.log",
+        "sha256": "4ff0e1497d11e66e5e6f1dc475f915aaaee669622b90b116e6506c502996ee86"
+      }
+    },
+    {
+      "id": "release-inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T13:14:48.307Z",
+      "completedAt": "2026-08-09T13:14:58.552Z",
+      "durationMs": 10245,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-inventory.log",
+        "sha256": "3526d562d967158e89e1ff47ee89e7bb0aeb98d5769016cb244eb5d804308010"
+      }
+    },
+    {
+      "id": "release-manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T13:14:58.553Z",
+      "completedAt": "2026-08-09T13:14:58.814Z",
+      "durationMs": 261,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-manifest.log",
+        "sha256": "04cad12600c28f9be8be455bbb16b6a520bb25c6ddd61525f421450fc881f731"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T13:14:58.815Z",
+      "completedAt": "2026-08-09T13:14:59.020Z",
+      "durationMs": 205,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "3e58f39e57f4812b7cc82ac8a24efa105bb209aaafc36dd7a6769100976940d5"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "fa69aa44dfd87dfec4cd89d4537955f146c80efa28c408c0deb78fd798de0d7c",
+      "bytes": 4898
+    },
+    {
+      "sourcePath": "pnpm-lock.yaml",
+      "path": "artifacts/02-pnpm-lock.yaml",
+      "sha256": "4389233d0ad91cf319cbcca79d8f02757d742b1d04a75dd6d95e6cef4f5be35e",
+      "bytes": 458812
+    }
+  ],
+  "notes": [
+    "Clean governance evidence after promotion workflow, approval-record, and npm-stable environment readiness hardening."
+  ]
+}

@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `414cf675e236692fd9971eec62c4d92576a4e5f3`<br>
+**Baseline commit:** `2900c28a48dcc750645d1ee546223973d068e33a`<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-09
 
@@ -66,6 +66,15 @@ evidence only and cannot be used with `--require-success` for release
 certification.
 
 ## Clean pre-RC evidence
+
+`release-evidence/v1.0.0-2900c28a-governance-prepublish-1/manifest.json` was
+generated from clean commit `2900c28a48dcc750645d1ee546223973d068e33a`. Its
+full `release:check`, inventory, manifest validation, and roadmap commands
+passed, and it passes `pnpm release:evidence:verify -- --require-success` when
+checked out at that commit. It covers the guarded stable-candidate and
+promotion workflows, hashed audit/G0-G1 approval gates, and the recorded
+`npm-stable` environment state. It remains governance evidence only: it does
+not replace an independent audit or authorize `latest` promotion.
 
 `release-evidence/v1.0.0-414cf675-governance-prepublish-1/manifest.json` was
 generated from clean commit `414cf675e236692fd9971eec62c4d92576a4e5f3`. Its
