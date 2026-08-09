@@ -39,9 +39,9 @@ and command results/artifact hashes belong in
 - The published consumer matrix and provenance verification are recorded, but
   the published artifact has not received the required independent audit.
 - The `npm-stable` environment now limits deployments to `main`, requires the
-  `mineclover` reviewer, and prevents self-review. GitHub administrator bypass
-  remains enabled and must be disabled before this environment can be treated
-  as a non-bypassable stable-release boundary.
+  `mineclover` reviewer, prevents self-review, and disallows administrator
+  bypass. It is the non-bypassable stable-release environment used by both
+  guarded publication workflows.
 
 ## Immediate next work
 
@@ -49,8 +49,7 @@ and command results/artifact hashes belong in
 2. Complete the hashed G0/G1 owner record in
    [release-approval.md](./release-approval.md) for the target map, M1
    candidates, and M2 legacy decisions.
-3. Disable administrator bypass for the configured `npm-stable` environment.
-4. Preserve the recorded strict evidence while external audit
+3. Preserve the recorded strict evidence while external audit
    decisions are completed; regenerate it if the chosen release commit changes.
 
 ## Development evidence
