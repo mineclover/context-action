@@ -1,0 +1,51 @@
+
+> context-action-monorepo@1.0.1 test:ai-sdk-integration /Users/junwoobang/workflow/context-action
+> pnpm --filter @context-action/tool-protocol build && pnpm --filter @context-action/ai-sdk build && node scripts/verify-ai-sdk-runtime.mjs
+
+
+> @context-action/tool-protocol@0.8.9 build /Users/junwoobang/workflow/context-action/packages/tool-protocol
+> tsdown
+
+ℹ tsdown v0.22.13 powered by rolldown v1.2.0
+ℹ config file: /Users/junwoobang/workflow/context-action/packages/tool-protocol/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2020
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 7 files
+ℹ [CJS] dist/index.cjs  41.89 kB │ gzip: 11.34 kB
+ℹ [CJS] 1 files, total: 41.89 kB
+ℹ [CJS] dist/index.d.cts.map   4.04 kB │ gzip: 1.51 kB
+ℹ [CJS] dist/index.d.cts      19.63 kB │ gzip: 4.10 kB
+ℹ [CJS] 2 files, total: 23.66 kB
+✔ Build complete in 767ms
+ℹ [ESM] dist/index.js        40.37 kB │ gzip: 11.14 kB
+ℹ [ESM] dist/index.js.map    89.50 kB │ gzip: 22.52 kB
+ℹ [ESM] dist/index.d.ts.map   4.04 kB │ gzip:  1.51 kB
+ℹ [ESM] dist/index.d.ts      19.63 kB │ gzip:  4.10 kB
+ℹ [ESM] 4 files, total: 153.53 kB
+✔ Build complete in 768ms
+
+> @context-action/ai-sdk@0.1.0 build /Users/junwoobang/workflow/context-action/packages/ai-sdk
+> tsdown
+
+ℹ tsdown v0.22.13 powered by rolldown v1.2.0
+ℹ config file: /Users/junwoobang/workflow/context-action/packages/ai-sdk/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: es2022
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 7 files
+ℹ [CJS] dist/index.cjs  6.34 kB │ gzip: 2.21 kB
+ℹ [CJS] 1 files, total: 6.34 kB
+ℹ [CJS] dist/index.d.cts.map  0.49 kB │ gzip: 0.32 kB
+ℹ [CJS] dist/index.d.cts      2.36 kB │ gzip: 0.74 kB
+ℹ [CJS] 2 files, total: 2.85 kB
+✔ Build complete in 582ms
+ℹ [ESM] dist/index.js         6.14 kB │ gzip: 2.16 kB
+ℹ [ESM] dist/index.js.map    14.63 kB │ gzip: 4.78 kB
+ℹ [ESM] dist/index.d.ts.map   0.49 kB │ gzip: 0.32 kB
+ℹ [ESM] dist/index.d.ts       2.36 kB │ gzip: 0.74 kB
+ℹ [ESM] 4 files, total: 23.62 kB
+✔ Build complete in 583ms
+AI SDK runtime integration passed

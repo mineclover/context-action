@@ -1,0 +1,8 @@
+
+> context-action-monorepo@1.0.1 security:audit /Users/junwoobang/workflow/context-action
+> node scripts/security-audit.mjs
+
+OSV audit checked 1474 npm package versions.
+OSV audit filtered 1 configured vulnerability match(es):
+  react-router@7.18.1: GHSA-qwww-vcr4-c8h2 (Example uses browser routing only; react-router-dom 8.3.0 is not published, so the paired DOM package cannot be upgraded independently. Re-evaluate before expiry.)
+OSV audit found no vulnerability matches.

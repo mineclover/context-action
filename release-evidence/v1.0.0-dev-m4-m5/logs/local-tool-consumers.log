@@ -1,0 +1,8 @@
+
+> context-action-monorepo@1.0.1 verify:local-tool-consumers /Users/junwoobang/workflow/context-action
+> node scripts/verify-published-tool-consumers.cjs --local
+
+
+added 20 packages in 721ms
+published tool package consumer imports passed: @context-action/core, @context-action/mutative-core, @context-action/mutative, @context-action/tool-protocol, @context-action/tool-durable-operations, @context-action/react/tools, @context-action/ai-sdk, @context-action/webmcp
+Local tarball tool package consumer smoke test passed: file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-core-0.9.2.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-mutative-core-0.8.8.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-mutative-0.8.8.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-tool-protocol-0.8.9.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-tool-durable-operations-0.1.1.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-react-0.9.2.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-ai-sdk-0.1.0.tgz, file:/var/folders/ss/p9hh1w09423bbbt07xcftfr40000gn/T/context-action-tool-consumer-nFe6yU/local-packages/context-action-webmcp-0.1.0.tgz, react@19.2.8, ai@7.0.34, typescript@6.0.3

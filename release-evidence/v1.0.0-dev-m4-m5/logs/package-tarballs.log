@@ -1,0 +1,36 @@
+
+> context-action-monorepo@1.0.1 verify:package-tarballs /Users/junwoobang/workflow/context-action
+> node scripts/verify-package-tarballs.mjs
+
+
+@context-action/ai-sdk
+  ✓ context-action-ai-sdk-0.1.0.tgz (10 files, 7 manifest targets)
+
+@context-action/core
+  ✓ context-action-core-0.9.2.tgz (10 files, 7 manifest targets)
+
+@context-action/llms-generator
+  ✓ context-action-llms-generator-0.8.7.tgz (17 files, 7 manifest targets)
+
+@context-action/mutative
+  ✓ context-action-mutative-0.8.8.tgz (11 files, 7 manifest targets)
+
+@context-action/mutative-core
+  ✓ context-action-mutative-core-0.8.8.tgz (13 files, 7 manifest targets)
+
+@context-action/react
+  ✓ context-action-react-0.9.2.tgz (72 files, 27 manifest targets)
+
+@context-action/tool-durable-operations
+  ✓ context-action-tool-durable-operations-0.1.1.tgz (20 files, 8 manifest targets)
+
+@context-action/tool-protocol
+  ✓ context-action-tool-protocol-0.8.9.tgz (11 files, 7 manifest targets)
+
+@context-action/typedoc-vitepress-sync
+  ✓ context-action-typedoc-vitepress-sync-0.8.8.tgz (8 files, 6 manifest targets)
+
+@context-action/webmcp
+  ✓ context-action-webmcp-0.1.0.tgz (17 files, 11 manifest targets)
+
+Verified 10 npm package tarballs against their package publication contracts.

@@ -1,0 +1,868 @@
+
+> context-action-monorepo@1.0.1 test:core /Users/junwoobang/workflow/context-action
+> lerna run test --scope=@context-action/core
+
+lerna notice cli v9.0.7
+lerna info versioning independent
+lerna notice filter including "@context-action/core"
+lerna info filter [ '@context-action/core' ]
+
+> @context-action/core:test
+
+@context-action/core: (node:69479) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/core: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/core: (node:69486) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/core: (Use `pnpm --trace-warnings ...` to show where the warning was created)
+@context-action/core: > @context-action/core@0.9.2 test /Users/junwoobang/workflow/context-action/packages/core
+@context-action/core: > NODE_OPTIONS=--max-old-space-size=8192 jest --runInBand --logHeapUsage
+@context-action/core: (node:69510) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/core: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:01.830Z] [DebugRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'parallel',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:01.833Z] [DebugRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.273Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.275Z] [ConcurrencyTest] Handler registered: updateUser {
+@context-action/core:       handlerId: 'updateUser_ConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.276Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.278Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.279Z] [ConcurrencyTest] Handler registered: operation {
+@context-action/core:       handlerId: 'operation_ConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.280Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.281Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.281Z] [ConcurrencyTest] Handler registered: operation {
+@context-action/core:       handlerId: 'operation_ConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.282Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.283Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.284Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.285Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.287Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.287Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.288Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.289Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.289Z] [ConcurrencyTest] Handler registered: updateUI { handlerId: 'ui-updater', priority: 60, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.290Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.291Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.291Z] [ConcurrencyTest] Handler registered: searchUsers { handlerId: 'user-search', priority: 80, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.292Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.292Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.293Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.294Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.295Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.296Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.310Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.312Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.312Z] [ConcurrencyTest] Handler registered: test { handlerId: 'once-0', priority: undefined, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.312Z] [ConcurrencyTest] Handler registered: test { handlerId: 'once-1', priority: undefined, totalHandlers: 2 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.313Z] [ConcurrencyTest] Handler registered: test { handlerId: 'once-2', priority: undefined, totalHandlers: 3 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.313Z] [ConcurrencyTest] One-time handler removed: test { handlerId: 'once-0', remainingHandlers: 0 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core: [2m          at Array.forEach (<anonymous>)[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.313Z] [ConcurrencyTest] One-time handler removed: test { handlerId: 'once-1', remainingHandlers: 0 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core: [2m          at Array.forEach (<anonymous>)[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.314Z] [ConcurrencyTest] One-time handler removed: test { handlerId: 'once-2', remainingHandlers: 0 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core: [2m          at Array.forEach (<anonymous>)[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.314Z] [ConcurrencyTest] Pipeline lookup for 'test' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.314Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.315Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.316Z] [ConcurrencyTest] Handler registered: test {
+@context-action/core:       handlerId: 'test_ConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.316Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.317Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.317Z] [ConcurrencyTest] Handler registered: test {
+@context-action/core:       handlerId: 'test_ConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.319Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.320Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Sequential: 0.00ms, Parallel: 0.00ms
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log ([22m[2m[0m[36m__tests__/concurrency/concurrency-docs-simple.test.ts[39m[0m[2m:456:15)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.321Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.322Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.323Z] [ConcurrencyTest] Handler registered: operation {
+@context-action/core:       handlerId: 'operation_ConcurrencyTest_1',
+@context-action/core:       priority: 50,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.323Z] [ConcurrencyTest] Handler registered: operation {
+@context-action/core:       handlerId: 'operation_ConcurrencyTest_2',
+@context-action/core:       priority: 100,
+@context-action/core:       totalHandlers: 2
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.324Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.324Z] [ConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.325Z] [ConcurrencyTest] Handler registered: test { handlerId: 'handler1', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.325Z] [ConcurrencyTest] Handler registered: test { handlerId: 'handler2', priority: 200, totalHandlers: 2 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.325Z] [ConcurrencyTest] Handler registered: test { handlerId: 'handler3', priority: 50, totalHandlers: 3 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.326Z] [ConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.509Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.511Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.513Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.514Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.514Z] [WarningTestRegister] Pipeline lookup for 'userLogout' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.515Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.516Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.516Z] [WarningTestRegister] Pipeline lookup for 'processData' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.517Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.519Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.520Z] [WarningTestRegister] Handler registered: userLogin { handlerId: 'login-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.520Z] [WarningTestRegister] Pipeline lookup for 'userLogout' {
+@context-action/core:       pipelineExists: false,
+@context-action/core:       handlersCount: 0,
+@context-action/core:       allRegisteredActions: [ 'userLogin' ]
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.521Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.524Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.524Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.525Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.526Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.526Z] [WarningTestRegister] Pipeline lookup for 'userLogout' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.527Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.528Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.529Z] [WarningTestRegister] Pipeline lookup for 'processData' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.530Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.531Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.531Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.532Z] [WarningTestRegister] Pipeline lookup for 'userLogout' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.532Z] [WarningTestRegister] Pipeline lookup for 'processData' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.532Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.533Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.534Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.534Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.534Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.537Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.538Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.539Z] [WarningTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.540Z] [WarningTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.541Z] [WarningTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.611Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.613Z] [TypeOnlyTestRegister] Pipeline lookup for 'typeOnlyAction' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.614Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.615Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.615Z] [TypeOnlyTestRegister] Pipeline lookup for 'anotherTypeOnly' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.616Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.616Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.617Z] [TypeOnlyTestRegister] Pipeline lookup for 'userLogin' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.617Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.618Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.619Z] [TypeOnlyTestRegister] Handler registered: userLogin { handlerId: 'login-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.620Z] [TypeOnlyTestRegister] Handler registered: userLogout { handlerId: 'logout-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.620Z] [TypeOnlyTestRegister] Pipeline lookup for 'processData' {
+@context-action/core:       pipelineExists: false,
+@context-action/core:       handlersCount: 0,
+@context-action/core:       allRegisteredActions: [ 'userLogin', 'userLogout' ]
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.621Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.622Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.622Z] [TypeOnlyTestRegister] Handler registered: userLogin { handlerId: 'login-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.623Z] [TypeOnlyTestRegister] Pipeline lookup for 'processData' {
+@context-action/core:       pipelineExists: false,
+@context-action/core:       handlersCount: 0,
+@context-action/core:       allRegisteredActions: [ 'userLogin' ]
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.623Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.624Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.624Z] [TypeOnlyTestRegister] Handler registered: userLogin { handlerId: 'login-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.625Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.626Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.627Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.628Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.629Z] [TypeOnlyTestRegister] Pipeline lookup for 'typeOnlyAction' { pipelineExists: false, handlersCount: 0, allRegisteredActions: [] }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.630Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.631Z] [TypeOnlyTestRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.631Z] [TypeOnlyTestRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.754Z] [ActionRegister] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: false,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.756Z] [ActionRegister] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.838Z] [AsyncConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.839Z] [AsyncConcurrencyTest] Handler registered: asyncTest {
+@context-action/core:       handlerId: 'asyncTest_AsyncConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Starting Promise.all operations...
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:48:15)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 1 starting
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:37:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 1 completed { id: 1, timestamp: 1786243862841 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:42:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 2 starting
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:37:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 2 completed { id: 2, timestamp: 1786243862842 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:42:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 3 starting
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:37:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     Promise.all operation 3 completed { id: 3, timestamp: 1786243862843 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat Object.log [as handler] ([22m[2m[0m[36m__tests__/concurrency/concurrency-async-fixed.test.ts[39m[0m[2m:42:17)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.844Z] [AsyncConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.845Z] [AsyncConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.845Z] [AsyncConcurrencyTest] Handler registered: asyncTest {
+@context-action/core:       handlerId: 'asyncTest_AsyncConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.846Z] [AsyncConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.847Z] [AsyncConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.847Z] [AsyncConcurrencyTest] Handler registered: syncTest { handlerId: 'sync-handler', priority: 100, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.847Z] [AsyncConcurrencyTest] Handler registered: asyncTest { handlerId: 'async-handler', priority: 50, totalHandlers: 1 }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.848Z] [AsyncConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.849Z] [AsyncConcurrencyTest] ActionRegister initialized {
+@context-action/core:       defaultExecutionMode: 'sequential',
+@context-action/core:       autoCleanup: true,
+@context-action/core:       concurrencyQueue: true,
+@context-action/core:       debugMode: true
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.849Z] [AsyncConcurrencyTest] Handler registered: asyncTest {
+@context-action/core:       handlerId: 'asyncTest_AsyncConcurrencyTest_1',
+@context-action/core:       priority: undefined,
+@context-action/core:       totalHandlers: 1
+@context-action/core:     }
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core:   [2mconsole.log[22m
+@context-action/core:     🎯 [2026-08-09T02:51:02.850Z] [AsyncConcurrencyTest] ActionRegister destroyed
+@context-action/core: [2m[22m
+@context-action/core: [2m      [2mat ActionRegister.log ([22m[2msrc/ActionRegister.ts[2m:504:21)[22m[2m[22m
+@context-action/core: [1mTest Suites: [22m[1m[32m34 passed[39m[22m, 34 total
+@context-action/core: [1mTests:       [22m[1m[32m766 passed[39m[22m, 766 total
+@context-action/core: [1mSnapshots:   [22m0 total
+@context-action/core: [1mTime:[22m        7.122 s
+@context-action/core: [2mRan all test suites[22m[2m.[22m
+
+
+
+ Lerna (powered by Nx)   Successfully ran target test for project @context-action/core
+
+

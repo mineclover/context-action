@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:v1-supply-chain /Users/junwoobang/workflow/context-action
+> node scripts/verify-v1-supply-chain.mjs
+
+Wrote passed supply-chain report to reports/release/v1.0.0/security-report.json
