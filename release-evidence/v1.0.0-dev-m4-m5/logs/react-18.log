@@ -1,0 +1,12 @@
+
+> context-action-monorepo@1.0.1 verify:react-compatibility /Users/junwoobang/workflow/context-action
+> node scripts/verify-react-compatibility.mjs -- --react-version 18.3.1 --react-types 18.3.12 --react-dom-types 18.3.1
+
+
+added 18 packages, and audited 19 packages in 662ms
+
+1 package is looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+React 18.3.1 compatibility passed with @types/react 18.3.12.

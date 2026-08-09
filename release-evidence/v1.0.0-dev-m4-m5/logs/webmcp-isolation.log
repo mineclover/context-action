@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:react-webmcp-isolation /Users/junwoobang/workflow/context-action
+> node scripts/verify-react-webmcp-isolation.mjs
+
+React WebMCP API is isolated behind @context-action/react/webmcp.

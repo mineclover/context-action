@@ -29,6 +29,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Release evidence manifests reference immutable command logs.
+!release-evidence/
+!release-evidence/**/
+!release-evidence/**/logs/
+!release-evidence/**/logs/*.log
+
 # Environment
 .env
 .env.local

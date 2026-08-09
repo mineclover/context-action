@@ -14,12 +14,12 @@ command results and artifact hashes belong in
 | --- | --- | --- |
 | G0 Scope/versioning | `partial` | candidate scope/manifest and inventory are recorded; approve the target map |
 | G1 Public API | `partial` | contract candidates and candidate legacy outcomes exist; public-contract approval remains |
-| G2 Core execution | `partial` | clean pre-RC evidence records the full verification suite; certify an approved RC artifact |
-| G3 Lifecycle/metrics | `partial` | a clean lifecycle report is recorded; certify the approved RC artifact |
-| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and full clean verification are recorded; external consumer certification remains |
-| G5 Tool adapters | `partial` | clean evidence covers isolation and Tool Protocol/AI SDK/WebMCP checks; external consumer certification remains |
-| G6 Consumer packages | `partial` | clean evidence covers 10 tarball contracts and local tool-consumer smoke; certify the approved RC package matrix |
-| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and clean pre-RC verification exist; approval remains |
+| G2 Core execution | `partial` | clean pre-approval evidence records the full verification suite; certify an approved RC artifact |
+| G3 Lifecycle/metrics | `partial` | a current clean lifecycle report is recorded; certify the approved RC artifact |
+| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and current clean verification are recorded; external consumer certification remains |
+| G5 Tool adapters | `partial` | current clean evidence covers isolation and Tool Protocol/AI SDK/WebMCP checks; external consumer certification remains |
+| G6 Consumer packages | `partial` | current clean evidence covers 10 tarball contracts and local tool-consumer smoke; certify the approved RC package matrix |
+| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and current clean pre-approval verification exist; approval remains |
 | G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
 | G9 Security/supply chain | `partial` | a clean local supply-chain report is recorded; registry provenance remains |
 
@@ -60,3 +60,13 @@ tree. Its `verify-all` and roadmap-alignment commands passed, and
 `pnpm release:evidence:verify -- --require-success` passed. It proves local
 reproducibility of the pre-RC candidate only; it does not approve the candidate
 manifest or authorize publication.
+
+## Current clean pre-approval evidence
+
+`release-evidence/v1.0.0-rc.0-preapproval-1/manifest.json` was generated from
+the clean RC-preparation commit `05a57d526cad64bad78526fededa9df567840fe1`.
+It records successful `pnpm release:check`, `pnpm release:inventory`, candidate
+manifest validation, and roadmap-alignment validation, and it passes
+`pnpm release:evidence:verify -- --require-success`. It supersedes the older
+precheck as current local evidence only; the candidate manifest is still
+unapproved and this bundle does not authorize publication.

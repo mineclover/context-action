@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:v1-lifecycle /Users/junwoobang/workflow/context-action
+> node scripts/verify-v1-lifecycle-contract.mjs
+
+Wrote passed lifecycle report to reports/release/v1.0.0/test-results/lifecycle-report.json

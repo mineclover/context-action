@@ -35,6 +35,15 @@ alignment check from a clean source checkout of
 release governance and external validation; it is not an approved RC or a
 publication authorization.
 
+## Current clean pre-approval verification
+
+`v1.0.0-rc.0-preapproval-1` records successful `pnpm release:check`,
+`pnpm release:inventory`, candidate-manifest validation, and roadmap-alignment
+validation from clean commit `05a57d526cad64bad78526fededa9df567840fe1`. Its
+evidence manifest passes strict `--require-success` verification. This is the
+current local pre-approval evidence, not an approved RC artifact or a
+publication authorization.
+
 ## Remaining release blockers
 
 1. Approve the G0 package/subpath scope and target version map.

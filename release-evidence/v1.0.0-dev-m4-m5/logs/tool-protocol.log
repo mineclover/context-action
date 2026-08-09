@@ -1,0 +1,30 @@
+
+> context-action-monorepo@1.0.1 test:tool-protocol /Users/junwoobang/workflow/context-action
+> lerna run test --scope=@context-action/tool-protocol
+
+lerna notice cli v9.0.7
+lerna info versioning independent
+lerna notice filter including "@context-action/tool-protocol"
+lerna info filter [ '@context-action/tool-protocol' ]
+
+> @context-action/tool-protocol:test
+
+@context-action/tool-protocol: (node:58267) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/tool-protocol: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/tool-protocol: (node:58274) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/tool-protocol: (Use `pnpm --trace-warnings ...` to show where the warning was created)
+@context-action/tool-protocol: > @context-action/tool-protocol@0.8.9 test /Users/junwoobang/workflow/context-action/packages/tool-protocol
+@context-action/tool-protocol: > NODE_OPTIONS=--max-old-space-size=8192 jest --runInBand --logHeapUsage
+@context-action/tool-protocol: (node:58299) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/tool-protocol: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/tool-protocol: [1mTest Suites: [22m[1m[32m5 passed[39m[22m, 5 total
+@context-action/tool-protocol: [1mTests:       [22m[1m[32m57 passed[39m[22m, 57 total
+@context-action/tool-protocol: [1mSnapshots:   [22m0 total
+@context-action/tool-protocol: [1mTime:[22m        0.284 s, estimated 1 s
+@context-action/tool-protocol: [2mRan all test suites[22m[2m.[22m
+
+
+
+ Lerna (powered by Nx)   Successfully ran target test for project @context-action/tool-protocol
+
+

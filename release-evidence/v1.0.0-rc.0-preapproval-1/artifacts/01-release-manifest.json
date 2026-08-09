@@ -1,0 +1,27 @@
+{
+  "$schema": "./release-manifest.schema.json",
+  "schemaVersion": "context-action-v1-release-manifest.v1",
+  "status": "candidate-unapproved",
+  "release": "context-action-v1.0.0",
+  "commit": null,
+  "packages": {
+    "@context-action/core": "1.0.0-rc.0",
+    "@context-action/react": "1.0.0-rc.0",
+    "@context-action/tool-protocol": "1.0.0-rc.0",
+    "@context-action/webmcp": "0.1.0-rc.0"
+  },
+  "stableSurfaces": [
+    "@context-action/core",
+    "@context-action/react",
+    "@context-action/tool-protocol"
+  ],
+  "experimentalSurfaces": [
+    "@context-action/webmcp",
+    "@context-action/react/webmcp"
+  ],
+  "requiredBeforeCertification": [
+    "Set the immutable RC commit for the published candidate.",
+    "Record provenance and external-consumer results for the published candidate.",
+    "Obtain the independent adversarial audit required for RC certification."
+  ]
+}

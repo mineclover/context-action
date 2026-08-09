@@ -1,0 +1,30 @@
+
+> context-action-monorepo@1.0.1 test:webmcp /Users/junwoobang/workflow/context-action
+> lerna run test --scope=@context-action/webmcp
+
+lerna notice cli v9.0.7
+lerna info versioning independent
+lerna notice filter including "@context-action/webmcp"
+lerna info filter [ '@context-action/webmcp' ]
+
+> @context-action/webmcp:test
+
+@context-action/webmcp: (node:58521) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/webmcp: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/webmcp: (node:58529) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/webmcp: (Use `pnpm --trace-warnings ...` to show where the warning was created)
+@context-action/webmcp: > @context-action/webmcp@0.1.0 test /Users/junwoobang/workflow/context-action/packages/webmcp
+@context-action/webmcp: > jest --runInBand
+@context-action/webmcp: (node:58553) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+@context-action/webmcp: (Use `node --trace-warnings ...` to show where the warning was created)
+@context-action/webmcp: [1mTest Suites: [22m[1m[32m2 passed[39m[22m, 2 total
+@context-action/webmcp: [1mTests:       [22m[1m[32m18 passed[39m[22m, 18 total
+@context-action/webmcp: [1mSnapshots:   [22m0 total
+@context-action/webmcp: [1mTime:[22m        0.133 s, estimated 1 s
+@context-action/webmcp: [2mRan all test suites[22m[2m.[22m
+
+
+
+ Lerna (powered by Nx)   Successfully ran target test for project @context-action/webmcp
+
+

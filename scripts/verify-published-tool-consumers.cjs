@@ -115,15 +115,15 @@ function publishedVersion(name, tag) {
   return output;
 }
 
-function waitForPublishedVersion(spec) {
+function waitForPublishedVersion(name, tag) {
   const attempts = 30;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      publishedVersion(spec);
+      const version = publishedVersion(name, tag);
       if (attempt > 1) {
         process.stdout.write(`npm metadata became visible after ${attempt} attempts.\n`);
       }
-      return;
+      return version;
     } catch (error) {
       if (attempt === attempts) throw error;
       process.stdout.write(`Waiting for npm metadata (${attempt}/${attempts - 1})...\n`);
@@ -251,10 +251,9 @@ function main() {
     const packageSpecs = local
       ? createLocalPackageSpecs(consumerRoot).filter(({ name }) => selectedPackages.some(pkg => pkg.name === name))
       : selectedPackages.map(({ name }) => {
-          const version = publishedVersion(name, tag);
+          const version = waitForPublishedVersion(name, tag);
           return { name, spec: `${name}@${version}` };
         });
-    if (!local) packageSpecs.forEach(({ spec }) => waitForPublishedVersion(spec));
     packageSpecs.push(...consumerRuntimeDependencies);
 
     writeFileSync(
@@ -279,7 +278,10 @@ function main() {
       ),
     );
     const npmConfigPath = path.join(consumerRoot, '.npmrc');
-    writeFileSync(npmConfigPath, 'ignore-scripts=true\naudit=false\nfund=false\n');
+    const npmAuth = process.env.NODE_AUTH_TOKEN
+      ? '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}\n'
+      : '';
+    writeFileSync(npmConfigPath, `${npmAuth}ignore-scripts=true\naudit=false\nfund=false\n`);
     execFileSync(
       'npm',
       [

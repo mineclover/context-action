@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:v1-core-migration /Users/junwoobang/workflow/context-action
+> node scripts/verify-v1-core-migration-fixture.mjs
+
+Packed @context-action/core v1 migration fixture passed.
