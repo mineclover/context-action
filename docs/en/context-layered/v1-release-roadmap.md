@@ -1,6 +1,14 @@
 # Context-Action v1.0 Release Roadmap
 
-**Status:** Draft — living release plan<br>
+---
+status: draft
+canonical: true
+roadmapRevision: v1-r2
+baselineCommit: 0d6047b99961a33ef0d09704ae39c577d3b89cd8
+translation:
+  ko: docs/ko/context-layered/v1-release-roadmap.md
+---
+
 **Release principle:** v1.0.0 is a contract freeze, not a version-number change.
 
 ## 1. Outcome and planning rule
@@ -33,18 +41,53 @@ a 1.x maintenance obligation. New features, new adapters, broad refactors, and
 unproven performance work stay outside this plan unless they are necessary to
 clear a release gate.
 
-## 2. How to operate this roadmap
+## 2. Current release baseline
 
-Use this document as the release board. Maintain one issue per independently
-verifiable concern and assign it to a milestone below. The release status is
-the state of the evidence, not the count of merged pull requests.
+- **Baseline commit:** `0d6047b99961a33ef0d09704ae39c577d3b89cd8`
+  (`fix: harden execution metrics and WebMCP scope lifecycle`)
+- **Roadmap revision:** `v1-r2`
+- **Versioning mode:** Lerna `independent`
+- **Evidence status:** source and focused tests were inspected; the full release
+  gate has not been certified as one evidence bundle.
+- **Current verdict:** `NOT READY`
+
+The statuses below describe the baseline; they are not claims that a CI run or
+an external consumer certification completed. No CI status/workflow result is
+recorded as release evidence for this baseline.
+
+| Gate | Current status | Baseline assessment |
+| --- | --- | --- |
+| G0 Scope/versioning | `partial` | Independent versioning is configured; package/subpath classification is open. |
+| G1 Public API | `partial` | Role API hardening exists; legacy retain/remove decisions are open. |
+| G2 Core execution | `implemented-unverified` | Role-conflict, atomic-once, guard semantics, and observer aggregation regressions exist. |
+| G3 Lifecycle/metrics | `implemented-unverified` | Cancellation metrics, retry cancellation, and observer/lifecycle work exist. |
+| G4 React contract | `partial` | WebMCP generics/resolver handling and hook tests exist; full matrix evidence is absent. |
+| G5 Tool adapters | `partial` | WebMCP hardening exists; stability classification and full boundary evidence are open. |
+| G6 Consumer packages | `partial` | Verification scripts exist; no release evidence bundle certifies this baseline. |
+| G7 Docs/migration | `partial` | Roadmap and API docs exist; the v1 release document set is incomplete. |
+| G8 Independent audit | `not-started` | No fresh-context audit evidence exists. |
+| G9 Security/supply chain | `partial` | A repository security audit exists; release-specific supply-chain evidence is open. |
+
+## 3. Operating model and issue states
+
+This document is the normative release plan and changes only when the release
+policy changes. The live delivery board is the v1.0 GitHub Project; until that
+project is provisioned, [`docs/releases/v1.0.0/status.md`](../../releases/v1.0.0/status.md)
+is its committed mirror. The readiness state and command evidence live in the
+release status and `release-evidence/v1.0.0-*/manifest.json`, not in this plan.
+
+Maintain one issue per independently verifiable concern and assign it to a
+milestone below. Release status is the state of the evidence, not the count of
+merged pull requests.
 
 | Work item state | Meaning | Required exit evidence |
 | --- | --- | --- |
 | `inventory` | Surface is discovered but not yet decided | owner, affected package and public surface |
 | `decision-needed` | Contract or removal decision is open | ADR or approved contract entry |
 | `in-progress` | Code or tests are changing | reproduction and intended acceptance test |
-| `verified` | Implementation is complete | focused test/type/package evidence |
+| `implemented-unverified` | Code and focused tests exist, but no release-gate evidence is linked | source/test reference and missing evidence work |
+| `contract-approved` | Public semantics are approved | ADR or public-contract entry and affected surface |
+| `verified` | Contract, implementation, type, consumer, and documentation evidence are linked | immutable evidence-manifest entry |
 | `accepted-limitation` | Not fixed by design | impact, workaround, owner, review version |
 | `blocked` | Cannot progress safely | explicit dependency and unblock condition |
 
@@ -68,9 +111,10 @@ P0 and P1 are release blockers. A P2 may remain only as an
 `accepted-limitation`; it must name the owner and review version. “Later” is
 not a disposition.
 
-## 3. Scope decision checkpoint
+## 4. Scope decision checkpoint
 
-Before any public API is frozen, classify every publishable workspace package.
+Before any public API is frozen, classify every publishable workspace package,
+exported subpath, and named public surface in a mixed-stability subpath.
 The repository currently uses Lerna independent versioning; retain that
 strategy only if this checkpoint records an explicit target version and
 dependency range for every participating package.
@@ -89,15 +133,74 @@ The classification decision must cover at least `@context-action/core`,
 every other publishable package. Do not infer stability from an existing npm
 package or from a documentation example.
 
-## 4. Release train and milestones
+### Starting candidates, not approved scope
 
-The milestone labels are intentionally sequence-based, not date-based. Start
-the next milestone only when the preceding exit criteria are met; record dates
-and owners in the issue tracker rather than guessing them in this document.
+| Surface | Candidate classification | Decision required |
+| --- | --- | --- |
+| `@context-action/core` | `stable-1x` | target `1.0.0` contract |
+| `@context-action/react` | `stable-1x` | target `1.0.0` contract |
+| `@context-action/tool-protocol` | `supporting-stable` | whether it ships in the v1 train |
+| `@context-action/react/tools` ToolContext API | `supporting-stable` | stable ToolContext surface |
+| `@context-action/webmcp` | `experimental` | 0.x support profile and limits |
+| React WebMCP hook | `experimental` | isolate behind `@context-action/react/webmcp` or equivalent |
+| `@context-action/ai-sdk` | `experimental` or `supporting-stable` | support commitment and peer matrix |
+| `@context-action/tool-durable-operations` | `decision-needed` | inclusion in stable ToolContext contract |
+| `@context-action/mutative*` | `decision-needed` | stable React dependency commitment |
+| generator and TypeDoc tooling | `internal` | whether npm publication remains necessary |
+
+The currently mixed `@context-action/react/tools` entry must not make an
+experimental WebMCP hook appear stable by association. Prefer a dedicated
+experimental subpath while preserving a stable ToolContext-only entry.
+
+## 5. Contract registry and freeze ladder
+
+M1 records already implemented decisions as contract candidates before new
+Core work begins. At the baseline, candidates include guard priority over
+general filters, cross-role ID rejection, claim-before-invocation `once`,
+abort-and-drain retry barriers, observer-after-result ordering, and separate
+current/legacy WebMCP profiles. None becomes a 1.x promise until it is approved
+and tested through the appropriate gate.
+
+| Freeze | When | Meaning |
+| --- | --- | --- |
+| F0 Scope freeze | M1 exit | stable/experimental package, subpath, runtime, and version-train scope are decided. |
+| F1 Contract candidate | M2 exit | legacy outcomes and target v1 API candidates are decided; migration fixtures exist. |
+| F2 Public API freeze | M3 and M4 exit | Core, React, and adapter hardening has validated the candidate contract. |
+| F3 Artifact freeze | M5 exit | tarballs and dependency/peer matrix are certified. |
+| F4 RC code freeze | M6 entry | only P0/P1 fixes and directly affected tests/docs may change. |
+
+M2 therefore creates a **public API candidate**, not the binding public API
+freeze. A defect found in M3 or M4 may still require a contract change.
+
+## 6. Workstreams and milestone dependency graph
+
+Milestones are dependency gates, not a waterfall queue. Record dates and
+owners on the live delivery board; begin independent work as soon as its inputs
+are available.
+
+```text
+M0 Baseline → M1 Contract decisions → M2 Legacy closure candidate
+                                      ├→ M3 Core and lifecycle ─┐
+                                      └→ M4 React and adapters ─┼→ M5 Distribution certification
+                                                                → M6 RC → M7 Audit → M8 Publish
+```
+
+The following tracks run continuously, rather than starting at M5 or M6:
+
+- API-surface diff from M1 and after every public export/declaration change;
+- packed-consumer smoke and dependency checks from M0 and after each relevant
+  package/build/dependency change;
+- documentation and migration fixtures from M1 and after each public change;
+- security and supply-chain checks across the release train.
 
 ### M0 — Baseline and release inventory
 
 **Goal:** establish a factual starting point before changing behavior.
+
+**Baseline status:** `partial`. The current SHA and independent versioning are
+known, but published-version inventory, package/subpath classification, legacy
+inventory, formal risk register, localization governance, and stored baseline
+command results remain open.
 
 - Record HEAD SHA, Node, pnpm, TypeScript, React, package versions, and latest
   published versions.
@@ -120,6 +223,9 @@ surface is removed before its migration or retention decision is recorded.
 
 **Goal:** decide the target contract before implementing or deleting it.
 
+**Baseline status:** `partial`. Several decisions are implemented and tested,
+but are not yet public-contract or ADR approvals.
+
 - Decide stable/experimental package classification, supported runtime matrix,
   ESM/CJS/SSR/browser support, package version topology, and 1.x deprecation
   policy.
@@ -136,12 +242,18 @@ surface is removed before its migration or retention decision is recorded.
   example before removal.
 
 **Exit:** no implementation is relying on an unresolved public semantic or an
-implicit compatibility promise.
+implicit compatibility promise; F0 scope freeze is recorded.
 
-### M2 — Legacy closure (0.9.x breaking-cleanup window)
+### M2 — Legacy closure and contract candidate
 
-**Goal:** remove obsolete public and internal paths while breaking changes are
-still allowed.
+**Goal:** decide and execute obsolete-path removal while producing the v1 public
+API candidate.
+
+**Baseline status:** `not-complete`. At minimum, decide the outcome of
+`registerEffect`, `blocking`, generic legacy `register`, WebMCP
+`beforeExecute`, the WebMCP `errorMode: "result"` alias, compatibility docs and
+examples, the legacy internal void executor, and ambiguous compatibility
+subpaths.
 
 Work through the M0 inventory by category:
 
@@ -162,12 +274,19 @@ undocumented re-exports.
 
 **Exit:** the active source, test, example, docs, generated-doc, and release
 graphs contain no unclassified legacy path. The remaining deprecated APIs are
-an explicit 1.x support list, not a backlog.
+an explicit 1.x support list, not a backlog. F1 contract candidate and actual
+migration fixtures are recorded; this is not yet the public API freeze.
 
 ### M3 — Core and lifecycle hardening
 
 **Goal:** make the frozen Core behavior deterministic and safe under failure
 and concurrency.
+
+**Baseline status:** `implemented-unverified`. Regression coverage already
+exists for role conflict, guard filtering/fail-closed behavior, atomic-once
+guard/result handling, void-dispatch observer aggregation, cancellation
+metrics, and retry/race semantics. Complete stress coverage and release-gate
+evidence remain required.
 
 - Add direct regression and negative type tests for role replacement, guard
   filtering, guard fail-closed behavior, parity between dispatch APIs, handler
@@ -182,12 +301,19 @@ and concurrency.
   cleanup and consistent telemetry definitions.
 
 **Exit:** all P0/P1 Core and lifecycle findings have focused regression tests;
-`ExecutionResult` fields cannot contradict each other.
+`ExecutionResult` fields cannot contradict each other. Together with M4, this
+is the prerequisite for F2 public API freeze.
 
 ### M4 — React and adapter hardening
 
 **Goal:** prove that integrations delegate the frozen Core contract rather than
 reimplementing it.
+
+**Baseline status:** `partial`. WebMCP profile generic propagation, caller
+execution-resolver preservation, registration cancellation, post-execution
+snapshots, and React hook coverage exist. React 18/19 release evidence, SSR
+consumer evidence, Tool Protocol ordering, AI SDK coverage, and subpath
+isolation remain open.
 
 - Verify Core config and result-map types reach React hooks without unsafe
   generic escape hatches.
@@ -207,7 +333,8 @@ isolated as experimental and absent from stable default imports.
 
 ### M5 — Consumer and distribution certification
 
-**Goal:** prove the release outside workspace resolution.
+**Goal:** finalize certification that has been continuously exercised since M0,
+outside workspace resolution.
 
 For every stable-1x and supporting-stable package, run:
 
@@ -233,8 +360,10 @@ dependency combinations; package metadata matches the scope decision.
 
 - Produce canonical v1 release documents: scope, public contract, SemVer and
   deprecation policy, 0.x-to-1.x migration, known limitations, issue ledger,
-  and readiness report. Place them under `docs/releases/v1.0.0/` or the
-  repository's approved equivalent, with English/Korean ownership decided.
+  readiness report, release status, and an independent-version release
+  manifest. Place them under `docs/releases/v1.0.0/` or the repository's
+  approved equivalent. English is canonical; Korean remains a governed
+  translation from M0 onward.
 - Regenerate API documentation; compile key TS/TSX snippets from packed
   packages; remove stale API examples and compatibility wording.
 - Run the complete release command set and record exact command, environment,
@@ -243,7 +372,7 @@ dependency combinations; package metadata matches the scope decision.
   affected documentation may merge. Re-run M5 after each RC code change.
 
 **Exit:** documentation and generated API output have no uncommitted drift;
-the RC contains a complete evidence bundle.
+the RC contains a complete evidence bundle and has entered F4 code freeze.
 
 ### M7 — Independent audit and v1.0.0 decision
 
@@ -265,33 +394,126 @@ projects, migration guide, and evidence. The audit must replay at least:
 **Exit:** all gates pass, there are no open P0/P1 issues, and the readiness
 report gives exactly one verdict: `READY` or `NOT READY`.
 
-## 5. Gate ownership matrix
+### M8 — Publish and post-release verification
 
-| Gate | Accountable milestone | Minimum evidence |
+**Goal:** publish only the certified artifact, then verify the public registry
+and provide an accountable recovery window.
+
+1. confirm final artifact checksums match the certified RC artifact;
+2. publish to `next`/`rc`, then run a clean external-consumer smoke test;
+3. promote to `latest` only after approval, publish the Git tag and release
+   manifest, and deploy the documentation site;
+4. record npm package name/version, dist-tag, provenance result, tarball
+   checksum, release commit, and post-publish ESM/CJS/type smoke result; and
+5. verify rollback/deprecate procedure and triage release issues for 24–72
+   hours.
+
+**Exit:** the public artifact and registry metadata match the approved manifest;
+post-release ownership and rollback path are documented.
+
+## 7. Gate and evidence matrix
+
+Each evidence-manifest entry records command, environment, start/end time, exit
+code, log, and content hash. A relevant change re-opens the named gate even when
+the prior command passed.
+
+| Gate | Command or verification | Required artifact | Re-open condition |
+| --- | --- | --- | --- |
+| G0 Scope/versioning | version and dependency inventory | `release-manifest.json`, scope matrix | package, subpath, version, peer, or runtime-scope change |
+| G1 Public API | API snapshot/declaration diff | `api-surface/*.json`, removal ledger | public export or declaration change |
+| G2 Core execution | Core focused suites and negative type tests | `test-results/core-contract.*` | Core source or type change |
+| G3 Lifecycle/metrics | lifecycle stress and invariant suites | `test-results/lifecycle-report.json` | queue, retry, abort, observer, or lifecycle change |
+| G4 React contract | `pnpm verify:react-compatibility` and SSR consumer test | `test-results/react-18.json`, `react-19.json` | React source, peer, or hook type change |
+| G5 Tool adapters | adapter runtime/profile suites | `test-results/adapters/*.json` | adapter or Tool Protocol change |
+| G6 Package consumers | `pnpm verify:package-tarballs`, export checks, consumer matrix | `consumer-results/matrix.json`, tarball hashes | package, dependency, export, or build change |
+| G7 Docs/migration | docs API generation, sync, build, and packed snippets | generated-doc clean diff, migration fixture output | public API or documentation change |
+| G8 Independent audit | fresh-context adversarial replay | `audit-report.md` | any RC code change |
+| G9 Security/supply chain | `pnpm security:audit`, workflow/dependency/provenance review | `security-report.json`, integrity hashes | dependency, workflow, publish, or tool-policy change |
+
+### G9 — Security and supply chain
+
+G9 is a release blocker for stable surfaces. It covers vulnerability and license
+review, package integrity/hash verification, npm provenance, immutable GitHub
+Actions pinning, secret scanning, `SECURITY.md` and supported-version policy,
+tool authorization/approval threat modeling, and WebMCP origin/Permissions
+Policy review. The gate fails if a stable package has an unresolved high or
+critical dependency finding, a destructive tool example bypasses policy or
+approval, or the release workflow lacks an accountable provenance path.
+
+## 8. Release train and manifest
+
+Use the train below rather than repeatedly making breaking removals in a 0.9
+patch line:
+
+```text
+0.9.x            replacement API, deprecation notice, migration guide, warning
+0.10.0/beta.1    legacy removal and final contract candidate
+1.0.0-rc.1       F2 API freeze, artifact certification, external consumers
+1.0.0            artifact-equivalent final publish
+```
+
+Independent versions require a release manifest to say what “Context-Action
+v1.0.0” means. The target artifact is `docs/releases/v1.0.0/release-manifest.json`:
+
+```json
+{
+  "release": "context-action-v1.0.0",
+  "commit": "<release-sha>",
+  "packages": {
+    "@context-action/core": "1.0.0",
+    "@context-action/react": "1.0.0",
+    "@context-action/tool-protocol": "1.0.0",
+    "@context-action/webmcp": "0.x"
+  },
+  "stableSurfaces": [
+    "@context-action/core",
+    "@context-action/react",
+    "@context-action/tool-protocol"
+  ]
+}
+```
+
+The example is a schema, not an approved version map. The manifest is consumed
+by the readiness report, release notes, publish automation, post-publish smoke,
+and Git tag annotation.
+
+## 9. Evidence and bilingual-document governance
+
+The release documents have distinct responsibilities:
+
+```text
+v1-release-roadmap.md                 normative rules, milestones, gates, ready definition
+docs/releases/v1.0.0/status.md        current gate status, blockers, and next work
+release-evidence/v1.0.0-*/manifest.json  reproducible commands, artifacts, and hashes
+```
+
+`manifest.json` must include the release commit, Node/pnpm/TypeScript
+environment, command timing/exit code/log path, and artifact path/SHA-256.
+Do not record a passing command without its immutable artifact or log.
+
+The English roadmap is canonical. Its Korean counterpart is a governed
+translation. CI/documentation checks must keep the roadmap revision, baseline
+commit, milestone IDs, gate IDs, issue-template fields, and Definition of Ready
+item count aligned; they do not need to compare prose translations.
+
+## 10. Initial delivery issues
+
+| Issue ID | Work | Milestone |
 | --- | --- | --- |
-| G0 Scope and versioning | M0–M1 | package classification, versions, runtime matrix, dependency ranges |
-| G1 Public API freeze | M1–M2 | export diff, removal ledger, type/runtime parity tests |
-| G2 Core execution | M3 | phase, ordering, retry/race, once, result-map tests |
-| G3 Lifecycle and metrics | M3 | abort/timeout/destroy/telemetry invariant tests |
-| G4 React contract | M4 | React 18/19, SSR, Strict Mode, unmount evidence |
-| G5 Tool adapters | M4 | canonical boundary and adapter runtime/profile tests |
-| G6 Package consumers | M5 | packed ESM/CJS/type/runtime/minimum-version consumers |
-| G7 Docs and migration | M6 | generated docs, snippet compilation, migration review |
-| G8 Independent audit | M7 | adversarial replay and signed readiness report |
+| `CA-1X-SCOPE-001` | package and subpath stability classification | M1 |
+| `CA-1X-VERSION-001` | independent release manifest and target version map | M1 |
+| `CA-1X-FREEZE-001` | freeze ladder adoption | M1 |
+| `CA-1X-LEGACY-001` | `registerEffect` remove/retain/isolate decision | M2 |
+| `CA-1X-LEGACY-002` | `blocking` compatibility decision | M2 |
+| `CA-1X-WEBMCP-001` | experimental React WebMCP subpath isolation | M2/M4 |
+| `CA-1X-LIFECYCLE-001` | WebMCP dispose cancel/drain contract | M4 |
+| `CA-1X-EVIDENCE-001` | release evidence manifest schema and writer | M0/M5 |
+| `CA-1X-SECURITY-001` | G9 security and supply-chain evidence | M0–M5 |
+| `CA-1X-MIGRATION-001` | actual 0.9 consumer migration fixture | M2/M6 |
+| `CA-1X-LOCALIZE-001` | English-canonical/Korean-sync validation | M0 |
+| `CA-1X-RELEASE-001` | dist-tag, provenance, rollback, post-publish procedure | M7/M8 |
 
-## 6. Release cadence after this roadmap starts
-
-- Use 0.9.x releases to expose removal notices and migration guides while
-  compatibility-breaking cleanup is still permitted.
-- Treat M2 completion as the public API freeze. From then until v1.0.0, reject
-  unrelated additions and breaking changes.
-- Use prereleases/RCs only to validate the frozen artifact; every code change
-  restarts affected M3–M6 evidence.
-- After v1.0.0, preserve stable-1x contracts. Deprecate first, provide a
-  supported migration window, and schedule removal only for the next major
-  line.
-
-## 7. Definition of ready
+## 11. Definition of ready
 
 v1.0.0 may be published only if all of the following are true:
 
@@ -303,6 +525,7 @@ v1.0.0 may be published only if all of the following are true:
   same contract;
 - the consumer tarball, not workspace source, succeeds on the supported
   matrix; and
+- G9 security/supply-chain evidence has no unresolved release blocker; and
 - an independent audit accepts the recorded evidence.
 
 If any condition is false, the correct release verdict is `NOT READY`; the
