@@ -3,6 +3,14 @@ name: Publish Prerelease
 on:
   workflow_dispatch:
     inputs:
+      publish_auth:
+        description: 'npm authentication mode for this prerelease'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
       dist_tag:
         description: 'Prerelease npm dist-tag'
         required: true
@@ -52,6 +60,12 @@ jobs:
           version: 10.30.3
           run_install: false
 
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -77,6 +91,8 @@ jobs:
         run: pnpm release:check
 
       - name: Publish the approved prerelease package set
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           pnpm publish:packages -- --summary-file reports/npm-prerelease-summary.json --dist-tag "${{ inputs.dist_tag }}" \
             --scope @context-action/core \
@@ -85,6 +101,8 @@ jobs:
             --scope @context-action/react
 
       - name: Verify published prerelease consumer
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           pnpm verify:published-tool-consumers -- --tag "${{ inputs.dist_tag }}" --packages "$PRERELEASE_PACKAGES"
 
