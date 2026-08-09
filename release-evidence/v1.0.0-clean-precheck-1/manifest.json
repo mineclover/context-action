@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-clean-precheck-1",
+  "commit": "13086d07a6d70a06d27c3af0ec9f18767b00f1ad",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T03:11:11.158Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "verify-all",
+      "command": "pnpm verify:all",
+      "startedAt": "2026-08-09T03:08:48.942Z",
+      "completedAt": "2026-08-09T03:11:10.902Z",
+      "durationMs": 141955,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/verify-all.log",
+        "sha256": "a0715ee6a918415aba72e1b0acdd4d753e27c1868b2dc73bd1be310ff8e419c8"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T03:11:10.905Z",
+      "completedAt": "2026-08-09T03:11:11.146Z",
+      "durationMs": 241,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "a6397257031ab3026f8acee7dc889c475ed02913f65f01dc4702c589cf422b6a"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "579a16a8ca2061c8399c090c1e87381f5e4e17fd3afc92fba0e8976d21e259c6",
+      "bytes": 942
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/test-results/lifecycle-report.json",
+      "path": "artifacts/02-lifecycle-report.json",
+      "sha256": "db7136da9104346dcaf606c53b24c4ad29bbb1bd3c88029d128491a671a82dac",
+      "bytes": 1616
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/security-report.json",
+      "path": "artifacts/03-security-report.json",
+      "sha256": "d0eae3aeb98b9a2990c4226bb3e8bd47e45e4fb3e96dba07df6fb94015cede4c",
+      "bytes": 3314
+    }
+  ],
+  "notes": [
+    "Clean pre-RC evidence for commit 13086d07a6d70a06d27c3af0ec9f18767b00f1ad. The release manifest remains candidate-unapproved; this does not authorize publishing."
+  ]
+}
