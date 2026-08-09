@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 release:inventory /Users/junwoobang/workflow/context-action
+> node scripts/generate-release-inventory.mjs
+
+Wrote inventory for 10 publishable packages to reports/release/v1.0.0/package-inventory.json

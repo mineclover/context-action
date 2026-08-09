@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-rc.0-preapproval-1",
+  "commit": "05a57d526cad64bad78526fededa9df567840fe1",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T03:47:17.751Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "release-check",
+      "command": "pnpm release:check",
+      "startedAt": "2026-08-09T03:43:57.429Z",
+      "completedAt": "2026-08-09T03:47:05.942Z",
+      "durationMs": 188505,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-check.log",
+        "sha256": "56e8e4eb8bf0dc02bd306e1917f94507bea4c212e9f886742507bca93af29512"
+      }
+    },
+    {
+      "id": "inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T03:47:05.947Z",
+      "completedAt": "2026-08-09T03:47:17.177Z",
+      "durationMs": 11230,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/inventory.log",
+        "sha256": "83e43a96e88509e6c1c9d13d13d3e29f56790a410c9cb758ad6c4c40dcb1917a"
+      }
+    },
+    {
+      "id": "manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T03:47:17.178Z",
+      "completedAt": "2026-08-09T03:47:17.481Z",
+      "durationMs": 303,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/manifest.log",
+        "sha256": "c5d2c42c377d9e7ba5a0e25bcbf914f3465afe92ac98d572b54b6dccb2d7462b"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T03:47:17.482Z",
+      "completedAt": "2026-08-09T03:47:17.732Z",
+      "durationMs": 250,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "a6397257031ab3026f8acee7dc889c475ed02913f65f01dc4702c589cf422b6a"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "46546df8bbff845a104b0e49ae9fb283d4dec53771c6da207fd83722dbe112ea",
+      "bytes": 886
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/package-inventory.json",
+      "path": "artifacts/02-package-inventory.json",
+      "sha256": "b1576aa0f57dd5532ec02e351564fc93050ea63d79926423578b9fd348d47ab2",
+      "bytes": 18393
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/test-results/lifecycle-report.json",
+      "path": "artifacts/03-lifecycle-report.json",
+      "sha256": "c8087710d9483d9473f6a36ca83d917091c9675b5c3e970bbd1a7f6389ea8213",
+      "bytes": 1617
+    },
+    {
+      "sourcePath": "reports/release/v1.0.0/security-report.json",
+      "path": "artifacts/04-security-report.json",
+      "sha256": "c24fd61a7231271e0257598e03920a8b40d44dc39a282de270bd36696402f0aa",
+      "bytes": 3351
+    }
+  ],
+  "notes": [
+    "Clean pre-approval verification for the latest RC-preparation HEAD; the manifest remains candidate-unapproved and this does not authorize publication."
+  ]
+}
