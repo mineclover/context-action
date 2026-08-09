@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-dev-m4-m5",
+  "commit": "ea5e3662355b971f0703915f8fad7bbc8472cdc5",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T02:46:14.243Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "react-18",
+      "command": "pnpm verify:react-compatibility -- --react-version 18.3.1 --react-types 18.3.12 --react-dom-types 18.3.1",
+      "startedAt": "2026-08-09T02:45:42.227Z",
+      "completedAt": "2026-08-09T02:45:49.224Z",
+      "durationMs": 6996,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/react-18.log",
+        "sha256": "8c39ba46d274a418e915318608110670c4e790c622d28aa4cb6991418c109093"
+      }
+    },
+    {
+      "id": "react-19",
+      "command": "pnpm verify:react-compatibility -- --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3",
+      "startedAt": "2026-08-09T02:45:49.225Z",
+      "completedAt": "2026-08-09T02:45:56.099Z",
+      "durationMs": 6874,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/react-19.log",
+        "sha256": "c6ac4fa9e741d1a8557316a68157fb5bfc04d06b736a20d31e0abe8ca224f894"
+      }
+    },
+    {
+      "id": "package-tarballs",
+      "command": "pnpm verify:package-tarballs",
+      "startedAt": "2026-08-09T02:45:56.100Z",
+      "completedAt": "2026-08-09T02:45:58.361Z",
+      "durationMs": 2261,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/package-tarballs.log",
+        "sha256": "8b4f258dcc4a857a9325d9a3ba439bcabd1e4c8679c2c7750343ff980f8ca513"
+      }
+    },
+    {
+      "id": "local-tool-consumers",
+      "command": "pnpm verify:local-tool-consumers",
+      "startedAt": "2026-08-09T02:45:58.362Z",
+      "completedAt": "2026-08-09T02:46:02.087Z",
+      "durationMs": 3725,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/local-tool-consumers.log",
+        "sha256": "05abc66925c38d9c397fa3bcdf5d8f9feeaf2b8355f5642129dbb7f7d5e79446"
+      }
+    },
+    {
+      "id": "tool-protocol",
+      "command": "pnpm test:tool-protocol",
+      "startedAt": "2026-08-09T02:46:02.087Z",
+      "completedAt": "2026-08-09T02:46:04.726Z",
+      "durationMs": 2639,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/tool-protocol.log",
+        "sha256": "f4f8917cfd4893ac4c5cf25cab552f6b9ee5a701b773192df4e6ee76baa8bb41"
+      }
+    },
+    {
+      "id": "ai-sdk",
+      "command": "pnpm test:ai-sdk-integration",
+      "startedAt": "2026-08-09T02:46:04.727Z",
+      "completedAt": "2026-08-09T02:46:07.543Z",
+      "durationMs": 2816,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/ai-sdk.log",
+        "sha256": "17333b7c2f46a6945374bcad05c5f2a4187f1a12e33056ae03ec9201f6726880"
+      }
+    },
+    {
+      "id": "webmcp",
+      "command": "pnpm test:webmcp",
+      "startedAt": "2026-08-09T02:46:07.544Z",
+      "completedAt": "2026-08-09T02:46:09.092Z",
+      "durationMs": 1548,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/webmcp.log",
+        "sha256": "7d621613a272de7c07e4655101dd5c2c3c886f25e899996a26cd12c19340d58a"
+      }
+    },
+    {
+      "id": "security",
+      "command": "pnpm security:audit",
+      "startedAt": "2026-08-09T02:46:09.092Z",
+      "completedAt": "2026-08-09T02:46:12.792Z",
+      "durationMs": 3700,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/security.log",
+        "sha256": "0ab209a625297ebc1e5a4ddb93c76994bac6818fa067142dc45c26629877c757"
+      }
+    },
+    {
+      "id": "webmcp-isolation",
+      "command": "pnpm verify:react-webmcp-isolation",
+      "startedAt": "2026-08-09T02:46:12.792Z",
+      "completedAt": "2026-08-09T02:46:13.010Z",
+      "durationMs": 218,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/webmcp-isolation.log",
+        "sha256": "858ccb7e2c89c71dfa320c032fbbdb878e9ad8905c3fea407013fb2c5b47c9e2"
+      }
+    },
+    {
+      "id": "migration-fixture",
+      "command": "pnpm verify:v1-core-migration",
+      "startedAt": "2026-08-09T02:46:13.010Z",
+      "completedAt": "2026-08-09T02:46:14.232Z",
+      "durationMs": 1222,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/migration-fixture.log",
+        "sha256": "bf35548176cff8862daf0ff4210b8a541ea8306b1607ae588576b60dfc072f90"
+      }
+    }
+  ],
+  "artifacts": [],
+  "notes": [
+    "Development evidence captured from a dirty working tree; it is not release certification."
+  ]
+}

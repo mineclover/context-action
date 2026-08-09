@@ -1,0 +1,28 @@
+{
+  "$schema": "./release-manifest.schema.json",
+  "schemaVersion": "context-action-v1-release-manifest.v1",
+  "status": "candidate-unapproved",
+  "release": "context-action-v1.0.0",
+  "commit": null,
+  "packages": {
+    "@context-action/core": "1.0.0",
+    "@context-action/react": "1.0.0",
+    "@context-action/tool-protocol": "1.0.0",
+    "@context-action/webmcp": "0.x-experimental"
+  },
+  "stableSurfaces": [
+    "@context-action/core",
+    "@context-action/react",
+    "@context-action/tool-protocol"
+  ],
+  "experimentalSurfaces": [
+    "@context-action/webmcp",
+    "@context-action/react/webmcp"
+  ],
+  "requiredBeforeCertification": [
+    "Approve the package/subpath scope and target version map.",
+    "Set the immutable RC commit and exact package versions.",
+    "Update internal dependency ranges as part of the approved RC versioning change.",
+    "Record a clean, strict evidence bundle and external-consumer results."
+  ]
+}

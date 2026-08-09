@@ -2,7 +2,7 @@
 
 ***
 
-[context-action-monorepo](../../../../../README.md) / [packages/react/src/tools](../README.md) / WebMCPToolScopeState
+[context-action-monorepo](../../../../../README.md) / [packages/react/src/webmcp](../README.md) / WebMCPToolScopeState
 
 # Interface: WebMCPToolScopeState
 

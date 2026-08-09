@@ -10,6 +10,7 @@
 - [packages/core/src](packages/core/src/README.md)
 - [packages/react/src](packages/react/src/README.md)
 - [packages/react/src/tools](packages/react/src/tools/README.md)
+- [packages/react/src/webmcp](packages/react/src/webmcp/README.md)
 - [packages/tool-durable-operations/src](packages/tool-durable-operations/src/README.md)
 - [packages/tool-protocol/src](packages/tool-protocol/src/README.md)
 - [packages/webmcp/src](packages/webmcp/src/README.md)

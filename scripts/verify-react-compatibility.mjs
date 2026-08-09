@@ -5,9 +5,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const optionArgs = process.argv.slice(2).filter(argument => argument !== '--');
 const args = new Map();
-for (let index = 2; index < process.argv.length; index += 2) {
-  args.set(process.argv[index], process.argv[index + 1]);
+for (let index = 0; index < optionArgs.length; index += 2) {
+  args.set(optionArgs[index], optionArgs[index + 1]);
 }
 
 const reactVersion = args.get('--react-version');
@@ -17,19 +18,32 @@ if (!reactVersion || !reactTypesVersion || !reactDomTypesVersion) {
   throw new Error('Expected --react-version, --react-types, and --react-dom-types.');
 }
 
+function isolatedNpmEnvironment() {
+  return Object.fromEntries(Object.entries(process.env).filter(
+    ([key]) => !/^(npm_config|pnpm_config)_/iu.test(key),
+  ));
+}
+
 const consumer = mkdtempSync(join(tmpdir(), 'context-action-react-compat-'));
 try {
-  const coreTarball = execFileSync(
-    'npm',
-    ['pack', resolve(root, 'packages/core'), '--pack-destination', consumer, '--silent'],
-    { cwd: root, encoding: 'utf8' },
-  ).trim().split('\n').at(-1);
-  const reactTarball = execFileSync(
-    'npm',
-    ['pack', resolve(root, 'packages/react'), '--pack-destination', consumer, '--silent'],
-    { cwd: root, encoding: 'utf8' },
-  ).trim().split('\n').at(-1);
-  if (!coreTarball || !reactTarball) throw new Error('Failed to create package tarballs.');
+  const candidatePackages = [
+    'core',
+    'mutative-core',
+    'mutative',
+    'tool-protocol',
+    'tool-durable-operations',
+    'webmcp',
+    'react',
+  ];
+  const candidateTarballs = candidatePackages.map((packageDirectory) => {
+    const tarball = execFileSync(
+      'npm',
+      ['pack', resolve(root, 'packages', packageDirectory), '--pack-destination', consumer, '--silent'],
+      { cwd: root, encoding: 'utf8' },
+    ).trim().split('\n').at(-1);
+    if (!tarball) throw new Error(`Failed to create ${packageDirectory} tarball.`);
+    return join(consumer, tarball);
+  });
 
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({
     name: 'context-action-react-compat-consumer',
@@ -45,10 +59,9 @@ try {
       `@types/react@${reactTypesVersion}`,
       `@types/react-dom@${reactDomTypesVersion}`,
       'typescript@6.0.3',
-      join(consumer, coreTarball),
-      join(consumer, reactTarball),
+      ...candidateTarballs,
     ],
-    { cwd: consumer, stdio: 'inherit' },
+    { cwd: consumer, env: isolatedNpmEnvironment(), stdio: 'inherit' },
   );
 
   writeFileSync(join(consumer, 'consumer.tsx'), `

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "baseline",
+  "commit": "0d6047b99961a33ef0d09704ae39c577d3b89cd8",
+  "roadmapRevision": "v1-r2",
+  "status": "not-certified",
+  "generatedAt": "2026-08-09T00:00:00.000Z",
+  "workingTree": "unknown",
+  "environment": {
+    "node": null,
+    "pnpm": null,
+    "typescript": null
+  },
+  "commands": [],
+  "artifacts": [],
+  "notes": [
+    "Baseline manifest only; it does not certify a release gate.",
+    "Populate command timing, exit codes, log paths, artifact paths, and SHA-256 values for an RC."
+  ]
+}

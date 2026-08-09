@@ -18,14 +18,15 @@ const scope = await createWebMCPToolScope(registry, {
 scope.dispose();
 ```
 
-For React, import `useWebMCPToolScope` from `@context-action/react/tools` and
+For React, import `useWebMCPToolScope` from the experimental
+`@context-action/react/webmcp` subpath and
 pass a memoized options object; the hook unregisters the scope on unmount.
 
 Each scope creates unique correlation IDs for canonical calls. WebMCP does not
 provide a stable native retry identity, so idempotency is disabled by default;
 pass `getIdempotencyKey` only with a domain-owned retry key. Use `interaction`
 for canonical policy-gated approval: it runs only after argument validation and
-a policy `ask` decision. `beforeExecute` is a deprecated post-execution
+a policy `ask` decision. `afterExecute` is a detached post-execution
 notification, not an authorization boundary. Select `currentWebMCPProfile` by
 default or import `@context-action/webmcp/profiles/chrome-legacy` for Chrome's
 older registration shape. `errorMode` defaults to `structured`; use `throw`

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-dev-m3",
+  "commit": "ea5e3662355b971f0703915f8fad7bbc8472cdc5",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T02:51:03.091Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "lifecycle",
+      "command": "pnpm verify:v1-lifecycle",
+      "startedAt": "2026-08-09T02:50:53.358Z",
+      "completedAt": "2026-08-09T02:50:54.391Z",
+      "durationMs": 1032,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/lifecycle.log",
+        "sha256": "aa1370faa747bc0db13b951056691fd69b6cd2847b6e7eef52212d52c4603737"
+      }
+    },
+    {
+      "id": "core-tests",
+      "command": "pnpm test:core",
+      "startedAt": "2026-08-09T02:50:54.392Z",
+      "completedAt": "2026-08-09T02:51:03.080Z",
+      "durationMs": 8688,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/core-tests.log",
+        "sha256": "80f3b262c1ff15644a81778d1112905c1eb89699cdcc38c7a1a206d9b51590b1"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "reports/release/v1.0.0/test-results/lifecycle-report.json",
+      "path": "artifacts/01-lifecycle-report.json",
+      "sha256": "8a2fb053f6909be9e497067c183a32bc8497d89fd29f3097eedc64708d6f7162",
+      "bytes": 1616
+    }
+  ],
+  "notes": [
+    "Development evidence captured from a dirty working tree; it is not release certification."
+  ]
+}

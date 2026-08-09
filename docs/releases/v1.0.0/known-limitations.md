@@ -1,0 +1,20 @@
+# v1.0.0 Candidate Known Limitations
+
+**Status:** `candidate — not release-certified`  
+**Roadmap revision:** `v1-r2`
+
+- `@context-action/react/webmcp` and `@context-action/webmcp` are experimental
+  browser integrations. They are not part of the stable 1.x promise.
+- WebMCP returns an inert unsupported scope outside a supported browser
+  environment. Applications must not treat it as a server-side tool runtime.
+- `afterExecute` notifications are deliberately detached from the canonical
+  tool result. They are not a transaction hook and cannot veto or rewrite a
+  completed execution.
+- The development evidence bundles were generated from a dirty working tree.
+  They demonstrate reproducibility but cannot certify an RC or final artifact.
+- External-consumer verification, npm provenance, and the independent audit
+  have not yet been performed. The release verdict therefore remains
+  `NOT READY`.
+
+Report any newly discovered P0/P1 issue in the issue ledger and reopen the
+affected gate before approving an RC.

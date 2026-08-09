@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-dev-g9",
+  "commit": "ea5e3662355b971f0703915f8fad7bbc8472cdc5",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T02:56:27.852Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "supply-chain",
+      "command": "pnpm verify:v1-supply-chain",
+      "startedAt": "2026-08-09T02:56:23.921Z",
+      "completedAt": "2026-08-09T02:56:24.170Z",
+      "durationMs": 248,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/supply-chain.log",
+        "sha256": "39ea1ecb69146fe0989a7b812458d0547039872cb1c3aba50fb0fefb6bd68b94"
+      }
+    },
+    {
+      "id": "osv",
+      "command": "pnpm security:audit",
+      "startedAt": "2026-08-09T02:56:24.171Z",
+      "completedAt": "2026-08-09T02:56:27.842Z",
+      "durationMs": 3671,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/osv.log",
+        "sha256": "0ab209a625297ebc1e5a4ddb93c76994bac6818fa067142dc45c26629877c757"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "reports/release/v1.0.0/security-report.json",
+      "path": "artifacts/01-security-report.json",
+      "sha256": "687c46bb10ded33e9dd5ece15bbddd15a13e2919d4605a517bb74c87ab7b83ed",
+      "bytes": 3314
+    },
+    {
+      "sourcePath": "SECURITY.md",
+      "path": "artifacts/02-SECURITY.md",
+      "sha256": "b0f6c6a78e5f91e3effee8ec5ed257851149f6e31d8d1544e7749b67119dd2f0",
+      "bytes": 1100
+    }
+  ],
+  "notes": [
+    "Development evidence captured from a dirty working tree; registry provenance attestation remains required for release certification."
+  ]
+}

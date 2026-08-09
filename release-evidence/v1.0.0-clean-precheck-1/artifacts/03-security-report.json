@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "context-action-v1-security-report.v1",
+  "release": "context-action-v1.0.0",
+  "generatedAt": "2026-08-09T03:09:17.379Z",
+  "status": "passed",
+  "scope": {
+    "publicPackages": [
+      "@context-action/ai-sdk",
+      "@context-action/core",
+      "@context-action/llms-generator",
+      "@context-action/mutative",
+      "@context-action/mutative-core",
+      "@context-action/react",
+      "@context-action/tool-durable-operations",
+      "@context-action/tool-protocol",
+      "@context-action/typedoc-vitepress-sync",
+      "@context-action/webmcp"
+    ],
+    "workflows": [
+      "ci.yml",
+      "deploy-all.yml",
+      "publish-mutative.yml",
+      "publish-packages.yml"
+    ],
+    "limits": [
+      "This local verifier checks release configuration, not a registry provenance attestation.",
+      "Run pnpm security:audit and verify the post-publish npm provenance record for certification."
+    ]
+  },
+  "checks": [
+    {
+      "name": "security policy",
+      "passed": true,
+      "detail": "SECURITY.md must define supported versions and private reporting"
+    },
+    {
+      "name": "lockfile",
+      "passed": true,
+      "detail": "pnpm-lock.yaml must be present"
+    },
+    {
+      "name": "pinned GitHub Actions",
+      "passed": true,
+      "detail": "40 external action references use full commit SHAs"
+    },
+    {
+      "name": "npm provenance permission",
+      "passed": true,
+      "detail": "publish-packages.yml must grant id-token: write for npm provenance"
+    },
+    {
+      "name": "license @context-action/ai-sdk",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/core",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/llms-generator",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/mutative",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/mutative-core",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/react",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/tool-durable-operations",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/tool-protocol",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/typedoc-vitepress-sync",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    },
+    {
+      "name": "license @context-action/webmcp",
+      "passed": true,
+      "detail": "public package must declare an approved SPDX license and include LICENSE"
+    }
+  ]
+}

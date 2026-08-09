@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-action.dev/schemas/v1-release-manifest.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "status",
+    "release",
+    "commit",
+    "packages",
+    "stableSurfaces",
+    "experimentalSurfaces",
+    "requiredBeforeCertification"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "context-action-v1-release-manifest.v1" },
+    "status": { "enum": ["candidate-unapproved", "rc-certified", "published"] },
+    "release": { "const": "context-action-v1.0.0" },
+    "commit": { "type": ["string", "null"] },
+    "packages": { "type": "object", "additionalProperties": { "type": "string" } },
+    "stableSurfaces": { "type": "array", "items": { "type": "string" } },
+    "experimentalSurfaces": { "type": "array", "items": { "type": "string" } },
+    "requiredBeforeCertification": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

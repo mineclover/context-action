@@ -39,7 +39,7 @@ adapter는 2026-07-21 Community Group Draft의 `execute(input)` callback 계약�
 따릅니다. 이전 실험 구현의 `ModelContextClient` 인자는 제공하지 않습니다.
 policy가 `ask`를 반환하면 canonical `interaction` 옵션을 사용합니다. 이는
 검증과 policy 평가 뒤에 호출되고 dispatch signal을 받으며 `approved` 또는
-`denied`를 반환합니다. `beforeExecute`는 deprecated 사후 실행 알림으로,
+`denied`를 반환합니다. 분리된 사후 실행 알림에는 `afterExecute`를 사용하며,
 승인 경계가 아닙니다. 브라우저 API 차이는 `currentWebMCPProfile` 또는
 `@context-action/webmcp/profiles/chrome-legacy`로 격리됩니다.
 
@@ -55,14 +55,14 @@ Promise reject가 필요하면 `errorMode: 'throw'`를 사용하세요.
 
 ## React 수명 주기 통합
 
-`@context-action/react/tools`는 컴포넌트 수명 주기에 맞춰 등록을 관리하는
+`@context-action/react/webmcp`는 컴포넌트 수명 주기에 맞춰 등록을 관리하는 **experimental**
 훅을 제공합니다. `ToolContext`에서 canonical registry를 얻고,
 `sessionId`, `toolNames`, `exposedTo` 등록 필드를 메모이즈하세요. 실행
 metadata와 callback은 JSON 직렬화 없이 최신 render 값을 사용합니다.
 
 ```tsx
 import { useMemo } from 'react';
-import { useWebMCPToolScope } from '@context-action/react/tools';
+import { useWebMCPToolScope } from '@context-action/react/webmcp';
 
 function ShoppingPageTools() {
   const registry = useShoppingToolsRegistry();

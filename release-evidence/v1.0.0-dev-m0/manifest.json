@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-dev-m0",
+  "commit": "ea5e3662355b971f0703915f8fad7bbc8472cdc5",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T02:53:33.139Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T02:53:28.642Z",
+      "completedAt": "2026-08-09T02:53:32.631Z",
+      "durationMs": 3988,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/inventory.log",
+        "sha256": "83e43a96e88509e6c1c9d13d13d3e29f56790a410c9cb758ad6c4c40dcb1917a"
+      }
+    },
+    {
+      "id": "manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T02:53:32.632Z",
+      "completedAt": "2026-08-09T02:53:32.910Z",
+      "durationMs": 278,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/manifest.log",
+        "sha256": "c5d2c42c377d9e7ba5a0e25bcbf914f3465afe92ac98d572b54b6dccb2d7462b"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T02:53:32.910Z",
+      "completedAt": "2026-08-09T02:53:33.130Z",
+      "durationMs": 220,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "a6397257031ab3026f8acee7dc889c475ed02913f65f01dc4702c589cf422b6a"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "reports/release/v1.0.0/package-inventory.json",
+      "path": "artifacts/01-package-inventory.json",
+      "sha256": "c8124c7cafc18150a6c228199bf3236a489ee04fe644746cccf3c29415f12d11",
+      "bytes": 18373
+    },
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/02-release-manifest.json",
+      "sha256": "579a16a8ca2061c8399c090c1e87381f5e4e17fd3afc92fba0e8976d21e259c6",
+      "bytes": 942
+    }
+  ],
+  "notes": [
+    "Development evidence captured from a dirty working tree; it is not release certification."
+  ]
+}

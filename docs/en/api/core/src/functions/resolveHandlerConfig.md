@@ -8,9 +8,9 @@
 
 > **resolveHandlerConfig**&lt;`T`&gt;(`config`, `handlerId`): [`ResolvedHandlerConfig`](../interfaces/ResolvedHandlerConfig.md)&lt;`T`&gt;
 
-Defined in: [packages/core/src/types.ts:616](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L616)
+Defined in: [packages/core/src/types.ts:618](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L618)
 
-Resolve the legacy `blocking` compatibility flag and all registration
+Resolve the supported `blocking` shorthand and all registration
 defaults in one place. Adapters should pass their original config to the
 registry and use this helper only when they need to expose resolved values.
 

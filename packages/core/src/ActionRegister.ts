@@ -373,13 +373,13 @@ export class ActionRegister<
   }
 
   /**
-   * Register a side-effect-only handler. This is the explicit route for
-   * validation, logging, and abort guards on actions with mapped results.
+   * Register a side-effect-only handler in an explicit guard or observer
+   * phase. This is a supported 1.x compatibility convenience for callers
+   * that configure the phase dynamically.
    *
-   * @deprecated Use `registerGuard()` for admission or `registerObserver()`
-   * for post-result effects. `effectKind` is required so legacy effects enter
-   * an explicit guard or observer phase rather than participating in result
-   * arbitration.
+   * Prefer `registerGuard()` for admission and `registerObserver()` for a
+   * statically known post-result effect. `effectKind` remains required so this
+   * API cannot participate in result arbitration implicitly.
    * @public
    */
   registerEffect<K extends ActionNames<T>>(
@@ -780,7 +780,9 @@ export class ActionRegister<
       terminalErrorReported = true;
       this.invokeErrorHandler(error, action, payload, options, attemptState.count);
     };
-    const notifyObservers = async (event: ActionObserverEvent<T[K], void>) => {
+    // Void dispatch still aggregates handler values for terminal observers;
+    // only the public dispatch return type is void.
+    const notifyObservers = async (event: ActionObserverEvent<T[K], unknown>) => {
       if (observerNotified) return;
       observerNotified = true;
       await this.executeObservers(action, plan, event);
@@ -851,7 +853,7 @@ export class ActionRegister<
         action: String(action),
         payload: guard.payload,
         outcome: execution.outcome,
-        result: result as void,
+        result,
         errors: execution.errors,
         signal: timeoutScope.options?.signal,
       });
@@ -1730,136 +1732,6 @@ export class ActionRegister<
       })),
       errors: [],
     };
-  }
-
-  /**
-   * 🆕 실제 디스패치 작업 수행 (큐에서 호출됨)
-   */
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: retained as the legacy void executor during the dispatch-result migration.
-  private async _performDispatch<K extends keyof T>(
-    action: K,
-    payload: T[K] | undefined,
-    options: DispatchOptions | undefined,
-    plan: DispatchPlan,
-    executedHandlers: HandlerRegistration<any, any>[],
-    dispatchHandlerPromises: DispatchHandlerPromises
-  ): Promise<void> {
-    // 🔍 디스패치 시작 디버그
-    this.log(`Starting dispatch for action '${String(action)}'`, {
-      hasPayload: payload !== undefined,
-      payloadType: payload?.constructor?.name || typeof payload,
-      options: options ? Object.keys(options) : 'none',
-      timestamp: new Date().toISOString()
-    });
-    
-    // Event object detection is diagnostics-only and explicitly opt-in.
-    if (this.isDebugMode && typeof Event !== 'undefined' && payload instanceof Event) {
-      console.warn(`Event object passed to action "${String(action)}"`, payload.type);
-    }
-
-    // 🔧 Improved AbortSignal handling with cleaner merge logic
-    const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
-    
-    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
-      options.autoAbort.onControllerCreated(autoAbortController);
-    }
-    
-    // Check if dispatch is aborted before starting
-    if (effectiveSignal?.aborted) {
-      this.log(`Dispatch aborted before execution for '${String(action)}'`);
-      cleanup();
-      return;
-    }
-    
-    const pipeline = plan.pipelineSnapshot;
-    
-    // 🔍 파이프라인 존재 여부 디버그
-    this.log(`Pipeline lookup for '${String(action)}'`, {
-      pipelineExists: Boolean(pipeline),
-      handlersCount: pipeline?.length || 0,
-      allRegisteredActions: Array.from(this.pipelines.keys()),
-      pipelineMap: Object.fromEntries(Array.from(this.pipelines.entries()).map(([k, v]) => [k, v.length]))
-    });
-    
-    if (!pipeline || pipeline.length === 0) {
-      // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
-      const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
-      
-      if (this.isDebugMode) {
-        console.warn(warningMessage);
-        console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
-        console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
-      }
-      
-      this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
-      cleanup();
-      return;
-    }
-
-    const filteredHandlers = this.getAttemptHandlers(action, plan);
-
-    // Create pipeline execution context
-    const context: PipelineContext<T[K], any> = {
-      action: String(action),
-      payload: payload as T[K],
-      handlers: [...filteredHandlers],
-      executedHandlers: [],
-      handlerOutcomes: [],
-      deferOnceCleanup: true,
-      signal: effectiveSignal ?? this.lifecycleController.signal,
-      trackHandlerPromise: promise => this.trackHandlerPromise(
-        promise,
-        dispatchHandlerPromises
-      ),
-      aborted: false,
-      abortReason: undefined as string | undefined,
-      currentIndex: 0,
-      jumpToPriority: undefined as number | undefined,
-      jumpCount: 0,
-      maxJumps: this.maxJumps,
-      executionMode: plan.executionMode,
-      
-      // New result collection fields
-      results: [],
-      terminated: false,
-      terminationResult: undefined as any,
-    };
-
-    
-    // Add abort listener if signal provided (use effectiveSignal for auto-abort)
-    const abortHandler = effectiveSignal ? () => {
-      context.aborted = true;
-      context.abortReason = typeof effectiveSignal.reason === 'string'
-        ? effectiveSignal.reason
-        : 'Action dispatch aborted by signal';
-    } : undefined;
-    
-    if (effectiveSignal && abortHandler) {
-      effectiveSignal.addEventListener('abort', abortHandler, { once: true });
-    }
-    
-    
-    try {
-      await this.executePipeline(
-        context,
-        dispatchHandlerPromises,
-        autoAbortController,
-        options?.autoAbort
-      );
-      this.log(`Pipeline execution succeeded for ${String(action)}`);
-    } catch (error) {
-      this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
-      throw error;
-    } finally {
-      executedHandlers?.push(...(context.executedHandlers ?? []));
-      if (effectiveSignal && abortHandler) {
-        effectiveSignal.removeEventListener('abort', abortHandler);
-      }
-      this.cleanupSignalsAfterStartedHandlers(() => {
-        cleanup();
-        (options as AttemptDispatchOptions | undefined)?.[ATTEMPT_SIGNAL_CLEANUP]?.();
-      }, dispatchHandlerPromises);
-    }
   }
 
   /**
