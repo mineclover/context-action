@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:v1-release-manifest /private/tmp/context-action-release-evidence.EfLJxX
+> node scripts/verify-v1-release-manifest.mjs
+
+{"status":"ok","manifest":"docs/releases/v1.0.0/release-manifest.json","stage":"published-unapproved"}

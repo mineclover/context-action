@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-d0d84fbc-governance-prepublish-1",
+  "commit": "d0d84fbccc93edcd4ccb86e01edff70a4e56e6f8",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T13:52:35.950Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.18.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "release-check",
+      "command": "pnpm release:check",
+      "startedAt": "2026-08-09T13:49:40.407Z",
+      "completedAt": "2026-08-09T13:52:25.084Z",
+      "durationMs": 164676,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-check.log",
+        "sha256": "3b9380097ec20b0951ef380c886be1176c3d5f304c92c4fab16c76163cff5acd"
+      }
+    },
+    {
+      "id": "release-inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T13:52:25.087Z",
+      "completedAt": "2026-08-09T13:52:35.274Z",
+      "durationMs": 10187,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-inventory.log",
+        "sha256": "fcb544997ad3c2452d6f07bffd58eae63e26337ecfb1bece24af0b364f60b57d"
+      }
+    },
+    {
+      "id": "release-manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T13:52:35.274Z",
+      "completedAt": "2026-08-09T13:52:35.538Z",
+      "durationMs": 264,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-manifest.log",
+        "sha256": "ee2f7460890c0e6a82fda4459a223f2a811f2619e816786f0cc969e85408fa72"
+      }
+    },
+    {
+      "id": "workflow-contract",
+      "command": "pnpm verify:v1-release-workflows",
+      "startedAt": "2026-08-09T13:52:35.539Z",
+      "completedAt": "2026-08-09T13:52:35.741Z",
+      "durationMs": 202,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/workflow-contract.log",
+        "sha256": "c1da9db34b3e107d4e0af9d7ab5b931ec009ab0e8a8b14b086c5c537dcafd744"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T13:52:35.742Z",
+      "completedAt": "2026-08-09T13:52:35.947Z",
+      "durationMs": 205,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "4298dd53aa1803010bbfc0657bf9256d0820c99285f7472ba6cd3ebc2f14b99d"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "fa69aa44dfd87dfec4cd89d4537955f146c80efa28c408c0deb78fd798de0d7c",
+      "bytes": 4898
+    },
+    {
+      "sourcePath": "pnpm-lock.yaml",
+      "path": "artifacts/02-pnpm-lock.yaml",
+      "sha256": "4389233d0ad91cf319cbcca79d8f02757d742b1d04a75dd6d95e6cef4f5be35e",
+      "bytes": 458812
+    }
+  ],
+  "notes": [
+    "Clean governance evidence for the non-bypassable npm-stable environment and guarded release workflows."
+  ]
+}
