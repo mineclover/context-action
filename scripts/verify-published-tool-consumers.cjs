@@ -62,10 +62,11 @@ const packages = [
   {
     name: '@context-action/react',
     directory: 'packages/react',
-    imports: [{
-      specifier: '@context-action/react/tools',
-      exports: ['createToolContext'],
-    }],
+    imports: [
+      { specifier: '@context-action/react', exports: ['createActionContext'] },
+      { specifier: '@context-action/react/tools', exports: ['createToolContext'] },
+      { specifier: '@context-action/react/webmcp', exports: ['useWebMCPToolScope'] },
+    ],
   },
   {
     name: '@context-action/ai-sdk',
@@ -78,17 +79,22 @@ const packages = [
   {
     name: '@context-action/webmcp',
     directory: 'packages/webmcp',
-    imports: [{
-      specifier: '@context-action/webmcp',
-      exports: ['createWebMCPToolScope'],
-    }],
+    imports: [
+      { specifier: '@context-action/webmcp', exports: ['createWebMCPToolScope'] },
+      { specifier: '@context-action/webmcp/profiles/chrome-legacy', exports: ['chromeLegacyWebMCPProfile'] },
+    ],
   },
 ];
 
 const consumerRuntimeDependencies = [
-  { name: 'react', spec: 'react@19.2.8' },
   { name: 'ai', spec: 'ai@7.0.34' },
+  { name: '@types/react', spec: '@types/react@19.2.17' },
   { name: 'typescript', spec: 'typescript@6.0.3' },
+];
+
+const reactMatrix = [
+  { version: '18.3.1', label: 'react-18' },
+  { version: '19.2.8', label: 'react-19' },
 ];
 
 const repositoryRoot = path.resolve(__dirname, '..');
@@ -173,7 +179,7 @@ const expected = ${JSON.stringify(expectedExports)};
 for (const [name, exports] of Object.entries(expected)) {
   const module = require(name);
   for (const exportName of exports) {
-    if (typeof module[exportName] !== 'function') {
+    if (typeof module[exportName] !== 'function' && typeof module[exportName] !== 'object') {
       throw new Error(name + ' is missing export ' + exportName);
     }
   }
@@ -189,20 +195,49 @@ console.log('published tool package consumer imports passed: ' + ${JSON.stringif
   });
 }
 
+function runConsumerEsmSmoke(consumerRoot, selectedPackages) {
+  const expectedExports = Object.fromEntries(
+    selectedPackages.flatMap(({ imports }) => imports.map(({ specifier, exports }) => [specifier, exports])),
+  );
+  const source = `
+const expected = ${JSON.stringify(expectedExports)};
+for (const [name, exports] of Object.entries(expected)) {
+  const module = await import(name);
+  for (const exportName of exports) {
+    if (typeof module[exportName] !== 'function' && typeof module[exportName] !== 'object') {
+      throw new Error(name + ' is missing ESM export ' + exportName);
+    }
+  }
+}
+
+console.log('published tool package ESM imports passed: ' + Object.keys(expected).join(', '));
+`;
+  execFileSync(process.execPath, ['--input-type=module', '--eval', source], {
+    cwd: consumerRoot,
+    stdio: 'inherit',
+    env: { ...process.env },
+  });
+}
+
 /** Verify the public declarations from the same tarballs a consumer installs.
  * This specifically guards WebMCP's dependency on the newest tool-protocol
  * contract rather than relying on workspace declaration resolution. */
-function runLocalConsumerTypecheck(consumerRoot, selectedPackages) {
+function runConsumerTypecheck(consumerRoot, selectedPackages) {
   const names = new Set(selectedPackages.map(({ name }) => name));
-  if (!names.has('@context-action/tool-protocol') || !names.has('@context-action/webmcp')) return;
-  const sourcePath = path.join(consumerRoot, 'index.ts');
-  writeFileSync(sourcePath, `
+  if (!names.has('@context-action/core')
+    || !names.has('@context-action/react')
+    || !names.has('@context-action/tool-protocol')
+    || !names.has('@context-action/webmcp')) return;
+  const source = `
+import { ActionRegister } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
 import type {
   ToolCallOptions,
   ToolDefinition,
   ToolInteractionHandler,
 } from '@context-action/tool-protocol';
-import type { WebMCPToolScopeOptions } from '@context-action/webmcp';
+import { createWebMCPToolScope, type WebMCPToolScopeOptions } from '@context-action/webmcp';
+import { chromeLegacyWebMCPProfile } from '@context-action/webmcp/profiles/chrome-legacy';
 
 const interaction: ToolInteractionHandler = async () => 'approved';
 const callOptions: ToolCallOptions = { interaction };
@@ -217,14 +252,57 @@ const scope: WebMCPToolScopeOptions = {
   toolNames: [definition.name],
   interaction,
 };
+const register = new ActionRegister();
+const actions = createActionContext('consumer-check');
 void callOptions;
 void scope;
-`);
+void createWebMCPToolScope;
+void chromeLegacyWebMCPProfile;
+void register;
+void actions;
+`;
+  for (const extension of ['mts', 'cts']) {
+    const sourcePath = path.join(consumerRoot, `index.${extension}`);
+    writeFileSync(sourcePath, source);
+    execFileSync(
+      process.execPath,
+      [path.join(consumerRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', sourcePath],
+      { cwd: consumerRoot, stdio: 'inherit', env: { ...process.env } },
+    );
+  }
+}
+
+function installReactVersion(consumerRoot, version, npmConfigPath) {
   execFileSync(
-    process.execPath,
-    [path.join(consumerRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', sourcePath],
-    { cwd: consumerRoot, stdio: 'inherit', env: { ...process.env } },
+    'npm',
+    [
+      'install', `react@${version}`, `react-dom@${version}`,
+      '--no-audit', '--no-fund', '--no-package-lock', '--ignore-scripts',
+      '--userconfig', npmConfigPath, '--registry=https://registry.npmjs.org',
+    ],
+    { cwd: consumerRoot, stdio: 'inherit', env: isolatedNpmEnvironment() },
   );
+}
+
+function runReactSsrMatrix(consumerRoot, selectedPackages, npmConfigPath) {
+  if (!selectedPackages.some(({ name }) => name === '@context-action/react')) return;
+  const source = `
+const React = require('react');
+const { renderToString } = require('react-dom/server');
+const { createActionContext } = require('@context-action/react');
+const context = createActionContext('published-consumer-ssr');
+const html = renderToString(React.createElement(context.Provider, null, React.createElement('span', null, 'ok')));
+if (!html.includes('ok')) throw new Error('React SSR did not render the consumer tree');
+console.log('React SSR consumer passed with React ' + React.version);
+`;
+  for (const entry of reactMatrix) {
+    installReactVersion(consumerRoot, entry.version, npmConfigPath);
+    execFileSync(process.execPath, ['-e', source], {
+      cwd: consumerRoot,
+      stdio: 'inherit',
+      env: { ...process.env },
+    });
+  }
 }
 
 function isolatedNpmEnvironment() {
@@ -301,9 +379,11 @@ function main() {
       },
     );
     runConsumerSmoke(consumerRoot, selectedPackages);
-    if (local) runLocalConsumerTypecheck(consumerRoot, selectedPackages);
+    runConsumerEsmSmoke(consumerRoot, selectedPackages);
+    runConsumerTypecheck(consumerRoot, selectedPackages);
+    runReactSsrMatrix(consumerRoot, selectedPackages, npmConfigPath);
     process.stdout.write(
-      `${local ? 'Local tarball' : 'Published'} tool package consumer smoke test passed: ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
+      `${local ? 'Local tarball' : 'Published'} tool package consumer matrix passed (CJS, ESM, NodeNext declarations, React 18/19 SSR): ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
     );
   } finally {
     rmSync(consumerRoot, { recursive: true, force: true });

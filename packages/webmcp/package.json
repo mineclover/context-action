@@ -1,6 +1,6 @@
 {
   "name": "@context-action/webmcp",
-  "version": "0.1.0-rc.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "WebMCP imperative API adapter for Context-Action tool managers",
   "main": "dist/index.cjs",
@@ -49,7 +49,7 @@
   },
   "publishConfig": { "access": "public" },
   "dependencies": {
-    "@context-action/tool-protocol": "1.0.0-rc.0"
+    "@context-action/tool-protocol": "^1.0.0"
   },
   "devDependencies": {
     "@context-action/tool-protocol": "workspace:*",

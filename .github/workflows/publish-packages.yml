@@ -25,6 +25,9 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # A publish workflow must never advance the default install tag. Promotion to
+  # latest is a separate, post-verification operation.
+  PUBLISH_DIST_TAG: next
 
 jobs:
   publish:
@@ -121,20 +124,27 @@ jobs:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           mkdir -p reports
-          pnpm publish:packages -- reports/npm-publish-summary.json
+          pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag "$PUBLISH_DIST_TAG"
 
       - name: Verify published tool package consumer install
         if: success()
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm verify:published-tool-consumers
+        run: pnpm verify:published-tool-consumers -- --tag "$PUBLISH_DIST_TAG"
 
-      - name: Upload npm publish summary
+      - name: Capture registry evidence
+        if: success()
+        run: |
+          pnpm capture:published-release -- --tag "$PUBLISH_DIST_TAG" \
+            --packages '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp' \
+            --consumer-status passed --output reports/npm-publish-registry-evidence.json
+
+      - name: Upload npm publish evidence
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: npm-publish-summary
-          path: reports/npm-publish-summary.json
+          path: reports/npm-publish-*.json
           if-no-files-found: ignore
           retention-days: 14
 

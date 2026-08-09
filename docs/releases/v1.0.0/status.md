@@ -18,7 +18,7 @@ command results and artifact hashes belong in
 | G3 Lifecycle/metrics | `partial` | a current clean lifecycle report is recorded; certify the approved RC artifact |
 | G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and current clean verification are recorded; external consumer certification remains |
 | G5 Tool adapters | `partial` | current clean evidence covers isolation and Tool Protocol/AI SDK/WebMCP checks; external consumer certification remains |
-| G6 Consumer packages | `partial` | current clean evidence covers 10 tarball contracts and local tool-consumer smoke; certify the approved RC package matrix |
+| G6 Consumer packages | `partial` | workflow now runs published CJS/ESM/NodeNext/React 18/19 SSR matrix; certify the approved RC package matrix |
 | G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and current clean pre-approval verification exist; approval remains |
 | G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
 | G9 Security/supply chain | `partial` | a clean local supply-chain report is recorded; registry provenance remains |
@@ -28,6 +28,9 @@ command results and artifact hashes belong in
 - Package, subpath, and named-surface stability classification is not approved.
 - The v1 target version map and independent release manifest are candidate-only
   and not approved.
+- Registry tag verification currently detects `@context-action/webmcp@0.1.0-rc.0`
+  at `latest`; move or remove that tag before RC certification. The other three
+  RC packages keep `latest` on their prior stable versions.
 - Legacy API candidate outcomes await public-contract approval.
 - The clean pre-RC bundle is not an approved RC artifact; external consumer
   certification, registry provenance, and an independent audit are unrecorded.
@@ -36,7 +39,7 @@ command results and artifact hashes belong in
 
 1. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
 2. Create an approved RC artifact and generate its immutable, strict evidence bundle.
-3. Obtain an independent audit of the canonical M6 document set and RC artifact.
+3. Obtain an independent audit of the canonical M6 document set and registry-installed RC artifact.
 4. Complete external-consumer certification and registry provenance before any
    `latest` publication decision.
 
