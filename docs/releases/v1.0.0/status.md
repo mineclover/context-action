@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `eef7af18639dc2431e95e2f68b4489bb368a2c16` (token-gated governance controls; strict evidence recorded)<br>
+**Baseline commit:** `c75ba0be023805c5dd7268752cfe1b8f9f19b2b5` (WebMCP hygiene-evidence retry; new strict governance evidence is still required)<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-10
 
@@ -32,10 +32,11 @@ and command results/artifact hashes belong in
 - Registry evidence records the published `next` cohort from
   `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
   verified all four registry signatures and SLSA provenance bundles; the
-  independent adversarial audit is still required. `@context-action/webmcp@0.1.0-rc.0`
-  still owns `latest`; publish the dedicated `0.1.1` hygiene patch to replace
-  it. The existing candidate must then be re-baselined for WebMCP before the
-  manifest can reach `approved-for-stable`.
+  independent adversarial audit is still required. The protected hygiene
+  workflow has replaced the accidental WebMCP RC `latest` tag with
+  `@context-action/webmcp@0.1.1`. The immutable `0.1.0` candidate is now
+  superseded for the WebMCP leg and must be re-baselined with the patch's
+  provenance and audit before the manifest can reach `approved-for-stable`.
 - Legacy API candidate outcomes await public-contract approval.
 - The published consumer matrix and provenance verification are recorded, but
   the published artifact has not received the required independent audit.
@@ -44,8 +45,9 @@ and command results/artifact hashes belong in
   exception, and disallows administrator bypass. It is the protected
   stable-release environment used by both guarded publication workflows.
 - Existing strict evidence ends at an earlier governance commit. The current
-  promotion-governance controls require a fresh clean evidence bundle and a
-  recorded file fingerprint before approval; past bundles remain historical.
+  promotion-governance controls, including the hygiene-patch workflow, require
+  a fresh clean evidence bundle and a recorded file fingerprint before
+  approval; past bundles remain historical.
 - `@context-action/tool-protocol@1.0.0` has the accepted bundled-CHANGELOG
   limitation recorded in the manifest and known-limitations document. A patch
   cohort is required if bundled release notes are a certification requirement.
@@ -59,8 +61,11 @@ and command results/artifact hashes belong in
 On 2026-08-10, read-only npm and GitHub API checks confirmed the recorded
 external state:
 
-- `@context-action/webmcp`: `latest` is still `0.1.0-rc.0`, while `next` is
-  `0.1.0`; registry hygiene remains blocked.
+- `@context-action/webmcp`: `latest` is `0.1.1`, while `next` is `0.1.0` and
+  `rc` is `0.1.0-rc.0`; registry tag hygiene is cleared. Protected workflow
+  run `31341251251` also passed the `latest` external-consumer check; its
+  captured evidence is
+  `release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
 - `npm-stable` allows only `main`, requires review by `mineclover`, permits the
   owner-authorized self-review exception, and disallows administrator bypass.
 
@@ -75,22 +80,26 @@ The protected WebMCP hygiene rehearsals `31328409822` and `31328975435`
 confirmed that direct `dist-tag rm` is not a viable repair path (OIDC failed
 with `E401`; the configured token failed with `E403`). The repair is now the
 versioned `@context-action/webmcp@0.1.1` hygiene patch, published through a
-separate protected workflow. Its token preflight and exact-version validation
+separate protected workflow. Run `31340779674` published it, and rerun
+`31341251251` completed the deferred tag, consumer, and registry-evidence
+checks without republishing. Its token preflight and exact-version validation
 remain fail-closed before any publication attempt.
 
 ## Immediate next work
 
-1. Publish the protected `@context-action/webmcp@0.1.1` hygiene patch to
-   `latest`, then record its registry and consumer evidence.
-2. Re-baseline the WebMCP leg of the v1 manifest, provenance audit, and strict
-   governance evidence before any future stable promotion.
+1. Re-baseline the WebMCP leg of the v1 manifest and provenance audit to the
+   separately published `0.1.1` hygiene patch; do not approve the old `0.1.0`
+   candidate as if it were the `latest` package.
+2. Generate and record strict governance evidence for the current controls and
+   updated fingerprint before any future stable promotion.
 3. Obtain an independent audit of the exact registry-installed `next` artifact
-   with the traceable GitHub approval record.
+   and the separately published WebMCP patch with a traceable GitHub approval
+   record.
 4. Complete the hashed G0/G1 owner record in
    [release-approval.md](./release-approval.md) for the target map, M1
    candidates, and M2 legacy decisions.
 5. Run an `npm-stable` no-op or intentionally failing dry run with separate
-   dispatcher and reviewer identities before any `latest` promotion.
+   dispatcher and reviewer identities before any v1 `latest` promotion.
 
 ## Development evidence
 

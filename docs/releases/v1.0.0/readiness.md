@@ -56,10 +56,13 @@ strict `--require-success` verification at that checkout. It verifies the
 guarded workflow and release-process configuration; it does not retroactively
 alter or certify the immutable npm tarballs published before those controls.
 
-The 2026-08-10 WebMCP tag-hygiene rehearsal identified a missing
-automation-token prerequisite for `dist-tag rm`; this bundle covers the
-resulting token-gated workflow update. It still cannot clear the registry
-hygiene blocker until the repository automation token is configured.
+The 2026-08-10 WebMCP tag-hygiene rehearsals showed that `dist-tag rm` is not
+an authorized recovery mechanism. The protected `0.1.1` hygiene patch was
+published instead, and workflow run `31341251251` subsequently captured its
+converged tags and passing external-consumer result in
+`release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
+This clears registry tag hygiene but does not certify the older immutable
+`0.1.0` v1 candidate.
 
 ## Published candidate state
 
@@ -82,15 +85,13 @@ metadata. A release defect requires a corrected patch version.
    recorded source commit.
 2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
    record in [release-approval.md](./release-approval.md).
-3. Publish the protected WebMCP `0.1.1` hygiene patch to replace the RC
-   `latest` tag. The prior rehearsal showed that direct tag deletion is not an
-   authorized path; the new workflow uses a normal versioned publish instead.
-4. Record the hygiene-patch registry/provenance evidence and re-baseline the
-   WebMCP leg of the v1 candidate before any future stable promotion.
-5. Generate and record strict evidence for the final governance commit and
+3. Re-baseline the WebMCP leg of the v1 candidate to the separate `0.1.1`
+   hygiene-patch provenance and audit. Do not use cleared tag hygiene as an
+   approval for the old `0.1.0` candidate.
+4. Generate and record strict evidence for the final governance commit and
    promotion-governance fingerprint; this documents the release process but
    does not alter the immutable published tarballs.
-6. Only then move the manifest through `audited` and `approved-for-stable`
+5. Only then move the manifest through `audited` and `approved-for-stable`
    before the guarded `latest` promotion.
 
 No status in this report authorizes a release to `latest`.

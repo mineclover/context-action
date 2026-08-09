@@ -86,9 +86,9 @@
   },
   "promotionEvidence": null,
   "registryHygiene": {
-    "status": "blocked",
-    "evidence": "Read-only npm dist-tag check on 2026-08-10 confirmed that @context-action/webmcp latest remains 0.1.0-rc.0 while next is 0.1.0; remove the accidental prerelease latest tag before certification.",
-    "checkedAt": "2026-08-10T00:00:00.000Z"
+    "status": "cleared",
+    "evidence": "Protected workflow run 31341251251 verified @context-action/webmcp@0.1.1 at latest, preserved next=0.1.0 and rc=0.1.0-rc.0, and passed the latest external-consumer check. Evidence: release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json. This clears tag hygiene only; the immutable 0.1.0 v1 candidate remains superseded for WebMCP pending provenance and audit re-baselining.",
+    "checkedAt": "2026-08-09T23:11:34.289Z"
   },
   "packages": {
     "@context-action/core": "1.0.0",
@@ -124,7 +124,7 @@
     "@context-action/webmcp": "latest"
   },
   "requiredBeforeCertification": [
-    "Clear the WebMCP prerelease latest-tag hygiene blocker.",
+    "Re-baseline the WebMCP leg to the separate 0.1.1 hygiene-patch provenance and independent audit; the immutable 0.1.0 next candidate is superseded for that leg.",
     "Obtain the independent published-artifact audit.",
     "Approve the G0/G1 scope and public-contract record."
   ],
