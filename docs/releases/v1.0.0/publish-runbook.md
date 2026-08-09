@@ -19,7 +19,12 @@ Before certification, clear the accidental `@context-action/webmcp@0.1.0-rc.0`
 `latest` tag through **Clear WebMCP RC Latest Hygiene**. The protected workflow
 requires the exact confirmation `remove-rc-latest`, verifies that `latest` is
 the known RC and `next` is `0.1.0`, removes only `latest`, then uploads before
-and after tag evidence. Do not run a broad dist-tag command from a local shell.
+and after tag evidence. This operation requires the repository `NPM_TOKEN`
+automation secret: npm trusted-publishing OIDC credentials authenticate package
+publication but did not authorize a `dist-tag rm` request in the rehearsal on
+2026-08-10. The workflow runs `npm whoami` with that token before any mutation
+and fails closed when it is unavailable. Do not run a broad dist-tag command
+from a local shell.
 
 1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
    for the approved release commit. Record the accepted pre-publication audit
@@ -106,16 +111,22 @@ those later controls separately through the clean evidence hash and governed
 file fingerprint.
 
 Keep Git evidence compact: the committed bundle should contain the evidence
-manifest, SHA-256 values, and a short canonical summary. Upload full command
-logs, lockfile snapshots, and tarballs as GitHub Actions artifacts or release
-assets with their retention period recorded in the summary. Do not add another
-large lockfile/log snapshot to Git merely to refresh a status record.
+manifest, SHA-256 values, and a short canonical summary. The one current strict
+governance bundle retains its full `release:check` log because it establishes
+the new evidence format; subsequent refreshes should upload full command logs,
+lockfile snapshots, and tarballs as GitHub Actions artifacts or release assets
+with their retention period recorded in the summary. Do not add another large
+lockfile/log snapshot to Git merely to refresh a status record.
 
 ## Environment actor rehearsal
 
 Before promotion, run a no-op or intentionally failing deployment to
 `npm-stable` using distinct identities and record the outcome in the approval
-evidence:
+evidence. A 2026-08-10 protected hygiene rehearsal confirmed that the
+owner-authorized self-review exception can approve the environment, then failed
+closed at `npm dist-tag rm` with `E401` because no usable `NPM_TOKEN` was
+configured; it made no registry mutation. The normal promotion policy remains
+separated identities:
 
 | Role | Required separation |
 | --- | --- |
@@ -125,7 +136,9 @@ evidence:
 | `npm-stable` reviewer | Must be a different eligible reviewer from the dispatcher |
 
 This proves that required-reviewer, self-review, and administrator-bypass
-settings do not create a promotion deadlock.
+settings do not create a promotion deadlock. The narrow owner exception is not
+a substitute for the independent-audit review enforced by the promotion
+workflow.
 
 ## v1 RC prerelease
 

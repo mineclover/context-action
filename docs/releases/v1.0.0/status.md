@@ -71,12 +71,19 @@ release owner authorized and applied the narrow exception
 and administrator-bypass prohibition remain in force. This exception is an
 owner risk acceptance, not proof of independent audit.
 
+The protected WebMCP hygiene rehearsal run
+`31328409822` reached the exact tag precondition, then failed closed with npm
+`E401` on `dist-tag rm`; before-tag evidence shows that no npm tag changed.
+The workflow now requires a repository `NPM_TOKEN` automation secret and runs
+`npm whoami` before any mutation. OIDC trusted publishing alone is not an
+authorized path for this tag-removal operation.
+
 ## Immediate next work
 
-1. Clear the accidental WebMCP RC `latest` tag and record fresh registry
-   hygiene evidence.
-2. Generate strict clean evidence for the final committed governance controls,
-   then record its commit, hash, and promotion-governance fingerprint.
+1. Configure the repository `NPM_TOKEN` automation secret, rerun the guarded
+   WebMCP tag cleanup, and record its before/after registry-hygiene evidence.
+2. Refresh strict clean evidence for the final committed token-gated hygiene
+   workflow and record its promotion-governance fingerprint.
 3. Obtain an independent audit of the exact registry-installed `next` artifact
    with the traceable GitHub approval record.
 4. Complete the hashed G0/G1 owner record in

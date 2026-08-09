@@ -47,20 +47,19 @@ documentation changed after the recorded commit.
 
 ## Current clean governance verification
 
-`v1.0.0-414cf675-governance-prepublish-1` records a successful
-`pnpm release:check`, release inventory, manifest validation, and roadmap
-alignment check from clean commit `414cf675e236692fd9971eec62c4d92576a4e5f3`.
-The bundle passes strict `--require-success` integrity verification at that
-checkout. It verifies the current guarded workflow and release-process
-configuration; it does not retroactively alter or certify the immutable npm
-tarballs that were published before those controls existed.
+`v1.0.0-afdba236-governance-prepublish-1` records a successful full
+`pnpm release:check` (390828 ms), release inventory, manifest validation,
+workflow-contract validation, roadmap alignment, and governed-file fingerprint
+from clean commit `afdba2363d121c6b7d12c0ac2f86ab40f5191f99`. Its manifest
+SHA-256 and fingerprint are recorded in `release-manifest.json`, and it passes
+strict `--require-success` verification at that checkout. It verifies the
+guarded workflow and release-process configuration; it does not retroactively
+alter or certify the immutable npm tarballs published before those controls.
 
-It is no longer sufficient for the current promotion implementation: later
-governance changes added live-artifact revalidation, rollback through the
-consumer matrix, a cohort exclusion for the general publish workflow, and a
-promotion-governance fingerprint. After those changes are committed, generate
-a fresh clean bundle and record its SHA-256 and fingerprint in the release
-manifest before seeking approval.
+The 2026-08-10 WebMCP tag-hygiene rehearsal subsequently identified a missing
+automation-token prerequisite for `dist-tag rm`. Refresh strict governance
+evidence after the resulting token-gated workflow update before seeking
+approval.
 
 ## Published candidate state
 
@@ -83,9 +82,11 @@ metadata. A release defect requires a corrected patch version.
    recorded source commit.
 2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
    record in [release-approval.md](./release-approval.md).
-3. Configure named required reviewers for the `npm-stable` GitHub environment.
+3. Configure a repository `NPM_TOKEN` automation secret permitted to remove
+   the WebMCP `latest` dist-tag; the protected-environment rehearsal already
+   demonstrated that OIDC alone fails closed for this operation.
 4. Clear the WebMCP RC `latest` tag, record registry-hygiene evidence, and run
-   a separated-actor `npm-stable` dry run to rule out self-review deadlock.
+   a separated-actor `npm-stable` rehearsal for the normal promotion policy.
 5. Generate and record strict evidence for the final governance commit and
    promotion-governance fingerprint; this documents the release process but
    does not alter the immutable published tarballs.

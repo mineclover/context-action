@@ -3,14 +3,6 @@ name: Clear WebMCP RC Latest Hygiene
 on:
   workflow_dispatch:
     inputs:
-      publish_auth:
-        description: 'npm authentication mode for this protected dist-tag change'
-        required: true
-        default: oidc
-        type: choice
-        options:
-          - oidc
-          - token
       confirmation:
         description: 'Type remove-rc-latest to remove only the accidental WebMCP RC latest tag'
         required: true
@@ -18,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: npm-publish
@@ -61,8 +52,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
 
-      - name: Verify npm token auth
-        if: inputs.publish_auth == 'token'
+      - name: Verify npm automation-token auth
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
@@ -80,7 +70,7 @@ jobs:
 
       - name: Remove only the accidental latest tag
         env:
-          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm dist-tag rm "$WEBMCP_PACKAGE" latest
 
       - name: Verify tag cleanup and capture evidence
