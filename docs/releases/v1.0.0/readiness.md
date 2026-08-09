@@ -74,7 +74,8 @@ metadata. A release defect requires a corrected patch version.
 
 1. Obtain an independent adversarial audit of the exact `next` artifacts and
    recorded source commit.
-2. Approve G0/G1 scope, public-contract, and legacy ledger decisions.
+2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
+   record in [release-approval.md](./release-approval.md).
 3. Configure named required reviewers for the `npm-stable` GitHub environment.
 4. Preserve the current strict clean
    evidence for it; this documents the release process but does not alter the

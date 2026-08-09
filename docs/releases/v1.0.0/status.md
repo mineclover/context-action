@@ -42,7 +42,9 @@ and command results/artifact hashes belong in
 ## Immediate next work
 
 1. Obtain an independent audit of the exact registry-installed `next` artifact.
-2. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
+2. Complete the hashed G0/G1 owner record in
+   [release-approval.md](./release-approval.md) for the target map, M1
+   candidates, and M2 legacy decisions.
 3. Configure the `npm-stable` GitHub environment with named required reviewers.
 4. Preserve the recorded strict evidence while external audit
    decisions are completed; regenerate it if the chosen release commit changes.

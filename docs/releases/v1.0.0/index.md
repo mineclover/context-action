@@ -7,6 +7,7 @@ the status document records approved, clean, independently audited RC evidence.
 - [Scope and versioning candidates](./scope.md)
 - [Public contract candidates](./contract-candidates.md)
 - [Legacy outcome ledger](./legacy-ledger.md)
+- [Release scope and public-contract approval](./release-approval.md)
 - [SemVer and deprecation policy](./semver-and-deprecation-policy.md)
 - [Migration guide](./migration.md)
 - [Known limitations](./known-limitations.md)

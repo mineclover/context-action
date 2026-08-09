@@ -68,6 +68,30 @@
         "reportSha256": { "type": ["string", "null"] },
         "evidenceSha256": { "type": ["string", "null"] }
       }
+    },
+    "releaseApproval": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "owner",
+        "reviewedCommit",
+        "record",
+        "recordSha256",
+        "scopeSha256",
+        "contractSha256",
+        "legacyLedgerSha256"
+      ],
+      "properties": {
+        "status": { "enum": ["accepted", "rejected"] },
+        "owner": { "type": "string", "minLength": 1 },
+        "reviewedCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "record": { "type": "string", "minLength": 1 },
+        "recordSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "scopeSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "contractSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "legacyLedgerSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
     }
   },
   "additionalProperties": false,

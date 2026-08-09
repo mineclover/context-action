@@ -52,6 +52,43 @@ async function verifyAcceptedAudit(audit, expectedCommit) {
   return errors;
 }
 
+async function verifyReleaseApproval(approval, expectedCommit) {
+  const errors = [];
+  if (approval?.status !== 'accepted') return ['Promotion requires an accepted G0/G1 release approval'];
+  if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
+    errors.push('Accepted release approval requires a named owner');
+  }
+  if (approval.reviewedCommit !== expectedCommit) {
+    errors.push('Accepted release approval must bind the requested release commit');
+  }
+  const files = [
+    ['record', approval.record, approval.recordSha256],
+    ['scope', 'docs/releases/v1.0.0/scope.md', approval.scopeSha256],
+    ['contract candidates', 'docs/releases/v1.0.0/contract-candidates.md', approval.contractSha256],
+    ['legacy ledger', 'docs/releases/v1.0.0/legacy-ledger.md', approval.legacyLedgerSha256],
+  ];
+  for (const [label, target, expectedHash] of files) {
+    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
+      errors.push(`Accepted release approval requires a hashed ${label} path`);
+      continue;
+    }
+    const resolved = path.resolve(repositoryRoot, target);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push(`Accepted release approval ${label} must stay within the repository`);
+      continue;
+    }
+    try {
+      const contents = await readFile(resolved);
+      if (createHash('sha256').update(contents).digest('hex') !== expectedHash) {
+        errors.push(`Accepted release approval ${label} hash does not match`);
+      }
+    } catch {
+      errors.push(`Accepted release approval ${label} is missing`);
+    }
+  }
+  return errors;
+}
+
 async function main() {
   const expectedCommit = option('--commit');
   if (!expectedCommit || !/^[a-f0-9]{40}$/u.test(expectedCommit)) {
@@ -67,6 +104,7 @@ async function main() {
     errors.push('Requested, manifest, and checked-out commits must match');
   }
   errors.push(...await verifyAcceptedAudit(manifest.audit, expectedCommit));
+  errors.push(...await verifyReleaseApproval(manifest.releaseApproval, expectedCommit));
 
   for (const [name, version] of Object.entries(manifest.packages ?? {})) {
     const evidence = manifest.registryEvidence?.[name];

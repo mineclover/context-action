@@ -48,6 +48,42 @@ async function validateAcceptedAudit(audit, manifestCommit) {
   return errors;
 }
 
+async function validateReleaseApproval(approval, manifestCommit) {
+  const errors = [];
+  if (approval?.status !== 'accepted') return ['G0/G1 release approval is not accepted'];
+  if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
+    errors.push('Accepted release approval requires a named owner');
+  }
+  if (approval.reviewedCommit !== manifestCommit) {
+    errors.push('Accepted release approval must bind the provenance-attested manifest commit');
+  }
+  const files = [
+    ['record', approval.record, approval.recordSha256],
+    ['scope', 'docs/releases/v1.0.0/scope.md', approval.scopeSha256],
+    ['contract candidates', 'docs/releases/v1.0.0/contract-candidates.md', approval.contractSha256],
+    ['legacy ledger', 'docs/releases/v1.0.0/legacy-ledger.md', approval.legacyLedgerSha256],
+  ];
+  for (const [label, target, expectedHash] of files) {
+    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
+      errors.push(`Accepted release approval requires a hashed ${label} path`);
+      continue;
+    }
+    const resolved = path.resolve(repositoryRoot, target);
+    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
+      errors.push(`Accepted release approval ${label} must stay within the repository`);
+      continue;
+    }
+    try {
+      if (sha256(await readFile(resolved)) !== expectedHash) {
+        errors.push(`Accepted release approval ${label} hash does not match`);
+      }
+    } catch {
+      errors.push(`Accepted release approval ${label} is missing`);
+    }
+  }
+  return errors;
+}
+
 async function main() {
   const [manifestSource, schemaSource, reactPackageSource] = await Promise.all([
     readFile(manifestPath, 'utf8'),
@@ -84,6 +120,7 @@ async function main() {
   const publishedStages = new Set(['published-unapproved', 'audited', 'approved-for-stable', 'promoted']);
   const registryEvidence = manifest.registryEvidence;
   const audit = manifest.audit;
+  const releaseApproval = manifest.releaseApproval;
   const prePublicationAudit = manifest.prePublicationAudit;
   const promotionTargets = manifest.promotionTargets ?? {};
   const testedExternalDependencies = manifest.testedExternalDependencies ?? {};
@@ -201,6 +238,11 @@ async function main() {
     }
     if (['audited', 'approved-for-stable', 'promoted'].includes(manifest.status)) {
       for (const error of await validateAcceptedAudit(audit, manifest.commit)) {
+        errors.push(`${manifest.status} manifest requires ${error}`);
+      }
+    }
+    if (['approved-for-stable', 'promoted'].includes(manifest.status)) {
+      for (const error of await validateReleaseApproval(releaseApproval, manifest.commit)) {
         errors.push(`${manifest.status} manifest requires ${error}`);
       }
     }
