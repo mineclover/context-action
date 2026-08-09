@@ -1,7 +1,7 @@
 {
   "$schema": "./release-manifest.schema.json",
   "schemaVersion": "context-action-v1-release-manifest.v3",
-  "status": "published-pending-provenance",
+  "status": "published-unapproved",
   "release": "context-action-v1.0.0",
   "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
   "prePublicationAudit": null,
@@ -14,7 +14,14 @@
       "tarball": "https://registry.npmjs.org/@context-action/core/-/core-1.0.0.tgz",
       "publishedAt": "2026-08-09T10:13:18.315Z",
       "distTags": { "latest": "0.9.2", "rc": "1.0.0-rc.0", "next": "1.0.0" },
-      "provenance": { "status": "pending-verification", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3" },
+      "provenance": {
+        "status": "verified",
+        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+        "verification": {
+          "verifier": "npm audit signatures --include-attestations",
+          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
+        }
+      },
       "externalConsumer": { "status": "passed" }
     },
     "@context-action/react": {
@@ -24,7 +31,14 @@
       "tarball": "https://registry.npmjs.org/@context-action/react/-/react-1.0.0.tgz",
       "publishedAt": "2026-08-09T10:13:35.051Z",
       "distTags": { "latest": "0.9.2", "rc": "1.0.0-rc.0", "next": "1.0.0" },
-      "provenance": { "status": "pending-verification", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3" },
+      "provenance": {
+        "status": "verified",
+        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+        "verification": {
+          "verifier": "npm audit signatures --include-attestations",
+          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
+        }
+      },
       "externalConsumer": { "status": "passed" }
     },
     "@context-action/tool-protocol": {
@@ -34,7 +48,14 @@
       "tarball": "https://registry.npmjs.org/@context-action/tool-protocol/-/tool-protocol-1.0.0.tgz",
       "publishedAt": "2026-08-09T10:13:10.741Z",
       "distTags": { "latest": "0.8.8", "next": "1.0.0", "rc": "1.0.0-rc.0" },
-      "provenance": { "status": "pending-verification", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3" },
+      "provenance": {
+        "status": "verified",
+        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+        "verification": {
+          "verifier": "npm audit signatures --include-attestations",
+          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
+        }
+      },
       "externalConsumer": { "status": "passed" }
     },
     "@context-action/webmcp": {
@@ -44,7 +65,14 @@
       "tarball": "https://registry.npmjs.org/@context-action/webmcp/-/webmcp-0.1.0.tgz",
       "publishedAt": "2026-08-09T10:13:25.316Z",
       "distTags": { "rc": "0.1.0-rc.0", "latest": "0.1.0-rc.0", "next": "0.1.0" },
-      "provenance": { "status": "pending-verification", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3" },
+      "provenance": {
+        "status": "verified",
+        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+        "verification": {
+          "verifier": "npm audit signatures --include-attestations",
+          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
+        }
+      },
       "externalConsumer": { "status": "passed" }
     }
   },
@@ -83,7 +111,6 @@
     "@context-action/webmcp": "latest"
   },
   "requiredBeforeCertification": [
-    "Independently verify the recorded npm provenance source commit for every published package.",
     "Obtain the independent adversarial audit required for RC certification."
   ]
 }

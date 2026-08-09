@@ -145,7 +145,10 @@ async function main() {
         if (typeof version === 'string' && version.includes('-') && evidence.distTags?.latest === version) {
           errors.push(`Prerelease package must not be tagged latest: ${name}@${version}`);
         }
-        if (evidence.provenance?.status !== 'verified' || evidence.provenance?.sourceCommit !== manifest.commit) {
+        if (evidence.provenance?.status !== 'verified'
+          || evidence.provenance?.sourceCommit !== manifest.commit
+          || evidence.provenance?.verification?.verifier !== 'npm audit signatures --include-attestations'
+          || typeof evidence.provenance?.verification?.evidence !== 'string') {
           errors.push(`Registry provenance must verify the manifest commit: ${name}`);
         }
         if (evidence.externalConsumer?.status !== 'passed') {

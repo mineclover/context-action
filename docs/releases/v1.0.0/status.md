@@ -19,10 +19,10 @@ and command results/artifact hashes belong in
 | G3 Lifecycle/metrics | `partial` | clean governance-commit lifecycle evidence exists; certify the approved registry artifact after external gates |
 | G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and clean evidence exist; complete provenance/audit certification |
 | G5 Tool adapters | `partial` | isolation and Tool Protocol/AI SDK/WebMCP checks and clean evidence exist; complete provenance/audit certification |
-| G6 Consumer packages | `partial` | published `next` CJS/ESM/NodeNext/React 18/19 SSR matrix passed; provenance verification and independent audit remain |
+| G6 Consumer packages | `partial` | published `next` CJS/ESM/NodeNext/React 18/19 SSR matrix and npm provenance verification passed; independent audit remains |
 | G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and clean governance evidence exist; public-contract approval remains |
 | G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
-| G9 Security/supply chain | `partial` | a clean local supply-chain report is recorded; registry provenance remains |
+| G9 Security/supply chain | `partial` | clean local supply-chain and npm registry provenance reports are recorded; independent artifact audit remains |
 
 ## Blocking conditions
 
@@ -30,22 +30,21 @@ and command results/artifact hashes belong in
 - The v1 target version map and independent release manifest are candidate-only
   and not approved.
 - Registry evidence records the published `next` cohort from
-  `63f790a521e3428a7a2825677747338f8f05ccf3`, but each npm provenance bundle
-  remains pending independent verification. `@context-action/webmcp@0.1.0-rc.0`
-  still owns `latest`; the dedicated promotion workflow cannot run until
-  provenance and audit gates pass.
+  `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
+  verified all four registry signatures and SLSA provenance bundles; the
+  independent adversarial audit is still required. `@context-action/webmcp@0.1.0-rc.0`
+  still owns `latest`; the dedicated promotion workflow cannot run until audit
+  and approval gates pass.
 - Legacy API candidate outcomes await public-contract approval.
-- The published consumer matrix is recorded, but its provenance has not been
-  independently verified and the published artifact has not received the
-  required independent audit.
+- The published consumer matrix and provenance verification are recorded, but
+  the published artifact has not received the required independent audit.
 
 ## Immediate next work
 
-1. Independently verify the npm provenance bundle for every `next` package and
-   move the manifest to `published-unapproved` only with that evidence.
-2. Obtain an independent audit of the exact registry-installed `next` artifact.
-3. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
-4. Preserve the recorded strict evidence while external provenance and audit
+1. Obtain an independent audit of the exact registry-installed `next` artifact.
+2. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
+3. Configure the `npm-stable` GitHub environment with named required reviewers.
+4. Preserve the recorded strict evidence while external audit
    decisions are completed; regenerate it if the chosen release commit changes.
 
 ## Development evidence

@@ -61,8 +61,10 @@ The four-package cohort is already published to npm under `next` from
 `63f790a521e3428a7a2825677747338f8f05ccf3`. The manifest records exact
 integrity, tarball SHA-256, publish time, dist-tags, and an external consumer
 matrix result. Its npm provenance bundles expose that source commit but remain
-`pending-verification` until an independent verifier validates the Sigstore
-attestations.
+verified by the official npm CLI against the registry signatures and Sigstore
+SLSA attestations. The verifier confirmed the source commit, repository,
+workflow, and workflow run for all four packages; its compact evidence is in
+`release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json`.
 
 This publication predates the protected publish authorization gate. The final
 versions are immutable; do not republish them to “repair” documentation or
@@ -70,14 +72,14 @@ metadata. A release defect requires a corrected patch version.
 
 ## Remaining release blockers
 
-1. Independently verify the npm provenance bundle for every published package.
-2. Obtain an independent adversarial audit of the exact `next` artifacts and
+1. Obtain an independent adversarial audit of the exact `next` artifacts and
    recorded source commit.
-3. Approve G0/G1 scope, public-contract, and legacy ledger decisions.
-4. Freeze the current release governance/docs commit and record strict clean
+2. Approve G0/G1 scope, public-contract, and legacy ledger decisions.
+3. Configure named required reviewers for the `npm-stable` GitHub environment.
+4. Preserve the current strict clean
    evidence for it; this documents the release process but does not alter the
    immutable published tarballs.
-5. Only then move the manifest through `published-unapproved`, `audited`, and
-   `approved-for-stable` before the guarded `latest` promotion.
+5. Only then move the manifest through `audited` and `approved-for-stable`
+   before the guarded `latest` promotion.
 
 No status in this report authorizes a release to `latest`.

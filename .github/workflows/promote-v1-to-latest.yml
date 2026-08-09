@@ -74,6 +74,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Independently verify published provenance
+        run: |
+          pnpm verify:v1-published-provenance -- \
+            --output reports/npm-v1-provenance-verification.json
+
       - name: Verify promotion authorization
         run: pnpm verify:v1-promotion-authorization -- --commit "${{ inputs.release_commit }}"
 
@@ -138,6 +143,8 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: npm-v1-promotion-evidence
-          path: reports/npm-v1-promotion-*.json
+          path: |
+            reports/npm-v1-promotion-*.json
+            reports/npm-v1-provenance-verification.json
           if-no-files-found: ignore
           retention-days: 30

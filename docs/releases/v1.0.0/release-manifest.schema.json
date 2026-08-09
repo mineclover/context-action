@@ -93,7 +93,16 @@
           "required": ["status", "sourceCommit"],
           "properties": {
             "status": { "enum": ["pending-verification", "verified", "failed"] },
-            "sourceCommit": { "type": ["string", "null"] }
+            "sourceCommit": { "type": ["string", "null"] },
+            "verification": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["verifier", "evidence"],
+              "properties": {
+                "verifier": { "const": "npm audit signatures --include-attestations" },
+                "evidence": { "type": "string", "minLength": 1 }
+              }
+            }
           }
         },
         "externalConsumer": {

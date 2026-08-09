@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-63f790a5-registry-provenance-1",
+  "commit": "3002550e87ca000ff576e7d6eca2ad31801c8c3d",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T12:01:58.719Z",
+  "workingTree": "dirty",
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "provenance",
+      "command": "pnpm verify:v1-published-provenance -- --output reports/npm-v1-provenance-verification.json",
+      "startedAt": "2026-08-09T12:01:57.365Z",
+      "completedAt": "2026-08-09T12:01:58.717Z",
+      "durationMs": 1351,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/provenance.log",
+        "sha256": "63cbe32d1427b456a8d9891c60cd5c2a5e07b76345ce2033a4888b19f8505668"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "reports/npm-v1-provenance-verification.json",
+      "path": "artifacts/01-npm-v1-provenance-verification.json",
+      "sha256": "3947dea8ce0cd0a5df205d16f3e6f814a9bbe562950e09d2c39089574245d252",
+      "bytes": 2485
+    }
+  ],
+  "notes": [
+    "npm audit signatures cryptographically verified the registry signatures and SLSA provenance attestations for the immutable next-tag cohort."
+  ]
+}

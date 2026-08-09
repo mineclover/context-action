@@ -9,9 +9,11 @@
 `@context-action/tool-protocol@1.0.0`, and `@context-action/webmcp@0.1.0`
 are already published under `next`. They were published before this protected
 authorization workflow existed and are immutable. Their current state is
-`published-pending-provenance`; do not invoke the stable-candidate workflow
-again for these versions. Complete provenance verification and the independent
-audit, then use the guarded promotion workflow or publish a corrected patch.
+`published-unapproved`: npm cryptographically verified the registry signatures
+and SLSA provenance for all four packages, but the independent audit and
+release approvals are still missing. Do not invoke the stable-candidate
+workflow again for these versions. Complete the remaining audit and approvals,
+then use the guarded promotion workflow or publish a corrected patch.
 
 1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
    for the approved release commit. Record the accepted pre-publication audit
@@ -41,9 +43,10 @@ audit, then use the guarded promotion workflow or publish a corrected patch.
    reviewers; selecting an environment in workflow YAML alone cannot create
    that repository-level protection.
 3. Publish the approved candidate to `next`, then capture the registry
-   evidence artifact. Verify each npm provenance attestation's source commit
-   before copying its integrity, SHA-256, tags, consumer result, and immutable
-   commit into `release-manifest.json` as `published-unapproved`.
+   evidence artifact. Run `pnpm verify:v1-published-provenance` to verify each
+   registry signature and provenance attestation before copying its integrity,
+   SHA-256, tags, consumer result, and immutable commit into
+   `release-manifest.json` as `published-unapproved`.
 4. Publish only the approved packages to `next` or `rc` with npm provenance
    enabled by the GitHub Actions `id-token: write` permission.
 5. In a clean external consumer, install the published versions and run CJS,
