@@ -107,6 +107,9 @@ async function main() {
   requireText(errors, hygiene, 'workflow_dispatch:', 'WebMCP hygiene workflow must be manually dispatched');
   requireText(errors, hygiene, 'name: npm-stable', 'WebMCP hygiene workflow must use the npm-stable environment');
   requireText(errors, hygiene, 'test "$CONFIRMATION" = remove-rc-latest', 'WebMCP hygiene workflow must require explicit destructive-operation confirmation');
+  requireText(errors, hygiene, 'npm whoami', 'WebMCP hygiene workflow must fail before mutation when its automation token is unavailable');
+  requireText(errors, hygiene, 'NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}', 'WebMCP hygiene workflow must use the configured npm automation token');
+  requireOrder(errors, hygiene, 'npm whoami', 'npm dist-tag rm "$WEBMCP_PACKAGE" latest', 'WebMCP hygiene workflow must verify its npm token before tag mutation');
   requireText(errors, hygiene, 'tags.latest !== process.env.RC_VERSION', 'WebMCP hygiene workflow must refuse unexpected latest tags');
   requireText(errors, hygiene, 'npm dist-tag rm "$WEBMCP_PACKAGE" latest', 'WebMCP hygiene workflow must remove only the latest tag');
   requireText(errors, hygiene, "Object.hasOwn(tags, 'latest')", 'WebMCP hygiene workflow must verify that latest is absent after cleanup');

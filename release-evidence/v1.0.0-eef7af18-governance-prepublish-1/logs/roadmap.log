@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 release:roadmap:check /private/tmp/context-action-token-evidence.hZXevS
+> node scripts/verify-v1-release-roadmap-alignment.mjs
+
+v1 release roadmaps aligned (6 invariants).
