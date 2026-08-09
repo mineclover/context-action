@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "context-action-release-evidence.v1",
+  "release": "context-action-v1.0.0",
+  "stage": "v1.0.0-414cf675-governance-prepublish-1",
+  "commit": "414cf675e236692fd9971eec62c4d92576a4e5f3",
+  "roadmapRevision": "v1-r2",
+  "status": "recorded",
+  "generatedAt": "2026-08-09T11:54:38.637Z",
+  "workingTree": "clean",
+  "environment": {
+    "node": "v24.18.0",
+    "pnpm": "10.30.3",
+    "typescript": "6.0.3"
+  },
+  "commands": [
+    {
+      "id": "release-check",
+      "command": "pnpm release:check",
+      "startedAt": "2026-08-09T11:51:32.738Z",
+      "completedAt": "2026-08-09T11:54:28.258Z",
+      "durationMs": 175519,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-check.log",
+        "sha256": "67b6c4f060a64eda1702901d90e86bf4e023d7e7d491b8a40b9b7ce10a39d2c0"
+      }
+    },
+    {
+      "id": "release-inventory",
+      "command": "pnpm release:inventory",
+      "startedAt": "2026-08-09T11:54:28.262Z",
+      "completedAt": "2026-08-09T11:54:38.167Z",
+      "durationMs": 9905,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-inventory.log",
+        "sha256": "1ef1347c5a9ba3b2a2c65c1594ecba7e70bd1e71358479fc2782b5a9fe2e8867"
+      }
+    },
+    {
+      "id": "release-manifest",
+      "command": "pnpm verify:v1-release-manifest",
+      "startedAt": "2026-08-09T11:54:38.167Z",
+      "completedAt": "2026-08-09T11:54:38.426Z",
+      "durationMs": 259,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/release-manifest.log",
+        "sha256": "c285c7abf2b4c47da37bc8b22828cd909131bac66b9a198f7d7aa76fffdf5669"
+      }
+    },
+    {
+      "id": "roadmap",
+      "command": "pnpm release:roadmap:check",
+      "startedAt": "2026-08-09T11:54:38.426Z",
+      "completedAt": "2026-08-09T11:54:38.634Z",
+      "durationMs": 208,
+      "exitCode": 0,
+      "status": "passed",
+      "log": {
+        "path": "logs/roadmap.log",
+        "sha256": "ddc127cdd916849ec181923c7acc78bc1aec979f5e8d8d84efa3a26600f8fc83"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "docs/releases/v1.0.0/release-manifest.json",
+      "path": "artifacts/01-release-manifest.json",
+      "sha256": "618d39787fa9ff3fee41b00681caabb5f5b2159a84ee61a8d1097bf9c807263c",
+      "bytes": 4142
+    },
+    {
+      "sourcePath": "pnpm-lock.yaml",
+      "path": "artifacts/02-pnpm-lock.yaml",
+      "sha256": "4389233d0ad91cf319cbcca79d8f02757d742b1d04a75dd6d95e6cef4f5be35e",
+      "bytes": 458812
+    }
+  ],
+  "notes": [
+    "Governance and promotion safeguards for the immutable next-tag cohort; provenance verification, independent audit, and approval remain pending."
+  ]
+}

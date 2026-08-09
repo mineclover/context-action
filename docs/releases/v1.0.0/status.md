@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
 **Status:** `NOT READY`<br>
-**Baseline commit:** `pending clean release freeze`<br>
+**Baseline commit:** `414cf675e236692fd9971eec62c4d92576a4e5f3`<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-09
 
@@ -15,12 +15,12 @@ and command results/artifact hashes belong in
 | --- | --- | --- |
 | G0 Scope/versioning | `partial` | candidate scope/manifest and inventory are recorded; approve the target map |
 | G1 Public API | `partial` | contract candidates and candidate legacy outcomes exist; public-contract approval remains |
-| G2 Core execution | `partial` | recreate clean evidence for the frozen release commit, then certify the approved RC artifact |
-| G3 Lifecycle/metrics | `partial` | recreate the lifecycle report from the frozen release commit, then certify the approved RC artifact |
-| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks exist; recreate clean evidence and complete external consumer certification |
-| G5 Tool adapters | `partial` | isolation and Tool Protocol/AI SDK/WebMCP checks exist; recreate clean evidence and complete external consumer certification |
+| G2 Core execution | `partial` | clean governance-commit evidence exists; certify the approved registry artifact after external gates |
+| G3 Lifecycle/metrics | `partial` | clean governance-commit lifecycle evidence exists; certify the approved registry artifact after external gates |
+| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks and clean evidence exist; complete provenance/audit certification |
+| G5 Tool adapters | `partial` | isolation and Tool Protocol/AI SDK/WebMCP checks and clean evidence exist; complete provenance/audit certification |
 | G6 Consumer packages | `partial` | published `next` CJS/ESM/NodeNext/React 18/19 SSR matrix passed; provenance verification and independent audit remain |
-| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, and packed fixture exist; regenerate clean evidence after documentation freeze |
+| G7 Docs/migration | `partial` | canonical scope, migration, readiness documents, packed fixture, and clean governance evidence exist; public-contract approval remains |
 | G8 Independent audit | `not-started` | audit protocol/template are prepared; fresh-context adversarial audit is required |
 | G9 Security/supply chain | `partial` | a clean local supply-chain report is recorded; registry provenance remains |
 
@@ -38,8 +38,6 @@ and command results/artifact hashes belong in
 - The published consumer matrix is recorded, but its provenance has not been
   independently verified and the published artifact has not received the
   required independent audit.
-- The historical clean evidence predates the current workflow, manifest, and
-  changelog changes. It cannot certify the next canonical release commit.
 
 ## Immediate next work
 
@@ -47,8 +45,8 @@ and command results/artifact hashes belong in
    move the manifest to `published-unapproved` only with that evidence.
 2. Obtain an independent audit of the exact registry-installed `next` artifact.
 3. Approve the G0 target version map, M1 candidates, and M2 legacy decisions.
-4. Freeze the current governance/docs commit and generate immutable strict
-   evidence with `--require-clean` before any `latest` decision.
+4. Preserve the recorded strict evidence while external provenance and audit
+   decisions are completed; regenerate it if the chosen release commit changes.
 
 ## Development evidence
 
@@ -63,6 +61,14 @@ evidence only and cannot be used with `--require-success` for release
 certification.
 
 ## Clean pre-RC evidence
+
+`release-evidence/v1.0.0-414cf675-governance-prepublish-1/manifest.json` was
+generated from clean commit `414cf675e236692fd9971eec62c4d92576a4e5f3`. Its
+`release:check`, inventory, manifest validation, and roadmap commands passed,
+and it passes `pnpm release:evidence:verify -- --require-success` when checked
+out at that commit. It records current governance/process readiness only; it
+does not verify registry provenance, replace the independent audit, or permit
+`latest` promotion.
 
 `release-evidence/v1.0.0-clean-precheck-1/manifest.json` was generated from
 commit `13086d07a6d70a06d27c3af0ec9f18767b00f1ad` with a `clean` source working

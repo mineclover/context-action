@@ -45,6 +45,16 @@ checkout. It is historical evidence, not an approved RC artifact or a
 publication authorization, because the release workflow, manifest, and
 documentation changed after the recorded commit.
 
+## Current clean governance verification
+
+`v1.0.0-414cf675-governance-prepublish-1` records a successful
+`pnpm release:check`, release inventory, manifest validation, and roadmap
+alignment check from clean commit `414cf675e236692fd9971eec62c4d92576a4e5f3`.
+The bundle passes strict `--require-success` integrity verification at that
+checkout. It verifies the current guarded workflow and release-process
+configuration; it does not retroactively alter or certify the immutable npm
+tarballs that were published before those controls existed.
+
 ## Published candidate state
 
 The four-package cohort is already published to npm under `next` from
