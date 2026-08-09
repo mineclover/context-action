@@ -36,9 +36,11 @@ then use the guarded promotion workflow or publish a corrected patch.
 
    Strict verification rejects a dirty source tree and an evidence commit that
    does not match the checkout being verified.
-2. The workflow must receive that exact immutable `main` commit. It runs in
-   the protected `npm-stable` environment and rejects a checkout, manifest, or
-   audit record that does not match the requested SHA.
+2. The promotion workflow receives the provenance-attested published-artifact
+   source commit, but checks out the current protected `main` governance
+   commit that contains the verifier and approval records. It rejects a
+   manifest, artifact source, audit record, or governance checkout that does
+   not match its declared role.
    Repository administrators must configure `npm-stable` with the required
    reviewers; selecting an environment in workflow YAML alone cannot create
    that repository-level protection.

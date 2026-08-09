@@ -12,7 +12,7 @@ on:
           - oidc
           - token
       release_commit:
-        description: 'Audited immutable main commit to promote'
+        description: 'Provenance-attested published artifact source commit to promote'
         required: true
         type: string
 
@@ -35,16 +35,16 @@ jobs:
       name: npm-stable
     timeout-minutes: 30
     steps:
-      - name: Checkout approved release commit
+      - name: Checkout current promotion governance commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_commit }}
+          ref: ${{ github.sha }}
 
-      - name: Verify approved main release commit
+      - name: Verify governance and published-artifact commits
         run: |
           test "$GITHUB_REF" = "refs/heads/main"
-          test "$(git rev-parse HEAD)" = "${{ inputs.release_commit }}"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git merge-base --is-ancestor "${{ inputs.release_commit }}" origin/main
 
       - name: Clear npm config before registry setup
@@ -80,7 +80,10 @@ jobs:
             --output reports/npm-v1-provenance-verification.json
 
       - name: Verify promotion authorization
-        run: pnpm verify:v1-promotion-authorization -- --commit "${{ inputs.release_commit }}"
+        run: |
+          pnpm verify:v1-promotion-authorization -- \
+            --commit "${{ inputs.release_commit }}" \
+            --governance-commit "$GITHUB_SHA"
 
       - name: Promote the complete cohort in dependency order
         env:

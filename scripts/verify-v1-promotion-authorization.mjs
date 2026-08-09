@@ -91,8 +91,10 @@ async function verifyReleaseApproval(approval, expectedCommit) {
 
 async function main() {
   const expectedCommit = option('--commit');
-  if (!expectedCommit || !/^[a-f0-9]{40}$/u.test(expectedCommit)) {
-    throw new Error('Usage: node scripts/verify-v1-promotion-authorization.mjs --commit <40-character SHA>');
+  const governanceCommit = option('--governance-commit');
+  if (!expectedCommit || !/^[a-f0-9]{40}$/u.test(expectedCommit)
+    || !governanceCommit || !/^[a-f0-9]{40}$/u.test(governanceCommit)) {
+    throw new Error('Usage: node scripts/verify-v1-promotion-authorization.mjs --commit <artifact source SHA> --governance-commit <checked-out SHA>');
   }
 
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
@@ -100,8 +102,11 @@ async function main() {
   if (manifest.status !== 'approved-for-stable') {
     errors.push(`Promotion requires approved-for-stable status, received ${String(manifest.status)}`);
   }
-  if (manifest.commit !== expectedCommit || currentCommit() !== expectedCommit) {
-    errors.push('Requested, manifest, and checked-out commits must match');
+  if (manifest.commit !== expectedCommit) {
+    errors.push('Manifest commit does not match the requested published-artifact source commit');
+  }
+  if (currentCommit() !== governanceCommit) {
+    errors.push('Checked-out governance commit does not match the requested governance commit');
   }
   errors.push(...await verifyAcceptedAudit(manifest.audit, expectedCommit));
   errors.push(...await verifyReleaseApproval(manifest.releaseApproval, expectedCommit));
@@ -120,7 +125,9 @@ async function main() {
   }
 
   if (errors.length > 0) throw new Error(errors.join('\n'));
-  console.log(JSON.stringify({ status: 'authorized', commit: expectedCommit, targets: manifest.promotionTargets }));
+  console.log(JSON.stringify({
+    status: 'authorized', artifactCommit: expectedCommit, governanceCommit, targets: manifest.promotionTargets,
+  }));
 }
 
 main().catch(error => {
