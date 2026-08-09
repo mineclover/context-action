@@ -12,9 +12,9 @@
   completed execution.
 - The development evidence bundles were generated from a dirty working tree.
   They demonstrate reproducibility but cannot certify an RC or final artifact.
-- External-consumer verification, npm provenance, and the independent audit
-  have not yet been performed. The release verdict therefore remains
-  `NOT READY`.
+- The published `next` consumer matrix and npm registry provenance verification
+  have passed, but the independent published-artifact audit has not yet been
+  performed. The release verdict therefore remains `NOT READY`.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
 affected gate before approving an RC.

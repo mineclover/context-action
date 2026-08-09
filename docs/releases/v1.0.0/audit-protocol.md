@@ -3,10 +3,14 @@
 **Status:** `prepared — not yet independently executed`  
 **Roadmap revision:** `v1-r2`
 
-The reviewer must be independent from the RC implementation work. Start from a
-clean checkout of the provenance-attested RC commit, install the exact packages
-from npm's `next` or `rc` tag in a fresh consumer, verify the strict evidence
-manifest, and record findings in `audit-report.md`. A passing development
+The reviewer must be independent from the RC implementation work. Inspect the
+provenance-attested artifact source commit
+`63f790a521e3428a7a2825677747338f8f05ccf3`, install the exact packages from
+npm's `next` tag in a fresh consumer, verify the registry provenance evidence
+and the separate strict governance-evidence manifest, and record findings in
+`audit-report.md`. The published artifact source and the later governance
+evidence commit are intentionally distinct: the latter validates release
+controls and does not rewrite immutable tarballs. A passing development
 manifest or a local tarball smoke is not a substitute for this review.
 
 | Required replay | Existing regression entry point | Reviewer result |
@@ -23,5 +27,8 @@ manifest or a local tarball smoke is not a substitute for this review.
 
 The auditor must also inspect the API diff, generated docs, registry tarball
 hashes, provenance source commit, candidate manifest, migration guide, security
-report, and external-consumer results. Any P0/P1 finding reopens the affected
-gate; only the auditor may set the audit result to accepted.
+report, and external-consumer results. The recorded npm CLI provenance check is
+`release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json`; rerun
+`pnpm verify:v1-published-provenance` rather than trusting its summary alone.
+Any P0/P1 finding reopens the affected gate; only the auditor may set the audit
+result to accepted.
