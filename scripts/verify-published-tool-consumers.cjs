@@ -104,12 +104,22 @@ function validVersion(value) {
     && /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/u.test(value);
 }
 
-function publishedVersion(name, tag) {
+function expectedPublishedVersion({ name, directory }) {
   const entry = Array.isArray(summary)
     ? summary.find((item) => item?.packageName === name)
     : undefined;
   if (validVersion(entry?.version)) return entry.version;
 
+  const packageManifest = JSON.parse(
+    readFileSync(path.join(repositoryRoot, directory, 'package.json'), 'utf8'),
+  );
+  if (!validVersion(packageManifest.version)) {
+    throw new Error(`Package manifest has an invalid version for ${name}: ${packageManifest.version}`);
+  }
+  return packageManifest.version;
+}
+
+function publishedVersion(name, tag, expectedVersion) {
   const output = execFileSync(
     'npm',
     ['view', tag ? `${name}@${tag}` : name, 'version', '--registry=https://registry.npmjs.org'],
@@ -118,14 +128,21 @@ function publishedVersion(name, tag) {
   if (!validVersion(output)) {
     throw new Error(`npm returned an invalid published version for ${name}: ${output}`);
   }
+  if (expectedVersion && output !== expectedVersion) {
+    throw new Error(
+      `npm dist-tag ${tag} for ${name} still resolves to ${output}; expected ${expectedVersion}`,
+    );
+  }
   return output;
 }
 
-function waitForPublishedVersion(name, tag) {
+function waitForPublishedVersion(packageDefinition, tag) {
+  const { name } = packageDefinition;
+  const expectedVersion = expectedPublishedVersion(packageDefinition);
   const attempts = 30;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const version = publishedVersion(name, tag);
+      const version = publishedVersion(name, tag, expectedVersion);
       if (attempt > 1) {
         process.stdout.write(`npm metadata became visible after ${attempt} attempts.\n`);
       }
@@ -328,8 +345,9 @@ function main() {
   try {
     const packageSpecs = local
       ? createLocalPackageSpecs(consumerRoot).filter(({ name }) => selectedPackages.some(pkg => pkg.name === name))
-      : selectedPackages.map(({ name }) => {
-          const version = waitForPublishedVersion(name, tag);
+      : selectedPackages.map((packageDefinition) => {
+          const { name } = packageDefinition;
+          const version = waitForPublishedVersion(packageDefinition, tag);
           return { name, spec: `${name}@${version}` };
         });
     packageSpecs.push(...consumerRuntimeDependencies);
