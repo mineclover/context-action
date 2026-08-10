@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
-**Status:** `APPROVED-FOR-STABLE — protected promotion pending`<br>
-**Baseline commit:** `1a77f373ade554fb959fe17aac7b7c1157aa74f5` (current single-maintainer governance evidence)<br>
+**Status:** `PROMOTED — stable surfaces at latest`<br>
+**Baseline commit:** `17d6ddb2ddd8c6e23078a38db0fd0eb2647c3666` (protected promotion dispatch commit)<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-10
 
@@ -82,11 +82,22 @@ remain fail-closed before any publication attempt.
 
 ## Immediate next work
 
-1. Run the protected `npm-stable` promotion under the documented
-   owner-authorized self-review exception; it will reverify source provenance
-   and the stable-surface consumer matrix.
-2. Record the captured post-promotion registry evidence before declaring the
-   promotion complete.
+1. Preserve the promotion artifact from protected workflow run `31347327623`
+   with its registry and provenance results.
+2. Review the v1 specification set against the now-stable package surfaces.
+
+## Stable promotion result
+
+Protected workflow run `31347327623` completed successfully on 2026-08-10.
+It reverified npm provenance for the published cohort, promoted only
+`@context-action/tool-protocol@1.0.0`, `@context-action/core@1.0.0`, and
+`@context-action/react@1.0.0`, waited for the exact `latest` metadata, and
+passed the CJS/ESM/NodeNext/React 18/19 consumer matrix. Captured artifacts are
+stored at `release-evidence/v1.0.0-stable-promotion-31347327623/`.
+
+`@context-action/webmcp` remains experimental: `latest` is the separately
+published hygiene patch `0.1.1`; its original `0.1.0` candidate remains on
+`next` and was not part of the stable-surface promotion.
 
 ## Development evidence
 

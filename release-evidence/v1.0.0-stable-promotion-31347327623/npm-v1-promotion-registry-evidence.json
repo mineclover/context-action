@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "context-action-published-release-evidence.v1",
+  "capturedAt": "2026-08-10T01:32:49.793Z",
+  "distTag": "latest",
+  "packages": {
+    "@context-action/core": {
+      "version": "1.0.0",
+      "integrity": "sha512-WVMCxAwZkoMTQZYgL9Ha7OqKWEQxu7Z9R6DnxcdLcFQXWEEDIVyzL4hKojTmMRwh1BFup7zirbfITSkX5vIEXQ==",
+      "tarball": "https://registry.npmjs.org/@context-action/core/-/core-1.0.0.tgz",
+      "sha256": "d83869e72cfbb46da0a581bf23bb77195f8fb0254dbe64ff6da98625b5837c08",
+      "publishedAt": "2026-08-09T10:13:18.315Z",
+      "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" },
+      "provenance": { "status": "pending-verification", "sourceCommit": null },
+      "externalConsumer": { "status": "passed" }
+    },
+    "@context-action/react": {
+      "version": "1.0.0",
+      "integrity": "sha512-35KHuhJ1liCkPUF7h2s9Nef/rtWkfYK1L3f30fioniK7aUFsBK4YoW+Yk73NKBqVpIW3XlWkeVJMoQPeuYozmQ==",
+      "tarball": "https://registry.npmjs.org/@context-action/react/-/react-1.0.0.tgz",
+      "sha256": "f5dae62522137ee912afff9e589e6381110a1ba807b0cd07853f5cab5d4306c3",
+      "publishedAt": "2026-08-09T10:13:35.051Z",
+      "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" },
+      "provenance": { "status": "pending-verification", "sourceCommit": null },
+      "externalConsumer": { "status": "passed" }
+    },
+    "@context-action/tool-protocol": {
+      "version": "1.0.0",
+      "integrity": "sha512-sOW7dwTajB+j0N0prU7T3fmnJaDkLzZNegRHr2y9pBoZuEeEaOv+olOBN7zRSzPYLBDCD8DyT/eN/SVq8F8Alg==",
+      "tarball": "https://registry.npmjs.org/@context-action/tool-protocol/-/tool-protocol-1.0.0.tgz",
+      "sha256": "8e8b1e67ca3854351f3f0a2bba16fa71f08d15530db971c22cdb3321193d06bf",
+      "publishedAt": "2026-08-09T10:13:10.741Z",
+      "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" },
+      "provenance": { "status": "pending-verification", "sourceCommit": null },
+      "externalConsumer": { "status": "passed" }
+    }
+  },
+  "notes": [
+    "Tarball SHA-256 and registry metadata were read after publication.",
+    "The adjacent provenance artifact independently verifies the source commit for the complete published cohort."
+  ]
+}
