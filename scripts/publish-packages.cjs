@@ -81,7 +81,8 @@ function publishScopedPackages() {
 
   function ensureDistTag(manifest, packageDirectory) {
     let tags;
-    for (let attempt = 1; attempt <= 6; attempt += 1) {
+    const attempts = 12;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
       const tagsResult = commandSucceeded(
         'npm',
         ['view', manifest.name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'],
@@ -90,7 +91,10 @@ function publishScopedPackages() {
         tags = JSON.parse(tagsResult.stdout);
         break;
       }
-      if (attempt < 6) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10_000);
+      if (attempt < attempts) {
+        process.stdout.write(`Waiting for npm dist-tags (${attempt}/${attempts - 1})...\n`);
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10_000);
+      }
     }
     if (!tags) throw new Error(`Could not read dist-tags for ${manifest.name}`);
     if (tags[distTag] === manifest.version) return;
