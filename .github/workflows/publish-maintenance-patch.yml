@@ -200,11 +200,16 @@ jobs:
           previous_latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry=https://registry.npmjs.org 2>/dev/null || true)"
           if [ -n "$previous_latest" ]; then
             [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-            test "$previous_latest" != "$PACKAGE_VERSION"
+            if [ "$previous_latest" = "$PACKAGE_VERSION" ]; then
+              echo 'LATEST_ALREADY_PROMOTED=true' >> "$GITHUB_ENV"
+              echo "Latest already resolves to verified candidate $PACKAGE_NAME@$PACKAGE_VERSION."
+              exit 0
+            fi
           fi
           echo "PREVIOUS_LATEST=$previous_latest" >> "$GITHUB_ENV"
 
       - name: Promote verified candidate to latest
+        if: env.LATEST_ALREADY_PROMOTED != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |

@@ -95,6 +95,7 @@ for (const required of [
   'verify-ai-sdk-tool-protocol-contract.mjs --published --version "$PACKAGE_VERSION"',
   'verify-maintenance-patch-provenance.mjs',
   'Record previous latest tag',
+  'LATEST_ALREADY_PROMOTED=true',
   'Promote verified candidate to latest',
   'verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE"',
   'capture:published-release -- --tag latest --packages "$PACKAGE_NAME"',
