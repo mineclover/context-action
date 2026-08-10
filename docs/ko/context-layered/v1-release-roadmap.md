@@ -46,7 +46,7 @@ legacy 표면은 0.9.x 안정화 라인에서 아래 셋 중 하나만 선택할
 `63f790a521e3428a7a2825677747338f8f05ccf3`에서 `next`로 발행됐고, protected
 promotion run `31347327623`이 Core·React·Tool Protocol `1.0.0`을 `latest`로
 승격했다. 현재 default channel은 `@context-action/tool-protocol@1.0.1`과
-`@context-action/webmcp@0.1.1`의 사후 patch까지 반영한다. 정확한 historical
+`@context-action/webmcp@0.1.2`의 사후 patch까지 반영한다. 정확한 historical
 artifact, promotion, current registry 상태는
 [`release-manifest.json`](../../releases/v1.0.0/release-manifest.json)이 소유한다.
 

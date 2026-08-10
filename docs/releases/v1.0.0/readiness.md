@@ -94,9 +94,9 @@ It preserved `next=1.0.0` and `rc=1.0.0-rc.0`, passed the exact-version
 consumer check, and has independently verified npm attestation provenance at
 `release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/`.
 
-WebMCP remains excluded from the stable set: its versioned hygiene patch
-`0.1.1` owns its `latest` tag while the immutable `0.1.0` candidate remains
-on `next`.
+WebMCP remains excluded from the stable set: protected maintenance run
+`31364068737` published its versioned changelog correction `0.1.2` to
+`latest`, while the immutable `0.1.0` candidate remains on `next`.
 
 No document alone authorizes a release to `latest`; the protected workflow is
 the only path that can mutate stable tags.

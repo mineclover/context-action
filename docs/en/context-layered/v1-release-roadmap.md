@@ -51,7 +51,7 @@ cohort was published to `next` from
 `63f790a521e3428a7a2825677747338f8f05ccf3`, and protected promotion run
 `31347327623` promoted Core, React, and Tool Protocol `1.0.0` to `latest`.
 The current default channel also includes the post-release
-`@context-action/tool-protocol@1.0.1` and `@context-action/webmcp@0.1.1`
+`@context-action/tool-protocol@1.0.1` and `@context-action/webmcp@0.1.2`
 patches. [release-manifest.json](../../releases/v1.0.0/release-manifest.json)
 owns the exact historical artifact, promotion, and current registry records.
 
