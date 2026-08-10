@@ -42,9 +42,12 @@ and command results/artifact hashes belong in
   inventory, workflow-contract validation, and a governed-file fingerprint
   that includes the stable-consumer verifier. Its SHA-256 and fingerprint are
   bound in the manifest.
-- `@context-action/tool-protocol@1.0.0` has the accepted bundled-CHANGELOG
-  limitation recorded in the manifest and known-limitations document. A patch
-  cohort is required if bundled release notes are a certification requirement.
+- The immutable `@context-action/tool-protocol@1.0.0` tarball had a stale
+  bundled `CHANGELOG.md`. The protected packaging-only correction
+  `@context-action/tool-protocol@1.0.1` now owns `latest`, preserved
+  `next=1.0.0` and `rc=1.0.0-rc.0`, passed the exact-version consumer check,
+  and has independently verified npm attestation provenance. Evidence is in
+  `release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/`.
 - A successful `latest` tag mutation with failed registry-evidence capture is
   represented as `promotion-evidence-pending`, never as `promoted`. That state
   is retriable but still blocks release declaration until fresh evidence is
@@ -89,10 +92,12 @@ remain fail-closed before any publication attempt.
 ## Stable promotion result
 
 Protected workflow run `31347327623` completed successfully on 2026-08-10.
-It reverified npm provenance for the published cohort, promoted only
+It reverified npm provenance for the published cohort, promoted
 `@context-action/tool-protocol@1.0.0`, `@context-action/core@1.0.0`, and
 `@context-action/react@1.0.0`, waited for the exact `latest` metadata, and
-passed the CJS/ESM/NodeNext/React 18/19 consumer matrix. Captured artifacts are
+passed the CJS/ESM/NodeNext/React 18/19 consumer matrix. The later protected
+Tool Protocol `1.0.1` packaging correction owns `latest`; it changes neither
+the runtime API nor declaration contract. Captured promotion artifacts are
 stored at `release-evidence/v1.0.0-stable-promotion-31347327623/`.
 
 `@context-action/webmcp` remains experimental: `latest` is the separately

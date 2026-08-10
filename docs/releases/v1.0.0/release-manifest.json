@@ -127,7 +127,5 @@
     "Use the protected promotion workflow, which re-verifies npm provenance, the stable-surface consumer matrix, registry hygiene, and the current governance fingerprint before changing latest.",
     "Record post-promotion registry evidence before declaring the stable promotion complete."
   ],
-  "acceptedLimitations": [
-    "tool-protocol@1.0.0 includes a bundled CHANGELOG.md whose newest entry is 0.8.9; canonical v1.0.0 release notes are the repository and GitHub release documents. This does not affect runtime or declaration artifacts."
-  ]
+  "acceptedLimitations": []
 }

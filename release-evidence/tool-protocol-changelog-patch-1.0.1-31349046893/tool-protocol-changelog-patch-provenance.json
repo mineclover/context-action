@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "context-action-tool-protocol-changelog-patch-provenance.v1",
+  "status": "verified",
+  "recordedAt": "2026-08-10T02:14:26Z",
+  "verifier": "npm audit signatures --include-attestations",
+  "package": {
+    "name": "@context-action/tool-protocol",
+    "version": "1.0.1",
+    "sourceCommit": "8295e17a71fdec2ae109aa04561d4c992d907dfa",
+    "workflow": {
+      "repository": "https://github.com/mineclover/context-action",
+      "ref": "refs/heads/main",
+      "path": ".github/workflows/publish-tool-protocol-changelog-patch.yml",
+      "run": "https://github.com/mineclover/context-action/actions/runs/31349046893/attempts/1"
+    },
+    "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2ftool-protocol@1.0.1"
+  }
+}

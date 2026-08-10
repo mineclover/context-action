@@ -15,9 +15,10 @@ protected promotion workflow remained the only mutation path.
   `release-evidence/v1.0.0-stable-promotion-31347327623/`.
 - Public export, migration, lifecycle, React/WebMCP isolation, documentation,
   consumer, security, and provenance checks passed.
-- Open P0/P1 findings: none. The only non-runtime artifact issue is the
-  Tool Protocol 1.0.0 bundled CHANGELOG, with a protected 1.0.1 correction in
-  progress.
+- Open P0/P1 findings: none. The Tool Protocol 1.0.0 bundled-CHANGELOG issue
+  was resolved by protected packaging-only patch `1.0.1`; its exact-version
+  consumer and npm attestation provenance evidence are recorded at
+  `release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/`.
 - Verdict: `READY` for the promoted v1 stable surfaces.
 
 ## Optional record

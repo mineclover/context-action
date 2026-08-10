@@ -16,12 +16,14 @@
   have passed. The single-maintainer policy does not impose an unavailable
   independent-auditor gate; future promotions remain protected by automated
   checks.
-- `@context-action/tool-protocol@1.0.0` bundles a `CHANGELOG.md` whose newest
-  entry is `0.8.9`. The immutable artifact cannot be repaired in place. The
-  protected `@context-action/tool-protocol@1.0.1` packaging correction is
-  implemented and awaits publication; it changes no runtime API or declaration
-  contract and will replace `latest` only after exact-version consumer and
-  registry checks pass.
+- The immutable `@context-action/tool-protocol@1.0.0` artifact bundles a
+  `CHANGELOG.md` whose newest entry is `0.8.9`; it cannot be repaired in
+  place. Protected packaging-only patch `@context-action/tool-protocol@1.0.1`
+  resolved the distribution-facing issue, owns `latest`, preserves
+  `next=1.0.0` and `rc=1.0.0-rc.0`, and changes no runtime API or declaration
+  contract. Its exact-version consumer and npm attestation provenance evidence
+  are recorded at
+  `release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/`.
 - The accidental WebMCP RC `latest` tag has been replaced by the protected
   `@context-action/webmcp@0.1.1` hygiene patch. Run `31341251251` recorded
   `latest=0.1.1`, `next=0.1.0`, `rc=0.1.0-rc.0`, and a passing external

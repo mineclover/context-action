@@ -87,6 +87,13 @@ passed the exact-version CJS/ESM/NodeNext/React 18/19 consumer matrix, and
 captured fresh registry plus provenance evidence at
 `release-evidence/v1.0.0-stable-promotion-31347327623/`.
 
+The immutable Tool Protocol `1.0.0` archive had a stale bundled changelog.
+Protected workflow run `31349046893` published the packaging-only
+`@context-action/tool-protocol@1.0.1` correction, which now owns `latest`.
+It preserved `next=1.0.0` and `rc=1.0.0-rc.0`, passed the exact-version
+consumer check, and has independently verified npm attestation provenance at
+`release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/`.
+
 WebMCP remains excluded from the stable set: its versioned hygiene patch
 `0.1.1` owns its `latest` tag while the immutable `0.1.0` candidate remains
 on `next`.
