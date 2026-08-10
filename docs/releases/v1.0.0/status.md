@@ -1,7 +1,7 @@
 # Context-Action v1.0.0 Release Status
 
-**Status:** `APPROVED-FOR-STABLE — protected promotion pending`<br>
-**Baseline commit:** `78f1adbf236c69b1500cef7dc7e7277182270b85` (current single-maintainer governance evidence)<br>
+**Status:** `OWNER-OPERATED — governance evidence refresh pending`<br>
+**Baseline commit:** `d62072d692378e59adbdd7679299f2a60d97161c` (stable consumer verifier added to the governance fingerprint)<br>
 **Roadmap revision:** `v1-r2`<br>
 **Last synchronized:** 2026-08-10
 
@@ -15,12 +15,12 @@ and command results/artifact hashes belong in
 | --- | --- | --- |
 | G0 Scope/versioning | `documented` | owner-maintained scope, version map, and inventory are recorded |
 | G1 Public API | `documented` | contract candidates and legacy outcomes are documented in the release set |
-| G2 Core execution | `verified` | current governance bundle and immutable registry provenance are recorded |
-| G3 Lifecycle/metrics | `verified` | lifecycle checks are included in the clean governance bundle |
-| G4 React contract | `verified` | React 18.3.1/19.2.8 packed SSR checks and registry provenance are recorded |
-| G5 Tool adapters | `verified` | Tool Protocol/AI SDK checks are recorded; WebMCP remains experimental |
-| G6 Consumer packages | `verified` | published `next` CJS/ESM/NodeNext/React 18/19 matrix and npm provenance passed |
-| G7 Docs/migration | `verified` | canonical scope, migration, and owner-operated release controls are current |
+| G2 Core execution | `partial` | immutable registry provenance is recorded; current governance evidence refresh is pending |
+| G3 Lifecycle/metrics | `partial` | lifecycle checks will be recaptured in the refreshed clean governance bundle |
+| G4 React contract | `partial` | React 18.3.1/19.2.8 packed SSR checks are recorded; current promotion controls await refresh |
+| G5 Tool adapters | `partial` | Tool Protocol/AI SDK checks are recorded; WebMCP remains experimental |
+| G6 Consumer packages | `partial` | consumer verifier is now fingerprinted; capture fresh evidence before promotion |
+| G7 Docs/migration | `partial` | release controls changed and require fresh clean evidence |
 | G8 Owner self-review | `documented` | reproducible verification and optional owner review replace an unavailable independent-auditor gate |
 | G9 Security/supply chain | `partial` | clean local supply-chain and npm registry provenance reports are recorded |
 
@@ -37,10 +37,9 @@ and command results/artifact hashes belong in
   `mineclover` reviewer, permits the documented owner-authorized self-review
   exception, and disallows administrator bypass. It is the protected
   stable-release environment used by both guarded publication workflows.
-- `release-evidence/v1.0.0-78f1adbf-solo-governance-1/manifest.json` is the
-  current clean governance bundle. It records successful release checks,
-  inventory, workflow-contract validation, and the current governed-file
-  fingerprint. Its SHA-256 and fingerprint are bound in the manifest.
+- The stable-consumer verifier is now part of the governed-file fingerprint.
+  That control change intentionally invalidates the prior approval binding;
+  capture a new clean governance bundle before promotion.
 - `@context-action/tool-protocol@1.0.0` has the accepted bundled-CHANGELOG
   limitation recorded in the manifest and known-limitations document. A patch
   cohort is required if bundled release notes are a certification requirement.
@@ -81,10 +80,11 @@ remain fail-closed before any publication attempt.
 
 ## Immediate next work
 
-1. Run the protected `npm-stable` promotion under the documented
-   owner-authorized self-review exception;
-   it will reverify source provenance and the stable-surface consumer matrix.
-2. Record the captured post-promotion registry evidence before declaring the
+1. Generate and bind strict governance evidence for the current fingerprint.
+2. Run the protected `npm-stable` promotion under the documented
+   owner-authorized self-review exception; it will reverify source provenance
+   and the stable-surface consumer matrix.
+3. Record the captured post-promotion registry evidence before declaring the
    promotion complete.
 
 ## Development evidence
@@ -101,15 +101,11 @@ certification.
 
 ## Current clean governance evidence
 
-`release-evidence/v1.0.0-78f1adbf-solo-governance-1/manifest.json` was
-generated from clean commit `78f1adbf236c69b1500cef7dc7e7277182270b85`.
-Its release check, inventory, workflow-contract validation, and governed-file
-fingerprint commands passed. The bundle SHA-256 is
-`b0e7e7ea78584d6979059c65cfde5aff8bf5139c3d0821a32a4103d29acc0d16`; the
-promotion-governance fingerprint is
-`7544c478f3548dedc69e8e03263961ddf75c8a5bd0e46900120f526b7f924b49`.
-These values are bound in the manifest and authorize only the protected
-stable-surface promotion; post-promotion evidence remains required.
+`release-evidence/v1.0.0-78f1adbf-solo-governance-1/manifest.json` remains
+historical evidence for its recorded controls. The consumer-verifier change at
+`d62072d692378e59adbdd7679299f2a60d97161c` changes the governed-file
+fingerprint, so this record no longer authorizes promotion. A new bundle must
+be bound in the manifest before the protected stable-surface promotion.
 
 ## Historical clean pre-RC evidence
 
