@@ -1,6 +1,6 @@
 # v1.0.0 Release Readiness Report
 
-**Verdict:** `OWNER-OPERATED — promotion not yet dispatched`
+**Verdict:** `APPROVED-FOR-STABLE — protected promotion pending`
 **Roadmap revision:** `v1-r2`
 
 This report links the current implementation work to the release gates. The
@@ -47,14 +47,12 @@ documentation changed after the recorded commit.
 
 ## Current clean governance verification
 
-`v1.0.0-eef7af18-governance-prepublish-1` records a successful full
-`pnpm release:check` (209677 ms), release inventory, manifest validation,
-workflow-contract validation, roadmap alignment, and governed-file fingerprint
-from clean commit `eef7af18639dc2431e95e2f68b4489bb368a2c16`. Its manifest
-SHA-256 and fingerprint are recorded in `release-manifest.json`, and it passes
-strict `--require-success` verification at that checkout. It verifies the
-guarded workflow and release-process configuration; it does not retroactively
-alter or certify the immutable npm tarballs published before those controls.
+`v1.0.0-78f1adbf-solo-governance-1` records successful release checks,
+inventory, workflow-contract validation, and a governed-file fingerprint from
+clean commit `78f1adbf236c69b1500cef7dc7e7277182270b85`. Its manifest SHA-256
+and fingerprint are recorded in `release-manifest.json`. It verifies the
+single-maintainer guarded workflow and authorizes the protected promotion; it
+does not retroactively alter the immutable npm tarballs.
 
 The 2026-08-10 WebMCP tag-hygiene rehearsals showed that `dist-tag rm` is not
 an authorized recovery mechanism. The protected `0.1.1` hygiene patch was
@@ -81,12 +79,11 @@ metadata. A release defect requires a corrected patch version.
 
 ## Remaining release blockers
 
-1. Generate and record strict evidence for the final governance commit and
-   promotion-governance fingerprint; this documents the release process but
-   does not alter the immutable published tarballs.
-2. When the owner elects to ship, move the manifest to `approved-for-stable`
-   and run the guarded `latest` promotion. The workflow performs provenance,
-   stable-consumer, rollback, and evidence checks without a second reviewer.
+1. Run the guarded `latest` promotion under the owner-authorized self-review
+   exception. The workflow performs provenance, stable-consumer, rollback,
+   and evidence checks without a second reviewer.
+2. Commit the captured promotion evidence and advance the manifest to
+   `promoted` only after its registry checks succeed.
 
 No document alone authorizes a release to `latest`; the protected workflow is
 the only path that can mutate stable tags.
