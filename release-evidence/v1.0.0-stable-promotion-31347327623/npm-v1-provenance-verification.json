@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "context-action-v1-provenance-verification.v1",
+  "status": "verified",
+  "verifier": "npm audit signatures --include-attestations",
+  "verifiedAt": "2026-08-10T01:32:25.626Z",
+  "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+  "packages": [
+    { "name": "@context-action/core", "version": "1.0.0", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "workflow": { "repository": "https://github.com/mineclover/context-action", "path": ".github/workflows/publish-v1-stable-candidate.yml", "ref": "refs/heads/main" }, "run": "https://github.com/mineclover/context-action/actions/runs/31307576721/attempts/1", "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2fcore@1.0.0" },
+    { "name": "@context-action/react", "version": "1.0.0", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "workflow": { "repository": "https://github.com/mineclover/context-action", "path": ".github/workflows/publish-v1-stable-candidate.yml", "ref": "refs/heads/main" }, "run": "https://github.com/mineclover/context-action/actions/runs/31307576721/attempts/1", "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2freact@1.0.0" },
+    { "name": "@context-action/tool-protocol", "version": "1.0.0", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "workflow": { "repository": "https://github.com/mineclover/context-action", "path": ".github/workflows/publish-v1-stable-candidate.yml", "ref": "refs/heads/main" }, "run": "https://github.com/mineclover/context-action/actions/runs/31307576721/attempts/1", "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2ftool-protocol@1.0.0" },
+    { "name": "@context-action/webmcp", "version": "0.1.0", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "workflow": { "repository": "https://github.com/mineclover/context-action", "path": ".github/workflows/publish-v1-stable-candidate.yml", "ref": "refs/heads/main" }, "run": "https://github.com/mineclover/context-action/actions/runs/31307576721/attempts/1", "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2fwebmcp@0.1.0" }
+  ]
+}

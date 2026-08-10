@@ -1,6 +1,6 @@
 # v1.0.0 Release Readiness Report
 
-**Verdict:** `APPROVED-FOR-STABLE — protected promotion pending`
+**Verdict:** `PROMOTED — stable surfaces at latest`
 **Roadmap revision:** `v1-r2`
 
 This report links the current implementation work to the release gates. The
@@ -79,13 +79,17 @@ This publication predates the protected publish authorization gate. The final
 versions are immutable; do not republish them to “repair” documentation or
 metadata. A release defect requires a corrected patch version.
 
-## Remaining release blockers
+## Stable promotion result
 
-1. Run the guarded `latest` promotion under the owner-authorized self-review
-   exception. The workflow performs provenance, stable-consumer, rollback,
-   and evidence checks without a second reviewer.
-2. Commit the captured promotion evidence and advance the manifest to
-   `promoted` only after its registry checks succeed.
+The protected promotion workflow run `31347327623` completed successfully on
+2026-08-10. It promoted Core, React, and Tool Protocol `1.0.0` to `latest`,
+passed the exact-version CJS/ESM/NodeNext/React 18/19 consumer matrix, and
+captured fresh registry plus provenance evidence at
+`release-evidence/v1.0.0-stable-promotion-31347327623/`.
+
+WebMCP remains excluded from the stable set: its versioned hygiene patch
+`0.1.1` owns its `latest` tag while the immutable `0.1.0` candidate remains
+on `next`.
 
 No document alone authorizes a release to `latest`; the protected workflow is
 the only path that can mutate stable tags.
