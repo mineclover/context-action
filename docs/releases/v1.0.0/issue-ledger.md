@@ -1,6 +1,6 @@
 # v1.0.0 Delivery Issue Ledger
 
-**Status:** `v1 stable promotion complete; artifact correction in progress`
+**Status:** `v1 stable promotion and artifact correction complete`
 **Roadmap revision:** `v1-r2`
 
 | ID | Scope | Implementation state | Remaining release condition |
@@ -16,7 +16,7 @@
 | CA-1X-MIGRATION-001 | 0.9 consumer migration | Packed Core fixture and release migration guide verified | Maintain for future breaking changes |
 | CA-1X-LOCALIZE-001 | EN canonical/KO governance | Alignment verifier passed | Govern future release-document changes |
 | CA-1X-RELEASE-001 | Publish/recovery | Protected promotion, provenance, rollback, and evidence completed | Use the protected path for future promotions |
-| CA-1X-ARTIFACT-001 | Tool Protocol bundled CHANGELOG | `1.0.1` packaging correction implemented | Publish the protected `@context-action/tool-protocol@1.0.1` patch and capture evidence |
+| CA-1X-ARTIFACT-001 | Tool Protocol bundled CHANGELOG | Protected `1.0.1` correction published; consumer and attestation provenance verified | Closed; rerun the source-and-tarball changelog verifier for a future Tool Protocol release |
 
 No row authorizes a direct tag mutation. The protected workflow is the only
 stable-promotion path; issue URLs and owner notes remain optional history.

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "context-action-published-release-evidence.v1",
+  "capturedAt": "2026-08-10T02:11:23.929Z",
+  "distTag": "latest",
+  "packages": {
+    "@context-action/tool-protocol": {
+      "version": "1.0.1",
+      "integrity": "sha512-OGdUe0l83UeH21zvq9XkzlDd3/BpC2Y75QkKX/q4owRQeII68ngfC6S362ANtgLSzywLBLfl4iaxTo1mK1jDnQ==",
+      "tarball": "https://registry.npmjs.org/@context-action/tool-protocol/-/tool-protocol-1.0.1.tgz",
+      "sha256": "eb2b5561c9e545c12eb94d31d094a107bec5995ca15650016e21e5680211c079",
+      "publishedAt": "2026-08-10T02:11:07.109Z",
+      "distTags": {
+        "rc": "1.0.0-rc.0",
+        "latest": "1.0.1",
+        "next": "1.0.0"
+      },
+      "provenance": {
+        "status": "pending-verification",
+        "sourceCommit": null
+      },
+      "externalConsumer": {
+        "status": "passed"
+      }
+    }
+  },
+  "notes": [
+    "Tarball SHA-256 and registry metadata were read after publication.",
+    "Provenance status remains pending until the npm attestation source commit is independently verified."
+  ]
+}
