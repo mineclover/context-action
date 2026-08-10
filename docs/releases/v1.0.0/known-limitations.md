@@ -1,6 +1,6 @@
-# v1.0.0 Candidate Known Limitations
+# v1.0.0 Known Limitations
 
-**Status:** `owner-operated candidate — not yet promoted`
+**Status:** `owner-operated promoted release`
 **Roadmap revision:** `v1-r2`
 
 - `@context-action/react/webmcp` and `@context-action/webmcp` are experimental
@@ -12,9 +12,10 @@
   completed execution.
 - The development evidence bundles were generated from a dirty working tree.
   They demonstrate reproducibility but cannot certify an RC or final artifact.
-- The published `next` consumer matrix and npm registry provenance verification
+- The promoted `latest` consumer matrix and npm registry provenance verification
   have passed. The single-maintainer policy does not impose an unavailable
-  independent-auditor gate; promotion remains protected by automated checks.
+  independent-auditor gate; future promotions remain protected by automated
+  checks.
 - `@context-action/tool-protocol@1.0.0` bundles a `CHANGELOG.md` whose newest
   entry is `0.8.9`. The immutable artifact cannot be repaired in place; the
   canonical v1.0.0 notes are this release document set and the GitHub release.
@@ -29,4 +30,4 @@
   stable-promotion target set.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
-affected gate before approving an RC.
+affected gate before preparing a future stable patch or minor.

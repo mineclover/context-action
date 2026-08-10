@@ -1,17 +1,17 @@
 # v1.0.0 Scope and Versioning Candidates
 
-**Status:** `documented — owner operated`
+**Status:** `promoted — owner operated`
 **Roadmap revision:** `v1-r2`
 
-This document is the decision record for G0. It does not authorize publishing
-or change any package version. Generate the current package and subpath input
-with `pnpm release:inventory`; record the resulting JSON in a clean RC
-evidence bundle before the owner elects to publish.
+This document is the decision record for G0. It does not itself mutate a
+package version or npm tag. Generate the current package and subpath input with
+`pnpm release:inventory`; retain that inventory in clean release evidence when
+preparing a future stable patch or minor.
 
-The v1.0.0 cohort recorded in the release manifest was published before the
-protected authorization gate was introduced. That historical fact does not
-approve its contract or authorize `latest`; it remains subject to the
-provenance and automated promotion checks in the release status.
+The v1.0.0 cohort was published before the protected authorization gate was
+introduced, then promoted through the protected workflow after provenance,
+consumer, rollback, hygiene, and governance checks passed. The release
+manifest and promotion artifact record the resulting stable tags.
 
 ## Candidate scope
 
@@ -41,7 +41,7 @@ declared support range and exact tested version before release authorization.
 - Keep the package/subpath classification current.
 - Keep the target version map and release order current, including unpublished
   internal dependency versions.
-- Record a clean, immutable G0 evidence manifest with the inventory and the
-  final package metadata.
-- Do not publish `latest` outside the protected workflow. The workflow rechecks
+- Record a clean, immutable G0 evidence manifest with the inventory and final
+  package metadata before each future stable promotion.
+- Do not publish or retag `latest` outside the protected workflow. It rechecks
   provenance, stable-surface consumers, rollback eligibility, and evidence.
