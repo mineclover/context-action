@@ -9,6 +9,7 @@ Welcome to the Context-Action framework user guide! This comprehensive documenta
 - **[Pipeline System](./pipeline/)** - Understanding the action processing system
 - **[Hook Lifecycle](./lifecycle/)** - React hooks reference and internal behavior
 - **[Best Practices](./best-practices.md)** - Recommended patterns and conventions
+- **[React Aria Integration](./react-aria-integration.md)** - Keep accessible component state local and connect domain decisions to Context-Action
 - **[Troubleshooting](./troubleshooting.md)** - Common issues and memory management
 
 ## 🎯 Pattern Collection

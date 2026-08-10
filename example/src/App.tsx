@@ -239,6 +239,9 @@ const ActionLifecycleWorkbenchPage = lazy(
   () =>
     import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
 );
+const ReactAriaReferencePage = lazy(
+  () => import('./pages/integrations/react-aria/ReactAriaReferencePage')
+);
 const LiveCodeEditorPage = lazy(
   () => import('./pages/integrations/live-code-editor/LiveCodeEditorPage')
 );
@@ -574,6 +577,10 @@ function AppContent() {
             <Route
               path="/integrations/action-lifecycle"
               element={<ActionLifecycleWorkbenchPage />}
+            />
+            <Route
+              path="/integrations/react-aria-reference"
+              element={<ReactAriaReferencePage />}
             />
             <Route
               path="/integrations/live-code-editor"
