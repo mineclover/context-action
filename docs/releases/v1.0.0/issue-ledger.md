@@ -1,7 +1,7 @@
 # v1.0.0 Delivery Issue Ledger
 
 **Status:** `v1 stable promotion and artifact correction complete`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 | ID | Scope | Implementation state | Remaining release condition |
 | --- | --- | --- | --- |

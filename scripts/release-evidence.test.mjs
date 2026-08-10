@@ -56,7 +56,7 @@ test('verifier detects evidence tampering', async () => {
     await mkdir(logDirectory, { recursive: true });
     await writeFile(path.join(logDirectory, 'test.log'), 'original\n', 'utf8');
     const manifest = {
-      schemaVersion: 'context-action-release-evidence.v1', release: 'context-action-v1.0.0', stage: path.basename(directory), commit: 'test', roadmapRevision: 'v1-r2', status: 'recorded', generatedAt: '2026-08-09T00:00:00.000Z',
+      schemaVersion: 'context-action-release-evidence.v1', release: 'context-action-v1.0.0', stage: path.basename(directory), commit: 'test', roadmapRevision: 'v1-r3', status: 'recorded', generatedAt: '2026-08-09T00:00:00.000Z',
       workingTree: 'clean', environment: { node: 'v24', pnpm: '10', typescript: '6' },
       commands: [{ id: 'test', command: 'true', startedAt: '2026-08-09T00:00:00.000Z', completedAt: '2026-08-09T00:00:00.000Z', durationMs: 0, exitCode: 0, status: 'passed', log: { path: 'logs/test.log', sha256: '0'.repeat(64) } }],
       artifacts: [], notes: ['test'],

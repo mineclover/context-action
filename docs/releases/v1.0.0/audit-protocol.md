@@ -1,7 +1,7 @@
 # v1.0.0 Optional Release-Review Protocol
 
 **Status:** `completed owner self-review — supplemental`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 The release owner may perform this review when additional confidence is useful. Inspect the
 provenance-attested artifact source commit

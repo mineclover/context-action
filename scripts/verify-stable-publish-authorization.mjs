@@ -24,17 +24,18 @@ async function main() {
   }
 
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const artifactCohort = manifest.artifactCohort ?? {};
   const errors = [];
   if (manifest.status !== 'candidate-approved-for-publish') {
     errors.push(`Publish requires candidate-approved-for-publish status, received ${String(manifest.status)}`);
   }
-  if (manifest.commit !== expectedCommit) {
+  if (artifactCohort.commit !== expectedCommit) {
     errors.push('Manifest commit does not match the requested release commit');
   }
   if (currentCommit() !== expectedCommit) {
     errors.push('Checked-out commit does not match the requested release commit');
   }
-  if (manifest.distTag !== null || manifest.registryEvidence !== null) {
+  if (artifactCohort.distTag !== null || artifactCohort.registryEvidence !== null) {
     errors.push('Pre-publication authorization must not include published-artifact evidence');
   }
   if (errors.length > 0) throw new Error(errors.join('\n'));

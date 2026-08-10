@@ -1,25 +1,38 @@
 # v1.0.0 Publish and Recovery Runbook
 
-**Status:** `prepared — owner-operated execution`
-**Roadmap revision:** `v1-r2`
+**Status:** `historical v1 execution; maintenance workflow active`
+**Roadmap revision:** `v1-r3`
 
-## Existing v1.0.0 registry cohort
+## Current maintenance
+
+Do not rerun an archived v1 publication, hygiene, or promotion workflow. A new
+Tool Protocol or WebMCP patch must use `Publish Package Maintenance Patch`.
+It accepts only a new immutable `main` commit, validates the source and packed
+changelog, publishes one versioned package to `latest`, and then installs the
+complete reverse-dependency closure (`core`, `react`, `tool-protocol`, and
+`webmcp`) in CJS, ESM, NodeNext, and React 18/19 SSR consumers.
+
+After a successful run, record its evidence hash under `postReleasePatches`
+and refresh `currentRegistryState` in `release-manifest.json`. Do not edit the
+historical `artifactCohort` to describe a later package patch.
+
+`@context-action/webmcp@0.1.2` is the prepared packaging correction for the
+immutable `0.1.1` bundled Changelog. It is not part of `currentRegistryState`
+until the protected workflow publishes it and the captured registry evidence is
+committed.
+
+## Historical v1.0.0 registry cohort
 
 `@context-action/core@1.0.0`, `@context-action/react@1.0.0`,
 `@context-action/tool-protocol@1.0.0`, and `@context-action/webmcp@0.1.0`
 are already published under `next`. They were published before this protected
-authorization workflow existed and are immutable. Their current state is
-`published-unapproved`: npm cryptographically verified the registry signatures
-and SLSA provenance for all four packages. Do not invoke the stable-candidate
-workflow again for these versions. Use the guarded promotion workflow when the
-owner elects to ship, or publish a corrected patch for a release defect.
+authorization workflow existed and are immutable. They were later promoted and
+are retained here as historical release evidence. Do not invoke the
+stable-candidate workflow again for these versions.
 
 The accidental `@context-action/webmcp@0.1.0-rc.0` `latest` tag was corrected
-by publishing `@context-action/webmcp@0.1.1` through **Publish WebMCP Hygiene
-Patch**, not by deleting a dist-tag. The protected workflow requires the exact
-confirmation `publish-webmcp-0.1.1`, an immutable main commit, and a successful
-`npm whoami` before it builds, tests, and publishes that one package with the
-normal npm `latest` publish behavior. It then verifies that `latest` is
+by publishing `@context-action/webmcp@0.1.1` through an archived one-off
+workflow, not by deleting a dist-tag. That workflow verified that `latest` is
 `0.1.1`, preserves the existing `next`/`rc` records for `0.1.0`, and uploads
 registry and consumer evidence. Do not run a broad dist-tag command from a
 local shell. Publication run `31340779674` completed the versioned publish;
@@ -31,6 +44,8 @@ The existing `0.1.0` WebMCP record remains immutable evidence for the published
 `next` cohort. The separately published `0.1.1` hygiene patch owns WebMCP
 `latest`; because WebMCP is experimental, it is intentionally excluded from
 the v1 stable-promotion target set.
+
+## Historical v1 execution record (do not rerun)
 
 1. Confirm the documented scope, a clean strict evidence manifest, and exact
    tarball hashes for the owner-selected release commit. Move
@@ -89,7 +104,7 @@ the v1 stable-promotion target set.
 6. Move the manifest to `approved-for-stable` after the required automated
    evidence is recorded. An optional owner self-review may be retained as
    history, but is not a gate.
-7. Invoke the dedicated `Promote V1 to Latest` workflow. It promotes only the
+7. The dedicated v1 promotion workflow promoted only the
    stable-surface targets in dependency order, reruns the `latest` consumer matrix, and uploads
    promotion evidence. Before changing a tag it records each package's prior
    `latest` value; if a promotion command or the required `latest` consumer
@@ -145,8 +160,9 @@ versions in an isolated consumer before completing.
 It must not be replaced with the general `Publish Packages` workflow: that
 workflow uses a fixed allow-list of non-v1 packages, so none of the four cohort
 package names can be published, retagged, or version-claimed by that path. Both
-workflows publish only to `next`; a separate protected dist-tag promotion is
-required to change `latest`.
+workflow publishes only to `next`; the archived protected v1 promotion changed
+`latest` for the completed release. Future versioned patches use the maintenance
+workflow described above.
 
 The prerelease workflow produces three evidence files: the publish summary,
 the prerelease dist-tag matrix (which rejects an RC pointing at `latest`), and

@@ -7,7 +7,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const packageDirectory = path.join(repositoryRoot, 'packages', 'tool-protocol');
+const packageOption = process.argv.indexOf('--package');
+const packageDirectoryName = packageOption === -1 ? 'tool-protocol' : process.argv[packageOption + 1];
+if (!/^[a-z0-9-]+$/u.test(packageDirectoryName ?? '')) {
+  throw new Error('Usage: node scripts/verify-tool-protocol-changelog.mjs [--package <package-directory>]');
+}
+const packageDirectory = path.join(repositoryRoot, 'packages', packageDirectoryName);
 const packageManifest = JSON.parse(readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
 const changelogPath = path.join(packageDirectory, 'CHANGELOG.md');
 
@@ -35,7 +40,7 @@ function packedArchivePath(output, destination) {
 }
 
 function main() {
-  if (packageManifest.name !== '@context-action/tool-protocol') {
+  if (packageManifest.name !== `@context-action/${packageDirectoryName}`) {
     throw new Error(`Unexpected package identity: ${packageManifest.name}`);
   }
   assertChangelogVersion(readFileSync(changelogPath, 'utf8'), changelogPath);

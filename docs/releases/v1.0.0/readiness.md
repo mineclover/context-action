@@ -1,7 +1,7 @@
 # v1.0.0 Release Readiness Report
 
 **Verdict:** `PROMOTED — stable surfaces at latest`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 This report links the current implementation work to the release gates. The
 authoritative operational status is [status.md](./status.md).
@@ -49,7 +49,7 @@ documentation changed after the recorded commit.
 
 `v1.0.0-1a77f373-solo-governance-2` records successful release checks,
 inventory, workflow-contract validation, and a governed-file fingerprint from
-clean commit `78f1adbf236c69b1500cef7dc7e7277182270b85`. Its manifest SHA-256
+clean commit `1a77f373ade554fb959fe17aac7b7c1157aa74f5`. Its manifest SHA-256
 and fingerprint are recorded in `release-manifest.json`. It verifies the
 single-maintainer guarded workflow at its recorded commit, including the
 stable-consumer verifier in the governed-file fingerprint. It authorizes the

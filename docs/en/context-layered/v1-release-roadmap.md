@@ -1,12 +1,15 @@
 # Context-Action v1.0 Release Roadmap
 
 ---
-status: draft
-canonical: true
-roadmapRevision: v1-r2
-baselineCommit: 0d6047b99961a33ef0d09704ae39c577d3b89cd8
-translation:
-  ko: docs/ko/context-layered/v1-release-roadmap.md
+status: completed
+canonical: false
+translationOf: docs/ko/context-layered/v1-release-roadmap.md
+syncedAtCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
+roadmapRevision: v1-r3
+artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
+promotionRun: 31347327623
+completedAt: 2026-08-10
+releaseStatus: promoted
 ---
 
 **Release principle:** v1.0.0 is a contract freeze, not a version-number change.
@@ -41,21 +44,35 @@ a 1.x maintenance obligation. New features, new adapters, broad refactors, and
 unproven performance work stay outside this plan unless they are necessary to
 clear a release gate.
 
-## 2. Current release baseline
+## 2. Historical baseline and final outcome
+
+This roadmap's delivery plan completed on 2026-08-10. The `v1.0.0` artifact
+cohort was published to `next` from
+`63f790a521e3428a7a2825677747338f8f05ccf3`, and protected promotion run
+`31347327623` promoted Core, React, and Tool Protocol `1.0.0` to `latest`.
+The current default channel also includes the post-release
+`@context-action/tool-protocol@1.0.1` and `@context-action/webmcp@0.1.1`
+patches. [release-manifest.json](../../releases/v1.0.0/release-manifest.json)
+owns the exact historical artifact, promotion, and current registry records.
+
+The baseline table below is preserved as release-planning history. It does not
+describe current readiness or a blocker. For the current state and the
+post-release maintenance entrypoint, use
+[status.md](../../releases/v1.0.0/status.md).
 
 - **Baseline commit:** `0d6047b99961a33ef0d09704ae39c577d3b89cd8`
   (`fix: harden execution metrics and WebMCP scope lifecycle`)
-- **Roadmap revision:** `v1-r2`
+- **Roadmap revision:** `v1-r3`
 - **Versioning mode:** Lerna `independent`
 - **Evidence status:** source and focused tests were inspected; the full release
   gate has not been certified as one evidence bundle.
-- **Current verdict:** `NOT READY`
+- **Historical verdict:** `NOT READY` (superseded by the promoted release)
 
 The statuses below describe the baseline; they are not claims that a CI run or
 an external consumer certification completed. No CI status/workflow result is
 recorded as release evidence for this baseline.
 
-| Gate | Current status | Baseline assessment |
+| Gate | Historical status | Baseline assessment |
 | --- | --- | --- |
 | G0 Scope/versioning | `partial` | Independent versioning is configured; package/subpath classification is open. |
 | G1 Public API | `partial` | Role API hardening exists; legacy retain/remove decisions are open. |
@@ -362,7 +379,7 @@ dependency combinations; package metadata matches the scope decision.
   deprecation policy, 0.x-to-1.x migration, known limitations, issue ledger,
   readiness report, release status, and an independent-version release
   manifest. Place them under `docs/releases/v1.0.0/` or the repository's
-  approved equivalent. English is canonical; Korean remains a governed
+  approved equivalent. Korean is canonical; English remains a governed
   translation from M0 onward.
 - Regenerate API documentation; compile key TS/TSX snippets from packed
   packages; remove stale API examples and compatibility wording.
@@ -491,8 +508,8 @@ release-evidence/v1.0.0-*/manifest.json  reproducible commands, artifacts, and h
 environment, command timing/exit code/log path, and artifact path/SHA-256.
 Do not record a passing command without its immutable artifact or log.
 
-The English roadmap is canonical. Its Korean counterpart is a governed
-translation. CI/documentation checks must keep the roadmap revision, baseline
+The Korean roadmap is canonical. Its English counterpart is a governed
+translation. CI/documentation checks must keep the roadmap revision, artifact
 commit, milestone IDs, gate IDs, issue-template fields, and Definition of Ready
 item count aligned; they do not need to compare prose translations.
 
@@ -510,7 +527,7 @@ item count aligned; they do not need to compare prose translations.
 | `CA-1X-EVIDENCE-001` | release evidence manifest schema and writer | M0/M5 |
 | `CA-1X-SECURITY-001` | G9 security and supply-chain evidence | M0–M5 |
 | `CA-1X-MIGRATION-001` | actual 0.9 consumer migration fixture | M2/M6 |
-| `CA-1X-LOCALIZE-001` | English-canonical/Korean-sync validation | M0 |
+| `CA-1X-LOCALIZE-001` | Korean-canonical/English-sync validation | M0 |
 | `CA-1X-RELEASE-001` | dist-tag, provenance, rollback, post-publish procedure | M7/M8 |
 
 ## 11. Definition of ready

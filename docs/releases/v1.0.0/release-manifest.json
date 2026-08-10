@@ -1,131 +1,53 @@
 {
   "$schema": "./release-manifest.schema.json",
-  "schemaVersion": "context-action-v1-release-manifest.v6",
+  "schemaVersion": "context-action-v1-release-manifest.v7",
   "status": "promoted",
   "release": "context-action-v1.0.0",
-  "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-  "distTag": "next",
-  "registryEvidence": {
-    "@context-action/core": {
-      "version": "1.0.0",
-      "integrity": "sha512-WVMCxAwZkoMTQZYgL9Ha7OqKWEQxu7Z9R6DnxcdLcFQXWEEDIVyzL4hKojTmMRwh1BFup7zirbfITSkX5vIEXQ==",
-      "sha256": "d83869e72cfbb46da0a581bf23bb77195f8fb0254dbe64ff6da98625b5837c08",
-      "tarball": "https://registry.npmjs.org/@context-action/core/-/core-1.0.0.tgz",
-      "publishedAt": "2026-08-09T10:13:18.315Z",
-      "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" },
-      "provenance": {
-        "status": "verified",
-        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-        "verification": {
-          "verifier": "npm audit signatures --include-attestations",
-          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
-        }
-      },
-      "externalConsumer": { "status": "passed" }
+  "artifactCohort": {
+    "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
+    "distTag": "next",
+    "packages": {
+      "@context-action/core": "1.0.0",
+      "@context-action/react": "1.0.0",
+      "@context-action/tool-protocol": "1.0.0",
+      "@context-action/webmcp": "0.1.0"
     },
-    "@context-action/react": {
-      "version": "1.0.0",
-      "integrity": "sha512-35KHuhJ1liCkPUF7h2s9Nef/rtWkfYK1L3f30fioniK7aUFsBK4YoW+Yk73NKBqVpIW3XlWkeVJMoQPeuYozmQ==",
-      "sha256": "f5dae62522137ee912afff9e589e6381110a1ba807b0cd07853f5cab5d4306c3",
-      "tarball": "https://registry.npmjs.org/@context-action/react/-/react-1.0.0.tgz",
-      "publishedAt": "2026-08-09T10:13:35.051Z",
-      "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" },
-      "provenance": {
-        "status": "verified",
-        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-        "verification": {
-          "verifier": "npm audit signatures --include-attestations",
-          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
-        }
-      },
-      "externalConsumer": { "status": "passed" }
-    },
-    "@context-action/tool-protocol": {
-      "version": "1.0.0",
-      "integrity": "sha512-sOW7dwTajB+j0N0prU7T3fmnJaDkLzZNegRHr2y9pBoZuEeEaOv+olOBN7zRSzPYLBDCD8DyT/eN/SVq8F8Alg==",
-      "sha256": "8e8b1e67ca3854351f3f0a2bba16fa71f08d15530db971c22cdb3321193d06bf",
-      "tarball": "https://registry.npmjs.org/@context-action/tool-protocol/-/tool-protocol-1.0.0.tgz",
-      "publishedAt": "2026-08-09T10:13:10.741Z",
-      "distTags": { "latest": "1.0.0", "next": "1.0.0", "rc": "1.0.0-rc.0" },
-      "provenance": {
-        "status": "verified",
-        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-        "verification": {
-          "verifier": "npm audit signatures --include-attestations",
-          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
-        }
-      },
-      "externalConsumer": { "status": "passed" }
-    },
-    "@context-action/webmcp": {
-      "version": "0.1.0",
-      "integrity": "sha512-WNWV6etlsXhomBvj/3Vgay79M7aBZBYxyUvec7sWEFef4GxEY57GDKgpYDHCXUv6fF4L52iJWhZpPQBs2YZ+mw==",
-      "sha256": "2276b9fbc458ab27462c7799490f3e39e6e8a0faaa80e19a1444dbccc2035301",
-      "tarball": "https://registry.npmjs.org/@context-action/webmcp/-/webmcp-0.1.0.tgz",
-      "publishedAt": "2026-08-09T10:13:25.316Z",
-      "distTags": { "rc": "0.1.0-rc.0", "latest": "0.1.0-rc.0", "next": "0.1.0" },
-      "provenance": {
-        "status": "verified",
-        "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-        "verification": {
-          "verifier": "npm audit signatures --include-attestations",
-          "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json"
-        }
-      },
-      "externalConsumer": { "status": "passed" }
+    "registryEvidence": {
+      "@context-action/core": { "version": "1.0.0", "integrity": "sha512-WVMCxAwZkoMTQZYgL9Ha7OqKWEQxu7Z9R6DnxcdLcFQXWEEDIVyzL4hKojTmMRwh1BFup7zirbfITSkX5vIEXQ==", "sha256": "d83869e72cfbb46da0a581bf23bb77195f8fb0254dbe64ff6da98625b5837c08", "tarball": "https://registry.npmjs.org/@context-action/core/-/core-1.0.0.tgz", "publishedAt": "2026-08-09T10:13:18.315Z", "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" }, "provenance": { "status": "verified", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "verification": { "verifier": "npm audit signatures --include-attestations", "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json" } }, "externalConsumer": { "status": "passed" } },
+      "@context-action/react": { "version": "1.0.0", "integrity": "sha512-35KHuhJ1liCkPUF7h2s9Nef/rtWkfYK1L3f30fioniK7aUFsBK4YoW+Yk73NKBqVpIW3XlWkeVJMoQPeuYozmQ==", "sha256": "f5dae62522137ee912afff9e589e6381110a1ba807b0cd07853f5cab5d4306c3", "tarball": "https://registry.npmjs.org/@context-action/react/-/react-1.0.0.tgz", "publishedAt": "2026-08-09T10:13:35.051Z", "distTags": { "latest": "1.0.0", "rc": "1.0.0-rc.0", "next": "1.0.0" }, "provenance": { "status": "verified", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "verification": { "verifier": "npm audit signatures --include-attestations", "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json" } }, "externalConsumer": { "status": "passed" } },
+      "@context-action/tool-protocol": { "version": "1.0.0", "integrity": "sha512-sOW7dwTajB+j0N0prU7T3fmnJaDkLzZNegRHr2y9pBoZuEeEaOv+olOBN7zRSzPYLBDCD8DyT/eN/SVq8F8Alg==", "sha256": "8e8b1e67ca3854351f3f0a2bba16fa71f08d15530db971c22cdb3321193d06bf", "tarball": "https://registry.npmjs.org/@context-action/tool-protocol/-/tool-protocol-1.0.0.tgz", "publishedAt": "2026-08-09T10:13:10.741Z", "distTags": { "latest": "1.0.0", "next": "1.0.0", "rc": "1.0.0-rc.0" }, "provenance": { "status": "verified", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "verification": { "verifier": "npm audit signatures --include-attestations", "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json" } }, "externalConsumer": { "status": "passed" } },
+      "@context-action/webmcp": { "version": "0.1.0", "integrity": "sha512-WNWV6etlsXhomBvj/3Vgay79M7aBZBYxyUvec7sWEFef4GxEY57GDKgpYDHCXUv6fF4L52iJWhZpPQBs2YZ+mw==", "sha256": "2276b9fbc458ab27462c7799490f3e39e6e8a0faaa80e19a1444dbccc2035301", "tarball": "https://registry.npmjs.org/@context-action/webmcp/-/webmcp-0.1.0.tgz", "publishedAt": "2026-08-09T10:13:25.316Z", "distTags": { "rc": "0.1.0-rc.0", "latest": "0.1.0-rc.0", "next": "0.1.0" }, "provenance": { "status": "verified", "sourceCommit": "63f790a521e3428a7a2825677747338f8f05ccf3", "verification": { "verifier": "npm audit signatures --include-attestations", "evidence": "release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json" } }, "externalConsumer": { "status": "passed" } }
     }
   },
-  "promotionGovernance": {
-    "commit": "1a77f373ade554fb959fe17aac7b7c1157aa74f5",
-    "evidence": "release-evidence/v1.0.0-1a77f373-solo-governance-2/manifest.json",
-    "evidenceSha256": "2c266ff7d1520b25ab70691eaaf1501af83296b7208dcc45a699f66afa998978",
-    "fingerprintSha256": "2109ef32ab6c3ae94689d320e08e206cb4d47b68e884b1338b423086e499d34e"
-  },
-  "promotionEvidence": {
-    "status": "captured",
-    "workflowRun": "https://github.com/mineclover/context-action/actions/runs/31347327623",
-    "checkedAt": "2026-08-10T01:32:49.793Z"
-  },
-  "registryHygiene": {
-    "status": "cleared",
-    "evidence": "Protected workflow run 31341251251 verified @context-action/webmcp@0.1.1 at latest, preserved next=0.1.0 and rc=0.1.0-rc.0, and passed the latest external-consumer check. Evidence: release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json. WebMCP is experimental and excluded from the v1 stable-promotion target set.",
-    "checkedAt": "2026-08-09T23:11:34.289Z"
-  },
-  "packages": {
-    "@context-action/core": "1.0.0",
-    "@context-action/react": "1.0.0",
-    "@context-action/tool-protocol": "1.0.0",
-    "@context-action/webmcp": "0.1.0"
-  },
-  "stableSurfaces": [
-    "@context-action/core",
-    "@context-action/react",
-    "@context-action/tool-protocol"
-  ],
-  "experimentalSurfaces": [
-    "@context-action/webmcp",
-    "@context-action/react/webmcp"
-  ],
+  "stableSurfaces": ["@context-action/core", "@context-action/react", "@context-action/tool-protocol"],
+  "experimentalSurfaces": ["@context-action/webmcp", "@context-action/react/webmcp"],
   "testedExternalDependencies": {
-    "@context-action/mutative": {
-      "classification": "tested-external-dependency",
-      "supportedRange": "^0.8.8",
-      "testedVersion": "0.8.8"
-    },
-    "@context-action/tool-durable-operations": {
-      "classification": "tested-external-dependency",
-      "supportedRange": "^0.1.1",
-      "testedVersion": "0.1.1"
+    "@context-action/mutative": { "classification": "tested-external-dependency", "supportedRange": "^0.8.8", "testedVersion": "0.8.8" },
+    "@context-action/tool-durable-operations": { "classification": "tested-external-dependency", "supportedRange": "^0.1.1", "testedVersion": "0.1.1" }
+  },
+  "stablePromotion": {
+    "status": "promoted",
+    "workflowRun": "https://github.com/mineclover/context-action/actions/runs/31347327623",
+    "checkedAt": "2026-08-10T01:32:49.793Z",
+    "targets": { "@context-action/core": "latest", "@context-action/react": "latest", "@context-action/tool-protocol": "latest" },
+    "registryEvidence": { "path": "release-evidence/v1.0.0-stable-promotion-31347327623/npm-v1-promotion-registry-evidence.json", "sha256": "e46067119447acc260b8e6ef6e8047d1cf3e7c661fd964629b6ca7ea7b53e2f3" },
+    "provenanceEvidence": { "path": "release-evidence/v1.0.0-stable-promotion-31347327623/npm-v1-provenance-verification.json", "sha256": "6fc0a2abdaf0f6f5768ce4f79e8cceb33b8ed6507c60e6406d84a51e231a74db" },
+    "consumerMatrix": { "status": "passed", "verifier": "scripts/verify-published-tool-consumers.cjs (CJS, ESM, NodeNext, React 18/19 SSR)" },
+    "governance": { "commit": "1a77f373ade554fb959fe17aac7b7c1157aa74f5", "evidence": "release-evidence/v1.0.0-1a77f373-solo-governance-2/manifest.json", "evidenceSha256": "2c266ff7d1520b25ab70691eaaf1501af83296b7208dcc45a699f66afa998978", "fingerprintSha256": "2109ef32ab6c3ae94689d320e08e206cb4d47b68e884b1338b423086e499d34e" }
+  },
+  "postReleasePatches": {
+    "toolProtocolChangelog": { "package": "@context-action/tool-protocol", "version": "1.0.1", "reason": "bundled CHANGELOG.md correction", "sourceCommit": "8295e17a71fdec2ae109aa04561d4c992d907dfa", "latest": true, "registryEvidence": { "path": "release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/tool-protocol-changelog-patch-registry-evidence.json", "sha256": "8a632c6545b3b36180f8f96e1533ab3abbdadb7e60bd69f1d835291294c60bff" }, "provenanceEvidence": { "path": "release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/tool-protocol-changelog-patch-provenance.json", "sha256": "114e6a94283ba09326f73bb6f57e173b7f4da0090aeca4947346f6a8bc1dd321" } },
+    "webmcpHygiene": { "package": "@context-action/webmcp", "version": "0.1.1", "reason": "replace the accidental RC latest tag through a versioned experimental patch", "sourceCommit": null, "latest": true, "registryEvidence": { "path": "release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json", "sha256": "e930765ab7c565f91b6557dba5c6a49639431123961413290b749b6ef8ff4ace" }, "acceptedLimitation": "The immutable @context-action/webmcp@0.1.1 tarball starts its bundled CHANGELOG.md at 0.1.0. The source changelog is corrected for future patches; the published archive cannot be changed in place." }
+  },
+  "currentRegistryState": {
+    "checkedAt": "2026-08-10T02:14:26Z",
+    "packages": {
+      "@context-action/core": { "distTags": { "latest": "1.0.0", "next": "1.0.0", "rc": "1.0.0-rc.0" }, "evidence": { "path": "release-evidence/v1.0.0-stable-promotion-31347327623/npm-v1-promotion-registry-evidence.json", "sha256": "e46067119447acc260b8e6ef6e8047d1cf3e7c661fd964629b6ca7ea7b53e2f3" } },
+      "@context-action/react": { "distTags": { "latest": "1.0.0", "next": "1.0.0", "rc": "1.0.0-rc.0" }, "evidence": { "path": "release-evidence/v1.0.0-stable-promotion-31347327623/npm-v1-promotion-registry-evidence.json", "sha256": "e46067119447acc260b8e6ef6e8047d1cf3e7c661fd964629b6ca7ea7b53e2f3" } },
+      "@context-action/tool-protocol": { "distTags": { "latest": "1.0.1", "next": "1.0.0", "rc": "1.0.0-rc.0" }, "evidence": { "path": "release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/tool-protocol-changelog-patch-registry-evidence.json", "sha256": "8a632c6545b3b36180f8f96e1533ab3abbdadb7e60bd69f1d835291294c60bff" } },
+      "@context-action/webmcp": { "distTags": { "latest": "0.1.1", "next": "0.1.0", "rc": "0.1.0-rc.0" }, "evidence": { "path": "release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json", "sha256": "e930765ab7c565f91b6557dba5c6a49639431123961413290b749b6ef8ff4ace" } }
     }
   },
-  "promotionTargets": {
-    "@context-action/core": "latest",
-    "@context-action/react": "latest",
-    "@context-action/tool-protocol": "latest"
-  },
-  "requiredBeforeCertification": [
-    "Use the protected promotion workflow, which re-verifies npm provenance, the stable-surface consumer matrix, registry hygiene, and the current governance fingerprint before changing latest.",
-    "Record post-promotion registry evidence before declaring the stable promotion complete."
-  ],
-  "acceptedLimitations": []
+  "requiredBeforeCertification": [],
+  "acceptedLimitations": ["The immutable @context-action/webmcp@0.1.1 tarball has a stale bundled CHANGELOG.md. Source is prepared as @context-action/webmcp@0.1.2 to correct the distributed changelog; currentRegistryState remains 0.1.1 until protected publication and evidence capture complete."]
 }

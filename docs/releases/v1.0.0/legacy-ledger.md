@@ -1,7 +1,7 @@
 # v1.0.0 Legacy Outcome Ledger
 
 **Status:** `resolved for the promoted v1 stable scope`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 Every compatibility surface below has a named owner and a recorded outcome.
 The Core and stable React outcomes are part of the promoted v1 contract;

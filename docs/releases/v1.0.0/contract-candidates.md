@@ -1,7 +1,7 @@
 # v1.0.0 Public Contracts
 
 **Status:** `promoted stable contracts; experimental entries retained`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 This registry makes the M1 implementation facts reviewable. For the documented
 stable surfaces, the protected v1 promotion makes these entries part of the

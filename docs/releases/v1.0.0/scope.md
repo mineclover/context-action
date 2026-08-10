@@ -1,7 +1,7 @@
 # v1.0.0 Scope and Versioning
 
 **Status:** `promoted — owner operated`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 This document is the decision record for G0. It does not itself mutate a
 package version or npm tag. Generate the current package and subpath input with

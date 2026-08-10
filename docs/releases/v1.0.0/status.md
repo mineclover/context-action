@@ -2,7 +2,7 @@
 
 **Status:** `PROMOTED — stable surfaces at latest`<br>
 **Baseline commit:** `17d6ddb2ddd8c6e23078a38db0fd0eb2647c3666` (protected promotion dispatch commit)<br>
-**Roadmap revision:** `v1-r2`<br>
+**Roadmap revision:** `v1-r3`<br>
 **Last synchronized:** 2026-08-10
 
 This is the committed mirror of release readiness until a dedicated v1.0 GitHub
@@ -10,6 +10,19 @@ Project is provisioned. It records status, blockers, and next work; immutable
 registry facts are mirrored in [release-manifest.json](./release-manifest.json)
 and command results/artifact hashes belong in
 `release-evidence/v1.0.0-*/manifest.json`.
+
+## Current default channel
+
+| Package | `latest` |
+| --- | --- |
+| `@context-action/core` | `1.0.0` |
+| `@context-action/react` | `1.0.0` |
+| `@context-action/tool-protocol` | `1.0.1` |
+| `@context-action/webmcp` | `0.1.1` |
+
+The v1.0.0 artifact cohort and the current default channel are intentionally
+different records. The manifest preserves the former under `artifactCohort`
+and the latter under `currentRegistryState`.
 
 | Gate | Status | Next evidence or decision |
 | --- | --- | --- |
@@ -22,9 +35,9 @@ and command results/artifact hashes belong in
 | G6 Consumer packages | `verified` | consumer verifier is fingerprinted and the published `next` matrix passed |
 | G7 Docs/migration | `verified` | canonical release controls and fresh clean evidence are current |
 | G8 Owner self-review | `documented` | reproducible verification and optional owner review replace an unavailable independent-auditor gate |
-| G9 Security/supply chain | `partial` | clean local supply-chain and npm registry provenance reports are recorded |
+| G9 Security/supply chain | `verified` | clean supply-chain, npm registry provenance, and protected workflow evidence are recorded |
 
-## Blocking conditions
+## Recorded release conditions
 
 - Registry evidence records the published `next` cohort from
   `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
@@ -83,11 +96,15 @@ separate protected workflow. Run `31340779674` published it, and rerun
 checks without republishing. Its token preflight and exact-version validation
 remain fail-closed before any publication attempt.
 
-## Immediate next work
+## Post-release maintenance
 
-1. Preserve the promotion artifact from protected workflow run `31347327623`
-   with its registry and provenance results.
-2. Review the v1 specification set against the now-stable package surfaces.
+1. Record every versioned patch in `postReleasePatches` and refresh the
+   `currentRegistryState` evidence instead of rewriting the immutable artifact
+   cohort.
+2. Use the `Publish Package Maintenance Patch` workflow's reverse-dependency consumer matrix
+   before a patch can replace `latest`.
+3. Reopen the affected release gate and update the Korean canonical roadmap
+   before preparing a new stable patch or minor release.
 
 ## Stable promotion result
 
@@ -125,8 +142,8 @@ fingerprint commands passed. The bundle SHA-256 is
 `2c266ff7d1520b25ab70691eaaf1501af83296b7208dcc45a699f66afa998978`; the
 promotion-governance fingerprint is
 `2109ef32ab6c3ae94689d320e08e206cb4d47b68e884b1338b423086e499d34e`.
-These values bind the protected stable-surface promotion; post-promotion
-registry evidence remains required before the release is declared complete.
+These values bind the protected stable-surface promotion. The registry and
+provenance evidence captured by that promotion are hash-bound in the manifest.
 
 ## Historical clean pre-RC evidence
 

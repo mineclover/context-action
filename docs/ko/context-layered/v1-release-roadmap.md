@@ -1,11 +1,15 @@
 # Context-Action v1.0 릴리스 로드맵
 
 ---
-status: draft
-canonical: false
-translationOf: docs/en/context-layered/v1-release-roadmap.md
-syncedAtCommit: 0d6047b99961a33ef0d09704ae39c577d3b89cd8
-roadmapRevision: v1-r2
+status: completed
+canonical: true
+roadmapRevision: v1-r3
+artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
+promotionRun: 31347327623
+completedAt: 2026-08-10
+releaseStatus: promoted
+translation:
+  en: docs/en/context-layered/v1-release-roadmap.md
 ---
 
 **릴리스 원칙:** v1.0.0은 버전 번호 변경이 아니라 공개 계약의 동결이다.
@@ -36,21 +40,33 @@ legacy 표면은 0.9.x 안정화 라인에서 아래 셋 중 하나만 선택할
 릴리스 게이트를 통과하는 데 필요하지 않은 신규 기능, 신규 adapter, 대규모 리팩터링,
 검증되지 않은 성능 작업은 이 계획의 범위가 아니다.
 
-## 2. 현재 릴리스 기준선
+## 2. Historical baseline and final outcome
+
+이 로드맵의 실행 계획은 2026-08-10에 완료됐다. `v1.0.0` artifact cohort는
+`63f790a521e3428a7a2825677747338f8f05ccf3`에서 `next`로 발행됐고, protected
+promotion run `31347327623`이 Core·React·Tool Protocol `1.0.0`을 `latest`로
+승격했다. 현재 default channel은 `@context-action/tool-protocol@1.0.1`과
+`@context-action/webmcp@0.1.1`의 사후 patch까지 반영한다. 정확한 historical
+artifact, promotion, current registry 상태는
+[`release-manifest.json`](../../releases/v1.0.0/release-manifest.json)이 소유한다.
+
+아래 기준선 표는 release planning 당시의 판단을 보존한 실행 이력이다. 현재 readiness나
+차단 상태를 나타내지 않는다. 현재 상태와 post-release maintenance entrypoint는
+[`status.md`](../../releases/v1.0.0/status.md)를 따른다.
 
 - **기준 커밋:** `0d6047b99961a33ef0d09704ae39c577d3b89cd8`
   (`fix: harden execution metrics and WebMCP scope lifecycle`)
-- **로드맵 리비전:** `v1-r2`
+- **로드맵 리비전:** `v1-r3`
 - **버전 전략:** Lerna `independent`
 - **증거 상태:** source와 focused test는 검토했지만 전체 release gate를 하나의
   evidence bundle로 인증하지 않았다.
-- **현재 판정:** `NOT READY`
+- **당시 판정:** `NOT READY` (superseded by the promoted release)
 
 아래 상태는 기준 커밋의 현황을 설명할 뿐, CI 실행 또는 외부 consumer 인증 완료를
 주장하지 않는다. 이 기준선에 연결된 CI status/workflow 결과는 release evidence로
 기록되어 있지 않다.
 
-| Gate | 현재 상태 | 기준선 판단 |
+| Gate | Historical status | 기준선 판단 |
 | --- | --- | --- |
 | G0 Scope/versioning | `partial` | independent versioning은 설정되어 있으나 package/subpath 분류가 열려 있다. |
 | G1 Public API | `partial` | role API hardening은 존재하나 legacy retain/remove 결정이 열려 있다. |
@@ -336,8 +352,8 @@ Workspace의 `workspace:*` resolution은 이 증거를 대체할 수 없다.
 - scope, public contract, SemVer/deprecation policy, 0.x-to-1.x migration, known
   limitations, issue ledger, readiness report를 canonical v1 release 문서로 만든다.
   release status와 independent-version release manifest도 포함한다.
-  `docs/releases/v1.0.0/` 또는 저장소에서 승인한 동등 위치에 둔다. 영어는 canonical,
-  한국어는 M0부터 관리되는 번역본이다.
+  `docs/releases/v1.0.0/` 또는 저장소에서 승인한 동등 위치에 둔다. 한국어는 canonical,
+  영어는 M0부터 관리되는 번역본이다.
 - API 문서를 재생성하고 packed package에서 핵심 TS/TSX snippet을 compile하며 stale API
   example과 compatibility 문구를 제거한다.
 - 전체 release 명령을 실행하고 readiness report에 정확한 명령, 환경, exit code, 날짜,
@@ -460,8 +476,8 @@ release-evidence/v1.0.0-*/manifest.json  재현 가능한 command, artifact, has
 exit code/log path, artifact path/SHA-256이 포함되어야 한다. 변경 불가 artifact나 log
 없이 passing command를 기록하지 않는다.
 
-영문 roadmap이 canonical이다. 국문은 관리되는 번역본이다. CI/documentation check는
-roadmap revision, baseline commit, milestone ID, gate ID, issue-template field,
+국문 roadmap이 canonical이다. 영문은 관리되는 번역본이다. CI/documentation check는
+roadmap revision, artifact commit, milestone ID, gate ID, issue-template field,
 Definition of Ready 항목 수를 맞춰야 하지만 문장 번역 자체를 비교할 필요는 없다.
 
 ## 10. 초기 delivery issue
@@ -478,7 +494,7 @@ Definition of Ready 항목 수를 맞춰야 하지만 문장 번역 자체를 �
 | `CA-1X-EVIDENCE-001` | release evidence manifest schema와 writer | M0/M5 |
 | `CA-1X-SECURITY-001` | G9 security/supply-chain evidence | M0–M5 |
 | `CA-1X-MIGRATION-001` | 실제 0.9 consumer migration fixture | M2/M6 |
-| `CA-1X-LOCALIZE-001` | English-canonical/Korean-sync validation | M0 |
+| `CA-1X-LOCALIZE-001` | Korean-canonical/English-sync validation | M0 |
 | `CA-1X-RELEASE-001` | dist-tag, provenance, rollback, post-publish 절차 | M7/M8 |
 
 ## 11. Ready 정의

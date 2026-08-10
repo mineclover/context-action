@@ -1,5 +1,20 @@
 # Change Log
 
+## [0.1.2] (Unreleased)
+
+### Packaging Correction
+
+- Package the `0.1.1` registry-hygiene entry in the distributed changelog.
+  This patch changes no runtime API, declaration, or dist-tag policy.
+
+## [0.1.1] (2026-08-09)
+
+### Registry Hygiene
+
+- Replace the accidental `0.1.0-rc.0` `latest` tag with the versioned
+  experimental package patch. This packaging-only correction preserves
+  `next=0.1.0` and `rc=0.1.0-rc.0` and changes no runtime API.
+
 ## [0.1.0] (2026-08-09)
 
 ### Experimental Contract

@@ -1,17 +1,19 @@
 # Context-Action v1.0.0 릴리스 문서
 
-영문 릴리스 문서 세트가 기준 문서입니다. 승인된 clean RC 증거와 독립 감사가
-상태 문서에 기록되기 전까지 릴리스 판정은 `NOT READY`입니다.
+한국어 release roadmap이 의미 기준 문서이며, 영문 릴리스 문서는 그 상태를
+반영합니다. v1 stable surfaces는 이미 `latest`로 승격됐고, 현재 상태는
+[`status.md`](../../../releases/v1.0.0/status.md)와
+[`release-manifest.json`](../../../releases/v1.0.0/release-manifest.json)에 기록됩니다.
 
 현재 국문 릴리스 안내는 다음을 보장합니다.
 
-- 릴리스 로드맵의 revision, milestone, gate, 이슈 ID는 영문 기준 문서와
+- 릴리스 로드맵의 revision, milestone, gate, 이슈 ID는 영문 번역 문서와
   `pnpm release:roadmap:check`로 동기화합니다.
-- 공개 계약·버전·마이그레이션의 실제 약속은 영문 canonical 문서와 승인된
+- 공개 계약·버전·마이그레이션의 실제 약속은 한국어 기준 로드맵과 승인된
   `release-manifest.json`을 따릅니다.
-- RC 승인 시 한국어 번역본은 영문 canonical 문서와 함께 검토·갱신해야 합니다.
+- 이후 maintenance 변경 시 영문 번역본은 한국어 기준 문서와 함께 검토·갱신해야 합니다.
 
-영문 기준 문서:
+영문 참조 문서:
 
 - [현재 상태](../../../releases/v1.0.0/status.md)
 - [범위와 버전 후보](../../../releases/v1.0.0/scope.md)

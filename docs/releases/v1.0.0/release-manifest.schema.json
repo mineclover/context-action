@@ -2,19 +2,24 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://context-action.dev/schemas/v1-release-manifest.json",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "schemaVersion",
     "status",
     "release",
-    "commit",
-    "packages",
+    "artifactCohort",
     "stableSurfaces",
     "experimentalSurfaces",
-    "requiredBeforeCertification"
+    "testedExternalDependencies",
+    "stablePromotion",
+    "postReleasePatches",
+    "currentRegistryState",
+    "requiredBeforeCertification",
+    "acceptedLimitations"
   ],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "context-action-v1-release-manifest.v6" },
+    "schemaVersion": { "const": "context-action-v1-release-manifest.v7" },
     "status": {
       "enum": [
         "candidate-unapproved",
@@ -28,128 +33,49 @@
       ]
     },
     "release": { "const": "context-action-v1.0.0" },
-    "commit": { "type": ["string", "null"] },
-    "packages": { "type": "object", "additionalProperties": { "type": "string" } },
+    "artifactCohort": { "$ref": "#/$defs/artifactCohort" },
     "stableSurfaces": { "type": "array", "items": { "type": "string" } },
     "experimentalSurfaces": { "type": "array", "items": { "type": "string" } },
     "testedExternalDependencies": {
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/testedExternalDependency" }
     },
-    "promotionTargets": {
-      "type": "object",
-      "additionalProperties": { "type": "string", "pattern": "^[a-z][a-z0-9._-]*$" }
-    },
+    "stablePromotion": { "type": ["object", "null"], "additionalProperties": false, "required": ["status", "workflowRun", "checkedAt", "targets", "registryEvidence", "provenanceEvidence", "consumerMatrix", "governance"], "properties": {
+      "status": { "enum": ["pending", "promoted"] },
+      "workflowRun": { "type": "string", "format": "uri" },
+      "checkedAt": { "type": "string", "format": "date-time" },
+      "targets": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^[a-z][a-z0-9._-]*$" } },
+      "registryEvidence": { "$ref": "#/$defs/hashedEvidence" },
+      "provenanceEvidence": { "$ref": "#/$defs/hashedEvidence" },
+      "consumerMatrix": { "type": "object", "additionalProperties": false, "required": ["status", "verifier"], "properties": { "status": { "const": "passed" }, "verifier": { "type": "string", "minLength": 1 } } },
+      "governance": { "$ref": "#/$defs/promotionGovernance" }
+    } },
+    "postReleasePatches": { "type": "object", "additionalProperties": { "$ref": "#/$defs/postReleasePatch" } },
+    "currentRegistryState": { "type": "object", "additionalProperties": false, "required": ["checkedAt", "packages"], "properties": { "checkedAt": { "type": "string", "format": "date-time" }, "packages": { "type": "object", "additionalProperties": { "$ref": "#/$defs/currentPackageState" } } } },
     "requiredBeforeCertification": { "type": "array", "items": { "type": "string" } },
-    "distTag": { "type": ["string", "null"] },
-    "registryEvidence": {
-      "type": ["object", "null"],
-      "additionalProperties": { "$ref": "#/$defs/registryPackage" }
-    },
-    "registryHygiene": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["status", "evidence", "checkedAt"],
-      "properties": {
-        "status": { "enum": ["blocked", "cleared"] },
-        "evidence": { "type": "string", "minLength": 1 },
-        "checkedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "promotionGovernance": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["commit", "evidence", "evidenceSha256", "fingerprintSha256"],
-      "properties": {
-        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-        "evidence": { "type": "string", "minLength": 1 },
-        "evidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "fingerprintSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
-      }
-    },
-    "promotionEvidence": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["status", "workflowRun", "checkedAt"],
-      "properties": {
-        "status": { "enum": ["pending", "captured"] },
-        "workflowRun": { "type": "string", "minLength": 1 },
-        "checkedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "acceptedLimitations": {
-      "type": "array",
-      "items": { "type": "string", "minLength": 1 }
-    },
-    "selfReview": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["owner", "reviewedCommit", "record", "recordSha256"],
-      "properties": {
-        "owner": { "type": "string", "minLength": 1 },
-        "reviewedCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-        "record": { "type": "string", "minLength": 1 },
-        "recordSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
-      }
-    }
+    "acceptedLimitations": { "type": "array", "items": { "type": "string", "minLength": 1 } }
   },
-  "additionalProperties": false,
   "$defs": {
-    "registryPackage": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "version",
-        "integrity",
-        "sha256",
-        "tarball",
-        "publishedAt",
-        "distTags",
-        "provenance",
-        "externalConsumer"
-      ],
-      "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
-        "integrity": { "type": "string", "minLength": 1 },
-        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "tarball": { "type": "string", "format": "uri" },
-        "publishedAt": { "type": ["string", "null"], "format": "date-time" },
-        "distTags": { "type": "object", "additionalProperties": { "type": "string" } },
-        "provenance": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["status", "sourceCommit"],
-          "properties": {
-            "status": { "enum": ["pending-verification", "verified", "failed"] },
-            "sourceCommit": { "type": ["string", "null"] },
-            "verification": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["verifier", "evidence"],
-              "properties": {
-                "verifier": { "const": "npm audit signatures --include-attestations" },
-                "evidence": { "type": "string", "minLength": 1 }
-              }
-            }
-          }
-        },
-        "externalConsumer": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["status"],
-          "properties": { "status": { "enum": ["passed", "failed", "not-run"] } }
-        }
-      }
-    },
-    "testedExternalDependency": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["classification", "supportedRange", "testedVersion"],
-      "properties": {
-        "classification": { "const": "tested-external-dependency" },
-        "supportedRange": { "type": "string", "minLength": 1 },
-        "testedVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" }
-      }
-    }
+    "artifactCohort": { "type": "object", "additionalProperties": false, "required": ["commit", "distTag", "packages", "registryEvidence"], "properties": {
+      "commit": { "type": ["string", "null"] },
+      "distTag": { "type": ["string", "null"] },
+      "packages": { "type": "object", "additionalProperties": { "type": "string" } },
+      "registryEvidence": { "type": ["object", "null"], "additionalProperties": { "$ref": "#/$defs/registryPackage" } }
+    } },
+    "hashedEvidence": { "type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": { "path": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } } },
+    "promotionGovernance": { "type": "object", "additionalProperties": false, "required": ["commit", "evidence", "evidenceSha256", "fingerprintSha256"], "properties": { "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }, "evidence": { "type": "string", "minLength": 1 }, "evidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "fingerprintSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } } },
+    "postReleasePatch": { "type": "object", "additionalProperties": false, "required": ["package", "version", "reason", "sourceCommit", "latest", "registryEvidence"], "properties": { "package": { "type": "string", "minLength": 1 }, "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" }, "reason": { "type": "string", "minLength": 1 }, "sourceCommit": { "type": ["string", "null"], "pattern": "^[a-f0-9]{40}$" }, "latest": { "type": "boolean" }, "registryEvidence": { "$ref": "#/$defs/hashedEvidence" }, "provenanceEvidence": { "$ref": "#/$defs/hashedEvidence" }, "acceptedLimitation": { "type": "string", "minLength": 1 } } },
+    "currentPackageState": { "type": "object", "additionalProperties": false, "required": ["distTags"], "properties": { "distTags": { "type": "object", "additionalProperties": { "type": "string" } }, "evidence": { "$ref": "#/$defs/hashedEvidence" } } },
+    "registryPackage": { "type": "object", "additionalProperties": false, "required": ["version", "integrity", "sha256", "tarball", "publishedAt", "distTags", "provenance", "externalConsumer"], "properties": {
+      "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+      "integrity": { "type": "string", "minLength": 1 },
+      "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+      "tarball": { "type": "string", "format": "uri" },
+      "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+      "distTags": { "type": "object", "additionalProperties": { "type": "string" } },
+      "provenance": { "type": "object", "additionalProperties": false, "required": ["status", "sourceCommit"], "properties": { "status": { "enum": ["pending-verification", "verified", "failed"] }, "sourceCommit": { "type": ["string", "null"] }, "verification": { "type": "object", "additionalProperties": false, "required": ["verifier", "evidence"], "properties": { "verifier": { "const": "npm audit signatures --include-attestations" }, "evidence": { "type": "string", "minLength": 1 } } } } },
+      "externalConsumer": { "type": "object", "additionalProperties": false, "required": ["status"], "properties": { "status": { "enum": ["passed", "failed", "not-run"] } } }
+    } },
+    "testedExternalDependency": { "type": "object", "additionalProperties": false, "required": ["classification", "supportedRange", "testedVersion"], "properties": { "classification": { "const": "tested-external-dependency" }, "supportedRange": { "type": "string", "minLength": 1 }, "testedVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" } } }
   }
 }

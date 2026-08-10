@@ -76,9 +76,10 @@ async function verifyRegistryEvidence(name, version, evidence, distTag) {
 
 async function main() {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  const packageEntries = Object.entries(manifest.packages ?? {});
+  const artifactCohort = manifest.artifactCohort ?? {};
+  const packageEntries = Object.entries(artifactCohort.packages ?? {});
   if (packageEntries.length === 0) throw new Error('Release manifest has no package cohort');
-  if (!/^[a-f0-9]{40}$/u.test(manifest.commit ?? '')) {
+  if (!/^[a-f0-9]{40}$/u.test(artifactCohort.commit ?? '')) {
     throw new Error('Release manifest must record the expected 40-character source commit');
   }
 
@@ -100,7 +101,7 @@ async function main() {
     const verified = new Map((audit.verified ?? []).map(entry => [`${entry.name}@${entry.version}`, entry]));
     const results = [];
     for (const [name, version] of packageEntries) {
-      await verifyRegistryEvidence(name, version, manifest.registryEvidence?.[name], manifest.distTag);
+      await verifyRegistryEvidence(name, version, artifactCohort.registryEvidence?.[name], artifactCohort.distTag);
       const entry = verified.get(`${name}@${version}`);
       if (!entry) throw new Error(`npm audit signatures did not verify ${name}@${version}`);
       const slsa = entry.attestationBundles?.find(bundle => bundle.predicateType === 'https://slsa.dev/provenance/v1');
@@ -108,7 +109,7 @@ async function main() {
       const statement = decodeStatement(slsa.bundle);
       const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
       const commit = sourceCommit(statement);
-      if (commit !== manifest.commit
+      if (commit !== artifactCohort.commit
         || workflow?.repository !== expectedRepository
         || workflow?.path !== expectedWorkflowPath
         || workflow?.ref !== 'refs/heads/main') {
@@ -129,7 +130,7 @@ async function main() {
       status: 'verified',
       verifier: 'npm audit signatures --include-attestations',
       verifiedAt: new Date().toISOString(),
-      sourceCommit: manifest.commit,
+      sourceCommit: artifactCohort.commit,
       packages: results,
     };
     const output = outputPath(option('--output'));
