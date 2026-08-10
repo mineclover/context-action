@@ -189,7 +189,14 @@ jobs:
 
       - name: Verify published AI SDK Tool Protocol deduplication
         if: env.PACKAGE_DIRECTORY == 'ai-sdk'
-        run: node scripts/verify-ai-sdk-tool-protocol-contract.mjs --published --version "$PACKAGE_VERSION"
+        run: |
+          # The release artifact stays pinned to RELEASE_COMMIT, while this
+          # post-publication verifier is loaded from the reviewed workflow ref.
+          # This allows a safe resume to validate an already-published artifact
+          # with a corrected verifier without changing its provenance source.
+          git show "$GITHUB_SHA:scripts/verify-ai-sdk-tool-protocol-contract.mjs" \
+            > "$RUNNER_TEMP/verify-ai-sdk-tool-protocol-contract.mjs"
+          node "$RUNNER_TEMP/verify-ai-sdk-tool-protocol-contract.mjs" --published --version "$PACKAGE_VERSION"
 
       - name: Verify published candidate reverse dependency closure
         run: pnpm verify:published-tool-consumers -- --tag latest --package-tag "$PACKAGE_NAME=maintenance" --packages "$PATCH_CONSUMER_CLOSURE"
