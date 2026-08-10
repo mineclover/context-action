@@ -15,117 +15,6 @@ function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
-async function validateAcceptedAudit(audit, manifestCommit) {
-  const errors = [];
-  if (audit?.status !== 'accepted') return ['Independent published-artifact audit is not accepted'];
-  if (typeof audit.reviewer !== 'string' || audit.reviewer.trim().length === 0) {
-    errors.push('Accepted audit requires a named independent reviewer');
-  }
-  if (audit.reviewedCommit !== manifestCommit) {
-    errors.push('Accepted audit must bind the provenance-attested manifest commit');
-  }
-  const review = audit.review;
-  if (!review || typeof review !== 'object'
-    || typeof review.login !== 'string' || review.login.trim().length === 0
-    || typeof review.pullRequest !== 'number' || !Number.isInteger(review.pullRequest) || review.pullRequest <= 0
-    || typeof review.reviewId !== 'number' || !Number.isInteger(review.reviewId) || review.reviewId <= 0
-    || typeof review.reviewCommit !== 'string' || !/^[a-f0-9]{40}$/u.test(review.reviewCommit)
-    || review.decision !== 'APPROVED') {
-    errors.push('Accepted audit requires a GitHub approval identity, PR, review ID, commit, and APPROVED decision');
-  }
-  for (const [label, target, expectedHash] of [
-    ['report', audit.report, audit.reportSha256],
-    ['evidence', audit.evidence, audit.evidenceSha256],
-  ]) {
-    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
-      errors.push(`Accepted audit requires a hashed ${label} path`);
-      continue;
-    }
-    const resolved = path.resolve(repositoryRoot, target);
-    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
-      errors.push(`Accepted audit ${label} must stay within the repository`);
-      continue;
-    }
-    try {
-      if (sha256(await readFile(resolved)) !== expectedHash) {
-        errors.push(`Accepted audit ${label} hash does not match`);
-      }
-    } catch {
-      errors.push(`Accepted audit ${label} is missing`);
-    }
-  }
-  return errors;
-}
-
-async function validateAcceptedPrePublicationAudit(audit, manifestCommit) {
-  const errors = [];
-  if (audit?.status !== 'accepted') return ['accepted pre-publication audit is required'];
-  if (audit.rcCommit !== manifestCommit) {
-    errors.push('pre-publication audit must bind the manifest commit');
-  }
-  if (typeof audit.evidence !== 'string' || typeof audit.evidenceSha256 !== 'string'
-    || !/^[a-f0-9]{64}$/u.test(audit.evidenceSha256)) {
-    errors.push('pre-publication audit requires an evidence path and SHA-256');
-    return errors;
-  }
-  const resolved = path.resolve(repositoryRoot, audit.evidence);
-  if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
-    errors.push('pre-publication audit evidence must stay within the repository');
-    return errors;
-  }
-  try {
-    if (sha256(await readFile(resolved)) !== audit.evidenceSha256) {
-      errors.push('pre-publication audit evidence hash does not match');
-    }
-  } catch {
-    errors.push('pre-publication audit evidence is missing');
-  }
-  return errors;
-}
-
-async function validateReleaseApproval(approval, manifestCommit, governance) {
-  const errors = [];
-  if (approval?.status !== 'accepted') return ['G0/G1 release approval is not accepted'];
-  if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
-    errors.push('Accepted release approval requires a named owner');
-  }
-  if (approval.reviewedCommit !== manifestCommit) {
-    errors.push('Accepted release approval must bind the provenance-attested manifest commit');
-  }
-  if (governance && (
-    approval.promotionGovernanceCommit !== governance.commit
-    || approval.promotionGovernanceEvidenceSha256 !== governance.evidenceSha256
-    || approval.promotionGovernanceFingerprintSha256 !== governance.fingerprintSha256
-  )) {
-    errors.push('Accepted release approval must bind the exact promotion-governance commit, evidence hash, and fingerprint');
-  }
-  const files = [
-    ['record', approval.record, approval.recordSha256],
-    ['scope', 'docs/releases/v1.0.0/scope.md', approval.scopeSha256],
-    ['contract candidates', 'docs/releases/v1.0.0/contract-candidates.md', approval.contractSha256],
-    ['legacy ledger', 'docs/releases/v1.0.0/legacy-ledger.md', approval.legacyLedgerSha256],
-  ];
-  for (const [label, target, expectedHash] of files) {
-    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
-      errors.push(`Accepted release approval requires a hashed ${label} path`);
-      continue;
-    }
-    const resolved = path.resolve(repositoryRoot, target);
-    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
-      errors.push(`Accepted release approval ${label} must stay within the repository`);
-      continue;
-    }
-    try {
-      if (sha256(await readFile(resolved)) !== expectedHash) {
-        errors.push(`Accepted release approval ${label} hash does not match`);
-      }
-    } catch {
-      errors.push(`Accepted release approval ${label} is missing`);
-    }
-  }
-  return errors;
-}
-
 async function validatePromotionGovernance(governance) {
   const errors = [];
   if (!governance || typeof governance !== 'object') return ['an approved promotion-governance record'];
@@ -196,9 +85,6 @@ async function main() {
   const packageEntries = Object.entries(packages);
   const publishedStages = new Set(['published-unapproved', 'audited', 'approved-for-stable', 'promotion-evidence-pending', 'promoted']);
   const registryEvidence = manifest.registryEvidence;
-  const audit = manifest.audit;
-  const releaseApproval = manifest.releaseApproval;
-  const prePublicationAudit = manifest.prePublicationAudit;
   const promotionTargets = manifest.promotionTargets ?? {};
   const registryHygiene = manifest.registryHygiene;
   const testedExternalDependencies = manifest.testedExternalDependencies ?? {};
@@ -227,8 +113,8 @@ async function main() {
 
   if (manifest.status === 'candidate-unapproved') {
     if (manifest.commit !== null) errors.push('Candidate manifest must not claim an immutable release commit');
-    if (prePublicationAudit !== null || manifest.distTag !== null || registryEvidence !== null || audit !== null) {
-      errors.push('Candidate manifest must not claim published registry evidence or audit approval');
+    if (manifest.distTag !== null || registryEvidence !== null) {
+      errors.push('Candidate manifest must not claim published registry evidence');
     }
     if (!Array.isArray(manifest.requiredBeforeCertification) || manifest.requiredBeforeCertification.length === 0) {
       errors.push('Candidate manifest must state certification requirements');
@@ -237,11 +123,8 @@ async function main() {
     if (typeof manifest.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(manifest.commit)) {
       errors.push('Publish-approved candidate requires a 40-character Git commit');
     }
-    for (const error of await validateAcceptedPrePublicationAudit(prePublicationAudit, manifest.commit)) {
-      errors.push(`Publish-approved candidate requires ${error}`);
-    }
-    if (manifest.distTag !== null || registryEvidence !== null || audit !== null) {
-      errors.push('Publish-approved candidate must not claim registry evidence or a published-artifact audit');
+    if (manifest.distTag !== null || registryEvidence !== null) {
+      errors.push('Publish-approved candidate must not claim registry evidence');
     }
   } else if (manifest.status === 'published-pending-provenance') {
     if (typeof manifest.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(manifest.commit)) {
@@ -272,7 +155,6 @@ async function main() {
         }
       }
     }
-    if (audit !== null) errors.push('Published pending-provenance manifest must not claim an independent audit');
   } else if (publishedStages.has(manifest.status)) {
     if (typeof manifest.commit !== 'string' || !/^[a-f0-9]{40}$/u.test(manifest.commit)) {
       errors.push('Certified or published manifest requires a 40-character Git commit');
@@ -312,15 +194,7 @@ async function main() {
         errors.push(`Certified stable surface requires an exact SemVer version: ${surface}`);
       }
     }
-    if (['audited', 'approved-for-stable', 'promotion-evidence-pending', 'promoted'].includes(manifest.status)) {
-      for (const error of await validateAcceptedAudit(audit, manifest.commit)) {
-        errors.push(`${manifest.status} manifest requires ${error}`);
-      }
-    }
     if (['approved-for-stable', 'promotion-evidence-pending', 'promoted'].includes(manifest.status)) {
-      for (const error of await validateReleaseApproval(releaseApproval, manifest.commit, manifest.promotionGovernance)) {
-        errors.push(`${manifest.status} manifest requires ${error}`);
-      }
       for (const error of await validatePromotionGovernance(manifest.promotionGovernance)) {
         errors.push(`${manifest.status} manifest requires ${error}`);
       }

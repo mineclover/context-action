@@ -1,6 +1,6 @@
 # v1.0.0 Publish and Recovery Runbook
 
-**Status:** `prepared — execution requires release approval`  
+**Status:** `prepared — owner-operated execution`
 **Roadmap revision:** `v1-r2`
 
 ## Existing v1.0.0 registry cohort
@@ -10,10 +10,9 @@
 are already published under `next`. They were published before this protected
 authorization workflow existed and are immutable. Their current state is
 `published-unapproved`: npm cryptographically verified the registry signatures
-and SLSA provenance for all four packages, but the independent audit and
-release approvals are still missing. Do not invoke the stable-candidate
-workflow again for these versions. Complete the remaining audit and approvals,
-then use the guarded promotion workflow or publish a corrected patch.
+and SLSA provenance for all four packages. Do not invoke the stable-candidate
+workflow again for these versions. Use the guarded promotion workflow when the
+owner elects to ship, or publish a corrected patch for a release defect.
 
 The accidental `@context-action/webmcp@0.1.0-rc.0` `latest` tag was corrected
 by publishing `@context-action/webmcp@0.1.1` through **Publish WebMCP Hygiene
@@ -28,18 +27,16 @@ evidence run `31341251251` then passed the idempotent tag check and stored the
 captured evidence at
 `release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
 
-The existing `0.1.0` v1 candidate remains immutable evidence for the published
-`next` cohort. After the hygiene patch succeeds, that candidate is superseded
-for the WebMCP leg: do not approve or promote it until the v1 manifest and
-audit record are re-baselined to the new package provenance.
+The existing `0.1.0` WebMCP record remains immutable evidence for the published
+`next` cohort. The separately published `0.1.1` hygiene patch owns WebMCP
+`latest`; because WebMCP is experimental, it is intentionally excluded from
+the v1 stable-promotion target set.
 
-1. Confirm G0–G9, a clean strict evidence manifest, and exact tarball hashes
-   for the approved release commit. Record the accepted pre-publication audit
-   and move `release-manifest.json` to `candidate-approved-for-publish` before
-   invoking `Publish V1 Stable Candidate`. Its `prePublicationAudit.evidence`
-   must name the strict evidence manifest in the repository and
-   `evidenceSha256` must be the SHA-256 of that exact file; a bare hash is not
-   an authorization record.
+1. Confirm the documented scope, a clean strict evidence manifest, and exact
+   tarball hashes for the owner-selected release commit. Move
+   `release-manifest.json` to `candidate-approved-for-publish` before invoking
+   `Publish V1 Stable Candidate`; no independent audit or second-party approval
+   record is required.
 
    ```bash
    pnpm release:evidence:write -- \
@@ -57,27 +54,26 @@ audit record are re-baselined to the new package provenance.
 
    Strict verification rejects a dirty source tree and an evidence commit that
    does not match the checkout being verified. The stable publish authorization
-   repeats the path and digest check from the checked-out release commit.
+   binds the checked-out release commit.
    The release gate also runs `pnpm verify:v1-release-workflows`, which binds
    both workflows to their exact SHA roles, the complete cohort, `npm-stable`,
    main-branch ancestry, authorization-before-mutation ordering, and the
    required post-publish consumer checks.
 2. The promotion workflow receives the provenance-attested published-artifact
    source commit, but checks out the current protected `main` governance
-   commit that contains the verifier and approval records. It rejects a
-   manifest, artifact source, audit record, or governance checkout that does
-   not match its declared role. Before `approved-for-stable`, record
+   commit that contains the verifier and governance records. It rejects a
+   manifest, artifact source, or governance checkout that does not match its
+   declared role. Before `approved-for-stable`, record
    `promotionGovernance`: a clean strict evidence manifest (and its SHA-256),
    the evidence commit, and the SHA-256 fingerprint of the promotion workflow,
-   package-script entry points, and its audit-review/authorization/provenance/
-   manifest verifiers. The checkout may
-   contain later approval-record documentation, but a changed governed file
-   changes the fingerprint and blocks promotion until fresh evidence and a new
-   approval record are made.
+   package-script entry points, and its authorization/provenance/manifest
+   verifiers. The checkout may contain later documentation, but a changed
+   governed file changes the fingerprint and blocks promotion until fresh
+   evidence is made.
    Repository administrators must configure `npm-stable` with the required
    reviewers; selecting an environment in workflow YAML alone cannot create
    that repository-level protection.
-3. Publish the approved candidate to `next`, then capture the registry
+3. Publish the owner-selected candidate to `next`, then capture the registry
    evidence artifact. Run `pnpm verify:v1-published-provenance` to verify each
    registry signature and provenance attestation before copying its integrity,
    SHA-256, tags, consumer result, and immutable commit into
@@ -85,16 +81,16 @@ audit record are re-baselined to the new package provenance.
    independently re-downloads every pinned tarball, compares its integrity and
    SHA-256 with the recorded evidence, and verifies that the live `next` tag
    still resolves to the approved version before any `latest` tag changes.
-4. Publish only the approved packages to `next` or `rc` with npm provenance
+4. Publish only the documented packages to `next` or `rc` with npm provenance
    enabled by the GitHub Actions `id-token: write` permission.
 5. In a clean external consumer, install the published versions and run CJS,
    ESM, NodeNext declaration checks, React 18/19 SSR, and representative
    runtime smoke tests.
-6. Obtain the independent published-artifact audit. Only then move the manifest
-   through `audited` and `approved-for-stable`.
-7. Invoke the dedicated `Promote V1 to Latest` workflow only after that
-   external smoke and approval succeed. It promotes the manifest's complete
-   cohort in dependency order, reruns the `latest` consumer matrix, and uploads
+6. Move the manifest to `approved-for-stable` after the required automated
+   evidence is recorded. An optional owner self-review may be retained as
+   history, but is not a gate.
+7. Invoke the dedicated `Promote V1 to Latest` workflow. It promotes only the
+   stable-surface targets in dependency order, reruns the `latest` consumer matrix, and uploads
    promotion evidence. Before changing a tag it records each package's prior
    `latest` value; if a promotion command or the required `latest` consumer
    matrix fails, it restores tags already changed in that run. This is
@@ -125,29 +121,16 @@ lockfile snapshots, and tarballs as GitHub Actions artifacts or release assets
 with their retention period recorded in the summary. Do not add another large
 lockfile/log snapshot to Git merely to refresh a status record.
 
-## Environment actor rehearsal
+## Single-maintainer environment operation
 
-Before promotion, run a no-op or intentionally failing deployment to
-`npm-stable` using distinct identities and record the outcome in the approval
-evidence. A 2026-08-10 protected hygiene rehearsal confirmed that the
+The 2026-08-10 protected hygiene rehearsal confirmed that the
 owner-authorized self-review exception can approve the environment. The first
 run (`31328409822`) failed with `E401` under OIDC-only credentials; the
 token-gated retry (`31328975435`) authenticated successfully but failed with
 `E403` because that token lacks WebMCP dist-tag management permission. Neither
-run made a registry mutation. The normal promotion policy remains separated
-identities:
-
-| Role | Required separation |
-| --- | --- |
-| Independent auditor | Must not be the implementation author |
-| Release owner | Accepts G0/G1; does not substitute for the auditor |
-| Workflow dispatcher | Must be able to dispatch without self-approving |
-| `npm-stable` reviewer | Must be a different eligible reviewer from the dispatcher |
-
-This proves that required-reviewer, self-review, and administrator-bypass
-settings do not create a promotion deadlock. The narrow owner exception is not
-a substitute for the independent-audit review enforced by the promotion
-workflow.
+run made a registry mutation. `npm-stable` permits the documented owner
+self-review exception while retaining main-only deployment, provenance, and
+rollback safeguards. Separate dispatcher/reviewer identities are not required.
 
 ## v1 RC prerelease
 
@@ -162,7 +145,7 @@ versions in an isolated consumer before completing.
 It must not be replaced with the general `Publish Packages` workflow: that
 workflow uses a fixed allow-list of non-v1 packages, so none of the four cohort
 package names can be published, retagged, or version-claimed by that path. Both
-workflows publish only to `next`; a separate, approved dist-tag promotion is
+workflows publish only to `next`; a separate protected dist-tag promotion is
 required to change `latest`.
 
 The prerelease workflow produces three evidence files: the publish summary,

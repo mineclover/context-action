@@ -28,7 +28,7 @@ async function main() {
   ]);
   const manifest = JSON.parse(manifestSource);
   const packages = Object.entries(manifest.packages ?? {});
-  const packageNames = packages.map(([name]) => name).join(',');
+  const stablePackageNames = (manifest.stableSurfaces ?? []).join(',');
   const errors = [];
 
   for (const [name, source] of [
@@ -55,13 +55,8 @@ async function main() {
   requireText(errors, promotion, 'ref: ${{ github.sha }}', 'Promotion workflow must checkout the current governance commit, not the historic artifact source');
   requireText(errors, promotion, 'test "$(git rev-parse HEAD)" = "$GITHUB_SHA"', 'Promotion workflow must bind checkout to its governance SHA');
   requireText(errors, promotion, '--governance-commit "$GITHUB_SHA"', 'Promotion authorization must receive the checked-out governance SHA');
-  requireText(errors, promotion, 'pnpm verify:v1-published-provenance', 'Promotion workflow must independently reverify registry provenance');
+  requireText(errors, promotion, 'pnpm verify:v1-published-provenance', 'Promotion workflow must reverify registry provenance');
   requireOrder(errors, promotion, 'pnpm verify:v1-published-provenance', 'pnpm verify:v1-promotion-authorization', 'Promotion must verify provenance before authorization');
-  requireText(errors, promotion, 'pull-requests: read', 'Promotion workflow must have read access to verify the independent audit review');
-  requireText(errors, promotion, 'pnpm verify:v1-audit-review', 'Promotion workflow must verify the recorded GitHub independent-audit review');
-  requireOrder(errors, promotion, 'pnpm verify:v1-audit-review', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion must verify the independent audit review before any latest dist-tag mutation');
-  requireText(errors, promotion, 'Refuse to overwrite a newer WebMCP hygiene patch', 'Promotion workflow must refuse to downgrade a newer WebMCP hygiene patch');
-  requireOrder(errors, promotion, 'Refuse to overwrite a newer WebMCP hygiene patch', 'npm dist-tag add "${packages[$index]}" latest', 'WebMCP re-baseline guard must run before any latest dist-tag mutation');
   requireOrder(errors, promotion, 'pnpm verify:v1-promotion-authorization', 'npm dist-tag add "${packages[$index]}" latest', 'Promotion authorization must occur before any latest dist-tag mutation');
   requireText(errors, promotion, 'verify:published-tool-consumers -- --tag latest', 'Promotion workflow must rerun the latest-tag consumer matrix');
   requireOrder(errors, promotion, 'trap rollback EXIT', 'verify:published-tool-consumers -- --tag latest', 'Promotion must preserve rollback until the latest consumer matrix passes');
@@ -72,7 +67,6 @@ async function main() {
   const expectedOrder = [
     '@context-action/tool-protocol',
     '@context-action/core',
-    '@context-action/webmcp',
     '@context-action/react',
   ];
   const actualOrder = packages.map(([name]) => name);
@@ -88,8 +82,8 @@ async function main() {
     requireText(errors, stableCandidate, `--scope ${name}`, `Stable candidate workflow must publish ${name}@${version}`);
     requireText(errors, promotion, `'${name}@${version}'`, `Promotion workflow must target ${name}@${version}`);
   }
-  requireText(errors, stableCandidate, `STABLE_CANDIDATE_PACKAGES: '${packageNames}'`, 'Stable candidate consumer cohort must match the manifest package cohort');
-  requireText(errors, promotion, `STABLE_CANDIDATE_PACKAGES: '${packageNames}'`, 'Promotion consumer cohort must match the manifest package cohort');
+  requireText(errors, stableCandidate, `STABLE_CANDIDATE_PACKAGES: '${stablePackageNames}'`, 'Stable candidate consumer cohort must match the manifest stable surfaces');
+  requireText(errors, promotion, `STABLE_CANDIDATE_PACKAGES: '${stablePackageNames}'`, 'Promotion consumer cohort must match the manifest stable surfaces');
   const regularPublishPackages = [
     '@context-action/typedoc-vitepress-sync',
     '@context-action/mutative-core',

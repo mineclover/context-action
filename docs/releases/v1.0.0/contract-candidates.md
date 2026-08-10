@@ -5,7 +5,7 @@
 
 This registry makes the M1 implementation facts reviewable. It is not an ADR
 and does not change the release verdict. An entry becomes a public contract
-only after scope approval and the named gate evidence are recorded.
+when its documented scope and named automated evidence are recorded.
 
 | Surface | Candidate behavior | Implementation evidence | Required gate evidence |
 | --- | --- | --- | --- |

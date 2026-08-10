@@ -89,7 +89,7 @@ async function main() {
       directory: path.posix.join('packages', directory),
       sourceVersion: manifest.version,
       candidateClassification: candidates.get(manifest.name) ?? 'decision-needed',
-      requiredDecision: 'Approve final v1 scope and target version; candidate classifications are not a release approval.',
+      requiredDecision: 'Keep the final v1 scope and target version documented; candidate classifications do not authorize a direct tag mutation.',
       published: await publishedVersion(manifest.name),
       runtime: {
         engines: manifest.engines ?? {},

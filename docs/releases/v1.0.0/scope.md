@@ -1,17 +1,17 @@
 # v1.0.0 Scope and Versioning Candidates
 
-**Status:** `candidate — approval required`  
+**Status:** `documented — owner operated`
 **Roadmap revision:** `v1-r2`
 
 This document is the decision record for G0. It does not authorize publishing
 or change any package version. Generate the current package and subpath input
 with `pnpm release:inventory`; record the resulting JSON in a clean RC
-evidence bundle before approval.
+evidence bundle before the owner elects to publish.
 
 The v1.0.0 cohort recorded in the release manifest was published before the
 protected authorization gate was introduced. That historical fact does not
 approve its contract or authorize `latest`; it remains subject to the
-provenance and audit gates in the release status.
+provenance and automated promotion checks in the release status.
 
 ## Candidate scope
 
@@ -36,12 +36,12 @@ The release manifest is also the source of truth for React's direct runtime
 dependencies outside the publish cohort. A manifest update must record their
 declared support range and exact tested version before release authorization.
 
-## Approval checklist
+## Owner checklist
 
-- Name the release owner and approve the package/subpath classification.
-- Approve the target version map and release order, including unpublished
+- Keep the package/subpath classification current.
+- Keep the target version map and release order current, including unpublished
   internal dependency versions.
 - Record a clean, immutable G0 evidence manifest with the inventory and the
   final package metadata.
-- Do not publish `latest` until G1–G9 have their required evidence and the
-  independent audit has signed off.
+- Do not publish `latest` outside the protected workflow. The workflow rechecks
+  provenance, stable-surface consumers, rollback eligibility, and evidence.

@@ -19,7 +19,6 @@ on:
 permissions:
   contents: read
   id-token: write
-  pull-requests: read
 
 concurrency:
   group: npm-publish
@@ -27,7 +26,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
+  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol'
 
 jobs:
   promote-v1-to-latest:
@@ -78,7 +77,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Independently verify published provenance
+      - name: Verify published provenance
         run: |
           pnpm verify:v1-published-provenance -- \
             --output reports/npm-v1-provenance-verification.json
@@ -91,24 +90,7 @@ jobs:
             --commit "$RELEASE_COMMIT" \
             --governance-commit "$GITHUB_SHA"
 
-      - name: Verify independent audit review on GitHub
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: pnpm verify:v1-audit-review
-
-      - name: Refuse to overwrite a newer WebMCP hygiene patch
-        run: |
-          node - <<'NODE'
-          const { execFileSync } = require('node:child_process');
-          const manifest = require('./docs/releases/v1.0.0/release-manifest.json');
-          const candidate = manifest.packages['@context-action/webmcp'];
-          const tags = JSON.parse(execFileSync('npm', ['view', '@context-action/webmcp', 'dist-tags', '--json', '--registry=https://registry.npmjs.org'], { encoding: 'utf8' }));
-          if (tags.latest !== candidate && !tags.latest.startsWith(`${candidate}-rc.`)) {
-            throw new Error(`WebMCP latest (${tags.latest}) differs from candidate (${candidate}); re-baseline the v1 manifest instead of downgrading a newer patch.`);
-          }
-          NODE
-
-      - name: Promote the complete cohort and verify latest consumers
+      - name: Promote stable surfaces and verify latest consumers
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
@@ -117,7 +99,6 @@ jobs:
           packages=(
             '@context-action/tool-protocol@1.0.0'
             '@context-action/core@1.0.0'
-            '@context-action/webmcp@0.1.0'
             '@context-action/react@1.0.0'
           )
           previous_tags=()

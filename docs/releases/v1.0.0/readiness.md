@@ -1,6 +1,6 @@
 # v1.0.0 Release Readiness Report
 
-**Verdict:** `NOT READY`  
+**Verdict:** `OWNER-OPERATED — promotion not yet dispatched`
 **Roadmap revision:** `v1-r2`
 
 This report links the current implementation work to the release gates. The
@@ -61,8 +61,8 @@ an authorized recovery mechanism. The protected `0.1.1` hygiene patch was
 published instead, and workflow run `31341251251` subsequently captured its
 converged tags and passing external-consumer result in
 `release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
-This clears registry tag hygiene but does not certify the older immutable
-`0.1.0` v1 candidate.
+This clears registry tag hygiene. WebMCP remains experimental and is excluded
+from the v1 stable-promotion target set.
 
 ## Published candidate state
 
@@ -81,17 +81,12 @@ metadata. A release defect requires a corrected patch version.
 
 ## Remaining release blockers
 
-1. Obtain an independent adversarial audit of the exact `next` artifacts and
-   recorded source commit.
-2. Complete the hashed G0/G1 scope, public-contract, and legacy-ledger owner
-   record in [release-approval.md](./release-approval.md).
-3. Re-baseline the WebMCP leg of the v1 candidate to the separate `0.1.1`
-   hygiene-patch provenance and audit. Do not use cleared tag hygiene as an
-   approval for the old `0.1.0` candidate.
-4. Generate and record strict evidence for the final governance commit and
+1. Generate and record strict evidence for the final governance commit and
    promotion-governance fingerprint; this documents the release process but
    does not alter the immutable published tarballs.
-5. Only then move the manifest through `audited` and `approved-for-stable`
-   before the guarded `latest` promotion.
+2. When the owner elects to ship, move the manifest to `approved-for-stable`
+   and run the guarded `latest` promotion. The workflow performs provenance,
+   stable-consumer, rollback, and evidence checks without a second reviewer.
 
-No status in this report authorizes a release to `latest`.
+No document alone authorizes a release to `latest`; the protected workflow is
+the only path that can mutate stable tags.

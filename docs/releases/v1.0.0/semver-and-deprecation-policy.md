@@ -1,11 +1,11 @@
 # v1.0.0 SemVer and Deprecation Policy
 
-**Status:** `candidate — approval required`  
+**Status:** `documented — owner operated`
 **Roadmap revision:** `v1-r2`
 
 ## Stable surfaces
 
-For an approved `stable-1x` surface, a patch release may fix behavior without
+For a documented `stable-1x` surface, a patch release may fix behavior without
 changing its documented contract; a minor release may add backwards-compatible
 APIs; and a major release is required to remove or change a documented public
 API, type, runtime matrix, package subpath, or observable execution result.
@@ -30,5 +30,5 @@ The current v1 candidate exceptions are recorded in
 `registerEffect`, `blocking`, and generic `register` are retained candidate
 1.x contracts.
 
-No candidate in this document becomes a public promise until G0 and G1 are
-approved.
+The documented stable surfaces become the public promise when the protected
+workflow promotes them. No separate G0/G1 approver is required.

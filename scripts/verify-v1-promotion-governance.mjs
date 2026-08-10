@@ -11,7 +11,6 @@ const governedFiles = [
   '.github/workflows/promote-v1-to-latest.yml',
   'docs/releases/v1.0.0/release-manifest.schema.json',
   'package.json',
-  'scripts/verify-v1-audit-review.mjs',
   'scripts/verify-v1-promotion-authorization.mjs',
   'scripts/verify-v1-promotion-governance.mjs',
   'scripts/verify-v1-published-provenance.mjs',

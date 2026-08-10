@@ -1,19 +1,20 @@
 # Context-Action v1.0.0 Release Documents
 
-The English release set is canonical. Every candidate remains `NOT READY` until
-the status document records approved, clean, independently audited RC evidence.
+The English release set is canonical. This single-maintainer project uses
+reproducible automated checks and a documented owner self-review; it does not
+require an independent reviewer or a second approver.
 
 - [Current status](./status.md)
 - [Scope and versioning candidates](./scope.md)
 - [Public contract candidates](./contract-candidates.md)
 - [Legacy outcome ledger](./legacy-ledger.md)
-- [Release scope and public-contract approval](./release-approval.md)
+- [Release-owner self-review record](./release-approval.md)
 - [SemVer and deprecation policy](./semver-and-deprecation-policy.md)
 - [Migration guide](./migration.md)
 - [Known limitations](./known-limitations.md)
 - [Issue ledger](./issue-ledger.md)
 - [Readiness report](./readiness.md)
-- [Independent audit protocol](./audit-protocol.md)
-- [Independent audit report template](./audit-report.md)
+- [Optional release-review protocol](./audit-protocol.md)
+- [Optional release-review report template](./audit-report.md)
 - [Publish and recovery runbook](./publish-runbook.md)
 - [Candidate release manifest](./release-manifest.json)
