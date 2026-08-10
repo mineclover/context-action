@@ -30,9 +30,14 @@ describe('React Aria integration reference', () => {
     expect(await screen.findByText(/Table sort committed: owner/)).toBeTruthy();
 
     const calendar = screen.getByRole('grid', { name: /Review schedule date/ });
-    const selectedCalendarCell = screen.getByRole('button', {
-      name: /August 12, 2026/,
-    });
+    const selectedCalendarGridCell = calendar.querySelector(
+      '[aria-selected="true"]'
+    );
+    const selectedCalendarCell =
+      selectedCalendarGridCell?.querySelector('[role="button"]');
+    if (!(selectedCalendarCell instanceof HTMLElement)) {
+      throw new Error('Expected an initially selected calendar cell.');
+    }
     selectedCalendarCell.focus();
     expect(calendar.contains(document.activeElement)).toBe(true);
     await user.keyboard('[ArrowRight][Enter]');

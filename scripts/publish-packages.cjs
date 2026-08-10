@@ -6,6 +6,10 @@ const { dirname } = require('node:path');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
 
+if (process.env.GITHUB_ACTIONS !== 'true') {
+  throw new Error('Direct package publication is disabled. Use an approved GitHub Actions release workflow.');
+}
+
 const argumentsList = process.argv.slice(2).filter((argument) => argument !== '--');
 
 function optionValues(name) {

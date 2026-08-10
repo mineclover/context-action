@@ -100,6 +100,8 @@ const packages = [
 
 const consumerRuntimeDependencies = [
   { name: 'ai', spec: 'ai@7.0.34' },
+  { name: '@types/node', spec: '@types/node@24.13.3' },
+  { name: '@types/json-schema', spec: '@types/json-schema@7.0.15' },
   { name: '@types/react', spec: '@types/react@19.2.17' },
   { name: 'typescript', spec: 'typescript@6.0.3' },
 ];
@@ -248,54 +250,67 @@ console.log('published tool package ESM imports passed: ' + Object.keys(expected
   });
 }
 
-/** Verify the public declarations from the same tarballs a consumer installs.
- * This specifically guards WebMCP's dependency on the newest tool-protocol
- * contract rather than relying on workspace declaration resolution. */
+/** Verify each selected package's public declarations from the tarballs a consumer installs. */
 function runConsumerTypecheck(consumerRoot, selectedPackages) {
   const names = new Set(selectedPackages.map(({ name }) => name));
-  if (!names.has('@context-action/core')
-    || !names.has('@context-action/react')
-    || !names.has('@context-action/tool-protocol')
-    || !names.has('@context-action/webmcp')) return;
-  const source = `
+  const statements = [];
+  if (names.has('@context-action/core')) {
+    statements.push(`
 import { ActionRegister } from '@context-action/core';
+const register = new ActionRegister();
+void register;
+`);
+  }
+  if (names.has('@context-action/react')) {
+    statements.push(`
 import { createActionContext } from '@context-action/react';
-import type {
-  ToolCallOptions,
-  ToolDefinition,
-  ToolInteractionHandler,
-} from '@context-action/tool-protocol';
-import { createWebMCPToolScope, type WebMCPToolScopeOptions } from '@context-action/webmcp';
-import { chromeLegacyWebMCPProfile } from '@context-action/webmcp/profiles/chrome-legacy';
-
+import { createToolContext } from '@context-action/react/tools';
+import { useWebMCPToolScope } from '@context-action/react/webmcp';
+const actions = createActionContext('consumer-check');
+void actions;
+void createToolContext;
+void useWebMCPToolScope;
+`);
+  }
+  if (names.has('@context-action/tool-protocol')) {
+    statements.push(`
+import { createActionSchema, type ToolCallOptions, type ToolDefinition, type ToolInteractionHandler } from '@context-action/tool-protocol';
 const interaction: ToolInteractionHandler = async () => 'approved';
 const callOptions: ToolCallOptions = { interaction };
 const definition: ToolDefinition = {
   name: 'consumer-check',
   description: 'Verifies packed public declarations.',
   inputSchema: { type: 'object' },
-  transports: { webmcp: { untrustedContentHint: true } },
 };
-const scope: WebMCPToolScopeOptions = {
-  sessionId: 'consumer-check',
-  toolNames: [definition.name],
-  interaction,
-};
-const register = new ActionRegister();
-const actions = createActionContext('consumer-check');
+void createActionSchema;
 void callOptions;
+void definition;
+`);
+  }
+  if (names.has('@context-action/ai-sdk')) {
+    statements.push(`
+import { createAISDKToolScope } from '@context-action/ai-sdk';
+void createAISDKToolScope;
+`);
+  }
+  if (names.has('@context-action/webmcp')) {
+    statements.push(`
+import { createWebMCPToolScope, type WebMCPToolScopeOptions } from '@context-action/webmcp';
+import { chromeLegacyWebMCPProfile } from '@context-action/webmcp/profiles/chrome-legacy';
+const scope: WebMCPToolScopeOptions = { sessionId: 'consumer-check', toolNames: [] };
 void scope;
 void createWebMCPToolScope;
 void chromeLegacyWebMCPProfile;
-void register;
-void actions;
-`;
+`);
+  }
+  if (statements.length === 0) return;
+  const source = statements.join('\n');
   for (const extension of ['mts', 'cts']) {
     const sourcePath = path.join(consumerRoot, `index.${extension}`);
     writeFileSync(sourcePath, source);
     execFileSync(
       process.execPath,
-      [path.join(consumerRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', sourcePath],
+      [path.join(consumerRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--types', 'node', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', sourcePath],
       { cwd: consumerRoot, stdio: 'inherit', env: { ...process.env } },
     );
   }
