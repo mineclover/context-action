@@ -33,6 +33,25 @@ export default function IntegrationsOverview() {
       </div>
 
       <div className="categories grid md:grid-cols-2 gap-6">
+        <div className="category-card bg-white border border-violet-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <div className="inline-flex rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
+            Accessibility state boundary
+          </div>
+          <h3 className="text-xl font-semibold text-slate-900 mb-3 mt-3">
+            🗓️ React Aria Table + Calendar Reference
+          </h3>
+          <p className="text-sm text-slate-700 mb-4">
+            React Aria가 키보드, 포커스, 컬렉션 동작을 맡고 Context-Action이
+            선택·정렬·일정 확정 같은 도메인 action을 기록하는 레퍼런스입니다.
+          </p>
+          <Link
+            to="/integrations/react-aria-reference"
+            className="inline-flex items-center rounded-md bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
+          >
+            Reference 열기 →
+          </Link>
+        </div>
+
         <div className="category-card bg-indigo-50 border border-indigo-200 p-6 rounded-lg shadow-sm md:col-span-2">
           <h3 className="text-xl font-semibold mb-4">
             🧩 MCP / Function Calling Catalog

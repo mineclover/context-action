@@ -111,6 +111,13 @@ function Layout({
         'Priority, blocking, result collection, and abort behavior in one trace',
     },
     {
+      path: '/integrations/react-aria-reference',
+      label: '🗓️ React Aria Table + Calendar',
+      category: 'architecture',
+      description:
+        'Keep React Aria interaction state local while Context-Action owns domain actions',
+    },
+    {
       path: '/patterns/implementation-playbook/scenarios',
       label: '🗂️ Playbook Scenarios',
       category: 'architecture',
