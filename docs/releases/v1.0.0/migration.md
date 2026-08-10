@@ -1,7 +1,7 @@
 # v1.0.0 Migration Guide
 
 **Status:** `promoted stable-surface guide — owner operated`
-**Roadmap revision:** `v1-r2`
+**Roadmap revision:** `v1-r3`
 
 This guide covers the compatibility decisions in the promoted v1.0.0 stable
 surfaces. Use the release manifest and published release notes for the exact

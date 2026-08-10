@@ -1,0 +1,145 @@
+name: Publish Package Maintenance Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Published package to patch'
+        required: true
+        type: choice
+        options:
+          - tool-protocol
+          - webmcp
+      release_commit:
+        description: 'Immutable main commit containing the new patch version'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type publish-maintenance-patch to publish a new version to latest'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PATCH_CONSUMER_CLOSURE: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
+
+jobs:
+  publish-maintenance-patch:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 30
+    steps:
+      - name: Checkout approved patch commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify main, immutable commit, and explicit confirmation
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+          test "$CONFIRMATION" = publish-maintenance-patch
+
+      - name: Resolve the patch package and version
+        env:
+          PATCH_PACKAGE: ${{ inputs.package }}
+        run: |
+          case "$PATCH_PACKAGE" in
+            tool-protocol|webmcp) ;;
+            *) echo "Unsupported maintenance package: $PATCH_PACKAGE" >&2; exit 1 ;;
+          esac
+          package_name="@context-action/$PATCH_PACKAGE"
+          version="$(node -p "require('./packages/' + process.env.PATCH_PACKAGE + '/package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "PACKAGE_NAME=$package_name" >> "$GITHUB_ENV"
+          echo "PACKAGE_DIRECTORY=$PATCH_PACKAGE" >> "$GITHUB_ENV"
+          echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Verify npm automation-token auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify source and packed changelog
+        run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY"
+
+      - name: Build and test the patch package
+        run: |
+          if [ "$PACKAGE_DIRECTORY" = webmcp ]; then
+            pnpm --filter @context-action/tool-protocol build
+          fi
+          pnpm --filter "$PACKAGE_NAME" build
+          pnpm --filter "$PACKAGE_NAME" type-check
+          pnpm --filter "$PACKAGE_NAME" test
+
+      - name: Refuse an ambiguous existing patch version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --json --registry=https://registry.npmjs.org | tr -d '\"')"
+            test "$latest" = "$PACKAGE_VERSION" || {
+              echo 'Refusing to retag an existing version; publish a new patch instead.' >&2
+              exit 1
+            }
+            echo 'PUBLISH_REQUIRED=false' >> "$GITHUB_ENV"
+          fi
+
+      - name: Publish the new patch to latest
+        if: env.PUBLISH_REQUIRED != 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          pnpm publish:packages -- --summary-file reports/maintenance-patch-summary.json \
+            --dist-tag latest --scope "$PACKAGE_NAME"
+
+      - name: Verify reverse dependency closure and capture evidence
+        run: |
+          pnpm verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE"
+          pnpm capture:published-release -- --tag latest --packages "$PACKAGE_NAME" \
+            --consumer-status passed --output reports/maintenance-patch-registry-evidence.json
+
+      - name: Upload maintenance-patch evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: maintenance-patch-evidence
+          path: reports/maintenance-patch-*.json
+          if-no-files-found: ignore
+          retention-days: 30

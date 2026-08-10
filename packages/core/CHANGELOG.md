@@ -13,8 +13,6 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Breaking Changes from 0.x
 
-### Breaking Changes
-
 - Move React-oriented helper exports (`createActionHandler`, `ReactDevUtils`,
   `ReactActionError`, and `isReactActionError`) to `@context-action/react`.
   Core remains a framework-neutral action runtime.

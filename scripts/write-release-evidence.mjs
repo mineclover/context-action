@@ -20,7 +20,7 @@ Options:
   --output <directory>    Evidence directory (default: release-evidence/<stage>)
   --commit <sha>          Commit to record; must equal git HEAD
   --require-clean         Refuse to create evidence from a dirty source tree
-  --roadmap-revision <id> Roadmap revision (default: v1-r2)
+  --roadmap-revision <id> Roadmap revision (default: v1-r3)
   --note <text>           Additional manifest note (repeatable)`);
   process.exitCode = 2;
 }
@@ -193,7 +193,7 @@ async function main() {
       release: options.release,
       stage: options.stage,
       commit: sourceCommit,
-      roadmapRevision: options.roadmapRevision ?? 'v1-r2',
+      roadmapRevision: options.roadmapRevision ?? 'v1-r3',
       status: hasFailure ? 'failed' : commands.length === 0 ? 'not-certified' : 'recorded',
       generatedAt: timestamp(),
       workingTree: sourceWorkingTree,

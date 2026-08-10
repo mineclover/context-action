@@ -25,8 +25,12 @@ function definitionOfReadyCount(source, heading) {
 
 const [english, korean] = await Promise.all([readFile(englishPath, 'utf8'), readFile(koreanPath, 'utf8')]);
 const checks = [
+  ['status', frontmatterValue(english, 'status'), frontmatterValue(korean, 'status')],
   ['roadmapRevision', frontmatterValue(english, 'roadmapRevision'), frontmatterValue(korean, 'roadmapRevision')],
-  ['baselineCommit/syncedAtCommit', frontmatterValue(english, 'baselineCommit'), frontmatterValue(korean, 'syncedAtCommit')],
+  ['artifactCommit', frontmatterValue(english, 'artifactCommit'), frontmatterValue(korean, 'artifactCommit')],
+  ['promotionRun', frontmatterValue(english, 'promotionRun'), frontmatterValue(korean, 'promotionRun')],
+  ['completedAt', frontmatterValue(english, 'completedAt'), frontmatterValue(korean, 'completedAt')],
+  ['releaseStatus', frontmatterValue(english, 'releaseStatus'), frontmatterValue(korean, 'releaseStatus')],
   ['milestones', orderedMatches(english, /^### (M\d)\b/g), orderedMatches(korean, /^### (M\d)\b/g)],
   ['gates', orderedMatches(english, /^\| (G\d) /gm), orderedMatches(korean, /^\| (G\d) /gm)],
   ['initial issue IDs', orderedMatches(english, /`(CA-1X-[A-Z]+-\d+)`/g), orderedMatches(korean, /`(CA-1X-[A-Z]+-\d+)`/g)],

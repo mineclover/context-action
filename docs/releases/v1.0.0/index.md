@@ -1,8 +1,10 @@
 # Context-Action v1.0.0 Release Documents
 
-The English release set is canonical. This single-maintainer project uses
-reproducible automated checks and a documented owner self-review; it does not
-require an independent reviewer or a second approver.
+The Korean v1 roadmap is the semantic canonical source. This English release
+set records the same release state and its immutable evidence. This
+single-maintainer project uses reproducible automated checks and a documented
+owner self-review; it does not require an independent reviewer or a second
+approver.
 
 - [Current status](./status.md)
 - [Scope and versioning](./scope.md)

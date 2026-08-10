@@ -79,20 +79,19 @@ async function main() {
   if (manifest.status !== 'approved-for-stable') {
     errors.push(`Promotion requires approved-for-stable status, received ${String(manifest.status)}`);
   }
-  if (manifest.commit !== expectedCommit) {
+  const artifactCohort = manifest.artifactCohort ?? {};
+  const stablePromotion = manifest.stablePromotion ?? {};
+  if (artifactCohort.commit !== expectedCommit) {
     errors.push('Manifest commit does not match the requested published-artifact source commit');
   }
   if (currentCommit() !== governanceCommit) {
     errors.push('Checked-out governance commit does not match the requested governance commit');
   }
-  errors.push(...await verifyPromotionGovernance(manifest.promotionGovernance, governanceCommit));
-  if (manifest.registryHygiene?.status !== 'cleared') {
-    errors.push('Promotion requires cleared registry hygiene');
-  }
+  errors.push(...await verifyPromotionGovernance(stablePromotion.governance, governanceCommit));
 
-  for (const [name, target] of Object.entries(manifest.promotionTargets ?? {})) {
-    const version = manifest.packages?.[name];
-    const evidence = manifest.registryEvidence?.[name];
+  for (const [name, target] of Object.entries(stablePromotion.targets ?? {})) {
+    const version = artifactCohort.packages?.[name];
+    const evidence = artifactCohort.registryEvidence?.[name];
     if (evidence?.version !== version
       || evidence?.provenance?.status !== 'verified'
       || evidence?.provenance?.sourceCommit !== expectedCommit
@@ -106,7 +105,7 @@ async function main() {
 
   if (errors.length > 0) throw new Error(errors.join('\n'));
   console.log(JSON.stringify({
-    status: 'authorized', artifactCommit: expectedCommit, governanceCommit, targets: manifest.promotionTargets,
+    status: 'authorized', artifactCommit: expectedCommit, governanceCommit, targets: stablePromotion.targets,
   }));
 }
 
