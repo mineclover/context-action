@@ -14,6 +14,7 @@ const governedFiles = [
   'scripts/verify-v1-promotion-authorization.mjs',
   'scripts/verify-v1-promotion-governance.mjs',
   'scripts/verify-v1-published-provenance.mjs',
+  'scripts/verify-published-tool-consumers.cjs',
   'scripts/verify-v1-release-manifest.mjs',
   'scripts/verify-v1-release-workflows.mjs',
 ];
