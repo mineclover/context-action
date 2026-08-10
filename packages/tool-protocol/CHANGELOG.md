@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.1] (2026-08-10)
+
+### Packaging correction
+
+- Republish the already-documented 1.0.0 release notes in the immutable npm
+  tarball. This patch changes no runtime API or declaration contract.
+
 ## [1.0.0] (2026-08-09)
 
 ### Stable Contracts

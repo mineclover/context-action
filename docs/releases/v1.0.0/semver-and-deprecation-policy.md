@@ -24,11 +24,10 @@ be re-exported from a stable default entry point.
 5. Remove it only in a major release, with a negative type/import fixture and
    packed-consumer verification.
 
-The current v1 candidate exceptions are recorded in
-[legacy-ledger.md](./legacy-ledger.md). `beforeExecute` and
-`errorMode: 'result'` are removal candidates rather than hidden aliases;
-`registerEffect`, `blocking`, and generic `register` are retained candidate
-1.x contracts.
+The promoted v1 outcomes are recorded in [legacy-ledger.md](./legacy-ledger.md).
+`beforeExecute` and `errorMode: 'result'` remain experimental removals rather
+than hidden aliases; `registerEffect`, `blocking`, and generic `register` are
+retained 1.x contracts.
 
 The documented stable surfaces become the public promise when the protected
 workflow promotes them. No separate G0/G1 approver is required.

@@ -1,4 +1,4 @@
-# v1.0.0 Scope and Versioning Candidates
+# v1.0.0 Scope and Versioning
 
 **Status:** `promoted — owner operated`
 **Roadmap revision:** `v1-r2`
@@ -13,9 +13,9 @@ introduced, then promoted through the protected workflow after provenance,
 consumer, rollback, hygiene, and governance checks passed. The release
 manifest and promotion artifact record the resulting stable tags.
 
-## Candidate scope
+## Promoted scope
 
-| Class | Candidate packages and surfaces | 1.x promise |
+| Class | Packages and surfaces | 1.x promise |
 | --- | --- | --- |
 | `stable-1x` | `@context-action/core`; the default React action/store entry points | SemVer-governed public contract |
 | `supporting-stable` | `@context-action/tool-protocol` and its declared public subpaths | Compatible with the stable packages' supported matrix |
@@ -23,7 +23,7 @@ manifest and promotion artifact record the resulting stable tags.
 | `out-of-cohort integration` | `@context-action/ai-sdk` | Not a React 1.0.0 runtime dependency and not certified as part of the v1 publish cohort |
 | `experimental` | `@context-action/webmcp` and `@context-action/react/webmcp` | Publicly importable, but excluded from the 1.x stability promise |
 
-`@context-action/react/tools` remains the stable-candidate ToolContext entry.
+`@context-action/react/tools` remains the stable ToolContext entry.
 It must not re-export experimental WebMCP APIs.
 
 React 1.0.0 keeps `@context-action/webmcp@^0.1.0` as a direct runtime
