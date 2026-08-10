@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback } from 'react';
+import { type ReactNode, useCallback, useRef } from 'react';
 import {
   ReactAriaReferenceActions,
   ReactAriaReferenceStores,
@@ -13,6 +13,7 @@ export function ReactAriaReferenceHandlerRegistry({
   const sortStore = ReactAriaReferenceStores.useStore('sort');
   const selectedDateStore = ReactAriaReferenceStores.useStore('selectedDate');
   const auditStore = ReactAriaReferenceStores.useStore('audit');
+  const auditSequence = useRef(0);
 
   const record = useCallback(
     (message: string) => {
@@ -20,7 +21,7 @@ export function ReactAriaReferenceHandlerRegistry({
       auditStore.setValue(
         [
           {
-            id: `${Date.now()}-${entries.length}`,
+            id: `audit-${++auditSequence.current}`,
             message,
           },
           ...entries,

@@ -73,7 +73,8 @@ external state:
 
 - `@context-action/webmcp`: `latest` is `0.1.2`, while `next` is `0.1.0` and
   `rc` is `0.1.0-rc.0`. Protected maintenance run `31364068737` passed the
-  reverse-dependency consumer matrix and captured registry evidence at
+  reverse-dependency consumer matrix and captured registry plus independently
+  verified npm provenance evidence at
   `release-evidence/webmcp-maintenance-patch-0.1.2-31364068737/`.
 - `npm-stable` allows only `main`, requires review by `mineclover`, permits the
   owner-authorized self-review exception, and disallows administrator bypass.
@@ -116,8 +117,8 @@ the runtime API nor declaration contract. Captured promotion artifacts are
 stored at `release-evidence/v1.0.0-stable-promotion-31347327623/`.
 
 `@context-action/webmcp` remains experimental: `latest` is the separately
-published hygiene patch `0.1.1`; its original `0.1.0` candidate remains on
-`next` and was not part of the stable-surface promotion.
+published changelog correction `0.1.2`; its original `0.1.0` candidate remains
+on `next` and was not part of the stable-surface promotion.
 
 ## Development evidence
 

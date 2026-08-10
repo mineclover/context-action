@@ -38,7 +38,7 @@
   "postReleasePatches": {
     "toolProtocolChangelog": { "package": "@context-action/tool-protocol", "version": "1.0.1", "reason": "bundled CHANGELOG.md correction", "sourceCommit": "8295e17a71fdec2ae109aa04561d4c992d907dfa", "latest": true, "registryEvidence": { "path": "release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/tool-protocol-changelog-patch-registry-evidence.json", "sha256": "8a632c6545b3b36180f8f96e1533ab3abbdadb7e60bd69f1d835291294c60bff" }, "provenanceEvidence": { "path": "release-evidence/tool-protocol-changelog-patch-1.0.1-31349046893/tool-protocol-changelog-patch-provenance.json", "sha256": "114e6a94283ba09326f73bb6f57e173b7f4da0090aeca4947346f6a8bc1dd321" } },
     "webmcpHygiene": { "package": "@context-action/webmcp", "version": "0.1.1", "reason": "replace the accidental RC latest tag through a versioned experimental patch", "sourceCommit": null, "latest": false, "registryEvidence": { "path": "release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json", "sha256": "e930765ab7c565f91b6557dba5c6a49639431123961413290b749b6ef8ff4ace" }, "acceptedLimitation": "The immutable @context-action/webmcp@0.1.1 tarball starts its bundled CHANGELOG.md at 0.1.0; it remains historical while the corrected 0.1.2 patch owns latest." },
-    "webmcpChangelogCorrection": { "package": "@context-action/webmcp", "version": "0.1.2", "reason": "distribute the corrected bundled CHANGELOG.md", "sourceCommit": "9c1b6b10fb8b41029ac2e53d1628b701592bc2b4", "latest": true, "registryEvidence": { "path": "release-evidence/webmcp-maintenance-patch-0.1.2-31364068737/maintenance-patch-registry-evidence.json", "sha256": "c75f3ae06f85c90cde009de58ef25845f77e768ad8d504c8b7091c05135fdea2" } }
+    "webmcpChangelogCorrection": { "package": "@context-action/webmcp", "version": "0.1.2", "reason": "distribute the corrected bundled CHANGELOG.md", "sourceCommit": "9c1b6b10fb8b41029ac2e53d1628b701592bc2b4", "latest": true, "registryEvidence": { "path": "release-evidence/webmcp-maintenance-patch-0.1.2-31364068737/maintenance-patch-registry-evidence.json", "sha256": "c75f3ae06f85c90cde009de58ef25845f77e768ad8d504c8b7091c05135fdea2" }, "provenanceEvidence": { "path": "release-evidence/webmcp-maintenance-patch-0.1.2-31364068737/maintenance-patch-provenance-evidence.json", "sha256": "969103b5c1634637a9e7ff30ee026d74eb9fa342c0606c5dcbfc88808ae44a78" } }
   },
   "currentRegistryState": {
     "checkedAt": "2026-08-10T07:01:09.337Z",
@@ -50,5 +50,5 @@
     }
   },
   "requiredBeforeCertification": [],
-  "acceptedLimitations": []
+  "acceptedLimitations": ["The immutable @context-action/webmcp@0.1.2 tarball labels its top bundled CHANGELOG.md entry as Unreleased. Source now records the 2026-08-10 publication date and the next functional patch must ship that corrected release state; the published archive cannot be changed in place."]
 }

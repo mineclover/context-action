@@ -60,21 +60,38 @@ for (const [name] of packages) {
 for (const required of [
   'workflow_dispatch:',
   'package:',
+  'core',
+  'react',
   'tool-protocol',
   'webmcp',
   'release_commit:',
   'name: npm-stable',
   'test "$CONFIRMATION" = publish-maintenance-patch',
   'node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY"',
-  'PATCH_CONSUMER_CLOSURE:',
+  'PATCH_CONSUMER_CLOSURE=$consumer_closure',
+  'PATCH_BUILD_CLOSURE=',
+  'PATCH_LOCAL_CONSUMERS=$local_consumers',
+  'verify-maintenance-patch-version.mjs',
+  'Verify local tarball reverse dependency closure',
+  '--dist-tag maintenance',
+  '--package-tag "$PACKAGE_NAME=maintenance"',
+  '--local-package "$PATCH_LOCAL_CONSUMERS"',
+  'verify-maintenance-patch-provenance.mjs',
+  'Record previous latest tag',
+  'Promote verified candidate to latest',
   'verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE"',
   'capture:published-release -- --tag latest --packages "$PACKAGE_NAME"',
+  'Roll back latest after post-promotion failure',
 ]) {
   requireText(errors, maintenancePatch, required, `Maintenance patch workflow must include ${required}`);
 }
-requireOrder(errors, maintenancePatch, 'Verify source and packed changelog', 'Publish the new patch to latest', 'Maintenance changelog validation must occur before publication');
-requireOrder(errors, maintenancePatch, 'Build and test the patch package', 'Publish the new patch to latest', 'Maintenance package validation must occur before publication');
-requireOrder(errors, maintenancePatch, 'Publish the new patch to latest', 'Verify reverse dependency closure and capture evidence', 'Maintenance consumer closure must run after publication');
+requireOrder(errors, maintenancePatch, 'Verify source and packed changelog', 'Publish the new patch candidate', 'Maintenance changelog validation must occur before candidate publication');
+requireOrder(errors, maintenancePatch, 'Build and test the maintenance closure', 'Publish the new patch candidate', 'Maintenance package validation must occur before candidate publication');
+requireOrder(errors, maintenancePatch, 'Verify local tarball reverse dependency closure', 'Publish the new patch candidate', 'Maintenance local consumer closure must run before candidate publication');
+requireOrder(errors, maintenancePatch, 'Verify published candidate reverse dependency closure', 'Promote verified candidate to latest', 'Candidate consumer closure must pass before latest mutation');
+requireOrder(errors, maintenancePatch, 'Verify published candidate changelog and provenance', 'Promote verified candidate to latest', 'Candidate provenance must pass before latest mutation');
+requireOrder(errors, maintenancePatch, 'Record previous latest tag', 'Promote verified candidate to latest', 'Maintenance workflow must record the rollback target before latest mutation');
+requireOrder(errors, maintenancePatch, 'Promote verified candidate to latest', 'Verify latest closure and capture evidence', 'Latest consumer closure must run after promotion');
 
 if (errors.length > 0) {
   console.error(`v1 release workflow contract failed:\n${errors.map(error => `- ${error}`).join('\n')}`);

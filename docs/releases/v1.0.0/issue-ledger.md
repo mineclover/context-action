@@ -14,7 +14,7 @@
 | CA-1X-EVIDENCE-001 | Evidence schema/writer | Clean governance and promotion evidence recorded | Use for each future promotion |
 | CA-1X-SECURITY-001 | Security/supply chain | OSV, provenance, and workflow checks passed | Re-run for each future publication |
 | CA-1X-MIGRATION-001 | 0.9 consumer migration | Packed Core fixture and release migration guide verified | Maintain for future breaking changes |
-| CA-1X-LOCALIZE-001 | EN canonical/KO governance | Alignment verifier passed | Govern future release-document changes |
+| CA-1X-LOCALIZE-001 | KO canonical/EN translation governance | Alignment verifier passed with explicit translation revision and synced commit | Govern future release-document changes |
 | CA-1X-RELEASE-001 | Publish/recovery | Protected promotion, provenance, rollback, and evidence completed | Use the protected path for future promotions |
 | CA-1X-ARTIFACT-001 | Tool Protocol bundled CHANGELOG | Protected `1.0.1` correction published; consumer and attestation provenance verified | Closed; rerun the source-and-tarball changelog verifier for a future Tool Protocol release |
 

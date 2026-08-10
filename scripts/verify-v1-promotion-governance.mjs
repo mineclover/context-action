@@ -17,6 +17,8 @@ const governedFiles = [
   'scripts/verify-v1-release-manifest.mjs',
   'scripts/verify-v1-release-workflows.mjs',
   'scripts/verify-tool-protocol-changelog.mjs',
+  'scripts/verify-maintenance-patch-version.mjs',
+  'scripts/verify-maintenance-patch-provenance.mjs',
 ];
 
 export async function promotionGovernanceFingerprint() {

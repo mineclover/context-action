@@ -9,6 +9,14 @@ import {
   type SortDirection,
 } from '../contexts/ReactAriaReferenceContexts';
 
+export function isSortColumn(key: React.Key): key is SortColumn {
+  return ['project', 'owner', 'status', 'reviewDate'].includes(String(key));
+}
+
+function reportActionError(error: unknown) {
+  console.error('React Aria reference action failed', error);
+}
+
 export function useReactAriaReferenceViewModel() {
   const selectedKeysStore = ReactAriaReferenceStores.useStore('selectedKeys');
   const sortStore = ReactAriaReferenceStores.useStore('sort');
@@ -34,17 +42,25 @@ export function useReactAriaReferenceViewModel() {
         selection === 'all'
           ? reviewRows.map((row) => row.id)
           : [...selection].map(String);
-      void dispatch('tableSelectionChanged', { keys });
+      void dispatch('tableSelectionChanged', { keys }).catch(reportActionError);
     },
     [dispatch]
   );
 
   const onSortChange = useCallback(
     (next: { column: React.Key; direction: SortDirection }) => {
+      if (!isSortColumn(next.column)) {
+        reportActionError(
+          new Error(
+            `Unsupported React Aria sort column: ${String(next.column)}`
+          )
+        );
+        return;
+      }
       void dispatch('tableSortChanged', {
-        column: next.column as SortColumn,
+        column: next.column,
         direction: next.direction,
-      });
+      }).catch(reportActionError);
     },
     [dispatch]
   );
@@ -53,13 +69,13 @@ export function useReactAriaReferenceViewModel() {
     (value: { toString(): string } | null) => {
       void dispatch('calendarDateCommitted', {
         value: value?.toString() ?? null,
-      });
+      }).catch(reportActionError);
     },
     [dispatch]
   );
 
   const scheduleReview = useCallback(() => {
-    void dispatch('reviewScheduled');
+    void dispatch('reviewScheduled').catch(reportActionError);
   }, [dispatch]);
 
   return {

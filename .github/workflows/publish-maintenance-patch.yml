@@ -8,6 +8,8 @@ on:
         required: true
         type: choice
         options:
+          - core
+          - react
           - tool-protocol
           - webmcp
       release_commit:
@@ -29,7 +31,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  PATCH_CONSUMER_CLOSURE: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
 
 jobs:
   publish-maintenance-patch:
@@ -60,15 +61,40 @@ jobs:
           PATCH_PACKAGE: ${{ inputs.package }}
         run: |
           case "$PATCH_PACKAGE" in
-            tool-protocol|webmcp) ;;
+            core|react|tool-protocol|webmcp) ;;
             *) echo "Unsupported maintenance package: $PATCH_PACKAGE" >&2; exit 1 ;;
           esac
           package_name="@context-action/$PATCH_PACKAGE"
           version="$(node -p "require('./packages/' + process.env.PATCH_PACKAGE + '/package.json').version")"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          case "$PATCH_PACKAGE" in
+            core)
+              consumer_closure='@context-action/core,@context-action/react'
+              build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
+              local_consumers=''
+              ;;
+            react)
+              consumer_closure='@context-action/core,@context-action/react'
+              build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
+              local_consumers=''
+              ;;
+            tool-protocol)
+              consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
+              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
+              local_consumers='@context-action/ai-sdk'
+              ;;
+            webmcp)
+              consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
+              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
+              local_consumers='@context-action/ai-sdk'
+              ;;
+          esac
           echo "PACKAGE_NAME=$package_name" >> "$GITHUB_ENV"
           echo "PACKAGE_DIRECTORY=$PATCH_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "PATCH_CONSUMER_CLOSURE=$consumer_closure" >> "$GITHUB_ENV"
+          echo "PATCH_BUILD_CLOSURE=$build_closure" >> "$GITHUB_ENV"
+          echo "PATCH_LOCAL_CONSUMERS=$local_consumers" >> "$GITHUB_ENV"
 
       - name: Clear npm config before registry setup
         run: |
@@ -99,41 +125,83 @@ jobs:
       - name: Verify source and packed changelog
         run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY"
 
-      - name: Build and test the patch package
+      - name: Build and test the maintenance closure
         run: |
-          if [ "$PACKAGE_DIRECTORY" = webmcp ]; then
-            pnpm --filter @context-action/tool-protocol build
-          fi
-          pnpm --filter "$PACKAGE_NAME" build
+          for package_name in $PATCH_BUILD_CLOSURE; do
+            pnpm --filter "$package_name" build
+          done
           pnpm --filter "$PACKAGE_NAME" type-check
           pnpm --filter "$PACKAGE_NAME" test
 
-      - name: Refuse an ambiguous existing patch version
+      - name: Verify patch-only semantic version increment
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
-            latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --json --registry=https://registry.npmjs.org | tr -d '\"')"
-            test "$latest" = "$PACKAGE_VERSION" || {
-              echo 'Refusing to retag an existing version; publish a new patch instead.' >&2
-              exit 1
-            }
-            echo 'PUBLISH_REQUIRED=false' >> "$GITHUB_ENV"
-          fi
+          node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION"
+          ! npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --registry=https://registry.npmjs.org >/dev/null 2>&1 || {
+            echo 'Maintenance version already exists; create a new patch version.' >&2
+            exit 1
+          }
 
-      - name: Publish the new patch to latest
-        if: env.PUBLISH_REQUIRED != 'false'
+      - name: Verify local tarball reverse dependency closure
+        run: pnpm verify:published-tool-consumers -- --local --packages "$PATCH_CONSUMER_CLOSURE"
+
+      - name: Publish the new patch candidate
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           pnpm publish:packages -- --summary-file reports/maintenance-patch-summary.json \
-            --dist-tag latest --scope "$PACKAGE_NAME"
+            --dist-tag maintenance --scope "$PACKAGE_NAME"
 
-      - name: Verify reverse dependency closure and capture evidence
+      - name: Verify published candidate changelog and provenance
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
-          pnpm verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE"
+          node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY" --require-published-release
+          node scripts/verify-maintenance-patch-provenance.mjs \
+            --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION" --source-commit "$RELEASE_COMMIT" \
+            --output reports/maintenance-patch-provenance-evidence.json
+
+      - name: Verify published candidate reverse dependency closure
+        run: |
+          command=(pnpm verify:published-tool-consumers -- --tag latest --package-tag "$PACKAGE_NAME=maintenance" --packages "$PATCH_CONSUMER_CLOSURE")
+          if [ -n "$PATCH_LOCAL_CONSUMERS" ]; then
+            command+=(--local-package "$PATCH_LOCAL_CONSUMERS")
+          fi
+          "${command[@]}"
+
+      - name: Record previous latest tag
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          previous_latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry=https://registry.npmjs.org)"
+          [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "PREVIOUS_LATEST=$previous_latest" >> "$GITHUB_ENV"
+
+      - name: Promote verified candidate to latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" latest --registry=https://registry.npmjs.org
+          echo 'LATEST_PROMOTED=true' >> "$GITHUB_ENV"
+
+      - name: Verify latest closure and capture evidence
+        run: |
+          command=(pnpm verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE")
+          if [ -n "$PATCH_LOCAL_CONSUMERS" ]; then
+            command+=(--local-package "$PATCH_LOCAL_CONSUMERS")
+          fi
+          "${command[@]}"
           pnpm capture:published-release -- --tag latest --packages "$PACKAGE_NAME" \
             --consumer-status passed --output reports/maintenance-patch-registry-evidence.json
+
+      - name: Roll back latest after post-promotion failure
+        if: failure() && env.LATEST_PROMOTED == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm dist-tag add "$PACKAGE_NAME@$PREVIOUS_LATEST" latest --registry=https://registry.npmjs.org
+          echo "Restored $PACKAGE_NAME latest to $PREVIOUS_LATEST"
 
       - name: Upload maintenance-patch evidence
         if: always()

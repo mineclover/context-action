@@ -48,6 +48,12 @@ for (const [packageName, state] of Object.entries(manifest.currentRegistryState?
   const latest = state.distTags?.latest;
   expect(errors, typeof latest === 'string' && status.includes(`| \`${packageName}\` | \`${latest}\` |`), `status.md must record current latest for ${packageName}.`);
 }
+const stablePromotionResult = status.match(/## Stable promotion result\n([\s\S]*?)(?=\n## |$)/u)?.[1] ?? '';
+const webmcpLatest = manifest.currentRegistryState?.packages?.['@context-action/webmcp']?.distTags?.latest;
+if (typeof webmcpLatest === 'string') {
+  expect(errors, stablePromotionResult.includes(`\`latest\` is the separately\npublished changelog correction \`${webmcpLatest}\``), 'Stable promotion result must name the current WebMCP latest correction.');
+  expect(errors, !stablePromotionResult.includes('`latest` is the separately\npublished hygiene patch `0.1.1`'), 'Stable promotion result must not retain WebMCP 0.1.1 as latest.');
+}
 if (errors.length > 0) {
   console.error(`v1 release state alignment failed:\n${errors.map(error => `- ${error}`).join('\n')}`);
   process.exitCode = 1;

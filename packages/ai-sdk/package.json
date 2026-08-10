@@ -56,7 +56,7 @@
     "ai": "^7.0.0"
   },
   "dependencies": {
-    "@context-action/tool-protocol": "^0.8.9"
+    "@context-action/tool-protocol": "^1.0.0"
   },
   "devDependencies": {
     "@context-action/tool-protocol": "workspace:*",

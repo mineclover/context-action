@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import path from 'path'
@@ -82,5 +82,9 @@ export default defineConfig({
   // 개발 시 소스맵 설정
   define: {
     __DEV__: JSON.stringify(true),
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
   },
 })

@@ -92,6 +92,9 @@ async function validatePromotedState(manifest, errors) {
     if (evidence?.packages?.[patch.package]?.version !== patch.version) {
       errors.push(`Post-release patch ${key} registry evidence does not match its package version`);
     }
+    if (patch.latest && !patch.provenanceEvidence) {
+      errors.push(`Latest post-release patch ${key} requires provenance evidence`);
+    }
     if (patch.provenanceEvidence) {
       const provenance = await readHashedEvidence(patch.provenanceEvidence, `post-release patch ${key} provenance evidence`, errors);
       if (provenance?.status !== 'verified' || provenance?.package?.sourceCommit !== patch.sourceCommit) {
