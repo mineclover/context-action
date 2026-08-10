@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process';
-import { buildSync } from 'esbuild';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -20,20 +19,15 @@ try {
     const consumerDirectory = path.join(temporaryDirectory, `react-${reactVersion}`);
     const npmConfigPath = path.join(consumerDirectory, '.npmrc');
     mkdirSync(consumerDirectory, { recursive: true });
-    buildSync({
-      entryPoints: [pagePath],
-      outfile: path.join(consumerDirectory, 'reference-page.cjs'),
-      bundle: true,
-      format: 'cjs',
-      platform: 'node',
-      target: 'node18',
-      jsx: 'automatic',
-      external: [
-        'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client', 'react-dom/server',
-        'react-aria-components', '@internationalized/date',
-        '@context-action/core', '@context-action/react', '@context-action/react/tools',
-      ],
-    });
+    execFileSync('pnpm', [
+      '--dir', path.join(repositoryRoot, 'example'), 'exec', 'esbuild', pagePath,
+      `--outfile=${path.join(consumerDirectory, 'reference-page.cjs')}`,
+      '--bundle', '--format=cjs', '--platform=node', '--target=node18', '--jsx=automatic',
+      '--external:react', '--external:react/jsx-runtime', '--external:react-dom',
+      '--external:react-dom/client', '--external:react-dom/server',
+      '--external:react-aria-components', '--external:@internationalized/date',
+      '--external:@context-action/core', '--external:@context-action/react', '--external:@context-action/react/tools',
+    ], { stdio: 'inherit', env: isolatedNpmEnvironment() });
     writeFileSync(path.join(consumerDirectory, 'package.json'), JSON.stringify({
       name: `context-action-react-aria-hydration-${reactVersion}`,
       private: true,
