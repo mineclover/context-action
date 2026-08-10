@@ -1,6 +1,6 @@
 # v1.0.0 SemVer and Deprecation Policy
 
-**Status:** `documented — owner operated`
+**Status:** `promoted policy — owner operated`
 **Roadmap revision:** `v1-r2`
 
 ## Stable surfaces

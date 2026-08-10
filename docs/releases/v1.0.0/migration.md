@@ -1,11 +1,11 @@
-# v1.0 to v1.0.0 Candidate Migration Guide
+# v1.0.0 Migration Guide
 
-**Status:** `documented candidate — owner operated`
+**Status:** `promoted stable-surface guide — owner operated`
 **Roadmap revision:** `v1-r2`
 
-This guide covers the compatibility decisions implemented in the v1 candidate.
-It is not a release announcement; use the published release notes and recorded
-version map for an actual upgrade.
+This guide covers the compatibility decisions in the promoted v1.0.0 stable
+surfaces. Use the release manifest and published release notes for the exact
+version map; WebMCP guidance remains experimental.
 
 ## Core handlers
 
@@ -54,4 +54,5 @@ unsupported/SSR inert scope and must not rely on it as a stable 1.x contract.
 
 The packed Core consumer fixture is run by `pnpm verify:v1-core-migration`.
 The experimental WebMCP type removals are covered by the WebMCP test suite.
-Run the appropriate packed-consumer matrix again from the final RC commit.
+The protected promotion also ran the exact-version CJS/ESM/NodeNext/React 18/19
+consumer matrix; rerun the appropriate matrix before each future release.
