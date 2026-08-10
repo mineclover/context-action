@@ -27,6 +27,18 @@ function optionValue(name) {
   return value;
 }
 
+function optionValues(name) {
+  const values = [];
+  for (let index = 0; index < cliArguments.length; index += 1) {
+    if (cliArguments[index] !== name) continue;
+    const value = cliArguments[index + 1];
+    if (!value || value.startsWith('--')) throw new Error(`${name} requires a value`);
+    values.push(value);
+    index += 1;
+  }
+  return values;
+}
+
 const packages = [
   {
     name: '@context-action/core',
@@ -334,6 +346,16 @@ function main() {
   const local = cliArguments.includes('--local');
   const tag = optionValue('--tag');
   if (tag && !/^[a-z][a-z0-9._-]*$/u.test(tag)) throw new Error(`Invalid npm dist-tag: ${tag}`);
+  const packageTags = new Map(optionValues('--package-tag').map((entry) => {
+    const separator = entry.lastIndexOf('=');
+    const name = entry.slice(0, separator);
+    const packageTag = entry.slice(separator + 1);
+    if (separator <= 0 || !/^[a-z][a-z0-9._-]*$/u.test(packageTag)) {
+      throw new Error('--package-tag must use <package-name>=<dist-tag>');
+    }
+    return [name, packageTag];
+  }));
+  const localPackageNames = new Set(optionValues('--local-package'));
   const requestedPackages = optionValue('--packages')?.split(',').filter(Boolean);
   const selectedPackages = requestedPackages
     ? packages.filter(({ name }) => requestedPackages.includes(name))
@@ -341,15 +363,31 @@ function main() {
   if (selectedPackages.length === 0 || (requestedPackages && selectedPackages.length !== requestedPackages.length)) {
     throw new Error('Requested published consumer packages must be known package names');
   }
+  for (const name of packageTags.keys()) {
+    if (!selectedPackages.some(packageDefinition => packageDefinition.name === name)) {
+      throw new Error(`--package-tag references a package outside the consumer matrix: ${name}`);
+    }
+  }
+  for (const name of localPackageNames) {
+    if (!selectedPackages.some(packageDefinition => packageDefinition.name === name)) {
+      throw new Error(`--local-package references a package outside the consumer matrix: ${name}`);
+    }
+  }
   const consumerRoot = mkdtempSync(path.join(os.tmpdir(), 'context-action-tool-consumer-'));
   try {
-    const packageSpecs = local
-      ? createLocalPackageSpecs(consumerRoot).filter(({ name }) => selectedPackages.some(pkg => pkg.name === name))
-      : selectedPackages.map((packageDefinition) => {
-          const { name } = packageDefinition;
-          const version = waitForPublishedVersion(packageDefinition, tag);
-          return { name, spec: `${name}@${version}` };
-        });
+    const localPackageSpecs = local || localPackageNames.size > 0
+      ? createLocalPackageSpecs(consumerRoot)
+      : [];
+    const packageSpecs = selectedPackages.map((packageDefinition) => {
+      const { name } = packageDefinition;
+      if (local || localPackageNames.has(name)) {
+        const localPackage = localPackageSpecs.find(candidate => candidate.name === name);
+        if (!localPackage) throw new Error(`Could not pack local consumer package ${name}`);
+        return localPackage;
+      }
+      const version = waitForPublishedVersion(packageDefinition, packageTags.get(name) ?? tag);
+      return { name, spec: `${name}@${version}` };
+    });
     packageSpecs.push(...consumerRuntimeDependencies);
 
     writeFileSync(
@@ -363,9 +401,10 @@ function main() {
             name,
             spec.startsWith(`${name}@`) ? spec.slice(name.length + 1) : spec,
           ])),
-          overrides: local
+          overrides: local || localPackageNames.size > 0
             ? Object.fromEntries(packageSpecs
-              .filter(({ name }) => name.startsWith('@context-action/'))
+              .filter(({ name }) => name.startsWith('@context-action/')
+                && (local || localPackageNames.has(name)))
               .map(({ name, spec }) => [name, spec]))
             : undefined,
         },

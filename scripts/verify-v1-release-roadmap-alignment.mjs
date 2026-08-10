@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,7 +25,15 @@ function definitionOfReadyCount(source, heading) {
 }
 
 const [english, korean] = await Promise.all([readFile(englishPath, 'utf8'), readFile(koreanPath, 'utf8')]);
+const englishRelativePath = 'docs/en/context-layered/v1-release-roadmap.md';
+const koreanRelativePath = 'docs/ko/context-layered/v1-release-roadmap.md';
 const checks = [
+  ['Korean canonical source', frontmatterValue(korean, 'canonical'), 'true'],
+  ['Korean source locale', frontmatterValue(korean, 'sourceLocale'), 'ko'],
+  ['Korean translation target', korean.match(/^  en:\s*(.+)$/m)?.[1]?.trim() ?? null, englishRelativePath],
+  ['English non-canonical marker', frontmatterValue(english, 'canonical'), 'false'],
+  ['English translation source', frontmatterValue(english, 'translationOf'), koreanRelativePath],
+  ['English translation revision', frontmatterValue(english, 'translationRevision'), frontmatterValue(korean, 'roadmapRevision')],
   ['status', frontmatterValue(english, 'status'), frontmatterValue(korean, 'status')],
   ['roadmapRevision', frontmatterValue(english, 'roadmapRevision'), frontmatterValue(korean, 'roadmapRevision')],
   ['artifactCommit', frontmatterValue(english, 'artifactCommit'), frontmatterValue(korean, 'artifactCommit')],
@@ -36,6 +45,16 @@ const checks = [
   ['initial issue IDs', orderedMatches(english, /`(CA-1X-[A-Z]+-\d+)`/g), orderedMatches(korean, /`(CA-1X-[A-Z]+-\d+)`/g)],
   ['Definition of Ready item count', definitionOfReadyCount(english, '## 11. Definition of ready'), definitionOfReadyCount(korean, '## 11. Ready 정의')],
 ];
+const syncedAtCommit = frontmatterValue(english, 'syncedAtCommit');
+if (!/^[a-f0-9]{40}$/u.test(syncedAtCommit ?? '')) {
+  checks.push(['English syncedAtCommit format', syncedAtCommit, '40-character commit SHA']);
+} else {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', syncedAtCommit, 'HEAD'], { cwd: repositoryRoot, stdio: 'ignore' });
+  } catch {
+    checks.push(['English syncedAtCommit ancestry', syncedAtCommit, 'an ancestor of HEAD']);
+  }
+}
 const failures = checks.filter(([, englishValue, koreanValue]) => JSON.stringify(englishValue) !== JSON.stringify(koreanValue));
 if (failures.length > 0) {
   console.error('v1 release roadmap alignment failed:');

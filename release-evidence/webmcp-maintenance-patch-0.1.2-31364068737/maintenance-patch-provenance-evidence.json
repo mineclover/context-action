@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "context-action-maintenance-provenance.v1",
+  "status": "verified",
+  "verifier": "npm audit signatures --include-attestations",
+  "verifiedAt": "2026-08-10T08:04:39.796Z",
+  "package": {
+    "name": "@context-action/webmcp",
+    "version": "0.1.2",
+    "sourceCommit": "9c1b6b10fb8b41029ac2e53d1628b701592bc2b4",
+    "workflow": {
+      "repository": "https://github.com/mineclover/context-action",
+      "path": ".github/workflows/publish-maintenance-patch.yml",
+      "ref": "refs/heads/main"
+    },
+    "run": "https://github.com/mineclover/context-action/actions/runs/31364068737/attempts/1",
+    "attestationUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@context-action%2fwebmcp@0.1.2"
+  }
+}

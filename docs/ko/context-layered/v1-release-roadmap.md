@@ -3,6 +3,7 @@
 ---
 status: completed
 canonical: true
+sourceLocale: ko
 roadmapRevision: v1-r3
 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
 promotionRun: 31347327623

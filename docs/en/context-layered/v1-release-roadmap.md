@@ -4,7 +4,8 @@
 status: completed
 canonical: false
 translationOf: docs/ko/context-layered/v1-release-roadmap.md
-syncedAtCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
+translationRevision: v1-r3
+syncedAtCommit: b21284fff2c6253eb2ce43634a1baffbc52163e2
 roadmapRevision: v1-r3
 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3
 promotionRun: 31347327623

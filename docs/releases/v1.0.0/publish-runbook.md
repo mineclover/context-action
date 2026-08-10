@@ -6,15 +6,19 @@
 ## Current maintenance
 
 Do not rerun an archived v1 publication, hygiene, or promotion workflow. A new
-Tool Protocol or WebMCP patch must use `Publish Package Maintenance Patch`.
-It accepts only a new immutable `main` commit, validates the source and packed
-changelog, publishes one versioned package to `latest`, and then installs the
-complete reverse-dependency closure (`core`, `react`, `tool-protocol`, and
-`webmcp`) in CJS, ESM, NodeNext, and React 18/19 SSR consumers.
+Core, React, Tool Protocol, or WebMCP patch must use `Publish Package
+Maintenance Patch`. It accepts only a new immutable `main` commit, validates a
+patch-only SemVer increment and the source/packed changelog, then builds and
+installs the affected local reverse-dependency closure before publication. It
+publishes only to the `maintenance` candidate tag, waits for the exact package,
+checks candidate consumers plus npm provenance, records the prior `latest`, and
+only then promotes the exact version to `latest`. A post-promotion consumer or
+evidence failure restores the saved `latest` version.
 
-After a successful run, record its evidence hash under `postReleasePatches`
-and refresh `currentRegistryState` in `release-manifest.json`. Do not edit the
-historical `artifactCohort` to describe a later package patch.
+After a successful run, record both registry and provenance evidence hashes
+under `postReleasePatches` and refresh `currentRegistryState` in
+`release-manifest.json`. Do not edit the historical `artifactCohort` to
+describe a later package patch.
 
 `@context-action/webmcp@0.1.2` is the published packaging correction for the
 immutable `0.1.1` bundled Changelog. Protected maintenance run `31364068737`

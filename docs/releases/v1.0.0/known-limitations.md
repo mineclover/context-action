@@ -36,6 +36,12 @@
   published `@context-action/webmcp@0.1.2` to `latest`, with the corrected
   bundled changelog and a passing reverse-dependency consumer matrix. The
   affected `0.1.1` archive remains immutable historical evidence.
+- The immutable `@context-action/webmcp@0.1.2` tarball correctly starts its
+  bundled changelog at `0.1.2`, but marks that entry as `Unreleased` despite
+  the completed publication. The source changelog records the 2026-08-10
+  release date and the generic verifier rejects `Unreleased` entries whenever
+  a package version is already published. The archive cannot be changed in
+  place, so the next functional WebMCP patch must carry the corrected state.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
 affected gate before preparing a future stable patch or minor.

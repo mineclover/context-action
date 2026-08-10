@@ -16,13 +16,16 @@ const packageDirectory = path.join(repositoryRoot, 'packages', packageDirectoryN
 const packageManifest = JSON.parse(readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
 const changelogPath = path.join(packageDirectory, 'CHANGELOG.md');
 
-function assertChangelogVersion(contents, source) {
-  const heading = /^## \[([^\]]+)\]/mu.exec(contents);
+function assertChangelogVersion(contents, source, { requirePublishedRelease = false } = {}) {
+  const heading = /^## \[([^\]]+)\](.*)$/mu.exec(contents);
   if (!heading) throw new Error(`${source} must start with a versioned release heading`);
   if (heading[1] !== packageManifest.version) {
     throw new Error(
       `${source} starts at ${heading[1]}, expected ${packageManifest.name}@${packageManifest.version}`,
     );
+  }
+  if (requirePublishedRelease && /\(Unreleased\)/iu.test(heading[2])) {
+    throw new Error(`${source} marks published ${packageManifest.name}@${packageManifest.version} as Unreleased`);
   }
 }
 
@@ -43,7 +46,17 @@ function main() {
   if (packageManifest.name !== `@context-action/${packageDirectoryName}`) {
     throw new Error(`Unexpected package identity: ${packageManifest.name}`);
   }
-  assertChangelogVersion(readFileSync(changelogPath, 'utf8'), changelogPath);
+  const requirePublishedRelease = process.argv.includes('--require-published-release');
+  if (requirePublishedRelease) {
+    const publishedVersion = execFileSync(
+      'npm', ['view', `${packageManifest.name}@${packageManifest.version}`, 'version', '--registry=https://registry.npmjs.org'],
+      { encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } },
+    ).trim();
+    if (publishedVersion !== packageManifest.version) {
+      throw new Error(`${packageManifest.name}@${packageManifest.version} is not published for release-state verification`);
+    }
+  }
+  assertChangelogVersion(readFileSync(changelogPath, 'utf8'), changelogPath, { requirePublishedRelease });
 
   const destination = mkdtempSync(path.join(os.tmpdir(), 'context-action-tool-protocol-pack-'));
   try {
@@ -57,7 +70,7 @@ function main() {
     );
     assertChangelogVersion(
       execFileSync('tar', ['-xOf', archivePath, 'package/CHANGELOG.md'], { encoding: 'utf8' }),
-      `${path.basename(archivePath)}:package/CHANGELOG.md`,
+      `${path.basename(archivePath)}:package/CHANGELOG.md`, { requirePublishedRelease },
     );
   } finally {
     rmSync(destination, { recursive: true, force: true });
