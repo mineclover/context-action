@@ -5,8 +5,8 @@ reproducible automated checks and a documented owner self-review; it does not
 require an independent reviewer or a second approver.
 
 - [Current status](./status.md)
-- [Scope and versioning candidates](./scope.md)
-- [Public contract candidates](./contract-candidates.md)
+- [Scope and versioning](./scope.md)
+- [Public contracts](./contract-candidates.md)
 - [Legacy outcome ledger](./legacy-ledger.md)
 - [Release-owner self-review record](./release-approval.md)
 - [SemVer and deprecation policy](./semver-and-deprecation-policy.md)
@@ -17,4 +17,4 @@ require an independent reviewer or a second approver.
 - [Optional release-review protocol](./audit-protocol.md)
 - [Optional release-review report template](./audit-report.md)
 - [Publish and recovery runbook](./publish-runbook.md)
-- [Candidate release manifest](./release-manifest.json)
+- [Release manifest](./release-manifest.json)

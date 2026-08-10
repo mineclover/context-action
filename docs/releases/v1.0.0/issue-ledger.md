@@ -1,21 +1,22 @@
 # v1.0.0 Delivery Issue Ledger
 
-**Status:** `implementation tracking — approvals remain open`  
+**Status:** `v1 stable promotion complete; artifact correction in progress`
 **Roadmap revision:** `v1-r2`
 
 | ID | Scope | Implementation state | Remaining release condition |
 | --- | --- | --- | --- |
-| CA-1X-SCOPE-001 | Package/subpath classification | Scope recorded | Keep owner documentation current |
-| CA-1X-VERSION-001 | Version map | Candidate manifest recorded | Keep target versions and dependency updates current |
-| CA-1X-FREEZE-001 | Freeze ladder | Documented in roadmap | Enter owner-selected RC freeze |
-| CA-1X-LEGACY-001/002 | Core legacy APIs | Candidate retain decisions and packed fixture implemented | Automated evidence |
-| CA-1X-WEBMCP-001 | Experimental WebMCP subpath | Isolated and tested | External consumer certification |
-| CA-1X-LIFECYCLE-001 | WebMCP disposal/cancellation | Regression coverage exists | RC adapter evidence |
-| CA-1X-EVIDENCE-001 | Evidence schema/writer | Implemented and tested | Clean RC evidence bundle |
-| CA-1X-SECURITY-001 | Security/supply chain | OSV audit passes | Provenance and workflow evidence |
-| CA-1X-MIGRATION-001 | 0.9 consumer migration | Packed Core fixture implemented | RC repeat and release notes |
-| CA-1X-LOCALIZE-001 | EN canonical/KO governance | Alignment verifier implemented | Govern release-document translations |
-| CA-1X-RELEASE-001 | Publish/recovery | Protected workflows and hygiene evidence implemented | Owner-triggered protected promotion, provenance, rollback evidence |
+| CA-1X-SCOPE-001 | Package/subpath classification | Promoted scope recorded | Update only when a future public surface changes |
+| CA-1X-VERSION-001 | Version map | v1.0.0 manifest and stable tags recorded | Maintain dependency ranges for future releases |
+| CA-1X-FREEZE-001 | Freeze ladder | Owner-operated freeze and promotion completed | Re-enter only for a future release |
+| CA-1X-LEGACY-001/002 | Core legacy APIs | Retained 1.x decisions and packed fixture verified | Reopen only for a breaking change |
+| CA-1X-WEBMCP-001 | Experimental WebMCP subpath | Isolated and consumer-tested | Keep outside the stable 1.x promise |
+| CA-1X-LIFECYCLE-001 | WebMCP disposal/cancellation | Regression and lifecycle coverage recorded | Reopen for an adapter regression |
+| CA-1X-EVIDENCE-001 | Evidence schema/writer | Clean governance and promotion evidence recorded | Use for each future promotion |
+| CA-1X-SECURITY-001 | Security/supply chain | OSV, provenance, and workflow checks passed | Re-run for each future publication |
+| CA-1X-MIGRATION-001 | 0.9 consumer migration | Packed Core fixture and release migration guide verified | Maintain for future breaking changes |
+| CA-1X-LOCALIZE-001 | EN canonical/KO governance | Alignment verifier passed | Govern future release-document changes |
+| CA-1X-RELEASE-001 | Publish/recovery | Protected promotion, provenance, rollback, and evidence completed | Use the protected path for future promotions |
+| CA-1X-ARTIFACT-001 | Tool Protocol bundled CHANGELOG | `1.0.1` packaging correction implemented | Publish the protected `@context-action/tool-protocol@1.0.1` patch and capture evidence |
 
 No row authorizes a direct tag mutation. The protected workflow is the only
 stable-promotion path; issue URLs and owner notes remain optional history.

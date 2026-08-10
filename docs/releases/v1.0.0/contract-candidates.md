@@ -1,4 +1,4 @@
-# v1.0.0 Contract Candidates
+# v1.0.0 Public Contracts
 
 **Status:** `promoted stable contracts; experimental entries retained`
 **Roadmap revision:** `v1-r2`
@@ -8,7 +8,7 @@ stable surfaces, the protected v1 promotion makes these entries part of the
 1.x public contract. WebMCP entries remain experimental and are not included in
 that promise.
 
-| Surface | Candidate behavior | Implementation evidence | Required gate evidence |
+| Surface | Documented behavior | Implementation evidence | Recorded evidence |
 | --- | --- | --- | --- |
 | Core handler roles | A handler ID cannot replace a different role; guards run before result handlers; observers run only after the terminal result. | `packages/core/src/ActionRegister.ts` | promoted Core provenance plus lifecycle and migration checks |
 | `once` handlers | The once claim is made before invocation, including concurrent dispatch. | `packages/core/src/ActionRegister.ts` | promoted Core provenance plus lifecycle checks |

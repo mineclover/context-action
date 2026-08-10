@@ -17,10 +17,11 @@
   independent-auditor gate; future promotions remain protected by automated
   checks.
 - `@context-action/tool-protocol@1.0.0` bundles a `CHANGELOG.md` whose newest
-  entry is `0.8.9`. The immutable artifact cannot be repaired in place; the
-  canonical v1.0.0 notes are this release document set and the GitHub release.
-  Runtime and declaration artifacts are unaffected. A stricter artifact-docs
-  policy requires a corrected patch cohort rather than silent promotion.
+  entry is `0.8.9`. The immutable artifact cannot be repaired in place. The
+  protected `@context-action/tool-protocol@1.0.1` packaging correction is
+  implemented and awaits publication; it changes no runtime API or declaration
+  contract and will replace `latest` only after exact-version consumer and
+  registry checks pass.
 - The accidental WebMCP RC `latest` tag has been replaced by the protected
   `@context-action/webmcp@0.1.1` hygiene patch. Run `31341251251` recorded
   `latest=0.1.1`, `next=0.1.0`, `rc=0.1.0-rc.0`, and a passing external

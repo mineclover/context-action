@@ -1,17 +1,24 @@
 # v1.0.0 Optional Release-Review Report
 
-**Status:** `optional — not performed`
+**Status:** `completed owner self-review — READY`
 
-This file is intentionally a template. The release owner may complete it as a
-supplemental self-review.
+The release owner completed this supplemental self-review on 2026-08-10. It is
+not a second-party approval and did not authorize a dist-tag change; the
+protected promotion workflow remained the only mutation path.
 
-## Required record
+## Record
 
-- Reviewer, date, clean checkout commit, and evidence manifest hash.
-- Result for every replay in [audit-protocol.md](./audit-protocol.md).
-- Public API, docs, tarball, consumer, security, and provenance review notes.
-- Open P0/P1 findings, or an explicit statement that none exist.
-- One verdict: `READY` or `NOT READY`.
+- Reviewer: `mineclover`; review date: 2026-08-10.
+- Artifact source: `63f790a521e3428a7a2825677747338f8f05ccf3`.
+- Governance evidence: `release-evidence/v1.0.0-1a77f373-solo-governance-2/manifest.json`.
+- Promotion evidence: protected workflow run `31347327623` and
+  `release-evidence/v1.0.0-stable-promotion-31347327623/`.
+- Public export, migration, lifecycle, React/WebMCP isolation, documentation,
+  consumer, security, and provenance checks passed.
+- Open P0/P1 findings: none. The only non-runtime artifact issue is the
+  Tool Protocol 1.0.0 bundled CHANGELOG, with a protected 1.0.1 correction in
+  progress.
+- Verdict: `READY` for the promoted v1 stable surfaces.
 
 ## Optional record
 
