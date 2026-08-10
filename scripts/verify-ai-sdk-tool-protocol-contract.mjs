@@ -36,14 +36,14 @@ function packAiSdk(destination) {
   return path.resolve(destination, filename);
 }
 
-function publishedAiSdkSpec() {
+function publishedAiSdkVersion() {
   const version = execFileSync('npm', [
     'view', `@context-action/ai-sdk@${expectedAiSdkVersion}`, 'version', '--registry=https://registry.npmjs.org',
   ], { encoding: 'utf8', env: isolatedNpmEnvironment() }).trim();
   if (version !== expectedAiSdkVersion) {
     throw new Error(`Registry did not resolve @context-action/ai-sdk@${expectedAiSdkVersion}`);
   }
-  return `@context-action/ai-sdk@${version}`;
+  return version;
 }
 
 function collectToolProtocolNodes(node, ancestry = []) {
@@ -61,7 +61,7 @@ function collectToolProtocolNodes(node, ancestry = []) {
 
 const temporaryDirectory = mkdtempSync(path.join(os.tmpdir(), 'context-action-ai-sdk-contract-'));
 try {
-  const aiSdkSpec = published ? publishedAiSdkSpec() : `file:${packAiSdk(temporaryDirectory)}`;
+  const aiSdkSpec = published ? publishedAiSdkVersion() : `file:${packAiSdk(temporaryDirectory)}`;
   for (const version of ['1.0.0', '1.0.1']) {
     const consumerDirectory = path.join(temporaryDirectory, version);
     const manifestPath = path.join(consumerDirectory, 'package.json');
