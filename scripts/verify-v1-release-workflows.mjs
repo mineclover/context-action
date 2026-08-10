@@ -107,6 +107,7 @@ requireOrder(errors, maintenancePatch, 'Verify source and packed changelog', 'Pu
 requireOrder(errors, maintenancePatch, 'Build and test the maintenance closure', 'Publish the new patch candidate', 'Maintenance package validation must occur before candidate publication');
 requireOrder(errors, maintenancePatch, 'Verify local tarball reverse dependency closure', 'Publish the new patch candidate', 'Maintenance local consumer closure must run before candidate publication');
 requireOrder(errors, maintenancePatch, 'Resume an existing verified candidate when safe', 'Publish the new patch candidate', 'Maintenance candidate resume decision must occur before publication');
+requireOrder(errors, maintenancePatch, 'Resume an existing verified candidate when safe', 'Verify patch-only semantic version increment', 'Maintenance candidate resume decision must precede patch version validation');
 requireOrder(errors, maintenancePatch, 'Verify published candidate reverse dependency closure', 'Promote verified candidate to latest', 'Candidate consumer closure must pass before latest mutation');
 requireOrder(errors, maintenancePatch, 'Verify published candidate changelog and provenance', 'Promote verified candidate to latest', 'Candidate provenance must pass before latest mutation');
 requireOrder(errors, maintenancePatch, 'Record previous latest tag', 'Promote verified candidate to latest', 'Maintenance workflow must record the rollback target before latest mutation');

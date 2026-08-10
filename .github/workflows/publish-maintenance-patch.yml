@@ -139,14 +139,6 @@ jobs:
           pnpm --filter "$PACKAGE_NAME" type-check
           pnpm --filter "$PACKAGE_NAME" test
 
-      - name: Verify patch-only semantic version increment
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          command=(node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION")
-          if [ "$ALLOW_INITIAL_RELEASE" = true ]; then command+=(--allow-initial); fi
-          "${command[@]}"
-
       - name: Resume an existing verified candidate when safe
         env:
           RELEASE_COMMIT: ${{ inputs.release_commit }}
@@ -165,6 +157,15 @@ jobs:
             --output reports/maintenance-patch-provenance-evidence.json
           echo 'PUBLISH_REQUIRED=false' >> "$GITHUB_ENV"
           echo "Resuming verified maintenance candidate $PACKAGE_NAME@$PACKAGE_VERSION."
+
+      - name: Verify patch-only semantic version increment
+        if: env.PUBLISH_REQUIRED != 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          command=(node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION")
+          if [ "$ALLOW_INITIAL_RELEASE" = true ]; then command+=(--allow-initial); fi
+          "${command[@]}"
 
       - name: Verify local tarball reverse dependency closure
         run: pnpm verify:published-tool-consumers -- --local --packages "$PATCH_CONSUMER_CLOSURE"
