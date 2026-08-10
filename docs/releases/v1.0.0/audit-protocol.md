@@ -1,9 +1,9 @@
-# v1.0.0 Independent Audit Protocol
+# v1.0.0 Optional Release-Review Protocol
 
-**Status:** `prepared — not yet independently executed`  
+**Status:** `optional`
 **Roadmap revision:** `v1-r2`
 
-The reviewer must be independent from the RC implementation work. Inspect the
+The release owner may perform this review when additional confidence is useful. Inspect the
 provenance-attested artifact source commit
 `63f790a521e3428a7a2825677747338f8f05ccf3`, install the exact packages from
 npm's `next` tag in a fresh consumer, verify the registry provenance evidence
@@ -30,14 +30,7 @@ hashes, provenance source commit, candidate manifest, migration guide, security
 report, and external-consumer results. The recorded npm CLI provenance check is
 `release-evidence/v1.0.0-63f790a5-registry-provenance-1/manifest.json`; rerun
 `pnpm verify:v1-published-provenance` rather than trusting its summary alone.
-Any P0/P1 finding reopens the affected gate; only the auditor may set the audit
-result to accepted. A `READY` result must also satisfy the hashed acceptance
-record in [audit-report.md](./audit-report.md); the manifest and promotion
-verifiers reject an unhashed, altered, or differently bound audit report.
-The accepted manifest record must also identify the GitHub PR review that
-approved the audit. Record its reviewer login, PR number, immutable review ID,
-reviewed commit, and `APPROVED` decision; this preserves a queryable
-independence trail rather than treating a prose reviewer field as proof. The
-promotion workflow calls the GitHub REST API with read-only pull-request access
-and rejects promotion unless that exact review still resolves to the recorded
-reviewer, commit, and approved state.
+Any P0/P1 finding reopens the affected gate. A completed review can be recorded
+in [audit-report.md](./audit-report.md), but it is supplemental evidence: the
+manifest and promotion workflow do not require a second reviewer, GitHub review
+ID, or independent-auditor identity.

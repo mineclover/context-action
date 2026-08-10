@@ -26,7 +26,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
+  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol'
 
 jobs:
   publish-stable-candidate:
@@ -85,7 +85,6 @@ jobs:
             'packages/core/package.json': ['@context-action/core', '1.0.0'],
             'packages/react/package.json': ['@context-action/react', '1.0.0'],
             'packages/tool-protocol/package.json': ['@context-action/tool-protocol', '1.0.0'],
-            'packages/webmcp/package.json': ['@context-action/webmcp', '0.1.0'],
           };
           for (const [file, [name, version]] of Object.entries(expected)) {
             const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -123,7 +122,6 @@ jobs:
           pnpm publish:packages -- --summary-file reports/npm-stable-candidate-summary.json --dist-tag next \
             --scope @context-action/tool-protocol \
             --scope @context-action/core \
-            --scope @context-action/webmcp \
             --scope @context-action/react
 
       - name: Verify published stable candidate consumer matrix

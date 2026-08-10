@@ -1,6 +1,6 @@
 # v1.0.0 Legacy Outcome Ledger
 
-**Status:** `candidate decisions — approval required`  
+**Status:** `candidate decisions — owner operated`
 **Roadmap revision:** `v1-r2`
 
 Every compatibility surface below has a named owner and a required outcome.

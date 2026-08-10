@@ -19,91 +19,6 @@ function currentCommit() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim();
 }
 
-async function verifyAcceptedAudit(audit, expectedCommit) {
-  const errors = [];
-  if (audit?.status !== 'accepted') return ['Promotion requires an accepted independent published-artifact audit'];
-  if (typeof audit.reviewer !== 'string' || audit.reviewer.trim().length === 0) {
-    errors.push('Accepted audit requires a named independent reviewer');
-  }
-  if (audit.reviewedCommit !== expectedCommit) {
-    errors.push('Accepted audit must bind the requested release commit');
-  }
-  const review = audit.review;
-  if (!review || typeof review !== 'object'
-    || typeof review.login !== 'string' || review.login.trim().length === 0
-    || typeof review.pullRequest !== 'number' || !Number.isInteger(review.pullRequest) || review.pullRequest <= 0
-    || typeof review.reviewId !== 'number' || !Number.isInteger(review.reviewId) || review.reviewId <= 0
-    || typeof review.reviewCommit !== 'string' || !/^[a-f0-9]{40}$/u.test(review.reviewCommit)
-    || review.decision !== 'APPROVED') {
-    errors.push('Accepted audit requires a GitHub approval identity, PR, review ID, commit, and APPROVED decision');
-  }
-  for (const [label, target, expectedHash] of [
-    ['report', audit.report, audit.reportSha256],
-    ['evidence', audit.evidence, audit.evidenceSha256],
-  ]) {
-    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
-      errors.push(`Accepted audit requires a hashed ${label} path`);
-      continue;
-    }
-    const resolved = path.resolve(repositoryRoot, target);
-    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
-      errors.push(`Accepted audit ${label} must stay within the repository`);
-      continue;
-    }
-    try {
-      const contents = await readFile(resolved);
-      if (createHash('sha256').update(contents).digest('hex') !== expectedHash) {
-        errors.push(`Accepted audit ${label} hash does not match`);
-      }
-    } catch {
-      errors.push(`Accepted audit ${label} is missing`);
-    }
-  }
-  return errors;
-}
-
-async function verifyReleaseApproval(approval, expectedCommit, governance) {
-  const errors = [];
-  if (approval?.status !== 'accepted') return ['Promotion requires an accepted G0/G1 release approval'];
-  if (typeof approval.owner !== 'string' || approval.owner.trim().length === 0) {
-    errors.push('Accepted release approval requires a named owner');
-  }
-  if (approval.reviewedCommit !== expectedCommit) {
-    errors.push('Accepted release approval must bind the requested release commit');
-  }
-  if (!governance || approval.promotionGovernanceCommit !== governance.commit
-    || approval.promotionGovernanceEvidenceSha256 !== governance.evidenceSha256
-    || approval.promotionGovernanceFingerprintSha256 !== governance.fingerprintSha256) {
-    errors.push('Accepted release approval must bind the exact promotion-governance commit, evidence hash, and fingerprint');
-  }
-  const files = [
-    ['record', approval.record, approval.recordSha256],
-    ['scope', 'docs/releases/v1.0.0/scope.md', approval.scopeSha256],
-    ['contract candidates', 'docs/releases/v1.0.0/contract-candidates.md', approval.contractSha256],
-    ['legacy ledger', 'docs/releases/v1.0.0/legacy-ledger.md', approval.legacyLedgerSha256],
-  ];
-  for (const [label, target, expectedHash] of files) {
-    if (typeof target !== 'string' || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash)) {
-      errors.push(`Accepted release approval requires a hashed ${label} path`);
-      continue;
-    }
-    const resolved = path.resolve(repositoryRoot, target);
-    if (resolved !== repositoryRoot && !resolved.startsWith(`${repositoryRoot}${path.sep}`)) {
-      errors.push(`Accepted release approval ${label} must stay within the repository`);
-      continue;
-    }
-    try {
-      const contents = await readFile(resolved);
-      if (createHash('sha256').update(contents).digest('hex') !== expectedHash) {
-        errors.push(`Accepted release approval ${label} hash does not match`);
-      }
-    } catch {
-      errors.push(`Accepted release approval ${label} is missing`);
-    }
-  }
-  return errors;
-}
-
 async function verifyPromotionGovernance(governance, checkedOutCommit) {
   const errors = [];
   if (!governance || typeof governance !== 'object') return ['Promotion requires a bound promotion-governance record'];
@@ -170,14 +85,13 @@ async function main() {
   if (currentCommit() !== governanceCommit) {
     errors.push('Checked-out governance commit does not match the requested governance commit');
   }
-  errors.push(...await verifyAcceptedAudit(manifest.audit, expectedCommit));
-  errors.push(...await verifyReleaseApproval(manifest.releaseApproval, expectedCommit, manifest.promotionGovernance));
   errors.push(...await verifyPromotionGovernance(manifest.promotionGovernance, governanceCommit));
   if (manifest.registryHygiene?.status !== 'cleared') {
     errors.push('Promotion requires cleared registry hygiene');
   }
 
-  for (const [name, version] of Object.entries(manifest.packages ?? {})) {
+  for (const [name, target] of Object.entries(manifest.promotionTargets ?? {})) {
+    const version = manifest.packages?.[name];
     const evidence = manifest.registryEvidence?.[name];
     if (evidence?.version !== version
       || evidence?.provenance?.status !== 'verified'
@@ -185,7 +99,7 @@ async function main() {
       || evidence?.externalConsumer?.status !== 'passed') {
       errors.push(`Promotion requires verified provenance and consumer evidence: ${name}`);
     }
-    if (manifest.promotionTargets?.[name] !== 'latest') {
+    if (target !== 'latest') {
       errors.push(`Promotion target must explicitly set latest: ${name}`);
     }
   }

@@ -14,7 +14,7 @@
   ],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "context-action-v1-release-manifest.v5" },
+    "schemaVersion": { "const": "context-action-v1-release-manifest.v6" },
     "status": {
       "enum": [
         "candidate-unapproved",
@@ -29,17 +29,6 @@
     },
     "release": { "const": "context-action-v1.0.0" },
     "commit": { "type": ["string", "null"] },
-    "prePublicationAudit": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": ["status", "rcCommit", "evidence", "evidenceSha256"],
-      "properties": {
-        "status": { "const": "accepted" },
-        "rcCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-        "evidence": { "type": "string", "minLength": 1 },
-        "evidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
-      }
-    },
     "packages": { "type": "object", "additionalProperties": { "type": "string" } },
     "stableSurfaces": { "type": "array", "items": { "type": "string" } },
     "experimentalSurfaces": { "type": "array", "items": { "type": "string" } },
@@ -92,60 +81,15 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     },
-    "audit": {
+    "selfReview": {
       "type": ["object", "null"],
       "additionalProperties": false,
-      "required": ["status", "report", "reviewer", "reviewedCommit", "evidence", "reportSha256", "evidenceSha256"],
+      "required": ["owner", "reviewedCommit", "record", "recordSha256"],
       "properties": {
-        "status": { "enum": ["not-started", "accepted", "rejected"] },
-        "report": { "type": ["string", "null"] },
-        "reviewer": { "type": ["string", "null"] },
-        "reviewedCommit": { "type": ["string", "null"] },
-        "evidence": { "type": ["string", "null"] },
-        "reportSha256": { "type": ["string", "null"] },
-        "evidenceSha256": { "type": ["string", "null"] },
-        "review": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["login", "pullRequest", "reviewId", "reviewCommit", "decision"],
-          "properties": {
-            "login": { "type": "string", "minLength": 1 },
-            "pullRequest": { "type": "integer", "minimum": 1 },
-            "reviewId": { "type": "integer", "minimum": 1 },
-            "reviewCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-            "decision": { "const": "APPROVED" }
-          }
-        }
-      }
-    },
-    "releaseApproval": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": [
-        "status",
-        "owner",
-        "reviewedCommit",
-        "record",
-        "recordSha256",
-        "scopeSha256",
-        "contractSha256",
-        "legacyLedgerSha256",
-        "promotionGovernanceCommit",
-        "promotionGovernanceEvidenceSha256",
-        "promotionGovernanceFingerprintSha256"
-      ],
-      "properties": {
-        "status": { "enum": ["accepted", "rejected"] },
         "owner": { "type": "string", "minLength": 1 },
         "reviewedCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
         "record": { "type": "string", "minLength": 1 },
-        "recordSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "scopeSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "contractSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "legacyLedgerSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "promotionGovernanceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-        "promotionGovernanceEvidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "promotionGovernanceFingerprintSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "recordSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     }
   },

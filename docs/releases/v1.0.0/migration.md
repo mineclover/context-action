@@ -1,10 +1,10 @@
 # v1.0 to v1.0.0 Candidate Migration Guide
 
-**Status:** `candidate — valid after G0/G1 approval`  
+**Status:** `documented candidate — owner operated`
 **Roadmap revision:** `v1-r2`
 
 This guide covers the compatibility decisions implemented in the v1 candidate.
-It is not a release announcement; use the published release notes and approved
+It is not a release announcement; use the published release notes and recorded
 version map for an actual upgrade.
 
 ## Core handlers

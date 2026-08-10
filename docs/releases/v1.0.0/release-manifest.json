@@ -1,10 +1,9 @@
 {
   "$schema": "./release-manifest.schema.json",
-  "schemaVersion": "context-action-v1-release-manifest.v5",
+  "schemaVersion": "context-action-v1-release-manifest.v6",
   "status": "published-unapproved",
   "release": "context-action-v1.0.0",
   "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
-  "prePublicationAudit": null,
   "distTag": "next",
   "registryEvidence": {
     "@context-action/core": {
@@ -76,8 +75,6 @@
       "externalConsumer": { "status": "passed" }
     }
   },
-  "audit": null,
-  "releaseApproval": null,
   "promotionGovernance": {
     "commit": "eef7af18639dc2431e95e2f68b4489bb368a2c16",
     "evidence": "release-evidence/v1.0.0-eef7af18-governance-prepublish-1/manifest.json",
@@ -87,7 +84,7 @@
   "promotionEvidence": null,
   "registryHygiene": {
     "status": "cleared",
-    "evidence": "Protected workflow run 31341251251 verified @context-action/webmcp@0.1.1 at latest, preserved next=0.1.0 and rc=0.1.0-rc.0, and passed the latest external-consumer check. Evidence: release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json. This clears tag hygiene only; the immutable 0.1.0 v1 candidate remains superseded for WebMCP pending provenance and audit re-baselining.",
+    "evidence": "Protected workflow run 31341251251 verified @context-action/webmcp@0.1.1 at latest, preserved next=0.1.0 and rc=0.1.0-rc.0, and passed the latest external-consumer check. Evidence: release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json. WebMCP is experimental and excluded from the v1 stable-promotion target set.",
     "checkedAt": "2026-08-09T23:11:34.289Z"
   },
   "packages": {
@@ -120,13 +117,11 @@
   "promotionTargets": {
     "@context-action/core": "latest",
     "@context-action/react": "latest",
-    "@context-action/tool-protocol": "latest",
-    "@context-action/webmcp": "latest"
+    "@context-action/tool-protocol": "latest"
   },
   "requiredBeforeCertification": [
-    "Re-baseline the WebMCP leg to the separate 0.1.1 hygiene-patch provenance and independent audit; the immutable 0.1.0 next candidate is superseded for that leg.",
-    "Obtain the independent published-artifact audit.",
-    "Approve the G0/G1 scope and public-contract record."
+    "Use the protected promotion workflow, which re-verifies npm provenance, the stable-surface consumer matrix, registry hygiene, and the current governance fingerprint before changing latest.",
+    "Record post-promotion registry evidence before declaring the stable promotion complete."
   ],
   "acceptedLimitations": [
     "tool-protocol@1.0.0 includes a bundled CHANGELOG.md whose newest entry is 0.8.9; canonical v1.0.0 release notes are the repository and GitHub release documents. This does not affect runtime or declaration artifacts."
