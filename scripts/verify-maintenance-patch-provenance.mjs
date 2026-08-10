@@ -46,8 +46,13 @@ if (!/^@context-action\/[a-z0-9-]+$/u.test(packageName)
 }
 
 const outputPath = path.resolve(output);
-const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-maintenance-provenance-'));
-try {
+function sleep(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
+async function verifyAttestation() {
+  const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-maintenance-provenance-'));
+  try {
   await writeFile(path.join(temporaryDirectory, 'package.json'), `${JSON.stringify({
     name: 'context-action-maintenance-provenance-verifier', private: true, version: '0.0.0',
     dependencies: { [packageName]: version },
@@ -84,8 +89,28 @@ try {
       attestationUrl: entry.attestations?.url ?? null,
     },
   };
-  await writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`);
-  console.log(JSON.stringify(evidence));
-} finally {
-  await rm(temporaryDirectory, { recursive: true, force: true });
+    return evidence;
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
 }
+
+const attempts = 12;
+let evidence;
+let lastError;
+for (let attempt = 1; attempt <= attempts; attempt += 1) {
+  try {
+    evidence = await verifyAttestation();
+    if (attempt > 1) process.stdout.write(`Published provenance became visible after ${attempt} attempts.\n`);
+    break;
+  } catch (error) {
+    lastError = error;
+    if (attempt < attempts) {
+      process.stdout.write(`Waiting for published provenance (${attempt}/${attempts - 1})...\n`);
+      sleep(5_000);
+    }
+  }
+}
+if (!evidence) throw lastError;
+await writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`);
+console.log(JSON.stringify(evidence));

@@ -10,6 +10,7 @@ on:
         options:
           - core
           - react
+          - ai-sdk
           - tool-protocol
           - webmcp
       release_commit:
@@ -61,7 +62,7 @@ jobs:
           PATCH_PACKAGE: ${{ inputs.package }}
         run: |
           case "$PATCH_PACKAGE" in
-            core|react|tool-protocol|webmcp) ;;
+            core|react|ai-sdk|tool-protocol|webmcp) ;;
             *) echo "Unsupported maintenance package: $PATCH_PACKAGE" >&2; exit 1 ;;
           esac
           package_name="@context-action/$PATCH_PACKAGE"
@@ -71,22 +72,27 @@ jobs:
             core)
               consumer_closure='@context-action/core,@context-action/react'
               build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
-              local_consumers=''
+              allow_initial_release='false'
               ;;
             react)
               consumer_closure='@context-action/core,@context-action/react'
               build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
-              local_consumers=''
+              allow_initial_release='false'
+              ;;
+            ai-sdk)
+              consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
+              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
+              allow_initial_release='true'
               ;;
             tool-protocol)
               consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
               build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
-              local_consumers='@context-action/ai-sdk'
+              allow_initial_release='false'
               ;;
             webmcp)
               consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
               build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
-              local_consumers='@context-action/ai-sdk'
+              allow_initial_release='false'
               ;;
           esac
           echo "PACKAGE_NAME=$package_name" >> "$GITHUB_ENV"
@@ -94,7 +100,7 @@ jobs:
           echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
           echo "PATCH_CONSUMER_CLOSURE=$consumer_closure" >> "$GITHUB_ENV"
           echo "PATCH_BUILD_CLOSURE=$build_closure" >> "$GITHUB_ENV"
-          echo "PATCH_LOCAL_CONSUMERS=$local_consumers" >> "$GITHUB_ENV"
+          echo "ALLOW_INITIAL_RELEASE=$allow_initial_release" >> "$GITHUB_ENV"
 
       - name: Clear npm config before registry setup
         run: |
@@ -123,7 +129,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify source and packed changelog
-        run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY"
+        run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY" --forbid-unreleased
 
       - name: Build and test the maintenance closure
         run: |
@@ -137,16 +143,34 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION"
-          ! npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --registry=https://registry.npmjs.org >/dev/null 2>&1 || {
-            echo 'Maintenance version already exists; create a new patch version.' >&2
-            exit 1
-          }
+          command=(node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION")
+          if [ "$ALLOW_INITIAL_RELEASE" = true ]; then command+=(--allow-initial); fi
+          "${command[@]}"
+
+      - name: Resume an existing verified candidate when safe
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          existing_version="$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --registry=https://registry.npmjs.org 2>/dev/null || true)"
+          if [ -z "$existing_version" ]; then
+            echo 'PUBLISH_REQUIRED=true' >> "$GITHUB_ENV"
+            exit 0
+          fi
+          test "$existing_version" = "$PACKAGE_VERSION"
+          test "$(npm view "$PACKAGE_NAME" dist-tags.maintenance --registry=https://registry.npmjs.org)" = "$PACKAGE_VERSION"
+          integrity="$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" dist.integrity --registry=https://registry.npmjs.org)"
+          test -n "$integrity"
+          node scripts/verify-maintenance-patch-provenance.mjs \
+            --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION" --source-commit "$RELEASE_COMMIT" \
+            --output reports/maintenance-patch-provenance-evidence.json
+          echo 'PUBLISH_REQUIRED=false' >> "$GITHUB_ENV"
+          echo "Resuming verified maintenance candidate $PACKAGE_NAME@$PACKAGE_VERSION."
 
       - name: Verify local tarball reverse dependency closure
         run: pnpm verify:published-tool-consumers -- --local --packages "$PATCH_CONSUMER_CLOSURE"
 
       - name: Publish the new patch candidate
+        if: env.PUBLISH_REQUIRED != 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -162,20 +186,22 @@ jobs:
             --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION" --source-commit "$RELEASE_COMMIT" \
             --output reports/maintenance-patch-provenance-evidence.json
 
+      - name: Verify published AI SDK Tool Protocol deduplication
+        if: env.PACKAGE_DIRECTORY == 'ai-sdk'
+        run: node scripts/verify-ai-sdk-tool-protocol-contract.mjs --published --version "$PACKAGE_VERSION"
+
       - name: Verify published candidate reverse dependency closure
-        run: |
-          command=(pnpm verify:published-tool-consumers -- --tag latest --package-tag "$PACKAGE_NAME=maintenance" --packages "$PATCH_CONSUMER_CLOSURE")
-          if [ -n "$PATCH_LOCAL_CONSUMERS" ]; then
-            command+=(--local-package "$PATCH_LOCAL_CONSUMERS")
-          fi
-          "${command[@]}"
+        run: pnpm verify:published-tool-consumers -- --tag latest --package-tag "$PACKAGE_NAME=maintenance" --packages "$PATCH_CONSUMER_CLOSURE"
 
       - name: Record previous latest tag
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          previous_latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry=https://registry.npmjs.org)"
-          [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          previous_latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry=https://registry.npmjs.org 2>/dev/null || true)"
+          if [ -n "$previous_latest" ]; then
+            [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$previous_latest" != "$PACKAGE_VERSION"
+          fi
           echo "PREVIOUS_LATEST=$previous_latest" >> "$GITHUB_ENV"
 
       - name: Promote verified candidate to latest
@@ -187,11 +213,7 @@ jobs:
 
       - name: Verify latest closure and capture evidence
         run: |
-          command=(pnpm verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE")
-          if [ -n "$PATCH_LOCAL_CONSUMERS" ]; then
-            command+=(--local-package "$PATCH_LOCAL_CONSUMERS")
-          fi
-          "${command[@]}"
+          pnpm verify:published-tool-consumers -- --tag latest --packages "$PATCH_CONSUMER_CLOSURE"
           pnpm capture:published-release -- --tag latest --packages "$PACKAGE_NAME" \
             --consumer-status passed --output reports/maintenance-patch-registry-evidence.json
 
@@ -200,8 +222,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm dist-tag add "$PACKAGE_NAME@$PREVIOUS_LATEST" latest --registry=https://registry.npmjs.org
-          echo "Restored $PACKAGE_NAME latest to $PREVIOUS_LATEST"
+          if [ -n "$PREVIOUS_LATEST" ]; then
+            npm dist-tag add "$PACKAGE_NAME@$PREVIOUS_LATEST" latest --registry=https://registry.npmjs.org
+            echo "Restored $PACKAGE_NAME latest to $PREVIOUS_LATEST"
+          else
+            npm dist-tag rm "$PACKAGE_NAME" latest --registry=https://registry.npmjs.org
+            echo "Removed initial $PACKAGE_NAME latest tag"
+          fi
 
       - name: Upload maintenance-patch evidence
         if: always()

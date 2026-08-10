@@ -18,13 +18,16 @@ function requireOrder(errors, source, before, after, description) {
   if (beforeIndex === -1 || afterIndex === -1 || beforeIndex >= afterIndex) errors.push(description);
 }
 
-const [stableCandidate, generalPublish, maintenancePatch, manifestSource] = await Promise.all([
+const [stableCandidate, generalPublish, maintenancePatch, manifestSource, packageSource, publishHelper] = await Promise.all([
   readFile(path.join(workflowDirectory, 'publish-v1-stable-candidate.yml'), 'utf8'),
   readFile(path.join(workflowDirectory, 'publish-packages.yml'), 'utf8'),
   readFile(path.join(workflowDirectory, 'publish-maintenance-patch.yml'), 'utf8'),
   readFile(manifestPath, 'utf8'),
+  readFile(path.join(repositoryRoot, 'package.json'), 'utf8'),
+  readFile(path.join(repositoryRoot, 'scripts', 'publish-packages.cjs'), 'utf8'),
 ]);
 const manifest = JSON.parse(manifestSource);
+const rootPackage = JSON.parse(packageSource);
 const packages = Object.entries(manifest.artifactCohort?.packages ?? {});
 const stablePackageNames = (manifest.stableSurfaces ?? []).join(',');
 const errors = [];
@@ -56,26 +59,40 @@ for (const name of [
 for (const [name] of packages) {
   if (generalPublish.includes(`--scope ${name}`)) errors.push(`General publish workflow must not scope into the v1 artifact cohort package ${name}`);
 }
+if (rootPackage.scripts?.release !== 'node scripts/refuse-direct-release.mjs'
+  || rootPackage.scripts?.['release:patch'] !== 'node scripts/refuse-direct-release.mjs') {
+  errors.push('Root release scripts must refuse direct npm publication');
+}
+requireText(errors, publishHelper, "process.env.GITHUB_ACTIONS !== 'true'", 'Publish helper must reject direct local publication');
+if (maintenancePatch.includes('local_consumers=') || maintenancePatch.includes('PATCH_LOCAL_CONSUMERS') || maintenancePatch.includes('--local-package')) {
+  errors.push('Maintenance candidate matrix must consume only published registry artifacts');
+}
 
 for (const required of [
   'workflow_dispatch:',
   'package:',
   'core',
   'react',
+  'ai-sdk',
   'tool-protocol',
   'webmcp',
   'release_commit:',
   'name: npm-stable',
   'test "$CONFIRMATION" = publish-maintenance-patch',
-  'node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY"',
+  'node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY" --forbid-unreleased',
   'PATCH_CONSUMER_CLOSURE=$consumer_closure',
   'PATCH_BUILD_CLOSURE=',
-  'PATCH_LOCAL_CONSUMERS=$local_consumers',
   'verify-maintenance-patch-version.mjs',
+  '--allow-initial',
+  'Resume an existing verified candidate when safe',
+  'PUBLISH_REQUIRED=false',
+  'dist-tags.maintenance',
+  'dist.integrity',
   'Verify local tarball reverse dependency closure',
   '--dist-tag maintenance',
   '--package-tag "$PACKAGE_NAME=maintenance"',
-  '--local-package "$PATCH_LOCAL_CONSUMERS"',
+  'Verify published AI SDK Tool Protocol deduplication',
+  'verify-ai-sdk-tool-protocol-contract.mjs --published --version "$PACKAGE_VERSION"',
   'verify-maintenance-patch-provenance.mjs',
   'Record previous latest tag',
   'Promote verified candidate to latest',
@@ -88,6 +105,7 @@ for (const required of [
 requireOrder(errors, maintenancePatch, 'Verify source and packed changelog', 'Publish the new patch candidate', 'Maintenance changelog validation must occur before candidate publication');
 requireOrder(errors, maintenancePatch, 'Build and test the maintenance closure', 'Publish the new patch candidate', 'Maintenance package validation must occur before candidate publication');
 requireOrder(errors, maintenancePatch, 'Verify local tarball reverse dependency closure', 'Publish the new patch candidate', 'Maintenance local consumer closure must run before candidate publication');
+requireOrder(errors, maintenancePatch, 'Resume an existing verified candidate when safe', 'Publish the new patch candidate', 'Maintenance candidate resume decision must occur before publication');
 requireOrder(errors, maintenancePatch, 'Verify published candidate reverse dependency closure', 'Promote verified candidate to latest', 'Candidate consumer closure must pass before latest mutation');
 requireOrder(errors, maintenancePatch, 'Verify published candidate changelog and provenance', 'Promote verified candidate to latest', 'Candidate provenance must pass before latest mutation');
 requireOrder(errors, maintenancePatch, 'Record previous latest tag', 'Promote verified candidate to latest', 'Maintenance workflow must record the rollback target before latest mutation');

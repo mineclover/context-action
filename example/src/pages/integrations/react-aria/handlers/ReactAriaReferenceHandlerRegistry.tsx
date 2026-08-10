@@ -1,8 +1,14 @@
-import { type ReactNode, useCallback, useRef } from 'react';
+import { type ReactNode, useCallback } from 'react';
 import {
   ReactAriaReferenceActions,
   ReactAriaReferenceStores,
 } from '../contexts/ReactAriaReferenceContexts';
+
+let auditSequence = 0;
+
+function createAuditId() {
+  return `audit-${globalThis.crypto?.randomUUID?.() ?? ++auditSequence}`;
+}
 
 export function ReactAriaReferenceHandlerRegistry({
   children,
@@ -13,7 +19,6 @@ export function ReactAriaReferenceHandlerRegistry({
   const sortStore = ReactAriaReferenceStores.useStore('sort');
   const selectedDateStore = ReactAriaReferenceStores.useStore('selectedDate');
   const auditStore = ReactAriaReferenceStores.useStore('audit');
-  const auditSequence = useRef(0);
 
   const record = useCallback(
     (message: string) => {
@@ -21,7 +26,7 @@ export function ReactAriaReferenceHandlerRegistry({
       auditStore.setValue(
         [
           {
-            id: `audit-${++auditSequence.current}`,
+            id: createAuditId(),
             message,
           },
           ...entries,
