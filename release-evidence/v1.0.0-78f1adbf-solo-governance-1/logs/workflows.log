@@ -1,0 +1,5 @@
+
+> context-action-monorepo@1.0.1 verify:v1-release-workflows /Users/junwoobang/workflow/context-action
+> node scripts/verify-v1-release-workflows.mjs
+
+{"status":"ok","workflows":["publish-v1-stable-candidate.yml","promote-v1-to-latest.yml"],"cohort":["@context-action/tool-protocol","@context-action/core","@context-action/react"]}
