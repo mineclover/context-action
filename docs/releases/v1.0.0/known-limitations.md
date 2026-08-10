@@ -32,11 +32,10 @@
   `31328975435`). WebMCP remains experimental and is excluded from the v1
   stable-promotion target set.
 - The immutable `@context-action/webmcp@0.1.1` tarball starts its bundled
-  `CHANGELOG.md` at `0.1.0`. The source changelog now records the hygiene
-  patch. `@context-action/webmcp@0.1.2` is prepared to distribute that
-  correction; it must pass the maintenance workflow and evidence capture
-  before it replaces the recorded `0.1.1` `latest` state. The already
-  published archive cannot be changed in place.
+  `CHANGELOG.md` at `0.1.0`. Protected maintenance run `31364068737`
+  published `@context-action/webmcp@0.1.2` to `latest`, with the corrected
+  bundled changelog and a passing reverse-dependency consumer matrix. The
+  affected `0.1.1` archive remains immutable historical evidence.
 
 Report any newly discovered P0/P1 issue in the issue ledger and reopen the
 affected gate before preparing a future stable patch or minor.

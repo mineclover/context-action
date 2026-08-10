@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "context-action-published-release-evidence.v1",
+  "capturedAt": "2026-08-10T07:01:09.337Z",
+  "distTag": "latest",
+  "packages": {
+    "@context-action/webmcp": {
+      "version": "0.1.2",
+      "integrity": "sha512-KeIolf0REeRVDJFg/AAy6D6emZJ9h3rojdT0MKAght8IBw8cT8igeOyHna2huWoV6BWsOrq51VMWb/OXjkSe6g==",
+      "tarball": "https://registry.npmjs.org/@context-action/webmcp/-/webmcp-0.1.2.tgz",
+      "sha256": "b27f3d7e88390d590d83eac26b0f61ccdd51c5d3dd245804ed3ee7232d947b65",
+      "publishedAt": "2026-08-10T07:00:43.494Z",
+      "distTags": {
+        "rc": "0.1.0-rc.0",
+        "next": "0.1.0",
+        "latest": "0.1.2"
+      },
+      "provenance": {
+        "status": "pending-verification",
+        "sourceCommit": null
+      },
+      "externalConsumer": {
+        "status": "passed"
+      }
+    }
+  },
+  "notes": [
+    "Tarball SHA-256 and registry metadata were read after publication.",
+    "Provenance status remains pending until the npm attestation source commit is independently verified."
+  ]
+}

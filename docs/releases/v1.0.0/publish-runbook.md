@@ -16,10 +16,10 @@ After a successful run, record its evidence hash under `postReleasePatches`
 and refresh `currentRegistryState` in `release-manifest.json`. Do not edit the
 historical `artifactCohort` to describe a later package patch.
 
-`@context-action/webmcp@0.1.2` is the prepared packaging correction for the
-immutable `0.1.1` bundled Changelog. It is not part of `currentRegistryState`
-until the protected workflow publishes it and the captured registry evidence is
-committed.
+`@context-action/webmcp@0.1.2` is the published packaging correction for the
+immutable `0.1.1` bundled Changelog. Protected maintenance run `31364068737`
+captured registry evidence and passed the reverse-dependency consumer matrix;
+the correction is recorded in `currentRegistryState`.
 
 ## Historical v1.0.0 registry cohort
 
@@ -41,9 +41,9 @@ captured evidence at
 `release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
 
 The existing `0.1.0` WebMCP record remains immutable evidence for the published
-`next` cohort. The separately published `0.1.1` hygiene patch owns WebMCP
-`latest`; because WebMCP is experimental, it is intentionally excluded from
-the v1 stable-promotion target set.
+`next` cohort. The separately published `0.1.2` changelog correction owns
+WebMCP `latest`; because WebMCP is experimental, it is intentionally excluded
+from the v1 stable-promotion target set.
 
 ## Historical v1 execution record (do not rerun)
 

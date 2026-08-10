@@ -18,7 +18,7 @@ and command results/artifact hashes belong in
 | `@context-action/core` | `1.0.0` |
 | `@context-action/react` | `1.0.0` |
 | `@context-action/tool-protocol` | `1.0.1` |
-| `@context-action/webmcp` | `0.1.1` |
+| `@context-action/webmcp` | `0.1.2` |
 
 The v1.0.0 artifact cohort and the current default channel are intentionally
 different records. The manifest preserves the former under `artifactCohort`
@@ -42,10 +42,10 @@ and the latter under `currentRegistryState`.
 - Registry evidence records the published `next` cohort from
   `63f790a521e3428a7a2825677747338f8f05ccf3`. The npm CLI cryptographically
   verified all four registry signatures and SLSA provenance bundles. The protected hygiene
-  workflow has replaced the accidental WebMCP RC `latest` tag with
-  `@context-action/webmcp@0.1.1`. The immutable `0.1.0` candidate is now
-  experimental surface is excluded from the v1 stable-promotion target set;
-  its separately published patch does not block stable-surface promotion.
+  workflow replaced the accidental WebMCP RC `latest` tag, and maintenance run
+  `31364068737` published the corrected bundled changelog as
+  `@context-action/webmcp@0.1.2`. The immutable `0.1.0` candidate remains an
+  experimental surface and is excluded from the v1 stable-promotion target set.
 - The `npm-stable` environment now limits deployments to `main`, requires the
   `mineclover` reviewer, permits the documented owner-authorized self-review
   exception, and disallows administrator bypass. It is the protected
@@ -71,11 +71,10 @@ and the latter under `currentRegistryState`.
 On 2026-08-10, read-only npm and GitHub API checks confirmed the recorded
 external state:
 
-- `@context-action/webmcp`: `latest` is `0.1.1`, while `next` is `0.1.0` and
-  `rc` is `0.1.0-rc.0`; registry tag hygiene is cleared. Protected workflow
-  run `31341251251` also passed the `latest` external-consumer check; its
-  captured evidence is
-  `release-evidence/webmcp-hygiene-patch-0.1.1-31341251251/registry-evidence.json`.
+- `@context-action/webmcp`: `latest` is `0.1.2`, while `next` is `0.1.0` and
+  `rc` is `0.1.0-rc.0`. Protected maintenance run `31364068737` passed the
+  reverse-dependency consumer matrix and captured registry evidence at
+  `release-evidence/webmcp-maintenance-patch-0.1.2-31364068737/`.
 - `npm-stable` allows only `main`, requires review by `mineclover`, permits the
   owner-authorized self-review exception, and disallows administrator bypass.
 
@@ -89,12 +88,11 @@ checks remain mandatory.
 
 The protected WebMCP hygiene rehearsals `31328409822` and `31328975435`
 confirmed that direct `dist-tag rm` is not a viable repair path (OIDC failed
-with `E401`; the configured token failed with `E403`). The repair is now the
-versioned `@context-action/webmcp@0.1.1` hygiene patch, published through a
-separate protected workflow. Run `31340779674` published it, and rerun
-`31341251251` completed the deferred tag, consumer, and registry-evidence
-checks without republishing. Its token preflight and exact-version validation
-remain fail-closed before any publication attempt.
+with `E401`; the configured token failed with `E403`). The versioned `0.1.1`
+hygiene patch replaced the accidental RC tag; protected maintenance run
+`31364068737` then published `@context-action/webmcp@0.1.2` with the corrected
+bundled changelog. Its token preflight and exact-version validation remain
+fail-closed before any publication attempt.
 
 ## Post-release maintenance
 
