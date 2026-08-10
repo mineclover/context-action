@@ -1,7 +1,7 @@
 {
   "$schema": "./release-manifest.schema.json",
   "schemaVersion": "context-action-v1-release-manifest.v6",
-  "status": "approved-for-stable",
+  "status": "published-unapproved",
   "release": "context-action-v1.0.0",
   "commit": "63f790a521e3428a7a2825677747338f8f05ccf3",
   "distTag": "next",
@@ -76,10 +76,10 @@
     }
   },
   "promotionGovernance": {
-    "commit": "1a77f373ade554fb959fe17aac7b7c1157aa74f5",
-    "evidence": "release-evidence/v1.0.0-1a77f373-solo-governance-2/manifest.json",
-    "evidenceSha256": "2c266ff7d1520b25ab70691eaaf1501af83296b7208dcc45a699f66afa998978",
-    "fingerprintSha256": "2109ef32ab6c3ae94689d320e08e206cb4d47b68e884b1338b423086e499d34e"
+    "commit": "78f1adbf236c69b1500cef7dc7e7277182270b85",
+    "evidence": "release-evidence/v1.0.0-78f1adbf-solo-governance-1/manifest.json",
+    "evidenceSha256": "b0e7e7ea78584d6979059c65cfde5aff8bf5139c3d0821a32a4103d29acc0d16",
+    "fingerprintSha256": "7544c478f3548dedc69e8e03263961ddf75c8a5bd0e46900120f526b7f924b49"
   },
   "promotionEvidence": null,
   "registryHygiene": {
