@@ -19,7 +19,9 @@ resolve it, but execution remains owned by the ToolManagementInterface.
 
 > `readonly` **id**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:76](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L76)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:77](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L77)
+
+Queue-lifetime request ID used by `resolve`; distinct from `toolCallId`.
 
 ***
 
@@ -27,7 +29,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:76](https://github.com/
 
 > `readonly` **method**: `"tools/call"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:77](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L77)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:78](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L78)
 
 ***
 
@@ -35,7 +37,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:77](https://github.com/
 
 > `readonly` `optional` **toolCallId?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:78](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L78)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L79)
 
 ***
 
@@ -43,7 +45,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:78](https://github.com/
 
 > `readonly` `optional` **sessionId?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L79)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:80](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L80)
 
 ***
 
@@ -51,7 +53,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:79](https://github.com/
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:80](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L80)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:81](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L81)
 
 ***
 
@@ -59,7 +61,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:80](https://github.com/
 
 > `readonly` **description**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:81](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L81)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:82](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L82)
 
 ***
 
@@ -67,7 +69,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:81](https://github.com/
 
 > `readonly` **source**: [`ToolCallSource`](../type-aliases/ToolCallSource.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:82](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L82)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:83](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L83)
 
 ***
 
@@ -75,7 +77,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:82](https://github.com/
 
 > `readonly` `optional` **mode?**: [`ToolCallMode`](../type-aliases/ToolCallMode.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:83](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L83)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:84](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L84)
 
 ***
 
@@ -83,7 +85,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:83](https://github.com/
 
 > `readonly` **argumentKeys**: readonly `string`[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:84](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L84)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:85](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L85)
 
 ***
 
@@ -91,7 +93,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:84](https://github.com/
 
 > `readonly` `optional` **safeArgumentPreview?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:85](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L85)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:86](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L86)
 
 ***
 
@@ -99,4 +101,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:85](https://github.com/
 
 > `readonly` **createdAt**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:86](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L86)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:87](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L87)

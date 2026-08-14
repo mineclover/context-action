@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.2] (2026-08-11)
+
+### Reliability fixes
+
+- Allocate approval snapshot IDs monotonically for the queue lifetime so a
+  delayed decision for a settled request cannot approve a later request with
+  the same tool-call identifier.
+
 ## [1.0.1] (2026-08-10)
 
 ### Packaging correction

@@ -6,7 +6,7 @@
 
 # Interface: SideEffectRecoveryContext\<TResult, TDiagnostic\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:75](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L75)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:77](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L77)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **TResult**
 
 > `readonly` **operation**: [`DurableOperationRecord`](DurableOperationRecord.md)\<[`SideEffectRecordPayload`](SideEffectRecordPayload.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:76](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L76)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:78](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L78)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:76](https://git
 
 > `readonly` `optional` **result?**: `TResult`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L79)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:81](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L81)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:79](https://git
 
 > `readonly` `optional` **diagnostic?**: `TDiagnostic`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:80](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L80)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:82](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L82)

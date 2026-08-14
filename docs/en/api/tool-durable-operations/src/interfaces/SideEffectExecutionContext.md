@@ -6,7 +6,7 @@
 
 # Interface: SideEffectExecutionContext
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:35](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L35)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:37](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L37)
 
 Context passed to an HTTP, queue, filesystem, or provider adapter.
 
@@ -16,7 +16,7 @@ Context passed to an HTTP, queue, filesystem, or provider adapter.
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:36](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L36)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:38](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L38)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:36](https://git
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:37](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L37)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:39](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L39)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:37](https://git
 
 > `readonly` **ownerId**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:38](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L38)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:40](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L40)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:38](https://git
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:39](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L39)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:41](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L41)

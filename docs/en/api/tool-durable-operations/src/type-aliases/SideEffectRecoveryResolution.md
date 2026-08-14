@@ -8,7 +8,7 @@
 
 > **SideEffectRecoveryResolution**\<`TResult`, `TDiagnostic`\> = \{ `state`: `"completed"`; `result`: `TResult`; `diagnostic?`: `TDiagnostic`; `reason?`: `string`; \} \| \{ `state`: `"failed"`; `reason`: `string`; `result?`: `TResult`; `diagnostic?`: `TDiagnostic`; \}
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L94)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L96)
 
 Application-facing resolution returned by an unknown-outcome resolver.
 

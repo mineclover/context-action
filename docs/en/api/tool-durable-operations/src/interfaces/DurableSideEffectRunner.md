@@ -6,7 +6,7 @@
 
 # Interface: DurableSideEffectRunner\<TResult, TDiagnostic\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:144](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L144)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:146](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L146)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **TResult**
 
 > **run**(`options`): `Promise`\<[`SideEffectRunResult`](SideEffectRunResult.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:145](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L145)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:147](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L147)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:145](https://gi
 
 > **recover**(`key`, `resolver`, `options?`): `Promise`\<[`SideEffectRecoveryResult`](SideEffectRecoveryResult.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:148](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L148)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:150](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L150)
 
 #### Parameters
 
@@ -68,7 +68,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:148](https://gi
 
 > **get**(`key`): `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)\<[`SideEffectRecordPayload`](SideEffectRecordPayload.md)\<`TResult`, `TDiagnostic`\>\> \| `undefined`\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:153](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L153)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:155](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L155)
 
 #### Parameters
 

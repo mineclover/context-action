@@ -8,6 +8,8 @@
 
 export {
   createDurableOperationStore,
+  DURABLE_OPERATION_FENCING_CAPABILITY,
+  hasDurableOperationFencingCapability,
   isDurableOperationState,
 } from './durable-operation.js';
 
@@ -16,6 +18,7 @@ export type {
   DurableOperationClaim,
   DurableOperationClaimOptions,
   DurableOperationClaimStatus,
+  DurableOperationFence,
   DurableOperationRecord,
   DurableOperationListOptions,
   DurableOperationListPage,
@@ -63,6 +66,7 @@ export type {
 export { createIndexedDbDurableOperationBackend } from './indexeddb-operation-backend.js';
 
 export type {
+  IndexedDbFactory,
   IndexedDbDurableOperationBackendOptions,
 } from './indexeddb-operation-backend.js';
 
@@ -71,6 +75,7 @@ export {
   createNodeRedisDurableOperationClient,
   createRedisDurableOperationBackend,
   REDIS_DURABLE_OPERATION_CAS_SCRIPT,
+  REDIS_DURABLE_OPERATION_LEGACY_BACKFILL_SCRIPT,
 } from './redis-operation-backend.js';
 
 export type {

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0] (2026-08-11)
+
+### Features
+
+- Add `destroyAsync({ deferCleanup: true })` for callers that need to close
+  admission immediately while deferring final user cleanup to the next
+  microtask.
+
+### Reliability fixes
+
+- Preserve timeout semantics during retry backoff and keep observer conditions
+  ordered by their priority and immutable terminal outcome.
+- Prevent duplicate rejected registrations from unregistering the accepted
+  handler and ensure slow observer cleanup cannot keep a timed-out dispatch
+  pending.
+
 ## [1.0.0] (2026-08-09)
 
 ### Stable Contracts

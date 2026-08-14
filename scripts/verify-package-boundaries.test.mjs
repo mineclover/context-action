@@ -129,3 +129,31 @@ test('rejects relative imports that escape an owning package', () => {
     assert.match(result.stderr, /relative import \.\.\/\.\.\/foundation\/src\/internal escapes the owning package/);
   });
 });
+
+test('excludes only the explicitly separated ToolContext development track', () => {
+  withFixture((root) => {
+    createPackage(root, 'packages/tool-durable-operations', {
+      name: '@context-action/tool-durable-operations',
+      exports: { '.': './dist/index.js' },
+    }, {});
+    createPackage(root, 'packages/react', {
+      name: '@context-action/react',
+      exports: { '.': './dist/index.js' },
+    }, {
+      'src/tools/ToolContext.ts': "import { fence } from '@context-action/tool-durable-operations';\nexport { fence };\n",
+    });
+
+    const excludedResult = runVerifier(root);
+    assert.equal(excludedResult.status, 0, excludedResult.stderr);
+    assert.match(excludedResult.stdout, /development-track files excluded: 1/);
+
+    const releasedSourcePath = path.join(root, 'packages/react/src/index.ts');
+    fs.writeFileSync(
+      releasedSourcePath,
+      "import { fence } from '@context-action/tool-durable-operations';\nexport { fence };\n",
+    );
+    const releasedResult = runVerifier(root);
+    assert.equal(releasedResult.status, 1);
+    assert.match(releasedResult.stderr, /runtime import @context-action\/tool-durable-operations is missing/);
+  });
+});

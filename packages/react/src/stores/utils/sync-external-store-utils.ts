@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import type { IStore } from '../core/types';
+import type { IStore, Snapshot } from '../core/types';
 import { deepEquals, referenceEquals, shallowEquals } from './comparison';
 
 /**
@@ -23,6 +23,14 @@ export interface EnhancedSubscriptionOptions {
   debug?: boolean;
   /** 훅 이름 (디버깅용) */
   name?: string;
+}
+
+interface SelectedServerSnapshotCache<T, R> {
+  store: IStore<T>;
+  sourceSnapshot: Snapshot<T>;
+  selector: ((value: T) => R) | undefined;
+  equalityFn: ((a: R, b: R) => boolean) | undefined;
+  value: R | T;
 }
 
 /**
@@ -73,14 +81,50 @@ export function useSafeStoreSubscription<T, R = T>(
     return currentSnapshot;
   }, [getSnapshot, equalityFn]);
 
-  // 서버 사이드 스냅샷
+  // Server snapshots must be referentially stable while the underlying store
+  // snapshot is unchanged. React calls getServerSnapshot more than once during
+  // hydration and warns when selectors allocate a new object or array each time.
+  // Keep this cache separate from the client cache so hydration reads do not
+  // change the client snapshot semantics.
+  const serverSnapshotCacheRef = useRef<SelectedServerSnapshotCache<T, R> | undefined>(undefined);
   const getServerSnapshot = useCallback((): R | T | undefined => {
     if (!store) return initialValue;
 
-    const snapshot = store.getSnapshot();
-    const value = selector ? selector(snapshot.value) : snapshot.value;
-    return value as R | T;
-  }, [store, selector, initialValue]);
+    const sourceSnapshot = store.getSnapshot();
+    const cached = serverSnapshotCacheRef.current;
+
+    if (
+      cached &&
+      cached.store === store &&
+      cached.sourceSnapshot === sourceSnapshot &&
+      cached.selector === selector &&
+      cached.equalityFn === equalityFn
+    ) {
+      return cached.value;
+    }
+
+    const selectedValue = selector
+      ? selector(sourceSnapshot.value)
+      : sourceSnapshot.value;
+    const value =
+      cached &&
+      cached.store === store &&
+      cached.selector === selector &&
+      cached.equalityFn === equalityFn &&
+      equalityFn?.(cached.value as R, selectedValue as R)
+        ? cached.value
+        : selectedValue;
+
+    serverSnapshotCacheRef.current = {
+      store,
+      sourceSnapshot,
+      selector,
+      equalityFn,
+      value,
+    };
+
+    return value;
+  }, [store, selector, initialValue, equalityFn]);
 
   // React의 useSyncExternalStore 사용 - 캐시된 스냅샷 함수 사용
   const currentValue = useSyncExternalStore(
@@ -88,6 +132,16 @@ export function useSafeStoreSubscription<T, R = T>(
     equalityFn ? stableGetSnapshot : getSnapshot,
     getServerSnapshot
   );
+
+  // getServerSnapshot is only used while rendering/hydrating. Once the client
+  // commit completes, release its store/snapshot/value graph; otherwise the
+  // hydration cache can pin an obsolete full snapshot (or a replaced store)
+  // for the remaining component lifetime. Clearing after every client commit
+  // also prevents a later store/selector/equality render from retaining the
+  // previous cache keys or selected value.
+  useEffect(() => {
+    serverSnapshotCacheRef.current = undefined;
+  });
 
   const [visibleValue, setVisibleValue] = useState(currentValue);
   const lastVisibleAtRef = useRef(0);

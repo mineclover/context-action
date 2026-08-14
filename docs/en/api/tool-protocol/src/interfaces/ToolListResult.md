@@ -6,7 +6,7 @@
 
 # Interface: ToolListResult\<TDefinition\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:297](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L297)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:308](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L308)
 
 Result returned by a tools/list manager.
 
@@ -22,7 +22,7 @@ Result returned by a tools/list manager.
 
 > `readonly` **tools**: `TDefinition`[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:300](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L300)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:311](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L311)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:300](https://github.com
 
 > `readonly` `optional` **nextCursor?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:301](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L301)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:312](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L312)

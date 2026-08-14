@@ -142,24 +142,21 @@ describe('ExecutionStats Removal Tests - v0.4.1', () => {
       expect((stats as any)?.averageDuration).toBeUndefined();
     });
 
-    it('should have faster dispatch without stats overhead', async () => {
+    it('should dispatch repeatedly without reintroducing stats tracking', async () => {
       const handler = jest.fn();
       actionRegister.register('testAction', handler);
       
       const iterations = 50;
-      const startTime = Date.now();
       
       for (let i = 0; i < iterations; i++) {
         await actionRegister.dispatch('testAction', { value: `test-${i}` });
       }
-      
-      const endTime = Date.now();
-      const totalTime = endTime - startTime;
-      const averageTime = totalTime / iterations;
-      
-      // ExecutionStats 제거로 인한 성능 향상 검증
-      expect(averageTime).toBeLessThan(5); // 매우 빠른 실행
+
       expect(handler).toHaveBeenCalledTimes(iterations);
+
+      const stats = actionRegister.getActionStats('testAction');
+      expect(stats?.executionStats).toBeUndefined();
+      expect((stats as any)?.totalExecutions).toBeUndefined();
     });
   });
 

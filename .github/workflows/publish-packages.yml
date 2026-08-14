@@ -25,17 +25,37 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  # A publish workflow must never advance the default install tag. Promotion to
-  # latest is a separate, post-verification operation.
-  PUBLISH_DIST_TAG: next
-  # This allow-list deliberately omits the immutable v1 cohort. Those packages
-  # may be published only through their dedicated approval workflow.
-  REGULAR_PUBLISH_PACKAGES: '@context-action/typedoc-vitepress-sync,@context-action/mutative-core,@context-action/mutative,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator'
-  REGULAR_CONSUMER_PACKAGES: '@context-action/mutative-core,@context-action/mutative,@context-action/ai-sdk,@context-action/tool-durable-operations'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: context_action
+          POSTGRES_PASSWORD: context_action
+          POSTGRES_DB: context_action
+        options: >-
+          --health-cmd "pg_isready -U context_action -d context_action"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      REDIS_URL: redis://127.0.0.1:6379
+      DATABASE_URL: postgres://context_action:context_action@127.0.0.1:5432/context_action
+      DURABLE_OPERATION_ENVIRONMENT: release
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -47,10 +67,14 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           git fetch origin main --no-tags
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "Release tags must point to a commit reachable from origin/main." >&2
-            exit 1
-          fi
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Verify manual publish runs from current main
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git fetch origin main --no-tags
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
 
       - name: Clear npm config before registry setup
         run: |
@@ -123,15 +147,36 @@ jobs:
       - name: Run release gate
         run: pnpm release:check
 
+      - name: Verify durable-operation external backends and bridges
+        run: |
+          pnpm tool-durable:verify:env
+          pnpm tool-durable:verify:redis
+          pnpm tool-durable:verify:postgres
+          pnpm tool-durable:verify:http
+          pnpm tool-durable:verify:queue
+
+      - name: Verify source and packed release changelogs
+        run: |
+          node scripts/verify-tool-protocol-changelog.mjs --package typedoc-vitepress-sync --forbid-unreleased --require-release-date
+          node scripts/verify-tool-protocol-changelog.mjs --package ai-sdk --forbid-unreleased --require-release-date
+          node scripts/verify-tool-protocol-changelog.mjs --package tool-durable-operations --forbid-unreleased --require-release-date
+          node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date
+
+      - name: Re-verify approved source immediately before publication
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          git diff --cached --exit-code
+
       - name: Publish packages
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           mkdir -p reports
-          pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag "$PUBLISH_DIST_TAG" \
+          pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
             --scope @context-action/typedoc-vitepress-sync \
-            --scope @context-action/mutative-core \
-            --scope @context-action/mutative \
             --scope @context-action/ai-sdk \
             --scope @context-action/tool-durable-operations \
             --scope @context-action/llms-generator
@@ -140,14 +185,14 @@ jobs:
         if: success()
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm verify:published-tool-consumers -- --tag "$PUBLISH_DIST_TAG" --packages "$REGULAR_CONSUMER_PACKAGES"
+        run: pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator"
 
       - name: Capture registry evidence
         if: success()
         run: |
-          pnpm capture:published-release -- --tag "$PUBLISH_DIST_TAG" \
-            --packages "$REGULAR_PUBLISH_PACKAGES" \
-            --consumer-status not-run --output reports/npm-publish-registry-evidence.json
+          pnpm capture:published-release -- --tag next \
+            --packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator" \
+            --consumer-status passed --output reports/npm-publish-registry-evidence.json
 
       - name: Upload npm publish evidence
         if: always()
@@ -155,7 +200,7 @@ jobs:
         with:
           name: npm-publish-summary
           path: reports/npm-publish-*.json
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
 
       - name: Add npm publish summary to job summary

@@ -10,6 +10,14 @@ interface LifecycleActions extends ActionPayloadMap {
   queued: { id: string };
 }
 
+interface ResultLifecycleActions extends ActionPayloadMap {
+  run: void;
+}
+
+interface ResultLifecycleMap {
+  run: string;
+}
+
 describe('ActionRegister handler lifecycle', () => {
   it('releases handler resources when actions are cleared', () => {
     const register = new ActionRegister<LifecycleActions>();
@@ -79,6 +87,67 @@ describe('ActionRegister handler lifecycle', () => {
     expect(register.getHandlerCount('second')).toBe(1);
     expect(register.hasUnregisterFunction('shared-id')).toBe(true);
 
+    register.destroy();
+  });
+
+  it('returns a no-op lease for an ignored legacy registration', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    const original = jest.fn();
+    const ignored = jest.fn();
+
+    register.register('first', original, { id: 'shared-id' });
+    const ignoredUnregister = register.register('first', ignored, {
+      id: 'shared-id',
+      replaceExisting: false,
+    });
+
+    ignoredUnregister();
+    await register.dispatch('first');
+
+    expect(original).toHaveBeenCalledTimes(1);
+    expect(ignored).not.toHaveBeenCalled();
+    expect(register.getHandlerCount('first')).toBe(1);
+    register.destroy();
+  });
+
+  it('returns a no-op lease for an ignored guard registration', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    const original = jest.fn();
+    const ignored = jest.fn();
+
+    register.registerGuard('first', original, { id: 'shared-id' });
+    const ignoredUnregister = register.registerGuard('first', ignored, {
+      id: 'shared-id',
+      replaceExisting: false,
+    });
+
+    ignoredUnregister();
+    await register.dispatch('first');
+
+    expect(original).toHaveBeenCalledTimes(1);
+    expect(ignored).not.toHaveBeenCalled();
+    expect(register.getHandlerCount('first')).toBe(1);
+    register.destroy();
+  });
+
+  it('returns a no-op lease for an ignored result registration', async () => {
+    const register = new ActionRegister<ResultLifecycleActions, ResultLifecycleMap>();
+    const original = jest.fn(() => 'original');
+    const ignored = jest.fn(() => 'ignored');
+
+    register.registerResult('run', original, { id: 'shared-id' });
+    const ignoredUnregister = register.registerResult('run', ignored, {
+      id: 'shared-id',
+      replaceExisting: false,
+    });
+
+    ignoredUnregister();
+    const result = await register.dispatchWithResult('run');
+
+    expect(result.result).toBe('original');
+    expect(original).toHaveBeenCalledTimes(1);
+    expect(ignored).not.toHaveBeenCalled();
+    expect(register.getHandlerCount('run')).toBe(1);
     register.destroy();
   });
 
@@ -531,6 +600,27 @@ describe('ActionRegister handler lifecycle', () => {
     await expect(register.dispatchWithResult('first')).rejects.toBeInstanceOf(
       ActionRegisterDestroyedError
     );
+  });
+
+  it('closes synchronously while deferring registered cleanup to a microtask', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    const cleanup = jest.fn();
+    register.register('first', jest.fn(), { cleanup });
+
+    const shutdown = register.destroyAsync({ deferCleanup: true });
+
+    expect(cleanup).not.toHaveBeenCalled();
+    expect(() => register.register('first', jest.fn())).toThrow(
+      ActionRegisterDestroyedError
+    );
+    const rejectedDispatch = expect(register.dispatch('first')).rejects.toBeInstanceOf(
+      ActionRegisterDestroyedError
+    );
+    expect(cleanup).not.toHaveBeenCalled();
+
+    await rejectedDispatch;
+    await shutdown;
+    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the same destroy promise during reentrant cleanup', async () => {

@@ -6,7 +6,7 @@
 
 # Interface: ToolContextType\<TSchema\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:243](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L243)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:247](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L247)
 
 Internal context type for ToolContext
 
@@ -22,7 +22,7 @@ Internal context type for ToolContext
 
 > **actionRegisterRef**: `RefObject`\<`ActionRegister`\<`InferActionPayloadMap`&lt;`TSchema`&gt;, \{ \}\> \| `null`\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:244](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L244)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:248](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L248)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:244](https://github.c
 
 > **registry**: [`ToolRegistry`](ToolRegistry.md)&lt;`TSchema`&gt;
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:245](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L245)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:249](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L249)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:245](https://github.c
 
 > **dispatch**: [`ToolDispatchFunction`](../type-aliases/ToolDispatchFunction.md)\<`InferActionPayloadMap`&lt;`TSchema`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:246](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L246)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:250](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L250)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [packages/react/src/tools/ToolContext.types.ts:246](https://github.c
 
 > **dispatchLifecycle**: `ProviderDispatchLifecycle`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:247](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L247)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:251](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L251)

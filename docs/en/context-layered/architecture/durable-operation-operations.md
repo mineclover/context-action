@@ -1,5 +1,10 @@
 # Durable Operation Operations Runbook
 
+> **Development-track status:** This runbook describes the Durable 0.2 work in
+> progress. It is not a prerequisite for the Core 1.1 / React 2
+> state-management release, and `@context-action/react/tools` is intentionally
+> not shipped from that React artifact.
+
 This runbook is the operational companion to the semantic contract in the
 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md).
 It covers deployment verification for the Redis and PostgreSQL reference backends and the
@@ -36,9 +41,10 @@ The smoke check must report `status: "ok"` for all of these checks:
 
 - atomic claim across two store instances;
 - completed-result replay without a second owner;
-- `unknown` record resolution with a revision check;
-- stale revision rejection before reconciliation;
+- `unknown` record resolution with a full-fence check;
+- stale-fence rejection before reconciliation;
 - lease expiry and reclaim by a second owner;
+- rejection of an old-incarnation ABA transition after prune/recreate;
 - terminal-record retention pruning.
 
 The host-only JSON result also records the Redis server version. The PostgreSQL
@@ -126,7 +132,7 @@ isolated integration fixture against the exact database version used by the
 deployment.
 
 The fixture must prove concurrent claims from separate connections, lease
-reclaim, completed replay, unknown reconciliation, revision-checked pruning,
+reclaim, completed replay, unknown reconciliation, full-fence pruning,
 and the configured isolation level. A fake query client or a local-only test is
 not production evidence. Record the PostgreSQL version, database host (without
 credentials), migration revision, pool/owner, isolation setting, test output,
@@ -153,6 +159,29 @@ CI runs the same smoke command against a PostgreSQL 16 service container on
 every repository test job. This proves the reference adapter against a real
 server in automation, but it does not prove the production pool, version,
 isolation setting, network path, or migration rollout.
+
+### Incarnation-fence upgrade
+
+Do not run pre-fencing and fenced workers together on a mutation path. An old
+worker compares only the revision and can bypass a new record's full fence.
+Drain mutation consumers and stop writes before replacing every worker with the
+same version.
+
+- Apply the new `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL` first. The migration
+  gives existing rows a deterministic legacy incarnation and makes the column
+  `NOT NULL`.
+- A new Redis or IndexedDB store upgrades a legacy record on first read. It
+  atomically requires the revision to match and the incarnation to be absent,
+  writes the incarnation once, and then reads the record again.
+- Preserve a backup and representative legacy pending/terminal records before
+  rollout. In staging, verify backfill, claim, reconciliation, and the
+  prune/recreate ABA case.
+- If rollback is required, stop mutations again. Do not remove incarnation
+  fields or run an old worker alongside a new one.
+
+Backfill changes only the storage format. It never converts an uncertain
+`unknown` result to `completed` or `failed`; use the recovery procedure below
+for that domain decision.
 
 ### CI fixture verification
 
@@ -234,9 +263,9 @@ export and keep the mutation/recovery path fail-closed.
 4. If it is `unknown`, call `registry.recoverOperation()` with an application
    resolver. The resolver queries the domain system, applies a safe
    compensation if required, or asks for an explicit operator decision.
-5. The resolver returns a completed/failed resolution. The observed revision is
-   checked atomically; a stale decision must be retried from a fresh status
-   read.
+5. The resolver returns a completed/failed resolution. The full observed fence
+   (`incarnation` and `revision`) is checked atomically; a stale decision must
+   be retried from a fresh status read.
 6. If a genuinely new logical operation is required, generate a new
    idempotency key and retain the old record for audit/reconciliation.
 
@@ -273,7 +302,7 @@ are reusable, but they are not provider evidence.
 | Duplicate behavior | Provider-owned idempotency, inbox/outbox, or equivalent duplicate suppression; same logical key must not publish/send twice |
 | Runtime limits | Timeout, abort-drain, lease, retry, and rate-limit behavior for the actual client |
 | Retention and rollback | Operation/telemetry retention, deletion job, alert thresholds, fail-closed rule, and rollback decision |
-| Executable evidence | Duplicate delivery, pre-send failure, lost acknowledgement, lease reclaim, stale revision, recovery, and provider-specific integration tests |
+| Executable evidence | Duplicate delivery, pre-send failure, lost acknowledgement, lease reclaim, stale fence, prune/recreate ABA, recovery, and provider-specific integration tests |
 
 The adapter may call `runHttpSideEffect()` or `runQueueSideEffect()` only after
 these gates are recorded in the application-owned deployment evidence. A

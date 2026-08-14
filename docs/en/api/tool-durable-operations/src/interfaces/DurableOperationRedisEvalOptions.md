@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationRedisEvalOptions
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:10](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L10)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:11](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L11)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:10]
 
 > `readonly` **keys**: readonly `string`[]
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:11](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L11)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:12](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L12)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:11]
 
 > `readonly` **arguments**: readonly `string`[]
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:12](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L12)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:13](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L13)

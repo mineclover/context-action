@@ -10,8 +10,9 @@
  * - Type safety throughout
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
 import { EnhancedLLMSConfig } from '../types/config.js';
@@ -427,8 +428,17 @@ async function handleCombineReferences(args: string[], argumentParser: ArgumentP
   await combineReferencesCommand.execute(options);
 }
 
-// Run CLI only if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+function isDirectExecution(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+  } catch {
+    return false;
+  }
+}
+
+// Resolve symlinked npm .bin shims and platform temp-directory aliases.
+if (isDirectExecution()) {
   main().catch(error => {
     console.error('Fatal error:', error);
     process.exit(1);

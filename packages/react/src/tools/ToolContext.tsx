@@ -46,11 +46,11 @@ import {
   ActionRegister,
   DispatchArgs,
   DispatchOptions,
-  ExecutionResult,
   HandlerConfig,
 } from '@context-action/core';
-import type {
-  DurableOperationClaim,
+import {
+  type DurableOperationClaim,
+  hasDurableOperationFencingCapability,
 } from '@context-action/tool-durable-operations';
 import type {
   ToolCallContext,
@@ -83,6 +83,7 @@ import React, {
   useContext,
   useEffect,
   useId,
+  useInsertionEffect,
   useMemo,
   useRef,
 } from 'react';
@@ -108,6 +109,15 @@ import {
 } from './tool-registry';
 
 const DEFAULT_DURABLE_OPERATION_LEASE_MS = 5 * 60 * 1000;
+const MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS = 1000;
+
+type DurablePersistenceOutcome =
+  | { readonly persisted: true }
+  | { readonly persisted: false; readonly error: unknown };
+
+type DurableAbortSettlement =
+  | { readonly safe: true; readonly winner: 'known-terminal' | 'unknown' }
+  | { readonly safe: false; readonly error: unknown };
 
 function abortError(signal: AbortSignal): Error {
   const reason = signal.reason;
@@ -342,6 +352,11 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   }
   validateOptionalExecutionOwnerId(durableOperationOwnerId, 'durableOperationOwnerId');
   validateOptionalExecutionOwnerId(executionOwnerId);
+  if (durableOperationStore && !hasDurableOperationFencingCapability(durableOperationStore)) {
+    throw new TypeError(
+      'durableOperationStore must declare incarnation-revision fencing capability.'
+    );
+  }
 
   // Create the React context
   const ToolReactContext = createContext<ToolContextType<TSchema> | null>(null);
@@ -354,7 +369,6 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     const actionRegisterRef = useRef<ActionRegister<TPayloadMap> | null>(null);
     const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
     const idempotencyRegistryRef = useRef<ToolIdempotencyRegistry<ToolCallResult> | null>(null);
-    const lifecycleGenerationRef = useRef(0);
     if (!actionRegisterRef.current) {
       actionRegisterRef.current = new ActionRegister<TPayloadMap>({
         name: contextName,
@@ -378,19 +392,24 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     }
     const dispatchLifecycle = dispatchLifecycleRef.current;
 
-    useEffect(() => {
+    // Activity disconnects layout/passive effects while preserving the mounted
+    // tree. Insertion effects remain connected, so Provider-owned resources
+    // survive hide/reveal and are shut down only on an actual unmount.
+    useInsertionEffect(() => {
       const register = actionRegisterRef.current;
-      const generation = ++lifecycleGenerationRef.current;
+      if (!register) {
+        throw new Error('Tool provider resources were not initialized before commit.');
+      }
 
       return () => {
-        queueMicrotask(() => {
-          // StrictMode replays setup before this microtask; compare against the
-          // latest generation to distinguish replay from real unmount.
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-          if (lifecycleGenerationRef.current === generation && register) {
-            void dispatchLifecycle.shutdown(register);
-          }
-        });
+        void dispatchLifecycle.shutdown(register);
+        if (actionRegisterRef.current === register) {
+          actionRegisterRef.current = null;
+        }
+        if (dispatchLifecycleRef.current === dispatchLifecycle) {
+          dispatchLifecycleRef.current = null;
+        }
+        idempotencyRegistryRef.current = null;
       };
     }, [dispatchLifecycle]);
 
@@ -458,6 +477,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           validateOptionalOutputBudget(options?.maxOutputBytes);
           validateOptionalExecutionOwnerId(options?.executionOwnerId);
         } catch (error) {
+          timeoutState?.cleanup();
           return createToolCallError(
             error instanceof Error ? error.message : String(error),
             {
@@ -579,15 +599,25 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
 
         if (toolPolicy) {
           let decision: Awaited<ReturnType<ToolPolicy>>;
+          let policySignal: AbortSignal | undefined;
           try {
             decision = await awaitWithAbort(
-              Promise.resolve().then(() =>
-                toolPolicy({
-                  request,
-                  definition: tool.toMCP(),
-                  context,
-                  signal: callSignal,
-                })
+              dispatchLifecycle.run(
+                [options?.signal, timeoutState?.signal],
+                signal => {
+                  policySignal = signal;
+                  return awaitWithAbort(
+                    Promise.resolve().then(() =>
+                      toolPolicy({
+                        request,
+                        definition: tool.toMCP(),
+                        context,
+                        signal,
+                      })
+                    ),
+                    signal
+                  );
+                }
               ),
               callSignal
             );
@@ -605,6 +635,23 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
                 }
               ));
             }
+            if (
+              !options?.signal?.aborted &&
+              (policySignal?.aborted ||
+                (policySignal === undefined &&
+                  error instanceof Error &&
+                  error.name === 'AbortError'))
+            ) {
+              return finish(createToolCallError(
+                error instanceof Error ? error.message : 'Tool provider unmounted.',
+                {
+                  code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                  retryable: true,
+                  toolCallId: request.id,
+                  details: { executionState: 'detached' },
+                }
+              ));
+            }
             return finish(createToolCallError(
               error instanceof Error ? error.message : String(error),
               {
@@ -615,20 +662,30 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             ));
           }
           if (decision === 'ask' && options?.interaction) {
+            let interactionSignal: AbortSignal | undefined;
             try {
               const interactionDecision = await awaitWithAbort(
-                options.interaction({
-                  kind: 'approval',
-                  call: {
-                    ...(request.id === undefined ? {} : { id: request.id }),
-                    name: request.params.name,
-                    arguments: request.params.arguments ?? {},
-                  },
-                  request,
-                  definition: tool.toMCP(),
-                  context,
-                  signal: callSignal,
-                }),
+                dispatchLifecycle.run(
+                  [options?.signal, timeoutState?.signal],
+                  signal => {
+                    interactionSignal = signal;
+                    return awaitWithAbort(
+                      options.interaction!({
+                        kind: 'approval',
+                        call: {
+                          ...(request.id === undefined ? {} : { id: request.id }),
+                          name: request.params.name,
+                          arguments: request.params.arguments ?? {},
+                        },
+                        request,
+                        definition: tool.toMCP(),
+                        context,
+                        signal,
+                      }),
+                      signal
+                    );
+                  }
+                ),
                 callSignal,
               );
               decision = interactionDecision === 'approved' ? 'allow' : 'deny';
@@ -642,6 +699,23 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
                   retryable: true,
                   toolCallId: request.id,
                 }));
+              }
+              if (
+                !options?.signal?.aborted &&
+                (interactionSignal?.aborted ||
+                  (interactionSignal === undefined &&
+                    error instanceof Error &&
+                    error.name === 'AbortError'))
+              ) {
+                return finish(createToolCallError(
+                  error instanceof Error ? error.message : 'Tool provider unmounted.',
+                  {
+                    code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                    retryable: true,
+                    toolCallId: request.id,
+                    details: { executionState: 'detached' },
+                  }
+                ));
               }
               return finish(createToolCallError(
                 error instanceof Error ? error.message : String(error),
@@ -679,300 +753,593 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           }));
         }
 
-        try {
-          const payload = (request.params.arguments ?? {}) as TPayloadMap[typeof toolName];
-          const operationKey = idempotencyKey === undefined
-            ? undefined
-            : createToolOperationKey(
-                request.params.name,
-                idempotencyKey,
-                context.sessionId
-              );
-          const fingerprint = idempotencyKey === undefined
-            ? undefined
-            : createToolCallFingerprint(request.params.name, request.params.arguments ?? {});
-          const runExecution = (): Promise<ExecutionResult<unknown>> =>
-            dispatchLifecycle.run(
-              [options?.signal, timeoutState?.signal],
-                signal => register.dispatchWithResult(
-                  toolName as Extract<keyof TPayloadMap, string>,
-                  ...([payload, withProviderDispatchSignal({ signal }, signal)] as DispatchArgs<TPayloadMap[typeof toolName]>)
-                )
+        const payload = (request.params.arguments ?? {}) as TPayloadMap[typeof toolName];
+        const operationKey = idempotencyKey === undefined
+          ? undefined
+          : createToolOperationKey(
+              request.params.name,
+              idempotencyKey,
+              context.sessionId
+            );
+        const fingerprint = idempotencyKey === undefined
+          ? undefined
+          : createToolCallFingerprint(request.params.name, request.params.arguments ?? {});
+        let durableAbortTransition: Promise<DurableAbortSettlement> | undefined;
+
+        const storeFailureResult = (
+          error: unknown,
+          persistenceUncertain = false
+        ): ToolCallResult => createToolCallError(
+          `Durable operation state could not be persisted: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          {
+            code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_STORE_FAILED,
+            retryable: true,
+            toolCallId: request.id,
+            details: {
+              ...(operationKey === undefined ? {} : { operationKey }),
+              ...(persistenceUncertain
+                ? {
+                    persistenceState: 'uncertain',
+                    automaticRetrySafe: false,
+                  }
+                : {}),
+            },
+          }
+        );
+        const unknownOperationResult = (): ToolCallResult => createToolCallError(
+          `Operation "${request.params.name}" has an unknown outcome and requires reconciliation.`,
+          {
+            code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
+            retryable: false,
+            toolCallId: request.id,
+            details: {
+              state: 'unknown',
+              automaticRetrySafe: false,
+            },
+          }
+        );
+        const storedResultForDurability = (result: ToolCallResult): ToolCallResult => {
+          if (result.toolCallId === undefined) return result;
+          const { toolCallId: _toolCallId, ...withoutToolCallId } = result;
+          return withoutToolCallId;
+        };
+        const transitionOutcome = (
+          transition: () => unknown | PromiseLike<unknown>
+        ): Promise<DurablePersistenceOutcome> => Promise.resolve()
+          .then(transition)
+          .then(
+            () => ({ persisted: true as const }),
+            error => ({ persisted: false as const, error })
+          );
+
+        const performExecution = async (
+          signal: AbortSignal
+        ): Promise<ToolCallResult> => {
+          try {
+            const execution = await register.dispatchWithResult(
+              toolName as Extract<keyof TPayloadMap, string>,
+              ...([
+                payload,
+                withProviderDispatchSignal({ signal }, signal),
+              ] as DispatchArgs<TPayloadMap[typeof toolName]>)
             );
 
-          const performExecution = async (): Promise<ToolCallResult> => {
-            try {
-              const execution = await runExecution();
-
-              if (!execution.success) {
-                const validationMessage =
-                  execution.validation && !execution.validation.passed
-                    ? execution.validation.errors.join('; ')
-                    : undefined;
-                const failedHandler = execution.failedResults.find(
-                  ({ error }) => Boolean(error?.message)
-                );
-                const lifecycleError = execution.errors.find(
-                  ({ error }) => Boolean(error?.message)
-                );
-                const handlerError = failedHandler?.error ?? lifecycleError?.error;
-                const handlerMetadata = getToolCallErrorMetadata(handlerError);
-                const executionMessage =
-                  execution.abortReason ??
-                  validationMessage ??
-                  failedHandler?.error.message ??
-                  lifecycleError?.error.message ??
-                  `Tool "${request.params.name}" failed`;
-                // The caller timeout is reported immediately by the outer
-                // abort race. If the detached handler later resolves as an
-                // aborted execution, preserve EXECUTION_ABORTED so a replay
-                // can distinguish the final outcome from the caller timeout.
-                const timedOut = timeoutState?.signal.aborted === true && !execution.aborted;
-                const externallyCancelled = options?.signal?.aborted === true;
-                return createToolCallError(
-                  executionMessage,
-                  {
-                    code: timedOut
-                      ? TOOL_CALL_ERROR_CODES.TIMEOUT
-                      : externallyCancelled
-                      ? TOOL_CALL_ERROR_CODES.CANCELLED
-                      : handlerMetadata.code ??
-                        (execution.validation && !execution.validation.passed
-                          ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
-                          : execution.aborted
-                            ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
-                            : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED),
-                    retryable:
-                      timedOut ||
-                      externallyCancelled ||
-                      handlerMetadata.retryable === true ||
-                      (handlerMetadata.retryable === undefined && execution.aborted),
-                    details: timedOut
+            if (!execution.success) {
+              const validationMessage =
+                execution.validation && !execution.validation.passed
+                  ? execution.validation.errors.join('; ')
+                  : undefined;
+              const failedHandler = execution.failedResults.find(
+                ({ error }) => Boolean(error?.message)
+              );
+              const lifecycleError = execution.errors.find(
+                ({ error }) => Boolean(error?.message)
+              );
+              const handlerError = failedHandler?.error ?? lifecycleError?.error;
+              const handlerMetadata = getToolCallErrorMetadata(handlerError);
+              const executionMessage =
+                execution.abortReason ??
+                validationMessage ??
+                failedHandler?.error.message ??
+                lifecycleError?.error.message ??
+                `Tool "${request.params.name}" failed`;
+              const timedOut = timeoutState?.signal.aborted === true && !execution.aborted;
+              const externallyCancelled = options?.signal?.aborted === true;
+              return createToolCallError(executionMessage, {
+                code: timedOut
+                  ? TOOL_CALL_ERROR_CODES.TIMEOUT
+                  : externallyCancelled
+                  ? TOOL_CALL_ERROR_CODES.CANCELLED
+                  : handlerMetadata.code ??
+                    (execution.validation && !execution.validation.passed
+                      ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
+                      : execution.aborted
+                        ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                        : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED),
+                retryable:
+                  timedOut ||
+                  externallyCancelled ||
+                  handlerMetadata.retryable === true ||
+                  (handlerMetadata.retryable === undefined && execution.aborted),
+                details: timedOut
+                  ? {
+                      timeoutMs: timeoutState!.timeoutMs,
+                      executionState: 'detached',
+                    }
+                  : handlerMetadata.details ??
+                    (failedHandler
                       ? {
-                          timeoutMs: timeoutState!.timeoutMs,
-                          executionState: 'detached',
+                          handlerId: failedHandler.handlerId,
+                          message: failedHandler.error.message,
                         }
-                      : handlerMetadata.details ??
-                        (failedHandler
-                          ? {
-                              handlerId: failedHandler.handlerId,
-                              message: failedHandler.error.message,
-                            }
-                          : undefined),
-                  }
-                );
-              }
+                      : undefined),
+              });
+            }
 
-              const output =
-                execution.result ??
-                (execution.successResults.length === 0
-                  ? undefined
-                  : execution.successResults.length === 1
-                    ? execution.successResults[0]
-                    : execution.successResults);
-
-              const outputValidation = tool.safeParseOutput?.(output);
-              if (outputValidation && !outputValidation.success) {
-                return createToolCallError(
-                  `Tool "${request.params.name}" returned an invalid result`,
-                  {
-                    code: TOOL_CALL_ERROR_CODES.OUTPUT_VALIDATION_FAILED,
-                    details: { issues: outputValidation.error.issues },
-                  }
-                );
-              }
-
-              const normalizedOutput = outputValidation?.success
-                ? outputValidation.data
-                : output;
-              return createToolCallSuccess(normalizedOutput);
-            } catch (error) {
-              const errorMetadata = getToolCallErrorMetadata(error);
-              const timedOut = timeoutState !== undefined && (
-                timeoutState.signal.aborted || isToolCallTimeoutError(error)
-              );
+            const output =
+              execution.result ??
+              (execution.successResults.length === 0
+                ? undefined
+                : execution.successResults.length === 1
+                  ? execution.successResults[0]
+                  : execution.successResults);
+            const outputValidation = tool.safeParseOutput?.(output);
+            if (outputValidation && !outputValidation.success) {
               return createToolCallError(
-                timedOut
-                  ? `Tool call timed out after ${timeoutState!.timeoutMs}ms.`
-                  : error instanceof Error ? error.message : String(error),
+                `Tool "${request.params.name}" returned an invalid result`,
                 {
-                  code: timedOut
-                    ? TOOL_CALL_ERROR_CODES.TIMEOUT
-                    : options?.signal?.aborted
-                    ? TOOL_CALL_ERROR_CODES.CANCELLED
-                    : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
-                  retryable:
-                    timedOut || options?.signal?.aborted || errorMetadata.retryable === true,
-                  ...(timedOut
-                    ? {
-                        details: {
-                          timeoutMs: timeoutState!.timeoutMs,
-                          executionState: 'detached',
-                        },
-                      }
-                    : errorMetadata.details === undefined
-                    ? {}
-                    : { details: errorMetadata.details }),
+                  code: TOOL_CALL_ERROR_CODES.OUTPUT_VALIDATION_FAILED,
+                  details: { issues: outputValidation.error.issues },
                 }
               );
             }
+            const normalizedOutput = outputValidation?.success
+              ? outputValidation.data
+              : output;
+            return createToolCallSuccess(normalizedOutput);
+          } catch (error) {
+            const errorMetadata = getToolCallErrorMetadata(error);
+            const timedOut = timeoutState !== undefined && (
+              timeoutState.signal.aborted || isToolCallTimeoutError(error)
+            );
+            const externallyCancelled = options?.signal?.aborted === true;
+            const providerAborted =
+              !timedOut &&
+              !externallyCancelled &&
+              (signal.aborted || (error instanceof Error && error.name === 'AbortError'));
+            return createToolCallError(
+              timedOut
+                ? `Tool call timed out after ${timeoutState!.timeoutMs}ms.`
+                : error instanceof Error ? error.message : String(error),
+              {
+                code: timedOut
+                  ? TOOL_CALL_ERROR_CODES.TIMEOUT
+                  : externallyCancelled
+                  ? TOOL_CALL_ERROR_CODES.CANCELLED
+                  : providerAborted
+                  ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                  : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
+                retryable:
+                  timedOut ||
+                  externallyCancelled ||
+                  providerAborted ||
+                  errorMetadata.retryable === true,
+                ...(timedOut
+                  ? {
+                      details: {
+                        timeoutMs: timeoutState!.timeoutMs,
+                        executionState: 'detached',
+                      },
+                    }
+                  : providerAborted
+                  ? { details: { executionState: 'detached' } }
+                  : errorMetadata.details === undefined
+                  ? {}
+                  : { details: errorMetadata.details }),
+              }
+            );
+          }
+        };
+
+        const runLogicalOperation = async (
+          operationSignal: AbortSignal
+        ): Promise<ToolCallResult> => {
+          const performExecutionWithBudget = async (): Promise<ToolCallResult> =>
+            enforceToolOutputBudget(
+              await performExecution(operationSignal),
+              options?.maxOutputBytes,
+              request.id,
+            );
+
+          if (!durableOperationStore || !operationKey || !fingerprint) {
+            return performExecutionWithBudget();
+          }
+
+          let operationAborted = operationSignal.aborted;
+          let resolveOperationAbort: (() => void) | undefined;
+          let beginOwnedAbort: (() => void) | undefined;
+          const operationAbortPromise = operationAborted
+            ? Promise.resolve()
+            : new Promise<void>(resolve => {
+                resolveOperationAbort = resolve;
+              });
+          const onOperationAbort = (): void => {
+            operationAborted = true;
+            resolveOperationAbort?.();
+            beginOwnedAbort?.();
+          };
+          if (!operationAborted) {
+            operationSignal.addEventListener('abort', onOperationAbort, { once: true });
+          }
+          const cleanupOperationAbort = (): void => {
+            operationSignal.removeEventListener('abort', onOperationAbort);
+          };
+          const abortResultForSignal = (): ToolCallResult => {
+            if (timeoutState?.signal.aborted) return timeoutResult();
+            if (options?.signal?.aborted) {
+              const message = abortError(options.signal).message;
+              return createToolCallError(message.trim() ? message : 'Tool call cancelled.', {
+                code: TOOL_CALL_ERROR_CODES.CANCELLED,
+                retryable: true,
+                toolCallId: request.id,
+              });
+            }
+            const message = abortError(operationSignal).message;
+            return createToolCallError(
+              message.trim() ? message : 'Tool execution was aborted.',
+              {
+                code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                retryable: true,
+                toolCallId: request.id,
+                details: { executionState: 'detached' },
+              }
+            );
+          };
+          const boundDetachedAbortTransition = (
+            transition: Promise<DurablePersistenceOutcome>
+          ): Promise<DurablePersistenceOutcome> => {
+            const waitMs = Math.max(
+              1,
+              Math.min(
+                durableOperationLeaseMs,
+                MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS
+              )
+            );
+            return new Promise(resolve => {
+              let settled = false;
+              const finish = (outcome: DurablePersistenceOutcome): void => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolve(outcome);
+              };
+              const timer = setTimeout(() => {
+                finish({
+                  persisted: false,
+                  error: new Error(
+                    `Detached durable abort persistence did not settle within ${waitMs}ms.`
+                  ),
+                });
+              }, waitMs);
+              void transition.then(finish);
+            });
           };
 
-          const persistDurableResult = async (
-            key: string,
-            ownerId: string,
-            resultPromise: Promise<ToolCallResult>
-          ): Promise<ToolCallResult> => {
-            const result = await resultPromise;
-            const storedResult = result.toolCallId === undefined
-              ? result
-              : (() => {
-                  const { toolCallId: _toolCallId, ...withoutToolCallId } = result;
-                  return withoutToolCallId;
-                })();
-            try {
-              const code = result.error?.code;
-              const ambiguous =
-                code === TOOL_CALL_ERROR_CODES.TIMEOUT ||
-                code === TOOL_CALL_ERROR_CODES.CANCELLED ||
-                code === TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED ||
-                code === TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN;
-              const durableDiagnostic = result.isError
-                ? sanitizeToolCallDiagnostic(storedResult, durableDiagnosticPolicy)
-                : storedResult;
-              if (ambiguous) {
-                await durableOperationStore!.markUnknown(
-                  key,
-                  ownerId,
-                  sanitizeToolCallDiagnosticReason(result),
-                  durableDiagnostic
-                );
-              } else if (result.isError) {
-                await durableOperationStore!.fail(
-                  key,
-                  ownerId,
-                  sanitizeToolCallDiagnosticReason(result),
-                  durableDiagnostic
-                );
-              } else {
-                await durableOperationStore!.complete(key, ownerId, storedResult);
-              }
-            } catch (error) {
-              idempotencyRegistryRef.current?.clear(key);
-              if (debug) {
-                console.warn(`[${contextName}] Durable operation transition failed`, error);
-              }
-              return createToolCallError(
-                `Durable operation state could not be persisted: ${
-                  error instanceof Error ? error.message : String(error)
-                }`,
-                {
-                  code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_STORE_FAILED,
-                  retryable: true,
-                  details: { operationKey: key },
+          const claimPromise = Promise.resolve().then(() =>
+            durableOperationStore.claim(
+              operationKey,
+              fingerprint,
+              durableOwnerId,
+              { leaseMs: durableOperationLeaseMs }
+            )
+          );
+          const claimRace = await Promise.race([
+            claimPromise.then(
+              claim => ({ kind: 'claim' as const, claim }),
+              error => ({ kind: 'error' as const, error })
+            ),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (claimRace.kind === 'abort') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            const abortResult = abortResultForSignal();
+            void claimPromise.then(
+              lateClaim => {
+                if (lateClaim.status !== 'owner') return;
+                const transition = transitionOutcome(() => {
+                  const storedAbortResult = storedResultForDurability(abortResult);
+                  const durableDiagnostic = sanitizeToolCallDiagnostic(
+                    storedAbortResult,
+                    durableDiagnosticPolicy
+                  );
+                  return durableOperationStore.markUnknown(
+                    operationKey,
+                    durableOwnerId,
+                    sanitizeToolCallDiagnosticReason(abortResult),
+                    durableDiagnostic,
+                    lateClaim.fence
+                  );
+                });
+                void boundDetachedAbortTransition(transition).then(outcome => {
+                  if (!outcome.persisted && debug) {
+                    console.warn(
+                      `[${contextName}] Detached durable abort transition failed`,
+                      outcome.error
+                    );
+                  }
+                });
+              },
+              error => {
+                if (debug) {
+                  console.warn(`[${contextName}] Detached durable claim failed`, error);
                 }
-              );
+              }
+            );
+            return abortResult;
+          }
+          if (claimRace.kind === 'error') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return storeFailureResult(claimRace.error);
+          }
+          const durableClaim: DurableOperationClaim<ToolCallResult> = claimRace.claim;
+
+          if (durableClaim.status === 'conflict') {
+            cleanupOperationAbort();
+            return createToolCallError(
+              `Idempotency key was already used for a different "${request.params.name}" operation.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_CONFLICT,
+                retryable: false,
+              }
+            );
+          }
+          if (durableClaim.status === 'pending') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return createToolCallError(
+              `Operation "${request.params.name}" is already running in another owner.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_PENDING,
+                retryable: true,
+                details: {
+                  state: durableClaim.record.state,
+                  ownerId: durableClaim.record.ownerId,
+                  leaseExpiresAt: durableClaim.record.leaseExpiresAt,
+                },
+              }
+            );
+          }
+          if (durableClaim.status === 'unknown') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return createToolCallError(
+              `Operation "${request.params.name}" has an unknown outcome and requires reconciliation.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
+                retryable: false,
+                details: {
+                  state: durableClaim.record.state,
+                  reason: durableClaim.record.reason,
+                  automaticRetrySafe: false,
+                },
+              }
+            );
+          }
+          if (durableClaim.status === 'replay') {
+            cleanupOperationAbort();
+            if (durableClaim.record.result === undefined) {
+              idempotencyRegistryRef.current?.clear(operationKey);
+              return unknownOperationResult();
             }
-            return result;
+            return durableClaim.record.result;
+          }
+
+          let terminalTransition: Promise<DurablePersistenceOutcome> | undefined;
+          let terminalResult: ToolCallResult | undefined;
+          let terminalWritesUnknown = false;
+          const createAbortSettlement = (
+            abortTransition: Promise<DurablePersistenceOutcome>,
+            competingTerminal: Promise<DurablePersistenceOutcome> | undefined,
+            competingTerminalWritesUnknown: boolean
+          ): Promise<DurableAbortSettlement> => {
+            const waitMs = Math.max(
+              1,
+              Math.min(
+                durableOperationLeaseMs,
+                MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS
+              )
+            );
+            return new Promise(resolve => {
+              let settled = false;
+              let abortOutcome: DurablePersistenceOutcome | undefined;
+              let terminalOutcome: DurablePersistenceOutcome | undefined;
+              const finish = (outcome: DurableAbortSettlement): void => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                cleanupOperationAbort();
+                resolve(outcome);
+              };
+              const evaluate = (): void => {
+                if (abortOutcome?.persisted) {
+                  finish({ safe: true, winner: 'unknown' });
+                  return;
+                }
+                if (terminalOutcome?.persisted) {
+                  finish({
+                    safe: true,
+                    winner: competingTerminalWritesUnknown
+                      ? 'unknown'
+                      : 'known-terminal',
+                  });
+                  return;
+                }
+                if (
+                  abortOutcome &&
+                  !abortOutcome.persisted &&
+                  (
+                    competingTerminal === undefined ||
+                    (terminalOutcome !== undefined && !terminalOutcome.persisted)
+                  )
+                ) {
+                  finish({ safe: false, error: abortOutcome.error });
+                }
+              };
+              const timer = setTimeout(() => {
+                finish({
+                  safe: false,
+                  error: new Error(
+                    `Durable abort persistence did not settle within ${waitMs}ms.`
+                  ),
+                });
+              }, waitMs);
+              void abortTransition.then(outcome => {
+                abortOutcome = outcome;
+                evaluate();
+              });
+              void competingTerminal?.then(outcome => {
+                terminalOutcome = outcome;
+                evaluate();
+              });
+            });
           };
-
-          const runLogicalOperation = async (): Promise<ToolCallResult> => {
-            const performExecutionWithBudget = async (): Promise<ToolCallResult> =>
-              enforceToolOutputBudget(
-                await performExecution(),
-                options?.maxOutputBytes,
-                request.id,
+          const beginAbortTransition = (): void => {
+            if (durableAbortTransition) return;
+            idempotencyRegistryRef.current?.clear(operationKey);
+            const rawAbortTransition = transitionOutcome(() => {
+              const result = abortResultForSignal();
+              const storedResult = storedResultForDurability(result);
+              const durableDiagnostic = sanitizeToolCallDiagnostic(
+                storedResult,
+                durableDiagnosticPolicy
               );
-
-            if (!durableOperationStore || !operationKey || !fingerprint) {
-              return performExecutionWithBudget();
-            }
-
-            let durableClaim: DurableOperationClaim<ToolCallResult>;
-            try {
-              durableClaim = await durableOperationStore.claim(
+              return durableOperationStore.markUnknown(
                 operationKey,
-                fingerprint,
                 durableOwnerId,
-                { leaseMs: durableOperationLeaseMs }
+                sanitizeToolCallDiagnosticReason(result),
+                durableDiagnostic,
+                durableClaim.fence
               );
-            } catch (error) {
-              idempotencyRegistryRef.current?.clear(operationKey);
-              return createToolCallError(
-                error instanceof Error ? error.message : String(error),
-                {
-                  code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_STORE_FAILED,
-                  retryable: true,
-                }
-              );
-            }
-
-            if (durableClaim.status === 'conflict') {
-              return createToolCallError(
-                `Idempotency key was already used for a different "${request.params.name}" operation.`,
-                {
-                  code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_CONFLICT,
-                  retryable: false,
-                }
-              );
-            }
-            if (durableClaim.status === 'pending') {
-              idempotencyRegistryRef.current?.clear(operationKey);
-              return createToolCallError(
-                `Operation "${request.params.name}" is already running in another owner.`,
-                {
-                  code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_PENDING,
-                  retryable: true,
-                  details: {
-                    state: durableClaim.record.state,
-                    ownerId: durableClaim.record.ownerId,
-                    leaseExpiresAt: durableClaim.record.leaseExpiresAt,
-                  },
-                }
-              );
-            }
-            if (durableClaim.status === 'unknown') {
-              idempotencyRegistryRef.current?.clear(operationKey);
-              return createToolCallError(
-                `Operation "${request.params.name}" has an unknown outcome and requires reconciliation.`,
-                {
-                  code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
-                  retryable: false,
-                  details: {
-                    state: durableClaim.record.state,
-                    reason: durableClaim.record.reason,
-                  },
-                }
-              );
-            }
-            if (durableClaim.status === 'replay') {
-              if (durableClaim.record.result === undefined) {
-                idempotencyRegistryRef.current?.clear(operationKey);
-                return createToolCallError(
-                  `Operation "${request.params.name}" has no replayable result and requires reconciliation.`,
-                  {
-                    code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
-                    retryable: false,
-                    details: { state: durableClaim.record.state },
-                  }
+            });
+            durableAbortTransition = createAbortSettlement(
+              rawAbortTransition,
+              terminalTransition,
+              terminalWritesUnknown
+            );
+            void durableAbortTransition.then(outcome => {
+              if (!outcome.safe && debug) {
+                console.warn(
+                  `[${contextName}] Durable abort transition failed`,
+                  outcome.error
                 );
               }
-              return durableClaim.record.result;
-            }
+            });
+          };
+          beginOwnedAbort = beginAbortTransition;
+          if (operationAborted) beginAbortTransition();
 
-            return persistDurableResult(
+          const settleAbortedOperation = async (): Promise<ToolCallResult> => {
+            beginAbortTransition();
+            const settlement = await durableAbortTransition!;
+            if (!settlement.safe) {
+              return storeFailureResult(settlement.error, true);
+            }
+            if (settlement.winner === 'known-terminal' && terminalResult) {
+              return terminalResult;
+            }
+            return unknownOperationResult();
+          };
+
+          if (operationAborted) return settleAbortedOperation();
+          const execution = performExecutionWithBudget();
+          const executionRace = await Promise.race([
+            execution.then(result => ({ kind: 'result' as const, result })),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (executionRace.kind === 'abort') return settleAbortedOperation();
+
+          terminalResult = executionRace.result;
+          if (operationAborted) return settleAbortedOperation();
+          const code = terminalResult.error?.code;
+          const ambiguous =
+            code === TOOL_CALL_ERROR_CODES.TIMEOUT ||
+            code === TOOL_CALL_ERROR_CODES.CANCELLED ||
+            code === TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED ||
+            code === TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN;
+          terminalWritesUnknown = ambiguous;
+          const storedResult = storedResultForDurability(terminalResult);
+          const durableDiagnostic = terminalResult.isError
+            ? sanitizeToolCallDiagnostic(storedResult, durableDiagnosticPolicy)
+            : storedResult;
+          terminalTransition = transitionOutcome(() => {
+            if (ambiguous) {
+              return durableOperationStore.markUnknown(
+                operationKey,
+                durableOwnerId,
+                sanitizeToolCallDiagnosticReason(terminalResult!),
+                durableDiagnostic,
+                durableClaim.fence
+              );
+            }
+            if (terminalResult!.isError) {
+              return durableOperationStore.fail(
+                operationKey,
+                durableOwnerId,
+                sanitizeToolCallDiagnosticReason(terminalResult!),
+                durableDiagnostic,
+                durableClaim.fence
+              );
+            }
+            return durableOperationStore.complete(
               operationKey,
               durableOwnerId,
-              performExecutionWithBudget()
+              storedResult,
+              durableClaim.fence
             );
-          };
+          });
 
+          const terminalRace = await Promise.race([
+            terminalTransition.then(outcome => ({
+              kind: 'terminal' as const,
+              outcome,
+            })),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (terminalRace.kind === 'abort') return settleAbortedOperation();
+          if (terminalRace.outcome.persisted) {
+            cleanupOperationAbort();
+            if (ambiguous) idempotencyRegistryRef.current?.clear(operationKey);
+            return terminalResult;
+          }
+          if (durableAbortTransition) return settleAbortedOperation();
+          cleanupOperationAbort();
+          idempotencyRegistryRef.current?.clear(operationKey);
+          if (debug) {
+            console.warn(
+              `[${contextName}] Durable operation transition failed`,
+              terminalRace.outcome.error
+            );
+          }
+          return storeFailureResult(terminalRace.outcome.error, true);
+        };
+
+        const runProviderScopedOperation = (): Promise<ToolCallResult> =>
+          dispatchLifecycle.run(
+            [options?.signal, timeoutState?.signal],
+            runLogicalOperation
+          );
+
+        try {
           const idempotencyClaim = operationKey === undefined
             ? undefined
             : idempotencyRegistryRef.current!.claim(
                 operationKey,
                 fingerprint!,
-                runLogicalOperation
+                runProviderScopedOperation
               );
           if (idempotencyClaim?.status === 'conflict') {
             return finish(createToolCallError(
@@ -986,7 +1353,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           }
 
           const result = await awaitWithAbort(
-            idempotencyClaim?.promise ?? runLogicalOperation(),
+            idempotencyClaim?.promise ?? runProviderScopedOperation(),
             callSignal
           );
           return finish(withToolCallId(result, request.id));
@@ -995,6 +1362,21 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           const timedOut = timeoutState !== undefined && (
             timeoutState.signal.aborted || isToolCallTimeoutError(error)
           );
+          const externallyCancelled = options?.signal?.aborted === true;
+          const providerAborted =
+            !timedOut &&
+            !externallyCancelled &&
+            error instanceof Error &&
+            error.name === 'AbortError';
+          if (
+            (timedOut || externallyCancelled || providerAborted) &&
+            durableAbortTransition
+          ) {
+            const settlement = await durableAbortTransition;
+            if (!settlement.safe) {
+              return finish(storeFailureResult(settlement.error, true));
+            }
+          }
           return finish(createToolCallError(
             timedOut
               ? `Tool call timed out after ${timeoutState!.timeoutMs}ms.`
@@ -1002,11 +1384,16 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
             {
               code: timedOut
                 ? TOOL_CALL_ERROR_CODES.TIMEOUT
-                : options?.signal?.aborted
+                : externallyCancelled
                 ? TOOL_CALL_ERROR_CODES.CANCELLED
+                : providerAborted
+                ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
                 : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
               retryable:
-                timedOut || options?.signal?.aborted || errorMetadata.retryable === true,
+                timedOut ||
+                externallyCancelled ||
+                providerAborted ||
+                errorMetadata.retryable === true,
               ...(timedOut
                 ? {
                     details: {
@@ -1014,6 +1401,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
                       executionState: 'detached',
                     },
                   }
+                : providerAborted
+                ? { details: { executionState: 'detached' } }
                 : errorMetadata.details === undefined
                 ? {}
                 : { details: errorMetadata.details }),
@@ -1041,7 +1430,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     );
 
     const reconcileOperation = useMemo<ToolOperationReconciler>(
-      () => async (toolName, idempotencyKey, resolution, context, expectedRevision) => {
+      () => async (toolName, idempotencyKey, resolution, context, expectedFence) => {
         if (!durableOperationStore) return undefined;
         const key = createToolOperationKey(
           toolName,
@@ -1052,7 +1441,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           key,
           durableOwnerId,
           resolution,
-          expectedRevision
+          expectedFence
         );
       },
       [durableOwnerId]
@@ -1166,9 +1555,13 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
       unregister: () => void;
     } | null>(null);
 
-    // Keep handler up-to-date via ref
+    // Publish handler updates only after React commits the render. Mutating the
+    // ref during render would let an abandoned concurrent render leak its
+    // handler into the currently registered wrapper.
     const handlerRef = useRef(handler);
-    handlerRef.current = handler;
+    useInsertionEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
 
     const priority = handlerConfig?.priority ?? 0;
     const id = handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`;
@@ -1188,13 +1581,30 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
       ...(errorPolicy !== undefined && { errorPolicy }),
       once,
       replaceExisting: true,
-      ...(cleanup !== undefined && { cleanup }),
+      ...(cleanup !== undefined && {
+        cleanup: () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
+      }),
       ...(condition !== undefined && { condition }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle }),
-    }), [priority, id, blocking, scheduling, errorPolicy, once, cleanup, condition, debounce, throttle]);
+    }), [
+      priority,
+      id,
+      blocking,
+      scheduling,
+      errorPolicy,
+      once,
+      cleanup,
+      condition,
+      debounce,
+      throttle,
+      dispatchLifecycle,
+    ]);
 
-    useEffect(() => {
+    // A tool handler belongs to the logical Provider lifetime. Insertion
+    // registration stays connected while Activity hides passive/layout effects
+    // and avoids a child-before-parent registration window on reveal.
+    useInsertionEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
       const generation = ++effectGenerationRef.current;

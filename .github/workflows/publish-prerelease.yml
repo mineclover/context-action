@@ -30,7 +30,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  PRERELEASE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/webmcp'
 
 jobs:
   publish-prerelease:
@@ -76,6 +75,7 @@ jobs:
           const expected = {
             'packages/core/package.json': '@context-action/core',
             'packages/react/package.json': '@context-action/react',
+            'packages/tool-durable-operations/package.json': '@context-action/tool-durable-operations',
             'packages/tool-protocol/package.json': '@context-action/tool-protocol',
             'packages/webmcp/package.json': '@context-action/webmcp',
           };
@@ -90,12 +90,40 @@ jobs:
       - name: Run release gate
         run: pnpm release:check
 
+      - name: Verify prerelease source and packed changelogs
+        run: |
+          node scripts/verify-tool-protocol-changelog.mjs --package core
+          node scripts/verify-tool-protocol-changelog.mjs --package react
+          node scripts/verify-tool-protocol-changelog.mjs --package tool-durable-operations
+          node scripts/verify-tool-protocol-changelog.mjs --package tool-protocol
+          node scripts/verify-tool-protocol-changelog.mjs --package webmcp
+
+      - name: Verify packed prerelease cohort dependency closure
+        run: |
+          node scripts/verify-published-tool-consumers.cjs --local --cohort-only \
+            --packages "@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp"
+
+      - name: Verify prerelease source and dist-tag allow-list
+        env:
+          PRERELEASE_DIST_TAG: ${{ inputs.dist_tag }}
+        run: |
+          git fetch origin main --no-tags
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          [[ "$PRERELEASE_DIST_TAG" =~ ^(rc|next)$ ]]
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          git diff --cached --exit-code
+
       - name: Publish the approved prerelease package set
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           pnpm publish:packages -- --summary-file reports/npm-prerelease-summary.json --dist-tag "${{ inputs.dist_tag }}" \
+            --require-all-unpublished \
+            --resume-matching-existing \
             --scope @context-action/core \
+            --scope @context-action/tool-durable-operations \
             --scope @context-action/tool-protocol \
             --scope @context-action/webmcp \
             --scope @context-action/react
@@ -104,16 +132,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
-          pnpm verify:published-tool-consumers -- --tag "${{ inputs.dist_tag }}" --packages "$PRERELEASE_PACKAGES"
+          pnpm verify:published-tool-consumers -- --tag "${{ inputs.dist_tag }}" --packages "@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp"
 
       - name: Verify prerelease does not point latest at an RC
         run: |
-          pnpm verify:prerelease-dist-tags -- --tag "${{ inputs.dist_tag }}" --packages "$PRERELEASE_PACKAGES" \
+          pnpm verify:prerelease-dist-tags -- --tag "${{ inputs.dist_tag }}" --packages "@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp" \
             --output reports/npm-prerelease-dist-tags.json
 
       - name: Capture immutable registry evidence
         run: |
-          pnpm capture:published-release -- --tag "${{ inputs.dist_tag }}" --packages "$PRERELEASE_PACKAGES" \
+          pnpm capture:published-release -- --tag "${{ inputs.dist_tag }}" --packages "@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp" \
             --consumer-status passed --output reports/npm-prerelease-registry-evidence.json
 
       - name: Upload prerelease publish evidence
@@ -122,5 +150,5 @@ jobs:
         with:
           name: npm-prerelease-summary
           path: reports/npm-prerelease-*.json
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14

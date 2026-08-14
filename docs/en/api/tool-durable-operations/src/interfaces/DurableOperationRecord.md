@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationRecord\<TResult\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:22](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L22)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:32](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L32)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:22](https
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:23](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L23)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:33](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L33)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:23](https
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:24](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L24)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:34](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L34)
 
 ***
 
@@ -36,7 +36,17 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:24](https
 
 > `readonly` **ownerId**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:25](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L25)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:35](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L35)
+
+***
+
+### incarnation
+
+> `readonly` **incarnation**: `string`
+
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:37](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L37)
+
+Opaque identity that never changes while one key incarnation exists.
 
 ***
 
@@ -44,9 +54,9 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:25](https
 
 > `readonly` **revision**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:27](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L27)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:39](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L39)
 
-Monotonic CAS token used to reject stale owner transitions.
+Monotonic CAS token within one incarnation.
 
 ***
 
@@ -54,7 +64,7 @@ Monotonic CAS token used to reject stale owner transitions.
 
 > `readonly` **state**: [`DurableOperationState`](../type-aliases/DurableOperationState.md)
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:28](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L28)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:40](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L40)
 
 ***
 
@@ -62,7 +72,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:28](https
 
 > `readonly` `optional` **result?**: `TResult`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:29](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L29)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:41](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L41)
 
 ***
 
@@ -70,7 +80,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:29](https
 
 > `readonly` `optional` **reason?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:30](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L30)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:42](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L42)
 
 ***
 
@@ -78,7 +88,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:30](https
 
 > `readonly` **createdAt**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:31](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L31)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:43](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L43)
 
 ***
 
@@ -86,7 +96,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:31](https
 
 > `readonly` **updatedAt**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:32](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L32)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:44](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L44)
 
 ***
 
@@ -94,7 +104,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:32](https
 
 > `readonly` `optional` **leaseExpiresAt?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:34](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L34)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:46](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L46)
 
 The owner may be replaced after this point when a claim is retried.
 
@@ -104,7 +114,7 @@ The owner may be replaced after this point when a claim is retried.
 
 > `readonly` `optional` **reconciledBy?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:36](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L36)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:48](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L48)
 
 Recovery actor that resolved an unknown outcome, when applicable.
 
@@ -114,4 +124,4 @@ Recovery actor that resolved an unknown outcome, when applicable.
 
 > `readonly` `optional` **reconciledAt?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:37](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L37)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:49](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L49)

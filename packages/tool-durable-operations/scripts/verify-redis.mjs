@@ -33,7 +33,7 @@ const backend = createRedisDurableOperationBackend({
 });
 
 async function cleanup() {
-  // The smoke check uses three known records. The sorted-set index is removed
+  // The smoke check uses known records. The sorted-set index is removed
   // separately because the backend intentionally exposes no driver-specific
   // cleanup API.
   const encodeKey = value => Buffer.from(value).toString('hex');
@@ -41,6 +41,9 @@ async function cleanup() {
     `${keyPrefix}record:${encodeKey('smoke-replay')}`,
     `${keyPrefix}record:${encodeKey('smoke-recovery')}`,
     `${keyPrefix}record:${encodeKey('smoke-reclaim')}`,
+    `${keyPrefix}record:${encodeKey('smoke-aba')}`,
+    `${keyPrefix}record:${encodeKey('smoke-legacy-pending')}`,
+    `${keyPrefix}record:${encodeKey('smoke-legacy-terminal')}`,
     `${keyPrefix}index`
   );
 }
@@ -73,6 +76,58 @@ try {
   const clockedStoreA = createDurableOperationStore(backend, storeOptions);
   const clockedStoreB = createDurableOperationStore(backend, storeOptions);
 
+  const encodeKey = value => Buffer.from(value).toString('hex');
+  await client.set(
+    `${keyPrefix}record:${encodeKey('smoke-legacy-pending')}`,
+    JSON.stringify({
+      key: 'smoke-legacy-pending',
+      fingerprint: 'fingerprint-legacy-pending',
+      ownerId: 'legacy-owner',
+      revision: 3,
+      state: 'pending',
+      createdAt: now,
+      updatedAt: now,
+      leaseExpiresAt: now + 10_000,
+    })
+  );
+  await client.set(
+    `${keyPrefix}record:${encodeKey('smoke-legacy-terminal')}`,
+    JSON.stringify({
+      key: 'smoke-legacy-terminal',
+      fingerprint: 'fingerprint-legacy-terminal',
+      ownerId: 'legacy-owner',
+      revision: 2,
+      state: 'completed',
+      result: { migrated: true },
+      createdAt: now,
+      updatedAt: now,
+    })
+  );
+  const [legacyPendingA, legacyPendingB] = await Promise.all([
+    clockedStoreA.claim(
+      'smoke-legacy-pending',
+      'fingerprint-legacy-pending',
+      'legacy-reader-a'
+    ),
+    clockedStoreB.claim(
+      'smoke-legacy-pending',
+      'fingerprint-legacy-pending',
+      'legacy-reader-b'
+    ),
+  ]);
+  assert.equal(legacyPendingA.status, 'pending');
+  assert.equal(legacyPendingB.status, 'pending');
+  assert.deepEqual(legacyPendingA.fence, legacyPendingB.fence);
+  assert.equal(typeof legacyPendingA.fence.incarnation, 'string');
+  const legacyTerminal = await clockedStoreA.claim(
+    'smoke-legacy-terminal',
+    'fingerprint-legacy-terminal',
+    'legacy-reader'
+  );
+  assert.equal(legacyTerminal.status, 'replay');
+  assert.deepEqual(legacyTerminal.record.result, { migrated: true });
+  assert.equal(typeof legacyTerminal.fence.incarnation, 'string');
+
   const [claimA, claimB] = await Promise.all([
     clockedStoreA.claim('smoke-replay', 'fingerprint-replay', 'smoke-owner-a'),
     clockedStoreB.claim('smoke-replay', 'fingerprint-replay', 'smoke-owner-b'),
@@ -84,7 +139,7 @@ try {
 
   const ownerStore = claimA.status === 'owner' ? clockedStoreA : clockedStoreB;
   const ownerId = claimA.status === 'owner' ? 'smoke-owner-a' : 'smoke-owner-b';
-  await ownerStore.complete('smoke-replay', ownerId, { accepted: true });
+  await ownerStore.complete('smoke-replay', ownerId, { accepted: true }, ownerClaim.fence);
   const replay = await clockedStoreB.claim(
     'smoke-replay',
     'fingerprint-replay',
@@ -103,7 +158,8 @@ try {
     'smoke-recovery',
     'smoke-crashed-owner',
     'smoke worker exited before terminal write',
-    { plannedPaths: ['index.html', 'styles.css'] }
+    { plannedPaths: ['index.html', 'styles.css'] },
+    recoveryClaim.fence
   );
   const unknown = await clockedStoreB.get('smoke-recovery');
   assert.equal(unknown?.state, 'unknown');
@@ -115,15 +171,15 @@ try {
       'smoke-recovery',
       'smoke-stale-recovery-command',
       { state: 'completed', result: { recovered: false } },
-      unknown.revision - 1
+      { incarnation: unknown.incarnation, revision: unknown.revision - 1 }
     ),
-    /revision is stale/
+    /fence is stale/
   );
   const resolved = await clockedStoreB.resolveUnknown(
     'smoke-recovery',
     'smoke-recovery-command',
     { state: 'completed', result: { recovered: true } },
-    unknown.revision
+    { incarnation: unknown.incarnation, revision: unknown.revision }
   );
   assert.equal(resolved.state, 'completed');
   assert.equal(resolved.reconciledBy, 'smoke-recovery-command');
@@ -144,13 +200,61 @@ try {
   );
   assert.equal(reclaimed.status, 'owner');
   assert.equal(reclaimed.record.ownerId, 'smoke-reclaimer');
-  await clockedStoreB.complete('smoke-reclaim', 'smoke-reclaimer', { recovered: true });
+  await clockedStoreB.complete(
+    'smoke-reclaim',
+    'smoke-reclaimer',
+    { recovered: true },
+    reclaimed.fence
+  );
+
+  const staleAbaClaim = await clockedStoreA.claim(
+    'smoke-aba',
+    'fingerprint-aba-old',
+    'smoke-aba-owner',
+    { leaseMs: 10 }
+  );
+  now += 11;
+  const abaTakeover = await clockedStoreB.claim(
+    'smoke-aba',
+    'fingerprint-aba-old',
+    'smoke-aba-takeover',
+    { leaseMs: 100 }
+  );
+  await clockedStoreB.complete(
+    'smoke-aba',
+    'smoke-aba-takeover',
+    { attempt: 'takeover' },
+    abaTakeover.fence
+  );
 
   // The smoke store uses a deterministic clock. Use that same clock for the
   // cutoff so the lease-reclaim record (which is intentionally advanced by
   // 11ms) cannot race the wall clock on a fast CI runner.
   const removed = await clockedStoreA.prune(now + 1);
-  assert.equal(removed, 3);
+  assert.equal(removed, 4);
+  const freshAbaClaim = await clockedStoreA.claim(
+    'smoke-aba',
+    'fingerprint-aba-new',
+    'smoke-aba-owner',
+    { leaseMs: 100 }
+  );
+  assert.notEqual(freshAbaClaim.fence.incarnation, staleAbaClaim.fence.incarnation);
+  await assert.rejects(
+    clockedStoreA.complete(
+      'smoke-aba',
+      'smoke-aba-owner',
+      { attempt: 'stale' },
+      staleAbaClaim.fence
+    ),
+    /fence is stale/
+  );
+  await clockedStoreA.complete(
+    'smoke-aba',
+    'smoke-aba-owner',
+    { attempt: 'fresh' },
+    freshAbaClaim.fence
+  );
+  assert.equal(await clockedStoreA.prune(now + 1), 1);
 
   console.log(JSON.stringify({
     status: 'ok',
@@ -158,12 +262,14 @@ try {
     redisVersion,
     checks: [
       'server-version',
+      'legacy-record-atomic-backfill',
       'atomic-claim',
       'replay',
       'unknown-diagnostic-retention',
-      'stale-revision-rejection',
+      'stale-fence-rejection',
       'unknown-recovery',
       'lease-reclaim',
+      'prune-recreate-aba-fence',
       'retention-prune',
     ],
   }));

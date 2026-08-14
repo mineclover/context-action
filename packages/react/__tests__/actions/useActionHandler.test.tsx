@@ -2,7 +2,7 @@
  * @fileoverview Tests for useActionHandler hook
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { render, renderHook, act, waitFor } from '@testing-library/react';
 import React, { useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 
@@ -301,33 +301,57 @@ describe('useActionHandler', () => {
   it('should preserve replaceExisting false for duplicate handler IDs', async () => {
     const firstHandler = jest.fn();
     const secondHandler = jest.fn();
+    let dispatch: ReturnType<typeof useActionDispatch> | undefined;
 
-    const TestComponent = () => {
-      const dispatch = useActionDispatch();
-
+    function FirstHandler() {
       useActionHandler(
         'fetchData',
         useCallback(firstHandler, []),
         { id: 'shared-handler', replaceExisting: false }
       );
+      return null;
+    }
+
+    function IgnoredHandler() {
       useActionHandler(
         'fetchData',
         useCallback(secondHandler, []),
         { id: 'shared-handler', replaceExisting: false }
       );
+      return null;
+    }
 
-      return { dispatch };
-    };
+    function DispatchProbe() {
+      dispatch = useActionDispatch();
+      return null;
+    }
 
-    const { result } = renderHook(() => TestComponent(), {
-      wrapper: createWrapper()
-    });
+    const tree = (includeIgnoredHandler: boolean) => (
+      <TestActionProvider>
+        <FirstHandler />
+        {includeIgnoredHandler ? <IgnoredHandler /> : null}
+        <DispatchProbe />
+      </TestActionProvider>
+    );
+    const view = render(tree(true));
 
     await act(async () => {
-      await result.current.dispatch('fetchData', { id: 'test' });
+      await dispatch?.('fetchData', { id: 'before-ignored-unmount' });
     });
 
     expect(firstHandler).toHaveBeenCalledTimes(1);
+    expect(secondHandler).not.toHaveBeenCalled();
+
+    await act(async () => {
+      view.rerender(tree(false));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await dispatch?.('fetchData', { id: 'after-ignored-unmount' });
+    });
+
+    expect(firstHandler).toHaveBeenCalledTimes(2);
     expect(secondHandler).not.toHaveBeenCalled();
   });
 

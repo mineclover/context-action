@@ -14,6 +14,12 @@ Experimental surfaces are published separately and may change without the 1.x
 stability promise. They must be explicitly labelled experimental and must not
 be re-exported from a stable default entry point.
 
+For a package below 1.0 that is explicitly outside the `stable-1x` promise, a
+backwards-incompatible public change uses a new minor compatibility boundary
+(for example, `0.1.x` to `0.2.0`). The release must include a Breaking Changes
+changelog entry, migration guidance, and packed-consumer verification.
+`1.0.0` is reserved for an explicit scope promotion to a stable contract.
+
 ## Deprecation procedure
 
 1. Classify the surface in the scope document and legacy ledger.

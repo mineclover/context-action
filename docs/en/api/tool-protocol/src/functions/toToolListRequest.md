@@ -8,7 +8,7 @@
 
 > **toToolListRequest**(`options?`): [`ToolListRequest`](../interfaces/ToolListRequest.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:597](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L597)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:608](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L608)
 
 Create an MCP-compatible tools/list request with an optional cursor.
 

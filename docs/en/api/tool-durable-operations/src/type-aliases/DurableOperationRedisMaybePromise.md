@@ -8,7 +8,7 @@
 
 > **DurableOperationRedisMaybePromise**&lt;`T`&gt; = `T` \| `Promise`&lt;`T`&gt;
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:8](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L8)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:9](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L9)
 
 ## Type Parameters
 

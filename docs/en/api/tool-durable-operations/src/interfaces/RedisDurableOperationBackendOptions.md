@@ -6,7 +6,7 @@
 
 # Interface: RedisDurableOperationBackendOptions
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:92](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L92)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L93)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:92]
 
 > `readonly` **client**: [`DurableOperationRedisClient`](DurableOperationRedisClient.md)
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L93)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L94)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:93]
 
 > `readonly` `optional` **keyPrefix?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L95)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L96)
 
 Prefix for record keys and the lexicographic index.
 
@@ -32,6 +32,6 @@ Prefix for record keys and the lexicographic index.
 
 > `readonly` `optional` **defaultPageSize?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L97)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:98](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L98)
 
 Default page size for direct `listPage()` calls.

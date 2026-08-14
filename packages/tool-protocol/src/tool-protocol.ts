@@ -73,6 +73,7 @@ export interface ToolCallContext {
  * resolve it, but execution remains owned by the ToolManagementInterface.
  */
 export interface ToolApprovalSnapshot {
+  /** Queue-lifetime request ID used by `resolve`; distinct from `toolCallId`. */
   readonly id: string;
   readonly method: 'tools/call';
   readonly toolCallId?: ToolCallId;
@@ -142,13 +143,23 @@ export function createToolApprovalQueue(
 ): ToolApprovalQueue {
   let sequence = 0;
   let pending: ToolApprovalSnapshot[] = [];
-  const resolvers = new Map<
+  const pendingApprovals = new Map<
     string,
-    (decision: ToolApprovalDecision) => void
+    {
+      readonly approval: ToolApprovalSnapshot;
+      readonly settle: (decision: ToolApprovalDecision) => void;
+    }
   >();
   const listeners = new Set<() => void>();
   const safeArgumentNames = new Set(options.safeArgumentNames ?? []);
   const idPrefix = options.idPrefix ?? 'approval';
+
+  const allocateApprovalId = (baseId: string): string => {
+    // Every request receives a fresh queue-lifetime ID, including the first
+    // request for a toolCallId. This prevents stale resolve calls from ever
+    // targeting a later request without retaining an unbounded tombstone set.
+    return `${baseId}-${sequence++}`;
+  };
 
   const buildSafeArgumentPreview = (
     argumentsValue: Record<string, unknown> | undefined
@@ -171,12 +182,14 @@ export function createToolApprovalQueue(
   };
 
   const resolve = (id: string, decision: ToolApprovalDecision): void => {
-    const resolver = resolvers.get(id);
-    if (!resolver) return;
-    resolvers.delete(id);
-    pending = pending.filter((request) => request.id !== id);
+    const pendingApproval = pendingApprovals.get(id);
+    if (!pendingApproval) return;
+    pendingApprovals.delete(id);
+    pending = pending.filter(
+      (approval) => approval !== pendingApproval.approval
+    );
     notify();
-    resolver(decision);
+    pendingApproval.settle(decision);
   };
 
   const request = (
@@ -185,11 +198,9 @@ export function createToolApprovalQueue(
     if (input.signal?.aborted) return Promise.resolve('deny');
 
     const baseId = String(
-      input.request.id ?? `${idPrefix}-${Date.now()}-${sequence++}`
+      input.request.id ?? `${idPrefix}-${Date.now()}`
     );
-    const id = pending.some((approval) => approval.id === baseId)
-      ? `${baseId}-${sequence++}`
-      : baseId;
+    const id = allocateApprovalId(baseId);
     const approval: ToolApprovalSnapshot = {
       id,
       method: input.request.method,
@@ -218,7 +229,7 @@ export function createToolApprovalQueue(
       };
 
       pending = [approval, ...pending];
-      resolvers.set(id, settle);
+      pendingApprovals.set(id, { approval, settle });
       if (input.signal) {
         abortHandler = () => resolve(id, 'deny');
         input.signal.addEventListener('abort', abortHandler, { once: true });

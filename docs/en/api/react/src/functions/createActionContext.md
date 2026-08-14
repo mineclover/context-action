@@ -8,7 +8,7 @@
 
 > **createActionContext**\<`T`, `TResultMap`\>(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`, `TResultMap`\>
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:186](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L186)
+Defined in: [packages/react/src/actions/ActionContext.tsx:209](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.tsx#L209)
 
 Enhanced action context factory with automatic type inference
 

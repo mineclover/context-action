@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const read = relativePath => readFileSync(path.join(repositoryRoot, relativePath), 'utf8');
+
+test('the approved coordinated plan matches the current manifests and dated changelogs', () => {
+  const result = execFileSync(process.execPath, ['scripts/verify-coordinated-stable-release-plan.mjs'], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  assert.match(result, /"status":"ok"/u);
+});
+
+test('promotion uses durable registry journal markers and refuses local execution', () => {
+  const source = read('scripts/promote-coordinated-stable.mjs');
+  for (const required of [
+    "process.env.GITHUB_ACTIONS !== 'true'",
+    'stable-previous-',
+    'stable-previous-absent-',
+    'stable-ready-',
+    'stable-completed-',
+    'stable-rolled-back-',
+    "if (tags.latest !== item.version)",
+    "if (item.predecessor) add(item.name, item.predecessor, 'latest');",
+    "else remove(item.name, 'latest');",
+  ]) assert.ok(source.includes(required), `missing coordinated promotion safeguard: ${required}`);
+});
+
+test('candidate and promotion workflows bind the exact coordinated cohort', () => {
+  const candidate = read('.github/workflows/publish-coordinated-stable-candidate.yml');
+  const promotion = read('.github/workflows/promote-coordinated-stable.yml');
+  const cohort = '@context-action/core,@context-action/react';
+  assert.ok(candidate.includes(`--packages "${cohort}"`));
+  assert.ok(promotion.includes(`--packages "${cohort}"`));
+  assert.ok(candidate.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
+  assert.ok(promotion.includes('test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"'));
+});
+
+test('the React state-management artifact excludes the Durable-backed tools entry', () => {
+  const manifest = JSON.parse(read('packages/react/package.json'));
+  const buildConfig = read('packages/react/tsdown.config.ts');
+  assert.equal(manifest.exports['./tools'], undefined);
+  assert.equal(manifest.dependencies['@context-action/tool-durable-operations'], undefined);
+  assert.doesNotMatch(buildConfig, /src\/tools\/index\.ts/u);
+});

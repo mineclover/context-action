@@ -6,7 +6,7 @@
 
 # Interface: PostgresDurableOperationClient
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:17](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L17)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:18](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L18)
 
 The small structural surface required from `pg` or a pool wrapper.
 
@@ -20,7 +20,7 @@ inject only this query boundary.
 
 > **query**&lt;`TRow`&gt;(`text`, `values?`): [`PostgresDurableOperationMaybePromise`](../type-aliases/PostgresDurableOperationMaybePromise.md)\<[`PostgresDurableOperationQueryResult`](PostgresDurableOperationQueryResult.md)&lt;`TRow`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:18](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L18)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:19](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L19)
 
 #### Type Parameters
 

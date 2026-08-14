@@ -493,21 +493,19 @@ Brief description of changes
 ### Version Management
 
 We follow semantic versioning (semver):
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backward compatible)
-- **PATCH**: Bug fixes
+- **MAJOR**: Breaking changes after 1.0
+- **MINOR**: Backward-compatible features after 1.0; for pre-1 packages, a documented breaking compatibility boundary
+- **PATCH**: Contract-preserving bug fixes
 
 ### Release Steps
 
-1. **Update version:**
-```bash
-# From monorepo root
-pnpm version:patch  # or minor/major
-```
+1. **Classify the change and update the package version in an approved release
+   plan.** Packages are versioned independently; `1.0.0` is an explicit stable
+   contract promotion rather than an automatic pre-1 breaking bump.
 
-2. **Update CHANGELOG:**
+2. **Update CHANGELOG with a real release date:**
 ```markdown
-## [0.2.4] - 2024-01-15
+## [0.2.4] (2024-01-15)
 
 ### Added
 - Parallel processing support
@@ -519,33 +517,16 @@ pnpm version:patch  # or minor/major
 - Improved error messages
 ```
 
-3. **Create release PR:**
+3. **Run the repository release preflight:**
 ```bash
-git checkout -b release/v0.2.4
-git commit -m "chore: release v0.2.4"
-git push origin release/v0.2.4
+pnpm release:check
 ```
 
-4. **After merge, tag release:**
-```bash
-git tag v0.2.4
-git push origin v0.2.4
-```
-
-5. **Publish to npm:**
-```bash
-pnpm release
-```
-
-### Beta Releases
-
-For testing new features:
-```bash
-pnpm version prepatch --preid=beta
-# Results in: 0.2.4-beta.0
-
-pnpm publish --tag beta
-```
+4. **Use the protected repository workflow.** This package is published only
+   through the approved candidate cohort; do not run `npm publish`,
+   `pnpm publish`, or local dist-tag commands. Follow the current root
+   [`releases/RELEASE.md`](../../../releases/RELEASE.md) guide for candidate,
+   evidence, and promotion requirements.
 
 ---
 

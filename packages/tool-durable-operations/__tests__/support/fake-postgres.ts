@@ -7,6 +7,7 @@ type StoredRow = {
   key: string;
   fingerprint: string;
   ownerId: string;
+  incarnation?: string;
   revision: number;
   state: string;
   result: unknown | null;
@@ -25,12 +26,13 @@ export interface FakePostgresClient extends PostgresDurableOperationClient {
 }
 
 function toRow(values: readonly unknown[]): StoredRow {
-  const [key, fingerprint, ownerId, revision, state, result, resultPresent, reason,
+  const [key, fingerprint, ownerId, incarnation, revision, state, result, resultPresent, reason,
     createdAt, updatedAt, leaseExpiresAt, reconciledBy, reconciledAt] = values;
   return {
     key: String(key),
     fingerprint: String(fingerprint),
     ownerId: String(ownerId),
+    incarnation: String(incarnation),
     revision: Number(revision),
     state: String(state),
     result: result === null || result === undefined ? null : JSON.parse(String(result)),
@@ -81,20 +83,36 @@ export function createFakePostgresClient(): FakePostgresClient {
         return { rows: [{ operation_key: key } as TRow], rowCount: 1 };
       }
       if (text.startsWith('UPDATE')) {
+        if (text.includes('incarnation IS NULL')) {
+          const key = String(values[0]);
+          const expectedRevision = Number(values[1]);
+          const incarnation = String(values[2]);
+          const current = rows.get(key);
+          if (current === undefined || current.revision !== expectedRevision ||
+              Object.prototype.hasOwnProperty.call(current, 'incarnation')) {
+            return { rows: [], rowCount: 0 };
+          }
+          rows.set(key, { ...current, incarnation });
+          return { rows: [{ operation_key: key } as TRow], rowCount: 1 };
+        }
         const key = String(values[0]);
-        const expectedRevision = Number(values[13]);
+        const expectedIncarnation = String(values[14]);
+        const expectedRevision = Number(values[15]);
         const current = rows.get(key);
-        if (current === undefined || current.revision !== expectedRevision) {
+        if (current === undefined || current.incarnation !== expectedIncarnation ||
+            current.revision !== expectedRevision) {
           return { rows: [], rowCount: 0 };
         }
-        rows.set(key, toRow(values.slice(0, 13)));
+        rows.set(key, toRow(values.slice(0, 14)));
         return { rows: [{ operation_key: key } as TRow], rowCount: 1 };
       }
       if (text.startsWith('DELETE')) {
         const key = String(values[0]);
-        const expectedRevision = Number(values[1]);
+        const expectedIncarnation = String(values[1]);
+        const expectedRevision = Number(values[2]);
         const current = rows.get(key);
-        if (current === undefined || current.revision !== expectedRevision) {
+        if (current === undefined || current.incarnation !== expectedIncarnation ||
+            current.revision !== expectedRevision) {
           return { rows: [], rowCount: 0 };
         }
         rows.delete(key);

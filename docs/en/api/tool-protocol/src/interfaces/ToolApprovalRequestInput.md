@@ -6,7 +6,7 @@
 
 # Interface: ToolApprovalRequestInput
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L93)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L94)
 
 Provider-neutral input used to create a pending approval snapshot.
 
@@ -20,7 +20,7 @@ Provider-neutral input used to create a pending approval snapshot.
 
 > `readonly` **request**: [`ToolCallRequest`](ToolCallRequest.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L94)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L95)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:94](https://github.com/
 
 > `readonly` **definition**: [`ToolDefinition`](ToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L95)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L96)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/
 
 > `readonly` `optional` **context?**: [`ToolCallContext`](ToolCallContext.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L96)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L97)
 
 ***
 
@@ -44,4 +44,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L97)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:98](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L98)

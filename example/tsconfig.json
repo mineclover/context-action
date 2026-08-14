@@ -16,6 +16,15 @@
     }
   },
   "include": ["src/**/*"],
+  "exclude": [
+    "src/pages/integrations/ai/**",
+    "src/pages/integrations/live-code-editor/**",
+    "src/pages/integrations/live-web-coding/**",
+    "src/lib/ai-tool-runner.ts",
+    "src/lib/live-editor-tool-approval.ts",
+    "src/lib/local-ui-toolchain.ts",
+    "src/lib/openrouter-ai-sdk.ts"
+  ],
   "references": [
     { "path": "../packages/core" },
     { "path": "../packages/react" }

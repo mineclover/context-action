@@ -1,4 +1,10 @@
-# Store System Guide
+# Historical Store System Notes
+
+> **Status:** This page is retained for historical context and is not the
+> versioned public Store specification. Use the current Store pattern guides and
+> generated API reference when implementing new code. Performance depends on
+> the application's update shape, subscription topology, and browser/runtime;
+> this document does not establish a quantitative performance guarantee.
 
 ## Store Types Overview
 
@@ -71,7 +77,8 @@ dashboardStore.update(draft => {
 - ✅ Zero memory overhead for history
 - ✅ Structural sharing for selective re-rendering
 - ✅ All other Store features (patches, notifyPath, RAF batching)
-- ✅ ~50% better performance vs regular Store in high-frequency updates
+- ✅ Can reduce history bookkeeping; measure high-frequency behavior in the
+  target application before adopting it as a performance strategy
 
 ## Disabling Undo/Redo: Configuration Options
 

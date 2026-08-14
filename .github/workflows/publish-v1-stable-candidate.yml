@@ -26,7 +26,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  STABLE_CANDIDATE_PACKAGES: '@context-action/core,@context-action/react,@context-action/tool-protocol'
 
 jobs:
   publish-stable-candidate:
@@ -47,6 +46,7 @@ jobs:
         run: |
           [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
           git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
 
@@ -115,11 +115,21 @@ jobs:
       - name: Run release gate
         run: pnpm release:check
 
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
+
       - name: Publish stable candidate to next
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           pnpm publish:packages -- --summary-file reports/npm-stable-candidate-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
             --scope @context-action/tool-protocol \
             --scope @context-action/core \
             --scope @context-action/react
@@ -128,11 +138,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
-          pnpm verify:published-tool-consumers -- --tag next --packages "$STABLE_CANDIDATE_PACKAGES"
+          pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/react,@context-action/tool-protocol"
 
       - name: Capture registry evidence
         run: |
-          pnpm capture:published-release -- --tag next --packages "$STABLE_CANDIDATE_PACKAGES" \
+          pnpm capture:published-release -- --tag next --packages "@context-action/core,@context-action/react,@context-action/tool-protocol" \
             --consumer-status passed --output reports/npm-stable-candidate-registry-evidence.json
 
       - name: Upload stable candidate evidence
@@ -141,5 +151,5 @@ jobs:
         with:
           name: npm-stable-candidate-evidence
           path: reports/npm-stable-candidate-*.json
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 30

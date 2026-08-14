@@ -6,7 +6,7 @@
 
 # Interface: ModelToolCall
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:427](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L427)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:438](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L438)
 
 Canonical model-side tool call before it is wrapped as tools/call.
 
@@ -16,7 +16,7 @@ Canonical model-side tool call before it is wrapped as tools/call.
 
 > `readonly` `optional` **id?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:428](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L428)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:439](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L439)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:428](https://github.com
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:429](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L429)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:440](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L440)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:429](https://github.com
 
 > `readonly` `optional` **arguments?**: [`ToolArguments`](../type-aliases/ToolArguments.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:430](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L430)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:441](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L441)

@@ -65,8 +65,9 @@ expect(pending.length === 1, 'A model filesystem write should enter approval.');
 expect(
   pending[0].method === 'tools/call' &&
     pending[0].toolCallId === 'live-editor-save-1' &&
+    pending[0].id !== pending[0].toolCallId &&
     pending[0].name === 'editor.saveFile',
-  'Approval must preserve the canonical save call metadata.'
+  'Approval must preserve the canonical save call while using a queue-lifetime ID.'
 );
 expect(
   pending[0].source === 'model' &&
@@ -80,7 +81,7 @@ expect(
   'Approval preview must show path but redact source content.'
 );
 
-approval.resolveLiveEditorToolApproval('live-editor-save-1', 'allow');
+approval.resolveLiveEditorToolApproval(pending[0].id, 'allow');
 expect(
   (await allowed) === 'allow',
   'Explicit approval should release the pending filesystem write.'

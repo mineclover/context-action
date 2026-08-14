@@ -8,7 +8,7 @@
 
 > **ToolCallEvent** = \{ `type`: `"started"`; `toolCallId?`: [`ToolCallId`](ToolCallId.md); `name`: `string`; `request`: [`ToolCallRequest`](../interfaces/ToolCallRequest.md); `context?`: [`ToolCallContext`](../interfaces/ToolCallContext.md); `timestamp`: `number`; `provenance`: [`ToolExecutionProvenance`](../interfaces/ToolExecutionProvenance.md); \} \| \{ `type`: `"completed"` \| `"failed"`; `toolCallId?`: [`ToolCallId`](ToolCallId.md); `name`: `string`; `request`: [`ToolCallRequest`](../interfaces/ToolCallRequest.md); `context?`: [`ToolCallContext`](../interfaces/ToolCallContext.md); `timestamp`: `number`; `durationMs`: `number`; `result`: [`ToolCallResult`](../interfaces/ToolCallResult.md); `provenance`: [`ToolExecutionProvenance`](../interfaces/ToolExecutionProvenance.md); \}
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:535](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L535)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:546](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L546)
 
 ## Union Members
 

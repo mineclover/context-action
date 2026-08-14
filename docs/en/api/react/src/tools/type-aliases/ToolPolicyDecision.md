@@ -8,4 +8,4 @@
 
 > **ToolPolicyDecision** = `"allow"` \| `"ask"` \| `"deny"`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:52](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L52)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L53)

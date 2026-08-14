@@ -6,7 +6,7 @@
 
 # Interface: ToolListRequestOptions
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:292](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L292)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:303](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L303)
 
 Options for creating a canonical tools/list request.
 
@@ -16,4 +16,4 @@ Options for creating a canonical tools/list request.
 
 > `readonly` `optional` **cursor?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:293](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L293)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:304](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L304)

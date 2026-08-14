@@ -58,12 +58,24 @@ export function createMockDurableOperationBackend<TResult = unknown>():
           : {}),
       };
     },
-    compareAndSet: (key, expectedRevision, next) => {
+    compareAndSet: (key, expectedFence, next) => {
       const current = records.get(key);
-      const actualRevision = current?.revision;
-      if (actualRevision !== expectedRevision) return false;
+      const matches = expectedFence === undefined
+        ? current === undefined
+        : current?.incarnation === expectedFence.incarnation &&
+          current.revision === expectedFence.revision;
+      if (!matches) return false;
       if (next === undefined) records.delete(key);
       else records.set(key, next);
+      return true;
+    },
+    backfillLegacyIncarnation: (key, expectedRevision, incarnation) => {
+      const current = records.get(key) as (
+        MockDurableOperationRecord<TResult> & { incarnation?: string }
+      ) | undefined;
+      if (current === undefined || current.revision !== expectedRevision ||
+          current.incarnation !== undefined) return false;
+      records.set(key, { ...current, incarnation });
       return true;
     },
   };
@@ -78,32 +90,33 @@ export function createMockDurableOperationStore<TResult = unknown>(
   if (!ownerId.trim()) throw new TypeError('Mock operation ownerId is required.');
   const store = createDurableOperationStore(backend, { ...options, now });
   return {
+    fencingCapability: store.fencingCapability,
     claim: (key, fingerprint, requestedOwnerId, options) =>
       store.claim(key, fingerprint, requestedOwnerId, options),
-    complete: (key, transitionOwnerId, result) => {
+    complete: (key, transitionOwnerId, result, expectedFence) => {
       if (transitionOwnerId !== ownerId) {
         throw new Error(`Operation transition owner must be "${ownerId}".`);
       }
-      return store.complete(key, transitionOwnerId, result);
+      return store.complete(key, transitionOwnerId, result, expectedFence);
     },
-    fail: (key, transitionOwnerId, reason, result) => {
+    fail: (key, transitionOwnerId, reason, result, expectedFence) => {
       if (transitionOwnerId !== ownerId) {
         throw new Error(`Operation transition owner must be "${ownerId}".`);
       }
-      return store.fail(key, transitionOwnerId, reason, result);
+      return store.fail(key, transitionOwnerId, reason, result, expectedFence);
     },
-    markUnknown: (key, transitionOwnerId, reason, result) => {
+    markUnknown: (key, transitionOwnerId, reason, result, expectedFence) => {
       if (transitionOwnerId !== ownerId) {
         throw new Error(`Operation transition owner must be "${ownerId}".`);
       }
-      return store.markUnknown(key, transitionOwnerId, reason, result);
+      return store.markUnknown(key, transitionOwnerId, reason, result, expectedFence);
     },
     resolveUnknown: (
       key,
       reconcilerId,
       resolution: DurableOperationResolution<TResult>,
-      expectedRevision
-    ) => store.resolveUnknown(key, reconcilerId, resolution, expectedRevision),
+      expectedFence
+    ) => store.resolveUnknown(key, reconcilerId, resolution, expectedFence),
     get: key => store.get(key),
     prune: before => store.prune(before),
   };

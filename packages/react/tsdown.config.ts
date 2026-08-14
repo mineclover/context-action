@@ -6,12 +6,17 @@ export default defineConfig({
     'src/advanced.ts',   // Advanced features
     'src/utils.ts',      // Utility functions
     'src/react18.ts',    // React 18/19 compatibility entry point
-    'src/tools/index.ts', // Stable ToolContext entry point
     'src/webmcp.ts', // Experimental browser adapter entry point
   ],
   format: ['esm', 'cjs'],
   dts: true,
   hash: false,
+  outputOptions(options, format) {
+    return {
+      ...options,
+      chunkFileNames: `chunks/[name].${format === 'cjs' ? 'cjs' : 'js'}`,
+    }
+  },
   clean: true,
   // Make development-only branches deterministic in published artifacts.
   // tsdown only injects process environment variables with its configured prefix.

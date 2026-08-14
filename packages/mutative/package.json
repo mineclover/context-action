@@ -22,9 +22,11 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
+    "prepublishOnly": "pnpm run build:prod",
     "build": "tsdown",
     "build:prod": "NODE_ENV=production tsdown",
     "build:watch": "tsdown --watch",

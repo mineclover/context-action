@@ -19,11 +19,23 @@ export type DurableOperationClaimStatus =
   | 'unknown'
   | 'conflict';
 
+/** Runtime capability required from stores that enforce claim-incarnation fencing. */
+export const DURABLE_OPERATION_FENCING_CAPABILITY =
+  'context-action/durable-operation-fencing/incarnation-revision-v1' as const;
+
+/** Full optimistic fence for one claim incarnation and record revision. */
+export interface DurableOperationFence {
+  readonly incarnation: string;
+  readonly revision: number;
+}
+
 export interface DurableOperationRecord<TResult = unknown> {
   readonly key: string;
   readonly fingerprint: string;
   readonly ownerId: string;
-  /** Monotonic CAS token used to reject stale owner transitions. */
+  /** Opaque identity that never changes while one key incarnation exists. */
+  readonly incarnation: string;
+  /** Monotonic CAS token within one incarnation. */
   readonly revision: number;
   readonly state: DurableOperationState;
   readonly result?: TResult;
@@ -40,6 +52,8 @@ export interface DurableOperationRecord<TResult = unknown> {
 export interface DurableOperationClaim<TResult = unknown> {
   readonly status: DurableOperationClaimStatus;
   readonly record: DurableOperationRecord<TResult>;
+  /** Fence that must accompany every owner or reconciliation transition. */
+  readonly fence: DurableOperationFence;
 }
 
 export interface DurableOperationClaimOptions {
@@ -77,7 +91,8 @@ type MaybePromise<T> = T | Promise<T>;
 /**
  * Minimal atomic persistence primitive required by the reference adapter.
  * Redis, SQL, IndexedDB, or another backend can implement this with a
- * conditional insert/update/delete keyed by `revision`.
+ * conditional insert/update/delete keyed by the full incarnation/revision
+ * fence. Comparing only a revision is not sufficient after prune/recreate.
  */
 export interface DurableOperationBackend<TResult = unknown> {
   read(key: string): MaybePromise<DurableOperationRecord<TResult> | undefined>;
@@ -92,8 +107,21 @@ export interface DurableOperationBackend<TResult = unknown> {
   ): MaybePromise<DurableOperationListPage<TResult>>;
   compareAndSet(
     key: string,
-    expectedRevision: number | undefined,
+    /** `undefined` means insert only when the key is absent. */
+    expectedFence: DurableOperationFence | undefined,
     next: DurableOperationRecord<TResult> | undefined
+  ): MaybePromise<boolean>;
+  /**
+   * Optional atomic upgrade for records written before incarnation fencing.
+   * Implementations must update only when the key exists, its revision equals
+   * `expectedRevision`, and its incarnation field is absent.
+   * This upgrades stored data only; hosts must not run pre-fencing writers at
+   * the same time because an old writer can still replace a migrated record.
+   */
+  backfillLegacyIncarnation?(
+    key: string,
+    expectedRevision: number,
+    incarnation: string
   ): MaybePromise<boolean>;
 }
 
@@ -110,6 +138,8 @@ export interface DurableOperationStoreOptions {
   readonly prunePageSize?: number;
   /** Maximum pages per prune call. Defaults to 1,000; use Infinity explicitly for trusted stores. */
   readonly maxPrunePages?: number;
+  /** Injectable globally unique incarnation generator for deterministic tests or host policy. */
+  readonly createIncarnation?: () => string;
 }
 
 /**
@@ -117,6 +147,9 @@ export interface DurableOperationStoreOptions {
  * handling. Implementations must make `claim` atomic for a given key.
  */
 export interface DurableOperationStore<TResult = unknown> {
+  /** Fail-closed declaration that this store implements the full fence contract. */
+  readonly fencingCapability: typeof DURABLE_OPERATION_FENCING_CAPABILITY;
+
   claim(
     key: string,
     fingerprint: string,
@@ -127,14 +160,18 @@ export interface DurableOperationStore<TResult = unknown> {
   complete(
     key: string,
     ownerId: string,
-    result: TResult
+    result: TResult,
+    /** Fence returned by the owning claim. */
+    expectedFence: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> | DurableOperationRecord<TResult>;
 
   fail(
     key: string,
     ownerId: string,
     reason: string,
-    result?: TResult
+    result: TResult | undefined,
+    /** Fence returned by the owning claim. */
+    expectedFence: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> | DurableOperationRecord<TResult>;
 
   markUnknown(
@@ -142,7 +179,9 @@ export interface DurableOperationStore<TResult = unknown> {
     ownerId: string,
     reason: string,
     /** Optional diagnostic result retained for a later domain resolver. */
-    result?: TResult
+    result: TResult | undefined,
+    /** Fence returned by the owning claim. */
+    expectedFence: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> | DurableOperationRecord<TResult>;
 
   /** Resolve an `unknown` record after a domain status/reconcile decision. */
@@ -150,7 +189,8 @@ export interface DurableOperationStore<TResult = unknown> {
     key: string,
     reconcilerId: string,
     resolution: DurableOperationResolution<TResult>,
-    expectedRevision?: number
+    /** Fence observed before the domain reconciliation decision began. */
+    expectedFence: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> | DurableOperationRecord<TResult>;
 
   get(
@@ -169,11 +209,80 @@ const DEFAULT_OPERATION_RETENTION_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_OPERATION_MAX_ATTEMPTS = 8;
 const DEFAULT_OPERATION_PRUNE_PAGE_SIZE = 500;
 const DEFAULT_OPERATION_MAX_PRUNE_PAGES = 1000;
+const MAX_OPERATION_INCARNATION_LENGTH = 256;
+
+interface RandomCryptoHost {
+  randomUUID?: () => string;
+  getRandomValues?: (values: Uint8Array) => Uint8Array;
+}
+
+function defaultCreateIncarnation(): string {
+  const cryptoHost = (globalThis as typeof globalThis & {
+    crypto?: RandomCryptoHost;
+  }).crypto;
+  if (typeof cryptoHost?.randomUUID === 'function') {
+    return cryptoHost.randomUUID();
+  }
+  if (typeof cryptoHost?.getRandomValues === 'function') {
+    const bytes = cryptoHost.getRandomValues(new Uint8Array(16));
+    return [...bytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  }
+  throw new Error(
+    'Durable operation fencing requires crypto.randomUUID(), crypto.getRandomValues(), or createIncarnation.'
+  );
+}
 
 function assertOperationText(value: string, label: string): void {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new TypeError(`${label} must be a non-empty string.`);
   }
+}
+
+function assertIncarnation(value: string): void {
+  assertOperationText(value, 'Durable operation incarnation');
+  if (value.length > MAX_OPERATION_INCARNATION_LENGTH || value.includes('\0')) {
+    throw new TypeError(
+      `Durable operation incarnation must be visible text within ${MAX_OPERATION_INCARNATION_LENGTH} characters.`
+    );
+  }
+}
+
+function validateFence(fence: DurableOperationFence): void {
+  if (!fence || typeof fence !== 'object') {
+    throw new TypeError('Durable operation expectedFence is required.');
+  }
+  assertIncarnation(fence.incarnation);
+  if (!Number.isInteger(fence.revision) || fence.revision < 1) {
+    throw new TypeError('Durable operation fence revision must be a positive integer.');
+  }
+}
+
+function fenceFromRecord<TResult>(
+  record: DurableOperationRecord<TResult>
+): DurableOperationFence {
+  return {
+    incarnation: record.incarnation,
+    revision: record.revision,
+  };
+}
+
+function claimFromRecord<TResult>(
+  status: DurableOperationClaimStatus,
+  record: DurableOperationRecord<TResult>
+): DurableOperationClaim<TResult> {
+  return { status, record, fence: fenceFromRecord(record) };
+}
+
+/** Runtime guard used by orchestrators to reject legacy, unfenced stores. */
+export function hasDurableOperationFencingCapability(
+  value: unknown
+): value is Pick<DurableOperationStore<unknown>, 'fencingCapability'> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { fencingCapability?: unknown }).fencingCapability ===
+      DURABLE_OPERATION_FENCING_CAPABILITY
+  );
 }
 
 function normalizeStoreOptions(
@@ -206,6 +315,7 @@ function normalizeStoreOptions(
     retentionMs,
     prunePageSize,
     maxPrunePages,
+    createIncarnation: options.createIncarnation ?? defaultCreateIncarnation,
   };
 }
 
@@ -215,10 +325,16 @@ function validateLease(leaseMs: number): void {
   }
 }
 
-function validateRecord<TResult>(record: DurableOperationRecord<TResult>): void {
+function validateRecord<TResult>(
+  record: DurableOperationRecord<TResult>,
+  allowMissingIncarnation = false
+): void {
   assertOperationText(record.key, 'Durable operation key');
   assertOperationText(record.fingerprint, 'Durable operation fingerprint');
   assertOperationText(record.ownerId, 'Durable operation ownerId');
+  if (!(allowMissingIncarnation && record.incarnation === undefined)) {
+    assertIncarnation(record.incarnation);
+  }
   if (!Number.isInteger(record.revision) || record.revision < 1) {
     throw new TypeError('Durable operation revision must be a positive integer.');
   }
@@ -268,6 +384,39 @@ export function createDurableOperationStore<TResult = unknown>(
   }
   const normalized = normalizeStoreOptions(options);
 
+  const readValidatedRecord = async (
+    key: string
+  ): Promise<DurableOperationRecord<TResult> | undefined> => {
+    assertOperationText(key, 'Durable operation key');
+    for (let attempt = 0; attempt < normalized.maxAttempts; attempt += 1) {
+      const record = await backend.read(key);
+      if (!record) return undefined;
+      if (record.key !== key) {
+        throw new TypeError('Durable operation backend returned a mismatched record key.');
+      }
+      if (Object.getOwnPropertyDescriptor(record, 'incarnation') !== undefined) {
+        validateRecord(record);
+        return record;
+      }
+
+      // Records from the pre-fencing format never published an incarnation.
+      // Validate every other field before asking the backend to atomically add
+      // one, then re-read rather than trusting the candidate we attempted.
+      validateRecord(record, true);
+      if (!backend.backfillLegacyIncarnation) {
+        throw transitionError(
+          key,
+          'requires legacy incarnation backfill, but the backend does not support it'
+        );
+      }
+      const incarnation = normalized.createIncarnation();
+      assertIncarnation(incarnation);
+      await backend.backfillLegacyIncarnation(key, record.revision, incarnation);
+    }
+
+    throw transitionError(key, 'could not backfill a legacy incarnation after concurrent updates');
+  };
+
   const claim = async (
     key: string,
     fingerprint: string,
@@ -281,22 +430,21 @@ export function createDurableOperationStore<TResult = unknown>(
     validateLease(leaseMs);
 
     for (let attempt = 0; attempt < normalized.maxAttempts; attempt += 1) {
-      const existing = await backend.read(key);
+      const existing = await readValidatedRecord(key);
       if (existing) {
-        validateRecord(existing);
         if (existing.fingerprint !== fingerprint) {
-          return { status: 'conflict', record: existing };
+          return claimFromRecord('conflict', existing);
         }
         if (existing.state === 'unknown') {
-          return { status: 'unknown', record: existing };
+          return claimFromRecord('unknown', existing);
         }
         if (terminalState(existing.state)) {
-          return { status: 'replay', record: existing };
+          return claimFromRecord('replay', existing);
         }
 
         const now = normalized.now();
         if (existing.leaseExpiresAt === undefined || existing.leaseExpiresAt > now) {
-          return { status: 'pending', record: existing };
+          return claimFromRecord('pending', existing);
         }
 
         const reclaimed: DurableOperationRecord<TResult> = {
@@ -306,17 +454,20 @@ export function createDurableOperationStore<TResult = unknown>(
           updatedAt: now,
           leaseExpiresAt: now + leaseMs,
         };
-        if (await backend.compareAndSet(key, existing.revision, reclaimed)) {
-          return { status: 'owner', record: reclaimed };
+        if (await backend.compareAndSet(key, fenceFromRecord(existing), reclaimed)) {
+          return claimFromRecord('owner', reclaimed);
         }
         continue;
       }
 
       const now = normalized.now();
+      const incarnation = normalized.createIncarnation();
+      assertIncarnation(incarnation);
       const pending: DurableOperationRecord<TResult> = {
         key,
         fingerprint,
         ownerId,
+        incarnation,
         revision: 1,
         state: 'pending',
         createdAt: now,
@@ -324,7 +475,7 @@ export function createDurableOperationStore<TResult = unknown>(
         leaseExpiresAt: now + leaseMs,
       };
       if (await backend.compareAndSet(key, undefined, pending)) {
-        return { status: 'owner', record: pending };
+        return claimFromRecord('owner', pending);
       }
     }
 
@@ -336,7 +487,8 @@ export function createDurableOperationStore<TResult = unknown>(
     ownerId: string,
     state: DurableOperationState,
     result?: TResult,
-    reason?: string
+    reason?: string,
+    expectedFence?: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> => {
     assertOperationText(key, 'Durable operation key');
     assertOperationText(ownerId, 'Durable operation ownerId');
@@ -349,48 +501,47 @@ export function createDurableOperationStore<TResult = unknown>(
     if ((state === 'failed' || state === 'unknown') && reason === undefined) {
       throw new TypeError(`Durable operation ${state} transitions require a reason.`);
     }
+    validateFence(expectedFence as DurableOperationFence);
 
-    for (let attempt = 0; attempt < normalized.maxAttempts; attempt += 1) {
-      const existing = await backend.read(key);
-      if (!existing) throw transitionError(key, 'does not exist');
-      validateRecord(existing);
-      if (existing.ownerId !== ownerId) {
-        throw transitionError(key, `is owned by "${existing.ownerId}"`);
-      }
-      if (existing.state !== 'pending') {
-        throw transitionError(key, `is already ${existing.state}`);
-      }
-      if (existing.leaseExpiresAt !== undefined && existing.leaseExpiresAt <= normalized.now()) {
-        throw transitionError(key, 'lease has expired');
-      }
-
-      const next: DurableOperationRecord<TResult> = {
-        ...existing,
-        state,
-        revision: existing.revision + 1,
-        updatedAt: normalized.now(),
-        ...(result === undefined ? {} : { result }),
-        ...(reason === undefined ? {} : { reason }),
-        leaseExpiresAt: undefined,
-      };
-      if (await backend.compareAndSet(key, existing.revision, next)) return next;
+    const existing = await readValidatedRecord(key);
+    if (!existing) throw transitionError(key, 'does not exist');
+    if (existing.ownerId !== ownerId) {
+      throw transitionError(key, `is owned by "${existing.ownerId}"`);
+    }
+    if (existing.incarnation !== expectedFence!.incarnation ||
+        existing.revision !== expectedFence!.revision) {
+      throw transitionError(key, 'fence is stale');
+    }
+    if (existing.state !== 'pending') {
+      throw transitionError(key, `is already ${existing.state}`);
+    }
+    if (existing.leaseExpiresAt !== undefined && existing.leaseExpiresAt <= normalized.now()) {
+      throw transitionError(key, 'lease has expired');
     }
 
-    throw transitionError(key, 'could not transition after concurrent updates');
+    const next: DurableOperationRecord<TResult> = {
+      ...existing,
+      state,
+      revision: existing.revision + 1,
+      updatedAt: normalized.now(),
+      ...(result === undefined ? {} : { result }),
+      ...(reason === undefined ? {} : { reason }),
+      leaseExpiresAt: undefined,
+    };
+    if (await backend.compareAndSet(key, fenceFromRecord(existing), next)) return next;
+
+    throw transitionError(key, 'fence changed during transition');
   };
 
   const resolveUnknown = async (
     key: string,
     reconcilerId: string,
     resolution: DurableOperationResolution<TResult>,
-    expectedRevision?: number
+    expectedFence?: DurableOperationFence
   ): Promise<DurableOperationRecord<TResult>> => {
     assertOperationText(key, 'Durable operation key');
     assertOperationText(reconcilerId, 'Durable operation reconcilerId');
-    if (expectedRevision !== undefined &&
-        (!Number.isInteger(expectedRevision) || expectedRevision < 1)) {
-      throw new TypeError('Durable operation expectedRevision must be a positive integer.');
-    }
+    validateFence(expectedFence as DurableOperationFence);
     if (!resolution || typeof resolution !== 'object' ||
         (resolution.state !== 'completed' && resolution.state !== 'failed')) {
       throw new TypeError('Durable operation resolution state is invalid.');
@@ -402,46 +553,46 @@ export function createDurableOperationStore<TResult = unknown>(
       assertOperationText(resolution.reason, 'Durable operation resolution reason');
     }
 
-    for (let attempt = 0; attempt < normalized.maxAttempts; attempt += 1) {
-      const existing = await backend.read(key);
-      if (!existing) throw transitionError(key, 'does not exist');
-      validateRecord(existing);
-      if (existing.state !== 'unknown') {
-        throw transitionError(key, `cannot resolve state ${existing.state}`);
-      }
-      if (expectedRevision !== undefined && existing.revision !== expectedRevision) {
-        throw transitionError(key, 'revision is stale');
-      }
-
-      const now = normalized.now();
-      const next: DurableOperationRecord<TResult> = {
-        ...existing,
-        state: resolution.state,
-        revision: existing.revision + 1,
-        updatedAt: now,
-        ...(resolution.result === undefined ? {} : { result: resolution.result }),
-        ...(resolution.reason === undefined ? {} : { reason: resolution.reason }),
-        leaseExpiresAt: undefined,
-        reconciledBy: reconcilerId,
-        reconciledAt: now,
-      };
-      if (await backend.compareAndSet(key, existing.revision, next)) return next;
-      if (expectedRevision !== undefined) throw transitionError(key, 'revision changed during reconciliation');
+    const existing = await readValidatedRecord(key);
+    if (!existing) throw transitionError(key, 'does not exist');
+    if (existing.state !== 'unknown') {
+      throw transitionError(key, `cannot resolve state ${existing.state}`);
+    }
+    if (existing.incarnation !== expectedFence!.incarnation ||
+        existing.revision !== expectedFence!.revision) {
+      throw transitionError(key, 'fence is stale');
     }
 
-    throw transitionError(key, 'could not reconcile after concurrent updates');
+    const now = normalized.now();
+    const next: DurableOperationRecord<TResult> = {
+      ...existing,
+      state: resolution.state,
+      revision: existing.revision + 1,
+      updatedAt: now,
+      ...(resolution.result === undefined ? {} : { result: resolution.result }),
+      ...(resolution.reason === undefined ? {} : { reason: resolution.reason }),
+      leaseExpiresAt: undefined,
+      reconciledBy: reconcilerId,
+      reconciledAt: now,
+    };
+    if (await backend.compareAndSet(key, fenceFromRecord(existing), next)) return next;
+
+    throw transitionError(key, 'fence changed during reconciliation');
   };
 
   return {
+    fencingCapability: DURABLE_OPERATION_FENCING_CAPABILITY,
     claim,
-    complete: (key, ownerId, result) => transition(key, ownerId, 'completed', result),
-    fail: (key, ownerId, reason, result) => transition(key, ownerId, 'failed', result, reason),
-    markUnknown: (key, ownerId, reason, result) =>
-      transition(key, ownerId, 'unknown', result, reason),
+    complete: (key, ownerId, result, expectedFence) =>
+      transition(key, ownerId, 'completed', result, undefined, expectedFence),
+    fail: (key, ownerId, reason, result, expectedFence) =>
+      transition(key, ownerId, 'failed', result, reason, expectedFence),
+    markUnknown: (key, ownerId, reason, result, expectedFence) =>
+      transition(key, ownerId, 'unknown', result, reason, expectedFence),
     resolveUnknown,
     get: key => {
       assertOperationText(key, 'Durable operation key');
-      return backend.read(key);
+      return readValidatedRecord(key);
     },
     prune: async (before = normalized.now() - normalized.retentionMs) => {
       if (!Number.isFinite(before)) throw new RangeError('Durable operation prune cutoff must be finite.');
@@ -461,10 +612,13 @@ export function createDurableOperationStore<TResult = unknown>(
           if (!page || !Array.isArray(page.records)) {
             throw new TypeError('Durable operation listPage must return a records array.');
           }
-          for (const record of page.records) {
-            validateRecord(record);
+          for (const listedRecord of page.records) {
+            const record = await readValidatedRecord(listedRecord.key);
+            if (!record) continue;
             if (!terminalState(record.state) || record.updatedAt >= before) continue;
-            if (await backend.compareAndSet(record.key, record.revision, undefined)) removed += 1;
+            if (await backend.compareAndSet(record.key, fenceFromRecord(record), undefined)) {
+              removed += 1;
+            }
           }
           pageCount += 1;
           if (page.nextCursor === undefined) break;
@@ -477,10 +631,13 @@ export function createDurableOperationStore<TResult = unknown>(
         }
       } else if (backend.list) {
         const records = await backend.list();
-        for (const record of records) {
-          validateRecord(record);
+        for (const listedRecord of records) {
+          const record = await readValidatedRecord(listedRecord.key);
+          if (!record) continue;
           if (!terminalState(record.state) || record.updatedAt >= before) continue;
-          if (await backend.compareAndSet(record.key, record.revision, undefined)) removed += 1;
+          if (await backend.compareAndSet(record.key, fenceFromRecord(record), undefined)) {
+            removed += 1;
+          }
         }
       } else {
         throw new TypeError('Durable operation backend cannot prune without list or listPage.');

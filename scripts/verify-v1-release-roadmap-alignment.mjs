@@ -30,7 +30,7 @@ const koreanRelativePath = 'docs/ko/context-layered/v1-release-roadmap.md';
 const checks = [
   ['Korean canonical source', frontmatterValue(korean, 'canonical'), 'true'],
   ['Korean source locale', frontmatterValue(korean, 'sourceLocale'), 'ko'],
-  ['Korean translation target', korean.match(/^  en:\s*(.+)$/m)?.[1]?.trim() ?? null, englishRelativePath],
+  ['Korean translation target', korean.match(/^ {2}en:\s*(.+)$/m)?.[1]?.trim() ?? null, englishRelativePath],
   ['English non-canonical marker', frontmatterValue(english, 'canonical'), 'false'],
   ['English translation source', frontmatterValue(english, 'translationOf'), koreanRelativePath],
   ['English translation revision', frontmatterValue(english, 'translationRevision'), frontmatterValue(korean, 'roadmapRevision')],

@@ -3,6 +3,10 @@
 Durable idempotency and external side-effect adapters for Context-Action tool
 mutations.
 
+> **Development track:** Durable 0.2 is being stabilized separately from the
+> Core 1.1 / React 2 state-management release. Its persistence, provider
+> recovery, and migration contract is not published as part of that cohort.
+
 This package starts after a canonical tool call has been validated. It owns
 the mutation boundary: durable operation records, lease-aware claims,
 `completed`/`failed`/`unknown` outcomes, status-first recovery, and thin HTTP,
@@ -42,6 +46,26 @@ operator evidence cannot silently lose the outcome classification.
 The package supplies driver-neutral IndexedDB, Redis, and PostgreSQL reference
 backends; applications still own migrations, provider idempotency/inbox-outbox
 contracts, retention, and rollback policy.
+
+## Durable 0.2 fencing upgrade
+
+Durable 0.2 uses an incarnation/revision fence to prevent a stale owner from
+writing after a lease reclaim or prune/recreate cycle. Keep the `fence` returned
+by a claim and pass it to every terminal or reconciliation transition:
+
+```ts
+const claim = await store.claim(key, fingerprint, ownerId);
+
+if (claim.status === 'owner') {
+  await store.complete(key, ownerId, result, claim.fence);
+}
+```
+
+Do not run pre-fencing and fenced writers against the same mutation path during
+the upgrade. An `unknown` outcome is deliberately not retried automatically:
+look up the provider or domain status, then resolve it using the fence observed
+before that decision. The repository durable-operations runbook describes the
+required migration, endpoint verification, and recovery procedure.
 
 For telemetry, prefer `createToolObservationSink()` from
 `@context-action/tool-protocol`. It delivers a serialized metadata-only

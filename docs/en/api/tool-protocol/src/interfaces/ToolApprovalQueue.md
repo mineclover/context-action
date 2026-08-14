@@ -6,7 +6,7 @@
 
 # Interface: ToolApprovalQueue
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:124](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L124)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:125](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L125)
 
 Shared approval lifecycle used by browser and host tool surfaces.
 
@@ -16,7 +16,7 @@ Shared approval lifecycle used by browser and host tool surfaces.
 
 > `readonly` **store**: [`ToolApprovalStore`](ToolApprovalStore.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:125](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L125)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:126](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L126)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:125](https://github.com
 
 > `readonly` **request**: (`input`) => `Promise`\<[`ToolApprovalDecision`](../type-aliases/ToolApprovalDecision.md)\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:126](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L126)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L127)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:126](https://github.com
 
 > `readonly` **resolve**: (`id`, `decision`) => `void`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:129](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L129)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:130](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L130)
 
 #### Parameters
 
@@ -64,7 +64,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:129](https://github.com
 
 > `readonly` **denyAll**: () => `void`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:130](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L130)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:131](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L131)
 
 #### Returns
 

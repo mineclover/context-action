@@ -17,12 +17,30 @@ const packageManifest = JSON.parse(readFileSync(path.join(packageDirectory, 'pac
 const changelogPath = path.join(packageDirectory, 'CHANGELOG.md');
 const requirePublishedRelease = process.argv.includes('--require-published-release');
 const forbidUnreleased = process.argv.includes('--forbid-unreleased');
+const requireReleaseDate = process.argv.includes('--require-release-date');
 
 function sleep(milliseconds) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
 }
 
-function assertChangelogVersion(contents, source, options = {}) {
+export function changelogValidationOptions(options = {}) {
+  return {
+    forbidUnreleased: options.forbidUnreleased || options.requirePublishedRelease,
+    requireReleaseDate:
+      options.requireReleaseDate || options.forbidUnreleased || options.requirePublishedRelease,
+  };
+}
+
+function isValidIsoCalendarDate(yearText, monthText, dayText) {
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth[month - 1];
+}
+
+export function assertChangelogVersion(contents, source, options = {}) {
   const heading = /^## \[([^\]]+)\](.*)$/mu.exec(contents);
   if (!heading) throw new Error(`${source} must start with a versioned release heading`);
   if (heading[1] !== packageManifest.version) {
@@ -33,8 +51,14 @@ function assertChangelogVersion(contents, source, options = {}) {
   if (options.forbidUnreleased && /\(Unreleased\)/iu.test(heading[2])) {
     throw new Error(`${source} marks ${packageManifest.name}@${packageManifest.version} as Unreleased`);
   }
-  if (options.requireReleaseDate && !/\(\d{4}-\d{2}-\d{2}\)/u.test(heading[2])) {
-    throw new Error(`${source} must include an ISO release date for ${packageManifest.name}@${packageManifest.version}`);
+  const releaseDate = /\((\d{4})-(\d{2})-(\d{2})\)/u.exec(heading[2]);
+  if (
+    options.requireReleaseDate &&
+    (!releaseDate || !isValidIsoCalendarDate(releaseDate[1], releaseDate[2], releaseDate[3]))
+  ) {
+    throw new Error(
+      `${source} must include an ISO release date that is a valid calendar date for ${packageManifest.name}@${packageManifest.version}`,
+    );
   }
 }
 
@@ -90,7 +114,11 @@ function main() {
   if (packageManifest.name !== `@context-action/${packageDirectoryName}`) {
     throw new Error(`Unexpected package identity: ${packageManifest.name}`);
   }
-  const sourceOptions = { forbidUnreleased: forbidUnreleased || requirePublishedRelease, requireReleaseDate: false };
+  const sourceOptions = changelogValidationOptions({
+    forbidUnreleased,
+    requirePublishedRelease,
+    requireReleaseDate,
+  });
   assertChangelogVersion(readFileSync(changelogPath, 'utf8'), changelogPath, sourceOptions);
 
   const destination = mkdtempSync(path.join(os.tmpdir(), 'context-action-tool-protocol-pack-'));
@@ -125,4 +153,4 @@ function main() {
   console.log(`Verified ${packageManifest.name}@${packageManifest.version} CHANGELOG source and ${requirePublishedRelease ? 'registry' : 'local'} tarball.`);
 }
 
-main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

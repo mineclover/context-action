@@ -8,7 +8,7 @@
 
 > **stringifyToolContent**(`content`): `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:457](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L457)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:468](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L468)
 
 Convert canonical result content blocks without dropping structured JSON.
 

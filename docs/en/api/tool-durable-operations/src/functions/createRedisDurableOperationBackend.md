@@ -8,7 +8,7 @@
 
 > **createRedisDurableOperationBackend**&lt;`TResult`&gt;(`options`): [`DurableOperationBackend`](../interfaces/DurableOperationBackend.md)&lt;`TResult`&gt;
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:244](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L244)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:259](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L259)
 
 Create a Redis-backed durable operation backend.
 

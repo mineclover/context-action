@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 import { createRequire } from 'node:module';
+import { execFile } from 'node:child_process';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
+const execFileAsync = promisify(execFile);
+const processlessRuntimePackages = new Set(['@context-action/mutative']);
 const runtimeExportSkips = new Map([
   [
     'packages/typedoc-vitepress-sync',
@@ -18,6 +22,26 @@ const runtimeExportSkips = new Map([
 const failures = [];
 let targetCount = 0;
 let runtimeLoadCount = 0;
+let processlessRuntimeLoadCount = 0;
+
+async function verifyProcesslessRuntime(targetPath, moduleKind) {
+  const target = moduleKind === 'import'
+    ? pathToFileURL(targetPath).href
+    : targetPath;
+  const loadExpression = moduleKind === 'import'
+    ? `await import(${JSON.stringify(target)})`
+    : `require(${JSON.stringify(target)})`;
+  const args = moduleKind === 'import' ? ['--input-type=module'] : [];
+
+  await execFileAsync(process.execPath, [
+    ...args,
+    '--eval',
+    `delete globalThis.process; ${loadExpression}`,
+  ], {
+    cwd: repositoryRoot,
+  });
+  processlessRuntimeLoadCount += 1;
+}
 
 async function discoverPublicPackages() {
   const packagesDirectory = path.join(repositoryRoot, 'packages');
@@ -147,12 +171,24 @@ async function verifyPackage({ directory: relativePackageDirectory, skipRuntimeE
     try {
       if (conditions.includes('import')) {
         await import(pathToFileURL(targetPath).href);
+        if (processlessRuntimePackages.has(packageName)) {
+          await verifyProcesslessRuntime(targetPath, 'import');
+        }
         runtimeLoadCount += 1;
-        console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [ESM loaded]`);
+        const runtimeLabel = processlessRuntimePackages.has(packageName)
+          ? 'ESM loaded without process'
+          : 'ESM loaded';
+        console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [${runtimeLabel}]`);
       } else if (conditions.includes('require')) {
         packageRequire(targetPath);
+        if (processlessRuntimePackages.has(packageName)) {
+          await verifyProcesslessRuntime(targetPath, 'require');
+        }
         runtimeLoadCount += 1;
-        console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [CJS loaded]`);
+        const runtimeLabel = processlessRuntimePackages.has(packageName)
+          ? 'CJS loaded without process'
+          : 'CJS loaded';
+        console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [${runtimeLabel}]`);
       } else {
         console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target}`);
       }
@@ -178,6 +214,6 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    `\nVerified ${packagesToVerify.length} packages, ${targetCount} export targets, and ${runtimeLoadCount} runtime loads.`,
+    `\nVerified ${packagesToVerify.length} packages, ${targetCount} export targets, ${runtimeLoadCount} runtime loads, and ${processlessRuntimeLoadCount} process-less browser loads.`,
   );
 }

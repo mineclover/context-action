@@ -58,7 +58,7 @@ async function validatePromotionGovernance(governance) {
 async function validatePromotedState(manifest, errors) {
   const artifactCohort = manifest.artifactCohort ?? {};
   const promotion = manifest.stablePromotion;
-  if (!promotion || promotion.status !== 'promoted') {
+  if (promotion?.status !== 'promoted') {
     errors.push('Promoted manifest requires a promoted stable-promotion record');
     return;
   }
@@ -108,14 +108,12 @@ async function validatePromotedState(manifest, errors) {
 }
 
 async function main() {
-  const [manifestSource, schemaSource, reactPackageSource] = await Promise.all([
+  const [manifestSource, schemaSource] = await Promise.all([
     readFile(manifestPath, 'utf8'),
     readFile(schemaPath, 'utf8'),
-    readFile(path.join(repositoryRoot, 'packages/react/package.json'), 'utf8'),
   ]);
   const manifest = JSON.parse(manifestSource);
   const schema = JSON.parse(schemaSource);
-  const reactPackage = JSON.parse(reactPackageSource);
   const ajv = new Ajv2020({ allErrors: true, strict: false });
   addFormats(ajv);
   const validate = ajv.compile(schema);
@@ -129,8 +127,6 @@ async function main() {
   const stableSurfaces = Array.isArray(manifest.stableSurfaces) ? manifest.stableSurfaces : [];
   const experimentalSurfaces = Array.isArray(manifest.experimentalSurfaces) ? manifest.experimentalSurfaces : [];
   const registryEvidence = artifactCohort.registryEvidence;
-  const reactDependencies = reactPackage.dependencies ?? {};
-  const testedExternalDependencies = manifest.testedExternalDependencies ?? {};
 
   for (const surface of stableSurfaces) {
     if (typeof packages[surface] !== 'string') errors.push(`Stable surface is missing a cohort package version: ${surface}`);
@@ -138,17 +134,9 @@ async function main() {
   for (const surface of experimentalSurfaces) {
     if (stableSurfaces.includes(surface)) errors.push(`Surface cannot be both stable and experimental: ${surface}`);
   }
-  for (const [name, details] of Object.entries(testedExternalDependencies)) {
-    if (reactDependencies[name] !== details.supportedRange) errors.push(`Tested external dependency range differs from React package: ${name}`);
-  }
-  for (const name of Object.keys(reactDependencies)) {
-    if (!name.startsWith('@context-action/')) continue;
-    if (Object.hasOwn(packages, name)) {
-      if (reactDependencies[name] !== `^${packages[name]}`) errors.push(`Artifact-cohort dependency range differs from React package: ${name}`);
-    } else if (!Object.hasOwn(testedExternalDependencies, name)) {
-      errors.push(`React runtime dependency is missing a release classification: ${name}`);
-    }
-  }
+  // The v1 manifest is immutable historical evidence. Current package
+  // dependency floors intentionally evolve in later coordinated releases and
+  // are validated by the active release-plan verifier instead.
 
   const publishedStages = new Set(['published-unapproved', 'audited', 'approved-for-stable', 'promotion-evidence-pending', 'promoted']);
   if (manifest.status === 'candidate-unapproved') {

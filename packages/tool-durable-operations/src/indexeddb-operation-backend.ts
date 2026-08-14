@@ -1,7 +1,13 @@
 import type {
   DurableOperationBackend,
+  DurableOperationFence,
   DurableOperationRecord,
 } from './durable-operation.js';
+
+/** Minimal host contract required from an IndexedDB factory. */
+export interface IndexedDbFactory {
+  open(name: string, version?: number): unknown;
+}
 
 export interface IndexedDbDurableOperationBackendOptions {
   /** IndexedDB database name. Defaults to `context-action-operations`. */
@@ -11,7 +17,7 @@ export interface IndexedDbDurableOperationBackendOptions {
   /** Schema version used when creating the object store. Defaults to 1. */
   readonly version?: number;
   /** Injectable factory for browser tests or a host-owned IndexedDB instance. */
-  readonly indexedDB?: IDBFactory;
+  readonly indexedDB?: IndexedDbFactory;
 }
 
 const DEFAULT_DATABASE_NAME = 'context-action-operations';
@@ -39,16 +45,16 @@ function toError(value: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-function resolveIndexedDb(factory?: IDBFactory): IDBFactory {
+function resolveIndexedDb(factory?: IndexedDbFactory): IDBFactory {
   const resolved = factory ?? (
     typeof globalThis === 'undefined'
       ? undefined
-      : (globalThis as typeof globalThis & { indexedDB?: IDBFactory }).indexedDB
+      : (globalThis as typeof globalThis & { indexedDB?: IndexedDbFactory }).indexedDB
   );
   if (!resolved) {
     throw new Error('IndexedDB is not available in this runtime.');
   }
-  return resolved;
+  return resolved as IDBFactory;
 }
 
 function openDatabase(
@@ -168,7 +174,7 @@ export function createIndexedDbDurableOperationBackend<TResult = unknown>(
 
   const compareAndSet = (
     key: string,
-    expectedRevision: number | undefined,
+    expectedFence: DurableOperationFence | undefined,
     next: DurableOperationRecord<TResult> | undefined
   ): Promise<boolean> => {
     assertName(key, 'Durable operation key');
@@ -179,7 +185,11 @@ export function createIndexedDbDurableOperationBackend<TResult = unknown>(
       const readRequest = store.get(key);
       readRequest.onsuccess = () => {
         const current = readRequest.result as DurableOperationRecord<TResult> | undefined;
-        if (current?.revision !== expectedRevision) {
+        const matches = expectedFence === undefined
+          ? current === undefined
+          : current?.incarnation === expectedFence.incarnation &&
+            current.revision === expectedFence.revision;
+        if (!matches) {
           setResult(false);
           return;
         }
@@ -191,10 +201,40 @@ export function createIndexedDbDurableOperationBackend<TResult = unknown>(
     });
   };
 
+  const backfillLegacyIncarnation = (
+    key: string,
+    expectedRevision: number,
+    incarnation: string
+  ): Promise<boolean> => {
+    assertName(key, 'Durable operation key');
+    assertName(incarnation, 'Durable operation incarnation');
+    if (!Number.isInteger(expectedRevision) || expectedRevision < 1) {
+      throw new TypeError('Durable operation expected revision must be a positive integer.');
+    }
+    return runTransaction(getDatabase(), storeName, 'readwrite', (store, setResult, fail) => {
+      const readRequest = store.get(key);
+      readRequest.onsuccess = () => {
+        const current = readRequest.result as (
+          DurableOperationRecord<TResult> & { incarnation?: string }
+        ) | undefined;
+        if (current === undefined || current.revision !== expectedRevision ||
+            Object.getOwnPropertyDescriptor(current, 'incarnation') !== undefined) {
+          setResult(false);
+          return;
+        }
+        const writeRequest = store.put({ ...current, incarnation });
+        writeRequest.onsuccess = () => setResult(true);
+        writeRequest.onerror = () => fail(writeRequest.error);
+      };
+      readRequest.onerror = () => fail(readRequest.error);
+    });
+  };
+
   return {
     read,
     list,
     compareAndSet,
+    backfillLegacyIncarnation,
     close: async () => {
       const database = databasePromise ? await databasePromise : undefined;
       database?.close();

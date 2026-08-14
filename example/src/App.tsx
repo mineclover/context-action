@@ -231,22 +231,12 @@ const ChatPage = lazy(() =>
   }))
 );
 
-// Integrations - AI/LLM (ToolContext with OpenRouter and AI SDK)
-const ToolContextAIDemo = lazy(
-  () => import('./pages/integrations/ai/ToolContextAIDemo')
-);
 const ActionLifecycleWorkbenchPage = lazy(
   () =>
     import('./pages/integrations/action-lifecycle/ActionLifecycleWorkbenchPage')
 );
 const ReactAriaReferencePage = lazy(
   () => import('./pages/integrations/react-aria/ReactAriaReferencePage')
-);
-const LiveCodeEditorPage = lazy(
-  () => import('./pages/integrations/live-code-editor/LiveCodeEditorPage')
-);
-const LiveWebCodingPage = lazy(
-  () => import('./pages/integrations/live-web-coding/LiveWebCodingPage')
 );
 
 // Integrations - Advanced (separate chunk for advanced features)
@@ -581,18 +571,6 @@ function AppContent() {
             <Route
               path="/integrations/react-aria-reference"
               element={<ReactAriaReferencePage />}
-            />
-            <Route
-              path="/integrations/live-code-editor"
-              element={<LiveCodeEditorPage />}
-            />
-            <Route
-              path="/integrations/live-web-coding"
-              element={<LiveWebCodingPage />}
-            />
-            <Route
-              path="/integrations/tool-context-ai"
-              element={<ToolContextAIDemo />}
             />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route

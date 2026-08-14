@@ -6,15 +6,15 @@
 
 # Interface: SideEffectRecoveryOptions
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:138](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L138)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:140](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L140)
 
 ## Properties
 
-### expectedRevision?
+### expectedFence?
 
-> `readonly` `optional` **expectedRevision?**: `number`
+> `readonly` `optional` **expectedFence?**: [`DurableOperationFence`](DurableOperationFence.md)
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:139](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L139)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:141](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L141)
 
 ***
 
@@ -22,6 +22,6 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:139](https://gi
 
 > `readonly` `optional` **reconcilerId?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:141](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L141)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:143](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L143)
 
 Optional audit identity; defaults to the runner owner.
