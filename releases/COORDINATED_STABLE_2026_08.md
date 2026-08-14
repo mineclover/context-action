@@ -22,10 +22,12 @@ artifact에서는 `./tools` subpath를 제외하므로, 상태 관리 릴리즈�
 2. 후보 workflow는 `release:check`, release plan, packed cohort closure를 통과한
    뒤 두 immutable tarball을 `next`에만 게시한다. provenance, 외부 consumer,
    registry evidence를 모두 업로드한다.
-3. evidence 승인 후 동일 SHA와 명시적 confirmation으로
-   `promote-coordinated-stable.yml`을 실행한다. 이 경로는 `next`의 provenance와
-   consumer를 다시 확인한 다음, package별 predecessor journal을 기록하고
-   `latest`를 승격한다.
+3. evidence 승인 후 candidate를 만든 SHA와 명시적 confirmation으로
+   `promote-coordinated-stable.yml`을 실행한다. 이 workflow는 현재 보호된 main
+   tip의 제어 코드를 checkout하고, candidate SHA가 그 main의 조상인지 및 `next`의
+   provenance와 consumer를 다시 확인한 다음, package별 predecessor journal을
+   기록하고 `latest`를 승격한다. 후보를 게시하는 workflow만 source SHA와 event
+   SHA의 동일성을 요구한다.
 4. 승격 후 consumer/provenance/evidence가 실패하면 workflow가 현재 `latest`가
    자기 candidate를 가리킬 때만 journal의 predecessor로 복구한다. 다른 release가
    tag를 바꾼 경우에는 fail closed 한다.

@@ -10,6 +10,7 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json');
 const expectedRepository = 'https://github.com/mineclover/context-action';
 const expectedWorkflowPath = '.github/workflows/publish-coordinated-stable-candidate.yml';
+const expectedPackages = new Set(['@context-action/core', '@context-action/react']);
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -42,7 +43,9 @@ if (!['next', 'latest'].includes(tag) || !/^[a-f0-9]{40}$/u.test(commit ?? '')) 
 
 const plan = JSON.parse(await readFile(planPath, 'utf8'));
 const packages = Object.entries(plan.packages ?? {});
-if (packages.length !== 4) throw new Error('Coordinated stable release plan must contain the exact four-package cohort');
+if (packages.length !== expectedPackages.size || packages.some(([name]) => !expectedPackages.has(name))) {
+  throw new Error('Coordinated stable release plan must contain the exact Core and React cohort');
+}
 const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-coordinated-provenance-'));
 try {
   await writeFile(path.join(temporaryDirectory, 'package.json'), `${JSON.stringify({

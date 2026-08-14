@@ -17,6 +17,7 @@ const manifestPath = path.join(repositoryRoot, 'docs', 'releases', 'v1.0.0', 're
 const failureOrCancellationCondition = '$' + '{{ failure() || cancelled() }}';
 const foreignJournalErrorTemplate = 'foreign maintenance journal $' + '{candidate} is unresolved';
 const releaseCommitInputExpression = '$' + '{{ inputs.release_commit }}';
+const workflowEventShaExpression = '$' + '{{ github.sha }}';
 const maintenanceBuildStepName = 'Build workspace dependencies and test the maintenance target';
 const maintenanceBuildStatements = [
   'pnpm build',
@@ -228,7 +229,11 @@ export function validateReleaseWorkflowSources({
     }
     for (const required of [
       'test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"',
-      'test "$RELEASE_COMMIT" = "$GITHUB_SHA"',
+      'test "$(git rev-parse HEAD)" = "$GITHUB_SHA"',
+      'test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"',
+      'git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD',
+      'git diff --exit-code',
+      'git diff --cached --exit-code',
       'pnpm verify:coordinated-stable-release-plan',
       'node scripts/verify-coordinated-stable-provenance.mjs --tag next --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-promotion-preflight-provenance.json',
       'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/react"',
@@ -238,6 +243,14 @@ export function validateReleaseWorkflowSources({
       'pnpm capture:published-release -- --tag latest --packages "@context-action/core,@context-action/react" --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json',
     ]) {
       if (!promotionStatements.includes(required)) errors.push(`Coordinated stable promotion workflow must include ${required}`);
+    }
+    const promotionCheckout = promotionJob.steps.find(step =>
+      typeof step.definition.uses === 'string'
+      && step.definition.uses.startsWith('actions/checkout@')
+      && step.definition.with?.ref === workflowEventShaExpression
+      && isUnconditionalFailClosedStep(step));
+    if (!promotionCheckout) {
+      errors.push('Coordinated stable promotion workflow must check out the immutable current main event SHA');
     }
     if (!coordinatedPromotionInspection.steps.some(step =>
       step.definition.name === 'Upload coordinated stable promotion evidence'
