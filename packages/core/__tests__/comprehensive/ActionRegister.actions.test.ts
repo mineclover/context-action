@@ -107,14 +107,25 @@ describe('ActionRegister - Actions and ActionsWithResult Getters', () => {
     });
 
     it('should handle async actions', async () => {
-      const startTime = Date.now();
-      
-      await expect(
-        actionRegister.actions.asyncAction({ delay: 50, result: 'async-result' })
-      ).resolves.toBeUndefined();
+      jest.useFakeTimers();
+      try {
+        const dispatch = actionRegister.actions.asyncAction({
+          delay: 50,
+          result: 'async-result'
+        });
+        let settled = false;
+        void dispatch.then(() => {
+          settled = true;
+        });
 
-      const duration = Date.now() - startTime;
-      expect(duration).toBeGreaterThanOrEqual(50);
+        await jest.advanceTimersByTimeAsync(49);
+        expect(settled).toBe(false);
+
+        await jest.advanceTimersByTimeAsync(1);
+        await expect(dispatch).resolves.toBeUndefined();
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should propagate errors from handlers', async () => {
