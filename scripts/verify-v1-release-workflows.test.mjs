@@ -62,6 +62,18 @@ test('requires explicit coordinated promotion confirmation', () => {
   assert.ok(errors.some(error => error.includes('PROMOTE_COORDINATED_STABLE')));
 });
 
+test('requires an authenticated token before coordinated promotion mutates dist-tags', () => {
+  const sources = releaseSources();
+  sources.coordinatedPromotion = sources.coordinatedPromotion.replace(
+    '          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}\n        run: npm whoami',
+    '          NODE_AUTH_TOKEN: ""\n        run: npm whoami',
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.includes(
+    'Coordinated stable promotion workflow must verify its npm-stable token before mutating dist-tags',
+  ));
+});
+
 test('does not accept a commented stable-release guard', () => {
   const sources = releaseSources();
   sources.stableCandidate = sources.stableCandidate.replace(

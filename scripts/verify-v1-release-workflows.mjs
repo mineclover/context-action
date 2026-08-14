@@ -252,6 +252,15 @@ export function validateReleaseWorkflowSources({
     if (!promotionCheckout) {
       errors.push('Coordinated stable promotion workflow must check out the immutable current main event SHA');
     }
+    const promotionTokenVerification = stepByName(coordinatedPromotionInspection, 'Verify npm token auth');
+    if (promotionTokenVerification?.definition.env?.NODE_AUTH_TOKEN !== '${{ secrets.NPM_TOKEN }}'
+      || promotionTokenVerification.definition.run !== 'npm whoami') {
+      errors.push('Coordinated stable promotion workflow must verify its npm-stable token before mutating dist-tags');
+    }
+    const promotionMutation = stepByName(coordinatedPromotionInspection, 'Promote reviewed candidate to latest');
+    if (promotionMutation?.definition.env?.NODE_AUTH_TOKEN !== '${{ secrets.NPM_TOKEN }}') {
+      errors.push('Coordinated stable promotion workflow must inject the npm-stable token into dist-tag mutation');
+    }
     if (!coordinatedPromotionInspection.steps.some(step =>
       step.definition.name === 'Upload coordinated stable promotion evidence'
       && step.definition.if === 'always()'

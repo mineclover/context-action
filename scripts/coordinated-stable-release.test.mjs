@@ -55,6 +55,8 @@ test('candidate and promotion workflows bind the exact coordinated cohort', () =
   assert.ok(promotion.includes('ref: ${{ github.sha }}'));
   assert.ok(promotion.includes('git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD'));
   assert.ok(!promotion.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
+  assert.ok(promotion.includes('name: Verify npm token auth'));
+  assert.ok(promotion.includes('NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}'));
 });
 
 test('the React state-management artifact excludes the Durable-backed tools entry', () => {

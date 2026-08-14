@@ -16,6 +16,13 @@ OpenRouter API key persistence is provided by the private
 and example app consume the same-origin `context-action.openrouter.api-key`
 contract; different deployments still have separate browser origins.
 
+This is a private workspace demo, not a consumer of the published React 2
+artifact. It intentionally aliases `@context-action/react/tools` to
+`packages/react/src/tools/index.ts` so it can exercise the experimental,
+Durable-backed ToolContext integration while Durable Operations remains on its
+separate development track. Public applications must not import that path from
+`@context-action/react`.
+
 ## Run locally
 
 From the repository root:

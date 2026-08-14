@@ -71,6 +71,11 @@ jobs:
           version: 10.30.3
           run_install: false
 
+      - name: Verify npm token auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -90,6 +95,8 @@ jobs:
             --packages "@context-action/core,@context-action/react"
 
       - name: Promote reviewed candidate to latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: node scripts/promote-coordinated-stable.mjs --output reports/npm-coordinated-stable-promotion-summary.json
 
       - name: Verify promoted stable consumer matrix and provenance
