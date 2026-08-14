@@ -90,20 +90,6 @@ function Layout({
         'Implementation-first canonical example with Action, Store, Ref, and testable boundaries',
     },
     {
-      path: '/integrations/live-code-editor',
-      label: '🧭 Usecase Boundary Lab',
-      category: 'architecture',
-      description:
-        'Live editor for Contract, Runtime, Facade, and Recipe boundaries',
-    },
-    {
-      path: '/integrations/live-web-coding',
-      label: '⚡ Realtime Web Coding',
-      category: 'architecture',
-      description:
-        'AI chat and visible web tools update a browser-local HTML/CSS/JS workspace',
-    },
-    {
       path: '/integrations/action-lifecycle',
       label: '⚙️ Action Lifecycle Workbench',
       category: 'architecture',
@@ -226,13 +212,6 @@ function Layout({
       label: '💬 Chat Demo',
       category: 'demos',
       description: 'Real-time messaging and auto-scroll features',
-    },
-    {
-      path: '/integrations/tool-context-ai',
-      label: '🤖 ToolContext + AI SDK',
-      category: 'demos',
-      description:
-        'AI SDK v7 tool loop controls UI through ToolContext and OpenRouter',
     },
     {
       path: '/catalog/integrations/mcp-function-calling',

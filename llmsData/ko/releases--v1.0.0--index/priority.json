@@ -2,7 +2,7 @@
   "document": {
     "id": "releases--v1.0.0--index",
     "title": "Context-Action v1.0.0 릴리스 문서",
-    "category": "guide",
+    "category": "releases",
     "source_path": "ko/releases/v1.0.0/index.md",
     "lastModified": "2026-08-09T02:59:17.854Z",
     "wordCount": 92
@@ -191,7 +191,7 @@
     "version": "1.0.0",
     "original_size": 1103,
     "created_at": "2026-08-09T02:59:28.623Z",
-    "source_last_modified": "2026-08-09T02:59:17.854Z",
+    "source_last_modified": "2026-08-10T17:31:27.546Z",
     "keywords": {
       "primary": [
         "releases",
@@ -209,6 +209,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-08-10T17:31:34.301Z"
   }
 }

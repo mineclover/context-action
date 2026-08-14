@@ -1,5 +1,11 @@
 # Tool Calling Editor Architecture
 
+> **Development-track status:** ToolContext and Durable Operations are not part
+> of the `@context-action/core@1.1.0` / `@context-action/react@2.0.0`
+> state-management release. The React 2 package intentionally omits
+> `@context-action/react/tools` while this protocol, persistence, and provider
+> recovery surface receives a separate release decision.
+
 A browser-based live editor keeps the canonical Tool Registry, policy, and call trace in the parent document. The iframe is a preview and document bridge, not the tool runtime.
 
 For the reusable Context-Action rules and use-case recipes behind this demo,
@@ -425,18 +431,29 @@ promise entry, so a later retry can observe the durable pending record instead
 of replaying an unrecorded success from memory.
 
 After a domain query, compensation, or user decision confirms the outcome,
-`registry.reconcileOperation(toolName, idempotencyKey, resolution)` can resolve
-an `unknown` record to `completed` or `failed` with an explicit recovery actor
-and revision check. It records the decision only; it never invokes the tool
-handler or guesses whether an external side effect occurred. A safe retry that
-creates a new logical operation must therefore use a new idempotency key.
+`registry.reconcileOperation(toolName, idempotencyKey, resolution, context,
+expectedFence)` can resolve an `unknown` record to `completed` or `failed`.
+`expectedFence` carries both the immutable `incarnation` and monotonic
+`revision` observed by the status read. This prevents an old decision from
+being applied to a new record that reused the same key and revision after
+pruning. The call records the recovery actor and validates the fence; it never
+invokes the tool handler or guesses whether an external side effect occurred.
+A safe retry that creates a new logical operation must therefore use a new
+idempotency key.
+
+Omitted fences and numeric revisions remain in the positional type for source
+compatibility, but they always fail closed at runtime. A shared registry status
+cache cannot prove which caller made an observation. New code must pass the
+status record's `incarnation` and `revision` explicitly as the fifth argument
+or use `recoverOperation()`.
 
 For the common status-first flow, `registry.recoverOperation(toolName,
 idempotencyKey, resolver)` reads the record and invokes `resolver` only when
 the observed state is `unknown`; pending and terminal records are returned
 without calling the resolver. The resolver owns the domain query,
-compensation, or user decision, and the resulting reconciliation uses the
-revision observed by the initial read to reject a stale decision.
+compensation, or user decision, and the resulting reconciliation uses the full
+fence observed by the initial read to reject stale decisions and prune/recreate
+ABA races.
 
 Handlers that know a partial external side effect may have occurred can return
 `TOOL_EXECUTION_UNKNOWN`. ToolContext marks the durable record `unknown` and
@@ -447,8 +464,9 @@ permission to replay the mutation.
 The dedicated `@context-action/tool-durable-operations` package provides
 `createDurableOperationStore(backend, options)` as the state-machine reference
 adapter. A backend needs durable
-`read`, revision-checked `compareAndSet`, and either a compatibility `list()`
-scan or bounded `listPage()` scan, so Redis, SQL, IndexedDB, or another atomic
+`read`, full-fence (`incarnation` plus `revision`) `compareAndSet`, and either a
+compatibility `list()` scan or bounded `listPage()` scan, so Redis, SQL,
+IndexedDB, or another atomic
 store can be supplied without moving persistence logic into ToolContext.
 Terminal records can be removed through `prune()` after the configured
 retention window.
@@ -462,8 +480,8 @@ for small, bounded stores only.
 
 The durable-operations package also includes `createRedisDurableOperationBackend()`.
 It stores JSON records in Redis, maintains a lexicographic sorted-set index,
-and performs record/index CAS through one Lua `EVAL`. The injected client bridge
-keeps node-redis and ioredis optional. Use
+and performs full-fence record/index CAS through one Lua `EVAL`. The injected
+client bridge keeps node-redis and ioredis optional. Use
 `createNodeRedisDurableOperationClient()` or
 `createIoredisDurableOperationClient()` to adapt an existing client; custom
 clients only need to provide `get`, `eval`, and `rangeByLex`. The repository CI
@@ -473,8 +491,8 @@ retention schedule.
 The durable-operations package also provides `createPostgresDurableOperationBackend()` as the
 reference SQL adapter. It accepts a structural `query(text, values)` client and
 does not add a `pg` runtime dependency. The adapter uses parameterized
-conditional `INSERT ... ON CONFLICT DO NOTHING`, revision-checked `UPDATE`, and
-revision-checked `DELETE` statements under PostgreSQL's default `READ COMMITTED`
+conditional `INSERT ... ON CONFLICT DO NOTHING`, full-fence `UPDATE`, and
+full-fence `DELETE` statements under PostgreSQL's default `READ COMMITTED`
 isolation. `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL` is an explicit migration
 boundary; the adapter never auto-migrates. The PostgreSQL decision, schema
 ownership, and live-server verification boundary are documented in the
@@ -482,7 +500,7 @@ ownership, and live-server verification boundary are documented in the
 
 Browser applications can use `createIndexedDbDurableOperationBackend()` as the
 reference browser backend. It lazily creates one object store and coordinates
-tabs through IndexedDB read-write transactions plus revision-checked CAS; use
+tabs through IndexedDB read-write transactions plus full-fence CAS; use
 the same `databaseName` and `storeName` in each tab. `close()` is optional and
 only releases the local connection. This coordinates the durable operation
 record, not the external side effect itself. The shared side-effect runner now

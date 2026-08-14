@@ -8,7 +8,7 @@
 
 > **ToolInteractionHandler** = (`request`) => `Promise`\<`"approved"` \| `"denied"`\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:107](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L107)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:108](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L108)
 
 An interaction may approve or deny policy-gated execution.
 

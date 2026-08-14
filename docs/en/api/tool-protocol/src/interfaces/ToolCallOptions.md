@@ -6,7 +6,7 @@
 
 # Interface: ToolCallOptions
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:520](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L520)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:531](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L531)
 
 Transport-independent options accepted by a managed tool call.
 
@@ -16,7 +16,7 @@ Transport-independent options accepted by a managed tool call.
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:521](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L521)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:532](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L532)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:521](https://github.com
 
 > `readonly` `optional` **timeout?**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:523](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L523)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:534](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L534)
 
 Wall-clock timeout covering policy evaluation and tool execution.
 
@@ -34,7 +34,7 @@ Wall-clock timeout covering policy evaluation and tool execution.
 
 > `readonly` `optional` **maxOutputBytes?**: `number`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:525](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L525)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:536](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L536)
 
 Optional output budget enforced at the canonical result boundary.
 
@@ -44,7 +44,7 @@ Optional output budget enforced at the canonical result boundary.
 
 > `readonly` `optional` **executionOwnerId?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:527](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L527)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:538](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L538)
 
 Optional logical owner override for execution provenance.
 
@@ -54,7 +54,7 @@ Optional logical owner override for execution provenance.
 
 > `readonly` `optional` **idempotencyKey?**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:529](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L529)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:540](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L540)
 
 Stable key for one logical mutation across provider retries.
 
@@ -64,7 +64,7 @@ Stable key for one logical mutation across provider retries.
 
 > `readonly` `optional` **interaction?**: [`ToolInteractionHandler`](../type-aliases/ToolInteractionHandler.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:531](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L531)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:542](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L542)
 
 Invoked only after argument validation and a policy `ask` decision.
 
@@ -74,4 +74,4 @@ Invoked only after argument validation and a policy `ask` decision.
 
 > `readonly` `optional` **context?**: [`ToolCallContext`](ToolCallContext.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:532](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L532)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:543](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L543)

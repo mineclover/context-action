@@ -6,7 +6,7 @@
 
 # Interface: PostgresDurableOperationBackendOptions
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:29](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L29)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:30](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L30)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:
 
 > `readonly` **client**: [`PostgresDurableOperationClient`](PostgresDurableOperationClient.md)
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:30](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L30)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:31](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L31)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:
 
 > `readonly` `optional` **tableName?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:32](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L32)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:33](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L33)
 
 PostgreSQL table name, optionally qualified as `schema.table`.
 
@@ -32,6 +32,6 @@ PostgreSQL table name, optionally qualified as `schema.table`.
 
 > `readonly` `optional` **defaultPageSize?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:34](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L34)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:35](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L35)
 
 Default page size for direct `listPage()` calls.

@@ -53,6 +53,7 @@ jobs:
         run: |
           [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
           git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
           test "$CONFIRMATION" = publish-maintenance-patch
@@ -71,27 +72,22 @@ jobs:
           case "$PATCH_PACKAGE" in
             core)
               consumer_closure='@context-action/core,@context-action/react'
-              build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
               allow_initial_release='false'
               ;;
             react)
               consumer_closure='@context-action/core,@context-action/react'
-              build_closure='@context-action/core @context-action/tool-protocol @context-action/react'
               allow_initial_release='false'
               ;;
             ai-sdk)
               consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
-              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
               allow_initial_release='true'
               ;;
             tool-protocol)
               consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
-              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
               allow_initial_release='false'
               ;;
             webmcp)
               consumer_closure='@context-action/core,@context-action/react,@context-action/tool-protocol,@context-action/ai-sdk,@context-action/webmcp'
-              build_closure='@context-action/core @context-action/tool-protocol @context-action/ai-sdk @context-action/react @context-action/webmcp'
               allow_initial_release='false'
               ;;
           esac
@@ -99,7 +95,6 @@ jobs:
           echo "PACKAGE_DIRECTORY=$PATCH_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
           echo "PATCH_CONSUMER_CLOSURE=$consumer_closure" >> "$GITHUB_ENV"
-          echo "PATCH_BUILD_CLOSURE=$build_closure" >> "$GITHUB_ENV"
           echo "ALLOW_INITIAL_RELEASE=$allow_initial_release" >> "$GITHUB_ENV"
 
       - name: Clear npm config before registry setup
@@ -129,13 +124,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify source and packed changelog
-        run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY" --forbid-unreleased
+        run: node scripts/verify-tool-protocol-changelog.mjs --package "$PACKAGE_DIRECTORY" --forbid-unreleased --require-release-date
 
-      - name: Build and test the maintenance closure
+      - name: Build workspace dependencies and test the maintenance target
         run: |
-          for package_name in $PATCH_BUILD_CLOSURE; do
-            pnpm --filter "$package_name" build
-          done
+          pnpm build
           pnpm --filter "$PACKAGE_NAME" type-check
           pnpm --filter "$PACKAGE_NAME" test
 
@@ -163,12 +156,22 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          command=(node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION")
-          if [ "$ALLOW_INITIAL_RELEASE" = true ]; then command+=(--allow-initial); fi
-          "${command[@]}"
+          if [ "$ALLOW_INITIAL_RELEASE" = true ]; then
+            node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION" --allow-initial
+          else
+            node scripts/verify-maintenance-patch-version.mjs --package "$PACKAGE_NAME" --version "$PACKAGE_VERSION"
+          fi
 
       - name: Verify local tarball reverse dependency closure
         run: pnpm verify:published-tool-consumers -- --local --packages "$PATCH_CONSUMER_CLOSURE"
+
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
 
       - name: Publish the new patch candidate
         if: env.PUBLISH_REQUIRED != 'false'
@@ -190,41 +193,329 @@ jobs:
       - name: Verify published AI SDK Tool Protocol deduplication
         if: env.PACKAGE_DIRECTORY == 'ai-sdk'
         run: |
-          # The release artifact stays pinned to RELEASE_COMMIT, while this
-          # post-publication verifier is loaded from the reviewed workflow ref.
-          # This allows a safe resume to validate an already-published artifact
-          # with a corrected verifier without changing its provenance source.
+          # RELEASE_COMMIT is equal to the dispatch event SHA, so the verifier
+          # and the published artifact remain bound to the same immutable source.
           verifier_path="scripts/.verify-ai-sdk-tool-protocol-contract.workflow.mjs"
           trap 'rm -f "$verifier_path"' EXIT
           git show "$GITHUB_SHA:scripts/verify-ai-sdk-tool-protocol-contract.mjs" \
             > "$verifier_path"
-          node "$verifier_path" --published --version "$PACKAGE_VERSION"
+          node scripts/.verify-ai-sdk-tool-protocol-contract.workflow.mjs --published --version "$PACKAGE_VERSION"
 
       - name: Verify published candidate reverse dependency closure
         run: pnpm verify:published-tool-consumers -- --tag latest --package-tag "$PACKAGE_NAME=maintenance" --packages "$PATCH_CONSUMER_CLOSURE"
 
-      - name: Record previous latest tag
+      - name: Prepare registry rollback journal
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          previous_latest="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry=https://registry.npmjs.org 2>/dev/null || true)"
+          read_dist_tags() {
+            local attempt dist_tags
+            for attempt in {1..12}; do
+              if dist_tags="$(npm view "$PACKAGE_NAME" dist-tags --json --registry=https://registry.npmjs.org)" &&
+                DIST_TAGS_JSON="$dist_tags" node -e '
+                  const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+                  if (tags === null || Array.isArray(tags) || typeof tags !== "object") {
+                    throw new Error("npm dist-tags response must be a JSON object");
+                  }
+                '
+              then
+                printf '%s' "$dist_tags"
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then
+                echo "Waiting for npm dist-tags ($attempt/11)..." >&2
+                sleep 5
+              fi
+            done
+            echo "Could not read valid dist-tags for $PACKAGE_NAME" >&2
+            return 1
+          }
+
+          tag_value() {
+            DIST_TAGS_JSON="$dist_tags" TAG_NAME="$1" node -e '
+              const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+              const value = tags[process.env.TAG_NAME];
+              if (value !== undefined) {
+                if (typeof value !== "string" || value.length === 0) {
+                  throw new Error(`npm dist-tag ${process.env.TAG_NAME} must be a non-empty string`);
+                }
+                process.stdout.write(value);
+              }
+            '
+          }
+
+          validate_candidate_marker() {
+            local marker_name="$1" marker_value="$2"
+            if [ -n "$marker_value" ] && [ "$marker_value" != "$PACKAGE_VERSION" ]; then
+              echo "Contradictory rollback journal: $marker_name resolves to $marker_value, expected $PACKAGE_VERSION." >&2
+              return 1
+            fi
+          }
+
+          journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
+          journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
+          journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
+          journal_completed_tag="maintenance-journal-completed-$PACKAGE_VERSION"
+          journal_rolled_back_tag="maintenance-journal-rolled-back-$PACKAGE_VERSION"
+
+          dist_tags="$(read_dist_tags)"
+          DIST_TAGS_JSON="$dist_tags" CURRENT_CANDIDATE="$PACKAGE_VERSION" node -e '
+            const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+            if (tags.maintenance !== process.env.CURRENT_CANDIDATE) {
+              throw new Error(`maintenance must resolve to ${process.env.CURRENT_CANDIDATE}`);
+            }
+            const patterns = [
+              ["previous", /^maintenance-previous-(\d+\.\d+\.\d+)$/],
+              ["absent", /^maintenance-previous-absent-(\d+\.\d+\.\d+)$/],
+              ["ready", /^maintenance-journal-ready-(\d+\.\d+\.\d+)$/],
+              ["completed", /^maintenance-journal-completed-(\d+\.\d+\.\d+)$/],
+              ["rolledBack", /^maintenance-journal-rolled-back-(\d+\.\d+\.\d+)$/],
+            ];
+            const journals = new Map();
+            for (const [tag, value] of Object.entries(tags)) {
+              for (const [field, pattern] of patterns) {
+                const match = tag.match(pattern);
+                if (!match) continue;
+                const candidate = match[1];
+                const journal = journals.get(candidate) ?? {};
+                journal[field] = value;
+                journals.set(candidate, journal);
+                break;
+              }
+            }
+            for (const [candidate, journal] of journals) {
+              if (journal.previous !== undefined &&
+                (!/^\d+\.\d+\.\d+$/.test(journal.previous) || journal.previous === candidate)) {
+                throw new Error(`invalid previous marker for ${candidate}`);
+              }
+              for (const field of ["absent", "ready", "completed", "rolledBack"]) {
+                if (journal[field] !== undefined && journal[field] !== candidate) {
+                  throw new Error(`invalid ${field} marker for ${candidate}`);
+                }
+              }
+              if (journal.previous !== undefined && journal.absent !== undefined) {
+                throw new Error(`contradictory predecessor markers for ${candidate}`);
+              }
+              if (journal.completed !== undefined && journal.rolledBack !== undefined) {
+                throw new Error(`contradictory terminal markers for ${candidate}`);
+              }
+              const hasPredecessor = journal.previous !== undefined || journal.absent !== undefined;
+              const hasTerminal = journal.completed !== undefined || journal.rolledBack !== undefined;
+              if ((journal.ready !== undefined || hasTerminal) && !hasPredecessor) {
+                throw new Error(`journal ${candidate} has state without a predecessor`);
+              }
+              if (hasTerminal && journal.ready === undefined) {
+                throw new Error(`journal ${candidate} has a terminal marker without ready`);
+              }
+              if (candidate !== process.env.CURRENT_CANDIDATE) {
+                if (journal.ready === undefined || !hasTerminal) {
+                  throw new Error(`foreign maintenance journal ${candidate} is unresolved`);
+                }
+                if (journal.rolledBack !== undefined && tags.latest === candidate) {
+                  throw new Error(`foreign maintenance rollback ${candidate} is unfinished`);
+                }
+              }
+            }
+          '
+          current_latest="$(tag_value latest)"
+          previous_latest="$(tag_value "$journal_previous_tag")"
+          absent_marker="$(tag_value "$journal_absent_tag")"
+          ready_marker="$(tag_value "$journal_ready_tag")"
+          completed_marker="$(tag_value "$journal_completed_tag")"
+          rolled_back_marker="$(tag_value "$journal_rolled_back_tag")"
+
+          validate_candidate_marker "$journal_absent_tag" "$absent_marker"
+          validate_candidate_marker "$journal_ready_tag" "$ready_marker"
+          validate_candidate_marker "$journal_completed_tag" "$completed_marker"
+          validate_candidate_marker "$journal_rolled_back_tag" "$rolled_back_marker"
           if [ -n "$previous_latest" ]; then
             [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-            if [ "$previous_latest" = "$PACKAGE_VERSION" ]; then
-              echo 'LATEST_ALREADY_PROMOTED=true' >> "$GITHUB_ENV"
-              echo "Latest already resolves to verified candidate $PACKAGE_NAME@$PACKAGE_VERSION."
-              exit 0
-            fi
+            test "$previous_latest" != "$PACKAGE_VERSION"
           fi
-          echo "PREVIOUS_LATEST=$previous_latest" >> "$GITHUB_ENV"
+          if [ -n "$previous_latest" ] && [ -n "$absent_marker" ]; then
+            echo "Contradictory rollback journal: both previous and absent markers exist." >&2
+            exit 1
+          fi
+          if [ -n "$completed_marker" ] && [ -n "$rolled_back_marker" ]; then
+            echo "Contradictory rollback journal: both completed and rolled-back markers exist." >&2
+            exit 1
+          fi
+          if { [ -n "$ready_marker" ] || [ -n "$completed_marker" ] || [ -n "$rolled_back_marker" ]; } &&
+            { [ -z "$previous_latest" ] && [ -z "$absent_marker" ]; }
+          then
+            echo "Incomplete rollback journal: state marker exists without a predecessor marker." >&2
+            exit 1
+          fi
+          if { [ -n "$completed_marker" ] || [ -n "$rolled_back_marker" ]; } && [ -z "$ready_marker" ]; then
+            echo "Incomplete rollback journal: terminal marker exists without a ready marker." >&2
+            exit 1
+          fi
+
+          if [ -n "$completed_marker" ]; then
+            test "$current_latest" = "$PACKAGE_VERSION"
+            echo 'JOURNAL_COMPLETED=true' >> "$GITHUB_ENV"
+            echo 'LATEST_ALREADY_PROMOTED=true' >> "$GITHUB_ENV"
+            echo "Promotion journal is already completed for $PACKAGE_NAME@$PACKAGE_VERSION."
+            exit 0
+          fi
+          if [ -n "$rolled_back_marker" ]; then
+            if [ -n "$previous_latest" ]; then
+              if [ "$current_latest" != "$previous_latest" ] && [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+                echo "Latest conflicts with the recorded rollback state." >&2
+                exit 1
+              fi
+            else
+              if [ -n "$current_latest" ] && [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+                echo "Latest conflicts with the recorded absent predecessor." >&2
+                exit 1
+              fi
+            fi
+            echo "Candidate $PACKAGE_NAME@$PACKAGE_VERSION was already rolled back; refusing to re-promote it." >&2
+            exit 1
+          fi
+
+          if [ -z "$previous_latest" ] && [ -z "$absent_marker" ]; then
+            if [ "$current_latest" = "$PACKAGE_VERSION" ]; then
+              echo "Candidate is already latest but its rollback predecessor is missing." >&2
+              exit 1
+            fi
+            if [ -n "$current_latest" ]; then
+              [[ "$current_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              npm dist-tag add "$PACKAGE_NAME@$current_latest" "$journal_previous_tag" --registry=https://registry.npmjs.org
+            else
+              npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_absent_tag" --registry=https://registry.npmjs.org
+            fi
+            dist_tags="$(read_dist_tags)"
+            current_latest="$(tag_value latest)"
+            previous_latest="$(tag_value "$journal_previous_tag")"
+            absent_marker="$(tag_value "$journal_absent_tag")"
+          fi
+
+          if [ -z "$ready_marker" ]; then
+            if [ -n "$previous_latest" ] && [ -z "$absent_marker" ]; then
+              [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              test "$previous_latest" != "$PACKAGE_VERSION"
+              test "$current_latest" = "$previous_latest"
+            elif [ -z "$previous_latest" ] && [ "$absent_marker" = "$PACKAGE_VERSION" ]; then
+              test -z "$current_latest"
+            else
+              echo "Rollback journal predecessor was not persisted exactly once." >&2
+              exit 1
+            fi
+            npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_ready_tag" --registry=https://registry.npmjs.org
+          fi
+
+          dist_tags="$(read_dist_tags)"
+          current_latest="$(tag_value latest)"
+          previous_latest="$(tag_value "$journal_previous_tag")"
+          absent_marker="$(tag_value "$journal_absent_tag")"
+          ready_marker="$(tag_value "$journal_ready_tag")"
+          completed_marker="$(tag_value "$journal_completed_tag")"
+          rolled_back_marker="$(tag_value "$journal_rolled_back_tag")"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          validate_candidate_marker "$journal_absent_tag" "$absent_marker"
+          validate_candidate_marker "$journal_ready_tag" "$ready_marker"
+          test "$ready_marker" = "$PACKAGE_VERSION"
+          test -z "$completed_marker"
+          test -z "$rolled_back_marker"
+          if [ -n "$previous_latest" ] && [ -z "$absent_marker" ]; then
+            [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$previous_latest" != "$PACKAGE_VERSION"
+            if [ "$current_latest" != "$previous_latest" ] && [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+              echo "Latest changed after journal preparation; refusing promotion." >&2
+              exit 1
+            fi
+          elif [ -z "$previous_latest" ] && [ "$absent_marker" = "$PACKAGE_VERSION" ]; then
+            if [ -n "$current_latest" ] && [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+              echo "Latest appeared after absent-predecessor journaling; refusing promotion." >&2
+              exit 1
+            fi
+          else
+            echo "Rollback journal must contain exactly one predecessor representation." >&2
+            exit 1
+          fi
+          echo 'ROLLBACK_JOURNAL_READY=true' >> "$GITHUB_ENV"
+          if [ "$current_latest" = "$PACKAGE_VERSION" ]; then
+            echo 'LATEST_ALREADY_PROMOTED=true' >> "$GITHUB_ENV"
+            echo "Recovered an interrupted promotion of $PACKAGE_NAME@$PACKAGE_VERSION."
+          fi
 
       - name: Promote verified candidate to latest
-        if: env.LATEST_ALREADY_PROMOTED != 'true'
+        if: env.JOURNAL_COMPLETED != 'true' && env.LATEST_ALREADY_PROMOTED != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          read_dist_tags() {
+            local attempt dist_tags
+            for attempt in {1..12}; do
+              if dist_tags="$(npm view "$PACKAGE_NAME" dist-tags --json --registry=https://registry.npmjs.org)" &&
+                DIST_TAGS_JSON="$dist_tags" node -e '
+                  const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+                  if (tags === null || Array.isArray(tags) || typeof tags !== "object") {
+                    throw new Error("npm dist-tags response must be a JSON object");
+                  }
+                '
+              then
+                printf '%s' "$dist_tags"
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then sleep 5; fi
+            done
+            echo "Could not read valid dist-tags for $PACKAGE_NAME before promotion" >&2
+            return 1
+          }
+          tag_value() {
+            DIST_TAGS_JSON="$dist_tags" TAG_NAME="$1" node -e '
+              const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+              const value = tags[process.env.TAG_NAME];
+              if (value !== undefined) {
+                if (typeof value !== "string" || value.length === 0) throw new Error("Invalid npm dist-tag value");
+                process.stdout.write(value);
+              }
+            '
+          }
+
+          journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
+          journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
+          journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
+          journal_completed_tag="maintenance-journal-completed-$PACKAGE_VERSION"
+          journal_rolled_back_tag="maintenance-journal-rolled-back-$PACKAGE_VERSION"
+          dist_tags="$(read_dist_tags)"
+          current_latest="$(tag_value latest)"
+          previous_latest="$(tag_value "$journal_previous_tag")"
+          absent_marker="$(tag_value "$journal_absent_tag")"
+          ready_marker="$(tag_value "$journal_ready_tag")"
+          completed_marker="$(tag_value "$journal_completed_tag")"
+          rolled_back_marker="$(tag_value "$journal_rolled_back_tag")"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$ready_marker" = "$PACKAGE_VERSION"
+          test -z "$completed_marker"
+          test -z "$rolled_back_marker"
+          if [ -n "$previous_latest" ] && [ -z "$absent_marker" ]; then
+            [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$previous_latest" != "$PACKAGE_VERSION"
+            test "$current_latest" = "$previous_latest"
+          elif [ -z "$previous_latest" ] && [ "$absent_marker" = "$PACKAGE_VERSION" ]; then
+            test -z "$current_latest"
+          else
+            echo "Rollback journal is missing or contradictory before promotion." >&2
+            exit 1
+          fi
+
           npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" latest --registry=https://registry.npmjs.org
-          echo 'LATEST_PROMOTED=true' >> "$GITHUB_ENV"
+          dist_tags="$(read_dist_tags)"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$(tag_value latest)" = "$PACKAGE_VERSION"
+          test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
+          test -z "$(tag_value "$journal_completed_tag")"
+          test -z "$(tag_value "$journal_rolled_back_tag")"
+          if [ -n "$previous_latest" ]; then
+            test "$(tag_value "$journal_previous_tag")" = "$previous_latest"
+            test -z "$(tag_value "$journal_absent_tag")"
+          else
+            test -z "$(tag_value "$journal_previous_tag")"
+            test "$(tag_value "$journal_absent_tag")" = "$PACKAGE_VERSION"
+          fi
 
       - name: Verify latest closure and capture evidence
         run: |
@@ -232,18 +523,100 @@ jobs:
           pnpm capture:published-release -- --tag latest --packages "$PACKAGE_NAME" \
             --consumer-status passed --output reports/maintenance-patch-registry-evidence.json
 
-      - name: Roll back latest after post-promotion failure
-        if: failure() && env.LATEST_PROMOTED == 'true'
+      - name: Capture maintenance journal evidence
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          JOURNAL_EVIDENCE_PATH: reports/maintenance-patch-journal-evidence.json
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
-          if [ -n "$PREVIOUS_LATEST" ]; then
-            npm dist-tag add "$PACKAGE_NAME@$PREVIOUS_LATEST" latest --registry=https://registry.npmjs.org
-            echo "Restored $PACKAGE_NAME latest to $PREVIOUS_LATEST"
-          else
-            npm dist-tag rm "$PACKAGE_NAME" latest --registry=https://registry.npmjs.org
-            echo "Removed initial $PACKAGE_NAME latest tag"
-          fi
+          read_dist_tags() {
+            local attempt dist_tags
+            for attempt in {1..12}; do
+              if dist_tags="$(npm view "$PACKAGE_NAME" dist-tags --json --registry=https://registry.npmjs.org)"; then
+                printf '%s' "$dist_tags"
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then sleep 5; fi
+            done
+            echo "Could not read dist-tags for journal evidence" >&2
+            return 1
+          }
+
+          journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
+          journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
+          journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
+          journal_completed_tag="maintenance-journal-completed-$PACKAGE_VERSION"
+          journal_rolled_back_tag="maintenance-journal-rolled-back-$PACKAGE_VERSION"
+          dist_tags="$(read_dist_tags)"
+          DIST_TAGS_JSON="$dist_tags" \
+            JOURNAL_PREVIOUS_TAG="$journal_previous_tag" \
+            JOURNAL_ABSENT_TAG="$journal_absent_tag" \
+            JOURNAL_READY_TAG="$journal_ready_tag" \
+            JOURNAL_COMPLETED_TAG="$journal_completed_tag" \
+            JOURNAL_ROLLED_BACK_TAG="$journal_rolled_back_tag" \
+            node -e '
+            const { mkdirSync, writeFileSync } = require("node:fs");
+            const { dirname } = require("node:path");
+            const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+            if (tags === null || Array.isArray(tags) || typeof tags !== "object") {
+              throw new Error("npm dist-tags response must be a JSON object");
+            }
+            const candidate = process.env.PACKAGE_VERSION;
+            const tag = name => {
+              const value = tags[name];
+              if (value !== undefined && (typeof value !== "string" || value.length === 0)) {
+                throw new Error(`npm dist-tag ${name} must be a non-empty string`);
+              }
+              return value;
+            };
+            const previous = tag(process.env.JOURNAL_PREVIOUS_TAG);
+            const absent = tag(process.env.JOURNAL_ABSENT_TAG);
+            const ready = tag(process.env.JOURNAL_READY_TAG);
+            const completed = tag(process.env.JOURNAL_COMPLETED_TAG);
+            const rolledBack = tag(process.env.JOURNAL_ROLLED_BACK_TAG);
+            if (process.env.RELEASE_COMMIT !== process.env.GITHUB_SHA) {
+              throw new Error("journal evidence source commit must equal GITHUB_SHA");
+            }
+            if (tags.maintenance !== candidate || tags.latest !== candidate || ready !== candidate) {
+              throw new Error("journal evidence must observe the verified candidate on maintenance and latest with ready state");
+            }
+            if (completed !== undefined && completed !== candidate) {
+              throw new Error("completed marker must resolve to the candidate");
+            }
+            if (rolledBack !== undefined) {
+              throw new Error("rolled-back marker cannot coexist with verified candidate evidence");
+            }
+            let predecessor;
+            if (previous !== undefined && absent === undefined) {
+              if (!/^\d+\.\d+\.\d+$/.test(previous) || previous === candidate) {
+                throw new Error("previous marker must name a different stable version");
+              }
+              predecessor = { kind: "version", version: previous };
+            } else if (previous === undefined && absent === candidate) {
+              predecessor = { kind: "absent" };
+            } else {
+              throw new Error("journal evidence requires exactly one predecessor representation");
+            }
+            const report = {
+              schemaVersion: 1,
+              phase: completed === candidate ? "completed-rerun" : "verified-before-completion",
+              package: process.env.PACKAGE_NAME,
+              candidateVersion: candidate,
+              releaseCommit: process.env.RELEASE_COMMIT,
+              workflowEventSha: process.env.GITHUB_SHA,
+              registry: "https://registry.npmjs.org",
+              latest: tags.latest,
+              maintenance: tags.maintenance,
+              predecessor,
+              markers: {
+                ready,
+                completed: completed ?? null,
+                rolledBack: null,
+              },
+              observedAt: new Date().toISOString(),
+            };
+            mkdirSync(dirname(process.env.JOURNAL_EVIDENCE_PATH), { recursive: true });
+            writeFileSync(process.env.JOURNAL_EVIDENCE_PATH, `${JSON.stringify(report, null, 2)}\n`);
+          '
 
       - name: Upload maintenance-patch evidence
         if: always()
@@ -253,3 +626,256 @@ jobs:
           path: reports/maintenance-patch-*.json
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Finalize successful promotion journal
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          read_dist_tags() {
+            local attempt dist_tags
+            for attempt in {1..12}; do
+              if dist_tags="$(npm view "$PACKAGE_NAME" dist-tags --json --registry=https://registry.npmjs.org)" &&
+                DIST_TAGS_JSON="$dist_tags" node -e '
+                  const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+                  if (tags === null || Array.isArray(tags) || typeof tags !== "object") {
+                    throw new Error("npm dist-tags response must be a JSON object");
+                  }
+                '
+              then
+                printf '%s' "$dist_tags"
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then sleep 5; fi
+            done
+            echo "Could not read valid dist-tags for $PACKAGE_NAME during finalization" >&2
+            return 1
+          }
+          tag_value() {
+            DIST_TAGS_JSON="$dist_tags" TAG_NAME="$1" node -e '
+              const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+              const value = tags[process.env.TAG_NAME];
+              if (value !== undefined) {
+                if (typeof value !== "string" || value.length === 0) throw new Error("Invalid npm dist-tag value");
+                process.stdout.write(value);
+              }
+            '
+          }
+
+          journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
+          journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
+          journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
+          journal_completed_tag="maintenance-journal-completed-$PACKAGE_VERSION"
+          journal_rolled_back_tag="maintenance-journal-rolled-back-$PACKAGE_VERSION"
+          dist_tags="$(read_dist_tags)"
+          current_latest="$(tag_value latest)"
+          previous_latest="$(tag_value "$journal_previous_tag")"
+          absent_marker="$(tag_value "$journal_absent_tag")"
+          ready_marker="$(tag_value "$journal_ready_tag")"
+          completed_marker="$(tag_value "$journal_completed_tag")"
+          rolled_back_marker="$(tag_value "$journal_rolled_back_tag")"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$current_latest" = "$PACKAGE_VERSION"
+          test "$ready_marker" = "$PACKAGE_VERSION"
+          test -z "$rolled_back_marker"
+          if [ -n "$previous_latest" ] && [ -z "$absent_marker" ]; then
+            [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$previous_latest" != "$PACKAGE_VERSION"
+          elif [ -z "$previous_latest" ] && [ "$absent_marker" = "$PACKAGE_VERSION" ]; then
+            :
+          else
+            echo "Rollback journal is missing or contradictory during finalization." >&2
+            exit 1
+          fi
+          if [ -n "$completed_marker" ]; then
+            test "$completed_marker" = "$PACKAGE_VERSION"
+            exit 0
+          fi
+
+          npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_completed_tag" --registry=https://registry.npmjs.org
+          dist_tags="$(read_dist_tags)"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$(tag_value latest)" = "$PACKAGE_VERSION"
+          test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
+          test "$(tag_value "$journal_completed_tag")" = "$PACKAGE_VERSION"
+          test -z "$(tag_value "$journal_rolled_back_tag")"
+          if [ -n "$previous_latest" ]; then
+            test "$(tag_value "$journal_previous_tag")" = "$previous_latest"
+            test -z "$(tag_value "$journal_absent_tag")"
+          else
+            test -z "$(tag_value "$journal_previous_tag")"
+            test "$(tag_value "$journal_absent_tag")" = "$PACKAGE_VERSION"
+          fi
+
+      - name: Roll back latest after post-promotion failure
+        if: ${{ failure() || cancelled() }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          read_dist_tags() {
+            local attempt dist_tags
+            for attempt in {1..12}; do
+              if dist_tags="$(npm view "$PACKAGE_NAME" dist-tags --json --registry=https://registry.npmjs.org)" &&
+                DIST_TAGS_JSON="$dist_tags" node -e '
+                  const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+                  if (tags === null || Array.isArray(tags) || typeof tags !== "object") {
+                    throw new Error("npm dist-tags response must be a JSON object");
+                  }
+                '
+              then
+                printf '%s' "$dist_tags"
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then
+                echo "Waiting for npm dist-tags ($attempt/11)..." >&2
+                sleep 5
+              fi
+            done
+            echo "Could not read valid dist-tags for $PACKAGE_NAME before rollback" >&2
+            return 1
+          }
+          tag_value() {
+            DIST_TAGS_JSON="$dist_tags" TAG_NAME="$1" node -e '
+              const tags = JSON.parse(process.env.DIST_TAGS_JSON);
+              const value = tags[process.env.TAG_NAME];
+              if (value !== undefined) {
+                if (typeof value !== "string" || value.length === 0) throw new Error("Invalid npm dist-tag value");
+                process.stdout.write(value);
+              }
+            '
+          }
+
+          journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
+          journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
+          journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
+          journal_completed_tag="maintenance-journal-completed-$PACKAGE_VERSION"
+          journal_rolled_back_tag="maintenance-journal-rolled-back-$PACKAGE_VERSION"
+          dist_tags="$(read_dist_tags)"
+          current_latest="$(tag_value latest)"
+          previous_latest="$(tag_value "$journal_previous_tag")"
+          absent_marker="$(tag_value "$journal_absent_tag")"
+          ready_marker="$(tag_value "$journal_ready_tag")"
+          completed_marker="$(tag_value "$journal_completed_tag")"
+          rolled_back_marker="$(tag_value "$journal_rolled_back_tag")"
+          maintenance_candidate="$(tag_value maintenance)"
+
+          for marker in "$absent_marker" "$ready_marker" "$completed_marker" "$rolled_back_marker"; do
+            if [ -n "$marker" ] && [ "$marker" != "$PACKAGE_VERSION" ]; then
+              echo "Contradictory rollback journal marker value: $marker" >&2
+              exit 1
+            fi
+          done
+          if [ -n "$previous_latest" ]; then
+            [[ "$previous_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            test "$previous_latest" != "$PACKAGE_VERSION"
+          fi
+          if [ -n "$previous_latest" ] && [ -n "$absent_marker" ]; then
+            echo "Contradictory rollback journal: both previous and absent markers exist." >&2
+            exit 1
+          fi
+          if [ -n "$completed_marker" ] && [ -n "$rolled_back_marker" ]; then
+            echo "Contradictory rollback journal: both completed and rolled-back markers exist." >&2
+            exit 1
+          fi
+
+          rollback_target=''
+          if [ -n "$previous_latest" ] && [ -z "$absent_marker" ]; then
+            rollback_target="$previous_latest"
+          elif [ -z "$previous_latest" ] && [ "$absent_marker" = "$PACKAGE_VERSION" ]; then
+            rollback_target=''
+          elif [ -n "$ready_marker" ] || [ -n "$completed_marker" ] || [ -n "$rolled_back_marker" ]; then
+            echo "Rollback journal must contain exactly one predecessor representation." >&2
+            exit 1
+          fi
+
+          if [ -n "$completed_marker" ]; then
+            test "$maintenance_candidate" = "$PACKAGE_VERSION"
+            test "$ready_marker" = "$PACKAGE_VERSION"
+            test "$current_latest" = "$PACKAGE_VERSION"
+            echo "Promotion journal is completed; preserving verified latest."
+            exit 0
+          fi
+          if [ -n "$rolled_back_marker" ]; then
+            test "$maintenance_candidate" = "$PACKAGE_VERSION"
+            test "$ready_marker" = "$PACKAGE_VERSION"
+            if [ "$current_latest" = "$rollback_target" ]; then
+              echo "Rollback journal is already finalized."
+              exit 0
+            fi
+            if [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+              echo "Refusing interrupted rollback because latest changed to ${current_latest:-absent}." >&2
+              exit 1
+            fi
+          fi
+          if [ -z "$ready_marker" ]; then
+            if [ "$current_latest" = "$PACKAGE_VERSION" ]; then
+              echo "Refusing rollback: candidate is latest without a complete rollback journal." >&2
+              exit 1
+            fi
+            if [ -n "$previous_latest" ] && [ -n "$absent_marker" ]; then
+              echo "Contradictory partial rollback journal." >&2
+              exit 1
+            fi
+            echo "No prepared promotion journal; latest was not mutated by this state machine."
+            exit 0
+          fi
+          test "$maintenance_candidate" = "$PACKAGE_VERSION"
+          test "$ready_marker" = "$PACKAGE_VERSION"
+
+          if [ "$current_latest" != "$PACKAGE_VERSION" ]; then
+            if [ "$current_latest" = "$rollback_target" ]; then
+              echo "Latest already matches the recorded predecessor; no mutation is needed."
+              exit 0
+            fi
+            echo "Refusing rollback because latest changed to ${current_latest:-absent}." >&2
+            exit 1
+          fi
+
+          if [ -z "$rolled_back_marker" ]; then
+            npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_rolled_back_tag" --registry=https://registry.npmjs.org
+            dist_tags="$(read_dist_tags)"
+            test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+            test "$(tag_value latest)" = "$PACKAGE_VERSION"
+            test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
+            test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"
+            test -z "$(tag_value "$journal_completed_tag")"
+            if [ -n "$rollback_target" ]; then
+              test "$(tag_value "$journal_previous_tag")" = "$rollback_target"
+              test -z "$(tag_value "$journal_absent_tag")"
+            else
+              test -z "$(tag_value "$journal_previous_tag")"
+              test "$(tag_value "$journal_absent_tag")" = "$PACKAGE_VERSION"
+            fi
+          fi
+
+          dist_tags="$(read_dist_tags)"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$(tag_value latest)" = "$PACKAGE_VERSION"
+          test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
+          test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"
+          test -z "$(tag_value "$journal_completed_tag")"
+          if [ -n "$rollback_target" ]; then
+            test "$(tag_value "$journal_previous_tag")" = "$rollback_target"
+            test -z "$(tag_value "$journal_absent_tag")"
+          else
+            test -z "$(tag_value "$journal_previous_tag")"
+            test "$(tag_value "$journal_absent_tag")" = "$PACKAGE_VERSION"
+          fi
+
+          if [ -n "$rollback_target" ]; then
+            npm dist-tag add "$PACKAGE_NAME@$rollback_target" latest --registry=https://registry.npmjs.org
+          else
+            npm dist-tag rm "$PACKAGE_NAME" latest --registry=https://registry.npmjs.org
+          fi
+          dist_tags="$(read_dist_tags)"
+          test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
+          test "$(tag_value latest)" = "$rollback_target"
+          test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
+          test -z "$(tag_value "$journal_completed_tag")"
+          test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"
+          if [ -n "$rollback_target" ]; then
+            test "$(tag_value "$journal_previous_tag")" = "$rollback_target"
+            test -z "$(tag_value "$journal_absent_tag")"
+          else
+            test -z "$(tag_value "$journal_previous_tag")"
+            test "$(tag_value "$journal_absent_tag")" = "$PACKAGE_VERSION"
+          fi

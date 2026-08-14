@@ -8,6 +8,6 @@
 
 > **ToolValidationMode** = `"strict"` \| `"warn"` \| `"silent"`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L50)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:51](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L51)
 
 Validation mode for tool execution

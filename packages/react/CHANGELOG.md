@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.0] (2026-08-11)
+
+### Breaking changes
+
+- The Durable-backed `@context-action/react/tools` entry point is not included
+  in this state-management release. It remains in the repository's Durable
+  development track and will receive its own compatibility and release plan.
+
+### Reliability fixes
+
+- Make Action Provider handler ownership restartable across React 19 Activity
+  hide/reveal and Strict Mode lifecycle boundaries without exposing abandoned
+  concurrent-render callbacks.
+- Stabilize object selectors during SSR hydration and release server-only
+  snapshot cache state after the client commit.
+
 ## [1.0.0] (2026-08-09)
 
 ### Stable Contracts

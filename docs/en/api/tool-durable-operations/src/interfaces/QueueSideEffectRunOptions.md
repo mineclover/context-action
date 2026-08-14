@@ -100,7 +100,7 @@ Optional classification for errors known to happen before enqueue.
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:122](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L122)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L124)
 
 #### Inherited from
 
@@ -112,7 +112,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:122](https://gi
 
 > `readonly` **fingerprint**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:123](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L123)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L125)
 
 #### Inherited from
 
@@ -124,7 +124,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:123](https://gi
 
 > `readonly` `optional` **leaseMs?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L124)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:126](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L126)
 
 #### Inherited from
 
@@ -136,7 +136,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:124](https://gi
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L125)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L127)
 
 #### Inherited from
 
@@ -148,7 +148,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:125](https://gi
 
 > `readonly` `optional` **abortDiagnostic?**: `TDiagnostic`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L127)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:129](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L129)
 
 Optional bounded diagnostic retained when cancellation wins the race.
 

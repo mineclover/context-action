@@ -105,6 +105,9 @@ importers:
       vue:
         specifier: 3.5.40
         version: 3.5.40(typescript@6.0.3)
+      yaml:
+        specifier: 2.9.0
+        version: 2.9.0
 
   demos/bolt-style-editor:
     dependencies:
@@ -471,24 +474,24 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^1.0.0
+        specifier: ^1.1.0
         version: link:../core
       '@context-action/mutative':
         specifier: ^0.8.8
         version: link:../mutative
-      '@context-action/tool-durable-operations':
-        specifier: ^0.1.1
-        version: link:../tool-durable-operations
       '@context-action/tool-protocol':
         specifier: ^1.0.0
         version: link:../tool-protocol
       '@context-action/webmcp':
-        specifier: ^0.1.0
+        specifier: ^0.1.2
         version: link:../webmcp
     devDependencies:
       '@babel/core':
         specifier: 7.29.7
         version: 7.29.7
+      '@context-action/tool-durable-operations':
+        specifier: workspace:*
+        version: link:../tool-durable-operations
       '@swc/core':
         specifier: 1.15.46
         version: 1.15.46(@swc/helpers@0.5.23)

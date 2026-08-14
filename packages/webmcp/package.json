@@ -31,6 +31,7 @@
   "sideEffects": false,
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "scripts": {
+    "prepublishOnly": "pnpm run build",
     "build": "tsdown",
     "test": "jest --runInBand",
     "type-check:src": "tsc --noEmit",

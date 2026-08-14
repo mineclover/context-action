@@ -6,7 +6,7 @@
 
 # Interface: ToolInteractionRequest
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:101](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L101)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L102)
 
 Request passed to a transport-neutral, canonical interaction boundary.
 
@@ -20,7 +20,7 @@ Request passed to a transport-neutral, canonical interaction boundary.
 
 > `readonly` **request**: [`ToolCallRequest`](ToolCallRequest.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:94](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L94)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L95)
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:94](https://github.com/
 
 > `readonly` **definition**: [`ToolDefinition`](ToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L95)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L96)
 
 #### Inherited from
 
@@ -44,7 +44,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:95](https://github.com/
 
 > `readonly` `optional` **context?**: [`ToolCallContext`](ToolCallContext.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L96)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L97)
 
 #### Inherited from
 
@@ -56,7 +56,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:96](https://github.com/
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:97](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L97)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:98](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L98)
 
 #### Inherited from
 
@@ -68,7 +68,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:97](https://github.com/
 
 > `readonly` **kind**: `"approval"` \| `"user-interaction"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L102)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:103](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L103)
 
 ***
 
@@ -76,4 +76,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:102](https://github.com
 
 > `readonly` **call**: [`ModelToolCall`](ModelToolCall.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:103](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L103)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:104](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L104)

@@ -7,7 +7,11 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
-const styleTestingDirectory = path.join(repositoryRoot, 'packages/style-testing');
+const privateToolDirectories = [
+  path.join(repositoryRoot, 'packages/style-testing'),
+  path.join(repositoryRoot, 'packages/live-code-editor'),
+  path.join(repositoryRoot, 'packages/openrouter-browser-storage'),
+];
 const rootPackagePath = path.join(repositoryRoot, 'package.json');
 const securityPackagePaths = [
   rootPackagePath,
@@ -55,6 +59,11 @@ async function verifyPrivateToolIntegrationContract() {
       'Root security:audit:all must delegate to the repository OSV scanner script.',
     );
   }
+  if (!scripts['verify:all']?.includes('pnpm --filter example test')) {
+    throw new Error(
+      'Root verify:all must execute the example interaction test suite.',
+    );
+  }
   for (const packagePath of securityPackagePaths.slice(1)) {
     const packageManifest = JSON.parse(await readFile(packagePath, 'utf8'));
     if (packageManifest.scripts?.['security:audit'] !== 'pnpm --workspace-root security:audit') {
@@ -68,6 +77,8 @@ async function verifyPrivateToolIntegrationContract() {
 
 await verifyPrivateToolIntegrationContract();
 
-await run(pnpmCommand, ['type-check'], styleTestingDirectory);
-await run(pnpmCommand, ['test'], styleTestingDirectory);
-console.log('Verified workspace-only tool package.');
+for (const privateToolDirectory of privateToolDirectories) {
+  await run(pnpmCommand, ['type-check'], privateToolDirectory);
+  await run(pnpmCommand, ['test'], privateToolDirectory);
+}
+console.log('Verified workspace-only tool packages.');

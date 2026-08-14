@@ -16,6 +16,7 @@ import {
 import type {
   DurableOperationRecord,
   DurableOperationResolution,
+  DurableOperationFence,
   DurableOperationStore,
 } from '@context-action/tool-durable-operations';
 import type {
@@ -196,20 +197,23 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
   /**
    * Record a domain-confirmed outcome for an `unknown` durable operation.
    * This does not invoke the tool handler or decide whether compensation is
-   * safe; the caller owns that domain decision.
+   * safe; the caller owns that domain decision. Pass the full fence captured
+   * with the unknown record as the fifth argument. The omitted and numeric
+   * legacy forms remain in the positional ABI but fail closed at runtime;
+   * use the full fence or `recoverOperation()`.
    */
   reconcileOperation(
     toolName: string,
     idempotencyKey: string,
     resolution: DurableOperationResolution<ToolCallResult>,
     context?: ToolCallContext,
-    expectedRevision?: number
+    expectedFence?: DurableOperationFence | number
   ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
 
   /**
    * Query an operation and invoke the resolver only for an unknown record.
    * The resolver owns domain status checks and compensation; this method never
-   * starts the tool handler and reconciles with the observed revision.
+   * starts the tool handler and reconciles with the observed full fence.
    */
   recoverOperation(
     toolName: string,

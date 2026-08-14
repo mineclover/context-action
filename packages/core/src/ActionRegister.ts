@@ -694,13 +694,14 @@ export class ActionRegister<
         
         return newUnregister;
       } else {
-        // Return existing unregister function or create a new one
-        // At this point, existing is guaranteed to be defined because we're in the duplicate handler block
+        // The rejected registration does not own the existing handler. Returning
+        // its unregister function would let the rejected caller tear down a
+        // registration created by somebody else.
         if (!existing) {
           throw new Error('Internal error: existing handler should be defined in duplicate handler block');
         }
         
-        this.log(`Handler duplicate ignored, returning existing unregister: ${String(action)}`, {
+        this.log(`Handler duplicate ignored, returning no-op unregister: ${String(action)}`, {
           handlerId,
           existingPriority: existing.config.priority,
           newPriority: config.priority,
@@ -709,14 +710,7 @@ export class ActionRegister<
           note: 'Use replaceExisting:true to replace'
         }, 'warn');
         
-        if (existingUnregister) {
-          return existingUnregister;
-        } else {
-          // Create new unregister function if somehow missing
-          const newUnregister = this.createUnregisterFunction(action, handlerId, existing);
-          actionUnregisterFunctions.set(handlerId, newUnregister);
-          return newUnregister;
-        }
+        return () => {};
       }
     }
     
@@ -746,8 +740,7 @@ export class ActionRegister<
    * Dispatch an action with optional execution options
    * 
    * @param action - The action type to dispatch
-   * @param payload - The action payload data
-   * @param options - Optional dispatch options (execution mode, filters, etc.)
+   * @param args - The payload/options tuple for the selected action: payload-bearing actions require a payload, while void actions may omit it; dispatch options are optional.
    * 
    * @returns Promise that resolves when all handlers complete
    * 
@@ -773,7 +766,8 @@ export class ActionRegister<
     const attemptState = { count: 0 };
     const plan = this.resolveDispatchPlan(action, options);
     const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
-    let observerNotified = false;
+    const notifiedObservers = new Set<HandlerRegistration<any, any>>();
+    const notifiedObserverOutcomes = new Set<ActionObserverEvent<T[K], unknown>['outcome']>();
     let terminalErrorReported = false;
     const reportTerminalError = (error: unknown) => {
       if (terminalErrorReported) return;
@@ -783,9 +777,9 @@ export class ActionRegister<
     // Void dispatch still aggregates handler values for terminal observers;
     // only the public dispatch return type is void.
     const notifyObservers = async (event: ActionObserverEvent<T[K], unknown>) => {
-      if (observerNotified) return;
-      observerNotified = true;
-      await this.executeObservers(action, plan, event);
+      if (notifiedObserverOutcomes.has(event.outcome)) return;
+      notifiedObserverOutcomes.add(event.outcome);
+      await this.executeObservers(action, plan, event, notifiedObservers);
     };
     const pipelineOperation = async () => {
       const guard = plan.guards.length > 0
@@ -839,6 +833,22 @@ export class ActionRegister<
       ), undefined, this.shouldDrainBeforeRetry(plan, timeoutScope.options)
         ? () => this.drainAttemptHandlers(dispatchHandlerPromises)
         : undefined);
+      if (timeoutScope.options?.signal?.aborted) {
+        // The timeout signal shares the cancellation channel, but its public
+        // terminal contract remains a failed ActionTimeoutError.
+        if (timeoutScope.options.signal.reason instanceof ActionTimeoutError) {
+          throw timeoutScope.options.signal.reason;
+        }
+        await notifyObservers({
+          action: String(action),
+          payload: guard.payload,
+          outcome: 'cancelled',
+          result: undefined,
+          errors: execution.errors,
+          signal: timeoutScope.options.signal,
+        });
+        return;
+      }
       if (execution.outcome === 'failed') {
         throw execution.errors[execution.errors.length - 1]?.error
           ?? new Error(`Action "${String(action)}" failed`);
@@ -939,13 +949,17 @@ export class ActionRegister<
     );
     const observedPromise = exposedPromise.catch(async error => {
       reportTerminalError(error);
-      if (!observerNotified) {
-        await this.trackGlobalHandlerPromise(notifyObservers({
-          action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
-          errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
-            timestamp: Date.now(), severity: 'blocking' }], signal: timeoutScope.options?.signal,
-        }));
-      }
+      // The public timeout is already terminal. Failure observers remain
+      // shutdown-owned best-effort work, but a non-cooperative observer must
+      // not hold the timed-out caller open indefinitely.
+      const observerNotification = this.trackGlobalHandlerPromise(notifyObservers({
+        action: String(action), payload: payload as T[K], outcome: 'failed', result: undefined,
+        errors: [{ handlerId: 'dispatch', error: error instanceof Error ? error : new Error(String(error)),
+          timestamp: Date.now(), severity: 'blocking' }], signal: timeoutScope.options?.signal,
+      }));
+      void observerNotification.catch(observerError => {
+        this.log(`Failure observer delivery failed for ${String(action)}`, observerError, 'warn');
+      });
       throw error;
     });
 
@@ -1479,12 +1493,29 @@ export class ActionRegister<
     action: K,
     plan: DispatchPlan,
     event: ActionObserverEvent<T[K], R>,
+    notifiedObservers = new Set<HandlerRegistration<any, any>>(),
   ): Promise<void> {
     const observerEvent = this.safeSnapshotObserverEvent(event);
+    const selectedObservers: Array<[
+      HandlerRegistration<any, any>,
+      { handler: ActionObserverHandler<any, any>; when: 'success' | 'failure' | 'always' },
+    ]> = [];
+
+    // Assign every terminal-path-eligible observer to this immutable event
+    // before awaiting any callback. Conditions are deliberately evaluated in
+    // the invocation loop below: a lower-priority observer must see state
+    // changes made by an awaited higher-priority observer, while remaining
+    // reserved to this canonical event if a timeout races that observer chain.
     for (const [registration, observerEntry] of this.getObservers(action, plan)) {
+      if (notifiedObservers.has(registration)) continue;
       const successful = observerEvent.outcome === 'completed' || observerEvent.outcome === 'completed_with_errors';
       if (observerEntry.when === 'success' && !successful) continue;
       if (observerEntry.when === 'failure' && successful) continue;
+      notifiedObservers.add(registration);
+      selectedObservers.push([registration, observerEntry]);
+    }
+
+    for (const [registration, observerEntry] of selectedObservers) {
       let shouldRun = true;
       try {
         shouldRun = registration.config.condition?.(observerEvent.payload as T[K]) ?? true;
@@ -1738,8 +1769,7 @@ export class ActionRegister<
    * Dispatch an action and return detailed execution results
    * 
    * @param action - The action type to dispatch
-   * @param payload - The action payload data
-   * @param options - Optional dispatch options including result collection strategy
+   * @param args - The payload/options tuple for the selected action: payload-bearing actions require a payload, while void actions may omit it; dispatch options, including result collection, are optional.
    * 
    * @returns Promise resolving to comprehensive execution results
    * 
@@ -1827,9 +1857,12 @@ export class ActionRegister<
           ? () => this.drainAttemptHandlers(dispatchHandlerPromises)
           : undefined);
 
-      // A cancellation during retry backoff is terminal for the dispatch, not
-      // merely telemetry attached to the preceding failed attempt.
+      // A caller/lifecycle cancellation during retry backoff is terminal for
+      // the dispatch, while the timeout channel remains a failed dispatch.
       if (timeoutScope.options?.signal?.aborted) {
+        if (timeoutScope.options.signal.reason instanceof ActionTimeoutError) {
+          throw timeoutScope.options.signal.reason;
+        }
         return {
           ...rawExecution,
           success: false,
@@ -1948,7 +1981,8 @@ export class ActionRegister<
       return queued.promise;
     };
 
-    let observerNotified = false;
+    const notifiedObservers = new Set<HandlerRegistration<any, any>>();
+    const notifiedObserverOutcomes = new Set<ActionObserverEvent<T[K], R>['outcome']>();
     let terminalErrorReported = false;
     const reportTerminalError = (error: unknown) => {
       if (terminalErrorReported) return;
@@ -1956,9 +1990,9 @@ export class ActionRegister<
       this.invokeErrorHandler(error, action, payload, options, attemptState.count);
     };
     const notifyObservers = async (event: ActionObserverEvent<T[K], R>) => {
-      if (observerNotified) return;
-      observerNotified = true;
-      await this.executeObservers(action, plan, event);
+      if (notifiedObserverOutcomes.has(event.outcome)) return;
+      notifiedObserverOutcomes.add(event.outcome);
+      await this.executeObservers(action, plan, event, notifiedObservers);
     };
     let dispatchPromise: Promise<ExecutionResult<R>>;
     let observedDispatchPromise: Promise<ExecutionResult<R>>;
@@ -2021,17 +2055,18 @@ export class ActionRegister<
       // A timeout rejects the exposed promise before the canonical operation
       // settles. Notify once and track that observer work for shutdown.
       reportTerminalError(error);
-      if (!observerNotified) {
-        await this.trackGlobalHandlerPromise(notifyObservers({
-          action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
-          errors: [{
-            handlerId: 'dispatch',
-            error: error instanceof Error ? error : new Error(String(error)),
-            timestamp: Date.now(), severity: 'blocking',
-          }],
-          signal: timeoutScope.options?.signal,
-        }));
-      }
+      const observerNotification = this.trackGlobalHandlerPromise(notifyObservers({
+        action: String(action), payload: observerPayload, outcome: 'failed', result: undefined,
+        errors: [{
+          handlerId: 'dispatch',
+          error: error instanceof Error ? error : new Error(String(error)),
+          timestamp: Date.now(), severity: 'blocking',
+        }],
+        signal: timeoutScope.options?.signal,
+      }));
+      void observerNotification.catch(observerError => {
+        this.log(`Failure observer delivery failed for ${String(action)}`, observerError, 'warn');
+      });
       throw error;
     });
 
@@ -2440,8 +2475,8 @@ export class ActionRegister<
     terminationResult: R | R[] | undefined,
     resultOptions?: DispatchOptions['result']
   ): R | R[] | undefined {
-    // 🔧 Fix: Always handle termination result regardless of collect option
-    if (terminated && terminationResult !== undefined) {
+    // controller.return() is authoritative even when its explicit value is undefined.
+    if (terminated) {
       return terminationResult;
     }
 
@@ -2991,7 +3026,7 @@ export class ActionRegister<
     this.dispatchQueue?.clear({ rejectPending: true });
   }
 
-  private beginShutdown(): Promise<void> {
+  private beginShutdown(deferCleanup = false): Promise<void> {
     if (this.destroyAsyncPromise) return this.destroyAsyncPromise;
 
     if (this.lifecycleState === 'destroyed') {
@@ -3021,6 +3056,7 @@ export class ActionRegister<
     this.dispatchQueue?.clear({ rejectPending: true, reason: shutdownError });
 
     const canFinalizeSynchronously = (
+      !deferCleanup &&
       this.dispatchConstructionDepth === 0 &&
       this.activeDispatches.size === 0 &&
       this.activeHandlerPromises.size === 0
@@ -3085,12 +3121,17 @@ export class ActionRegister<
    * Begin terminal shutdown and resolve after all started handlers have settled
    * and their registered cleanup functions have run.
    *
+   * `deferCleanup` closes the register synchronously while deferring final
+   * registered cleanup until the next microtask. This is useful for React
+   * commit phases that must invalidate stale dispatchers immediately without
+   * invoking user cleanup code inside the commit hook itself.
+   *
    * Repeated calls return the same promise. New registrations and dispatches are
    * rejected as soon as shutdown begins.
    *
    * @public
    */
-  destroyAsync(): Promise<void> {
-    return this.beginShutdown();
+  destroyAsync(options: { deferCleanup?: boolean } = {}): Promise<void> {
+    return this.beginShutdown(options.deferCleanup ?? false);
   }
 }

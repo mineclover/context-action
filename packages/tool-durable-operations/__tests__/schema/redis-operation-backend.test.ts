@@ -7,6 +7,80 @@ import {
 import { createFakeRedisClient } from '../support/fake-redis';
 
 describe('Redis durable operation backend', () => {
+  it('atomically backfills legacy pending and terminal records', async () => {
+    const keyPrefix = 'test:legacy:';
+    const client = createFakeRedisClient();
+    const backend = createRedisDurableOperationBackend({ client, keyPrefix });
+    const seedLegacy = (record: Record<string, unknown>) => {
+      const encodedKey = [...new TextEncoder().encode(String(record.key))]
+        .map(byte => byte.toString(16).padStart(2, '0'))
+        .join('');
+      client.values.set(`${keyPrefix}record:${encodedKey}`, JSON.stringify(record));
+      client.members.add(encodedKey);
+    };
+    seedLegacy({
+      key: 'legacy-pending',
+      fingerprint: 'legacy-pending-fingerprint',
+      ownerId: 'legacy-owner',
+      revision: 3,
+      state: 'pending',
+      createdAt: 1,
+      updatedAt: 1,
+      leaseExpiresAt: 10_000,
+    });
+    seedLegacy({
+      key: 'legacy-terminal',
+      fingerprint: 'legacy-terminal-fingerprint',
+      ownerId: 'legacy-owner',
+      revision: 2,
+      state: 'completed',
+      result: { ok: true },
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    const store = createDurableOperationStore(backend, {
+      now: () => 100,
+      createIncarnation: () => 'redis-legacy-incarnation',
+    });
+
+    await expect(store.claim(
+      'legacy-pending',
+      'legacy-pending-fingerprint',
+      'new-owner'
+    )).resolves.toMatchObject({
+      status: 'pending',
+      fence: { incarnation: 'redis-legacy-incarnation', revision: 3 },
+    });
+    await expect(store.claim(
+      'legacy-terminal',
+      'legacy-terminal-fingerprint',
+      'new-owner'
+    )).resolves.toMatchObject({
+      status: 'replay',
+      record: { result: { ok: true }, incarnation: 'redis-legacy-incarnation' },
+    });
+
+    seedLegacy({
+      key: 'legacy-contention',
+      fingerprint: 'legacy-contention-fingerprint',
+      ownerId: 'legacy-owner',
+      revision: 7,
+      state: 'pending',
+      createdAt: 1,
+      updatedAt: 1,
+      leaseExpiresAt: 10_000,
+    });
+    const results = await Promise.all([
+      backend.backfillLegacyIncarnation!('legacy-contention', 7, 'redis-contender-a'),
+      backend.backfillLegacyIncarnation!('legacy-contention', 7, 'redis-contender-b'),
+    ]);
+    expect(results.sort()).toEqual([false, true]);
+    await expect(backend.read('legacy-contention')).resolves.toMatchObject({
+      incarnation: expect.stringMatching(/^redis-contender-[ab]$/),
+      revision: 7,
+    });
+  });
+
   it('uses atomic CAS and preserves a keyset cursor during deletion', async () => {
     const client = createFakeRedisClient();
     const backend = createRedisDurableOperationBackend({
@@ -17,6 +91,7 @@ describe('Redis durable operation backend', () => {
       key: 'operation-a',
       fingerprint: 'fingerprint-a',
       ownerId: 'owner',
+      incarnation: 'incarnation-a',
       state: 'pending' as const,
       revision: 1,
       createdAt: 1,
@@ -31,11 +106,20 @@ describe('Redis durable operation backend', () => {
     expect([first, second].sort()).toEqual([false, true]);
     await expect(backend.compareAndSet(recordB.key, undefined, recordB)).resolves.toBe(true);
     await expect(backend.read(recordA.key)).resolves.toEqual(recordA);
+    await expect(backend.compareAndSet(
+      recordA.key,
+      { incarnation: 'stale-incarnation', revision: 1 },
+      { ...recordA, revision: 2 }
+    )).resolves.toBe(false);
 
     const firstPage = await backend.listPage!({ limit: 1 });
     expect(firstPage.records).toHaveLength(1);
     expect(firstPage.nextCursor).toBeDefined();
-    await expect(backend.compareAndSet(recordA.key, 1, undefined)).resolves.toBe(true);
+    await expect(backend.compareAndSet(
+      recordA.key,
+      { incarnation: recordA.incarnation, revision: 1 },
+      undefined
+    )).resolves.toBe(true);
 
     await expect(backend.listPage!({ cursor: firstPage.nextCursor, limit: 1 })).resolves.toMatchObject({
       records: [recordB],
@@ -50,6 +134,7 @@ describe('Redis durable operation backend', () => {
       key: 'operation-b',
       fingerprint: 'fingerprint',
       ownerId: 'owner',
+      incarnation: 'incarnation-mismatch',
       state: 'pending',
       revision: 1,
       createdAt: 1,
@@ -70,10 +155,10 @@ describe('Redis durable operation backend', () => {
       prunePageSize: 1,
     });
 
-    await store.claim('cleanup-a', 'fingerprint', 'owner');
-    await store.complete('cleanup-a', 'owner', { ok: true });
-    await store.claim('cleanup-b', 'fingerprint', 'owner');
-    await store.complete('cleanup-b', 'owner', { ok: true });
+    const claimA = await store.claim('cleanup-a', 'fingerprint', 'owner');
+    await store.complete('cleanup-a', 'owner', { ok: true }, claimA.fence);
+    const claimB = await store.claim('cleanup-b', 'fingerprint', 'owner');
+    await store.complete('cleanup-b', 'owner', { ok: true }, claimB.fence);
     now = 5_011;
 
     await expect(store.prune()).resolves.toBe(2);
@@ -93,6 +178,7 @@ describe('Redis durable operation backend', () => {
       key: 'node-redis-operation',
       fingerprint: 'fingerprint',
       ownerId: 'owner',
+      incarnation: 'node-redis-incarnation',
       state: 'pending' as const,
       revision: 1,
       createdAt: 1,
@@ -120,6 +206,7 @@ describe('Redis durable operation backend', () => {
       key: 'ioredis-operation',
       fingerprint: 'fingerprint',
       ownerId: 'owner',
+      incarnation: 'ioredis-incarnation',
       state: 'pending' as const,
       revision: 1,
       createdAt: 1,

@@ -309,41 +309,29 @@ pnpm llms:sync-docs:en
 
 ## 🏷️ Release Management
 
-### Version Management with Lerna
+Packages are versioned independently. Direct local publishing is disabled;
+`pnpm release` and `pnpm release:patch` intentionally fail closed. Prepare an
+approved package/version cohort, then use the protected GitHub workflows
+described in [`releases/RELEASE.md`](./releases/RELEASE.md).
+
+Run the complete preflight before authorizing a release commit:
+
 ```bash
-# Check which packages changed
-pnpm changed
-
-# View diff of changes
-pnpm diff
-
-# Interactive version bump
-pnpm version
-
-# Specific version bumps
-pnpm version:patch  # 0.0.x
-pnpm version:minor  # 0.x.0
-pnpm version:major  # x.0.0
+pnpm release:check
 ```
 
-### Publishing Process
-```bash
-# Publish changed packages
-pnpm release
-
-# Version bump and publish
-pnpm release:patch
-pnpm release:minor
-pnpm release:major
-```
+The Lerna `version:*` commands can modify manifests, the lockfile, Git commits,
+and tags. They are release-preparation tools, not publishing commands, and must
+only be used as part of an approved release plan.
 
 ### Release Checklist
-- [ ] All tests pass (`pnpm test`)
-- [ ] Documentation updated
-- [ ] Example app works (`pnpm dev`)
-- [ ] CHANGELOG entries added
-- [ ] Version bumps appropriate
-- [ ] No breaking changes without major version
+- [ ] `pnpm release:check` passes from the immutable release commit
+- [ ] Package versions and dated CHANGELOG entries match packed artifacts
+- [ ] Runtime dependency floors and packed/published consumer matrices match
+- [ ] Stable-surface breaking changes use a major version
+- [ ] Pre-1, non-stable breaking changes use a new minor compatibility boundary
+- [ ] A protected workflow exists for the requested candidate and promotion path
+- [ ] Provenance, registry evidence, and rollback behavior are recorded
 
 ## 🔧 Environment Configuration
 

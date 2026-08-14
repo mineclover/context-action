@@ -1,0 +1,214 @@
+{
+  "document": {
+    "id": "guide--production-readiness",
+    "title": "프로덕션 준비도",
+    "category": "guide",
+    "source_path": "ko/guide/production-readiness.md",
+    "lastModified": "2026-08-11T05:11:55.977Z",
+    "wordCount": 571
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-11",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in 프로덕션 준비도.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in 프로덕션 준비도.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in 프로덕션 준비도."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "ts",
+      "프로덕션",
+      "준비도"
+    ],
+    "technical": [
+      "ts",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from 프로덕션 준비도.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "프로덕션 준비도",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "프로덕션 준비도",
+        "guide",
+        "ts"
+      ],
+      "nice_to_have": [
+        "ts",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "ts",
+        "프로덕션",
+        "준비도"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "ts",
+      "프로덕션",
+      "준비도"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-11"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "프로덕션 준비도 is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-08-11",
+    "updated": "2026-08-11",
+    "version": "1.0.0",
+    "original_size": 5592,
+    "created_at": "2026-08-11T05:13:12.281Z",
+    "source_last_modified": "2026-08-11T06:06:25.740Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "ts",
+        "프로덕션",
+        "준비도"
+      ],
+      "technical": [
+        "ts",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-08-11T06:08:29.042Z"
+  }
+}

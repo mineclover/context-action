@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationListOptions
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:50](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L50)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:64](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L64)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:50](https
 
 > `readonly` `optional` **cursor?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:52](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L52)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:66](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L66)
 
 Opaque keyset cursor returned by the previous page.
 
@@ -24,6 +24,6 @@ Opaque keyset cursor returned by the previous page.
 
 > `readonly` `optional` **limit?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:54](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L54)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:68](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L68)
 
 Maximum number of records to return.

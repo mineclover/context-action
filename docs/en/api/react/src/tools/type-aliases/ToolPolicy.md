@@ -8,7 +8,7 @@
 
 > **ToolPolicy** = (`input`) => [`ToolPolicyDecision`](ToolPolicyDecision.md) \| `Promise`\<[`ToolPolicyDecision`](ToolPolicyDecision.md)\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:57](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L57)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L58)
 
 ## Parameters
 

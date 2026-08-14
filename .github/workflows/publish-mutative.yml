@@ -2,9 +2,15 @@ name: Publish Mutative Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      release_commit:
+        description: 'Approved immutable main commit to publish'
+        required: true
+        type: string
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: npm-publish
@@ -16,12 +22,25 @@ env:
 jobs:
   publish-mutative:
     runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
     timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout approved main commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
 
       - name: Clear npm config before registry setup
         run: |
@@ -33,6 +52,7 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
@@ -59,82 +79,63 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
 
-      - name: Resolve mutative version
-        id: mutative
-        run: |
-          VERSION=$(jq -r '.version' packages/mutative/package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Mutative version: $VERSION"
-
-      - name: Resolve mutative-core version
-        id: mutative_core
-        run: |
-          VERSION=$(jq -r '.version' packages/mutative-core/package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Mutative core version: $VERSION"
-
-      - name: Check if version is already published
-        id: publish_check
-        run: |
-          if npm view "@context-action/mutative@${{ steps.mutative.outputs.version }}" version >/dev/null 2>&1; then
-            echo "Version ${{ steps.mutative.outputs.version }} is already published."
-            echo "already_published=true" >> $GITHUB_OUTPUT
-          else
-            echo "Version ${{ steps.mutative.outputs.version }} is not published yet."
-            echo "already_published=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check if mutative-core version is already published
-        id: publish_core_check
-        run: |
-          if npm view "@context-action/mutative-core@${{ steps.mutative_core.outputs.version }}" version >/dev/null 2>&1; then
-            echo "Version ${{ steps.mutative_core.outputs.version }} is already published."
-            echo "already_published=true" >> $GITHUB_OUTPUT
-          else
-            echo "Version ${{ steps.mutative_core.outputs.version }} is not published yet."
-            echo "already_published=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build published packages
-        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm build
 
       - name: Type check published packages
-        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm type-check
 
       - name: Verify package exports
-        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm verify:package-exports
 
       - name: Test mutative package
-        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative test
 
       - name: Test mutative-core package
-        if: steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm --filter @context-action/mutative-core test
 
       - name: Verify package tarballs
-        if: steps.publish_check.outputs.already_published != 'true' || steps.publish_core_check.outputs.already_published != 'true'
         run: pnpm verify:package-tarballs
 
-      - name: Publish mutative-core package
-        if: steps.publish_core_check.outputs.already_published != 'true'
-        working-directory: packages/mutative-core
+      - name: Verify source and packed release changelogs
+        run: |
+          node scripts/verify-tool-protocol-changelog.mjs --package mutative-core --forbid-unreleased --require-release-date
+          node scripts/verify-tool-protocol-changelog.mjs --package mutative --forbid-unreleased --require-release-date
+
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
+
+      - name: Publish the approved mutative package set to next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: |
+          pnpm publish:packages -- --summary-file reports/npm-mutative-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
+            --scope @context-action/mutative-core \
+            --scope @context-action/mutative
 
-      - name: Publish mutative package
-        if: steps.publish_check.outputs.already_published != 'true'
-        working-directory: packages/mutative
+      - name: Verify published mutative consumer matrix
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/mutative-core,@context-action/mutative"
 
-      - name: Skip notice
-        if: steps.publish_check.outputs.already_published == 'true'
-        run: echo "Mutative ${{ steps.mutative.outputs.version }} is already published. Skipping publish."
+      - name: Capture immutable registry evidence
+        run: |
+          pnpm capture:published-release -- --tag next --packages "@context-action/mutative-core,@context-action/mutative" \
+            --consumer-status passed --output reports/npm-mutative-registry-evidence.json
+
+      - name: Upload mutative publish evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-mutative-evidence
+          path: reports/npm-mutative-*.json
+          if-no-files-found: error
+          retention-days: 30

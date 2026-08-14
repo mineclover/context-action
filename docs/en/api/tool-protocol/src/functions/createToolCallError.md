@@ -8,7 +8,7 @@
 
 > **createToolCallError**(`message`, `options?`): [`ToolCallResult`](../interfaces/ToolCallResult.md)&lt;`never`&gt;
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:729](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L729)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:740](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L740)
 
 Create an MCP-compatible tool error without throwing across the tool boundary.
 

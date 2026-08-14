@@ -8,7 +8,7 @@
 
 > **createIndexedDbDurableOperationBackend**&lt;`TResult`&gt;(`options?`): [`DurableOperationBackend`](../interfaces/DurableOperationBackend.md)&lt;`TResult`&gt; & `object`
 
-Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:136](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L136)
+Defined in: [packages/tool-durable-operations/src/indexeddb-operation-backend.ts:142](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/indexeddb-operation-backend.ts#L142)
 
 Create an IndexedDB backend for `createDurableOperationStore()`.
 

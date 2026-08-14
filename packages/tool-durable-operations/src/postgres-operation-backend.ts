@@ -1,5 +1,6 @@
 import type {
   DurableOperationBackend,
+  DurableOperationFence,
   DurableOperationListOptions,
   DurableOperationListPage,
   DurableOperationRecord,
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS ${table} (
   operation_key text PRIMARY KEY,
   fingerprint text NOT NULL,
   owner_id text NOT NULL,
+  incarnation text NOT NULL,
   revision integer NOT NULL,
   state text NOT NULL CHECK (state IN ('pending', 'completed', 'failed', 'unknown')),
   result jsonb,
@@ -57,6 +59,11 @@ CREATE TABLE IF NOT EXISTS ${table} (
   reconciled_by text,
   reconciled_at bigint
 );
+ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS incarnation text;
+UPDATE ${table}
+   SET incarnation = 'legacy:' || md5(operation_key || ':' || revision::text || ':' || updated_at::text)
+ WHERE incarnation IS NULL;
+ALTER TABLE ${table} ALTER COLUMN incarnation SET NOT NULL;
 CREATE INDEX IF NOT EXISTS ${indexName}
   ON ${table} (updated_at);
 `.trim();
@@ -84,6 +91,7 @@ type PostgresDurableOperationRow = {
   readonly key: string;
   readonly fingerprint: string;
   readonly ownerId: string;
+  readonly incarnation?: string | null;
   readonly revision: number | string;
   readonly state: DurableOperationRecord['state'];
   readonly result?: unknown | null;
@@ -153,6 +161,9 @@ function toRecord<TResult>(row: PostgresDurableOperationRow): DurableOperationRe
     key: row.key,
     fingerprint: row.fingerprint,
     ownerId: row.ownerId,
+    ...(row.incarnation === null || row.incarnation === undefined
+      ? {}
+      : { incarnation: row.incarnation }),
     revision,
     state: row.state,
     ...(result === undefined ? {} : { result: result as TResult }),
@@ -164,7 +175,7 @@ function toRecord<TResult>(row: PostgresDurableOperationRow): DurableOperationRe
       ? {}
       : { reconciledBy: row.reconciledBy }),
     ...(reconciledAt === undefined ? {} : { reconciledAt }),
-  };
+  } as DurableOperationRecord<TResult>;
 }
 
 function serializeJson(value: unknown): string | null {
@@ -183,6 +194,7 @@ function recordValues<TResult>(record: DurableOperationRecord<TResult>): readonl
     record.key,
     record.fingerprint,
     record.ownerId,
+    record.incarnation,
     record.revision,
     record.state,
     serializeJson(record.result),
@@ -200,6 +212,7 @@ const SELECT_COLUMNS = `
   operation_key AS "key",
   fingerprint,
   owner_id AS "ownerId",
+  incarnation,
   revision,
   state,
   result,
@@ -241,7 +254,7 @@ export function createPostgresDurableOperationBackend<TResult = unknown>(
 
   const compareAndSet = async (
     key: string,
-    expectedRevision: number | undefined,
+    expectedFence: DurableOperationFence | undefined,
     next: DurableOperationRecord<TResult> | undefined
   ): Promise<boolean> => {
     assertText(key, 'Durable operation key');
@@ -249,21 +262,24 @@ export function createPostgresDurableOperationBackend<TResult = unknown>(
       throw new TypeError('Durable operation record key must match the CAS key.');
     }
     if (next === undefined) {
-      if (expectedRevision === undefined) return false;
+      if (expectedFence === undefined) return false;
       const deleted = await client.query(
-        `DELETE FROM ${table} WHERE operation_key = $1 AND revision = $2 RETURNING operation_key`,
-        [key, expectedRevision]
+        `DELETE FROM ${table}
+          WHERE operation_key = $1 AND incarnation = $2 AND revision = $3
+          RETURNING operation_key`,
+        [key, expectedFence.incarnation, expectedFence.revision]
       );
       return deleted.rows.length > 0 || deleted.rowCount === 1;
     }
 
     const values = recordValues(next);
-    if (expectedRevision === undefined) {
+    if (expectedFence === undefined) {
       const inserted = await client.query(
         `INSERT INTO ${table} (
-          operation_key, fingerprint, owner_id, revision, state, result, result_present, reason,
-          created_at, updated_at, lease_expires_at, reconciled_by, reconciled_at
-        ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13)
+          operation_key, fingerprint, owner_id, incarnation, revision, state, result,
+          result_present, reason, created_at, updated_at, lease_expires_at,
+          reconciled_by, reconciled_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12, $13, $14)
         ON CONFLICT (operation_key) DO NOTHING
         RETURNING operation_key`,
         values
@@ -275,19 +291,40 @@ export function createPostgresDurableOperationBackend<TResult = unknown>(
       `UPDATE ${table}
        SET fingerprint = $2,
            owner_id = $3,
-           revision = $4,
-           state = $5,
-           result = $6::jsonb,
-           result_present = $7,
-           reason = $8,
-           created_at = $9,
-           updated_at = $10,
-           lease_expires_at = $11,
-           reconciled_by = $12,
-           reconciled_at = $13
-       WHERE operation_key = $1 AND revision = $14
+           incarnation = $4,
+           revision = $5,
+           state = $6,
+           result = $7::jsonb,
+           result_present = $8,
+           reason = $9,
+           created_at = $10,
+           updated_at = $11,
+           lease_expires_at = $12,
+           reconciled_by = $13,
+           reconciled_at = $14
+       WHERE operation_key = $1 AND incarnation = $15 AND revision = $16
        RETURNING operation_key`,
-      [...values, expectedRevision]
+      [...values, expectedFence.incarnation, expectedFence.revision]
+    );
+    return updated.rows.length > 0 || updated.rowCount === 1;
+  };
+
+  const backfillLegacyIncarnation = async (
+    key: string,
+    expectedRevision: number,
+    incarnation: string
+  ): Promise<boolean> => {
+    assertText(key, 'Durable operation key');
+    assertText(incarnation, 'Durable operation incarnation');
+    if (!Number.isInteger(expectedRevision) || expectedRevision < 1) {
+      throw new TypeError('Durable operation expected revision must be a positive integer.');
+    }
+    const updated = await client.query(
+      `UPDATE ${table}
+          SET incarnation = $3
+        WHERE operation_key = $1 AND revision = $2 AND incarnation IS NULL
+        RETURNING operation_key`,
+      [key, expectedRevision, incarnation]
     );
     return updated.rows.length > 0 || updated.rowCount === 1;
   };
@@ -315,5 +352,5 @@ export function createPostgresDurableOperationBackend<TResult = unknown>(
     };
   };
 
-  return { read, compareAndSet, listPage };
+  return { read, compareAndSet, backfillLegacyIncarnation, listPage };
 }

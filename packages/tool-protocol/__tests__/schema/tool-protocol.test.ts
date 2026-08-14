@@ -206,7 +206,7 @@ describe('tool protocol context', () => {
 
     expect(queue.store.getSnapshot()).toEqual([
       expect.objectContaining({
-        id: 'call-approval-1',
+        id: 'call-approval-1-0',
         method: 'tools/call',
         toolCallId: 'call-approval-1',
         source: 'mcp',
@@ -218,7 +218,7 @@ describe('tool protocol context', () => {
     ]);
     expect(notifications).toBe(1);
 
-    queue.resolve('call-approval-1', 'allow');
+    queue.resolve(queue.store.getSnapshot()[0]!.id, 'allow');
     await expect(allowed).resolves.toBe('allow');
     expect(queue.store.getSnapshot()).toEqual([]);
     expect(notifications).toBe(2);
@@ -457,33 +457,177 @@ describe('tool protocol context', () => {
     expect(getToolCallErrorMetadata('plain failure')).toEqual({});
   });
 
-  it('keeps approval IDs unique when duplicate tool-call IDs are pending', async () => {
-    const queue = createToolApprovalQueue({ idPrefix: 'duplicate' });
-    const request = {
-      id: 'same-call',
-      method: 'tools/call' as const,
-      params: { name: 'workspace.writeFile', arguments: { path: 'a.ts' } },
-    };
+  it('keeps adversarial approval IDs isolated until every request settles', async () => {
+    const queue = createToolApprovalQueue({
+      idPrefix: 'duplicate',
+      safeArgumentNames: ['marker'],
+    });
     const definition = {
       name: 'workspace.writeFile',
       inputSchema: { type: 'object' as const },
     };
+    const request = (id: string, marker: string) =>
+      queue.request({
+        request: {
+          id,
+          method: 'tools/call',
+          params: {
+            name: definition.name,
+            arguments: { marker },
+          },
+        },
+        definition,
+      });
 
-    const first = queue.request({ request, definition });
-    const second = queue.request({ request, definition });
-    const pending = queue.store.getSnapshot();
+    // The third request previously selected `x-0`, overwrote the first
+    // resolver, and left the first promise permanently pending.
+    const first = request('x-0', 'first');
+    const second = request('x', 'second');
+    const third = request('x', 'third');
+    const snapshots = queue.store.getSnapshot();
+    const snapshotFor = (marker: string) =>
+      snapshots.find(
+        ({ safeArgumentPreview }) => safeArgumentPreview === `marker: ${marker}`
+      )!;
+    const firstSnapshot = snapshotFor('first');
+    const secondSnapshot = snapshotFor('second');
+    const thirdSnapshot = snapshotFor('third');
+    const firstSettled = jest.fn();
+    const secondSettled = jest.fn();
+    const thirdSettled = jest.fn();
+    void first.then(firstSettled);
+    void second.then(secondSettled);
+    void third.then(thirdSettled);
 
-    expect(pending).toHaveLength(2);
-    expect(new Set(pending.map(({ id }) => id)).size).toBe(2);
-    expect(pending.map(({ toolCallId }) => toolCallId)).toEqual([
-      'same-call',
-      'same-call',
+    expect(snapshots).toHaveLength(3);
+    expect(new Set(snapshots.map(({ id }) => id)).size).toBe(3);
+    expect(firstSnapshot).toMatchObject({ id: 'x-0-0', toolCallId: 'x-0' });
+    expect(secondSnapshot).toMatchObject({ id: 'x-1', toolCallId: 'x' });
+    expect(thirdSnapshot).toMatchObject({ id: 'x-2', toolCallId: 'x' });
+
+    queue.resolve(thirdSnapshot.id, 'deny');
+    await expect(third).resolves.toBe('deny');
+    expect(thirdSettled).toHaveBeenCalledWith('deny');
+    expect(firstSettled).not.toHaveBeenCalled();
+    expect(secondSettled).not.toHaveBeenCalled();
+    expect(queue.store.getSnapshot()).toEqual([
+      secondSnapshot,
+      firstSnapshot,
     ]);
 
-    queue.resolve(pending[0]!.id, 'deny');
-    queue.resolve(pending[1]!.id, 'allow');
+    queue.resolve(firstSnapshot.id, 'allow');
     await expect(first).resolves.toBe('allow');
-    await expect(second).resolves.toBe('deny');
+    expect(firstSettled).toHaveBeenCalledWith('allow');
+    expect(secondSettled).not.toHaveBeenCalled();
+    expect(queue.store.getSnapshot()).toEqual([secondSnapshot]);
+
+    // Resolving a cleaned-up ID is a no-op and cannot affect another request.
+    queue.resolve(firstSnapshot.id, 'deny');
+    expect(queue.store.getSnapshot()).toEqual([secondSnapshot]);
+    expect(secondSettled).not.toHaveBeenCalled();
+
+    queue.resolve(secondSnapshot.id, 'deny');
+    await expect(Promise.all([first, second, third])).resolves.toEqual([
+      'allow',
+      'deny',
+      'deny',
+    ]);
+    expect(secondSettled).toHaveBeenCalledWith('deny');
     expect(queue.store.getSnapshot()).toEqual([]);
+  });
+
+  it('never lets a stale settled approval resolve a later reused tool-call ID', async () => {
+    const queue = createToolApprovalQueue({ safeArgumentNames: ['marker'] });
+    const definition = {
+      name: 'workspace.writeFile',
+      inputSchema: { type: 'object' as const },
+    };
+    const request = (marker: string) =>
+      queue.request({
+        request: {
+          id: 'reused-call',
+          method: 'tools/call',
+          params: { name: definition.name, arguments: { marker } },
+        },
+        definition,
+      });
+
+    const first = request('first');
+    const firstSnapshot = queue.store.getSnapshot()[0]!;
+    expect(firstSnapshot).toMatchObject({
+      id: 'reused-call-0',
+      toolCallId: 'reused-call',
+    });
+
+    queue.resolve(firstSnapshot.id, 'deny');
+    await expect(first).resolves.toBe('deny');
+
+    const second = request('second');
+    const secondSnapshot = queue.store.getSnapshot()[0]!;
+    const secondSettled = jest.fn();
+    void second.then(secondSettled);
+    expect(secondSnapshot.id).not.toBe(firstSnapshot.id);
+    expect(secondSnapshot.toolCallId).toBe('reused-call');
+
+    queue.resolve(firstSnapshot.id, 'allow');
+    await Promise.resolve();
+    expect(secondSettled).not.toHaveBeenCalled();
+    expect(queue.store.getSnapshot()).toEqual([secondSnapshot]);
+
+    queue.resolve(secondSnapshot.id, 'deny');
+    await expect(second).resolves.toBe('deny');
+  });
+
+  it('keeps aborted and cleared approval IDs monotonic without tombstones', async () => {
+    const queue = createToolApprovalQueue();
+    const definition = {
+      name: 'workspace.writeFile',
+      inputSchema: { type: 'object' as const },
+    };
+    const request = (signal?: AbortSignal) =>
+      queue.request({
+        request: {
+          id: 7,
+          method: 'tools/call',
+          params: { name: definition.name },
+        },
+        definition,
+        ...(signal ? { signal } : {}),
+      });
+
+    const controller = new AbortController();
+    const aborted = request(controller.signal);
+    const abortedSnapshot = queue.store.getSnapshot()[0]!;
+    expect(abortedSnapshot).toMatchObject({ id: '7-0', toolCallId: 7 });
+    controller.abort();
+    await expect(aborted).resolves.toBe('deny');
+    expect(queue.store.getSnapshot()).toEqual([]);
+
+    const cleared = request();
+    const clearedSnapshot = queue.store.getSnapshot()[0]!;
+    expect(clearedSnapshot).toMatchObject({ id: '7-1', toolCallId: 7 });
+    queue.denyAll();
+    await expect(cleared).resolves.toBe('deny');
+    expect(queue.store.getSnapshot()).toEqual([]);
+
+    const current = request();
+    const currentSnapshot = queue.store.getSnapshot()[0]!;
+    const currentSettled = jest.fn();
+    void current.then(currentSettled);
+    expect(new Set([
+      abortedSnapshot.id,
+      clearedSnapshot.id,
+      currentSnapshot.id,
+    ]).size).toBe(3);
+    expect(currentSnapshot).toMatchObject({ id: '7-2', toolCallId: 7 });
+
+    queue.resolve(abortedSnapshot.id, 'allow');
+    queue.resolve(clearedSnapshot.id, 'allow');
+    await Promise.resolve();
+    expect(currentSettled).not.toHaveBeenCalled();
+    expect(queue.store.getSnapshot()).toEqual([currentSnapshot]);
+
+    queue.resolve(currentSnapshot.id, 'allow');
+    await expect(current).resolves.toBe('allow');
   });
 });

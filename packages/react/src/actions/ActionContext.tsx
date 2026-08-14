@@ -18,13 +18,24 @@ import {
   EffectConfig,
   GuardConfig,
 } from '@context-action/core';
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useId, useMemo, useRef } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useId,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type {
   ActionContextConfig,
   ActionContextReturn,
   ActionContextType,
   ProviderDispatchLifecycle
 } from './ActionContext.types';
+
+const useInsertionCommitEffect = useInsertionEffect;
 
 function createProviderAbortError(): Error {
   const error = new Error('Action provider unmounted');
@@ -68,8 +79,18 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   private finalized = false;
   private activeOperations = new Set<Promise<unknown>>();
   private controllers = new Set<AbortController>();
-  private pendingHandlerCleanups = new Set<() => void>();
+  private pendingHandlerCleanups: Array<() => void> = [];
   private shutdownPromise: Promise<void> | null = null;
+
+  private runHandlerCleanup(cleanup: () => void): void {
+    try {
+      cleanup();
+    } catch (error) {
+      // Handler cleanup is user code. Observe failures without allowing one
+      // registration to block the remaining cleanup or lifecycle finalization.
+      console.error('[ContextAction] Action handler cleanup failed.', error);
+    }
+  }
 
   run<R>(
     externalSignals: Array<AbortSignal | undefined>,
@@ -117,11 +138,13 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   scheduleHandlerCleanup(cleanup: () => void): void {
     queueMicrotask(() => {
       if (this.finalized) {
-        cleanup();
+        this.runHandlerCleanup(cleanup);
       } else if (this.accepting) {
-        cleanup();
+        this.runHandlerCleanup(cleanup);
       } else {
-        this.pendingHandlerCleanups.add(cleanup);
+        // Preserve one entry per registration even when multiple handlers use
+        // the same cleanup function object.
+        this.pendingHandlerCleanups.push(cleanup);
       }
     });
   }
@@ -134,14 +157,14 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     this.controllers.forEach(controller => {
       if (!controller.signal.aborted) controller.abort(createProviderAbortError());
     });
-    const registerShutdown = register.destroyAsync();
+    const registerShutdown = register.destroyAsync({ deferCleanup: true });
 
     this.shutdownPromise = Promise.allSettled([...this.activeOperations])
       .then(() => registerShutdown)
       .then(() => {
-        this.pendingHandlerCleanups.forEach(cleanup => cleanup());
-        this.pendingHandlerCleanups.clear();
+        const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
         this.finalized = true;
+        pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
       });
     return this.shutdownPromise;
   }
@@ -237,7 +260,6 @@ export function createActionContext<
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
     const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
-    const lifecycleGenerationRef = useRef(0);
     if (!actionRegisterRef.current) {
       actionRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
     }
@@ -246,19 +268,21 @@ export function createActionContext<
     }
     const dispatchLifecycle = dispatchLifecycleRef.current;
 
-    useEffect(() => {
+    // React Activity disconnects layout/passive effects while preserving the
+    // mounted tree. Insertion effects remain connected, so ownership here keeps
+    // the register and its handlers usable throughout hide/reveal and reserves
+    // shutdown for an actual Provider unmount.
+    useInsertionCommitEffect(() => {
       const register = actionRegisterRef.current;
-      const generation = ++lifecycleGenerationRef.current;
+      if (!register) {
+        throw new Error('Action provider resources were not initialized before commit.');
+      }
 
       return () => {
-        queueMicrotask(() => {
-          // StrictMode replays setup before this microtask; the latest generation
-          // is intentionally read here to distinguish replay from real unmount.
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-          if (lifecycleGenerationRef.current === generation && register) {
-            void dispatchLifecycle.shutdown(register);
-          }
-        });
+        // Insertion effects stay mounted through Activity hide/reveal and are
+        // cleaned only for a real unmount. Begin closing synchronously so a
+        // stale dispatch cannot enter before deferred user cleanup runs.
+        void dispatchLifecycle.shutdown(register);
       };
     }, [dispatchLifecycle]);
 
@@ -386,7 +410,9 @@ export function createActionContext<
     
     // Store the latest handler in a ref to avoid re-registrations
     const handlerRef = useRef(handler);
-    handlerRef.current = handler;
+    useInsertionCommitEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
     
     // Extract config properties to stable variables
     const priority = config?.priority ?? 0;
@@ -403,6 +429,12 @@ export function createActionContext<
     const when = config?.when;
     const effectKind = config && 'effectKind' in config ? config.effectKind : undefined;
     const replaceExisting = config?.replaceExisting ?? true;
+    const deferredCleanup = useMemo(
+      () => cleanup === undefined
+        ? undefined
+        : () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
+      [cleanup, dispatchLifecycle]
+    );
     
     // Memoize config to prevent unnecessary re-registrations
     const stableConfig = useMemo((): HandlerConfig<T[K]> => ({
@@ -413,16 +445,19 @@ export function createActionContext<
       ...(errorPolicy !== undefined && { errorPolicy }),
       once,
       replaceExisting,
-      ...(cleanup !== undefined && { cleanup }),
+      ...(deferredCleanup !== undefined && { cleanup: deferredCleanup }),
       ...(condition !== undefined && { condition }),
       ...(metadata !== undefined && { metadata }),
       ...(when !== undefined && { when }),
       ...(effectKind !== undefined && { effectKind }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, cleanup, condition, metadata, when, effectKind, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, effectKind, debounce, throttle]);
 
-    useEffect(() => {
+    // A handler is part of the logical Provider lifetime. Keeping registration
+    // in an insertion effect means Activity may disconnect UI effects without
+    // creating a child-before-parent re-registration window on reveal.
+    useInsertionCommitEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
       const generation = ++effectGenerationRef.current;
@@ -569,7 +604,6 @@ export function createActionContext<
   const useFactoryActionDispatchWithResult = () => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
-    const cleanupGenerationRef = useRef(0);
 
     // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends ActionNames<T>>(
@@ -648,14 +682,13 @@ export function createActionContext<
       abortAll();
     }, [abortAll]);
     
-    // Cleanup: abort all pending actions on unmount
-    useEffect(() => {
-      const generation = ++cleanupGenerationRef.current;
+    // Activity disconnects passive effects while preserving the mounted hook.
+    // Own this dispatch scope from an insertion effect so hide/reveal does not
+    // abort in-flight work; defer the actual abort outside the commit phase on
+    // a real hook unmount.
+    useInsertionCommitEffect(() => {
       return () => {
-        queueMicrotask(() => {
-          // eslint-disable-next-line react-hooks/exhaustive-deps -- replay cancellation requires the latest generation
-          if (cleanupGenerationRef.current === generation) abortAll();
-        });
+        queueMicrotask(abortAll);
       };
     }, [abortAll]);
     

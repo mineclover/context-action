@@ -227,7 +227,6 @@ jobs:
             --react-version "${{ matrix.react-version }}" \
             --react-types "${{ matrix.react-types }}" \
             --react-dom-types "${{ matrix.react-dom-types }}"
-          pnpm --filter @context-action/react exec jest --runInBand
 
   security:
     name: Security Audit

@@ -1,0 +1,136 @@
+name: Publish Coordinated Stable Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this candidate publish'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
+      release_commit:
+        description: 'Approved immutable main commit to publish'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish-coordinated-stable-candidate:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate coordinated stable release plan
+        run: pnpm verify:coordinated-stable-release-plan
+
+      - name: Run release gate
+        run: pnpm release:check
+
+      - name: Verify packed coordinated cohort dependency closure
+        run: |
+          node scripts/verify-published-tool-consumers.cjs --local --cohort-only \
+            --packages "@context-action/core,@context-action/react"
+
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
+
+      - name: Publish coordinated stable candidate to next
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm publish:packages -- --summary-file reports/npm-coordinated-stable-candidate-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
+            --scope @context-action/core \
+            --scope @context-action/react
+
+      - name: Verify candidate provenance
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-coordinated-stable-provenance.mjs --tag next --commit "$RELEASE_COMMIT" \
+            --output reports/npm-coordinated-stable-candidate-provenance.json
+
+      - name: Verify published coordinated candidate consumer matrix
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm verify:published-tool-consumers -- --tag next \
+            --packages "@context-action/core,@context-action/react"
+
+      - name: Capture registry evidence
+        run: |
+          pnpm capture:published-release -- --tag next \
+            --packages "@context-action/core,@context-action/react" \
+            --consumer-status passed --output reports/npm-coordinated-stable-candidate-registry-evidence.json
+
+      - name: Upload coordinated stable candidate evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-coordinated-stable-candidate-evidence
+          path: reports/npm-coordinated-stable-candidate-*.json
+          if-no-files-found: error
+          retention-days: 30

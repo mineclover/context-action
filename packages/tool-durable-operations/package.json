@@ -1,6 +1,6 @@
 {
   "name": "@context-action/tool-durable-operations",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "description": "Durable idempotency and external side-effect adapters for Context-Action tool mutations",
   "main": "dist/index.cjs",

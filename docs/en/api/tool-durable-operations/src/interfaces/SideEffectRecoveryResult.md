@@ -6,7 +6,7 @@
 
 # Interface: SideEffectRecoveryResult\<TResult, TDiagnostic\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:83](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L83)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:85](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L85)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **TResult**
 
 > `readonly` **state**: [`SideEffectRecoveryState`](../type-aliases/SideEffectRecoveryState.md)
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:84](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L84)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:86](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L86)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:84](https://git
 
 > `readonly` `optional` **operation?**: [`DurableOperationRecord`](DurableOperationRecord.md)\<[`SideEffectRecordPayload`](SideEffectRecordPayload.md)\<`TResult`, `TDiagnostic`\>\>
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:85](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L85)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:87](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L87)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:85](https://git
 
 > `readonly` `optional` **result?**: `TResult`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:88](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L88)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L90)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:88](https://git
 
 > `readonly` `optional` **diagnostic?**: `TDiagnostic`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:89](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L89)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:91](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L91)
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:89](https://git
 
 > `readonly` `optional` **reason?**: `string`
 
-Defined in: [packages/tool-durable-operations/src/side-effect.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L90)
+Defined in: [packages/tool-durable-operations/src/side-effect.ts:92](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/side-effect.ts#L92)

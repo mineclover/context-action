@@ -8,7 +8,7 @@
 
 > **toOpenAIToolDefinition**(`definition`): [`OpenAIToolDefinition`](../interfaces/OpenAIToolDefinition.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:665](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L665)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:676](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L676)
 
 Convert one canonical tools/list definition into an OpenAI-compatible
 function payload without consulting a second registry export.

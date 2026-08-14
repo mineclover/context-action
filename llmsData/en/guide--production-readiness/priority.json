@@ -1,0 +1,214 @@
+{
+  "document": {
+    "id": "guide--production-readiness",
+    "title": "Production readiness",
+    "category": "guide",
+    "source_path": "en/guide/production-readiness.md",
+    "lastModified": "2026-08-11T05:11:55.976Z",
+    "wordCount": 701
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-11",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in Production readiness.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in Production readiness.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in Production readiness."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "ts",
+      "production",
+      "readiness"
+    ],
+    "technical": [
+      "ts",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from Production readiness.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "Production readiness",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Production readiness",
+        "guide",
+        "ts"
+      ],
+      "nice_to_have": [
+        "ts",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "ts",
+        "production",
+        "readiness"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "ts",
+      "production",
+      "readiness"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-11"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "Production readiness is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-08-11",
+    "updated": "2026-08-11",
+    "version": "1.0.0",
+    "original_size": 5104,
+    "created_at": "2026-08-11T05:13:08.033Z",
+    "source_last_modified": "2026-08-11T06:06:25.740Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "ts",
+        "production",
+        "readiness"
+      ],
+      "technical": [
+        "ts",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-08-11T06:08:28.759Z"
+  }
+}

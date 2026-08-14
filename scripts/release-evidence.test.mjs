@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -37,7 +36,7 @@ test('writer records hashed logs and copied artifacts that pass strict verificat
     assert.equal(manifest.status, 'recorded');
     assert.equal(manifest.commands[0].status, 'passed');
     assert.match(manifest.commands[0].log.sha256, /^[a-f0-9]{64}$/);
-    assert.equal(manifest.artifacts[0].path, 'artifacts/01-' + path.basename(source));
+    assert.equal(manifest.artifacts[0].path, `artifacts/01-${path.basename(source)}`);
     const verified = await run(verifier, ['--file', path.join(output, 'manifest.json')]);
     assert.equal(verified.code, 0, verified.stderr);
     const strict = await run(verifier, ['--file', path.join(output, 'manifest.json'), '--require-success']);

@@ -1,4 +1,9 @@
-import { ActionRegister, type ActionPayloadMap } from '../../src';
+import {
+  ActionRegister,
+  ActionTimeoutError,
+  type ActionObserverEvent,
+  type ActionPayloadMap,
+} from '../../src';
 
 interface MetricsActions extends ActionPayloadMap {
   run: { id: string };
@@ -87,6 +92,27 @@ describe('ExecutionResult metrics', () => {
       status: 'succeeded',
     });
 
+    register.destroy();
+  });
+
+  it('lets controller.return(undefined) override an earlier collected result', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    register.register<'run', string | undefined>('run', () => 'earlier', {
+      id: 'earlier',
+      priority: 2,
+    });
+    register.register<'run', string | undefined>('run', (_payload, controller) => {
+      controller.return(undefined);
+    }, { id: 'terminate', priority: 1 });
+
+    const result = await register.dispatchWithResult<'run', string | undefined>(
+      'run',
+      { id: 'undefined-termination' },
+    );
+
+    expect(result.results).toContain('earlier');
+    expect(result.terminated).toBe(true);
+    expect(result.result).toBeUndefined();
     register.destroy();
   });
 
@@ -313,6 +339,33 @@ describe('ExecutionResult metrics', () => {
     register.destroy();
   });
 
+  it.each(['dispatch', 'dispatchWithResult'] as const)(
+    '%s evaluates observer conditions after awaited higher-priority observers',
+    async dispatchKind => {
+      const register = new ActionRegister<MetricsActions>();
+      let enabled = false;
+      const observed: string[] = [];
+
+      register.register<'run', string>('run', () => 'committed');
+      register.registerObserver<'run', string>('run', () => {
+        observed.push('higher');
+        enabled = true;
+      }, { id: 'higher', priority: 10 });
+      register.registerObserver<'run', string>('run', () => {
+        observed.push('lower');
+      }, { id: 'lower', condition: () => enabled });
+
+      if (dispatchKind === 'dispatch') {
+        await register.dispatch('run', { id: dispatchKind });
+      } else {
+        await register.dispatchWithResult<'run', string>('run', { id: dispatchKind });
+      }
+
+      expect(observed).toEqual(['higher', 'lower']);
+      register.destroy();
+    },
+  );
+
   it('does not let an observer snapshot failure reject the canonical result', async () => {
     const register = new ActionRegister<MetricsActions>();
     const resultValue = new Proxy({}, {
@@ -416,6 +469,285 @@ describe('ExecutionResult metrics', () => {
     releaseObserver?.();
     await register.destroyAsync();
   });
+
+  it.each([
+    ['dispatch', 'success'],
+    ['dispatch', 'always'],
+    ['dispatchWithResult', 'success'],
+    ['dispatchWithResult', 'always'],
+  ] as const)(
+    '%s reports a timeout from an awaited %s observer to failure observers once',
+    async (dispatchKind, blockerWhen) => {
+      const register = new ActionRegister<MetricsActions>();
+      let releaseObserver: (() => void) | undefined;
+      let markObserverStarted: (() => void) | undefined;
+      const observerGate = new Promise<void>(resolve => { releaseObserver = resolve; });
+      const observerStarted = new Promise<void>(resolve => { markObserverStarted = resolve; });
+      const completedEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+      const failureEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+
+      register.register<'run', string>('run', () => 'committed');
+      register.registerObserver<'run', string>('run', async event => {
+        completedEvents.push(event);
+        markObserverStarted?.();
+        await observerGate;
+      }, { id: 'blocking-observer', priority: 10, when: blockerWhen });
+      register.registerObserver<'run', string>('run', event => {
+        failureEvents.push(event);
+      }, { id: 'failure-observer', when: 'failure' });
+
+      const execution = dispatchKind === 'dispatch'
+        ? register.dispatch('run', { id: `${dispatchKind}-${blockerWhen}` }, { timeout: 10 })
+        : register.dispatchWithResult<'run', string>(
+            'run',
+            { id: `${dispatchKind}-${blockerWhen}` },
+            { timeout: 10 },
+          );
+
+      await observerStarted;
+      await expect(execution).rejects.toBeInstanceOf(ActionTimeoutError);
+      expect(completedEvents).toHaveLength(1);
+      expect(completedEvents[0]?.outcome).toBe('completed');
+      expect(failureEvents).toHaveLength(1);
+      expect(failureEvents[0]?.outcome).toBe('failed');
+      expect(failureEvents[0]?.errors).toHaveLength(1);
+      expect(failureEvents[0]?.errors[0]?.error).toBeInstanceOf(ActionTimeoutError);
+
+      releaseObserver?.();
+      await register.destroyAsync();
+      expect(completedEvents).toHaveLength(1);
+      expect(failureEvents).toHaveLength(1);
+    },
+  );
+
+  it.each(['dispatch', 'dispatchWithResult'] as const)(
+    '%s settles its timeout while a pending failure observer remains shutdown-owned',
+    async dispatchKind => {
+      jest.useFakeTimers();
+      const register = new ActionRegister<MetricsActions>();
+      let releaseCompletedObserver: (() => void) | undefined;
+      let releaseFailureObserver: (() => void) | undefined;
+      let markCompletedObserverStarted: (() => void) | undefined;
+      let markFailureObserverStarted: (() => void) | undefined;
+      const completedObserverGate = new Promise<void>(resolve => {
+        releaseCompletedObserver = resolve;
+      });
+      const failureObserverGate = new Promise<void>(resolve => {
+        releaseFailureObserver = resolve;
+      });
+      const completedObserverStarted = new Promise<void>(resolve => {
+        markCompletedObserverStarted = resolve;
+      });
+      const failureObserverStarted = new Promise<void>(resolve => {
+        markFailureObserverStarted = resolve;
+      });
+      const failureEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+
+      register.register<'run', string>('run', () => 'committed');
+      register.registerObserver<'run', string>('run', async () => {
+        markCompletedObserverStarted?.();
+        await completedObserverGate;
+      }, { id: 'completed-observer', when: 'success', priority: 10 });
+      register.registerObserver<'run', string>('run', async event => {
+        failureEvents.push(event);
+        markFailureObserverStarted?.();
+        // Intentionally ignore the aborted signal until the test releases us.
+        await failureObserverGate;
+      }, { id: 'failure-observer', when: 'failure' });
+
+      try {
+        const execution = dispatchKind === 'dispatch'
+          ? register.dispatch('run', { id: dispatchKind }, { timeout: 10 })
+          : register.dispatchWithResult<'run', string>(
+              'run',
+              { id: dispatchKind },
+              { timeout: 10 },
+            );
+        let callerSettled = false;
+        let callerError: unknown;
+        void execution.then(
+          () => { callerSettled = true; },
+          error => {
+            callerSettled = true;
+            callerError = error;
+          },
+        );
+
+        await completedObserverStarted;
+        await jest.advanceTimersByTimeAsync(10);
+        await failureObserverStarted;
+        await Promise.resolve();
+
+        expect(callerSettled).toBe(true);
+        expect(callerError).toBeInstanceOf(ActionTimeoutError);
+        expect(failureEvents).toHaveLength(1);
+        expect(failureEvents[0]?.outcome).toBe('failed');
+
+        let shutdownSettled = false;
+        const shutdown = register.destroyAsync().then(() => {
+          shutdownSettled = true;
+        });
+        await Promise.resolve();
+        expect(shutdownSettled).toBe(false);
+
+        releaseCompletedObserver?.();
+        await Promise.resolve();
+        expect(shutdownSettled).toBe(false);
+
+        releaseFailureObserver?.();
+        await shutdown;
+        expect(shutdownSettled).toBe(true);
+        expect(failureEvents).toHaveLength(1);
+      } finally {
+        releaseCompletedObserver?.();
+        releaseFailureObserver?.();
+        await register.destroyAsync();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    },
+  );
+
+  it.each([
+    ['higher', 10],
+    ['lower', -10],
+  ] as const)(
+    'delivers the canonical completed event to an %s-priority always observer after timeout',
+    async (_priorityPosition, alwaysPriority) => {
+      jest.useFakeTimers();
+      const register = new ActionRegister<MetricsActions>();
+      let releaseCompletedObserver: (() => void) | undefined;
+      let markCompletedObserverStarted: (() => void) | undefined;
+      let markAlwaysObserved: (() => void) | undefined;
+      let markFailureObserved: (() => void) | undefined;
+      const completedObserverGate = new Promise<void>(resolve => {
+        releaseCompletedObserver = resolve;
+      });
+      const completedObserverStarted = new Promise<void>(resolve => {
+        markCompletedObserverStarted = resolve;
+      });
+      const alwaysObserved = new Promise<void>(resolve => {
+        markAlwaysObserved = resolve;
+      });
+      const failureObserved = new Promise<void>(resolve => {
+        markFailureObserved = resolve;
+      });
+      const alwaysEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+      const failureEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+
+      register.register<'run', string>('run', () => 'committed');
+      register.registerObserver<'run', string>('run', async () => {
+        markCompletedObserverStarted?.();
+        await completedObserverGate;
+      }, { id: 'completed-observer', when: 'success', priority: 0 });
+      register.registerObserver<'run', string>('run', event => {
+        alwaysEvents.push(event);
+        markAlwaysObserved?.();
+      }, { id: 'always-observer', when: 'always', priority: alwaysPriority });
+      register.registerObserver<'run', string>('run', event => {
+        failureEvents.push(event);
+        markFailureObserved?.();
+      }, { id: 'failure-observer', when: 'failure', priority: -20 });
+
+      try {
+        const execution = register.dispatchWithResult<'run', string>(
+          'run',
+          { id: `always-${alwaysPriority}` },
+          { timeout: 10 },
+        );
+        let callerError: unknown;
+        void execution.catch(error => { callerError = error; });
+
+        await completedObserverStarted;
+        await jest.advanceTimersByTimeAsync(10);
+        await failureObserved;
+        await Promise.resolve();
+
+        expect(callerError).toBeInstanceOf(ActionTimeoutError);
+        expect(failureEvents).toHaveLength(1);
+        expect(failureEvents[0]?.outcome).toBe('failed');
+        expect(alwaysEvents).toHaveLength(alwaysPriority > 0 ? 1 : 0);
+
+        releaseCompletedObserver?.();
+        await alwaysObserved;
+        expect(alwaysEvents).toHaveLength(1);
+        expect(alwaysEvents[0]?.outcome).toBe('completed');
+
+        await register.destroyAsync();
+        expect(failureEvents).toHaveLength(1);
+      } finally {
+        releaseCompletedObserver?.();
+        await register.destroyAsync();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    },
+  );
+
+  it.each(['dispatch', 'dispatchWithResult'] as const)(
+    '%s reserves a conditional always observer to the canonical event across timeout',
+    async dispatchKind => {
+      jest.useFakeTimers();
+      const register = new ActionRegister<MetricsActions>();
+      let enabled = false;
+      let releaseCompletedObserver: (() => void) | undefined;
+      let markCompletedObserverStarted: (() => void) | undefined;
+      let markAlwaysObserved: (() => void) | undefined;
+      const completedObserverGate = new Promise<void>(resolve => {
+        releaseCompletedObserver = resolve;
+      });
+      const completedObserverStarted = new Promise<void>(resolve => {
+        markCompletedObserverStarted = resolve;
+      });
+      const alwaysObserved = new Promise<void>(resolve => {
+        markAlwaysObserved = resolve;
+      });
+      const alwaysEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+
+      register.register<'run', string>('run', () => 'committed');
+      register.registerObserver<'run', string>('run', async () => {
+        markCompletedObserverStarted?.();
+        await completedObserverGate;
+      }, { id: 'completed-observer', when: 'success', priority: 10 });
+      register.registerObserver<'run', string>('run', event => {
+        alwaysEvents.push(event);
+        markAlwaysObserved?.();
+      }, {
+        id: 'conditional-always-observer',
+        when: 'always',
+        condition: () => enabled,
+      });
+
+      try {
+        const execution = dispatchKind === 'dispatch'
+          ? register.dispatch('run', { id: dispatchKind }, { timeout: 10 })
+          : register.dispatchWithResult<'run', string>(
+              'run',
+              { id: dispatchKind },
+              { timeout: 10 },
+            );
+        const timeoutRejection = expect(execution).rejects.toBeInstanceOf(ActionTimeoutError);
+
+        await completedObserverStarted;
+        enabled = true;
+        await jest.advanceTimersByTimeAsync(10);
+        await timeoutRejection;
+        await Promise.resolve();
+
+        expect(alwaysEvents).toHaveLength(0);
+
+        releaseCompletedObserver?.();
+        await alwaysObserved;
+        expect(alwaysEvents).toHaveLength(1);
+        expect(alwaysEvents[0]?.outcome).toBe('completed');
+      } finally {
+        releaseCompletedObserver?.();
+        await register.destroyAsync();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    },
+  );
 
   it('keeps cancelled preflight metrics aligned with skipped handler outcomes', async () => {
     const controller = new AbortController();
@@ -613,4 +945,87 @@ describe('ExecutionResult metrics', () => {
     expect(handler).toHaveBeenCalledTimes(1);
     register.destroy();
   });
+
+  it('resolves void dispatch when cancellation interrupts retry backoff', async () => {
+    const register = new ActionRegister<MetricsActions>();
+    const controller = new AbortController();
+    let markAttemptSuperseded: (() => void) | undefined;
+    const attemptSuperseded = new Promise<void>(resolve => { markAttemptSuperseded = resolve; });
+    const handler = jest.fn((_payload: MetricsActions['run'], pipelineController: {
+      signal?: AbortSignal;
+    }) => {
+      pipelineController.signal?.addEventListener('abort', () => markAttemptSuperseded?.(), {
+        once: true,
+      });
+      throw new Error('retry me');
+    });
+    register.register('run', handler, { errorPolicy: 'fatal' });
+
+    const execution = register.dispatch('run', { id: 'abort-void-backoff' }, {
+      signal: controller.signal,
+      retryOnError: { maxAttempts: 3, delay: 10_000 },
+    });
+    await attemptSuperseded;
+    controller.abort('cancel retry');
+
+    await expect(execution).resolves.toBeUndefined();
+    expect(handler).toHaveBeenCalledTimes(1);
+    register.destroy();
+  });
+
+  it.each(['dispatch', 'dispatchWithResult'] as const)(
+    '%s reports timeout rather than cancellation when timeout interrupts retry backoff',
+    async dispatchKind => {
+      jest.useFakeTimers();
+      const register = new ActionRegister<MetricsActions>();
+      let markAttemptSuperseded: (() => void) | undefined;
+      const attemptSuperseded = new Promise<void>(resolve => {
+        markAttemptSuperseded = resolve;
+      });
+      const failureEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+      const alwaysEvents: ActionObserverEvent<MetricsActions['run'], string>[] = [];
+
+      register.register('run', (_payload, pipelineController) => {
+        pipelineController.signal?.addEventListener('abort', () => {
+          markAttemptSuperseded?.();
+        }, { once: true });
+        throw new Error('retry me');
+      }, { errorPolicy: 'fatal' });
+      register.registerObserver<'run', string>('run', event => {
+        failureEvents.push(event);
+      }, { id: 'failure-observer', when: 'failure' });
+      register.registerObserver<'run', string>('run', event => {
+        alwaysEvents.push(event);
+      }, { id: 'always-observer', when: 'always' });
+
+      try {
+        const execution = dispatchKind === 'dispatch'
+          ? register.dispatch('run', { id: dispatchKind }, {
+              timeout: 10,
+              retryOnError: { maxAttempts: 3, delay: 10_000 },
+            })
+          : register.dispatchWithResult<'run', string>('run', { id: dispatchKind }, {
+              timeout: 10,
+              retryOnError: { maxAttempts: 3, delay: 10_000 },
+            });
+        const timeoutRejection = expect(execution).rejects.toBeInstanceOf(ActionTimeoutError);
+
+        await attemptSuperseded;
+        await jest.advanceTimersByTimeAsync(10);
+        await timeoutRejection;
+        await Promise.resolve();
+
+        expect(failureEvents).toHaveLength(1);
+        expect(failureEvents[0]?.outcome).toBe('failed');
+        expect(failureEvents[0]?.errors[0]?.error).toBeInstanceOf(ActionTimeoutError);
+        expect(alwaysEvents).toHaveLength(1);
+        expect(alwaysEvents[0]?.outcome).toBe('failed');
+        expect(alwaysEvents[0]?.errors[0]?.error).toBeInstanceOf(ActionTimeoutError);
+      } finally {
+        await register.destroyAsync();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    },
+  );
 });

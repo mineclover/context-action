@@ -8,7 +8,7 @@
 
 > **ToolCallObserver** = (`event`) => `void`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:559](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L559)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:570](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L570)
 
 ## Parameters
 

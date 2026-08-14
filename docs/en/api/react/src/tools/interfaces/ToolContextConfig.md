@@ -6,7 +6,7 @@
 
 # Interface: ToolContextConfig\<TSchema\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:73](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L73)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:74](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L74)
 
 Configuration options for createToolContext
 
@@ -22,7 +22,7 @@ Configuration options for createToolContext
 
 > **schema**: `TSchema`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:75](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L75)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:76](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L76)
 
 Tool schema map (required) - defines all available tools
 
@@ -32,7 +32,7 @@ Tool schema map (required) - defines all available tools
 
 > `optional` **validationMode?**: [`ToolValidationMode`](../type-aliases/ToolValidationMode.md)
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:83](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L83)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:84](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L84)
 
 Validation mode for tool execution
 - 'strict': Throws ActionValidationError on invalid payload (default)
@@ -45,7 +45,7 @@ Validation mode for tool execution
 
 > `optional` **validateOnDispatch?**: `boolean`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:89](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L89)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:90](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L90)
 
 Enable/disable validation on dispatch
 
@@ -61,7 +61,7 @@ true
 
 > `optional` **debug?**: `boolean`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:92](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L92)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:93](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L93)
 
 Enable debug logging
 
@@ -71,7 +71,7 @@ Enable debug logging
 
 > `optional` **allowedToolNames?**: readonly `string`[]
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:95](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L95)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:96](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L96)
 
 Optional execution allowlist applied to discovery and calls.
 
@@ -81,7 +81,7 @@ Optional execution allowlist applied to discovery and calls.
 
 > `optional` **toolListPageSize?**: `number`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:98](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L98)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L99)
 
 Optional page size for canonical tools/list discovery. Defaults to all tools.
 
@@ -91,7 +91,7 @@ Optional page size for canonical tools/list discovery. Defaults to all tools.
 
 > `optional` **toolPolicy?**: [`ToolPolicy`](../type-aliases/ToolPolicy.md)
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L101)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L102)
 
 Optional runtime policy for allow/ask/deny decisions.
 
@@ -101,7 +101,7 @@ Optional runtime policy for allow/ask/deny decisions.
 
 > `optional` **onToolCall?**: `ToolCallObserver`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:104](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L104)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:105](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L105)
 
 Receives normalized tool lifecycle events for traces and audit UI.
 
@@ -111,7 +111,7 @@ Receives normalized tool lifecycle events for traces and audit UI.
 
 > `optional` **executionOwnerId?**: `string`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:107](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L107)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:108](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L108)
 
 Stable logical owner recorded in tool-call execution provenance.
 
@@ -121,7 +121,7 @@ Stable logical owner recorded in tool-call execution provenance.
 
 > `optional` **idempotency?**: `ToolIdempotencyRegistryOptions`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:113](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L113)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:114](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L114)
 
 Bounded in-memory replay guard for calls that provide idempotencyKey.
 Durable stores belong at the application/server mutation boundary.
@@ -132,7 +132,7 @@ Durable stores belong at the application/server mutation boundary.
 
 > `optional` **durableOperationStore?**: `DurableOperationStore`\<`ToolCallResult`&lt;`unknown`&gt;\>
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:116](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L116)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:117](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L117)
 
 Optional durable record store for cross-reload/process mutation recovery.
 
@@ -142,7 +142,7 @@ Optional durable record store for cross-reload/process mutation recovery.
 
 > `optional` **durableOperationOwnerId?**: `string`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:119](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L119)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:120](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L120)
 
 Stable process/worker identity used for durable operation ownership.
 
@@ -152,7 +152,7 @@ Stable process/worker identity used for durable operation ownership.
 
 > `optional` **durableOperationLeaseMs?**: `number`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:122](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L122)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:123](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L123)
 
 Pending-operation lease duration. Defaults to five minutes.
 
@@ -162,7 +162,7 @@ Pending-operation lease duration. Defaults to five minutes.
 
 > `optional` **durableDiagnosticPolicy?**: `ToolObservabilityPolicy`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:129](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L129)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:130](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L130)
 
 Policy used when durable failed/unknown diagnostics are projected.
 Create it with `createToolObservabilityPolicy()`; the shared default is

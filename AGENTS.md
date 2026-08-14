@@ -6,15 +6,22 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 This is a TypeScript monorepo for the **Context-Action framework** - a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
 
-## 🎯 Current Status (August 2025)
+## 🎯 Current Status (August 2026)
 
-**Framework Stability: Production Ready ✅**
-- **Test Coverage**: 99.5% success rate (23/23 suites, 215/216 tests passing)
-- **Type Safety**: Full TypeScript strict mode compliance across all packages  
-- **Performance**: High-frequency scenarios validated (120fps mouse events <200ms)
-- **Memory Management**: No memory leaks in stress testing (600+ rapid updates)
-- **Example Application**: Comprehensive showcase with 90+ routes and real-world demos
-- **Documentation**: Complete API reference, patterns guide, and architectural documentation
+**Framework Stability: Release stabilization in progress**
+
+Do not rely on historical suite counts or a static “production ready” label.
+The source of truth is the current protected validation pipeline:
+
+- `pnpm release:check` for the complete local release preflight
+- full strict source and test type checking across workspace packages
+- React 18/19 compatibility and SSR/hydration verification
+- packed ESM/CJS consumer and package-export verification
+- durable-operation Redis/PostgreSQL/backend smoke evidence
+- example and workspace-only tool verification
+
+Publishing still requires an approved version/cohort decision and a protected
+workflow that supports that exact candidate and promotion path.
 
 ### Project Philosophy
 
@@ -265,16 +272,18 @@ pnpm changed
 # See diff of changes
 pnpm diff
 
-# Version management
-pnpm version           # Interactive version bump
-pnpm version:patch     # Patch version bump
-pnpm version:minor     # Minor version bump
-pnpm version:major     # Major version bump
+# Complete release preflight
+pnpm release:check
 
-# Publishing
-pnpm release           # Publish changed packages
-pnpm release:patch     # Version patch + publish
+# Generate a read-only release inventory
+pnpm release:inventory
 ```
+
+Packages are versioned independently. Lerna `version:*` commands can mutate
+manifests, the lockfile, commits, and tags, so use them only inside an approved
+release plan. Direct local publishing is disabled; `pnpm release` and
+`pnpm release:patch` intentionally fail closed. Follow
+[`releases/RELEASE.md`](releases/RELEASE.md) and the protected workflows.
 
 ### Documentation
 ```bash
@@ -493,21 +502,19 @@ pnpm type-check    # TypeScript check
 
 ## Testing Strategy
 
-- **Unit Tests**: Jest with TypeScript support (`ts-jest`) - **23/23 test suites passing (99.5% success rate)**
-- **Type Checking**: TypeScript strict mode enabled - **All packages passing**
-- **Code Quality**: ESLint with TypeScript rules - **Clean codebase**
-- **Example App**: Biome for linting and formatting - **Running successfully**
+- **Unit and integration tests**: Jest, Vitest, and Node test suites according
+  to each package contract
+- **Type checking**: strict source and test TypeScript projects
+- **Code quality**: Biome plus repository architecture and package-boundary gates
+- **Compatibility**: React 18/19, ESM/CJS, NodeNext, browser/process-less imports,
+  packed consumers, and external backend smoke tests
+- **Release safety**: workflow structure, provenance, immutable source binding,
+  changelog, consumer evidence, and rollback regression tests
 
-### Test Coverage Status ✅
+### Current verification rule
 
-**React Package Test Results:**
-- **Total Test Suites**: 23/23 passing ✅
-- **Individual Tests**: 215/216 passing (99.5% success rate) ✅
-- **Performance Tests**: High-frequency updates, memory leak prevention ✅
-- **Integration Tests**: MockStore, async helpers, registry integration ✅
-- **Type Safety**: Comprehensive compile-time validation ✅
-- **Event Prevention**: DOM/React event object filtering ✅
-- **Action Stability**: Dispatch function reference stability ✅
+Do not copy a historical test count into release evidence. Run the current
+package and root gates and report the results produced by that immutable commit.
 
 **Scenario Validation:**
 - **High-frequency Updates**: Mouse events at 120fps, performance <200ms ✅

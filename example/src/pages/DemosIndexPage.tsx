@@ -40,60 +40,6 @@ const demos: DemoItem[] = [
     ],
     estimatedTime: '5-10분',
   },
-  {
-    path: '/integrations/live-code-editor',
-    title: 'Usecase Boundary Lab',
-    emoji: '🧭',
-    description:
-      'Context-Layered Runtime을 Facade와 Astryx-style Recipe에 연결하는 live editor 데모.',
-    tags: ['Usecase Boundary', 'Facade', 'Recipe', 'Astryx UI'],
-    category: 'advanced',
-    complexity: 'Intermediate',
-    features: [
-      'Contract → Runtime → Facade → Recipe',
-      'Controlled UI props',
-      'Validation abort path',
-      'Activity stream and result',
-    ],
-    estimatedTime: '5-10분',
-  },
-  {
-    path: '/integrations/live-web-coding',
-    title: 'Realtime Web Coding',
-    emoji: '⚡',
-    description:
-      'AI chat과 web tools가 HTML/CSS/JS workspace를 수정하고 sandbox preview에 즉시 반영하는 작은 실험실.',
-    tags: ['AI Chat', 'Tool Calling', 'HTML/CSS/JS', 'Live Preview'],
-    category: 'advanced',
-    complexity: 'Intermediate',
-    features: [
-      'Visible web tool palette',
-      'Local demo agent fallback',
-      'Dexie workspace persistence',
-      'Iframe revision acknowledgement',
-    ],
-    estimatedTime: '5-10분',
-  },
-
-  // === AI/LLM Integration ===
-  {
-    path: '/integrations/tool-context-ai',
-    title: 'ToolContext + AI SDK',
-    emoji: '🤖',
-    description:
-      'AI SDK v7의 다단계 tool loop로 AI가 ToolContext를 통해 UI를 제어하는 브라우저 데모.',
-    tags: ['AI SDK v7', 'Function Calling', 'Tools', 'Real-time UI Control'],
-    category: 'advanced',
-    complexity: 'Advanced',
-    features: [
-      'ToolContext integration',
-      'OpenRouter API',
-      'AI SDK v7 tool loop',
-      'Real-time UI updates',
-    ],
-    estimatedTime: '10-15분',
-  },
-
   // === Store System ===
   {
     path: '/foundations/store/time-travel',
@@ -455,25 +401,6 @@ export default function DemosIndexPage() {
                       className="inline-flex items-center justify-center rounded-full bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800"
                     >
                       카탈로그 열기 →
-                    </Link>
-                  </div>
-                </div>
-                <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50 p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="font-semibold text-violet-950">
-                        🧭 Usecase Boundary Lab
-                      </h3>
-                      <p className="mt-1 text-sm text-violet-800">
-                        코드를 편집하면서 Contract, Runtime, Facade, Recipe와
-                        Astryx-style controlled UI 연결을 바로 확인하세요.
-                      </p>
-                    </div>
-                    <Link
-                      to="/integrations/live-code-editor"
-                      className="inline-flex items-center justify-center rounded-full bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
-                    >
-                      Editor 열기 →
                     </Link>
                   </div>
                 </div>

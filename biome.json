@@ -12,8 +12,8 @@
       "packages/mutative/src/**/*.ts",
       "packages/llms-generator/src/**/*.ts",
       "packages/typedoc-vitepress-sync/src/**/*.ts",
-      "scripts/security-audit.mjs",
-      "scripts/verify-private-tools.mjs"
+      "scripts/**/*.cjs",
+      "scripts/**/*.mjs"
     ]
   },
   "formatter": {

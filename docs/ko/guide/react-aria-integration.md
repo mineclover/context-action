@@ -8,6 +8,21 @@ Context-Action은 React Aria와 도메인 경계에서 통합합니다. React St
 사용하고, 이 컴포넌트들이 내보내는 제품 도메인 결정을 Context-Action action과
 store로 관리합니다.
 
+## 공식 컴포넌트 레퍼런스
+
+이 레퍼런스는 ARIA 동작을 직접 재구현하지 않고 컴포넌트 계약을 따릅니다.
+
+- [React Aria Table](https://react-aria.adobe.com/Table)은 방향 키 이동,
+  `selectedKeys` 기반 controlled selection, `sortDescriptor`·`onSortChange`
+  기반 controlled sorting을 정의합니다.
+- [React Aria Calendar](https://react-aria.adobe.com/Calendar)은 날짜 grid,
+  키보드 이동, calendar-aware 날짜 값을 소유합니다.
+- [React Stately Selection](https://react-spectrum.adobe.com/react-stately/selection.html)은
+  `"all"` sentinel을 포함한 controlled selection 모델을 설명합니다.
+
+접근성 의미론과 상호작용의 상세한 기준은 위 공식 문서에 둡니다. 이 가이드는
+그 결과가 애플리케이션 상태와 도메인 action으로 넘어가는 경계만 정의합니다.
+
 ## 소유 모델
 
 | 관심사 | 소유자 | 이유 |
@@ -76,6 +91,17 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
 4. controlled 값이 서버에서 공급된다면 React 18/19 SSR과 hydration
 5. action handler가 고빈도 상호작용을 지연시키지 않는지: roving focus를 action
    pipeline으로 구동하지 말고 의미 있는 확정 이벤트만 handler로 전달
+
+### 저장소 레퍼런스 검증 범위
+
+실행 가능한 레퍼런스는 상호 보완적인 두 검사를 가집니다.
+
+- `pnpm --filter example test -- src/pages/integrations/react-aria/ReactAriaReferencePage.test.tsx`는
+  키보드 Table 선택, 정렬, 키보드 Calendar 선택, 그 결과의 도메인 action audit
+  entry를 검증합니다.
+- `pnpm verify:react-aria-reference-hydration`은 레퍼런스를 번들하고 현재 로컬
+  Core·React 후보 artifact를 설치한 상태에서 React 18.3.1·19.2.8 hydration을
+  검증합니다. hydration recovery error나 후보 버전 불일치가 있으면 실패합니다.
 
 더 자세한 React Aria 상태 계약은 공식 React Aria 및 React Stately 문서를
 참조합니다. Context-Action은 컴포넌트의 접근성 상태 머신이 아니라 그 주변의

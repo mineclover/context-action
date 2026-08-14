@@ -24,6 +24,7 @@ import {
 import type {
   DurableOperationRecord,
   DurableOperationResolution,
+  DurableOperationFence,
 } from '@context-action/tool-durable-operations';
 import type {
   ToolOperationRecoveryResolver,
@@ -45,12 +46,11 @@ export type ToolOperationReconciler = (
   toolName: string,
   idempotencyKey: string,
   resolution: DurableOperationResolution<ToolCallResult>,
-  context?: ToolCallContext,
-  expectedRevision?: number
+  context: ToolCallContext | undefined,
+  expectedFence: DurableOperationFence
 ) => Promise<DurableOperationRecord<ToolCallResult> | undefined>;
 
 const TOOL_LIST_CURSOR_PREFIX = 'offset:';
-
 function encodeToolListCursor(offset: number): string {
   return `${TOOL_LIST_CURSOR_PREFIX}${offset}`;
 }
@@ -152,14 +152,22 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       if (!hasOwnTool(toolName)) return undefined;
       return getOperationStatus?.(toolName, idempotencyKey, context);
     },
-    async reconcileOperation(toolName, idempotencyKey, resolution, context, expectedRevision) {
+    async reconcileOperation(toolName, idempotencyKey, resolution, context, expectedFence) {
       if (!hasOwnTool(toolName)) return undefined;
-      return reconcileOperation?.(
+      if (!reconcileOperation) return undefined;
+      if (typeof expectedFence !== 'object' || expectedFence === null) {
+        throw new Error(
+          'Tool operation reconciliation requires a full { incarnation, revision } ' +
+          'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
+          'fences fail closed.'
+        );
+      }
+      return reconcileOperation(
         toolName,
         idempotencyKey,
         resolution,
         context,
-        expectedRevision
+        expectedFence
       );
     },
     async recoverOperation(toolName, idempotencyKey, resolver, context) {
@@ -176,7 +184,7 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
         idempotencyKey,
         resolution,
         context,
-        record.revision
+        { incarnation: record.incarnation, revision: record.revision }
       );
     },
     getToolNames(): (keyof TSchema)[] {

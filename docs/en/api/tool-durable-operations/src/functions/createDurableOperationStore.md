@@ -8,7 +8,7 @@
 
 > **createDurableOperationStore**&lt;`TResult`&gt;(`backend`, `options?`): [`DurableOperationStore`](../interfaces/DurableOperationStore.md)&lt;`TResult`&gt;
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:260](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L260)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:376](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L376)
 
 Create a reference store over an atomic backend.
 

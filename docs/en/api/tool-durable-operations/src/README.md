@@ -8,6 +8,7 @@
 
 ## Interfaces
 
+- [DurableOperationFence](interfaces/DurableOperationFence.md)
 - [DurableOperationRecord](interfaces/DurableOperationRecord.md)
 - [DurableOperationClaim](interfaces/DurableOperationClaim.md)
 - [DurableOperationClaimOptions](interfaces/DurableOperationClaimOptions.md)
@@ -17,6 +18,7 @@
 - [DurableOperationStoreOptions](interfaces/DurableOperationStoreOptions.md)
 - [DurableOperationStore](interfaces/DurableOperationStore.md)
 - [HttpSideEffectRunOptions](interfaces/HttpSideEffectRunOptions.md)
+- [IndexedDbFactory](interfaces/IndexedDbFactory.md)
 - [IndexedDbDurableOperationBackendOptions](interfaces/IndexedDbDurableOperationBackendOptions.md)
 - [PostgresDurableOperationClient](interfaces/PostgresDurableOperationClient.md)
 - [PostgresDurableOperationQueryResult](interfaces/PostgresDurableOperationQueryResult.md)
@@ -56,6 +58,7 @@
 
 ## Functions
 
+- [hasDurableOperationFencingCapability](functions/hasDurableOperationFencingCapability.md)
 - [createDurableOperationStore](functions/createDurableOperationStore.md)
 - [isDurableOperationState](functions/isDurableOperationState.md)
 - [runHttpSideEffect](functions/runHttpSideEffect.md)
@@ -70,5 +73,7 @@
 
 ## Variables
 
+- [DURABLE\_OPERATION\_FENCING\_CAPABILITY](variables/DURABLE_OPERATION_FENCING_CAPABILITY.md)
 - [POSTGRES\_DURABLE\_OPERATION\_SCHEMA\_SQL](variables/POSTGRES_DURABLE_OPERATION_SCHEMA_SQL.md)
 - [REDIS\_DURABLE\_OPERATION\_CAS\_SCRIPT](variables/REDIS_DURABLE_OPERATION_CAS_SCRIPT.md)
+- [REDIS\_DURABLE\_OPERATION\_LEGACY\_BACKFILL\_SCRIPT](variables/REDIS_DURABLE_OPERATION_LEGACY_BACKFILL_SCRIPT.md)

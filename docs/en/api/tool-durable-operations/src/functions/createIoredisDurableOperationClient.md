@@ -8,7 +8,7 @@
 
 > **createIoredisDurableOperationClient**(`client`): [`DurableOperationRedisClient`](../interfaces/DurableOperationRedisClient.md)
 
-Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:139](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L139)
+Defined in: [packages/tool-durable-operations/src/redis-operation-backend.ts:140](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/redis-operation-backend.ts#L140)
 
 Adapt an ioredis client to the driver-neutral backend surface.
 

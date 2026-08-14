@@ -34,7 +34,7 @@ describe('notifyPath Performance Tests', () => {
 
   describe('Re-render Count Reduction', () => {
     it('proves 50% re-render reduction: setValue (2 renders) vs notifyPath (1 render)', async () => {
-      const store = createStore('test', {
+      const traditionalStore = createStore('traditional-test', {
         loading: false,
         data: null as string | null,
       });
@@ -44,51 +44,57 @@ describe('notifyPath Performance Tests', () => {
       let notifyPathRenderCount = 0;
 
       // Test 1: Traditional approach with setValue (2 re-renders)
-      const { result: result1, rerender: rerender1 } = renderHook(() => {
+      const traditionalHook = renderHook(() => {
         setValueRenderCount++;
-        return useStoreValue(store);
+        return useStoreValue(traditionalStore);
       });
 
-      // Simulate loading flow with setValue
+      // Keep the two user-visible phases in separate commits. React 18 and 19
+      // intentionally batch async work differently inside one act() scope.
       await act(async () => {
-        // Re-render 1: Set loading
-        store.setValue({ loading: true, data: null });
+        traditionalStore.setValue({ loading: true, data: null });
         jest.advanceTimersByTime(16); // RAF
-        await waitFor(() => {});
-
-        // Re-render 2: Set data
-        store.setValue({ loading: false, data: 'fetched data' });
-        jest.advanceTimersByTime(16); // RAF
-        await waitFor(() => {});
       });
 
-      const setValueRenders = setValueRenderCount;
+      await act(async () => {
+        traditionalStore.setValue({ loading: false, data: 'fetched data' });
+        jest.advanceTimersByTime(16); // RAF
+      });
 
-      // Reset store
-      store.setValue({ loading: false, data: null });
-      jest.advanceTimersByTime(16);
+      const setValueRenders = setValueRenderCount - 1;
+      traditionalHook.unmount();
+      traditionalStore.dispose();
+
+      const optimizedStore = createStore('optimized-test', {
+        loading: false,
+        data: null as string | null,
+      });
 
       // Test 2: Optimized approach with notifyPath (1 re-render)
-      const { result: result2 } = renderHook(() => {
+      const optimizedHook = renderHook(() => {
         notifyPathRenderCount++;
-        return useStoreValue(store);
+        return useStoreValue(optimizedStore);
       });
 
       await act(async () => {
         // Step 1: Notify loading (no actual setValue, so no re-render)
-        store.notifyPath(['loading']);
+        optimizedStore.notifyPath(['loading']);
         jest.advanceTimersByTime(16); // RAF
-        await waitFor(() => {});
-
-        // Step 2: Single setValue with final data (1 re-render)
-        store.setValue({ loading: false, data: 'fetched data' });
-        jest.advanceTimersByTime(16); // RAF
-        await waitFor(() => {});
       });
 
-      const notifyPathRenders = notifyPathRenderCount;
+      await act(async () => {
+        // Step 2: Single setValue with final data (1 re-render)
+        optimizedStore.setValue({ loading: false, data: 'fetched data' });
+        jest.advanceTimersByTime(16); // RAF
+      });
+
+      const notifyPathRenders = notifyPathRenderCount - 1;
+      optimizedHook.unmount();
+      optimizedStore.dispose();
 
       // Proof: notifyPath approach has fewer re-renders
+      expect(setValueRenders).toBe(2);
+      expect(notifyPathRenders).toBe(1);
       expect(setValueRenders).toBeGreaterThan(notifyPathRenders);
 
       // Calculate reduction percentage

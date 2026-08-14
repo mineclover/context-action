@@ -1,9 +1,11 @@
 import type {
   DurableOperationClaim,
+  DurableOperationFence,
   DurableOperationRecord,
   DurableOperationResolution,
   DurableOperationStore,
 } from './durable-operation.js';
+import { hasDurableOperationFencingCapability } from './durable-operation.js';
 
 /**
  * Result of an external side-effect attempt.
@@ -136,7 +138,7 @@ export interface SideEffectRunOptions<TResult, TDiagnostic = unknown> {
 }
 
 export interface SideEffectRecoveryOptions {
-  readonly expectedRevision?: number;
+  readonly expectedFence?: DurableOperationFence;
   /** Optional audit identity; defaults to the runner owner. */
   readonly reconcilerId?: string;
 }
@@ -273,6 +275,11 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
   if (!options?.store) {
     throw new TypeError('A durable operation store is required.');
   }
+  if (!hasDurableOperationFencingCapability(options.store)) {
+    throw new TypeError(
+      'A durable operation store with incarnation-revision fencing is required.'
+    );
+  }
   assertText(options.ownerId, 'Side-effect ownerId');
 
   const run = async (
@@ -290,6 +297,13 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
     const claim = await options.store.claim(input.key, input.fingerprint, options.ownerId, {
       ...(input.leaseMs === undefined ? {} : { leaseMs: input.leaseMs }),
     });
+    if (input.signal?.aborted) {
+      return {
+        state: 'cancelled',
+        operation: claim.record,
+        reason: 'side-effect was cancelled before execution',
+      };
+    }
     const existing = outcomeFromClaim(claim);
     if (existing) return existing;
 
@@ -333,7 +347,8 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
           input.key,
           options.ownerId,
           'side-effect caller cancelled while execution was in flight',
-          input.abortDiagnostic === undefined ? undefined : { diagnostic: input.abortDiagnostic }
+          input.abortDiagnostic === undefined ? undefined : { diagnostic: input.abortDiagnostic },
+          claim.fence
         );
         return runResultFromRecord('unknown', operation);
       }
@@ -350,13 +365,20 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
       const operation = await options.store.markUnknown(
         input.key,
         options.ownerId,
-        `side-effect adapter returned an invalid outcome: ${reasonFromError(error)}`
+        `side-effect adapter returned an invalid outcome: ${reasonFromError(error)}`,
+        undefined,
+        claim.fence
       );
       return runResultFromRecord('unknown', operation);
     }
     const payload = payloadForOutcome(outcome);
     if (outcome.state === 'completed') {
-      const operation = await options.store.complete(input.key, options.ownerId, payload ?? {});
+      const operation = await options.store.complete(
+        input.key,
+        options.ownerId,
+        payload ?? {},
+        claim.fence
+      );
       return runResultFromRecord('completed', operation);
     }
     if (outcome.state === 'failed') {
@@ -364,7 +386,8 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
         input.key,
         options.ownerId,
         outcome.reason,
-        payload
+        payload,
+        claim.fence
       );
       return runResultFromRecord('failed', operation);
     }
@@ -372,7 +395,8 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
       input.key,
       options.ownerId,
       outcome.reason,
-      payload
+      payload,
+      claim.fence
     );
     return runResultFromRecord('unknown', operation);
   };
@@ -388,6 +412,12 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
     if (!operation) return { state: 'missing' };
     if (operation.state !== 'unknown') {
       return recoveryResultFromRecord(operation.state, operation);
+    }
+    if (recoveryOptions.expectedFence && (
+      recoveryOptions.expectedFence.incarnation !== operation.incarnation ||
+      recoveryOptions.expectedFence.revision !== operation.revision
+    )) {
+      throw new Error(`Durable operation "${key}" fence is stale.`);
     }
     const resolution = await resolver({
       operation,
@@ -427,7 +457,10 @@ export function createDurableSideEffectRunner<TResult, TDiagnostic = unknown>(
       key,
       recoveryOptions.reconcilerId ?? options.ownerId,
       storedResolution,
-      recoveryOptions.expectedRevision ?? operation.revision
+      recoveryOptions.expectedFence ?? {
+        incarnation: operation.incarnation,
+        revision: operation.revision,
+      }
     );
     return recoveryResultFromRecord('resolved', reconciled);
   };

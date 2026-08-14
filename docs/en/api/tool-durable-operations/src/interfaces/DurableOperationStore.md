@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationStore\<TResult\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:119](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L119)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:149](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L149)
 
 Application-owned persistence boundary for exactly-once-like mutation
 handling. Implementations must make `claim` atomic for a given key.
@@ -23,7 +23,7 @@ handling. Implementations must make `claim` atomic for a given key.
 
 > **claim**(`key`, `fingerprint`, `ownerId`, `options?`): [`DurableOperationClaim`](DurableOperationClaim.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationClaim`](DurableOperationClaim.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:120](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L120)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:153](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L153)
 
 #### Parameters
 
@@ -51,9 +51,9 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:120](http
 
 ### complete()
 
-> **complete**(`key`, `ownerId`, `result`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
+> **complete**(`key`, `ownerId`, `result`, `expectedFence`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:127](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L127)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:160](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L160)
 
 #### Parameters
 
@@ -69,6 +69,12 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:127](http
 
 Type parameter **TResult**
 
+##### expectedFence
+
+[`DurableOperationFence`](DurableOperationFence.md)
+
+Fence returned by the owning claim.
+
 #### Returns
 
 [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
@@ -77,9 +83,9 @@ Type parameter **TResult**
 
 ### fail()
 
-> **fail**(`key`, `ownerId`, `reason`, `result?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
+> **fail**(`key`, `ownerId`, `reason`, `result`, `expectedFence`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:133](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L133)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:168](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L168)
 
 #### Parameters
 
@@ -95,9 +101,15 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:133](http
 
 `string`
 
-##### result?
+##### result
 
-Type parameter **TResult**
+`TResult` \| `undefined`
+
+##### expectedFence
+
+[`DurableOperationFence`](DurableOperationFence.md)
+
+Fence returned by the owning claim.
 
 #### Returns
 
@@ -107,9 +119,9 @@ Type parameter **TResult**
 
 ### markUnknown()
 
-> **markUnknown**(`key`, `ownerId`, `reason`, `result?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
+> **markUnknown**(`key`, `ownerId`, `reason`, `result`, `expectedFence`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:140](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L140)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:177](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L177)
 
 #### Parameters
 
@@ -125,11 +137,17 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:140](http
 
 `string`
 
-##### result?
+##### result
 
-Type parameter **TResult**
+`TResult` \| `undefined`
 
 Optional diagnostic result retained for a later domain resolver.
+
+##### expectedFence
+
+[`DurableOperationFence`](DurableOperationFence.md)
+
+Fence returned by the owning claim.
 
 #### Returns
 
@@ -139,9 +157,9 @@ Optional diagnostic result retained for a later domain resolver.
 
 ### resolveUnknown()
 
-> **resolveUnknown**(`key`, `reconcilerId`, `resolution`, `expectedRevision?`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
+> **resolveUnknown**(`key`, `reconcilerId`, `resolution`, `expectedFence`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt;\>
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:149](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L149)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:188](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L188)
 
 Resolve an `unknown` record after a domain status/reconcile decision.
 
@@ -159,9 +177,11 @@ Resolve an `unknown` record after a domain status/reconcile decision.
 
 [`DurableOperationResolution`](../type-aliases/DurableOperationResolution.md)&lt;`TResult`&gt;
 
-##### expectedRevision?
+##### expectedFence
 
-`number`
+[`DurableOperationFence`](DurableOperationFence.md)
+
+Fence observed before the domain reconciliation decision began.
 
 #### Returns
 
@@ -173,7 +193,7 @@ Resolve an `unknown` record after a domain status/reconcile decision.
 
 > **get**(`key`): [`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `Promise`\<[`DurableOperationRecord`](DurableOperationRecord.md)&lt;`TResult`&gt; \| `undefined`\> \| `undefined`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:156](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L156)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:196](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L196)
 
 #### Parameters
 
@@ -191,7 +211,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:156](http
 
 > **prune**(`before?`): `number` \| `Promise`&lt;`number`&gt;
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:162](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L162)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:202](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L202)
 
 Remove terminal records older than the configured retention window.
 
@@ -204,3 +224,13 @@ Remove terminal records older than the configured retention window.
 #### Returns
 
 `number` \| `Promise`&lt;`number`&gt;
+
+## Properties
+
+### fencingCapability
+
+> `readonly` **fencingCapability**: `"context-action/durable-operation-fencing/incarnation-revision-v1"`
+
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:151](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L151)
+
+Fail-closed declaration that this store implements the full fence contract.

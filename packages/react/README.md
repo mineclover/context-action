@@ -93,108 +93,29 @@ function App() {
 }
 ```
 
-## ToolContext: MCP and function-calling usecase
+## Package responsibility
 
-`createToolContext()` is the React management surface for the canonical
-protocol defined by `@context-action/tool-protocol`:
+`@context-action/react` 2.0 is the React state-management integration:
 
-```text
-tools/list → model tool call → tools/call → tool result
-```
+- **Owns:** Store and Action context factories, React provider/hook lifecycle,
+  selective store subscriptions, and the verified React 18/19 SSR and
+  hydration contract.
+- **Does not own:** domain rules, authorization, API clients, persistent
+  workflows, cross-tab/process recovery, or provider tool execution.
 
-Register handlers once, expose the registry to the provider adapter, and keep
-approval and schema validation inside the ToolContext boundary.
+Put business rules and I/O behind action handlers or application services; use
+stores for owned application state and `useStoreValue()` for reactive reads.
+This keeps rendering, state transitions, and infrastructure concerns
+independently testable.
 
-```tsx
-import { useCallback, useMemo } from 'react';
-import {
-  createToolContext,
-} from '@context-action/react/tools';
-import {
-  isToolCallResult,
-  listAllTools,
-} from '@context-action/tool-protocol';
-import { studioToolSchema } from './studio-tool-schema';
+### Development-only tool runtime
 
-const StudioTools = createToolContext('StudioTools', {
-  schema: studioToolSchema,
-  toolPolicy: ({ context }) =>
-    context?.mode === 'direct' ? 'allow' : 'ask',
-});
-
-function ToolRuntime({ children }: { children: React.ReactNode }) {
-  const registry = StudioTools.useToolRegistry();
-
-  StudioTools.useToolHandler(
-    'workspace.readFile',
-    useCallback(async ({ path }) => readWorkspaceFile(path), [])
-  );
-
-  const definitions = useMemo(() => listAllTools(registry), [registry]);
-  const runModelCall = useCallback(
-    async (call: {
-      id: string;
-      name: string;
-      arguments: Record<string, unknown>;
-    }) => {
-      const result = await registry.executeModelToolCall(call, {
-        context: { source: 'model', mode: 'agent' },
-      });
-      if (!isToolCallResult(result)) {
-        throw new Error('The tool adapter returned an invalid tool result.');
-      }
-      return result;
-    },
-    [registry]
-  );
-
-  // Pass definitions to the provider and runModelCall to its response
-  // adapter. Views only receive these commands as props.
-  void definitions;
-  void runModelCall;
-  return children;
-}
-
-function RefreshButton() {
-  const callTool = StudioTools.useToolCall();
-
-  return (
-    <button onClick={() => void callTool('workspace.readFile', { path: 'README.md' })}>
-      Refresh preview
-    </button>
-  );
-}
-```
-
-Use `useToolCall()` for a direct UI action such as a palette or button. It
-constructs a canonical `tools/call` request with
-`{ source: 'local', mode: 'direct' }`; pass `context` only when the caller has
-more specific provenance. Model and MCP calls should use `mode: 'agent'` so the
-same policy, revision checks, lifecycle trace, and structured error result
-apply to every mutation path. `useToolDispatch()` remains a raw ActionRegister
-compatibility hook and intentionally bypasses those tool boundaries. The
-reusable browser convention and complete usecases are documented in
-[`Tool-Calling Web Studio Convention`](../../docs/en/context-layered/usecase-tool-calling-web-studio.md).
-
-Tool calling is an opt-in entry point at `@context-action/react/tools`; the
-default `@context-action/react` entry still does not load its runtime. The
-tools subpath declares its protocol and durable-operation packages directly so
-its published CJS entry always resolves. Add `@context-action/ai-sdk` only
-when an application chooses Vercel AI SDK as its model adapter.
-
-`useToolCall()` (and the lower-level `registry.callTool()`) and
-`executeModelToolCall()` accept a wall-clock `timeout`; `createToolContext()`
-can also receive a durable operation store from
-`@context-action/tool-durable-operations`. The precise timeout,
-cancellation, idempotency, and recovery outcomes are defined by the linked
-semantic guide rather than repeated in this package quick start.
-
-The complete timeout, retry, abort-drain, idempotency, and durable-operation
-contract is maintained in the [Tool-calling editor architecture
-guide](../../docs/en/concept/tool-calling-editor-architecture.md). This README
-only documents the package API entry point; durable behavior across reloads or
-processes remains application-owned. Pass the already-resolved durable package
-implementation as `durableOperationStore` when that behavior is needed.
+The repository retains ToolContext and Durable Operations source while their
+protocol, persistence, and recovery contract is developed. They are **not** an
+installable `@context-action/react/tools` API in the React 2 artifact and are
+not needed for ordinary Store/Action applications. See the
+[production-readiness guide](../../docs/en/guide/production-readiness.md) for
+the ownership matrix and the separate development-track material.
 
 ## Core Patterns
 

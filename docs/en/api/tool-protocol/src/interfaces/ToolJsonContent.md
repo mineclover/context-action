@@ -6,7 +6,7 @@
 
 # Interface: ToolJsonContent
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:439](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L439)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:450](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L450)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:439](https://github.com
 
 > `readonly` **type**: `"json"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:440](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L440)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:451](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L451)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:440](https://github.com
 
 > `readonly` **json**: `unknown`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:441](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L441)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:452](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L452)

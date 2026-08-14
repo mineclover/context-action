@@ -1,5 +1,11 @@
 # Tool Calling Editor 아키텍처
 
+> **개발 트랙 상태:** ToolContext와 Durable Operations는
+> `@context-action/core@1.1.0` / `@context-action/react@2.0.0` 상태 관리
+> 릴리즈에 포함되지 않습니다. 이 protocol·persistence·provider recovery 표면이
+> 별도 릴리즈 결정을 받을 때까지 React 2 패키지는
+> `@context-action/react/tools`를 의도적으로 제외합니다.
+
 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다.
 
 이 데모에서 재사용할 Context-Action 규칙과 use-case recipe는
@@ -399,18 +405,25 @@ fall through하지 않는다. terminal transition 저장이 실패하면 local p
 record를 다시 확인한다.
 
 domain query, compensation 또는 사용자 결정으로 결과가 확정된 뒤에는
-`registry.reconcileOperation(toolName, idempotencyKey, resolution)`으로
-`unknown` record를 `completed` 또는 `failed`로 확정할 수 있다. 이 호출은 recovery
-actor와 revision 검증을 기록하지만 handler를 실행하거나 외부 side effect 발생 여부를
-추측하지 않는다. 안전한 재시도가 새 논리적 operation을 만드는 경우에는 새
-idempotency key를 사용해야 한다.
+`registry.reconcileOperation(toolName, idempotencyKey, resolution, context, expectedFence)`로
+`unknown` record를 `completed` 또는 `failed`로 확정할 수 있다. `expectedFence`는 status
+조회에서 함께 관찰한 불변 `incarnation`과 단조 증가 `revision`을 모두 담는다. 따라서
+terminal record를 prune한 뒤 같은 key와 revision으로 새 record가 생성되는 ABA 상황에서도
+과거 결정을 새 operation에 적용하지 않는다. 이 호출은 recovery actor와 fence 검증을
+기록하지만 handler를 실행하거나 외부 side effect 발생 여부를 추측하지 않는다. 안전한
+재시도가 새 논리적 operation을 만드는 경우에는 새 idempotency key를 사용해야 한다.
+
+기존 positional type 호환을 위해 `expectedFence` 생략과 숫자 revision 입력은 남아 있지만
+runtime에서는 항상 fail-closed한다. registry 내부의 공유 status cache로 caller별 관찰
+provenance를 증명할 수 없기 때문이다. 새 코드는 status record의 `incarnation`과 `revision`을
+다섯 번째 인자로 명시적으로 전달하거나 `recoverOperation()`을 사용해야 한다.
 
 일반적인 status-first 흐름에는 `registry.recoverOperation(toolName,
 idempotencyKey, resolver)`를 사용한다. 이 메서드는 record를 먼저 읽고 관찰한
 상태가 `unknown`일 때만 `resolver`를 호출하며 pending·terminal record에서는
 resolver를 실행하지 않고 그대로 반환한다. resolver가 domain query,
-compensation, 사용자 확인을 소유하고, reconciliation은 첫 조회에서 관찰한
-revision을 사용해 stale decision을 거부한다.
+compensation, 사용자 확인을 소유하고, reconciliation은 첫 조회에서 관찰한 전체
+fence를 사용해 stale decision과 prune/recreate ABA를 거부한다.
 
 외부 side effect가 일부 적용됐을 수 있음을 handler가 알면
 `TOOL_EXECUTION_UNKNOWN`을 반환할 수 있다. ToolContext는 durable record를
@@ -420,7 +433,7 @@ revision을 사용해 stale decision을 거부한다.
 
 전용 `@context-action/tool-durable-operations` package는
 `createDurableOperationStore(backend, options)` reference adapter를 제공한다.
-backend는 durable `read`, revision을 검사하는
+backend는 durable `read`, `incarnation`과 `revision`을 함께 검사하는
 `compareAndSet`, 그리고 호환용 `list()` 또는 bounded `listPage()` 중 하나를
 구현하면 되므로 Redis, SQL, IndexedDB 등 atomic store를 ToolContext의 persistence
 로직과 분리해서 연결할 수 있다. retention window가 지난 terminal record는
@@ -434,7 +447,7 @@ record를 삭제해도 cursor가 유효해야 한다. `listPage()`가 없는 bac
 
 durable-operations package에는 `createRedisDurableOperationBackend()`도 포함된다. JSON
 record를 Redis에 저장하고 lexicographic sorted-set index를 유지하며, 하나의 Lua
-`EVAL`로 record/index CAS를 수행한다. 주입형 client bridge를 사용하므로
+`EVAL`로 record/index의 full-fence CAS를 수행한다. 주입형 client bridge를 사용하므로
 node-redis와 ioredis를 필수 의존성으로 만들지 않는다. 기존 client는
 `createNodeRedisDurableOperationClient()` 또는
 `createIoredisDurableOperationClient()`로 연결할 수 있고, custom client는
@@ -444,7 +457,7 @@ integration suite를 실행하며 운영 환경에서는 별도의 retention sch
 package에는 `createPostgresDurableOperationBackend()` 참조 SQL adapter도 포함된다. 이
 adapter는 structural `query(text, values)` client를 주입받으며 `pg` runtime dependency를
 추가하지 않는다. PostgreSQL 기본 `READ COMMITTED` isolation에서 parameterized 조건부
-`INSERT ... ON CONFLICT DO NOTHING`, revision 검증 `UPDATE`, revision 검증 `DELETE`를
+`INSERT ... ON CONFLICT DO NOTHING`, full-fence 검증 `UPDATE`, full-fence 검증 `DELETE`를
 사용한다. `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL`은 명시적인 migration 경계이며 adapter가
 자동 migration을 실행하지 않는다. PostgreSQL 결정, schema 소유권, live-server 검증 경계는
 [PostgreSQL durable-operation adapter 결정](../context-layered/architecture/postgres-durable-operation-adapter.md)에
@@ -452,7 +465,7 @@ adapter는 structural `query(text, values)` client를 주입받으며 `pg` runti
 
 브라우저 애플리케이션은 `createIndexedDbDurableOperationBackend()`를 기본
 브라우저 backend로 사용할 수 있다. 이 backend는 object store를 지연 생성하고
-IndexedDB read-write transaction과 revision 검증 CAS로 탭 간 record를 조정한다.
+IndexedDB read-write transaction과 full-fence CAS로 탭 간 record를 조정한다.
 각 탭에서 같은 `databaseName`과 `storeName`을 사용해야 하며, `close()`는 해당
 탭의 연결만 닫는다. 이 기능이 보장하는 것은 durable operation record의 조정까지이며,
 공통 side-effect runner가 standalone Bolt filesystem reference를 담당하고,

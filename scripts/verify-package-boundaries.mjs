@@ -19,6 +19,20 @@ const sourceExtensions = new Set([
   '.cjs',
 ]);
 const packageSourceDirectories = ['src', 'test', '__tests__', 'scripts', 'examples'];
+// ToolContext/Durable source is retained for its separate development track. It is
+// intentionally absent from the React 2 public artifact and standard example, so
+// it must not be validated as a release dependency path.
+const developmentTrackSourceRoots = [
+  'packages/react/src/tools/',
+  'example/src/lib/ai-tool-runner.ts',
+  'example/src/lib/live-editor-tool-approval.ts',
+  'example/src/lib/local-ui-toolchain.ts',
+  'example/src/lib/openrouter-ai-sdk.ts',
+  'example/src/pages/integrations/ai/',
+  'example/src/pages/integrations/live-code-editor/',
+  'example/src/pages/integrations/live-web-coding/',
+  'demos/bolt-style-editor/src/',
+];
 
 function parseArguments(argv) {
   const rootIndex = argv.indexOf('--root');
@@ -160,6 +174,11 @@ function relativePath(repositoryRoot, filePath) {
   return path.relative(repositoryRoot, filePath).split(path.sep).join('/');
 }
 
+function isDevelopmentTrackSource(repositoryRoot, filePath) {
+  const relative = relativePath(repositoryRoot, filePath);
+  return developmentTrackSourceRoots.some((root) => relative === root || relative.startsWith(root));
+}
+
 function isInside(directory, candidate) {
   const relative = path.relative(directory, candidate);
   return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
@@ -184,11 +203,16 @@ function verify(repositoryRoot) {
   const failures = [];
   let fileCount = 0;
   let importCount = 0;
+  let excludedDevelopmentTrackFileCount = 0;
 
   for (const owner of owners) {
     const runtimeDependencies = dependencyNames(owner.manifest, false);
     const developmentDependencies = dependencyNames(owner.manifest, true);
     for (const filePath of collectOwnerFiles(owner)) {
+      if (isDevelopmentTrackSource(repositoryRoot, filePath)) {
+        excludedDevelopmentTrackFileCount += 1;
+        continue;
+      }
       fileCount += 1;
       const scope = sourceScope(owner, filePath);
       for (const specifier of collectModuleSpecifiers(filePath)) {
@@ -225,7 +249,14 @@ function verify(repositoryRoot) {
     }
   }
 
-  return { failures, packageCount: workspacePackages.length, hostCount: owners.length - workspacePackages.length, fileCount, importCount };
+  return {
+    failures,
+    packageCount: workspacePackages.length,
+    hostCount: owners.length - workspacePackages.length,
+    fileCount,
+    importCount,
+    excludedDevelopmentTrackFileCount,
+  };
 }
 
 function main() {
@@ -235,6 +266,7 @@ function main() {
   console.log(`- workspace packages: ${result.packageCount}`);
   console.log(`- integration hosts: ${result.hostCount}`);
   console.log(`- source files scanned: ${result.fileCount}`);
+  console.log(`- development-track files excluded: ${result.excludedDevelopmentTrackFileCount}`);
   console.log(`- workspace imports checked: ${result.importCount}`);
   if (result.failures.length > 0) {
     console.error(`- violations: ${result.failures.length}`);

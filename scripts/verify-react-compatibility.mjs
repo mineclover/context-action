@@ -89,10 +89,16 @@ try {
 import React from 'react';
 import type { ExecutionResult } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
+import { StoreRegistry } from '@context-action/react/advanced';
+import type { React18Options } from '@context-action/react/react18';
+import { deepClone } from '@context-action/react/utils';
+import { useWebMCPToolScope } from '@context-action/react/webmcp';
 
 interface Actions { save: { id: string }; reset: void }
 interface Results { save: { accepted: boolean } }
 const Context = createActionContext<Actions, Results>('Compatibility');
+const react18Options: React18Options = { enableConcurrent: true };
+const cloned: { ready: boolean } = deepClone({ ready: true });
 
 function Consumer() {
   Context.useActionHandler('save', async payload => ({ accepted: payload.id.length > 0 }));
@@ -104,11 +110,15 @@ function Consumer() {
 }
 
 void Consumer;
+void StoreRegistry;
+void useWebMCPToolScope;
+void react18Options;
+void cloned;
 `);
   writeFileSync(join(consumer, 'tsconfig.json'), JSON.stringify({
     compilerOptions: {
       strict: true,
-      skipLibCheck: true,
+      skipLibCheck: false,
       noEmit: true,
       jsx: 'react-jsx',
       module: 'NodeNext',
@@ -116,7 +126,11 @@ void Consumer;
     },
     include: ['consumer.tsx'],
   }));
-  execFileSync(join(consumer, 'node_modules/.bin/tsc'), ['--project', join(consumer, 'tsconfig.json')], {
+  execFileSync(process.execPath, [
+    join(consumer, 'node_modules/typescript/bin/tsc'),
+    '--project',
+    join(consumer, 'tsconfig.json'),
+  ], {
     cwd: consumer,
     stdio: 'inherit',
   });
@@ -142,6 +156,43 @@ if (!html.includes('data-context-action="ready"')) {
     cwd: consumer,
     stdio: 'inherit',
   });
+
+  const reactPackageRoot = join(root, 'packages/react');
+  const compatibilityJestConfig = join(consumer, 'jest.compatibility.cjs');
+  writeFileSync(compatibilityJestConfig, `
+const base = require(${JSON.stringify(join(reactPackageRoot, 'jest.config.cjs'))});
+
+module.exports = {
+  ...base,
+  rootDir: ${JSON.stringify(reactPackageRoot)},
+  moduleNameMapper: {
+    ...base.moduleNameMapper,
+    '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},
+    '^react/jsx-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-runtime.js'))},
+    '^react/jsx-dev-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-dev-runtime.js'))},
+    '^react-dom$': ${JSON.stringify(join(consumer, 'node_modules/react-dom'))},
+    '^react-dom/client$': ${JSON.stringify(join(consumer, 'node_modules/react-dom/client.js'))},
+    '^react-dom/(.*)$': ${JSON.stringify(join(consumer, 'node_modules/react-dom/$1'))},
+  },
+};
+`);
+  execFileSync(
+    'pnpm',
+    [
+      '--filter', '@context-action/react',
+      'exec', 'jest',
+      '--config', compatibilityJestConfig,
+      '--runInBand',
+    ],
+    {
+      cwd: root,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        CONTEXT_ACTION_REACT_COMPAT_VERSION: reactVersion,
+      },
+    },
+  );
   console.log(`React ${reactVersion} compatibility passed with @types/react ${reactTypesVersion}.`);
 } finally {
   rmSync(consumer, { recursive: true, force: true });

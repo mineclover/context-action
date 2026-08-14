@@ -64,8 +64,9 @@ const pending = approval.toolApprovalStore.getSnapshot();
 expect(pending.length === 1, 'Approval request should enter the pending queue.');
 expect(
   pending[0].method === 'tools/call' &&
-    pending[0].toolCallId === 'approval-call-1',
-  'Approval state must preserve the canonical method and toolCallId.'
+    pending[0].toolCallId === 'approval-call-1' &&
+    pending[0].id !== pending[0].toolCallId,
+  'Approval state must preserve the toolCallId and use a queue-lifetime ID.'
 );
 expect(
   pending[0].sessionId === 'session-approval' && pending[0].mode === 'agent',
@@ -76,7 +77,7 @@ expect(
   'Approval preview must keep safe arguments and redact source content.'
 );
 
-approval.resolveToolApproval('approval-call-1', 'allow');
+approval.resolveToolApproval(pending[0].id, 'allow');
 expect(
   (await allowed) === 'allow',
   'Resolving an approval should settle the policy promise.'

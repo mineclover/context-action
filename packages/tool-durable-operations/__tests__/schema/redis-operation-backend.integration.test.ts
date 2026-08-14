@@ -50,7 +50,12 @@ describeRedis('Redis durable operation integration', () => {
     expect(claims.filter(claim => claim.status === 'pending')).toHaveLength(7);
 
     const ownerIndex = claims.findIndex(claim => claim.status === 'owner');
-    await stores[ownerIndex].complete(key, owners[ownerIndex], { accepted: true });
+    await stores[ownerIndex].complete(
+      key,
+      owners[ownerIndex],
+      { accepted: true },
+      claims[ownerIndex].fence
+    );
     await expect(stores[0].claim(key, 'same-fingerprint', 'replay-owner')).resolves.toMatchObject({
       status: 'replay',
       record: { state: 'completed', result: { accepted: true } },
@@ -71,18 +76,24 @@ describeRedis('Redis durable operation integration', () => {
       status: 'owner',
     });
     now += 11;
-    await expect(store.claim(key, 'recovery-fingerprint', 'reclaimer', { leaseMs: 100 })).resolves.toMatchObject({
+    const reclaimed = await store.claim(
+      key,
+      'recovery-fingerprint',
+      'reclaimer',
+      { leaseMs: 100 }
+    );
+    expect(reclaimed).toMatchObject({
       status: 'owner',
       record: { ownerId: 'reclaimer', revision: 2 },
     });
 
-    await store.markUnknown(
+    const unknown = await store.markUnknown(
       key,
       'reclaimer',
       'worker exited before terminal write',
-      { plannedPaths: ['index.html'] }
+      { plannedPaths: ['index.html'] },
+      reclaimed.fence
     );
-    const unknown = await store.get(key);
     expect(unknown).toMatchObject({
       state: 'unknown',
       revision: 3,
@@ -92,7 +103,7 @@ describeRedis('Redis durable operation integration', () => {
       key,
       'domain-recovery-command',
       { state: 'completed', result: { recovered: true } },
-      unknown!.revision
+      { incarnation: unknown.incarnation, revision: unknown.revision }
     );
     expect(resolved).toMatchObject({
       state: 'completed',

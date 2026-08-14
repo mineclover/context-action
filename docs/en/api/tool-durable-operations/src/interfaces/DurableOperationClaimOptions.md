@@ -6,7 +6,7 @@
 
 # Interface: DurableOperationClaimOptions
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:45](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L45)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:59](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L59)
 
 ## Properties
 
@@ -14,6 +14,6 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:45](https
 
 > `readonly` `optional` **leaseMs?**: `number`
 
-Defined in: [packages/tool-durable-operations/src/durable-operation.ts:47](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L47)
+Defined in: [packages/tool-durable-operations/src/durable-operation.ts:61](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/durable-operation.ts#L61)
 
 Lease duration for a new or reclaimed pending operation.

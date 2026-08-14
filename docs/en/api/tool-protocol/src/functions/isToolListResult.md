@@ -8,7 +8,7 @@
 
 > **isToolListResult**&lt;`TDefinition`&gt;(`value`): `value is ToolListResult<TDefinition>`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:362](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L362)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:373](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L373)
 
 Runtime guard for JSON returned by the canonical tools/list boundary.
 

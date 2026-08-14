@@ -1,11 +1,23 @@
+import { createDurableOperationStore } from '../../src/durable-operation';
 import { createDurableSideEffectRunner } from '../../src/side-effect';
-import type { SideEffectRecordPayload } from '../../src/side-effect';
+import type { SideEffectOutcome, SideEffectRecordPayload } from '../../src/side-effect';
 import {
   createMockDurableOperationBackend,
   createMockDurableOperationStore,
 } from '../support/mock-durable-operation-store';
 
 describe('durable side-effect runner', () => {
+  it('rejects a legacy custom store without fencing capability', () => {
+    const backend = createMockDurableOperationBackend<SideEffectRecordPayload<{ id: string }>>();
+    const fencedStore = createMockDurableOperationStore(backend, 'legacy-worker');
+    const { fencingCapability: _fencingCapability, ...legacyStore } = fencedStore;
+
+    expect(() => createDurableSideEffectRunner({
+      store: legacyStore as unknown as typeof fencedStore,
+      ownerId: 'legacy-worker',
+    })).toThrow('incarnation-revision fencing');
+  });
+
   it('executes a queue write once and replays the durable result', async () => {
     const backend = createMockDurableOperationBackend<SideEffectRecordPayload<{ id: string }>>();
     const worker = createMockDurableOperationStore(backend, 'worker-a');
@@ -87,6 +99,108 @@ describe('durable side-effect runner', () => {
     expect(writes).toEqual(['index.html']);
   });
 
+  it('does not let a stale execution complete after a same-owner lease reclaim', async () => {
+    type Result = { attempt: number };
+    type Outcome = SideEffectOutcome<Result>;
+    let now = 1_000;
+    const backend = createMockDurableOperationBackend<SideEffectRecordPayload<Result>>();
+    const firstStore = createMockDurableOperationStore(backend, 'shared-owner', () => now);
+    const reclaimingStore = createMockDurableOperationStore(backend, 'shared-owner', () => now);
+    const firstRunner = createDurableSideEffectRunner({
+      store: firstStore,
+      ownerId: 'shared-owner',
+    });
+    const reclaimingRunner = createDurableSideEffectRunner({
+      store: reclaimingStore,
+      ownerId: 'shared-owner',
+    });
+    let resolveFirst: ((outcome: Outcome) => void) | undefined;
+    let resolveReclaimed: ((outcome: Outcome) => void) | undefined;
+
+    const firstRun = firstRunner.run({
+      key: 'queue:same-owner-reclaim',
+      fingerprint: 'same-owner-v1',
+      leaseMs: 100,
+      execute: () => new Promise(resolve => {
+        resolveFirst = resolve;
+      }),
+    });
+    while (!resolveFirst) await Promise.resolve();
+
+    now = 1_101;
+    const reclaimedRun = reclaimingRunner.run({
+      key: 'queue:same-owner-reclaim',
+      fingerprint: 'same-owner-v1',
+      leaseMs: 100,
+      execute: () => new Promise(resolve => {
+        resolveReclaimed = resolve;
+      }),
+    });
+    while (!resolveReclaimed) await Promise.resolve();
+
+    resolveFirst({ state: 'completed', result: { attempt: 1 } });
+    const staleResult = await firstRun.then(
+      value => ({ status: 'fulfilled' as const, value }),
+      error => ({ status: 'rejected' as const, error })
+    );
+    resolveReclaimed({ state: 'completed', result: { attempt: 2 } });
+    const currentResult = await reclaimedRun.then(
+      value => ({ status: 'fulfilled' as const, value }),
+      error => ({ status: 'rejected' as const, error })
+    );
+
+    expect(staleResult.status).toBe('rejected');
+    if (staleResult.status === 'rejected') {
+      expect(staleResult.error).toEqual(expect.objectContaining({
+        message: expect.stringContaining('fence is stale'),
+      }));
+    }
+    expect(currentResult).toMatchObject({
+      status: 'fulfilled',
+      value: { state: 'completed', result: { attempt: 2 } },
+    });
+  });
+
+  it('does not schedule execution when cancellation happens while claim is pending', async () => {
+    const backend = createMockDurableOperationBackend<SideEffectRecordPayload<{ ok: boolean }>>();
+    const baseStore = createDurableOperationStore(backend);
+    let releaseClaim: (() => void) | undefined;
+    const store = {
+      ...baseStore,
+      claim: async (...args: Parameters<typeof baseStore.claim>) => {
+        const claim = await baseStore.claim(...args);
+        await new Promise<void>(resolve => {
+          releaseClaim = resolve;
+        });
+        return claim;
+      },
+    };
+    const runner = createDurableSideEffectRunner({ store, ownerId: 'worker-a' });
+    const controller = new AbortController();
+    let executions = 0;
+
+    const run = runner.run({
+      key: 'queue:abort-during-claim',
+      fingerprint: 'abort-during-claim-v1',
+      signal: controller.signal,
+      execute: async () => {
+        executions += 1;
+        return { state: 'completed', result: { ok: true } };
+      },
+    });
+    while (!releaseClaim) await Promise.resolve();
+
+    controller.abort();
+    releaseClaim();
+
+    await expect(run).resolves.toMatchObject({
+      state: 'cancelled',
+      operation: { state: 'pending', revision: 1 },
+      reason: 'side-effect was cancelled before execution',
+    });
+    expect(executions).toBe(0);
+  });
+
   it('keeps an HTTP/provider error unknown by default and reconciles it explicitly', async () => {
     const backend = createMockDurableOperationBackend<SideEffectRecordPayload<{ status: number }, { requestId: string }>>();
     const worker = createMockDurableOperationStore(backend, 'provider-a');
@@ -141,6 +255,79 @@ describe('durable side-effect runner', () => {
       fingerprint: 'charge-42-v1',
       execute: async () => ({ state: 'completed', result: { status: 500 } }),
     })).resolves.toMatchObject({ state: 'replayed', result: { status: 201 } });
+  });
+
+  it('rejects a stale recovery fence before invoking the domain resolver', async () => {
+    type Payload = SideEffectRecordPayload<{ ok: boolean }>;
+    let now = 1_000;
+    let incarnation = 0;
+    const backend = createMockDurableOperationBackend<Payload>();
+    const storeOptions = {
+      retentionMs: 0,
+      createIncarnation: () => `side-effect-recovery-${++incarnation}`,
+    };
+    const ownerStore = createMockDurableOperationStore(
+      backend,
+      'owner',
+      () => now,
+      storeOptions
+    );
+    const recoveryStore = createMockDurableOperationStore(
+      backend,
+      'recovery',
+      () => now,
+      storeOptions
+    );
+    const firstClaim = await ownerStore.claim('provider:aba:42', 'provider-aba-v1', 'owner');
+    const firstUnknown = await ownerStore.markUnknown(
+      'provider:aba:42',
+      'owner',
+      'first incarnation outcome is unknown',
+      undefined,
+      firstClaim.fence
+    );
+    await ownerStore.resolveUnknown(
+      'provider:aba:42',
+      'operator',
+      { state: 'failed', reason: 'first incarnation was rejected' },
+      { incarnation: firstUnknown.incarnation, revision: firstUnknown.revision }
+    );
+    now += 1;
+    await expect(ownerStore.prune(now)).resolves.toBe(1);
+    const secondClaim = await ownerStore.claim('provider:aba:42', 'provider-aba-v1', 'owner');
+    const secondUnknown = await ownerStore.markUnknown(
+      'provider:aba:42',
+      'owner',
+      'second incarnation outcome is unknown',
+      undefined,
+      secondClaim.fence
+    );
+    expect(secondUnknown.revision).toBe(firstUnknown.revision);
+    expect(secondUnknown.incarnation).not.toBe(firstUnknown.incarnation);
+
+    const resolver = jest.fn(async () => ({
+      state: 'completed' as const,
+      result: { ok: true },
+    }));
+    const recoveryRunner = createDurableSideEffectRunner({
+      store: recoveryStore,
+      ownerId: 'recovery',
+    });
+    await expect(recoveryRunner.recover(
+      'provider:aba:42',
+      resolver,
+      {
+        expectedFence: {
+          incarnation: firstUnknown.incarnation,
+          revision: firstUnknown.revision,
+        },
+      }
+    )).rejects.toThrow('fence is stale');
+    expect(resolver).not.toHaveBeenCalled();
+    await expect(recoveryStore.get('provider:aba:42')).resolves.toMatchObject({
+      state: 'unknown',
+      incarnation: secondUnknown.incarnation,
+    });
   });
 
   it('marks a draining handler unknown when a timeout signal wins the race', async () => {

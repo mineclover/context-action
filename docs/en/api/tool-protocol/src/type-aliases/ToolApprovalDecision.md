@@ -8,6 +8,6 @@
 
 > **ToolApprovalDecision** = `"allow"` \| `"deny"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:90](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L90)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:91](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L91)
 
 Decisions supported by a UI or host approval surface.

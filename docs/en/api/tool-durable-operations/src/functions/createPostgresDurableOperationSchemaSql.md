@@ -8,7 +8,7 @@
 
 > **createPostgresDurableOperationSchemaSql**(`tableName?`): `string`
 
-Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:72](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L72)
+Defined in: [packages/tool-durable-operations/src/postgres-operation-backend.ts:79](https://github.com/mineclover/context-action/blob/main/packages/tool-durable-operations/src/postgres-operation-backend.ts#L79)
 
 Create the application-owned migration for a specific safe table name.
 The default constant below is convenient for a single shared table; hosts

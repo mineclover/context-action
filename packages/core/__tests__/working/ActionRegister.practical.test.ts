@@ -349,26 +349,41 @@ describe('ActionRegister - Practical Tests', () => {
     it('should override execution mode via dispatch options', async () => {
       actionRegister.setActionExecutionMode('dataProcess', 'sequential');
 
-      const executionTimes: number[] = [];
-
-      actionRegister.register('dataProcess', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 50));
+      const startedHandlers: string[] = [];
+      let markFirstStarted!: () => void;
+      let releaseFirstHandler!: () => void;
+      const firstStarted = new Promise<void>((resolve) => {
+        markFirstStarted = resolve;
+      });
+      const firstHandlerCanFinish = new Promise<void>((resolve) => {
+        releaseFirstHandler = resolve;
       });
 
       actionRegister.register('dataProcess', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 30));
+        startedHandlers.push('first');
+        markFirstStarted();
+        await firstHandlerCanFinish;
+      });
+
+      actionRegister.register('dataProcess', async () => {
+        startedHandlers.push('second');
       });
 
       // Override to parallel
-      await actionRegister.dispatch('dataProcess', { data: 'test' }, {
+      const dispatchPromise = actionRegister.dispatch('dataProcess', { data: 'test' }, {
         executionMode: 'parallel'
       });
 
-      // In parallel mode, both handlers start around the same time
-      const timeDiff = Math.abs(executionTimes[1] - executionTimes[0]);
-      expect(timeDiff).toBeLessThan(20); // Should start nearly simultaneously
+      await firstStarted;
+
+      try {
+        // Parallel execution starts the second handler while the first is blocked.
+        // This verifies ordering without relying on wall-clock scheduling latency.
+        expect(startedHandlers).toEqual(['first', 'second']);
+      } finally {
+        releaseFirstHandler();
+        await dispatchPromise;
+      }
     });
   });
 

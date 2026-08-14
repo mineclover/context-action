@@ -8,6 +8,23 @@ The runnable reference is available in the example application at
 sortable, multi-select table and a calendar, then uses Context-Action actions
 and stores for the product-facing decisions those components emit.
 
+## Official component references
+
+The reference deliberately follows the component contracts rather than
+reimplementing ARIA behavior:
+
+- [React Aria Table](https://react-aria.adobe.com/Table) defines directional
+  navigation, controlled selection through `selectedKeys`, and controlled
+  sorting through `sortDescriptor` and `onSortChange`.
+- [React Aria Calendar](https://react-aria.adobe.com/Calendar) owns the date
+  grid, keyboard movement, and calendar-aware date values.
+- [React Stately Selection](https://react-spectrum.adobe.com/react-stately/selection.html)
+  documents the controlled-selection model, including the `"all"` sentinel.
+
+Use these as the source of truth for accessibility semantics and interaction
+details. This guide defines only where their outputs cross into application
+state and domain actions.
+
 ## Ownership model
 
 | Concern | Owner | Why |
@@ -78,6 +95,18 @@ Before applying this pattern to another component, verify:
 5. That action handlers do not delay the component's high-frequency interaction
    loop; send semantic commits to handlers rather than driving roving focus
    through the action pipeline.
+
+### Repository reference coverage
+
+The runnable reference has two complementary checks:
+
+- `pnpm --filter example test -- src/pages/integrations/react-aria/ReactAriaReferencePage.test.tsx`
+  exercises keyboard table selection, sorting, keyboard calendar selection,
+  and the resulting domain-action audit entries.
+- `pnpm verify:react-aria-reference-hydration` bundles the reference and
+  hydrates it with React 18.3.1 and 19.2.8 while installing the current local
+  Core and React candidate artifacts. It fails on a hydration recovery error
+  or a candidate-version mismatch.
 
 For deeper React Aria state contracts, use the official React Aria and React
 Stately documentation. Context-Action owns the application workflow around the

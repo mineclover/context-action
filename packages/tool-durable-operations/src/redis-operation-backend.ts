@@ -1,5 +1,6 @@
 import type {
   DurableOperationBackend,
+  DurableOperationFence,
   DurableOperationListOptions,
   DurableOperationListPage,
   DurableOperationRecord,
@@ -162,17 +163,19 @@ export function createIoredisDurableOperationClient(
 /** Atomic record/index update used by the Redis backend. */
 export const REDIS_DURABLE_OPERATION_CAS_SCRIPT = `
 local current = redis.call('GET', KEYS[1])
-local expected = ARGV[1]
-if expected == '' then
+local expectedIncarnation = ARGV[1]
+local expectedRevision = ARGV[2]
+if expectedIncarnation == '' then
   if current then return 0 end
 else
   if not current then return 0 end
   local decoded = cjson.decode(current)
-  if tonumber(decoded['revision']) ~= tonumber(expected) then return 0 end
+  if decoded['incarnation'] ~= expectedIncarnation then return 0 end
+  if tonumber(decoded['revision']) ~= tonumber(expectedRevision) then return 0 end
 end
 
-local nextRecord = ARGV[2]
-local indexMember = ARGV[3]
+local nextRecord = ARGV[3]
+local indexMember = ARGV[4]
 if nextRecord == '' then
   redis.call('DEL', KEYS[1])
   redis.call('ZREM', KEYS[2], indexMember)
@@ -180,6 +183,18 @@ else
   redis.call('SET', KEYS[1], nextRecord)
   redis.call('ZADD', KEYS[2], 0, indexMember)
 end
+return 1
+`.trim();
+
+/** Atomic one-time upgrade for records written before incarnation fencing. */
+export const REDIS_DURABLE_OPERATION_LEGACY_BACKFILL_SCRIPT = `
+local current = redis.call('GET', KEYS[1])
+if not current then return 0 end
+local decoded = cjson.decode(current)
+if decoded['incarnation'] ~= nil then return 0 end
+if tonumber(decoded['revision']) ~= tonumber(ARGV[1]) then return 0 end
+decoded['incarnation'] = ARGV[2]
+redis.call('SET', KEYS[1], cjson.encode(decoded))
 return 1
 `.trim();
 
@@ -265,7 +280,7 @@ export function createRedisDurableOperationBackend<TResult = unknown>(
 
   const compareAndSet = async (
     key: string,
-    expectedRevision: number | undefined,
+    expectedFence: DurableOperationFence | undefined,
     next: DurableOperationRecord<TResult> | undefined
   ): Promise<boolean> => {
     assertText(key, 'Durable operation key');
@@ -276,11 +291,33 @@ export function createRedisDurableOperationBackend<TResult = unknown>(
     const result = await client.eval<number | string>(REDIS_DURABLE_OPERATION_CAS_SCRIPT, {
       keys: [recordKey(prefix, encodedKey), indexKey],
       arguments: [
-        expectedRevision === undefined ? '' : String(expectedRevision),
+        expectedFence?.incarnation ?? '',
+        expectedFence === undefined ? '' : String(expectedFence.revision),
         next === undefined ? '' : JSON.stringify(next),
         encodedKey,
       ],
     });
+    return result === 1 || result === '1';
+  };
+
+  const backfillLegacyIncarnation = async (
+    key: string,
+    expectedRevision: number,
+    incarnation: string
+  ): Promise<boolean> => {
+    assertText(key, 'Durable operation key');
+    assertText(incarnation, 'Durable operation incarnation');
+    if (!Number.isInteger(expectedRevision) || expectedRevision < 1) {
+      throw new TypeError('Durable operation expected revision must be a positive integer.');
+    }
+    const encodedKey = encodeKey(key);
+    const result = await client.eval<number | string>(
+      REDIS_DURABLE_OPERATION_LEGACY_BACKFILL_SCRIPT,
+      {
+        keys: [recordKey(prefix, encodedKey)],
+        arguments: [String(expectedRevision), incarnation],
+      }
+    );
     return result === 1 || result === '1';
   };
 
@@ -309,5 +346,5 @@ export function createRedisDurableOperationBackend<TResult = unknown>(
     };
   };
 
-  return { read, compareAndSet, listPage };
+  return { read, compareAndSet, backfillLegacyIncarnation, listPage };
 }

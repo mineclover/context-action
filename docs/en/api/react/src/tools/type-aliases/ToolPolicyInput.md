@@ -8,6 +8,6 @@
 
 > **ToolPolicyInput** = `ToolApprovalRequestInput`
 
-Defined in: [packages/react/src/tools/ToolContext.types.ts:55](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L55)
+Defined in: [packages/react/src/tools/ToolContext.types.ts:56](https://github.com/mineclover/context-action/blob/main/packages/react/src/tools/ToolContext.types.ts#L56)
 
 Canonical input shared by runtime policy callbacks and approval queues.

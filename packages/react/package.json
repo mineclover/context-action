@@ -1,6 +1,6 @@
 {
   "name": "@context-action/react",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "description": "React integration for @context-action/core - Context and hooks for type-safe action management",
   "main": "dist/index.cjs",
@@ -47,16 +47,6 @@
         "default": "./dist/react18.cjs"
       }
     },
-    "./tools": {
-      "import": {
-        "types": "./dist/tools/index.d.ts",
-        "default": "./dist/tools/index.js"
-      },
-      "require": {
-        "types": "./dist/tools/index.d.cts",
-        "default": "./dist/tools/index.cjs"
-      }
-    },
     "./webmcp": {
       "import": {
         "types": "./dist/webmcp.d.ts",
@@ -71,6 +61,7 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE"
   ],
@@ -122,10 +113,9 @@
     "react": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@context-action/core": "^1.0.0",
+    "@context-action/core": "^1.1.0",
     "@context-action/mutative": "^0.8.8",
-    "@context-action/webmcp": "^0.1.0",
-    "@context-action/tool-durable-operations": "^0.1.1",
+    "@context-action/webmcp": "^0.1.2",
     "@context-action/tool-protocol": "^1.0.0"
   },
   "devDependencies": {

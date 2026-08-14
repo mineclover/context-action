@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "context-action-coordinated-stable-plan.v1",
+  "release": "context-action-stable-2026-08",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "packages": {
+    "@context-action/core": "1.1.0",
+    "@context-action/react": "2.0.0"
+  },
+  "reactDependencyFloors": {
+    "@context-action/core": "^1.1.0"
+  },
+  "requiredChecks": [
+    "pnpm release:check",
+    "pnpm verify:coordinated-stable-release-plan",
+    "pnpm verify:published-tool-consumers -- --local --cohort-only --packages @context-action/core,@context-action/react"
+  ],
+  "notes": [
+    "This plan is distinct from the immutable v1.0.0 historical release manifest.",
+    "The candidate workflow publishes only to next. The promotion workflow verifies the same cohort from next before changing latest."
+  ]
+}

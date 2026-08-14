@@ -9,9 +9,13 @@ export function createInMemoryDurableOperationBackend() {
     list() {
       return [...records.values()];
     },
-    compareAndSet(key, expectedRevision, next) {
+    compareAndSet(key, expectedFence, next) {
       const current = records.get(key);
-      if (current?.revision !== expectedRevision) return false;
+      const matches = expectedFence === undefined
+        ? current === undefined
+        : current?.incarnation === expectedFence.incarnation &&
+          current.revision === expectedFence.revision;
+      if (!matches) return false;
       if (next === undefined) records.delete(key);
       else records.set(key, next);
       return true;

@@ -1,5 +1,9 @@
 # Durable Operation 운영 Runbook
 
+> **개발 트랙 상태:** 이 runbook은 진행 중인 Durable 0.2 작업을 설명합니다.
+> Core 1.1 / React 2 상태 관리 릴리즈의 선행 조건이 아니며, 해당 React artifact는
+> 의도적으로 `@context-action/react/tools`를 출하하지 않습니다.
+
 이 문서는 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md)의
 의미론적 계약을 실제 Redis·PostgreSQL 배포 검증과 `@context-action/react/tools` recovery 경계에
 적용하기 위한 운영 문서다.
@@ -29,13 +33,14 @@ REDIS_URL=rediss://user:password@redis.example.internal:6380 \
   pnpm tool-durable:verify:redis
 ```
 
-출력에서 다음 네 검사가 모두 `status: "ok"` 안에 포함되어야 한다.
+출력에서 다음 검사가 모두 `status: "ok"` 안에 포함되어야 한다.
 
 - 두 store instance 간 atomic claim
 - 두 번째 owner 없이 completed result replay
-- revision 검증을 거친 `unknown` record resolution
-- reconciliation 전 stale revision 거부
+- full fence 검증을 거친 `unknown` record resolution
+- reconciliation 전 stale fence 거부
 - lease 만료 후 두 번째 owner의 reclaim
+- prune/recreate 이후 과거 incarnation의 ABA 전이 거부
 - terminal record retention prune
 
 host만 포함하는 JSON 결과에는 Redis server version도 기록된다. PostgreSQL smoke
@@ -116,7 +121,7 @@ Host service가 versioned `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL` migration을 �
 사용하는 정확한 database version에 대해 격리된 integration fixture를 실행해야 한다.
 
 Fixture는 별도 connection에서의 동시 claim, lease reclaim, completed replay, unknown
-reconciliation, revision 검증 prune, 설정된 isolation level을 증명해야 한다. Fake query client나
+reconciliation, full-fence prune, 설정된 isolation level을 증명해야 한다. Fake query client나
 local-only test는 production 증거가 아니다. PostgreSQL version, credential을 제외한 DB host,
 migration revision, pool/owner, isolation setting, test output, rollback 판단을 보호된 deployment
 record에 기록한다. SQL target이 검증되지 않았다면 저장소 adapter test가 통과해도 mutation을
@@ -139,6 +144,24 @@ CI repository test job은 매번 PostgreSQL 16 service container에서 같은 sm
 실행한다. 따라서 reference adapter가 실제 PostgreSQL server에서 동작하는지는 자동으로
 확인하지만, production pool·version·isolation 설정·network path·migration rollout을
 증명하는 것은 아니다.
+
+### Incarnation fence 업그레이드
+
+`incarnation` fence가 없는 구버전 worker와 새 worker를 동시에 mutation 경로에 두지 않는다.
+구버전 worker는 revision만 비교하므로 새 record의 full fence를 우회할 수 있다. 배포 전
+mutation consumer를 drain하고 쓰기를 중지한 뒤 모든 worker를 같은 버전으로 교체한다.
+
+- PostgreSQL은 새 `POSTGRES_DURABLE_OPERATION_SCHEMA_SQL`을 먼저 적용한다. migration은 기존
+  row에 결정적인 legacy incarnation을 채우고 column을 `NOT NULL`로 만든다.
+- Redis와 IndexedDB의 legacy record는 새 store가 처음 읽을 때 revision 일치와 incarnation
+  부재를 한 atomic operation으로 확인한 뒤 한 번만 backfill하고 다시 읽는다.
+- rollout 전에 backup과 legacy pending/terminal sample을 보존하고, staging에서 backfill,
+  claim, reconciliation, prune/recreate ABA 검사를 수행한다.
+- rollback이 필요하면 mutation을 다시 중지한다. incarnation field를 삭제하거나 구버전
+  worker를 새 worker와 함께 재가동하지 않는다.
+
+backfill은 저장 형식 이행만 담당한다. 이미 불확실한 `unknown` 결과를 자동으로
+`completed` 또는 `failed`로 바꾸지 않으며, 그 결정은 아래 recovery 절차를 따른다.
 
 ### CI fixture 검증
 
@@ -215,8 +238,8 @@ operator를 보호된 evidence record에 남긴다. sink가 policy를 적용할 
 4. `unknown`이면 application resolver를 넘겨 `registry.recoverOperation()`을
    호출한다. resolver는 domain system 조회, 안전한 compensation, 또는 명시적인
    operator 결정을 담당한다.
-5. resolver가 completed/failed resolution을 반환하면 관찰한 revision으로 atomic
-   검증한다. stale decision은 새 status read부터 다시 수행한다.
+5. resolver가 completed/failed resolution을 반환하면 관찰한 `incarnation`과 `revision`
+   전체 fence로 atomic 검증한다. stale decision은 새 status read부터 다시 수행한다.
 6. 진짜 새 logical operation이 필요하면 새 idempotency key를 만들고 기존 record는
    audit/reconciliation을 위해 보존한다.
 
@@ -250,7 +273,7 @@ provider 증거를 대신하지 않는다.
 | Duplicate 동작 | provider 소유 idempotency·inbox/outbox 또는 동등한 중복 억제; 같은 logical key는 두 번 send/publish하지 않음 |
 | Runtime limit | 실제 client의 timeout·abort-drain·lease·retry·rate-limit 동작 |
 | Retention과 rollback | operation/telemetry 보존, 삭제 job, alert threshold, fail-closed 규칙, rollback 판단 |
-| 실행 가능한 증거 | duplicate delivery, pre-send failure, lost acknowledgement, lease reclaim, stale revision, recovery, provider integration test |
+| 실행 가능한 증거 | duplicate delivery, pre-send failure, lost acknowledgement, lease reclaim, stale fence, prune/recreate ABA, recovery, provider integration test |
 
 이 gate를 application 소유 deployment evidence에 기록한 뒤에만
 `runHttpSideEffect()` 또는 `runQueueSideEffect()`를 사용할 수 있다. Non-2xx 응답,
