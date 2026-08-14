@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json');
+const expectedPackages = new Set(['@context-action/core', '@context-action/react']);
 const outputIndex = process.argv.indexOf('--output');
 const output = outputIndex === -1 ? undefined : process.argv[outputIndex + 1];
 if (!output || output.startsWith('--')) throw new Error('Usage: node scripts/promote-coordinated-stable.mjs --output <repository-relative JSON path>');
@@ -19,7 +20,12 @@ if (resolvedOutput !== repositoryRoot && !resolvedOutput.startsWith(`${repositor
 const plan = JSON.parse(await readFile(planPath, 'utf8'));
 const releaseId = String(plan.release ?? '').replace(/[^a-z0-9-]/giu, '-');
 const packages = Object.entries(plan.packages ?? {});
-if (packages.length !== 4 || plan.candidateDistTag !== 'next' || plan.promotionDistTag !== 'latest') throw new Error('Invalid coordinated stable release plan');
+if (
+  packages.length !== expectedPackages.size
+  || packages.some(([name]) => !expectedPackages.has(name))
+  || plan.candidateDistTag !== 'next'
+  || plan.promotionDistTag !== 'latest'
+) throw new Error('Invalid coordinated stable release plan');
 
 function npm(argumentsList) {
   return execFileSync('npm', argumentsList, { cwd: repositoryRoot, encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } }).trim();

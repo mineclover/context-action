@@ -20,6 +20,9 @@ test('promotion uses durable registry journal markers and refuses local executio
   const source = read('scripts/promote-coordinated-stable.mjs');
   for (const required of [
     "process.env.GITHUB_ACTIONS !== 'true'",
+    "new Set(['@context-action/core', '@context-action/react'])",
+    'packages.length !== expectedPackages.size',
+    'packages.some(([name]) => !expectedPackages.has(name))',
     'stable-previous-',
     'stable-previous-absent-',
     'stable-ready-',
@@ -31,6 +34,16 @@ test('promotion uses durable registry journal markers and refuses local executio
   ]) assert.ok(source.includes(required), `missing coordinated promotion safeguard: ${required}`);
 });
 
+test('provenance verification is bound to the approved Core and React cohort', () => {
+  const source = read('scripts/verify-coordinated-stable-provenance.mjs');
+  for (const required of [
+    "new Set(['@context-action/core', '@context-action/react'])",
+    'packages.length !== expectedPackages.size',
+    'packages.some(([name]) => !expectedPackages.has(name))',
+    'exact Core and React cohort',
+  ]) assert.ok(source.includes(required), `missing coordinated provenance cohort guard: ${required}`);
+});
+
 test('candidate and promotion workflows bind the exact coordinated cohort', () => {
   const candidate = read('.github/workflows/publish-coordinated-stable-candidate.yml');
   const promotion = read('.github/workflows/promote-coordinated-stable.yml');
@@ -39,6 +52,9 @@ test('candidate and promotion workflows bind the exact coordinated cohort', () =
   assert.ok(promotion.includes(`--packages "${cohort}"`));
   assert.ok(candidate.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
   assert.ok(promotion.includes('test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"'));
+  assert.ok(promotion.includes('ref: ${{ github.sha }}'));
+  assert.ok(promotion.includes('git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD'));
+  assert.ok(!promotion.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
 });
 
 test('the React state-management artifact excludes the Durable-backed tools entry', () => {

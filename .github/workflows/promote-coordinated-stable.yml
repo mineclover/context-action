@@ -34,9 +34,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_commit }}
+          # Promotion changes only registry tags. Run its reviewed control code from
+          # the current protected main tip; RELEASE_COMMIT remains the separately
+          # verified source commit of the immutable next candidate.
+          ref: ${{ github.sha }}
 
-      - name: Verify approved main release commit
+      - name: Verify approved candidate source and current main governance
         env:
           RELEASE_COMMIT: ${{ inputs.release_commit }}
           CONFIRMATION: ${{ inputs.confirmation }}
@@ -44,9 +47,11 @@ jobs:
           [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"
           test "$GITHUB_REF" = "refs/heads/main"
-          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
-          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
-          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD
+          git diff --exit-code
+          git diff --cached --exit-code
 
       - name: Clear npm config before registry setup
         run: |
