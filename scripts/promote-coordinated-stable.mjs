@@ -31,9 +31,28 @@ function npm(argumentsList) {
   return execFileSync('npm', argumentsList, { cwd: repositoryRoot, encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } }).trim();
 }
 function tagsFor(name) {
-  const value = JSON.parse(npm(['view', name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org']));
+  // `dist-tag add` is immediately followed by a journal read. Prefer the
+  // registry over npm's local cache so a runner cannot mistake a successful
+  // mutation for a missing journal marker.
+  const value = JSON.parse(npm([
+    'view',
+    name,
+    'dist-tags',
+    '--json',
+    '--registry=https://registry.npmjs.org',
+    '--prefer-online',
+  ]));
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`Invalid dist-tags for ${name}`);
   return value;
+}
+async function waitForTag(name, tag, expected) {
+  const attempts = 5;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const tags = tagsFor(name);
+    if (tags[tag] === expected) return tags;
+    if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  throw new Error(`${name} ${tag} did not persist`);
 }
 function add(name, version, tag) { npm(['dist-tag', 'add', `${name}@${version}`, tag, '--registry=https://registry.npmjs.org']); }
 function remove(name, tag) { npm(['dist-tag', 'rm', name, tag, '--registry=https://registry.npmjs.org']); }
@@ -62,13 +81,12 @@ try {
     if (prior === undefined) {
       if (tags.latest) add(name, tags.latest, entries.previous);
       else add(name, version, entries.absent);
-      tags = tagsFor(name);
+      tags = await waitForTag(name, tags.latest ? entries.previous : entries.absent, tags.latest ?? version);
       prior = predecessor(tags, entries);
       if (prior === undefined) throw new Error(`${name} predecessor journal did not persist`);
     }
     if (!tags[entries.ready]) add(name, version, entries.ready);
-    tags = tagsFor(name);
-    if (tags[entries.ready] !== version) throw new Error(`${name} ready journal did not persist`);
+    tags = await waitForTag(name, entries.ready, version);
     if (tags.latest !== version && tags.latest !== prior) throw new Error(`${name} latest changed after journal preparation`);
     prepared.push({ name, version, entries, predecessor: prior });
   }
@@ -78,9 +96,9 @@ try {
       if (tags.latest !== item.predecessor) throw new Error(`${item.name} latest changed before promotion`);
       add(item.name, item.version, 'latest');
     }
-    if (tagsFor(item.name).latest !== item.version) throw new Error(`${item.name} latest promotion did not persist`);
+    await waitForTag(item.name, 'latest', item.version);
     add(item.name, item.version, item.entries.completed);
-    if (tagsFor(item.name)[item.entries.completed] !== item.version) throw new Error(`${item.name} completion journal did not persist`);
+    await waitForTag(item.name, item.entries.completed, item.version);
     report.packages.push({ name: item.name, version: item.version, predecessor: item.predecessor, promoted: true });
   }
   report.status = 'promoted';
