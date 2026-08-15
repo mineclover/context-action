@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json');
 const expectedPackages = new Set(['@context-action/core', '@context-action/react']);
+const registryOrigin = 'https://registry.npmjs.org';
 const outputIndex = process.argv.indexOf('--output');
 const output = outputIndex === -1 ? undefined : process.argv[outputIndex + 1];
 if (!output || output.startsWith('--')) throw new Error('Usage: node scripts/promote-coordinated-stable.mjs --output <repository-relative JSON path>');
@@ -30,25 +31,24 @@ if (
 function npm(argumentsList) {
   return execFileSync('npm', argumentsList, { cwd: repositoryRoot, encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } }).trim();
 }
-function tagsFor(name) {
-  // `dist-tag add` is immediately followed by a journal read. Prefer the
-  // registry over npm's local cache so a runner cannot mistake a successful
-  // mutation for a missing journal marker.
-  const value = JSON.parse(npm([
-    'view',
-    name,
-    'dist-tags',
-    '--json',
-    '--registry=https://registry.npmjs.org',
-    '--prefer-online',
-  ]));
+async function tagsFor(name) {
+  // `npm view` reads the package document, whose CDN propagation can lag a
+  // successful dist-tag mutation. Read the dedicated tag document directly
+  // and cache-bust the request so promotion journals are observed from their
+  // authoritative registry route.
+  const response = await fetch(
+    `${registryOrigin}/-/package/${encodeURIComponent(name)}/dist-tags?cacheBust=${Date.now()}`,
+    { headers: { accept: 'application/json', 'cache-control': 'no-cache', pragma: 'no-cache' } },
+  );
+  if (!response.ok) throw new Error(`Unable to read dist-tags for ${name}: ${response.status} ${response.statusText}`);
+  const value = await response.json();
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`Invalid dist-tags for ${name}`);
   return value;
 }
 async function waitForTag(name, tag, expected) {
   const attempts = 5;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const tags = tagsFor(name);
+    const tags = await tagsFor(name);
     if (tags[tag] === expected) return tags;
     if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 500));
   }
@@ -73,7 +73,7 @@ const report = { schemaVersion: 'context-action-coordinated-promotion.v1', relea
 const prepared = [];
 try {
   for (const [name, version] of packages) {
-    let tags = tagsFor(name);
+    let tags = await tagsFor(name);
     const entries = journal(name, version);
     if (tags.next !== version) throw new Error(`${name} next tag is not the approved candidate ${version}`);
     let prior = predecessor(tags, entries);
@@ -91,7 +91,7 @@ try {
     prepared.push({ name, version, entries, predecessor: prior });
   }
   for (const item of prepared) {
-    const tags = tagsFor(item.name);
+    const tags = await tagsFor(item.name);
     if (tags.latest !== item.version) {
       if (tags.latest !== item.predecessor) throw new Error(`${item.name} latest changed before promotion`);
       add(item.name, item.version, 'latest');
@@ -107,7 +107,7 @@ try {
   report.error = error instanceof Error ? error.message : String(error);
   for (const item of [...prepared].reverse()) {
     try {
-      const tags = tagsFor(item.name);
+      const tags = await tagsFor(item.name);
       if (tags.latest !== item.version) continue;
       add(item.name, item.version, item.entries.rolledBack);
       if (item.predecessor) add(item.name, item.predecessor, 'latest');
