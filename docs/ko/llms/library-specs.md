@@ -35,8 +35,8 @@
 
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 18 또는 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations, @context-action/webmcp. durable 실행과 WebMCP 등록은 런타임에서 opt-in
-- **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅, `useWebMCPToolScope` 수명 주기 통합
+- **의존성**: React 18 또는 19(peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, `@context-action/webmcp`. 배포된 React 2 artifact는 Durable Operations에 의존하지 않음
+- **주요 기능**: 스토어 관리, 액션 컨텍스트, 훅, React 18/19 SSR 지원. Store·Action API는 `@context-action/react`에서 import하며, `react18` subpath는 두 번째 runtime이 아닌 타입 호환성 entry point임
 
 ### 릴리스 및 보안 기준
 

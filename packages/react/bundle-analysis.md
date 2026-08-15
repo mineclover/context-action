@@ -9,10 +9,10 @@ fixed byte claims. Generate a current report with `pnpm --filter
 - `@context-action/react` is the default action, store, ref, and React helper
   entry point. It does not load tool-protocol or durable-operation runtimes.
 - `@context-action/react/advanced` exposes optional store features.
-- `@context-action/react/react18` exposes React 18/19 compatibility helpers.
-- `@context-action/react/tools` is the explicit ToolContext entry point. It
-  requires `@context-action/tool-protocol` and may use the optional durable
-  operations peer.
+- `@context-action/react/react18` is a type-compatibility entry point for
+  existing `React18Options` imports; it does not contain a separate runtime.
+- ToolContext and Durable integration are development-track source and are not
+  exported by the published React 2 artifact.
 
 ## Optimization Achievements
 
@@ -43,11 +43,11 @@ import { StoreRegistry, useComputedStore, deepCloneWithImmer } from '@context-ac
 // Includes all advanced features, loads Immer dynamically only when deepCloneWithImmer is called
 ```
 
-### Tool calling (explicit opt-in)
-```typescript
-import { createToolContext } from '@context-action/react/tools';
-// Install @context-action/tool-protocol and zod when this entry is used.
-```
+### Tool calling
+
+ToolContext and Durable integration are intentionally excluded from the public
+React 2 package while their protocol and recovery contract remain in active
+development. They do not contribute to the Store/Action consumer bundle.
 
 ## Verification
 

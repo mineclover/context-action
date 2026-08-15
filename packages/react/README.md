@@ -108,6 +108,24 @@ stores for owned application state and `useStoreValue()` for reactive reads.
 This keeps rendering, state transitions, and infrastructure concerns
 independently testable.
 
+### React 18 and React 19 imports
+
+Use the main entry point for both supported React versions:
+
+```ts
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+```
+
+The package has one shared runtime and declares React 18 and React 19 as peer
+dependencies. `@context-action/react/react18` remains only as a compatibility
+entry point for existing type imports; it exports `React18Options` and is not
+a React-18-specific runtime or an alternative place to import the Store and
+Action APIs.
+
 ### Development-only tool runtime
 
 The repository retains ToolContext and Durable Operations source while their
