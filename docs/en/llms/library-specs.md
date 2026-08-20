@@ -35,8 +35,8 @@
 
 #### @context-action/react
 - **Purpose**: React integration with Context API and hooks
-- **Dependencies**: React 18 or 19, @context-action/core, @context-action/tool-protocol, @context-action/tool-durable-operations, and @context-action/webmcp; durable execution and WebMCP registration remain opt-in at runtime
-- **Key Features**: Store management, action contexts, hooks, and `useWebMCPToolScope` lifecycle integration
+- **Dependencies**: React 18 or 19 (peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, and `@context-action/webmcp`; it does not depend on Durable Operations in the published React 2 artifact
+- **Key Features**: Store management, action contexts, hooks, and React 18/19 SSR support. Import these APIs from `@context-action/react`; the `react18` subpath is a type-compatibility entry point, not a second runtime.
 
 ### Release and Security Baseline
 
