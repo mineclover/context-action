@@ -50,11 +50,9 @@ options cannot be confused:
 await register.actions.reset(undefined, { debounce: 100 });
 ```
 
-`@context-action/react` supports React 18 and 19 through the same runtime.
-Import Store and Action APIs from `@context-action/react` for either version.
-The `@context-action/react/react18` entry point remains for compatibility with
-existing type imports (`React18Options`); it is not a separate runtime and
-does not provide a second Store or Action API.
+`@context-action/react` requires React 19.2 or later. Import Store and Action
+APIs from `@context-action/react`; the former `react18` compatibility entry
+point is no longer exported.
 The maintained `@context-action/mutative-core` / `@context-action/mutative`
 fork remains the immutable runtime contract; synchronize upstream changes via
 its [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md) record.

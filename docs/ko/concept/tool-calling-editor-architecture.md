@@ -3,7 +3,7 @@
 > **개발 트랙 상태:** ToolContext와 Durable Operations는
 > `@context-action/core@1.1.0` / `@context-action/react@2.0.0` 상태 관리
 > 릴리즈에 포함되지 않습니다. 이 protocol·persistence·provider recovery 표면이
-> 별도 릴리즈 결정을 받을 때까지 React 2 패키지는
+> 별도 릴리즈 결정을 받을 때까지 React 3 패키지는
 > `@context-action/react/tools`를 의도적으로 제외합니다.
 
 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다.

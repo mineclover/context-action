@@ -41,10 +41,12 @@ async function expectArtifactAbsent(relativePath, description) {
   }
 }
 
-const [rootEsm, rootCjs, rootTypes] = await Promise.all([
+const [rootEsm, rootCjs, rootTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
   readArtifact('index.js'),
   readArtifact('index.cjs'),
   readArtifact('index.d.ts'),
+  readArtifact('chunks/StoreRegistry.js'),
+  readArtifact('chunks/StoreRegistry.cjs'),
 ]);
 
 const toolRuntimePattern = /@context-action\/tool-(?:protocol|durable-operations)/;
@@ -75,10 +77,22 @@ expectAbsent(
   'the default entry must not expose ToolContext types',
 );
 
+for (const [relativePath, content] of [
+  ['chunks/StoreRegistry.js', compiledStoreChunkEsm],
+  ['chunks/StoreRegistry.cjs', compiledStoreChunkCjs],
+]) {
+  expectPresent(
+    content,
+    relativePath,
+    /react\/compiler-runtime/,
+    'the compiler-annotated store hooks must retain the React 19 compiler runtime import',
+  );
+}
+
 await Promise.all([
-  expectArtifactAbsent('tools/index.js', 'React 2 must not ship the development ToolContext entry'),
-  expectArtifactAbsent('tools/index.cjs', 'React 2 must not ship the development ToolContext entry'),
-  expectArtifactAbsent('tools/index.d.ts', 'React 2 must not ship the development ToolContext declarations'),
+  expectArtifactAbsent('tools/index.js', 'React 3 must not ship the development ToolContext entry'),
+  expectArtifactAbsent('tools/index.cjs', 'React 3 must not ship the development ToolContext entry'),
+  expectArtifactAbsent('tools/index.d.ts', 'React 3 must not ship the development ToolContext declarations'),
 ]);
 
 if (failures.length > 0) {
@@ -86,5 +100,5 @@ if (failures.length > 0) {
   failures.forEach((failure) => console.error(`  ✗ ${failure}`));
   process.exitCode = 1;
 } else {
-  console.log('Verified React production artifact boundaries: public React 2 entries are tool-free.');
+  console.log('Verified React production artifact boundaries: public React 3 entries are tool-free.');
 }

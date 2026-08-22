@@ -91,7 +91,7 @@ Before applying this pattern to another component, verify:
 1. Arrow-key navigation, range/multi-selection, and focus-visible behavior.
 2. Calendar month movement and selection with keyboard and pointer input.
 3. Overlay focus restoration for any related popover or dialog.
-4. React 18/19 SSR and hydration if the controlled values are server supplied.
+4. React 19.2 SSR and hydration if the controlled values are server supplied.
 5. That action handlers do not delay the component's high-frequency interaction
    loop; send semantic commits to handlers rather than driving roving focus
    through the action pipeline.
@@ -104,7 +104,7 @@ The runnable reference has two complementary checks:
   exercises keyboard table selection, sorting, keyboard calendar selection,
   and the resulting domain-action audit entries.
 - `pnpm verify:react-aria-reference-hydration` bundles the reference and
-  hydrates it with React 18.3.1 and 19.2.8 while installing the current local
+  hydrates it with React 19.2.0 and 19.2.8 while installing the current local
   Core and React candidate artifacts. It fails on a hydration recovery error
   or a candidate-version mismatch.
 

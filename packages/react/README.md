@@ -98,7 +98,7 @@ function App() {
 `@context-action/react` 2.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
-  selective store subscriptions, and the verified React 18/19 SSR and
+  selective store subscriptions, React Compiler optimization, and the verified React 19.2 SSR and
   hydration contract.
 - **Does not own:** domain rules, authorization, API clients, persistent
   workflows, cross-tab/process recovery, or provider tool execution.
@@ -108,9 +108,9 @@ stores for owned application state and `useStoreValue()` for reactive reads.
 This keeps rendering, state transitions, and infrastructure concerns
 independently testable.
 
-### React 18 and React 19 imports
+### React 19.2+ imports
 
-Use the main entry point for both supported React versions:
+Use the main entry point with React 19.2 or later:
 
 ```ts
 import {
@@ -120,17 +120,25 @@ import {
 } from '@context-action/react';
 ```
 
-The package has one shared runtime and declares React 18 and React 19 as peer
-dependencies. `@context-action/react/react18` remains only as a compatibility
-entry point for existing type imports; it exports `React18Options` and is not
-a React-18-specific runtime or an alternative place to import the Store and
-Action APIs.
+The package declares React 19.2+ as its peer dependency. It publishes
+compiler-optimized hooks for this runtime, so consumers do not need to enable
+React Compiler in their own build to receive those optimizations.
+
+### Activity boundaries
+
+React 19.2's `<Activity>` preserves component and Store state across hide and
+reveal cycles. A Store Provider can be placed inside an Activity boundary; its
+manager is retained while the boundary is hidden and disposed only when the
+Provider actually unmounts.
+
+See the [React 19.2 Activity guide](../../docs/en/guide/react-19-activity.md)
+for composition examples, effect cleanup rules, pre-rendering, and SSR limits.
 
 ### Development-only tool runtime
 
 The repository retains ToolContext and Durable Operations source while their
 protocol, persistence, and recovery contract is developed. They are **not** an
-installable `@context-action/react/tools` API in the React 2 artifact and are
+installable `@context-action/react/tools` API in the React 3 artifact and are
 not needed for ordinary Store/Action applications. See the
 [production-readiness guide](../../docs/en/guide/production-readiness.md) for
 the ownership matrix and the separate development-track material.

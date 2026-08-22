@@ -65,7 +65,7 @@ export function useSafeStoreSubscription<T, R = T>(
     return value as R | T;
   }, [store, selector, initialValue]);
 
-  // 캐시된 스냅샷 함수 - React 18 호환성 향상
+  // Cached snapshots keep external-store reads referentially stable.
   const cachedSnapshotRef = useRef<R | T | undefined>(undefined);
   const stableGetSnapshot = useCallback((): R | T | undefined => {
     const currentSnapshot = getSnapshot();

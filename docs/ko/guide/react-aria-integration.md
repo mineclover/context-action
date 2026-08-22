@@ -88,7 +88,7 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
 1. 화살표 키 이동, 범위/다중 선택, focus-visible 동작
 2. 키보드와 포인터 입력 모두에서 Calendar 월 이동과 날짜 선택
 3. 관련 popover 또는 dialog의 overlay 포커스 복원
-4. controlled 값이 서버에서 공급된다면 React 18/19 SSR과 hydration
+4. controlled 값이 서버에서 공급된다면 React 19.2 SSR과 hydration
 5. action handler가 고빈도 상호작용을 지연시키지 않는지: roving focus를 action
    pipeline으로 구동하지 말고 의미 있는 확정 이벤트만 handler로 전달
 
@@ -100,7 +100,7 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
   키보드 Table 선택, 정렬, 키보드 Calendar 선택, 그 결과의 도메인 action audit
   entry를 검증합니다.
 - `pnpm verify:react-aria-reference-hydration`은 레퍼런스를 번들하고 현재 로컬
-  Core·React 후보 artifact를 설치한 상태에서 React 18.3.1·19.2.8 hydration을
+  Core·React 후보 artifact를 설치한 상태에서 React 19.2.0·19.2.8 hydration을
   검증합니다. hydration recovery error나 후보 버전 불일치가 있으면 실패합니다.
 
 더 자세한 React Aria 상태 계약은 공식 React Aria 및 React Stately 문서를

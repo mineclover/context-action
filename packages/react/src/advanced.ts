@@ -41,6 +41,3 @@ export type {
 // Note: For better tree shaking, import specific items from their respective modules
 export { createActionContext } from './actions/ActionContext';
 export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
-
-// React 18+ types (for backward compatibility)
-export type { React18Options } from './stores/core/types';

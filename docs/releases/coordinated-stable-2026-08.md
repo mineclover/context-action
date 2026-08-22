@@ -8,10 +8,10 @@ work. It does not rewrite the immutable [v1.0.0 release record](v1.0.0/index.md)
 | Package | Version | Reason |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | Additive shutdown API and corrected runtime lifecycle semantics. |
-| `@context-action/react` | `2.0.0` | Store/Action lifecycle and SSR stabilization. |
+| `@context-action/react` | `3.0.0` | React 19.2 baseline, Activity lifecycle, and React Compiler support. |
 
 Durable Operations 0.2 and its ToolContext integration remain a separate
-development track. The React 2 artifact intentionally excludes the `./tools`
+development track. The React 3 artifact intentionally excludes the `./tools`
 subpath so the state-management release does not publish an unresolved Durable
 dependency.
 

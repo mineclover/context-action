@@ -2,30 +2,75 @@
 
 This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext.
 
+> Start with the **Current React 3.0 summary** below for a new feature. The
+> detailed sections that follow are reference material; use the
+> [Context-Layered convention index](/en/context-layered/convention-index) when
+> a feature needs the repository's six-layer implementation profile.
+
+## Current React 3.0 summary
+
+`@context-action/react` requires React 19.2 or later. The default design is a
+context-layered flow, not a component that mixes rendering, domain rules, and
+external effects:
+
+| Concern | Put it here | Rule |
+| --- | --- | --- |
+| Context contracts | `contexts/` | Define typed Action and Store contexts with a domain name. |
+| Domain rules | `business/` | Keep validation and transformations pure. |
+| Orchestration and I/O | `handlers/` | Read current state with `getValue()`, run the rule, then update the Store. |
+| Reactive reads | `hooks/` | Subscribe with `useStoreValue()` or a selector. |
+| Rendering and user events | `views/` | Render props and dispatch semantic actions; do not embed domain I/O. |
+
+### Quick rules
+
+1. **Name by domain.** Export `UserStoreProvider`, `useUserStore`, and
+   `useUserAction` rather than generic Provider/hook names.
+2. **Handlers read; views subscribe.** A handler reads fresh state at execution
+   time with `store.getValue()`. A view uses `useStoreValue()` for reactive UI.
+3. **Update through Store APIs by default.** Use `setValue()` for replacement
+   and `update()` for a draft update. Do not mutate values returned by a Store
+   unless an advanced mutable-store pattern explicitly owns its `notifyPath`
+   contract.
+4. **Use Actions for meaningful commands.** Dispatch `saveProfile` or
+   `requestApproval`, not a low-level render event or a direct handler call.
+5. **Use Activity for resumable UI.** React 19.2 `<Activity>` preserves local
+   and Store state but cleans up effects and subscriptions while hidden. See
+   the [Activity guide](/en/guide/react-19-activity).
+6. **Treat compiler directives as library implementation details.** The
+   published package compiles explicitly annotated hooks; application code does
+   not need to add a compiler runtime or copy a `"use memo"` directive.
+
+For a complete feature, test its Store/Action contract, its visible UI, and any
+Activity hide/reveal or SSR boundary it owns. Run `pnpm convention:check` for
+repository structure and `pnpm docs:check` after documentation changes.
+
 ## 📋 Table of Contents
 
-1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
-2. [Naming Conventions](#naming-conventions)
-3. [File Structure](#file-structure)
-4. [Pattern Usage](#pattern-usage)
-5. [Type Definitions](#type-definitions)
-6. [Code Style](#code-style)
-7. [Import and Module Patterns](#import-and-module-patterns)
-8. [Core Framework Principles](#core-framework-principles)
-9. [Store Types](#store-types) → **[Complete Store Conventions](./store-conventions.md)**
-10. [Store Update Conventions](#store-update-conventions)
-11. [Event Loop Control Conventions](#event-loop-control-conventions)
-12. [Performance Guidelines](#performance-guidelines)
-13. [Error Handling](#error-handling)
-14. [RefContext Conventions](#refcontext-conventions)
+1. [Current React 3.0 Summary](#current-react-30-summary)
+2. [Legacy MVVM Migration Conventions](#legacy-mvvm-migration-conventions)
+3. [Naming Conventions](#naming-conventions)
+4. [File Structure](#file-structure)
+5. [Pattern Usage](#pattern-usage)
+6. [Type Definitions](#type-definitions)
+7. [Code Style](#code-style)
+8. [Import and Module Patterns](#import-and-module-patterns)
+9. [Core Framework Principles](#core-framework-principles)
+10. [Store Types](#store-types) → **[Complete Store Conventions](./store-conventions.md)**
+11. [Store Update Conventions](#store-update-conventions)
+12. [Event Loop Control Conventions](#event-loop-control-conventions)
+13. [Performance Guidelines](#performance-guidelines)
+14. [Error Handling](#error-handling)
+15. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
-## MVVM Architecture Conventions
+## Legacy MVVM Migration Conventions
 
 ### 🏗️ **Core Architecture Pattern**
 
-Context-Action Framework follows **strict MVVM architecture** with clear layer separation:
+The MVVM mapping below is useful when migrating an existing application. New
+features should prefer the context-layered structure summarized above and in
+the [Context-Layered guide](/en/context-layered/context-layered-guide).
 
 - **Model Layer**: `create~Context` declarations (`src/models/`)
 - **ViewModel Layer**: Custom hooks for behavior injection (`src/viewmodels/`)
@@ -208,7 +253,7 @@ const useActionHandler = (action, handler, config) => {
   const handlerRef = useRef(handler);
   handlerRef.current = handler; // Always update to latest
 
-  useEffect(() => {
+  useInsertionEffect(() => {
     const wrapperHandler = (payload, controller) => {
       return handlerRef.current(payload, controller); // Calls latest handler
     };
@@ -2137,7 +2182,7 @@ const dashboardStore = createTimeTravelStore('dashboard', {
 
 ### 🔄 **Store Immutability Rules**
 
-Context-Action Framework uses **Immer** internally for store state management, which enforces immutability rules. All store updates must follow proper conventions to avoid runtime errors.
+Context-Action uses its `@context-action/mutative` draft runtime for Store updates. Treat values returned by a Store as read-only snapshots and make every change through a Store method.
 
 #### ✅ **Correct Store Update Methods**
 
@@ -2148,11 +2193,11 @@ const userStore = useUserStore('profile');
 // Simple value replacement
 userStore.setValue({ name: 'John', email: 'john@example.com' });
 
-// ✅ MUST: Use store.update() for partial updates with Immer
+// ✅ MUST: Use store.update() for partial draft updates
 userStore.update(draft => {
   draft.name = 'John Doe';
   draft.preferences.theme = 'dark';
-  return draft; // Optional: Immer handles this automatically
+  return draft; // The draft runtime produces the next value
 });
 
 // ✅ MUST: Use store.update() for Map/Set operations
@@ -2177,17 +2222,17 @@ itemsStore.update(draft => {
 ```typescript
 // ❌ NEVER: Direct mutation of store values
 const cache = useStoreValue(cacheStore);
-cache.memoryCache.set('key', value); // Throws: Immer frozen object error
-cache.items.push(newItem); // Throws: Immer frozen object error
+cache.memoryCache.set('key', value); // Invalid: bypasses Store notification
+cache.items.push(newItem); // Invalid: bypasses Store notification
 
 // ❌ NEVER: Direct property assignment on store values
 const user = useStoreValue(userStore);
-user.name = 'John'; // Throws: Immer frozen object error
-user.preferences.theme = 'dark'; // Throws: Immer frozen object error
+user.name = 'John'; // Invalid: bypasses Store notification
+user.preferences.theme = 'dark'; // Invalid: bypasses Store notification
 
 // ❌ NEVER: Attempting to mutate returned store values
 const profile = userStore.getValue();
-profile.email = 'new@email.com'; // Throws: Immer frozen object error
+profile.email = 'new@email.com'; // Invalid: bypasses Store notification
 ```
 
 ### 🎯 **Store Integration 3-Step Process**
@@ -2229,7 +2274,7 @@ useActionHandler('updateUserProfile', useCallback(async (payload, controller) =>
 }, [profileStore, preferencesStore]));
 ```
 
-### ⚠️ **Common Immer Errors and Solutions**
+### ⚠️ **Common Immutable Snapshot Errors and Solutions**
 
 #### Error: "This object has been frozen and should not be mutated"
 
@@ -2264,7 +2309,7 @@ const handleUserUpdate = useCallback(async (payload) => {
   const currentUser = userStore.getValue();
   userStore.setValue({ ...currentUser, name: payload.name });
   
-  // Option 2: Partial update with Immer
+  // Option 2: Partial draft update
   userStore.update(draft => {
     draft.name = payload.name;
     return draft;
@@ -2276,7 +2321,7 @@ const handleUserUpdate = useCallback(async (payload) => {
 
 1. **Always use store methods**: `setValue()`, `update()`, never direct mutation
 2. **Follow 3-step process**: Read → Business Logic → Update
-3. **Use Immer drafts**: For complex objects, arrays, Maps, and Sets
+3. **Use draft updates**: For complex objects, arrays, Maps, and Sets
 4. **Lazy evaluation**: Use `store.getValue()` inside handlers for current state
 5. **Proper dependencies**: Include stores in `useCallback` dependency arrays
 6. **Error handling**: Use controller methods for validation and error reporting

@@ -1,7 +1,7 @@
 # Durable Operation 운영 Runbook
 
 > **개발 트랙 상태:** 이 runbook은 진행 중인 Durable 0.2 작업을 설명합니다.
-> Core 1.1 / React 2 상태 관리 릴리즈의 선행 조건이 아니며, 해당 React artifact는
+> Core 1.1 / React 3 상태 관리 릴리즈의 선행 조건이 아니며, 해당 React artifact는
 > 의도적으로 `@context-action/react/tools`를 출하하지 않습니다.
 
 이 문서는 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md)의

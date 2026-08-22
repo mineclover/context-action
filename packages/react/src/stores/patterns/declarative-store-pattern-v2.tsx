@@ -11,7 +11,7 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import React, { createContext, ReactNode, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
 import type { Store } from '../core/Store';
 import { createStore } from '../core/Store';
@@ -426,22 +426,20 @@ function createStoreContextImpl<T extends Record<string, any>>(
   }) {
     const effectiveRegistryId = registryId || contextName;
     const managerRef = useRef<StoreManager<T> | null>(null);
-    const lifecycleGenerationRef = useRef(0);
     
     if (!managerRef.current) {
       managerRef.current = new StoreManager(effectiveRegistryId, initialStores);
     }
 
-    useEffect(() => {
+    // Activity disconnects passive effects while retaining the component tree.
+    // Keep store ownership in an insertion effect so a hidden boundary retains
+    // its manager and reconnects to the same state when revealed.
+    useInsertionEffect(() => {
       const manager = managerRef.current;
-      const generation = ++lifecycleGenerationRef.current;
 
       return () => {
-        queueMicrotask(() => {
-          if (lifecycleGenerationRef.current !== generation) return;
-          manager?.dispose();
-          if (managerRef.current === manager) managerRef.current = null;
-        });
+        manager?.dispose();
+        if (managerRef.current === manager) managerRef.current = null;
       };
     }, []);
     
@@ -520,23 +518,18 @@ function createStoreContextImpl<T extends Record<string, any>>(
     
     const WithStoreProvider = (props: P) => {
       const managerRef = useRef<StoreManager<T> | null>(null);
-      const lifecycleGenerationRef = useRef(0);
       
       if (!managerRef.current) {
         managerRef.current = new StoreManager(registryId, initialStores);
       }
 
-      useEffect(() => {
+      useInsertionEffect(() => {
         const manager = managerRef.current;
-        const generation = ++lifecycleGenerationRef.current;
 
         return () => {
           if (config?.autoCleanup === false) return;
-          queueMicrotask(() => {
-            if (lifecycleGenerationRef.current !== generation) return;
-            manager?.dispose();
-            if (managerRef.current === manager) managerRef.current = null;
-          });
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
         };
       }, []);
       

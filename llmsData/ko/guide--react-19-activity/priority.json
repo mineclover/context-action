@@ -1,0 +1,218 @@
+{
+  "document": {
+    "id": "guide--react-19-activity",
+    "title": "React 19.2 Activity",
+    "category": "guide",
+    "source_path": "ko/guide/react-19-activity.md",
+    "lastModified": "2026-08-22T02:28:59.437Z",
+    "wordCount": 533
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-22",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in React 19.2 Activity.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in React 19.2 Activity.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in React 19.2 Activity."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "tsx",
+      "react",
+      "19",
+      "activity"
+    ],
+    "technical": [
+      "tsx",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from React 19.2 Activity.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "React 19.2 Activity",
+          "guide",
+          "tsx"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "React 19.2 Activity",
+        "guide",
+        "tsx"
+      ],
+      "nice_to_have": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "tsx",
+        "react",
+        "19",
+        "activity"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "tsx",
+      "react",
+      "19",
+      "activity"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-22"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "React 19.2 Activity is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-08-22",
+    "updated": "2026-08-22",
+    "version": "1.0.0",
+    "original_size": 5279,
+    "created_at": "2026-08-22T02:29:35.451Z",
+    "source_last_modified": "2026-08-22T02:34:18.610Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "tsx",
+        "react",
+        "19",
+        "activity"
+      ],
+      "technical": [
+        "tsx",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-08-22T02:34:26.293Z"
+  }
+}

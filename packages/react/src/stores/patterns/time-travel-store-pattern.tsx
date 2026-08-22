@@ -8,7 +8,7 @@
  */
 
 import type { Patches } from '@context-action/mutative';
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
 import { createStore, Store } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
@@ -351,7 +351,6 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   }) {
     const effectiveRegistryId = registryId || contextName;
     const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
-    const lifecycleGenerationRef = useRef(0);
 
     if (!managerRef.current) {
       managerRef.current = new TimeTravelStoreManager(
@@ -361,16 +360,14 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
       );
     }
 
-    useEffect(() => {
+    // Hidden Activities clean up passive effects. Use insertion-effect
+    // ownership so the store history survives a hide/reveal cycle.
+    useInsertionEffect(() => {
       const manager = managerRef.current;
-      const generation = ++lifecycleGenerationRef.current;
 
       return () => {
-        queueMicrotask(() => {
-          if (lifecycleGenerationRef.current !== generation) return;
-          manager?.dispose();
-          if (managerRef.current === manager) managerRef.current = null;
-        });
+        manager?.dispose();
+        if (managerRef.current === manager) managerRef.current = null;
       };
     }, []);
 
@@ -675,7 +672,6 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
     const WithTimeTravelStoreProvider = (props: P) => {
       const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
-      const lifecycleGenerationRef = useRef(0);
 
       if (!managerRef.current) {
         managerRef.current = new TimeTravelStoreManager(
@@ -685,17 +681,13 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
         );
       }
 
-      useEffect(() => {
+      useInsertionEffect(() => {
         const manager = managerRef.current;
-        const generation = ++lifecycleGenerationRef.current;
 
         return () => {
           if (config?.autoCleanup === false) return;
-          queueMicrotask(() => {
-            if (lifecycleGenerationRef.current !== generation) return;
-            manager?.dispose();
-            if (managerRef.current === manager) managerRef.current = null;
-          });
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
         };
       }, []);
 
