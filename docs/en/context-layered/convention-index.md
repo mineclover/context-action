@@ -129,7 +129,6 @@ The docs make more sense when paired with the live demos:
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
-- `/integrations/live-web-coding`
 - standalone `/web-coding/` release
 
 ## One-Line Summary

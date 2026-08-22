@@ -469,6 +469,6 @@ Every profile implementation should verify:
 
 Start with:
 
-- [Live Code Editor](/example/integrations/live-code-editor)
+- [Standalone Web Coding Studio](/web-coding/)
 - [Action Lifecycle Workbench](/example/integrations/action-lifecycle)
 - [Access Request Playbook](../examples/access-request-playbook)

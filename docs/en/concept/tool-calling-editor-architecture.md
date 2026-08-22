@@ -42,8 +42,8 @@ Reference clone: `architecture-references/orca` (MIT, inspected at commit `9a237
 
 ## Realtime web-coding showcase
 
-The focused showcase route is `/integrations/live-web-coding`. It intentionally
-keeps the first slice small: a three-file HTML/CSS/JS workspace, a visible
+The deployed showcase route is `/web-coding/`. It intentionally keeps the first
+slice small: a three-file HTML/CSS/JS workspace, a visible
 `web.*` tool palette including bounded `web.applyPatch`, an optional OpenRouter model loop, and a sandboxed iframe
 preview. Without an API key, the same `tools/list` → model/local agent →
 `tools/call` → tool result path runs through a deterministic local fallback, so
@@ -865,18 +865,15 @@ package only after the contract stabilizes.
 The browser-owned OpenRouter API key has a separate, smaller seam in the
 private `@context-action/openrouter-browser-storage` package. It owns the
 canonical `context-action.openrouter.api-key` entry and same-origin change
-subscription. The example's React hook and the standalone provider settings
-both consume that package, so the key contract is defined once. This remains
-origin-scoped browser storage: a local example page and a GitHub Pages deploy
-cannot share localStorage directly, and no key is sent to a Context-Action
-server.
+subscription. The standalone provider settings consume that package, so the
+key contract is defined once. This remains origin-scoped browser storage, and
+no key is sent to a Context-Action server.
 
-The browser proof at `scripts/verify-example-openrouter-browser.mjs` opens the
-Tool Context AI and Live Code Editor routes together and verifies both
-same-origin storage events and clear behavior. Example `dev`, `build`, and
-`build:fast` lifecycle hooks build this private storage package before Vite
-resolves its workspace export, so a fresh checkout does not depend on a stale
-`dist` directory.
+The former cross-route browser proof was retired with the legacy example
+routes. The deployment workflow instead verifies the standalone provider
+transport and browser flow. Its `prebuild` lifecycle builds this private
+storage package before Vite resolves the workspace export, so a fresh checkout
+does not depend on a stale `dist` directory.
 
 The example keeps its existing Dexie repository and iframe bridge for showcase
 compatibility, but `example/src/lib/live-code-editor-filesystem.ts` is now only

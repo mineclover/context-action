@@ -26,7 +26,6 @@
     "preverify:approval": "pnpm --filter @context-action/core build",
     "verify:approval": "node ../scripts/verify-example-live-editor-approval.mjs",
     "verify:trace": "node ../scripts/verify-example-tool-call-trace.mjs",
-    "verify:openrouter": "node ../scripts/verify-example-openrouter-browser.mjs",
     "verify:usecase": "node ../scripts/verify-live-usecase-conventions.mjs",
     "verify:conditional": "node ../scripts/verify-conditional-permission-conventions.mjs",
     "verify:mouse-action": "node ../scripts/verify-context-store-action-mouse-conventions.mjs",

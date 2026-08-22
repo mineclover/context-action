@@ -150,8 +150,9 @@ The recommended product-facing path is:
 Provider → Handler Registry → Facade → Recipe → UI primitive
 ```
 
-Start with the live [Usecase Boundary Lab](/integrations/live-code-editor), then
-compare it with the [Action Lifecycle Workbench](/integrations/action-lifecycle)
+For the product-facing tool-calling demo, use the standalone
+[Web Coding Studio](https://mineclover.github.io/context-action/web-coding/).
+Within this example app, compare the [Action Lifecycle Workbench](/integrations/action-lifecycle)
 and the [Access Request Playbook](/patterns/implementation-playbook/access-request).
 
 ## 📂 Catalog Structure
