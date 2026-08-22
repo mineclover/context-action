@@ -68,6 +68,16 @@ jobs:
           version: 10.30.3
           run_install: false
 
+      - name: Verify OIDC candidate publishing eligibility
+        if: inputs.publish_auth == 'oidc'
+        run: |
+          for PACKAGE_NAME in "@context-action/core" "@context-action/react"; do
+            if ! npm view "$PACKAGE_NAME" name --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+              echo "::error title=OIDC bootstrap requires an existing npm package::$PACKAGE_NAME does not exist on npm. npm Trusted Publishing is configured per existing package, so publish this initial version with publish_auth=token after setting the protected NPM_TOKEN secret."
+              exit 1
+            fi
+          done
+
       - name: Verify npm token auth
         if: inputs.publish_auth == 'token'
         env:
