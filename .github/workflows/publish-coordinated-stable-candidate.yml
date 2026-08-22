@@ -80,6 +80,9 @@ jobs:
       - name: Validate coordinated stable release plan
         run: pnpm verify:coordinated-stable-release-plan
 
+      - name: Install Chromium for example release smoke tests
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+
       - name: Run release gate
         run: pnpm release:check
 
