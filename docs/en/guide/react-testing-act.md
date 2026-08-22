@@ -111,6 +111,28 @@ pnpm --filter @context-action/react test
 pnpm web-coding:verify
 ```
 
+For a source change, select only the public routes whose static dependency
+graph contains that file. This keeps a feature test narrow while retaining a
+separate full-catalog smoke command:
+
+```bash
+pnpm example:impact -- --changed-files \
+  example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx
+pnpm --filter example verify:route-smoke -- \
+  --changed-files example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx
+
+# Compare a pull request range locally
+pnpm --filter example verify:route-smoke -- \
+  --base origin/main --head HEAD
+
+# Scheduled or release-wide coverage
+pnpm example:smoke
+```
+
+`example:impact` also reports the co-located unit test for each selected route,
+or marks it as missing. Add that test alongside the route entry before relying
+on the route's smoke check alone for behavior coverage.
+
 Use the standalone Web Coding Studio's browser verification for the deployed
 `/web-coding/` surface. Internal example fixtures remain useful for contract
 tests, but are not a substitute for a test of the publicly deployed route.

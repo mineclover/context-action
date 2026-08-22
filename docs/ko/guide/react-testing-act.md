@@ -109,6 +109,28 @@ pnpm --filter @context-action/react test
 pnpm web-coding:verify
 ```
 
+소스 파일이 변경됐을 때는 그 파일을 static dependency graph에 포함하는 공개
+route만 선택한다. 기능 테스트는 좁게 유지하되, 전체 카탈로그 smoke 명령은
+별도로 유지한다.
+
+```bash
+pnpm example:impact -- --changed-files \
+  example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx
+pnpm --filter example verify:route-smoke -- \
+  --changed-files example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx
+
+# 로컬에서 PR 범위를 비교
+pnpm --filter example verify:route-smoke -- \
+  --base origin/main --head HEAD
+
+# 정기 또는 릴리스 전체 점검
+pnpm example:smoke
+```
+
+`example:impact`는 선택된 각 route의 co-located 단위 테스트도 함께 표시하며,
+없으면 missing으로 보고한다. 동작 커버리지를 route smoke 하나에만 의존하지
+않도록 route entry 옆에 해당 테스트를 추가한다.
+
 배포되는 `/web-coding/` 화면은 Standalone Web Coding Studio의 browser
 verification으로 검증한다. 내부 example fixture는 contract 테스트에는 유용하지만,
 공개 배포 route 테스트를 대신하지는 않는다.
