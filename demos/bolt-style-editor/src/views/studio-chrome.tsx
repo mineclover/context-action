@@ -87,7 +87,7 @@ export function StudioTopbar({
           GitHub
         </a>
         <a
-          href="https://mineclover.github.io/context-action/example/integrations/live-web-coding"
+          href="https://mineclover.github.io/context-action/web-coding/"
           target="_blank"
           rel="noreferrer"
         >

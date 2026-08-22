@@ -345,16 +345,14 @@ pnpm --filter @context-action/web-coding-demo type-check
 pnpm --filter @context-action/react test -- __tests__/tools/ToolContext.test.tsx
 pnpm web-coding:verify
 pnpm --filter example check
-pnpm --filter example verify:openrouter
 ```
 
 데모 `prebuild`는 package를 다시 build하기 전에 package check를 실행합니다.
 최종 검증은 contract, production base-path 산출물, preview, filesystem,
 provider transport, browser flow를 모두 포함해야 합니다.
-배포 workflow도 Chromium을 설치한 뒤
-`pnpm --filter example verify:openrouter`를 실행하므로 shared key 동작이
-로컬 전용 검사가 아니라 shared key 동기화와 browser-side provider tool loop를
-함께 확인하는 release gate가 된다.
+배포 workflow는 Chromium을 설치한 뒤 standalone provider transport와 browser
+flow gate를 실행하므로 browser-side provider tool loop가 로컬 전용 검사가 아닌
+release gate로 유지된다.
 
 standalone 경계에는 별도의 컨벤션 게이트도 둡니다.
 

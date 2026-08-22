@@ -42,7 +42,7 @@ Orca는 여러 coding agent를 worktree, 터미널, embedded browser와 연결�
 
 ## 실시간 웹 코딩 showcase
 
-집중 showcase 경로는 `/integrations/live-web-coding`이다. 첫 slice는 범위를
+배포되는 showcase 경로는 `/web-coding/`이다. 첫 slice는 범위를
 작게 유지하기 위해 HTML/CSS/JS 3개 파일 workspace, bounded `web.applyPatch`를 포함한 화면에 보이는 `web.*`
 tool palette, 선택적인 OpenRouter model loop, sandbox iframe preview로
 구성한다. API 키가 없어도 동일한 `tools/list` → model/local agent →
@@ -785,17 +785,15 @@ class가 아니라 이 port에 의존한다. Demo에는 iframe runtime과 editor
 브라우저가 소유하는 OpenRouter API 키에는 더 작은 별도 seam인 private
 `@context-action/openrouter-browser-storage` package를 둔다. 이 package가
 정식 `context-action.openrouter.api-key` 항목과 same-origin 변경 구독을
-소유하고, example의 React hook과 standalone provider 설정이 모두 이를
-사용한다. 따라서 키 계약은 한 곳에서 정의된다. 다만 이 저장소는 여전히
-origin 범위의 browser storage이므로 local example 페이지와 GitHub Pages
-배포본이 localStorage를 직접 공유하지는 않으며, 키를 Context-Action 서버로
-전송하지 않는다.
+소유하고, standalone provider 설정이 이를 사용한다. 따라서 키 계약은 한
+곳에서 정의된다. 이 저장소는 origin 범위의 browser storage이며, 키를
+Context-Action 서버로 전송하지 않는다.
 
-`scripts/verify-example-openrouter-browser.mjs` 브라우저 검증은 Tool Context
-AI route와 Live Code Editor route를 함께 열고 same-origin storage event와
-삭제 동작을 모두 확인한다. example의 `dev`, `build`, `build:fast` lifecycle
-hook은 Vite가 workspace export를 해석하기 전에 이 private storage package를
-build하므로 fresh checkout이 오래된 `dist` 디렉터리에 의존하지 않는다.
+기존 example route 간 브라우저 검증은 legacy route를 제거하면서 함께
+종료했다. 배포 workflow는 대신 standalone provider transport와 browser flow를
+검증한다. standalone의 `prebuild` lifecycle hook은 Vite가 workspace export를
+해석하기 전에 이 private storage package를 build하므로 fresh checkout이
+오래된 `dist` 디렉터리에 의존하지 않는다.
 
 example은 showcase 호환성을 위해 기존 Dexie repository와 iframe bridge를
 유지하지만, `example/src/lib/live-code-editor-filesystem.ts`는 이제 package

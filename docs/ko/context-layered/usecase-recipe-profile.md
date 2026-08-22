@@ -449,6 +449,6 @@ repository, preview acknowledgement를 runtime에 추가하면서 facade/view �
 
 시작점:
 
-- [Live Code Editor](/example/integrations/live-code-editor)
+- [Standalone Web Coding Studio](/web-coding/)
 - [Action Lifecycle Workbench](/example/integrations/action-lifecycle)
 - [Access Request Playbook](../examples/access-request-playbook)

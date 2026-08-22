@@ -130,7 +130,6 @@ function App() {
   - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
   - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
 - **Tool-calling 데모**:
-  - [Realtime web-coding showcase](https://mineclover.github.io/context-action/example/integrations/live-web-coding)
   - [Standalone Web Coding Studio](https://mineclover.github.io/context-action/web-coding/)
 - **repo-local skill**: `skills/context-action-implementation-playbook/SKILL.md`
 - **검증 명령**:

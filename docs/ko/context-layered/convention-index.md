@@ -130,7 +130,6 @@ build·filesystem·provider·preview·browser release 검사는
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
-- `/integrations/live-web-coding`
 - standalone `/web-coding/` release
 
 ## 한 줄 요약

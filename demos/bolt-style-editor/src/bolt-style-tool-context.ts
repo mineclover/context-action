@@ -1,4 +1,7 @@
-import { createToolContext, type ToolRegistry } from '@context-action/react/tools';
+import {
+  createToolContext,
+  type ToolRegistry,
+} from '@context-action/react/tools';
 import { requestToolApproval } from './tool-approval';
 import { type BoltStyleToolSchema, boltStyleToolSchema } from './tool-schema';
 import { recordToolCall } from './tool-trace';

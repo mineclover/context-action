@@ -201,9 +201,6 @@ jobs:
           node scripts/verify-web-coding-production-browser.mjs
           node scripts/verify-web-coding-browser.mjs
 
-      - name: Verify example OpenRouter key sharing and tool loop
-        run: pnpm --filter example verify:openrouter
-
       # Combine both builds
       - name: Combine builds for deployment
         run: |
