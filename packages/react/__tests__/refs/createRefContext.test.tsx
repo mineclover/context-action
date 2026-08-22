@@ -10,6 +10,17 @@ import '@testing-library/jest-dom';
 
 import { createRefContext } from '../../src/refs/createRefContext';
 
+async function renderAndFlush(ui: React.ReactElement, delayMs = 0) {
+  await act(async () => {
+    render(ui);
+  });
+  if (delayMs) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    });
+  }
+}
+
 describe('createRefContext', () => {
   describe('Simple type usage (Legacy)', () => {
     it('should create ref context with simple types', () => {
@@ -61,14 +72,13 @@ describe('createRefContext', () => {
         return <div data-testid="container">Mounted: {mounted.toString()}</div>;
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        50
       );
 
-      // Wait longer for the async state update
-      await new Promise(resolve => setTimeout(resolve, 50));
       const container = document.querySelector('[data-testid="container"]');
       expect(container).toBeInTheDocument();
       expect(container).toHaveTextContent('Mounted: true');
@@ -138,14 +148,13 @@ describe('createRefContext', () => {
         );
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        50
       );
 
-      // Wait longer for the async state update
-      await new Promise(resolve => setTimeout(resolve, 50));
       const testElement = document.querySelector('[data-testid="declarative-test"]');
       expect(testElement).toHaveTextContent('Element ready: true');
     });
@@ -189,14 +198,13 @@ describe('createRefContext', () => {
         return <div data-testid="async-test">Mount result: {result}</div>;
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        200
       );
 
-      // Wait longer for async operations to complete
-      await new Promise(resolve => setTimeout(resolve, 200));
       const testElement = document.querySelector('[data-testid="async-test"]');
       expect(testElement).toHaveTextContent('Mount result: async-element');
     });
@@ -243,16 +251,15 @@ describe('createRefContext', () => {
         );
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        150
       );
 
       const testElement = document.querySelector('[data-testid="multi-wait-test"]');
-      await waitFor(() => {
-        expect(testElement).toHaveTextContent('All ready: true');
-      });
+      expect(testElement).toHaveTextContent('All ready: true');
     });
 
     it('should handle withTarget operations', async () => {
@@ -303,21 +310,20 @@ describe('createRefContext', () => {
         );
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        100
       );
 
-      // Wait longer for async operations to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
       const testElement = document.querySelector('[data-testid="with-target-test"]');
       expect(testElement).toHaveTextContent('Operation result: Success');
     });
   });
 
   describe('Error handling', () => {
-    it('should handle usage outside Provider safely', () => {
+    it('should handle usage outside Provider safely', async () => {
       const {
         useRefHandler: useTestRef,
         Provider: TestProvider
@@ -344,29 +350,40 @@ describe('createRefContext', () => {
       console.error = jest.fn();
 
       // Test without provider - should throw or return null
-      let component;
+      let component: ReturnType<typeof render> | undefined;
       try {
-        component = render(<TestComponentWithoutProvider />);
+        await act(async () => {
+          component = render(<TestComponentWithoutProvider />);
+        });
         // If it doesn't throw, it should handle gracefully
+        if (!component) throw new Error('Expected a rendered fallback component.');
         expect(component.getByText(/No error|Error handled/)).toBeInTheDocument();
       } catch (error) {
         // Expected behavior - hook throws when used outside provider
         expect(error).toBeDefined();
       } finally {
         if (component) {
-          component.unmount();
+          const renderedComponent = component;
+          await act(async () => {
+            renderedComponent.unmount();
+          });
         }
       }
 
       // Test with provider - should work normally
-      const { getByText, unmount } = render(
-        <TestProvider>
-          <TestComponentWithProvider />
-        </TestProvider>
-      );
+      let providerRender: ReturnType<typeof render> | undefined;
+      await act(async () => {
+        providerRender = render(
+          <TestProvider>
+            <TestComponentWithProvider />
+          </TestProvider>
+        );
+      });
 
-      expect(getByText('With provider')).toBeInTheDocument();
-      unmount();
+      expect(providerRender?.getByText('With provider')).toBeInTheDocument();
+      await act(async () => {
+        providerRender?.unmount();
+      });
 
       // Restore console.error
       console.error = originalConsoleError;
@@ -397,13 +414,13 @@ describe('createRefContext', () => {
         return <div data-testid="error-test">Error handling test</div>;
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        10
       );
 
-      await new Promise(resolve => setTimeout(resolve, 10));
       expect(document.querySelector('[data-testid="error-test"]')).toBeInTheDocument();
 
       consoleSpy.mockRestore();
@@ -454,14 +471,13 @@ describe('createRefContext', () => {
         );
       }
 
-      render(
+      await renderAndFlush(
         <TestRefsProvider>
           <TestComponent />
-        </TestRefsProvider>
+        </TestRefsProvider>,
+        150
       );
 
-      // Wait longer for async operations to complete
-      await new Promise(resolve => setTimeout(resolve, 150));
       const testElement = document.querySelector('[data-testid="get-all-test"]');
       expect(testElement).toHaveTextContent('Ref count: 2');
     });
@@ -522,11 +538,14 @@ describe('createRefContext', () => {
         return null;
       }
 
-      const { unmount } = render(
-        <TestRefsProvider>
-          <TestComponent />
-        </TestRefsProvider>
-      );
+      let unmount: (() => void) | undefined;
+      await act(async () => {
+        ({ unmount } = render(
+          <TestRefsProvider>
+            <TestComponent />
+          </TestRefsProvider>
+        ));
+      });
 
       try {
         await act(async () => {
@@ -546,7 +565,9 @@ describe('createRefContext', () => {
         expect(delayedResolved).toHaveBeenCalledTimes(1);
         expect(delayedResolved.mock.calls[0]?.[0]).toHaveProperty('id', 'non-existing-element');
       } finally {
-        unmount();
+        await act(async () => {
+          unmount?.();
+        });
         jest.clearAllTimers();
         jest.useRealTimers();
       }
@@ -606,11 +627,14 @@ describe('createRefContext', () => {
         return null;
       }
 
-      const { unmount } = render(
-        <TestRefsProvider>
-          <TestComponent />
-        </TestRefsProvider>
-      );
+      let unmount: (() => void) | undefined;
+      await act(async () => {
+        ({ unmount } = render(
+          <TestRefsProvider>
+            <TestComponent />
+          </TestRefsProvider>
+        ));
+      });
 
       try {
         expect(completed).not.toHaveBeenCalled();
@@ -629,7 +653,9 @@ describe('createRefContext', () => {
           pending2: expect.objectContaining({ id: 'pending-2' }),
         });
       } finally {
-        unmount();
+        await act(async () => {
+          unmount?.();
+        });
         jest.clearAllTimers();
         jest.useRealTimers();
       }

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, act } from '@testing-library/react';
+import { render, act, renderHook } from '@testing-library/react';
 import { createRefContext } from '../../src/refs/createRefContext';
 import type { RefInitConfig } from '../../src/refs/types';
 
@@ -71,8 +71,9 @@ describe('Timeout Options', () => {
       });
       
       // 100ms 진행 - ref 설정 트리거
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(100);
+        await Promise.resolve();
       });
       
       // 성공 전파 대기
@@ -127,8 +128,9 @@ describe('Timeout Options', () => {
       });
       
       // 타임아웃 트리거
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(50);
+        await Promise.resolve();
       });
       
       // 에러 전파 대기
@@ -160,84 +162,36 @@ describe('Timeout Options', () => {
         { defaultMountTimeout: 200 } // 기본 타임아웃은 더 길게
       );
       
-      const results: { quick?: Error; slow?: HTMLElement } = {};
-      
-      const TestComponent: React.FC = () => {
-        const quickHandler = useRefHandler('quickElement');
-        const slowHandler = useRefHandler('slowElement');
-        
-        React.useEffect(() => {
-          const runTests = async () => {
-            // Quick timeout 테스트
-            const quickTest = async () => {
-              try {
-                await quickHandler.waitForMount();
-                throw new Error('Quick element should have timed out');
-              } catch (error) {
-                expect((error as Error).message).toContain('Mount timeout after 30ms');
-                results.quick = error as Error;
-              }
-            };
-            
-            // Slow success 테스트
-            const slowTest = async () => {
-              try {
-                // 50ms 후에 slow element 설정 (100ms 타임아웃보다 빠름)
-                setTimeout(() => {
-                  const element = document.createElement('div');
-                  element.textContent = 'slow success';
-                  slowHandler.setRef(element);
-                }, 50);
-                
-                const element = await slowHandler.waitForMount();
-                expect((element as HTMLElement).textContent).toBe('slow success');
-                results.slow = element as HTMLElement;
-              } catch (error) {
-                throw new Error(`Slow element should not timeout: ${error}`);
-              }
-            };
-            
-            // 두 테스트를 동시에 실행
-            quickTest();
-            slowTest();
-          };
-          
-          runTests();
-        }, [quickHandler, slowHandler]);
-        
-        return <div>Test Component</div>;
-      };
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider>{children}</Provider>
+      );
+      const { result } = renderHook(
+        () => ({
+          quick: useRefHandler('quickElement'),
+          slow: useRefHandler('slowElement'),
+        }),
+        { wrapper }
+      );
+      let quickMount: Promise<unknown>;
+      let slowMount: Promise<unknown>;
 
       await act(async () => {
-        render(
-          <Provider>
-            <TestComponent />
-          </Provider>
-        );
-      });
-      
-      // 30ms 진행 - quick timeout 발생
-      act(() => {
+        quickMount = result.current.quick.waitForMount();
+        slowMount = result.current.slow.waitForMount();
         jest.advanceTimersByTime(30);
-      });
-      
-      // 에러 전파 대기
-      await act(async () => {
         await Promise.resolve();
       });
-      
-      // 50ms까지 진행 - slow element 설정
-      act(() => {
-        jest.advanceTimersByTime(20); // 총 50ms
-      });
-      
-      // slow element 성공 전파 대기
+
+      await expect(quickMount!).rejects.toThrow('Mount timeout after 30ms');
+      const slowElement = document.createElement('div');
+      slowElement.textContent = 'slow success';
       await act(async () => {
+        jest.advanceTimersByTime(20); // total: 50ms
+        result.current.slow.setRef(slowElement);
         await Promise.resolve();
       });
-      
-      expect(results.quick).toBeInstanceOf(Error);
-      expect(results.slow).toBeInstanceOf(HTMLElement);
+
+      await expect(slowMount!).resolves.toBe(slowElement);
     });
   });
 
@@ -259,49 +213,22 @@ describe('Timeout Options', () => {
         }
       );
       
-      const TestComponent: React.FC = () => {
-        const handler = useRefHandler('element');
-        
-        React.useEffect(() => {
-          const testDisablePriority = async () => {
-            try {
-              // 50ms 후에 ref 설정 (원래 10ms 타임아웃보다 훨씬 늦음)
-              setTimeout(() => {
-                const element = document.createElement('div');
-                element.textContent = 'disable priority test';
-                handler.setRef(element);
-              }, 50);
-              
-              const element = await handler.waitForMount();
-              expect((element as HTMLElement).textContent).toBe('disable priority test');
-            } catch (error) {
-              throw new Error(`Should not timeout when disabled: ${error}`);
-            }
-          };
-          
-          testDisablePriority();
-        }, [handler]);
-        
-        return <div>Test Component</div>;
-      };
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider>{children}</Provider>
+      );
+      const { result } = renderHook(() => useRefHandler('element'), { wrapper });
+      let mount: Promise<unknown>;
+      const element = document.createElement('div');
+      element.textContent = 'disable priority test';
 
       await act(async () => {
-        render(
-          <Provider>
-            <TestComponent />
-          </Provider>
-        );
-      });
-      
-      // 50ms 진행 - ref 설정 트리거
-      act(() => {
+        mount = result.current.waitForMount();
         jest.advanceTimersByTime(50);
-      });
-      
-      // 성공 전파 대기
-      await act(async () => {
+        result.current.setRef(element);
         await Promise.resolve();
       });
+
+      await expect(mount!).resolves.toBe(element);
     });
   });
 });

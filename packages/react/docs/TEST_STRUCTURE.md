@@ -80,9 +80,27 @@ pnpm test:watch
 pnpm test --coverage
 ```
 
+## Test Boundary Convention
+
+Tests are organized by the contract they prove, rather than by a screen that
+happens to consume the contract.
+
+| Layer | What to prove | Test environment |
+| --- | --- | --- |
+| `@context-action/core` | registration, priority, cancellation, queueing, result collection, and type contracts | Node; no React or `act` |
+| `@context-action/react` | provider lifetime, subscriptions, hook identity, cleanup, and React-visible state | JSDOM with `IS_REACT_ACT_ENVIRONMENT = true` |
+| Example application | a user interaction produces visible UI and an async outcome | Vitest/JSDOM plus the impacted route smoke check |
+
+React tests must use `await act(async () => { ... })` for direct store writes,
+imperative dispatches, timers, subscription callbacks, and unmounts that can
+flush work. React Testing Library helpers may manage their own `act` boundary,
+but direct framework APIs do not.
+
 ## Current Test Coverage
 
-The framework has comprehensive test coverage with **40+ passing tests** across all core functionality:
+The current package suite covers core functionality, lifecycle behavior, and
+type safety. Do not use a historical count as release evidence; run the current
+package gate for the candidate under review.
 
 ### Action System Tests (22 tests)
 - **createActionContext** (8 tests): Factory function, provider creation, hook generation
