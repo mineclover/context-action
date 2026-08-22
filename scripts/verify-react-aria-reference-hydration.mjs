@@ -69,7 +69,7 @@ try {
     core: createLocalPackageSpec('@context-action/core', coreDirectory, packDirectory),
     react: createLocalPackageSpec('@context-action/react', reactDirectory, packDirectory),
   };
-  for (const reactVersion of ['18.3.1', '19.2.8']) {
+  for (const reactVersion of ['19.2.0', '19.2.8']) {
     const consumerDirectory = path.join(temporaryDirectory, `react-${reactVersion}`);
     const npmConfigPath = path.join(consumerDirectory, '.npmrc');
     mkdirSync(consumerDirectory, { recursive: true });

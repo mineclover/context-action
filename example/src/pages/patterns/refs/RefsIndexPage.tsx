@@ -52,8 +52,8 @@ export function RefsIndexPage() {
                         • <strong>자동 정리</strong>: 메모리 누수 방지
                       </li>
                       <li>
-                        • <strong>성능 최적화</strong>: React 18
-                        useSyncExternalStore 활용
+                        • <strong>성능 최적화</strong>: useSyncExternalStore
+                        활용
                       </li>
                       <li>
                         • <strong>Context 분리</strong>: 도메인별 ref 관리
@@ -401,8 +401,8 @@ function Component() {
                   성능 최적화
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">
-                  React 18의 useSyncExternalStore를 활용하여 최적화된 ref 상태
-                  구독을 제공합니다.
+                  useSyncExternalStore를 활용하여 최적화된 ref 상태 구독을
+                  제공합니다.
                 </p>
                 <ul className="text-gray-600 text-xs space-y-1">
                   <li>• 불필요한 리렌더링 방지</li>

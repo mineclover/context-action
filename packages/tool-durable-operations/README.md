@@ -4,7 +4,7 @@ Durable idempotency and external side-effect adapters for Context-Action tool
 mutations.
 
 > **Development track:** Durable 0.2 is being stabilized separately from the
-> Core 1.1 / React 2 state-management release. Its persistence, provider
+> Core 1.1 / React 3 state-management release. Its persistence, provider
 > recovery, and migration contract is not published as part of that cohort.
 
 This package starts after a canonical tool call has been validated. It owns

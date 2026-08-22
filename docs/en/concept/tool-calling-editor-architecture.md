@@ -2,7 +2,7 @@
 
 > **Development-track status:** ToolContext and Durable Operations are not part
 > of the `@context-action/core@1.1.0` / `@context-action/react@2.0.0`
-> state-management release. The React 2 package intentionally omits
+> state-management release. The React 3 package intentionally omits
 > `@context-action/react/tools` while this protocol, persistence, and provider
 > recovery surface receives a separate release decision.
 

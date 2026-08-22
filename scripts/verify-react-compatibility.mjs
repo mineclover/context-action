@@ -90,14 +90,12 @@ import React from 'react';
 import type { ExecutionResult } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
 import { StoreRegistry } from '@context-action/react/advanced';
-import type { React18Options } from '@context-action/react/react18';
 import { deepClone } from '@context-action/react/utils';
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
 
 interface Actions { save: { id: string }; reset: void }
 interface Results { save: { accepted: boolean } }
 const Context = createActionContext<Actions, Results>('Compatibility');
-const react18Options: React18Options = { enableConcurrent: true };
 const cloned: { ready: boolean } = deepClone({ ready: true });
 
 function Consumer() {
@@ -112,7 +110,6 @@ function Consumer() {
 void Consumer;
 void StoreRegistry;
 void useWebMCPToolScope;
-void react18Options;
 void cloned;
 `);
   writeFileSync(join(consumer, 'tsconfig.json'), JSON.stringify({

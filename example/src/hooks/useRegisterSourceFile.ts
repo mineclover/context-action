@@ -32,7 +32,7 @@ export function useRegisterSourceFile(
   const categoriesStore = useSourceLinkRegistry('categories');
   const totalCountStore = useSourceLinkRegistry('totalCount');
 
-  // React 18의 useId를 사용하여 각 인스턴스를 고유하게 식별
+  // useId를 사용하여 각 인스턴스를 고유하게 식별
   const instanceId = useId();
 
   useEffect(() => {

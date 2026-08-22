@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--migration-guide",
     "title": "마이그레이션 가이드: MVVM에서 Context-Layered로",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "ko/context-layered/migration-guide.md",
     "lastModified": "2026-07-20T23:24:48.103Z",
     "wordCount": 583
@@ -197,7 +197,7 @@
     "version": "1.0.0",
     "original_size": 5780,
     "created_at": "2026-07-20T23:30:19.159Z",
-    "source_last_modified": "2026-07-20T23:24:48.103Z",
+    "source_last_modified": "2026-08-22T01:29:08.965Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -218,6 +218,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-08-22T01:33:45.725Z"
   }
 }

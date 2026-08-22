@@ -28,6 +28,7 @@ const errors = [];
 for (const [name, version] of Object.entries(plan.packages ?? {})) {
   const packagePath = packagePaths[name];
   const changelogPath = changelogPaths[name];
+  const changelogDate = plan.changelogDates?.[name];
   if (!packagePath || !changelogPath || typeof version !== 'string') {
     errors.push(`Release plan has an unsupported package entry: ${name}`);
     continue;
@@ -38,7 +39,9 @@ for (const [name, version] of Object.entries(plan.packages ?? {})) {
   ]);
   const manifest = JSON.parse(packageSource);
   if (manifest.name !== name || manifest.version !== version) errors.push(`${name} must be ${version} in its package manifest`);
-  if (!changelog.startsWith(`# Change Log\n`) || !changelog.includes(`## [${version}] (2026-08-11)`)) {
+  if (typeof changelogDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(changelogDate)) {
+    errors.push(`${name} must have an ISO changelog date in the release plan`);
+  } else if (!changelog.startsWith(`# Change Log\n`) || !changelog.includes(`## [${version}] (${changelogDate})`)) {
     errors.push(`${name} must have a dated ${version} changelog entry`);
   }
 }
@@ -53,6 +56,7 @@ if (react.dependencies?.['@context-action/tool-durable-operations']) {
   errors.push('React state-management release must not require Durable Operations at install time');
 }
 if (Object.keys(plan.packages ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define the exact coordinated package cohort');
+if (Object.keys(plan.changelogDates ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define changelog dates for the exact coordinated package cohort');
 
 if (errors.length > 0) {
   console.error(`Coordinated stable release plan failed:\n${errors.map(error => `- ${error}`).join('\n')}`);

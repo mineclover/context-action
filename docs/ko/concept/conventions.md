@@ -4,20 +4,61 @@
 
 > 빠른 팀 규칙 요약이 먼저 필요하면 [모범 사례](../guide/best-practices.md#-빠른-팀-요약)를 먼저 읽고, 이 문서는 세부 규칙을 확인할 때 참조하세요.
 
+> 새 기능을 만들 때는 먼저 아래 **React 3.0 현재 요약**을 따르세요. 이후의 긴
+> 섹션은 상세 참고 자료이며, 저장소의 6계층 구현 프로필이 필요하면
+> [개발 컨벤션 인덱스](/ko/context-layered/convention-index)를 사용합니다.
+
+## React 3.0 현재 요약
+
+`@context-action/react`는 React 19.2 이상을 요구합니다. 기본 설계는 렌더링,
+도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다.
+
+| 관심사 | 둘 위치 | 규칙 |
+| --- | --- | --- |
+| Context 계약 | `contexts/` | 도메인 이름을 가진 typed Action·Store context를 정의합니다. |
+| 도메인 규칙 | `business/` | 검증과 변환을 pure function으로 둡니다. |
+| 조율과 I/O | `handlers/` | `getValue()`로 현재 상태를 읽고 규칙을 실행한 뒤 Store를 갱신합니다. |
+| 반응형 읽기 | `hooks/` | `useStoreValue()` 또는 selector로 구독합니다. |
+| 렌더링·사용자 이벤트 | `views/` | props를 렌더링하고 의미 있는 action을 dispatch하며 도메인 I/O를 넣지 않습니다. |
+
+### 빠른 규칙
+
+1. **도메인으로 이름 짓기.** 일반 Provider/hook 이름 대신 `UserStoreProvider`,
+   `useUserStore`, `useUserAction`을 export합니다.
+2. **Handler는 읽고, View는 구독하기.** Handler는 실행 시점에
+   `store.getValue()`로 최신 상태를 읽고, View는 `useStoreValue()`로 반응형 UI를
+   만듭니다.
+3. **기본적으로 Store API로 갱신하기.** 전체 교체는 `setValue()`, draft 갱신은
+   `update()`를 사용합니다. 고급 mutable-store 패턴이 `notifyPath` 계약을
+   명시적으로 소유하는 경우가 아니면 Store에서 받은 값을 직접 변경하지 않습니다.
+4. **의미 있는 명령에는 Action 사용하기.** 저수준 렌더 이벤트나 handler 직접
+   호출 대신 `saveProfile`, `requestApproval`을 dispatch합니다.
+5. **다시 열 UI에는 Activity 사용하기.** React 19.2 `<Activity>`는 로컬·Store
+   상태를 보존하지만 hidden 동안 effect와 구독을 cleanup합니다. 자세한 내용은
+   [Activity 가이드](/ko/guide/react-19-activity)를 참고하세요.
+6. **Compiler directive는 라이브러리 구현 세부로 보기.** 배포 패키지는 명시적으로
+   annotation된 hook을 컴파일합니다. 애플리케이션 코드가 runtime을 추가하거나
+   `"use memo"` directive를 복사할 필요는 없습니다.
+
+기능 하나를 완성할 때는 Store/Action 계약, 보이는 UI, 소유한 Activity hide/reveal
+또는 SSR 경계를 함께 테스트하세요. 저장소 구조는 `pnpm convention:check`, 문서
+변경 뒤에는 `pnpm docs:check`로 확인합니다.
+
 ## 📋 목차
 
-1. [네이밍 컨벤션](#네이밍-컨벤션)
-2. [파일 구조](#파일-구조)
-3. [패턴 사용법](#패턴-사용법)
-4. [타입 정의](#타입-정의)
-5. [코드 스타일](#코드-스타일)
-6. [Import와 모듈 패턴](#import와-모듈-패턴)
-7. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
-8. [Action Handler Registration 컨벤션](#action-handler-registration-컨벤션)
-9. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
-10. [성능 가이드라인](#성능-가이드라인)
-11. [에러 핸들링](#에러-핸들링)
-12. [RefContext 컨벤션](#refcontext-컨벤션)
+1. [React 3.0 현재 요약](#react-30-현재-요약)
+2. [네이밍 컨벤션](#네이밍-컨벤션)
+3. [파일 구조](#파일-구조)
+4. [패턴 사용법](#패턴-사용법)
+5. [타입 정의](#타입-정의)
+6. [코드 스타일](#코드-스타일)
+7. [Import와 모듈 패턴](#import와-모듈-패턴)
+8. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
+9. [Action Handler Registration 컨벤션](#action-handler-registration-컨벤션)
+10. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
+11. [성능 가이드라인](#성능-가이드라인)
+12. [에러 핸들링](#에러-핸들링)
+13. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -1299,7 +1340,7 @@ function RefPattern({ children }) {
 
 ### 🔄 **Store 불변성 규칙**
 
-Context-Action 프레임워크는 내부적으로 **Immer**를 사용하여 스토어 상태 관리를 하며, 이는 불변성 규칙을 강제합니다. 모든 스토어 업데이트는 적절한 컨벤션을 따라야 런타임 에러를 피할 수 있습니다.
+Context-Action은 Store 갱신에 `@context-action/mutative` draft runtime을 사용합니다. Store에서 받은 값은 읽기 전용 snapshot으로 다루고, 모든 변경은 Store 메서드를 통해 수행하세요.
 
 #### ✅ **올바른 Store 업데이트 방법**
 
@@ -1310,11 +1351,11 @@ const userStore = useUserStore('profile');
 // 단순 값 교체
 userStore.setValue({ name: '홍길동', email: 'hong@example.com' });
 
-// ✅ 필수: 부분 업데이트는 store.update()와 Immer 사용
+// ✅ 필수: 부분 draft 업데이트는 store.update() 사용
 userStore.update(draft => {
   draft.name = '홍길동';
   draft.preferences.theme = 'dark';
-  return draft; // 선택사항: Immer가 자동으로 처리
+  return draft; // draft runtime이 다음 값을 만듭니다
 });
 
 // ✅ 필수: Map/Set 연산은 store.update() 사용
@@ -1339,17 +1380,17 @@ itemsStore.update(draft => {
 ```typescript
 // ❌ 절대 금지: 스토어 값의 직접 변경
 const cache = useStoreValue(cacheStore);
-cache.memoryCache.set('key', value); // 에러 발생: Immer frozen object error
-cache.items.push(newItem); // 에러 발생: Immer frozen object error
+cache.memoryCache.set('key', value); // 잘못됨: Store 알림을 우회
+cache.items.push(newItem); // 잘못됨: Store 알림을 우회
 
 // ❌ 절대 금지: 스토어 값의 직접 프로퍼티 할당
 const user = useStoreValue(userStore);
-user.name = '홍길동'; // 에러 발생: Immer frozen object error
-user.preferences.theme = 'dark'; // 에러 발생: Immer frozen object error
+user.name = '홍길동'; // 잘못됨: Store 알림을 우회
+user.preferences.theme = 'dark'; // 잘못됨: Store 알림을 우회
 
 // ❌ 절대 금지: 반환된 스토어 값 변경 시도
 const profile = userStore.getValue();
-profile.email = 'new@email.com'; // 에러 발생: Immer frozen object error
+profile.email = 'new@email.com'; // 잘못됨: Store 알림을 우회
 ```
 
 ### 🎯 **Store 통합 3단계 프로세스**
@@ -1391,7 +1432,7 @@ useActionHandler('updateUserProfile', useCallback(async (payload, controller) =>
 }, [profileStore, preferencesStore]));
 ```
 
-### ⚠️ **일반적인 Immer 에러와 해결책**
+### ⚠️ **일반적인 불변 Snapshot 오류와 해결책**
 
 #### 에러: "This object has been frozen and should not be mutated"
 
@@ -1426,7 +1467,7 @@ const handleUserUpdate = useCallback(async (payload) => {
   const currentUser = userStore.getValue();
   userStore.setValue({ ...currentUser, name: payload.name });
   
-  // 옵션 2: Immer를 사용한 부분 업데이트
+  // 옵션 2: 부분 draft 업데이트
   userStore.update(draft => {
     draft.name = payload.name;
     return draft;
@@ -1438,7 +1479,7 @@ const handleUserUpdate = useCallback(async (payload) => {
 
 1. **항상 스토어 메서드 사용**: `setValue()`, `update()` 사용, 직접 변경 금지
 2. **3단계 프로세스 준수**: 읽기 → 비즈니스 로직 → 업데이트
-3. **Immer draft 사용**: 복잡한 객체, 배열, Map, Set에 대해
+3. **draft 업데이트 사용**: 복잡한 객체, 배열, Map, Set에 대해
 4. **지연 평가**: 현재 상태를 위해 핸들러 내에서 `store.getValue()` 사용
 5. **적절한 의존성**: `useCallback` 의존성 배열에 스토어 포함
 6. **에러 처리**: 검증 및 에러 보고를 위해 controller 메서드 사용

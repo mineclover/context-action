@@ -29,7 +29,7 @@ export function useRefMountState<T>(refState: InternalRefState<T>): {
     };
   }, [refState]);
   
-  // Cached snapshot reference - React 18 compatibility
+  // Cached snapshot reference for stable external-store reads.
   const cachedSnapshotRef = useRef<{
     isMounted: boolean;
     isWaitingForMount: boolean;

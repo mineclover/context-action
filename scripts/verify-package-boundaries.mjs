@@ -20,7 +20,7 @@ const sourceExtensions = new Set([
 ]);
 const packageSourceDirectories = ['src', 'test', '__tests__', 'scripts', 'examples'];
 // ToolContext/Durable source is retained for its separate development track. It is
-// intentionally absent from the React 2 public artifact and standard example, so
+// intentionally absent from the React 3 public artifact and standard example, so
 // it must not be validated as a release dependency path.
 const developmentTrackSourceRoots = [
   'packages/react/src/tools/',

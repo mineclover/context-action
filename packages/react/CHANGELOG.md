@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.0] (2026-08-22)
+
+### Breaking changes
+
+- Require React 19.2 or later. React 18 is no longer a supported peer runtime.
+- Remove the `@context-action/react/react18` compatibility subpath and the
+  `React18Options` type alias.
+
+### Features
+
+- Compile opt-in Store hooks with React Compiler for the React 19 runtime.
+- Preserve declarative and time-travel Store managers through React Activity
+  hide/reveal cycles, including `withProvider()` wrappers.
+
 ## [2.0.0] (2026-08-11)
 
 ### Breaking changes

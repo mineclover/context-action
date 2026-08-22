@@ -40,7 +40,9 @@
   "metadata": {
     "description": "This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.315Z"
+    "created_at": "2025-08-21T02:13:42.315Z",
+    "last_updated": "2026-08-22T04:26:38.508Z",
+    "source_last_modified": "2026-08-22T04:26:29.507Z"
   },
   "lastUpdated": "2026-01-03T06:04:29.249Z",
   "source": {

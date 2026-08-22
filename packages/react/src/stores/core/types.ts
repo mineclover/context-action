@@ -487,23 +487,3 @@ export interface DynamicStoreOptions<T> {
   /** Performance monitoring for auto-created stores */
   enableMetrics?: boolean;
 }
-
-// === React 18+ 최적화 옵션 ===
-/**
- * React 18+ 최적화 옵션
- *
- * useStoreValue 훅에서 사용되는 React 18의 동시성 기능 활용 옵션
- * 대용량 데이터나 복잡한 상태 업데이트 시 성능 최적화를 위해 사용
- *
- * @public
- */
-export interface React18Options {
-  /** 지연 업데이트 사용 여부 - useDeferredValue 활용 */
-  enableDeferred?: boolean;
-  /** Transition 사용 여부 (예약됨) */
-  enableTransition?: boolean;
-  /** 우선순위 업데이트 임계값 - JSON 크기 기준 (bytes) */
-  priorityThreshold?: number;
-  /** Concurrent 렌더링 활성화 (예약됨) */
-  enableConcurrent?: boolean;
-}

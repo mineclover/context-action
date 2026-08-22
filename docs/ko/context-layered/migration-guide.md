@@ -70,11 +70,9 @@ void action의 dispatch option은 payload와 혼동되지 않도록 두 번째 �
 await register.actions.reset(undefined, { debounce: 100 });
 ```
 
-`@context-action/react`는 동일 runtime으로 React 18과 19를 지원합니다.
-두 버전 모두 Store·Action API는 `@context-action/react`에서 import합니다.
-`@context-action/react/react18` entry point는 기존 타입 import
-(`React18Options`) 호환성을 위한 경로이며, 별도 runtime이나 두 번째 Store·Action
-API가 아닙니다.
+`@context-action/react`는 React 19.2 이상을 요구합니다. Store·Action API는
+`@context-action/react`에서 import하며, 이전의 `react18` 호환 entry point는 더 이상
+export하지 않습니다.
 `@context-action/mutative-core` / `@context-action/mutative` fork는 계속
 유지 관리하고 upstream 동기화는 해당 package의 `UPSTREAM.md`에 기록합니다.
 

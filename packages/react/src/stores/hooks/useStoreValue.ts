@@ -23,7 +23,7 @@ import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
  * Performance optimization options for useStoreValue hook
  * 
  * Advanced configuration options for controlling subscription behavior,
- * comparison strategies, timing controls, debugging features, and React 18+ optimizations.
+ * comparison strategies, timing controls, debugging features, and concurrent-rendering optimizations.
  * 
  * @template R - The type of the selected/computed value
  * 

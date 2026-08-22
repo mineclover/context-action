@@ -1,11 +1,12 @@
 import { defineConfig } from 'tsdown'
+import babel from '@rolldown/plugin-babel'
+import reactCompiler from 'babel-plugin-react-compiler'
 
 export default defineConfig({
   entry: [
     'src/index.ts',      // Main entry point
     'src/advanced.ts',   // Advanced features
     'src/utils.ts',      // Utility functions
-    'src/react18.ts',    // React 18/19 compatibility entry point
     'src/webmcp.ts', // Experimental browser adapter entry point
   ],
   format: ['esm', 'cjs'],
@@ -18,6 +19,16 @@ export default defineConfig({
     }
   },
   clean: true,
+  // Publish compiler-optimized hooks. Annotation mode limits compilation to
+  // functions that explicitly opt in with a "use memo" directive.
+  plugins: [
+    babel({
+      plugins: [[reactCompiler, {
+        compilationMode: 'annotation',
+        target: '19',
+      }]],
+    }),
+  ],
   // Make development-only branches deterministic in published artifacts.
   // tsdown only injects process environment variables with its configured prefix.
   env: {

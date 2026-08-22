@@ -386,18 +386,18 @@ test('durable Node-only consumer checks ESM and CJS declarations without DOM lib
   assert.doesNotMatch(durableVerifier, /DOM/u);
 });
 
-test('release preflight runs the explicit React 18 and React 19 compatibility matrix once', () => {
+test('release preflight runs the React 19.2 minimum and current compatibility matrix once', () => {
   const compatibility = rootManifest.scripts['verify:react-compatibility'];
   const verifyAll = rootManifest.scripts['verify:all'];
 
   assert.equal(
     compatibility.match(/node scripts\/verify-react-compatibility\.mjs/gu)?.length,
     2,
-    'the compatibility command must invoke one verifier per supported React major',
+    'the compatibility command must invoke the minimum and current React 19.2 versions',
   );
   assert.match(
     compatibility,
-    /--react-version 18\.3\.1 --react-types 18\.3\.12 --react-dom-types 18\.3\.1/u,
+    /--react-version 19\.2\.0 --react-types 19\.2\.0 --react-dom-types 19\.2\.0/u,
   );
   assert.match(
     compatibility,

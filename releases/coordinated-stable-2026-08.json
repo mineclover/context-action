@@ -6,7 +6,11 @@
   "promotionDistTag": "latest",
   "packages": {
     "@context-action/core": "1.1.0",
-    "@context-action/react": "2.0.0"
+    "@context-action/react": "3.0.0"
+  },
+  "changelogDates": {
+    "@context-action/core": "2026-08-11",
+    "@context-action/react": "2026-08-22"
   },
   "reactDependencyFloors": {
     "@context-action/core": "^1.1.0"
@@ -18,6 +22,7 @@
   ],
   "notes": [
     "This plan is distinct from the immutable v1.0.0 historical release manifest.",
+    "React 3.0.0 raises the public baseline to React 19.2 and removes React 18 compatibility.",
     "The candidate workflow publishes only to next. The promotion workflow verifies the same cohort from next before changing latest."
   ]
 }

@@ -50,7 +50,7 @@ pnpm release:check
 | prerelease | `publish-prerelease.yml` | 명시한 prerelease tag만 갱신하며 `latest`는 변경하지 않음 |
 | 일반 도구 패키지 cohort | `publish-packages.yml` | 고정 cohort를 `next`에 게시하고 consumer/evidence를 검증 |
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
-| Core 1.1 / React 2 state-management release | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/React cohort만 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
+| Core 1.1 / React 3 state-management release | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/React cohort만 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.

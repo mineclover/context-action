@@ -193,9 +193,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - react-version: 18.3.1
-            react-types: 18.3.12
-            react-dom-types: 18.3.1
+          - react-version: 19.2.0
+            react-types: 19.2.0
+            react-dom-types: 19.2.0
           - react-version: 19.2.8
             react-types: 19.2.17
             react-dom-types: 19.2.3

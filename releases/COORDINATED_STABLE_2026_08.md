@@ -9,9 +9,9 @@
 | 패키지 | 승인 버전 | 경계 |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | 하위 호환 API 추가와 런타임 정정 |
-| `@context-action/react` | `2.0.0` | Store·Action lifecycle 및 SSR 안정화 |
+| `@context-action/react` | `3.0.0` | React 19.2 baseline, Activity lifecycle, React Compiler |
 
-Durable Operations 0.2와 ToolContext 연계는 별도 개발 트랙으로 둔다. React 2
+Durable Operations 0.2와 ToolContext 연계는 별도 개발 트랙으로 둔다. React 3
 artifact에서는 `./tools` subpath를 제외하므로, 상태 관리 릴리즈가 미출시 Durable
 의존성을 함께 배포하지 않는다.
 

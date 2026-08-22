@@ -36,7 +36,7 @@
     "verify:published-ai-sdk-tool-protocol-contract": "node scripts/verify-ai-sdk-tool-protocol-contract.mjs --published",
     "verify:react-aria-reference-hydration": "node scripts/verify-react-aria-reference-hydration.mjs",
     "verify:doc-snippets": "node scripts/verify-doc-snippets.mjs",
-    "verify:react-compatibility": "node scripts/verify-react-compatibility.mjs --react-version 18.3.1 --react-types 18.3.12 --react-dom-types 18.3.1 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3",
+    "verify:react-compatibility": "node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3",
     "release:evidence:write": "node scripts/write-release-evidence.mjs",
     "release:evidence:verify": "node scripts/verify-release-evidence.mjs",
     "release:evidence:test": "node --test scripts/release-evidence.test.mjs",

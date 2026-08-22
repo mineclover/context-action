@@ -1,6 +1,6 @@
-import { useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 import type React from 'react';
-import { useCallback, useState } from 'react';
+import { Activity, useCallback, useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -11,6 +11,76 @@ import {
   ProviderStoreContext,
 } from './contexts/ProviderContexts';
 import { ProviderRuntime } from './handlers/ProviderHandlerRegistry';
+
+const ActivityDemoStores = createStoreContext('ActivityProviderDemo', {
+  sharedDraft: '',
+});
+
+function ActivityDraftPanel() {
+  const draftStore = ActivityDemoStores.useStore('sharedDraft');
+  const sharedDraft = useStoreValue(draftStore);
+  const [localDraft, setLocalDraft] = useState('');
+
+  return (
+    <div className="space-y-4 rounded border border-violet-200 bg-violet-50 p-4">
+      <label className="block text-sm font-medium text-violet-950">
+        Component-local draft
+        <input
+          className="mt-1 w-full rounded border border-violet-300 bg-white px-3 py-2"
+          value={localDraft}
+          onChange={(event) => setLocalDraft(event.target.value)}
+          placeholder="Type text that belongs to this component"
+        />
+      </label>
+      <label className="block text-sm font-medium text-violet-950">
+        Context-Action Store draft
+        <input
+          className="mt-1 w-full rounded border border-violet-300 bg-white px-3 py-2"
+          value={sharedDraft}
+          onChange={(event) => draftStore.setValue(event.target.value)}
+          placeholder="Type text that belongs to the Store"
+        />
+      </label>
+      <p className="text-sm text-violet-900">
+        Hide this panel and reveal it again: both values are restored.
+      </p>
+    </div>
+  );
+}
+
+function ActivityProviderDemo() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  return (
+    <Card className="mt-6">
+      <CardContent className="p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              ⚛️ React 19.2 Activity
+            </h3>
+            <p className="text-sm text-gray-600">
+              Hide and reveal a Store Provider without losing draft state.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setIsVisible((visible) => !visible)}
+          >
+            {isVisible ? 'Hide panel' : 'Reveal panel'}
+          </Button>
+        </div>
+
+        <Activity mode={isVisible ? 'visible' : 'hidden'}>
+          <ActivityDemoStores.Provider>
+            <ActivityDraftPanel />
+          </ActivityDemoStores.Provider>
+        </Activity>
+      </CardContent>
+    </Card>
+  );
+}
 
 // 카운터 컴포넌트 - Store Only + Action Only 패턴 사용
 function CounterComponent() {
@@ -471,6 +541,8 @@ function ReactProviderPage() {
         <ProviderRuntime>
           <ProviderApp />
         </ProviderRuntime>
+
+        <ActivityProviderDemo />
 
         {/* 코드 예제 */}
         <Card className="mt-6">

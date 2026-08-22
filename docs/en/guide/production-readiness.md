@@ -8,7 +8,7 @@ Context-Action is suitable for production React application state when its packa
 | --- | --- | --- |
 | Local React UI and application state | Ready | Use `createStoreContext`, `useStoreValue`, and narrowly scoped contexts. |
 | Typed action coordination | Ready | Keep domain work in handlers and make cancellation/timeout behavior explicit. |
-| React 18/19 SSR and hydration | Ready for the verified versions | Keep the supported React and type-package versions aligned with the release cohort. |
+| React 19.2 SSR and hydration | Ready for the verified versions | Keep the supported React and type-package versions aligned with the release cohort. |
 | Undo/redo or high-frequency updates | Suitable after application measurement | Choose history and notification settings for the workload; do not rely on universal performance multipliers. |
 | Cross-tab, worker, or server durable tool calls | Development track | Complete the Durable 0.2 fencing migration and validate the real persistence endpoint before a separate release decision. |
 | Exactly-once remote side effects | Not promised by the library alone | Use provider idempotency keys, an inbox/outbox or equivalent, and domain reconciliation. |
@@ -17,7 +17,7 @@ The Store and Action layers are a good fit when state ownership, subscriptions, 
 
 ## Verified stabilization boundary
 
-The protected release preflight covers strict source/test type checks, the React 18/19 compatibility matrix, SSR/hydration checks, packed ESM/CJS and NodeNext consumers, package exports, examples, workflow/release safety, and durable adapter verification. Redis and PostgreSQL adapters are also exercised against CI service containers.
+The protected release preflight covers strict source/test type checks, the React 19.2 minimum/current compatibility matrix, SSR/hydration checks, packed ESM/CJS and NodeNext consumers, package exports, examples, workflow/release safety, and durable adapter verification. Redis and PostgreSQL adapters are also exercised against CI service containers.
 
 That evidence supports the library contract at the candidate commit. Before a production rollout, run the same preflight for the exact release candidate and exercise your staging or production-equivalent Redis/PostgreSQL endpoint, including credentials, TLS, migration, retention, and failover behavior.
 
@@ -30,7 +30,7 @@ The immediate release target is the state-management surface:
 | `@context-action/core` | `1.1.0` | Stable action lifecycle and observer semantics. |
 | `@context-action/react` | `2.0.0` | React lifecycle and SSR contract for the Store and Action APIs. |
 
-Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 18/19, or SSR use.
+Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 
 ## Responsibility and function contract
 
@@ -41,7 +41,7 @@ take over a responsibility from the next row.
 | Concern | Owner | Function | Explicitly not responsible for |
 | --- | --- | --- | --- |
 | Action execution | `@context-action/core` | Registers handlers, orders execution, exposes cancellation, timeout, results, and observer lifecycle. | React rendering, state persistence, tool schemas, provider calls, authorization. |
-| React state and composition | `@context-action/react` 2.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 18/19 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
+| React state and composition | `@context-action/react` 2.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 19.2 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
 | Application domain | Your application | Defines state shape, business rules, authorization, API clients, and the meaning of success or failure. | Delegating business policy to a generic store or action registry. |
 | Tool protocol — development track | `@context-action/tool-protocol` | Defines provider-neutral tool schemas, serialization, approval, and observable protocol metadata. | React state lifecycle or durable persistence. |
 | Durable mutation recovery — development track | `@context-action/tool-durable-operations` | Coordinates a logical external mutation using records, leases, full fences, and an explicit `unknown` state. | Exactly-once guarantees from an external provider, application authorization, or domain reconciliation policy. |
@@ -60,7 +60,7 @@ An in-memory promise or idempotency map cannot safely coordinate a mutation acro
 
 That problem has a different operational boundary from client state management: it requires a real persistence service, a provider/domain status lookup, and a defined reconciliation policy. Keeping it in development prevents a database and provider-recovery contract from becoming an accidental requirement for the core state-management release.
 
-The source retains `@context-action/react/tools` for development, but the React 2 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
+The source retains `@context-action/react/tools` for development, but the React 3 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
 
 ## Durable operations: operational boundary
 
@@ -80,10 +80,10 @@ See the [durable operations runbook](/en/context-layered/architecture/durable-op
 
 ## Production rollout checklist
 
-- Pin and test the Core 1.1 / React 2 cohort together.
+- Pin and test the Core 1.1 / React 3 cohort together.
 - Run `pnpm release:check` from the exact candidate commit.
 - Use the packed-consumer and React compatibility checks as release gates, not only workspace tests.
-- Roll out Core 1.1 / React 2 behind normal application canary and rollback controls.
+- Roll out Core 1.1 / React 3 behind normal application canary and rollback controls.
 
 If you opt into the separate Durable track, additionally validate
 Redis/PostgreSQL in an application-owned staging environment; define durable

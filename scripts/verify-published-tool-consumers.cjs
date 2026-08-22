@@ -110,7 +110,6 @@ const packages = [
       { specifier: '@context-action/react', exports: ['createActionContext'] },
       { specifier: '@context-action/react/advanced', exports: ['StoreRegistry'] },
       { specifier: '@context-action/react/utils', exports: ['deepClone'] },
-      { specifier: '@context-action/react/react18', exports: [] },
       { specifier: '@context-action/react/webmcp', exports: ['useWebMCPToolScope'] },
     ],
   },
@@ -166,7 +165,7 @@ const consumerRuntimeDependencies = [
 ];
 
 const reactMatrix = [
-  { version: '18.3.1', label: 'react-18' },
+  { version: '19.2.0', label: 'react-19-minimum' },
   { version: '19.2.8', label: 'react-19' },
 ];
 
@@ -379,14 +378,11 @@ void createTimeTravel;
 import { createActionContext } from '@context-action/react';
 import { StoreRegistry } from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
-import type { React18Options } from '@context-action/react/react18';
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
 const actions = createActionContext('consumer-check');
-const react18Options: React18Options = { enableConcurrent: true };
 void actions;
 void StoreRegistry;
 void deepClone;
-void react18Options;
 void useWebMCPToolScope;
 `);
   }
@@ -770,7 +766,7 @@ function main() {
     runNodeOnlyDurableTypecheck(consumerRoot, selectedPackages);
     runReactSsrMatrix(consumerRoot, selectedPackages, npmConfigPath);
     process.stdout.write(
-      `${local ? 'Local tarball' : 'Published'} tool package consumer matrix passed (supported CJS, ESM, NodeNext declarations, published CLIs, React 18/19 SSR): ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
+      `${local ? 'Local tarball' : 'Published'} tool package consumer matrix passed (supported CJS, ESM, NodeNext declarations, published CLIs, React 19.2 SSR): ${packageSpecs.map(({ spec }) => spec).join(', ')}\n`,
     );
   } finally {
     rmSync(consumerRoot, { recursive: true, force: true });

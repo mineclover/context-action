@@ -1,0 +1,15 @@
+---
+document_id: guide--react-19-activity
+category: guide
+source_path: en/guide/react-19-activity.md
+character_limit: 5000
+last_update: '2026-08-22T02:29:35.453Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+React 19.2 Activity
+
+React 19.2 Activity <Activity> is a React 19.2 component for keeping a part of the UI mounted while it is not visible. It preserves component, DOM, Store, and Action Provider state across a hide/reveal cycle without keeping that UI's effects and external subscriptions active. @context-action/react 3.0 requires React 19.2 or later. Activity is imported from React; Context-Action does not wrap or re-export it. Use it for resumable UI Activity is a good fit when a user is likely to return soon and losing local state would be disruptive: tabs, sidebars, search/filter panels, a draft form, or a detail pane. Use ordinary conditional rendering when leaving the UI should discard its state. The draft value and textarea DOM state are restored when the composer becomes visible again. Context-Action keeps the Store manager alive through the same cycle, so a Provider may be inside an Activity boundary. Provider and withProvider() placement Both direct Providers and withProvider() wrappers preserve their Store manager while an Activity is hidden. Choose the composition that is clearest for the screen; neither needs a separate Activity-specific API. The same rule applies to createTimeTravelStoreContext: current state and undo/redo history survive hide/reveal. A true unmount still disposes the manager unless withProvider({ autoCleanup: false }) was deliberately chosen. What changes while hidden React hides the boundary using display: none, retains its DOM and state, and cleans up layout/passive effects. External-store subscriptions, including useStoreValue(), disconnect while hidden and reconnect with the current snapshot on reveal. Updates made by visible UI or application services still change the Store; the hidden UI simply does not perform active subscription work. Do not rely on an effect inside a hidden boundary to keep polling, maintain a socket, or fetch data. Put work that must continue outside the boundary or make its lifecycle explicit. This cleanup runs both when the pane is hidden and when it is truly unmounted. Some DOM elements have their own side effects even while display: none, most notably video, audio, and iframe. Stop them in cleanup; for visual media, use a layout-effect cleanup so hiding is handled promptly. Pre-rendering and SSR An initially hidden Activity can prepare likely-next UI at low priority. This helps only for Suspense-compatible work such as lazy, use with cached data, or framework-managed Suspense data fetching. Effect-based fetching does not run while hidden. During SSR, content inside an initially hidden Activity is not included in the server response. Do not place SEO-critical or immediately required content in an initially hidden boundary. Use Activity around independently resumable client UI instead. Test the lifecycle Test a visible
