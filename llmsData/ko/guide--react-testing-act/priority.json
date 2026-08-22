@@ -1,0 +1,224 @@
+{
+  "document": {
+    "id": "guide--react-testing-act",
+    "title": "`act`를 활용한 React UI 테스트",
+    "category": "guide",
+    "source_path": "ko/guide/react-testing-act.md",
+    "lastModified": "2026-08-22T10:53:33.413Z",
+    "wordCount": 496
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-08-22",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in `act`를 활용한 React UI 테스트.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the guide concepts described in `act`를 활용한 React UI 테스트.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in `act`를 활용한 React UI 테스트."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "guide",
+      "ts",
+      "tsx",
+      "bash",
+      "act"
+    ],
+    "technical": [
+      "ts",
+      "tsx",
+      "bash",
+      "guide",
+      "context-action"
+    ],
+    "functional": [
+      "guide",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential guide information from `act`를 활용한 React UI 테스트.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "`act`를 활용한 React UI 테스트",
+          "guide",
+          "ts"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "`act`를 활용한 React UI 테스트",
+        "guide",
+        "ts"
+      ],
+      "nice_to_have": [
+        "ts",
+        "tsx",
+        "bash",
+        "guide",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "guide",
+        "ts",
+        "tsx",
+        "bash",
+        "act"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "tutorial"
+    ],
+    "secondary": [
+      "guide",
+      "ts",
+      "tsx",
+      "bash",
+      "act"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-08-22"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "`act`를 활용한 React UI 테스트 is guide documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "ko",
+    "created": "2026-08-22",
+    "updated": "2026-08-22",
+    "version": "1.0.0",
+    "original_size": 4633,
+    "created_at": "2026-08-22T10:53:40.861Z",
+    "source_last_modified": "2026-08-22T10:55:19.476Z",
+    "keywords": {
+      "primary": [
+        "guide",
+        "ts",
+        "tsx",
+        "bash",
+        "act"
+      ],
+      "technical": [
+        "ts",
+        "tsx",
+        "bash",
+        "guide",
+        "context-action"
+      ],
+      "functional": [
+        "guide",
+        "documentation",
+        "framework"
+      ]
+    },
+    "last_updated": "2026-08-22T10:55:26.902Z"
+  }
+}

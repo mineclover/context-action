@@ -20,6 +20,7 @@ const GUIDE_STRUCTURE = {
         { text: 'Best Practices', link: '/en/guide/best-practices' },
         { text: 'Production Readiness', link: '/en/guide/production-readiness' },
         { text: 'React 19.2 Activity', link: '/en/guide/react-19-activity' },
+        { text: 'React UI Testing with act', link: '/en/guide/react-testing-act' },
         { text: 'React Context Migration', link: '/en/guide/react-context-migration' },
         { text: 'React Aria Integration', link: '/en/guide/react-aria-integration' },
         { text: 'WebMCP Browser Tools', link: '/en/guide/webmcp' }
@@ -106,6 +107,7 @@ const GUIDE_STRUCTURE = {
         { text: '모범 사례', link: '/ko/guide/best-practices' },
         { text: '프로덕션 준비도', link: '/ko/guide/production-readiness' },
         { text: 'React 19.2 Activity', link: '/ko/guide/react-19-activity' },
+        { text: 'act를 활용한 React UI 테스트', link: '/ko/guide/react-testing-act' },
         { text: 'React Context 마이그레이션', link: '/ko/guide/react-context-migration' },
         { text: 'React Aria 통합', link: '/ko/guide/react-aria-integration' },
         { text: 'WebMCP 브라우저 도구', link: '/ko/guide/webmcp' }
