@@ -120,6 +120,20 @@ jobs:
       - name: Verify full repository
         run: pnpm verify:all
 
+      - name: Verify impacted public example routes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
+          if ! echo "$CHANGED_FILES" | grep -Eq '^(example/src/|packages/(core|react)/src/)'; then
+            echo "No example runtime source changed; skipping route smoke."
+            exit 0
+          fi
+          pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+          node scripts/verify-example-route-smoke.mjs --base "$BASE_SHA" --head "$HEAD_SHA"
+
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

@@ -31,6 +31,7 @@
     "verify:mouse-action": "node ../scripts/verify-context-store-action-mouse-conventions.mjs",
     "verify:mouse-pattern": "node ../scripts/verify-context-store-pattern-conventions.mjs",
     "verify:mouse-enhanced": "node ../scripts/verify-enhanced-context-store-conventions.mjs",
+    "verify:route-smoke": "node ../scripts/verify-example-route-smoke.mjs",
     "clean": "rimraf dist",
     "analyze": "vite-bundle-analyzer",
     "bundle-report": "vite build --mode analyze"
