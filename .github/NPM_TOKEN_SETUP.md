@@ -1,8 +1,8 @@
 # NPM Token Setup Guide for GitHub Actions
 
-이 저장소의 npm 배포는 `Publish Packages` 워크플로의 OIDC(Trusted Publishing)를
-기본 경로로 사용합니다. `NPM_TOKEN`은 OIDC를 사용할 수 없을 때의 명시적 fallback과
-`Publish Mutative Packages` 실행에만 사용합니다.
+이 저장소의 npm 배포는 OIDC(Trusted Publishing)를 기본 경로로 사용합니다.
+`NPM_TOKEN`은 OIDC를 사용할 수 없을 때와 **npm에 아직 존재하지 않는 패키지의 첫
+게시**를 위한 명시적 fallback이며, `Publish Mutative Packages`에도 사용합니다.
 
 ## 🔐 NPM Token 생성 및 GitHub Secrets 등록 가이드
 
@@ -49,10 +49,19 @@
 
 ### 3. 워크플로 인증 방식 확인
 
-`publish-packages.yml`은 `publish_auth=oidc`를 기본값으로 사용합니다. OIDC 경로에서는
-장기 토큰을 주입하지 않고, GitHub Actions의 `id-token: write` 권한으로 npm Trusted
-Publishing을 수행합니다. 각 npm 패키지에 저장소와
-`.github/workflows/publish-packages.yml`을 Trusted Publisher로 등록해야 합니다.
+OIDC 경로에서는 장기 토큰을 주입하지 않고, GitHub Actions의 `id-token: write` 권한으로
+npm Trusted Publishing을 수행합니다. npm은 패키지마다 Trusted Publisher를 하나만 허용하므로,
+해당 패키지를 실제로 게시하는 workflow 파일과 환경을 정확히 등록해야 합니다.
+
+| 릴리즈 경로 | npm Trusted Publisher에 등록할 workflow 파일 | Environment |
+| --- | --- | --- |
+| 일반 package cohort | `publish-packages.yml` | 사용하지 않음 |
+| Core 1.1 / React 3 coordinated stable 후보 | `publish-coordinated-stable-candidate.yml` | `npm-stable` |
+
+`@context-action/react`처럼 npm에 아직 없는 패키지는 Trusted Publisher를 먼저 등록할 수
+없습니다. 첫 버전은 `publish_auth=token`과 `NPM_TOKEN`으로 게시한 뒤, npm 패키지 Settings의
+**Trusted Publisher**에서 `mineclover/context-action`, 위 workflow 파일, `npm-stable`
+environment, `npm publish` 허용을 등록합니다. 이후 후보 배포부터는 OIDC를 사용합니다.
 
 `publish_auth=token`을 선택한 수동 실행과 `publish-mutative.yml`은
 `NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}`을 사용합니다. `setup-node`가 registry 설정을
@@ -94,9 +103,13 @@ Publishing을 수행합니다. 각 npm 패키지에 저장소와
 4. **pnpm 버전 확인**
    - pnpm 10을 사용하고 있는지 확인
 
-5. **401 Unauthorized**
+5. **401 Unauthorized 또는 ENEEDAUTH**
    - `Publish Packages`의 `publish_auth=token` 또는 `Publish Mutative Packages`에서
      발생하면 secret 값이 만료·폐기되었거나 package scope 권한이 부족한 것입니다.
+   - `Publish Coordinated Stable Candidate`를 OIDC로 실행했을 때 새 패키지 때문에
+     실패하면, 첫 버전은 `publish_auth=token`으로 실행해야 합니다. 패키지 생성 후에는
+     `publish-coordinated-stable-candidate.yml`과 `npm-stable`을 해당 패키지의 Trusted
+     Publisher에 등록합니다.
    - OIDC 실행에서 `npm whoami`를 별도로 호출하지 마십시오. npm Trusted Publishing은
      publish 시점의 OIDC 교환으로 인증되므로 `npm whoami`로 OIDC 상태를 검증할 수 없습니다.
 
