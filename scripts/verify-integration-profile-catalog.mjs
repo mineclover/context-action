@@ -25,6 +25,13 @@ for (const file of profiles) {
   if (!profile.ownership?.forbiddenRuntimeState?.includes('canonicalDocumentCopies')) fail(`${file} must forbid canonical document copies`);
   if (!Array.isArray(profile.requiredEvidence) || profile.requiredEvidence.length < 4) fail(`${file} must require lifecycle evidence`);
   if (!Array.isArray(profile.registeredConsumers) || profile.registeredConsumers.length === 0) fail(`${file} must register at least one consumer`);
+  if (profile.status === 'supported') {
+    const evidence = profile.supportEvidence;
+    if (!evidence || !/^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/tag\/v\d+\.\d+\.\d+$/u.test(evidence.release)
+      || !/^https:\/\/github\.com\/[^/]+\/[^/]+\/actions\/runs\/\d+$/u.test(evidence.hostedCi)) {
+      fail(`${file} must bind supported state to immutable consumer release and hosted CI evidence`);
+    }
+  }
 }
 
 console.log(JSON.stringify({ status: 'ok', profiles }));
