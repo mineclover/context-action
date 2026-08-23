@@ -52,6 +52,8 @@
 - [Context-Layered 개요](/ko/context-layered/context-layered-guide)
 - [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
   - 전체 구조를 상위 개념에서 설명
+- [Integration Profile](/ko/context-layered/integration-profiles)
+  - 외부 도메인 lifecycle·소유권·호환성·증빙을 versioned catalog로 공급
 - [마이그레이션 가이드](/ko/context-layered/migration-guide)
   - 기존 코드에서 이 구조로 옮기는 기준
 
@@ -87,7 +89,7 @@ Context-Action 통합 경계까지 포함한 전체 검사는 다음 명령으�
 node scripts/verify-context-action-conventions.mjs
 ```
 
-이 명령은 example use-case recipe, MCP/function-calling catalog, standalone
+이 명령은 example use-case recipe, MCP/function-calling catalog, integration-profile catalog, standalone
 Web Studio action 경계까지 추가로 검사합니다. standalone
 build·filesystem·provider·preview·browser release 검사는
 `pnpm web-coding:verify`로 수행합니다.

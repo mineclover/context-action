@@ -52,6 +52,8 @@ checks rather than replacing focused evidence.
 - [Context-Layered Overview](/en/context-layered/context-layered-guide)
 - [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
   - the high-level architectural picture
+- [Integration Profiles](/en/context-layered/integration-profiles)
+  - versioned external-domain lifecycle, ownership, compatibility, and evidence catalogs
 - [Migration Guide](/en/context-layered/migration-guide)
   - how to move older structures into this model
 
@@ -87,7 +89,7 @@ For the complete Context-Action integration gate, run:
 node scripts/verify-context-action-conventions.mjs
 ```
 
-It adds the example use-case recipe, MCP/function-calling catalog, and
+It adds the example use-case recipe, MCP/function-calling catalog, integration-profile catalog, and
 standalone Web Studio action boundaries. Use `pnpm web-coding:verify` for the
 standalone build, filesystem, provider, preview, and browser release checks.
 

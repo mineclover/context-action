@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "context-action.integration-profile/v1",
+  "id": "interface-intent-runtime",
+  "status": "registered",
+  "lifecycle": {
+    "states": ["draft", "registered", "verified", "supported", "deprecated"],
+    "current": "registered"
+  },
+  "compatibility": {
+    "core": "^1.1.0",
+    "react": "^3.0.0"
+  },
+  "ownership": {
+    "externalAuthorities": ["PageDocument", "StructuralBrief", "CapabilityDocument", "VisualIntentDocument", "SceneDocument"],
+    "runtimeState": ["documentRefs", "activeSceneId", "revision", "compileStatus", "canonicalVisualProgram", "evaluationStatus", "evaluationRun"],
+    "forbiddenRuntimeState": ["canonicalDocumentCopies", "compilerRules", "visualSolverRules", "implicitPublicPortBindings"]
+  },
+  "actionCatalog": ["scope.select", "scene.select", "compile.run", "evaluate.run"],
+  "providerScopes": {
+    "persistent": "application or workspace provider",
+    "contextual": "selected compile-unit provider",
+    "transient": "modal, inspector, focus, or inert boundary"
+  },
+  "invariants": [
+    "CapabilityDocument.publicPorts use explicit typed bindings.",
+    "Compiler and evaluator remain injected pure functions.",
+    "Async work must use cancellation and revision checks before committing derived results."
+  ],
+  "requiredEvidence": [
+    "pure compiler and evaluator contract tests",
+    "runtime stale-result and cancellation lifecycle tests",
+    "React adapter act lifecycle tests when a React adapter is added",
+    "consumer route behavior tests when a Studio route is added"
+  ],
+  "registeredConsumers": [
+    {
+      "id": "macrostructure-first-reference-v0.4.0",
+      "role": "runtime adapter",
+      "status": "registered"
+    }
+  ]
+}
