@@ -1,10 +1,10 @@
 {
   "schemaVersion": "context-action.integration-profile/v1",
   "id": "interface-intent-runtime",
-  "status": "verified",
+  "status": "supported",
   "lifecycle": {
     "states": ["draft", "registered", "verified", "supported", "deprecated"],
-    "current": "verified"
+    "current": "supported"
   },
   "compatibility": {
     "core": "^1.1.0",
@@ -36,7 +36,12 @@
     {
       "id": "macrostructure-first-reference-v0.4.0",
       "role": "runtime adapter",
-      "status": "verified"
+      "status": "supported"
     }
-  ]
+  ],
+  "supportEvidence": {
+    "consumerRepository": "https://github.com/mineclover/macrostructure-first-reference",
+    "release": "https://github.com/mineclover/macrostructure-first-reference/releases/tag/v0.4.0",
+    "hostedCi": "https://github.com/mineclover/macrostructure-first-reference/actions/runs/32627435068"
+  }
 }

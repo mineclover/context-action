@@ -18,7 +18,7 @@ compatibility, and evidence requirements.
 ## Interface Intent runtime profile
 
 [`interface-intent-runtime`](../../../catalog/integration-profiles/interface-intent-runtime.v1.json)
-is currently **verified**. It supplies four typed actions (`scope.select`,
+is currently **supported**. It supplies four typed actions (`scope.select`,
 `scene.select`, `compile.run`, `evaluate.run`) and requires document refs,
 revision cancellation, and a pure compiler/evaluator boundary. The canonical
 Interface Intent documents remain external authorities; runtime state may hold

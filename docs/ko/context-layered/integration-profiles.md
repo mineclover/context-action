@@ -17,7 +17,7 @@ lifecycle·상태 소유권·호환성·증빙 조건을 catalog로 공급합니
 ## Interface Intent runtime profile
 
 [`interface-intent-runtime`](../../../catalog/integration-profiles/interface-intent-runtime.v1.json)은
-현재 **verified** 상태입니다. `scope.select`, `scene.select`, `compile.run`,
+현재 **supported** 상태입니다. `scope.select`, `scene.select`, `compile.run`,
 `evaluate.run` 네 typed action을 공급하며, document ref·revision cancellation·순수
 compiler/evaluator 경계를 요구합니다. 원본 Interface Intent 문서는 외부 authority로
 남고 runtime에는 ref·선택·실행 상태·파생 evidence만 둡니다.
