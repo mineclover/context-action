@@ -1,10 +1,10 @@
 {
   "schemaVersion": "context-action.integration-profile/v1",
   "id": "interface-intent-runtime",
-  "status": "registered",
+  "status": "verified",
   "lifecycle": {
     "states": ["draft", "registered", "verified", "supported", "deprecated"],
-    "current": "registered"
+    "current": "verified"
   },
   "compatibility": {
     "core": "^1.1.0",
@@ -36,7 +36,7 @@
     {
       "id": "macrostructure-first-reference-v0.4.0",
       "role": "runtime adapter",
-      "status": "registered"
+      "status": "verified"
     }
   ]
 }
