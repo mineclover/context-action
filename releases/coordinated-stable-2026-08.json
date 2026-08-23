@@ -8,6 +8,10 @@
     "@context-action/core": "1.1.0",
     "@context-action/react": "3.0.0"
   },
+  "provenanceCommits": {
+    "@context-action/core": "e07cf2c84e2bb86d91baa79e8e25812822ff3cdf",
+    "@context-action/react": "e0ece1a89c13810d74f0dc6c0a534b80b92779d8"
+  },
   "changelogDates": {
     "@context-action/core": "2026-08-11",
     "@context-action/react": "2026-08-22"
@@ -23,6 +27,7 @@
   "notes": [
     "This plan is distinct from the immutable v1.0.0 historical release manifest.",
     "React 3.0.0 raises the public baseline to React 19.2 and removes React 18 compatibility.",
-    "The candidate workflow publishes only to next. The promotion workflow verifies the same cohort from next before changing latest."
+    "The candidate workflow publishes only to next. The promotion workflow verifies the same cohort from next before changing latest.",
+    "Core 1.1.0 was already promoted from its recorded immutable source; React 3.0.0 was published as the candidate from its separately recorded immutable source."
   ]
 }

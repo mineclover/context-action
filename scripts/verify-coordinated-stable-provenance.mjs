@@ -46,6 +46,15 @@ const packages = Object.entries(plan.packages ?? {});
 if (packages.length !== expectedPackages.size || packages.some(([name]) => !expectedPackages.has(name))) {
   throw new Error('Coordinated stable release plan must contain the exact Core and React cohort');
 }
+const provenanceCommits = plan.provenanceCommits ?? {};
+if (
+  Object.keys(provenanceCommits).length !== expectedPackages.size
+  || Object.entries(provenanceCommits).some(([name, sourceCommit]) =>
+    !expectedPackages.has(name) || !/^[a-f0-9]{40}$/u.test(sourceCommit)
+  )
+) {
+  throw new Error('Coordinated stable release plan must bind every package to an immutable provenance commit');
+}
 const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-coordinated-provenance-'));
 try {
   await writeFile(path.join(temporaryDirectory, 'package.json'), `${JSON.stringify({
@@ -64,12 +73,13 @@ try {
     if (!bundle) throw new Error(`No SLSA provenance attestation was returned for ${name}@${version}`);
     const statement = decodeStatement(bundle.bundle);
     const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
-    if (attestedCommit(statement) !== commit || workflow?.repository !== expectedRepository || workflow?.path !== expectedWorkflowPath || workflow?.ref !== 'refs/heads/main') {
+    const sourceCommit = provenanceCommits[name];
+    if (attestedCommit(statement) !== sourceCommit || workflow?.repository !== expectedRepository || workflow?.path !== expectedWorkflowPath || workflow?.ref !== 'refs/heads/main') {
       throw new Error(`Attested source does not match the coordinated release contract for ${name}@${version}`);
     }
-    results.push({ name, version, sourceCommit: commit, workflow });
+    results.push({ name, version, sourceCommit, workflow });
   }
-  const report = { schemaVersion: 'context-action-coordinated-provenance.v1', status: 'verified', tag, sourceCommit: commit, packages: results };
+  const report = { schemaVersion: 'context-action-coordinated-provenance.v1', status: 'verified', candidateCommit: commit, packages: results };
   if (output) await writeFile(path.join(repositoryRoot, output), `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

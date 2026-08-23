@@ -57,6 +57,14 @@ if (react.dependencies?.['@context-action/tool-durable-operations']) {
 }
 if (Object.keys(plan.packages ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define the exact coordinated package cohort');
 if (Object.keys(plan.changelogDates ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define changelog dates for the exact coordinated package cohort');
+if (
+  Object.keys(plan.provenanceCommits ?? {}).length !== Object.keys(packagePaths).length
+  || Object.entries(plan.provenanceCommits ?? {}).some(([name, commit]) =>
+    !packagePaths[name] || typeof commit !== 'string' || !/^[a-f0-9]{40}$/u.test(commit)
+  )
+) {
+  errors.push('Release plan must define immutable provenance commits for the exact coordinated package cohort');
+}
 
 if (errors.length > 0) {
   console.error(`Coordinated stable release plan failed:\n${errors.map(error => `- ${error}`).join('\n')}`);
