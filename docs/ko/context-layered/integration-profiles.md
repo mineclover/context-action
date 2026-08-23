@@ -17,7 +17,7 @@ lifecycle·상태 소유권·호환성·증빙 조건을 catalog로 공급합니
 ## Interface Intent runtime profile
 
 [`interface-intent-runtime`](../../../catalog/integration-profiles/interface-intent-runtime.v1.json)은
-현재 **registered** 상태입니다. `scope.select`, `scene.select`, `compile.run`,
+현재 **verified** 상태입니다. `scope.select`, `scene.select`, `compile.run`,
 `evaluate.run` 네 typed action을 공급하며, document ref·revision cancellation·순수
 compiler/evaluator 경계를 요구합니다. 원본 Interface Intent 문서는 외부 authority로
 남고 runtime에는 ref·선택·실행 상태·파생 evidence만 둡니다.
@@ -33,4 +33,5 @@ node scripts/verify-context-action-conventions.mjs
 ```
 
 외부 consumer는 소비하는 profile과 자체 adapter·lifecycle·route 증빙을 선언합니다.
-두 쪽 증빙이 모두 기록되어야 profile을 `verified`로 올립니다.
+두 쪽 증빙이 모두 기록되어야 profile을 `verified`로 올립니다. 호환성·릴리즈
+증빙까지 기록되면 `supported`로 올립니다.

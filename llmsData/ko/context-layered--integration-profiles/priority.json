@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--integration-profiles",
     "title": "Integration Profile",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "ko/context-layered/integration-profiles.md",
     "lastModified": "2026-08-23T04:56:50.752Z",
     "wordCount": 144
@@ -190,7 +190,7 @@
     "version": "1.0.0",
     "original_size": 1725,
     "created_at": "2026-08-23T04:57:50.657Z",
-    "source_last_modified": "2026-08-23T04:56:50.752Z",
+    "source_last_modified": "2026-08-23T05:11:06.143Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -208,6 +208,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-08-23T05:11:14.808Z"
   }
 }
