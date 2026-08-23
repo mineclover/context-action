@@ -18,6 +18,7 @@ const checks = [
     'MCP/function-calling catalog',
     'scripts/verify-mcp-function-calling-catalog.mjs',
   ],
+  ['integration profile catalog', 'scripts/verify-integration-profile-catalog.mjs'],
   [
     'standalone Web Studio boundaries',
     'scripts/verify-web-coding-conventions.mjs',
