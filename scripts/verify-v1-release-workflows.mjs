@@ -419,25 +419,24 @@ export function validateReleaseWorkflowSources({
   const previousWrite = 'npm dist-tag add "$PACKAGE_NAME@$current_latest" "$journal_previous_tag"';
   const absentWrite = 'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_absent_tag"';
   const readyWrite = 'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_ready_tag"';
+  const previousWait = 'wait_for_tag_value "$journal_previous_tag" "$current_latest"';
+  const absentWait = 'wait_for_tag_value "$journal_absent_tag" "$PACKAGE_VERSION"';
+  const readyWait = 'wait_for_tag_value "$journal_ready_tag" "$PACKAGE_VERSION"';
   const previousWriteIndex = journalScript.indexOf(previousWrite);
   const absentWriteIndex = journalScript.indexOf(absentWrite);
   const readyWriteIndex = journalScript.indexOf(readyWrite);
-  const predecessorReadbackIndex = journalScript.indexOf(
-    'dist_tags="$(read_dist_tags)"',
-    Math.max(previousWriteIndex + previousWrite.length, absentWriteIndex + absentWrite.length),
-  );
-  const readyReadbackIndex = journalScript.indexOf(
-    'dist_tags="$(read_dist_tags)"',
-    readyWriteIndex + readyWrite.length,
-  );
+  const previousWaitIndex = journalScript.indexOf(previousWait);
+  const absentWaitIndex = journalScript.indexOf(absentWait);
+  const readyWaitIndex = journalScript.indexOf(readyWait);
   const readyVerificationIndex = journalScript.indexOf(
     'test "$ready_marker" = "$PACKAGE_VERSION"',
-    readyReadbackIndex,
+    readyWaitIndex,
   );
   if (previousWriteIndex < 0 || absentWriteIndex < 0 || readyWriteIndex < 0
     || previousWriteIndex >= readyWriteIndex || absentWriteIndex >= readyWriteIndex
-    || predecessorReadbackIndex < 0 || predecessorReadbackIndex >= readyWriteIndex
-    || readyReadbackIndex < 0 || readyVerificationIndex <= readyReadbackIndex) {
+    || previousWaitIndex <= previousWriteIndex || previousWaitIndex >= readyWriteIndex
+    || absentWaitIndex <= absentWriteIndex || absentWaitIndex >= readyWriteIndex
+    || readyWaitIndex <= readyWriteIndex || readyVerificationIndex <= readyWaitIndex) {
     errors.push('Maintenance rollback journal must persist and verify one predecessor before arming promotion');
   }
 
@@ -449,6 +448,7 @@ export function validateReleaseWorkflowSources({
     'test "$current_latest" = "$previous_latest"',
     'test -z "$current_latest"',
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" latest',
+    'wait_for_tag_value latest "$PACKAGE_VERSION"',
   ]) {
     requireText(errors, promotionScript, required, `Maintenance promotion must include ${required}`);
   }
@@ -463,7 +463,7 @@ export function validateReleaseWorkflowSources({
     errors,
     promotionScript,
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" latest',
-    'test "$(tag_value latest)" = "$PACKAGE_VERSION"',
+    'wait_for_tag_value latest "$PACKAGE_VERSION"',
     'Maintenance promotion must read back latest after mutation',
   );
 
@@ -486,6 +486,7 @@ export function validateReleaseWorkflowSources({
     'test "$ready_marker" = "$PACKAGE_VERSION"',
     'test -z "$rolled_back_marker"',
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_completed_tag"',
+    'wait_for_tag_value "$journal_completed_tag" "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_completed_tag")" = "$PACKAGE_VERSION"',
   ]) {
     requireText(errors, finalizationScript, required, `Maintenance promotion finalization must include ${required}`);
@@ -501,7 +502,7 @@ export function validateReleaseWorkflowSources({
     errors,
     finalizationScript,
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_completed_tag"',
-    'test "$(tag_value "$journal_completed_tag")" = "$PACKAGE_VERSION"',
+    'wait_for_tag_value "$journal_completed_tag" "$PACKAGE_VERSION"',
     'Maintenance promotion must read back its completed marker',
   );
 
@@ -513,9 +514,12 @@ export function validateReleaseWorkflowSources({
     'Rollback journal must contain exactly one predecessor representation',
     'if [ "$current_latest" != "$PACKAGE_VERSION" ]',
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_rolled_back_tag"',
+    'wait_for_tag_value "$journal_rolled_back_tag" "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"',
     'npm dist-tag add "$PACKAGE_NAME@$rollback_target" latest',
+    'wait_for_tag_value latest "$rollback_target"',
     'npm dist-tag rm "$PACKAGE_NAME" latest',
+    'wait_for_absent_tag latest',
     'test "$(tag_value latest)" = "$rollback_target"',
   ]) {
     requireText(errors, rollbackScript, required, `Maintenance latest rollback must include ${required}`);
@@ -528,7 +532,7 @@ export function validateReleaseWorkflowSources({
     'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_rolled_back_tag"',
   );
   const rollbackMarkerReadbackIndex = rollbackScript.indexOf(
-    'dist_tags="$(read_dist_tags)"',
+    'wait_for_tag_value "$journal_rolled_back_tag" "$PACKAGE_VERSION"',
     rollbackMarkerWriteIndex,
   );
   const rollbackMarkerVerifyIndex = rollbackScript.indexOf(
@@ -540,9 +544,10 @@ export function validateReleaseWorkflowSources({
   );
   const rollbackRemoveIndex = rollbackScript.indexOf('npm dist-tag rm "$PACKAGE_NAME" latest');
   const rollbackLatestReadbackIndex = rollbackScript.indexOf(
-    'dist_tags="$(read_dist_tags)"',
-    Math.max(rollbackRestoreIndex, rollbackRemoveIndex),
+    'wait_for_tag_value latest "$rollback_target"',
+    rollbackRestoreIndex,
   );
+  const rollbackLatestAbsenceIndex = rollbackScript.indexOf('wait_for_absent_tag latest', rollbackRemoveIndex);
   const rollbackLatestVerifyIndex = rollbackScript.indexOf(
     'test "$(tag_value latest)" = "$rollback_target"',
     rollbackLatestReadbackIndex,
@@ -552,7 +557,8 @@ export function validateReleaseWorkflowSources({
     || rollbackMarkerVerifyIndex <= rollbackMarkerReadbackIndex
     || rollbackRestoreIndex <= rollbackMarkerVerifyIndex
     || rollbackRemoveIndex <= rollbackMarkerVerifyIndex
-    || rollbackLatestReadbackIndex <= Math.max(rollbackRestoreIndex, rollbackRemoveIndex)
+    || rollbackLatestReadbackIndex <= rollbackRestoreIndex
+    || rollbackLatestAbsenceIndex <= rollbackRemoveIndex
     || rollbackLatestVerifyIndex <= rollbackLatestReadbackIndex) {
     errors.push('Maintenance rollback must commit and verify rollback intent before restoring a compare-checked latest');
   }

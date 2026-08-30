@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.2] (2026-08-31)
+
+### Reliability fixes
+
+- Make the package-root ActionRegister type-export correction available on the
+  stable channel after the 1.1.1 maintenance candidate remained unpromoted.
+
 ## [1.1.1] (2026-08-31)
 
 ### Reliability fixes

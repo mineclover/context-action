@@ -334,7 +334,7 @@ test('requires the rolled-back marker to be persisted before latest restoration'
     const mutated = replaceInWorkflowStep(
       source,
       'Roll back latest after post-promotion failure',
-      '            test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"',
+      '            wait_for_tag_value "$journal_rolled_back_tag" "$PACKAGE_VERSION"',
       '            true',
     );
     await writeFile(workflowPath, mutated);

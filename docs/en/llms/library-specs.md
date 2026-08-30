@@ -40,7 +40,7 @@
 
 ### Release and Security Baseline
 
-- **Workspace package baseline**: `@context-action/core` 1.1.1, `@context-action/react` 3.0.0, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, and `@context-action/webmcp` 0.1.2. Published dist-tags remain authoritative for an external install.
+- **Workspace package baseline**: `@context-action/core` 1.1.2, `@context-action/react` 3.0.0, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, and `@context-action/webmcp` 0.1.2. Published dist-tags remain authoritative for an external install.
 - **Runtime baseline**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, and TypeScript `6.0.3`.
 - **Dependency security**: `pnpm security:audit` is the required OSV check and currently reports no actionable vulnerability matches. Fixed dependency floors are enforced by the root `pnpm.overrides` configuration.
 - **Temporary exception**: `react-router@7.18.1` remains a time-bounded exception for `GHSA-qwww-vcr4-c8h2`; the example uses browser routing only, and `react-router-dom` 8.3.0 is not published. Re-evaluate before 2026-09-30.

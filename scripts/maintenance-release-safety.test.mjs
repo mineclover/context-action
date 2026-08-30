@@ -84,6 +84,7 @@ function createFakeRegistry(initialTags) {
   const statePath = path.join(directory, 'tags.json');
   const logPath = path.join(directory, 'operations.log');
   const faultPath = path.join(directory, 'fault-fired');
+  const staleStatePath = path.join(directory, 'stale-reads.json');
   const githubEnvPath = path.join(directory, 'github.env');
   const journalEvidencePath = path.join(directory, 'journal-evidence.json');
   writeFileSync(statePath, `${JSON.stringify(initialTags)}\n`);
@@ -95,10 +96,18 @@ const { appendFileSync, existsSync, readFileSync, writeFileSync } = require('nod
 const statePath = process.env.NPM_REGISTRY_STATE;
 const logPath = process.env.NPM_REGISTRY_LOG;
 const faultPath = process.env.NPM_FAULT_STATE;
+const staleStatePath = process.env.NPM_STALE_STATE;
+const staleReadsAfterWrite = Number(process.env.NPM_STALE_READS_AFTER_WRITE || 0);
 const args = process.argv.slice(2);
 const tags = JSON.parse(readFileSync(statePath, 'utf8'));
 const log = value => appendFileSync(logPath, value + '\n');
 const persist = () => writeFileSync(statePath, JSON.stringify(tags) + '\n');
+const clone = value => JSON.parse(JSON.stringify(value));
+const armStaleReads = snapshot => {
+  if (staleReadsAfterWrite > 0) {
+    writeFileSync(staleStatePath, JSON.stringify({ remaining: staleReadsAfterWrite, tags: snapshot }) + '\n');
+  }
+};
 const failAfter = operation => {
   if (process.env.NPM_FAIL_AFTER === operation && !existsSync(faultPath)) {
     writeFileSync(faultPath, operation + '\n');
@@ -109,7 +118,16 @@ const failAfter = operation => {
 
 if (args[0] === 'view' && args[2] === 'dist-tags') {
   log('view');
-  process.stdout.write(JSON.stringify(tags));
+  let visibleTags = tags;
+  if (staleStatePath && existsSync(staleStatePath)) {
+    const stale = JSON.parse(readFileSync(staleStatePath, 'utf8'));
+    if (stale.remaining > 0) {
+      stale.remaining -= 1;
+      writeFileSync(staleStatePath, JSON.stringify(stale) + '\n');
+      visibleTags = stale.tags;
+    }
+  }
+  process.stdout.write(JSON.stringify(visibleTags));
   process.exit(0);
 }
 if (args[0] === 'dist-tag' && args[1] === 'add') {
@@ -117,16 +135,20 @@ if (args[0] === 'dist-tag' && args[1] === 'add') {
   const versionIndex = spec.lastIndexOf('@');
   const version = spec.slice(versionIndex + 1);
   const tag = args[3];
+  const before = clone(tags);
   tags[tag] = version;
   persist();
+  armStaleReads(before);
   log('add:' + tag + '=' + version);
   failAfter('add:' + tag);
   process.exit(0);
 }
 if (args[0] === 'dist-tag' && args[1] === 'rm') {
   const tag = args[3];
+  const before = clone(tags);
   delete tags[tag];
   persist();
+  armStaleReads(before);
   log('rm:' + tag);
   failAfter('rm:' + tag);
   process.exit(0);
@@ -151,8 +173,9 @@ process.exit(2);
     },
     resetRunFiles() {
       writeFileSync(githubEnvPath, '');
+      rmSync(staleStatePath, { force: true });
     },
-    run(name, { environment = {}, failAfter } = {}) {
+    run(name, { environment = {}, failAfter, staleReadsAfterWrite = 0 } = {}) {
       this.resetRunFiles();
       return runWorkflowScript(
         workflowRunScript(name),
@@ -163,6 +186,8 @@ process.exit(2);
           NPM_FAULT_STATE: faultPath,
           NPM_REGISTRY_LOG: logPath,
           NPM_REGISTRY_STATE: statePath,
+          NPM_STALE_STATE: staleStatePath,
+          NPM_STALE_READS_AFTER_WRITE: String(staleReadsAfterWrite),
           PATH: `${directory}:${process.env.PATH}`,
           JOURNAL_EVIDENCE_PATH: journalEvidencePath,
           ...environment,
@@ -504,6 +529,15 @@ test('fresh journals persist and read back a previous or absent predecessor befo
   }
 });
 
+test('journal waits for npm to expose predecessor and ready markers after writes', () => {
+  withFakeRegistry({ maintenance: '1.2.3', latest: '1.2.2' }, registry => {
+    const result = registry.run('Prepare registry rollback journal', { staleReadsAfterWrite: 2 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags()['maintenance-previous-1.2.3'], '1.2.2');
+    assert.equal(registry.tags()['maintenance-journal-ready-1.2.3'], '1.2.3');
+  });
+});
+
 test('a rerun completes a predecessor-only crash window without replacing it', () => {
   withFakeRegistry({
     maintenance: '1.2.3',
@@ -551,6 +585,46 @@ test('an accepted latest promotion with a lost response is recoverable on rerun'
     const resumed = registry.run('Prepare registry rollback journal');
     assert.equal(resumed.status, 0, resumed.stderr);
     assert.match(registry.githubEnv(), /LATEST_ALREADY_PROMOTED=true/u);
+  });
+});
+
+test('promotion, completion, and rollback wait for npm tag writes to propagate', () => {
+  const prepared = {
+    maintenance: '1.2.3',
+    latest: '1.2.2',
+    'maintenance-previous-1.2.3': '1.2.2',
+    'maintenance-journal-ready-1.2.3': '1.2.3',
+  };
+
+  withFakeRegistry(prepared, registry => {
+    const result = registry.run('Promote verified candidate to latest', { staleReadsAfterWrite: 2 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags().latest, '1.2.3');
+  });
+
+  withFakeRegistry({ ...prepared, latest: '1.2.3' }, registry => {
+    const result = registry.run('Finalize successful promotion journal', { staleReadsAfterWrite: 2 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags()['maintenance-journal-completed-1.2.3'], '1.2.3');
+  });
+
+  withFakeRegistry({ ...prepared, latest: '1.2.3' }, registry => {
+    const result = registry.run('Roll back latest after post-promotion failure', { staleReadsAfterWrite: 2 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags()['maintenance-journal-rolled-back-1.2.3'], '1.2.3');
+    assert.equal(registry.tags().latest, '1.2.2');
+  });
+
+  withFakeRegistry({
+    maintenance: '1.2.3',
+    latest: '1.2.3',
+    'maintenance-previous-absent-1.2.3': '1.2.3',
+    'maintenance-journal-ready-1.2.3': '1.2.3',
+  }, registry => {
+    const result = registry.run('Roll back latest after post-promotion failure', { staleReadsAfterWrite: 2 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags()['maintenance-journal-rolled-back-1.2.3'], '1.2.3');
+    assert.equal(registry.tags().latest, undefined);
   });
 });
 
