@@ -76,7 +76,7 @@ contexts/
 actions/
   run-agent.ts                 # provider-neutral orchestration
 handlers/
-  tool-handlers.tsx            # useToolHandler registrations
+  tool-handlers.tsx            # useToolResultHandler registrations
 hooks/
   use-tool-execution.ts        # provider/model execution
   use-editor-observables.ts    # subscriptions and workspace derived state
@@ -153,11 +153,15 @@ transport adapter.
 ```tsx
 import { createToolContext } from '@context-action/react/tools';
 
-const { Provider, useToolHandler, useToolRegistry } = createToolContext(
+const { Provider, useToolResultHandler, useToolRegistry } = createToolContext(
   'WebStudio',
   { schema: webStudioToolSchema }
 );
 ```
+
+Use `useToolResultHandler` for handlers that only produce the canonical tool
+result. `useToolHandler` remains available only for source-track handlers that
+need the legacy full `PipelineController` control-flow APIs.
 
 ### 2. Keep model transport provider-neutral
 

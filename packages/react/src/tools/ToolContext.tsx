@@ -35,7 +35,7 @@
  * const {
  *   Provider: ToolProvider,
  *   useToolCall,
- *   useToolHandler,
+ *   useToolResultHandler,
  *   useToolRegistry,
  * } = createToolContext('ProductTools', { schema: toolSchema });
  *
@@ -51,6 +51,7 @@
 import {
   ActionHandler,
   ActionRegister,
+  ActionResultHandler,
   DispatchArgs,
   DispatchOptions,
   HandlerConfig,
@@ -318,7 +319,7 @@ function observedToolOutputBytes(result: ToolCallResult): number {
  * - Provides canonical tools/list and tools/call boundaries
  * - Normalizes strict input before it reaches handlers
  * - Keeps compatibility provider exporters separate from canonical discovery
- * - Manages tool handlers with priority-based execution
+ * - Separates result-producing handlers from legacy full-controller handlers
  *
  * React 3 does not publish this factory as an installed package subpath.
  *
@@ -1559,14 +1560,12 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     ), [hookId, registry]);
   };
 
-  /**
-   * Hook to register tool handlers
-   * Handler is kept up-to-date via ref to always call the latest version
-   */
-  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+  /** Internal registration hook shared by legacy and explicit result handlers. */
+  const useRegisteredToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
     handler: ActionHandler<TPayloadMap[K], R>,
-    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+    handlerConfig: HandlerConfig<TPayloadMap[K]> | undefined,
+    registrationRole: 'legacy' | 'result',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useToolContext();
     const handlerId = useId();
@@ -1664,11 +1663,26 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           return handlerRef.current(payload, controller);
         };
 
-        nextLease.unregister = register.register(
-          normalizedToolName,
-          wrapperHandler,
-          stableHandlerConfig
-        );
+        // Tool schemas currently model payloads, not an action-keyed output
+        // map. The adapter supplies `unknown` for that internal result map
+        // while registerResult still selects core's narrower runtime controller.
+        nextLease.unregister = registrationRole === 'result'
+          ? (register as unknown as {
+              registerResult: (
+                action: K,
+                handler: ActionResultHandler<TPayloadMap[K], unknown>,
+                config?: HandlerConfig<TPayloadMap[K]>,
+              ) => () => void;
+            }).registerResult(
+              normalizedToolName,
+              wrapperHandler as ActionResultHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            )
+          : register.register(
+              normalizedToolName,
+              wrapperHandler as ActionHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            );
         registrationRef.current = nextLease;
         lease = nextLease;
       } else {
@@ -1689,8 +1703,30 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           });
         });
       };
-    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig]);
+    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig, registrationRole]);
   };
+
+  /**
+   * Register a legacy tool handler with the full PipelineController.
+   * Keep this API for handlers that need legacy control-flow capabilities.
+   */
+  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+    toolName: K,
+    handler: ActionHandler<TPayloadMap[K], R>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(toolName, handler, handlerConfig, 'legacy');
+
+  /** Register a result-producing tool handler in core's explicit result phase. */
+  const useToolResultHandler = <K extends Extract<keyof TSchema, string>, R = unknown>(
+    toolName: K,
+    handler: ActionResultHandler<TPayloadMap[K], R>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(
+    toolName,
+    handler as unknown as ActionHandler<TPayloadMap[K], R>,
+    handlerConfig,
+    'result',
+  );
 
   /**
    * Hook to access the tool registry
@@ -1820,6 +1856,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     useToolDispatch,
     useToolCall,
     useToolHandler,
+    useToolResultHandler,
     useToolRegistry,
     useToolDispatchWithResult,
     useActionRegister,

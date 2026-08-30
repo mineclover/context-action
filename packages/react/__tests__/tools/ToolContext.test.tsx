@@ -113,6 +113,7 @@ describe('createToolContext', () => {
     useToolDispatch,
     useToolCall,
     useToolHandler,
+    useToolResultHandler,
     useToolRegistry,
     useToolDispatchWithResult,
     useActionRegister,
@@ -3567,6 +3568,39 @@ describe('createToolContext', () => {
   });
 
   describe('useToolHandler and useToolDispatch', () => {
+    it('registers result handlers in core\'s explicit result phase', async () => {
+      let controller: unknown;
+      const { result: callResult } = renderHook(
+        () => {
+          const call = useToolCall();
+          useToolResultHandler(
+            'searchProducts',
+            useCallback((payload, resultController) => {
+              controller = resultController;
+              return { query: payload.query, phase: 'result' };
+            }, [])
+          );
+          return call;
+        },
+        { wrapper }
+      );
+
+      const toolResult = await callResult.current('searchProducts', {
+        query: 'laptop',
+        maxResults: 10,
+      });
+
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', phase: 'result' },
+      });
+      expect(controller).toEqual(expect.objectContaining({
+        abort: expect.any(Function),
+        setResult: expect.any(Function),
+        mergeResult: expect.any(Function),
+      }));
+      expect((controller as { modifyPayload?: unknown }).modifyPayload).toBeUndefined();
+    });
+
     it('should register and execute tool handler', async () => {
       const handlerMock = jest.fn().mockResolvedValue({ results: ['product1', 'product2'] });
 

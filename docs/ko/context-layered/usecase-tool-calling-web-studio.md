@@ -75,7 +75,7 @@ contexts/
 actions/
   run-agent.ts                 # provider-neutral orchestration
 handlers/
-  tool-handlers.tsx            # useToolHandler 등록
+  tool-handlers.tsx            # useToolResultHandler 등록
 hooks/
   use-tool-execution.ts        # provider/model 실행
   use-editor-observables.ts    # 외부 구독과 workspace 파생 상태
@@ -153,7 +153,16 @@ definition, MCP definition, catalog inspector, validation은 registry에서
 
 ```tsx
 import { createToolContext } from '@context-action/react/tools';
+
+const { Provider, useToolResultHandler, useToolRegistry } = createToolContext(
+  'WebStudio',
+  { schema: webStudioToolSchema }
+);
 ```
+
+canonical tool result만 만드는 handler에는 `useToolResultHandler`를 사용합니다.
+`useToolHandler`는 legacy full `PipelineController` control-flow API가 필요한
+source-track handler에만 남겨 둡니다.
 
 ### 2. Model transport는 provider-neutral로 유지한다
 

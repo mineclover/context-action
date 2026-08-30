@@ -21,6 +21,10 @@ Durable Operations release decision is approved.
 - Use `useToolCall()` for new UI-originated calls. It always crosses the
   canonical registry path, including policy, lifecycle events, output budgets,
   idempotency, and durable-operation handling.
+- Use `useToolResultHandler()` for new handlers that only produce a tool
+  result. It registers through core's explicit result phase. Keep
+  `useToolHandler()` only when a handler needs the legacy full
+  `PipelineController` control-flow surface.
 - `useToolDispatch()` and `useToolDispatchWithResult()` are raw ActionRegister
   compatibility APIs. They intentionally bypass those canonical boundaries.
 - Use `useToolRegistry()` with `listTools()`, `getToolDefinition()`, and

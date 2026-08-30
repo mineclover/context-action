@@ -10,6 +10,7 @@ import type { DispatchArgs } from '@context-action/core';
 import {
   ActionHandler,
   ActionRegister,
+  ActionResultHandler,
   DispatchOptions,
   ExecutionResult,
   HandlerConfig,
@@ -338,12 +339,23 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   useToolCall: () => ToolCallFunction<InferActionPayloadMap<TSchema>>;
 
   /**
-   * Hook to register tool handlers
-   * Similar to useActionHandler but for tool execution
+   * Register a legacy tool handler with the full PipelineController.
+   * Use this only when its control-flow capabilities are required.
    */
   useToolHandler: <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
     handler: ActionHandler<InferActionPayloadMap<TSchema>[K], R>,
+    config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
+  ) => void;
+
+  /**
+   * Register a result-producing handler in core's explicit result phase.
+   * It receives the narrower result controller; retain useToolHandler() when
+   * a legacy full PipelineController is required.
+   */
+  useToolResultHandler: <K extends Extract<keyof TSchema, string>, R = unknown>(
+    toolName: K,
+    handler: ActionResultHandler<InferActionPayloadMap<TSchema>[K], R>,
     config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
   ) => void;
 
