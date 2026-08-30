@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   buildExampleRouteIndex,
   canonicalRoutes,
   selectAffectedRoutes,
 } from './example-route-impact.mjs';
+
+async function readRepositorySource(relativePath) {
+  return readFile(new URL(`../${relativePath}`, import.meta.url), 'utf8');
+}
 
 test('indexes every public route and preserves one smoke target per route entry', () => {
   const routes = buildExampleRouteIndex();
@@ -47,4 +52,55 @@ test('assigns shared runtime changes to every canonical public route', () => {
     selectAffectedRoutes(['packages/react/src/index.ts'], routes).length,
     canonicalRoutes(routes).length
   );
+});
+
+test('keeps Core Advanced on the page-scoped context boundary', async () => {
+  const [contexts, business, handlers, actions, viewModel, page, basic, priority, asyncView] =
+    await Promise.all([
+      readRepositorySource(
+        'example/src/pages/foundations/core/contexts/CoreAdvancedContexts.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/business/core-advanced-rules.ts'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/handlers/CoreAdvancedHandlerRegistry.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/actions/useCoreAdvancedActions.ts'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/hooks/useCoreAdvancedViewModel.ts'
+      ),
+      readRepositorySource('example/src/pages/foundations/core/AdvancedPage.tsx'),
+      readRepositorySource(
+        'example/src/pages/foundations/core/components/BasicActionsDemo.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/components/PriorityDemo.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/foundations/core/components/AsyncDemo.tsx'
+      ),
+    ]);
+
+  assert.match(contexts, /createActionContext(?:<|\()/u);
+  assert.match(contexts, /createStoreContext(?:<|\()/u);
+  assert.match(contexts, /useConcurrencyQueue:\s*false/u);
+  assert.doesNotMatch(business, /from ['"](?:react|@context-action\/)/u);
+  assert.match(handlers, /useCoreAdvancedActionHandler\(/u);
+  assert.match(handlers, /core-advanced-priority-reset/u);
+  assert.match(actions, /useCoreAdvancedDispatch\(/u);
+  assert.doesNotMatch(
+    actions,
+    /useCoreAdvancedStore|useCoreAdvancedStoreManager/u
+  );
+  assert.match(viewModel, /useStoreValue\(/u);
+  assert.match(page, /<CoreAdvancedProviders>/u);
+  assert.match(page, /useCoreAdvancedViewModel\(/u);
+
+  for (const view of [basic, priority, asyncView]) {
+    assert.doesNotMatch(view, /new\s+ActionRegister\(/u);
+    assert.doesNotMatch(view, /useEffect\(|useState\(/u);
+  }
 });
