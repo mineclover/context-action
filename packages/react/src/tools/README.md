@@ -38,6 +38,11 @@ Durable Operations release decision is approved.
   With a literal schema tool name, `callTool()` and `executeModelToolCall()`
   preserve that tool's unparsed Zod input and structured result type. Dynamic
   provider calls intentionally retain the broad protocol contract.
+- The same literal-name projection applies to `getOperationStatus()`,
+  `reconcileOperation()`, and `recoverOperation()`. It improves TypeScript
+  guidance for durable results only: stored legacy/redacted records and
+  domain-supplied reconciliation results are not revalidated against an output
+  schema by these methods.
 
 The factory snapshots schema-map membership and the allowlist. Create a new
 context when the catalog changes; mutating the caller-owned configuration after

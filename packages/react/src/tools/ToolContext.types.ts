@@ -183,6 +183,35 @@ export type SchemaModelToolCall<
     }
   : never;
 
+/** Structured result selected by one schema-known tool name. */
+export type SchemaToolCallResult<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = ToolCallResult<InferActionResultMap<TSchema>[K]>;
+
+/** Durable record projected to the structured result of one known tool. */
+export type SchemaDurableOperationRecord<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationRecord<SchemaToolCallResult<TSchema, K>>;
+
+/** Durable reconciliation decision projected to one known tool result. */
+export type SchemaDurableOperationResolution<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationResolution<SchemaToolCallResult<TSchema, K>>;
+
+/** Domain recovery callback projected to one known tool result. */
+export type SchemaToolOperationRecoveryResolver<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = (
+  record: SchemaDurableOperationRecord<TSchema, K>,
+  context?: ToolCallContext
+) =>
+  | SchemaDurableOperationResolution<TSchema, K>
+  | Promise<SchemaDurableOperationResolution<TSchema, K>>;
+
 /**
  * Source-track Tool Registry. It owns canonical discovery and calls, while
  * compatibility exporters remain available for provider adapters.
@@ -256,7 +285,18 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
     options?: ToolCallOptions
   ): Promise<ToolCallResult>;
 
-  /** Query a durable operation without starting or retrying its handler. */
+  /**
+   * Query a durable operation for a schema-known tool without starting or
+   * retrying its handler. This projects stored result data to the tool's
+   * output type; it does not revalidate historical durable data.
+   */
+  getOperationStatus<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable status lookup for providers and legacy callers. */
   getOperationStatus(
     toolName: string,
     idempotencyKey: string,
@@ -271,6 +311,15 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
    * legacy forms remain in the positional ABI but fail closed at runtime;
    * use the full fence or `recoverOperation()`.
    */
+  reconcileOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolution: SchemaDurableOperationResolution<TSchema, K>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable reconciliation preserves the broad storage contract. */
   reconcileOperation(
     toolName: string,
     idempotencyKey: string,
@@ -284,6 +333,14 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
    * The resolver owns domain status checks and compensation; this method never
    * starts the tool handler and reconciles with the observed full fence.
    */
+  recoverOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolver: SchemaToolOperationRecoveryResolver<TSchema, K>,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable recovery preserves the broad storage contract. */
   recoverOperation(
     toolName: string,
     idempotencyKey: string,

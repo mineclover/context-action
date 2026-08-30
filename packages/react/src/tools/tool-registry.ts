@@ -141,6 +141,63 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       mode: options?.context?.mode ?? 'agent',
     },
   })) as ToolRegistry<TSchema>['executeModelToolCall'];
+  // Durable storage keeps the transport-neutral result for replay and
+  // diagnostics. These source-track overloads project literal tool names for
+  // callers without claiming to revalidate stored or manually reconciled data.
+  const readOperationStatus = (async (
+    toolName: string,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    return getOperationStatus?.(toolName, idempotencyKey, context);
+  }) as ToolRegistry<TSchema>['getOperationStatus'];
+  const reconcileDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolution: DurableOperationResolution<ToolCallResult>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (!reconcileOperation) return undefined;
+    if (typeof expectedFence !== 'object' || expectedFence === null) {
+      throw new Error(
+        'Tool operation reconciliation requires a full { incarnation, revision } ' +
+        'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
+        'fences fail closed.'
+      );
+    }
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      expectedFence
+    );
+  }) as ToolRegistry<TSchema>['reconcileOperation'];
+  const recoverDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolver: ToolOperationRecoveryResolver,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (typeof resolver !== 'function') {
+      throw new TypeError('Tool operation recovery resolver must be a function.');
+    }
+    const record = await getOperationStatus?.(toolName, idempotencyKey, context);
+    if (record?.state !== 'unknown') return record;
+    if (!reconcileOperation) return record;
+    const resolution = await resolver(record, context);
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      { incarnation: record.incarnation, revision: record.revision }
+    );
+  }) as ToolRegistry<TSchema>['recoverOperation'];
 
   return {
     tools: catalog,
@@ -160,45 +217,9 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     },
     callTool,
     executeModelToolCall,
-    async getOperationStatus(toolName, idempotencyKey, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      return getOperationStatus?.(toolName, idempotencyKey, context);
-    },
-    async reconcileOperation(toolName, idempotencyKey, resolution, context, expectedFence) {
-      if (!hasOwnTool(toolName)) return undefined;
-      if (!reconcileOperation) return undefined;
-      if (typeof expectedFence !== 'object' || expectedFence === null) {
-        throw new Error(
-          'Tool operation reconciliation requires a full { incarnation, revision } ' +
-          'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
-          'fences fail closed.'
-        );
-      }
-      return reconcileOperation(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        expectedFence
-      );
-    },
-    async recoverOperation(toolName, idempotencyKey, resolver, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      if (typeof resolver !== 'function') {
-        throw new TypeError('Tool operation recovery resolver must be a function.');
-      }
-      const record = await getOperationStatus?.(toolName, idempotencyKey, context);
-      if (record?.state !== 'unknown') return record;
-      if (!reconcileOperation) return record;
-      const resolution = await (resolver as ToolOperationRecoveryResolver)(record, context);
-      return reconcileOperation(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        { incarnation: record.incarnation, revision: record.revision }
-      );
-    },
+    getOperationStatus: readOperationStatus,
+    reconcileOperation: reconcileDurableOperation,
+    recoverOperation: recoverDurableOperation,
     getToolNames(): (keyof TSchema)[] {
       return [...toolNames];
     },

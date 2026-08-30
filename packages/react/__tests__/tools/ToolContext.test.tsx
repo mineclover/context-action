@@ -36,7 +36,10 @@ import {
   type ToolListRequest,
   type ToolManagementInterface,
 } from '@context-action/tool-protocol';
-import type { DurableOperationStore } from '@context-action/tool-durable-operations';
+import type {
+  DurableOperationRecord,
+  DurableOperationStore,
+} from '@context-action/tool-durable-operations';
 
 type ActivityBoundaryComponent = React.ExoticComponent<{
   children?: React.ReactNode;
@@ -1178,6 +1181,161 @@ describe('createToolContext', () => {
       expect(modelResult).toMatchObject({
         structuredContent: { query: 'headphones', maxResults: 10 },
       });
+    });
+
+    it('infers literal durable-operation results without narrowing dynamic callers', async () => {
+      const typedSchema = createActionSchema({
+        save: defineAction({
+          name: 'save',
+          parameters: z.object({ documentId: z.string() }),
+          outputSchema: z.object({
+            saved: z.boolean(),
+            version: z.number().int(),
+          }),
+        }, z),
+      });
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const ownerStore = createMockDurableOperationStore(backend, 'typed-durable-owner');
+      const recoveryStore = createMockDurableOperationStore(
+        backend,
+        'typed-durable-recovery'
+      );
+      const TypedDurableTools = createToolContext('TypedDurableTools', {
+        schema: typedSchema,
+        durableOperationStore: recoveryStore,
+        durableOperationOwnerId: 'typed-durable-recovery',
+      });
+      const typedDurableWrapper = ({ children }: { children: React.ReactNode }) => (
+        <TypedDurableTools.Provider>{children}</TypedDurableTools.Provider>
+      );
+      const { result } = renderHook(
+        () => TypedDurableTools.useToolRegistry(),
+        { wrapper: typedDurableWrapper }
+      );
+      const createUnknown = async (
+        idempotencyKey: string,
+        resultValue: ToolCallResult
+      ) => {
+        const operationKey = createToolOperationKey('save', idempotencyKey);
+        const claim = await ownerStore.claim(
+          operationKey,
+          createToolCallFingerprint('save', { documentId: idempotencyKey }),
+          'typed-durable-owner'
+        );
+        return ownerStore.markUnknown(
+          operationKey,
+          'typed-durable-owner',
+          'remote acknowledgement was lost',
+          resultValue,
+          claim.fence
+        );
+      };
+
+      // String names must retain the dynamic transport-safe contract even when
+      // this registry has a literal schema map.
+      const assertDynamicDurableOverloads = async (
+        registry: ToolRegistry<typeof typedSchema>,
+        toolName: string
+      ): Promise<void> => {
+        const status = await registry.getOperationStatus(toolName, 'dynamic-status');
+        const reconciled = await registry.reconcileOperation(
+          toolName,
+          'dynamic-reconcile',
+          { state: 'failed', reason: 'dynamic caller result' },
+          undefined,
+          { incarnation: 'dynamic-incarnation', revision: 1 }
+        );
+        const recovered = await registry.recoverOperation(
+          toolName,
+          'dynamic-recover',
+          async record => ({
+            state: 'failed',
+            reason: record.reason ?? 'dynamic recovery result',
+          })
+        );
+        type IsExactly<Left, Right> = (
+          <T>() => T extends Left ? 1 : 2
+        ) extends (
+          <T>() => T extends Right ? 1 : 2
+        ) ? true : false;
+        type Assert<T extends true> = T;
+        type StatusUsesBroadResult = Assert<
+          IsExactly<
+            typeof status,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        type ReconcileUsesBroadResult = Assert<
+          IsExactly<
+            typeof reconciled,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        type RecoverUsesBroadResult = Assert<
+          IsExactly<
+            typeof recovered,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        const assertStatus: StatusUsesBroadResult = true;
+        const assertReconcile: ReconcileUsesBroadResult = true;
+        const assertRecover: RecoverUsesBroadResult = true;
+        void assertStatus;
+        void assertReconcile;
+        void assertRecover;
+      };
+      void assertDynamicDurableOverloads;
+
+      await createUnknown('typed-status', {
+        content: [],
+        structuredContent: { saved: false, version: 1 },
+      });
+      const status = await result.current.getOperationStatus('save', 'typed-status');
+      const statusContent: { saved: boolean; version: number } | undefined =
+        status?.result?.structuredContent;
+      expect(statusContent).toEqual({ saved: false, version: 1 });
+
+      const reconcileUnknown = await createUnknown('typed-reconcile', { content: [] });
+      const reconciled = await result.current.reconcileOperation(
+        'save',
+        'typed-reconcile',
+        {
+          state: 'completed',
+          result: {
+            content: [],
+            structuredContent: { saved: true, version: 2 },
+          },
+        },
+        undefined,
+        {
+          incarnation: reconcileUnknown.incarnation,
+          revision: reconcileUnknown.revision,
+        }
+      );
+      const reconciledContent: { saved: boolean; version: number } | undefined =
+        reconciled?.result?.structuredContent;
+      expect(reconciledContent).toEqual({ saved: true, version: 2 });
+
+      await createUnknown('typed-recover', { content: [] });
+      const recovered = await result.current.recoverOperation(
+        'save',
+        'typed-recover',
+        async record => {
+          const priorContent: { saved: boolean; version: number } | undefined =
+            record.result?.structuredContent;
+          expect(priorContent).toBeUndefined();
+          return {
+            state: 'completed',
+            result: {
+              content: [],
+              structuredContent: { saved: true, version: 3 },
+            },
+          };
+        }
+      );
+      const recoveredContent: { saved: boolean; version: number } | undefined =
+        recovered?.result?.structuredContent;
+      expect(recoveredContent).toEqual({ saved: true, version: 3 });
     });
 
     it('should reject invalid tools/call arguments before policy and handlers', async () => {
