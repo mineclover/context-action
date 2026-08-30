@@ -39,23 +39,7 @@ export const toastActionRegister = new ActionRegister<ToastActionMap>({
   name: 'ToastActions',
 });
 
-// 🔧 Fix: Timer management to prevent memory leaks
-const toastTimers = new Map<string, NodeJS.Timeout[]>();
 const recentToasts = new Map<string, number>(); // Track recent toasts to prevent duplicates
-
-const clearToastTimers = (toastId: string) => {
-  const timers = toastTimers.get(toastId);
-  if (timers) {
-    timers.forEach((timer) => clearTimeout(timer));
-    toastTimers.delete(toastId);
-  }
-};
-
-const addToastTimer = (toastId: string, timer: NodeJS.Timeout) => {
-  const existingTimers = toastTimers.get(toastId) || [];
-  existingTimers.push(timer);
-  toastTimers.set(toastId, existingTimers);
-};
 
 // 🔧 Fix: Prevent duplicate toasts within 500ms
 const isDuplicateToast = (type: string, message: string): boolean => {
@@ -214,7 +198,6 @@ toastActionRegister.register(
       });
 
       // 🔧 CRITICAL: Direct store update instead of dispatch to prevent infinite loop
-      clearToastTimers(oldestToast.id);
       const filteredToasts = currentToasts.filter(
         (toast) => toast.id !== oldestToast.id
       );
@@ -247,28 +230,9 @@ toastActionRegister.register(
       toastsStore.getValue().length
     );
 
-    // ToastItem moves entering to visible after it mounts, on the next visual
-    // frame. Keeping that transition with the rendered element avoids the old
-    // fixed 100ms delay and guarantees the entering phase can be painted.
-
-    // 자동 제거 타이머
-    const exitTimer = setTimeout(() => {
-      logger.debug('🍞 Starting toast exit phase:', newToast.id);
-      toastActionRegister.dispatch('updateToastPhase', {
-        toastId: newToast.id,
-        phase: 'exiting',
-      });
-
-      const removeTimer = setTimeout(() => {
-        logger.debug('🍞 Removing toast:', newToast.id);
-        toastActionRegister.dispatch('removeToast', { toastId: newToast.id });
-      }, 300); // 애니메이션 완료 후 제거
-
-      addToastTimer(newToast.id, removeTimer);
-    }, newToast.duration);
-    addToastTimer(newToast.id, exitTimer);
-
-    logger.debug('🍞 Toast auto-remove timer set for:', newToast.duration);
+    // ToastItem owns entry, expiry, and removal timers after it mounts. That
+    // lets a remount or HMR recover a previously stored toast from its
+    // timestamp instead of leaving it visible without a timer.
 
     logger.info('addToast', { toastId: newToast.id, type, title });
   }
@@ -319,9 +283,6 @@ toastActionRegister.register(
 );
 
 toastActionRegister.register('removeToast', ({ toastId }) => {
-  // 🔧 Fix: Clear all timers for this toast to prevent memory leaks
-  clearToastTimers(toastId);
-
   const currentToasts = toastsStore.getValue();
   const updatedToasts = currentToasts.filter((toast) => toast.id !== toastId);
   toastsStore.setValue(updatedToasts);
@@ -347,10 +308,7 @@ toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
 });
 
 toastActionRegister.register('clearAllToasts', () => {
-  // 🔧 Fix: Clear all timers when clearing all toasts
   const currentToasts = toastsStore.getValue();
-  currentToasts.forEach((toast) => clearToastTimers(toast.id));
-
   toastsStore.setValue([]);
   toastStackIndexStore.setValue(0);
 

@@ -15,26 +15,50 @@ const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
   const safeToast = toast as Toast;
 
   React.useEffect(() => {
-    if (safeToast.phase !== 'entering') return;
-
-    const markVisible = () => {
+    const updatePhase = (phase: Toast['phase']) => {
       toastActionRegister.dispatch('updateToastPhase', {
         toastId: safeToast.id,
-        phase: 'visible',
+        phase,
       });
     };
 
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.requestAnimationFrame === 'function'
-    ) {
-      const frame = window.requestAnimationFrame(markVisible);
-      return () => window.cancelAnimationFrame(frame);
+    if (safeToast.phase === 'entering') {
+      const markVisible = () => updatePhase('visible');
+
+      if (
+        typeof window !== 'undefined' &&
+        typeof window.requestAnimationFrame === 'function'
+      ) {
+        const frame = window.requestAnimationFrame(markVisible);
+        return () => window.cancelAnimationFrame(frame);
+      }
+
+      const timer = setTimeout(markVisible, 0);
+      return () => clearTimeout(timer);
     }
 
-    const timer = setTimeout(markVisible, 0);
-    return () => clearTimeout(timer);
-  }, [safeToast.id, safeToast.phase]);
+    if (safeToast.phase === 'visible') {
+      const timestamp =
+        safeToast.timestamp instanceof Date
+          ? safeToast.timestamp.getTime()
+          : new Date(safeToast.timestamp).getTime();
+      const expiresIn = Math.max(
+        0,
+        (Number.isFinite(timestamp) ? timestamp : Date.now()) +
+          safeToast.duration -
+          Date.now()
+      );
+      const timer = setTimeout(() => updatePhase('exiting'), expiresIn);
+      return () => clearTimeout(timer);
+    }
+
+    if (safeToast.phase === 'exiting') {
+      const timer = setTimeout(() => {
+        toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [safeToast.duration, safeToast.id, safeToast.phase, safeToast.timestamp]);
 
   const handleClose = () => {
     toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });

@@ -6,6 +6,7 @@ import { BasicActionsDemo } from '@/pages/foundations/core/components/BasicActio
 import { toastActionRegister } from './actions';
 import { toastStackIndexStore, toastsStore } from './store';
 import { ToastContainer } from './ToastContainer';
+import type { Toast } from './types';
 
 async function clearToasts() {
   await act(async () => {
@@ -113,5 +114,31 @@ describe('ToastSystem', () => {
     });
 
     expect(toastsStore.getValue()[0]?.phase).toBe('exiting');
+  });
+
+  it('expires a visible toast recovered after a remount', async () => {
+    const staleToast: Toast = {
+      id: 'stale-toast',
+      type: 'info',
+      title: 'Recovered',
+      message: 'Stale toast recovery',
+      timestamp: new Date(Date.now() - 5_000),
+      duration: 4_000,
+      stackIndex: 0,
+      isVisible: true,
+      phase: 'visible',
+    };
+
+    await act(async () => {
+      toastsStore.setValue([staleToast]);
+    });
+    render(<ToastContainer />);
+
+    await waitFor(() => {
+      expect(toastsStore.getValue()[0]?.phase).toBe('exiting');
+    });
+    await waitFor(() => {
+      expect(toastsStore.getValue()).toHaveLength(0);
+    });
   });
 });
