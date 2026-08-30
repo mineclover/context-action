@@ -15,7 +15,7 @@ and command results/artifact hashes belong in
 
 | Package | `latest` |
 | --- | --- |
-| `@context-action/core` | `1.0.0` |
+| `@context-action/core` | `1.1.3` |
 | `@context-action/react` | `1.0.0` |
 | `@context-action/tool-protocol` | `1.0.1` |
 | `@context-action/webmcp` | `0.1.2` |
@@ -104,6 +104,10 @@ fail-closed before any publication attempt.
    before a patch can replace `latest`.
 3. Reopen the affected release gate and update the Korean canonical roadmap
    before preparing a new stable patch or minor release.
+
+Protected maintenance run `33328651184` published `@context-action/core@1.1.3`,
+verified its npm provenance for immutable commit `0a47985bfc0ca39ffb7091b943052a87b1b98ed6`,
+and promoted it to `latest` after the Core → React published consumer closure passed.
 
 ## Stable promotion result
 
