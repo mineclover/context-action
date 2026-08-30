@@ -22,6 +22,15 @@ import {
   type ActionFactory,
 } from '../../src';
 
+type Equal<Left, Right> = (
+  <Value>() => Value extends Left ? 1 : 2
+) extends (
+  <Value>() => Value extends Right ? 1 : 2
+)
+  ? true
+  : false;
+type Assert<T extends true> = T;
+
 describe('Action Schema', () => {
   describe('defineAction', () => {
     it('rejects empty action names before publishing a tool definition', () => {
@@ -465,6 +474,11 @@ describe('Action Schema', () => {
 
       type Actions = InferActionPayloadMap<typeof schema>;
       type Results = InferActionResultMap<typeof schema>;
+      type CreateResultIsExact = Assert<Equal<Results['createItem'], {
+        id: string;
+        createdAt: string;
+      }>>;
+      type UnschematizedResultIsUnknown = Assert<Equal<Results['deleteItem'], unknown>>;
 
       // Type-level test: this should compile without errors
       const createPayload: Actions['createItem'] = {
@@ -480,6 +494,7 @@ describe('Action Schema', () => {
         createdAt: '2026-08-30T00:00:00.000Z',
       };
       const unschematizedResult: Results['deleteItem'] = { deleted: true };
+      const typeAssertions: [CreateResultIsExact, UnschematizedResultIsUnknown] = [true, true];
 
       const parsedOutput = schema.createItem.safeParseOutput?.(createResult);
       if (parsedOutput?.success) {
@@ -490,6 +505,7 @@ describe('Action Schema', () => {
       expect(createPayload).toEqual({ title: 'test', count: 1 });
       expect(deletePayload).toEqual({ id: '123' });
       expect(unschematizedResult).toEqual({ deleted: true });
+      expect(typeAssertions).toEqual([true, true]);
     });
   });
 });
