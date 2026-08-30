@@ -1,7 +1,6 @@
-import { createContext, type ReactNode, useContext, useState } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import { createToastSystem, type ToastSystemController } from './actions';
-
-const ToastSystemContext = createContext<ToastSystemController | null>(null);
+import { ToastSystemContext } from './ToastSystemContext';
 
 export function ToastSystemProvider({
   children,

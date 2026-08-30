@@ -28,5 +28,9 @@ export function useAdvancedSearchActions() {
       (item: SearchItem) => dispatch('selectResult', { id: item.id, item }),
       [dispatch]
     ),
+    clearSelectedResult: useCallback(
+      () => dispatch('clearSelectedResult'),
+      [dispatch]
+    ),
   };
 }

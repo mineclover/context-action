@@ -137,5 +137,12 @@ export function AdvancedSearchHandlerRegistry({
     )
   );
 
+  useAdvancedSearchActionHandler(
+    'clearSelectedResult',
+    useCallback(async () => {
+      selectedResultStore.setValue(null);
+    }, [selectedResultStore])
+  );
+
   return <>{children}</>;
 }

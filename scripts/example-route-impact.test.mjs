@@ -104,3 +104,76 @@ test('keeps Core Advanced on the page-scoped context boundary', async () => {
     assert.doesNotMatch(view, /useEffect\(|useState\(/u);
   }
 });
+
+test('keeps Advanced Filtering on the page-scoped context boundary', async () => {
+  const [contexts, business, handlers, actions, viewModel, page, flow, demo, info] =
+    await Promise.all([
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/contexts/AdvancedFilteringContexts.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/business/filtering-demo-rules.ts'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/handlers/AdvancedFilteringHandlerRegistry.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/actions/useAdvancedFilteringActions.ts'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/hooks/useAdvancedFilteringViewModel.ts'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/AdvancedFilteringPage.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/components/ExecutionFlowVisualization.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/components/FilteringDemo.tsx'
+      ),
+      readRepositorySource(
+        'example/src/pages/performance/action-guard/advanced-filtering/components/HandlerInformationPanel.tsx'
+      ),
+    ]);
+
+  assert.match(contexts, /createActionContext(?:<|\()/u);
+  assert.match(contexts, /createStoreContext(?:<|\()/u);
+  assert.match(contexts, /useConcurrencyQueue:\s*false/u);
+  assert.doesNotMatch(business, /from ['"](?:react|@context-action\/)/u);
+  assert.match(handlers, /useAdvancedFilteringActionHandler\(/u);
+  assert.match(handlers, /dispatchWithResult\(\s*'processData'/u);
+  assert.match(actions, /useAdvancedFilteringDispatch\(/u);
+  assert.doesNotMatch(
+    actions,
+    /useAdvancedFilteringStore|useAdvancedFilteringStoreManager/u
+  );
+  assert.match(viewModel, /useStoreValue\(/u);
+  assert.match(page, /<AdvancedFilteringProviders>/u);
+  assert.match(page, /useAdvancedFilteringViewModel\(/u);
+
+  for (const view of [flow, demo, info]) {
+    assert.doesNotMatch(
+      view,
+      /setValue\(|useAdvancedFiltering(?:Store|Dispatch|ActionHandler)/u
+    );
+  }
+});
+
+test('keeps the Toast Context token outside its refreshable provider module', async () => {
+  const [token, provider, app] = await Promise.all([
+    readRepositorySource(
+      'example/src/components/ToastSystem/ToastSystemContext.ts'
+    ),
+    readRepositorySource('example/src/components/ToastSystem/ToastContext.tsx'),
+    readRepositorySource('example/src/App.tsx'),
+  ]);
+
+  assert.match(token, /createContext<ToastSystemController\s*\|\s*null>/u);
+  assert.doesNotMatch(provider, /createContext\(/u);
+  assert.match(provider, /from ['"]\.\/ToastSystemContext['"]/u);
+  assert.match(
+    app,
+    /from ['"]\.\/components\/ToastSystem\/ToastContext['"]/u
+  );
+});
