@@ -192,6 +192,22 @@ test('accepts every reviewed publishing workflow with its supply-chain controls 
   });
 });
 
+test('requires coordinated candidate plan validation to bind the immutable current source', async () => {
+  await withFixture(async root => {
+    const workflowPath = path.join(root, '.github', 'workflows', 'publish-coordinated-stable-candidate.yml');
+    const source = await readFile(workflowPath, 'utf8');
+    const mutated = source.replace(
+      '        run: pnpm verify:coordinated-stable-release-plan -- --require-current-source',
+      '        run: pnpm verify:coordinated-stable-release-plan',
+    );
+    assert.notEqual(mutated, source);
+    await writeFile(workflowPath, mutated);
+    const result = await runVerifier(root);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /must validate the exact coordinated stable plan against the immutable current source before publication/u);
+  });
+});
+
 test('requires maintenance rollback journal preparation before latest promotion', async () => {
   await withFixture(async root => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-maintenance-patch.yml');

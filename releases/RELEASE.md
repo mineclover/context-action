@@ -74,6 +74,13 @@ workflow가 아니라 coordinated stable 경로를 사용합니다. 현재 승�
 - `latest` 변경 전 rollback 대상의 신뢰할 수 있는 조회
 - 승격 후 closure 검증, package별 evidence, 조건부 rollback
 
+기본 `pnpm verify:coordinated-stable-release-plan`은 이미 끝난 cohort의
+불변 plan 형식과 provenance를 검증하는 historical-plan 검사입니다. 이후
+maintenance patch가 main에 들어와도 과거 cohort와 현재 manifest를 같다고
+강제하지 않습니다. 새 coordinated candidate를 게시할 때만 candidate workflow가
+`--require-current-source`를 사용해 immutable checkout의 manifest, CHANGELOG,
+React dependency boundary를 plan과 정확히 결속합니다.
+
 이 경로가 없는 상태에서 수동 `npm publish`, `npm dist-tag`, 개인 토큰 또는
 기존 workflow의 임의 수정으로 우회하지 않습니다.
 

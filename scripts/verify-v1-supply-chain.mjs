@@ -660,8 +660,8 @@ const publishWorkflowPolicies = new Map([
     ],
     requiredPrepublicationSteps: [
       [
-        ['pnpm verify:coordinated-stable-release-plan'],
-        'must validate the exact coordinated stable plan before publication',
+        ['pnpm verify:coordinated-stable-release-plan -- --require-current-source'],
+        'must validate the exact coordinated stable plan against the immutable current source before publication',
       ],
       [
         ['pnpm release:check'],

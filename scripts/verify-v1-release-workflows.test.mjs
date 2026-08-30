@@ -52,6 +52,18 @@ test('requires the coordinated candidate closure before publication', () => {
   ));
 });
 
+test('requires coordinated candidate plan validation to bind the immutable current source', () => {
+  const sources = releaseSources();
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
+    '        run: pnpm verify:coordinated-stable-release-plan -- --require-current-source',
+    '        run: pnpm verify:coordinated-stable-release-plan',
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.includes(
+    'Coordinated stable candidate workflow must validate the release plan against its immutable current source before publication',
+  ));
+});
+
 test('requires explicit coordinated promotion confirmation', () => {
   const sources = releaseSources();
   sources.coordinatedPromotion = sources.coordinatedPromotion.replace(

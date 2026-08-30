@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
@@ -8,12 +8,25 @@ import { fileURLToPath } from 'node:url';
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = relativePath => readFileSync(path.join(repositoryRoot, relativePath), 'utf8');
 
-test('the approved coordinated plan matches the current manifests and dated changelogs', () => {
+test('the approved coordinated plan remains historically valid after later maintenance releases', () => {
   const result = execFileSync(process.execPath, ['scripts/verify-coordinated-stable-release-plan.mjs'], {
     cwd: repositoryRoot,
     encoding: 'utf8',
   });
   assert.match(result, /"status":"ok"/u);
+  assert.match(result, /"currentSource":"historical-plan"/u);
+});
+
+test('the coordinated plan verifier rejects unknown current-source modes', () => {
+  const result = spawnSync(process.execPath, [
+    'scripts/verify-coordinated-stable-release-plan.mjs',
+    '--allow-current-source-drift',
+  ], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Usage: verify-coordinated-stable-release-plan\.mjs/u);
 });
 
 test('promotion uses durable registry journal markers and refuses local execution', () => {
@@ -55,6 +68,7 @@ test('candidate and promotion workflows bind the exact coordinated cohort', () =
   const promotion = read('.github/workflows/promote-coordinated-stable.yml');
   const cohort = '@context-action/core,@context-action/react';
   assert.ok(candidate.includes(`--packages "${cohort}"`));
+  assert.ok(candidate.includes('pnpm verify:coordinated-stable-release-plan -- --require-current-source'));
   assert.ok(promotion.includes(`--packages "${cohort}"`));
   assert.ok(candidate.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
   assert.ok(promotion.includes('test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"'));
