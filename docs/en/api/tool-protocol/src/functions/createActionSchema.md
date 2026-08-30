@@ -8,7 +8,7 @@
 
 > **createActionSchema**&lt;`T`&gt;(`actions`): `T`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:347](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L347)
+Defined in: [packages/tool-protocol/src/action-schema.ts:362](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L362)
 
 다중 Action 스키마 생성
 
@@ -18,7 +18,7 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:347](https://github.com
 
 ### Generic type T
 
-`T` *extends* `Record`\<`string`, [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`unknown`, `unknown`\>\>
+`T` *extends* `Record`\<`string`, [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`unknown`, `unknown`, `ZodTypeAny`\>\>
 
 ## Parameters
 

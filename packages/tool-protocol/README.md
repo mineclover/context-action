@@ -16,6 +16,7 @@ import {
   createActionSchema,
   defineAction,
   toOpenAIToolDefinitions,
+  type InferActionInputMap,
   type InferActionResultMap,
 } from '@context-action/tool-protocol';
 
@@ -29,7 +30,9 @@ const tools = createActionSchema({
 });
 
 const definitions = toOpenAIToolDefinitions(Object.values(tools));
+type SearchInput = InferActionInputMap<typeof tools>['search'];
 type SearchResult = InferActionResultMap<typeof tools>['search'];
+const initialInput: SearchInput = { query: 'keyboard' };
 const initialResult: SearchResult = { items: [] };
 ```
 
@@ -64,6 +67,9 @@ this package directly.
   type. Source-track `useToolResultHandler()` uses that type for its return
   value and result controller; actions without an output schema remain
   `unknown` until their contract is declared.
+- `InferActionInputMap<typeof schema>` derives each action's unparsed Zod input
+  type. Source-track `useToolCall()` accepts this shape, while strict handlers
+  receive the parsed payload type from `InferActionPayloadMap`.
 - `createToolObservabilityPolicy()` and
   `serializeToolObservabilityValue()` provide the shared telemetry boundary.
   They redact credential/source-like fields, bound depth/collections/strings,

@@ -77,6 +77,7 @@ import {
   createToolOperationKey,
   getToolCallErrorMetadata,
   InferActionPayloadMap,
+  InferActionInputMap,
   InferActionResultMap,
   isToolCallRequest,
   isValidToolIdempotencyKey,
@@ -341,6 +342,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   config: ToolContextConfig<TSchema>
 ): ToolContextReturn<TSchema> {
   type TPayloadMap = InferActionPayloadMap<TSchema>;
+  type TInputMap = InferActionInputMap<TSchema>;
 
   const {
     schema: configuredSchema,
@@ -1528,15 +1530,15 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * This keeps direct UI use in the same policy and provenance path as model
    * and MCP calls without making React a transport implementation.
    */
-  const useToolCall = (): ToolCallFunction<TPayloadMap> => {
+  const useToolCall = (): ToolCallFunction<TInputMap> => {
     const { registry } = useToolContext();
     const hookId = useId();
     const sequenceRef = useRef(0);
 
     return useMemo(() => (
-      <K extends Extract<keyof TPayloadMap, string>>(
+      <K extends Extract<keyof TInputMap, string>>(
         toolName: K,
-        payload: TPayloadMap[K],
+        payload: TInputMap[K],
         options?: DirectToolCallOptions
       ): Promise<ToolCallResult> => {
         const { toolCallId, context, ...callOptions } = options ?? {};

@@ -25,6 +25,7 @@ import type {
   ActionSchemaMap,
   AnthropicToolDefinition,
   InferActionPayloadMap,
+  InferActionInputMap,
   InferActionResultMap,
   MCPToolDefinition,
   ModelToolCall,
@@ -295,11 +296,12 @@ export interface DirectToolCallOptions extends ToolCallOptions {
  * and therefore applies policy, lifecycle observation, output budgets,
  * idempotency, and durable-operation handling. Strict handlers receive parsed
  * defaults and transforms, while the canonical request and durable fingerprint
- * retain the original transport arguments.
+ * retain the original transport arguments. Callers use the unparsed Zod input
+ * map, so defaulted fields may be omitted when the parameter schema allows it.
  */
-export type ToolCallFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
+export type ToolCallFunction<TInputMap> = <K extends Extract<keyof TInputMap, string>>(
   toolName: K,
-  payload: TPayloadMap[K],
+  payload: TInputMap[K],
   options?: DirectToolCallOptions
 ) => Promise<ToolCallResult>;
 
@@ -335,9 +337,10 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
 
   /**
    * Invoke a tool through the canonical `tools/call` path.
-   * Direct UI calls default to `{ source: 'local', mode: 'direct' }`.
+   * Direct UI calls accept unparsed Zod input and default to
+   * `{ source: 'local', mode: 'direct' }`.
    */
-  useToolCall: () => ToolCallFunction<InferActionPayloadMap<TSchema>>;
+  useToolCall: () => ToolCallFunction<InferActionInputMap<TSchema>>;
 
   /**
    * Register a legacy tool handler with the full PipelineController.

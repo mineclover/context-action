@@ -8,7 +8,7 @@
 
 > **createActionFactory**(`zodModule`): [`ActionFactory`](../type-aliases/ActionFactory.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:385](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L385)
+Defined in: [packages/tool-protocol/src/action-schema.ts:400](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L400)
 
 Zod 모듈을 바인딩한 defineAction 팩토리 생성
 

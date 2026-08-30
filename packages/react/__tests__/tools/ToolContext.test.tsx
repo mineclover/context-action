@@ -166,7 +166,10 @@ describe('createToolContext', () => {
       const directWrapper = ({ children }: { children: React.ReactNode }) => (
         <DirectTools.Provider>{children}</DirectTools.Provider>
       );
-      const handler = jest.fn(async ({ query }: { query: string }) => ({ query }));
+      const handler = jest.fn(async ({ query, maxResults }: { query: string; maxResults: number }) => ({
+        query,
+        maxResults,
+      }));
 
       const { result } = renderHook(() => {
         DirectTools.useToolHandler('searchProducts', handler, { blocking: true });
@@ -175,13 +178,13 @@ describe('createToolContext', () => {
 
       const toolResult = await act(async () => result.current(
         'searchProducts',
-        { query: 'laptop', maxResults: 10 },
+        { query: 'laptop' },
         { toolCallId: 'direct-ui-call' }
       ));
 
       expect(toolResult).toMatchObject({
         toolCallId: 'direct-ui-call',
-        structuredContent: { query: 'laptop' },
+        structuredContent: { query: 'laptop', maxResults: 10 },
       });
       expect(policy).toHaveBeenCalledWith(expect.objectContaining({
         request: expect.objectContaining({
@@ -189,7 +192,7 @@ describe('createToolContext', () => {
           method: 'tools/call',
           params: {
             name: 'searchProducts',
-            arguments: { query: 'laptop', maxResults: 10 },
+            arguments: { query: 'laptop' },
           },
         }),
         context: expect.objectContaining({ source: 'local', mode: 'direct' }),
@@ -198,7 +201,10 @@ describe('createToolContext', () => {
         { type: 'started', source: 'local', mode: 'direct' },
         { type: 'completed', source: 'local', mode: 'direct' },
       ]);
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'laptop', maxResults: 10 }),
+        expect.any(Object),
+      );
     });
 
     it('should destroy the action register when the provider unmounts', async () => {

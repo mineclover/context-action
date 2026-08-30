@@ -2,36 +2,27 @@
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / UnifiedAction
+[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / ActionDefinition
 
-# Interface: UnifiedAction\<TPayload, TOutput, TInputSchema\>
+# Interface: ActionDefinition\<TSchema, TOutputSchema\>
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:93](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L93)
+Defined in: [packages/tool-protocol/src/action-schema.ts:142](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L142)
 
-통합 Action 인터페이스
+A schema-backed action definition with inferred input, payload, and output types.
 
-Zod 스키마 기반 Action 정의로 다음을 제공:
-- 타입 추론 (z.infer)
-- 런타임 검증 (validate, safeParse)
-- Tool Chain 포맷 변환 (toMCP, toOpenAI, toAnthropic)
+## Extends
 
-## Extended by
-
-- [`ActionDefinition`](ActionDefinition.md)
+- [`UnifiedAction`](UnifiedAction.md)\<`z.infer`\<`ZodObject`&lt;`TSchema`&gt;\>, `TOutputSchema` *extends* `ZodTypeAny` ? `z.infer`&lt;`TOutputSchema`&gt; : `unknown`, `ZodObject`&lt;`TSchema`&gt;\>
 
 ## Type Parameters
 
-### TPayload
+### TSchema
 
-`TPayload` = `unknown`
+`TSchema` *extends* `ZodRawShape`
 
-### TOutput
+### TOutputSchema
 
-`TOutput` = `unknown`
-
-### TInputSchema
-
-`TInputSchema` *extends* `ZodTypeAny` = `ZodTypeAny`
+`TOutputSchema` *extends* `ZodTypeAny` \| `undefined` = `undefined`
 
 ## Properties
 
@@ -43,6 +34,10 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:100](https://github.com
 
 Action 이름
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`name`](UnifiedAction.md#name)
+
 ***
 
 ### title?
@@ -52,6 +47,10 @@ Action 이름
 Defined in: [packages/tool-protocol/src/action-schema.ts:102](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L102)
 
 Optional human-facing tool title
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`title`](UnifiedAction.md#title)
 
 ***
 
@@ -63,6 +62,10 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:104](https://github.com
 
 Action 설명
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`description`](UnifiedAction.md#description)
+
 ***
 
 ### annotations?
@@ -73,15 +76,23 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:106](https://github.com
 
 Optional tool-selection and safety hints
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`annotations`](UnifiedAction.md#annotations)
+
 ***
 
 ### zodSchema
 
-> `readonly` **zodSchema**: `TInputSchema`
+> `readonly` **zodSchema**: `ZodObject`
 
 Defined in: [packages/tool-protocol/src/action-schema.ts:108](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L108)
 
 원본 Zod 스키마
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`zodSchema`](UnifiedAction.md#zodschema)
 
 ***
 
@@ -93,6 +104,10 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:110](https://github.com
 
 JSON Schema (Tool chain 호환용)
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`jsonSchema`](UnifiedAction.md#jsonschema)
+
 ***
 
 ### outputSchema?
@@ -103,11 +118,15 @@ Defined in: [packages/tool-protocol/src/action-schema.ts:112](https://github.com
 
 Optional structured result JSON Schema (Tool chain 호환용)
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`outputSchema`](UnifiedAction.md#outputschema)
+
 ***
 
 ### safeParseOutput?
 
-> `readonly` `optional` **safeParseOutput?**: (`value`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`TOutput`&gt;
+> `readonly` `optional` **safeParseOutput?**: (`value`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)\<`TOutputSchema` *extends* `ZodTypeAny` ? `output`&lt;`TOutputSchema`&gt; : `unknown`\>
 
 Defined in: [packages/tool-protocol/src/action-schema.ts:115](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L115)
 
@@ -121,13 +140,17 @@ Safely validate a structured tool result when an output schema is defined
 
 #### Returns
 
-[`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`TOutput`&gt;
+[`SafeParseResult`](../type-aliases/SafeParseResult.md)\<`TOutputSchema` *extends* `ZodTypeAny` ? `output`&lt;`TOutputSchema`&gt; : `unknown`\>
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`safeParseOutput`](UnifiedAction.md#safeparseoutput)
 
 ***
 
 ### validate
 
-> **validate**: (`payload`) => `TPayload`
+> **validate**: (`payload`) => `$InferObjectOutput`
 
 Defined in: [packages/tool-protocol/src/action-schema.ts:122](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L122)
 
@@ -141,17 +164,21 @@ Payload 검증 (strict mode)
 
 #### Returns
 
-Type parameter **TPayload**
+`$InferObjectOutput`
 
 #### Throws
 
 ZodError if validation fails
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`validate`](UnifiedAction.md#validate)
+
 ***
 
 ### safeParse
 
-> **safeParse**: (`payload`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`TPayload`&gt;
+> **safeParse**: (`payload`) => [`SafeParseResult`](../type-aliases/SafeParseResult.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
 
 Defined in: [packages/tool-protocol/src/action-schema.ts:128](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L128)
 
@@ -165,9 +192,13 @@ Payload 검증 (safe mode)
 
 #### Returns
 
-[`SafeParseResult`](../type-aliases/SafeParseResult.md)&lt;`TPayload`&gt;
+[`SafeParseResult`](../type-aliases/SafeParseResult.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
 
 SafeParseResult with success/error
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`safeParse`](UnifiedAction.md#safeparse)
 
 ***
 
@@ -183,6 +214,10 @@ JSON Schema 반환
 
 [`JSONSchema`](JSONSchema.md)
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`toJSONSchema`](UnifiedAction.md#tojsonschema)
+
 ***
 
 ### toMCP
@@ -196,6 +231,10 @@ MCP 포맷 변환
 #### Returns
 
 [`MCPToolDefinition`](MCPToolDefinition.md)
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`toMCP`](UnifiedAction.md#tomcp)
 
 ***
 
@@ -211,6 +250,10 @@ OpenAI 포맷 변환
 
 [`OpenAIToolDefinition`](OpenAIToolDefinition.md)
 
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`toOpenAI`](UnifiedAction.md#toopenai)
+
 ***
 
 ### toAnthropic
@@ -224,3 +267,7 @@ Anthropic 포맷 변환
 #### Returns
 
 [`AnthropicToolDefinition`](AnthropicToolDefinition.md)
+
+#### Inherited from
+
+[`UnifiedAction`](UnifiedAction.md).[`toAnthropic`](UnifiedAction.md#toanthropic)

@@ -10,6 +10,7 @@
 
 - [DefineActionOptions](interfaces/DefineActionOptions.md)
 - [UnifiedAction](interfaces/UnifiedAction.md)
+- [ActionDefinition](interfaces/ActionDefinition.md)
 - [ActionSchemaMap](interfaces/ActionSchemaMap.md)
 - [ToolExecutionProvenance](interfaces/ToolExecutionProvenance.md)
 - [ToolExecutionProvenanceOptions](interfaces/ToolExecutionProvenanceOptions.md)
@@ -54,6 +55,7 @@
 - [SafeParseResult](type-aliases/SafeParseResult.md)
 - [InferActionPayloadMap](type-aliases/InferActionPayloadMap.md)
 - [InferActionResultMap](type-aliases/InferActionResultMap.md)
+- [InferActionInputMap](type-aliases/InferActionInputMap.md)
 - [ActionFactory](type-aliases/ActionFactory.md)
 - [ToolExecutionProvenanceState](type-aliases/ToolExecutionProvenanceState.md)
 - [ToolIdempotencyClaimStatus](type-aliases/ToolIdempotencyClaimStatus.md)

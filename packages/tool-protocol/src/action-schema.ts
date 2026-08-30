@@ -90,7 +90,11 @@ export interface DefineActionOptions<
  * - 런타임 검증 (validate, safeParse)
  * - Tool Chain 포맷 변환 (toMCP, toOpenAI, toAnthropic)
  */
-export interface UnifiedAction<TPayload = unknown, TOutput = unknown> {
+export interface UnifiedAction<
+  TPayload = unknown,
+  TOutput = unknown,
+  TInputSchema extends ZodTypeAny = ZodTypeAny,
+> {
   // ---- Metadata ----
   /** Action 이름 */
   readonly name: string;
@@ -101,7 +105,7 @@ export interface UnifiedAction<TPayload = unknown, TOutput = unknown> {
   /** Optional tool-selection and safety hints */
   readonly annotations?: ToolAnnotations;
   /** 원본 Zod 스키마 */
-  readonly zodSchema: ZodObject<ZodRawShape>;
+  readonly zodSchema: TInputSchema;
   /** JSON Schema (Tool chain 호환용) */
   readonly jsonSchema: JSONSchema;
   /** Optional structured result JSON Schema (Tool chain 호환용) */
@@ -133,6 +137,16 @@ export interface UnifiedAction<TPayload = unknown, TOutput = unknown> {
   /** Anthropic 포맷 변환 */
   toAnthropic: () => AnthropicToolDefinition;
 }
+
+/** A schema-backed action definition with inferred input, payload, and output types. */
+export interface ActionDefinition<
+  TSchema extends ZodRawShape,
+  TOutputSchema extends ZodTypeAny | undefined = undefined,
+> extends UnifiedAction<
+  z.infer<ZodObject<TSchema>>,
+  TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown,
+  ZodObject<TSchema>
+> {}
 
 // ============================================
 // Action Schema Map
@@ -172,16 +186,20 @@ export type InferActionResultMap<T extends ActionSchemaMap> = {
   [K in keyof T]: T[K] extends UnifiedAction<unknown, infer R> ? R : never;
 };
 
+/** Infer the unparsed input accepted by each action's Zod parameter schema. */
+export type InferActionInputMap<T extends ActionSchemaMap> = {
+  [K in keyof T]: T[K] extends UnifiedAction<unknown, unknown, infer TInputSchema>
+    ? z.input<TInputSchema>
+    : never;
+};
+
 /** A Zod-bound action factory that preserves input and output schema inference. */
 export type ActionFactory = <
   TSchema extends ZodRawShape,
   TOutputSchema extends ZodTypeAny | undefined = undefined,
 >(
   options: DefineActionOptions<TSchema, TOutputSchema>
-) => UnifiedAction<
-  z.infer<ZodObject<TSchema>>,
-  TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown
->;
+) => ActionDefinition<TSchema, TOutputSchema>;
 
 // ============================================
 // Zod → JSON Schema Conversion
@@ -248,10 +266,7 @@ export function defineAction<
 >(
   options: DefineActionOptions<TSchema, TOutputSchema>,
   zodModule: typeof z
-): UnifiedAction<
-  z.infer<ZodObject<TSchema>>,
-  TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown
-> {
+): ActionDefinition<TSchema, TOutputSchema> {
   type TPayload = z.infer<ZodObject<TSchema>>;
   type TOutput = TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown;
 
@@ -274,13 +289,13 @@ export function defineAction<
     ? zodToJsonSchema(outputSchema, zodModule)
     : undefined;
 
-  const action: UnifiedAction<TPayload, TOutput> = {
+  const action: ActionDefinition<TSchema, TOutputSchema> = {
     // ---- Metadata ----
     name,
     title,
     description,
     annotations,
-    zodSchema: parameters as unknown as ZodObject<ZodRawShape>,
+    zodSchema: parameters,
     jsonSchema,
     ...(outputJsonSchema ? { outputSchema: outputJsonSchema } : {}),
 

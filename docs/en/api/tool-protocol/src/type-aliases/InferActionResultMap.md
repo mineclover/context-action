@@ -8,7 +8,7 @@
 
 > **InferActionResultMap**&lt;`T`&gt; = `{ [K in keyof T]: T[K] extends UnifiedAction<unknown, infer R> ? R : never }`
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:171](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L171)
+Defined in: [packages/tool-protocol/src/action-schema.ts:185](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L185)
 
 Infer each action's structured output type from its optional output schema.
 

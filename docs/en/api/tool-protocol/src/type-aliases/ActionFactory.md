@@ -6,9 +6,9 @@
 
 # Type Alias: ActionFactory
 
-> **ActionFactory** = \<`TSchema`, `TOutputSchema`\>(`options`) => [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`z.infer`\<`ZodObject`&lt;`TSchema`&gt;\>, `TOutputSchema` *extends* `ZodTypeAny` ? `z.infer`&lt;`TOutputSchema`&gt; : `unknown`\>
+> **ActionFactory** = \<`TSchema`, `TOutputSchema`\>(`options`) => [`ActionDefinition`](../interfaces/ActionDefinition.md)\<`TSchema`, `TOutputSchema`\>
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:176](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L176)
+Defined in: [packages/tool-protocol/src/action-schema.ts:197](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L197)
 
 A Zod-bound action factory that preserves input and output schema inference.
 
@@ -30,4 +30,4 @@ A Zod-bound action factory that preserves input and output schema inference.
 
 ## Returns
 
-[`UnifiedAction`](../interfaces/UnifiedAction.md)\<`z.infer`\<`ZodObject`&lt;`TSchema`&gt;\>, `TOutputSchema` *extends* `ZodTypeAny` ? `z.infer`&lt;`TOutputSchema`&gt; : `unknown`\>
+[`ActionDefinition`](../interfaces/ActionDefinition.md)\<`TSchema`, `TOutputSchema`\>

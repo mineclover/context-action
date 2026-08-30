@@ -18,6 +18,7 @@ import {
   type UnifiedAction,
   type ActionSchemaMap,
   type InferActionPayloadMap,
+  type InferActionInputMap,
   type InferActionResultMap,
   type ActionFactory,
 } from '../../src';
@@ -452,7 +453,7 @@ describe('Action Schema', () => {
             name: 'createItem',
             parameters: z.object({
               title: z.string(),
-              count: z.number(),
+              count: z.number().default(1),
             }),
             outputSchema: z.object({
               id: z.string(),
@@ -473,12 +474,17 @@ describe('Action Schema', () => {
       });
 
       type Actions = InferActionPayloadMap<typeof schema>;
+      type Inputs = InferActionInputMap<typeof schema>;
       type Results = InferActionResultMap<typeof schema>;
       type CreateResultIsExact = Assert<Equal<Results['createItem'], {
         id: string;
         createdAt: string;
       }>>;
       type UnschematizedResultIsUnknown = Assert<Equal<Results['deleteItem'], unknown>>;
+      type CreateInputAllowsDefaultOmission = Assert<Equal<Inputs['createItem'], {
+        title: string;
+        count?: number | undefined;
+      }>>;
 
       // Type-level test: this should compile without errors
       const createPayload: Actions['createItem'] = {
@@ -489,12 +495,17 @@ describe('Action Schema', () => {
       const deletePayload: Actions['deleteItem'] = {
         id: '123',
       };
+      const createInput: Inputs['createItem'] = { title: 'test' };
       const createResult: Results['createItem'] = {
         id: 'item-1',
         createdAt: '2026-08-30T00:00:00.000Z',
       };
       const unschematizedResult: Results['deleteItem'] = { deleted: true };
-      const typeAssertions: [CreateResultIsExact, UnschematizedResultIsUnknown] = [true, true];
+      const typeAssertions: [
+        CreateResultIsExact,
+        UnschematizedResultIsUnknown,
+        CreateInputAllowsDefaultOmission,
+      ] = [true, true, true];
 
       const parsedOutput = schema.createItem.safeParseOutput?.(createResult);
       if (parsedOutput?.success) {
@@ -504,8 +515,9 @@ describe('Action Schema', () => {
 
       expect(createPayload).toEqual({ title: 'test', count: 1 });
       expect(deletePayload).toEqual({ id: '123' });
+      expect(createInput).toEqual({ title: 'test' });
       expect(unschematizedResult).toEqual({ deleted: true });
-      expect(typeAssertions).toEqual([true, true]);
+      expect(typeAssertions).toEqual([true, true, true]);
     });
   });
 });
