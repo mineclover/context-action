@@ -1,8 +1,9 @@
 /**
- * @fileoverview ToolContext Type Definitions
+ * @fileoverview Development-track ToolContext type definitions
  *
- * Type definitions for the ToolContext system - a unified tool registry
- * combining ActionContext patterns with Zod schema-based definitions.
+ * Repository source only: React 3 intentionally does not publish this as an
+ * installed subpath. The registry combines React lifecycle with Tool Protocol
+ * schemas and canonical tool-call contracts.
  */
 
 import type { DispatchArgs } from '@context-action/core';
@@ -72,14 +73,18 @@ export type ToolOperationRecoveryResolver = (
  * Configuration options for createToolContext
  */
 export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
-  /** Tool schema map (required) - defines all available tools */
+  /**
+   * Tool schema map (required). The factory snapshots map membership; create
+   * a new context rather than mutating this object to change the catalog.
+   */
   schema: TSchema;
 
   /**
-   * Validation mode for tool execution
-   * - 'strict': Throws ActionValidationError on invalid payload (default)
-   * - 'warn': Logs warning but continues execution
-   * - 'silent': Silently ignores validation errors
+   * Validation mode for tool execution.
+   * - 'strict': canonical tools/call returns a validation error before policy
+   *   or handlers and passes parsed defaults/transforms to the handler.
+   * - 'warn' and 'silent': preserve ActionRegister's permissive raw-dispatch
+   *   behavior.
    */
   validationMode?: ToolValidationMode;
 
@@ -92,7 +97,10 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
   /** Enable debug logging */
   debug?: boolean;
 
-  /** Optional execution allowlist applied to discovery and calls. */
+  /**
+   * Optional execution allowlist applied to discovery and calls. The factory
+   * snapshots this list, so later caller mutations do not change the catalog.
+   */
   allowedToolNames?: readonly string[];
 
   /** Optional page size for canonical tools/list discovery. Defaults to all tools. */
@@ -135,8 +143,8 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
 // ============================================
 
 /**
- * Tool Registry - provides access to all defined tools
- * and their export methods for LLM integration
+ * Source-track Tool Registry. It owns canonical discovery and calls, while
+ * compatibility exporters remain available for provider adapters.
  */
 export interface ToolRegistry<TSchema extends ActionSchemaMap>
   extends ToolManagementInterface<MCPToolDefinition> {
@@ -151,22 +159,22 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
 
   // ---- Batch Export Methods ----
 
-  /** Export all tools as MCP format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toMCP(): MCPToolDefinition[];
 
-  /** Export all tools as OpenAI format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toOpenAI(): OpenAIToolDefinition[];
 
-  /** Export all tools as Anthropic format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toAnthropic(): AnthropicToolDefinition[];
 
-  /** Export specific tools as MCP format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toMCPFiltered<K extends keyof TSchema>(toolNames: K[]): MCPToolDefinition[];
 
-  /** Export specific tools as OpenAI format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toOpenAIFiltered<K extends keyof TSchema>(toolNames: K[]): OpenAIToolDefinition[];
 
-  /** Export specific tools as Anthropic format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toAnthropicFiltered<K extends keyof TSchema>(toolNames: K[]): AnthropicToolDefinition[];
 
   /** Discover tools using the standard tools/list contract */
@@ -256,7 +264,11 @@ export interface ToolContextType<TSchema extends ActionSchemaMap> {
 // ============================================
 
 /**
- * Return type for useToolDispatch hook
+ * Raw ActionRegister dispatch retained for ActionContext compatibility.
+ * It bypasses canonical policy, lifecycle observation, idempotency, durable
+ * operation handling, and output budgets.
+ *
+ * @deprecated Use ToolCallFunction through useToolCall() for new invocations.
  */
 export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
   toolName: K,
@@ -264,7 +276,11 @@ export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloa
   options?: DispatchOptions
 ) => Promise<void>;
 
-/** Options for a direct React-originated canonical tool call. */
+/**
+ * Options for a direct React-originated canonical tool call. ToolContext
+ * accepts timeout only as a safe integer from 0 through 2,147,483,647 ms so
+ * lifecycle provenance and the JavaScript timer keep the same contract.
+ */
 export interface DirectToolCallOptions extends ToolCallOptions {
   /** Optional stable ID used to correlate the canonical `tools/call` request. */
   readonly toolCallId?: ToolCallRequest['id'];
@@ -275,7 +291,9 @@ export interface DirectToolCallOptions extends ToolCallOptions {
  *
  * Unlike the raw dispatch hooks, this always crosses the ToolRegistry boundary
  * and therefore applies policy, lifecycle observation, output budgets,
- * idempotency, and durable-operation handling.
+ * idempotency, and durable-operation handling. Strict handlers receive parsed
+ * defaults and transforms, while the canonical request and durable fingerprint
+ * retain the original transport arguments.
  */
 export type ToolCallFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
   toolName: K,
@@ -284,7 +302,8 @@ export type ToolCallFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap
 ) => Promise<ToolCallResult>;
 
 /**
- * Return type for useToolDispatchWithResult hook
+ * Raw ActionRegister result helpers for advanced compatibility integrations.
+ * They do not cross the canonical ToolRegistry boundary.
  */
 export interface ToolDispatchWithResultReturn<TPayloadMap> {
   dispatch: ToolDispatchFunction<TPayloadMap>;
@@ -300,15 +319,15 @@ export interface ToolDispatchWithResultReturn<TPayloadMap> {
 // ============================================
 
 /**
- * Return type for createToolContext factory
+ * Return type for the source-only createToolContext factory.
  */
 export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   /** Provider component that wraps children with tool context */
   Provider: React.FC<{ children: ReactNode }>;
 
   /**
-   * Hook to dispatch tools (execute with validation)
-   * @returns Dispatch function that validates and executes tools
+   * Raw ActionRegister dispatch retained for compatibility.
+   * @deprecated Use useToolCall() for new tool invocations.
    */
   useToolDispatch: () => ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
 
@@ -329,19 +348,20 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   ) => void;
 
   /**
-   * Hook to access the tool registry
-   * Provides methods to export tools in various formats
+   * Hook to access the canonical registry. Prefer listTools(),
+   * getToolDefinition(), and callTool() for new integrations.
    */
   useToolRegistry: () => ToolRegistry<TSchema>;
 
   /**
-   * Hook for dispatch with detailed result
+   * Raw ActionRegister result API for advanced compatibility integrations.
+   * It does not cross the canonical ToolRegistry boundary.
    */
   useToolDispatchWithResult: () => ToolDispatchWithResultReturn<InferActionPayloadMap<TSchema>>;
 
   /**
-   * Hook to access raw ActionRegister
-   * For advanced use cases
+   * Hook to access raw ActionRegister for advanced integrations. It bypasses
+   * the canonical ToolRegistry boundary.
    */
   useActionRegister: () => ActionRegister<InferActionPayloadMap<TSchema>> | null;
 

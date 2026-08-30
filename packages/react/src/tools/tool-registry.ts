@@ -81,19 +81,22 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     throw new Error('toolListPageSize must be a positive integer.');
   }
 
+  // Snapshot both membership inputs. A registry is one catalog, not a live
+  // view over caller-owned configuration that can diverge from its executor.
+  const catalog = Object.freeze({ ...schema }) as TSchema;
   const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
-  const toolNames = Object.keys(schema).filter(
+  const toolNames = Object.freeze(Object.keys(catalog).filter(
     name => !allowedNames || allowedNames.has(name)
-  ) as (keyof TSchema)[];
+  ) as (keyof TSchema)[]);
   const hasOwnTool = (name: string): boolean =>
-    Object.getOwnPropertyDescriptor(schema, name) !== undefined &&
+    Object.getOwnPropertyDescriptor(catalog, name) !== undefined &&
     (!allowedNames || allowedNames.has(name));
   const getExportableTool = <K extends keyof TSchema>(name: K): TSchema[K] => {
     if (!hasOwnTool(String(name))) {
       throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
 
-    const tool = schema[name];
+    const tool = catalog[name];
     if (!tool) {
       throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
@@ -106,7 +109,7 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     // A direct registry call remains the complete catalog. Canonical
     // tools/list requests can opt into cursor pagination.
     if (!request || toolListPageSize === undefined) {
-      return { tools: toolNames.map(name => schema[name]!.toMCP()) };
+      return { tools: toolNames.map(name => catalog[name]!.toMCP()) };
     }
 
     const start = request.params?.cursor
@@ -114,15 +117,15 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       : 0;
     const end = Math.min(start + toolListPageSize, toolNames.length);
     return {
-      tools: toolNames.slice(start, end).map(name => schema[name]!.toMCP()),
+      tools: toolNames.slice(start, end).map(name => catalog[name]!.toMCP()),
       ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
     };
   };
 
   return {
-    tools: schema,
+    tools: catalog,
     getTool<K extends keyof TSchema>(name: K): TSchema[K] {
-      if (Object.getOwnPropertyDescriptor(schema, String(name)) === undefined) {
+      if (Object.getOwnPropertyDescriptor(catalog, String(name)) === undefined) {
         throw new Error(`Tool "${String(name)}" not found in registry`);
       }
       return getExportableTool(name);
@@ -133,7 +136,7 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     listTools,
     getToolDefinition(name: string) {
       if (!hasOwnTool(name)) return undefined;
-      return schema[name]?.toMCP();
+      return catalog[name]?.toMCP();
     },
     callTool(request, options) {
       return executeToolCall(request, options);
@@ -188,7 +191,7 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       );
     },
     getToolNames(): (keyof TSchema)[] {
-      return toolNames;
+      return [...toolNames];
     },
     // Compatibility exporters. New provider integrations should consume
     // listTools()/getToolDefinition() through ToolManagementInterface.

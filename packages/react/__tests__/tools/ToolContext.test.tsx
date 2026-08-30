@@ -8,7 +8,11 @@ import React, { startTransition, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { render, renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
-import { createToolContext } from '../../src/tools';
+import {
+  createToolContext,
+  type DirectToolCallOptions,
+  type ToolCallFunction,
+} from '../../src/tools';
 import {
   createMockDurableOperationBackend,
   createMockDurableOperationStore,
@@ -125,6 +129,14 @@ describe('createToolContext', () => {
     it('should provide context to children', () => {
       const { result } = renderHook(() => useToolRegistry(), { wrapper });
       expect(result.current).toBeDefined();
+    });
+
+    it('exports the canonical direct-call types from the source barrel', () => {
+      const options: DirectToolCallOptions = { timeout: 1 };
+      const call: ToolCallFunction<{ ping: { id: string } }> = async () => ({ content: [] });
+
+      expect(options.timeout).toBe(1);
+      expect(typeof call).toBe('function');
     });
 
     it('should throw error when used outside provider', () => {
@@ -755,6 +767,50 @@ describe('createToolContext', () => {
       );
     });
 
+    it('passes strict parsed defaults and transforms to the handler', async () => {
+      const normalizedSchema = createActionSchema({
+        normalizeSearch: defineAction({
+          name: 'normalizeSearch',
+          description: 'Normalize a search request.',
+          parameters: z.object({
+            query: z.string().trim(),
+            maxResults: z.number().int().positive().default(10),
+          }),
+        }, z),
+      });
+      const normalizedContext = createToolContext('NormalizedTools', {
+        schema: normalizedSchema,
+      });
+      const normalizedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <normalizedContext.Provider>{children}</normalizedContext.Provider>
+      );
+      const handler = jest.fn(async (payload: { query: string; maxResults: number }) => payload);
+      const { result } = renderHook(
+        () => {
+          normalizedContext.useToolHandler(
+            'normalizeSearch',
+            useCallback(handler, [])
+          );
+          return normalizedContext.useToolRegistry();
+        },
+        { wrapper: normalizedWrapper }
+      );
+
+      const toolResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'normalized-input',
+        params: { name: 'normalizeSearch', arguments: { query: '  laptop  ' } },
+      }));
+
+      expect(handler).toHaveBeenCalledWith(
+        { query: 'laptop', maxResults: 10 },
+        expect.any(Object)
+      );
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', maxResults: 10 },
+      });
+    });
+
     it('should expose additive execution provenance on lifecycle events', async () => {
       const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
       const provenanceContext = createToolContext('ProvenanceTools', {
@@ -1328,6 +1384,68 @@ describe('createToolContext', () => {
       );
     });
 
+    it('snapshots schema and allowlist membership for discovery and execution', async () => {
+      const mutableSchema = { ...testSchema };
+      const mutableAllowedToolNames = ['searchProducts'];
+      const snapshotContext = createToolContext('SnapshotTools', {
+        schema: mutableSchema,
+        allowedToolNames: mutableAllowedToolNames,
+      });
+      delete (mutableSchema as Partial<typeof mutableSchema>).searchProducts;
+      Object.assign(mutableSchema as Record<string, unknown>, {
+        runtimeAdded: testSchema.addToCart,
+      });
+      mutableAllowedToolNames.length = 0;
+      mutableAllowedToolNames.push('addToCart');
+
+      const handler = jest.fn(async () => ({ source: 'snapshot' }));
+      const snapshotWrapper = ({ children }: { children: React.ReactNode }) => (
+        <snapshotContext.Provider>{children}</snapshotContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          snapshotContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return snapshotContext.useToolRegistry();
+        },
+        { wrapper: snapshotWrapper }
+      );
+
+      expect(result.current.getToolNames()).toEqual(['searchProducts']);
+      const callerOwnedNames = result.current.getToolNames();
+      callerOwnedNames.push('addToCart');
+      expect(result.current.getToolNames()).toEqual(['searchProducts']);
+      expect(result.current.listTools().tools.map((tool) => tool.name)).toEqual(['searchProducts']);
+      expect(result.current.getToolDefinition('addToCart')).toBeUndefined();
+
+      const allowedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-allowed',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      }));
+      expect(allowedResult).toMatchObject({ structuredContent: { source: 'snapshot' } });
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      const blockedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-blocked',
+        params: { name: 'addToCart', arguments: { productId: 'item-1', quantity: 1 } },
+      }));
+      expect(blockedResult).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.NOT_ALLOWED },
+      });
+
+      const addedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-added',
+        params: { name: 'runtimeAdded', arguments: { productId: 'item-1', quantity: 1 } },
+      }));
+      expect(addedResult).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.NOT_FOUND },
+      });
+    });
+
     it('runs canonical interaction only after validation and a policy ask', async () => {
       const interaction = jest.fn(async () => 'approved' as const);
       const policy = jest.fn(() => 'ask' as const);
@@ -1573,23 +1691,79 @@ describe('createToolContext', () => {
         { wrapper: timeoutWrapper }
       );
 
-      const toolResult = await act(async () =>
-        result.current.callTool(
+      for (const timeout of [-1, 0.5, Number.MAX_SAFE_INTEGER + 1, 2_147_483_648]) {
+        const toolResult = await act(async () =>
+          result.current.callTool(
+            {
+              method: 'tools/call',
+              id: `invalid-timeout-${String(timeout)}`,
+              params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+            },
+            { timeout }
+          )
+        );
+
+        expect(toolResult).toMatchObject({
+          isError: true,
+          toolCallId: `invalid-timeout-${String(timeout)}`,
+          error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
+        });
+      }
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('keeps zero timeout valid and rejects invalid values before lifecycle events or timers', async () => {
+      jest.useFakeTimers();
+      try {
+        const events: string[] = [];
+        const handler = jest.fn(async () => ({ ok: true }));
+        const timeoutContext = createToolContext('TimeoutBoundaryTools', {
+          schema: testSchema,
+          onToolCall: event => events.push(event.type),
+        });
+        const timeoutWrapper = ({ children }: { children: React.ReactNode }) => (
+          <timeoutContext.Provider>{children}</timeoutContext.Provider>
+        );
+        const { result } = renderHook(
+          () => {
+            timeoutContext.useToolHandler('searchProducts', useCallback(handler, []));
+            return timeoutContext.useToolRegistry();
+          },
+          { wrapper: timeoutWrapper }
+        );
+
+        const zeroResult = await result.current.callTool(
           {
             method: 'tools/call',
-            id: 'invalid-timeout',
+            id: 'zero-timeout',
             params: { name: 'searchProducts', arguments: { query: 'laptop' } },
           },
-          { timeout: -1 }
-        )
-      );
+          { timeout: 0 }
+        );
+        expect(zeroResult).toMatchObject({ structuredContent: { ok: true } });
+        expect(events).toEqual(['started', 'completed']);
 
-      expect(toolResult).toMatchObject({
-        isError: true,
-        toolCallId: 'invalid-timeout',
-        error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
-      });
-      expect(handler).not.toHaveBeenCalled();
+        events.length = 0;
+        for (const timeout of [0.5, Number.MAX_SAFE_INTEGER + 1, 2_147_483_648]) {
+          const toolResult = await result.current.callTool(
+            {
+              method: 'tools/call',
+              id: `invalid-preflight-${String(timeout)}`,
+              params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+            },
+            { timeout }
+          );
+          expect(toolResult).toMatchObject({
+            isError: true,
+            error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS },
+          });
+        }
+        expect(events).toEqual([]);
+        expect(jest.getTimerCount()).toBe(0);
+        expect(handler).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should return a canonical error for an invalid per-call provenance owner', async () => {

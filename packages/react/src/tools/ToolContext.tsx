@@ -1,18 +1,25 @@
 /**
- * @fileoverview createToolContext - Unified Tool Registry for LLM Integration
+ * @fileoverview Development-track createToolContext for unified tool management
  *
- * Combines ActionContext patterns with Zod schema-based definitions to create
- * a unified tool registry that can:
- * - Define tools with Zod schemas (Single Source of Truth)
+ * This module is repository source only: React 3 intentionally does not
+ * publish `@context-action/react/tools`. It combines React provider lifecycle
+ * with Tool Protocol schemas to create a registry that can:
+ * - Define tools with Tool Protocol schemas backed by Zod
  * - Register and execute tool handlers
- * - Export tools in MCP, OpenAI, Anthropic formats
- * - Validate payloads at runtime
+ * - Serve canonical tools/list and tools/call requests
+ * - Convert canonical definitions for provider adapters
+ * - Validate payloads and normalize strict input at runtime
  *
  * @example
  * ```typescript
+ * // Repository source-track sibling import; not an installed React 3 subpath.
+ * import { createToolContext } from './ToolContext';
  * import { z } from 'zod';
- * import { createToolContext } from '@context-action/react/tools';
- * import { defineAction, createActionSchema } from '@context-action/tool-protocol';
+ * import {
+ *   createActionSchema,
+ *   defineAction,
+ *   toOpenAIToolDefinitions,
+ * } from '@context-action/tool-protocol';
  *
  * const toolSchema = createActionSchema({
  *   searchProducts: defineAction({
@@ -27,7 +34,7 @@
  *
  * const {
  *   Provider: ToolProvider,
- *   useToolDispatch,
+ *   useToolCall,
  *   useToolHandler,
  *   useToolRegistry,
  * } = createToolContext('ProductTools', { schema: toolSchema });
@@ -35,7 +42,7 @@
  * // In your LLM integration:
  * function LLMIntegration() {
  *   const registry = useToolRegistry();
- *   const tools = registry.toOpenAI(); // Export for OpenAI
+ *   const tools = toOpenAIToolDefinitions(registry.listTools().tools);
  *   // ... use tools with OpenAI API
  * }
  * ```
@@ -110,6 +117,7 @@ import {
 
 const DEFAULT_DURABLE_OPERATION_LEASE_MS = 5 * 60 * 1000;
 const MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS = 1000;
+const MAX_TOOL_CALL_TIMEOUT_MS = 2_147_483_647;
 
 type DurablePersistenceOutcome =
   | { readonly persisted: true }
@@ -179,8 +187,10 @@ interface ToolCallTimeoutState {
 
 function createToolCallTimeout(timeout: number | undefined): ToolCallTimeoutState | undefined {
   if (timeout === undefined) return undefined;
-  if (!Number.isFinite(timeout) || timeout < 0) {
-    throw new RangeError('Tool call timeout must be a finite non-negative number.');
+  if (!Number.isSafeInteger(timeout) || timeout < 0 || timeout > MAX_TOOL_CALL_TIMEOUT_MS) {
+    throw new RangeError(
+      `Tool call timeout must be a safe integer between 0 and ${MAX_TOOL_CALL_TIMEOUT_MS}ms.`
+    );
   }
 
   const controller = new AbortController();
@@ -301,13 +311,16 @@ function observedToolOutputBytes(result: ToolCallResult): number {
 }
 
 /**
- * Creates a unified Tool Context for LLM integration
+ * Creates a source-track Tool Context for LLM integration.
  *
  * This factory creates a complete tool system that:
- * - Uses Zod schemas as the Single Source of Truth
- * - Provides runtime payload validation
- * - Exports tools in MCP, OpenAI, Anthropic formats
+ * - Uses Tool Protocol schemas as the Single Source of Truth
+ * - Provides canonical tools/list and tools/call boundaries
+ * - Normalizes strict input before it reaches handlers
+ * - Keeps compatibility provider exporters separate from canonical discovery
  * - Manages tool handlers with priority-based execution
+ *
+ * React 3 does not publish this factory as an installed package subpath.
  *
  * @param contextName - Name identifier for this tool context
  * @param config - Configuration with required schema
@@ -328,11 +341,11 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   type TPayloadMap = InferActionPayloadMap<TSchema>;
 
   const {
-    schema,
+    schema: configuredSchema,
     validationMode = 'strict',
     validateOnDispatch = true,
     debug = false,
-    allowedToolNames,
+    allowedToolNames: configuredAllowedToolNames,
     toolListPageSize,
     toolPolicy,
     onToolCall,
@@ -343,6 +356,12 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     durableOperationLeaseMs = DEFAULT_DURABLE_OPERATION_LEASE_MS,
     durableDiagnosticPolicy,
   } = config;
+  // A context factory owns one stable catalog. Keep caller mutations from
+  // making discovery, validation, and execution observe different tool sets.
+  const schema = Object.freeze({ ...configuredSchema }) as TSchema;
+  const allowedToolNames = configuredAllowedToolNames === undefined
+    ? undefined
+    : Object.freeze([...new Set(configuredAllowedToolNames)]);
 
   if (
     durableOperationLeaseMs !== undefined &&
@@ -578,6 +597,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           ));
         }
 
+        let executionArguments = request.params.arguments ?? {};
+
         // Canonical tools/call requests must fail before policy/approval when
         // strict validation rejects their arguments. This keeps malformed
         // model input out of the approval UI and gives every transport the
@@ -595,6 +616,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               }
             ));
           }
+          // The canonical handler path must receive the same defaulted or
+          // transformed value that strict validation accepted.
+          executionArguments = validation.data as Record<string, unknown>;
         }
 
         if (toolPolicy) {
@@ -753,7 +777,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           }));
         }
 
-        const payload = (request.params.arguments ?? {}) as TPayloadMap[typeof toolName];
+        const payload = executionArguments as TPayloadMap[typeof toolName];
         const operationKey = idempotencyKey === undefined
           ? undefined
           : createToolOperationKey(

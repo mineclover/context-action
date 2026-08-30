@@ -361,7 +361,7 @@ telemetry와 사용자 trace consumer는 event나 diagnostic을 보존하기 전
 metadata를 제공한다. durable operation record를 변경하거나 두 번째 state machine을
 만드는 기능은 아니며, standalone Bolt-style trace는 화면 표시와 복사 JSON 모두에
 이 policy를 사용한다.
-`@context-action/react/tools`가 ambiguous durable tool result를 저장할 때는
+source-only ToolContext 트랙이 ambiguous durable tool result를 저장할 때는
 `sanitizeToolCallDiagnostic()`를 사용해 error code/retryability와 bounded redacted
 details만 남긴다. canonical content와 structured payload는 생략하며, 성공한 terminal
 result는 cross-process replay 계약을 보존하기 위해 lossless로 유지한다.
@@ -768,7 +768,7 @@ bridge는 ready message를 억제하므로, 이후 `DOMContentLoaded` event가 �
 surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
 `demos/bolt-style-editor`로 격리해 example route와 결합하지 않고 정적 페이지로
 배포한다. Tool protocol과 action schema는 `@context-action/tool-protocol`,
-ToolContext와 registry는 `@context-action/react/tools`가 소유한다.
+ToolContext와 registry는 source-only `packages/react/src/tools` 트랙이 소유한다.
 
 첫 번째 추출 seam은 이제 private
 `@context-action/live-code-editor` workspace package로 존재한다. 이 package는
