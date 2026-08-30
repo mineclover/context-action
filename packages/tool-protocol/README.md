@@ -12,17 +12,25 @@ npm install @context-action/tool-protocol zod
 
 ```ts
 import { z } from 'zod';
-import { createActionSchema, defineAction, toOpenAIToolDefinitions } from '@context-action/tool-protocol';
+import {
+  createActionSchema,
+  defineAction,
+  toOpenAIToolDefinitions,
+  type InferActionResultMap,
+} from '@context-action/tool-protocol';
 
 const tools = createActionSchema({
   search: defineAction({
     name: 'search',
     description: 'Search the catalog',
     parameters: z.object({ query: z.string() }),
+    outputSchema: z.object({ items: z.array(z.string()) }),
   }, z),
 });
 
 const definitions = toOpenAIToolDefinitions(Object.values(tools));
+type SearchResult = InferActionResultMap<typeof tools>['search'];
+const initialResult: SearchResult = { items: [] };
 ```
 
 Zod is a runtime dependency because the package exposes the action-schema API from
@@ -52,6 +60,10 @@ this package directly.
   machine. `ToolCallOptions.maxOutputBytes` can enforce an optional result
   boundary and returns `TOOL_OUTPUT_LIMIT_EXCEEDED` before the result is
   returned to the caller.
+- `InferActionResultMap<typeof schema>` derives each action's output-schema
+  type. Source-track `useToolResultHandler()` uses that type for its return
+  value and result controller; actions without an output schema remain
+  `unknown` until their contract is declared.
 - `createToolObservabilityPolicy()` and
   `serializeToolObservabilityValue()` provide the shared telemetry boundary.
   They redact credential/source-like fields, bound depth/collections/strings,

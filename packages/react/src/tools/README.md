@@ -24,7 +24,9 @@ Durable Operations release decision is approved.
 - Use `useToolResultHandler()` for new handlers that only produce a tool
   result. It registers through core's explicit result phase. Keep
   `useToolHandler()` only when a handler needs the legacy full
-  `PipelineController` control-flow surface.
+  `PipelineController` control-flow surface. When an action declares an
+  `outputSchema`, the result hook derives its return and result-controller type
+  from `InferActionResultMap`.
 - `useToolDispatch()` and `useToolDispatchWithResult()` are raw ActionRegister
   compatibility APIs. They intentionally bypass those canonical boundaries.
 - Use `useToolRegistry()` with `listTools()`, `getToolDefinition()`, and

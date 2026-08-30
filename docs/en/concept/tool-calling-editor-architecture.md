@@ -304,7 +304,9 @@ without restating the contract.
   result payload and is trace evidence, not a second durable-operation state
   machine.
 - An action's optional `outputSchema` validates structured handler results before
-  they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
+  they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`.
+  `InferActionResultMap<typeof schema>` also derives the matching static result
+  type for source-track result handlers.
 
 `@context-action/tool-protocol` exports `TOOL_CALL_ERROR_CODES` and
 `ToolCallErrorCode` for the canonical managed-call codes. Applications can still

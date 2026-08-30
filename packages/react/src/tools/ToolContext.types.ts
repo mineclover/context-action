@@ -25,6 +25,7 @@ import type {
   ActionSchemaMap,
   AnthropicToolDefinition,
   InferActionPayloadMap,
+  InferActionResultMap,
   MCPToolDefinition,
   ModelToolCall,
   OpenAIToolDefinition,
@@ -353,9 +354,12 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
    * It receives the narrower result controller; retain useToolHandler() when
    * a legacy full PipelineController is required.
    */
-  useToolResultHandler: <K extends Extract<keyof TSchema, string>, R = unknown>(
+  useToolResultHandler: <K extends Extract<keyof TSchema, string>>(
     toolName: K,
-    handler: ActionResultHandler<InferActionPayloadMap<TSchema>[K], R>,
+    handler: ActionResultHandler<
+      InferActionPayloadMap<TSchema>[K],
+      InferActionResultMap<TSchema>[K]
+    >,
     config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
   ) => void;
 

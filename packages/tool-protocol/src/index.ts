@@ -134,8 +134,10 @@ export {
 
 export type {
   DefineActionOptions,
+  ActionFactory,
   UnifiedAction,
   ActionSchemaMap,
   InferActionPayloadMap,
+  InferActionResultMap,
   SafeParseResult,
 } from './action-schema.js';

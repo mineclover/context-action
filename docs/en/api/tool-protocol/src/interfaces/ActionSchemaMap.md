@@ -6,10 +6,10 @@
 
 # Interface: ActionSchemaMap
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:141](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L141)
+Defined in: [packages/tool-protocol/src/action-schema.ts:144](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L144)
 
 다중 Action 스키마 맵
 
 ## Indexable
 
-> \[`actionName`: `string`\]: [`UnifiedAction`](UnifiedAction.md)&lt;`unknown`&gt;
+> \[`actionName`: `string`\]: [`UnifiedAction`](UnifiedAction.md)\<`unknown`, `unknown`\>

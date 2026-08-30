@@ -8,7 +8,7 @@
 
 > **zodToJsonSchema**(`schema`, `zodModule`): [`JSONSchema`](../interfaces/JSONSchema.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:177](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L177)
+Defined in: [packages/tool-protocol/src/action-schema.ts:196](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L196)
 
 Zod 스키마를 JSON Schema로 변환 (Zod 4 네이티브 API)
 

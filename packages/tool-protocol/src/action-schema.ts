@@ -60,7 +60,10 @@ export type SafeParseResult<T> =
 /**
  * defineAction 옵션 인터페이스
  */
-export interface DefineActionOptions<TSchema extends ZodRawShape> {
+export interface DefineActionOptions<
+  TSchema extends ZodRawShape,
+  TOutputSchema extends ZodTypeAny | undefined = undefined,
+> {
   /** Action 이름 (고유 식별자) */
   name: string;
   /** Optional human-facing tool title */
@@ -72,7 +75,7 @@ export interface DefineActionOptions<TSchema extends ZodRawShape> {
   /** Zod 스키마 (payload 검증 및 타입 추론의 Single Source of Truth) */
   parameters: ZodObject<TSchema>;
   /** Optional structured result schema advertised by tool transports */
-  outputSchema?: ZodTypeAny;
+  outputSchema?: TOutputSchema;
 }
 
 // ============================================
@@ -87,7 +90,7 @@ export interface DefineActionOptions<TSchema extends ZodRawShape> {
  * - 런타임 검증 (validate, safeParse)
  * - Tool Chain 포맷 변환 (toMCP, toOpenAI, toAnthropic)
  */
-export interface UnifiedAction<TPayload = unknown> {
+export interface UnifiedAction<TPayload = unknown, TOutput = unknown> {
   // ---- Metadata ----
   /** Action 이름 */
   readonly name: string;
@@ -105,7 +108,7 @@ export interface UnifiedAction<TPayload = unknown> {
   readonly outputSchema?: JSONSchema;
 
   /** Safely validate a structured tool result when an output schema is defined */
-  readonly safeParseOutput?: (value: unknown) => SafeParseResult<unknown>;
+  readonly safeParseOutput?: (value: unknown) => SafeParseResult<TOutput>;
 
   // ---- Validation Functions ----
   /**
@@ -163,6 +166,22 @@ export interface ActionSchemaMap {
 export type InferActionPayloadMap<T extends ActionSchemaMap> = {
   [K in keyof T]: T[K] extends UnifiedAction<infer P> ? P : never;
 };
+
+/** Infer each action's structured output type from its optional output schema. */
+export type InferActionResultMap<T extends ActionSchemaMap> = {
+  [K in keyof T]: T[K] extends UnifiedAction<unknown, infer R> ? R : never;
+};
+
+/** A Zod-bound action factory that preserves input and output schema inference. */
+export type ActionFactory = <
+  TSchema extends ZodRawShape,
+  TOutputSchema extends ZodTypeAny | undefined = undefined,
+>(
+  options: DefineActionOptions<TSchema, TOutputSchema>
+) => UnifiedAction<
+  z.infer<ZodObject<TSchema>>,
+  TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown
+>;
 
 // ============================================
 // Zod → JSON Schema Conversion
@@ -223,11 +242,18 @@ export function zodToJsonSchema(
  * const mcpTool = updateUserAction.toMCP();
  * ```
  */
-export function defineAction<TSchema extends ZodRawShape>(
-  options: DefineActionOptions<TSchema>,
+export function defineAction<
+  TSchema extends ZodRawShape,
+  TOutputSchema extends ZodTypeAny | undefined = undefined,
+>(
+  options: DefineActionOptions<TSchema, TOutputSchema>,
   zodModule: typeof z
-): UnifiedAction<z.infer<ZodObject<TSchema>>> {
+): UnifiedAction<
+  z.infer<ZodObject<TSchema>>,
+  TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown
+> {
   type TPayload = z.infer<ZodObject<TSchema>>;
+  type TOutput = TOutputSchema extends ZodTypeAny ? z.infer<TOutputSchema> : unknown;
 
   const {
     name,
@@ -248,7 +274,7 @@ export function defineAction<TSchema extends ZodRawShape>(
     ? zodToJsonSchema(outputSchema, zodModule)
     : undefined;
 
-  const action: UnifiedAction<TPayload> = {
+  const action: UnifiedAction<TPayload, TOutput> = {
     // ---- Metadata ----
     name,
     title,
@@ -269,8 +295,8 @@ export function defineAction<TSchema extends ZodRawShape>(
 
     ...(outputSchema
       ? {
-          safeParseOutput: (value: unknown): SafeParseResult<unknown> =>
-            outputSchema.safeParse(value) as SafeParseResult<unknown>,
+          safeParseOutput: (value: unknown): SafeParseResult<TOutput> =>
+            outputSchema.safeParse(value) as SafeParseResult<TOutput>,
         }
       : {}),
 
@@ -356,10 +382,6 @@ export function createActionSchema<T extends Record<string, UnifiedAction>>(
  * });
  * ```
  */
-export function createActionFactory(zodModule: typeof z) {
-  return <TSchema extends ZodRawShape>(
-    options: DefineActionOptions<TSchema>
-  ): UnifiedAction<z.infer<ZodObject<TSchema>>> => {
-    return defineAction(options, zodModule);
-  };
+export function createActionFactory(zodModule: typeof z): ActionFactory {
+  return options => defineAction(options, zodModule);
 }

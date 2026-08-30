@@ -1035,6 +1035,41 @@ describe('createToolContext', () => {
       });
     });
 
+    it('infers explicit result-handler output from the action output schema', async () => {
+      const outputSchema = createActionSchema({
+        getStatus: defineAction({
+          name: 'getStatus',
+          parameters: z.object({}),
+          outputSchema: z.object({ ready: z.boolean() }),
+        }, z),
+      });
+      const OutputTools = createToolContext('TypedOutputTools', {
+        schema: outputSchema,
+      });
+      const outputWrapper = ({ children }: { children: React.ReactNode }) => (
+        <OutputTools.Provider>{children}</OutputTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          const call = OutputTools.useToolCall();
+          OutputTools.useToolResultHandler(
+            'getStatus',
+            useCallback((_payload, resultController) => {
+              const firstResult: { ready: boolean } | undefined = resultController.getResults()[0];
+              expect(firstResult).toBeUndefined();
+              return { ready: true };
+            }, [])
+          );
+          return call;
+        },
+        { wrapper: outputWrapper }
+      );
+
+      await expect(result.current('getStatus', {})).resolves.toMatchObject({
+        structuredContent: { ready: true },
+      });
+    });
+
     it('should reject invalid tools/call arguments before policy and handlers', async () => {
       const policy = jest.fn().mockReturnValue('allow');
       const handler = jest.fn();

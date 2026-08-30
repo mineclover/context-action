@@ -6,9 +6,9 @@
 
 # Function: createActionFactory()
 
-> **createActionFactory**(`zodModule`): &lt;`TSchema`&gt;(`options`) => [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
+> **createActionFactory**(`zodModule`): [`ActionFactory`](../type-aliases/ActionFactory.md)
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:359](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L359)
+Defined in: [packages/tool-protocol/src/action-schema.ts:385](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L385)
 
 Zod 모듈을 바인딩한 defineAction 팩토리 생성
 
@@ -24,9 +24,9 @@ Zod 모듈
 
 ## Returns
 
-defineAction 함수 (z 바인딩됨)
+[`ActionFactory`](../type-aliases/ActionFactory.md)
 
-&lt;`TSchema`&gt;(`options`) => [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
+defineAction 함수 (z 바인딩됨)
 
 ## Example
 

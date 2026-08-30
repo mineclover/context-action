@@ -279,6 +279,8 @@ loop를 중단하지 않고 다음 provider message 안에
   observer가 arguments와 최종 result를 연결할 수 있다.
 - action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
   검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
+  `InferActionResultMap<typeof schema>`는 source-track result handler가 사용할
+  같은 정적 result type도 도출한다.
 
 `@context-action/tool-protocol`은 표준 managed-call code를 재사용할 수 있도록
 `TOOL_CALL_ERROR_CODES`와 `ToolCallErrorCode`를 export한다. handler가 workspace나

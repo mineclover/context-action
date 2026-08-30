@@ -6,9 +6,9 @@
 
 # Function: defineAction()
 
-> **defineAction**&lt;`TSchema`&gt;(`options`, `zodModule`): [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
+> **defineAction**\<`TSchema`, `TOutputSchema`\>(`options`, `zodModule`): [`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>, `TOutputSchema` *extends* `ZodTypeAny` ? `output`&lt;`TOutputSchema`&gt; : `unknown`\>
 
-Defined in: [packages/tool-protocol/src/action-schema.ts:226](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L226)
+Defined in: [packages/tool-protocol/src/action-schema.ts:245](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/action-schema.ts#L245)
 
 Zod 스키마 기반 Action 정의
 
@@ -23,11 +23,15 @@ defineTool 패턴을 기반으로 context-action에 맞게 구현:
 
 `TSchema` *extends* `Readonly`\<\{\[`k`: `string`\]: `$ZodType`\<`unknown`, `unknown`, `$ZodTypeInternals`\<`unknown`, `unknown`\>\>; \}\>
 
+### TOutputSchema
+
+`TOutputSchema` *extends* `ZodTypeAny` \| `undefined` = `undefined`
+
 ## Parameters
 
 ### options
 
-[`DefineActionOptions`](../interfaces/DefineActionOptions.md)&lt;`TSchema`&gt;
+[`DefineActionOptions`](../interfaces/DefineActionOptions.md)\<`TSchema`, `TOutputSchema`\>
 
 Action 정의 옵션
 
@@ -40,7 +44,7 @@ Zod 모듈. Passing the caller's module keeps schema creation
 
 ## Returns
 
-[`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>\>
+[`UnifiedAction`](../interfaces/UnifiedAction.md)\<`$InferObjectOutput`\<`TSchema`, \{ \}\>, `TOutputSchema` *extends* `ZodTypeAny` ? `output`&lt;`TOutputSchema`&gt; : `unknown`\>
 
 UnifiedAction 인스턴스
 

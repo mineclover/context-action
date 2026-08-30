@@ -77,6 +77,7 @@ import {
   createToolOperationKey,
   getToolCallErrorMetadata,
   InferActionPayloadMap,
+  InferActionResultMap,
   isToolCallRequest,
   isValidToolIdempotencyKey,
   measureToolOutputBytes,
@@ -1717,13 +1718,13 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   ): void => useRegisteredToolHandler(toolName, handler, handlerConfig, 'legacy');
 
   /** Register a result-producing tool handler in core's explicit result phase. */
-  const useToolResultHandler = <K extends Extract<keyof TSchema, string>, R = unknown>(
+  const useToolResultHandler = <K extends Extract<keyof TSchema, string>>(
     toolName: K,
-    handler: ActionResultHandler<TPayloadMap[K], R>,
+    handler: ActionResultHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
     handlerConfig?: HandlerConfig<TPayloadMap[K]>
   ): void => useRegisteredToolHandler(
     toolName,
-    handler as unknown as ActionHandler<TPayloadMap[K], R>,
+    handler as unknown as ActionHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
     handlerConfig,
     'result',
   );

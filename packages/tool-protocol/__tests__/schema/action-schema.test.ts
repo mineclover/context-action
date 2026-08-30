@@ -18,6 +18,8 @@ import {
   type UnifiedAction,
   type ActionSchemaMap,
   type InferActionPayloadMap,
+  type InferActionResultMap,
+  type ActionFactory,
 } from '../../src';
 
 describe('Action Schema', () => {
@@ -354,7 +356,7 @@ describe('Action Schema', () => {
 
   describe('createActionFactory', () => {
     it('should create a factory that binds zod module', () => {
-      const define = createActionFactory(z);
+      const define: ActionFactory = createActionFactory(z);
 
       const action = define({
         name: 'factoryAction',
@@ -362,11 +364,17 @@ describe('Action Schema', () => {
         parameters: z.object({
           data: z.string(),
         }),
+        outputSchema: z.object({ accepted: z.boolean() }),
       });
 
       expect(action.name).toBe('factoryAction');
       expect(action.description).toBe('Created by factory');
       expect(action.validate({ data: 'test' })).toEqual({ data: 'test' });
+      const parsedOutput = action.safeParseOutput?.({ accepted: true });
+      if (parsedOutput?.success) {
+        const output: { accepted: boolean } = parsedOutput.data;
+        expect(output).toEqual({ accepted: true });
+      }
     });
 
     it('should work with multiple actions from same factory', () => {
@@ -427,8 +435,8 @@ describe('Action Schema', () => {
     });
   });
 
-  describe('Type Inference (InferActionPayloadMap)', () => {
-    it('should allow type-safe access to inferred types', () => {
+  describe('Type Inference', () => {
+    it('should infer payload and optional output schema types', () => {
       const schema = createActionSchema({
         createItem: defineAction(
           {
@@ -436,6 +444,10 @@ describe('Action Schema', () => {
             parameters: z.object({
               title: z.string(),
               count: z.number(),
+            }),
+            outputSchema: z.object({
+              id: z.string(),
+              createdAt: z.string(),
             }),
           },
           z
@@ -452,6 +464,7 @@ describe('Action Schema', () => {
       });
 
       type Actions = InferActionPayloadMap<typeof schema>;
+      type Results = InferActionResultMap<typeof schema>;
 
       // Type-level test: this should compile without errors
       const createPayload: Actions['createItem'] = {
@@ -462,9 +475,21 @@ describe('Action Schema', () => {
       const deletePayload: Actions['deleteItem'] = {
         id: '123',
       };
+      const createResult: Results['createItem'] = {
+        id: 'item-1',
+        createdAt: '2026-08-30T00:00:00.000Z',
+      };
+      const unschematizedResult: Results['deleteItem'] = { deleted: true };
+
+      const parsedOutput = schema.createItem.safeParseOutput?.(createResult);
+      if (parsedOutput?.success) {
+        const typedOutput: Results['createItem'] = parsedOutput.data;
+        expect(typedOutput).toEqual(createResult);
+      }
 
       expect(createPayload).toEqual({ title: 'test', count: 1 });
       expect(deletePayload).toEqual({ id: '123' });
+      expect(unschematizedResult).toEqual({ deleted: true });
     });
   });
 });

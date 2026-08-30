@@ -53,6 +53,8 @@
 
 - [SafeParseResult](type-aliases/SafeParseResult.md)
 - [InferActionPayloadMap](type-aliases/InferActionPayloadMap.md)
+- [InferActionResultMap](type-aliases/InferActionResultMap.md)
+- [ActionFactory](type-aliases/ActionFactory.md)
 - [ToolExecutionProvenanceState](type-aliases/ToolExecutionProvenanceState.md)
 - [ToolIdempotencyClaimStatus](type-aliases/ToolIdempotencyClaimStatus.md)
 - [JSONSchemaType](type-aliases/JSONSchemaType.md)
