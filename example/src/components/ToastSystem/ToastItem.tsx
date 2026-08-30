@@ -8,17 +8,33 @@ import { isActionToastPayload } from './types';
 
 interface ToastItemProps {
   toast: Toast;
-  index: number;
-  totalCount: number;
 }
 
-const ToastItemComponent = ({
-  toast,
-  index,
-  totalCount,
-}: ToastItemProps): React.JSX.Element => {
+const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
   // Ensure toast has proper types
   const safeToast = toast as Toast;
+
+  React.useEffect(() => {
+    if (safeToast.phase !== 'entering') return;
+
+    const markVisible = () => {
+      toastActionRegister.dispatch('updateToastPhase', {
+        toastId: safeToast.id,
+        phase: 'visible',
+      });
+    };
+
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      const frame = window.requestAnimationFrame(markVisible);
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const timer = setTimeout(markVisible, 0);
+    return () => clearTimeout(timer);
+  }, [safeToast.id, safeToast.phase]);
 
   const handleClose = () => {
     toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });
@@ -41,49 +57,24 @@ const ToastItemComponent = ({
     }
   };
 
-  // 스택 오프셋 계산 (뒤의 토스트들이 살짝 보이도록)
-  const styleValues = () => {
-    const stackOffset = Math.min(index * 4, 12); // 최대 12px까지
-    const scaleOffset = Math.max(0.95, 1 - index * 0.02); // 최소 0.95배까지
-
-    const actionPayload = isActionToastPayload(safeToast.payload)
-      ? safeToast.payload
-      : null;
-    const executionStep =
-      actionPayload?.executionStep as ToastVariants['executionStep'];
-
-    return {
-      stackOffset,
-      scaleOffset,
-      actionPayload,
-      executionStep,
-    };
-  };
-
-  const { stackOffset, scaleOffset, actionPayload, executionStep } =
-    styleValues();
+  const actionPayload = isActionToastPayload(safeToast.payload)
+    ? safeToast.payload
+    : null;
+  const executionStep =
+    actionPayload?.executionStep as ToastVariants['executionStep'];
+  const phase = safeToast.phase === 'hidden' ? 'exited' : safeToast.phase;
 
   return (
     <div
       className={cn(
         toastVariants({
           type: safeToast.type as ToastVariants['type'],
-          phase: safeToast.phase as ToastVariants['phase'],
+          phase: phase as ToastVariants['phase'],
           executionStep:
             safeToast.type === 'action' ? executionStep : undefined,
         }),
         'p-2 w-full bg-black/70 backdrop-blur-sm text-white shadow-lg rounded-md relative transition-all duration-200 pointer-events-auto'
       )}
-      style={
-        {
-          ['--stack-offset' as any]: `${stackOffset}px`,
-          ['--scale-offset' as any]: scaleOffset,
-          ['--opacity-offset' as any]: 0.8,
-          transform: `translateY(var(--stack-offset)) scale(var(--scale-offset))`,
-          opacity: 0.8,
-          zIndex: totalCount - index,
-        } as React.CSSProperties
-      }
     >
       {/* 컴팩트 헤더 */}
       <div className="flex items-center gap-2">

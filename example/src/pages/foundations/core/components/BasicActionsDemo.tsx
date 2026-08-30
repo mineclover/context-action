@@ -78,7 +78,11 @@ export function BasicActionsDemo() {
     const unsubscribeError = actionRegister.register(
       ACTION_NAMES.ERROR_ACTION,
       (_, controller) => {
-        logActionRef.current(ACTION_NAMES.ERROR_ACTION, undefined);
+        // Keep the action in the log, but let the error log own the one
+        // user-facing notification for this deliberately failing action.
+        logActionRef.current(ACTION_NAMES.ERROR_ACTION, undefined, {
+          toast: false,
+        });
         logSystemRef.current('의도적인 에러 발생 테스트');
         try {
           throw new Error('Intentional error for testing');

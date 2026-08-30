@@ -80,13 +80,8 @@ export function ToastContainer() {
 
       {/* 토스트 스택 */}
       <div className="space-y-2">
-        {displayToasts.map((toast, index) => (
-          <ToastItem
-            key={toast.id}
-            toast={toast}
-            index={index}
-            totalCount={displayToasts.length}
-          />
+        {displayToasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} />
         ))}
       </div>
     </div>

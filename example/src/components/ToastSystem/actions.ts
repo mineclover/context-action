@@ -247,15 +247,9 @@ toastActionRegister.register(
       toastsStore.getValue().length
     );
 
-    // 🔧 Fix: Managed animation and removal timers
-    const visibleTimer = setTimeout(() => {
-      logger.debug('🍞 Updating toast to visible phase:', newToast.id);
-      toastActionRegister.dispatch('updateToastPhase', {
-        toastId: newToast.id,
-        phase: 'visible',
-      });
-    }, 100);
-    addToastTimer(newToast.id, visibleTimer);
+    // ToastItem moves entering to visible after it mounts, on the next visual
+    // frame. Keeping that transition with the rendered element avoids the old
+    // fixed 100ms delay and guarantees the entering phase can be painted.
 
     // 자동 제거 타이머
     const exitTimer = setTimeout(() => {
@@ -339,7 +333,12 @@ toastActionRegister.register('removeToast', ({ toastId }) => {
 toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
   const currentToasts = toastsStore.getValue();
   const updatedToasts = currentToasts.map((toast) =>
-    toast.id === toastId ? { ...toast, phase } : toast
+    toast.id === toastId &&
+    // A queued entry frame must never revive a toast that has already begun
+    // leaving (for example, after a very short custom duration).
+    (phase !== 'visible' || toast.phase === 'entering')
+      ? { ...toast, phase }
+      : toast
   );
   toastsStore.setValue(updatedToasts);
 
