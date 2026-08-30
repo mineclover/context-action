@@ -132,7 +132,7 @@ const reviewedInlineInterpreterSteps = new Map([
   ['publish-prerelease.yml:Validate prerelease package versions', 'f19eedde7b3a48caac8fc4673928b27186eb6a715b9fdb580207c8f1f7e24b56'],
   ['publish-v1-stable-candidate.yml:Validate stable candidate cohort', 'a2a512f62ed4d2262f153ac6cec87e23cc5d19d742af434710519e1f2aff51b0'],
   ['publish-maintenance-patch.yml:Resolve the patch package and version', 'c30dfc4b3b75de8bb8c39e24eb3abf44b665b1738b87a1e39354ad0c5cb081ed'],
-  ['publish-maintenance-patch.yml:Prepare registry rollback journal', 'f8d31e5ddba7ad7cb2877979a31514ce62f61027eed0d961c79171fa7b120003'],
+  ['publish-maintenance-patch.yml:Prepare registry rollback journal', 'a0aa745f4ba41f266d798a49f1c5e1afbd38208df97c2acab4616d4c1d78c3c1'],
   ['publish-maintenance-patch.yml:Promote verified candidate to latest', '4cb75e91de8e9a9b045c498eac0844239b3720fcfe9a0630c47d434f8e2c594c'],
   ['publish-maintenance-patch.yml:Capture maintenance journal evidence', 'fc01757add5ff489ecc6e904c753345addb142b01bb7fa7b1215ad5de4a04248'],
   ['publish-maintenance-patch.yml:Finalize successful promotion journal', 'fc83203ef7612873046ee00f0790166241bcdabc5475350d3346195f2f210269'],

@@ -555,6 +555,31 @@ test('a rerun completes a predecessor-only crash window without replacing it', (
   });
 });
 
+test('an unarmed foreign journal whose predecessor still owns latest does not block a new patch', () => {
+  withFakeRegistry({
+    maintenance: '1.2.3',
+    latest: '1.1.8',
+    'maintenance-previous-1.1.9': '1.1.8',
+  }, registry => {
+    const result = registry.run('Prepare registry rollback journal');
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(registry.tags()['maintenance-previous-1.1.9'], '1.1.8');
+    assert.equal(registry.tags()['maintenance-journal-ready-1.1.9'], undefined);
+    assert.equal(registry.tags()['maintenance-previous-1.2.3'], '1.1.8');
+    assert.equal(registry.tags()['maintenance-journal-ready-1.2.3'], '1.2.3');
+  });
+
+  withFakeRegistry({
+    maintenance: '1.2.3',
+    latest: '1.2.2',
+    'maintenance-previous-1.1.9': '1.1.8',
+  }, registry => {
+    const result = registry.run('Prepare registry rollback journal');
+    assert.notEqual(result.status, 0, 'a foreign predecessor mismatch must remain fail-closed');
+    assert.doesNotMatch(registry.operations().join('\n'), /^(?:add|rm):/mu);
+  });
+});
+
 test('a rerun recovers promotion when latest already names the journaled candidate', () => {
   withFakeRegistry({
     maintenance: '1.2.3',
