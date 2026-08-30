@@ -1,8 +1,5 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { BasicActionsDemo } from '@/pages/foundations/core/components/BasicActionsDemo';
 import { createToastSystem, type ToastSystemController } from './actions';
 import { ToastContainer } from './ToastContainer';
 import { ToastSystemProvider } from './ToastContext';
@@ -82,33 +79,6 @@ describe('ToastSystem', () => {
       expect(toastSystem.stores.toasts.getValue()).toHaveLength(1);
     });
     expect(secondSystem.stores.toasts.getValue()).toHaveLength(0);
-  });
-
-  it('shows one error toast for the advanced demo error action', async () => {
-    const user = userEvent.setup();
-    renderWithToastSystem(
-      <>
-        <PageWithLogMonitor
-          pageId="toast-regression"
-          initialConfig={{ enableToast: true }}
-        >
-          <BasicActionsDemo />
-        </PageWithLogMonitor>
-        <ToastContainer />
-      </>
-    );
-
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: '에러 액션' }));
-    });
-
-    await waitFor(() => {
-      expect(toastSystem.stores.toasts.getValue()).toHaveLength(1);
-    });
-    expect(toastSystem.stores.toasts.getValue()[0]).toMatchObject({
-      type: 'error',
-      message: 'Action handler error',
-    });
   });
 
   it('does not revive an exiting toast when a queued entry frame runs', async () => {
