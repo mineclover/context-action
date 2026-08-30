@@ -28,7 +28,7 @@ The immediate release target is the state-management surface:
 | Package | Version | Why it matters |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | Stable action lifecycle and observer semantics. |
-| `@context-action/react` | `2.0.0` | React lifecycle and SSR contract for the Store and Action APIs. |
+| `@context-action/react` | `3.0.0` | React lifecycle and SSR contract for the Store and Action APIs. |
 
 Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 
@@ -41,7 +41,7 @@ take over a responsibility from the next row.
 | Concern | Owner | Function | Explicitly not responsible for |
 | --- | --- | --- | --- |
 | Action execution | `@context-action/core` | Registers handlers, orders execution, exposes cancellation, timeout, results, and observer lifecycle. | React rendering, state persistence, tool schemas, provider calls, authorization. |
-| React state and composition | `@context-action/react` 2.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 19.2 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
+| React state and composition | `@context-action/react` 3.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 19.2 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
 | Application domain | Your application | Defines state shape, business rules, authorization, API clients, and the meaning of success or failure. | Delegating business policy to a generic store or action registry. |
 | Tool protocol — development track | `@context-action/tool-protocol` | Defines provider-neutral tool schemas, serialization, approval, and observable protocol metadata. | React state lifecycle or durable persistence. |
 | Durable mutation recovery — development track | `@context-action/tool-durable-operations` | Coordinates a logical external mutation using records, leases, full fences, and an explicit `unknown` state. | Exactly-once guarantees from an external provider, application authorization, or domain reconciliation policy. |

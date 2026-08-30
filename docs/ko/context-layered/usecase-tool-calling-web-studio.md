@@ -147,6 +147,10 @@ definition, MCP definition, catalog inspector, validation은 registry에서
 파생시킵니다. view나 transport adapter에서 provider별 schema를 다시 만들지
 않습니다.
 
+> **개발 트랙 소스 참고:** 아래 코드는 ToolContext 소스 설계를 설명합니다. React
+> 3은 `@context-action/react/tools`를 의도적으로 publish하지 않으므로, 별도
+> ToolContext 릴리스가 승인되기 전에는 설치된 패키지 소비자 예제가 아닙니다.
+
 ```tsx
 import { createToolContext } from '@context-action/react/tools';
 ```

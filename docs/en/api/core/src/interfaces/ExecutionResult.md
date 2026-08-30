@@ -288,7 +288,7 @@ Whether this handler was executed
 
 #### status
 
-> **status**: `HandlerExecutionStatus`
+> **status**: [`HandlerExecutionStatus`](../type-aliases/HandlerExecutionStatus.md)
 
 Final lifecycle state observed for this handler
 
@@ -332,13 +332,13 @@ Race-only snapshots. Loser failures never change the winner contract.
 
 #### winner?
 
-> `optional` **winner?**: `HandlerExecutionOutcome`&lt;`R`&gt;
+> `optional` **winner?**: [`HandlerExecutionOutcome`](HandlerExecutionOutcome.md)&lt;`R`&gt;
 
 Immutable winner outcome captured at dispatch return.
 
 #### loserSnapshots
 
-> **loserSnapshots**: `HandlerExecutionOutcome`&lt;`R`&gt;[]
+> **loserSnapshots**: [`HandlerExecutionOutcome`](HandlerExecutionOutcome.md)&lt;`R`&gt;[]
 
 #### pendingLosersAtReturn
 
@@ -356,7 +356,7 @@ Failed losers observable at that same snapshot point.
 
 ### errors
 
-> **errors**: `HandlerError`[]
+> **errors**: [`HandlerError`](HandlerError.md)[]
 
 Defined in: [packages/core/src/types.ts:1219](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1219)
 

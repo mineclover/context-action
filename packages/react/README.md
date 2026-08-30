@@ -9,7 +9,7 @@ React integration for the Context-Action framework - providing React hooks, comp
 - 🎯 **Action System**: Centralized action dispatch with priority-based handlers
 - 🏪 **Store Management**: Declarative stores with excellent type inference
 - 📦 **Self-Contained**: No manual Provider wrapping required with HOCs
-- 🧪 **Testing Friendly**: Full test coverage with 40+ passing tests
+- 🧪 **Testing Friendly**: Package type checks and lifecycle tests run in the workspace release gate
 - 📝 **TypeScript First**: Complete type safety throughout
 
 ## Quick Start
@@ -47,7 +47,6 @@ const {
 
 // 3. Create Store Pattern
 const {
-  Provider: UserStoreProvider,
   useStore: useUserStore,
   withProvider
 } = createStoreContext('User', {
@@ -81,13 +80,11 @@ const UserProfile = withProvider(() => {
   );
 });
 
-// 5. Use with combined providers
+// 5. The HOC already owns the Store Provider. Add only the Action Provider.
 function App() {
   return (
     <UserActionProvider>
-      <UserStoreProvider>
-        <UserProfile />
-      </UserStoreProvider>
+      <UserProfile />
     </UserActionProvider>
   );
 }
@@ -95,7 +92,7 @@ function App() {
 
 ## Package responsibility
 
-`@context-action/react` 2.0 is the React state-management integration:
+`@context-action/react` 3.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
   selective store subscriptions, React Compiler optimization, and the verified React 19.2 SSR and
@@ -376,27 +373,24 @@ const UserComponent = UserStores.withProvider(() => {
 
 ## Testing
 
-All essential hooks are thoroughly tested with 40+ passing tests:
+Run the package lifecycle tests through the workspace instead of relying on a
+static test count:
 
 ```bash
-# Run tests
-pnpm test
-
-# Core hooks tested:
-# - useStoreValue (4 tests)
-# - useLocalStore (4 tests) 
-# - createActionContext (8 tests)
-# - useActionDispatch (6 tests)
-# - useComputedStore (5 tests)
-# - Comparison utilities (13 tests)
+pnpm --filter @context-action/react test
+pnpm --filter @context-action/react type-check
 ```
 
 ## Bundle Size
 
-Optimized bundle size after cleanup:
-- **87.13 kB** (20.83 kB gzipped)
-- **25+ focused hooks** (down from 40+)
-- **No unnecessary dependencies**
+Generate the current report when bundle size matters:
+
+```bash
+pnpm --filter @context-action/react bundle-report
+```
+
+The default entry keeps ToolContext and Durable Operations out of its runtime
+dependency graph.
 
 ## Framework Integration
 

@@ -28,7 +28,7 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | 안정화된 액션 lifecycle·observer 의미론 |
-| `@context-action/react` | `2.0.0` | Store·Action API의 React lifecycle·SSR 계약 |
+| `@context-action/react` | `3.0.0` | Store·Action API의 React lifecycle·SSR 계약 |
 
 Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이며, 일반 Store·Action·React 19.2·SSR 사용의 선행 조건이 아닙니다.
 
@@ -41,7 +41,7 @@ Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이
 | 관심사 | 소유자 | 기능 | 명시적으로 책임지지 않는 것 |
 | --- | --- | --- | --- |
 | 액션 실행 | `@context-action/core` | 핸들러 등록·실행 순서, 취소, 타임아웃, 결과, observer lifecycle을 제공합니다. | React 렌더링, 상태 영속화, tool schema, provider 호출, 인가 |
-| React 상태·합성 | `@context-action/react` 2.0 | Store/Action context를 만들고 React 구독을 연결하며 검증된 React 19.2·SSR lifecycle 계약을 제공합니다. | DB 기반 작업, 프로세스 간 복구, provider/tool runtime |
+| React 상태·합성 | `@context-action/react` 3.0 | Store/Action context를 만들고 React 구독을 연결하며 검증된 React 19.2·SSR lifecycle 계약을 제공합니다. | DB 기반 작업, 프로세스 간 복구, provider/tool runtime |
 | 애플리케이션 도메인 | 애플리케이션 | 상태 모양, 비즈니스 규칙, 인가, API client, 성공·실패의 의미를 정의합니다. | 일반 Store나 action registry에 비즈니스 정책을 위임하는 일 |
 | Tool protocol — 개발 트랙 | `@context-action/tool-protocol` | provider 중립 tool schema, 직렬화, 승인, 관측 가능한 protocol metadata를 정의합니다. | React 상태 lifecycle이나 durable persistence |
 | Durable mutation 복구 — 개발 트랙 | `@context-action/tool-durable-operations` | record, lease, full fence, 명시적 `unknown` 상태로 하나의 외부 mutation을 조율합니다. | 외부 provider의 exactly-once 보장, 애플리케이션 인가, 도메인 reconciliation 정책 |

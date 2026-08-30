@@ -56,7 +56,7 @@ Defined in: [packages/core/src/types.ts:392](https://github.com/mineclover/conte
 
 ### errors
 
-> `readonly` **errors**: readonly `HandlerError`[]
+> `readonly` **errors**: readonly [`HandlerError`](HandlerError.md)[]
 
 Defined in: [packages/core/src/types.ts:393](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L393)
 
