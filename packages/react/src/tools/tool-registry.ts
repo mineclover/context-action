@@ -121,6 +121,26 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
     };
   };
+  // The executor is deliberately transport-neutral, so it returns the broad
+  // protocol result. The registry's source-track overloads add schema-aware
+  // inference for literal callers while retaining that dynamic execution ABI.
+  const callTool = ((
+    request: ToolCallRequest,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(request, options)) as ToolRegistry<
+    TSchema
+  >['callTool'];
+  const executeModelToolCall = ((
+    call: ModelToolCall,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(toToolCallRequest(call), {
+    ...options,
+    context: {
+      ...options?.context,
+      source: options?.context?.source ?? 'model',
+      mode: options?.context?.mode ?? 'agent',
+    },
+  })) as ToolRegistry<TSchema>['executeModelToolCall'];
 
   return {
     tools: catalog,
@@ -138,19 +158,8 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       if (!hasOwnTool(name)) return undefined;
       return catalog[name]?.toMCP();
     },
-    callTool(request, options) {
-      return executeToolCall(request, options);
-    },
-    executeModelToolCall(call: ModelToolCall, options) {
-      return executeToolCall(toToolCallRequest(call), {
-        ...options,
-        context: {
-          ...options?.context,
-          source: options?.context?.source ?? 'model',
-          mode: options?.context?.mode ?? 'agent',
-        },
-      });
-    },
+    callTool,
+    executeModelToolCall,
     async getOperationStatus(toolName, idempotencyKey, context) {
       if (!hasOwnTool(toolName)) return undefined;
       return getOperationStatus?.(toolName, idempotencyKey, context);

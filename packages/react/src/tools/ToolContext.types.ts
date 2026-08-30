@@ -36,6 +36,7 @@ import type {
   ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
+  ToolArguments,
   ToolIdempotencyRegistryOptions,
   ToolListRequest,
   ToolListResult,
@@ -145,6 +146,43 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
 // Tool Registry Interface
 // ============================================
 
+/** A tool name known by a source-track schema map. */
+type ToolSchemaName<TSchema extends ActionSchemaMap> = Extract<
+  keyof TSchema,
+  string
+>;
+
+/**
+ * Canonical request narrowed to a schema-known tool name and its unparsed Zod
+ * input. It is intentionally source-track only: the protocol-level request
+ * remains transport-neutral so provider adapters can retain dynamic names.
+ */
+export type SchemaToolCallRequest<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ToolCallRequest, 'params'> & {
+      readonly params: Omit<ToolCallRequest['params'], 'name' | 'arguments'> & {
+        readonly name: K;
+        readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+      };
+    }
+  : never;
+
+/**
+ * Model-side call narrowed to a schema-known tool name and its unparsed Zod
+ * input. Dynamic provider calls continue to use ModelToolCall.
+ */
+export type SchemaModelToolCall<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ModelToolCall, 'name' | 'arguments'> & {
+      readonly name: K;
+      readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+    }
+  : never;
+
 /**
  * Source-track Tool Registry. It owns canonical discovery and calls, while
  * compatibility exporters remain available for provider adapters.
@@ -186,13 +224,33 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
   /** Resolve a canonical definition for one tool */
   getToolDefinition(name: string): MCPToolDefinition | undefined;
 
-  /** Execute a canonical tools/call request */
+  /**
+   * Execute a schema-known canonical tools/call request. Literal tool names
+   * preserve the unparsed input and structured result type.
+   */
+  callTool<K extends ToolSchemaName<TSchema>>(
+    request: SchemaToolCallRequest<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+
+  /**
+   * Execute a dynamic canonical tools/call request. Keep this compatibility
+   * overload for transport adapters and intentionally malformed test calls.
+   */
   callTool(
     request: ToolCallRequest,
     options?: ToolCallOptions
   ): Promise<ToolCallResult>;
 
-  /** Normalize and execute a model-side tool call */
+  /**
+   * Normalize and execute a schema-known model-side call with typed results.
+   */
+  executeModelToolCall<K extends ToolSchemaName<TSchema>>(
+    call: SchemaModelToolCall<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+
+  /** Dynamic provider fallback; preserves ToolManagementInterface compatibility. */
   executeModelToolCall(
     call: ModelToolCall,
     options?: ToolCallOptions

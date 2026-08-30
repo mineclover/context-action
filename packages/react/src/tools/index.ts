@@ -15,6 +15,8 @@ export type {
   ToolContextType,
   DirectToolCallOptions,
   ToolRegistry,
+  SchemaToolCallRequest,
+  SchemaModelToolCall,
   ToolCallFunction,
   ToolDispatchFunction,
   ToolDispatchWithResultReturn,

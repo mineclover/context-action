@@ -12,6 +12,7 @@ import {
   createToolContext,
   type DirectToolCallOptions,
   type ToolCallFunction,
+  type ToolRegistry,
 } from '../../src/tools';
 import {
   createMockDurableOperationBackend,
@@ -28,10 +29,12 @@ import {
   TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
   toToolListRequest,
+  type ModelToolCall,
   type ToolCallRequest,
   type ToolCallResult,
   type ToolExecutionProvenance,
   type ToolListRequest,
+  type ToolManagementInterface,
 } from '@context-action/tool-protocol';
 import type { DurableOperationStore } from '@context-action/tool-durable-operations';
 
@@ -1076,6 +1079,104 @@ describe('createToolContext', () => {
       expect(structuredContent).toEqual({ ready: true });
       expect(toolResult).toMatchObject({
         structuredContent: { ready: true },
+      });
+    });
+
+    it('infers schema input defaults and output from direct registry calls', async () => {
+      const typedSchema = createActionSchema({
+        search: defineAction({
+          name: 'search',
+          parameters: z.object({
+            query: z.string(),
+            maxResults: z.number().int().positive().default(10),
+          }),
+          outputSchema: z.object({
+            query: z.string(),
+            maxResults: z.number(),
+          }),
+        }, z),
+      });
+      const TypedRegistryTools = createToolContext('TypedRegistryTools', {
+        schema: typedSchema,
+      });
+      const typedRegistryWrapper = ({ children }: { children: React.ReactNode }) => (
+        <TypedRegistryTools.Provider>{children}</TypedRegistryTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          TypedRegistryTools.useToolResultHandler(
+            'search',
+            useCallback(({ query, maxResults }) => ({ query, maxResults }), [])
+          );
+          return TypedRegistryTools.useToolRegistry();
+        },
+        { wrapper: typedRegistryWrapper }
+      );
+
+      // Compile-time compatibility checks: schema-aware overloads must retain
+      // the broad manager contract used by transport adapters.
+      const typedRegistry: ToolRegistry<typeof typedSchema> = result.current;
+      const manager: ToolManagementInterface = typedRegistry;
+      const assertDynamicOverloads = async (
+        registry: ToolRegistry<typeof typedSchema>,
+        request: ToolCallRequest,
+        modelCall: ModelToolCall,
+      ): Promise<void> => {
+        const canonicalResult = await registry.callTool(request);
+        const modelResult = await registry.executeModelToolCall(modelCall);
+        type IsExactly<Left, Right> = (
+          <T>() => T extends Left ? 1 : 2
+        ) extends (
+          <T>() => T extends Right ? 1 : 2
+        ) ? true : false;
+        type Assert<T extends true> = T;
+        type CanonicalCallUsesBroadResult = Assert<
+          IsExactly<typeof canonicalResult, ToolCallResult>
+        >;
+        type ModelCallUsesBroadResult = Assert<
+          IsExactly<typeof modelResult, ToolCallResult>
+        >;
+        const broadCanonicalResult: ToolCallResult = canonicalResult;
+        const broadModelResult: ToolCallResult = modelResult;
+        const assertCanonical: CanonicalCallUsesBroadResult = true;
+        const assertModel: ModelCallUsesBroadResult = true;
+        void broadCanonicalResult;
+        void broadModelResult;
+        void assertCanonical;
+        void assertModel;
+      };
+      void manager;
+      void assertDynamicOverloads;
+
+      const toolResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'typed-registry-search',
+        params: {
+          name: 'search',
+          // z.input permits this defaulted field to be omitted at the boundary.
+          arguments: { query: 'laptop' },
+        },
+      }));
+      const structuredContent: { query: string; maxResults: number } | undefined =
+        toolResult.structuredContent;
+
+      expect(structuredContent).toEqual({ query: 'laptop', maxResults: 10 });
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', maxResults: 10 },
+      });
+
+      const modelResult = await act(async () => result.current.executeModelToolCall({
+        id: 'typed-registry-model-search',
+        name: 'search',
+        // The same unparsed input contract applies before model-call normalization.
+        arguments: { query: 'headphones' },
+      }));
+      const modelStructuredContent: { query: string; maxResults: number } | undefined =
+        modelResult.structuredContent;
+
+      expect(modelStructuredContent).toEqual({ query: 'headphones', maxResults: 10 });
+      expect(modelResult).toMatchObject({
+        structuredContent: { query: 'headphones', maxResults: 10 },
       });
     });
 

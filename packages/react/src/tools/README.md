@@ -35,6 +35,9 @@ Durable Operations release decision is approved.
 - Use `useToolRegistry()` with `listTools()`, `getToolDefinition()`, and
   `callTool()` for provider-neutral integrations. The `toMCP()`, `toOpenAI()`,
   and `toAnthropic()` helpers remain compatibility exporters.
+  With a literal schema tool name, `callTool()` and `executeModelToolCall()`
+  preserve that tool's unparsed Zod input and structured result type. Dynamic
+  provider calls intentionally retain the broad protocol contract.
 
 The factory snapshots schema-map membership and the allowlist. Create a new
 context when the catalog changes; mutating the caller-owned configuration after
