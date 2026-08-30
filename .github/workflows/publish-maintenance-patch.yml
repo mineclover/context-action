@@ -325,7 +325,16 @@ jobs:
                 throw new Error(`journal ${candidate} has a terminal marker without ready`);
               }
               if (candidate !== process.env.CURRENT_CANDIDATE) {
-                if (journal.ready === undefined || !hasTerminal) {
+                const unarmed = journal.ready === undefined && !hasTerminal;
+                const predecessorStillOwnsLatest = journal.previous !== undefined
+                  ? tags.latest === journal.previous
+                  : journal.absent !== undefined && tags.latest === undefined;
+                if (unarmed && predecessorStillOwnsLatest) {
+                  // A crash before the ready marker never armed a latest mutation.
+                  // Keep its immutable predecessor evidence, but do not block a later patch.
+                  continue;
+                }
+                if (unarmed || !hasTerminal) {
                   throw new Error(`foreign maintenance journal ${candidate} is unresolved`);
                 }
                 if (journal.rolledBack !== undefined && tags.latest === candidate) {

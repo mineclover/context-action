@@ -90,6 +90,10 @@ React dependency boundary를 plan과 정확히 결속합니다.
   검증합니다.
 - 일부 패키지가 게시된 뒤 실패: 레지스트리와 summary/evidence를 확인하고,
   해당 워크플로가 증명하는 재개 경로만 사용합니다.
+- `ready` marker가 없는 predecessor-only maintenance journal은 아직 `latest`
+  승격을 시작하지 않은 기록입니다. 이후 patch는 `latest`이 그 기록된
+  predecessor와 정확히 일치할 때만 계속할 수 있으며, 그 외 상태는 fail closed
+  합니다.
 - 승격 후 검증 실패: 워크플로가 현재 tag가 자신의 후보를 가리키는지 확인한
   경우에만 기록된 이전 tag로 롤백합니다.
 - 실패를 숨기기 위해 Git 기록을 강제로 되돌리거나 이미 게시된 npm 버전을
