@@ -1071,7 +1071,10 @@ describe('createToolContext', () => {
         { wrapper: outputWrapper }
       );
 
-      await expect(result.current('getStatus', {})).resolves.toMatchObject({
+      const toolResult = await result.current('getStatus', {});
+      const structuredContent: { ready: boolean } | undefined = toolResult.structuredContent;
+      expect(structuredContent).toEqual({ ready: true });
+      expect(toolResult).toMatchObject({
         structuredContent: { ready: true },
       });
     });

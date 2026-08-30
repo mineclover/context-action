@@ -22,7 +22,8 @@ Durable Operations release decision is approved.
   canonical registry path, including policy, lifecycle events, output budgets,
   idempotency, and durable-operation handling. It accepts `InferActionInputMap`
   input, so optional/defaulted Zod fields can be omitted by the caller; strict
-  handlers receive the parsed `InferActionPayloadMap` value instead.
+  handlers receive the parsed `InferActionPayloadMap` value instead. Its
+  `ToolCallResult.structuredContent` is typed from `InferActionResultMap`.
 - Use `useToolResultHandler()` for new handlers that only produce a tool
   result. It registers through core's explicit result phase. Keep
   `useToolHandler()` only when a handler needs the legacy full

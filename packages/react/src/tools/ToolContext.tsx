@@ -1530,7 +1530,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * This keeps direct UI use in the same policy and provenance path as model
    * and MCP calls without making React a transport implementation.
    */
-  const useToolCall = (): ToolCallFunction<TInputMap> => {
+  const useToolCall = (): ToolCallFunction<TInputMap, InferActionResultMap<TSchema>> => {
     const { registry } = useToolContext();
     const hookId = useId();
     const sequenceRef = useRef(0);
@@ -1540,13 +1540,21 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
         toolName: K,
         payload: TInputMap[K],
         options?: DirectToolCallOptions
-      ): Promise<ToolCallResult> => {
+      ): Promise<ToolCallResult<
+        K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown
+      >> => {
         const { toolCallId, context, ...callOptions } = options ?? {};
         const name = String(toolName);
         const id = toolCallId ?? `${contextName}:direct:${hookId}:${++sequenceRef.current}`;
         const params = payload === undefined
           ? { name }
           : { name, arguments: payload as Record<string, unknown> };
+
+        type TResult = K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown;
 
         return registry.callTool(
           { id, method: 'tools/call', params },
@@ -1558,7 +1566,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               mode: context?.mode ?? 'direct',
             },
           }
-        );
+        ) as Promise<ToolCallResult<TResult>>;
       }
     ), [hookId, registry]);
   };

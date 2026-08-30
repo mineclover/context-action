@@ -298,12 +298,13 @@ export interface DirectToolCallOptions extends ToolCallOptions {
  * defaults and transforms, while the canonical request and durable fingerprint
  * retain the original transport arguments. Callers use the unparsed Zod input
  * map, so defaulted fields may be omitted when the parameter schema allows it.
+ * The returned structuredContent type is selected from the action result map.
  */
-export type ToolCallFunction<TInputMap> = <K extends Extract<keyof TInputMap, string>>(
+export type ToolCallFunction<TInputMap, TResultMap = {}> = <K extends Extract<keyof TInputMap, string>>(
   toolName: K,
   payload: TInputMap[K],
   options?: DirectToolCallOptions
-) => Promise<ToolCallResult>;
+) => Promise<ToolCallResult<K extends keyof TResultMap ? TResultMap[K] : unknown>>;
 
 /**
  * Raw ActionRegister result helpers for advanced compatibility integrations.
@@ -340,7 +341,10 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
    * Direct UI calls accept unparsed Zod input and default to
    * `{ source: 'local', mode: 'direct' }`.
    */
-  useToolCall: () => ToolCallFunction<InferActionInputMap<TSchema>>;
+  useToolCall: () => ToolCallFunction<
+    InferActionInputMap<TSchema>,
+    InferActionResultMap<TSchema>
+  >;
 
   /**
    * Register a legacy tool handler with the full PipelineController.
