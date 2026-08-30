@@ -173,7 +173,48 @@ const actions = new ActionRegister<MyActions>({
 // should be treated as a programming error.
 ```
 
-## 🚀 New Features (v0.4.0+)
+## v1.1 Pipeline Contract
+
+### Phase-specific registration
+
+New pipelines should make their role explicit: guards decide admission, result
+handlers contribute typed results, and observers run after the terminal result.
+
+<!-- @context-action-compile -->
+```typescript
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+
+interface AppActions extends ActionPayloadMap {
+  save: { id: string; valid: boolean };
+}
+
+interface AppResults {
+  save: { persisted: true };
+}
+
+const registry = new ActionRegister<AppActions, AppResults>({ name: 'App' });
+
+registry.registerGuard('save', payload => {
+  if (!payload.valid) throw new Error('Save requires valid input');
+}, { id: 'validate-save' });
+
+registry.registerResult('save', async payload => {
+  await Promise.resolve(payload);
+  return { persisted: true };
+}, {
+  id: 'persist-save',
+  scheduling: 'await-before-next',
+  errorPolicy: 'fatal',
+});
+
+registry.registerObserver('save', event => {
+  console.info(event.outcome);
+}, { when: 'always' });
+```
+
+`register()` and `HandlerConfig.blocking` remain supported compatibility APIs
+in 1.x. Prefer the phase-specific methods plus explicit `scheduling` and
+`errorPolicy` for new code.
 
 ### Advanced Filtering System
 
@@ -218,7 +259,8 @@ await actions.dispatch('complexAction', data, {
 actions.register('myAction', handler, {
   priority: 10,
   id: 'my-handler',
-  blocking: true,
+  scheduling: 'await-before-next',
+  errorPolicy: 'fatal',
   once: false,
   debounce: 300,
   throttle: 1000,
@@ -474,6 +516,9 @@ registry.destroy();
 
 // Or await proof that started handlers settled and cleanup callbacks ran.
 await registry.destroyAsync();
+
+// Close admission now but defer user cleanup until the next microtask.
+await registry.destroyAsync({ deferCleanup: true });
 ```
 
 ## API Reference
@@ -481,7 +526,10 @@ await registry.destroyAsync();
 ### ActionRegister<T>
 
 #### Registration Methods
-- `register<K>(action, handler, config?)` - Register action handler
+- `registerGuard<K>(action, handler, config?)` - Register admission logic
+- `registerResult<K>(action, handler, config?)` - Register a typed result handler
+- `registerObserver<K>(action, handler, config?)` - Register a post-result observer
+- `register<K>(action, handler, config?)` - Compatibility registration API
 - `clearAction(action)` - Remove all handlers for action  
 - `clearAll()` - Remove all handlers
 
@@ -505,7 +553,7 @@ await registry.destroyAsync();
 - `getName()` - Get registry name
 - `isDebugEnabled()` - Check if debug mode is enabled
 - `destroy()` - Begin terminal cleanup without waiting
-- `destroyAsync()` - Resolve after started handlers settle and cleanup completes
+- `destroyAsync({ deferCleanup? })` - Resolve after started handlers settle and cleanup completes
 
 ### Configuration Interfaces
 
@@ -513,7 +561,9 @@ await registry.destroyAsync();
 interface HandlerConfig {
   priority?: number;           // Handler priority (higher = first)
   id?: string;                // Unique handler identifier
-  blocking?: boolean;          // Wait for async completion
+  blocking?: boolean;          // Compatibility 1.x shorthand
+  scheduling?: 'await-before-next' | 'start-and-continue';
+  errorPolicy?: 'fatal' | 'collect';
   once?: boolean;             // Remove after first execution  
   debounce?: number;          // Debounce delay in ms
   throttle?: number;          // Throttle delay in ms
@@ -581,27 +631,50 @@ await actions.dispatch('setUser', { id: '1' }); // Missing required fields
 await actions.dispatch('invalidAction');        // Unknown action
 ```
 
-## Migration from v0.3.x
+## Registration compatibility
 
-Most existing code works without changes. New features are opt-in:
+Existing `register()` calls remain supported in 1.x. Migrate individual
+pipelines to explicit phase registration when you need typed results,
+admission guards, or terminal observers:
 
+<!-- @context-action-compile -->
 ```typescript
-// v0.3.x code - still works
-const actions = new ActionRegister();
-actions.register('myAction', handler);
-await actions.dispatch('myAction', payload);
+import {
+  ActionRegister,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
 
-// v0.4.x - new features available
-actions.register('myAction', handler, { 
-  replaceExisting: true  // New option
+interface AppActions extends ActionPayloadMap {
+  myAction: { id: string };
+}
+
+interface AppResults extends ActionResultMap<AppActions> {
+  myAction: { persisted: true };
+}
+
+const legacyActions = new ActionRegister<AppActions, AppResults>();
+const handler = (_payload: AppActions['myAction']) => ({ persisted: true } as const);
+
+// Existing registration — still supported
+legacyActions.register('myAction', handler, { id: 'persist' });
+await legacyActions.dispatch('myAction', { id: 'example' });
+
+// Or replace that registration in your application with an explicit result phase.
+const migratedActions = new ActionRegister<AppActions, AppResults>();
+migratedActions.registerResult('myAction', handler, {
+  id: 'persist',
+  scheduling: 'await-before-next',
+  errorPolicy: 'fatal',
 });
 
-await actions.dispatch('myAction', payload, {
-  filter: { priority: { min: 10 } }  // New filtering
+// Add a guard or observer only when the pipeline needs that phase.
+migratedActions.registerGuard('myAction', payload => {
+  if (!payload.id) throw new Error('An id is required');
 });
-
-// Clean up when done (recommended)
-actions.destroy();
+migratedActions.registerObserver('myAction', event => {
+  console.info(event.outcome);
+}, { when: 'always' });
 ```
 
 ## Performance Tips

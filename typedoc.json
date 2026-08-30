@@ -6,7 +6,6 @@
     "./packages/webmcp/src/index.ts",
     "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts",
-    "./packages/react/src/tools/index.ts",
     "./packages/react/src/webmcp.ts"
   ],
   "tsconfig": "./tsconfig.json",

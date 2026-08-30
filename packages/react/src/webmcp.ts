@@ -1,9 +1,9 @@
 /**
  * Experimental React integration for the browser-only WebMCP adapter.
  *
- * This module intentionally has its own public subpath. Stable ToolContext
- * consumers import from `@context-action/react/tools` and never acquire a
- * WebMCP compatibility promise merely by using that API.
+ * This module intentionally has its own public subpath. It accepts any
+ * ToolManagementInterface registry, so installed-package consumers do not
+ * need the source-only ToolContext development track to opt in explicitly.
  */
 
 export { useWebMCPToolScope } from './tools/useWebMCPToolScope';

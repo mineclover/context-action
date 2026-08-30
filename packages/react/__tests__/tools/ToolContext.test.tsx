@@ -8,7 +8,12 @@ import React, { startTransition, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { render, renderHook, act, waitFor } from '@testing-library/react';
 import { z } from 'zod';
-import { createToolContext } from '../../src/tools';
+import {
+  createToolContext,
+  type DirectToolCallOptions,
+  type ToolCallFunction,
+  type ToolRegistry,
+} from '../../src/tools';
 import {
   createMockDurableOperationBackend,
   createMockDurableOperationStore,
@@ -24,12 +29,17 @@ import {
   TOOL_CALL_ERROR_CODES,
   toToolCallRequest,
   toToolListRequest,
+  type ModelToolCall,
   type ToolCallRequest,
   type ToolCallResult,
   type ToolExecutionProvenance,
   type ToolListRequest,
+  type ToolManagementInterface,
 } from '@context-action/tool-protocol';
-import type { DurableOperationStore } from '@context-action/tool-durable-operations';
+import type {
+  DurableOperationRecord,
+  DurableOperationStore,
+} from '@context-action/tool-durable-operations';
 
 type ActivityBoundaryComponent = React.ExoticComponent<{
   children?: React.ReactNode;
@@ -109,6 +119,7 @@ describe('createToolContext', () => {
     useToolDispatch,
     useToolCall,
     useToolHandler,
+    useToolResultHandler,
     useToolRegistry,
     useToolDispatchWithResult,
     useActionRegister,
@@ -125,6 +136,14 @@ describe('createToolContext', () => {
     it('should provide context to children', () => {
       const { result } = renderHook(() => useToolRegistry(), { wrapper });
       expect(result.current).toBeDefined();
+    });
+
+    it('exports the canonical direct-call types from the source barrel', () => {
+      const options: DirectToolCallOptions = { timeout: 1 };
+      const call: ToolCallFunction<{ ping: { id: string } }> = async () => ({ content: [] });
+
+      expect(options.timeout).toBe(1);
+      expect(typeof call).toBe('function');
     });
 
     it('should throw error when used outside provider', () => {
@@ -153,7 +172,10 @@ describe('createToolContext', () => {
       const directWrapper = ({ children }: { children: React.ReactNode }) => (
         <DirectTools.Provider>{children}</DirectTools.Provider>
       );
-      const handler = jest.fn(async ({ query }: { query: string }) => ({ query }));
+      const handler = jest.fn(async ({ query, maxResults }: { query: string; maxResults: number }) => ({
+        query,
+        maxResults,
+      }));
 
       const { result } = renderHook(() => {
         DirectTools.useToolHandler('searchProducts', handler, { blocking: true });
@@ -162,13 +184,13 @@ describe('createToolContext', () => {
 
       const toolResult = await act(async () => result.current(
         'searchProducts',
-        { query: 'laptop', maxResults: 10 },
+        { query: 'laptop' },
         { toolCallId: 'direct-ui-call' }
       ));
 
       expect(toolResult).toMatchObject({
         toolCallId: 'direct-ui-call',
-        structuredContent: { query: 'laptop' },
+        structuredContent: { query: 'laptop', maxResults: 10 },
       });
       expect(policy).toHaveBeenCalledWith(expect.objectContaining({
         request: expect.objectContaining({
@@ -176,7 +198,7 @@ describe('createToolContext', () => {
           method: 'tools/call',
           params: {
             name: 'searchProducts',
-            arguments: { query: 'laptop', maxResults: 10 },
+            arguments: { query: 'laptop' },
           },
         }),
         context: expect.objectContaining({ source: 'local', mode: 'direct' }),
@@ -185,7 +207,10 @@ describe('createToolContext', () => {
         { type: 'started', source: 'local', mode: 'direct' },
         { type: 'completed', source: 'local', mode: 'direct' },
       ]);
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'laptop', maxResults: 10 }),
+        expect.any(Object),
+      );
     });
 
     it('should destroy the action register when the provider unmounts', async () => {
@@ -755,6 +780,50 @@ describe('createToolContext', () => {
       );
     });
 
+    it('passes strict parsed defaults and transforms to the handler', async () => {
+      const normalizedSchema = createActionSchema({
+        normalizeSearch: defineAction({
+          name: 'normalizeSearch',
+          description: 'Normalize a search request.',
+          parameters: z.object({
+            query: z.string().trim(),
+            maxResults: z.number().int().positive().default(10),
+          }),
+        }, z),
+      });
+      const normalizedContext = createToolContext('NormalizedTools', {
+        schema: normalizedSchema,
+      });
+      const normalizedWrapper = ({ children }: { children: React.ReactNode }) => (
+        <normalizedContext.Provider>{children}</normalizedContext.Provider>
+      );
+      const handler = jest.fn(async (payload: { query: string; maxResults: number }) => payload);
+      const { result } = renderHook(
+        () => {
+          normalizedContext.useToolHandler(
+            'normalizeSearch',
+            useCallback(handler, [])
+          );
+          return normalizedContext.useToolRegistry();
+        },
+        { wrapper: normalizedWrapper }
+      );
+
+      const toolResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'normalized-input',
+        params: { name: 'normalizeSearch', arguments: { query: '  laptop  ' } },
+      }));
+
+      expect(handler).toHaveBeenCalledWith(
+        { query: 'laptop', maxResults: 10 },
+        expect.any(Object)
+      );
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', maxResults: 10 },
+      });
+    });
+
     it('should expose additive execution provenance on lifecycle events', async () => {
       const events: Array<{ type: string; provenance: ToolExecutionProvenance }> = [];
       const provenanceContext = createToolContext('ProvenanceTools', {
@@ -976,6 +1045,297 @@ describe('createToolContext', () => {
           details: { issues: expect.any(Array) },
         },
       });
+    });
+
+    it('infers explicit result-handler output from the action output schema', async () => {
+      const outputSchema = createActionSchema({
+        getStatus: defineAction({
+          name: 'getStatus',
+          parameters: z.object({}),
+          outputSchema: z.object({ ready: z.boolean() }),
+        }, z),
+      });
+      const OutputTools = createToolContext('TypedOutputTools', {
+        schema: outputSchema,
+      });
+      const outputWrapper = ({ children }: { children: React.ReactNode }) => (
+        <OutputTools.Provider>{children}</OutputTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          const call = OutputTools.useToolCall();
+          OutputTools.useToolResultHandler(
+            'getStatus',
+            useCallback((_payload, resultController) => {
+              const firstResult: { ready: boolean } | undefined = resultController.getResults()[0];
+              expect(firstResult).toBeUndefined();
+              return { ready: true };
+            }, [])
+          );
+          return call;
+        },
+        { wrapper: outputWrapper }
+      );
+
+      const toolResult = await result.current('getStatus', {});
+      const structuredContent: { ready: boolean } | undefined = toolResult.structuredContent;
+      expect(structuredContent).toEqual({ ready: true });
+      expect(toolResult).toMatchObject({
+        structuredContent: { ready: true },
+      });
+    });
+
+    it('infers schema input defaults and output from direct registry calls', async () => {
+      const typedSchema = createActionSchema({
+        search: defineAction({
+          name: 'search',
+          parameters: z.object({
+            query: z.string(),
+            maxResults: z.number().int().positive().default(10),
+          }),
+          outputSchema: z.object({
+            query: z.string(),
+            maxResults: z.number(),
+          }),
+        }, z),
+      });
+      const TypedRegistryTools = createToolContext('TypedRegistryTools', {
+        schema: typedSchema,
+      });
+      const typedRegistryWrapper = ({ children }: { children: React.ReactNode }) => (
+        <TypedRegistryTools.Provider>{children}</TypedRegistryTools.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          TypedRegistryTools.useToolResultHandler(
+            'search',
+            useCallback(({ query, maxResults }) => ({ query, maxResults }), [])
+          );
+          return TypedRegistryTools.useToolRegistry();
+        },
+        { wrapper: typedRegistryWrapper }
+      );
+
+      // Compile-time compatibility checks: schema-aware overloads must retain
+      // the broad manager contract used by transport adapters.
+      const typedRegistry: ToolRegistry<typeof typedSchema> = result.current;
+      const manager: ToolManagementInterface = typedRegistry;
+      const assertDynamicOverloads = async (
+        registry: ToolRegistry<typeof typedSchema>,
+        request: ToolCallRequest,
+        modelCall: ModelToolCall,
+      ): Promise<void> => {
+        const canonicalResult = await registry.callTool(request);
+        const modelResult = await registry.executeModelToolCall(modelCall);
+        type IsExactly<Left, Right> = (
+          <T>() => T extends Left ? 1 : 2
+        ) extends (
+          <T>() => T extends Right ? 1 : 2
+        ) ? true : false;
+        type Assert<T extends true> = T;
+        type CanonicalCallUsesBroadResult = Assert<
+          IsExactly<typeof canonicalResult, ToolCallResult>
+        >;
+        type ModelCallUsesBroadResult = Assert<
+          IsExactly<typeof modelResult, ToolCallResult>
+        >;
+        const broadCanonicalResult: ToolCallResult = canonicalResult;
+        const broadModelResult: ToolCallResult = modelResult;
+        const assertCanonical: CanonicalCallUsesBroadResult = true;
+        const assertModel: ModelCallUsesBroadResult = true;
+        void broadCanonicalResult;
+        void broadModelResult;
+        void assertCanonical;
+        void assertModel;
+      };
+      void manager;
+      void assertDynamicOverloads;
+
+      const toolResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'typed-registry-search',
+        params: {
+          name: 'search',
+          // z.input permits this defaulted field to be omitted at the boundary.
+          arguments: { query: 'laptop' },
+        },
+      }));
+      const structuredContent: { query: string; maxResults: number } | undefined =
+        toolResult.structuredContent;
+
+      expect(structuredContent).toEqual({ query: 'laptop', maxResults: 10 });
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', maxResults: 10 },
+      });
+
+      const modelResult = await act(async () => result.current.executeModelToolCall({
+        id: 'typed-registry-model-search',
+        name: 'search',
+        // The same unparsed input contract applies before model-call normalization.
+        arguments: { query: 'headphones' },
+      }));
+      const modelStructuredContent: { query: string; maxResults: number } | undefined =
+        modelResult.structuredContent;
+
+      expect(modelStructuredContent).toEqual({ query: 'headphones', maxResults: 10 });
+      expect(modelResult).toMatchObject({
+        structuredContent: { query: 'headphones', maxResults: 10 },
+      });
+    });
+
+    it('infers literal durable-operation results without narrowing dynamic callers', async () => {
+      const typedSchema = createActionSchema({
+        save: defineAction({
+          name: 'save',
+          parameters: z.object({ documentId: z.string() }),
+          outputSchema: z.object({
+            saved: z.boolean(),
+            version: z.number().int(),
+          }),
+        }, z),
+      });
+      const backend = createMockDurableOperationBackend<ToolCallResult>();
+      const ownerStore = createMockDurableOperationStore(backend, 'typed-durable-owner');
+      const recoveryStore = createMockDurableOperationStore(
+        backend,
+        'typed-durable-recovery'
+      );
+      const TypedDurableTools = createToolContext('TypedDurableTools', {
+        schema: typedSchema,
+        durableOperationStore: recoveryStore,
+        durableOperationOwnerId: 'typed-durable-recovery',
+      });
+      const typedDurableWrapper = ({ children }: { children: React.ReactNode }) => (
+        <TypedDurableTools.Provider>{children}</TypedDurableTools.Provider>
+      );
+      const { result } = renderHook(
+        () => TypedDurableTools.useToolRegistry(),
+        { wrapper: typedDurableWrapper }
+      );
+      const createUnknown = async (
+        idempotencyKey: string,
+        resultValue: ToolCallResult
+      ) => {
+        const operationKey = createToolOperationKey('save', idempotencyKey);
+        const claim = await ownerStore.claim(
+          operationKey,
+          createToolCallFingerprint('save', { documentId: idempotencyKey }),
+          'typed-durable-owner'
+        );
+        return ownerStore.markUnknown(
+          operationKey,
+          'typed-durable-owner',
+          'remote acknowledgement was lost',
+          resultValue,
+          claim.fence
+        );
+      };
+
+      // String names must retain the dynamic transport-safe contract even when
+      // this registry has a literal schema map.
+      const assertDynamicDurableOverloads = async (
+        registry: ToolRegistry<typeof typedSchema>,
+        toolName: string
+      ): Promise<void> => {
+        const status = await registry.getOperationStatus(toolName, 'dynamic-status');
+        const reconciled = await registry.reconcileOperation(
+          toolName,
+          'dynamic-reconcile',
+          { state: 'failed', reason: 'dynamic caller result' },
+          undefined,
+          { incarnation: 'dynamic-incarnation', revision: 1 }
+        );
+        const recovered = await registry.recoverOperation(
+          toolName,
+          'dynamic-recover',
+          async record => ({
+            state: 'failed',
+            reason: record.reason ?? 'dynamic recovery result',
+          })
+        );
+        type IsExactly<Left, Right> = (
+          <T>() => T extends Left ? 1 : 2
+        ) extends (
+          <T>() => T extends Right ? 1 : 2
+        ) ? true : false;
+        type Assert<T extends true> = T;
+        type StatusUsesBroadResult = Assert<
+          IsExactly<
+            typeof status,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        type ReconcileUsesBroadResult = Assert<
+          IsExactly<
+            typeof reconciled,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        type RecoverUsesBroadResult = Assert<
+          IsExactly<
+            typeof recovered,
+            DurableOperationRecord<ToolCallResult> | undefined
+          >
+        >;
+        const assertStatus: StatusUsesBroadResult = true;
+        const assertReconcile: ReconcileUsesBroadResult = true;
+        const assertRecover: RecoverUsesBroadResult = true;
+        void assertStatus;
+        void assertReconcile;
+        void assertRecover;
+      };
+      void assertDynamicDurableOverloads;
+
+      await createUnknown('typed-status', {
+        content: [],
+        structuredContent: { saved: false, version: 1 },
+      });
+      const status = await result.current.getOperationStatus('save', 'typed-status');
+      const statusContent: { saved: boolean; version: number } | undefined =
+        status?.result?.structuredContent;
+      expect(statusContent).toEqual({ saved: false, version: 1 });
+
+      const reconcileUnknown = await createUnknown('typed-reconcile', { content: [] });
+      const reconciled = await result.current.reconcileOperation(
+        'save',
+        'typed-reconcile',
+        {
+          state: 'completed',
+          result: {
+            content: [],
+            structuredContent: { saved: true, version: 2 },
+          },
+        },
+        undefined,
+        {
+          incarnation: reconcileUnknown.incarnation,
+          revision: reconcileUnknown.revision,
+        }
+      );
+      const reconciledContent: { saved: boolean; version: number } | undefined =
+        reconciled?.result?.structuredContent;
+      expect(reconciledContent).toEqual({ saved: true, version: 2 });
+
+      await createUnknown('typed-recover', { content: [] });
+      const recovered = await result.current.recoverOperation(
+        'save',
+        'typed-recover',
+        async record => {
+          const priorContent: { saved: boolean; version: number } | undefined =
+            record.result?.structuredContent;
+          expect(priorContent).toBeUndefined();
+          return {
+            state: 'completed',
+            result: {
+              content: [],
+              structuredContent: { saved: true, version: 3 },
+            },
+          };
+        }
+      );
+      const recoveredContent: { saved: boolean; version: number } | undefined =
+        recovered?.result?.structuredContent;
+      expect(recoveredContent).toEqual({ saved: true, version: 3 });
     });
 
     it('should reject invalid tools/call arguments before policy and handlers', async () => {
@@ -1328,6 +1688,68 @@ describe('createToolContext', () => {
       );
     });
 
+    it('snapshots schema and allowlist membership for discovery and execution', async () => {
+      const mutableSchema = { ...testSchema };
+      const mutableAllowedToolNames = ['searchProducts'];
+      const snapshotContext = createToolContext('SnapshotTools', {
+        schema: mutableSchema,
+        allowedToolNames: mutableAllowedToolNames,
+      });
+      delete (mutableSchema as Partial<typeof mutableSchema>).searchProducts;
+      Object.assign(mutableSchema as Record<string, unknown>, {
+        runtimeAdded: testSchema.addToCart,
+      });
+      mutableAllowedToolNames.length = 0;
+      mutableAllowedToolNames.push('addToCart');
+
+      const handler = jest.fn(async () => ({ source: 'snapshot' }));
+      const snapshotWrapper = ({ children }: { children: React.ReactNode }) => (
+        <snapshotContext.Provider>{children}</snapshotContext.Provider>
+      );
+      const { result } = renderHook(
+        () => {
+          snapshotContext.useToolHandler('searchProducts', useCallback(handler, []));
+          return snapshotContext.useToolRegistry();
+        },
+        { wrapper: snapshotWrapper }
+      );
+
+      expect(result.current.getToolNames()).toEqual(['searchProducts']);
+      const callerOwnedNames = result.current.getToolNames();
+      callerOwnedNames.push('addToCart');
+      expect(result.current.getToolNames()).toEqual(['searchProducts']);
+      expect(result.current.listTools().tools.map((tool) => tool.name)).toEqual(['searchProducts']);
+      expect(result.current.getToolDefinition('addToCart')).toBeUndefined();
+
+      const allowedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-allowed',
+        params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+      }));
+      expect(allowedResult).toMatchObject({ structuredContent: { source: 'snapshot' } });
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      const blockedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-blocked',
+        params: { name: 'addToCart', arguments: { productId: 'item-1', quantity: 1 } },
+      }));
+      expect(blockedResult).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.NOT_ALLOWED },
+      });
+
+      const addedResult = await act(async () => result.current.callTool({
+        method: 'tools/call',
+        id: 'snapshot-added',
+        params: { name: 'runtimeAdded', arguments: { productId: 'item-1', quantity: 1 } },
+      }));
+      expect(addedResult).toMatchObject({
+        isError: true,
+        error: { code: TOOL_CALL_ERROR_CODES.NOT_FOUND },
+      });
+    });
+
     it('runs canonical interaction only after validation and a policy ask', async () => {
       const interaction = jest.fn(async () => 'approved' as const);
       const policy = jest.fn(() => 'ask' as const);
@@ -1573,23 +1995,79 @@ describe('createToolContext', () => {
         { wrapper: timeoutWrapper }
       );
 
-      const toolResult = await act(async () =>
-        result.current.callTool(
+      for (const timeout of [-1, 0.5, Number.MAX_SAFE_INTEGER + 1, 2_147_483_648]) {
+        const toolResult = await act(async () =>
+          result.current.callTool(
+            {
+              method: 'tools/call',
+              id: `invalid-timeout-${String(timeout)}`,
+              params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+            },
+            { timeout }
+          )
+        );
+
+        expect(toolResult).toMatchObject({
+          isError: true,
+          toolCallId: `invalid-timeout-${String(timeout)}`,
+          error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
+        });
+      }
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('keeps zero timeout valid and rejects invalid values before lifecycle events or timers', async () => {
+      jest.useFakeTimers();
+      try {
+        const events: string[] = [];
+        const handler = jest.fn(async () => ({ ok: true }));
+        const timeoutContext = createToolContext('TimeoutBoundaryTools', {
+          schema: testSchema,
+          onToolCall: event => events.push(event.type),
+        });
+        const timeoutWrapper = ({ children }: { children: React.ReactNode }) => (
+          <timeoutContext.Provider>{children}</timeoutContext.Provider>
+        );
+        const { result } = renderHook(
+          () => {
+            timeoutContext.useToolHandler('searchProducts', useCallback(handler, []));
+            return timeoutContext.useToolRegistry();
+          },
+          { wrapper: timeoutWrapper }
+        );
+
+        const zeroResult = await result.current.callTool(
           {
             method: 'tools/call',
-            id: 'invalid-timeout',
+            id: 'zero-timeout',
             params: { name: 'searchProducts', arguments: { query: 'laptop' } },
           },
-          { timeout: -1 }
-        )
-      );
+          { timeout: 0 }
+        );
+        expect(zeroResult).toMatchObject({ structuredContent: { ok: true } });
+        expect(events).toEqual(['started', 'completed']);
 
-      expect(toolResult).toMatchObject({
-        isError: true,
-        toolCallId: 'invalid-timeout',
-        error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS, retryable: false },
-      });
-      expect(handler).not.toHaveBeenCalled();
+        events.length = 0;
+        for (const timeout of [0.5, Number.MAX_SAFE_INTEGER + 1, 2_147_483_648]) {
+          const toolResult = await result.current.callTool(
+            {
+              method: 'tools/call',
+              id: `invalid-preflight-${String(timeout)}`,
+              params: { name: 'searchProducts', arguments: { query: 'laptop' } },
+            },
+            { timeout }
+          );
+          expect(toolResult).toMatchObject({
+            isError: true,
+            error: { code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS },
+          });
+        }
+        expect(events).toEqual([]);
+        expect(jest.getTimerCount()).toBe(0);
+        expect(handler).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should return a canonical error for an invalid per-call provenance owner', async () => {
@@ -3393,6 +3871,39 @@ describe('createToolContext', () => {
   });
 
   describe('useToolHandler and useToolDispatch', () => {
+    it('registers result handlers in core\'s explicit result phase', async () => {
+      let controller: unknown;
+      const { result: callResult } = renderHook(
+        () => {
+          const call = useToolCall();
+          useToolResultHandler(
+            'searchProducts',
+            useCallback((payload, resultController) => {
+              controller = resultController;
+              return { query: payload.query, phase: 'result' };
+            }, [])
+          );
+          return call;
+        },
+        { wrapper }
+      );
+
+      const toolResult = await callResult.current('searchProducts', {
+        query: 'laptop',
+        maxResults: 10,
+      });
+
+      expect(toolResult).toMatchObject({
+        structuredContent: { query: 'laptop', phase: 'result' },
+      });
+      expect(controller).toEqual(expect.objectContaining({
+        abort: expect.any(Function),
+        setResult: expect.any(Function),
+        mergeResult: expect.any(Function),
+      }));
+      expect((controller as { modifyPayload?: unknown }).modifyPayload).toBeUndefined();
+    });
+
     it('should register and execute tool handler', async () => {
       const handlerMock = jest.fn().mockResolvedValue({ results: ['product1', 'product2'] });
 

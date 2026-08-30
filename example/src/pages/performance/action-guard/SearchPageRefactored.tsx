@@ -324,6 +324,7 @@ function SearchDemoInterface() {
     removeFilter,
     clearFilters,
     selectResult,
+    clearSelectedResult,
   } = useAdvancedSearchActions();
 
   // Store subscriptions
@@ -705,7 +706,7 @@ function SearchDemoInterface() {
               선택된 항목
             </h3>
             <button
-              onClick={() => selectedResultStore.setValue(null)}
+              onClick={clearSelectedResult}
               className="text-gray-400 hover:text-gray-600 text-lg"
             >
               ✕
@@ -1054,6 +1055,7 @@ function CodeSection() {
   removeFilter: { key: string };
   clearFilters: void;
   selectResult: { id: string; item: SearchItem };
+  clearSelectedResult: void;
   abortSearch: void;
 }`}
             </CodeBlock>

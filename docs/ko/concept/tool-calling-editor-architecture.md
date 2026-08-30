@@ -1,7 +1,7 @@
 # Tool Calling Editor 아키텍처
 
 > **개발 트랙 상태:** ToolContext와 Durable Operations는
-> `@context-action/core@1.1.0` / `@context-action/react@2.0.0` 상태 관리
+> `@context-action/core@1.1.0` / `@context-action/react@3.0.0` 상태 관리
 > 릴리즈에 포함되지 않습니다. 이 protocol·persistence·provider recovery 표면이
 > 별도 릴리즈 결정을 받을 때까지 React 3 패키지는
 > `@context-action/react/tools`를 의도적으로 제외합니다.
@@ -279,6 +279,10 @@ loop를 중단하지 않고 다음 provider message 안에
   observer가 arguments와 최종 result를 연결할 수 있다.
 - action에 선택한 `outputSchema`가 있으면 structured handler result를 반환 전에
   검증하며, 실패 시 `TOOL_OUTPUT_VALIDATION_FAILED` 결과를 반환한다.
+  `InferActionResultMap<typeof schema>`는 source-track result handler가 사용할
+  같은 정적 result type도 도출한다. `InferActionInputMap<typeof schema>`는
+  caller의 unparsed shape을 도출하고 handler는 Zod default·transform이 적용된
+  parsed payload type을 유지한다.
 
 `@context-action/tool-protocol`은 표준 managed-call code를 재사용할 수 있도록
 `TOOL_CALL_ERROR_CODES`와 `ToolCallErrorCode`를 export한다. handler가 workspace나
@@ -361,7 +365,7 @@ telemetry와 사용자 trace consumer는 event나 diagnostic을 보존하기 전
 metadata를 제공한다. durable operation record를 변경하거나 두 번째 state machine을
 만드는 기능은 아니며, standalone Bolt-style trace는 화면 표시와 복사 JSON 모두에
 이 policy를 사용한다.
-`@context-action/react/tools`가 ambiguous durable tool result를 저장할 때는
+source-only ToolContext 트랙이 ambiguous durable tool result를 저장할 때는
 `sanitizeToolCallDiagnostic()`를 사용해 error code/retryability와 bounded redacted
 details만 남긴다. canonical content와 structured payload는 생략하며, 성공한 terminal
 result는 cross-process replay 계약을 보존하기 위해 lossless로 유지한다.
@@ -768,7 +772,7 @@ bridge는 ready message를 억제하므로, 이후 `DOMContentLoaded` event가 �
 surface이므로 example 내부에 유지한다. Bolt 스타일 visual shell은
 `demos/bolt-style-editor`로 격리해 example route와 결합하지 않고 정적 페이지로
 배포한다. Tool protocol과 action schema는 `@context-action/tool-protocol`,
-ToolContext와 registry는 `@context-action/react/tools`가 소유한다.
+ToolContext와 registry는 source-only `packages/react/src/tools` 트랙이 소유한다.
 
 첫 번째 추출 seam은 이제 private
 `@context-action/live-code-editor` workspace package로 존재한다. 이 package는

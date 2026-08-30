@@ -1,17 +1,31 @@
-import { createStore } from '@context-action/react';
+import { createStore, type Store } from '@context-action/react';
 import type { Toast, ToastConfig } from './types';
 
-// 토스트 목록 스토어
-export const toastsStore = createStore<Toast[]>('toasts', []);
+export interface ToastStores {
+  toasts: Store<Toast[]>;
+  config: Store<ToastConfig>;
+  stackIndex: Store<number>;
+}
 
-// 토스트 설정 스토어
-export const toastConfigStore = createStore<ToastConfig>('toastConfig', {
+export const DEFAULT_TOAST_CONFIG: ToastConfig = {
   position: 'top-right',
-  maxToasts: 4, // 화면 공간을 고려하여 4개로 제한
+  maxToasts: 4,
   defaultDuration: 4000,
   showStackCount: true,
   enableActionLogging: true,
-});
+};
 
-// 다음 스택 인덱스를 관리하는 스토어
-export const toastStackIndexStore = createStore<number>('toastStackIndex', 0);
+/**
+ * Create one isolated toast-store set for one mounted ToastSystemProvider.
+ * The names are diagnostic labels only; every invocation owns fresh stores.
+ */
+export function createToastStores(): ToastStores {
+  return {
+    toasts: createStore<Toast[]>('ToastSystem.toasts', []),
+    config: createStore<ToastConfig>(
+      'ToastSystem.config',
+      DEFAULT_TOAST_CONFIG
+    ),
+    stackIndex: createStore<number>('ToastSystem.stackIndex', 0),
+  };
+}

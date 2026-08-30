@@ -76,7 +76,7 @@ contexts/
 actions/
   run-agent.ts                 # provider-neutral orchestration
 handlers/
-  tool-handlers.tsx            # useToolHandler registrations
+  tool-handlers.tsx            # useToolResultHandler registrations
 hooks/
   use-tool-execution.ts        # provider/model execution
   use-editor-observables.ts    # subscriptions and workspace derived state
@@ -145,14 +145,23 @@ function definitions, MCP definitions, catalog inspectors, and validation from
 the registry. Do not hand-build a second provider-specific schema in a view or
 transport adapter.
 
+> **Development-track source reference:** This illustrates the ToolContext
+> source design. React 3 deliberately does not publish
+> `@context-action/react/tools`, so it is not an installed-package consumer
+> example until a separate ToolContext release is approved.
+
 ```tsx
 import { createToolContext } from '@context-action/react/tools';
 
-const { Provider, useToolHandler, useToolRegistry } = createToolContext(
+const { Provider, useToolResultHandler, useToolRegistry } = createToolContext(
   'WebStudio',
   { schema: webStudioToolSchema }
 );
 ```
+
+Use `useToolResultHandler` for handlers that only produce the canonical tool
+result. `useToolHandler` remains available only for source-track handlers that
+need the legacy full `PipelineController` control-flow APIs.
 
 ### 2. Keep model transport provider-neutral
 

@@ -1,7 +1,8 @@
 /**
- * Tool Context public exports.
+ * Development-track ToolContext source exports.
  *
- * Unified Tool Registry for LLM Integration
+ * This module is deliberately not published as an `@context-action/react` 3
+ * subpath while the ToolContext and Durable Operations contracts are developed.
  */
 
 export { createToolContext } from './ToolContext';
@@ -12,7 +13,15 @@ export type {
   ToolPolicyInput,
   ToolContextReturn,
   ToolContextType,
+  DirectToolCallOptions,
   ToolRegistry,
+  SchemaToolCallRequest,
+  SchemaModelToolCall,
+  SchemaToolCallResult,
+  SchemaDurableOperationRecord,
+  SchemaDurableOperationResolution,
+  SchemaToolOperationRecoveryResolver,
+  ToolCallFunction,
   ToolDispatchFunction,
   ToolDispatchWithResultReturn,
   ToolExecutionResult,

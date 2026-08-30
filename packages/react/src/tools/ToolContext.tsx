@@ -1,18 +1,25 @@
 /**
- * @fileoverview createToolContext - Unified Tool Registry for LLM Integration
+ * @fileoverview Development-track createToolContext for unified tool management
  *
- * Combines ActionContext patterns with Zod schema-based definitions to create
- * a unified tool registry that can:
- * - Define tools with Zod schemas (Single Source of Truth)
+ * This module is repository source only: React 3 intentionally does not
+ * publish `@context-action/react/tools`. It combines React provider lifecycle
+ * with Tool Protocol schemas to create a registry that can:
+ * - Define tools with Tool Protocol schemas backed by Zod
  * - Register and execute tool handlers
- * - Export tools in MCP, OpenAI, Anthropic formats
- * - Validate payloads at runtime
+ * - Serve canonical tools/list and tools/call requests
+ * - Convert canonical definitions for provider adapters
+ * - Validate payloads and normalize strict input at runtime
  *
  * @example
  * ```typescript
+ * // Repository source-track sibling import; not an installed React 3 subpath.
+ * import { createToolContext } from './ToolContext';
  * import { z } from 'zod';
- * import { createToolContext } from '@context-action/react/tools';
- * import { defineAction, createActionSchema } from '@context-action/tool-protocol';
+ * import {
+ *   createActionSchema,
+ *   defineAction,
+ *   toOpenAIToolDefinitions,
+ * } from '@context-action/tool-protocol';
  *
  * const toolSchema = createActionSchema({
  *   searchProducts: defineAction({
@@ -27,15 +34,15 @@
  *
  * const {
  *   Provider: ToolProvider,
- *   useToolDispatch,
- *   useToolHandler,
+ *   useToolCall,
+ *   useToolResultHandler,
  *   useToolRegistry,
  * } = createToolContext('ProductTools', { schema: toolSchema });
  *
  * // In your LLM integration:
  * function LLMIntegration() {
  *   const registry = useToolRegistry();
- *   const tools = registry.toOpenAI(); // Export for OpenAI
+ *   const tools = toOpenAIToolDefinitions(registry.listTools().tools);
  *   // ... use tools with OpenAI API
  * }
  * ```
@@ -44,6 +51,7 @@
 import {
   ActionHandler,
   ActionRegister,
+  ActionResultHandler,
   DispatchArgs,
   DispatchOptions,
   HandlerConfig,
@@ -69,6 +77,8 @@ import {
   createToolOperationKey,
   getToolCallErrorMetadata,
   InferActionPayloadMap,
+  InferActionInputMap,
+  InferActionResultMap,
   isToolCallRequest,
   isValidToolIdempotencyKey,
   measureToolOutputBytes,
@@ -110,6 +120,7 @@ import {
 
 const DEFAULT_DURABLE_OPERATION_LEASE_MS = 5 * 60 * 1000;
 const MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS = 1000;
+const MAX_TOOL_CALL_TIMEOUT_MS = 2_147_483_647;
 
 type DurablePersistenceOutcome =
   | { readonly persisted: true }
@@ -179,8 +190,10 @@ interface ToolCallTimeoutState {
 
 function createToolCallTimeout(timeout: number | undefined): ToolCallTimeoutState | undefined {
   if (timeout === undefined) return undefined;
-  if (!Number.isFinite(timeout) || timeout < 0) {
-    throw new RangeError('Tool call timeout must be a finite non-negative number.');
+  if (!Number.isSafeInteger(timeout) || timeout < 0 || timeout > MAX_TOOL_CALL_TIMEOUT_MS) {
+    throw new RangeError(
+      `Tool call timeout must be a safe integer between 0 and ${MAX_TOOL_CALL_TIMEOUT_MS}ms.`
+    );
   }
 
   const controller = new AbortController();
@@ -301,13 +314,16 @@ function observedToolOutputBytes(result: ToolCallResult): number {
 }
 
 /**
- * Creates a unified Tool Context for LLM integration
+ * Creates a source-track Tool Context for LLM integration.
  *
  * This factory creates a complete tool system that:
- * - Uses Zod schemas as the Single Source of Truth
- * - Provides runtime payload validation
- * - Exports tools in MCP, OpenAI, Anthropic formats
- * - Manages tool handlers with priority-based execution
+ * - Uses Tool Protocol schemas as the Single Source of Truth
+ * - Provides canonical tools/list and tools/call boundaries
+ * - Normalizes strict input before it reaches handlers
+ * - Keeps compatibility provider exporters separate from canonical discovery
+ * - Separates result-producing handlers from legacy full-controller handlers
+ *
+ * React 3 does not publish this factory as an installed package subpath.
  *
  * @param contextName - Name identifier for this tool context
  * @param config - Configuration with required schema
@@ -326,13 +342,14 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
   config: ToolContextConfig<TSchema>
 ): ToolContextReturn<TSchema> {
   type TPayloadMap = InferActionPayloadMap<TSchema>;
+  type TInputMap = InferActionInputMap<TSchema>;
 
   const {
-    schema,
+    schema: configuredSchema,
     validationMode = 'strict',
     validateOnDispatch = true,
     debug = false,
-    allowedToolNames,
+    allowedToolNames: configuredAllowedToolNames,
     toolListPageSize,
     toolPolicy,
     onToolCall,
@@ -343,6 +360,12 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     durableOperationLeaseMs = DEFAULT_DURABLE_OPERATION_LEASE_MS,
     durableDiagnosticPolicy,
   } = config;
+  // A context factory owns one stable catalog. Keep caller mutations from
+  // making discovery, validation, and execution observe different tool sets.
+  const schema = Object.freeze({ ...configuredSchema }) as TSchema;
+  const allowedToolNames = configuredAllowedToolNames === undefined
+    ? undefined
+    : Object.freeze([...new Set(configuredAllowedToolNames)]);
 
   if (
     durableOperationLeaseMs !== undefined &&
@@ -578,6 +601,8 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           ));
         }
 
+        let executionArguments = request.params.arguments ?? {};
+
         // Canonical tools/call requests must fail before policy/approval when
         // strict validation rejects their arguments. This keeps malformed
         // model input out of the approval UI and gives every transport the
@@ -595,6 +620,9 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               }
             ));
           }
+          // The canonical handler path must receive the same defaulted or
+          // transformed value that strict validation accepted.
+          executionArguments = validation.data as Record<string, unknown>;
         }
 
         if (toolPolicy) {
@@ -753,7 +781,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           }));
         }
 
-        const payload = (request.params.arguments ?? {}) as TPayloadMap[typeof toolName];
+        const payload = executionArguments as TPayloadMap[typeof toolName];
         const operationKey = idempotencyKey === undefined
           ? undefined
           : createToolOperationKey(
@@ -1502,23 +1530,31 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
    * This keeps direct UI use in the same policy and provenance path as model
    * and MCP calls without making React a transport implementation.
    */
-  const useToolCall = (): ToolCallFunction<TPayloadMap> => {
+  const useToolCall = (): ToolCallFunction<TInputMap, InferActionResultMap<TSchema>> => {
     const { registry } = useToolContext();
     const hookId = useId();
     const sequenceRef = useRef(0);
 
     return useMemo(() => (
-      <K extends Extract<keyof TPayloadMap, string>>(
+      <K extends Extract<keyof TInputMap, string>>(
         toolName: K,
-        payload: TPayloadMap[K],
+        payload: TInputMap[K],
         options?: DirectToolCallOptions
-      ): Promise<ToolCallResult> => {
+      ): Promise<ToolCallResult<
+        K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown
+      >> => {
         const { toolCallId, context, ...callOptions } = options ?? {};
         const name = String(toolName);
         const id = toolCallId ?? `${contextName}:direct:${hookId}:${++sequenceRef.current}`;
         const params = payload === undefined
           ? { name }
           : { name, arguments: payload as Record<string, unknown> };
+
+        type TResult = K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown;
 
         return registry.callTool(
           { id, method: 'tools/call', params },
@@ -1530,19 +1566,17 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
               mode: context?.mode ?? 'direct',
             },
           }
-        );
+        ) as Promise<ToolCallResult<TResult>>;
       }
     ), [hookId, registry]);
   };
 
-  /**
-   * Hook to register tool handlers
-   * Handler is kept up-to-date via ref to always call the latest version
-   */
-  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+  /** Internal registration hook shared by legacy and explicit result handlers. */
+  const useRegisteredToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
     handler: ActionHandler<TPayloadMap[K], R>,
-    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+    handlerConfig: HandlerConfig<TPayloadMap[K]> | undefined,
+    registrationRole: 'legacy' | 'result',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useToolContext();
     const handlerId = useId();
@@ -1640,11 +1674,26 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           return handlerRef.current(payload, controller);
         };
 
-        nextLease.unregister = register.register(
-          normalizedToolName,
-          wrapperHandler,
-          stableHandlerConfig
-        );
+        // Tool schemas currently model payloads, not an action-keyed output
+        // map. The adapter supplies `unknown` for that internal result map
+        // while registerResult still selects core's narrower runtime controller.
+        nextLease.unregister = registrationRole === 'result'
+          ? (register as unknown as {
+              registerResult: (
+                action: K,
+                handler: ActionResultHandler<TPayloadMap[K], unknown>,
+                config?: HandlerConfig<TPayloadMap[K]>,
+              ) => () => void;
+            }).registerResult(
+              normalizedToolName,
+              wrapperHandler as ActionResultHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            )
+          : register.register(
+              normalizedToolName,
+              wrapperHandler as ActionHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            );
         registrationRef.current = nextLease;
         lease = nextLease;
       } else {
@@ -1665,8 +1714,30 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
           });
         });
       };
-    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig]);
+    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig, registrationRole]);
   };
+
+  /**
+   * Register a legacy tool handler with the full PipelineController.
+   * Keep this API for handlers that need legacy control-flow capabilities.
+   */
+  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+    toolName: K,
+    handler: ActionHandler<TPayloadMap[K], R>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(toolName, handler, handlerConfig, 'legacy');
+
+  /** Register a result-producing tool handler in core's explicit result phase. */
+  const useToolResultHandler = <K extends Extract<keyof TSchema, string>>(
+    toolName: K,
+    handler: ActionResultHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(
+    toolName,
+    handler as unknown as ActionHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
+    handlerConfig,
+    'result',
+  );
 
   /**
    * Hook to access the tool registry
@@ -1796,6 +1867,7 @@ export function createToolContext<TSchema extends ActionSchemaMap>(
     useToolDispatch,
     useToolCall,
     useToolHandler,
+    useToolResultHandler,
     useToolRegistry,
     useToolDispatchWithResult,
     useActionRegister,

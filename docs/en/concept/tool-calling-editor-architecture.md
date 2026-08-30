@@ -1,7 +1,7 @@
 # Tool Calling Editor Architecture
 
 > **Development-track status:** ToolContext and Durable Operations are not part
-> of the `@context-action/core@1.1.0` / `@context-action/react@2.0.0`
+> of the `@context-action/core@1.1.0` / `@context-action/react@3.0.0`
 > state-management release. The React 3 package intentionally omits
 > `@context-action/react/tools` while this protocol, persistence, and provider
 > recovery surface receives a separate release decision.
@@ -304,7 +304,11 @@ without restating the contract.
   result payload and is trace evidence, not a second durable-operation state
   machine.
 - An action's optional `outputSchema` validates structured handler results before
-  they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`
+  they are returned; invalid output becomes `TOOL_OUTPUT_VALIDATION_FAILED`.
+  `InferActionResultMap<typeof schema>` also derives the matching static result
+  type for source-track result handlers. `InferActionInputMap<typeof schema>`
+  derives the unparsed caller shape, while handlers retain the parsed payload
+  type with Zod defaults and transforms applied.
 
 `@context-action/tool-protocol` exports `TOOL_CALL_ERROR_CODES` and
 `ToolCallErrorCode` for the canonical managed-call codes. Applications can still
@@ -385,8 +389,8 @@ exposes `retentionMs`/`maxEntries` metadata for the owning store. It is an
 observability boundary only: it does not mutate the durable operation record or
 introduce a second state machine. The standalone Bolt-style trace uses this
 policy for both displayed details and copied JSON.
-When `@context-action/react/tools` persists an ambiguous durable tool result, it uses
-`sanitizeToolCallDiagnostic()` to keep only the error code/retryability and
+When the source-only ToolContext track persists an ambiguous durable tool result,
+it uses `sanitizeToolCallDiagnostic()` to keep only the error code/retryability and
 bounded redacted details; canonical content and structured payloads are omitted.
 `sanitizeToolCallDiagnosticReason()` also replaces handler-provided error text
 with a stable code-based reason. The same projection is used for known error
@@ -845,8 +849,8 @@ The full Live Code Editor remains inside `example` because it is a showcase
 surface, not framework runtime. The Bolt-style visual shell is isolated in
 `demos/bolt-style-editor` so it can be deployed as a static page without
 coupling its route to the example application. `@context-action/tool-protocol`
-owns the provider-neutral tool protocol and action schemas, while
-`@context-action/react/tools` owns ToolContext and the registry.
+owns the provider-neutral tool protocol and action schemas, while the
+source-only `packages/react/src/tools` track owns ToolContext and the registry.
 
 The first extraction seam now exists as the private
 `@context-action/live-code-editor` workspace package. It exports the

@@ -2,13 +2,13 @@ import { useStoreValue } from '@context-action/react';
 import { useCallback } from 'react';
 import { cn } from '../../lib/utils';
 import { toastContainerVariants } from '../ui/variants';
-import { toastActionRegister } from './actions';
-import { toastConfigStore, toastsStore } from './store';
+import { useToastSystem } from './ToastContext';
 import { ToastItem } from './ToastItem';
 
 export function ToastContainer() {
-  const toasts = useStoreValue(toastsStore);
-  const config = useStoreValue(toastConfigStore);
+  const toastSystem = useToastSystem();
+  const toasts = useStoreValue(toastSystem.stores.toasts);
+  const config = useStoreValue(toastSystem.stores.config);
 
   // 표시할 토스트들만 필터링 (hidden 상태 제외)
   const visibleToasts =
@@ -31,8 +31,8 @@ export function ToastContainer() {
   const displayToasts = sortedToasts.slice(0, config?.maxToasts || 4);
 
   const handleClearAll = useCallback(() => {
-    toastActionRegister.dispatch('clearAllToasts', {});
-  }, []);
+    toastSystem.clearAllToasts();
+  }, [toastSystem]);
 
   // 토스트가 없으면 컨테이너를 숨김
   if (displayToasts.length === 0) {
@@ -80,13 +80,8 @@ export function ToastContainer() {
 
       {/* 토스트 스택 */}
       <div className="space-y-2">
-        {displayToasts.map((toast, index) => (
-          <ToastItem
-            key={toast.id}
-            toast={toast}
-            index={index}
-            totalCount={displayToasts.length}
-          />
+        {displayToasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} />
         ))}
       </div>
     </div>

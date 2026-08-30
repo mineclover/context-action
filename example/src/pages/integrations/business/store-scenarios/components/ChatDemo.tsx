@@ -131,40 +131,70 @@ const messageItemAreEqual = (
   );
 };
 
-const MessageItem = memo(
+export const ChatMessageItem = memo(
   ({ message, currentUser, onDelete }: MessageItemProps) => {
+    const isOwnMessage = message.sender === currentUser;
     const handleDelete = useCallback(() => {
       onDelete(message.id);
     }, [message.id, onDelete]);
 
     return (
       <div
-        className={`message ${message.sender === currentUser ? 'own' : 'other'}`}
+        data-message-id={message.id}
+        className={`flex items-start gap-3 ${
+          isOwnMessage ? 'justify-end' : 'justify-start'
+        }`}
       >
         <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 text-white text-sm">
           {getUserAvatar(message.sender)}
         </div>
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+        <div
+          className={`relative max-w-[78%] p-3 rounded-2xl shadow-sm border ${
+            isOwnMessage
+              ? 'bg-blue-600 border-blue-600 text-white'
+              : 'bg-white border-gray-100 text-gray-900'
+          }`}
+        >
           <div className="flex items-center gap-2 mb-1">
             <span
-              className="text-sm font-medium text-gray-700"
-              style={{ color: getUserColor(message.sender) }}
+              className={`text-sm font-medium ${
+                isOwnMessage ? 'text-blue-100' : 'text-gray-700'
+              }`}
+              style={
+                isOwnMessage
+                  ? undefined
+                  : { color: getUserColor(message.sender) }
+              }
             >
               {message.sender}
             </span>
-            <span className="text-xs text-gray-500">
+            <span
+              className={`text-xs ${
+                isOwnMessage ? 'text-blue-100' : 'text-gray-500'
+              }`}
+            >
               {getMessageTime(message.timestamp)}
             </span>
             {message.type !== 'text' && (
-              <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded">
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded ${
+                  isOwnMessage
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 text-gray-900'
+                }`}
+              >
                 {message.type === 'image' ? '🖼️' : '📎'}
               </span>
             )}
           </div>
-          <div className="text-sm text-gray-900 leading-relaxed">
+          <div
+            className={`text-sm leading-relaxed ${
+              isOwnMessage ? 'text-white' : 'text-gray-900'
+            }`}
+          >
             {message.message}
           </div>
-          {message.sender === currentUser && (
+          {isOwnMessage && (
             <button
               onClick={handleDelete}
               className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 flex items-center justify-center"
@@ -269,7 +299,7 @@ const MessagesList = memo(
       ) : (
         <>
           {messages?.map((message) => (
-            <MessageItem
+            <ChatMessageItem
               key={message.id}
               message={message}
               currentUser={currentUser}

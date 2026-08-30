@@ -14,7 +14,7 @@ import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
 } from '@/components/LogMonitor';
-import { toastActionRegister } from '@/components/ToastSystem/actions';
+import { useToastSystem } from '@/components/ToastSystem';
 import {
   Button,
   CodeBlock,
@@ -109,6 +109,7 @@ function useApiBlockingLogic() {
   const blockingStore = ApiBlockingStores.useStore('blockingState');
   const blockingState = useStoreValue(blockingStore);
   const { logAction, logSystem } = useActionLoggerWithToast();
+  const toastSystem = useToastSystem();
   const blockingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const isCurrentlyBlocked = useCallback(() => {
@@ -220,12 +221,11 @@ function useApiBlockingLogic() {
           lastCallTime: timestamp,
         }));
 
-        logSystem(`🍞 Dispatching success toast for: ${endpoint}`);
-        toastActionRegister.dispatch('addToast', {
-          type: 'success',
-          title: '🌐 API 호출',
-          message: `${endpoint} 호출 성공! (${responseTime}ms)`,
-        });
+        toastSystem.showToast(
+          'success',
+          '🌐 API 호출',
+          `${endpoint} 호출 성공! (${responseTime}ms)`
+        );
       }
     );
 
@@ -248,12 +248,11 @@ function useApiBlockingLogic() {
           lastCallTime: timestamp,
         }));
 
-        logSystem(`🍞 Dispatching error toast for: ${endpoint}`);
-        toastActionRegister.dispatch('addToast', {
-          type: 'error',
-          title: '🚫 API 차단',
-          message: `${endpoint} 호출이 차단되었습니다 (${reason})`,
-        });
+        toastSystem.showToast(
+          'error',
+          '🚫 API 차단',
+          `${endpoint} 호출이 차단되었습니다 (${reason})`
+        );
       }
     );
 
@@ -336,6 +335,7 @@ function useApiBlockingLogic() {
     blockingState.blockDuration,
     logAction,
     logSystem,
+    toastSystem,
   ]);
 
   const remainingBlockTime = blockingState.blockEndTime

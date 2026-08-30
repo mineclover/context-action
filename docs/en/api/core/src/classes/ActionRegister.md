@@ -716,7 +716,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### getRegistryInfo()
 
-> **getRegistryInfo**(): `ActionRegistryInfo`&lt;`T`&gt;
+> **getRegistryInfo**(): [`ActionRegistryInfo`](../interfaces/ActionRegistryInfo.md)&lt;`T`&gt;
 
 Defined in: [packages/core/src/ActionRegister.ts:2779](https://github.com/mineclover/context-action/blob/main/packages/core/src/ActionRegister.ts#L2779)
 
@@ -724,7 +724,7 @@ Get comprehensive registry information (similar to DeclarativeStoreRegistry patt
 
 #### Returns
 
-`ActionRegistryInfo`&lt;`T`&gt;
+[`ActionRegistryInfo`](../interfaces/ActionRegistryInfo.md)&lt;`T`&gt;
 
 Registry information including actions, handlers, and execution modes
 
@@ -732,7 +732,7 @@ Registry information including actions, handlers, and execution modes
 
 ### getActionStats()
 
-> **getActionStats**&lt;`K`&gt;(`action`): `ActionHandlerStats`&lt;`T`&gt; \| `null`
+> **getActionStats**&lt;`K`&gt;(`action`): [`ActionHandlerStats`](../interfaces/ActionHandlerStats.md)&lt;`T`&gt; \| `null`
 
 Defined in: [packages/core/src/ActionRegister.ts:2801](https://github.com/mineclover/context-action/blob/main/packages/core/src/ActionRegister.ts#L2801)
 
@@ -754,7 +754,7 @@ Action name to get statistics for
 
 #### Returns
 
-`ActionHandlerStats`&lt;`T`&gt; \| `null`
+[`ActionHandlerStats`](../interfaces/ActionHandlerStats.md)&lt;`T`&gt; \| `null`
 
 Detailed handler statistics
 
@@ -762,7 +762,7 @@ Detailed handler statistics
 
 ### getAllActionStats()
 
-> **getAllActionStats**(): `ActionHandlerStats`&lt;`T`&gt;[]
+> **getAllActionStats**(): [`ActionHandlerStats`](../interfaces/ActionHandlerStats.md)&lt;`T`&gt;[]
 
 Defined in: [packages/core/src/ActionRegister.ts:2843](https://github.com/mineclover/context-action/blob/main/packages/core/src/ActionRegister.ts#L2843)
 
@@ -770,7 +770,7 @@ Get statistics for all registered actions
 
 #### Returns
 
-`ActionHandlerStats`&lt;`T`&gt;[]
+[`ActionHandlerStats`](../interfaces/ActionHandlerStats.md)&lt;`T`&gt;[]
 
 Array of statistics for all actions
 

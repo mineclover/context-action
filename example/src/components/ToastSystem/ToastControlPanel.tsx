@@ -1,25 +1,25 @@
 import { useStoreValue } from '@context-action/react';
 import { useState } from 'react';
-import { toastActionRegister } from './actions';
-import { toastConfigStore } from './store';
+import { useToastSystem } from './ToastContext';
 import type { ToastPosition } from './types';
 import { useActionToast } from './useActionToast';
 
 export function ToastControlPanel() {
-  const config = useStoreValue(toastConfigStore);
+  const toastSystem = useToastSystem();
+  const config = useStoreValue(toastSystem.stores.config);
   const { showToast, clearAllToasts } = useActionToast();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handlePositionChange = (position: ToastPosition) => {
-    toastActionRegister.dispatch('updateToastConfig', { position });
+    toastSystem.updateConfig({ position });
   };
 
   const handleMaxToastsChange = (maxToasts: number) => {
-    toastActionRegister.dispatch('updateToastConfig', { maxToasts });
+    toastSystem.updateConfig({ maxToasts });
   };
 
   const handleDurationChange = (defaultDuration: number) => {
-    toastActionRegister.dispatch('updateToastConfig', { defaultDuration });
+    toastSystem.updateConfig({ defaultDuration });
   };
 
   const testToasts = [
@@ -110,11 +110,7 @@ export function ToastControlPanel() {
               <button
                 onClick={() => {
                   // executionTime 제거 - 자동 계산됨
-                  toastActionRegister.dispatch('addActionToast', {
-                    actionType: 'updateProfile',
-                    executionStep: 'success',
-                    // executionTime은 ToastSystem actions에서 자동으로 처리
-                  });
+                  toastSystem.showActionToast('updateProfile', 'success');
                 }}
                 className="px-3 py-2 text-xs font-medium rounded-md border transition-colors hover:bg-gray-50"
                 title="Show action toast"
@@ -230,12 +226,7 @@ export function ToastControlPanel() {
                   ];
                   actionTypes.forEach((actionType, i) => {
                     setTimeout(() => {
-                      // executionTime 제거 - 자동 계산됨
-                      toastActionRegister.dispatch('addActionToast', {
-                        actionType,
-                        executionStep: 'success',
-                        // executionTime은 ToastSystem actions에서 자동으로 처리
-                      });
+                      toastSystem.showActionToast(actionType, 'success');
                     }, i * 300);
                   });
                 }}

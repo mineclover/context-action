@@ -18,7 +18,19 @@ import {
   type UnifiedAction,
   type ActionSchemaMap,
   type InferActionPayloadMap,
+  type InferActionInputMap,
+  type InferActionResultMap,
+  type ActionFactory,
 } from '../../src';
+
+type Equal<Left, Right> = (
+  <Value>() => Value extends Left ? 1 : 2
+) extends (
+  <Value>() => Value extends Right ? 1 : 2
+)
+  ? true
+  : false;
+type Assert<T extends true> = T;
 
 describe('Action Schema', () => {
   describe('defineAction', () => {
@@ -354,7 +366,7 @@ describe('Action Schema', () => {
 
   describe('createActionFactory', () => {
     it('should create a factory that binds zod module', () => {
-      const define = createActionFactory(z);
+      const define: ActionFactory = createActionFactory(z);
 
       const action = define({
         name: 'factoryAction',
@@ -362,11 +374,17 @@ describe('Action Schema', () => {
         parameters: z.object({
           data: z.string(),
         }),
+        outputSchema: z.object({ accepted: z.boolean() }),
       });
 
       expect(action.name).toBe('factoryAction');
       expect(action.description).toBe('Created by factory');
       expect(action.validate({ data: 'test' })).toEqual({ data: 'test' });
+      const parsedOutput = action.safeParseOutput?.({ accepted: true });
+      if (parsedOutput?.success) {
+        const output: { accepted: boolean } = parsedOutput.data;
+        expect(output).toEqual({ accepted: true });
+      }
     });
 
     it('should work with multiple actions from same factory', () => {
@@ -427,15 +445,19 @@ describe('Action Schema', () => {
     });
   });
 
-  describe('Type Inference (InferActionPayloadMap)', () => {
-    it('should allow type-safe access to inferred types', () => {
+  describe('Type Inference', () => {
+    it('should infer payload and optional output schema types', () => {
       const schema = createActionSchema({
         createItem: defineAction(
           {
             name: 'createItem',
             parameters: z.object({
               title: z.string(),
-              count: z.number(),
+              count: z.number().default(1),
+            }),
+            outputSchema: z.object({
+              id: z.string(),
+              createdAt: z.string(),
             }),
           },
           z
@@ -452,6 +474,17 @@ describe('Action Schema', () => {
       });
 
       type Actions = InferActionPayloadMap<typeof schema>;
+      type Inputs = InferActionInputMap<typeof schema>;
+      type Results = InferActionResultMap<typeof schema>;
+      type CreateResultIsExact = Assert<Equal<Results['createItem'], {
+        id: string;
+        createdAt: string;
+      }>>;
+      type UnschematizedResultIsUnknown = Assert<Equal<Results['deleteItem'], unknown>>;
+      type CreateInputAllowsDefaultOmission = Assert<Equal<Inputs['createItem'], {
+        title: string;
+        count?: number | undefined;
+      }>>;
 
       // Type-level test: this should compile without errors
       const createPayload: Actions['createItem'] = {
@@ -462,9 +495,29 @@ describe('Action Schema', () => {
       const deletePayload: Actions['deleteItem'] = {
         id: '123',
       };
+      const createInput: Inputs['createItem'] = { title: 'test' };
+      const createResult: Results['createItem'] = {
+        id: 'item-1',
+        createdAt: '2026-08-30T00:00:00.000Z',
+      };
+      const unschematizedResult: Results['deleteItem'] = { deleted: true };
+      const typeAssertions: [
+        CreateResultIsExact,
+        UnschematizedResultIsUnknown,
+        CreateInputAllowsDefaultOmission,
+      ] = [true, true, true];
+
+      const parsedOutput = schema.createItem.safeParseOutput?.(createResult);
+      if (parsedOutput?.success) {
+        const typedOutput: Results['createItem'] = parsedOutput.data;
+        expect(typedOutput).toEqual(createResult);
+      }
 
       expect(createPayload).toEqual({ title: 'test', count: 1 });
       expect(deletePayload).toEqual({ id: '123' });
+      expect(createInput).toEqual({ title: 'test' });
+      expect(unschematizedResult).toEqual({ deleted: true });
+      expect(typeAssertions).toEqual([true, true, true]);
     });
   });
 });

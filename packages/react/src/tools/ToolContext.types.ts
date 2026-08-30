@@ -1,14 +1,16 @@
 /**
- * @fileoverview ToolContext Type Definitions
+ * @fileoverview Development-track ToolContext type definitions
  *
- * Type definitions for the ToolContext system - a unified tool registry
- * combining ActionContext patterns with Zod schema-based definitions.
+ * Repository source only: React 3 intentionally does not publish this as an
+ * installed subpath. The registry combines React lifecycle with Tool Protocol
+ * schemas and canonical tool-call contracts.
  */
 
 import type { DispatchArgs } from '@context-action/core';
 import {
   ActionHandler,
   ActionRegister,
+  ActionResultHandler,
   DispatchOptions,
   ExecutionResult,
   HandlerConfig,
@@ -23,6 +25,8 @@ import type {
   ActionSchemaMap,
   AnthropicToolDefinition,
   InferActionPayloadMap,
+  InferActionInputMap,
+  InferActionResultMap,
   MCPToolDefinition,
   ModelToolCall,
   OpenAIToolDefinition,
@@ -32,6 +36,7 @@ import type {
   ToolCallOptions,
   ToolCallRequest,
   ToolCallResult,
+  ToolArguments,
   ToolIdempotencyRegistryOptions,
   ToolListRequest,
   ToolListResult,
@@ -72,14 +77,18 @@ export type ToolOperationRecoveryResolver = (
  * Configuration options for createToolContext
  */
 export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
-  /** Tool schema map (required) - defines all available tools */
+  /**
+   * Tool schema map (required). The factory snapshots map membership; create
+   * a new context rather than mutating this object to change the catalog.
+   */
   schema: TSchema;
 
   /**
-   * Validation mode for tool execution
-   * - 'strict': Throws ActionValidationError on invalid payload (default)
-   * - 'warn': Logs warning but continues execution
-   * - 'silent': Silently ignores validation errors
+   * Validation mode for tool execution.
+   * - 'strict': canonical tools/call returns a validation error before policy
+   *   or handlers and passes parsed defaults/transforms to the handler.
+   * - 'warn' and 'silent': preserve ActionRegister's permissive raw-dispatch
+   *   behavior.
    */
   validationMode?: ToolValidationMode;
 
@@ -92,7 +101,10 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
   /** Enable debug logging */
   debug?: boolean;
 
-  /** Optional execution allowlist applied to discovery and calls. */
+  /**
+   * Optional execution allowlist applied to discovery and calls. The factory
+   * snapshots this list, so later caller mutations do not change the catalog.
+   */
   allowedToolNames?: readonly string[];
 
   /** Optional page size for canonical tools/list discovery. Defaults to all tools. */
@@ -134,9 +146,75 @@ export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
 // Tool Registry Interface
 // ============================================
 
+/** A tool name known by a source-track schema map. */
+type ToolSchemaName<TSchema extends ActionSchemaMap> = Extract<
+  keyof TSchema,
+  string
+>;
+
 /**
- * Tool Registry - provides access to all defined tools
- * and their export methods for LLM integration
+ * Canonical request narrowed to a schema-known tool name and its unparsed Zod
+ * input. It is intentionally source-track only: the protocol-level request
+ * remains transport-neutral so provider adapters can retain dynamic names.
+ */
+export type SchemaToolCallRequest<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ToolCallRequest, 'params'> & {
+      readonly params: Omit<ToolCallRequest['params'], 'name' | 'arguments'> & {
+        readonly name: K;
+        readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+      };
+    }
+  : never;
+
+/**
+ * Model-side call narrowed to a schema-known tool name and its unparsed Zod
+ * input. Dynamic provider calls continue to use ModelToolCall.
+ */
+export type SchemaModelToolCall<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ModelToolCall, 'name' | 'arguments'> & {
+      readonly name: K;
+      readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+    }
+  : never;
+
+/** Structured result selected by one schema-known tool name. */
+export type SchemaToolCallResult<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = ToolCallResult<InferActionResultMap<TSchema>[K]>;
+
+/** Durable record projected to the structured result of one known tool. */
+export type SchemaDurableOperationRecord<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationRecord<SchemaToolCallResult<TSchema, K>>;
+
+/** Durable reconciliation decision projected to one known tool result. */
+export type SchemaDurableOperationResolution<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationResolution<SchemaToolCallResult<TSchema, K>>;
+
+/** Domain recovery callback projected to one known tool result. */
+export type SchemaToolOperationRecoveryResolver<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = (
+  record: SchemaDurableOperationRecord<TSchema, K>,
+  context?: ToolCallContext
+) =>
+  | SchemaDurableOperationResolution<TSchema, K>
+  | Promise<SchemaDurableOperationResolution<TSchema, K>>;
+
+/**
+ * Source-track Tool Registry. It owns canonical discovery and calls, while
+ * compatibility exporters remain available for provider adapters.
  */
 export interface ToolRegistry<TSchema extends ActionSchemaMap>
   extends ToolManagementInterface<MCPToolDefinition> {
@@ -151,22 +229,22 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
 
   // ---- Batch Export Methods ----
 
-  /** Export all tools as MCP format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toMCP(): MCPToolDefinition[];
 
-  /** Export all tools as OpenAI format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toOpenAI(): OpenAIToolDefinition[];
 
-  /** Export all tools as Anthropic format */
+  /** Compatibility export. Prefer listTools() for new provider adapters. */
   toAnthropic(): AnthropicToolDefinition[];
 
-  /** Export specific tools as MCP format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toMCPFiltered<K extends keyof TSchema>(toolNames: K[]): MCPToolDefinition[];
 
-  /** Export specific tools as OpenAI format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toOpenAIFiltered<K extends keyof TSchema>(toolNames: K[]): OpenAIToolDefinition[];
 
-  /** Export specific tools as Anthropic format */
+  /** Compatibility export. Prefer getToolDefinition() for a single tool. */
   toAnthropicFiltered<K extends keyof TSchema>(toolNames: K[]): AnthropicToolDefinition[];
 
   /** Discover tools using the standard tools/list contract */
@@ -175,19 +253,50 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
   /** Resolve a canonical definition for one tool */
   getToolDefinition(name: string): MCPToolDefinition | undefined;
 
-  /** Execute a canonical tools/call request */
+  /**
+   * Execute a schema-known canonical tools/call request. Literal tool names
+   * preserve the unparsed input and structured result type.
+   */
+  callTool<K extends ToolSchemaName<TSchema>>(
+    request: SchemaToolCallRequest<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+
+  /**
+   * Execute a dynamic canonical tools/call request. Keep this compatibility
+   * overload for transport adapters and intentionally malformed test calls.
+   */
   callTool(
     request: ToolCallRequest,
     options?: ToolCallOptions
   ): Promise<ToolCallResult>;
 
-  /** Normalize and execute a model-side tool call */
+  /**
+   * Normalize and execute a schema-known model-side call with typed results.
+   */
+  executeModelToolCall<K extends ToolSchemaName<TSchema>>(
+    call: SchemaModelToolCall<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+
+  /** Dynamic provider fallback; preserves ToolManagementInterface compatibility. */
   executeModelToolCall(
     call: ModelToolCall,
     options?: ToolCallOptions
   ): Promise<ToolCallResult>;
 
-  /** Query a durable operation without starting or retrying its handler. */
+  /**
+   * Query a durable operation for a schema-known tool without starting or
+   * retrying its handler. This projects stored result data to the tool's
+   * output type; it does not revalidate historical durable data.
+   */
+  getOperationStatus<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable status lookup for providers and legacy callers. */
   getOperationStatus(
     toolName: string,
     idempotencyKey: string,
@@ -202,6 +311,15 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
    * legacy forms remain in the positional ABI but fail closed at runtime;
    * use the full fence or `recoverOperation()`.
    */
+  reconcileOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolution: SchemaDurableOperationResolution<TSchema, K>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable reconciliation preserves the broad storage contract. */
   reconcileOperation(
     toolName: string,
     idempotencyKey: string,
@@ -215,6 +333,14 @@ export interface ToolRegistry<TSchema extends ActionSchemaMap>
    * The resolver owns domain status checks and compensation; this method never
    * starts the tool handler and reconciles with the observed full fence.
    */
+  recoverOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolver: SchemaToolOperationRecoveryResolver<TSchema, K>,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+
+  /** Dynamic durable recovery preserves the broad storage contract. */
   recoverOperation(
     toolName: string,
     idempotencyKey: string,
@@ -256,7 +382,11 @@ export interface ToolContextType<TSchema extends ActionSchemaMap> {
 // ============================================
 
 /**
- * Return type for useToolDispatch hook
+ * Raw ActionRegister dispatch retained for ActionContext compatibility.
+ * It bypasses canonical policy, lifecycle observation, idempotency, durable
+ * operation handling, and output budgets.
+ *
+ * @deprecated Use ToolCallFunction through useToolCall() for new invocations.
  */
 export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
   toolName: K,
@@ -264,7 +394,11 @@ export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloa
   options?: DispatchOptions
 ) => Promise<void>;
 
-/** Options for a direct React-originated canonical tool call. */
+/**
+ * Options for a direct React-originated canonical tool call. ToolContext
+ * accepts timeout only as a safe integer from 0 through 2,147,483,647 ms so
+ * lifecycle provenance and the JavaScript timer keep the same contract.
+ */
 export interface DirectToolCallOptions extends ToolCallOptions {
   /** Optional stable ID used to correlate the canonical `tools/call` request. */
   readonly toolCallId?: ToolCallRequest['id'];
@@ -275,16 +409,21 @@ export interface DirectToolCallOptions extends ToolCallOptions {
  *
  * Unlike the raw dispatch hooks, this always crosses the ToolRegistry boundary
  * and therefore applies policy, lifecycle observation, output budgets,
- * idempotency, and durable-operation handling.
+ * idempotency, and durable-operation handling. Strict handlers receive parsed
+ * defaults and transforms, while the canonical request and durable fingerprint
+ * retain the original transport arguments. Callers use the unparsed Zod input
+ * map, so defaulted fields may be omitted when the parameter schema allows it.
+ * The returned structuredContent type is selected from the action result map.
  */
-export type ToolCallFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
+export type ToolCallFunction<TInputMap, TResultMap = {}> = <K extends Extract<keyof TInputMap, string>>(
   toolName: K,
-  payload: TPayloadMap[K],
+  payload: TInputMap[K],
   options?: DirectToolCallOptions
-) => Promise<ToolCallResult>;
+) => Promise<ToolCallResult<K extends keyof TResultMap ? TResultMap[K] : unknown>>;
 
 /**
- * Return type for useToolDispatchWithResult hook
+ * Raw ActionRegister result helpers for advanced compatibility integrations.
+ * They do not cross the canonical ToolRegistry boundary.
  */
 export interface ToolDispatchWithResultReturn<TPayloadMap> {
   dispatch: ToolDispatchFunction<TPayloadMap>;
@@ -300,27 +439,31 @@ export interface ToolDispatchWithResultReturn<TPayloadMap> {
 // ============================================
 
 /**
- * Return type for createToolContext factory
+ * Return type for the source-only createToolContext factory.
  */
 export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   /** Provider component that wraps children with tool context */
   Provider: React.FC<{ children: ReactNode }>;
 
   /**
-   * Hook to dispatch tools (execute with validation)
-   * @returns Dispatch function that validates and executes tools
+   * Raw ActionRegister dispatch retained for compatibility.
+   * @deprecated Use useToolCall() for new tool invocations.
    */
   useToolDispatch: () => ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
 
   /**
    * Invoke a tool through the canonical `tools/call` path.
-   * Direct UI calls default to `{ source: 'local', mode: 'direct' }`.
+   * Direct UI calls accept unparsed Zod input and default to
+   * `{ source: 'local', mode: 'direct' }`.
    */
-  useToolCall: () => ToolCallFunction<InferActionPayloadMap<TSchema>>;
+  useToolCall: () => ToolCallFunction<
+    InferActionInputMap<TSchema>,
+    InferActionResultMap<TSchema>
+  >;
 
   /**
-   * Hook to register tool handlers
-   * Similar to useActionHandler but for tool execution
+   * Register a legacy tool handler with the full PipelineController.
+   * Use this only when its control-flow capabilities are required.
    */
   useToolHandler: <K extends Extract<keyof TSchema, string>, R = void>(
     toolName: K,
@@ -329,19 +472,34 @@ export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
   ) => void;
 
   /**
-   * Hook to access the tool registry
-   * Provides methods to export tools in various formats
+   * Register a result-producing handler in core's explicit result phase.
+   * It receives the narrower result controller; retain useToolHandler() when
+   * a legacy full PipelineController is required.
+   */
+  useToolResultHandler: <K extends Extract<keyof TSchema, string>>(
+    toolName: K,
+    handler: ActionResultHandler<
+      InferActionPayloadMap<TSchema>[K],
+      InferActionResultMap<TSchema>[K]
+    >,
+    config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
+  ) => void;
+
+  /**
+   * Hook to access the canonical registry. Prefer listTools(),
+   * getToolDefinition(), and callTool() for new integrations.
    */
   useToolRegistry: () => ToolRegistry<TSchema>;
 
   /**
-   * Hook for dispatch with detailed result
+   * Raw ActionRegister result API for advanced compatibility integrations.
+   * It does not cross the canonical ToolRegistry boundary.
    */
   useToolDispatchWithResult: () => ToolDispatchWithResultReturn<InferActionPayloadMap<TSchema>>;
 
   /**
-   * Hook to access raw ActionRegister
-   * For advanced use cases
+   * Hook to access raw ActionRegister for advanced integrations. It bypasses
+   * the canonical ToolRegistry boundary.
    */
   useActionRegister: () => ActionRegister<InferActionPayloadMap<TSchema>> | null;
 

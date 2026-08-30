@@ -79,5 +79,5 @@ export {
   isReactActionError,
 } from './actions/react-helpers';
 
-// ToolContext intentionally lives at @context-action/react/tools so ordinary
-// store/action consumers do not load the tool protocol runtime.
+// ToolContext remains a source-only development track and is intentionally not
+// re-exported by the public React 3 entry.

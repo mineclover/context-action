@@ -12,23 +12,36 @@ npm install @context-action/tool-protocol zod
 
 ```ts
 import { z } from 'zod';
-import { createActionSchema, defineAction, toOpenAIToolDefinitions } from '@context-action/tool-protocol';
+import {
+  createActionSchema,
+  defineAction,
+  toOpenAIToolDefinitions,
+  type InferActionInputMap,
+  type InferActionResultMap,
+} from '@context-action/tool-protocol';
 
 const tools = createActionSchema({
   search: defineAction({
     name: 'search',
     description: 'Search the catalog',
     parameters: z.object({ query: z.string() }),
+    outputSchema: z.object({ items: z.array(z.string()) }),
   }, z),
 });
 
 const definitions = toOpenAIToolDefinitions(Object.values(tools));
+type SearchInput = InferActionInputMap<typeof tools>['search'];
+type SearchResult = InferActionResultMap<typeof tools>['search'];
+const initialInput: SearchInput = { query: 'keyboard' };
+const initialResult: SearchResult = { items: [] };
 ```
 
 Zod is a runtime dependency because the package exposes the action-schema API from
 its root entry point. `@context-action/core` owns action registration and
-execution. `@context-action/react` owns React integration and `createToolContext`;
-protocol and schema symbols must be imported from this package directly.
+execution. The repository's source-only `packages/react/src/tools` track binds
+this protocol to `createToolContext`, but React 3 deliberately does not publish
+`@context-action/react/tools`. Protocol and schema symbols must be imported from
+this package directly.
 
 ## API boundaries
 
@@ -40,6 +53,8 @@ protocol and schema symbols must be imported from this package directly.
   semantics live in the [Tool-calling editor architecture guide](../../docs/en/concept/tool-calling-editor-architecture.md).
   Cross-process durable recovery is owned by
   [`@context-action/tool-durable-operations`](../tool-durable-operations/README.md).
+  The source-only ToolContext adapter accepts timeout only as a safe integer
+  from 0 through 2,147,483,647 ms so JavaScript timers and provenance agree.
 - `ToolCallEvent.provenance` is an additive, validated lifecycle record for
   traces and audit consumers. It carries the logical owner, observed state,
   optional timeout/output budgets, UTF-8 output usage, and elapsed time without
@@ -48,6 +63,13 @@ protocol and schema symbols must be imported from this package directly.
   machine. `ToolCallOptions.maxOutputBytes` can enforce an optional result
   boundary and returns `TOOL_OUTPUT_LIMIT_EXCEEDED` before the result is
   returned to the caller.
+- `InferActionResultMap<typeof schema>` derives each action's output-schema
+  type. Source-track `useToolResultHandler()` uses that type for its return
+  value and result controller; actions without an output schema remain
+  `unknown` until their contract is declared.
+- `InferActionInputMap<typeof schema>` derives each action's unparsed Zod input
+  type. Source-track `useToolCall()` accepts this shape, while strict handlers
+  receive the parsed payload type from `InferActionPayloadMap`.
 - `createToolObservabilityPolicy()` and
   `serializeToolObservabilityValue()` provide the shared telemetry boundary.
   They redact credential/source-like fields, bound depth/collections/strings,
@@ -57,10 +79,11 @@ protocol and schema symbols must be imported from this package directly.
   before persisting trace/diagnostic values. The Bolt-style demo uses the same
   policy instead of a local redaction implementation. For ambiguous
   `ToolCallResult` records, `sanitizeToolCallDiagnostic()` keeps only the error
-  code/retryability and bounded redacted details; `@context-action/react`
-  applies it before persisting unknown or failed durable operations, while
-  successful results remain lossless for the caller. React callers can override
-  the shared limits with `createToolContext`'s `durableDiagnosticPolicy` option.
+  code/retryability and bounded redacted details; the source-only ToolContext
+  track applies it before persisting unknown or failed durable operations, while
+  successful results remain lossless for the caller. Source-track ToolContext
+  callers can override the shared limits with `durableDiagnosticPolicy`; this is
+  not an installed React 3 package option.
 - `createToolObservationSink()` creates a `ToolCallObserver` that delivers only
   a serialized metadata projection plus policy/retention metadata. Its callback
   never receives the canonical event, request arguments, result content, or
@@ -73,9 +96,10 @@ protocol and schema symbols must be imported from this package directly.
   adapter.
 
 The package owns provider-neutral contracts only. `@context-action/core` owns
-action registration/execution, `@context-action/react` owns `ToolContext`, and
-`@context-action/tool-durable-operations` owns cross-process mutation recovery.
-Keep these boundaries explicit when adding a provider or persistence adapter.
+action registration/execution, the source-only ToolContext track owns React
+binding, and `@context-action/tool-durable-operations` owns cross-process
+mutation recovery. Keep these boundaries explicit when adding a provider or
+persistence adapter.
 
 Before publication, validate the packed consumer surface locally from the
 workspace tarballs:

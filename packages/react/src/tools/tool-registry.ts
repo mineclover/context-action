@@ -81,19 +81,22 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     throw new Error('toolListPageSize must be a positive integer.');
   }
 
+  // Snapshot both membership inputs. A registry is one catalog, not a live
+  // view over caller-owned configuration that can diverge from its executor.
+  const catalog = Object.freeze({ ...schema }) as TSchema;
   const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
-  const toolNames = Object.keys(schema).filter(
+  const toolNames = Object.freeze(Object.keys(catalog).filter(
     name => !allowedNames || allowedNames.has(name)
-  ) as (keyof TSchema)[];
+  ) as (keyof TSchema)[]);
   const hasOwnTool = (name: string): boolean =>
-    Object.getOwnPropertyDescriptor(schema, name) !== undefined &&
+    Object.getOwnPropertyDescriptor(catalog, name) !== undefined &&
     (!allowedNames || allowedNames.has(name));
   const getExportableTool = <K extends keyof TSchema>(name: K): TSchema[K] => {
     if (!hasOwnTool(String(name))) {
       throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
 
-    const tool = schema[name];
+    const tool = catalog[name];
     if (!tool) {
       throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
@@ -106,7 +109,7 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     // A direct registry call remains the complete catalog. Canonical
     // tools/list requests can opt into cursor pagination.
     if (!request || toolListPageSize === undefined) {
-      return { tools: toolNames.map(name => schema[name]!.toMCP()) };
+      return { tools: toolNames.map(name => catalog[name]!.toMCP()) };
     }
 
     const start = request.params?.cursor
@@ -114,15 +117,92 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
       : 0;
     const end = Math.min(start + toolListPageSize, toolNames.length);
     return {
-      tools: toolNames.slice(start, end).map(name => schema[name]!.toMCP()),
+      tools: toolNames.slice(start, end).map(name => catalog[name]!.toMCP()),
       ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
     };
   };
+  // The executor is deliberately transport-neutral, so it returns the broad
+  // protocol result. The registry's source-track overloads add schema-aware
+  // inference for literal callers while retaining that dynamic execution ABI.
+  const callTool = ((
+    request: ToolCallRequest,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(request, options)) as ToolRegistry<
+    TSchema
+  >['callTool'];
+  const executeModelToolCall = ((
+    call: ModelToolCall,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(toToolCallRequest(call), {
+    ...options,
+    context: {
+      ...options?.context,
+      source: options?.context?.source ?? 'model',
+      mode: options?.context?.mode ?? 'agent',
+    },
+  })) as ToolRegistry<TSchema>['executeModelToolCall'];
+  // Durable storage keeps the transport-neutral result for replay and
+  // diagnostics. These source-track overloads project literal tool names for
+  // callers without claiming to revalidate stored or manually reconciled data.
+  const readOperationStatus = (async (
+    toolName: string,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    return getOperationStatus?.(toolName, idempotencyKey, context);
+  }) as ToolRegistry<TSchema>['getOperationStatus'];
+  const reconcileDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolution: DurableOperationResolution<ToolCallResult>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (!reconcileOperation) return undefined;
+    if (typeof expectedFence !== 'object' || expectedFence === null) {
+      throw new Error(
+        'Tool operation reconciliation requires a full { incarnation, revision } ' +
+        'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
+        'fences fail closed.'
+      );
+    }
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      expectedFence
+    );
+  }) as ToolRegistry<TSchema>['reconcileOperation'];
+  const recoverDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolver: ToolOperationRecoveryResolver,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (typeof resolver !== 'function') {
+      throw new TypeError('Tool operation recovery resolver must be a function.');
+    }
+    const record = await getOperationStatus?.(toolName, idempotencyKey, context);
+    if (record?.state !== 'unknown') return record;
+    if (!reconcileOperation) return record;
+    const resolution = await resolver(record, context);
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      { incarnation: record.incarnation, revision: record.revision }
+    );
+  }) as ToolRegistry<TSchema>['recoverOperation'];
 
   return {
-    tools: schema,
+    tools: catalog,
     getTool<K extends keyof TSchema>(name: K): TSchema[K] {
-      if (Object.getOwnPropertyDescriptor(schema, String(name)) === undefined) {
+      if (Object.getOwnPropertyDescriptor(catalog, String(name)) === undefined) {
         throw new Error(`Tool "${String(name)}" not found in registry`);
       }
       return getExportableTool(name);
@@ -133,62 +213,15 @@ export function createToolRegistry<TSchema extends ActionSchemaMap>(
     listTools,
     getToolDefinition(name: string) {
       if (!hasOwnTool(name)) return undefined;
-      return schema[name]?.toMCP();
+      return catalog[name]?.toMCP();
     },
-    callTool(request, options) {
-      return executeToolCall(request, options);
-    },
-    executeModelToolCall(call: ModelToolCall, options) {
-      return executeToolCall(toToolCallRequest(call), {
-        ...options,
-        context: {
-          ...options?.context,
-          source: options?.context?.source ?? 'model',
-          mode: options?.context?.mode ?? 'agent',
-        },
-      });
-    },
-    async getOperationStatus(toolName, idempotencyKey, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      return getOperationStatus?.(toolName, idempotencyKey, context);
-    },
-    async reconcileOperation(toolName, idempotencyKey, resolution, context, expectedFence) {
-      if (!hasOwnTool(toolName)) return undefined;
-      if (!reconcileOperation) return undefined;
-      if (typeof expectedFence !== 'object' || expectedFence === null) {
-        throw new Error(
-          'Tool operation reconciliation requires a full { incarnation, revision } ' +
-          'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
-          'fences fail closed.'
-        );
-      }
-      return reconcileOperation(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        expectedFence
-      );
-    },
-    async recoverOperation(toolName, idempotencyKey, resolver, context) {
-      if (!hasOwnTool(toolName)) return undefined;
-      if (typeof resolver !== 'function') {
-        throw new TypeError('Tool operation recovery resolver must be a function.');
-      }
-      const record = await getOperationStatus?.(toolName, idempotencyKey, context);
-      if (record?.state !== 'unknown') return record;
-      if (!reconcileOperation) return record;
-      const resolution = await (resolver as ToolOperationRecoveryResolver)(record, context);
-      return reconcileOperation(
-        toolName,
-        idempotencyKey,
-        resolution,
-        context,
-        { incarnation: record.incarnation, revision: record.revision }
-      );
-    },
+    callTool,
+    executeModelToolCall,
+    getOperationStatus: readOperationStatus,
+    reconcileOperation: reconcileDurableOperation,
+    recoverOperation: recoverDurableOperation,
     getToolNames(): (keyof TSchema)[] {
-      return toolNames;
+      return [...toolNames];
     },
     // Compatibility exporters. New provider integrations should consume
     // listTools()/getToolDefinition() through ToolManagementInterface.

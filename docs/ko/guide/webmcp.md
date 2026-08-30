@@ -56,9 +56,12 @@ Promise reject가 필요하면 `errorMode: 'throw'`를 사용하세요.
 ## React 수명 주기 통합
 
 `@context-action/react/webmcp`는 컴포넌트 수명 주기에 맞춰 등록을 관리하는 **experimental**
-훅을 제공합니다. `ToolContext`에서 canonical registry를 얻고,
-`sessionId`, `toolNames`, `exposedTo` 등록 필드를 메모이즈하세요. 실행
-metadata와 callback은 JSON 직렬화 없이 최신 render 값을 사용합니다.
+훅을 제공합니다. 애플리케이션이 소유한 manager를 포함해 어떤
+`ToolManagementInterface` registry도 받을 수 있습니다. 저장소의 ToolContext는
+source-track 구현 중 하나일 뿐 React 3에서 설치 가능한 subpath가 아닙니다.
+불필요한 재등록을 막기 위해 `sessionId`, `toolNames`, `exposedTo` 등록 필드를
+메모이즈하세요. 실행 metadata와 callback은 JSON 직렬화 없이 최신 render 값을
+사용합니다.
 
 ```tsx
 import { useMemo } from 'react';

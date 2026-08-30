@@ -27,10 +27,13 @@ npm install @context-action/react @context-action/core @context-action/tool-prot
 ```
 
 Import `defineAction`, `createActionSchema`, `listAllTools`, and protocol types
-from `@context-action/tool-protocol`. `@context-action/react/tools` owns
-`createToolContext` and its React hooks; `@context-action/react` remains the
-default action/store entry, while `@context-action/core` owns the action runtime.
-The old Core and React re-exports are removed.
+from `@context-action/tool-protocol`. The repository retains
+`packages/react/src/tools` as a development track, but React 3 intentionally
+does not export `@context-action/react/tools`; do not import it from an
+installed package until a separate ToolContext release is approved.
+`@context-action/react` remains the default action/store entry, while
+`@context-action/core` owns the action runtime. The old Core and React
+re-exports are removed.
 
 Durable mutation recovery is intentionally a separate optional package. Add
 `@context-action/tool-durable-operations` when the application needs durable

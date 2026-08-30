@@ -17,6 +17,7 @@ export interface AdvancedSearchActions extends ActionPayloadMap {
   removeFilter: { key: string };
   clearFilters: void;
   selectResult: { id: string; item: SearchItem };
+  clearSelectedResult: void;
   abortSearch: void;
 }
 

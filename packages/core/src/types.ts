@@ -1390,11 +1390,11 @@ export interface ActionRegistryInfo<T extends ActionPayloadMap> {
  * if (stats) {
  *   console.log(`Action: ${stats.action}`)
  *   console.log(`Handler count: ${stats.handlerCount}`)
- *   
+ *
  *   stats.handlersByPriority.forEach(group => {
  *     console.log(`Priority ${group.priority}:`, group.handlers.length, 'handlers')
  *   })
- *   
+ *
  *   if (stats.executionStats) {
  *     console.log(`Success rate: ${stats.executionStats.successRate}%`)
  *     console.log(`Average duration: ${stats.executionStats.averageDuration}ms`)

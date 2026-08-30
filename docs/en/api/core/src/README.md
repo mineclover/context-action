@@ -28,14 +28,19 @@
 - [EffectConfig](interfaces/EffectConfig.md)
 - [HandlerConfig](interfaces/HandlerConfig.md)
 - [ResolvedHandlerConfig](interfaces/ResolvedHandlerConfig.md)
+- [HandlerExecutionOutcome](interfaces/HandlerExecutionOutcome.md)
 - [ActionRegisterConfig](interfaces/ActionRegisterConfig.md)
 - [DispatchOptions](interfaces/DispatchOptions.md)
 - [ExecutionResult](interfaces/ExecutionResult.md)
+- [HandlerError](interfaces/HandlerError.md)
+- [ActionRegistryInfo](interfaces/ActionRegistryInfo.md)
+- [ActionHandlerStats](interfaces/ActionHandlerStats.md)
 
 ## Type Aliases
 
 - [ActionPayloadMap](type-aliases/ActionPayloadMap.md)
 - [ActionNames](type-aliases/ActionNames.md)
+- [ActionPayload](type-aliases/ActionPayload.md)
 - [ActionResultMap](type-aliases/ActionResultMap.md)
 - [ActionResult](type-aliases/ActionResult.md)
 - [HandlerRole](type-aliases/HandlerRole.md)
@@ -46,11 +51,13 @@
 - [ActionResultHandler](type-aliases/ActionResultHandler.md)
 - [HandlerScheduling](type-aliases/HandlerScheduling.md)
 - [HandlerErrorPolicy](type-aliases/HandlerErrorPolicy.md)
+- [HandlerExecutionStatus](type-aliases/HandlerExecutionStatus.md)
 - [ExecutionMode](type-aliases/ExecutionMode.md)
 - [UnregisterFunction](type-aliases/UnregisterFunction.md)
 - [DispatchArgs](type-aliases/DispatchArgs.md)
 - [ReservedActionKey](type-aliases/ReservedActionKey.md)
 - [ProxyActionKey](type-aliases/ProxyActionKey.md)
+- [ActionDispatcherWithResult](type-aliases/ActionDispatcherWithResult.md)
 - [ActionDispatcher](type-aliases/ActionDispatcher.md)
 
 ## Functions

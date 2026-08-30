@@ -12,6 +12,64 @@ const packageTypes = join(repositoryRoot, 'packages', 'core', 'dist', 'index.d.t
 const reactPackageTypes = join(repositoryRoot, 'packages', 'react', 'dist', 'index.d.ts');
 const aiSDKPackageTypes = join(repositoryRoot, 'packages', 'ai-sdk', 'dist', 'index.d.ts');
 
+const coreManifest = JSON.parse(await readFile(join(repositoryRoot, 'packages', 'core', 'package.json'), 'utf8'));
+const reactManifest = JSON.parse(await readFile(join(repositoryRoot, 'packages', 'react', 'package.json'), 'utf8'));
+const additionalWorkspaceManifests = await Promise.all([
+  ['tool-protocol', '@context-action/tool-protocol'],
+  ['tool-durable-operations', '@context-action/tool-durable-operations'],
+  ['ai-sdk', '@context-action/ai-sdk'],
+  ['webmcp', '@context-action/webmcp'],
+].map(async ([directory, packageName]) => ({
+  packageName,
+  manifest: JSON.parse(await readFile(join(repositoryRoot, 'packages', directory, 'package.json'), 'utf8')),
+})));
+const workspacePackageBaselines = [
+  { packageName: '@context-action/core', manifest: coreManifest },
+  { packageName: '@context-action/react', manifest: reactManifest },
+  ...additionalWorkspaceManifests,
+];
+const coreReadme = await readFile(join(repositoryRoot, 'packages', 'core', 'README.md'), 'utf8');
+const reactReadme = await readFile(join(repositoryRoot, 'packages', 'react', 'README.md'), 'utf8');
+const llmsSpecs = await Promise.all([
+  readFile(join(repositoryRoot, 'docs', 'en', 'llms', 'library-specs.md'), 'utf8'),
+  readFile(join(repositoryRoot, 'docs', 'ko', 'llms', 'library-specs.md'), 'utf8'),
+]);
+const productionReadinessDocs = await Promise.all([
+  readFile(join(repositoryRoot, 'docs', 'en', 'guide', 'production-readiness.md'), 'utf8'),
+  readFile(join(repositoryRoot, 'docs', 'ko', 'guide', 'production-readiness.md'), 'utf8'),
+]);
+
+const [coreMajor, coreMinor] = coreManifest.version.split('.');
+const [reactMajor, reactMinor] = reactManifest.version.split('.');
+const reactReleaseLine = `${reactMajor}.${reactMinor}`;
+if (!coreReadme.includes(`v${coreMajor}.${coreMinor} Pipeline Contract`)) {
+  throw new Error('packages/core/README.md must name the current core pipeline contract.');
+}
+for (const api of ['registerGuard', 'registerResult', 'registerObserver', 'destroyAsync({ deferCleanup: true })']) {
+  if (!coreReadme.includes(api)) {
+    throw new Error(`packages/core/README.md must document ${api}.`);
+  }
+}
+if (!reactReadme.includes(`@context-action/react\` ${reactReleaseLine}`)) {
+  throw new Error('packages/react/README.md must name the current React release line.');
+}
+for (const specs of llmsSpecs) {
+  for (const { packageName, manifest } of workspacePackageBaselines) {
+    if (!specs.includes(`${packageName}\` ${manifest.version}`)) {
+      throw new Error(`Library specification baseline must match ${packageName}@${manifest.version}.`);
+    }
+  }
+}
+for (const readiness of productionReadinessDocs) {
+  const documentedReactVersions = [...readiness.matchAll(/`@context-action\/react` (\d+(?:\.\d+){1,2})/gu)]
+    .map(match => match[1]);
+  if (documentedReactVersions.length === 0
+    || documentedReactVersions.some(version => version !== reactReleaseLine
+      && !version.startsWith(`${reactReleaseLine}.`))) {
+    throw new Error('Production-readiness React version references must match the current React release line.');
+  }
+}
+
 async function collectMarkdownFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -24,7 +82,11 @@ async function collectMarkdownFiles(directory) {
 }
 
 const snippets = [];
-for (const file of await collectMarkdownFiles(docsRoot)) {
+const markdownFiles = [
+  ...await collectMarkdownFiles(docsRoot),
+  join(repositoryRoot, 'packages', 'core', 'README.md'),
+];
+for (const file of markdownFiles) {
   const source = await readFile(file, 'utf8');
   const expression = /<!--\s*@context-action-compile\s*-->\s*```(ts|typescript|tsx)\n([\s\S]*?)```/g;
   let match;
