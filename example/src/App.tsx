@@ -7,7 +7,11 @@ import {
 } from 'react-router-dom';
 // Core components - keep as regular imports
 import Layout from './components/Layout';
-import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
+import {
+  ToastContainer,
+  ToastControlPanel,
+  ToastSystemProvider,
+} from './components/ToastSystem';
 import { useVitePressRedirect } from './hooks/useVitePressRedirect';
 import { SourceLinkRegistryProvider } from './stores/SourceLinkRegistry';
 import { LogArtHelpers } from './utils/logger';
@@ -759,9 +763,11 @@ function App() {
 
   return (
     <SourceLinkRegistryProvider>
-      <Router basename={basename}>
-        <AppContent />
-      </Router>
+      <ToastSystemProvider>
+        <Router basename={basename}>
+          <AppContent />
+        </Router>
+      </ToastSystemProvider>
     </SourceLinkRegistryProvider>
   );
 }

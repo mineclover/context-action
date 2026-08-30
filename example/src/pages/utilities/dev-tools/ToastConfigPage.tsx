@@ -268,6 +268,11 @@ function ToastConfigExamplePage() {
             <code className="bg-green-100 px-2 py-1 rounded">true</code>로
             설정하는 방법과 Toast 시스템의 동작을 확인하는 예제입니다.
           </p>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Toast runtime은 App root의 <code>ToastSystemProvider</code>가
+            소유하며, 이 페이지는 log monitor 설정으로 알림 표시 여부만
+            제어합니다.
+          </p>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-800 mb-2">💡 핵심 설정</h3>
@@ -300,10 +305,23 @@ function ToastConfigExamplePage() {
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
-                  1. PageWithLogMonitor 컴포넌트에서
+                  1. App root에서 Toast runtime 제공
                 </h4>
                 <CodeBlock size="sm" className="bg-gray-50">
-                  {`<PageWithLogMonitor 
+                  {`<ToastSystemProvider>
+  <Router>
+    <AppContent />
+  </Router>
+</ToastSystemProvider>`}
+                </CodeBlock>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">
+                  2. PageWithLogMonitor 컴포넌트에서
+                </h4>
+                <CodeBlock size="sm" className="bg-gray-50">
+                  {`<PageWithLogMonitor
   pageId="my-page"
   initialConfig={{ enableToast: true }}
 >
@@ -314,7 +332,7 @@ function ToastConfigExamplePage() {
 
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
-                  2. 런타임에서 동적 변경
+                  3. 런타임에서 동적 변경
                 </h4>
                 <CodeBlock size="sm" className="bg-gray-50">
                   {`const { updateConfig } = useLogMonitor();
@@ -329,7 +347,7 @@ updateConfig({ enableToast: false });`}
 
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
-                  3. 액션 로깅에서 Toast 사용
+                  4. 액션 로깅에서 Toast 사용
                 </h4>
                 <CodeBlock size="sm" className="bg-gray-50">
                   {`const { logAction } = useActionLoggerWithToast();
@@ -353,7 +371,8 @@ logAction('myAction', { data: 'test' });
               <div className="flex items-start gap-2">
                 <span className="font-semibold text-blue-600">1.</span>
                 <span>
-                  useActionLoggerWithToast() 훅이 Toast 시스템을 자동 감지
+                  useActionLoggerWithToast() 훅이 provider-owned Toast
+                  publisher를 소비
                 </span>
               </div>
               <div className="flex items-start gap-2">

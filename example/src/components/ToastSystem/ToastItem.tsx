@@ -2,7 +2,7 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { type ToastVariants, toastVariants } from '../ui/variants';
-import { toastActionRegister } from './actions';
+import { useToastSystem } from './ToastContext';
 import type { Toast } from './types';
 import { isActionToastPayload } from './types';
 
@@ -13,13 +13,11 @@ interface ToastItemProps {
 const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
   // Ensure toast has proper types
   const safeToast = toast as Toast;
+  const toastSystem = useToastSystem();
 
   React.useEffect(() => {
     const updatePhase = (phase: Toast['phase']) => {
-      toastActionRegister.dispatch('updateToastPhase', {
-        toastId: safeToast.id,
-        phase,
-      });
+      toastSystem.updateToastPhase(safeToast.id, phase);
     };
 
     if (safeToast.phase === 'entering') {
@@ -54,14 +52,20 @@ const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
 
     if (safeToast.phase === 'exiting') {
       const timer = setTimeout(() => {
-        toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });
+        toastSystem.removeToast(safeToast.id);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [safeToast.duration, safeToast.id, safeToast.phase, safeToast.timestamp]);
+  }, [
+    safeToast.duration,
+    safeToast.id,
+    safeToast.phase,
+    safeToast.timestamp,
+    toastSystem,
+  ]);
 
   const handleClose = () => {
-    toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });
+    toastSystem.removeToast(safeToast.id);
   };
 
   const typeIcon = (): React.ReactNode => {

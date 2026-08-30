@@ -7,7 +7,7 @@ import { ActionRegister } from '@context-action/react';
 import { useMemo } from 'react';
 import type { Logger } from '@/utils/logger';
 import { createLogger, LogLevel } from '@/utils/logger';
-import { toastActionRegister } from '../ToastSystem/actions';
+import { useOptionalToastSystem } from '../ToastSystem/ToastContext';
 import { useLogMonitorContext } from './context';
 import type {
   ActionLogOptions,
@@ -505,40 +505,7 @@ export function useActionLogger(
  * Toast 시스템이 있는 환경에서 사용합니다.
  */
 export function useActionLoggerWithToast(): StableLoggerAPI {
-  // Toast 시스템 직접 사용 (정적 import)
-  const toastSystem = useMemo((): ToastSystem | undefined => {
-    try {
-      if (toastActionRegister) {
-        console.log('🍞 Toast system available and created');
-
-        return {
-          showToast: (
-            type: 'success' | 'error' | 'info' | 'system',
-            title: string,
-            message: string
-          ) => {
-            console.log('🍞 showToast called with:', { type, title, message });
-            try {
-              toastActionRegister.dispatch('addToast', {
-                type,
-                title,
-                message,
-              });
-              console.log('🍞 Toast dispatch successful');
-            } catch (error) {
-              console.error('🍞 Toast dispatch failed:', error);
-            }
-          },
-        };
-      }
-
-      console.log('🍞 Toast system not available');
-      return undefined;
-    } catch (error) {
-      console.error('🍞 Toast system loading failed:', error);
-      return undefined;
-    }
-  }, []);
+  const toastSystem = useOptionalToastSystem();
   return useActionLogger(toastSystem ? { toastSystem } : {});
 }
 

@@ -1,9 +1,17 @@
 // 컴포넌트
 
-// 액션과 스토어
-export { toastActionRegister } from './actions';
-export { toastConfigStore, toastStackIndexStore, toastsStore } from './store';
+// Provider-owned toast runtime
+export {
+  createToastSystem,
+  type ToastPublisher,
+  type ToastSystemController,
+} from './actions';
 export { ToastContainer } from './ToastContainer';
+export {
+  ToastSystemProvider,
+  useOptionalToastSystem,
+  useToastSystem,
+} from './ToastContext';
 export { ToastControlPanel } from './ToastControlPanel';
 export { ToastItem } from './ToastItem';
 // 타입
@@ -14,9 +22,4 @@ export type {
   ToastConfig,
   ToastPosition,
 } from './types';
-// 훅과 유틸리티
-export {
-  setupActionToastInterceptor,
-  setupSelectiveActionToast,
-  useActionToast,
-} from './useActionToast';
+export { useActionToast } from './useActionToast';

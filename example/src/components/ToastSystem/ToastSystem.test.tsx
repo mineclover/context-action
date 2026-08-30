@@ -3,20 +3,28 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { BasicActionsDemo } from '@/pages/foundations/core/components/BasicActionsDemo';
-import { toastActionRegister } from './actions';
-import { toastStackIndexStore, toastsStore } from './store';
+import { createToastSystem, type ToastSystemController } from './actions';
 import { ToastContainer } from './ToastContainer';
+import { ToastSystemProvider } from './ToastContext';
 import type { Toast } from './types';
+
+let toastSystem: ToastSystemController;
 
 async function clearToasts() {
   await act(async () => {
-    await toastActionRegister.dispatch('clearAllToasts', {});
+    toastSystem.clearAllToasts();
   });
-  toastStackIndexStore.setValue(0);
+}
+
+function renderWithToastSystem(children: React.ReactNode) {
+  return render(
+    <ToastSystemProvider system={toastSystem}>{children}</ToastSystemProvider>
+  );
 }
 
 describe('ToastSystem', () => {
   beforeEach(async () => {
+    toastSystem = createToastSystem();
     await clearToasts();
   });
 
@@ -25,19 +33,11 @@ describe('ToastSystem', () => {
   });
 
   it('keeps phase animation in CSS instead of overriding it with stack styles', async () => {
-    render(<ToastContainer />);
+    renderWithToastSystem(<ToastContainer />);
 
     await act(async () => {
-      await toastActionRegister.dispatch('addToast', {
-        type: 'success',
-        title: 'Saved',
-        message: 'Toast phase test',
-      });
-      await toastActionRegister.dispatch('addToast', {
-        type: 'info',
-        title: 'Queued',
-        message: 'Toast stack test',
-      });
+      toastSystem.showToast('success', 'Saved', 'Toast phase test');
+      toastSystem.showToast('info', 'Queued', 'Toast stack test');
     });
 
     const messages = await Promise.all([
@@ -54,14 +54,39 @@ describe('ToastSystem', () => {
 
     await waitFor(() => {
       expect(
-        toastsStore.getValue().every((toast) => toast.phase === 'visible')
+        toastSystem.stores.toasts
+          .getValue()
+          .every((toast) => toast.phase === 'visible')
       ).toBe(true);
     });
   });
 
+  it('keeps separate provider roots isolated', async () => {
+    const secondSystem = createToastSystem();
+    render(
+      <>
+        <ToastSystemProvider system={toastSystem}>
+          <ToastContainer />
+        </ToastSystemProvider>
+        <ToastSystemProvider system={secondSystem}>
+          <ToastContainer />
+        </ToastSystemProvider>
+      </>
+    );
+
+    await act(async () => {
+      toastSystem.showToast('success', 'First root', 'Provider one');
+    });
+
+    await waitFor(() => {
+      expect(toastSystem.stores.toasts.getValue()).toHaveLength(1);
+    });
+    expect(secondSystem.stores.toasts.getValue()).toHaveLength(0);
+  });
+
   it('shows one error toast for the advanced demo error action', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithToastSystem(
       <>
         <PageWithLogMonitor
           pageId="toast-regression"
@@ -78,42 +103,31 @@ describe('ToastSystem', () => {
     });
 
     await waitFor(() => {
-      expect(toastsStore.getValue()).toHaveLength(1);
+      expect(toastSystem.stores.toasts.getValue()).toHaveLength(1);
     });
-    expect(toastsStore.getValue()[0]).toMatchObject({
+    expect(toastSystem.stores.toasts.getValue()[0]).toMatchObject({
       type: 'error',
       message: 'Action handler error',
     });
   });
 
   it('does not revive an exiting toast when a queued entry frame runs', async () => {
-    render(<ToastContainer />);
+    renderWithToastSystem(<ToastContainer />);
 
     await act(async () => {
-      await toastActionRegister.dispatch('addToast', {
-        type: 'info',
-        title: 'Short lived',
-        message: 'Exit phase test',
-        duration: 1,
-      });
+      toastSystem.showToast('info', 'Short lived', 'Exit phase test');
     });
 
-    const toastId = toastsStore.getValue()[0]?.id;
+    const toastId = toastSystem.stores.toasts.getValue()[0]?.id;
     expect(toastId).toBeTruthy();
     if (!toastId) throw new Error('Expected the toast to be stored.');
 
     await act(async () => {
-      await toastActionRegister.dispatch('updateToastPhase', {
-        toastId,
-        phase: 'exiting',
-      });
-      await toastActionRegister.dispatch('updateToastPhase', {
-        toastId,
-        phase: 'visible',
-      });
+      toastSystem.updateToastPhase(toastId, 'exiting');
+      toastSystem.updateToastPhase(toastId, 'visible');
     });
 
-    expect(toastsStore.getValue()[0]?.phase).toBe('exiting');
+    expect(toastSystem.stores.toasts.getValue()[0]?.phase).toBe('exiting');
   });
 
   it('expires a visible toast recovered after a remount', async () => {
@@ -130,15 +144,15 @@ describe('ToastSystem', () => {
     };
 
     await act(async () => {
-      toastsStore.setValue([staleToast]);
+      toastSystem.stores.toasts.setValue([staleToast]);
     });
-    render(<ToastContainer />);
+    renderWithToastSystem(<ToastContainer />);
 
     await waitFor(() => {
-      expect(toastsStore.getValue()[0]?.phase).toBe('exiting');
+      expect(toastSystem.stores.toasts.getValue()[0]?.phase).toBe('exiting');
     });
     await waitFor(() => {
-      expect(toastsStore.getValue()).toHaveLength(0);
+      expect(toastSystem.stores.toasts.getValue()).toHaveLength(0);
     });
   });
 });

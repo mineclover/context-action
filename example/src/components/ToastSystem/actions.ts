@@ -1,104 +1,80 @@
 import { ActionRegister } from '@context-action/react';
 import { createLogger, LogLevel } from '@/utils/logger';
-import { toastConfigStore, toastStackIndexStore, toastsStore } from './store';
+import { createToastStores, type ToastStores } from './store';
 import type { ActionExecutionToast, Toast, ToastConfig } from './types';
 
-// 토스트 액션 페이로드 맵
 interface ToastActionMap {
   addToast: {
     type: Toast['type'];
     title: string;
     message: string;
     actionType?: string;
-    payload?: any;
+    payload?: unknown;
     duration?: number;
   };
   addActionToast: {
     actionType: string;
     executionStep: ActionExecutionToast['executionStep'];
-    payload?: any;
+    payload?: unknown;
     executionTime?: number;
-    resultData?: any;
+    resultData?: unknown;
     errorMessage?: string;
   };
-  removeToast: {
-    toastId: string;
-  };
-  updateToastPhase: {
-    toastId: string;
-    phase: Toast['phase'];
-  };
-  clearAllToasts: {};
+  removeToast: { toastId: string };
+  updateToastPhase: { toastId: string; phase: Toast['phase'] };
+  clearAllToasts: Record<string, never>;
   updateToastConfig: Partial<ToastConfig>;
-  [key: string]: any; // Index signature for ActionPayloadMap constraint
+  [key: string]: unknown;
 }
 
-// 로거 및 액션 레지스터 설정
-const logger = createLogger(LogLevel.DEBUG);
-export const toastActionRegister = new ActionRegister<ToastActionMap>({
-  name: 'ToastActions',
-});
-
-const recentToasts = new Map<string, number>(); // Track recent toasts to prevent duplicates
-
-// 🔧 Fix: Prevent duplicate toasts within 500ms
-const isDuplicateToast = (type: string, message: string): boolean => {
-  const key = `${type}:${message}`;
-  const now = Date.now();
-  const lastTime = recentToasts.get(key);
-
-  if (lastTime && now - lastTime < 500) {
-    return true;
-  }
-
-  recentToasts.set(key, now);
-
-  // Clean up old entries (older than 1 minute)
-  for (const [k, time] of recentToasts.entries()) {
-    if (now - time > 60000) {
-      recentToasts.delete(k);
+export interface ToastPublisher {
+  showToast: (
+    type: 'success' | 'error' | 'info' | 'system',
+    title: string,
+    message: string
+  ) => void;
+  showActionToast: (
+    actionType: string,
+    executionStep: ActionExecutionToast['executionStep'],
+    options?: {
+      payload?: unknown;
+      executionTime?: number;
+      resultData?: unknown;
+      errorMessage?: string;
     }
-  }
-
-  return false;
-};
-
-// 전역 객체에 toastActionRegister 등록 (LogMonitor hooks에서 접근 가능하도록)
-if (typeof window !== 'undefined') {
-  (window as any).toastActionRegister = toastActionRegister;
+  ) => void;
 }
 
-// 유틸리티 함수: 토스트 ID 생성
-const generateToastId = () =>
-  `toast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+export interface ToastSystemController extends ToastPublisher {
+  readonly stores: ToastStores;
+  removeToast: (toastId: string) => void;
+  updateToastPhase: (toastId: string, phase: Toast['phase']) => void;
+  clearAllToasts: () => void;
+  updateConfig: (configUpdate: Partial<ToastConfig>) => void;
+}
 
-// 유틸리티 함수: 액션 타입별 아이콘
+const logger = createLogger(LogLevel.DEBUG);
+
+const generateToastId = () =>
+  `toast_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
 const getActionIcon = (actionType: string): string => {
   const iconMap: Record<string, string> = {
-    // User Profile Actions
     updateProfile: '👤',
     toggleTheme: '🎨',
     resetProfile: '🔄',
-
-    // Shopping Cart Actions
     addToCart: '🛒',
     removeFromCart: '🗑️',
     updateQuantity: '📊',
     clearCart: '🧹',
-
-    // Todo Actions
     addTodo: '✅',
     toggleTodo: '☑️',
     deleteTodo: '🗑️',
     updateTodoPriority: '🎯',
-
-    // Chat Actions
     sendMessage: '💬',
     deleteMessage: '🗑️',
     clearChat: '🧹',
     switchUser: '👥',
-
-    // System Actions
     login: '🔑',
     logout: '🚪',
     saveData: '💾',
@@ -111,25 +87,6 @@ const getActionIcon = (actionType: string): string => {
   return iconMap[actionType] || '⚡';
 };
 
-// 유틸리티 함수: 실행 단계별 색상
-const _getExecutionStepColor = (
-  step: ActionExecutionToast['executionStep']
-): string => {
-  switch (step) {
-    case 'start':
-      return '#3b82f6'; // blue
-    case 'processing':
-      return '#f59e0b'; // amber
-    case 'success':
-      return '#10b981'; // emerald
-    case 'error':
-      return '#ef4444'; // red
-    default:
-      return '#6b7280'; // gray
-  }
-};
-
-// 유틸리티 함수: 실행 단계별 메시지
 const getExecutionStepMessage = (
   actionType: string,
   step: ActionExecutionToast['executionStep'],
@@ -141,9 +98,7 @@ const getExecutionStepMessage = (
     addToCart: '장바구니 추가',
     addTodo: '할일 추가',
     sendMessage: '메시지 전송',
-    // ... 더 많은 액션들
   };
-
   const actionName = actionNames[actionType] || actionType;
 
   switch (step) {
@@ -155,172 +110,177 @@ const getExecutionStepMessage = (
       return `${actionName} 완료!`;
     case 'error':
       return `${actionName} 실패: ${errorMessage || '알 수 없는 오류'}`;
-    default:
-      return `${actionName}`;
   }
 };
 
-// 액션 핸들러들
-toastActionRegister.register(
-  'addToast',
-  ({ type, title, message, actionType, payload, duration }) => {
-    logger.debug('🍞 addToast handler called:', { type, title, message });
+function isDuplicateToast(
+  recentToasts: Map<string, number>,
+  type: string,
+  message: string
+): boolean {
+  const key = `${type}:${message}`;
+  const now = Date.now();
+  const lastTime = recentToasts.get(key);
 
-    // 🔧 Fix: Prevent duplicate toasts
-    if (isDuplicateToast(type, message)) {
-      logger.debug('🍞 Duplicate toast prevented:', { type, message });
-      return;
-    }
+  if (lastTime && now - lastTime < 500) return true;
 
-    const config = toastConfigStore.getValue();
-    const currentToasts = toastsStore.getValue();
-    const currentStackIndex = toastStackIndexStore.getValue();
-
-    logger.debug('🍞 Current toast state:', {
-      currentToastsCount: currentToasts.length,
-      maxToasts: config.maxToasts,
-      stackIndex: currentStackIndex,
-    });
-
-    // 🔧 Fix: Direct removal to prevent infinite loop - DO NOT dispatch removeToast action
-    if (currentToasts.length >= config.maxToasts) {
-      // 가장 오래된 토스트 제거 (timestamp가 Date 객체가 아닐 수 있으므로 안전하게 처리)
-      const oldestToast = currentToasts.reduce((oldest, toast) => {
-        const oldestTime =
-          oldest.timestamp instanceof Date
-            ? oldest.timestamp.getTime()
-            : new Date(oldest.timestamp).getTime();
-        const currentTime =
-          toast.timestamp instanceof Date
-            ? toast.timestamp.getTime()
-            : new Date(toast.timestamp).getTime();
-        return currentTime < oldestTime ? toast : oldest;
-      });
-
-      // 🔧 CRITICAL: Direct store update instead of dispatch to prevent infinite loop
-      const filteredToasts = currentToasts.filter(
-        (toast) => toast.id !== oldestToast.id
-      );
-      toastsStore.setValue(filteredToasts);
-      logger.debug('🍞 Removed oldest toast directly:', oldestToast.id);
-    }
-
-    const newToast: Toast = {
-      id: generateToastId(),
-      type,
-      title,
-      message,
-      ...(actionType !== undefined && { actionType }),
-      payload,
-      timestamp: new Date(),
-      duration: duration || config.defaultDuration,
-      stackIndex: currentStackIndex,
-      isVisible: true,
-      phase: 'entering',
-    };
-
-    // 스택 인덱스 증가
-    toastStackIndexStore.setValue(currentStackIndex + 1);
-
-    // 토스트 추가
-    logger.debug('🍞 Adding new toast to store:', newToast);
-    toastsStore.setValue([...currentToasts, newToast]);
-    logger.debug(
-      '🍞 Store updated, new length:',
-      toastsStore.getValue().length
-    );
-
-    // ToastItem owns entry, expiry, and removal timers after it mounts. That
-    // lets a remount or HMR recover a previously stored toast from its
-    // timestamp instead of leaving it visible without a timer.
-
-    logger.info('addToast', { toastId: newToast.id, type, title });
+  recentToasts.set(key, now);
+  for (const [candidate, time] of recentToasts.entries()) {
+    if (now - time > 60_000) recentToasts.delete(candidate);
   }
-);
+  return false;
+}
 
-toastActionRegister.register(
-  'addActionToast',
-  ({
-    actionType,
-    executionStep,
-    payload,
-    executionTime,
-    resultData,
-    errorMessage,
-  }) => {
-    const icon = getActionIcon(actionType);
-    const message = getExecutionStepMessage(
+function timestampOf(toast: Toast): number {
+  return toast.timestamp instanceof Date
+    ? toast.timestamp.getTime()
+    : new Date(toast.timestamp).getTime();
+}
+
+/**
+ * Creates the toast runtime for one application root. The controller is kept
+ * inside ToastSystemProvider rather than as a module singleton so HMR, tests,
+ * and multiple mounted roots do not share notification state or handlers.
+ */
+export function createToastSystem(): ToastSystemController {
+  const stores = createToastStores();
+  const actionRegister = new ActionRegister<ToastActionMap>({
+    name: 'ToastActions',
+  });
+  const recentToasts = new Map<string, number>();
+
+  actionRegister.register(
+    'addToast',
+    ({ type, title, message, actionType, payload, duration }) => {
+      if (isDuplicateToast(recentToasts, type, message)) {
+        logger.debug('🍞 Duplicate toast prevented:', { type, message });
+        return;
+      }
+
+      const config = stores.config.getValue();
+      const currentToasts = stores.toasts.getValue();
+      const keptToasts =
+        currentToasts.length < config.maxToasts
+          ? currentToasts
+          : currentToasts.filter(
+              (toast) =>
+                toast.id !==
+                currentToasts.reduce((oldest, candidate) =>
+                  timestampOf(candidate) < timestampOf(oldest)
+                    ? candidate
+                    : oldest
+                ).id
+            );
+      const newToast: Toast = {
+        id: generateToastId(),
+        type,
+        title,
+        message,
+        ...(actionType === undefined ? {} : { actionType }),
+        payload,
+        timestamp: new Date(),
+        duration: duration ?? config.defaultDuration,
+        stackIndex: stores.stackIndex.getValue(),
+        isVisible: true,
+        phase: 'entering',
+      };
+
+      stores.stackIndex.setValue(stores.stackIndex.getValue() + 1);
+      stores.toasts.setValue([...keptToasts, newToast]);
+      logger.info('addToast', { toastId: newToast.id, type, title });
+    }
+  );
+
+  actionRegister.register(
+    'addActionToast',
+    ({
       actionType,
       executionStep,
-      errorMessage
-    );
-    const title = `${icon} ${actionType}`;
-
-    let duration = 3000; // 기본 3초
-    if (executionStep === 'error') duration = 5000; // 에러는 5초
-    if (executionStep === 'processing') duration = 2000; // 처리 중은 2초
-
-    // 자동 계산된 실행시간이 있으면 사용, 없으면 전달받은 값 사용
-    const finalExecutionTime = executionTime || 0;
-
-    toastActionRegister.dispatch('addToast', {
-      type: 'action',
-      title,
-      message: finalExecutionTime
-        ? `${message} (${finalExecutionTime}ms)`
-        : message,
-      actionType,
-      payload: {
+      payload,
+      executionTime,
+      resultData,
+      errorMessage,
+    }) => {
+      const message = getExecutionStepMessage(
+        actionType,
         executionStep,
-        originalPayload: payload,
-        resultData,
-        errorMessage,
-        executionTime: finalExecutionTime, // 자동 계산된 실행시간 사용
-      },
-      duration,
-    });
-  }
-);
+        errorMessage
+      );
+      const duration =
+        executionStep === 'error'
+          ? 5000
+          : executionStep === 'processing'
+            ? 2000
+            : 3000;
+      const finalExecutionTime = executionTime ?? 0;
 
-toastActionRegister.register('removeToast', ({ toastId }) => {
-  const currentToasts = toastsStore.getValue();
-  const updatedToasts = currentToasts.filter((toast) => toast.id !== toastId);
-  toastsStore.setValue(updatedToasts);
-
-  // removeToast 로깅을 DEBUG 레벨로 낮춰서 덜 눈에 띄게 함
-  logger.debug('removeToast', { toastId });
-});
-
-toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
-  const currentToasts = toastsStore.getValue();
-  const updatedToasts = currentToasts.map((toast) =>
-    toast.id === toastId &&
-    // A queued entry frame must never revive a toast that has already begun
-    // leaving (for example, after a very short custom duration).
-    (phase !== 'visible' || toast.phase === 'entering')
-      ? { ...toast, phase }
-      : toast
+      void actionRegister.dispatch('addToast', {
+        type: 'action',
+        title: `${getActionIcon(actionType)} ${actionType}`,
+        message: finalExecutionTime
+          ? `${message} (${finalExecutionTime}ms)`
+          : message,
+        actionType,
+        payload: {
+          executionStep,
+          originalPayload: payload,
+          resultData,
+          errorMessage,
+          executionTime: finalExecutionTime,
+        },
+        duration,
+      });
+    }
   );
-  toastsStore.setValue(updatedToasts);
 
-  // updateToastPhase도 DEBUG 레벨로 로깅
-  logger.debug('updateToastPhase', { toastId, phase });
-});
-
-toastActionRegister.register('clearAllToasts', () => {
-  const currentToasts = toastsStore.getValue();
-  toastsStore.setValue([]);
-  toastStackIndexStore.setValue(0);
-
-  logger.info('clearAllToasts', {
-    clearedCount: currentToasts.length,
+  actionRegister.register('removeToast', ({ toastId }) => {
+    stores.toasts.setValue(
+      stores.toasts.getValue().filter((toast) => toast.id !== toastId)
+    );
   });
-});
 
-toastActionRegister.register('updateToastConfig', (configUpdate) => {
-  const currentConfig = toastConfigStore.getValue();
-  const newConfig = { ...currentConfig, ...configUpdate };
-  toastConfigStore.setValue(newConfig);
+  actionRegister.register('updateToastPhase', ({ toastId, phase }) => {
+    stores.toasts.setValue(
+      stores.toasts
+        .getValue()
+        .map((toast) =>
+          toast.id === toastId &&
+          (phase !== 'visible' || toast.phase === 'entering')
+            ? { ...toast, phase }
+            : toast
+        )
+    );
+  });
 
-  logger.info('updateToastConfig', configUpdate);
-});
+  actionRegister.register('clearAllToasts', () => {
+    stores.toasts.setValue([]);
+    stores.stackIndex.setValue(0);
+  });
+
+  actionRegister.register('updateToastConfig', (configUpdate) => {
+    stores.config.setValue({ ...stores.config.getValue(), ...configUpdate });
+  });
+
+  const dispatch = <K extends Extract<keyof ToastActionMap, string>>(
+    action: K,
+    payload: ToastActionMap[K]
+  ) => {
+    // The controller always passes a payload for its closed action map; the
+    // ActionRegister dispatch tuple cannot preserve that relationship through
+    // ToastActionMap's compatibility index signature.
+    void actionRegister.dispatch(action, payload as never);
+  };
+
+  return {
+    stores,
+    showToast: (type, title, message) =>
+      dispatch('addToast', { type, title, message }),
+    showActionToast: (actionType, executionStep, options = {}) =>
+      dispatch('addActionToast', { actionType, executionStep, ...options }),
+    removeToast: (toastId) => dispatch('removeToast', { toastId }),
+    updateToastPhase: (toastId, phase) =>
+      dispatch('updateToastPhase', { toastId, phase }),
+    clearAllToasts: () => dispatch('clearAllToasts', {}),
+    updateConfig: (configUpdate) => dispatch('updateToastConfig', configUpdate),
+  };
+}
