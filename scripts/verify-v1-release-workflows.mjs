@@ -200,8 +200,8 @@ export function validateReleaseWorkflowSources({
     requireCommandBeforePublication(
       errors,
       coordinatedCandidateInspection,
-      /^pnpm\s+verify:coordinated-stable-release-plan$/u,
-      'Coordinated stable candidate workflow must validate the release plan before publication',
+      /^pnpm\s+verify:coordinated-stable-release-plan\s+--\s+--require-current-source$/u,
+      'Coordinated stable candidate workflow must validate the release plan against its immutable current source before publication',
     );
     requireCommandBeforePublication(
       errors,

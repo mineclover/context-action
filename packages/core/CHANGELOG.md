@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1] (2026-08-31)
+
+### Reliability fixes
+
+- Export the documented consumer-facing ActionRegister diagnostics, execution,
+  payload, and result-dispatch types from the package root. Consumers can now
+  import the types used by the public ActionRegister return contracts directly.
+
 ## [1.1.0] (2026-08-11)
 
 ### Features
