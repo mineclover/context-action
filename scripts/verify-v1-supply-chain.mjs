@@ -132,11 +132,11 @@ const reviewedInlineInterpreterSteps = new Map([
   ['publish-prerelease.yml:Validate prerelease package versions', 'f19eedde7b3a48caac8fc4673928b27186eb6a715b9fdb580207c8f1f7e24b56'],
   ['publish-v1-stable-candidate.yml:Validate stable candidate cohort', 'a2a512f62ed4d2262f153ac6cec87e23cc5d19d742af434710519e1f2aff51b0'],
   ['publish-maintenance-patch.yml:Resolve the patch package and version', 'c30dfc4b3b75de8bb8c39e24eb3abf44b665b1738b87a1e39354ad0c5cb081ed'],
-  ['publish-maintenance-patch.yml:Prepare registry rollback journal', 'c7e55995e4409d3ff234a0ca6d98e150c9e26e98973abe066554773bf18b2709'],
-  ['publish-maintenance-patch.yml:Promote verified candidate to latest', 'a9e472f6b9b5b2d9c797d7a01e33159dd8f1c92003fb2e0c37734c27107f1ea5'],
+  ['publish-maintenance-patch.yml:Prepare registry rollback journal', 'f8d31e5ddba7ad7cb2877979a31514ce62f61027eed0d961c79171fa7b120003'],
+  ['publish-maintenance-patch.yml:Promote verified candidate to latest', '4cb75e91de8e9a9b045c498eac0844239b3720fcfe9a0630c47d434f8e2c594c'],
   ['publish-maintenance-patch.yml:Capture maintenance journal evidence', 'fc01757add5ff489ecc6e904c753345addb142b01bb7fa7b1215ad5de4a04248'],
-  ['publish-maintenance-patch.yml:Finalize successful promotion journal', '63836b88ba7b83ce75b92c3e29d9e97839208016938cd41b9c827897da28a118'],
-  ['publish-maintenance-patch.yml:Roll back latest after post-promotion failure', 'cf55cf7addde0523f06d9842dc0cd141cda2de5e5ae5477fe6dd51e02bae7eb1'],
+  ['publish-maintenance-patch.yml:Finalize successful promotion journal', 'fc83203ef7612873046ee00f0790166241bcdabc5475350d3346195f2f210269'],
+  ['publish-maintenance-patch.yml:Roll back latest after post-promotion failure', 'cfb7c70cea0016aa8fccfd4535a5da61a1d0f25fd44237d67eaec6781cabdbd2'],
 ]);
 const reviewedDynamicLauncherSteps = new Map([
   ['ci.yml:Check bundle sizes', '95f01383dbae107eeb64e222fe6bbdb977def33301e9ae2cc57242d394dd1075'],
@@ -1222,14 +1222,24 @@ function maintenanceStateMachineFailures(inspection) {
   const rolledBackJournalCommand = 'npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_rolled_back_tag" --registry=https://registry.npmjs.org';
   const restoreLatestCommand = 'npm dist-tag add "$PACKAGE_NAME@$rollback_target" latest --registry=https://registry.npmjs.org';
   const removeLatestCommand = 'npm dist-tag rm "$PACKAGE_NAME" latest --registry=https://registry.npmjs.org';
+  const previousJournalReadback = 'wait_for_tag_value "$journal_previous_tag" "$current_latest"';
+  const absentJournalReadback = 'wait_for_tag_value "$journal_absent_tag" "$PACKAGE_VERSION"';
+  const readyJournalReadback = 'wait_for_tag_value "$journal_ready_tag" "$PACKAGE_VERSION"';
+  const promotedLatestReadback = 'wait_for_tag_value latest "$PACKAGE_VERSION"';
+  const completedJournalReadback = 'wait_for_tag_value "$journal_completed_tag" "$PACKAGE_VERSION"';
+  const rolledBackJournalReadback = 'wait_for_tag_value "$journal_rolled_back_tag" "$PACKAGE_VERSION"';
+  const restoredLatestReadback = 'wait_for_tag_value latest "$rollback_target"';
+  const removedLatestReadback = 'wait_for_absent_tag latest';
 
   const candidatePublication = publishHelperCommands(inspection)[0];
   if (!candidatePublication || candidatePublication.step.index >= prepare.index
     || !stepHasStatementsInOrder(prepare, [
       previousJournalCommand,
+      previousJournalReadback,
       absentJournalCommand,
+      absentJournalReadback,
       readyJournalCommand,
-      'dist_tags="$(read_dist_tags)"',
+      readyJournalReadback,
       'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
       'test "$ready_marker" = "$PACKAGE_VERSION"',
       'test -z "$completed_marker"',
@@ -1257,7 +1267,7 @@ function maintenanceStateMachineFailures(inspection) {
   }
   if (!stepHasStatementsInOrder(promote, [
     promoteLatestCommand,
-    'dist_tags="$(read_dist_tags)"',
+    promotedLatestReadback,
     'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
     'test "$(tag_value latest)" = "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"',
@@ -1278,7 +1288,7 @@ function maintenanceStateMachineFailures(inspection) {
     'test "$ready_marker" = "$PACKAGE_VERSION"',
     'test -z "$rolled_back_marker"',
     completedJournalCommand,
-    'dist_tags="$(read_dist_tags)"',
+    completedJournalReadback,
     'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
     'test "$(tag_value latest)" = "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"',
@@ -1299,14 +1309,16 @@ function maintenanceStateMachineFailures(inspection) {
     'if [ "$current_latest" != "$PACKAGE_VERSION" ]',
     `echo "Refusing rollback because latest changed to \${current_latest:-absent}." >&2`,
     rolledBackJournalCommand,
-    'dist_tags="$(read_dist_tags)"',
+    rolledBackJournalReadback,
     'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
     'test "$(tag_value latest)" = "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_rolled_back_tag")" = "$PACKAGE_VERSION"',
     'test -z "$(tag_value "$journal_completed_tag")"',
     restoreLatestCommand,
+    restoredLatestReadback,
     removeLatestCommand,
+    removedLatestReadback,
   ])) {
     fail('must CAS-check latest and persist the rolled-back marker before restoring or removing latest');
   }
@@ -1323,7 +1335,7 @@ function maintenanceStateMachineFailures(inspection) {
     Number.isFinite(firstLatestMutationIndex) ? firstLatestMutationIndex : undefined,
   );
   const fullPreRestoreCasStatements = [
-    'dist_tags="$(read_dist_tags)"',
+    rolledBackJournalReadback,
     'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
     'test "$(tag_value latest)" = "$PACKAGE_VERSION"',
     'test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"',
@@ -1331,14 +1343,14 @@ function maintenanceStateMachineFailures(inspection) {
     'test -z "$(tag_value "$journal_completed_tag")"',
   ];
   if (rolledBackMutationIndex < 0 || !Number.isFinite(firstLatestMutationIndex)
-    || fullPreRestoreCasStatements.some(expected =>
-      preRestoreReadbacks.filter(statement => statement === expected).length < 2)) {
+    || fullPreRestoreCasStatements.some(expected => !preRestoreReadbacks.includes(expected))) {
     fail('must CAS-check latest and persist the rolled-back marker before restoring or removing latest');
   }
   if (!stepHasStatementsInOrder(rollback, [
     restoreLatestCommand,
+    restoredLatestReadback,
     removeLatestCommand,
-    'dist_tags="$(read_dist_tags)"',
+    removedLatestReadback,
     'test "$(tag_value maintenance)" = "$PACKAGE_VERSION"',
     'test "$(tag_value latest)" = "$rollback_target"',
     'test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"',

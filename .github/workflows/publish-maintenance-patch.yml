@@ -244,6 +244,23 @@ jobs:
             '
           }
 
+          wait_for_tag_value() {
+            local tag_name="$1" expected="$2" attempt observed
+            for attempt in {1..12}; do
+              dist_tags="$(read_dist_tags)"
+              observed="$(tag_value "$tag_name")"
+              if [ "$observed" = "$expected" ]; then
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then
+                echo "Waiting for npm dist-tag $tag_name to resolve to $expected ($attempt/11)..." >&2
+                sleep 5
+              fi
+            done
+            echo "npm dist-tag $tag_name did not resolve to expected value $expected" >&2
+            return 1
+          }
+
           validate_candidate_marker() {
             local marker_name="$1" marker_value="$2"
             if [ -n "$marker_value" ] && [ "$marker_value" != "$PACKAGE_VERSION" ]; then
@@ -382,10 +399,11 @@ jobs:
             if [ -n "$current_latest" ]; then
               [[ "$current_latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
               npm dist-tag add "$PACKAGE_NAME@$current_latest" "$journal_previous_tag" --registry=https://registry.npmjs.org
+              wait_for_tag_value "$journal_previous_tag" "$current_latest"
             else
               npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_absent_tag" --registry=https://registry.npmjs.org
+              wait_for_tag_value "$journal_absent_tag" "$PACKAGE_VERSION"
             fi
-            dist_tags="$(read_dist_tags)"
             current_latest="$(tag_value latest)"
             previous_latest="$(tag_value "$journal_previous_tag")"
             absent_marker="$(tag_value "$journal_absent_tag")"
@@ -403,9 +421,9 @@ jobs:
               exit 1
             fi
             npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_ready_tag" --registry=https://registry.npmjs.org
+            wait_for_tag_value "$journal_ready_tag" "$PACKAGE_VERSION"
           fi
 
-          dist_tags="$(read_dist_tags)"
           current_latest="$(tag_value latest)"
           previous_latest="$(tag_value "$journal_previous_tag")"
           absent_marker="$(tag_value "$journal_absent_tag")"
@@ -475,6 +493,20 @@ jobs:
             '
           }
 
+          wait_for_tag_value() {
+            local tag_name="$1" expected="$2" attempt observed
+            for attempt in {1..12}; do
+              dist_tags="$(read_dist_tags)"
+              observed="$(tag_value "$tag_name")"
+              if [ "$observed" = "$expected" ]; then
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then sleep 5; fi
+            done
+            echo "npm dist-tag $tag_name did not resolve to expected value $expected before promotion" >&2
+            return 1
+          }
+
           journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
           journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
           journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
@@ -503,7 +535,7 @@ jobs:
           fi
 
           npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" latest --registry=https://registry.npmjs.org
-          dist_tags="$(read_dist_tags)"
+          wait_for_tag_value latest "$PACKAGE_VERSION"
           test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
           test "$(tag_value latest)" = "$PACKAGE_VERSION"
           test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
@@ -661,6 +693,20 @@ jobs:
             '
           }
 
+          wait_for_tag_value() {
+            local tag_name="$1" expected="$2" attempt observed
+            for attempt in {1..12}; do
+              dist_tags="$(read_dist_tags)"
+              observed="$(tag_value "$tag_name")"
+              if [ "$observed" = "$expected" ]; then
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then sleep 5; fi
+            done
+            echo "npm dist-tag $tag_name did not resolve to expected value $expected during finalization" >&2
+            return 1
+          }
+
           journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
           journal_absent_tag="maintenance-previous-absent-$PACKAGE_VERSION"
           journal_ready_tag="maintenance-journal-ready-$PACKAGE_VERSION"
@@ -692,7 +738,7 @@ jobs:
           fi
 
           npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_completed_tag" --registry=https://registry.npmjs.org
-          dist_tags="$(read_dist_tags)"
+          wait_for_tag_value "$journal_completed_tag" "$PACKAGE_VERSION"
           test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
           test "$(tag_value latest)" = "$PACKAGE_VERSION"
           test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
@@ -733,6 +779,7 @@ jobs:
             echo "Could not read valid dist-tags for $PACKAGE_NAME before rollback" >&2
             return 1
           }
+
           tag_value() {
             DIST_TAGS_JSON="$dist_tags" TAG_NAME="$1" node -e '
               const tags = JSON.parse(process.env.DIST_TAGS_JSON);
@@ -742,6 +789,40 @@ jobs:
                 process.stdout.write(value);
               }
             '
+          }
+
+          wait_for_tag_value() {
+            local tag_name="$1" expected="$2" attempt observed
+            for attempt in {1..12}; do
+              dist_tags="$(read_dist_tags)"
+              observed="$(tag_value "$tag_name")"
+              if [ "$observed" = "$expected" ]; then
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then
+                echo "Waiting for npm dist-tag $tag_name to resolve to $expected ($attempt/11)..." >&2
+                sleep 5
+              fi
+            done
+            echo "npm dist-tag $tag_name did not resolve to expected value $expected before rollback" >&2
+            return 1
+          }
+
+          wait_for_absent_tag() {
+            local tag_name="$1" attempt observed
+            for attempt in {1..12}; do
+              dist_tags="$(read_dist_tags)"
+              observed="$(tag_value "$tag_name")"
+              if [ -z "$observed" ]; then
+                return 0
+              fi
+              if [ "$attempt" -lt 12 ]; then
+                echo "Waiting for npm dist-tag $tag_name to be removed ($attempt/11)..." >&2
+                sleep 5
+              fi
+            done
+            echo "npm dist-tag $tag_name did not disappear before rollback completed" >&2
+            return 1
           }
 
           journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"
@@ -832,7 +913,7 @@ jobs:
 
           if [ -z "$rolled_back_marker" ]; then
             npm dist-tag add "$PACKAGE_NAME@$PACKAGE_VERSION" "$journal_rolled_back_tag" --registry=https://registry.npmjs.org
-            dist_tags="$(read_dist_tags)"
+            wait_for_tag_value "$journal_rolled_back_tag" "$PACKAGE_VERSION"
             test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
             test "$(tag_value latest)" = "$PACKAGE_VERSION"
             test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
@@ -847,7 +928,6 @@ jobs:
             fi
           fi
 
-          dist_tags="$(read_dist_tags)"
           test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
           test "$(tag_value latest)" = "$PACKAGE_VERSION"
           test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
@@ -863,10 +943,11 @@ jobs:
 
           if [ -n "$rollback_target" ]; then
             npm dist-tag add "$PACKAGE_NAME@$rollback_target" latest --registry=https://registry.npmjs.org
+            wait_for_tag_value latest "$rollback_target"
           else
             npm dist-tag rm "$PACKAGE_NAME" latest --registry=https://registry.npmjs.org
+            wait_for_absent_tag latest
           fi
-          dist_tags="$(read_dist_tags)"
           test "$(tag_value maintenance)" = "$PACKAGE_VERSION"
           test "$(tag_value latest)" = "$rollback_target"
           test "$(tag_value "$journal_ready_tag")" = "$PACKAGE_VERSION"
