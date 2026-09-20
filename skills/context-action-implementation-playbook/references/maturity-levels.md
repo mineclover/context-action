@@ -27,5 +27,6 @@ Best when the team needs a visible pattern catalog but not full interactivity ye
 - explicit state machine if async
 - integration tests
 - docs + source links + route discovery
+- Tier 1 domain contracts linked to TypeSpec SSOT and verified via `@evidenceReview`
 
 Best when the scenario is a canonical teaching example or a likely template for real product work.

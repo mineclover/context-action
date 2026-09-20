@@ -1,6 +1,11 @@
 ---
 name: context-action-implementation-playbook
-description: Use when adding or refactoring repository examples to follow the Context-Action implementation-playbook standard. Triggers on requests for standard conventions, implementation playbooks, scenario examples, explicit state machine flows, or reusable Context-Layered example structures.
+description: >-
+  Use when adding or refactoring repository examples, decomposing bloated single-file codebases,
+  or modularizing large UI components and stylesheets according to the Context-Action standard.
+  Triggers on requests for "구현 모듈화", "단일 파일 비대화", "모듈화 기준", "컴포넌트 분리", "스타일 분리",
+  standard conventions, implementation playbooks, scenario examples, explicit state machine flows,
+  aspect decomposition (Visual Param widgets), or reusable Context-Layered structures.
 ---
 
 # Context-Action Implementation Playbook
@@ -97,6 +102,42 @@ If the user is working in English, also read:
 - the async workflow has explicit transitions when needed
 - the example is visible from docs or the example app
 - tests and builds pass
+
+## Large-Scale Component & Stylesheet Modularization Protocol (대형 컴포넌트 및 스타일 모듈화 규약)
+
+When existing files become bloated during feature additions or studio tool authoring:
+
+### 1. Diagnostic Thresholds (진단 기준)
+- **Code Files (> 500 ~ 800 lines)**:
+  - If a component (`InspectorPanel.tsx`, `Canvas.tsx`) accumulates multiple aspect controls (alignment, radius, constraints, rotation, shadow, gradient, box model), sub-trees (layers, multi-select), or direct event dragging, it **MUST** be decomposed.
+- **Stylesheets (> 1,000 ~ 2,000 lines)**:
+  - If a single `styles.css` exceeds 1,500 lines, it **MUST** be split into domain-scoped stylesheets with an automated build assembly pipeline.
+
+### 2. 5-Tier Modularization Units (5계층 모듈화 단위)
+1. **Tier 1: Read-Only Projection vs Intent Dispatch**:
+   - Keep views/panels purely projection-based (`useSyncExternalStore`).
+   - Mutations dispatch typed JSON-safe actions via `ActionRuntime.dispatch({ type, payload })`.
+2. **Tier 2: Aspect Decomposition (Visual Param Modular Widgets)**:
+   - Extract independent visual parameter widgets into isolated sub-components (`inspector/visual-param/`):
+     `AlignmentControl`, `CornerRadiusControl`, `ConstraintsControl`, `RotationPivotControl`, `BoxShadowControl`, `GradientControl`, `BoxModelControl`.
+   - Internalize self-contained interaction math (e.g. SVG dial dragging, `Math.atan2`) inside the widget so the parent remains thin.
+3. **Tier 3: Sub-Tree, Hook & Direct Manipulation Decoupling**:
+   - Extract tree structures and batch controls into dedicated folders (`inspector/layers/`, `inspector/multi-select/`).
+   - Extract reactive form states, debounced commits, and domain handlers into custom hooks (e.g., `useInspectorNodeActions.ts`).
+   - Extract canvas gestures, 5px magnet snapping, 4-corner resizing, rotation dial trigonometry, and rubber-band marquee selection into dedicated hooks (e.g., `useCanvasDirectManipulation.ts`).
+   - Keep panels and canvases as lightweight (< 250~300 lines) pure declarative presentation layouts.
+4. **Tier 4: Transparent View Structure & Visual Minimap**:
+   - When separating studio modes/submodes (Layout vs Structure & Flow), prevent visual context loss by embedding an interactive proportional 16:9 minimap (`ssf-preview-box`) with bidirectional node selection highlights.
+   - Apply semi-translucent glassmorphism (`backdrop-filter: blur(12px)`, `rgba(15, 23, 42, 0.85)`) to floating HUDs and toolbars to maintain continuous canvas visibility.
+5. **Tier 5: Hierarchical Group Deletion Safety**:
+   - Use topological sorting (`resolveSafeDeleteCommands`) to delete child nodes first, unbind or delete connected transition actions, and finally delete the parent container to prevent orphaned references.
+6. **Tier 6: Domain-Scoped Stylesheet Architecture & Automated Build Pipeline**:
+   - Split monolithic CSS into domain files: `src/ui/styles/{base-legacy,layout,inspector-base,modals-and-views,design-system,layers,visual-param,artboard}.css`.
+   - Build automated concatenation script (`scripts/build-styles.mjs`) integrated into `scripts/build.mjs` to preserve single-bundle distribution and release verification (`verify-release.mjs`) with zero drift.
+7. **Tier 7: Fail-Closed Dual-Gate Verification**:
+   - Typecheck with `readonly` arrays (`readonly string[]`) and widened index signatures (`[key: string]: unknown`).
+   - Unit tests + React shell tests + Playwright E2E browser tests must pass 100%.
+   - Manifest update (`make-manifest.mjs`) and release verification (`verify-release.mjs`) gate check (0 errors).
 
 ## Iterative enhancement rule
 
