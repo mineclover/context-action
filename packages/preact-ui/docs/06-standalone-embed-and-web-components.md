@@ -81,20 +81,21 @@ Vite의 Terser Minification을 적용한 실제 독립 번들 빌드 결과:
 
 ```text
 dist-standalone/
-├── order-workspace.umd.js   92.57 kB (gzip: 27.05 kB)
-├── order-workspace.iife.js  92.38 kB (gzip: 26.98 kB)
-└── order-workspace.es.js    93.76 kB (gzip: 27.00 kB)
+├── order-workspace.umd.js   99.32 kB (gzip: 28.62 kB)
+├── order-workspace.iife.js  99.13 kB (gzip: 28.55 kB)
+└── order-workspace.es.js   100.85 kB (gzip: 28.57 kB)
 ```
 
-### 포함된 의존성 목록:
+### 포함된 의존성 및 컴포넌트 목록:
 - **Preact 10.27.3**: 초경량 Virtual DOM 엔진
 - **@preact/signals 2.11.2**: Fine-grained 반응형 시그널 런타임
 - **@context-action/core 1.1.3**: 우선순위 기반 ActionRegister 파이프라인
 - **@context-action/preact**: Dispatch & Source Context 어댑터
-- **@context-action/preact-ui**: DOM 소유권 & 마운트 프리미티브
-- **Projected Order 도메인**: FSM 상태 머신, 계산 로직, 유효성 검사, 2개 뷰 컴포넌트 전체
+- **@context-action/preact-ui**: DOM 소유권 & 마운트 프리미티브 및 `definePreactElement`
+- **Projected Order 도메인 & Custom Element**: `<order-workspace>`
+- **Modular Signals 도메인 & Custom Elements**: `<cart-badge>` 및 `<cart-drawer>`
 
-**총 gzip 27KB**에 반응형 런타임과 전체 업무 로직이 자체 포함(Self-contained)되어 있으므로, React/ReactDOM(약 45~50KB gzip)을 외부에서 로드할 필요 없이 완전한 독립 실행형 위젯으로 동작합니다.
+**총 gzip 28.6KB**에 반응형 런타임과 전체 업무 로직 및 3종의 Web Components가 자체 포함(Self-contained)되어 있으므로, React/ReactDOM(약 45~50KB gzip)을 외부에서 로드할 필요 없이 완전한 독립 실행형 위젯 생태계로 동작합니다.
 
 ---
 
