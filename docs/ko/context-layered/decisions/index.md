@@ -54,4 +54,5 @@ persistence·privacy 동작, 임시 compatibility 예외가 바뀌면 기록을 
 
 ## 기존 참조 결정
 
+- [CA-SPEC-EVIDENCE-001: TypeSpec Evidence 결합 및 프론트엔드 상태 계층화(State Tiering) 거버넌스](./CA-SPEC-EVIDENCE-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)

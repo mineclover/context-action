@@ -61,6 +61,9 @@ scenario/
 
 Do not put UI wording, DOM focus, or analytics calls here.
 
+> **TypeSpec Evidence Integration (Policy Hopping)**:  
+> Pure validation and state transition functions in `business/` qualify as TypeSpec SSOT runtime policy targets ([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md)). Core domain functions lock their AST contracts using `@evidenceReview specs/*.tsp#Policy #hash`.
+
 ### `handlers/`
 
 - read the latest store values
@@ -91,6 +94,9 @@ Every handler, including a single-handler feature, is registered through the dom
 
 - render state and forward user intent only
 - do not embed validation rules, result calculation, or workflow transitions
+
+> **Tier 3 Presentation State Waiver**:  
+> View-internal presentation flags (modal open/close `isOpen`, dropdown focus, tab index, etc.) are explicitly excluded from TypeSpec modeling and Evidence tracking. Keep them inside component-local `useState` or `ref` Contexts.
 
 ## Structural Convention Gate
 

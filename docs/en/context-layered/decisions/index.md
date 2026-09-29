@@ -58,4 +58,5 @@ anchors, and a link to the package or guide whose contract it changes.
 
 ## Existing reference decisions
 
+- [CA-SPEC-EVIDENCE-001: TypeSpec Evidence Integration and Frontend State Tiering Governance](./CA-SPEC-EVIDENCE-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)

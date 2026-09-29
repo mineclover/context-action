@@ -61,6 +61,9 @@ scenario/
 
 문자열 문구, DOM focus, analytics 호출은 넣지 않습니다.
 
+> **TypeSpec Evidence 연동 (Policy Hopping)**:  
+> `business/`의 순수 검증 및 상태 전이 함수는 TypeSpec SSOT의 런타임 정책 타깃([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md))이 될 수 있습니다. 핵심 비즈니스 로직 함수는 `@evidenceReview specs/*.tsp#Policy #hash` 주석으로 AST 계약을 고정합니다.
+
 ### `handlers/`
 
 - 최신 store 값을 읽는다
@@ -91,6 +94,9 @@ scenario/
 
 - 렌더링과 입력 전달만 담당한다
 - validation 규칙, quote 계산, 상태 전이 로직을 직접 품지 않는다
+
+> **프레젠테이션 상태 면제 (Tier 3 Presentation Waiver)**:  
+> 모달 열림/닫힘(`isOpen`), 드롭다운 포커스, 탭 인덱스 등 화면 표출 전용 상태는 TypeSpec 모델링 및 Evidence 추적 대상에서 공식 제외됩니다. 컴포넌트 로컬 상태(`useState`)나 ref를 사용합니다.
 
 ## 구조 컨벤션 게이트
 
