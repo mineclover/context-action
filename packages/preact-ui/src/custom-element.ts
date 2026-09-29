@@ -2,6 +2,15 @@ import type { ComponentType } from 'preact';
 import { mountPreact } from './mount.js';
 import type { MountInstance } from './mount.js';
 
+export interface PreactElementContext {
+  /** The native ElementInternals associated with this element if formAssociated is true */
+  internals?: ElementInternals | undefined;
+  /** Sets the form value for submission and state restoration */
+  setFormValue(value: File | string | FormData | null, state?: File | string | FormData | null): void;
+  /** Sets the validity flags and validation message */
+  setValidity(flags: ValidityStateFlags, message?: string, anchor?: HTMLElement): void;
+}
+
 export interface PreactElementLifecycle<Input> {
   /** The Preact view component to mount inside Shadow DOM */
   view: ComponentType<{ input: Input }>;
@@ -11,6 +20,12 @@ export interface PreactElementLifecycle<Input> {
   onAttributeChange?(name: string, oldValue: string | null, newValue: string | null): void;
   /** Optional cleanup callback for permanent teardown */
   onDestroy?(): void;
+  /** Form lifecycle: called when the associated form is reset */
+  onFormReset?(): void;
+  /** Form lifecycle: called when the element or its parent fieldset is enabled/disabled */
+  onFormDisabled?(disabled: boolean): void;
+  /** Form lifecycle: called when the browser restores form state */
+  onFormStateRestore?(state: unknown, mode: 'restore' | 'autocomplete'): void;
 }
 
 export interface PreactElementConfig<Input> {
@@ -20,11 +35,22 @@ export interface PreactElementConfig<Input> {
   style?: string;
   /** List of HTML attributes to observe via attributeChangedCallback */
   observedAttributes?: readonly string[];
+  /** When true, marks the custom element as Form-Associated (FACE) and enables ElementInternals */
+  formAssociated?: boolean;
   /** Factory invoked on element construction to set up signals, views, and handlers */
-  setup(element: HTMLElement): PreactElementLifecycle<Input>;
+  setup(element: HTMLElement, context: PreactElementContext): PreactElementLifecycle<Input>;
 }
 
 export interface ManagedPreactElement<Input> extends HTMLElement {
+  readonly form: HTMLFormElement | null;
+  name: string;
+  readonly type: string;
+  readonly validity: ValidityState | undefined;
+  readonly validationMessage: string;
+  readonly willValidate: boolean;
+  checkValidity(): boolean;
+  reportValidity(): boolean;
+  setCustomValidity(message: string): void;
   updateInput(): void;
   dispose(): void;
 }
@@ -34,9 +60,10 @@ export interface ManagedPreactElement<Input> extends HTMLElement {
  * 
  * Guarantees:
  * 1. Shadow DOM encapsulation isolating the Preact renderer from host CSS
- * 2. Pre-upgrade property preservation
- * 3. Lifecycle decoupling: renderer unmounts on disconnect, domain state/signals persist across reconnect
- * 4. Idempotent registration
+ * 2. Form-Associated Custom Elements (FACE) support with ElementInternals
+ * 3. Pre-upgrade property preservation
+ * 4. Lifecycle decoupling: renderer unmounts on disconnect, domain state/signals persist across reconnect
+ * 5. Idempotent registration
  */
 export function definePreactElement<Input>(
   config: PreactElementConfig<Input>,
@@ -49,15 +76,26 @@ export function definePreactElement<Input>(
   if (existing) return existing;
 
   class ManagedElement extends HTMLElement implements ManagedPreactElement<Input> {
+    static formAssociated = config.formAssociated ?? false;
     static observedAttributes = config.observedAttributes ? [...config.observedAttributes] : [];
 
     #root: HTMLElement;
     #mount: MountInstance<Input> | undefined;
     #lifecycle: PreactElementLifecycle<Input>;
+    #internals: ElementInternals | undefined;
     #upgraded = false;
 
     constructor() {
       super();
+
+      if (config.formAssociated && typeof this.attachInternals === 'function') {
+        try {
+          this.#internals = this.attachInternals();
+        } catch {
+          // ElementInternals already attached or unsupported
+        }
+      }
+
       const shadow = this.attachShadow({ mode: 'open' });
 
       if (config.style) {
@@ -69,7 +107,75 @@ export function definePreactElement<Input>(
       this.#root = this.ownerDocument.createElement('div');
       shadow.append(this.#root);
 
-      this.#lifecycle = config.setup(this);
+      const context: PreactElementContext = {
+        internals: this.#internals,
+        setFormValue: (value, state) => {
+          this.#internals?.setFormValue?.(value, state);
+        },
+        setValidity: (flags, message, anchor) => {
+          this.#internals?.setValidity?.(flags, message, anchor);
+        },
+      };
+
+      this.#lifecycle = config.setup(this, context);
+    }
+
+    // Standard Form-Associated Custom Elements API
+    get form(): HTMLFormElement | null {
+      return this.#internals?.form ?? null;
+    }
+
+    get name(): string {
+      return this.getAttribute('name') ?? '';
+    }
+
+    set name(val: string) {
+      this.setAttribute('name', val);
+    }
+
+    get type(): string {
+      return this.getAttribute('type') ?? config.tagName;
+    }
+
+    get validity(): ValidityState | undefined {
+      return this.#internals?.validity;
+    }
+
+    get validationMessage(): string {
+      return this.#internals?.validationMessage ?? '';
+    }
+
+    get willValidate(): boolean {
+      return this.#internals?.willValidate ?? false;
+    }
+
+    checkValidity(): boolean {
+      return this.#internals?.checkValidity?.() ?? true;
+    }
+
+    reportValidity(): boolean {
+      return this.#internals?.reportValidity?.() ?? true;
+    }
+
+    setCustomValidity(message: string): void {
+      if (message) {
+        this.#internals?.setValidity?.({ customError: true }, message);
+      } else {
+        this.#internals?.setValidity?.({});
+      }
+    }
+
+    // Form lifecycle callbacks
+    formResetCallback() {
+      this.#lifecycle.onFormReset?.();
+    }
+
+    formDisabledCallback(disabled: boolean) {
+      this.#lifecycle.onFormDisabled?.(disabled);
+    }
+
+    formStateRestoreCallback(state: unknown, mode: 'restore' | 'autocomplete') {
+      this.#lifecycle.onFormStateRestore?.(state, mode);
     }
 
     connectedCallback() {

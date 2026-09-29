@@ -153,6 +153,40 @@
     </div>
   </section>
 
+  <!-- =================================================================== -->
+  <!-- 시나리오 D: Form-Associated Custom Elements (FACE) 네이티브 폼 연동 -->
+  <!-- =================================================================== -->
+  <section class="card">
+    <h2>4. Form-Associated Custom Element (FACE) & 표준 HTML 폼 연동</h2>
+    <p>
+      <code>&lt;quantity-stepper&gt;</code>는 웹 표준 <code>ElementInternals</code>를 탑재하여,
+      별도의 JS 직렬화 코드 없이 일반 <code>&lt;form&gt;</code>의 <strong>FormData 자동 수집, 브라우저 기본 유효성 검사, 폼 리셋(form.reset())</strong>과 100% 네이티브로 연동됩니다.
+    </p>
+
+    <form id="native-checkout-form" style="display: flex; flex-direction: column; gap: 16px; max-width: 500px; background: #f1f5f9; padding: 20px; border-radius: 8px;">
+      <div>
+        <label for="form-item-name" style="display: block; font-weight: 600; margin-bottom: 4px;">주문 상품:</label>
+        <input id="form-item-name" name="productName" value="Preact Signals 아키텍처 가이드북" readonly style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #e2e8f0;" />
+      </div>
+
+      <div>
+        <label style="display: block; font-weight: 600; margin-bottom: 4px;">수량 선택 (FACE 커스텀 엘리먼트):</label>
+        <!-- Form-Associated Custom Element -->
+        <quantity-stepper name="orderQuantity" value="2" min="1" max="10"></quantity-stepper>
+      </div>
+
+      <div class="controls" style="margin-bottom: 0;">
+        <button type="submit" class="btn btn-primary">표준 폼 제출 (FormData 읽기)</button>
+        <button type="reset" class="btn">초기화 (form.reset)</button>
+      </div>
+    </form>
+
+    <div style="margin-top: 16px;">
+      <strong>표준 Form 제출 결과 (FormData 추출):</strong>
+      <div id="face-log" class="log-box">폼 제출 대기 중...</div>
+    </div>
+  </section>
+
   <script>
     // -------------------------------------------------------------------
     // 시나리오 1: UMD 마운트 스크립트
@@ -303,6 +337,26 @@
     document.getElementById('signal-clear').addEventListener('click', () => {
       clearCart();
       logModularEvent(`도메인 Signal 갱신: clearCart() 호출 -> 전체 리셋`);
+    });
+
+    // -------------------------------------------------------------------
+    // 시나리오 4: Form-Associated Custom Element 폼 제출 리스너
+    // -------------------------------------------------------------------
+    const nativeForm = document.getElementById('native-checkout-form');
+    const faceLog = document.getElementById('face-log');
+
+    nativeForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(nativeForm);
+      const data = Object.fromEntries(formData.entries());
+      const time = new Date().toLocaleTimeString();
+      faceLog.textContent = `[${time}] 폼 제출 성공 (new FormData(form)):\n` +
+        JSON.stringify(data, null, 2) + '\n\n' + faceLog.textContent;
+    });
+
+    nativeForm.addEventListener('reset', () => {
+      const time = new Date().toLocaleTimeString();
+      faceLog.textContent = `[${time}] 폼 초기화(reset) 이벤트 발생 -> <quantity-stepper> 내부 Preact Signal이 초기값으로 자동 복원됨\n` + faceLog.textContent;
     });
   </script>
 </body>

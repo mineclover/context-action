@@ -19,8 +19,9 @@ index.html + main.tsx
 ├─ modular-signals-wc/                      모듈식 Signal 공유 & 멀티 Web Component 표준
 │  ├─ shared-cart-signal.ts                 [Level 1] 순수 도메인 시그널 모듈
 │  ├─ cart-badge-element.tsx                [Level 2] <cart-badge> 정의 모듈
-│  └─ cart-drawer-element.tsx               [Level 2] <cart-drawer> 정의 모듈
-└─ vanilla-embed.html                       순수 HTML Standalone UMD & Custom Element 실증 데모
+│  ├─ cart-drawer-element.tsx               [Level 2] <cart-drawer> 정의 모듈
+│  └─ quantity-stepper-element.tsx          [Level 2] <quantity-stepper> FACE(Form-Associated) 폼 연동 모듈
+└─ vanilla-embed.html                       순수 HTML Standalone UMD, Custom Elements & FACE 실증 데모
 ```
 
 Template의 두 패널은 하나의 모델을 공유합니다. 한쪽의 Increment는 두 패널의 값에 반영됩니다. "두 Island 해제"는 View → source connection → model 순서로 해제합니다. Custom Element는 독립 상태이며 연결 해제/재연결로 그 값이 초기화되지 않아야 합니다.
