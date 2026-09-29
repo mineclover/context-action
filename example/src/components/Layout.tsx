@@ -104,6 +104,13 @@ function Layout({
         'Keep React Aria interaction state local while Context-Action owns domain actions',
     },
     {
+      path: '/integrations/preact-web-components',
+      label: '🧩 Preact Web Components',
+      category: 'architecture',
+      description:
+        'Micro-Frontend bridge linking React 19 and Preact Signals Custom Elements with FACE',
+    },
+    {
       path: '/patterns/implementation-playbook/scenarios',
       label: '🗂️ Playbook Scenarios',
       category: 'architecture',

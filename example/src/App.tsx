@@ -240,6 +240,10 @@ const ActionLifecycleWorkbenchPage = lazy(
 const ReactAriaReferencePage = lazy(
   () => import('./pages/integrations/react-aria/ReactAriaReferencePage')
 );
+const PreactWebComponentsPage = lazy(
+  () =>
+    import('./pages/integrations/preact-web-components/PreactWebComponentsPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -573,6 +577,10 @@ function AppContent() {
             <Route
               path="/integrations/react-aria-reference"
               element={<ReactAriaReferencePage />}
+            />
+            <Route
+              path="/integrations/preact-web-components"
+              element={<PreactWebComponentsPage />}
             />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route
