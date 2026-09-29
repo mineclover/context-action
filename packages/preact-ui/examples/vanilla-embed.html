@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Context-Action Preact 순수 HTML 임베딩 실증</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.5;
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 20px;
+      color: #0f172a;
+      background-color: #f8fafc;
+    }
+    h1 { font-size: 26px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+    h2 { font-size: 20px; color: #1e293b; margin-top: 32px; }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    button.btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button.btn:hover { background: #f1f5f9; }
+    button.btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+    button.btn-primary:hover { background: #1d4ed8; }
+    button.btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fca5a5;
+    }
+    button.btn-danger:hover { background: #fecaca; }
+    .log-box {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      max-height: 140px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+  </style>
+
+  <!-- [1] Standalone UMD 번들 로드 (Preact + Signals + Core 내장: 27KB gzip) -->
+  <script src="../dist-standalone/order-workspace.umd.js"></script>
+</head>
+<body>
+  <h1>Context-Action Preact 순수 HTML 이식 실증</h1>
+  <p>빌드 도구, Node.js, 리액트 설치 없이 브라우저에서 단일 UMD 스크립트만 로드하여 동작하는 두 가지 이식 방식입니다.</p>
+
+  <!-- =================================================================== -->
+  <!-- 시나리오 A: UMD JavaScript API로 DOM Root에 수동 마운트 -->
+  <!-- =================================================================== -->
+  <section class="card">
+    <h2>1. UMD Script 마운트 (Host JavaScript 제어 방식)</h2>
+    <p>기존 CMS나 레거시 서버 렌더링 HTML의 빈 컨테이너에 <code>mountOrderWorkspace()</code>로 마운트합니다.</p>
+
+    <div class="controls">
+      <button id="umd-add-item" class="btn btn-primary" type="button">+ 외부 스크립트에서 상품 추가</button>
+      <button id="umd-unmount" class="btn btn-danger" type="button">마운트 해제 (destroy)</button>
+      <button id="umd-remount" class="btn" type="button" disabled>다시 마운트</button>
+    </div>
+
+    <div id="umd-mount-root"></div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- 시나리오 B: 선언적 Web Component 태그 사용 -->
+  <!-- =================================================================== -->
+  <section class="card">
+    <h2>2. Web Component (Custom Element) 선언적 사용</h2>
+    <p>일반 HTML 태그 <code>&lt;order-workspace&gt;</code>로 마크업에 직접 선언하며, 외부 자바스크립트는 표준 DOM Property/Event로 통신합니다.</p>
+
+    <div class="controls">
+      <button id="wc-change-name" class="btn" type="button">고객명 Property 변경 ('이순신')</button>
+      <button id="wc-add-item" class="btn btn-primary" type="button">element.addItem() 호출</button>
+      <button id="wc-toggle-dom" class="btn btn-danger" type="button">DOM에서 제거 / 재삽입 (상태 보존 확인)</button>
+    </div>
+
+    <!-- 선언적 커스텀 엘리먼트 -->
+    <div id="wc-container">
+      <order-workspace
+        id="order-custom-element"
+        customer-name="홍길동"
+        shipping-address="서울특별시 강남구 테헤란로 123"
+      ></order-workspace>
+    </div>
+
+    <div>
+      <strong>Web Component 이벤트 수신 로그:</strong>
+      <div id="wc-log" class="log-box">이벤트 대기 중...</div>
+    </div>
+  </section>
+
+  <script>
+    // -------------------------------------------------------------------
+    // 시나리오 1: UMD 마운트 스크립트
+    // -------------------------------------------------------------------
+    const { createOrderModel, mountOrderWorkspace } = window.ContextActionOrderWorkspace;
+    const umdRoot = document.getElementById('umd-mount-root');
+    let umdModel = createOrderModel({
+      customerName: '네이티브 UMD 고객',
+      shippingAddress: '경기도 성남시 분당구 판교역로',
+      items: [
+        { id: 'umd_1', name: '바닐라 JS 연동 키트', unitPrice: 45, quantity: 1 }
+      ]
+    });
+    let umdMount = mountOrderWorkspace(umdRoot, umdModel);
+
+    document.getElementById('umd-add-item').addEventListener('click', () => {
+      if (!umdModel) return;
+      umdModel.dispatch('addItem', {
+        item: {
+          id: 'umd_' + Date.now(),
+          name: '외부 액션 디스패치 상품 (' + Math.floor(Math.random() * 100) + ')',
+          unitPrice: 20,
+          quantity: 1
+        }
+      });
+    });
+
+    const unmountBtn = document.getElementById('umd-unmount');
+    const remountBtn = document.getElementById('umd-remount');
+
+    unmountBtn.addEventListener('click', () => {
+      if (umdMount) {
+        umdMount.destroy();
+        umdMount = null;
+        unmountBtn.disabled = true;
+        remountBtn.disabled = false;
+      }
+    });
+
+    remountBtn.addEventListener('click', () => {
+      if (!umdMount) {
+        umdMount = mountOrderWorkspace(umdRoot, umdModel);
+        unmountBtn.disabled = false;
+        remountBtn.disabled = true;
+      }
+    });
+
+    // -------------------------------------------------------------------
+    // 시나리오 2: Web Component 연동 스크립트
+    // -------------------------------------------------------------------
+    const wcElement = document.getElementById('order-custom-element');
+    const wcLog = document.getElementById('wc-log');
+
+    function logWcEvent(text) {
+      const time = new Date().toLocaleTimeString();
+      wcLog.textContent = `[${time}] ${text}\n` + wcLog.textContent;
+    }
+
+    // 커스텀 이벤트 수신
+    wcElement.addEventListener('order-change', (e) => {
+      logWcEvent(`order-change 이벤트: 고객="${e.detail.draft.customerName}", 상품수=${e.detail.draft.items.length}개`);
+    });
+
+    wcElement.addEventListener('order-submit-success', (e) => {
+      alert(`🎉 [Web Component 이벤트] 주문이 완료되었습니다! 주문번호: ${e.detail.orderId}`);
+      logWcEvent(`order-submit-success 이벤트 발생! 주문번호: ${e.detail.orderId}`);
+    });
+
+    // 외부 버튼으로 Property 변경
+    document.getElementById('wc-change-name').addEventListener('click', () => {
+      wcElement.customerName = '이순신 (조선 수군)';
+      logWcEvent(`외부 스크립트: wcElement.customerName = '이순신 (조선 수군)' 설정`);
+    });
+
+    // 외부 버튼으로 Semantic Method 호출
+    document.getElementById('wc-add-item').addEventListener('click', () => {
+      wcElement.addItem({
+        id: 'wc_ext_' + Date.now(),
+        name: '거북선 피규어',
+        unitPrice: 85,
+        quantity: 1
+      });
+      logWcEvent(`외부 스크립트: wcElement.addItem({ name: '거북선 피규어' }) 호출`);
+    });
+
+    // DOM 분리 및 재연결 (상태 보존 검증)
+    const wcContainer = document.getElementById('wc-container');
+    document.getElementById('wc-toggle-dom').addEventListener('click', () => {
+      if (wcElement.isConnected) {
+        wcElement.remove();
+        logWcEvent(`DOM에서 <order-workspace> 요소 분리 (disconnectedCallback 실행, 렌더러만 unmount)`);
+      } else {
+        wcContainer.append(wcElement);
+        logWcEvent(`DOM에 <order-workspace> 재삽입 (connectedCallback 실행, 기존 모델 상태 보존 확인!)`);
+      }
+    });
+  </script>
+</body>
+</html>

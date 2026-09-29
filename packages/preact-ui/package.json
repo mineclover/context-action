@@ -31,6 +31,7 @@
     "test": "vitest run",
     "examples:dev": "vite examples",
     "examples:build": "vite build examples --outDir ../example-dist",
+    "build:standalone": "vite build --config vite.standalone.config.ts",
     "test:native": "tsc --ignoreConfig src/ownership.ts src/disposal-scope.ts --target ES2022 --module ES2022 --moduleResolution Bundler --lib ES2022,DOM,DOM.Iterable --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --outDir .native-check && node --test test/native-contract.test.mjs"
   },
   "dependencies": {

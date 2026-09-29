@@ -18,6 +18,7 @@ Domain                 : 원본 상태와 업무 규칙
 2. [적용 가이드](docs/02-integration-guide.md): 패키지 책임과 상태 연결 방법.
 3. [공개 API](docs/03-api.md): 입력·출력·실패·해제 계약.
 4. [Signals 프로젝션 & 비즈니스 훅 컨벤션](docs/05-signal-projection-convention.md): Context-Layered 관심사 분리와 프로젝션 훅 / 비즈니스 로직 훅 표준.
+5. [순수 HTML 이식 & Web Component 아키텍처 리뷰](docs/06-standalone-embed-and-web-components.md): UMD 마운트 vs Web Component 이식 방식 비교 및 실증.
 
 구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
 

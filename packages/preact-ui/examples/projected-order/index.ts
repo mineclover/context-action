@@ -9,3 +9,4 @@ export * from './handlers/order-handlers.js';
 export * from './views/OrderSummaryView.js';
 export * from './views/OrderWorkspaceView.js';
 export * from './mount-order-workspace.js';
+export * from './order-element.js';
