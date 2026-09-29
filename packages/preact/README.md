@@ -8,9 +8,11 @@ Context-Action의 Action 계약과 외부 상태를 Preact View에 연결하는 
 
 `connectSourceSignal`은 `getSnapshot / subscribe` 계약을 읽기 전용 Signal로 투영합니다. 연결은 즉시 구독하므로 컴포넌트 render 안에서 만들지 않고, UI/세션의 종료 시점에 `dispose()`합니다. 원본 Source를 파괴하거나 Signal에서 원본으로 역방향 쓰기를 하지 않습니다.
 
+`createSourceContext`와 `useProjection`은 컴포넌트 트리 하위로 신호를 공급하고, 원본 신호로부터 미세 단위 파생 읽기 전용 신호(`ReadonlySignal<T>`)를 투영(Projection)할 수 있도록 지원합니다.
+
 ```text
-Host-owned ActionRegister → createDispatchContext → Preact View
-Host-owned ReadableSource → connectSourceSignal  → ReadonlySignal → View
+Host-owned ActionRegister → createDispatchContext → use<Domain>Actions  → View
+Host-owned ReadableSource → connectSourceSignal  → use<Domain>Projection → Fine-grained Signal → View
 ```
 
 ## 시작 경로

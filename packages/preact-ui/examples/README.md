@@ -6,7 +6,15 @@
 index.html + main.tsx
 ├─ shared/counter-model.ts                 Core Action + Native domain state
 ├─ template-island/mount-counter.tsx        Template clone + two shared-state islands
-└─ web-component/counter-element.tsx        Standard component API + private Preact renderer
+├─ web-component/counter-element.tsx        Standard component API + private Preact renderer
+└─ projected-order/                         Context-Layered Signals 프로젝션 & 비즈니스 훅 표준 레퍼런스
+   ├─ business/                             순수 비즈니스 로직 (FSM, 검증, 계산 공식)
+   ├─ contexts/                             Preact Dispatch & Source Context 주입
+   ├─ handlers/                             ActionRegister & 모델 오케스트레이션
+   ├─ projections/                          useOrderProjection (Signal computed 파생 뷰모델)
+   ├─ actions/                              useOrderActions (Semantic Action Intent 훅)
+   ├─ views/                                OrderSummaryView + OrderWorkspaceView
+   └─ mount-order-workspace.tsx             mountPreact 기반 호스트 마운트 컨트롤러
 ```
 
 Template의 두 패널은 하나의 모델을 공유합니다. 한쪽의 Increment는 두 패널의 값에 반영됩니다. "두 Island 해제"는 View → source connection → model 순서로 해제합니다. Custom Element는 독립 상태이며 연결 해제/재연결로 그 값이 초기화되지 않아야 합니다.

@@ -31,6 +31,25 @@ required('#toggle-element').addEventListener('click', () => {
   if (element.isConnected) element.remove();
   else host.append(element);
 });
+
+// Projected Order Reference Mount
+import('./projected-order/index.js').then(({ createOrderModel, mountOrderWorkspace }) => {
+  const orderHost = document.querySelector<HTMLElement>('#order-workspace-host');
+  if (orderHost) {
+    const orderModel = createOrderModel({
+      customerName: '홍길동',
+      shippingAddress: '서울특별시 강남구 테헤란로 123',
+      items: [
+        { id: 'item_1', name: 'TypeScript 완벽 가이드', unitPrice: 32, quantity: 1 },
+        { id: 'item_2', name: 'Preact & Signals 마스터북', unitPrice: 28, quantity: 2 },
+      ],
+    });
+    scope.add(() => orderModel.destroy());
+    const orderMount = mountOrderWorkspace(orderHost, orderModel);
+    scope.add(() => orderMount.destroy());
+  }
+});
+
 window.addEventListener('pagehide', (event) => {
   if (event.persisted) return; // Preserve the demo when restored from BFCache.
   scope.dispose();
