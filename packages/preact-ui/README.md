@@ -1,0 +1,30 @@
+# @context-action/preact-ui
+
+특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **workspace 전용 초기 라이브러리 템플릿**입니다.
+
+```text
+Host / <template>       : 배치와 정적 shell
+Public controller / CE : 값·명령·이벤트·수명 계약
+Preact                 : 위임받은 root.children
+@context-action/preact : Action dispatch와 읽기 전용 Signal 연결
+Domain                 : 원본 상태와 업무 규칙
+```
+
+`mountPreact`는 이미 있는 빈 Root에 렌더러를 연결합니다. `mountTemplate`은 `<template>`을 복제하고 한 개의 빈 `[data-preact-root]`에 연결합니다. `createDisposalScope`는 View → 구독 → 소유한 Model 순서로 자원을 정리합니다.
+
+## 읽는 순서
+
+1. [DOM 소유권 컨벤션](docs/01-dom-ownership.md): 반드시 지킬 경계와 수명 규칙.
+2. [적용 가이드](docs/02-integration-guide.md): 패키지 책임과 상태 연결 방법.
+3. [공개 API](docs/03-api.md): 입력·출력·실패·해제 계약.
+4. [Signals 프로젝션 & 비즈니스 훅 컨벤션](docs/05-signal-projection-convention.md): Context-Layered 관심사 분리와 프로젝션 훅 / 비즈니스 로직 훅 표준.
+5. [순수 HTML 이식 & Web Component 아키텍처 리뷰](docs/06-standalone-embed-and-web-components.md): UMD 마운트 vs Web Component 이식 방식 비교 및 실증.
+6. [모듈식 Web Component & Signals 통합 컨벤션](docs/07-modular-web-components-and-signals-convention.md): 가상 DOM 격리, 3계층 모듈화, 크로스 시그널 공유 표준.
+
+구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
+
+## 기본 패키지 범위
+
+템플릿 마운트, 독립 Preact Root, 공유 Source 구독, Core dispatcher 주입, Web Component reference shell을 제공합니다. 범용 Custom Element 생성기나 React hook 호환 계층은 추가하지 않았습니다. Web Component의 업무별 property/event 계약은 예제처럼 작성자가 명시합니다.
+
+두 패키지는 `private: true`입니다. 기존 Core/React 구현과 안정 릴리스·승격 정책을 변경하지 않습니다. 현재 산출물은 로컬 검토용 초안입니다. GitHub 브랜치는 생성했지만 업로드가 차단되어 파일 커밋과 PR은 생성하지 못했습니다. 변경본 적용 후 lockfile 갱신과 전체 런타임 검증을 마치기 전에는 병합하지 않습니다.

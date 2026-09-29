@@ -145,6 +145,28 @@ layout migration is the reference shape: the Dexie database version changed
 from 1 to 2, `preferences` was added, and the preference schema remains
 versioned independently.
 
+### State Tiering and Fatigue Mitigation Rules
+
+To prevent governance friction from high-frequency frontend changes while
+guaranteeing compile-time SSOT integrity, states and business functions are
+strictly classified into three tiers ([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md)):
+
+1. **Tier 1 (Durable Domain Contract - TypeSpec SSOT & Fail-Closed)**
+   - External API DTOs, persistence models, contractual validation invariants, and core FSM phase/events.
+   - Defined in TypeSpec (`specs/*.tsp`) as SSOT, enforcing `@evidenceReview` AST hash locks on frontend business functions (`business/*.ts`).
+2. **Tier 2 (Transient Application Logic - Pure Functions & Selective Evidence)**
+   - Client-only calculation formulas (`*Result.ts`), view-specific derived models, activity log events (`*Activity.ts`).
+   - Implemented as pure functions in `business/`; TypeSpec modeling is optional and relaxed to `warning` during beta cycles.
+3. **Tier 3 (Volatile Presentation State - Local UI Only & Explicit Waiver)**
+   - Modal open/close (`isOpen`), focus/hover, active tabs, pre-validation draft inputs, UI animations.
+   - **TypeSpec modeling is strictly forbidden and explicitly waived from Evidence tracking**. Managed via component-local `useState` or `ref` Context.
+
+### Phased Severity Lifecycle
+
+- **Inception / Experimental**: `"severity": "off"` (no CI blocks during exploratory phase)
+- **Beta / Hardening**: `"severity": "warning"` (surfaces missing anchors and gaps)
+- **GA / Release**: `"severity": "error"` (strict fail-closed gate; 100% coverage required)
+
 ### Decision records
 
 Create a short decision record when a change affects any of these boundaries:

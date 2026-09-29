@@ -143,6 +143,31 @@ upgrade 동작, fallback, 기존 데이터 보존 또는 의도적 삭제 증거
 올렸고 `preferences`를 추가했으며, preference schema는 별도로 versioned
 상태를 유지합니다.
 
+### 상태 계층화(State Tiering) 및 피로도 완화 규칙
+
+프론트엔드 변경의 잦은 주기로 인한 거버넌스 피로도를 방지하고 컴파일러 기반
+SSOT 무결성을 보장하기 위해 상태와 비즈니스 함수를 3개 계층으로 엄격히 분류합니다
+([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md)).
+
+1. **Tier 1 (Durable Domain Contract - TypeSpec SSOT & Fail-Closed)**
+   - 외부 API 연동 DTO, 영속화 모델, 계약적 유효성 규칙, 핵심 비즈니스 상태 머신(Phase/Event).
+   - TypeSpec(`specs/*.tsp`)을 SSOT로 정의하며, 프론트엔드 비즈니스 함수(`business/*.ts`)에
+     `@evidenceReview` AST 해시 락을 강제합니다.
+2. **Tier 2 (Transient Application Logic - Pure Functions & Selective Evidence)**
+   - 클라이언트 전용 계산 로직(`*Result.ts`), 화면 단위 파생 뷰모델, 활동 로그 이벤트(`*Activity.ts`).
+   - `business/` 순수 함수로 작성하되 TypeSpec 모델링은 선택적이며, 개발/베타 단계에서는
+     경고(`warning`) 수준으로 완화합니다.
+3. **Tier 3 (Volatile Presentation State - Local UI Only & Explicit Waiver)**
+   - 모달 개폐(`isOpen`), 포커스/호버, 탭 인덱스, UI 전용 애니메이션, 검증 전 임시 텍스트 입력.
+   - **TypeSpec 모델링 절대 금지 및 Evidence 추적 대상 명시적 면제(Waiver)**.
+     컴포넌트 로컬 `useState` 또는 `ref` Context에 둡니다.
+
+### 점진적 릴리즈 심각도 라이프사이클 (Severity Lifecycle)
+
+- **Inception / Experimental**: `"severity": "off"` (프로토타이핑 중 CI 중단 차단)
+- **Beta / Hardening**: `"severity": "warning"` (누락 앵커 가시화)
+- **GA / Release**: `"severity": "error"` (Fail-Closed 엄격 적용, 100% 충족 필수)
+
 ### Decision record
 
 다음 경계에 영향을 주는 변경은 짧은 decision record를 만듭니다.

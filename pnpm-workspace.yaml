@@ -5,6 +5,8 @@ packages:
   - packages/webmcp
   - packages/tool-durable-operations
   - packages/react
+  - packages/preact
+  - packages/preact-ui
   - packages/mutative-core
   - packages/mutative
   - packages/llms-generator
@@ -12,6 +14,7 @@ packages:
   - packages/style-testing
   - packages/live-code-editor
   - packages/openrouter-browser-storage
+  - packages/template-react
   - example
   - demos/*
 
