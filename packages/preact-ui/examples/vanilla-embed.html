@@ -118,6 +118,41 @@
     </div>
   </section>
 
+  <!-- =================================================================== -->
+  <!-- 시나리오 C: 독립 모듈형 Web Components & 공유 Signal 실시간 동기화 -->
+  <!-- =================================================================== -->
+  <section class="card">
+    <h2>3. 독립 모듈형 Web Components & Preact Signal 공유 실시간 동기화</h2>
+    <p>
+      서로 다른 DOM 계층(예: 상단 내비게이션 바와 본문 패널)에 위치한 <code>&lt;cart-badge&gt;</code>와 <code>&lt;cart-drawer&gt;</code>가
+      동일한 <strong>순수 Domain Signal</strong>을 공유하여 VDOM 충돌 없이 0ms로 실시간 동기화됩니다.
+    </p>
+
+    <!-- 상단 내비게이션 바 시뮬레이션 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 12px 20px; border-radius: 8px; margin-bottom: 16px;">
+      <span style="font-weight: 700; color: #1e293b;">🛍️ 상단 헤더 내비게이션</span>
+      <!-- Header Badge Custom Element -->
+      <cart-badge id="header-cart-badge"></cart-badge>
+    </div>
+
+    <div class="controls">
+      <button id="signal-add-book" class="btn btn-primary" type="button">+ 외부 JS에서 책 상품 추가 ($35)</button>
+      <button id="signal-add-sticker" class="btn" type="button">+ 외부 JS에서 스티커 추가 ($5)</button>
+      <button id="signal-clear" class="btn btn-danger" type="button">장바구니 비우기</button>
+    </div>
+
+    <!-- 본문 영역: Drawer Custom Element & 로그 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+      <div>
+        <cart-drawer id="main-cart-drawer"></cart-drawer>
+      </div>
+      <div>
+        <strong>Signal 동기화 및 Shadow DOM 이벤트 로그:</strong>
+        <div id="modular-log" class="log-box">이벤트 대기 중...</div>
+      </div>
+    </div>
+  </section>
+
   <script>
     // -------------------------------------------------------------------
     // 시나리오 1: UMD 마운트 스크립트
@@ -213,6 +248,61 @@
         wcContainer.append(wcElement);
         logWcEvent(`DOM에 <order-workspace> 재삽입 (connectedCallback 실행, 기존 모델 상태 보존 확인!)`);
       }
+    });
+
+    // -------------------------------------------------------------------
+    // 시나리오 3: 모듈형 Custom Elements & 공유 Signal
+    // -------------------------------------------------------------------
+    const {
+      cartItemsSignal,
+      cartItemCountSignal,
+      cartGrandTotalSignal,
+      addProductToCart,
+      clearCart,
+    } = window.ContextActionOrderWorkspace;
+
+    const modularLog = document.getElementById('modular-log');
+    function logModularEvent(text) {
+      const time = new Date().toLocaleTimeString();
+      modularLog.textContent = `[${time}] ${text}\n` + modularLog.textContent;
+    }
+
+    const headerBadge = document.getElementById('header-cart-badge');
+    const mainDrawer = document.getElementById('main-cart-drawer');
+
+    // Custom Event 수신 (Shadow DOM 경계를 넘어 상위 버블링)
+    headerBadge.addEventListener('cart-badge-click', (e) => {
+      logModularEvent(`🔔 <cart-badge> 클릭 이벤트 수신 (현재 상품 수: ${e.detail.count}개)`);
+    });
+
+    mainDrawer.addEventListener('cart-checkout', (e) => {
+      alert(`🛒 [체크아웃 이벤트] 결제 금액: ${e.detail.total}, 품목 수: ${e.detail.items.length}개`);
+      logModularEvent(`💳 <cart-drawer> 체크아웃 이벤트 수신 (합계: ${e.detail.total})`);
+    });
+
+    // 외부 JS 함수를 통해 순수 도메인 Signal 변경 -> Badge와 Drawer 양쪽이 VDOM Diffing 없이 Text Node 직접 갱신!
+    let itemSeq = 2;
+    document.getElementById('signal-add-book').addEventListener('click', () => {
+      addProductToCart({
+        id: 'prod_' + itemSeq++,
+        name: 'Context-Action 핸드북 Vol.' + (itemSeq - 1),
+        price: 35,
+      });
+      logModularEvent(`도메인 Signal 갱신: addProductToCart('Context-Action 핸드북') 호출 -> <cart-badge> & <cart-drawer> 즉각 반영`);
+    });
+
+    document.getElementById('signal-add-sticker').addEventListener('click', () => {
+      addProductToCart({
+        id: 'prod_sticker_' + Date.now(),
+        name: 'Preact 스티커 팩',
+        price: 5,
+      });
+      logModularEvent(`도메인 Signal 갱신: addProductToCart('Preact 스티커 팩') 호출 -> <cart-badge> & <cart-drawer> 즉각 반영`);
+    });
+
+    document.getElementById('signal-clear').addEventListener('click', () => {
+      clearCart();
+      logModularEvent(`도메인 Signal 갱신: clearCart() 호출 -> 전체 리셋`);
     });
   </script>
 </body>
