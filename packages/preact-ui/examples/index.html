@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Context-Action Preact boundaries</title></head>
+<body>
+  <h1>독립 DOM 경계와 공유 상태</h1>
+  <p>첫 두 패널은 동일한 도메인 상태를 공유합니다. Custom Element는 별도 인스턴스 상태를 갖습니다.</p>
+  <template id="counter-template">
+    <section><header>Native template shell</header><div data-preact-root></div></section>
+  </template>
+  <div id="island-a"></div><div id="island-b"></div>
+  <h2>Web Component</h2><div id="custom-element-host"></div>
+  <button id="toggle-element" type="button">연결 해제 / 재연결</button>
+  <button id="destroy-islands" type="button">두 Island 해제</button>
+  <output id="event-log" aria-live="polite"></output>
+  <script type="module" src="./main.tsx"></script>
+</body>
+</html>

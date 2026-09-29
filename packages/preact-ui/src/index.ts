@@ -1,0 +1,6 @@
+export { createDisposalScope } from './disposal-scope.js';
+export type { DisposalScope } from './disposal-scope.js';
+export { mountPreact } from './mount.js';
+export type { MountInstance, OwnedView } from './mount.js';
+export type { MountRoot } from './ownership.js';
+export { mountTemplate } from './template.js';
