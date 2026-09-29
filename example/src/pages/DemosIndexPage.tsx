@@ -40,6 +40,23 @@ const demos: DemoItem[] = [
     ],
     estimatedTime: '5-10분',
   },
+  {
+    path: '/integrations/preact-web-components',
+    title: 'Preact Web Components & Micro-Frontend Bridge',
+    emoji: '🧩',
+    description:
+      'React 19 호스트와 Preact Signals 기반 W3C Web Components의 createCustomElementBridge 및 FACE 연동 실증.',
+    tags: ['Micro-Frontend', 'Web Components', 'FACE', 'Signals Bridge'],
+    category: 'advanced',
+    complexity: 'Advanced',
+    features: [
+      'createCustomElementBridge',
+      'Form-Associated Custom Elements (FACE)',
+      'Shadow DOM encapsulation',
+      'Signals reactive event flow',
+    ],
+    estimatedTime: '5-10분',
+  },
   // === Store System ===
   {
     path: '/foundations/store/time-travel',
