@@ -4,6 +4,7 @@ import { defineOrderWorkspaceElement } from './order-element.js';
 import {
   defineCartBadgeElement,
   defineCartDrawerElement,
+  defineQuantityStepperElement,
   cartItemsSignal,
   cartItemCountSignal,
   cartGrandTotalSignal,
@@ -22,6 +23,7 @@ if (typeof window !== 'undefined' && typeof window.customElements !== 'undefined
   try {
     defineCartBadgeElement('cart-badge');
     defineCartDrawerElement('cart-drawer');
+    defineQuantityStepperElement('quantity-stepper');
   } catch {
     // Already registered or unsupported
   }
@@ -33,6 +35,7 @@ export {
   defineOrderWorkspaceElement,
   defineCartBadgeElement,
   defineCartDrawerElement,
+  defineQuantityStepperElement,
   cartItemsSignal,
   cartItemCountSignal,
   cartGrandTotalSignal,

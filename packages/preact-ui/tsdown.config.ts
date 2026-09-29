@@ -11,4 +11,7 @@ export default defineConfig({
   sourcemap: true,
   treeshake: true,
   outDir: 'dist',
+  deps: {
+    neverBundle: ['react', 'react-dom', 'preact', '@preact/signals'],
+  },
 });
