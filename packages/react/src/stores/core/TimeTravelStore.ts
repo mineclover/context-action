@@ -236,6 +236,12 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     });
   }
 
+  /** Group multiple updates into one timeline entry and notification. */
+  batch<R>(callback: () => R): R {
+    if (this.isDisposed) return callback();
+    return this.timeTravel.batch(callback);
+  }
+
   getListenerCount(): number {
     return this.listeners.size + this.patchAwareListeners.size;
   }

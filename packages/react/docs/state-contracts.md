@@ -10,7 +10,7 @@ Timeline             → undo, redo, reset, and bounded history
 React adapter        → useSyncExternalStore and selector subscriptions
 ```
 
-`StoreReader` is the read boundary. Components and selectors should observe a snapshot and subscribe to changes. `StoreWriter` is the mutation boundary. A future transaction coordinator will attach `transactionId`, `actionId`, `origin`, and `label` to every committed transition so one user action can group updates across multiple stores.
+`StoreReader` is the read boundary. Components and selectors should observe a snapshot and subscribe to changes. `StoreWriter` is the mutation boundary. `StoreTransactionCoordinator` attaches `transactionId`, `actionId`, `origin`, and `label` to the transaction callback and groups each explicit participant's updates into one timeline entry.
 
 `getValue()` remains the low-level action-handler read and may preserve structural-sharing references for compatibility. Code crossing an external boundary should use `getSafeValue()` when the Store provides it; this returns a defensive copy without changing the internal read policy.
 
@@ -24,5 +24,9 @@ The following invariants are required:
 - Disposing a store removes its underlying timeline subscription and invalidates its controls.
 - Array index subscriptions treat structural `add`/`remove`/`move` changes as affecting the collection or use stable entity IDs.
 - A multi-store action uses one transaction ID when undo must be atomic.
+
+Use `StoreTransactionCoordinator.run(participants, callback, meta)` when an
+action changes more than one store. Participant registration is explicit; the
+coordinator does not discover global stores implicitly.
 
 The current public classes remain compatible while these contracts are introduced. New code should depend on the role interfaces and use the concrete classes only at composition boundaries.

@@ -125,6 +125,9 @@ export class TimeTravel<
   private historyCache: { version: number; history: S[] } | null = null;
   private historyVersion = 0;
   private mutableFallbackWarned = false;
+  private batchDepth = 0;
+  private batchInitialState: S | null = null;
+  private batchChanged = false;
 
   constructor(initialState: S, options: TimeTravelOptions<F, A, P> = {} as TimeTravelOptions<F, A, P>) {
     const {
@@ -347,6 +350,60 @@ export class TimeTravel<
       }
       return;
     }
+
+    if (this.batchDepth > 0) {
+      this.batchChanged = true;
+      return;
+    }
+
+    this.commitPatches(patches, inversePatches);
+  }
+
+  /** Group synchronous or asynchronous updates into one history entry. */
+  batch<R>(callback: () => R): R {
+    if (this.batchDepth === 0) {
+      this.batchInitialState = deepClone(this.state);
+      this.batchChanged = false;
+    }
+    this.batchDepth += 1;
+
+    const finish = () => {
+      this.batchDepth -= 1;
+      if (this.batchDepth !== 0) return;
+
+      const initialState = this.batchInitialState;
+      this.batchInitialState = null;
+      const changed = this.batchChanged;
+      this.batchChanged = false;
+      if (!changed || initialState === null) return;
+
+      const [, patches, inversePatches] = create(
+        initialState,
+        draft => overwriteDraftWith(draft, this.state),
+        this.options,
+      ) as [S, Patches<P>, Patches<P>];
+      if (patches.length > 0 || inversePatches.length > 0) {
+        this.commitPatches(patches, inversePatches);
+      }
+    };
+
+    try {
+      const result = callback();
+      if (result && typeof (result as { then?: unknown }).then === 'function') {
+        return (result as unknown as Promise<unknown>).then(
+          value => { finish(); return value; },
+          error => { finish(); throw error; },
+        ) as R;
+      }
+      finish();
+      return result;
+    } catch (error) {
+      finish();
+      throw error;
+    }
+  }
+
+  private commitPatches(patches: Patches<P>, inversePatches: Patches<P>): void {
 
     if (this.autoArchive) {
       this.archivePatches(patches, inversePatches);

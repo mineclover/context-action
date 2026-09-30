@@ -37,6 +37,8 @@ export type {
   TimelineReader,
   TimelineWriter,
 } from './stores/core/contracts';
+export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
+export type { StoreTransactionMeta, StoreTransactionParticipant } from './stores/core/StoreTransactionCoordinator';
 
 // Re-export Patches type from mutative for subscribeWithPatches users
 export type { Patches, TravelPatches } from '@context-action/mutative';
