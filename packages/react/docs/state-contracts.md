@@ -27,6 +27,11 @@ The following invariants are required:
 
 Use `StoreTransactionCoordinator.run(participants, callback, meta)` when an
 action changes more than one store. Participant registration is explicit; the
-coordinator does not discover global stores implicitly.
+coordinator does not discover global stores implicitly. The coordinator keeps
+transaction records with each participant's before/after timeline position and
+provides `canUndo`, `canRedo`, `undo`, `redo`, and `getHistory`. If a participant
+has moved outside the coordinator, undo/redo fails with a history conflict
+instead of silently applying a partial transaction. A rejected callback rolls
+participant positions back to their starting positions.
 
 The current public classes remain compatible while these contracts are introduced. New code should depend on the role interfaces and use the concrete classes only at composition boundaries.

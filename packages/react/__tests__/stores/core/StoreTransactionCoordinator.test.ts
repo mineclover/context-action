@@ -27,11 +27,27 @@ describe('StoreTransactionCoordinator', () => {
     expect(second.getHistory()).toHaveLength(2);
     expect(first.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
     expect(second.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
-    first.undo();
-    second.undo();
+    expect(coordinator.canUndo()).toBe(true);
+    coordinator.undo();
     expect(first.getValue()).toEqual({ value: 0 });
     expect(second.getValue()).toEqual({ value: 0 });
+    expect(coordinator.canRedo()).toBe(true);
+    coordinator.redo();
+    expect(first.getValue()).toEqual({ value: 1 });
+    expect(second.getValue()).toEqual({ value: 2 });
     first.dispose();
     second.dispose();
+  });
+
+  it('rolls back participant histories when the transaction callback fails', async () => {
+    const store = createTimeTravelStore('rollback', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+    await expect(coordinator.run([{ name: 'rollback', store }], () => {
+      store.update(draft => { draft.value = 1; });
+      throw new Error('fail');
+    })).rejects.toThrow('fail');
+    expect(store.getValue()).toEqual({ value: 0 });
+    expect(coordinator.canUndo()).toBe(false);
+    store.dispose();
   });
 });
