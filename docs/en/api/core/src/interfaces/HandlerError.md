@@ -6,7 +6,7 @@
 
 # Interface: HandlerError
 
-Defined in: [packages/core/src/types.ts:1227](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1227)
+Defined in: [packages/core/src/types.ts:1248](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1248)
 
 Handler error information for unified error handling
 
@@ -16,7 +16,7 @@ Handler error information for unified error handling
 
 > **handlerId**: `string`
 
-Defined in: [packages/core/src/types.ts:1228](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1228)
+Defined in: [packages/core/src/types.ts:1249](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1249)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/core/src/types.ts:1228](https://github.com/mineclover/cont
 
 > **error**: `Error`
 
-Defined in: [packages/core/src/types.ts:1229](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1229)
+Defined in: [packages/core/src/types.ts:1250](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1250)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/core/src/types.ts:1229](https://github.com/mineclover/cont
 
 > **timestamp**: `number`
 
-Defined in: [packages/core/src/types.ts:1230](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1230)
+Defined in: [packages/core/src/types.ts:1251](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1251)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/core/src/types.ts:1230](https://github.com/mineclover/cont
 
 > **severity**: `"blocking"` \| `"non-blocking"`
 
-Defined in: [packages/core/src/types.ts:1231](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1231)
+Defined in: [packages/core/src/types.ts:1252](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1252)

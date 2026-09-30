@@ -6,7 +6,7 @@
 
 # Interface: UseTimeTravelSelectorOptions\<R\>
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:188](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L188)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:167](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L167)
 
 Hook for subscribing to multiple paths with a selector
 
@@ -32,7 +32,7 @@ Type parameter **R**
 
 > `optional` **dependsOn?**: `StorePath`[]
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:190](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L190)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:169](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L169)
 
 Paths that the selector depends on
 
@@ -42,7 +42,7 @@ Paths that the selector depends on
 
 > `optional` **equalityFn?**: (`a`, `b`) => `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:192](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L192)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L171)
 
 Custom equality function
 
