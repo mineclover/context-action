@@ -121,6 +121,12 @@ describe('TimeTravelStore', () => {
       expect(snapshot.name).toBe('test-store');
       expect(typeof snapshot.lastUpdate).toBe('number');
     });
+
+    it('should provide an explicit defensive read boundary', () => {
+      const safeValue = store.getSafeValue();
+      try { (safeValue as { count: number }).count = 99; } catch { /* frozen defensive copy */ }
+      expect(store.getValue().count).toBe(0);
+    });
   });
 
   describe('Time Travel API - Undo/Redo', () => {

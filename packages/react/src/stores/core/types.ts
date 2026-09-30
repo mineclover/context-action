@@ -164,6 +164,9 @@ export interface IStore<T = unknown> {
   
   /** Get current value directly (for action handlers) */
   getValue: () => T;
+
+  /** Get a defensive copy for external integration boundaries */
+  getSafeValue?: () => T;
   
   /** Get number of active listeners (debugging/monitoring) */
   getListenerCount?: () => number;

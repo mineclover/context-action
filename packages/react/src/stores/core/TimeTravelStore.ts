@@ -177,6 +177,11 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     return this.cloningEnabled ? safeGet(value, true) : value;
   }
 
+  /** Return a defensive copy without changing structural-sharing reads. */
+  getSafeValue(): T {
+    return safeGet(this.timeTravel.getState(), true);
+  }
+
   setValue(value: T, options?: StoreSetValueOptions<T>): void {
     if (this.isDisposed) return;
 

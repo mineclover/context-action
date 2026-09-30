@@ -287,6 +287,11 @@ export class Store<T = unknown> implements IStore<T> {
     return this._value;
   }
 
+  /** Return a defensive copy without changing the configured read mode. */
+  getSafeValue(): T {
+    return deepFreeze(safeGet(this._value, true));
+  }
+
   /**
    * Store 값 설정 및 구독자 알림
    * 핵심 로직: 

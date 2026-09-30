@@ -12,6 +12,8 @@ React adapter        → useSyncExternalStore and selector subscriptions
 
 `StoreReader` is the read boundary. Components and selectors should observe a snapshot and subscribe to changes. `StoreWriter` is the mutation boundary. A future transaction coordinator will attach `transactionId`, `actionId`, `origin`, and `label` to every committed transition so one user action can group updates across multiple stores.
 
+`getValue()` remains the low-level action-handler read and may preserve structural-sharing references for compatibility. Code crossing an external boundary should use `getSafeValue()` when the Store provides it; this returns a defensive copy without changing the internal read policy.
+
 `TimelineReader` and `TimelineWriter` describe time-travel capability without requiring consumers to depend on `TimeTravelStore`. The timeline position is a cursor between history entries; the initial state is position `0`. `historyLength` is a metadata query and must remain O(1); materializing complete history is a development or inspection operation.
 
 The following invariants are required:
