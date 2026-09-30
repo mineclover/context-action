@@ -130,4 +130,25 @@ describe('Form-Associated Custom Elements (FACE)', () => {
     expect(element.shadowRoot?.querySelector('div')?.childNodes.length).toBe(0);
     expect(() => definePreactElement({ tagName: tag, setup: () => ({ view: () => null, getInput: () => undefined }) })).toThrow('already registered');
   });
+
+  it('creates and releases a connection session on every reconnect', () => {
+    const events: string[] = [];
+    const FaceTag = definePreactElement({
+      tagName: 'test-face-session',
+      setup() {
+        return {
+          view: () => null,
+          getInput: () => undefined,
+          onConnect() { events.push('connect'); },
+          onDisconnect() { events.push('disconnect'); },
+        };
+      },
+    });
+    const element = new FaceTag() as HTMLElement & { dispose(): void };
+    document.body.append(element);
+    element.remove();
+    document.body.append(element);
+    element.dispose();
+    expect(events).toEqual(['connect', 'disconnect', 'connect', 'disconnect']);
+  });
 });

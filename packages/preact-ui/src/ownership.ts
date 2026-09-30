@@ -29,3 +29,22 @@ export function claimMountRoot(root: MountRoot): () => void {
     if (owners.get(root) === token) owners.delete(root);
   };
 }
+
+/** Claim a server-populated root for the explicit hydration path. */
+export function claimHydrationRoot(root: MountRoot): () => void {
+  if (root.nodeType !== 1 && !(root.nodeType === 11 && 'host' in root)) {
+    throw new TypeError('A hydration root must be an Element or ShadowRoot');
+  }
+  assertUnmanagedAncestors(root);
+  if (!root.hasChildNodes()) {
+    throw new Error('Hydration root must contain server-rendered children');
+  }
+  const token = {};
+  owners.set(root, token);
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (owners.get(root) === token) owners.delete(root);
+  };
+}

@@ -6,7 +6,7 @@
 
 Host가 제공한 레이어 목록과 확정된 선택을 보여주고 사용자 선택 요청을 전달한다. selectedId의 정본과 선택 승인 권한은 Host/Domain에 있다. 내부 View가 정본을 먼저 바꾸지 않는다.
 
-Web Component shell은 host property/event와 내부 View를 연결한다. 렌더러는 지정 Root.children만 관리한다. 외부 slot 콘텐츠를 지원한다면 별도 계약을 추가하며 이 예시에는 slot을 선언하지 않는다.
+Web Component shell은 host property/event와 내부 View를 연결한다. 렌더러는 지정 Root.children만 관리한다. `suffix` slot으로 전달된 외부 노드는 Host가 소유하며, 렌더러 해제·재연결 때 제거하거나 복제하지 않는다.
 
 ## 입력과 읽기
 
@@ -36,7 +36,7 @@ focusItem(id): boolean은 현재 커밋된 DOM에 해당 활성 버튼이 있고
 
 미연결 중에도 유효 입력을 보존한다. 재연결 시 복원하되 View-local focus는 자동 보존하지 않는다. disconnect는 UI 자원만 종료한다.
 
-스타일은 `part="list"`, `part="item"`을 후보 계약으로 공개한다. 내부 class/DOM 깊이는 비공개다. 항목은 native button이고 선택 상태를 aria-pressed로 표현한다. 이 예시에 ARIA tree/listbox role을 붙이지 않는다.
+스타일은 `part="list"`, `part="item"`, `part="suffix"`를 공개한다. 내부 class/DOM 깊이는 비공개다. 항목은 native button이고 선택 상태를 aria-pressed로 표현한다. `suffix` slot 콘텐츠의 accessible name과 상호작용은 제공한 Host가 책임진다. 이 예시에 ARIA tree/listbox role을 붙이지 않는다.
 
 ## 검증할 조건
 

@@ -26,9 +26,9 @@
 
 정적 검사: 타입·export·import·문서 링크·계약 누락을 확인한다.
 
-단위/통합 검사: Controller 상태 전이, reflection guard, 요청과 확정 분리, cleanup 순서를 확인한다. 현재 Layer Panel 계약 테스트는 `../test/layer-panel.test.tsx`에 있다.
+단위/통합 검사: Controller 상태 전이, reflection guard, 요청과 확정 분리, cleanup 순서를 확인한다. 현재 Layer Panel 계약 테스트는 `../test/layer-panel.test.tsx`, SSR/hydration 계약 테스트는 `../test/ssr.test.tsx`에 있다.
 
-실제 브라우저 검사: Shadow DOM, Custom Element upgrade/reconnect, slot, event path, focus, keyboard, 외부 framework host 통합을 확인한다. NodeDouble/jsdom 성공을 실제 브라우저 검증이라고 보고하지 않는다.
+실제 브라우저 검사: Shadow DOM, Custom Element upgrade/reconnect, slot, event path, focus, keyboard, accessible role/name, 외부 framework host 통합을 확인한다. 현재 Layer Panel과 vanilla standalone 검증은 `../test/browser-contract.test.mjs`에 있다. NodeDouble/jsdom 성공을 실제 브라우저 검증이라고 보고하지 않는다.
 
 성능 검사: 대표적인 입력 빈도·데이터 크기·DOM 갱신 범위를 측정한다. Signals를 썼다는 사실을 성능 통과 증거로 쓰지 않는다.
 

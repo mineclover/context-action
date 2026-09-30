@@ -28,6 +28,16 @@
         "types": "./dist/react-bridge.d.cts",
         "default": "./dist/react-bridge.cjs"
       }
+    },
+    "./ssr": {
+      "import": {
+        "types": "./dist/ssr.d.ts",
+        "default": "./dist/ssr.js"
+      },
+      "require": {
+        "types": "./dist/ssr.d.cts",
+        "default": "./dist/ssr.cjs"
+      }
     }
   },
   "files": [
@@ -39,11 +49,12 @@
     "build": "tsdown",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "examples:dev": "vite examples",
-    "examples:build": "vite build examples --outDir ../example-dist",
+    "examples:dev": "pnpm build:standalone && pnpm sync:standalone && vite --config examples/vite.config.ts",
+    "examples:build": "pnpm build:standalone && pnpm sync:standalone && vite build --config examples/vite.config.ts --outDir ../example-dist",
     "build:standalone": "vite build --config vite.standalone.config.ts",
+    "sync:standalone": "node scripts/sync-standalone.mjs",
     "test:native": "tsc --ignoreConfig src/ownership.ts src/disposal-scope.ts --target ES2022 --module ES2022 --moduleResolution Bundler --lib ES2022,DOM,DOM.Iterable --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --outDir .native-check && node --test test/native-contract.test.mjs",
-    "test:browser": "pnpm build && node test/browser-contract.test.mjs"
+    "test:browser": "pnpm build && pnpm build:standalone && pnpm sync:standalone && node test/browser-contract.test.mjs"
   },
   "dependencies": {
     "@context-action/preact": "workspace:*"
@@ -51,10 +62,14 @@
   "peerDependencies": {
     "@preact/signals": "^2.11.3",
     "preact": "^10.27.3",
-    "react": "^18.0.0 || ^19.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "preact-render-to-string": "^6.7.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "preact-render-to-string": {
       "optional": true
     }
   },
@@ -66,6 +81,7 @@
     "@types/react-dom": "19.2.3",
     "jsdom": "26.1.0",
     "preact": "10.27.3",
+    "preact-render-to-string": "6.7.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tsdown": "0.23.0",

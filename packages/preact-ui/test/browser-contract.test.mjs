@@ -44,7 +44,7 @@ async function freePort() {
 }
 
 const port = await freePort();
-const server = spawn('pnpm', ['exec', 'vite', 'examples', '--host', '127.0.0.1', '--port', String(port)], {
+const server = spawn('pnpm', ['exec', 'vite', '--config', 'examples/vite.config.ts', '--host', '127.0.0.1', '--port', String(port)], {
   cwd: root,
   detached: true,
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -70,6 +70,8 @@ try {
     pressed: element.shadowRoot?.querySelector('button[aria-pressed="true"]')?.textContent,
   }));
   assert.deepEqual(initial, { selected: 'one', count: 2, pressed: 'One' });
+  assert.equal(await page.locator('pre-layer-panel [data-slot-label]').textContent(), 'External suffix');
+  assert.equal(await page.locator('pre-layer-panel').getByRole('button', { name: 'Two' }).count(), 1);
 
   await page.locator('pre-layer-panel').locator('button').nth(1).click();
   assert.equal(await page.evaluate(() => window.layerPanelContract.requestIds.join(',')), 'two');
@@ -80,10 +82,32 @@ try {
   await page.evaluate(() => window.layerPanelContract.reconnect());
   assert.equal(await page.locator('pre-layer-panel').evaluate(element => element.selectedId), 'two');
   assert.equal(await page.locator('pre-layer-panel').evaluate(element => element.focusItem('two')), true);
+  assert.equal(await page.locator('pre-layer-panel [data-slot-label]').textContent(), 'External suffix');
+  await page.locator('pre-layer-panel').evaluate(element => { element.selectedId = 'one'; });
+  await page.locator('pre-layer-panel').getByRole('button', { name: 'Two' }).focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => window.layerPanelContract.requestIds.join(',')), 'two,two');
 
   await page.locator('#template-host button').nth(1).click();
   assert.equal(await page.evaluate(() => window.layerPanelContract.templateRequestIds.join(',')), 'two');
   assert.equal(await page.locator('#template-host button[aria-pressed="true"]').textContent(), 'One');
+
+  await page.goto(`${new URL(url).origin}/vanilla-embed.html`, { waitUntil: 'networkidle' });
+  assert.equal(await page.locator('#wc-change-name').count(), 1);
+  const orderWorkspace = page.locator('order-workspace');
+  await orderWorkspace.waitFor({ state: 'attached' });
+  await page.locator('#wc-change-name').click();
+  await page.waitForTimeout(50);
+  const customerName = await orderWorkspace.evaluate(element => ({
+    property: element.customerName,
+    attribute: element.getAttribute('customer-name'),
+    input: element.shadowRoot?.querySelector('[data-testid="input-customer-name"]')?.value,
+  }));
+  assert.deepEqual(customerName, {
+    property: '이순신 (조선 수군)',
+    attribute: '이순신 (조선 수군)',
+    input: '이순신 (조선 수군)',
+  });
 
   console.log('Layer Panel browser contract passed');
 } finally {

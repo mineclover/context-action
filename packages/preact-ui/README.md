@@ -27,6 +27,7 @@ Domain                 : 원본 상태와 업무 규칙
 11. [생명주기와 자원](docs/11-lifecycle-and-resources.md): 인스턴스와 connection session, 정리·재연결·비동기 결과 규칙.
 12. [계약 검증](docs/12-contract-verification.md): 정적·통합·실제 브라우저 검증 범위와 변경 영향.
 13. [Layer Panel 참조 구현](examples/layer-panel/README.md): 하나의 공개 계약을 두 host adapter에 적용한 예제.
+14. [SSR entry](docs/03-api.md): `@context-action/preact-ui/ssr`의 server-only render와 `hydratePreact` 계약.
 
 구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
 

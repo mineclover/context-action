@@ -43,7 +43,7 @@ Custom Element를 다시 정의하려 하면 이름 충돌 오류를 냅니다. 
 
 ## 확장 지점
 
-SSR/hydration, arbitrary light-DOM delegation, portal target ownership, form-associated custom elements, ShadowRoot 간 복잡한 slot projection이 필요해지면 해당 입출력/수명 계약과 테스트를 추가합니다. 현재 빈 Root 계약을 임의로 풀어 기존 DOM을 지우는 방식으로 확장하지 않습니다.
+SSR은 `@context-action/preact-ui/ssr`의 `createSSR`, hydration은 `hydratePreact`의 별도 계약을 사용합니다. arbitrary light-DOM delegation, portal target ownership, form-associated custom elements, ShadowRoot 간 복잡한 slot projection은 각 컴포넌트의 입출력·수명 계약과 테스트를 추가한 경우에만 적용합니다. 일반 빈 Root mount는 기존 DOM을 지우거나 hydration으로 추정하지 않습니다.
 
 ## 참조
 

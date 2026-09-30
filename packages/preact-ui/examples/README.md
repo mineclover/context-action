@@ -47,5 +47,6 @@ pnpm --filter @context-action/preact-ui examples:dev
 ```
 
 개발 서버가 출력한 주소를 엽니다. `examples:build`는 예제용 번들을 `example-dist`에 만듭니다. 이 번들은 npm 라이브러리의 dist와 별개입니다.
+`examples:dev`와 `examples:build`는 `vanilla-embed.html`이 사용하는 `dist-standalone`도 먼저 갱신합니다. standalone 페이지를 직접 열 때는 `pnpm --filter @context-action/preact-ui build:standalone`을 먼저 실행합니다.
 
 Root 내부를 검색하는 코드는 해당 Owner의 구현 또는 렌더링 테스트에만 둡니다. 외부 Host 코드는 Controller, property, event로 통신합니다. 예제의 모델은 reference fixture이며 Core의 새 Store API가 아닙니다. Layer Panel은 공통 factory에 업무 의미를 넣지 않고, component contract와 host adapter에 의미를 두는 작성 패턴을 보여줍니다.

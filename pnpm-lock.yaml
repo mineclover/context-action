@@ -613,6 +613,9 @@ importers:
       preact:
         specifier: 10.27.3
         version: 10.27.3
+      preact-render-to-string:
+        specifier: 6.7.0
+        version: 6.7.0(preact@10.27.3)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -6214,6 +6217,11 @@ packages:
   powershell-utils@0.2.1:
     resolution: {integrity: sha512-C+y9x90UElAddDZmV4qOx9W53B61PO7cIqWz2dQsWlwswuq4mr8NEwytdGKboYbQlGZ3awrkTeNvcZiZNHnQ8A==}
     engines: {node: '>=20'}
+
+  preact-render-to-string@6.7.0:
+    resolution: {integrity: sha512-Z4WR8fmLMRpdYqJ9i7vrlXSsSrxVJydwrkEXHapexfARbWfGb7vGcnvNQnIzN0cXciMVOlz/XLoiMCi9gUsy9Q==}
+    peerDependencies:
+      preact: 10.27.3
 
   preact@10.27.3:
     resolution: {integrity: sha512-ZieIP3zQHiQsNF3BA+SNVS8dcuRIg/nsxlkFbCMBLS2L1Ww4Bkxd9n6Md2A1crfTZsEbQPADV0neYmh/EElgeQ==}
@@ -12960,6 +12968,10 @@ snapshots:
   powershell-utils@0.1.0: {}
 
   powershell-utils@0.2.1: {}
+
+  preact-render-to-string@6.7.0(preact@10.27.3):
+    dependencies:
+      preact: 10.27.3
 
   preact@10.27.3: {}
 

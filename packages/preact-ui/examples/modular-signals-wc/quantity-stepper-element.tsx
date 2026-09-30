@@ -129,6 +129,9 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
       return {
         view: QuantityStepperView,
         getInput: () => countSignal.value,
+        onConnect() {
+          updateValidationAndFormValue(countSignal.value);
+        },
         onAttributeChange(name, _oldVal, newVal) {
           if (name === 'value' && newVal !== null) {
             const parsed = parseInt(newVal, 10);

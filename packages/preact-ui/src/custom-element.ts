@@ -16,6 +16,10 @@ export interface PreactElementLifecycle<Input> {
   view: ComponentType<{ input: Input }>;
   /** Returns the current input snapshot for mount and update */
   getInput(): Input;
+  /** Starts connection-session resources immediately before the renderer mounts. */
+  onConnect?(): void;
+  /** Releases connection-session resources immediately after the renderer unmounts. */
+  onDisconnect?(): void;
   /** Optional handler for observed attribute changes */
   onAttributeChange?(name: string, oldValue: string | null, newValue: string | null): void;
   /** Optional cleanup callback for permanent teardown */
@@ -82,6 +86,7 @@ export function definePreactElement<Input>(
     #lifecycle: PreactElementLifecycle<Input>;
     #internals: ElementInternals | undefined;
     #disposed = false;
+    #sessionActive = false;
 
     constructor() {
       super();
@@ -179,19 +184,38 @@ export function definePreactElement<Input>(
     connectedCallback() {
       if (this.#disposed) return;
       if (this.#mount) return;
-
-      this.#mount = mountPreact(
-        this.#root,
-        this.#lifecycle.view,
-        this.#lifecycle.getInput(),
-      );
+      this.#sessionActive = true;
+      try {
+        this.#lifecycle.onConnect?.();
+        this.#mount = mountPreact(
+          this.#root,
+          this.#lifecycle.view,
+          this.#lifecycle.getInput(),
+        );
+      } catch (error) {
+        this.#mount = undefined;
+        this.#sessionActive = false;
+        try { this.#lifecycle.onDisconnect?.(); } catch (cleanupError) {
+          throw new AggregateError([error, cleanupError], 'Custom element connection failed');
+        }
+        throw error;
+      }
     }
 
     disconnectedCallback() {
       // Unmount renderer only; preserve domain signals and state for reconnection
       const mount = this.#mount;
       this.#mount = undefined;
-      mount?.destroy();
+      let firstError: unknown;
+      try { mount?.destroy(); } catch (error) { firstError = error; }
+      if (this.#sessionActive) {
+        this.#sessionActive = false;
+        try { this.#lifecycle.onDisconnect?.(); } catch (error) {
+          if (firstError) throw new AggregateError([firstError, error], 'Custom element disconnection failed');
+          firstError = error;
+        }
+      }
+      if (firstError) throw firstError;
     }
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {

@@ -61,4 +61,4 @@ pnpm --filter @context-action/preact-ui test:native
 pnpm --filter @context-action/preact-ui test:browser
 ```
 
-`test:browser`는 실제 Chromium에서 pre-upgrade property, controlled selection, event echo 방지, disconnect/reconnect, focus, template island를 확인합니다. 로컬에 Playwright가 요구하는 revision이 없으면 캐시된 headless Chromium을 탐색하며, 어느 쪽도 없으면 설치 필요 오류로 중단합니다.
+`test:browser`는 실제 Chromium에서 pre-upgrade property, controlled selection, event echo 방지, disconnect/reconnect, focus, keyboard, slot, vanilla standalone property 반영, template island를 확인합니다. 로컬에 Playwright가 요구하는 revision이 없으면 캐시된 headless Chromium을 탐색하며, 어느 쪽도 없으면 설치 필요 오류로 중단합니다.
