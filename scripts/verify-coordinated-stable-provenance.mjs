@@ -7,10 +7,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json');
+const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
 const expectedRepository = 'https://github.com/mineclover/context-action';
 const expectedWorkflowPath = '.github/workflows/publish-coordinated-stable-candidate.yml';
-const expectedPackages = new Set(['@context-action/core', '@context-action/react']);
+const expectedPackages = new Set(['@context-action/core', '@context-action/mutative', '@context-action/react']);
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -44,17 +44,9 @@ if (!['next', 'latest'].includes(tag) || !/^[a-f0-9]{40}$/u.test(commit ?? '')) 
 const plan = JSON.parse(await readFile(planPath, 'utf8'));
 const packages = Object.entries(plan.packages ?? {});
 if (packages.length !== expectedPackages.size || packages.some(([name]) => !expectedPackages.has(name))) {
-  throw new Error('Coordinated stable release plan must contain the exact Core and React cohort');
+  throw new Error('Coordinated stable release plan must contain the exact Core, Mutative and React cohort');
 }
-const provenanceCommits = plan.provenanceCommits ?? {};
-if (
-  Object.keys(provenanceCommits).length !== expectedPackages.size
-  || Object.entries(provenanceCommits).some(([name, sourceCommit]) =>
-    !expectedPackages.has(name) || !/^[a-f0-9]{40}$/u.test(sourceCommit)
-  )
-) {
-  throw new Error('Coordinated stable release plan must bind every package to an immutable provenance commit');
-}
+if (plan.provenanceBinding !== 'workflow-release-commit') throw new Error('Candidate provenance must bind the exact workflow release_commit');
 const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-coordinated-provenance-'));
 try {
   await writeFile(path.join(temporaryDirectory, 'package.json'), `${JSON.stringify({

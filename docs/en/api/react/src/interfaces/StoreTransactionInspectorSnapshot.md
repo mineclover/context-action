@@ -6,7 +6,7 @@
 
 # Interface: StoreTransactionInspectorSnapshot
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:43](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L43)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:36](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L36)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:43](h
 
 > `readonly` **version**: `number`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:44](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L44)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L37)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:44](h
 
 > `readonly` **position**: `number`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:45](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L45)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:38](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L38)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:45](h
 
 > `readonly` **historyLength**: `number`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:46](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L46)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:39](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L39)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:46](h
 
 > `readonly` **canUndo**: `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:47](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L47)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:40](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L40)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:47](h
 
 > `readonly` **canRedo**: `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:48](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L48)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:41](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L41)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:48](h
 
 > `readonly` `optional` **latest?**: [`StoreTransactionRecord`](StoreTransactionRecord.md)
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:49](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L49)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:42](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L42)

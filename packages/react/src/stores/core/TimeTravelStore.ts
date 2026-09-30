@@ -5,7 +5,7 @@
  * Provides time-travel functionality through Mutative JSON patches.
  */
 
-import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions } from '@context-action/mutative';
+import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions, type TimeTravelTransitionMeta } from '@context-action/mutative';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 /**
@@ -28,14 +28,6 @@ function validateHistoryPosition(value: number): void {
 import { ErrorHandlers } from '../utils/error-handling';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
-
-type TimeTravelTransitionMeta = {
-  readonly id?: string;
-  readonly transactionId?: string;
-  readonly actionId?: string;
-  readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
-  readonly label?: string;
-};
 
 /**
  * Configuration options for TimeTravelStore
@@ -265,16 +257,12 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   beginBatch(metadata?: TimeTravelTransitionMeta, options: { deferNotification?: boolean } = {}): void {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
     if (options.deferNotification) this.notificationHoldDepth += 1;
-    const beginBatch = (this.timeTravel as TimeTravel<T, false, true> & {
-      beginBatch?: (value?: TimeTravelTransitionMeta) => void;
-    }).beginBatch;
-    if (beginBatch) beginBatch.call(this.timeTravel, metadata);
+    this.timeTravel.beginBatch(metadata);
   }
 
   endBatch(): void {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
-    const endBatch = (this.timeTravel as TimeTravel<T, false, true> & { endBatch?: () => void }).endBatch;
-    if (endBatch) endBatch.call(this.timeTravel);
+    this.timeTravel.endBatch();
   }
 
   resumeNotifications(): void {
@@ -290,10 +278,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   /** Group multiple updates into one timeline entry and notification. */
   batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
-    const batch = (this.timeTravel as TimeTravel<T, false, true> & {
-      batch?: <V>(work: () => V, value?: TimeTravelTransitionMeta) => V;
-    }).batch;
-    return batch ? batch.call(this.timeTravel, callback, metadata) as R : callback();
+    return this.timeTravel.batch(callback, metadata);
   }
 
   getListenerCount(): number {

@@ -5,13 +5,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json');
+const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
 const packagePaths = {
   '@context-action/core': 'packages/core/package.json',
+  '@context-action/mutative': 'packages/mutative/package.json',
   '@context-action/react': 'packages/react/package.json',
 };
 const changelogPaths = {
   '@context-action/core': 'packages/core/CHANGELOG.md',
+  '@context-action/mutative': 'packages/mutative/CHANGELOG.md',
   '@context-action/react': 'packages/react/CHANGELOG.md',
 };
 const argumentsForCurrentSource = process.argv.slice(2);
@@ -28,7 +30,7 @@ const requireCurrentSource = argumentsForCurrentSource.length === 1;
 
 function assertPlan(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Release plan must be a JSON object');
-  if (value.schemaVersion !== 'context-action-coordinated-stable-plan.v1') throw new Error('Release plan schemaVersion is not supported');
+  if (value.schemaVersion !== 'context-action-coordinated-stable-plan.v2') throw new Error('Release plan schemaVersion is not supported');
   if (value.status !== 'approved-for-candidate') throw new Error('Release plan must be approved-for-candidate before publication');
   if (value.candidateDistTag !== 'next' || value.promotionDistTag !== 'latest') throw new Error('Release plan must use next candidate and latest promotion tags');
 }
@@ -66,6 +68,7 @@ if (requireCurrentSource) {
   for (const [name, floor] of Object.entries(plan.reactDependencyFloors ?? {})) {
     if (react.dependencies?.[name] !== floor) errors.push(`React dependency floor must be ${name}@${floor}`);
   }
+  if (plan.provenanceBinding !== 'workflow-release-commit') errors.push('Release plan must bind provenance to workflow release_commit');
   if (react.exports?.['./tools']) {
     errors.push('React state-management release must not export the Durable-backed ./tools subpath');
   }
@@ -75,13 +78,8 @@ if (requireCurrentSource) {
 }
 if (Object.keys(plan.packages ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define the exact coordinated package cohort');
 if (Object.keys(plan.changelogDates ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define changelog dates for the exact coordinated package cohort');
-if (
-  Object.keys(plan.provenanceCommits ?? {}).length !== Object.keys(packagePaths).length
-  || Object.entries(plan.provenanceCommits ?? {}).some(([name, commit]) =>
-    !packagePaths[name] || typeof commit !== 'string' || !/^[a-f0-9]{40}$/u.test(commit)
-  )
-) {
-  errors.push('Release plan must define immutable provenance commits for the exact coordinated package cohort');
+if (plan.provenanceBinding !== 'workflow-release-commit') {
+  errors.push('Release plan must bind provenance to the workflow release_commit for the exact coordinated package cohort');
 }
 
 if (errors.length > 0) {

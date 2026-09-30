@@ -6,7 +6,7 @@
 
 # Interface: StoreTransactionParticipant\<T\>
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:20](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L20)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:13](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L13)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:20](h
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:21](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L21)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:14](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L14)
 
 ***
 
@@ -28,4 +28,4 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:21](h
 
 > `readonly` **store**: [`TimeTravelStore`](../classes/TimeTravelStore.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:22](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L22)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L15)

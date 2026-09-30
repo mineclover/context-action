@@ -6,7 +6,7 @@
 
 # Class: TimeTravelStore\<T\>
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:80](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L80)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L72)
 
 TimeTravelStore - Store with built-in undo/redo functionality
 
@@ -43,7 +43,7 @@ const { canUndo, canRedo, position, history } = store.getTimeTravelControls();
 
 > **new TimeTravelStore**&lt;`T`&gt;(`name`, `initialValue`, `options?`): `TimeTravelStore`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:104](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L104)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:96](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L96)
 
 #### Parameters
 
@@ -69,7 +69,7 @@ Type parameter **T**
 
 > **subscribe**(`listener`): `Unsubscribe`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:152](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L152)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:144](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L144)
 
 Subscribe to store changes (React useSyncExternalStore compatible)
 
@@ -93,7 +93,7 @@ Type parameter **Unsubscribe**
 
 > **subscribeWithPatches**(`listener`): `Unsubscribe`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:165](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L165)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:157](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L157)
 
 Subscribe with patches information for path-based optimization
 
@@ -113,7 +113,7 @@ Type parameter **Unsubscribe**
 
 > **getLastPatches**(): `Patches` \| `null`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L179)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L171)
 
 Get the patches from the last state change. In batched mode this includes
 every transition accumulated before the notification frame was flushed.
@@ -128,7 +128,7 @@ every transition accumulated before the notification frame was flushed.
 
 > **getLastTransitionMeta**(): `TimeTravelTransitionMeta` \| `undefined`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L183)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:175](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L175)
 
 #### Returns
 
@@ -140,7 +140,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:183](https://gith
 
 > **getSnapshot**(): [`Snapshot`](../interfaces/Snapshot.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:187](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L187)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L179)
 
 Get immutable snapshot (React useSyncExternalStore compatible)
 
@@ -158,7 +158,7 @@ Get immutable snapshot (React useSyncExternalStore compatible)
 
 > **getValue**(): `T`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:198](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L198)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:190](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L190)
 
 Get current value directly (preserves structural sharing)
 
@@ -182,7 +182,7 @@ Type parameter **T**
 
 > **getSafeValue**(): `T`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:206](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L206)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:198](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L198)
 
 Return a defensive copy without changing structural-sharing reads.
 
@@ -200,7 +200,7 @@ Type parameter **T**
 
 > **setValue**(`value`, `options?`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:210](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L210)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:202](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L202)
 
 Set store value with enhanced options and validation
 
@@ -228,7 +228,7 @@ Type parameter **T**
 
 > **update**(`updater`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:250](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L250)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:242](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L242)
 
 Update store value with function (for functional updates, supports draft mutations)
 
@@ -252,7 +252,7 @@ Update store value with function (for functional updates, supports draft mutatio
 
 > **beginBatch**(`metadata?`, `options?`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:265](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L265)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:257](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L257)
 
 Group multiple updates into one timeline entry and notification.
 
@@ -278,7 +278,7 @@ Type parameter **TimeTravelTransitionMeta**
 
 > **endBatch**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:274](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L274)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:263](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L263)
 
 #### Returns
 
@@ -290,7 +290,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:274](https://gith
 
 > **resumeNotifications**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:280](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L280)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:268](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L268)
 
 #### Returns
 
@@ -302,7 +302,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:280](https://gith
 
 > **flushNotifications**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:284](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L284)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:272](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L272)
 
 #### Returns
 
@@ -314,7 +314,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:284](https://gith
 
 > **batch**&lt;`R`&gt;(`callback`, `metadata?`): `R`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:291](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L291)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:279](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L279)
 
 Group multiple updates into one timeline entry and notification.
 
@@ -344,7 +344,7 @@ Type parameter **R**
 
 > **getListenerCount**(): `number`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:299](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L299)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:284](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L284)
 
 Get number of active listeners (debugging/monitoring)
 
@@ -362,7 +362,7 @@ Get number of active listeners (debugging/monitoring)
 
 > **clearListeners**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:303](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L303)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:288](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L288)
 
 #### Returns
 
@@ -374,7 +374,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:303](https://gith
 
 > **dispose**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:308](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L308)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:293](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L293)
 
 Enhanced disposal with comprehensive cleanup
 
@@ -392,7 +392,7 @@ Enhanced disposal with comprehensive cleanup
 
 > **registerCleanup**(`task`): () => `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:337](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L337)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:322](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L322)
 
 Register cleanup task for automatic execution on disposal
 
@@ -416,7 +416,7 @@ Register cleanup task for automatic execution on disposal
 
 > **isStoreDisposed**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:343](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L343)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:328](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L328)
 
 Check if store is disposed
 
@@ -434,7 +434,7 @@ Check if store is disposed
 
 > **undo**(`steps?`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:354](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L354)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:339](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L339)
 
 Undo the last change
 
@@ -454,7 +454,7 @@ Undo the last change
 
 > **redo**(`steps?`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:369](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L369)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:354](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L354)
 
 Redo the last undone change
 
@@ -474,7 +474,7 @@ Redo the last undone change
 
 > **canUndo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:384](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L384)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:369](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L369)
 
 Check if undo is possible
 
@@ -488,7 +488,7 @@ Check if undo is possible
 
 > **canRedo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:392](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L392)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:377](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L377)
 
 Check if redo is possible
 
@@ -502,7 +502,7 @@ Check if redo is possible
 
 > **goTo**(`position`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:400](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L400)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:385](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L385)
 
 Go to a specific position in history
 
@@ -522,7 +522,7 @@ Go to a specific position in history
 
 > **reset**(): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:409](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L409)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:394](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L394)
 
 Reset to initial state
 
@@ -536,7 +536,7 @@ Reset to initial state
 
 > **getHistory**(): readonly `T`[]
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:417](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L417)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:402](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L402)
 
 Get the complete history of states
 
@@ -550,7 +550,7 @@ readonly `T`[]
 
 > **getPosition**(): `number`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:425](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L425)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:410](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L410)
 
 Get current position in history
 
@@ -564,7 +564,7 @@ Get current position in history
 
 > **getTimeTravelControls**(): `TimeTravelControls`\<`T`, `false`\>
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:433](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L433)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:418](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L418)
 
 Get time travel controls object
 
@@ -578,7 +578,7 @@ Get time travel controls object
 
 > **notifyPath**(`path`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:456](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L456)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:441](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L441)
 
 Manually notify path-based subscribers without changing state value
 
@@ -607,7 +607,7 @@ The path to notify subscribers about
 
 > **notifyPaths**(`paths`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:474](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L474)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:459](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L459)
 
 Manually notify multiple paths at once
 
@@ -633,7 +633,7 @@ Array of paths to notify subscribers about
 
 > **setCloningEnabled**(`enabled`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:506](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L506)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:491](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L491)
 
 #### Parameters
 
@@ -651,7 +651,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:506](https://gith
 
 > **isCloningEnabled**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:510](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L510)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:495](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L495)
 
 #### Returns
 
@@ -663,7 +663,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:510](https://gith
 
 > **setCustomComparator**(`comparator`): `void`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:514](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L514)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:499](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L499)
 
 #### Parameters
 
@@ -681,7 +681,7 @@ Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:514](https://gith
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:81](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L81)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:73](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L73)
 
 Unique identifier for the store
 

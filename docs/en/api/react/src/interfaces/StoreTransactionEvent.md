@@ -6,7 +6,7 @@
 
 # Interface: StoreTransactionEvent
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:36](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L36)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:29](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L29)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:36](h
 
 > `readonly` **phase**: [`StoreTransactionEventPhase`](../type-aliases/StoreTransactionEventPhase.md)
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L37)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:30](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L30)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:37](h
 
 > `readonly` **record**: [`StoreTransactionRecord`](StoreTransactionRecord.md)
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:38](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L38)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:31](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L31)

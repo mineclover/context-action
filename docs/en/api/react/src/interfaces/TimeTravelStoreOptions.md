@@ -6,7 +6,7 @@
 
 # Interface: TimeTravelStoreOptions\<T\>
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:43](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L43)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:35](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L35)
 
 Configuration options for TimeTravelStore
 
@@ -22,7 +22,7 @@ Type parameter **T**
 
 > `optional` **maxHistory?**: `number`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:45](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L45)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L37)
 
 Maximum number of history entries
 
@@ -32,7 +32,7 @@ Maximum number of history entries
 
 > `optional` **mutable?**: `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:52](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L52)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:44](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L44)
 
 Enable mutable mode for structural sharing (default: true)
 
@@ -45,7 +45,7 @@ enabling selective re-rendering with path-based subscriptions.
 
 > `optional` **isEqual?**: (`a`, `b`) => `boolean`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:54](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L54)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:46](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L46)
 
 Custom equality function
 
@@ -69,7 +69,7 @@ Type parameter **T**
 
 > `optional` **notificationMode?**: `"batched"` \| `"immediate"`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:56](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L56)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:48](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L48)
 
 Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate')
 
@@ -79,6 +79,6 @@ Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (defau
 
 > `optional` **readMode?**: `"reference"` \| `"safe"`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L58)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L50)
 
 Public read policy. Reference preserves legacy structural-sharing reads.
