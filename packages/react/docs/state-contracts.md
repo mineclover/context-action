@@ -38,6 +38,11 @@ participant positions back to their starting positions.
 `redone` events. `getHistory()` and `serializeHistory()` expose metadata and
 positions only; they never serialize Store instances or live references.
 
+`getInspectorSnapshot()` and `useStoreTransactionInspector()` expose a stable
+DevTools-facing snapshot containing only version, cursor, history length, undo/
+redo availability, and the latest serializable record. They do not expose Store
+instances or state object references.
+
 Coordinator participants defer notifications while a transaction is committing.
 All participant snapshots are updated before notification flush, so a reader
 cannot observe the first Store's new value with another participant's old value

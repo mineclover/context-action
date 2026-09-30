@@ -42,6 +42,13 @@ describe('StoreTransactionCoordinator', () => {
     expect(first.getValue()).toEqual({ value: 1 });
     expect(second.getValue()).toEqual({ value: 2 });
     expect(phases).toEqual(['started', 'committed', 'undone', 'redone']);
+    expect(coordinator.getInspectorSnapshot()).toMatchObject({
+      position: 1,
+      historyLength: 1,
+      canUndo: true,
+      canRedo: false,
+      latest: { meta: { label: 'sync values' } },
+    });
     first.dispose();
     second.dispose();
   });

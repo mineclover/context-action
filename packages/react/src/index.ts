@@ -23,6 +23,7 @@ export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
 export type { StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
 export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
+export { useStoreTransactionInspector } from './stores/hooks/useStoreTransactionInspector';
 export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelControls';
 export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
 export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
@@ -38,7 +39,7 @@ export type {
   TimelineWriter,
 } from './stores/core/contracts';
 export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
-export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
 export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
 export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './stores/core/ActionTransactionBridge';
 

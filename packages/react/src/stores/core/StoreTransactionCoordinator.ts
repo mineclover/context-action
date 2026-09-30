@@ -32,6 +32,15 @@ export interface StoreTransactionEvent {
 
 export type StoreTransactionListener = (event: StoreTransactionEvent) => void;
 
+export interface StoreTransactionInspectorSnapshot {
+  readonly version: number;
+  readonly position: number;
+  readonly historyLength: number;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+  readonly latest?: StoreTransactionRecord;
+}
+
 type StoredStoreTransactionRecord = StoreTransactionRecord & {
   readonly participants: readonly {
     readonly name: string;
@@ -57,6 +66,14 @@ export class StoreTransactionCoordinator {
   private position = 0;
   private history: StoredStoreTransactionRecord[] = [];
   private readonly listeners = new Set<StoreTransactionListener>();
+  private inspectorVersion = 0;
+  private inspectorSnapshot: StoreTransactionInspectorSnapshot = {
+    version: 0,
+    position: 0,
+    historyLength: 0,
+    canUndo: false,
+    canRedo: false,
+  };
 
   subscribe(listener: StoreTransactionListener): () => void {
     this.listeners.add(listener);
@@ -67,8 +84,22 @@ export class StoreTransactionCoordinator {
     return JSON.stringify(this.getHistory());
   }
 
+  getInspectorSnapshot(): StoreTransactionInspectorSnapshot {
+    return this.inspectorSnapshot;
+  }
+
   private emit(phase: StoreTransactionEventPhase, record: StoreTransactionRecord): void {
     const snapshot = this.snapshot(record);
+    this.inspectorVersion += 1;
+    const latest = this.history[this.history.length - 1];
+    this.inspectorSnapshot = {
+      version: this.inspectorVersion,
+      position: this.position,
+      historyLength: this.history.length,
+      canUndo: this.canUndo(),
+      canRedo: this.canRedo(),
+      ...(latest && { latest: this.snapshot(latest) }),
+    };
     for (const listener of this.listeners) listener({ phase, record: snapshot });
   }
 
