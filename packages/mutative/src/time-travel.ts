@@ -504,6 +504,9 @@ export class TimeTravel<
    * Go to specific position in history
    */
   go(nextPosition: number): void {
+    if (!Number.isSafeInteger(nextPosition) || nextPosition < 0) {
+      throw new RangeError('TimeTravel position must be a non-negative safe integer');
+    }
     if (process.env.NODE_ENV !== 'production') {
       logger.debug(`go(${nextPosition}) - current position: ${this.position}`);
     }
@@ -567,6 +570,9 @@ export class TimeTravel<
    * Go back in history
    */
   back(amount = 1): void {
+    if (!Number.isSafeInteger(amount) || amount < 0) {
+      throw new RangeError('TimeTravel back amount must be a non-negative safe integer');
+    }
     this.go(this.position - amount);
   }
 
@@ -574,6 +580,9 @@ export class TimeTravel<
    * Go forward in history
    */
   forward(amount = 1): void {
+    if (!Number.isSafeInteger(amount) || amount < 0) {
+      throw new RangeError('TimeTravel forward amount must be a non-negative safe integer');
+    }
     this.go(this.position + amount);
   }
 

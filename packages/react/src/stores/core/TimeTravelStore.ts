@@ -13,6 +13,18 @@ import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } fr
  */
 export type PatchAwareListener = (patches: Patches | null) => void;
 
+function validateHistoryStep(value: number, label: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError(`${label} must be a non-negative safe integer`);
+  }
+}
+
+function validateHistoryPosition(value: number): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError('History position must be a non-negative safe integer');
+  }
+}
+
 import { ErrorHandlers } from '../utils/error-handling';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
@@ -74,6 +86,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private pendingNotification = false;
   private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
+  private unsubscribeTimeTravel: Unsubscribe = () => {};
 
   constructor(
     name: string,
@@ -95,7 +108,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.timeTravel.subscribe((state, travelPatches, _position, changedPatches) => {
+    this.unsubscribeTimeTravel = this.timeTravel.subscribe((state, travelPatches, _position, changedPatches) => {
       // Use only the patches from the transition that triggered this
       // notification. The full history remains available through the
       // TimeTravel controls and must not drive path-aware subscriptions.
@@ -238,6 +251,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     }
     this.pendingNotification = false;
     this.pendingPatches = null;
+    this.unsubscribeTimeTravel();
+    this.unsubscribeTimeTravel = () => {};
 
     // Execute cleanup tasks
     this.cleanupTasks.forEach((task) => {
@@ -271,6 +286,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   undo(steps = 1): void {
     if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Undo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] undo(${steps}) - position before: ${this.timeTravel.getPosition()}, canBack: ${this.timeTravel.canBack()}`);
     }
@@ -285,6 +301,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   redo(steps = 1): void {
     if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Redo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] redo(${steps}) - position before: ${this.timeTravel.getPosition()}, canForward: ${this.timeTravel.canForward()}`);
     }
@@ -298,6 +315,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Check if undo is possible
    */
   canUndo(): boolean {
+    if (this.isDisposed) return false;
     return this.timeTravel.canBack();
   }
 
@@ -305,6 +323,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Check if redo is possible
    */
   canRedo(): boolean {
+    if (this.isDisposed) return false;
     return this.timeTravel.canForward();
   }
 
@@ -313,6 +332,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   goTo(position: number): void {
     if (this.isDisposed) return;
+    validateHistoryPosition(position);
     this.timeTravel.go(position);
   }
 
@@ -328,6 +348,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get the complete history of states
    */
   getHistory(): readonly T[] {
+    if (this.isDisposed) return [];
     return this.timeTravel.getHistory();
   }
 
@@ -335,6 +356,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get current position in history
    */
   getPosition(): number {
+    if (this.isDisposed) return 0;
     return this.timeTravel.getPosition();
   }
 
@@ -342,7 +364,18 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get time travel controls object
    */
   getTimeTravelControls(): TimeTravelControls<T, false> {
-    return this.timeTravel.getControls();
+    const store = this;
+    return {
+      get position() { return store.getPosition(); },
+      getHistory: () => store.getHistory() as readonly (T extends (...args: unknown[]) => infer R ? R : T)[],
+      get patches() { return store.isStoreDisposed() ? { patches: [], inversePatches: [] } : store.timeTravel.getPatches(); },
+      back: (amount = 1) => store.undo(amount),
+      forward: (amount = 1) => store.redo(amount),
+      reset: () => store.reset(),
+      go: (position) => store.goTo(position),
+      canBack: () => store.canUndo(),
+      canForward: () => store.canRedo(),
+    };
   }
 
   /**

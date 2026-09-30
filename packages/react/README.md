@@ -92,6 +92,10 @@ function App() {
 
 ## Package responsibility
 
+The store snapshot, mutation, and time-travel contracts are maintained in
+[docs/state-contracts.md](docs/state-contracts.md). Use those role interfaces
+when designing new adapters or history tooling.
+
 `@context-action/react` 3.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,

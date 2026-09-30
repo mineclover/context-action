@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { createTimeTravel, produceWithPatches } from '../src';
 
 describe('@context-action/mutative time-travel behavior matrix', () => {
+  it('rejects invalid positions and step counts before applying patches', () => {
+    const travel = createTimeTravel({ count: 0 });
+    expect(() => travel.go(Number.NaN)).toThrow('safe integer');
+    expect(() => travel.back(-1)).toThrow('safe integer');
+    expect(() => travel.forward(Infinity)).toThrow('safe integer');
+    expect(travel.getPosition()).toBe(0);
+  });
+
   it('supports automatic archive, undo, redo, go, and reset', () => {
     const travel = createTimeTravel({ count: 0 });
 

@@ -166,5 +166,20 @@ describe('store definition discrimination', () => {
       expect(isTimeTravelStore(store)).toBe(false);
       expect(store.getValue()).toEqual({ count: 0 });
     });
+
+    it('applies the configured comparison strategy to time-travel commits', () => {
+      const manager = new TimeTravelStoreManager<{ state: { nested: { value: number } } }>(
+        'time-travel-comparison',
+        {
+          state: {
+            initialValue: { nested: { value: 1 } },
+            strategy: 'deep',
+          },
+        }
+      );
+      const store = manager.getStore('state');
+      store.setValue({ nested: { value: 1 } });
+      expect(isTimeTravelStore(store) ? store.getHistory().length : -1).toBe(1);
+    });
   });
 });

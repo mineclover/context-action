@@ -25,3 +25,14 @@ export type {
   Unsubscribe,
   Snapshot,
 } from './types';
+
+export type {
+  ReadonlyStateSnapshot,
+  StateMutationMeta,
+  StateMutationOrigin,
+  StateTransition,
+  StoreReader,
+  StoreWriter,
+  TimelineReader,
+  TimelineWriter,
+} from './contracts';
