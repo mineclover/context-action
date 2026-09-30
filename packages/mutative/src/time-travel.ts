@@ -361,49 +361,54 @@ export class TimeTravel<
     this.commitPatches(patches, inversePatches);
   }
 
-  /** Group synchronous or asynchronous updates into one history entry. */
-  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
+  beginBatch(metadata?: TimeTravelTransitionMeta): void {
     if (this.batchDepth === 0) {
       this.batchInitialState = deepClone(this.state);
       this.batchChanged = false;
       this.batchMeta = metadata;
     }
     this.batchDepth += 1;
+  }
 
-    const finish = () => {
-      this.batchDepth -= 1;
-      if (this.batchDepth !== 0) return;
+  endBatch(): void {
+    if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
+    this.batchDepth -= 1;
+    if (this.batchDepth !== 0) return;
 
-      const initialState = this.batchInitialState;
-      this.batchInitialState = null;
-      const changed = this.batchChanged;
-      const transitionMeta = this.batchMeta;
-      this.batchChanged = false;
-      this.batchMeta = undefined;
-      if (!changed || initialState === null) return;
+    const initialState = this.batchInitialState;
+    this.batchInitialState = null;
+    const changed = this.batchChanged;
+    const transitionMeta = this.batchMeta;
+    this.batchChanged = false;
+    this.batchMeta = undefined;
+    if (!changed || initialState === null) return;
 
-      const [, patches, inversePatches] = create(
-        initialState,
-        draft => overwriteDraftWith(draft, this.state),
-        this.options,
-      ) as [S, Patches<P>, Patches<P>];
-      if (patches.length > 0 || inversePatches.length > 0) {
-        this.commitPatches(patches, inversePatches, transitionMeta);
-      }
-    };
+    const [, patches, inversePatches] = create(
+      initialState,
+      draft => overwriteDraftWith(draft, this.state),
+      this.options,
+    ) as [S, Patches<P>, Patches<P>];
+    if (patches.length > 0 || inversePatches.length > 0) {
+      this.commitPatches(patches, inversePatches, transitionMeta);
+    }
+  }
+
+  /** Group synchronous or asynchronous updates into one history entry. */
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
+    this.beginBatch(metadata);
 
     try {
       const result = callback();
       if (result && typeof (result as { then?: unknown }).then === 'function') {
         return (result as unknown as Promise<unknown>).then(
-          value => { finish(); return value; },
-          error => { finish(); throw error; },
+          value => { this.endBatch(); return value; },
+          error => { this.endBatch(); throw error; },
         ) as R;
       }
-      finish();
+      this.endBatch();
       return result;
     } catch (error) {
-      finish();
+      this.endBatch();
       throw error;
     }
   }

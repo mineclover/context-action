@@ -3,6 +3,7 @@ import type { TimeTravelStore } from './TimeTravelStore';
 
 export interface StoreTransactionMeta {
   readonly id: string;
+  readonly transactionId?: string;
   readonly label?: string;
   readonly actionId?: string;
   readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
@@ -23,6 +24,12 @@ export interface StoreTransactionRecord {
   }[];
 }
 
+export interface StoreTransactionHandle {
+  readonly meta: StoreTransactionMeta;
+  commit(): void;
+  rollback(): void;
+}
+
 /**
  * Groups updates across multiple TimeTravelStores into one history entry per
  * participant. The participant list is explicit so a transaction cannot
@@ -33,11 +40,10 @@ export class StoreTransactionCoordinator {
   private position = 0;
   private history: StoreTransactionRecord[] = [];
 
-  async run<R>(
+  begin(
     participants: readonly StoreTransactionParticipant<any>[],
-    callback: (meta: StoreTransactionMeta) => R | Promise<R>,
     options: Omit<StoreTransactionMeta, 'id'> = {},
-  ): Promise<R> {
+  ): StoreTransactionHandle {
     const id = `tx_${++this.sequence}`;
     const meta: StoreTransactionMeta = { ...options, id };
     const unique = [...new Map(participants.map(participant => [participant.name, participant])).values()];
@@ -49,35 +55,56 @@ export class StoreTransactionCoordinator {
       ...participant,
       position: participant.store.getPosition(),
     }));
-    const execute = () => callback(meta);
-    const runAt = (index: number): R | Promise<R> => {
-      if (index >= unique.length) return execute();
-      return unique[index]!.store.batch(() => runAt(index + 1), meta);
+    unique.forEach(participant => participant.store.beginBatch(meta));
+    let closed = false;
+    const closeBatches = () => {
+      for (const participant of [...unique].reverse()) participant.store.endBatch();
     };
+    return {
+      meta,
+      commit: () => {
+        if (closed) return;
+        closed = true;
+        closeBatches();
+        const record: StoreTransactionRecord = {
+          meta,
+          participants: before.map(participant => ({
+            name: participant.name,
+            store: participant.store,
+            before: participant.position,
+            after: participant.store.getPosition(),
+          })),
+        };
+        if (record.participants.some(participant => participant.before !== participant.after)) {
+          this.history = this.history.slice(0, this.position);
+          this.history.push(record);
+          this.position += 1;
+        }
+      },
+      rollback: () => {
+        if (closed) return;
+        closed = true;
+        closeBatches();
+        for (const participant of [...before].reverse()) {
+          const current = participant.store.getPosition();
+          if (current !== participant.position) participant.store.goTo(participant.position);
+        }
+      },
+    };
+  }
+
+  async run<R>(
+    participants: readonly StoreTransactionParticipant<any>[],
+    callback: (meta: StoreTransactionMeta) => R | Promise<R>,
+    options: Omit<StoreTransactionMeta, 'id'> = {},
+  ): Promise<R> {
+    const handle = this.begin(participants, options);
     try {
-      const result = await runAt(0);
-      const record: StoreTransactionRecord = {
-        meta,
-        participants: before.map(participant => ({
-          name: participant.name,
-          store: participant.store,
-          before: participant.position,
-          after: participant.store.getPosition(),
-        })),
-      };
-      if (record.participants.some(participant => participant.before !== participant.after)) {
-        this.history = this.history.slice(0, this.position);
-        this.history.push(record);
-        this.position += 1;
-      }
+      const result = await callback(handle.meta);
+      handle.commit();
       return result;
     } catch (error) {
-      for (const participant of [...before].reverse()) {
-        const current = participant.store.getPosition();
-        if (current !== participant.position) {
-          participant.store.goTo(participant.position);
-        }
-      }
+      handle.rollback();
       throw error;
     }
   }

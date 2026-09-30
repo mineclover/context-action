@@ -243,8 +243,19 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   /** Group multiple updates into one timeline entry and notification. */
+  beginBatch(metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.beginBatch(metadata);
+  }
+
+  endBatch(): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.endBatch();
+  }
+
+  /** Group multiple updates into one timeline entry and notification. */
   batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
-    if (this.isDisposed) return callback();
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
     return this.timeTravel.batch(callback, metadata);
   }
 

@@ -32,6 +32,8 @@ export type {
   ActionPayload,
   ActionResultHandler,
   ActionPayloadMap,
+  ActionDispatchTrace,
+  ActionDispatchTraceListener,
   ActionResult,
   ActionResultMap,
   ActionRegisterConfig,

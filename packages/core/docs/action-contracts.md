@@ -45,3 +45,13 @@ selection, or destroy behavior are action contract changes. They require a
 focused contract test and a downstream Store integration test when a handler
 commits state. Changes to Store history or snapshot identity belong to the
 React store contracts and must not be hidden as ActionRegister refactors.
+
+## Dispatch trace bridge
+
+`subscribeDispatchTrace()` emits exactly one `started` and one `settled` event
+per public dispatch. The event carries a stable `dispatchId`, action name,
+terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
+Core does not create or mutate Store transactions. The React adapter can bind
+these events to explicit Store participants with `bindActionTransactions()`.
+This keeps the dependency direction `core → trace contract ← store adapter` and
+prevents Core from importing React or Store classes.

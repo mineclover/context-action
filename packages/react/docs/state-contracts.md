@@ -35,3 +35,8 @@ instead of silently applying a partial transaction. A rejected callback rolls
 participant positions back to their starting positions.
 
 The current public classes remain compatible while these contracts are introduced. New code should depend on the role interfaces and use the concrete classes only at composition boundaries.
+
+For Core actions, `bindActionTransactions(register, coordinator, options)`
+consumes the Core dispatch trace contract and opens/closes explicit Store
+participants around the action. Core remains framework-agnostic; this bridge is
+owned by the React store category.
