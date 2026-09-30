@@ -74,7 +74,7 @@ export function useStoreSelector<T, R>(
   
   const getSnapshot = useCallback((): R => {
     try {
-      const storeValue = store.getValue();
+      const storeValue = store.getSnapshot().value;
       const selectedValue = stableSelector(storeValue);
       
       // 동등성 비교를 위한 최적화
@@ -94,5 +94,4 @@ export function useStoreSelector<T, R>(
   
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-
 

@@ -6,7 +6,7 @@
 
 # Interface: TimeTravelContextControlsState
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:98](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L98)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:87](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L87)
 
 Time travel controls state
 
@@ -16,7 +16,7 @@ Time travel controls state
 
 > **canUndo**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L99)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:88](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L88)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:99
 
 > **canRedo**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:100](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L100)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:89](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L89)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **position**: `number`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L101)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:90](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L90)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **historyLength**: `number`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L102)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:91](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L91)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **undo**: (`steps?`) => `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:103](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L103)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:92](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L92)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **redo**: (`steps?`) => `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:104](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L104)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:93](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L93)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **goTo**: (`position`) => `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:105](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L105)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:94](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L94)
 
 #### Parameters
 
@@ -102,7 +102,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:10
 
 > **reset**: () => `void`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:106](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L106)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:95](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L95)
 
 #### Returns
 

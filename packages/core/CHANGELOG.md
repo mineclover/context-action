@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.0] (2026-10-01)
+
+### Features
+
+- Add dispatch lifecycle traces and explicit transaction metadata for framework-neutral state bridges.
+
+### Reliability fixes
+
+- Keep action trace settlement aligned with observer outcomes and lifecycle shutdown.
+
 ## [1.1.3] (2026-08-31)
 
 ### Reliability fixes

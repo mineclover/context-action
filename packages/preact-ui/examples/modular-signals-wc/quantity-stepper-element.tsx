@@ -62,7 +62,7 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         return { min, max };
       }
 
-      function updateValidationAndFormValue(val: number) {
+      function updateValidationAndFormValue(val: number, emitChange = false) {
         const { min, max } = getBounds();
         context.setFormValue(String(val));
 
@@ -74,13 +74,15 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           context.setValidity({});
         }
 
-        element.dispatchEvent(
-          new CustomEvent('quantity-change', {
-            detail: { value: val },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        if (emitChange) {
+          element.dispatchEvent(
+            new CustomEvent('quantity-change', {
+              detail: { value: val },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        }
       }
 
       // Initial registration with ElementInternals
@@ -99,7 +101,7 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
               onClick={() => {
                 if (countSignal.value > min) {
                   countSignal.value -= 1;
-                  updateValidationAndFormValue(countSignal.value);
+                  updateValidationAndFormValue(countSignal.value, true);
                 }
               }}
             >
@@ -114,7 +116,7 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
               onClick={() => {
                 if (countSignal.value < max) {
                   countSignal.value += 1;
-                  updateValidationAndFormValue(countSignal.value);
+                  updateValidationAndFormValue(countSignal.value, true);
                 }
               }}
             >
@@ -127,6 +129,9 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
       return {
         view: QuantityStepperView,
         getInput: () => countSignal.value,
+        onConnect() {
+          updateValidationAndFormValue(countSignal.value);
+        },
         onAttributeChange(name, _oldVal, newVal) {
           if (name === 'value' && newVal !== null) {
             const parsed = parseInt(newVal, 10);

@@ -15,7 +15,7 @@ const releaseCommitExpression = '$' + '{{ inputs.release_commit }}';
 const regularPackageCohort = '@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator';
 const prereleasePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp';
 const stableCandidatePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-protocol';
-const coordinatedStablePackageCohort = '@context-action/core,@context-action/react';
+const coordinatedStablePackageCohort = '@context-action/core,@context-action/mutative,@context-action/react';
 const mutativePackageCohort = '@context-action/mutative-core,@context-action/mutative';
 const maintenanceJournalMarkerStatements = [
   'journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"',
@@ -641,6 +641,7 @@ const publishWorkflowPolicies = new Map([
     uploadMissingPolicy: 'error',
     publishScopes: [
       '@context-action/core',
+      '@context-action/mutative',
       '@context-action/react',
     ],
     allowedPublicationCommandPatterns: [
@@ -668,7 +669,7 @@ const publishWorkflowPolicies = new Map([
         'must run the root release gate as a straight-line fail-closed step',
       ],
       [
-        ['node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core,@context-action/react"'],
+        ['node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core,@context-action/mutative,@context-action/react"'],
         'must verify the exact packed coordinated cohort dependency closure before publication',
       ],
     ],

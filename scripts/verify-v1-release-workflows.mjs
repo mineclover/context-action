@@ -176,6 +176,7 @@ export function validateReleaseWorkflowSources({
     const coordinatedPackages = Object.keys(coordinatedPlan.packages ?? {});
     const expectedCoordinatedPackages = [
       '@context-action/core',
+      '@context-action/mutative',
       '@context-action/react',
     ];
     if (JSON.stringify(coordinatedPackages) !== JSON.stringify(expectedCoordinatedPackages)
@@ -206,7 +207,7 @@ export function validateReleaseWorkflowSources({
     requireCommandBeforePublication(
       errors,
       coordinatedCandidateInspection,
-      /^node\s+scripts\/verify-published-tool-consumers\.cjs\s+--local\s+--cohort-only\s+--packages "@context-action\/core,@context-action\/react"$/u,
+      /^node\s+scripts\/verify-published-tool-consumers\.cjs\s+--local\s+--cohort-only\s+--packages "@context-action\/core,@context-action\/mutative,@context-action\/react"$/u,
       'Coordinated stable candidate workflow must validate the packed candidate closure before publication',
     );
     requireExactStepBeforePublication(
@@ -236,11 +237,11 @@ export function validateReleaseWorkflowSources({
       'git diff --cached --exit-code',
       'pnpm verify:coordinated-stable-release-plan',
       'node scripts/verify-coordinated-stable-provenance.mjs --tag next --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-promotion-preflight-provenance.json',
-      'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/react"',
+      'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/mutative,@context-action/react"',
       'node scripts/promote-coordinated-stable.mjs --output reports/npm-coordinated-stable-promotion-summary.json',
-      'pnpm verify:published-tool-consumers -- --tag latest --packages "@context-action/core,@context-action/react"',
+      'pnpm verify:published-tool-consumers -- --tag latest --packages "@context-action/core,@context-action/mutative,@context-action/react"',
       'node scripts/verify-coordinated-stable-provenance.mjs --tag latest --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-promotion-provenance.json',
-      'pnpm capture:published-release -- --tag latest --packages "@context-action/core,@context-action/react" --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json',
+      'pnpm capture:published-release -- --tag latest --packages "@context-action/core,@context-action/mutative,@context-action/react" --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json',
     ]) {
       if (!promotionStatements.includes(required)) errors.push(`Coordinated stable promotion workflow must include ${required}`);
     }
@@ -700,7 +701,7 @@ async function main() {
     readFile(path.join(repositoryRoot, 'package.json'), 'utf8'),
     readFile(path.join(repositoryRoot, 'scripts', 'publish-packages.cjs'), 'utf8'),
     readFile(path.join(repositoryRoot, 'scripts', 'verify-tool-protocol-changelog.mjs'), 'utf8'),
-    readFile(path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-08.json'), 'utf8'),
+    readFile(path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json'), 'utf8'),
   ]);
   const { errors, packages } = validateReleaseWorkflowSources({
     stableCandidate,

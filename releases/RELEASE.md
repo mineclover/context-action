@@ -10,7 +10,7 @@
 - [`docs/releases/v1.0.0/semver-and-deprecation-policy.md`](../docs/releases/v1.0.0/semver-and-deprecation-policy.md)
 - [`docs/releases/v1.0.0/scope.md`](../docs/releases/v1.0.0/scope.md)
 - [`docs/releases/v1.0.0/publish-runbook.md`](../docs/releases/v1.0.0/publish-runbook.md)
-- [`COORDINATED_STABLE_2026_08.md`](COORDINATED_STABLE_2026_08.md)
+- [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)
 
 ## 1. 변경 분류와 버전 결정
 
@@ -50,7 +50,7 @@ pnpm release:check
 | prerelease | `publish-prerelease.yml` | 명시한 prerelease tag만 갱신하며 `latest`는 변경하지 않음 |
 | 일반 도구 패키지 cohort | `publish-packages.yml` | 고정 cohort를 `next`에 게시하고 consumer/evidence를 검증 |
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
-| Core 1.1 / React 3 state-management release | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/React cohort만 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
+| Core 1.2 / Mutative 0.9 / React 4 state-management release | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/Mutative/React cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -62,9 +62,9 @@ consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 �
 
 ## 4. Coordinated stable 경로
 
-새 Core minor, React major 또는 Durable pre-1 breaking 경계는 maintenance
-workflow가 아니라 coordinated stable 경로를 사용합니다. 현재 승인된 cohort와
-정확한 진행 순서는 [`COORDINATED_STABLE_2026_08.md`](COORDINATED_STABLE_2026_08.md)를
+새 Core minor, Mutative minor 또는 React major 경계는 maintenance workflow가
+아니라 coordinated stable 경로를 사용합니다. 현재 승인된 cohort와 정확한
+진행 순서는 [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)를
 따릅니다. 이 경로는 다음 조건을 모두 강제합니다.
 
 - immutable main commit과 정확한 package/version cohort 입력

@@ -14,8 +14,9 @@ import { createStore, Store } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
 import type { StorePath } from '../hooks/useTimeTravelPath';
-import type { ComparisonOptions } from '../utils/comparison';
+import { compareValues, type ComparisonOptions } from '../utils/comparison';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { patchesAffectPath } from '../utils/patch-affects-path';
 import {
   type ExplicitStoreValue,
   isExplicitStoreValue,
@@ -33,26 +34,12 @@ const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'tags',
   'version',
   'comparisonOptions',
+  'readMode',
 ]);
 
 /**
  * Check if patches affect the target path
  */
-function patchesAffectPath(patches: Patches | null, targetPath: StorePath): boolean {
-  if (!patches || patches.length === 0) return true;
-
-  return patches.some(patch => {
-    const patchPath = patch.path as StorePath;
-    if (patchPath.length === 0) return true;
-
-    const minLen = Math.min(patchPath.length, targetPath.length);
-    for (let i = 0; i < minLen; i++) {
-      if (patchPath[i] !== targetPath[i]) return false;
-    }
-    return true;
-  });
-}
-
 /**
  * Get value at a specific path
  */
@@ -83,6 +70,8 @@ export interface TimeTravelStoreConfig<T = any> {
   tags?: string[];
   version?: string;
   comparisonOptions?: Partial<ComparisonOptions<T>>;
+  /** Public read policy. Manager defaults to safe defensive reads. */
+  readMode?: 'reference' | 'safe';
 }
 
 /**
@@ -195,7 +184,17 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
       store = createTimeTravelStore(String(storeName), initialValue, {
         maxHistory,
         mutable,
-        isEqual: comparisonOptions?.customComparator,
+        readMode: (storeConfig && isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS))
+          ? (storeConfig as TimeTravelStoreConfig<T[K]>).readMode ?? 'safe'
+          : 'safe',
+        isEqual: comparisonOptions?.customComparator ?? (
+          (comparisonOptions?.strategy ?? strategy) === 'reference'
+            ? undefined
+            : (previous, next) => compareValues(previous, next, {
+                ...comparisonOptions,
+                strategy: comparisonOptions?.strategy ?? strategy,
+              })
+        ),
       });
     } else {
       store = createStore(String(storeName), initialValue);
@@ -537,7 +536,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     );
 
     const getSnapshot = useCallback((): R => {
-      const storeValue = store.getValue();
+      const storeValue = store.getSnapshot().value;
       const currentValue = getValueAtPath<T[K], R>(storeValue, stablePath);
 
       if (!cacheRef.current.initialized) {
@@ -554,7 +553,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     }, [store, stablePath, pathSignature]);
 
     const getServerSnapshot = useCallback((): R => {
-      return getValueAtPath<T[K], R>(store.getValue(), stablePath);
+      return getValueAtPath<T[K], R>(store.getSnapshot().value, stablePath);
     }, [store, stablePath]);
 
     return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -617,7 +616,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     );
 
     const getSnapshot = useCallback((): R => {
-      const currentValue = selector(store.getValue());
+      const currentValue = selector(store.getSnapshot().value);
 
       if (cacheRef.current !== undefined) {
         if (equalityFn ? equalityFn(cacheRef.current, currentValue) : Object.is(cacheRef.current, currentValue)) {

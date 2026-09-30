@@ -37,6 +37,7 @@ export {
 } from './useStoreSelector';
 
 export { useComputedStore } from './useComputedStore';
+export { useStoreTransactionInspector } from './useStoreTransactionInspector';
 
 // === PATH-BASED SUBSCRIPTION HOOKS ===
 // 패치 기반 경로별 구독 (v2.2.0+)
@@ -47,4 +48,3 @@ export {
   type UseStorePathOptions,
   type UseStoreSelectorWithPathsOptions
 } from './useStorePath';
-

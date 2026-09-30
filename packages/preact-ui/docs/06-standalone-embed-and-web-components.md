@@ -1,5 +1,7 @@
 # Standalone UMD 마운트와 Web Component 이식 방식 아키텍처 리뷰
 
+이 문서는 두 배포 방식의 비교 자료다. 공통 구현 표준은 [범용 공개 계약](09-public-component-contract.md)과 [작성 가이드](10-component-authoring-guide.md)를 따른다. 아래 `definePreactElement` 사용은 선택적인 reference 경로이며, 업무별 계약을 factory에 위임하지 않는다.
+
 이 문서는 Preact + Signals 기반으로 구축된 도메인 뷰(예: `projected-order`)를 **순수 HTML, 레거시 시스템, 마이크로 프론트엔드(MFE)** 환경에 이식할 때 사용되는 두 가지 핵심 배포 방식(**UMD 스크립트 마운트** vs **Web Component 래핑**)의 기술적 특성, 장단점, 라이프사이클, 스타일 격리, 상태 동기화 계약을 심층 비교·리뷰합니다.
 
 ---

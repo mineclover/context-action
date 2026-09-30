@@ -5,13 +5,25 @@
  * Provides time-travel functionality through Mutative JSON patches.
  */
 
-import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions } from '@context-action/mutative';
+import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions, type TimeTravelTransitionMeta } from '@context-action/mutative';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 /**
  * Listener that receives patches information
  */
 export type PatchAwareListener = (patches: Patches | null) => void;
+
+function validateHistoryStep(value: number, label: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError(`${label} must be a non-negative safe integer`);
+  }
+}
+
+function validateHistoryPosition(value: number): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError('History position must be a non-negative safe integer');
+  }
+}
 
 import { ErrorHandlers } from '../utils/error-handling';
 import { TypeGuards } from '../utils/type-guards';
@@ -34,6 +46,8 @@ export interface TimeTravelStoreOptions<T> {
   isEqual?: (a: T, b: T) => boolean;
   /** Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate') */
   notificationMode?: 'batched' | 'immediate';
+  /** Public read policy. Reference preserves legacy structural-sharing reads. */
+  readMode?: 'reference' | 'safe';
 }
 
 /**
@@ -63,6 +77,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private patchAwareListeners = new Set<PatchAwareListener>();
   private _snapshot: Snapshot<T>;
   private _lastPatches: Patches | null = null;
+  private _lastTransitionMeta: TimeTravelTransitionMeta | undefined;
   private isDisposed = false;
   private cleanupTasks = new Set<() => void>();
   private customComparator?: (a: T, b: T) => boolean;
@@ -74,6 +89,9 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private pendingNotification = false;
   private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
+  private unsubscribeTimeTravel: Unsubscribe = () => {};
+  private notificationHoldDepth = 0;
+  private notificationDeferred = false;
 
   constructor(
     name: string,
@@ -83,6 +101,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.name = name;
     this.customComparator = options.isEqual;
     this.notificationMode = options.notificationMode ?? 'immediate';
+    this.cloningEnabled = options.readMode === 'safe';
 
     // Create TimeTravel instance
     // mutable=true enables structural sharing for selective re-rendering
@@ -95,17 +114,22 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.timeTravel.subscribe((state, travelPatches, _position, changedPatches) => {
+    this.unsubscribeTimeTravel = this.timeTravel.subscribe((state, travelPatches, _position, changedPatches, metadata) => {
       // Use only the patches from the transition that triggered this
       // notification. The full history remains available through the
       // TimeTravel controls and must not drive path-aware subscriptions.
       this._lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+      this._lastTransitionMeta = metadata;
 
       if (process.env.NODE_ENV === 'development') {
         console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, this._lastPatches.length, 'listeners:', this.listeners.size);
       }
 
       this._updateSnapshot();
+      if (this.notificationHoldDepth > 0) {
+        this.notificationDeferred = true;
+        return;
+      }
       this._scheduleNotification();
     });
 
@@ -148,6 +172,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     return this._lastPatches;
   }
 
+  getLastTransitionMeta(): TimeTravelTransitionMeta | undefined {
+    return this._lastTransitionMeta;
+  }
+
   getSnapshot = (): Snapshot<T> => this._snapshot;
 
   /**
@@ -155,13 +183,20 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    *
    * Returns the state reference directly to maintain structural sharing.
    * This enables selective re-rendering when combined with path-based subscriptions.
-   * Use setCloningEnabled(true) if you need defensive copies.
+   * Use `readMode: 'safe'` or getSafeValue() when the value crosses an
+   * external boundary. Reference reads are retained for legacy action-handler
+   * compatibility and should not be mutated.
    */
   getValue(): T {
     const value = this.timeTravel.getState();
     // Direct return preserves structural sharing for selective re-rendering
     // Clone only when explicitly enabled for defensive copying
     return this.cloningEnabled ? safeGet(value, true) : value;
+  }
+
+  /** Return a defensive copy without changing structural-sharing reads. */
+  getSafeValue(): T {
+    return safeGet(this.timeTravel.getState(), true);
   }
 
   setValue(value: T, options?: StoreSetValueOptions<T>): void {
@@ -218,6 +253,34 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     });
   }
 
+  /** Group multiple updates into one timeline entry and notification. */
+  beginBatch(metadata?: TimeTravelTransitionMeta, options: { deferNotification?: boolean } = {}): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    if (options.deferNotification) this.notificationHoldDepth += 1;
+    this.timeTravel.beginBatch(metadata);
+  }
+
+  endBatch(): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.endBatch();
+  }
+
+  resumeNotifications(): void {
+    if (this.notificationHoldDepth > 0) this.notificationHoldDepth -= 1;
+  }
+
+  flushNotifications(): void {
+    if (this.isDisposed || this.notificationHoldDepth > 0 || !this.notificationDeferred) return;
+    this.notificationDeferred = false;
+    this._scheduleNotification();
+  }
+
+  /** Group multiple updates into one timeline entry and notification. */
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    return this.timeTravel.batch(callback, metadata);
+  }
+
   getListenerCount(): number {
     return this.listeners.size + this.patchAwareListeners.size;
   }
@@ -238,6 +301,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     }
     this.pendingNotification = false;
     this.pendingPatches = null;
+    this.notificationHoldDepth = 0;
+    this.notificationDeferred = false;
+    this.unsubscribeTimeTravel();
+    this.unsubscribeTimeTravel = () => {};
 
     // Execute cleanup tasks
     this.cleanupTasks.forEach((task) => {
@@ -271,6 +338,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   undo(steps = 1): void {
     if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Undo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] undo(${steps}) - position before: ${this.timeTravel.getPosition()}, canBack: ${this.timeTravel.canBack()}`);
     }
@@ -285,6 +353,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   redo(steps = 1): void {
     if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Redo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] redo(${steps}) - position before: ${this.timeTravel.getPosition()}, canForward: ${this.timeTravel.canForward()}`);
     }
@@ -298,6 +367,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Check if undo is possible
    */
   canUndo(): boolean {
+    if (this.isDisposed) return false;
     return this.timeTravel.canBack();
   }
 
@@ -305,6 +375,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Check if redo is possible
    */
   canRedo(): boolean {
+    if (this.isDisposed) return false;
     return this.timeTravel.canForward();
   }
 
@@ -313,6 +384,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   goTo(position: number): void {
     if (this.isDisposed) return;
+    validateHistoryPosition(position);
     this.timeTravel.go(position);
   }
 
@@ -328,6 +400,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get the complete history of states
    */
   getHistory(): readonly T[] {
+    if (this.isDisposed) return [];
     return this.timeTravel.getHistory();
   }
 
@@ -335,6 +408,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get current position in history
    */
   getPosition(): number {
+    if (this.isDisposed) return 0;
     return this.timeTravel.getPosition();
   }
 
@@ -342,7 +416,18 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    * Get time travel controls object
    */
   getTimeTravelControls(): TimeTravelControls<T, false> {
-    return this.timeTravel.getControls();
+    const store = this;
+    return {
+      get position() { return store.getPosition(); },
+      getHistory: () => store.getHistory() as readonly (T extends (...args: unknown[]) => infer R ? R : T)[],
+      get patches() { return store.isStoreDisposed() ? { patches: [], inversePatches: [] } : store.timeTravel.getPatches(); },
+      back: (amount = 1) => store.undo(amount),
+      forward: (amount = 1) => store.redo(amount),
+      reset: () => store.reset(),
+      go: (position) => store.goTo(position),
+      canBack: () => store.canUndo(),
+      canForward: () => store.canRedo(),
+    };
   }
 
   /**

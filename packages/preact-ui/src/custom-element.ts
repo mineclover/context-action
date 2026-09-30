@@ -16,6 +16,10 @@ export interface PreactElementLifecycle<Input> {
   view: ComponentType<{ input: Input }>;
   /** Returns the current input snapshot for mount and update */
   getInput(): Input;
+  /** Starts connection-session resources immediately before the renderer mounts. */
+  onConnect?(): void;
+  /** Releases connection-session resources immediately after the renderer unmounts. */
+  onDisconnect?(): void;
   /** Optional handler for observed attribute changes */
   onAttributeChange?(name: string, oldValue: string | null, newValue: string | null): void;
   /** Optional cleanup callback for permanent teardown */
@@ -56,14 +60,11 @@ export interface ManagedPreactElement<Input> extends HTMLElement {
 }
 
 /**
- * Standard factory for defining resilient Preact Custom Elements.
- * 
- * Guarantees:
- * 1. Shadow DOM encapsulation isolating the Preact renderer from host CSS
- * 2. Form-Associated Custom Elements (FACE) support with ElementInternals
- * 3. Pre-upgrade property preservation
- * 4. Lifecycle decoupling: renderer unmounts on disconnect, domain state/signals persist across reconnect
- * 5. Idempotent registration
+ * Optional convenience factory for a Preact Custom Element shell.
+ *
+ * This helper owns a ShadowRoot renderer and FACE forwarding. It does not
+ * infer a component's public input/event semantics or connection-session
+ * resources; component-specific adapters must define those contracts.
  */
 export function definePreactElement<Input>(
   config: PreactElementConfig<Input>,
@@ -72,8 +73,9 @@ export function definePreactElement<Input>(
     throw new Error('Custom elements require a browser environment');
   }
 
-  const existing = customElements.get(config.tagName);
-  if (existing) return existing;
+  if (customElements.get(config.tagName)) {
+    throw new Error(`${config.tagName} is already registered`);
+  }
 
   class ManagedElement extends HTMLElement implements ManagedPreactElement<Input> {
     static formAssociated = config.formAssociated ?? false;
@@ -83,7 +85,8 @@ export function definePreactElement<Input>(
     #mount: MountInstance<Input> | undefined;
     #lifecycle: PreactElementLifecycle<Input>;
     #internals: ElementInternals | undefined;
-    #upgraded = false;
+    #disposed = false;
+    #sessionActive = false;
 
     constructor() {
       super();
@@ -179,24 +182,40 @@ export function definePreactElement<Input>(
     }
 
     connectedCallback() {
+      if (this.#disposed) return;
       if (this.#mount) return;
-
-      if (!this.#upgraded) {
-        this.#upgraded = true;
+      this.#sessionActive = true;
+      try {
+        this.#lifecycle.onConnect?.();
+        this.#mount = mountPreact(
+          this.#root,
+          this.#lifecycle.view,
+          this.#lifecycle.getInput(),
+        );
+      } catch (error) {
+        this.#mount = undefined;
+        this.#sessionActive = false;
+        try { this.#lifecycle.onDisconnect?.(); } catch (cleanupError) {
+          throw new AggregateError([error, cleanupError], 'Custom element connection failed');
+        }
+        throw error;
       }
-
-      this.#mount = mountPreact(
-        this.#root,
-        this.#lifecycle.view,
-        this.#lifecycle.getInput(),
-      );
     }
 
     disconnectedCallback() {
       // Unmount renderer only; preserve domain signals and state for reconnection
       const mount = this.#mount;
       this.#mount = undefined;
-      mount?.destroy();
+      let firstError: unknown;
+      try { mount?.destroy(); } catch (error) { firstError = error; }
+      if (this.#sessionActive) {
+        this.#sessionActive = false;
+        try { this.#lifecycle.onDisconnect?.(); } catch (error) {
+          if (firstError) throw new AggregateError([firstError, error], 'Custom element disconnection failed');
+          firstError = error;
+        }
+      }
+      if (firstError) throw firstError;
     }
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
@@ -214,6 +233,8 @@ export function definePreactElement<Input>(
     }
 
     dispose() {
+      if (this.#disposed) return;
+      this.#disposed = true;
       this.disconnectedCallback();
       this.#lifecycle.onDestroy?.();
     }

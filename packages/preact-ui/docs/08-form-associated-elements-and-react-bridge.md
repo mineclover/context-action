@@ -1,5 +1,7 @@
 # Form-Associated Custom Elements (FACE) 및 React 상호운용성 브릿지 가이드
 
+> FACE와 React bridge는 선택 기능이다. 이 문서는 `@context-action/preact-ui`의 공통 구현 컨벤션을 대체하지 않으며, 컴포넌트별 계약에서 필요한 경우에만 적용한다. 공개 의미와 수명은 [공개 계약](09-public-component-contract.md) 및 [생명주기 규칙](11-lifecycle-and-resources.md)에 먼저 기록한다.
+
 이 문서는 Preact + Signals 기반 Custom Elements를 브라우저 **웹 표준 폼(HTMLFormElement, FormData, Constraint Validation)** 및 **외부 대규모 React 애플리케이션**과 완벽하게 연동하기 위한 두 가지 핵심 확장 아키텍처 패턴을 설명합니다.
 
 ---
@@ -121,7 +123,7 @@ React 18 및 React 19 환경에서 Custom Element를 직접 JSX로 작성할 때
 `@context-action/preact-ui`는 React 상호운용성을 위한 경량 브릿지 팩토리를 제공합니다:
 
 ```typescript
-import { createCustomElementBridge } from '@context-action/preact-ui';
+import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
 
 interface CartBadgeProps {
   customerName?: string;

@@ -74,3 +74,5 @@ export {
   isPathPrefix, // Alias for isPointerPrefix
   type JsonPointerPath
 } from './json-pointer';
+
+export { patchesAffectPath, type StorePathSegment } from './patch-affects-path';

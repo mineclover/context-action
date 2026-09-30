@@ -66,6 +66,10 @@ Install the protocol package separately when an integration needs it:
 npm install @context-action/tool-protocol zod
 ```
 
+The action execution and state-management boundaries are documented in
+[Action contracts](docs/action-contracts.md). Core owns dispatch control flow;
+Store snapshots and time-travel history belong to the React store layer.
+
 The React-facing registry remains in `@context-action/react`; protocol symbols
 such as `defineAction`, `listAllTools`, and `ToolManagementInterface` must be
 imported from `@context-action/tool-protocol`.
@@ -173,7 +177,7 @@ const actions = new ActionRegister<MyActions>({
 // should be treated as a programming error.
 ```
 
-## v1.1 Pipeline Contract
+## v1.2 Pipeline Contract
 
 ### Phase-specific registration
 

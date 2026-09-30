@@ -19,6 +19,7 @@ import type {
   TimeTravelControls,
   ManualTimeTravelControls,
   TimeTravelListener,
+  TimeTravelTransitionMeta,
   Updater,
   Value,
 } from './types';
@@ -125,6 +126,10 @@ export class TimeTravel<
   private historyCache: { version: number; history: S[] } | null = null;
   private historyVersion = 0;
   private mutableFallbackWarned = false;
+  private batchDepth = 0;
+  private batchInitialState: S | null = null;
+  private batchChanged = false;
+  private batchMeta: TimeTravelTransitionMeta | undefined;
 
   constructor(initialState: S, options: TimeTravelOptions<F, A, P> = {} as TimeTravelOptions<F, A, P>) {
     const {
@@ -219,9 +224,9 @@ export class TimeTravel<
     this.historyCache = null;
   }
 
-  private notify(changedPatches?: Patches<P>): void {
+  private notify(changedPatches?: Patches<P>, metadata?: TimeTravelTransitionMeta): void {
     this.listeners.forEach((listener) =>
-      listener(this.state, this.getPatches(), this.position, changedPatches)
+      listener(this.state, this.getPatches(), this.position, changedPatches, metadata)
     );
   }
 
@@ -348,6 +353,72 @@ export class TimeTravel<
       return;
     }
 
+    if (this.batchDepth > 0) {
+      this.batchChanged = true;
+      return;
+    }
+
+    this.commitPatches(patches, inversePatches);
+  }
+
+  beginBatch(metadata?: TimeTravelTransitionMeta): void {
+    if (this.batchDepth === 0) {
+      this.batchInitialState = deepClone(this.state);
+      this.batchChanged = false;
+      this.batchMeta = metadata;
+    }
+    this.batchDepth += 1;
+  }
+
+  endBatch(): void {
+    if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
+    this.batchDepth -= 1;
+    if (this.batchDepth !== 0) return;
+
+    const initialState = this.batchInitialState;
+    this.batchInitialState = null;
+    const changed = this.batchChanged;
+    const transitionMeta = this.batchMeta;
+    this.batchChanged = false;
+    this.batchMeta = undefined;
+    if (!changed || initialState === null) return;
+
+    const [, patches, inversePatches] = create(
+      initialState,
+      draft => overwriteDraftWith(draft, this.state),
+      this.options,
+    ) as [S, Patches<P>, Patches<P>];
+    if (patches.length > 0 || inversePatches.length > 0) {
+      this.commitPatches(patches, inversePatches, transitionMeta);
+    }
+  }
+
+  /** Group synchronous or asynchronous updates into one history entry. */
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
+    this.beginBatch(metadata);
+
+    try {
+      const result = callback();
+      if (result && typeof (result as { then?: unknown }).then === 'function') {
+        return (result as unknown as Promise<unknown>).then(
+          value => { this.endBatch(); return value; },
+          error => { this.endBatch(); throw error; },
+        ) as R;
+      }
+      this.endBatch();
+      return result;
+    } catch (error) {
+      this.endBatch();
+      throw error;
+    }
+  }
+
+  private commitPatches(
+    patches: Patches<P>,
+    inversePatches: Patches<P>,
+    metadata?: TimeTravelTransitionMeta,
+  ): void {
+
     if (this.autoArchive) {
       this.archivePatches(patches, inversePatches);
       if (process.env.NODE_ENV !== 'production') {
@@ -358,7 +429,7 @@ export class TimeTravel<
     }
 
     this.invalidateHistoryCache();
-    this.notify(patches);
+    this.notify(patches, metadata);
   }
 
   private archivePatches(patches: Patches<P>, inversePatches: Patches<P>): void {
@@ -504,6 +575,9 @@ export class TimeTravel<
    * Go to specific position in history
    */
   go(nextPosition: number): void {
+    if (!Number.isSafeInteger(nextPosition) || nextPosition < 0) {
+      throw new RangeError('TimeTravel position must be a non-negative safe integer');
+    }
     if (process.env.NODE_ENV !== 'production') {
       logger.debug(`go(${nextPosition}) - current position: ${this.position}`);
     }
@@ -567,6 +641,9 @@ export class TimeTravel<
    * Go back in history
    */
   back(amount = 1): void {
+    if (!Number.isSafeInteger(amount) || amount < 0) {
+      throw new RangeError('TimeTravel back amount must be a non-negative safe integer');
+    }
     this.go(this.position - amount);
   }
 
@@ -574,6 +651,9 @@ export class TimeTravel<
    * Go forward in history
    */
   forward(amount = 1): void {
+    if (!Number.isSafeInteger(amount) || amount < 0) {
+      throw new RangeError('TimeTravel forward amount must be a non-negative safe integer');
+    }
     this.go(this.position + amount);
   }
 

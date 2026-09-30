@@ -8,7 +8,7 @@
 
 > **UnregisterFunction** = () => `void`
 
-Defined in: [packages/core/src/types.ts:1250](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1250)
+Defined in: [packages/core/src/types.ts:1271](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1271)
 
 Function type for unregistering action handlers
 

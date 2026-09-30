@@ -8,7 +8,7 @@
 
 > **InferTimeTravelStoreTypes**&lt;`T`&gt; = `{ readonly [K in keyof T]: T[K] extends ExplicitStoreValue<infer V> ? V : T[K] extends { initialValue: infer V } ? Exclude<keyof T[K], keyof TimeTravelStoreConfig<any>> extends never ? V : T[K] : T[K] extends (args: unknown[]) => unknown ? never : T[K] }`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:112](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L112)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L101)
 
 Infer store types from definitions
 

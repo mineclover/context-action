@@ -25,6 +25,8 @@ import {
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
+  ActionDispatchTrace,
+  ActionDispatchTraceListener,
   DispatchArgs,
   DispatchOptions,
   ExecutionMode,
@@ -179,6 +181,8 @@ export class ActionRegister<
   private readonly activeHandlerPromises = new Set<Promise<unknown>>();
   private destroyAsyncPromise: Promise<void> | undefined;
   private dispatchConstructionDepth = 0;
+  private dispatchTraceSequence = 0;
+  private readonly dispatchTraceListeners = new Set<ActionDispatchTraceListener>();
 
   // 🔧 Performance optimization: Cached Proxy instances for actions getters
   private _actionsProxy?: {
@@ -505,6 +509,69 @@ export class ActionRegister<
     }
   }
 
+  private beginDispatchTrace(action: string, options?: DispatchOptions): {
+    dispatchId: string;
+    startedAt: number;
+    settle: (status: ActionDispatchTrace['status']) => void;
+  } {
+    const dispatchId = `${this.name}:${++this.dispatchTraceSequence}`;
+    const startedAt = Date.now();
+    const metadata = options?.trace;
+    let settled = false;
+    const emit = (event: ActionDispatchTrace) => {
+      for (const listener of this.dispatchTraceListeners) {
+        try { listener(event); } catch (error) {
+          this.log('Dispatch trace listener failed', error, 'warn');
+        }
+      }
+    };
+    emit({
+      dispatchId,
+      action,
+      phase: 'started',
+      transactionId: metadata?.transactionId,
+      origin: metadata?.origin,
+      label: metadata?.label,
+      startedAt,
+    });
+    return {
+      dispatchId,
+      startedAt,
+      settle: (status) => {
+        if (settled) return;
+        settled = true;
+        emit({
+          dispatchId,
+          action,
+          phase: 'settled',
+          status,
+          transactionId: metadata?.transactionId,
+          origin: metadata?.origin,
+          label: metadata?.label,
+          startedAt,
+          endedAt: Date.now(),
+        });
+      },
+    };
+  }
+
+  private withDispatchTrace<R>(
+    promise: Promise<R>,
+    trace: ReturnType<ActionRegister<T, TResultMap>['beginDispatchTrace']>,
+    status: (result: R) => ActionDispatchTrace['status'],
+  ): Promise<R> {
+    return promise.then(
+      result => { trace.settle(status(result)); return result; },
+      error => { trace.settle('failed'); throw error; },
+    );
+  }
+
+  /** Subscribe to start/settled dispatch lifecycle events. */
+  subscribeDispatchTrace(listener: ActionDispatchTraceListener): UnregisterFunction {
+    this.dispatchTraceListeners.add(listener);
+    return () => this.dispatchTraceListeners.delete(listener);
+  }
+
   private assertAcceptingWork(): void {
     if (this.lifecycleState !== 'active') {
       throw new ActionRegisterDestroyedError(this.name, this.lifecycleState);
@@ -757,8 +824,9 @@ export class ActionRegister<
   dispatch<K extends ActionNames<T>>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
     this.assertStringActionKey(action);
     const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const trace = this.beginDispatchTrace(String(action), options);
     if (this.lifecycleState !== 'active') {
-      return this.rejectedLifecyclePromise<void>();
+      return this.withDispatchTrace(this.rejectedLifecyclePromise<void>(), trace, () => 'failed');
     }
 
     const timeoutScope = this.createTimeoutScope(action, options);
@@ -768,6 +836,7 @@ export class ActionRegister<
     const hasTimingGuard = plan.debounceMs !== undefined || plan.throttleMs !== undefined;
     const notifiedObservers = new Set<HandlerRegistration<any, any>>();
     const notifiedObserverOutcomes = new Set<ActionObserverEvent<T[K], unknown>['outcome']>();
+    let dispatchTraceStatus: ActionDispatchTrace['status'] = 'completed';
     let terminalErrorReported = false;
     const reportTerminalError = (error: unknown) => {
       if (terminalErrorReported) return;
@@ -779,6 +848,10 @@ export class ActionRegister<
     const notifyObservers = async (event: ActionObserverEvent<T[K], unknown>) => {
       if (notifiedObserverOutcomes.has(event.outcome)) return;
       notifiedObserverOutcomes.add(event.outcome);
+      if (event.outcome === 'failed') dispatchTraceStatus = 'failed';
+      else if (event.outcome === 'cancelled') dispatchTraceStatus = 'cancelled';
+      else if (event.outcome === 'debounced') dispatchTraceStatus = 'debounced';
+      else if (event.outcome === 'throttled') dispatchTraceStatus = 'throttled';
       await this.executeObservers(action, plan, event, notifiedObservers);
     };
     const pipelineOperation = async () => {
@@ -965,8 +1038,9 @@ export class ActionRegister<
 
     // Preserve rejection semantics for observers without leaking fire-and-forget
     // dispatches as process-level unhandled rejections.
-    void observedPromise.catch(() => {});
-    return observedPromise;
+    const tracedPromise = this.withDispatchTrace(observedPromise, trace, () => dispatchTraceStatus);
+    void tracedPromise.catch(() => {});
+    return tracedPromise;
   }
 
   /** Execute a dispatch operation with an optional whole-action retry policy. */
@@ -1791,8 +1865,9 @@ export class ActionRegister<
   ): Promise<ExecutionResult<R>> {
     this.assertStringActionKey(action);
     const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const trace = this.beginDispatchTrace(String(action), options);
     if (this.lifecycleState !== 'active') {
-      return this.rejectedLifecyclePromise<ExecutionResult<R>>();
+      return this.withDispatchTrace(this.rejectedLifecyclePromise<ExecutionResult<R>>(), trace, () => 'failed');
     }
 
     const timeoutScope = this.createTimeoutScope(action, options);
@@ -2070,8 +2145,11 @@ export class ActionRegister<
       throw error;
     });
 
-    void observedPromise.catch(() => {});
-    return observedPromise;
+    const tracedPromise = this.withDispatchTrace(observedPromise, trace, result => (
+      result.success ? 'completed' : result.outcome === 'cancelled' ? 'cancelled' : 'failed'
+    ));
+    void tracedPromise.catch(() => {});
+    return tracedPromise;
   }
 
   private async _performDispatchWithResult<K extends keyof T, R = void>(
@@ -3099,6 +3177,7 @@ export class ActionRegister<
     if (this.lifecycleState === 'destroyed') return;
 
     this.clearAll();
+    this.dispatchTraceListeners.clear();
     this.actionExecutionModes.clear();
     this.lifecycleState = 'destroyed';
     this.log('ActionRegister destroyed');

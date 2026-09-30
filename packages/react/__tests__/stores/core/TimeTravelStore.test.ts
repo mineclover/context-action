@@ -121,6 +121,12 @@ describe('TimeTravelStore', () => {
       expect(snapshot.name).toBe('test-store');
       expect(typeof snapshot.lastUpdate).toBe('number');
     });
+
+    it('should provide an explicit defensive read boundary', () => {
+      const safeValue = store.getSafeValue();
+      try { (safeValue as { count: number }).count = 99; } catch { /* frozen defensive copy */ }
+      expect(store.getValue().count).toBe(0);
+    });
   });
 
   describe('Time Travel API - Undo/Redo', () => {
@@ -171,6 +177,12 @@ describe('TimeTravelStore', () => {
 
       store.redo(2);
       expect(store.getValue().count).toBe(2);
+    });
+
+    it('should reject invalid history steps and positions', () => {
+      expect(() => store.undo(-1)).toThrow('safe integer');
+      expect(() => store.redo(Number.NaN)).toThrow('safe integer');
+      expect(() => store.goTo(1.5)).toThrow('safe integer');
     });
 
     it('should report canUndo correctly', () => {
@@ -283,6 +295,17 @@ describe('TimeTravelStore', () => {
       expect(controls).toHaveProperty('reset');
       expect(controls).toHaveProperty('canBack');
       expect(controls).toHaveProperty('canForward');
+    });
+
+    it('should invalidate controls after disposal', () => {
+      store.setValue({ count: 1, name: 'a' });
+      const controls = store.getTimeTravelControls();
+      store.dispose();
+      expect(controls.canBack()).toBe(false);
+      expect(controls.canForward()).toBe(false);
+      expect(controls.position).toBe(0);
+      expect(controls.getHistory()).toEqual([]);
+      expect(() => controls.back()).not.toThrow();
     });
   });
 

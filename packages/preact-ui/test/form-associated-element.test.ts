@@ -107,4 +107,48 @@ describe('Form-Associated Custom Elements (FACE)', () => {
     expect(() => capturedContext.setValidity({ valueMissing: true }, 'Please fill')).not.toThrow();
     expect(() => el.setCustomValidity('Invalid value')).not.toThrow();
   });
+
+  it('treats dispose as terminal and rejects tag collisions', () => {
+    const tag = 'test-face-terminal';
+    let destroyed = 0;
+    const FaceTag = definePreactElement({
+      tagName: tag,
+      setup() {
+        return {
+          view: () => null,
+          getInput: () => undefined,
+          onDestroy() { destroyed += 1; },
+        };
+      },
+    });
+    const element = new FaceTag() as HTMLElement & { dispose(): void };
+    document.body.append(element);
+    element.dispose();
+    element.dispose();
+    document.body.append(element);
+    expect(destroyed).toBe(1);
+    expect(element.shadowRoot?.querySelector('div')?.childNodes.length).toBe(0);
+    expect(() => definePreactElement({ tagName: tag, setup: () => ({ view: () => null, getInput: () => undefined }) })).toThrow('already registered');
+  });
+
+  it('creates and releases a connection session on every reconnect', () => {
+    const events: string[] = [];
+    const FaceTag = definePreactElement({
+      tagName: 'test-face-session',
+      setup() {
+        return {
+          view: () => null,
+          getInput: () => undefined,
+          onConnect() { events.push('connect'); },
+          onDisconnect() { events.push('disconnect'); },
+        };
+      },
+    });
+    const element = new FaceTag() as HTMLElement & { dispose(): void };
+    document.body.append(element);
+    element.remove();
+    document.body.append(element);
+    element.dispose();
+    expect(events).toEqual(['connect', 'disconnect', 'connect', 'disconnect']);
+  });
 });

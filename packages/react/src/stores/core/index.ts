@@ -14,6 +14,10 @@ export { Store, createStore } from './Store';
 
 // Store Registry for managing multiple stores
 export { StoreRegistry } from './StoreRegistry';
+export { StoreTransactionCoordinator } from './StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './StoreTransactionCoordinator';
+export { bindActionTransactions } from './ActionTransactionBridge';
+export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './ActionTransactionBridge';
 
 
 
@@ -25,3 +29,14 @@ export type {
   Unsubscribe,
   Snapshot,
 } from './types';
+
+export type {
+  ReadonlyStateSnapshot,
+  StateMutationMeta,
+  StateMutationOrigin,
+  StateTransition,
+  StoreReader,
+  StoreWriter,
+  TimelineReader,
+  TimelineWriter,
+} from './contracts';

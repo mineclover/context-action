@@ -1,7 +1,5 @@
-import {
-  createCustomElementBridge,
-  definePreactElement,
-} from '@context-action/preact-ui';
+import { definePreactElement } from '@context-action/preact-ui';
+import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
 import { useStoreValue } from '@context-action/react';
 import { signal } from '@preact/signals';
 import { h } from 'preact';
@@ -78,7 +76,7 @@ function ensureCustomElementsRegistered() {
           return { min, max };
         }
 
-        function updateFormValueAndEvent(val: number) {
+        function updateFormValueAndEvent(val: number, emitChange = false) {
           const { min, max } = getBounds();
           context.setFormValue(String(val));
 
@@ -96,16 +94,16 @@ function ensureCustomElementsRegistered() {
             context.setValidity({});
           }
 
-          element.dispatchEvent(
-            new CustomEvent('quantity-change', {
-              detail: { value: val },
-              bubbles: true,
-              composed: true,
-            })
-          );
+          if (emitChange) {
+            element.dispatchEvent(
+              new CustomEvent('quantity-change', {
+                detail: { value: val },
+                bubbles: true,
+                composed: true,
+              })
+            );
+          }
         }
-
-        updateFormValueAndEvent(countSignal.value);
 
         function StepperView() {
           const { min, max } = getBounds();
@@ -125,7 +123,7 @@ function ensureCustomElementsRegistered() {
                 onClick: () => {
                   if (countSignal.value > min) {
                     countSignal.value -= 1;
-                    updateFormValueAndEvent(countSignal.value);
+                    updateFormValueAndEvent(countSignal.value, true);
                   }
                 },
               },
@@ -146,7 +144,7 @@ function ensureCustomElementsRegistered() {
                 onClick: () => {
                   if (countSignal.value < max) {
                     countSignal.value += 1;
-                    updateFormValueAndEvent(countSignal.value);
+                    updateFormValueAndEvent(countSignal.value, true);
                   }
                 },
               },
@@ -158,6 +156,9 @@ function ensureCustomElementsRegistered() {
         return {
           view: StepperView,
           getInput: () => countSignal.value,
+          onConnect() {
+            updateFormValueAndEvent(countSignal.value);
+          },
           onAttributeChange(name, _oldVal, newVal) {
             if (name === 'value' && newVal !== null) {
               const parsed = parseInt(newVal, 10);

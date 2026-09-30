@@ -40,8 +40,16 @@ Root children은 Preact에 위임하지만 Root 자체는 제거하지 않습니
 
 `add(cleanup)`, `dispose()`, 읽기 전용 `disposed`를 제공합니다. 제공자부터 등록하고 소비자부터 해제하는 LIFO 규칙입니다. 모든 cleanup을 시도한 후 실패들을 AggregateError로 보고합니다. 두 번째 dispose는 아무 일도 하지 않습니다. 이미 dispose된 scope에 add하면 cleanup을 즉시 실행합니다.
 
+### `hydratePreact(root, View, initialInput)`
+
+SSR 결과가 이미 들어 있는 `Element | ShadowRoot`를 위한 별도 경로입니다. 비어 있는 root는 거부하며 기존 children을 지우지 않습니다. 반환값은 `HydrationInstance`이고 `update`·`destroy`는 `MountInstance`와 같은 수명을 갖습니다. 일반 `mountPreact`는 hydration을 시도하지 않습니다.
+
+서버 렌더링은 선택적 `@context-action/preact-ui/ssr` entry의 `createSSR(View)`로 수행합니다. 이 entry는 `preact-render-to-string` peer를 필요로 하며 `document`, `window`, `customElements`를 참조하지 않습니다.
+
 ## 예제 Component 소비자 계약
 
 Template counter: `setLabel(string)`, `setValue(number): Promise<void>`, `destroy()`. borrowed model을 사용합니다.
 
 Custom Element counter: `value: number`, `disabled: boolean`, `focusIncrement(): boolean`, `value-change` 이벤트의 `detail: { value: number }`. value는 유한수만 허용합니다. 프로그램 입력은 이벤트를 재발행하지 않으며 사용자 조작에만 이벤트가 발생합니다. 연결 해제 중에도 value 입력은 보존합니다.
+
+React interop는 선택적 `@context-action/preact-ui/react-bridge` entry에서만 제공합니다. 기본 `@context-action/preact-ui` entry는 React runtime을 로드하지 않으며, bridge를 사용할 때만 React peer dependency를 함께 설치합니다.

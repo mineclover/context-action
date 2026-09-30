@@ -5,6 +5,7 @@ import {
   clearCart,
   defineCartBadgeElement,
   defineCartDrawerElement,
+  defineQuantityStepperElement,
 } from '../examples/modular-signals-wc/index.js';
 
 describe('Modular Signals & Multi-Web-Component Integration', () => {
@@ -87,5 +88,21 @@ describe('Modular Signals & Multi-Web-Component Integration', () => {
     });
 
     expect(drawerEl.shadowRoot?.querySelector('[data-testid="empty-cart-msg"]')).not.toBeNull();
+  });
+
+  it('does not echo initial or programmatic stepper changes as user events', async () => {
+    const StepperTag = defineQuantityStepperElement('test-contract-stepper');
+    const stepper = new StepperTag();
+    let changes = 0;
+    stepper.addEventListener('quantity-change', () => { changes += 1; });
+    stepper.setAttribute('value', '3');
+    document.body.append(stepper);
+    expect(changes).toBe(0);
+
+    await act(() => { stepper.shadowRoot?.querySelectorAll('button')[1]?.click(); });
+    expect(changes).toBe(1);
+
+    stepper.setAttribute('value', '7');
+    expect(changes).toBe(1);
   });
 });

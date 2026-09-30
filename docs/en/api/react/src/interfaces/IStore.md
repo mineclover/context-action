@@ -135,11 +135,25 @@ Type parameter **T**
 
 ***
 
+### getSafeValue?
+
+> `optional` **getSafeValue?**: () => `T`
+
+Defined in: [packages/react/src/stores/core/types.ts:169](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L169)
+
+Get a defensive copy for external integration boundaries
+
+#### Returns
+
+Type parameter **T**
+
+***
+
 ### getListenerCount?
 
 > `optional` **getListenerCount?**: () => `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:169](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L169)
+Defined in: [packages/react/src/stores/core/types.ts:172](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L172)
 
 Get number of active listeners (debugging/monitoring)
 
@@ -153,7 +167,7 @@ Get number of active listeners (debugging/monitoring)
 
 > `optional` **dispose?**: () => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:172](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L172)
+Defined in: [packages/react/src/stores/core/types.ts:175](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L175)
 
 Enhanced disposal with comprehensive cleanup
 
@@ -167,7 +181,7 @@ Enhanced disposal with comprehensive cleanup
 
 > `optional` **registerCleanup?**: (`task`) => () => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:176](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L176)
+Defined in: [packages/react/src/stores/core/types.ts:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L179)
 
 Register cleanup task for automatic execution on disposal
 
@@ -187,7 +201,7 @@ Register cleanup task for automatic execution on disposal
 
 > `optional` **isStoreDisposed?**: () => `boolean`
 
-Defined in: [packages/react/src/stores/core/types.ts:179](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L179)
+Defined in: [packages/react/src/stores/core/types.ts:182](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L182)
 
 Check if store is disposed
 
@@ -201,7 +215,7 @@ Check if store is disposed
 
 > `optional` **getMetrics?**: () => `StoreMetrics`
 
-Defined in: [packages/react/src/stores/core/types.ts:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L183)
+Defined in: [packages/react/src/stores/core/types.ts:186](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L186)
 
 Get store performance metrics
 
@@ -215,7 +229,7 @@ Type parameter **StoreMetrics**
 
 > `optional` **resetMetrics?**: () => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:186](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L186)
+Defined in: [packages/react/src/stores/core/types.ts:189](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L189)
 
 Reset performance metrics
 
@@ -229,7 +243,7 @@ Reset performance metrics
 
 > `optional` **setSecurityOptions?**: (`options`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:190](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L190)
+Defined in: [packages/react/src/stores/core/types.ts:193](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L193)
 
 Set security options
 
@@ -249,7 +263,7 @@ Type parameter **SecurityOptions**
 
 > `optional` **getSecurityOptions?**: () => `SecurityOptions` \| `undefined`
 
-Defined in: [packages/react/src/stores/core/types.ts:193](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L193)
+Defined in: [packages/react/src/stores/core/types.ts:196](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L196)
 
 Get current security options
 
@@ -263,7 +277,7 @@ Get current security options
 
 > `optional` **notifyPath?**: (`path`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:201](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L201)
+Defined in: [packages/react/src/stores/core/types.ts:204](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L204)
 
 Manually notify path-based subscribers without changing state value
 Useful for external systems (WebSocket, async operations) that need to
@@ -285,7 +299,7 @@ trigger UI updates for specific paths without actual state changes.
 
 > `optional` **notifyPaths?**: (`paths`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:206](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L206)
+Defined in: [packages/react/src/stores/core/types.ts:209](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L209)
 
 Manually notify multiple paths at once
 

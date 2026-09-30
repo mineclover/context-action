@@ -31,7 +31,7 @@ function releaseSources() {
     packageSource: read('package.json'),
     publishHelper: read('scripts/publish-packages.cjs'),
     changelogVerifier: read('scripts/verify-tool-protocol-changelog.mjs'),
-    coordinatedPlanSource: read('releases/coordinated-stable-2026-08.json'),
+    coordinatedPlanSource: read('releases/coordinated-stable-2026-10.json'),
   };
 }
 

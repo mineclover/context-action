@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.0] (2026-10-01)
+
+### Breaking changes
+
+- TimeTravelStoreManager defaults to defensive `readMode: safe`. Set `readMode: reference` explicitly to preserve reference reads. The direct factory keeps its reference default.
+- Require Core 1.2.0 and Mutative 0.9.0 for dispatch tracing and batched timeline transactions.
+
+### Features
+
+- Add role-based Store contracts, explicit multi-store transactions, serializable inspector snapshots, and action-to-state transaction bridging.
+
+### Reliability fixes
+
+- Keep path subscriptions and coordinated undo/redo snapshots referentially stable and atomically observable.
+
 ## [3.0.0] (2026-08-22)
 
 ### Breaking changes

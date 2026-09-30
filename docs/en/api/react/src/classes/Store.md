@@ -237,11 +237,29 @@ architecture-terms
 
 ***
 
+### getSafeValue()
+
+> **getSafeValue**(): `T`
+
+Defined in: [packages/react/src/stores/core/Store.ts:291](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L291)
+
+Return a defensive copy without changing the configured read mode.
+
+#### Returns
+
+Type parameter **T**
+
+#### Implementation of
+
+[`IStore`](../interfaces/IStore.md).[`getSafeValue`](../interfaces/IStore.md#getsafevalue)
+
+***
+
 ### setValue()
 
 > **setValue**(`value`, `options?`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:305](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L305)
+Defined in: [packages/react/src/stores/core/Store.ts:310](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L310)
 
 Store 값 설정 및 구독자 알림
 핵심 로직: 
@@ -289,7 +307,7 @@ architecture-terms
 
 > **update**(`updater`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:428](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L428)
+Defined in: [packages/react/src/stores/core/Store.ts:433](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L433)
 
 Update value using updater function with Mutative integration
 핵심 로직:
@@ -321,7 +339,7 @@ store-immutability
 
 > **getListenerCount**(): `number`
 
-Defined in: [packages/react/src/stores/core/Store.ts:551](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L551)
+Defined in: [packages/react/src/stores/core/Store.ts:556](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L556)
 
 Get number of active listeners (includes patch-aware listeners)
 
@@ -339,7 +357,7 @@ Get number of active listeners (includes patch-aware listeners)
 
 > **clearListeners**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:558](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L558)
+Defined in: [packages/react/src/stores/core/Store.ts:563](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L563)
 
 Clear all listeners (includes patch-aware listeners)
 
@@ -353,7 +371,7 @@ Clear all listeners (includes patch-aware listeners)
 
 > **notifyPath**(`path`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:581](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L581)
+Defined in: [packages/react/src/stores/core/Store.ts:586](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L586)
 
 Manually notify path-based subscribers without changing state value
 
@@ -393,7 +411,7 @@ async function fetchData(store: Store<AppState>) {
 
 > **notifyPaths**(`paths`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:609](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L609)
+Defined in: [packages/react/src/stores/core/Store.ts:614](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L614)
 
 Manually notify multiple paths at once
 
@@ -428,7 +446,7 @@ store.notifyPaths([
 
 > **registerCleanup**(`task`): () => `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:657](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L657)
+Defined in: [packages/react/src/stores/core/Store.ts:662](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L662)
 
 Register cleanup task for automatic execution on disposal
 
@@ -469,7 +487,7 @@ unregister();
 
 > **dispose**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:685](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L685)
+Defined in: [packages/react/src/stores/core/Store.ts:690](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L690)
 
 Enhanced Store disposal with comprehensive cleanup
 
@@ -503,7 +521,7 @@ useEffect(() => {
 
 > **isStoreDisposed**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/Store.ts:738](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L738)
+Defined in: [packages/react/src/stores/core/Store.ts:743](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L743)
 
 Check if store is disposed
 
@@ -523,7 +541,7 @@ true if store has been disposed
 
 > **setCustomComparator**(`comparator`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:749](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L749)
+Defined in: [packages/react/src/stores/core/Store.ts:754](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L754)
 
 Store별 커스텀 비교 함수 설정
 이 Store에만 적용되는 특별한 비교 로직 설정
@@ -550,7 +568,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-con
 
 > **setComparisonOptions**(`options`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:760](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L760)
+Defined in: [packages/react/src/stores/core/Store.ts:765](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L765)
 
 Store별 비교 옵션 설정
 이 Store에만 적용되는 비교 전략 설정
@@ -577,7 +595,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-con
 
 > **setCloningEnabled**(`enabled`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:773](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L773)
+Defined in: [packages/react/src/stores/core/Store.ts:778](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L778)
 
 성능 최적화: Store별 복사 동작 제어
 
@@ -603,7 +621,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/performance
 
 > **isCloningEnabled**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/Store.ts:780](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L780)
+Defined in: [packages/react/src/stores/core/Store.ts:785](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L785)
 
 현재 복사 설정 조회
 

@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 // Runtime dependencies remain external; the host supplies one Preact/Signals copy.
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/react-bridge.ts', 'src/ssr.ts'],
   format: ['esm', 'cjs'],
   dts: true,
   hash: false,
@@ -12,6 +12,6 @@ export default defineConfig({
   treeshake: true,
   outDir: 'dist',
   deps: {
-    neverBundle: ['react', 'react-dom', 'preact', '@preact/signals'],
+    neverBundle: ['react', 'react-dom', 'preact', '@preact/signals', 'preact-render-to-string'],
   },
 });

@@ -957,6 +957,12 @@ export interface ActionRegisterConfig {
  * @public
  */
 export interface DispatchOptions {
+  /** Metadata forwarded to external state transaction bridges. */
+  trace?: {
+    transactionId?: string;
+    origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
+    label?: string;
+  };
   /** Debounce delay in milliseconds - wait for this delay after last call */
   debounce?: number;
   
@@ -1051,6 +1057,21 @@ export interface DispatchOptions {
     includeErrors?: boolean;
   };
 }
+
+/** Lifecycle trace emitted around a public dispatch operation. */
+export interface ActionDispatchTrace {
+  readonly dispatchId: string;
+  readonly action: string;
+  readonly phase: 'started' | 'settled';
+  readonly status?: 'completed' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  readonly transactionId?: string;
+  readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
+  readonly label?: string;
+  readonly startedAt: number;
+  readonly endedAt?: number;
+}
+
+export type ActionDispatchTraceListener = (event: ActionDispatchTrace) => void;
 
 /**
  * Comprehensive result of pipeline execution with detailed execution information

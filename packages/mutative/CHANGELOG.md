@@ -3,7 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [0.8.8] (Unreleased)
+## [0.9.0] (2026-10-01)
+
+- Add explicit timeline batches and transition metadata for multi-store transactions.
+- Reject invalid history cursor/step arguments before patch application.
+- Keep batched updates in a single history entry and publish transition-only patches.
+
+## [0.8.8] (2026-07-21)
 
 - Moved the maintained Mutative runtime into `@context-action/mutative-core`.
 - The adapter now depends on the workspace core package and no longer requires

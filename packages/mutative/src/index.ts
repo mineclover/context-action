@@ -16,6 +16,7 @@ export type {
   TimeTravelControls,
   ManualTimeTravelControls,
   TimeTravelListener,
+  TimeTravelTransitionMeta,
 
   // Value types
   InitialValue,
