@@ -111,6 +111,13 @@ function Layout({
         'Micro-Frontend bridge linking React 19 and Preact Signals Custom Elements with FACE',
     },
     {
+      path: '/integrations/lit-web-components',
+      label: '🔥 Lit Web Components',
+      category: 'architecture',
+      description:
+        'Lit 3 Web Components with StoreController, ActionController, FACE and W3C Context Protocol',
+    },
+    {
       path: '/patterns/implementation-playbook/scenarios',
       label: '🗂️ Playbook Scenarios',
       category: 'architecture',

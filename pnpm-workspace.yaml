@@ -7,6 +7,8 @@ packages:
   - packages/react
   - packages/preact
   - packages/preact-ui
+  - packages/lit
+  - packages/lit-ui
   - packages/mutative-core
   - packages/mutative
   - packages/llms-generator
