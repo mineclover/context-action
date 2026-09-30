@@ -143,6 +143,54 @@ This path now shows the full pattern as a reusable standard: convention, skill, 
 
 ---
 
+## 🏛️ 4 Core Development Standards
+
+The Context-Action framework guarantees implementation autonomy while enforcing **4 Core Development Standards** to preserve architectural consistency and zero-leak reliability across enterprise micro-frontends:
+
+### 1. 📊 State Management Architecture
+* **3-Tier State Hierarchy**:
+  - **Tier 1 (Local UI Transient)**: Scoped strictly inside the component (`isFocused`, `isOpen`). Handled via Lit `@state()` or Preact `signal()`.
+  - **Tier 2 (Component Controlled Value)**: Form control values (`value`, `validity`). Managed via `@property()` + `ElementInternals.setFormValue()` with form reset restoration.
+  - **Tier 3 (Domain / Shared Business State)**: Shared enterprise models (cart, user session). Sourced directly from Context-Action `ReadableStore` or global Signals (Single Source of Truth).
+* **Selective Projection**: Subscribe strictly to minimal projected state slices via `selector` functions.
+* **Equality Guard**: Suppress render requests when projected slices remain unchanged (`equalityFn: Object.is`), keeping render overhead at 0 even during 120fps high-frequency mouse/touch streams.
+* **Coalesced Pending**: Track async action status (`isPending`) and coalesce renders exclusively on 0 ↔ >0 transitions.
+
+### 2. 🔌 Interface Design Standards
+* **Strict Attribute vs Property Separation**:
+  - Primitive values (`string`, `number`, `boolean`) map 1:1 to HTML attributes (`kebab-case`).
+  - Complex objects (`ReadableStore`, `ActionRegister`, models, functions) must declare `attribute: false` to prevent `[object Object]` attribute stringification bugs, exposing pure DOM properties only.
+* **Standard CustomEvent Dispatching**:
+  - Semantic event names (`quantity-change`, `cart-badge-click`) with `{ bubbles: true, composed: true }` by default to traverse Shadow DOM boundaries.
+  - Fully typed detail payload contracts (`export interface XxxEventDetail { ... }`).
+* **Imperative Public APIs**:
+  - Methods like `.focus()`, `.setValue()`, `.increment()`, `.checkValidity()` are explicitly public with options pattern support (`options?: { dispatchEvents?: boolean }`).
+* **React 18/19 Host Bridge**:
+  - `createLitElementBridge` and `createCustomElementBridge` bypass attribute serialization by directly assigning DOM properties (`properties: ['store', 'register']`) and mapping React handlers to native DOM event listeners.
+
+### 3. 🎨 Design System Integration
+* **CSS Custom Properties for Design Tokens**:
+  - Internal component styling references customizable design tokens with sensible fallbacks (`var(--stepper-border-color, #cbd5e1)`).
+* **`::part()` Styling Hooks**:
+  - Expose internal elements via `part="button"` and `part="input"` for fine-grained host styling overrides.
+* **Constructable Stylesheets**:
+  - Memory-efficient `static override styles = css`...`` responsive to host dark mode (`:host-context([data-theme="dark"])`).
+* **Adobe React Aria Compatibility**:
+  - Fully synced with React Aria Component states (`data-focus-visible`, `data-hovered`, `data-disabled`).
+
+### 4. 🧩 Web Component Implementation Conventions
+* **Runtime Selection**:
+  - **Lit (`@context-action/lit`)**: Zero VDOM, native browser template literal rendering, W3C standards; ideal for enterprise design systems.
+  - **Preact (`@context-action/preact`)**: Micro VDOM (3KB) + Preact Signals fine-grained reactivity; ideal for React/JSX-friendly micro-frontend widgets.
+* **W3C Context Protocol (`@lit/context`) Support**:
+  - Automatic dependency injection of Stores and ActionRegisters across Shadow DOM boundaries without manual prop drilling.
+* **Deterministic Lifecycle & Zero Memory Leaks**:
+  - Synchronous unbinding of store subscriptions, event listeners, and cancellation of in-flight actions (`AbortSignal`) on `disconnectedCallback`. Clean re-synchronization on `connectedCallback`.
+* **Form-Associated Custom Elements (FACE)**:
+  - Full `ElementInternals` participation in native `<form>` and `new FormData()` extraction with `onFormReset()` lifecycle recovery.
+
+---
+
 ## 🎯 Why Context-Action?
 
 ### ❌ Problems with Existing Libraries

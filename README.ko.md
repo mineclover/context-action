@@ -143,6 +143,55 @@ function App() {
 
 ---
 
+## 🏛️ 4대 핵심 개발 표준
+
+Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라이즈 환경에서 구현의 자율성을 보장하면서도 일관된 품질과 유지보수성을 확보하기 위해 **4대 핵심 개발 표준**을 확립합니다.
+
+### 1. 📊 상태 관리 아키텍처 (State Management)
+* **상태 3계층 모델 (3-Tier State Hierarchy)**:
+  - **Tier 1 (로컬 UI 일시 상태)**: 컴포넌트 내부 렌더링 전용 (`isFocused`, `isOpen` 등). Lit `@state()` 또는 Preact `signal()` 사용.
+  - **Tier 2 (컴포넌트 제어 값)**: 폼 컨트롤 고유 값 (`value`, `validity` 등). `@property()` + `ElementInternals.setFormValue()` 및 폼 리셋 복원.
+  - **Tier 3 (도메인/공유 비즈니스 상태)**: 장바구니, 유저 세션 등 전사 공유 데이터. Context-Action `ReadableStore` 또는 Global Signal이 단일 진실 원천(SSOT).
+* **선택적 프로젝션 (Selective Projection)**: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 `selector` 함수로 추출.
+* **Equality Guard (방어적 리렌더링)**: `equalityFn`(기본 `Object.is`) 비교로 파생 데이터가 같을 경우 `requestUpdate()`를 억제하여 120fps 고주파 이벤트에서도 렌더링 비용을 0으로 유지.
+* **Coalesced Pending**: 액션 로딩 상태(`isPending`) 추적 시 0 ↔ >0 전환 시점에만 리렌더링 요청을 병합 실행.
+
+### 2. 🔌 인터페이스 설계 표준 (Interface Design Standards)
+* **속성(Attribute) vs 프로퍼티(Property) 엄격 분리**:
+  - 문자열, 숫자, 불리언 등 프리미티브만 HTML 속성(`kebab-case`)과 1:1 양방향 리플렉션.
+  - Store, ActionRegister, Model 객체, 함수 등 복합 객체는 **반드시 `attribute: false`로 선언**하여 HTML 어트리뷰트 문자열화(`[object Object]`)를 방지하고 순수 DOM 프로퍼티로만 수용.
+* **표준 CustomEvent 디스패칭**:
+  - 시맨틱 명칭(`quantity-change`, `cart-badge-click`)을 사용하며, **`{ bubbles: true, composed: true }`를 기본값으로 필수 지정**하여 Shadow DOM 경계를 자연스럽게 탈출.
+  - 소비자의 완벽한 타입 안전성을 위해 `export interface XxxEventDetail { ... }` 규격을 필수로 함께 export.
+* **명령형 인스턴스 메서드 (Imperative APIs)**:
+  - `.focus()`, `.setValue()`, `.increment()`, `.checkValidity()` 등은 `public`으로 명확히 노출하며, 옵션 객체(`options?: { dispatchEvents?: boolean }`) 패턴으로 부수 효과를 제어.
+* **React 18/19 호스트 연동 브리지**:
+  - `createLitElementBridge` 및 `createCustomElementBridge`를 통해 복합 객체(`properties: ['store', 'register']`)의 DOM 프로퍼티 직할 할당과 React 카멜케이스 핸들러 ↔ DOM 이벤트 매핑을 자동화.
+
+### 3. 🎨 디자인 시스템 적용 방법 (Design System Integration)
+* **CSS Custom Properties 기반 디자인 토큰 주입**:
+  - 컴포넌트 내부 스타일은 Fallback을 갖춘 전역 토큰(`var(--stepper-border-color, #cbd5e1)`)으로 참조하여 상위 호스트 문서에서 테마(색상, 타이포그래피, 간격)를 일괄 주입.
+* **`::part()` 의사 요소 훅(Styling Hook) 노출**:
+  - 외부에서 미세한 스타일 커스터마이징이 가능하도록 핵심 내부 노드에 `part="button"`, `part="input"` 훅을 명시적으로 노출.
+* **Constructable Stylesheets & 테마 적응**:
+  - `static override styles = css`...``를 사용하여 브라우저 메모리를 절약하고, 다크 모드(`:host-context([data-theme="dark"])` 또는 미디어 쿼리)에 즉각 반응.
+* **Adobe React Aria 호환성**:
+  - React Aria Components의 접근성 및 스타일 계약(`data-focus-visible`, `data-hovered`, `data-disabled`)과 완벽히 동기화.
+
+### 4. 🧩 웹 컴포넌트 구현 컨벤션 (Web Component Conventions)
+* **런타임 선택 기준**:
+  - **Lit (`@context-action/lit`)**: Zero VDOM 초경량 렌더링, W3C 표준, 독립형 엔터프라이즈 디자인 시스템에 최적.
+  - **Preact (`@context-action/preact`)**: Micro VDOM(3KB) + Preact Signals의 미세 반응성, React/JSX 친화적 마이크로 프론트엔드 위젯에 최적.
+* **W3C Context Protocol (`@lit/context`) 지원**:
+  - Shadow DOM 트리 경계를 넘어 상위 Provider로부터 스토어와 레지스터를 자동 주입(DI).
+* **결정론적 수명주기 & Zero Memory Leak**:
+  - `disconnectedCallback` 시점에 스토어 구독, DOM 이벤트, 진행 중인 비동기 요청(`AbortSignal`)이 동기적으로 완전 해제.
+  - DOM에 재부착(`connectedCallback`)될 때 최신 상태 스냅샷으로 깨끗하게 재동기화.
+* **Form-Associated Custom Elements (FACE) 준수**:
+  - `ElementInternals`를 통해 네이티브 `<form>` 참여 및 `new FormData()` 수집을 보장하고, 폼 리셋 시 `onFormReset()` 콜백으로 초기 상태 복원.
+
+---
+
 ## 🎯 왜 Context-Action인가?
 
 ### ❌ 기존 라이브러리의 문제점

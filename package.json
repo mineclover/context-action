@@ -134,27 +134,27 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.5",
+    "@biomejs/biome": "2.5.14",
     "@tailwindcss/typography": "0.5.20",
     "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
-    "ansis": "4.3.1",
-    "autoprefixer": "10.5.4",
-    "comment-parser": "1.4.7",
+    "ansis": "4.4.0",
+    "autoprefixer": "10.6.1",
+    "comment-parser": "1.4.9",
     "husky": "9.1.7",
     "lerna": "^9.0.7",
     "mermaid": "11.16.1",
-    "postcss": "8.5.26",
-    "shiki": "4.3.1",
+    "postcss": "8.5.28",
+    "shiki": "4.4.3",
     "tailwindcss": "4.3.2",
     "typedoc": "0.28.20",
-    "typedoc-plugin-markdown": "4.12.0",
+    "typedoc-plugin-markdown": "4.13.1",
     "typescript": "6.0.3",
     "vitepress": "1.6.4",
-    "vue": "3.5.40",
-    "yaml": "2.9.0"
+    "vue": "3.5.43",
+    "yaml": "2.9.1"
   },
   "engines": {
     "node": ">=24.11.0",
@@ -162,9 +162,17 @@
   },
   "packageManager": "pnpm@10.30.3",
   "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@emnapi/*"
+      ],
+      "allowAny": [
+        "browserslist",
+        "vite"
+      ]
+    },
     "overrides": {
       "esbuild@<=0.24.2": "0.25.0",
-      "esbuild@>=0.27.3 <0.28.1": "0.28.1",
       "@types/react": "19.2.17",
       "preact@>=10.27.0 <10.27.3": "10.27.3",
       "js-yaml@<4.0.0": "3.15.2",
@@ -188,16 +196,14 @@
       "ip-address@<10.7.1": "10.7.1",
       "nx@<22.7.7": "22.7.7",
       "pacote@<21.5.1": "21.5.1",
-      "postcss@<8.5.23": "8.5.26",
+      "postcss@<8.5.23": "8.5.28",
       "postcss-selector-parser@>=6.0.0 <6.1.3": "6.1.3",
       "postcss-selector-parser@>=7.0.0 <7.1.3": "7.1.3",
       "smol-toml@<1.7.1": "1.7.1",
       "ws@>=8.0.0 <8.21.0": "8.21.0",
       "uuid@<11.1.1": "11.1.1",
-      "react-router@>=7.0.0 <7.18.2": "7.18.2",
-      "react-router-dom@>=7.0.0 <7.18.2": "7.18.2",
       "mermaid@>=11.0.0-alpha.1 <11.16.1": "11.16.1",
-      "yaml@<2.8.3": "2.9.0",
+      "yaml@<2.8.3": "2.9.1",
       "tmp@<0.2.7": "0.2.7",
       "form-data@>=4.0.0 <4.0.6": "4.0.6",
       "tar@<=7.5.20": "7.5.21",
@@ -207,7 +213,10 @@
       "linkify-it@<=5.0.0": "5.0.1",
       "nanoid@<3.3.18": "3.3.18",
       "sigstore@<=4.1.0": "4.1.1",
-      "@sigstore/verify@3.1.0": "3.1.1"
+      "@sigstore/verify@3.1.0": "3.1.1",
+      "react-router@>=7.0.0 <7.18.4": "7.18.4",
+      "react-router-dom@>=7.0.0 <7.18.4": "7.18.4",
+      "esbuild@>=0.27.3 <0.28.2": "0.28.2"
     },
     "ignoredBuiltDependencies": [
       "esbuild",
