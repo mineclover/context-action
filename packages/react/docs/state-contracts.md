@@ -43,6 +43,10 @@ DevTools-facing snapshot containing only version, cursor, history length, undo/
 redo availability, and the latest serializable record. They do not expose Store
 instances or state object references.
 
+`bindInspector(sink)` is the protocol boundary for non-React tooling. A sink
+receives the initial snapshot and every subsequent snapshot; it must treat the
+payload as immutable and must not call Store methods from the write callback.
+
 Coordinator participants defer notifications while a transaction is committing.
 All participant snapshots are updated before notification flush, so a reader
 cannot observe the first Store's new value with another participant's old value

@@ -41,6 +41,10 @@ export interface StoreTransactionInspectorSnapshot {
   readonly latest?: StoreTransactionRecord;
 }
 
+export interface StoreTransactionInspectorSink {
+  write(snapshot: StoreTransactionInspectorSnapshot): void;
+}
+
 type StoredStoreTransactionRecord = StoreTransactionRecord & {
   readonly participants: readonly {
     readonly name: string;
@@ -86,6 +90,12 @@ export class StoreTransactionCoordinator {
 
   getInspectorSnapshot(): StoreTransactionInspectorSnapshot {
     return this.inspectorSnapshot;
+  }
+
+  /** Connect a serializable snapshot stream to DevTools, logs, or a protocol adapter. */
+  bindInspector(sink: StoreTransactionInspectorSink): () => void {
+    sink.write(this.getInspectorSnapshot());
+    return this.subscribe(() => sink.write(this.getInspectorSnapshot()));
   }
 
   private emit(phase: StoreTransactionEventPhase, record: StoreTransactionRecord): void {

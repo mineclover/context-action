@@ -39,7 +39,7 @@ export type {
   TimelineWriter,
 } from './stores/core/contracts';
 export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
-export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
 export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
 export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './stores/core/ActionTransactionBridge';
 
