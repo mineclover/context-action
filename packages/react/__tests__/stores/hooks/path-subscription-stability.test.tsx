@@ -15,6 +15,7 @@ import {
   createPathSignature,
   createPathsSignature,
 } from '../../../src/stores/utils/path-signature';
+import { patchesAffectPath } from '../../../src/stores/utils/patch-affects-path';
 
 type CollisionState = {
   'a.b': string;
@@ -22,6 +23,15 @@ type CollisionState = {
 };
 
 describe('path subscription signatures', () => {
+  it('invalidates descendants after array structural edits', () => {
+    expect(patchesAffectPath([
+      { op: 'remove', path: ['items', 0] },
+    ] as any, ['items', 1])).toBe(true);
+    expect(patchesAffectPath([
+      { op: 'replace', path: ['items', 0, 'name'] },
+    ] as any, ['items', 1, 'name'])).toBe(false);
+  });
+
   it('preserves segment types and path boundaries without special-character collisions', () => {
     expect(createPathSignature([1])).not.toBe(createPathSignature(['1']));
     expect(createPathSignature(['a.b'])).not.toBe(createPathSignature(['a', 'b']));

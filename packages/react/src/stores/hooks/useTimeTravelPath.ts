@@ -7,8 +7,8 @@
 
 import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { TimeTravelStore } from '../core/TimeTravelStore';
-import type { Patches } from '@context-action/mutative';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { patchesAffectPath } from '../utils/patch-affects-path';
 
 /**
  * Path type for store subscription
@@ -30,27 +30,6 @@ export interface UseTimeTravelPathOptions<R> {
  * 2. The target path is a prefix of patch path (descendant changed)
  * 3. The paths are equal
  */
-function patchesAffectPath(patches: Patches | null, targetPath: StorePath): boolean {
-  if (!patches || patches.length === 0) return true; // No patches = full update
-
-  return patches.some(patch => {
-    const patchPath = patch.path as StorePath;
-
-    // Empty patch path means root replacement
-    if (patchPath.length === 0) return true;
-
-    const minLen = Math.min(patchPath.length, targetPath.length);
-
-    // Check if paths share a common prefix
-    for (let i = 0; i < minLen; i++) {
-      if (patchPath[i] !== targetPath[i]) return false;
-    }
-
-    // Paths share common prefix - affected
-    return true;
-  });
-}
-
 /**
  * Get value at a specific path
  */

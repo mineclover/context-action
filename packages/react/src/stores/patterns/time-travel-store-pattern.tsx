@@ -16,6 +16,7 @@ import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../co
 import type { StorePath } from '../hooks/useTimeTravelPath';
 import { compareValues, type ComparisonOptions } from '../utils/comparison';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { patchesAffectPath } from '../utils/patch-affects-path';
 import {
   type ExplicitStoreValue,
   isExplicitStoreValue,
@@ -38,21 +39,6 @@ const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
 /**
  * Check if patches affect the target path
  */
-function patchesAffectPath(patches: Patches | null, targetPath: StorePath): boolean {
-  if (!patches || patches.length === 0) return true;
-
-  return patches.some(patch => {
-    const patchPath = patch.path as StorePath;
-    if (patchPath.length === 0) return true;
-
-    const minLen = Math.min(patchPath.length, targetPath.length);
-    for (let i = 0; i < minLen; i++) {
-      if (patchPath[i] !== targetPath[i]) return false;
-    }
-    return true;
-  });
-}
-
 /**
  * Get value at a specific path
  */
