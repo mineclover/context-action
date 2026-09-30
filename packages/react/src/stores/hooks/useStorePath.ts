@@ -7,7 +7,7 @@
 
 import { useSyncExternalStore, useCallback, useRef, useMemo } from 'react';
 import type { Patches } from '@context-action/mutative';
-import type { Unsubscribe } from '../core/types';
+import type { Snapshot, Unsubscribe } from '../core/types';
 import { pathToPointer, isPointerPrefix } from '../utils/json-pointer';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 
@@ -17,6 +17,8 @@ import { createPathSignature, createPathsSignature } from '../utils/path-signatu
  */
 export interface PatchAwareStore<T> {
   getValue(): T;
+  /** Stable external-store snapshot; custom legacy stores may omit it. */
+  getSnapshot?: () => Snapshot<T>;
   subscribe(listener: () => void): Unsubscribe;
   subscribeWithPatches(listener: (patches: Patches | null) => void): Unsubscribe;
 }
@@ -157,7 +159,7 @@ export function useStorePath<T, R = unknown>(
 
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getValue();
+    const storeValue = store.getSnapshot?.().value ?? store.getValue();
     const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
 
     // First access - initialize cache
@@ -186,7 +188,7 @@ export function useStorePath<T, R = unknown>(
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getValue(), stablePath);
+    return getValueAtPath<T, R>(store.getSnapshot?.().value ?? store.getValue(), stablePath);
   }, [store, stablePath]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -274,7 +276,7 @@ export function useStoreSelectorWithPaths<T, R>(
 
   // Get snapshot using selector
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getValue();
+    const storeValue = store.getSnapshot?.().value ?? store.getValue();
     const currentValue = selector(storeValue);
 
     // Compare with cached value

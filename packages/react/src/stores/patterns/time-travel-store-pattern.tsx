@@ -536,7 +536,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     );
 
     const getSnapshot = useCallback((): R => {
-      const storeValue = store.getValue();
+      const storeValue = store.getSnapshot().value;
       const currentValue = getValueAtPath<T[K], R>(storeValue, stablePath);
 
       if (!cacheRef.current.initialized) {
@@ -553,7 +553,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     }, [store, stablePath, pathSignature]);
 
     const getServerSnapshot = useCallback((): R => {
-      return getValueAtPath<T[K], R>(store.getValue(), stablePath);
+      return getValueAtPath<T[K], R>(store.getSnapshot().value, stablePath);
     }, [store, stablePath]);
 
     return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -616,7 +616,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     );
 
     const getSnapshot = useCallback((): R => {
-      const currentValue = selector(store.getValue());
+      const currentValue = selector(store.getSnapshot().value);
 
       if (cacheRef.current !== undefined) {
         if (equalityFn ? equalityFn(cacheRef.current, currentValue) : Object.is(cacheRef.current, currentValue)) {

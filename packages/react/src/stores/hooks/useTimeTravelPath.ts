@@ -117,7 +117,7 @@ export function useTimeTravelPath<T, R = unknown>(
 
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getValue();
+    const storeValue = store.getSnapshot().value;
     const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
 
     // First access - initialize cache
@@ -146,7 +146,7 @@ export function useTimeTravelPath<T, R = unknown>(
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getValue(), stablePath);
+    return getValueAtPath<T, R>(store.getSnapshot().value, stablePath);
   }, [store, stablePath]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -220,7 +220,7 @@ export function useTimeTravelSelector<T, R>(
 
   // Get snapshot using selector
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getValue();
+    const storeValue = store.getSnapshot().value;
     const currentValue = selector(storeValue);
 
     // Compare with cached value
