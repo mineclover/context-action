@@ -20,6 +20,10 @@ Component 소비자에게는 업무 값과 명령을 노출합니다. 내부 Sig
 
 property 입력과 사용자 이벤트의 관계를 정합니다. 이 템플릿의 Web Component는 프로그램의 `element.value = ...`에 변경 이벤트를 재발행하지 않습니다. 사용자 조작 후에만 `value-change`를 내보내므로 반영 루프가 생기지 않습니다.
 
+공통 구현은 의미를 자동 추론하지 않는 저수준 runtime으로 제한합니다. `mountPreact`, `mountTemplate`, `createDisposalScope`는 root 소유권과 자원 해제만 담당하며, property 이름·명령·이벤트·상태 변경 권한은 컴포넌트 계약과 Host adapter가 정합니다. 같은 View를 여러 제공 경로에서 사용하더라도 소비자에게는 각 경로의 `MountInstance`나 Preact 타입을 그대로 노출하지 않습니다.
+
+계약을 적용할 때는 [공개 컴포넌트 계약](09-public-component-contract.md), [작성 가이드](10-component-authoring-guide.md), [Layer Panel reference](../examples/layer-panel/README.md)를 함께 사용합니다. 이 자료들은 특정 Custom Element factory보다 재사용 가능한 작성 규칙을 정본으로 삼습니다.
+
 ## 상태와 수명
 
 Domain의 원본 상태는 하나이며 Signal은 읽기용 projection입니다. UI가 Domain을 소유한다고 가정하지 않습니다. borrowed Source/Register는 UI 해제 시 파괴하지 않습니다.

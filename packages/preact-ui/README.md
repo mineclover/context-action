@@ -20,13 +20,18 @@ Domain                 : 원본 상태와 업무 규칙
 4. [Signals 프로젝션 & 비즈니스 훅 컨벤션](docs/05-signal-projection-convention.md): Context-Layered 관심사 분리와 프로젝션 훅 / 비즈니스 로직 훅 표준.
 5. [순수 HTML 이식 & Web Component 아키텍처 리뷰](docs/06-standalone-embed-and-web-components.md): UMD 마운트 vs Web Component 이식 방식 비교 및 실증.
 6. [모듈식 Web Component & Signals 통합 컨벤션](docs/07-modular-web-components-and-signals-convention.md): 가상 DOM 격리, 3계층 모듈화, 크로스 시그널 공유 표준.
-7. [FACE 및 React 상호운용성 브릿지 가이드](docs/08-form-associated-elements-and-react-bridge.md): 표준 HTML 폼 연동 및 React 브릿지 컴포넌트(`createCustomElementBridge`).
+7. [FACE 및 React 상호운용성 브릿지 가이드](docs/08-form-associated-elements-and-react-bridge.md): 표준 HTML 폼 연동 및 선택적 `@context-action/preact-ui/react-bridge` 컴포넌트.
 8. [웹 컴포넌트 인터페이스 설계 및 상태 관리 표준 규약](../lit-ui/docs/05-interface-and-state-management-standards.md): Lit & Preact 공통 인터페이스 작성 규칙, 상태 3계층 모델, 4대 대원칙.
+9. [범용 공개 계약](docs/09-public-component-contract.md): 컴포넌트 입력·명령·이벤트의 의미와 소비자 경계.
+10. [작성 가이드](docs/10-component-authoring-guide.md): Controller·View·Host adapter의 책임과 Custom Element 작성 순서.
+11. [생명주기와 자원](docs/11-lifecycle-and-resources.md): 인스턴스와 connection session, 정리·재연결·비동기 결과 규칙.
+12. [계약 검증](docs/12-contract-verification.md): 정적·통합·실제 브라우저 검증 범위와 변경 영향.
+13. [Layer Panel 참조 구현](examples/layer-panel/README.md): 하나의 공개 계약을 두 host adapter에 적용한 예제.
 
 구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
 
 ## 기본 패키지 범위
 
-템플릿 마운트, 독립 Preact Root, 공유 Source 구독, Core dispatcher 주입, Web Component reference shell을 제공합니다. 범용 Custom Element 생성기나 React hook 호환 계층은 추가하지 않았습니다. Web Component의 업무별 property/event 계약은 예제처럼 작성자가 명시합니다.
+템플릿 마운트, 독립 Preact Root, 공유 Source 구독, Core dispatcher 주입, Web Component reference shell을 제공합니다. `definePreactElement`와 React bridge는 기존 선택 기능으로 유지하지만, 범용 컨벤션의 정본이나 필수 경로로 취급하지 않습니다. 공통 runtime은 ownership·mount·disposal처럼 의미를 추론하지 않는 저수준 기능만 제공합니다. Web Component의 업무별 property/event 계약은 예제처럼 작성자가 명시합니다.
 
 두 패키지는 `private: true`입니다. 기존 Core/React 구현과 안정 릴리스·승격 정책을 변경하지 않습니다. 현재 산출물은 로컬 검토용 초안입니다. GitHub 브랜치는 생성했지만 업로드가 차단되어 파일 커밋과 PR은 생성하지 못했습니다. 변경본 적용 후 lockfile 갱신과 전체 런타임 검증을 마치기 전에는 병합하지 않습니다.

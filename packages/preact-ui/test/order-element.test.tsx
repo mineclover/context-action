@@ -108,4 +108,27 @@ describe('<order-workspace> Web Component contract', () => {
     const count = reconnectedShadow?.querySelector('[data-testid="summary-count"]');
     expect(count?.textContent).toBe('1');
   });
+
+  it('stops connection events while disconnected and resumes from the latest snapshot', async () => {
+    const Tag = defineOrderWorkspaceElement('test-order-workspace-4');
+    const element = new Tag() as HTMLElement & {
+      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
+      dispose(): void;
+    };
+    cleanups.push(() => element.dispose());
+    let changes = 0;
+    element.addEventListener('order-change', () => { changes += 1; });
+    document.body.append(element);
+    await act(async () => {
+      await element.addItem({ id: 'connected', name: 'Connected', unitPrice: 10, quantity: 1 });
+    });
+    const connectedChanges = changes;
+
+    element.remove();
+    await element.addItem({ id: 'disconnected', name: 'Disconnected', unitPrice: 20, quantity: 1 });
+    expect(changes).toBe(connectedChanges);
+
+    document.body.append(element);
+    expect(element.shadowRoot?.querySelector('[data-testid="summary-count"]')?.textContent).toBe('2');
+  });
 });

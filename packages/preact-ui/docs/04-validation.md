@@ -49,3 +49,16 @@ pnpm verify:package-exports
 그다음 `examples:dev`에서 template 갱신/해제, 공유 모델의 두 View 동기화, Custom Element pre-upgrade property, disconnect/reconnect, boolean attribute, event echo 방지를 실제 브라우저로 확인합니다. 패키지 import의 DOM 없는 환경 안전성과 번들 내 중복 Preact/Signals 포함 여부도 확인합니다.
 
 전체 저장소 회귀와 보호된 검증 파이프라인은 별도로 실행해야 합니다. 신규 두 패키지는 `private: true`, `0.0.0`이며 npm 배포, stable cohort 편입, 승인, 병합을 수행하지 않았습니다.
+
+## 현재 컨벤션 참조 구현 검증
+
+Layer Panel의 현재 구현은 다음 순서로 확인합니다.
+
+```sh
+pnpm --filter @context-action/preact-ui type-check
+pnpm --filter @context-action/preact-ui test
+pnpm --filter @context-action/preact-ui test:native
+pnpm --filter @context-action/preact-ui test:browser
+```
+
+`test:browser`는 실제 Chromium에서 pre-upgrade property, controlled selection, event echo 방지, disconnect/reconnect, focus, template island를 확인합니다. 로컬에 Playwright가 요구하는 revision이 없으면 캐시된 headless Chromium을 탐색하며, 어느 쪽도 없으면 설치 필요 오류로 중단합니다.

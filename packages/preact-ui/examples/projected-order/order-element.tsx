@@ -27,6 +27,7 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
     #model: OrderModel;
     #mount: OrderWorkspaceMount | undefined;
     #scope = createDisposalScope();
+    #connectionScope: ReturnType<typeof createDisposalScope> | undefined;
     #root: HTMLElement;
     #upgraded = false;
 
@@ -52,31 +53,6 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
       // Model instance owned by the custom element lifetime
       this.#model = createOrderModel();
 
-      // Listen to model changes and dispatch custom events
-      let lastSubmissionPhase = this.#model.source.getSnapshot().submission.phase;
-      const unsubscribe = this.#model.source.subscribe(() => {
-        const state = this.#model.source.getSnapshot();
-        this.dispatchEvent(
-          new CustomEvent('order-change', {
-            detail: { draft: state.draft, submission: state.submission },
-            bubbles: true,
-            composed: true,
-          }),
-        );
-
-        if (state.submission.phase === 'success' && lastSubmissionPhase !== 'success') {
-          this.dispatchEvent(
-            new CustomEvent<OrderSubmitEventDetail>('order-submit-success', {
-              detail: { orderId: state.submission.orderId ?? '' },
-              bubbles: true,
-              composed: true,
-            }),
-          );
-        }
-        lastSubmissionPhase = state.submission.phase;
-      });
-
-      this.#scope.add(unsubscribe);
       this.#scope.add(() => this.#model.destroy());
     }
 
@@ -104,14 +80,53 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
         if (initialAddress) void this.#model.dispatch('updateShippingAddress', { address: initialAddress });
       }
 
-      this.#mount = mountOrderWorkspace(this.#root, this.#model);
+      const connectionScope = createDisposalScope();
+      let lastSubmissionPhase = this.#model.source.getSnapshot().submission.phase;
+      const unsubscribe = this.#model.source.subscribe(() => {
+        if (!this.isConnected) return;
+        const state = this.#model.source.getSnapshot();
+        this.dispatchEvent(
+          new CustomEvent('order-change', {
+            detail: { draft: state.draft, submission: state.submission },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+
+        if (state.submission.phase === 'success' && lastSubmissionPhase !== 'success') {
+          this.dispatchEvent(
+            new CustomEvent<OrderSubmitEventDetail>('order-submit-success', {
+              detail: { orderId: state.submission.orderId ?? '' },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        }
+        lastSubmissionPhase = state.submission.phase;
+      });
+      connectionScope.add(unsubscribe);
+
+      try {
+        const mount = mountOrderWorkspace(this.#root, this.#model);
+        connectionScope.add(() => mount.destroy());
+        this.#connectionScope = connectionScope;
+        this.#mount = mount;
+      } catch (error) {
+        try { connectionScope.dispose(); } catch (cleanupError) {
+          throw new AggregateError([error, cleanupError], 'Order workspace connection failed');
+        }
+        throw error;
+      }
     }
 
     disconnectedCallback() {
       // Unmount renderer on disconnect, but keep domain state if re-connected!
       const mount = this.#mount;
       this.#mount = undefined;
-      mount?.destroy();
+      const connectionScope = this.#connectionScope;
+      this.#connectionScope = undefined;
+      if (connectionScope) connectionScope.dispose();
+      else mount?.destroy();
     }
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {

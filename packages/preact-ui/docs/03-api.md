@@ -45,3 +45,5 @@ Root children은 Preact에 위임하지만 Root 자체는 제거하지 않습니
 Template counter: `setLabel(string)`, `setValue(number): Promise<void>`, `destroy()`. borrowed model을 사용합니다.
 
 Custom Element counter: `value: number`, `disabled: boolean`, `focusIncrement(): boolean`, `value-change` 이벤트의 `detail: { value: number }`. value는 유한수만 허용합니다. 프로그램 입력은 이벤트를 재발행하지 않으며 사용자 조작에만 이벤트가 발생합니다. 연결 해제 중에도 value 입력은 보존합니다.
+
+React interop는 선택적 `@context-action/preact-ui/react-bridge` entry에서만 제공합니다. 기본 `@context-action/preact-ui` entry는 React runtime을 로드하지 않으며, bridge를 사용할 때만 React peer dependency를 함께 설치합니다.

@@ -1,7 +1,5 @@
-import {
-  createCustomElementBridge,
-  definePreactElement,
-} from '@context-action/preact-ui';
+import { definePreactElement } from '@context-action/preact-ui';
+import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
 import { useStoreValue } from '@context-action/react';
 import { signal } from '@preact/signals';
 import { h } from 'preact';

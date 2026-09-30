@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 // Runtime dependencies remain external; the host supplies one Preact/Signals copy.
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/react-bridge.ts'],
   format: ['esm', 'cjs'],
   dts: true,
   hash: false,

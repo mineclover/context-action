@@ -6,5 +6,3 @@ export type { MountRoot } from './ownership.js';
 export { mountTemplate } from './template.js';
 export { definePreactElement } from './custom-element.js';
 export type { PreactElementConfig, PreactElementLifecycle, ManagedPreactElement, PreactElementContext } from './custom-element.js';
-export { createCustomElementBridge } from './react-bridge.js';
-export type { CustomElementBridgeOptions, CustomElementComponent } from './react-bridge.js';

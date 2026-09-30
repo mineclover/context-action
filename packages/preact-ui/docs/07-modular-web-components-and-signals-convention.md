@@ -1,5 +1,7 @@
 # Preact Signals & Web Component 모듈식 통합 아키텍처 및 코딩 컨벤션
 
+> 이 문서는 Signals와 Web Component를 조합하는 선택적 구현 패턴이다. 모든 컴포넌트가 `definePreactElement`나 전역 Signal을 사용해야 한다는 뜻이 아니다. 범용 정본은 [공개 계약](09-public-component-contract.md), [작성 가이드](10-component-authoring-guide.md), [생명주기 규칙](11-lifecycle-and-resources.md)이며, 이 문서의 예시는 그 규칙을 적용한 한 가지 방법이다.
+
 이 문서는 **Preact Signals**의 고성능 반응성, **가상 DOM(Virtual DOM)**의 선언적 생산성, 그리고 **웹 컴포넌트(Custom Elements & Shadow DOM)**의 표준 캡슐화를 모듈식으로 결합할 때 지켜야 할 **공식 아키텍처 및 코딩 컨벤션**을 정의합니다.
 
 ---
@@ -36,6 +38,8 @@ packages/preact-ui/examples/modular-signals-wc/
 * **규칙**: **DOM, `HTMLElement`, `window`, JSX 의존성을 단 1줄도 포함하지 않습니다.**
 * **효과**: Web Component뿐만 아니라 React, Vue, Svelte, Node.js 서버, 바닐라 JS 등 모든 환경에서 공유 가능.
 
+Level 1의 writable signal은 domain module 내부 구현이다. 모듈식 소비자 entry에서는 writable signal을 그대로 재수출하지 않고 `ReadonlySignal` projection과 intent 함수만 공개한다. 외부 계약은 `.value` 대입이 아니라 명시적인 명령으로 상태를 변경한다.
+
 ```ts
 // shared-cart-signal.ts (Level 1)
 import { signal, computed } from '@preact/signals';
@@ -58,7 +62,7 @@ export function addProductToCart(product: CartProduct) {
 * **책임**: 특정 UI 역할을 수행하는 Custom Element 클래스 선언.
 * **규칙**:
   1. **Side-effect Free**: 모듈을 `import`하는 것만으로 `customElements.define`이 자동 실행되지 않도록, 반드시 `defineXElement(tagName?)` 함수 형태로 export합니다.
-  2. **표준 프리미티브 사용**: `@context-action/preact-ui`의 `definePreactElement()`를 사용하여 수명 관리 보일러플레이트를 제거합니다.
+  2. **선택적 프리미티브 사용**: 기존 `definePreactElement()`를 사용할 수 있지만, 컴포넌트 의미·입력·이벤트·연결 세션은 작성자가 별도로 정의합니다. 공통 factory가 이를 추론하지 않습니다.
   3. **통신 표준**: 외부 통신은 항상 표준 **Property, Attribute, CustomEvent**를 통합니다.
 
 ```tsx
@@ -150,7 +154,7 @@ export function defineCartBadgeElement(tagName = 'cart-badge') {
 서로 다른 Custom Element(`<cart-badge>`와 `<cart-drawer>`)가 서로 다른 DOM 브랜치, 심지어 완전히 격리된 서로 다른 `ShadowRoot` 안에 위치하더라도:
 1. 두 엘리먼트 모두 Level 1 모듈의 `cartItemCountSignal`을 바라보고 있습니다.
 2. 어느 한 곳이나 외부 스크립트에서 `addProductToCart()`를 호출하면,
-3. **각 Shadow DOM 내부의 텍스트 노드가 0.1ms 이내로 동시에 미세 갱신(Fine-grained Update)**됩니다.
+3. 각 Shadow DOM 내부의 텍스트 노드가 Signals binding으로 독립 갱신될 수 있습니다. 실제 지연·DOM 갱신 범위는 대상 browser와 입력 빈도에서 측정해야 하며, Signals 사용만으로 성능을 보장하지 않습니다.
 4. 전역 가상 DOM 트리를 공유하지 않으므로, 엘리먼트 A의 갱신이 엘리먼트 B의 가상 DOM diffing을 유발하지 않습니다.
 
 ---
