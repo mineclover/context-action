@@ -68,7 +68,7 @@ test('candidate and promotion workflows bind the exact coordinated cohort', () =
   const promotion = read('.github/workflows/promote-coordinated-stable.yml');
   const cohort = '@context-action/core,@context-action/mutative,@context-action/react';
   assert.ok(candidate.includes(`--packages "${cohort}"`));
-  assert.ok(candidate.includes('pnpm verify:coordinated-stable-release-plan -- --require-current-source'));
+  assert.ok(candidate.includes('pnpm verify:coordinated-stable-release-plan --require-current-source'));
   assert.ok(promotion.includes(`--packages "${cohort}"`));
   assert.ok(candidate.includes('test "$RELEASE_COMMIT" = "$GITHUB_SHA"'));
   assert.ok(promotion.includes('test "$CONFIRMATION" = "PROMOTE_COORDINATED_STABLE"'));

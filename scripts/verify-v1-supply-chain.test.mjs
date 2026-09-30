@@ -197,7 +197,7 @@ test('requires coordinated candidate plan validation to bind the immutable curre
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-coordinated-stable-candidate.yml');
     const source = await readFile(workflowPath, 'utf8');
     const mutated = source.replace(
-      '        run: pnpm verify:coordinated-stable-release-plan -- --require-current-source',
+      '        run: pnpm verify:coordinated-stable-release-plan --require-current-source',
       '        run: pnpm verify:coordinated-stable-release-plan',
     );
     assert.notEqual(mutated, source);
