@@ -88,6 +88,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
   private unsubscribeTimeTravel: Unsubscribe = () => {};
+  private notificationHoldDepth = 0;
+  private notificationDeferred = false;
 
   constructor(
     name: string,
@@ -121,6 +123,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
       }
 
       this._updateSnapshot();
+      if (this.notificationHoldDepth > 0) {
+        this.notificationDeferred = true;
+        return;
+      }
       this._scheduleNotification();
     });
 
@@ -243,14 +249,25 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   /** Group multiple updates into one timeline entry and notification. */
-  beginBatch(metadata?: TimeTravelTransitionMeta): void {
+  beginBatch(metadata?: TimeTravelTransitionMeta, options: { deferNotification?: boolean } = {}): void {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    if (options.deferNotification) this.notificationHoldDepth += 1;
     this.timeTravel.beginBatch(metadata);
   }
 
   endBatch(): void {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
     this.timeTravel.endBatch();
+  }
+
+  resumeNotifications(): void {
+    if (this.notificationHoldDepth > 0) this.notificationHoldDepth -= 1;
+  }
+
+  flushNotifications(): void {
+    if (this.isDisposed || this.notificationHoldDepth > 0 || !this.notificationDeferred) return;
+    this.notificationDeferred = false;
+    this._scheduleNotification();
   }
 
   /** Group multiple updates into one timeline entry and notification. */
@@ -279,6 +296,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     }
     this.pendingNotification = false;
     this.pendingPatches = null;
+    this.notificationHoldDepth = 0;
+    this.notificationDeferred = false;
     this.unsubscribeTimeTravel();
     this.unsubscribeTimeTravel = () => {};
 

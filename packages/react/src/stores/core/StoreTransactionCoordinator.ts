@@ -94,11 +94,13 @@ export class StoreTransactionCoordinator {
       ...participant,
       position: participant.store.getPosition(),
     }));
-    unique.forEach(participant => participant.store.beginBatch(meta));
+    unique.forEach(participant => participant.store.beginBatch(meta, { deferNotification: true }));
     this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
     let closed = false;
     const closeBatches = () => {
       for (const participant of [...unique].reverse()) participant.store.endBatch();
+      for (const participant of unique) participant.store.resumeNotifications();
+      for (const participant of unique) participant.store.flushNotifications();
     };
     return {
       meta,
