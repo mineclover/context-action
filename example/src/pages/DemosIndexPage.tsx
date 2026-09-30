@@ -57,6 +57,29 @@ const demos: DemoItem[] = [
     ],
     estimatedTime: '5-10분',
   },
+  {
+    path: '/integrations/lit-web-components',
+    title: 'Lit Web Components & Context Protocol Bridge',
+    emoji: '🔥',
+    description:
+      'React 19 호스트와 Lit 3 기반 W3C Web Components의 StoreController, ActionController, FACE 및 Context Protocol 연동 실증.',
+    tags: [
+      'Lit 3',
+      'Web Components',
+      'FACE',
+      'StoreController',
+      'Context Protocol',
+    ],
+    category: 'advanced',
+    complexity: 'Advanced',
+    features: [
+      'StoreController & ActionController',
+      'Form-Associated Custom Elements (FACE)',
+      'W3C Context Protocol (@lit/context)',
+      'createLitElementBridge for React 18/19',
+    ],
+    estimatedTime: '5-10분',
+  },
   // === Store System ===
   {
     path: '/foundations/store/time-travel',

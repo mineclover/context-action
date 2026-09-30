@@ -1,0 +1,63 @@
+{
+  "name": "@context-action/lit-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Lit Web Component primitives, FACE support, W3C context protocol, and React bridge",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@context-action/core": "workspace:*",
+    "@context-action/lit": "workspace:*"
+  },
+  "peerDependencies": {
+    "lit": "^3.2.0",
+    "@lit/context": "^1.1.0",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@lit/context": "1.1.6",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "jsdom": "26.1.0",
+    "lit": "3.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tsdown": "0.22.13",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

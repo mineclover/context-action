@@ -244,6 +244,9 @@ const PreactWebComponentsPage = lazy(
   () =>
     import('./pages/integrations/preact-web-components/PreactWebComponentsPage')
 );
+const LitWebComponentsPage = lazy(
+  () => import('./pages/integrations/lit-web-components/LitWebComponentsPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -581,6 +584,10 @@ function AppContent() {
             <Route
               path="/integrations/preact-web-components"
               element={<PreactWebComponentsPage />}
+            />
+            <Route
+              path="/integrations/lit-web-components"
+              element={<LitWebComponentsPage />}
             />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route

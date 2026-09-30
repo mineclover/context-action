@@ -1,12 +1,2 @@
-# Temporary, scoped exception for the React Router RSC advisory.
-#
-# The repository currently consumes the latest published react-router-dom 7.x
-# release and the example uses browser routing, not React Router's RSC action
-# mode. OSV lists react-router 8.3.0 as fixed, but react-router-dom 8.3.0 is
-# not published, so the paired DOM package cannot be upgraded independently.
-# Re-check this exception when a fixed react-router-dom release becomes
-# available; do not extend it without reviewing the affected usage.
-[[IgnoredVulns]]
-id = "GHSA-qwww-vcr4-c8h2"
-ignoreUntil = 2026-09-30
-reason = "Example uses browser routing only; react-router-dom 8.3.0 is not published, so the paired DOM package cannot be upgraded independently. Re-evaluate before expiry."
+# OSV Scanner configuration
+# All dependencies have been updated to fixed versions; no active vulnerability exceptions configured.
