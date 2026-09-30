@@ -55,7 +55,7 @@ test('requires the coordinated candidate closure before publication', () => {
 test('requires coordinated candidate plan validation to bind the immutable current source', () => {
   const sources = releaseSources();
   sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
-    '        run: pnpm verify:coordinated-stable-release-plan -- --require-current-source',
+    '        run: pnpm verify:coordinated-stable-release-plan --require-current-source',
     '        run: pnpm verify:coordinated-stable-release-plan',
   );
   const { errors } = validateReleaseWorkflowSources(sources);
