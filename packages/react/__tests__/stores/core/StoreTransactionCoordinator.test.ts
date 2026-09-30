@@ -37,10 +37,12 @@ describe('StoreTransactionCoordinator', () => {
     coordinator.undo();
     expect(first.getValue()).toEqual({ value: 0 });
     expect(second.getValue()).toEqual({ value: 0 });
+    expect(observed.at(-1)).toEqual([0, 0]);
     expect(coordinator.canRedo()).toBe(true);
     coordinator.redo();
     expect(first.getValue()).toEqual({ value: 1 });
     expect(second.getValue()).toEqual({ value: 2 });
+    expect(observed.at(-1)).toEqual([1, 2]);
     expect(phases).toEqual(['started', 'committed', 'undone', 'redone']);
     expect(coordinator.getInspectorSnapshot()).toMatchObject({
       position: 1,

@@ -1,4 +1,5 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: transaction participants are heterogeneous store types.
+import type { TimeTravelTransitionMeta } from '@context-action/mutative';
 import type { TimeTravelStore } from './TimeTravelStore';
 
 export interface StoreTransactionMeta {
@@ -45,7 +46,7 @@ export interface StoreTransactionInspectorSink {
   write(snapshot: StoreTransactionInspectorSnapshot): void;
 }
 
-type StoredStoreTransactionRecord = StoreTransactionRecord & {
+type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'> & {
   readonly participants: readonly {
     readonly name: string;
     readonly store: TimeTravelStore<any>;
@@ -135,11 +136,26 @@ export class StoreTransactionCoordinator {
       ...participant,
       position: participant.store.getPosition(),
     }));
-    unique.forEach(participant => participant.store.beginBatch(meta, { deferNotification: true }));
+    const started: typeof unique = [];
+    try {
+      for (const participant of unique) {
+        participant.store.beginBatch(meta, { deferNotification: true });
+        started.push(participant);
+      }
+    } catch (error) {
+      for (const participant of [...started].reverse()) participant.store.endBatch();
+      for (const participant of started) {
+        participant.store.resumeNotifications();
+        participant.store.flushNotifications();
+      }
+      throw error;
+    }
     this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
     let closed = false;
-    const closeBatches = () => {
+    const endBatches = () => {
       for (const participant of [...unique].reverse()) participant.store.endBatch();
+    };
+    const flushBatches = () => {
       for (const participant of unique) participant.store.resumeNotifications();
       for (const participant of unique) participant.store.flushNotifications();
     };
@@ -148,7 +164,8 @@ export class StoreTransactionCoordinator {
       commit: () => {
         if (closed) return;
         closed = true;
-        closeBatches();
+        endBatches();
+        flushBatches();
         const record = {
           meta,
           participants: before.map(participant => ({
@@ -168,11 +185,12 @@ export class StoreTransactionCoordinator {
       rollback: () => {
         if (closed) return;
         closed = true;
-        closeBatches();
+        endBatches();
         for (const participant of [...before].reverse()) {
           const current = participant.store.getPosition();
           if (current !== participant.position) participant.store.goTo(participant.position);
         }
+        flushBatches();
         this.emit('rolled_back', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
       },
     };
@@ -203,9 +221,7 @@ export class StoreTransactionCoordinator {
     if (!this.canUndo()) return;
     const record = this.history[this.position - 1]!;
     this.assertAtPositions(record, 'after');
-    for (const participant of [...record.participants].reverse()) {
-      participant.store.goTo(participant.before);
-    }
+    this.applyPositions(record, 'before', 'undo');
     this.position -= 1;
     this.emit('undone', record);
   }
@@ -214,11 +230,44 @@ export class StoreTransactionCoordinator {
     if (!this.canRedo()) return;
     const record = this.history[this.position]!;
     this.assertAtPositions(record, 'before');
-    for (const participant of record.participants) {
-      participant.store.goTo(participant.after);
-    }
+    this.applyPositions(record, 'after', 'redo');
     this.position += 1;
     this.emit('redone', record);
+  }
+
+  private applyPositions(
+    record: StoredStoreTransactionRecord,
+    side: 'before' | 'after',
+    origin: 'undo' | 'redo',
+  ): void {
+    const participants = record.participants.map(({ store }) => store);
+    const metadata: TimeTravelTransitionMeta = { ...record.meta, origin };
+    const started: TimeTravelStore<any>[] = [];
+    try {
+      for (const store of participants) {
+        store.beginBatch(metadata, { deferNotification: true });
+        started.push(store);
+      }
+    } catch (error) {
+      for (const store of [...started].reverse()) store.endBatch();
+      for (const store of started) {
+        store.resumeNotifications();
+        store.flushNotifications();
+      }
+      throw error;
+    }
+    try {
+      for (const participant of participants) {
+        const target = record.participants.find(({ store }) => store === participant)![side];
+        participant.goTo(target);
+      }
+    } finally {
+      for (const store of [...participants].reverse()) store.endBatch();
+      for (const store of participants) {
+        store.resumeNotifications();
+        store.flushNotifications();
+      }
+    }
   }
 
   private assertAtPositions(record: StoredStoreTransactionRecord, side: 'before' | 'after'): void {
