@@ -15,7 +15,7 @@ export { Store, createStore } from './Store';
 // Store Registry for managing multiple stores
 export { StoreRegistry } from './StoreRegistry';
 export { StoreTransactionCoordinator } from './StoreTransactionCoordinator';
-export type { StoreTransactionHandle, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './StoreTransactionCoordinator';
 export { bindActionTransactions } from './ActionTransactionBridge';
 export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './ActionTransactionBridge';
 

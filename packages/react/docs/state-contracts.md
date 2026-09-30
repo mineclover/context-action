@@ -34,6 +34,10 @@ has moved outside the coordinator, undo/redo fails with a history conflict
 instead of silently applying a partial transaction. A rejected callback rolls
 participant positions back to their starting positions.
 
+`subscribe()` observes `started`, `committed`, `rolled_back`, `undone`, and
+`redone` events. `getHistory()` and `serializeHistory()` expose metadata and
+positions only; they never serialize Store instances or live references.
+
 The current public classes remain compatible while these contracts are introduced. New code should depend on the role interfaces and use the concrete classes only at composition boundaries.
 
 For Core actions, `bindActionTransactions(register, coordinator, options)`

@@ -6,6 +6,8 @@ describe('StoreTransactionCoordinator', () => {
     const first = createTimeTravelStore('first', { value: 0 });
     const second = createTimeTravelStore('second', { value: 0 });
     const coordinator = new StoreTransactionCoordinator();
+    const phases: string[] = [];
+    coordinator.subscribe(event => phases.push(event.phase));
 
     const result = await coordinator.run(
       [
@@ -27,6 +29,7 @@ describe('StoreTransactionCoordinator', () => {
     expect(second.getHistory()).toHaveLength(2);
     expect(first.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
     expect(second.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
+    expect(JSON.parse(coordinator.serializeHistory())[0].participants[0].store).toBeUndefined();
     expect(coordinator.canUndo()).toBe(true);
     coordinator.undo();
     expect(first.getValue()).toEqual({ value: 0 });
@@ -35,6 +38,7 @@ describe('StoreTransactionCoordinator', () => {
     coordinator.redo();
     expect(first.getValue()).toEqual({ value: 1 });
     expect(second.getValue()).toEqual({ value: 2 });
+    expect(phases).toEqual(['started', 'committed', 'undone', 'redone']);
     first.dispose();
     second.dispose();
   });

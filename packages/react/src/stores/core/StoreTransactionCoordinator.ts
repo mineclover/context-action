@@ -18,11 +18,28 @@ export interface StoreTransactionRecord {
   readonly meta: StoreTransactionMeta;
   readonly participants: readonly {
     readonly name: string;
-    readonly store: TimeTravelStore<any>;
     readonly before: number;
     readonly after: number;
   }[];
 }
+
+export type StoreTransactionEventPhase = 'started' | 'committed' | 'rolled_back' | 'undone' | 'redone';
+
+export interface StoreTransactionEvent {
+  readonly phase: StoreTransactionEventPhase;
+  readonly record: StoreTransactionRecord;
+}
+
+export type StoreTransactionListener = (event: StoreTransactionEvent) => void;
+
+type StoredStoreTransactionRecord = StoreTransactionRecord & {
+  readonly participants: readonly {
+    readonly name: string;
+    readonly store: TimeTravelStore<any>;
+    readonly before: number;
+    readonly after: number;
+  }[];
+};
 
 export interface StoreTransactionHandle {
   readonly meta: StoreTransactionMeta;
@@ -38,7 +55,29 @@ export interface StoreTransactionHandle {
 export class StoreTransactionCoordinator {
   private sequence = 0;
   private position = 0;
-  private history: StoreTransactionRecord[] = [];
+  private history: StoredStoreTransactionRecord[] = [];
+  private readonly listeners = new Set<StoreTransactionListener>();
+
+  subscribe(listener: StoreTransactionListener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  serializeHistory(): string {
+    return JSON.stringify(this.getHistory());
+  }
+
+  private emit(phase: StoreTransactionEventPhase, record: StoreTransactionRecord): void {
+    const snapshot = this.snapshot(record);
+    for (const listener of this.listeners) listener({ phase, record: snapshot });
+  }
+
+  private snapshot(record: StoreTransactionRecord): StoreTransactionRecord {
+    return {
+      meta: { ...record.meta },
+      participants: record.participants.map(({ name, before, after }) => ({ name, before, after })),
+    };
+  }
 
   begin(
     participants: readonly StoreTransactionParticipant<any>[],
@@ -56,6 +95,7 @@ export class StoreTransactionCoordinator {
       position: participant.store.getPosition(),
     }));
     unique.forEach(participant => participant.store.beginBatch(meta));
+    this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
     let closed = false;
     const closeBatches = () => {
       for (const participant of [...unique].reverse()) participant.store.endBatch();
@@ -66,7 +106,7 @@ export class StoreTransactionCoordinator {
         if (closed) return;
         closed = true;
         closeBatches();
-        const record: StoreTransactionRecord = {
+        const record = {
           meta,
           participants: before.map(participant => ({
             name: participant.name,
@@ -79,6 +119,7 @@ export class StoreTransactionCoordinator {
           this.history = this.history.slice(0, this.position);
           this.history.push(record);
           this.position += 1;
+          this.emit('committed', record);
         }
       },
       rollback: () => {
@@ -89,6 +130,7 @@ export class StoreTransactionCoordinator {
           const current = participant.store.getPosition();
           if (current !== participant.position) participant.store.goTo(participant.position);
         }
+        this.emit('rolled_back', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
       },
     };
   }
@@ -112,7 +154,7 @@ export class StoreTransactionCoordinator {
   canUndo(): boolean { return this.position > 0; }
   canRedo(): boolean { return this.position < this.history.length; }
   getPosition(): number { return this.position; }
-  getHistory(): readonly StoreTransactionRecord[] { return this.history; }
+  getHistory(): readonly StoreTransactionRecord[] { return this.history.map(record => this.snapshot(record)); }
 
   undo(): void {
     if (!this.canUndo()) return;
@@ -122,6 +164,7 @@ export class StoreTransactionCoordinator {
       participant.store.goTo(participant.before);
     }
     this.position -= 1;
+    this.emit('undone', record);
   }
 
   redo(): void {
@@ -132,9 +175,10 @@ export class StoreTransactionCoordinator {
       participant.store.goTo(participant.after);
     }
     this.position += 1;
+    this.emit('redone', record);
   }
 
-  private assertAtPositions(record: StoreTransactionRecord, side: 'before' | 'after'): void {
+  private assertAtPositions(record: StoredStoreTransactionRecord, side: 'before' | 'after'): void {
     for (const participant of record.participants) {
       const expected = participant[side];
       if (participant.store.getPosition() !== expected) {
