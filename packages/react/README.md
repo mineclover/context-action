@@ -98,7 +98,7 @@ when designing new adapters or history tooling.
 
 Read safety migration is documented in [docs/read-mode-migration.md](docs/read-mode-migration.md).
 
-`@context-action/react` 3.0 is the React state-management integration:
+`@context-action/react` 3.1 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
   selective store subscriptions, React Compiler optimization, and the verified React 19.2 SSR and

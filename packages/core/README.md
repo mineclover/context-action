@@ -177,7 +177,7 @@ const actions = new ActionRegister<MyActions>({
 // should be treated as a programming error.
 ```
 
-## v1.1 Pipeline Contract
+## v1.2 Pipeline Contract
 
 ### Phase-specific registration
 
