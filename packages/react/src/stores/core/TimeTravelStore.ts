@@ -5,7 +5,7 @@
  * Provides time-travel functionality through Mutative JSON patches.
  */
 
-import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions } from '@context-action/mutative';
+import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions, type TimeTravelTransitionMeta } from '@context-action/mutative';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 /**
@@ -75,6 +75,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private patchAwareListeners = new Set<PatchAwareListener>();
   private _snapshot: Snapshot<T>;
   private _lastPatches: Patches | null = null;
+  private _lastTransitionMeta: TimeTravelTransitionMeta | undefined;
   private isDisposed = false;
   private cleanupTasks = new Set<() => void>();
   private customComparator?: (a: T, b: T) => boolean;
@@ -108,11 +109,12 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.unsubscribeTimeTravel = this.timeTravel.subscribe((state, travelPatches, _position, changedPatches) => {
+    this.unsubscribeTimeTravel = this.timeTravel.subscribe((state, travelPatches, _position, changedPatches, metadata) => {
       // Use only the patches from the transition that triggered this
       // notification. The full history remains available through the
       // TimeTravel controls and must not drive path-aware subscriptions.
       this._lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+      this._lastTransitionMeta = metadata;
 
       if (process.env.NODE_ENV === 'development') {
         console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, this._lastPatches.length, 'listeners:', this.listeners.size);
@@ -159,6 +161,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    */
   getLastPatches(): Patches | null {
     return this._lastPatches;
+  }
+
+  getLastTransitionMeta(): TimeTravelTransitionMeta | undefined {
+    return this._lastTransitionMeta;
   }
 
   getSnapshot = (): Snapshot<T> => this._snapshot;
@@ -237,9 +243,9 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   /** Group multiple updates into one timeline entry and notification. */
-  batch<R>(callback: () => R): R {
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
     if (this.isDisposed) return callback();
-    return this.timeTravel.batch(callback);
+    return this.timeTravel.batch(callback, metadata);
   }
 
   getListenerCount(): number {
