@@ -34,6 +34,7 @@ const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'tags',
   'version',
   'comparisonOptions',
+  'readMode',
 ]);
 
 /**
@@ -69,6 +70,8 @@ export interface TimeTravelStoreConfig<T = any> {
   tags?: string[];
   version?: string;
   comparisonOptions?: Partial<ComparisonOptions<T>>;
+  /** Public read policy. Manager defaults to safe defensive reads. */
+  readMode?: 'reference' | 'safe';
 }
 
 /**
@@ -181,6 +184,9 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
       store = createTimeTravelStore(String(storeName), initialValue, {
         maxHistory,
         mutable,
+        readMode: (storeConfig && isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS))
+          ? (storeConfig as TimeTravelStoreConfig<T[K]>).readMode ?? 'safe'
+          : 'safe',
         isEqual: comparisonOptions?.customComparator ?? (
           (comparisonOptions?.strategy ?? strategy) === 'reference'
             ? undefined

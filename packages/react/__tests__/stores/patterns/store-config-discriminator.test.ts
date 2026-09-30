@@ -138,7 +138,7 @@ describe('store definition discrimination', () => {
 
       const store = manager.getStore('state');
       expect(isTimeTravelStore(store)).toBe(true);
-      expect(store.getValue()).toBe(domainValue);
+      expect(store.getValue()).toEqual(domainValue);
     });
 
     it('supports explicit ambiguous values without changing the stored value', () => {
@@ -148,7 +148,7 @@ describe('store definition discrimination', () => {
         { state: asStoreValue(ambiguousValue) }
       );
 
-      expect(manager.getStore('state').getValue()).toBe(ambiguousValue);
+      expect(manager.getStore('state').getValue()).toEqual(ambiguousValue);
     });
 
     it('keeps existing time-travel configuration behavior', () => {

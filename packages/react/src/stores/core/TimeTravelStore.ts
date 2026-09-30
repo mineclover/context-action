@@ -46,6 +46,8 @@ export interface TimeTravelStoreOptions<T> {
   isEqual?: (a: T, b: T) => boolean;
   /** Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate') */
   notificationMode?: 'batched' | 'immediate';
+  /** Public read policy. Reference preserves legacy structural-sharing reads. */
+  readMode?: 'reference' | 'safe';
 }
 
 /**
@@ -99,6 +101,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.name = name;
     this.customComparator = options.isEqual;
     this.notificationMode = options.notificationMode ?? 'immediate';
+    this.cloningEnabled = options.readMode === 'safe';
 
     // Create TimeTravel instance
     // mutable=true enables structural sharing for selective re-rendering
