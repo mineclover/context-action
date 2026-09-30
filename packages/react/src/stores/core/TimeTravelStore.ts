@@ -183,7 +183,9 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
    *
    * Returns the state reference directly to maintain structural sharing.
    * This enables selective re-rendering when combined with path-based subscriptions.
-   * Use setCloningEnabled(true) if you need defensive copies.
+   * Use `readMode: 'safe'` or getSafeValue() when the value crosses an
+   * external boundary. Reference reads are retained for legacy action-handler
+   * compatibility and should not be mutated.
    */
   getValue(): T {
     const value = this.timeTravel.getState();
