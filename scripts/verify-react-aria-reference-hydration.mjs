@@ -15,6 +15,7 @@ const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const pagePath = path.join(repositoryRoot, 'example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx');
 const coreDirectory = path.join(repositoryRoot, 'packages/core');
 const reactDirectory = path.join(repositoryRoot, 'packages/react');
+const mutativeDirectory = path.join(repositoryRoot, 'packages/mutative');
 const coreManifest = JSON.parse(
   readFileSync(path.join(coreDirectory, 'package.json'), 'utf8')
 );
@@ -67,6 +68,7 @@ try {
   mkdirSync(packDirectory, { recursive: true });
   const candidatePackages = {
     core: createLocalPackageSpec('@context-action/core', coreDirectory, packDirectory),
+    mutative: createLocalPackageSpec('@context-action/mutative', mutativeDirectory, packDirectory),
     react: createLocalPackageSpec('@context-action/react', reactDirectory, packDirectory),
   };
   for (const reactVersion of ['19.2.0', '19.2.8']) {
@@ -91,6 +93,7 @@ try {
         'react-aria-components': '1.20.0',
         '@internationalized/date': '3.12.3',
         '@context-action/core': candidatePackages.core,
+        '@context-action/mutative': candidatePackages.mutative,
         '@context-action/react': candidatePackages.react,
         jsdom: '26.1.0',
       },
