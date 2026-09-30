@@ -6,7 +6,7 @@
 
 # Interface: StoreTransactionHandle
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L58)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:65](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L65)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:58](h
 
 > **commit**(): `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:60](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L60)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:67](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L67)
 
 #### Returns
 
@@ -26,7 +26,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:60](h
 
 > **rollback**(): `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:61](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L61)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:68](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L68)
 
 #### Returns
 
@@ -38,4 +38,4 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:61](h
 
 > `readonly` **meta**: [`StoreTransactionMeta`](StoreTransactionMeta.md)
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L59)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:66](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L66)

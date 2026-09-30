@@ -8,7 +8,7 @@
 
 > **createTimeTravelStore**&lt;`T`&gt;(`name`, `initialValue`, `options?`): [`TimeTravelStore`](../classes/TimeTravelStore.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:592](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L592)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:607](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L607)
 
 Factory function to create a TimeTravelStore
 
