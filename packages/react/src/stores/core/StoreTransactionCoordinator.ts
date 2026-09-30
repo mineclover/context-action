@@ -1,6 +1,13 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: transaction participants are heterogeneous store types.
-import type { TimeTravelTransitionMeta } from '@context-action/mutative';
 import type { TimeTravelStore } from './TimeTravelStore';
+
+type TimeTravelTransitionMeta = {
+  readonly id?: string;
+  readonly transactionId?: string;
+  readonly actionId?: string;
+  readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
+  readonly label?: string;
+};
 
 export interface StoreTransactionMeta {
   readonly id: string;

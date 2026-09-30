@@ -638,7 +638,7 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^1.1.0
+        specifier: ^1.2.0
         version: link:../core
       '@context-action/mutative':
         specifier: ^0.8.8

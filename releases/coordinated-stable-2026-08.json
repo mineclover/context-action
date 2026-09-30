@@ -5,19 +5,19 @@
   "candidateDistTag": "next",
   "promotionDistTag": "latest",
   "packages": {
-    "@context-action/core": "1.1.0",
-    "@context-action/react": "3.0.0"
+    "@context-action/core": "1.2.0",
+    "@context-action/react": "3.1.0"
   },
   "provenanceCommits": {
-    "@context-action/core": "e07cf2c84e2bb86d91baa79e8e25812822ff3cdf",
-    "@context-action/react": "e0ece1a89c13810d74f0dc6c0a534b80b92779d8"
+    "@context-action/core": "d321b8407f2e76cc7cde88888c2a9529bbc4997d",
+    "@context-action/react": "d321b8407f2e76cc7cde88888c2a9529bbc4997d"
   },
   "changelogDates": {
-    "@context-action/core": "2026-08-11",
-    "@context-action/react": "2026-08-22"
+    "@context-action/core": "2026-10-01",
+    "@context-action/react": "2026-10-01"
   },
   "reactDependencyFloors": {
-    "@context-action/core": "^1.1.0"
+    "@context-action/core": "^1.2.0"
   },
   "requiredChecks": [
     "pnpm release:check",
@@ -26,8 +26,8 @@
   ],
   "notes": [
     "This plan is distinct from the immutable v1.0.0 historical release manifest.",
-    "React 3.0.0 raises the public baseline to React 19.2 and removes React 18 compatibility.",
+    "React 3.1.0 carries the state contract, transaction coordinator, and snapshot stability updates on the existing React 19.2 baseline.",
     "The candidate workflow publishes only to next. The promotion workflow verifies the same cohort from next before changing latest.",
-    "Core 1.1.0 was already promoted from its recorded immutable source; React 3.0.0 was published as the candidate from its separately recorded immutable source."
+    "The candidate provenance verifier binds each published attestation to the immutable release_commit supplied to the protected workflow."
   ]
 }

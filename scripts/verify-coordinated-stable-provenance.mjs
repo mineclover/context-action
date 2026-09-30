@@ -73,7 +73,7 @@ try {
     if (!bundle) throw new Error(`No SLSA provenance attestation was returned for ${name}@${version}`);
     const statement = decodeStatement(bundle.bundle);
     const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
-    const sourceCommit = provenanceCommits[name];
+    const sourceCommit = commit;
     if (attestedCommit(statement) !== sourceCommit || workflow?.repository !== expectedRepository || workflow?.path !== expectedWorkflowPath || workflow?.ref !== 'refs/heads/main') {
       throw new Error(`Attested source does not match the coordinated release contract for ${name}@${version}`);
     }
