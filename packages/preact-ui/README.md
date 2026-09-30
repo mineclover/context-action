@@ -21,6 +21,7 @@ Domain                 : 원본 상태와 업무 규칙
 5. [순수 HTML 이식 & Web Component 아키텍처 리뷰](docs/06-standalone-embed-and-web-components.md): UMD 마운트 vs Web Component 이식 방식 비교 및 실증.
 6. [모듈식 Web Component & Signals 통합 컨벤션](docs/07-modular-web-components-and-signals-convention.md): 가상 DOM 격리, 3계층 모듈화, 크로스 시그널 공유 표준.
 7. [FACE 및 React 상호운용성 브릿지 가이드](docs/08-form-associated-elements-and-react-bridge.md): 표준 HTML 폼 연동 및 React 브릿지 컴포넌트(`createCustomElementBridge`).
+8. [웹 컴포넌트 인터페이스 설계 및 상태 관리 표준 규약](../lit-ui/docs/05-interface-and-state-management-standards.md): Lit & Preact 공통 인터페이스 작성 규칙, 상태 3계층 모델, 4대 대원칙.
 
 구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
 

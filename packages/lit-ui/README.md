@@ -26,6 +26,14 @@ Web Component primitives, Form-Associated Custom Elements (FACE), W3C Context Pr
 │   └─────┴──────────────────────────────────────────────┘
 ```
 
+## Documentation
+
+- [01. DOM Ownership & Shadow DOM Isolation](docs/01-dom-ownership.md)
+- [02. ReactiveController vs React Hooks & 3-Layer Architecture](docs/02-reactive-controller-vs-hooks.md)
+- [03. Form-Associated Custom Elements (FACE) & ElementInternals](docs/03-form-associated-elements.md)
+- [04. W3C Context Protocol & Micro-Frontend Communication](docs/04-micro-frontend-communication.md)
+- [05. Interface Design & Baseline State Management Standards](docs/05-interface-and-state-management-standards.md)
+
 ## Status
 
 `private: true`, version `0.0.0` (workspace development template).
