@@ -14,7 +14,7 @@ import { createStore, Store } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
 import type { StorePath } from '../hooks/useTimeTravelPath';
-import type { ComparisonOptions } from '../utils/comparison';
+import { compareValues, type ComparisonOptions } from '../utils/comparison';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import {
   type ExplicitStoreValue,
@@ -195,7 +195,14 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
       store = createTimeTravelStore(String(storeName), initialValue, {
         maxHistory,
         mutable,
-        isEqual: comparisonOptions?.customComparator,
+        isEqual: comparisonOptions?.customComparator ?? (
+          (comparisonOptions?.strategy ?? strategy) === 'reference'
+            ? undefined
+            : (previous, next) => compareValues(previous, next, {
+                ...comparisonOptions,
+                strategy: comparisonOptions?.strategy ?? strategy,
+              })
+        ),
       });
     } else {
       store = createStore(String(storeName), initialValue);
