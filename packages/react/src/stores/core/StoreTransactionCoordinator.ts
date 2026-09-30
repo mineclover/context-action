@@ -32,7 +32,7 @@ export class StoreTransactionCoordinator {
     const execute = () => callback(meta);
     const runAt = (index: number): R | Promise<R> => {
       if (index >= unique.length) return execute();
-      return unique[index]!.store.batch(() => runAt(index + 1));
+      return unique[index]!.store.batch(() => runAt(index + 1), meta);
     };
     return await runAt(0);
   }

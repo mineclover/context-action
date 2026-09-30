@@ -25,6 +25,8 @@ describe('StoreTransactionCoordinator', () => {
     expect(result.label).toBe('sync values');
     expect(first.getHistory()).toHaveLength(2);
     expect(second.getHistory()).toHaveLength(2);
+    expect(first.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
+    expect(second.getLastTransitionMeta()).toMatchObject({ id: 'tx_1', label: 'sync values', origin: 'user' });
     first.undo();
     second.undo();
     expect(first.getValue()).toEqual({ value: 0 });

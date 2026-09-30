@@ -80,6 +80,13 @@ export type DraftFunction<S> = (draft: Draft<S>) => void;
 
 export type Updater<S> = S | (() => S) | DraftFunction<S>;
 
+export interface TimeTravelTransitionMeta {
+  readonly transactionId?: string;
+  readonly actionId?: string;
+  readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
+  readonly label?: string;
+}
+
 export type Value<S, F extends boolean> = F extends true
   ? Immutable<InitialValue<S>>
   : InitialValue<S>;
@@ -142,7 +149,8 @@ export type TimeTravelListener<S, P extends PatchesOption = object> = (
   patches: TravelPatches<P>,
   position: number,
   /** Patches applied by the state transition that triggered this notification. */
-  changedPatches?: Patches<P>
+  changedPatches?: Patches<P>,
+  metadata?: TimeTravelTransitionMeta,
 ) => void;
 
 // ============================================================================

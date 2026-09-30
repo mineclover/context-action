@@ -19,6 +19,7 @@ import type {
   TimeTravelControls,
   ManualTimeTravelControls,
   TimeTravelListener,
+  TimeTravelTransitionMeta,
   Updater,
   Value,
 } from './types';
@@ -128,6 +129,7 @@ export class TimeTravel<
   private batchDepth = 0;
   private batchInitialState: S | null = null;
   private batchChanged = false;
+  private batchMeta: TimeTravelTransitionMeta | undefined;
 
   constructor(initialState: S, options: TimeTravelOptions<F, A, P> = {} as TimeTravelOptions<F, A, P>) {
     const {
@@ -222,9 +224,9 @@ export class TimeTravel<
     this.historyCache = null;
   }
 
-  private notify(changedPatches?: Patches<P>): void {
+  private notify(changedPatches?: Patches<P>, metadata?: TimeTravelTransitionMeta): void {
     this.listeners.forEach((listener) =>
-      listener(this.state, this.getPatches(), this.position, changedPatches)
+      listener(this.state, this.getPatches(), this.position, changedPatches, metadata)
     );
   }
 
@@ -360,10 +362,11 @@ export class TimeTravel<
   }
 
   /** Group synchronous or asynchronous updates into one history entry. */
-  batch<R>(callback: () => R): R {
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
     if (this.batchDepth === 0) {
       this.batchInitialState = deepClone(this.state);
       this.batchChanged = false;
+      this.batchMeta = metadata;
     }
     this.batchDepth += 1;
 
@@ -374,7 +377,9 @@ export class TimeTravel<
       const initialState = this.batchInitialState;
       this.batchInitialState = null;
       const changed = this.batchChanged;
+      const transitionMeta = this.batchMeta;
       this.batchChanged = false;
+      this.batchMeta = undefined;
       if (!changed || initialState === null) return;
 
       const [, patches, inversePatches] = create(
@@ -383,7 +388,7 @@ export class TimeTravel<
         this.options,
       ) as [S, Patches<P>, Patches<P>];
       if (patches.length > 0 || inversePatches.length > 0) {
-        this.commitPatches(patches, inversePatches);
+        this.commitPatches(patches, inversePatches, transitionMeta);
       }
     };
 
@@ -403,7 +408,11 @@ export class TimeTravel<
     }
   }
 
-  private commitPatches(patches: Patches<P>, inversePatches: Patches<P>): void {
+  private commitPatches(
+    patches: Patches<P>,
+    inversePatches: Patches<P>,
+    metadata?: TimeTravelTransitionMeta,
+  ): void {
 
     if (this.autoArchive) {
       this.archivePatches(patches, inversePatches);
@@ -415,7 +424,7 @@ export class TimeTravel<
     }
 
     this.invalidateHistoryCache();
-    this.notify(patches);
+    this.notify(patches, metadata);
   }
 
   private archivePatches(patches: Patches<P>, inversePatches: Patches<P>): void {
