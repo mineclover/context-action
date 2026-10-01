@@ -62,6 +62,19 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
+  it('does not notify when an empty batch is cancelled', () => {
+    const travel = createTimeTravel({ count: 0 });
+    const listener = vi.fn();
+    travel.subscribe(listener);
+
+    expect(() => travel.batch(() => {
+      throw new Error('empty rejection');
+    })).toThrow('empty rejection');
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(travel.getState()).toEqual({ count: 0 });
+  });
+
   it('rolls back a rejected asynchronous batch', async () => {
     const travel = createTimeTravel({ count: 0 });
 

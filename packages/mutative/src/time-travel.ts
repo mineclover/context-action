@@ -500,6 +500,7 @@ export class TimeTravel<
   cancelBatch(): void {
     if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
     const frame = this.batchFrames.pop()!;
+    const hadChanges = this.batchChanged || frame.changed;
     this.batchDepth -= 1;
     // Mutable mode promises a stable root reference. Restore in place when
     // the batch did not replace that root; root replacement rolls back to the
@@ -538,6 +539,7 @@ export class TimeTravel<
 
     this.batchChanged = false;
     this.batchMeta = undefined;
+    if (!hadChanges) return;
     const rootPath =
       typeof this.options.enablePatches === 'object' &&
       this.options.enablePatches.pathAsArray === false
