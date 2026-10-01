@@ -99,6 +99,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   ];
 
   actions.register('updateCustomerName', ({ name }) => {
+    if (typeof name !== 'string') throw new TypeError('name must be a string');
     const updatedDraft = { ...state.draft, customerName: name };
     const issues = validateOrderDraft(updatedDraft);
     commit({
@@ -109,6 +110,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('updateShippingAddress', ({ address }) => {
+    if (typeof address !== 'string') throw new TypeError('address must be a string');
     const updatedDraft = { ...state.draft, shippingAddress: address };
     const issues = validateOrderDraft(updatedDraft);
     commit({
@@ -119,13 +121,25 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('addItem', ({ item }) => {
-    const existingIndex = state.draft.items.findIndex((i) => i.id === item.id);
+    if (
+      typeof item.id !== 'string' ||
+      typeof item.name !== 'string' ||
+      !Number.isFinite(item.unitPrice) ||
+      !Number.isSafeInteger(item.quantity) ||
+      item.quantity <= 0
+    ) {
+      throw new TypeError('item must have valid id, name, unitPrice, and positive integer quantity');
+    }
+    // Copy caller-owned payloads before they enter the domain state. A caller
+    // may reuse or mutate its input object after dispatch resolves.
+    const incomingItem = { ...item };
+    const existingIndex = state.draft.items.findIndex((i) => i.id === incomingItem.id);
     let items = [...state.draft.items];
     if (existingIndex >= 0) {
       const existing = items[existingIndex]!;
-      items[existingIndex] = { ...existing, quantity: existing.quantity + item.quantity };
+      items[existingIndex] = { ...existing, quantity: existing.quantity + incomingItem.quantity };
     } else {
-      items.push(item);
+      items.push(incomingItem);
     }
     const updatedDraft = { ...state.draft, items };
     const issues = validateOrderDraft(updatedDraft);
@@ -151,6 +165,9 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('updateItemQuantity', ({ itemId, quantity }) => {
+    if (typeof itemId !== 'string' || !Number.isSafeInteger(quantity) || quantity <= 0) {
+      throw new TypeError('itemId must be a string and quantity must be a positive integer');
+    }
     const items = state.draft.items.map((i) => (i.id === itemId ? { ...i, quantity } : i));
     const updatedDraft = { ...state.draft, items };
     const issues = validateOrderDraft(updatedDraft);

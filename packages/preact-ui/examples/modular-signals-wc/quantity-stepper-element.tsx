@@ -57,8 +57,10 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
       const disabledSignal = signal(false);
 
       function getBounds() {
-        const min = parseInt(element.getAttribute('min') ?? '1', 10);
-        const max = parseInt(element.getAttribute('max') ?? '99', 10);
+        const parsedMin = Number.parseInt(element.getAttribute('min') ?? '', 10);
+        const parsedMax = Number.parseInt(element.getAttribute('max') ?? '', 10);
+        const min = Number.isFinite(parsedMin) ? parsedMin : 1;
+        const max = Math.max(min, Number.isFinite(parsedMax) ? parsedMax : 99);
         return { min, max };
       }
 
@@ -84,9 +86,6 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           );
         }
       }
-
-      // Initial registration with ElementInternals
-      updateValidationAndFormValue(countSignal.value);
 
       function QuantityStepperView() {
         const { min, max } = getBounds();
