@@ -127,6 +127,24 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getHistory()).toEqual([{ count: 1 }]);
   });
 
+  it('assigns pending manual transitions a current identity when history is disabled', () => {
+    const travel = createTimeTravel(
+      { count: 0 },
+      { autoArchive: false, maxHistory: 0 },
+    );
+    const initialId = travel.getHistoryEntryId();
+
+    travel.setState((draft) => { draft.count = 1; });
+    const firstPendingId = travel.getHistoryEntryId();
+    travel.setState((draft) => { draft.count = 2; });
+    const secondPendingId = travel.getHistoryEntryId();
+
+    expect(firstPendingId).not.toBe(initialId);
+    expect(secondPendingId).not.toBe(firstPendingId);
+    expect(travel.hasHistoryEntry(initialId)).toBe(false);
+    expect(travel.hasHistoryEntry(secondPendingId)).toBe(true);
+  });
+
   it('rejects invalid history bounds before creating a timeline', () => {
     for (const maxHistory of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
       expect(() => createTimeTravel({ count: 0 }, { maxHistory })).toThrow(

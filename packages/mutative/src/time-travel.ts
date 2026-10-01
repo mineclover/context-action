@@ -613,6 +613,17 @@ export class TimeTravel<
       this.tempPatches.inversePatches.length = 0;
     }
 
+    // With no retained history there is still one live pending entry. Keep
+    // its identity at cursor 0 instead of leaving the initial entry ID at the
+    // cursor while appending unreachable IDs after it.
+    if (this.maxHistory === 0) {
+      this.historyEntryIds = [++this.entrySequence];
+      this.position = 0;
+      this.tempPatches.patches.push(patches);
+      this.tempPatches.inversePatches.push(inversePatches);
+      return;
+    }
+
     if (!this.tempPatches.patches.length || notLast) {
       this.historyEntryIds = this.historyEntryIds.slice(0, this.position + 1);
       this.historyEntryIds.push(++this.entrySequence);
