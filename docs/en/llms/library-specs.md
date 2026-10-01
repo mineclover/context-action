@@ -40,7 +40,7 @@
 
 ### Release and Security Baseline
 
-- **Workspace package baseline**: `@context-action/core` 1.2.4, `@context-action/mutative-core` 0.8.12, `@context-action/mutative` 0.8.13, `@context-action/react` 4.0.5, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.1, and `@context-action/webmcp` 0.1.2. Published dist-tags remain authoritative for an external install.
+- **Workspace package baseline**: `@context-action/core` 1.2.4, `@context-action/store-core` 0.1.1, `@context-action/mutative-core` 0.8.12, `@context-action/mutative` 0.8.13, `@context-action/react` 4.0.5, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, and `@context-action/webmcp` 0.1.2. Published dist-tags remain authoritative for an external install.
 - **Mutative lineage**: Mutative Core `0.8.12` and the scoped adapter `0.8.13` track the acquired upstream `mutative@1.3.0` compatibility baseline; verify the committed source inventory with `pnpm verify:mutative-upstream` before synchronization or release.
 - **Runtime baseline**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, and TypeScript `6.0.3`.
 - **Dependency security**: `pnpm security:audit` is the required OSV check and currently reports no actionable vulnerability matches. Fixed dependency floors are enforced by the root `pnpm.overrides` configuration.
