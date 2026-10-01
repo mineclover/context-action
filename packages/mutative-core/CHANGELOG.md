@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.8
+## 0.8.8 (2026-10-01)
 
 - Vendored the maintained `mineclover/mutative` core into a standalone
   `@context-action/mutative-core` package.
