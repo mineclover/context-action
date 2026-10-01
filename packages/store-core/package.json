@@ -1,6 +1,6 @@
 {
   "name": "@context-action/store-core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "description": "Framework-neutral store and timeline contracts for Context-Action",
   "main": "dist/index.cjs",

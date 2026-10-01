@@ -1,6 +1,6 @@
 {
   "name": "@context-action/mutative-core",
-  "version": "0.8.13",
+  "version": "0.8.14",
   "type": "module",
   "description": "Context-Action maintained Mutative core for efficient immutable updates",
   "main": "dist/index.cjs",

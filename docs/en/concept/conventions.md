@@ -2,12 +2,12 @@
 
 This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext.
 
-> Start with the **Current React 4.0.6 summary** below for a new feature. The
+> Start with the **Current React 4.0.7 summary** below for a new feature. The
 > detailed sections that follow are reference material; use the
 > [Context-Layered convention index](/en/context-layered/convention-index) when
 > a feature needs the repository's six-layer implementation profile.
 
-## Current React 4.0.6 summary
+## Current React 4.0.7 summary
 
 `@context-action/react` requires React 19.2 or later. The default design is a
 context-layered flow, not a component that mixes rendering, domain rules, and
@@ -48,8 +48,8 @@ external effects:
    `readMode: 'reference'` for compatibility. Use `getSafeValue()` or
    `readMode: 'safe'` when a value crosses an external boundary. Use
    `useStorePath()` for mutable direct updates reported through `notifyPath()`.
-9. **Track the immutable runtime separately.** Mutative Core remains at `0.8.13`
-   while the scoped adapter is patched at `0.8.14`; both track upstream
+9. **Track the immutable runtime separately.** Mutative Core remains at `0.8.14`
+   while the scoped adapter is patched at `0.8.15`; both track upstream
    `mutative@1.3.0` as a compatibility baseline. Synchronize only through the
    reviewed lock and `pnpm verify:mutative-upstream`.
 
@@ -59,7 +59,7 @@ repository structure and `pnpm docs:check` after documentation changes.
 
 ## 📋 Table of Contents
 
-1. [Current React 4.0.6 Summary](#current-react-406-summary)
+1. [Current React 4.0.7 Summary](#current-react-407-summary)
 2. [Legacy MVVM Migration Conventions](#legacy-mvvm-migration-conventions)
 3. [Naming Conventions](#naming-conventions)
 4. [File Structure](#file-structure)

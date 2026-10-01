@@ -76,8 +76,8 @@ await register.actions.reset(undefined, { debounce: 100 });
 `@context-action/react`에서 import하며, 이전의 `react18` 호환 entry point는 더 이상
 export하지 않습니다.
 `@context-action/mutative-core` / `@context-action/mutative` fork는 계속
-immutable runtime 계약으로 유지합니다. 현재 stable cohort는 Core `1.2.5`, Store Core `0.1.2`,
-Mutative Core `0.8.13`, scoped adapter `0.8.14`, React `4.0.6`입니다. `mutative@1.3.0`은
+immutable runtime 계약으로 유지합니다. 현재 stable cohort는 Core `1.2.6`, Store Core `0.1.3`,
+Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `4.0.7`입니다. `mutative@1.3.0`은
 인수한 upstream 호환성 기준이며 runtime 교체 버전이 아닙니다. upstream 변경은
 검토된 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)와
 `upstream-lock.json`에 기록하고 `pnpm verify:mutative-upstream`을 실행합니다.
