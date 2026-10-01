@@ -218,25 +218,55 @@ export function definePreactElement<Input>(
       if (firstError) throw firstError;
     }
 
-    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-      if (oldValue === newValue) return;
-      this.#lifecycle.onAttributeChange?.(name, oldValue, newValue);
-      if (this.#mount) {
-        this.#mount.update(this.#lifecycle.getInput());
+    #updateMount() {
+      const mount = this.#mount;
+      if (!mount) return;
+
+      try {
+        mount.update(this.#lifecycle.getInput());
+      } catch (error) {
+        // A failed render terminates the current connection session. The
+        // mount implementation normally performs this cleanup itself, but
+        // retrying destroy here keeps the element safe if a custom backend
+        // fails before it can release its root.
+        this.#mount = undefined;
+        const errors: unknown[] = [error];
+        try { mount.destroy(); } catch (cleanupError) { errors.push(cleanupError); }
+
+        if (this.#sessionActive) {
+          this.#sessionActive = false;
+          try { this.#lifecycle.onDisconnect?.(); } catch (disconnectError) {
+            errors.push(disconnectError);
+          }
+        }
+
+        if (errors.length > 1) {
+          throw new AggregateError(errors, 'Custom element update failed');
+        }
+        throw error;
       }
     }
 
+    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
+      if (oldValue === newValue) return;
+      this.#lifecycle.onAttributeChange?.(name, oldValue, newValue);
+      this.#updateMount();
+    }
+
     updateInput() {
-      if (this.#mount) {
-        this.#mount.update(this.#lifecycle.getInput());
-      }
+      this.#updateMount();
     }
 
     dispose() {
       if (this.#disposed) return;
       this.#disposed = true;
-      this.disconnectedCallback();
-      this.#lifecycle.onDestroy?.();
+      const errors: unknown[] = [];
+      try { this.disconnectedCallback(); } catch (error) { errors.push(error); }
+      try { this.#lifecycle.onDestroy?.(); } catch (error) { errors.push(error); }
+      if (errors.length === 1) throw errors[0];
+      if (errors.length > 1) {
+        throw new AggregateError(errors, 'Custom element disposal failed');
+      }
     }
   }
 

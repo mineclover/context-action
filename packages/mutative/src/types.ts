@@ -65,6 +65,9 @@ export type TimeTravelOptions<
 
   /** Reject non-draft replacement values in strict mode. */
   strict?: boolean;
+
+  /** Observe listener failures without changing the transition result. */
+  onListenerError?: (error: unknown) => void;
 } & Omit<
   MutativeOptions<true, F>,
   'enablePatches' | 'enableAutoFreeze' | 'strict'

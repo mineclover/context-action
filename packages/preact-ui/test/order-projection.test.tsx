@@ -124,4 +124,31 @@ describe('Projected Order Reference Implementation (Preact Signals & Context-Lay
     expect(host.childNodes.length).toBe(0);
     expect(mount.instance.destroyed).toBe(true);
   });
+
+  it('publishes frozen cached snapshots that cannot mutate the model silently', () => {
+    const model = createOrderModel({
+      items: [{ id: 'snapshot', name: 'Snapshot', unitPrice: 1, quantity: 2 }],
+    });
+    cleanups.push(() => model.destroy());
+
+    const snapshot = model.source.getSnapshot();
+    expect(Object.isFrozen(snapshot)).toBe(true);
+    expect(Object.isFrozen(snapshot.draft.items)).toBe(true);
+    expect(() => { snapshot.draft.items[0]!.quantity = 99; }).toThrow(TypeError);
+    expect(model.source.getSnapshot().draft.items[0]?.quantity).toBe(2);
+  });
+
+  it('ignores a delayed submission commit after the model is destroyed', async () => {
+    const model = createOrderModel({
+      submitDelayMs: 20,
+      customerName: 'Delayed',
+      shippingAddress: 'Address',
+      items: [{ id: 'late', name: 'Late', unitPrice: 1, quantity: 1 }],
+    });
+    const pending = model.dispatch('submitOrder');
+    const afterStart = model.source.getSnapshot();
+    model.destroy();
+    await expect(pending).resolves.toBeUndefined();
+    expect(model.source.getSnapshot()).toBe(afterStart);
+  });
 });

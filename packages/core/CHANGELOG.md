@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.2.6] (2026-10-02)
+
+- Reissue the coordinated state-management cohort with fresh provenance for the time-travel and hydration stability release.
+
 ## [1.2.5] (2026-10-02)
 
 - Reissue the coordinated state-management cohort with fresh provenance for the product-stability release.

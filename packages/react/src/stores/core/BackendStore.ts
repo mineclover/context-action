@@ -9,6 +9,10 @@ interface PendingPatchNotification<Patch> {
   resolved: boolean;
 }
 
+function normalizeUnsubscribe(candidate: unknown): Unsubscribe {
+  return typeof candidate === 'function' ? candidate as Unsubscribe : () => {};
+}
+
 export interface BackendStoreOptions {
   /** Shared backends remain alive when this wrapper is disposed (default). */
   readonly ownership?: 'shared' | 'owned';
@@ -63,87 +67,106 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.snapshot = this.toSnapshot(this.backendSnapshot);
     const subscribeWithPatches = backend.subscribeWithPatches;
     this.hasPatchChannel = typeof subscribeWithPatches === 'function';
-    this.unsubscribeBackendPatches = typeof subscribeWithPatches === 'function'
-      ? subscribeWithPatches.call(backend, (patches) => {
-          this.capturePatchNotification(patches);
-        })
-      : (() => {});
-    this.unsubscribeBackend = backend.subscribe(() => {
-      if (this.disposed) return;
-      let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
-      try {
-        nextBackendSnapshot = backend.getSnapshot();
-      } catch (error) {
-        // A malformed backend must not break an already published snapshot
-        // or prevent unrelated React subscribers from receiving notifications.
-        this.reportListenerError('Backend snapshot read error', error);
-        return;
-      }
-      // Backends should replace snapshots, but accepting a reused object is a
-      // useful compatibility guard for small user-owned adapters. Compare the
-      // contract fields as well so a monotonically increasing version still
-      // invalidates React when the backend mutates its snapshot in place.
-      if (
-        nextBackendSnapshot !== this.backendSnapshot ||
-        nextBackendSnapshot.version !== this.backendSnapshotVersion ||
-        nextBackendSnapshot.lastUpdate !== this.backendSnapshotLastUpdate ||
-        !Object.is(nextBackendSnapshot.value, this.backendSnapshotValue)
-      ) {
-        this.backendSnapshot = nextBackendSnapshot;
-        this.backendSnapshotVersion = nextBackendSnapshot.version;
-        this.backendSnapshotLastUpdate = nextBackendSnapshot.lastUpdate;
-        this.backendSnapshotValue = nextBackendSnapshot.value;
-        this.snapshot = this.toSnapshot(nextBackendSnapshot);
-      }
-      let fallbackPatches: readonly Patch[] | null = null;
-      if (!this.hasPatchChannel) {
+    // Registration can fail after the patch channel has already been
+    // installed (for example, a backend can reject the regular subscription
+    // while it is being mounted). Keep the first unsubscribe in a local until
+    // both channels are registered, so a failed constructor never leaks a
+    // patch listener into a shared backend.
+    let unsubscribeBackendPatches: Unsubscribe = () => {};
+    let unsubscribeBackend: Unsubscribe = () => {};
+    try {
+      unsubscribeBackendPatches = typeof subscribeWithPatches === 'function'
+        ? normalizeUnsubscribe(subscribeWithPatches.call(backend, (patches) => {
+            this.capturePatchNotification(patches);
+          }))
+        : (() => {});
+      unsubscribeBackend = normalizeUnsubscribe(backend.subscribe(() => {
+        if (this.disposed) return;
+        let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
         try {
-          const candidate = backend.getLastPatches?.() ?? null;
-          // A getLastPatches-only backend has no event channel. Treat a
-          // repeated array reference as stale rather than replaying the prior
-          // mutation for every subsequent patchless transition.
-          if (!this.hasReadFallbackPatches || !Object.is(candidate, this.lastFallbackPatches)) {
-            fallbackPatches = candidate;
-          }
-          this.lastFallbackPatches = candidate;
-          this.hasReadFallbackPatches = true;
+          nextBackendSnapshot = backend.getSnapshot();
         } catch (error) {
-          this.reportListenerError('Backend patch read error', error);
+          // A malformed backend must not break an already published snapshot
+          // or prevent unrelated React subscribers from receiving notifications.
+          this.reportListenerError('Backend snapshot read error', error);
+          return;
         }
-      }
-      const pendingPatchNotification: PendingPatchNotification<Patch> = {
-        patches: fallbackPatches,
-        // Without a patch channel, null is the authoritative full-invalidation
-        // result and can be delivered synchronously for backwards compatibility.
-        resolved: !this.hasPatchChannel,
-      };
-      // Some backends notify the regular channel before the patch channel,
-      // while others do the reverse. Pair an already received patch with this
-      // transition; otherwise the patch callback can resolve this entry before
-      // the microtask flush below.
-      if (this.orphanPatchNotifications.length > 0) {
-        pendingPatchNotification.patches = this.orphanPatchNotifications.shift() ?? null;
-        pendingPatchNotification.resolved = true;
-      }
-      this.pendingPatchNotifications.push(pendingPatchNotification);
-      this.listenerDispatchDepth += 1;
-      try {
-        for (const listener of [...this.listeners]) {
+        // Backends should replace snapshots, but accepting a reused object is a
+        // useful compatibility guard for small user-owned adapters. Compare the
+        // contract fields as well so a monotonically increasing version still
+        // invalidates React when the backend mutates its snapshot in place.
+        if (
+          nextBackendSnapshot !== this.backendSnapshot ||
+          nextBackendSnapshot.version !== this.backendSnapshotVersion ||
+          nextBackendSnapshot.lastUpdate !== this.backendSnapshotLastUpdate ||
+          !Object.is(nextBackendSnapshot.value, this.backendSnapshotValue)
+        ) {
+          this.backendSnapshot = nextBackendSnapshot;
+          this.backendSnapshotVersion = nextBackendSnapshot.version;
+          this.backendSnapshotLastUpdate = nextBackendSnapshot.lastUpdate;
+          this.backendSnapshotValue = nextBackendSnapshot.value;
+          this.snapshot = this.toSnapshot(nextBackendSnapshot);
+        }
+        let fallbackPatches: readonly Patch[] | null = null;
+        if (!this.hasPatchChannel) {
           try {
-            listener();
+            const candidate = backend.getLastPatches?.() ?? null;
+            // A getLastPatches-only backend has no event channel. Treat a
+            // repeated array reference as stale rather than replaying the prior
+            // mutation for every subsequent patchless transition.
+            if (!this.hasReadFallbackPatches || !Object.is(candidate, this.lastFallbackPatches)) {
+              fallbackPatches = candidate;
+            }
+            this.lastFallbackPatches = candidate;
+            this.hasReadFallbackPatches = true;
           } catch (error) {
-            this.reportListenerError('Backend store listener error', error);
+            this.reportListenerError('Backend patch read error', error);
           }
         }
-      } finally {
-        this.listenerDispatchDepth -= 1;
+        const pendingPatchNotification: PendingPatchNotification<Patch> = {
+          patches: fallbackPatches,
+          // Without a patch channel, null is the authoritative full-invalidation
+          // result and can be delivered synchronously for backwards compatibility.
+          resolved: !this.hasPatchChannel,
+        };
+        // Some backends notify the regular channel before the patch channel,
+        // while others do the reverse. Pair an already received patch with this
+        // transition; otherwise the patch callback can resolve this entry before
+        // the microtask flush below.
+        if (this.orphanPatchNotifications.length > 0) {
+          pendingPatchNotification.patches = this.orphanPatchNotifications.shift() ?? null;
+          pendingPatchNotification.resolved = true;
+        }
+        this.pendingPatchNotifications.push(pendingPatchNotification);
+        this.listenerDispatchDepth += 1;
+        try {
+          for (const listener of [...this.listeners]) {
+            try {
+              listener();
+            } catch (error) {
+              this.reportListenerError('Backend store listener error', error);
+            }
+          }
+        } finally {
+          this.listenerDispatchDepth -= 1;
+        }
+        if (pendingPatchNotification.resolved) {
+          this.flushPatchNotifications(true);
+        } else {
+          this.schedulePatchFlush();
+        }
+      }));
+    } catch (error) {
+      try {
+        unsubscribeBackendPatches();
+      } catch {
+        // Preserve the original registration error while still attempting
+        // best-effort cleanup of the partially mounted backend.
       }
-      if (pendingPatchNotification.resolved) {
-        this.flushPatchNotifications(true);
-      } else {
-        this.schedulePatchFlush();
-      }
-    });
+      throw error;
+    }
+    this.unsubscribeBackendPatches = unsubscribeBackendPatches;
+    this.unsubscribeBackend = unsubscribeBackend;
   }
 
   subscribe = (listener: Listener): Unsubscribe => {

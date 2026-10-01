@@ -9,6 +9,15 @@ export interface OrderSubmitEventDetail {
   orderId: string;
 }
 
+const registeredOrderElements = new Map<string, CustomElementConstructor>();
+
+function cloneDraft(draft: ReturnType<OrderModel['source']['getSnapshot']>['draft']) {
+  return {
+    ...draft,
+    items: Object.freeze(draft.items.map((item) => Object.freeze({ ...item }))),
+  };
+}
+
 /**
  * Registers the <order-workspace> custom element.
  * Safe to call multiple times with the same tagName.
@@ -19,7 +28,11 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
   }
 
   const existing = customElements.get(tagName);
-  if (existing) return existing;
+  if (existing) {
+    const registered = registeredOrderElements.get(tagName);
+    if (registered === existing) return existing;
+    throw new Error(`${tagName} is already registered`);
+  }
 
   class OrderWorkspaceElement extends HTMLElement {
     static observedAttributes = ['customer-name', 'shipping-address'];
@@ -87,7 +100,10 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
         const state = this.#model.source.getSnapshot();
         this.dispatchEvent(
           new CustomEvent('order-change', {
-            detail: { draft: state.draft, submission: state.submission },
+            detail: {
+              draft: cloneDraft(state.draft),
+              submission: { ...state.submission },
+            },
             bubbles: true,
             composed: true,
           }),
@@ -144,6 +160,7 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
       return this.#model.source.getSnapshot().draft.customerName;
     }
     set customerName(value: string) {
+      if (typeof value !== 'string') throw new TypeError('customerName must be a string');
       this.setAttribute('customer-name', value);
     }
 
@@ -151,11 +168,12 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
       return this.#model.source.getSnapshot().draft.shippingAddress;
     }
     set shippingAddress(value: string) {
+      if (typeof value !== 'string') throw new TypeError('shippingAddress must be a string');
       this.setAttribute('shipping-address', value);
     }
 
     get items(): readonly OrderItem[] {
-      return this.#model.source.getSnapshot().draft.items;
+      return Object.freeze(this.#model.source.getSnapshot().draft.items.map((item) => Object.freeze({ ...item })));
     }
 
     // Imperative Semantic Methods
@@ -183,5 +201,6 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
   }
 
   customElements.define(tagName, OrderWorkspaceElement);
+  registeredOrderElements.set(tagName, OrderWorkspaceElement);
   return OrderWorkspaceElement;
 }

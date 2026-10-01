@@ -1,64 +1,63 @@
-# 초기 템플릿 검증 기록
+# 검증 기록
 
-검토 기준: `mineclover/context-action`의 `a1644815b5434279e34fbfcaecb7951fdd01fb2f`. 기록일: 2026-09-29.
+기준일: 2026-10-02. 이 기록은 현재 `main` 작업 트리에서 실행한 결과를
+기록한다. `@context-action/preact`와 `@context-action/preact-ui`는 아직
+`private: true`, `0.0.0`인 workspace 전용 패키지이며 stable npm cohort에는
+포함하지 않는다.
 
-## 저장·전달 상태
+## 현재 수행한 검증
 
-`feat/preact-runtime-template-20260929` 브랜치는 생성됐지만 여전히 위 기준 커밋을 가리킵니다. GitHub 파일 업로드 중 도구의 보안 판정 차단이 발생해 새 소스 커밋과 PR을 만들지 못했습니다. main 변경과 병합은 없습니다. 초기 Git tree 객체 일부의 생성은 브랜치에 파일이 반영된 것을 뜻하지 않습니다.
-
-이 문서와 소스는 ZIP/패치로 전달하는 **아직 저장소에 적용되지 않은 변경본**입니다. 저장소 전체 사본이 아니며 변경 파일만 포함합니다.
-
-## 실제 수행한 검증
-
-| 검증 | 결과 | 한계 |
+| 범주 | 명령 | 결과 |
 |---|---|---|
-| 새 TypeScript/TSX 19개 파일 구문 변환 | 오류 0 | 로컬 TypeScript 5.8.3의 transpileModule. 외부 타입 호환 검증 아님 |
-| ownership.ts / disposal-scope.ts strict 타입 검사 | 통과 | 외부 의존성 없는 2개 모듈만 검사. workspace TypeScript 6.0.3 검사 아님 |
-| test/native-contract.test.mjs | 12개 통과, 0개 실패 | Node 22.16.0, NodeDouble 기반 로직 테스트. 실제 DOM/Preact 테스트 아님 |
-| Chromium 검증 시도 | 완료 결과 없음 | 실행이 timeout되어 브라우저 성공 증거로 사용하지 않음 |
+| Preact adapter | `pnpm --filter @context-action/preact test` | 4 tests passed |
+| Preact adapter types | `pnpm --filter @context-action/preact type-check` | passed |
+| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | 50 tests passed |
+| Preact UI types | `pnpm --filter @context-action/preact-ui type-check` | passed |
+| DOM-only ownership logic | `pnpm --filter @context-action/preact-ui test:native` | 13 tests passed |
+| Chromium contract | `pnpm --filter @context-action/preact-ui test:browser` | passed |
+| Standalone output | `build:standalone` + `sync:standalone` | ESM/IIFE/UMD built |
 
-Native 검사는 `test:native` 스크립트와 동일한 tsc/Node 명령을 로컬에서 직접 실행했습니다. Native 단위 테스트는 중복/중첩 lease, 기존 children 보존, lease 재사용, LIFO cleanup, cleanup 실패 집계, dispose 이후 등록을 확인합니다.
+Chromium 검증에는 Layer Panel의 template island와 Custom Element 소유권,
+slot 보존, disconnect/reconnect, keyboard/focus, accessible button name,
+standalone vanilla embed의 `customerName = '이순신 (조선 수군)'` property 반영을
+포함한다. 브라우저 검증은 DOM 접근성 트리와 키보드 동작을 확인하지만 NVDA,
+VoiceOver 같은 실제 보조기술 조합의 음성 출력을 보증하지 않는다.
 
-## 남아 있는 병합 차단 항목
+## 현재 계약
 
-**새 workspace 항목에 대응하는 pnpm-lock.yaml을 아직 갱신하지 못했습니다.** 따라서 이 변경본을 적용하면 새 workspace 의존성과 기존 lockfile이 불일치합니다. 변경본은 frozen-lockfile 설치와 병합 준비가 완료된 상태가 아닙니다. 원격 브랜치 자체는 아직 변경본이 적용되지 않은 기준 상태입니다.
+- 일반 mount는 빈 위임 root만 소유하고 기존 host children을 지우지 않는다.
+- hydration은 서버 children이 있는 root에서만 명시적으로 호출한다. hydration
+  root 안에 이미 관리 중인 하위 root가 있으면 중첩 소유를 거부한다.
+- mount/hydrate update가 동기 render 오류를 내면 해당 instance/session을
+  종료하고 소유 root의 부분 DOM을 정리한다.
+- `definePreactElement`의 연결 session은 실패한 update/disconnect에서도
+  정리되며 `dispose()`는 disconnect와 permanent destroy를 모두 시도한다.
+- hydration mismatch는 Preact의 일반 reconciliation 결과를 따른다. 현재
+  계약은 mismatch를 오류로 승격하거나 특정 경고 문구를 보장하지 않으며,
+  서버와 클라이언트 입력을 애플리케이션이 맞추는 것을 요구한다.
 
-로컬에 pnpm과 프로젝트 의존성이 없고, GitHub/npm 호스트의 DNS 접근이 실패했습니다. 실행 환경도 저장소의 Node 24.11+/TypeScript 6.0.3 기준과 다릅니다. 의존성 해석·설치, 전체 타입 검사, tsdown ESM/CJS/선언 빌드, 작성한 Vitest 런타임 테스트, 예제 브라우저 검증은 미수행입니다. 결과를 추정하거나 통과 처리하지 않았습니다.
+## 남은 검증 범위
 
-`preact` 10.27.3은 저장소의 기존 override 기준을 따랐습니다. `@preact/signals` 2.11.2는 공식 저장소의 패키지 선언을 확인했지만, 이 실행 환경에서 npm 배포본 설치까지 확인한 것은 아닙니다. 설치 시 정확한 해석 결과와 peer 정합성을 확인해야 합니다.
+- 실제 NVDA/VoiceOver 등 보조기술 조합 검증은 CI에 포함하지 않는다. 제품
+  배포 전에 지원 브라우저·보조기술 조합을 정하고 별도 수동 검증을 기록한다.
+- slotchange, fallback slot, 노드 identity를 포함한 복합 projection은 각
+  컴포넌트 contract와 브라우저 테스트를 함께 추가해야 한다.
+- SSR 문자열 생성과 hydration API의 통합 fixture는 기본 경로에 포함되어
+  있으며, 실제 애플리케이션의 서버 데이터·라우팅·streaming 조합은 소비자
+  환경에서 검증한다.
+- 예제의 semantic public API는 component owner가 정의한다. 공통 factory가
+  `customerName`, commands, events 같은 업무 의미를 추론하지 않는다.
 
-## 재개 순서
-
-먼저 ZIP의 APPLY.md에 따라 패치를 검토·적용합니다. 다음 순서로 진행하고 소스 변경본과 갱신된 lockfile을 작업 브랜치에 함께 커밋합니다. lockfile을 수작업으로 축약하거나 기존 release/security gate를 완화하지 않습니다.
+## 재현 명령
 
 ```sh
-pnpm install --no-frozen-lockfile
-pnpm --filter @context-action/core build
 pnpm --filter @context-action/preact type-check
-pnpm --filter @context-action/preact build
 pnpm --filter @context-action/preact test
-pnpm --filter @context-action/preact-ui type-check
-pnpm --filter @context-action/preact-ui build
-pnpm --filter @context-action/preact-ui test
-pnpm --filter @context-action/preact-ui test:native
-pnpm --filter @context-action/preact-ui examples:build
-pnpm package-boundary:check
-pnpm verify:package-exports
-```
-
-그다음 `examples:dev`에서 template 갱신/해제, 공유 모델의 두 View 동기화, Custom Element pre-upgrade property, disconnect/reconnect, boolean attribute, event echo 방지를 실제 브라우저로 확인합니다. 패키지 import의 DOM 없는 환경 안전성과 번들 내 중복 Preact/Signals 포함 여부도 확인합니다.
-
-전체 저장소 회귀와 보호된 검증 파이프라인은 별도로 실행해야 합니다. 신규 두 패키지는 `private: true`, `0.0.0`이며 npm 배포, stable cohort 편입, 승인, 병합을 수행하지 않았습니다.
-
-## 현재 컨벤션 참조 구현 검증
-
-Layer Panel의 현재 구현은 다음 순서로 확인합니다.
-
-```sh
 pnpm --filter @context-action/preact-ui type-check
 pnpm --filter @context-action/preact-ui test
 pnpm --filter @context-action/preact-ui test:native
 pnpm --filter @context-action/preact-ui test:browser
 ```
 
-`test:browser`는 실제 Chromium에서 pre-upgrade property, controlled selection, event echo 방지, disconnect/reconnect, focus, keyboard, slot, vanilla standalone property 반영, template island를 확인합니다. 로컬에 Playwright가 요구하는 revision이 없으면 캐시된 headless Chromium을 탐색하며, 어느 쪽도 없으면 설치 필요 오류로 중단합니다.
+예제 산출물은 `packages/preact-ui/example-dist`에 생성되며 npm stable
+artifact나 release cohort를 변경하지 않는다.

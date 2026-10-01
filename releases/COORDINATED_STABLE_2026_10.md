@@ -4,14 +4,14 @@ This candidate promotes the state-management contract as one protected cohort:
 
 | Package | Candidate | Contract boundary |
 | --- | --- | --- |
-| `@context-action/core` | `1.2.5` | Freshly attested Core contract for the product-stability cohort |
-| `@context-action/store-core` | `0.1.2` | Freshly attested framework-neutral state and timeline contracts |
-| `@context-action/mutative-core` | `0.8.13` | Maintained upstream `mutative@1.3.0` baseline and fork inventory |
-| `@context-action/mutative` | `0.8.14` | Defensive WeakMap/WeakSet snapshots and adapter patch contracts |
-| `@context-action/react` | `4.0.6` | Backend notification reliability and self-contained consumer declarations |
+| `@context-action/core` | `1.2.6` | Freshly attested Core contract for the time-travel stability cohort |
+| `@context-action/store-core` | `0.1.3` | Freshly attested framework-neutral state and timeline contracts |
+| `@context-action/mutative-core` | `0.8.14` | Maintained upstream `mutative@1.3.0` baseline and fork inventory |
+| `@context-action/mutative` | `0.8.15` | Defensive snapshots and bounded time-travel history contracts |
+| `@context-action/react` | `4.0.7` | Backend lifecycle cleanup and React 19.2 SSR/hydration contracts |
 
-This is the follow-up product-stability cohort after the published
-`1.2.4/0.1.1/0.8.12/0.8.13/4.0.5` release. The five packages are reissued
+This is the follow-up stability cohort after the published
+`1.2.5/0.1.2/0.8.13/0.8.14/4.0.6` release. The five packages are reissued
 together so dependency floors, provenance, and packed consumer evidence all
 refer to one immutable source commit.
 

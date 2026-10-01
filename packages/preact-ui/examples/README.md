@@ -33,13 +33,20 @@ index.html + main.tsx
 
 Template의 두 패널은 하나의 모델을 공유합니다. 한쪽의 Increment는 두 패널의 값에 반영됩니다. "두 Island 해제"는 View → source connection → model 순서로 해제합니다. Custom Element는 독립 상태이며 연결 해제/재연결로 그 값이 초기화되지 않아야 합니다.
 
+Projected Order의 `order-workspace`는 `customerName`/`shippingAddress`를
+문자열 property로 검증하고, `items` getter와 `order-change` event detail에
+동결된 방어 복사본을 제공합니다. 지연된 submit 결과는 element가 dispose된
+뒤 domain snapshot을 변경하지 않습니다. FACE quantity stepper는 잘못된
+`min`/`max`를 기본 범위로 정규화하고 연결 session에서만 ElementInternals를
+갱신합니다.
+
 ## 실행
 
-Node 24.11 이상, pnpm 10.30.3 기준입니다. 현재 lockfile 완료 여부는 [검증 기록](../docs/04-validation.md)을 먼저 확인합니다.
+Node 24.11 이상, pnpm 10.30.3 기준입니다. 현재 실행 결과와 남은 검증 범위는 [검증 기록](../docs/04-validation.md)을 확인합니다.
 
 ```sh
-# 초기 템플릿 통합 단계: 새 의존성을 해석하고 변경된 lockfile을 검토/커밋
-pnpm install --no-frozen-lockfile
+# workspace 검증
+pnpm install --frozen-lockfile
 pnpm --filter @context-action/core build
 pnpm --filter @context-action/preact build
 pnpm --filter @context-action/preact-ui build

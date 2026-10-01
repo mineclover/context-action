@@ -1,6 +1,6 @@
 # @context-action/preact-ui
 
-특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **workspace 전용 초기 라이브러리 템플릿**입니다.
+특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **workspace 전용 UI runtime**입니다.
 
 ```text
 Host / <template>       : 배치와 정적 shell
@@ -29,10 +29,10 @@ Domain                 : 원본 상태와 업무 규칙
 13. [Layer Panel 참조 구현](examples/layer-panel/README.md): 하나의 공개 계약을 두 host adapter에 적용한 예제.
 14. [SSR entry](docs/03-api.md): `@context-action/preact-ui/ssr`의 server-only render와 `hydratePreact` 계약.
 
-구현은 [examples/](examples/README.md)에만 두고, 실제 수행/미수행 검증은 [검증 기록](docs/04-validation.md)에서 구분합니다.
+구현은 [examples/](examples/README.md)에 두고, 실제 검증 결과와 남은 범위는 [검증 기록](docs/04-validation.md)에 기록합니다.
 
 ## 기본 패키지 범위
 
 템플릿 마운트, 독립 Preact Root, 공유 Source 구독, Core dispatcher 주입, Web Component reference shell을 제공합니다. `definePreactElement`와 React bridge는 기존 선택 기능으로 유지하지만, 범용 컨벤션의 정본이나 필수 경로로 취급하지 않습니다. 공통 runtime은 ownership·mount·disposal처럼 의미를 추론하지 않는 저수준 기능만 제공합니다. Web Component의 업무별 property/event 계약은 예제처럼 작성자가 명시합니다.
 
-두 패키지는 `private: true`입니다. 기존 Core/React 구현과 안정 릴리스·승격 정책을 변경하지 않습니다. 현재 산출물은 로컬 검토용 초안입니다. GitHub 브랜치는 생성했지만 업로드가 차단되어 파일 커밋과 PR은 생성하지 못했습니다. 변경본 적용 후 lockfile 갱신과 전체 런타임 검증을 마치기 전에는 병합하지 않습니다.
+두 패키지는 현재 `private: true`, `0.0.0`인 workspace 전용 패키지입니다. Core/React stable cohort와 별도이며 npm stable release에 포함되지 않습니다. 현재 소스는 ownership, hydration, connection-session, slot, FACE, standalone browser contract를 검증한 reference runtime으로 유지합니다. 실제 보조기술 조합과 소비자 애플리케이션의 SSR 데이터 경계는 별도 제품 검증 범위입니다.

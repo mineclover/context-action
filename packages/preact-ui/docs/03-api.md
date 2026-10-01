@@ -28,7 +28,7 @@ interface MountInstance<Input> {
 
 `update`는 전체 입력 snapshot 교체이며 partial merge가 아닙니다. 초기 render와 명시적 update 호출은 동기입니다. Signal에 의한 후속 Preact 작업은 Preact 스케줄링을 따릅니다.
 
-Root children은 Preact에 위임하지만 Root 자체는 제거하지 않습니다. 기존 children, 중복 Root, 알려진 상위 light-DOM Owner가 있으면 실패합니다. 동기 render 실패는 unmount를 시도하고 instance를 종료합니다. unmount가 예외를 내면 정리 성공을 보장할 수 없으며 그 오류를 호출자에게 전달합니다.
+Root children은 Preact에 위임하지만 Root 자체는 제거하지 않습니다. 일반 mount는 빈 root와 관리 중인 ancestor를 요구하며 기존 children을 지우지 않습니다. hydration은 서버 children을 채택하는 경로이므로 관리 중인 descendant root와의 중첩도 거부합니다. 동기 render/update 실패는 unmount를 시도하고 instance를 종료하며, 실패한 diff가 남긴 부분 DOM도 제거합니다. unmount가 예외를 내면 정리 성공을 보장할 수 없으며 그 오류를 호출자에게 전달합니다.
 
 ### `mountTemplate(host, template, View, input)`
 
@@ -42,7 +42,7 @@ Root children은 Preact에 위임하지만 Root 자체는 제거하지 않습니
 
 ### `hydratePreact(root, View, initialInput)`
 
-SSR 결과가 이미 들어 있는 `Element | ShadowRoot`를 위한 별도 경로입니다. 비어 있는 root는 거부하며 기존 children을 지우지 않습니다. 반환값은 `HydrationInstance`이고 `update`·`destroy`는 `MountInstance`와 같은 수명을 갖습니다. 일반 `mountPreact`는 hydration을 시도하지 않습니다.
+SSR 결과가 이미 들어 있는 `Element | ShadowRoot`를 위한 별도 경로입니다. 비어 있는 root는 거부하며 기존 children을 지우지 않습니다. 반환값은 `HydrationInstance`이고 `update`·`destroy`는 `MountInstance`와 같은 수명을 갖습니다. 동기 update가 실패하면 hydration instance를 종료하고 소유권을 해제하며, 실패한 diff의 잔여 children을 제거합니다. 일반 `mountPreact`는 hydration을 시도하지 않습니다.
 
 서버 렌더링은 선택적 `@context-action/preact-ui/ssr` entry의 `createSSR(View)`로 수행합니다. 이 entry는 `preact-render-to-string` peer를 필요로 하며 `document`, `window`, `customElements`를 참조하지 않습니다.
 

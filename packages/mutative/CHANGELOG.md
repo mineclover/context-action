@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.8.15] (2026-10-02)
+
+### Snapshot and time-travel boundaries
+
+- Close safe snapshot alias leaks and harden WeakMap/WeakSet reads.
+- Validate time-travel history inputs, manual-history limits, pending entry identity, and empty-batch cancellation semantics.
+- Return defensive patch snapshots so inspection and listener payloads cannot corrupt future replay.
+- Clone initial patch inputs so callers cannot mutate the replay baseline after construction.
+
 ## [0.8.14] (2026-10-02)
 
 ### Safe snapshots

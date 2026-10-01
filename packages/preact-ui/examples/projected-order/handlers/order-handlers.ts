@@ -23,6 +23,31 @@ const DEFAULT_DRAFT: OrderDraft = {
   notes: '',
 };
 
+function cloneOrderState(source: OrderState): OrderState {
+  return {
+    draft: {
+      ...source.draft,
+      items: source.draft.items.map((item) => ({ ...item })),
+    },
+    submission: { ...source.submission },
+    validationIssues: source.validationIssues.map((issue) => ({ ...issue })),
+    activityLog: source.activityLog.map((entry) => ({ ...entry })),
+  };
+}
+
+function freezeOrderState(source: OrderState): Readonly<OrderState> {
+  const snapshot = cloneOrderState(source);
+  for (const item of snapshot.draft.items) Object.freeze(item);
+  Object.freeze(snapshot.draft.items);
+  Object.freeze(snapshot.draft);
+  Object.freeze(snapshot.submission);
+  for (const issue of snapshot.validationIssues) Object.freeze(issue);
+  Object.freeze(snapshot.validationIssues);
+  for (const entry of snapshot.activityLog) Object.freeze(entry);
+  Object.freeze(snapshot.activityLog);
+  return Object.freeze(snapshot);
+}
+
 export interface OrderModelOptions {
   initialDraft?: Partial<OrderDraft>;
   submitDelayMs?: number;
@@ -37,7 +62,11 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   const submitDelayMs = options && 'submitDelayMs' in options ? options.submitDelayMs : 0;
 
   let state: OrderState = {
-    draft: { ...DEFAULT_DRAFT, ...initialDraft },
+    draft: {
+      ...DEFAULT_DRAFT,
+      ...initialDraft,
+      items: initialDraft?.items?.map((item) => ({ ...item })) ?? [],
+    },
     submission: { phase: 'idle' },
     validationIssues: [],
     activityLog: [
@@ -48,14 +77,19 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
       },
     ],
   };
+  let snapshot = freezeOrderState(state);
 
   let destroyed = false;
   const listeners = new Set<() => void>();
   const actions = new ActionRegister<OrderActions>({ name: 'ProjectedOrderModel' });
 
   const commit = (next: OrderState) => {
-    if (destroyed) throw new Error('OrderModel is destroyed');
+    // Async actions may finish after the owning element disconnects. Treat
+    // those late results as cancelled so a void-dispatched promise cannot
+    // surface an unhandled rejection or mutate a disposed domain owner.
+    if (destroyed) return;
     state = next;
+    snapshot = freezeOrderState(next);
     for (const notify of Array.from(listeners)) notify();
   };
 
@@ -65,6 +99,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   ];
 
   actions.register('updateCustomerName', ({ name }) => {
+    if (typeof name !== 'string') throw new TypeError('name must be a string');
     const updatedDraft = { ...state.draft, customerName: name };
     const issues = validateOrderDraft(updatedDraft);
     commit({
@@ -75,6 +110,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('updateShippingAddress', ({ address }) => {
+    if (typeof address !== 'string') throw new TypeError('address must be a string');
     const updatedDraft = { ...state.draft, shippingAddress: address };
     const issues = validateOrderDraft(updatedDraft);
     commit({
@@ -85,13 +121,25 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('addItem', ({ item }) => {
-    const existingIndex = state.draft.items.findIndex((i) => i.id === item.id);
+    if (
+      typeof item.id !== 'string' ||
+      typeof item.name !== 'string' ||
+      !Number.isFinite(item.unitPrice) ||
+      !Number.isSafeInteger(item.quantity) ||
+      item.quantity <= 0
+    ) {
+      throw new TypeError('item must have valid id, name, unitPrice, and positive integer quantity');
+    }
+    // Copy caller-owned payloads before they enter the domain state. A caller
+    // may reuse or mutate its input object after dispatch resolves.
+    const incomingItem = { ...item };
+    const existingIndex = state.draft.items.findIndex((i) => i.id === incomingItem.id);
     let items = [...state.draft.items];
     if (existingIndex >= 0) {
       const existing = items[existingIndex]!;
-      items[existingIndex] = { ...existing, quantity: existing.quantity + item.quantity };
+      items[existingIndex] = { ...existing, quantity: existing.quantity + incomingItem.quantity };
     } else {
-      items.push(item);
+      items.push(incomingItem);
     }
     const updatedDraft = { ...state.draft, items };
     const issues = validateOrderDraft(updatedDraft);
@@ -117,6 +165,9 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   });
 
   actions.register('updateItemQuantity', ({ itemId, quantity }) => {
+    if (typeof itemId !== 'string' || !Number.isSafeInteger(quantity) || quantity <= 0) {
+      throw new TypeError('itemId must be a string and quantity must be a positive integer');
+    }
     const items = state.draft.items.map((i) => (i.id === itemId ? { ...i, quantity } : i));
     const updatedDraft = { ...state.draft, items };
     const issues = validateOrderDraft(updatedDraft);
@@ -191,7 +242,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
 
   return {
     source: {
-      getSnapshot: () => state,
+      getSnapshot: () => snapshot,
       subscribe(notify) {
         if (destroyed) throw new Error('OrderModel is destroyed');
         listeners.add(notify);

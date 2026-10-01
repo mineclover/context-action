@@ -1,7 +1,7 @@
 # Tool Calling Editor Architecture
 
 > **Development-track status:** ToolContext and Durable Operations are not part
-> of the `@context-action/core@1.2.5` / `@context-action/react@4.0.6`
+> of the `@context-action/core@1.2.6` / `@context-action/react@4.0.7`
 > state-management release. The React 4 package intentionally omits
 > `@context-action/react/tools` while this protocol, persistence, and provider
 > recovery surface receives a separate release decision.

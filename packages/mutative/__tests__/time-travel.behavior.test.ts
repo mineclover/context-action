@@ -62,6 +62,19 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
+  it('does not notify when an empty batch is cancelled', () => {
+    const travel = createTimeTravel({ count: 0 });
+    const listener = vi.fn();
+    travel.subscribe(listener);
+
+    expect(() => travel.batch(() => {
+      throw new Error('empty rejection');
+    })).toThrow('empty rejection');
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(travel.getState()).toEqual({ count: 0 });
+  });
+
   it('rolls back a rejected asynchronous batch', async () => {
     const travel = createTimeTravel({ count: 0 });
 
@@ -98,6 +111,64 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(() => travel.back(-1)).toThrow('safe integer');
     expect(() => travel.forward(Infinity)).toThrow('safe integer');
     expect(travel.getPosition()).toBe(0);
+  });
+
+  it('clamps back oversteps at the beginning of the retained history', () => {
+    const empty = createTimeTravel({ count: 0 }, { maxHistory: 0 });
+    expect(() => empty.back()).not.toThrow();
+    expect(empty.getPosition()).toBe(0);
+    expect(empty.getState()).toEqual({ count: 0 });
+
+    const travel = createTimeTravel({ count: 0 }, { maxHistory: 2 });
+    travel.setState((draft) => { draft.count = 1; });
+    travel.setState((draft) => { draft.count = 2; });
+    expect(() => travel.back(99)).not.toThrow();
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getState()).toEqual({ count: 0 });
+  });
+
+  it('does not fabricate a duplicate history entry when manual history is disabled', () => {
+    const travel = createTimeTravel(
+      { count: 0 },
+      { autoArchive: false, maxHistory: 0 },
+    );
+    travel.setState((draft) => { draft.count = 1; });
+
+    expect(travel.getHistory()).toEqual([{ count: 1 }]);
+    expect(travel.getPatches().patches).toHaveLength(1);
+    travel.archive();
+    expect(travel.getHistory()).toEqual([{ count: 1 }]);
+  });
+
+  it('assigns pending manual transitions a current identity when history is disabled', () => {
+    const travel = createTimeTravel(
+      { count: 0 },
+      { autoArchive: false, maxHistory: 0 },
+    );
+    const initialId = travel.getHistoryEntryId();
+
+    travel.setState((draft) => { draft.count = 1; });
+    const firstPendingId = travel.getHistoryEntryId();
+    travel.setState((draft) => { draft.count = 2; });
+    const secondPendingId = travel.getHistoryEntryId();
+
+    expect(firstPendingId).not.toBe(initialId);
+    expect(secondPendingId).not.toBe(firstPendingId);
+    expect(travel.hasHistoryEntry(initialId)).toBe(false);
+    expect(travel.hasHistoryEntry(secondPendingId)).toBe(true);
+  });
+
+  it('rejects invalid history bounds before creating a timeline', () => {
+    for (const maxHistory of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
+      expect(() => createTimeTravel({ count: 0 }, { maxHistory })).toThrow(
+        'maxHistory must be a non-negative safe integer',
+      );
+    }
+    for (const initialPosition of [Number.NaN, Number.POSITIVE_INFINITY, 1.5, -1]) {
+      expect(() => createTimeTravel({ count: 0 }, { initialPosition })).toThrow(
+        'initialPosition must be a non-negative safe integer',
+      );
+    }
   });
 
   it('supports automatic archive, undo, redo, go, and reset', () => {
@@ -215,6 +286,48 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getState()).toEqual({ count: 1 });
   });
 
+  it('defensively clones caller-supplied initial patch history', () => {
+    const [, patches, inversePatches] = produceWithPatches(
+      { count: 0 },
+      (draft) => { draft.count = 1; },
+    );
+    const initialPatches = { patches: [patches], inversePatches: [inversePatches] };
+    const travel = createTimeTravel(
+      { count: 1 },
+      { initialPosition: 1, initialPatches },
+    );
+
+    (initialPatches.patches[0]![0]!.path as unknown[])[0] = 'corrupted';
+    (initialPatches.inversePatches[0]![0]!.path as unknown[])[0] = 'corrupted';
+
+    travel.back();
+    expect(travel.getState()).toEqual({ count: 0 });
+    travel.forward();
+    expect(travel.getState()).toEqual({ count: 1 });
+  });
+
+  it('rejects malformed initial patch history before replay can fail', () => {
+    expect(() => createTimeTravel(
+      { count: 0 },
+      {
+        initialPatches: {
+          patches: [[{ op: 'replace', path: ['count'], value: 1 }]],
+          inversePatches: [],
+        },
+      },
+    )).toThrow('initialPatches patches and inversePatches must have equal lengths');
+
+    expect(() => createTimeTravel(
+      { count: 0 },
+      {
+        initialPatches: {
+          patches: [{ not: 'a patch array' }],
+          inversePatches: [[]],
+        } as never,
+      },
+    )).toThrow('initialPatches must contain patches and inversePatches arrays');
+  });
+
   it('keeps the root reference in mutable mode while moving through history', () => {
     const travel = createTimeTravel({ count: 0 }, { mutable: true });
     const root = travel.getState();
@@ -293,6 +406,62 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(calls).toEqual([{ count: 1, position: 1 }]);
   });
 
+  it('isolates listener failures and validates the public subscribe boundary', () => {
+    const errors: unknown[] = [];
+    const travel = createTimeTravel(
+      { count: 0 },
+      { onListenerError: (error) => errors.push(error) },
+    );
+    const failed = vi.fn(() => { throw new Error('listener failed'); });
+    const healthy = vi.fn();
+    travel.subscribe(failed);
+    travel.subscribe(healthy);
+
+    expect(() => travel.setState((draft) => { draft.count = 1; })).not.toThrow();
+    expect(travel.getState()).toEqual({ count: 1 });
+    expect(failed).toHaveBeenCalledTimes(1);
+    expect(healthy).toHaveBeenCalledTimes(1);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toEqual(new Error('listener failed'));
+
+    expect(() => (travel.subscribe as unknown as (listener: unknown) => void)(null)).toThrow(
+      TypeError,
+    );
+  });
+
+  it('preserves the mutable root reference when a batch is rejected', () => {
+    const travel = createTimeTravel({ count: 0 }, { mutable: true });
+    const root = travel.getState();
+
+    expect(() => travel.batch(() => {
+      travel.setState((draft) => { draft.count = 1; });
+      throw new Error('rejected batch');
+    })).toThrow('rejected batch');
+
+    expect(travel.getState()).toBe(root);
+    expect(root).toEqual({ count: 0 });
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getHistory()).toEqual([{ count: 0 }]);
+  });
+
+  it.each([false, true])('returns defensive history entries in mutable=%s mode', (mutable) => {
+    const travel = createTimeTravel(
+      { nested: { count: 0 } },
+      { mutable },
+    );
+    travel.setState((draft) => { draft.nested.count = 1; });
+
+    const history = travel.getHistory();
+    (history[1] as { nested: { count: number } }).nested.count = 9;
+    (history[0] as { nested: { count: number } }).nested.count = 8;
+
+    expect(travel.getState()).toEqual({ nested: { count: 1 } });
+    expect(travel.getHistory()).toEqual([
+      { nested: { count: 0 } },
+      { nested: { count: 1 } },
+    ]);
+  });
+
   it('separates transition patches from the complete history for listeners', () => {
     const travel = createTimeTravel({ count: 0 });
     const notifications: Array<{
@@ -323,5 +492,21 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
       historyLength: 2,
       changedPatches: [{ op: 'replace', path: ['count'], value: 1 }],
     });
+  });
+
+  it('protects undo and redo from mutations to public patch snapshots', () => {
+    const travel = createTimeTravel({ count: 0 });
+    travel.setState((draft) => { draft.count = 1; });
+
+    const exposed = travel.getPatches() as {
+      patches: Array<Array<{ op: string; path: unknown[]; value?: unknown }> >;
+      inversePatches: Array<Array<{ op: string; path: unknown[]; value?: unknown }> >;
+    };
+    exposed.patches[0]!.push({ op: 'replace', path: ['count'], value: 999 });
+    exposed.patches[0]![0]!.path[0] = 'corrupted';
+
+    travel.back();
+    travel.forward();
+    expect(travel.getState()).toEqual({ count: 1 });
   });
 });

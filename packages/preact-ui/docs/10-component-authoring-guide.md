@@ -61,6 +61,8 @@ attributeChangedCallback은 값 변환과 내부 입력 반영만 처리한다. 
 
 공통 shell helper를 사용할 때 connection subscription·observer·timer·AbortController는 `onConnect`에서 만들고 `onDisconnect`에서 해제한다. `setup`은 Element 인스턴스 수명에 필요한 정본과 View 계약만 구성하며 연결 전 외부 자원이나 사용자 이벤트를 시작하지 않는다. renderer mount와 connection session은 재연결마다 새로 만들어지고, `dispose()`는 terminal 정리를 한 번만 수행한다.
 
+`updateInput()` 또는 관찰 attribute 변경 중 동기 View 렌더가 실패하면 현재 renderer mount와 connection session이 함께 종료된다. helper는 `onDisconnect`를 한 번 호출하고 실패한 렌더의 잔여 DOM을 제거하므로, 복구하려면 요소를 다시 연결해 새 session을 시작한다. `dispose()`는 연결 해제에서 오류가 발생해도 `onDestroy`를 시도하며 여러 오류를 `AggregateError`로 보고한다.
+
 ## 3.6 등록과 import를 분리한다
 
 루트 import만으로 document/customElements를 사용하거나 전역 tag를 등록하지 않는다. HTMLElement를 참조하는 클래스 생성도 DOM 없는 import를 요구하는 entry에서는 browser factory 안으로 제한한다.

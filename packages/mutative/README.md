@@ -21,7 +21,7 @@ compatibility baseline while preserving Context-Action regression fixes.
 Upstream changes are synchronized deliberately and tracked in
 [`mutative-core/UPSTREAM.md`](../mutative-core/UPSTREAM.md); adapter-specific
 patch, history, and time-travel behavior is kept in this package. The scoped
-adapter is currently `0.8.14` and remains on its own `0.8.x` patch line. Run
+adapter is currently `0.8.15` and remains on its own `0.8.x` patch line. Run
 both package test suites after a fork update.
 
 ## Adapter contract

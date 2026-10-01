@@ -23,6 +23,7 @@ import type {
   Updater,
   Value,
 } from './types';
+import { safeGet } from './immutable';
 import {
   createLogger,
   deepClone,
@@ -43,6 +44,17 @@ function cloneTravelPatches<P extends PatchesOption = object>(
   return {
     patches: base ? base.patches.map((patch) => [...patch]) : [],
     inversePatches: base ? base.inversePatches.map((patch) => [...patch]) : [],
+  };
+}
+
+function cloneTravelPatchesDefensively<P extends PatchesOption = object>(
+  base: TravelPatches<P>,
+): TravelPatches<P> {
+  return {
+    patches: base.patches.map((group) => safeGet(group, true) as Patches<P>),
+    inversePatches: base.inversePatches.map(
+      (group) => safeGet(group, true) as Patches<P>,
+    ),
   };
 }
 
@@ -120,6 +132,7 @@ export class TimeTravel<
     enablePatches: true | P;
     strict?: boolean;
     enableAutoFreeze?: F;
+    onListenerError?: (error: unknown) => void;
   };
   private listeners = new Set<TimeTravelListener<S, P>>();
   private pendingState: S | null = null;
@@ -137,6 +150,7 @@ export class TimeTravel<
     entryIds: number[];
     changed: boolean;
     metadata?: TimeTravelTransitionMeta;
+    stateReference: S;
   }> = [];
   private batchChanged = false;
   private batchMeta: TimeTravelTransitionMeta | undefined;
@@ -153,9 +167,44 @@ export class TimeTravel<
       enableAutoFreeze,
     } = options;
 
-    // Validate maxHistory
-    if (maxHistory < 0) {
-      throw new Error(`TimeTravel: maxHistory must be non-negative, got ${maxHistory}`);
+    // History arithmetic uses array positions, so accepting fractional or
+    // non-finite values would corrupt the cursor and eventually make replay
+    // apply an undefined patch entry.
+    if (!Number.isSafeInteger(maxHistory) || maxHistory < 0) {
+      throw new RangeError(
+        `TimeTravel: maxHistory must be a non-negative safe integer, got ${maxHistory}`,
+      );
+    }
+
+    if (!Number.isSafeInteger(initialPosition) || initialPosition < 0) {
+      throw new RangeError(
+        `TimeTravel: initialPosition must be a non-negative safe integer, got ${initialPosition}`,
+      );
+    }
+
+    if (initialPatches !== undefined) {
+      const candidate = initialPatches as {
+        patches?: unknown;
+        inversePatches?: unknown;
+      };
+      const patchGroups = candidate?.patches;
+      const inverseGroups = candidate?.inversePatches;
+      if (!Array.isArray(patchGroups) || !Array.isArray(inverseGroups)) {
+        throw new TypeError(
+          'TimeTravel: initialPatches must contain patches and inversePatches arrays',
+        );
+      }
+      if (!patchGroups.every((group) => Array.isArray(group)) ||
+        !inverseGroups.every((group) => Array.isArray(group))) {
+        throw new TypeError(
+          'TimeTravel: initialPatches must contain patches and inversePatches arrays',
+        );
+      }
+      if (patchGroups.length !== inverseGroups.length) {
+        throw new RangeError(
+          'TimeTravel: initialPatches patches and inversePatches must have equal lengths',
+        );
+      }
     }
 
     if (maxHistory === 0 && process.env.NODE_ENV !== 'production') {
@@ -171,6 +220,7 @@ export class TimeTravel<
       enablePatches: patchesOptions ?? true,
       strict,
       enableAutoFreeze,
+      onListenerError: options.onListenerError,
     };
 
     const { patches: normalizedPatches, position: normalizedPosition } =
@@ -190,7 +240,9 @@ export class TimeTravel<
     initialPatches: TravelPatches<P> | undefined,
     initialPosition: number
   ): { patches: TravelPatches<P>; position: number } {
-    const cloned = cloneTravelPatches(initialPatches);
+    const cloned = initialPatches
+      ? cloneTravelPatchesDefensively(initialPatches)
+      : cloneTravelPatches();
     const total = cloned.patches.length;
     const historyLimit = this.maxHistory > 0 ? this.maxHistory : 0;
     let position = typeof initialPosition === 'number' && Number.isFinite(initialPosition)
@@ -236,9 +288,34 @@ export class TimeTravel<
   }
 
   private notify(changedPatches?: Patches<P>, metadata?: TimeTravelTransitionMeta): void {
-    this.listeners.forEach((listener) =>
-      listener(this.state, this.getPatches(), this.position, changedPatches, metadata)
-    );
+    // Snapshot the set so subscriptions added during a notification observe
+    // the next transition. Unsubscribed listeners are skipped immediately.
+    const changedSnapshot = changedPatches === undefined
+      ? undefined
+      : (safeGet(changedPatches, true) as Patches<P>);
+    for (const listener of [...this.listeners]) {
+      if (!this.listeners.has(listener)) continue;
+      try {
+        listener(
+          this.state,
+          this.getPatches(),
+          this.position,
+          changedSnapshot === undefined
+            ? undefined
+            : (safeGet(changedSnapshot, true) as Patches<P>),
+          metadata,
+        );
+      } catch (error) {
+        try {
+          this.options.onListenerError?.(error);
+        } catch {
+          // Error observers must not alter the state transition outcome.
+        }
+        if (!this.options.onListenerError && process.env.NODE_ENV !== 'production') {
+          logger.error('TimeTravel listener failed', error);
+        }
+      }
+    }
   }
 
   private hasRootReplacement(patches: Patches<P>): boolean {
@@ -258,6 +335,9 @@ export class TimeTravel<
    * Subscribe to state changes
    */
   subscribe = (listener: TimeTravelListener<S, P>): (() => void) => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('TimeTravel.subscribe requires a listener function');
+    }
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
@@ -385,33 +465,56 @@ export class TimeTravel<
       entryIds: [...this.historyEntryIds],
       changed: this.batchChanged,
       metadata: this.batchMeta,
+      stateReference: this.state,
     });
     this.batchDepth += 1;
   }
 
   endBatch(): void {
     if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
-    const frame = this.batchFrames.pop()!;
-    this.batchDepth -= 1;
-    if (this.batchDepth !== 0) return;
+    if (this.batchDepth > 1) {
+      this.batchFrames.pop();
+      this.batchDepth -= 1;
+      return;
+    }
+
+    // Keep the final frame active until patch derivation succeeds. If the
+    // derivation fails, cancelBatch() can still restore the pre-batch state.
+    const frame = this.batchFrames[this.batchFrames.length - 1]!;
 
     const changed = this.batchChanged;
     const transitionMeta = this.batchMeta;
+    if (!changed) {
+      this.batchFrames.pop();
+      this.batchDepth = 0;
+      this.batchChanged = false;
+      this.batchMeta = undefined;
+      return;
+    }
+
+    let patches: Patches<P>;
+    let inversePatches: Patches<P>;
+    try {
+      [, patches, inversePatches] = create(
+        frame.state,
+        (draft): S | undefined => {
+          if (isObjectLike(frame.state) && isObjectLike(this.state)) {
+            overwriteDraftWith(draft, this.state);
+            return;
+          }
+          return isObjectLike(this.state) ? rawReturn(this.state as object) as S : this.state;
+        },
+        this.options,
+      ) as [S, Patches<P>, Patches<P>];
+    } catch (error) {
+      this.cancelBatch();
+      throw error;
+    }
+
+    this.batchFrames.pop();
+    this.batchDepth = 0;
     this.batchChanged = false;
     this.batchMeta = undefined;
-    if (!changed) return;
-
-    const [, patches, inversePatches] = create(
-      frame.state,
-      (draft): S | undefined => {
-        if (isObjectLike(frame.state) && isObjectLike(this.state)) {
-          overwriteDraftWith(draft, this.state);
-          return;
-        }
-        return isObjectLike(this.state) ? rawReturn(this.state as object) as S : this.state;
-      },
-      this.options,
-    ) as [S, Patches<P>, Patches<P>];
     if (patches.length > 0 || inversePatches.length > 0) {
       this.commitPatches(patches, inversePatches, transitionMeta);
     }
@@ -421,8 +524,29 @@ export class TimeTravel<
   cancelBatch(): void {
     if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
     const frame = this.batchFrames.pop()!;
+    const hadChanges = this.batchChanged || frame.changed;
     this.batchDepth -= 1;
-    this.state = frame.state;
+    // Mutable mode promises a stable root reference. Restore in place when
+    // the batch did not replace that root; root replacement rolls back to the
+    // original reference captured in stateReference.
+    if (
+      this.mutable &&
+      isObjectLike(frame.stateReference) &&
+      this.state === frame.stateReference &&
+      isObjectLike(frame.state)
+    ) {
+      const [, restorePatches] = create(
+        this.state,
+        (draft) => overwriteDraftWith(draft, frame.state),
+        this.options,
+      ) as [S, Patches<P>, Patches<P>];
+      if (restorePatches.length > 0) {
+        apply(this.state as object, restorePatches, { mutable: true });
+      }
+      this.state = frame.stateReference;
+    } else {
+      this.state = frame.stateReference;
+    }
     this.position = frame.position;
     this.allPatches = frame.allPatches;
     this.tempPatches = frame.tempPatches;
@@ -439,6 +563,7 @@ export class TimeTravel<
 
     this.batchChanged = false;
     this.batchMeta = undefined;
+    if (!hadChanges) return;
     const rootPath =
       typeof this.options.enablePatches === 'object' &&
       this.options.enablePatches.pathAsArray === false
@@ -539,6 +664,17 @@ export class TimeTravel<
       this.tempPatches.inversePatches.length = 0;
     }
 
+    // With no retained history there is still one live pending entry. Keep
+    // its identity at cursor 0 instead of leaving the initial entry ID at the
+    // cursor while appending unreachable IDs after it.
+    if (this.maxHistory === 0) {
+      this.historyEntryIds = [++this.entrySequence];
+      this.position = 0;
+      this.tempPatches.patches.push(patches);
+      this.tempPatches.inversePatches.push(inversePatches);
+      return;
+    }
+
     if (!this.tempPatches.patches.length || notLast) {
       this.historyEntryIds = this.historyEntryIds.slice(0, this.position + 1);
       this.historyEntryIds.push(++this.entrySequence);
@@ -605,11 +741,22 @@ export class TimeTravel<
     let currentState = this.state;
     const _allPatches = this.getAllPatches();
 
-    const patches = !this.autoArchive && _allPatches.patches.length > this.maxHistory
-      ? _allPatches.patches.slice(-this.maxHistory)
+    // `slice(-0)` means "slice from index 0", not an empty slice. Handle the
+    // history-disabled mode explicitly so a pending manual batch cannot
+    // fabricate a duplicate current entry.
+    const patches = !this.autoArchive
+      ? this.maxHistory === 0
+        ? []
+        : _allPatches.patches.length > this.maxHistory
+          ? _allPatches.patches.slice(-this.maxHistory)
+          : _allPatches.patches
       : _allPatches.patches;
-    const inversePatches = !this.autoArchive && _allPatches.inversePatches.length > this.maxHistory
-      ? _allPatches.inversePatches.slice(-this.maxHistory)
+    const inversePatches = !this.autoArchive
+      ? this.maxHistory === 0
+        ? []
+        : _allPatches.inversePatches.length > this.maxHistory
+          ? _allPatches.inversePatches.slice(-this.maxHistory)
+          : _allPatches.inversePatches
       : _allPatches.inversePatches;
 
     // Build future history
@@ -631,7 +778,10 @@ export class TimeTravel<
       Object.freeze(history);
     }
 
-    return history;
+    // History is an inspection API. Return defensive values so mutating a
+    // returned entry cannot mutate the live cursor or poison the cache via
+    // structural sharing between replayed states.
+    return history.map((entry) => safeGet(entry, true));
   }
 
   private getAllPatches(): TravelPatches<P> {
@@ -719,7 +869,10 @@ export class TimeTravel<
     if (!Number.isSafeInteger(amount) || amount < 0) {
       throw new RangeError('TimeTravel back amount must be a non-negative safe integer');
     }
-    this.go(this.position - amount, metadata);
+    // Undo is a bounded cursor operation. Overstepping the beginning should
+    // converge on the initial retained entry, just as forward() converges on
+    // the newest retained entry when it oversteps the end.
+    this.go(Math.max(0, this.position - amount), metadata);
   }
 
   /**
@@ -826,9 +979,16 @@ export class TimeTravel<
    * Get all patches
    */
   getPatches(): TravelPatches<P> {
-    return !this.autoArchive && this.tempPatches.patches.length
+    const patches = !this.autoArchive && this.tempPatches.patches.length
       ? this.getAllPatches()
       : this.allPatches;
+    // Patch arrays are part of the public inspection API. Never expose the
+    // internal patch groups or their object values, otherwise a caller can
+    // mutate a returned patch and corrupt future undo/redo replay.
+    return {
+      patches: patches.patches.map((group) => safeGet(group, true) as Patches<P>),
+      inversePatches: patches.inversePatches.map((group) => safeGet(group, true) as Patches<P>),
+    };
   }
 
   /**

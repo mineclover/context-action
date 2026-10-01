@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useId, useState } from 'preact/hooks';
 import { useOrderActions } from '../actions/use-order-actions.js';
 import { useOrderProjection } from '../projections/use-order-projection.js';
 import { OrderSummaryView } from './OrderSummaryView.js';
@@ -12,6 +12,11 @@ import { OrderSummaryView } from './OrderSummaryView.js';
  * 3. Keeps volatile UI state (active tab, log accordion, local input drafts) in local useState
  */
 export function OrderWorkspaceView() {
+  const idPrefix = `order-${useId().replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const customerNameId = `${idPrefix}-customer-name`;
+  const shippingAddressId = `${idPrefix}-shipping-address`;
+  const customerNameErrorId = `${customerNameId}-error`;
+  const shippingAddressErrorId = `${shippingAddressId}-error`;
   // 1. Projection Hook: Read-only derived signals
   const {
     customerNameSignal,
@@ -115,12 +120,15 @@ export function OrderWorkspaceView() {
       {/* Customer Info Form */}
       <section style={{ marginBottom: '20px' }}>
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+          <label htmlFor={customerNameId} style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
             Customer Name
           </label>
           <input
+            id={customerNameId}
             type="text"
             data-testid="input-customer-name"
+            aria-invalid={customerNameError.value ? 'true' : 'false'}
+            aria-describedby={customerNameError.value ? customerNameErrorId : undefined}
             value={customerNameSignal.value}
             onInput={(e) => void setCustomerName((e.target as HTMLInputElement).value)}
             disabled={isSubmittingSignal.value}
@@ -133,19 +141,22 @@ export function OrderWorkspaceView() {
             }}
           />
           {customerNameError.value ? (
-            <p data-testid="error-customer-name" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
+            <p id={customerNameErrorId} role="alert" data-testid="error-customer-name" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
               {customerNameError.value}
             </p>
           ) : null}
         </div>
 
         <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
+          <label htmlFor={shippingAddressId} style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>
             Shipping Address
           </label>
           <input
+            id={shippingAddressId}
             type="text"
             data-testid="input-shipping-address"
+            aria-invalid={shippingAddressError.value ? 'true' : 'false'}
+            aria-describedby={shippingAddressError.value ? shippingAddressErrorId : undefined}
             value={shippingAddressSignal.value}
             onInput={(e) => void setShippingAddress((e.target as HTMLInputElement).value)}
             disabled={isSubmittingSignal.value}
@@ -158,7 +169,7 @@ export function OrderWorkspaceView() {
             }}
           />
           {shippingAddressError.value ? (
-            <p data-testid="error-shipping-address" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
+            <p id={shippingAddressErrorId} role="alert" data-testid="error-shipping-address" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
               {shippingAddressError.value}
             </p>
           ) : null}
@@ -199,6 +210,7 @@ export function OrderWorkspaceView() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
+                  aria-label={`Decrease quantity for ${item.name}`}
                   onClick={() => void updateItemQuantity(item.id, Math.max(1, item.quantity - 1))}
                   disabled={isSubmittingSignal.value || item.quantity <= 1}
                   style={{ padding: '2px 8px' }}
@@ -210,6 +222,7 @@ export function OrderWorkspaceView() {
                 </span>
                 <button
                   type="button"
+                  aria-label={`Increase quantity for ${item.name}`}
                   onClick={() => void updateItemQuantity(item.id, item.quantity + 1)}
                   disabled={isSubmittingSignal.value}
                   style={{ padding: '2px 8px' }}
@@ -218,6 +231,7 @@ export function OrderWorkspaceView() {
                 </button>
                 <button
                   type="button"
+                  aria-label={`Remove ${item.name}`}
                   onClick={() => void removeItem(item.id)}
                   disabled={isSubmittingSignal.value}
                   style={{

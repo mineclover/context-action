@@ -98,6 +98,30 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('rolls back a patch subscription when regular subscription setup fails', () => {
+    const patchListeners = new Set<(patches: readonly StatePatch[] | null) => void>();
+    const patchUnsubscribe = jest.fn(() => patchListeners.clear());
+    const backend: StateBackend<number> = {
+      name: 'registration-rollback',
+      getSnapshot: () => ({ name: 'registration-rollback', value: 0, version: 0, lastUpdate: 0 }),
+      subscribe: () => {
+        throw new Error('regular subscription failed');
+      },
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return patchUnsubscribe;
+      },
+      setValue: () => {},
+      update: () => {},
+    };
+
+    expect(() => createBackendStore('registration-rollback', backend)).toThrow(
+      'regular subscription failed',
+    );
+    expect(patchUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(patchListeners.size).toBe(0);
+  });
+
   it('pairs regular-first and patch-first backend notifications', async () => {
     type Patch = { readonly path: readonly string[] };
     const snapshot = { name: 'ordered', value: 0, version: 0, lastUpdate: 0 };
