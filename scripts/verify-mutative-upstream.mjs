@@ -25,7 +25,17 @@ import { fileURLToPath } from 'node:url';
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const defaultManifestPath = path.join(repositoryRoot, 'packages', 'mutative-core', 'upstream-lock.json');
 const lockSchemaVersion = 'context-action-mutative-upstream-lock.v1';
+const approvedUpstream = {
+  name: 'mutative',
+  version: '1.3.0',
+  gitHead: '01945e3274e9730706799e4d432c22248a6bdeb1',
+  repository: 'git+https://github.com/unadlib/mutative.git',
+};
 const sourceCategories = new Set(['unchanged', 'modified', 'added', 'removed']);
+
+function compareSourcePaths(left, right) {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
 
 function normalizeSource(contents) {
   return contents.replace(/\r\n?/gu, '\n');
@@ -67,7 +77,7 @@ function collectSourceFiles(root) {
 
 function sourceTreeHash(files) {
   const canonical = [...files.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
+    .sort(([left], [right]) => compareSourcePaths(left, right))
     .map(([filePath, digest]) => `${filePath}\0${digest}\n`)
     .join('');
   return sha256(canonical);
@@ -77,7 +87,7 @@ function sourceInventory(root) {
   const files = collectSourceFiles(root);
   return {
     sourceTreeSha256: sourceTreeHash(files),
-    files: Object.fromEntries([...files.entries()].sort(([left], [right]) => left.localeCompare(right))),
+    files: Object.fromEntries([...files.entries()].sort(([left], [right]) => compareSourcePaths(left, right))),
   };
 }
 
@@ -88,6 +98,11 @@ function parseArgs(argv = process.argv.slice(2)) {
   let packageName;
   let packageVersion;
   let registry;
+  const argumentValue = (index, argument) => {
+    const value = argv[index];
+    if (!value || value.startsWith('--')) throw new Error(`${argument} requires a value`);
+    return value;
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--check') {
@@ -95,15 +110,15 @@ function parseArgs(argv = process.argv.slice(2)) {
     } else if (argument === '--inventory') {
       mode = 'inventory';
     } else if (argument === '--manifest') {
-      manifestPath = path.resolve(argv[++index] ?? '');
+      manifestPath = path.resolve(argumentValue(++index, argument));
     } else if (argument === '--root') {
-      repository = path.resolve(argv[++index] ?? '');
+      repository = path.resolve(argumentValue(++index, argument));
     } else if (argument === '--package') {
-      packageName = argv[++index];
+      packageName = argumentValue(++index, argument);
     } else if (argument === '--version') {
-      packageVersion = argv[++index];
+      packageVersion = argumentValue(++index, argument);
     } else if (argument === '--registry') {
-      registry = argv[++index];
+      registry = argumentValue(++index, argument);
     } else if (argument === '--update') {
       throw new Error('Source update is intentionally disabled; use --inventory and review the lock file manually.');
     } else if (argument === '--help' || argument === '-h') {
@@ -111,6 +126,9 @@ function parseArgs(argv = process.argv.slice(2)) {
     } else {
       throw new Error(`Unknown argument: ${argument}`);
     }
+  }
+  if (mode === 'check' && (packageName || packageVersion)) {
+    throw new Error('--package and --version are inventory-only; check must use the reviewed lock baseline.');
   }
   return {
     mode,
@@ -165,8 +183,11 @@ function validateManifestShape(manifest, source = 'upstream-lock.json') {
   if (upstream.name !== 'mutative') {
     throw new Error(`${source} upstream.name must be mutative`);
   }
-  if (!/^\d+\.\d+\.\d+$/u.test(upstream.version ?? '')) {
-    throw new Error(`${source} upstream.version must be a stable semantic version`);
+  if (upstream.version !== approvedUpstream.version) {
+    throw new Error(`${source} upstream.version must match the reviewed ${approvedUpstream.version} baseline`);
+  }
+  if (upstream.gitHead !== approvedUpstream.gitHead) {
+    throw new Error(`${source} upstream.gitHead must match the reviewed ${approvedUpstream.gitHead} source commit`);
   }
   if (upstream.sourceRoot !== 'src') {
     throw new Error(`${source} upstream.sourceRoot must be src`);
@@ -190,6 +211,61 @@ function validateManifestShape(manifest, source = 'upstream-lock.json') {
     throw new Error(`${source} local.sourceTreeSha256 must be a SHA-256 digest`);
   }
   validateLocalFiles(local.files, upstream.files, `${source} local.files`);
+}
+
+function validateSyncManifest(sync, lock, repository, source = 'upstream-sync.json') {
+  if (!sync || typeof sync !== 'object' || Array.isArray(sync)
+    || sync.schemaVersion !== lockSchemaVersion) {
+    throw new Error(`${source} must use ${lockSchemaVersion}`);
+  }
+  for (const field of ['name', 'version', 'gitHead']) {
+    if (sync.upstream?.[field] !== lock.upstream[field]) {
+      throw new Error(`${source} upstream.${field} must match the reviewed upstream lock`);
+    }
+  }
+  for (const field of ['repository', 'branch', 'commit']) {
+    if (typeof lock.maintainedFork?.[field] !== 'string'
+      || sync.maintainedFork?.[field] !== lock.maintainedFork[field]) {
+      throw new Error(`${source} maintainedFork.${field} must match the reviewed upstream lock`);
+    }
+  }
+  if (!/^[a-f0-9]{40}$/u.test(sync.maintainedFork.commit)) {
+    throw new Error(`${source} maintainedFork.commit must be an immutable Git commit`);
+  }
+  for (const field of ['package', 'versionLine']) {
+    if (sync.adapter?.[field] !== lock.adapter?.[field]) {
+      throw new Error(`${source} adapter.${field} must match the reviewed upstream lock`);
+    }
+  }
+  if (sync.adapter.package !== '@context-action/mutative'
+    || sync.adapter.versionLine !== '0.8.x') {
+    throw new Error(`${source} must preserve the scoped adapter 0.8.x patch line`);
+  }
+  if (!Array.isArray(sync.localPatchContracts) || sync.localPatchContracts.length === 0) {
+    throw new Error(`${source} must retain the maintained local patch contracts`);
+  }
+  const contracts = new Set();
+  for (const contract of sync.localPatchContracts) {
+    if (typeof contract?.id !== 'string' || contracts.has(contract.id)
+      || !Array.isArray(contract.files) || contract.files.length === 0
+      || !Array.isArray(contract.tests) || contract.tests.length === 0) {
+      throw new Error(`${source} must define unique patch contracts with source files and tests`);
+    }
+    contracts.add(contract.id);
+    for (const file of contract.files) {
+      if (!Object.hasOwn(lock.local.files, file)) {
+        throw new Error(`${source} patch ${contract.id} names a source missing from the lock: ${file}`);
+      }
+    }
+    for (const testPath of contract.tests) {
+      if (typeof testPath !== 'string'
+        || !testPath.startsWith('packages/mutative-core/__tests__/')
+        || testPath.includes('..')
+        || !existsSync(path.join(repository, testPath))) {
+        throw new Error(`${source} patch ${contract.id} names a missing regression test: ${testPath}`);
+      }
+    }
+  }
 }
 
 function validateHashMap(files, source) {
@@ -258,6 +334,14 @@ function acquireUpstream({ name, version, registry }) {
       npm_config_loglevel: 'error',
     };
     if (registry) environment.npm_config_registry = registry;
+    const registryMetadata = JSON.parse(execFileSync('npm', [
+      'view', `${name}@${version}`, 'name', 'version', 'gitHead', 'dist.integrity', 'repository', '--json',
+    ], { cwd: temporaryDirectory, encoding: 'utf8', env: environment, stdio: ['ignore', 'pipe', 'pipe'] }));
+    if (registryMetadata.name !== name || registryMetadata.version !== version
+      || registryMetadata.repository?.url !== approvedUpstream.repository
+      || !/^[a-f0-9]{40}$/u.test(registryMetadata.gitHead ?? '')) {
+      throw new Error(`Registry metadata does not identify the upstream ${name}@${version} source`);
+    }
     execFileSync('npm', npmArguments, {
       cwd: temporaryDirectory,
       encoding: 'utf8',
@@ -270,6 +354,10 @@ function acquireUpstream({ name, version, registry }) {
     }
     const archivePath = path.join(temporaryDirectory, archives[0]);
     const archive = readFileSync(archivePath);
+    const archiveIntegrity = sha512Integrity(archive);
+    if (registryMetadata['dist.integrity'] !== archiveIntegrity) {
+      throw new Error(`npm archive integrity does not match registry metadata for ${name}@${version}`);
+    }
     const entries = execFileSync('tar', ['-tzf', archivePath], { encoding: 'utf8' })
       .split(/\r?\n/u)
       .filter(Boolean);
@@ -288,7 +376,8 @@ function acquireUpstream({ name, version, registry }) {
     }
     return {
       archive,
-      archiveIntegrity: sha512Integrity(archive),
+      archiveIntegrity,
+      gitHead: registryMetadata.gitHead,
       packageDirectory,
       temporaryDirectory,
     };
@@ -301,7 +390,7 @@ function acquireUpstream({ name, version, registry }) {
 function sourceComparison(upstreamInventory, localInventory) {
   const upstreamFiles = upstreamInventory.files;
   const localFiles = localInventory.files;
-  const paths = [...new Set([...Object.keys(upstreamFiles), ...Object.keys(localFiles)])].sort((left, right) => left.localeCompare(right));
+  const paths = [...new Set([...Object.keys(upstreamFiles), ...Object.keys(localFiles)])].sort(compareSourcePaths);
   const files = {};
   for (const filePath of paths) {
     const upstreamSha256 = upstreamFiles[filePath] ?? null;
@@ -318,12 +407,13 @@ function sourceComparison(upstreamInventory, localInventory) {
   return files;
 }
 
-function buildInventory({ name, version, archiveIntegrity, upstreamInventory, localInventory, registry }) {
+function buildInventory({ name, version, gitHead, archiveIntegrity, upstreamInventory, localInventory, registry }) {
   return {
     schemaVersion: lockSchemaVersion,
     upstream: {
       name,
       version,
+      gitHead,
       registry: registry ?? 'https://registry.npmjs.org',
       tarballIntegrity: archiveIntegrity,
       sourceRoot: 'src',
@@ -355,6 +445,9 @@ function compareHashMap(expected, actual, source) {
 
 function compareManifest(manifest, actualInventory) {
   const errors = [];
+  if (manifest.upstream.gitHead !== actualInventory.upstream.gitHead) {
+    errors.push(`upstream gitHead drift: expected ${manifest.upstream.gitHead}, actual ${actualInventory.upstream.gitHead}`);
+  }
   if (manifest.upstream.tarballIntegrity !== actualInventory.upstream.tarballIntegrity) {
     errors.push(`upstream tarball integrity drift: expected ${manifest.upstream.tarballIntegrity}, actual ${actualInventory.upstream.tarballIntegrity}`);
   }
@@ -391,6 +484,11 @@ function run(options) {
     return;
   }
   const manifest = options.mode === 'check' ? readLockManifest(options.manifestPath) : null;
+  if (manifest) {
+    const syncPath = path.join(options.repository, 'packages', 'mutative-core', 'upstream-sync.json');
+    const sync = JSON.parse(readFileSync(syncPath, 'utf8'));
+    validateSyncManifest(sync, manifest, options.repository, syncPath);
+  }
   const name = options.packageName ?? manifest?.upstream.name ?? 'mutative';
   const version = options.packageVersion ?? manifest?.upstream.version ?? '1.3.0';
   if (name !== 'mutative') throw new Error(`Only the upstream mutative package is supported, received ${name}`);
@@ -400,13 +498,14 @@ function run(options) {
     const localRoot = path.join(options.repository, 'packages', 'mutative-core', 'src');
     const localInventory = sourceInventory(localRoot);
     const actualInventory = {
-      upstream: { tarballIntegrity: upstream.archiveIntegrity, sourceTreeSha256: upstreamInventory.sourceTreeSha256, files: upstreamInventory.files },
+      upstream: { gitHead: upstream.gitHead, tarballIntegrity: upstream.archiveIntegrity, sourceTreeSha256: upstreamInventory.sourceTreeSha256, files: upstreamInventory.files },
       local: { sourceTreeSha256: localInventory.sourceTreeSha256, files: sourceComparison(upstreamInventory, localInventory) },
     };
     if (options.mode === 'inventory') {
       console.log(JSON.stringify(buildInventory({
         name,
         version,
+        gitHead: upstream.gitHead,
         archiveIntegrity: upstream.archiveIntegrity,
         upstreamInventory,
         localInventory,
@@ -427,7 +526,7 @@ function run(options) {
       .map(([filePath, entry]) => ({ path: filePath, ...entry }));
     console.log(JSON.stringify({
       status: 'ok',
-      upstream: { name, version, tarballIntegrity: upstream.archiveIntegrity, sourceTreeSha256: upstreamInventory.sourceTreeSha256 },
+      upstream: { name, version, gitHead: upstream.gitHead, tarballIntegrity: upstream.archiveIntegrity, sourceTreeSha256: upstreamInventory.sourceTreeSha256 },
       local: { sourceTreeSha256: localInventory.sourceTreeSha256, categories, changes },
     }));
   } finally {
@@ -447,6 +546,7 @@ export {
   sourceInventory,
   sourceTreeHash,
   validateManifestShape,
+  validateSyncManifest,
 };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

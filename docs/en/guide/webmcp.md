@@ -59,7 +59,7 @@ throwing, so feature detection belongs at the UI boundary.
 `@context-action/react/webmcp` provides an **experimental** hook that owns registration for a
 component lifetime. It accepts any `ToolManagementInterface` registry, including
 an application-owned manager; the repository's ToolContext is only one
-source-track implementation and is not an installable React 3 subpath.
+source-track implementation and is not an installable React 4 subpath.
 Memoize the registration fields (`sessionId`, `toolNames`, `exposedTo`) so
 unrelated renders do not unregister and register the tools again. Execution
 metadata and callbacks are read from the latest render without JSON serialization.

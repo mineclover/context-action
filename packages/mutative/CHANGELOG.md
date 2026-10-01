@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.10] (2026-10-01)
+
+### Reliability fixes
+
+- Cancel rejected nested or coordinated batches without archiving their changes or leaving stale timeline state behind.
+- Propagate explicit undo/redo transition metadata through the adapter and preserve transaction boundaries during replay.
+
 ## [0.8.9] (2026-10-01)
 
 - Record the acquired upstream `mutative@1.3.0` source baseline and preserve the maintained fork patch contracts.

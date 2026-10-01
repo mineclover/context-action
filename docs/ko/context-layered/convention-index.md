@@ -30,6 +30,10 @@
   - Mutative 소스 계보, 반영한 upstream 수정, 라이선스, 동기화 규칙
 - [Implementation Convention](/ko/context-layered/implementation-convention)
   - implementation-playbook 계열 개발의 표준 규칙
+- [Core Action Contracts](../../../packages/core/docs/action-contracts.md)
+  - framework-neutral dispatch, lifecycle trace, action과 state 경계
+- [React State Contracts](../../../packages/react/docs/state-contracts.md)
+  - Store reader/writer, safe read, transaction, timeline, inspector 경계
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
   - 이슈 lifecycle, 계약 추적, decision record, handoff 증거
 - [아키텍처 결정 기록](/ko/context-layered/decisions/)
@@ -102,6 +106,12 @@ build·filesystem·provider·preview·browser release 검사는
 2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
 3. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
 4. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+
+여러 Store를 변경하는 stateful action은 [Core Action
+Contracts](../../../packages/core/docs/action-contracts.md)와 [React State
+Contracts](../../../packages/react/docs/state-contracts.md)를 함께 읽습니다. Core는
+dispatch trace만 발행하고 Store ownership을 추론하지 않으며, React 계층이 명시적인
+participant를 가진 transaction을 시작합니다.
 
 ### 구현자 온보딩용
 

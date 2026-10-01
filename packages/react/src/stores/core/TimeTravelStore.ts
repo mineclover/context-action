@@ -265,6 +265,12 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel.endBatch();
   }
 
+  /** Restore the active batch without creating a timeline entry. */
+  cancelBatch(): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.cancelBatch();
+  }
+
   resumeNotifications(): void {
     if (this.notificationHoldDepth > 0) this.notificationHoldDepth -= 1;
   }
@@ -336,13 +342,13 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   /**
    * Undo the last change
    */
-  undo(steps = 1): void {
+  undo(steps = 1, metadata?: TimeTravelTransitionMeta): void {
     if (this.isDisposed) return;
     validateHistoryStep(steps, 'Undo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] undo(${steps}) - position before: ${this.timeTravel.getPosition()}, canBack: ${this.timeTravel.canBack()}`);
     }
-    this.timeTravel.back(steps);
+    this.timeTravel.back(steps, metadata ?? { origin: 'undo' });
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] undo complete - position after: ${this.timeTravel.getPosition()}`);
     }
@@ -351,13 +357,13 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   /**
    * Redo the last undone change
    */
-  redo(steps = 1): void {
+  redo(steps = 1, metadata?: TimeTravelTransitionMeta): void {
     if (this.isDisposed) return;
     validateHistoryStep(steps, 'Redo steps');
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] redo(${steps}) - position before: ${this.timeTravel.getPosition()}, canForward: ${this.timeTravel.canForward()}`);
     }
-    this.timeTravel.forward(steps);
+    this.timeTravel.forward(steps, metadata ?? { origin: 'redo' });
     if (process.env.NODE_ENV === 'development') {
       console.log(`[TimeTravelStore:${this.name}] redo complete - position after: ${this.timeTravel.getPosition()}`);
     }
@@ -382,10 +388,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   /**
    * Go to a specific position in history
    */
-  goTo(position: number): void {
+  goTo(position: number, metadata?: TimeTravelTransitionMeta): void {
     if (this.isDisposed) return;
     validateHistoryPosition(position);
-    this.timeTravel.go(position);
+    this.timeTravel.go(position, metadata);
   }
 
   /**

@@ -48,7 +48,7 @@ npm install @context-action/react @context-action/core @context-action/tool-prot
 
 `defineAction`, `createActionSchema`, `listAllTools`와 protocol type은
 `@context-action/tool-protocol`에서 import합니다. 저장소에는 개발 트랙으로
-`packages/react/src/tools`가 남아 있지만 React 3은
+`packages/react/src/tools`가 남아 있지만 React 4는
 `@context-action/react/tools`를 의도적으로 export하지 않습니다. 별도 ToolContext
 릴리스가 승인되기 전에는 설치된 패키지에서 이 경로를 import하지 마십시오.
 `@context-action/react`는 기본 action/store entry를, `@context-action/core`는 action
@@ -76,7 +76,22 @@ await register.actions.reset(undefined, { debounce: 100 });
 `@context-action/react`에서 import하며, 이전의 `react18` 호환 entry point는 더 이상
 export하지 않습니다.
 `@context-action/mutative-core` / `@context-action/mutative` fork는 계속
-유지 관리하고 upstream 동기화는 해당 package의 `UPSTREAM.md`에 기록합니다.
+immutable runtime 계약으로 유지합니다. 현재 stable cohort는 Core `1.2.2`,
+Mutative Core·adapter `0.8.10`, React `4.0.2`입니다. `mutative@1.3.0`은
+인수한 upstream 호환성 기준이며 runtime 교체 버전이 아닙니다. upstream 변경은
+검토된 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)와
+`upstream-lock.json`에 기록하고 `pnpm verify:mutative-upstream`을 실행합니다.
+
+### State 계약 마이그레이션
+
+새 state 코드는 [Store and time-travel contracts](../../../packages/react/docs/state-contracts.md)의
+role interface를 사용합니다. Declarative TimeTravelStore manager는 기본
+`readMode: 'safe'`이고 direct `createTimeTravelStore()` factory는 호환성을 위해
+`readMode: 'reference'`를 유지합니다. 외부 경계에는 `getSafeValue()`를
+사용합니다. 하나의 action이 여러 Store를 바꾸면 `StoreTransactionCoordinator`에
+participant를 명시적으로 등록하고 Core dispatch trace를
+`bindActionTransactions()`로 연결합니다. action 이름이나 handler 등록에서
+ownership을 추론하지 않습니다.
 
 ## 권장 마이그레이션 순서
 

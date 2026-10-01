@@ -28,6 +28,9 @@ describe('path subscription signatures', () => {
       { op: 'remove', path: ['items', 0] },
     ] as any, ['items', 1])).toBe(true);
     expect(patchesAffectPath([
+      { op: 'replace', path: ['items', 'length'], value: 2 },
+    ] as any, ['items', 3])).toBe(true);
+    expect(patchesAffectPath([
       { op: 'replace', path: ['items', 0, 'name'] },
     ] as any, ['items', 1, 'name'])).toBe(false);
   });

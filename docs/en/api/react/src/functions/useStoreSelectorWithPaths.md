@@ -8,7 +8,7 @@
 
 > **useStoreSelectorWithPaths**\<`T`, `R`\>(`store`, `selector`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:216](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L216)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:181](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L181)
 
 ## Type Parameters
 

@@ -94,6 +94,15 @@ must be forwarded by `@context-action/mutative`:
 See [Mutative Core History and Upstream References](./mutative-core-history.md)
 for the authoritative behavior and synchronization record.
 
+The current stable cohort publishes `@context-action/mutative-core@0.8.10` and
+`@context-action/mutative@0.8.10`. Both packages track the acquired upstream
+`mutative@1.3.0` compatibility baseline, but neither package depends on the
+upstream package at runtime. `upstream-lock.json` is the source of truth for
+the npm tarball integrity and file inventory; run
+`pnpm verify:mutative-upstream` before changing or publishing the vendored
+runtime. The baseline version and scoped package versions are separate release
+contracts.
+
 ## 4. Package contract
 
 Every package README and manifest should answer these questions:

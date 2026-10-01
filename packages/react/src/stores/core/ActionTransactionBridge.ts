@@ -40,7 +40,7 @@ export function bindActionTransactions(
     const handle = pending.get(event.dispatchId);
     if (!handle) return;
     pending.delete(event.dispatchId);
-    if (event.status === 'completed') handle.commit();
+    if (event.status === 'completed' || event.status === 'completed_with_errors') handle.commit();
     else handle.rollback();
   });
 

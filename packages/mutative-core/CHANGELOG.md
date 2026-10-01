@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.8.10] (2026-10-01)
+
+- Reissue the maintained upstream `mutative@1.3.0` baseline in the coordinated patch cohort without replacing the reviewed fork source.
+- Keep the upstream lock, inventory, and regression contract bound to the published core artifact.
+
 ## [0.8.9] (2026-10-01)
 
 - Verify the acquired upstream `mutative@1.3.0` source baseline against its npm tarball integrity and file hashes.

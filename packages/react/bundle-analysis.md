@@ -10,7 +10,7 @@ fixed byte claims. Generate a current report with `pnpm --filter
   entry point. It does not load tool-protocol or durable-operation runtimes.
 - `@context-action/react/advanced` exposes optional store features.
 - ToolContext and Durable integration are development-track source and are not
-  exported by the published React 3 artifact.
+  exported by the published React 4 artifact.
 
 ## Optimization Achievements
 
@@ -44,7 +44,7 @@ import { StoreRegistry, useComputedStore, deepCloneWithImmer } from '@context-ac
 ### Tool calling
 
 ToolContext and Durable integration are intentionally excluded from the public
-React 3 package while their protocol and recovery contract remain in active
+React 4 package while their protocol and recovery contract remain in active
 development. They do not contribute to the Store/Action consumer bundle.
 
 ## Verification

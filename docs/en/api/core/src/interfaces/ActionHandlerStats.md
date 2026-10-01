@@ -6,7 +6,7 @@
 
 # Interface: ActionHandlerStats\<T\>
 
-Defined in: [packages/core/src/types.ts:1428](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1428)
+Defined in: [packages/core/src/types.ts:1434](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1434)
 
 Handler statistics interface for registry monitoring and debugging
 
@@ -47,7 +47,7 @@ The action payload map interface
 
 > **action**: keyof `T`
 
-Defined in: [packages/core/src/types.ts:1430](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1430)
+Defined in: [packages/core/src/types.ts:1436](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1436)
 
 Action name
 
@@ -57,7 +57,7 @@ Action name
 
 > **handlerCount**: `number`
 
-Defined in: [packages/core/src/types.ts:1433](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1433)
+Defined in: [packages/core/src/types.ts:1439](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1439)
 
 Number of handlers for this action
 
@@ -67,7 +67,7 @@ Number of handlers for this action
 
 > **totalHandlers**: `number`
 
-Defined in: [packages/core/src/types.ts:1436](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1436)
+Defined in: [packages/core/src/types.ts:1442](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1442)
 
 Total number of handlers for this action (alias for handlerCount)
 
@@ -77,7 +77,7 @@ Total number of handlers for this action (alias for handlerCount)
 
 > `optional` **lastRegistered?**: `Date`
 
-Defined in: [packages/core/src/types.ts:1439](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1439)
+Defined in: [packages/core/src/types.ts:1445](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1445)
 
 When the last handler was registered
 
@@ -87,7 +87,7 @@ When the last handler was registered
 
 > **handlersByPriority**: `object`[]
 
-Defined in: [packages/core/src/types.ts:1442](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1442)
+Defined in: [packages/core/src/types.ts:1448](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1448)
 
 Handler configurations grouped by priority
 
@@ -105,6 +105,6 @@ Handler configurations grouped by priority
 
 > `optional` **executionStats?**: `undefined`
 
-Defined in: [packages/core/src/types.ts:1450](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1450)
+Defined in: [packages/core/src/types.ts:1456](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1456)
 
 Execution statistics - removed in favor of simplified architecture

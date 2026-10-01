@@ -21,14 +21,21 @@ The protected release preflight covers strict source/test type checks, the React
 
 That evidence supports the library contract at the candidate commit. Before a production rollout, run the same preflight for the exact release candidate and exercise your staging or production-equivalent Redis/PostgreSQL endpoint, including credentials, TLS, migration, retention, and failover behavior.
 
-## Intended state-management release
+## Current state-management release
 
-The immediate release target is the state-management surface:
+The current stable release is the state-management surface:
 
 | Package | Version | Why it matters |
 | --- | --- | --- |
-| `@context-action/core` | `1.1.0` | Stable action lifecycle and observer semantics. |
-| `@context-action/react` | `4.0.1` | React lifecycle and SSR contract for the Store and Action APIs. |
+| `@context-action/core` | `1.2.2` | Stable action lifecycle, dispatch trace, and observer semantics. |
+| `@context-action/mutative-core` | `0.8.10` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
+| `@context-action/mutative` | `0.8.10` | Immutable update, timeline batches, and transition metadata. |
+| `@context-action/react` | `4.0.2` | React lifecycle and SSR contract for the Store and Action APIs. |
+
+The upstream baseline and scoped package versions are independent contracts.
+`mutative@1.3.0` identifies the acquired source baseline; it is not a runtime
+dependency or a scoped adapter version. The core lock and carried patches are
+verified with `pnpm verify:mutative-upstream`.
 
 Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 
@@ -60,7 +67,7 @@ An in-memory promise or idempotency map cannot safely coordinate a mutation acro
 
 That problem has a different operational boundary from client state management: it requires a real persistence service, a provider/domain status lookup, and a defined reconciliation policy. Keeping it in development prevents a database and provider-recovery contract from becoming an accidental requirement for the core state-management release.
 
-The source retains `@context-action/react/tools` for development, but the React 3 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
+The source retains `@context-action/react/tools` for development, but the React 4 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
 
 ## Durable operations: operational boundary
 
@@ -80,10 +87,10 @@ See the [durable operations runbook](/en/context-layered/architecture/durable-op
 
 ## Production rollout checklist
 
-- Pin and test the Core 1.1 / React 3 cohort together.
+- Pin and test Core `1.2.2`, Mutative Core and adapter `0.8.10`, and React `4.0.2` together.
 - Run `pnpm release:check` from the exact candidate commit.
 - Use the packed-consumer and React compatibility checks as release gates, not only workspace tests.
-- Roll out Core 1.1 / React 3 behind normal application canary and rollback controls.
+- Roll out this cohort behind normal application canary and rollback controls.
 
 If you opt into the separate Durable track, additionally validate
 Redis/PostgreSQL in an application-owned staging environment; define durable

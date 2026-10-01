@@ -23,13 +23,15 @@ const checks = [
     'standalone Web Studio boundaries',
     'scripts/verify-web-coding-conventions.mjs',
   ],
+  ['Mutative upstream baseline', 'scripts/verify-mutative-upstream.mjs'],
+  ['Mutative upstream verifier tests', 'scripts/verify-mutative-upstream.test.mjs', ['--test']],
 ];
 
-for (const [label, relativeScript] of checks) {
+for (const [label, relativeScript, argumentsList = []] of checks) {
   console.log(`\n[Context-Action convention] ${label}`);
   const result = spawnSync(
     process.execPath,
-    [path.join(repositoryRoot, relativeScript)],
+    [...argumentsList, path.join(repositoryRoot, relativeScript)],
     { cwd: repositoryRoot, stdio: 'inherit' }
   );
 

@@ -35,12 +35,13 @@
 
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 19.2+(peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, `@context-action/webmcp`. 배포된 React 3 artifact는 Durable Operations에 의존하지 않음
+- **의존성**: React 19.2+(peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, `@context-action/webmcp`. 배포된 React 4 artifact는 Durable Operations에 의존하지 않음
 - **주요 기능**: 스토어 관리, 액션 컨텍스트, Compiler 최적화 훅, Activity 안전 Provider lifecycle, React 19.2 SSR 지원. Store·Action API는 `@context-action/react`에서 import함
 
 ### 릴리스 및 보안 기준
 
-- **워크스페이스 패키지 기준 버전**: `@context-action/core` 1.2.1, `@context-action/react` 4.0.1, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.2. 외부 설치에는 published dist-tag를 기준으로 사용합니다.
+- **워크스페이스 패키지 기준 버전**: `@context-action/core` 1.2.2, `@context-action/mutative-core` 0.8.10, `@context-action/mutative` 0.8.10, `@context-action/react` 4.0.2, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.2. 외부 설치에는 published dist-tag를 기준으로 사용합니다.
+- **Mutative 계보**: scoped `0.8.10` package는 인수한 upstream `mutative@1.3.0` 호환성 기준을 추적하며, 동기화나 release 전 `pnpm verify:mutative-upstream`으로 committed source inventory를 검증합니다.
 - **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, TypeScript `6.0.3`
 - **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm.overrides`에서 강제한다.
 - **임시 예외**: `GHSA-qwww-vcr4-c8h2`에 대해 `react-router@7.18.1`을 기간 한정 예외로 유지한다. 예제는 browser routing만 사용하고 `react-router-dom` 8.3.0은 아직 공개되지 않았으므로 2026-09-30 전에 재검토한다.

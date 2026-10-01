@@ -761,11 +761,13 @@ describe('Array mutation scenarios', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('array').textContent).toBe('["a","d"]');
+      expect(screen.getByTestId('index3').textContent).toBe('');
     });
 
     // Array and affected indices should re-render
     expect(renderCounts.array).toBeGreaterThan(initialCounts.array);
     expect(renderCounts.index1).toBeGreaterThan(initialCounts.index1);
+    expect(renderCounts.index3).toBeGreaterThan(initialCounts.index3);
 
     store.dispose();
   });

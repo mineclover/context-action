@@ -2,6 +2,12 @@
 
 Complete conventions for Store, TimeTravelStore, and MutableStore patterns in the Context-Action framework.
 
+This guide targets the stable Core `1.2.2`, Mutative Core and adapter `0.8.10`,
+and React `4.0.2` cohort. The upstream immutable-update baseline is
+`mutative@1.3.0`; scoped adapter versions remain independent. The role and
+transaction contracts are maintained in [Store and time-travel
+contracts](../../../packages/react/docs/state-contracts.md).
+
 ## 📋 Table of Contents
 
 1. [Store Types Overview](#store-types-overview)
@@ -162,7 +168,11 @@ const { canUndo, canRedo, position, history } = editorStore.getTimeTravelControl
 
 ### React Integration
 
-**⚠️ CRITICAL**: Use `useStorePath()`, NOT `useStoreValue()`
+Use `useStorePath()` for a narrow path subscription. `useStoreValue()` also
+works for whole-state reads when changes are committed through `setValue()`,
+`update()`, undo/redo, or an explicit transaction. Mutable direct changes
+reported only through `notifyPath()` require a path or selector subscription;
+they do not create a new root value reference.
 
 ```typescript
 import { useStorePath, useTimeTravelControls } from '@context-action/react';
@@ -174,7 +184,7 @@ function Editor() {
   const content = useStorePath(editorStore, ['content']);
   const cursor = useStorePath(editorStore, ['cursor']);
 
-  // ❌ WRONG: useStoreValue won't detect changes
+  // Whole-state reads are also valid for committed transitions.
   // const state = useStoreValue(editorStore);
 
   // Time travel controls
@@ -193,16 +203,43 @@ function Editor() {
 ### Subscription Pattern
 
 ```typescript
-// TimeTravelStore uses structural sharing
-// Top-level reference doesn't change, nested references do
+// Committed TimeTravelStore transitions replace the observable snapshot.
+// Unchanged branches retain their references through structural sharing.
 
-// ❌ WRONG: Won't detect nested changes
+// Whole-state subscription: setValue/update/undo/redo transitions
 const state = useStoreValue(editorStore);
 
-// ✅ CORRECT: Detects nested reference changes
+// Narrow subscriptions: selected paths and mutable notifyPath updates
 const content = useStorePath(editorStore, ['content']);
 const cursor = useStorePath(editorStore, ['cursor']);
 ```
+
+### Read safety and snapshot identity
+
+Declarative `TimeTravelStoreManager` instances default to `readMode: 'safe'`.
+Direct `createTimeTravelStore()` calls retain `readMode: 'reference'` for
+compatibility. Never mutate a reference read unless the feature explicitly owns
+the advanced mutable `notifyPath()` contract. Use `getSafeValue()` for a
+defensive copy crossing an external boundary.
+
+React adapters read `getSnapshot().value` and subscribe to the Store. The
+snapshot reference must remain stable until an observable transition occurs.
+Do not return a fresh object from a custom snapshot getter on every read;
+selectors that allocate objects must use an appropriate equality function.
+
+### Explicit multi-store transactions
+
+Use `StoreTransactionCoordinator.run(participants, callback, meta)` when one
+command changes multiple Stores and must undo/redo as one unit. Name each
+participant explicitly and attach `transactionId`, `actionId`, `origin`, and
+`label` at the transaction boundary. Core dispatch does not infer these
+participants; `bindActionTransactions()` connects dispatch traces to the
+application's explicit participant list.
+
+Coordinator commits update all participant snapshots before notifications are
+flushed. Failed callbacks roll positions back; a participant moved outside the
+coordinator causes a history conflict instead of a partial undo/redo. Inspector
+snapshots contain serializable metadata and positions, never live Store objects.
 
 ### When to Use
 
@@ -558,12 +595,12 @@ useActionHandler('onStoreChange', (payload) => {
 const userStore = createStore('user', { name: '' });
 const user = useStoreValue(userStore);
 
-// ✅ TimeTravelStore/MutableStore: Use useStorePath
+// Narrow reads and mutable direct updates reported by notifyPath
 const editorStore = createTimeTravelStore('editor', { content: '' });
 const content = useStorePath(editorStore, ['content']);
 
-// ❌ WRONG: useStoreValue on TimeTravelStore
-const state = useStoreValue(editorStore); // Won't detect changes!
+// Whole-state reads are valid for committed transitions
+const state = useStoreValue(editorStore);
 ```
 
 ### Update Strategy
@@ -790,12 +827,12 @@ This dedicated guide covers:
 │ Structural Sharing       │ ❌ No          │ ✅ Yes           │ ✅ Yes           │
 │ Undo/Redo                │ ❌ No          │ ✅ Yes (used)    │ ✅ Yes (ignored) │
 │ notifyPath/notifyPaths   │ ✅ Yes         │ ✅ Yes           │ ✅ Yes           │
-│ useStoreValue()          │ ✅ Works       │ ❌ Won't Update  │ ❌ Won't Update  │
-│ useStorePath()           │ ✅ Works       │ ✅ Required      │ ✅ Required      │
+│ useStoreValue()          │ ✅ Works       │ ✅ Commits       │ ✅ Commits       │
+│ useStorePath()           │ ✅ Works       │ ✅ Selective     │ ✅ notifyPath    │
 │ RAF Batching             │ ✅ Yes         │ ✅ Yes           │ ✅ Yes           │
-│ Clone on getValue()      │ ✅ Default On  │ ❌ Default Off   │ ❌ Default Off   │
+│ Clone on getValue()      │ ✅ Default On  │ readMode policy  │ readMode policy  │
 │ Manual Event Control     │ ✅ Yes         │ ✅ Yes           │ ✅ Yes           │
-│ External Mutation        │ ⚠️ Not Safe    │ ✅ Safe          │ ✅ Safe          │
+│ External Mutation        │ ⚠️ Not a commit│ ⚠️ Explicit path │ ⚠️ Explicit path │
 │ Use Case                 │ General state │ Undo/Redo apps   │ High performance │
 └──────────────────────────┴───────────────┴──────────────────┴──────────────────┘
 ```

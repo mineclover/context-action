@@ -21,14 +21,20 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 
 이 근거는 후보 커밋의 라이브러리 계약을 뒷받침합니다. 프로덕션 배포 전에는 정확한 릴리즈 후보에서 같은 사전 점검을 실행하고, staging 또는 프로덕션과 동등한 Redis/PostgreSQL 엔드포인트에서 자격 증명, TLS, 마이그레이션, 보존, failover 동작을 검증해야 합니다.
 
-## 상태 관리 중심의 배포 대상
+## 현재 상태 관리 릴리즈
 
-즉시 배포 대상은 상태 관리 표면입니다.
+현재 stable 릴리즈는 상태 관리 표면입니다.
 
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
-| `@context-action/core` | `1.1.0` | 안정화된 액션 lifecycle·observer 의미론 |
-| `@context-action/react` | `4.0.1` | Store·Action API의 React lifecycle·SSR 계약 |
+| `@context-action/core` | `1.2.2` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
+| `@context-action/mutative-core` | `0.8.10` | upstream `mutative@1.3.0` 호환성 기준과 유지보수 fork 수정 |
+| `@context-action/mutative` | `0.8.10` | immutable update, timeline batch, transition metadata |
+| `@context-action/react` | `4.0.2` | Store·Action API의 React lifecycle·SSR 계약 |
+
+upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@1.3.0`은
+인수한 source baseline이며 runtime dependency나 scoped adapter 버전이 아닙니다.
+core lock과 유지 patch는 `pnpm verify:mutative-upstream`으로 검증합니다.
 
 Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이며, 일반 Store·Action·React 19.2·SSR 사용의 선행 조건이 아닙니다.
 
@@ -58,7 +64,7 @@ I/O와 인가에 사용하십시오. provider-tool 상호운용성이나 프로�
 
 이 문제는 클라이언트 상태 관리와 다른 운영 경계를 가집니다. 실제 persistence service, provider·도메인 상태 조회, 명확한 reconciliation 정책이 필요합니다. 이를 개발 트랙에 두면 데이터베이스와 provider 복구 계약이 core 상태 관리 배포의 우발적인 요구 사항이 되는 일을 막을 수 있습니다.
 
-소스에는 개발용 `@context-action/react/tools`가 남아 있지만, Durable 0.2를 보류하는 동안 React 3 artifact에서는 이 subpath를 의도적으로 제외합니다. 일반 React root entry는 이 개발 트랙과 독립적입니다.
+소스에는 개발용 `@context-action/react/tools`가 남아 있지만, Durable 0.2를 보류하는 동안 React 4 artifact에서는 이 subpath를 의도적으로 제외합니다. 일반 React root entry는 이 개발 트랙과 독립적입니다.
 
 ## Durable operation의 운영 경계
 
@@ -78,10 +84,10 @@ if (claim.status === 'owner') {
 
 ## 프로덕션 도입 체크리스트
 
-- Core 1.1 / React 3 코호트를 함께 고정하고 테스트합니다.
+- Core `1.2.2`, Mutative Core·adapter `0.8.10`, React `4.0.2`을 함께 고정하고 테스트합니다.
 - 정확한 후보 커밋에서 `pnpm release:check`를 실행합니다.
 - workspace 테스트만이 아니라 패킹 소비자·React 호환성 검사를 릴리즈 게이트로 사용합니다.
-- Core 1.1 / React 3은 일반적인 애플리케이션 canary·rollback 절차로 점진 배포합니다.
+- 이 cohort는 일반적인 애플리케이션 canary·rollback 절차로 점진 배포합니다.
 
 별도 Durable 트랙을 선택했다면 추가로 애플리케이션이 소유한 staging 환경에서
 Redis/PostgreSQL을 검증하고, durable key·owner ID·retention·prune·알림·reconciliation

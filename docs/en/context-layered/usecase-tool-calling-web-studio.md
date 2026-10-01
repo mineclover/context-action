@@ -146,7 +146,7 @@ the registry. Do not hand-build a second provider-specific schema in a view or
 transport adapter.
 
 > **Development-track source reference:** This illustrates the ToolContext
-> source design. React 3 deliberately does not publish
+> source design. React 4 deliberately does not publish
 > `@context-action/react/tools`, so it is not an installed-package consumer
 > example until a separate ToolContext release is approved.
 

@@ -2,12 +2,12 @@
 
 This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext.
 
-> Start with the **Current React 3.0 summary** below for a new feature. The
+> Start with the **Current React 4.0.2 summary** below for a new feature. The
 > detailed sections that follow are reference material; use the
 > [Context-Layered convention index](/en/context-layered/convention-index) when
 > a feature needs the repository's six-layer implementation profile.
 
-## Current React 3.0 summary
+## Current React 4.0.2 summary
 
 `@context-action/react` requires React 19.2 or later. The default design is a
 context-layered flow, not a component that mixes rendering, domain rules, and
@@ -39,6 +39,19 @@ external effects:
 6. **Treat compiler directives as library implementation details.** The
    published package compiles explicitly annotated hooks; application code does
    not need to add a compiler runtime or copy a `"use memo"` directive.
+7. **Make state transactions explicit.** Core dispatch traces carry optional
+   metadata, but Core never infers Store ownership. When one action updates
+   multiple Stores, use `StoreTransactionCoordinator` with named participants
+   and bind it through `bindActionTransactions()`.
+8. **Choose the read boundary deliberately.** Declarative TimeTravelStore
+   managers default to `readMode: 'safe'`; direct factories retain
+   `readMode: 'reference'` for compatibility. Use `getSafeValue()` or
+   `readMode: 'safe'` when a value crosses an external boundary. Use
+   `useStorePath()` for mutable direct updates reported through `notifyPath()`.
+9. **Track the immutable runtime separately.** The scoped adapter and core are
+   released on the maintained `0.8.10` patch line and track upstream
+   `mutative@1.3.0` as a compatibility baseline. Synchronize only through the
+   reviewed lock and `pnpm verify:mutative-upstream`.
 
 For a complete feature, test its Store/Action contract, its visible UI, and any
 Activity hide/reveal or SSR boundary it owns. Run `pnpm convention:check` for
@@ -46,7 +59,7 @@ repository structure and `pnpm docs:check` after documentation changes.
 
 ## 📋 Table of Contents
 
-1. [Current React 3.0 Summary](#current-react-30-summary)
+1. [Current React 4.0.2 Summary](#current-react-402-summary)
 2. [Legacy MVVM Migration Conventions](#legacy-mvvm-migration-conventions)
 3. [Naming Conventions](#naming-conventions)
 4. [File Structure](#file-structure)

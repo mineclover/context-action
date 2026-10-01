@@ -111,7 +111,7 @@ async function createFixture() {
         'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
       'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',
         lint: repositoryScripts.lint,
-        'convention:check': 'node scripts/check-context-layered-conventions.mjs',
+        'convention:check': 'node scripts/verify-context-action-conventions.mjs',
         'docs:management': 'node scripts/verify-documentation-management.mjs',
         'llms:check': 'node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --fail-on-mismatch',
         'type-check': 'lerna run type-check',

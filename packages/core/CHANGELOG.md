@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.2] (2026-10-01)
+
+### Reliability fixes
+
+- Preserve `completed_with_errors` and debounced/throttled outcomes in dispatch traces so action-to-state transaction bridges receive the actual terminal result.
+
 ## [1.2.1] (2026-10-01)
 
 - Reissue the coordinated state-management candidate from the reviewed upstream tracking release commit. Runtime contracts remain those introduced in 1.2.0.

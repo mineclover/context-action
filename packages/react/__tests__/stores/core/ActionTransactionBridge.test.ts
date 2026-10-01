@@ -34,4 +34,26 @@ describe('bindActionTransactions', () => {
     second.dispose();
     await register.destroyAsync();
   });
+
+  it('commits state when an action completes with non-blocking handler errors', async () => {
+    const register = new ActionRegister<{ save: { value: number } }>({ name: 'BridgePartialTest' });
+    const store = createTimeTravelStore('partial', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+    register.register('save', payload => {
+      store.update(draft => { draft.value = payload.value; });
+      throw new Error('best effort failure');
+    }, { blocking: false });
+    const unbind = bindActionTransactions(register, coordinator, {
+      getParticipants: () => [{ name: 'partial', store }],
+    });
+
+    await register.dispatch('save', { value: 4 });
+
+    expect(store.getValue()).toEqual({ value: 4 });
+    expect(coordinator.canUndo()).toBe(true);
+
+    unbind();
+    store.dispose();
+    await register.destroyAsync();
+  });
 });

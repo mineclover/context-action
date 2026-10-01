@@ -2,6 +2,12 @@
 
 Context-Action 프레임워크의 Store, TimeTravelStore, MutableStore 패턴에 대한 완전한 컨벤션입니다.
 
+이 가이드는 stable Core `1.2.2`, Mutative Core·adapter `0.8.10`, React `4.0.2`
+cohort를 기준으로 합니다. immutable-update upstream 기준은 `mutative@1.3.0`이며
+scoped adapter 버전은 별도로 관리합니다. 역할과 transaction 계약은
+[Store and time-travel contracts](../../../packages/react/docs/state-contracts.md)를
+따릅니다.
+
 ## 📋 목차
 
 1. [Store 타입 개요](#store-타입-개요)
@@ -162,7 +168,10 @@ const { canUndo, canRedo, position, history } = editorStore.getTimeTravelControl
 
 ### React 통합
 
-**⚠️ 중요**: `useStoreValue()`가 아닌 `useStorePath()` 사용
+좁은 경로 구독에는 `useStorePath()`를 사용합니다. `setValue()`, `update()`,
+undo/redo 또는 명시적 transaction으로 commit한 변경은 `useStoreValue()`로 전체
+상태를 읽을 수 있습니다. `notifyPath()`로만 보고한 mutable 직접 변경은 root value
+참조를 새로 만들지 않으므로 path 또는 selector 구독이 필요합니다.
 
 ```typescript
 import { useStorePath, useTimeTravelControls } from '@context-action/react';
@@ -174,7 +183,7 @@ function Editor() {
   const content = useStorePath(editorStore, ['content']);
   const cursor = useStorePath(editorStore, ['cursor']);
 
-  // ❌ 잘못됨: useStoreValue는 변경을 감지하지 못함
+  // commit한 전환에는 전체 상태 읽기도 유효함
   // const state = useStoreValue(editorStore);
 
   // 시간 여행 제어
@@ -193,16 +202,43 @@ function Editor() {
 ### 구독 패턴
 
 ```typescript
-// TimeTravelStore는 structural sharing 사용
-// 최상위 참조는 변경되지 않고, 중첩된 참조만 변경됨
+// commit한 TimeTravelStore 전환은 관찰 가능한 snapshot을 새로 만듦
+// structural sharing으로 미변경 branch의 참조를 유지함
 
-// ❌ 잘못됨: 중첩된 변경 감지 못함
+// 전체 상태 구독: setValue/update/undo/redo 전환
 const state = useStoreValue(editorStore);
 
-// ✅ 올바름: 중첩된 참조 변경 감지
+// 좁은 구독: 선택한 경로와 mutable notifyPath 변경
 const content = useStorePath(editorStore, ['content']);
 const cursor = useStorePath(editorStore, ['cursor']);
 ```
+
+### 읽기 안전성과 snapshot 참조
+
+Declarative `TimeTravelStoreManager`는 기본 `readMode: 'safe'`를 사용합니다.
+Direct `createTimeTravelStore()`는 호환성을 위해 `readMode: 'reference'`를
+유지합니다. feature가 고급 mutable `notifyPath()` 계약을 명시적으로 소유하지
+않으면 reference read를 직접 변경하지 않습니다. 외부 경계를 넘는 값에는
+defensive copy를 반환하는 `getSafeValue()`를 사용합니다.
+
+React adapter는 `getSnapshot().value`를 읽고 Store를 구독합니다. observable
+전환이 생길 때까지 snapshot 참조는 안정적이어야 합니다. custom snapshot getter가
+읽을 때마다 새 객체를 반환하면 안 됩니다. 객체를 만드는 selector는 적절한
+equality function을 사용합니다.
+
+### 명시적 다중 Store transaction
+
+하나의 command가 여러 Store를 변경하고 하나의 단위로 undo/redo되어야 하면
+`StoreTransactionCoordinator.run(participants, callback, meta)`를 사용합니다.
+각 participant에 이름을 붙이고 transaction 경계에서 `transactionId`, `actionId`,
+`origin`, `label`을 전달합니다. Core dispatch는 participant를 추론하지 않으며
+`bindActionTransactions()`가 dispatch trace와 애플리케이션의 명시적 participant
+목록을 연결합니다.
+
+Coordinator commit은 모든 participant snapshot을 갱신한 뒤 알림을 flush합니다.
+callback 실패는 위치를 rollback합니다. participant가 coordinator 밖에서 이동하면
+부분 undo/redo 대신 history conflict로 실패합니다. Inspector snapshot에는
+serializable metadata와 position만 있으며 Store 객체를 노출하지 않습니다.
 
 ### 사용 시기
 
@@ -558,12 +594,12 @@ useActionHandler('onStoreChange', (payload) => {
 const userStore = createStore('user', { name: '' });
 const user = useStoreValue(userStore);
 
-// ✅ TimeTravelStore/MutableStore: useStorePath 사용
+// 좁은 읽기와 notifyPath로 보고한 mutable 직접 변경
 const editorStore = createTimeTravelStore('editor', { content: '' });
 const content = useStorePath(editorStore, ['content']);
 
-// ❌ 잘못됨: TimeTravelStore에 useStoreValue
-const state = useStoreValue(editorStore); // 변경 감지 못함!
+// 전체 상태 읽기: commit한 전환에는 유효함
+const state = useStoreValue(editorStore);
 ```
 
 ### 업데이트 전략
@@ -790,12 +826,12 @@ function FileUploadLogic({ children }) {
 │ Structural Sharing       │ ❌ 없음        │ ✅ 있음          │ ✅ 있음          │
 │ Undo/Redo                │ ❌ 없음        │ ✅ 있음 (사용)   │ ✅ 있음 (무시)   │
 │ notifyPath/notifyPaths   │ ✅ 있음        │ ✅ 있음          │ ✅ 있음          │
-│ useStoreValue()          │ ✅ 작동        │ ❌ 업데이트 안됨 │ ❌ 업데이트 안됨 │
-│ useStorePath()           │ ✅ 작동        │ ✅ 필수          │ ✅ 필수          │
+│ useStoreValue()          │ ✅ 작동        │ ✅ Commit 전환   │ ✅ Commit 전환   │
+│ useStorePath()           │ ✅ 작동        │ ✅ 선택 구독     │ ✅ notifyPath    │
 │ RAF Batching             │ ✅ 있음        │ ✅ 있음          │ ✅ 있음          │
-│ getValue() 복제          │ ✅ 기본 켜짐   │ ❌ 기본 꺼짐     │ ❌ 기본 꺼짐     │
+│ getValue() 복제          │ ✅ 기본 켜짐   │ readMode 정책    │ readMode 정책    │
 │ 수동 이벤트 제어          │ ✅ 있음        │ ✅ 있음          │ ✅ 있음          │
-│ 외부 변경                 │ ⚠️ 안전하지 않음│ ✅ 안전         │ ✅ 안전          │
+│ 외부 변경                 │ ⚠️ Commit 아님 │ ⚠️ 명시적 경로   │ ⚠️ 명시적 경로   │
 │ 사용 사례                 │ 일반 상태     │ Undo/Redo 앱    │ 고성능           │
 └──────────────────────────┴───────────────┴──────────────────┴──────────────────┘
 ```
