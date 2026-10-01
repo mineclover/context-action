@@ -68,7 +68,7 @@ describe('<order-workspace> Web Component contract', () => {
 
     expect(eventFired).toBe(true);
     expect(changedItemCount).toBe(1);
-    lastDetail!.draft.items[0]!.quantity = 99;
+    expect(() => { lastDetail!.draft.items[0]!.quantity = 99; }).toThrow(TypeError);
     expect(element.items[0]?.quantity).toBe(2);
 
     const shadow = element.shadowRoot;
@@ -91,7 +91,7 @@ describe('<order-workspace> Web Component contract', () => {
       await element.addItem({ id: 'defensive', name: 'Defensive', unitPrice: 10, quantity: 2 });
     });
     const items = element.items as Array<{ id: string; quantity: number }>;
-    items[0]!.quantity = 77;
+    expect(() => { items[0]!.quantity = 77; }).toThrow(TypeError);
     expect(element.items[0]?.quantity).toBe(2);
 
     expect(() => { element.customerName = 42 as unknown as string; }).toThrow(TypeError);
