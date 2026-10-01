@@ -286,6 +286,26 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getState()).toEqual({ count: 1 });
   });
 
+  it('defensively clones caller-supplied initial patch history', () => {
+    const [, patches, inversePatches] = produceWithPatches(
+      { count: 0 },
+      (draft) => { draft.count = 1; },
+    );
+    const initialPatches = { patches: [patches], inversePatches: [inversePatches] };
+    const travel = createTimeTravel(
+      { count: 1 },
+      { initialPosition: 1, initialPatches },
+    );
+
+    (initialPatches.patches[0]![0]!.path as unknown[])[0] = 'corrupted';
+    (initialPatches.inversePatches[0]![0]!.path as unknown[])[0] = 'corrupted';
+
+    travel.back();
+    expect(travel.getState()).toEqual({ count: 0 });
+    travel.forward();
+    expect(travel.getState()).toEqual({ count: 1 });
+  });
+
   it('rejects malformed initial patch history before replay can fail', () => {
     expect(() => createTimeTravel(
       { count: 0 },

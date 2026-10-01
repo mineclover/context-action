@@ -47,6 +47,17 @@ function cloneTravelPatches<P extends PatchesOption = object>(
   };
 }
 
+function cloneTravelPatchesDefensively<P extends PatchesOption = object>(
+  base: TravelPatches<P>,
+): TravelPatches<P> {
+  return {
+    patches: base.patches.map((group) => safeGet(group, true) as Patches<P>),
+    inversePatches: base.inversePatches.map(
+      (group) => safeGet(group, true) as Patches<P>,
+    ),
+  };
+}
+
 function overwriteDraftWith(draft: Draft<unknown>, value: unknown): void {
   if (draft instanceof Map && value instanceof Map) {
     draft.clear();
@@ -229,7 +240,9 @@ export class TimeTravel<
     initialPatches: TravelPatches<P> | undefined,
     initialPosition: number
   ): { patches: TravelPatches<P>; position: number } {
-    const cloned = cloneTravelPatches(initialPatches);
+    const cloned = initialPatches
+      ? cloneTravelPatchesDefensively(initialPatches)
+      : cloneTravelPatches();
     const total = cloned.patches.length;
     const historyLimit = this.maxHistory > 0 ? this.maxHistory : 0;
     let position = typeof initialPosition === 'number' && Number.isFinite(initialPosition)
