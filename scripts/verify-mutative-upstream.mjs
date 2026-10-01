@@ -422,10 +422,13 @@ function run(options) {
       counts[entry.category] = (counts[entry.category] ?? 0) + 1;
       return counts;
     }, {});
+    const changes = Object.entries(actualInventory.local.files)
+      .filter(([, entry]) => entry.category !== 'unchanged')
+      .map(([filePath, entry]) => ({ path: filePath, ...entry }));
     console.log(JSON.stringify({
       status: 'ok',
       upstream: { name, version, tarballIntegrity: upstream.archiveIntegrity, sourceTreeSha256: upstreamInventory.sourceTreeSha256 },
-      local: { sourceTreeSha256: localInventory.sourceTreeSha256, categories },
+      local: { sourceTreeSha256: localInventory.sourceTreeSha256, categories, changes },
     }));
   } finally {
     rmSync(upstream.temporaryDirectory, { recursive: true, force: true });
