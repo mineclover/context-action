@@ -61,10 +61,13 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.backendSnapshotLastUpdate = this.backendSnapshot.lastUpdate;
     this.backendSnapshotValue = this.backendSnapshot.value;
     this.snapshot = this.toSnapshot(this.backendSnapshot);
-    this.hasPatchChannel = typeof backend.subscribeWithPatches === 'function';
-    this.unsubscribeBackendPatches = backend.subscribeWithPatches?.((patches) => {
-      this.capturePatchNotification(patches);
-    }) ?? (() => {});
+    const subscribeWithPatches = backend.subscribeWithPatches;
+    this.hasPatchChannel = typeof subscribeWithPatches === 'function';
+    this.unsubscribeBackendPatches = typeof subscribeWithPatches === 'function'
+      ? subscribeWithPatches.call(backend, (patches) => {
+          this.capturePatchNotification(patches);
+        })
+      : (() => {});
     this.unsubscribeBackend = backend.subscribe(() => {
       if (this.disposed) return;
       let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;

@@ -59,6 +59,45 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('treats a malformed optional patch hook as an absent capability', () => {
+    const backend = {
+      ...createReferenceBackend('malformed-patch-hook', 0),
+      subscribeWithPatches: 'not-a-function',
+    } as unknown as StateBackend<number>;
+
+    expect(() => {
+      const store = createBackendStore('malformed-patch-hook', backend);
+      store.dispose();
+    }).not.toThrow();
+  });
+
+  it('preserves the backend receiver when registering a patch channel', async () => {
+    type Patch = { readonly path: readonly string[] };
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const base = createReferenceBackend('bound-patch-hook', 0);
+    const backend = {
+      ...base,
+      patchListeners,
+      subscribeWithPatches(this: { patchListeners: typeof patchListeners }, listener: (patches: readonly Patch[] | null) => void) {
+        this.patchListeners.add(listener);
+        return () => this.patchListeners.delete(listener);
+      },
+      emitPatch(patches: readonly Patch[] | null) {
+        for (const listener of [...this.patchListeners]) listener(patches);
+      },
+    };
+    const store = createBackendStore('bound-patch-hook', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ path: ['value'] }] as const;
+
+    backend.emitPatch(patch);
+    await Promise.resolve();
+
+    expect(observed).toEqual([patch]);
+    store.dispose();
+  });
+
   it('pairs regular-first and patch-first backend notifications', async () => {
     type Patch = { readonly path: readonly string[] };
     const snapshot = { name: 'ordered', value: 0, version: 0, lastUpdate: 0 };
