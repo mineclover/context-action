@@ -28,7 +28,7 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | 안정화된 액션 lifecycle·observer 의미론 |
-| `@context-action/react` | `4.0.0` | Store·Action API의 React lifecycle·SSR 계약 |
+| `@context-action/react` | `4.0.1` | Store·Action API의 React lifecycle·SSR 계약 |
 
 Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이며, 일반 Store·Action·React 19.2·SSR 사용의 선행 조건이 아닙니다.
 

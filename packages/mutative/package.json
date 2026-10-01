@@ -56,7 +56,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@context-action/mutative-core": "^0.8.8"
+    "@context-action/mutative-core": "^0.8.9"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
@@ -68,6 +68,5 @@
   },
   "engines": {
     "node": ">=24.11.0"
-  },
-  "gitHead": "d044f181a22b8f1fc5ad3362afd30d117fedebdd"
+  }
 }

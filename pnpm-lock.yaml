@@ -512,7 +512,7 @@ importers:
   packages/mutative:
     dependencies:
       '@context-action/mutative-core':
-        specifier: ^0.8.8
+        specifier: ^0.8.9
         version: link:../mutative-core
     devDependencies:
       '@types/node':
@@ -638,7 +638,7 @@ importers:
   packages/react:
     dependencies:
       '@context-action/core':
-        specifier: ^1.2.0
+        specifier: ^1.2.1
         version: link:../core
       '@context-action/mutative':
         specifier: ^0.8.9

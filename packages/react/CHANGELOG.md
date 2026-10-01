@@ -3,12 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.1] (2026-10-01)
+
+- Require Core `^1.2.1` and the scoped Mutative adapter `^0.8.9`, based on the acquired upstream `mutative@1.3.0` source plus maintained patches.
+- Reissue the coordinated candidate with the complete immutable dependency cohort.
+
 ## [4.0.0] (2026-10-01)
 
 ### Breaking changes
 
 - TimeTravelStoreManager defaults to defensive `readMode: safe`. Set `readMode: reference` explicitly to preserve reference reads. The direct factory keeps its reference default.
-- Require Core 1.2.0 and Mutative 0.8.9.0 for dispatch tracing and batched timeline transactions.
+- Require Core 1.2.0 and Mutative 0.8.9 for dispatch tracing and batched timeline transactions.
 
 ### Features
 

@@ -64,6 +64,18 @@ test('requires coordinated candidate plan validation to bind the immutable curre
   ));
 });
 
+test('requires maintained Mutative upstream verification before coordinated publication', () => {
+  const sources = releaseSources();
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
+    '      - name: Verify maintained Mutative upstream baseline\n        run: pnpm verify:mutative-upstream\n\n',
+    '',
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.includes(
+    'Coordinated stable candidate workflow must verify the maintained Mutative upstream baseline before publication',
+  ));
+});
+
 test('requires explicit coordinated promotion confirmation', () => {
   const sources = releaseSources();
   sources.coordinatedPromotion = sources.coordinatedPromotion.replace(

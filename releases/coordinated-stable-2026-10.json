@@ -5,29 +5,31 @@
   "candidateDistTag": "next",
   "promotionDistTag": "latest",
   "packages": {
-    "@context-action/core": "1.2.0",
+    "@context-action/core": "1.2.1",
+    "@context-action/mutative-core": "0.8.9",
     "@context-action/mutative": "0.8.9",
-    "@context-action/react": "4.0.0"
+    "@context-action/react": "4.0.1"
   },
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
     "@context-action/core": "2026-10-01",
+    "@context-action/mutative-core": "2026-10-01",
     "@context-action/mutative": "2026-10-01",
     "@context-action/react": "2026-10-01"
   },
   "reactDependencyFloors": {
-    "@context-action/core": "^1.2.0",
+    "@context-action/core": "^1.2.1",
     "@context-action/mutative": "^0.8.9"
   },
   "requiredChecks": [
     "pnpm release:check",
     "pnpm verify:coordinated-stable-release-plan --require-current-source",
-    "node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages @context-action/core,@context-action/mutative,@context-action/react"
+    "node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages @context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
   ],
   "notes": [
     "The August plan remains historical and immutable.",
     "Every candidate attestation must match the workflow release_commit; no source SHA is fabricated in this plan.",
-    "Mutative remains on the maintained 0.8 patch line; this candidate adds the batch and transition metadata APIs as 0.8.9.",
+    "Mutative core and adapter remain on the maintained 0.8 patch line; this candidate carries the upstream mutative@1.3.0 baseline and adds the batch and transition metadata APIs as 0.8.9.",
     "Preact UI remains workspace-only and is not published."
   ]
 }

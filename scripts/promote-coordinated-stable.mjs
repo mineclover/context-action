@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
-const expectedPackages = new Set(['@context-action/core', '@context-action/mutative', '@context-action/react']);
+const expectedPackages = new Set(['@context-action/core', '@context-action/mutative-core', '@context-action/mutative', '@context-action/react']);
 const registryOrigin = 'https://registry.npmjs.org';
 const outputIndex = process.argv.indexOf('--output');
 const output = outputIndex === -1 ? undefined : process.argv[outputIndex + 1];
