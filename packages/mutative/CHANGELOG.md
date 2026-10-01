@@ -5,6 +5,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [0.8.9] (2026-10-01)
 
+- Record the acquired upstream `mutative@1.3.0` baseline and preserve the maintained fork patch contracts.
+
 - Add explicit timeline batches and transition metadata for multi-store transactions.
 - Reject invalid history cursor/step arguments before patch application.
 - Keep batched updates in a single history entry and publish transition-only patches.

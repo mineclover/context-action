@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "context-action-mutative-upstream-lock.v1",
+  "upstream": {
+    "name": "mutative",
+    "version": "1.3.0",
+    "registry": "https://registry.npmjs.org",
+    "tarballIntegrity": "sha512-8MJj6URmOZAV70dpFe1YnSppRTKC4DsMkXQiBDFayLcDI4ljGokHxmpqaBQuDWa4iAxWaJJ1PS8vAmbntjjKmQ==",
+    "sourceRoot": "src",
+    "sourceTreeSha256": "c1a4f1777602ee88c04251addf91dd3f5b2862de95bc228aa22af73f71141556",
+    "files": {
+      "apply.ts": "2bf5233fecbf36d33dd27d5989b9be264b56b5b8c45ff602a93f5e004109c235",
+      "constant.ts": "42f01f6ae0359c3856e9f24809b47ecd256d8bf66f677f2ef04c4260767acadb",
+      "create.ts": "cbfeeb036b2290d92aa8b17fae443315d4bf6efbc54de1e75963ea13f1f165a5",
+      "current.ts": "b6fe36ef5e2527245316f59aa718183e63819c4a8178af3296436ece3ca80fdf",
+      "draft.ts": "2d89347ab650966f6420291e6dcf10b7f29feabd20c4d15f5c288cb1c1c4d0b5",
+      "draftify.ts": "b62dd633113b9d25fe2257a9539dbbc40ff712f65c4b287c08a27648844ef0ec",
+      "index.ts": "9e2047dec7553fe918e2e5743a5fe9d628bbfc18c93310cef565579414cf846c",
+      "interface.ts": "44eaef8c73f63c102c16d4fdeb9ea829b22cbf1cb67132dc1344ff9fc269cc2f",
+      "internal.ts": "0518604301b20702fb653f95a067f340f133c4f576282bb607b82c2ae2f50a75",
+      "makeCreator.ts": "ecfdc9e8f64ce897beffd8ca2020d15555d5f0f597f2f763aefdf7ad8f47c70e",
+      "map.ts": "0f7c1e8bdfb208354222205ff078d8aa15ca0a986d723ed8c05461bb226828d9",
+      "original.ts": "c87f8ded5e7d733ef145ce2c5a9fd23b7ea7ab94581c86141e1f9c5db87feb3f",
+      "patch.ts": "e12f43872470c1778db4985c70c96afe92abc4da4c84224ddac78233ae9083bc",
+      "rawReturn.ts": "7b63e05af3c6f76e17900b6ccf11648d8dde9b9b0c8a6043e9a76a4a0e165621",
+      "set.ts": "9d8b5f30b7062901e41a45e66c4318c1e36a4eeb40ec68767a7dd597f5436c15",
+      "unsafe.ts": "3d84b64fcba725de9a64ef08a10c732463e6f715bd7d6f93a9daff95e9336d71",
+      "utils/cast.ts": "1af3f21c18e65236f7e0dc8bc9784e110c278018a780f1f12d4f8934b5588145",
+      "utils/copy.ts": "46148d8677070ffee29018728375882b70d6c3a528e2238aad4ecaf60abb1e0e",
+      "utils/deepFreeze.ts": "0af7569149b98e0611b33e2c62c49130efbd2c75db75cb3ffe4fc270ab5ae0a1",
+      "utils/draft.ts": "dd2008de6b453f8d51faff36a4c65cb8c2bebda83b4a4a789bfc1e648dd6b0fb",
+      "utils/finalize.ts": "e2447005be4c5e5cfb17824c158556b9ae895b6a4a668d26f206621bb2571d64",
+      "utils/forEach.ts": "6543ff95445cbc56652090466e5d0429e3ad5f6b9e86e48cda64c9405f5fd724",
+      "utils/index.ts": "cc13706f60d620283667105f8420fdf2418bb1e8327eba5039796ae08176e019",
+      "utils/mark.ts": "a39e004b0996b1197ee6f0fad9df1006e6e8db7bba2d467b03b83728f5363708",
+      "utils/marker.ts": "695661244b1ce76114bd18559fc774ce2714148bf37d6f48f0a59fc408e48eb6",
+      "utils/proto.ts": "c375dbe55d1567a145667e545796c464f9377cc53b428f026e2c8860e3b4b29f"
+    }
+  },
+  "local": {
+    "sourceRoot": "src",
+    "sourceTreeSha256": "4adfe2d9c643744c605598f33774f086829741c6f75c8349cf42923cfc037b42",
+    "files": {
+      "apply.ts": {
+        "category": "modified",
+        "upstreamSha256": "2bf5233fecbf36d33dd27d5989b9be264b56b5b8c45ff602a93f5e004109c235",
+        "localSha256": "b6cc06a383913cfcd1cc5267e258bc833b80a0279d73f142a20fd82e2e6930c9"
+      },
+      "array.ts": {
+        "category": "added",
+        "upstreamSha256": null,
+        "localSha256": "683ee6bd13f3c90449ebaaab976af00d62674ac52614a01108afef199911216f"
+      },
+      "constant.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "42f01f6ae0359c3856e9f24809b47ecd256d8bf66f677f2ef04c4260767acadb",
+        "localSha256": "42f01f6ae0359c3856e9f24809b47ecd256d8bf66f677f2ef04c4260767acadb"
+      },
+      "create.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "cbfeeb036b2290d92aa8b17fae443315d4bf6efbc54de1e75963ea13f1f165a5",
+        "localSha256": "cbfeeb036b2290d92aa8b17fae443315d4bf6efbc54de1e75963ea13f1f165a5"
+      },
+      "current.ts": {
+        "category": "modified",
+        "upstreamSha256": "b6fe36ef5e2527245316f59aa718183e63819c4a8178af3296436ece3ca80fdf",
+        "localSha256": "6dee0d53788173aa8b63d3b57fcd711988df6be81c8aed9aae5cede8f6e80e95"
+      },
+      "draft.ts": {
+        "category": "modified",
+        "upstreamSha256": "2d89347ab650966f6420291e6dcf10b7f29feabd20c4d15f5c288cb1c1c4d0b5",
+        "localSha256": "b531ff0130b080ebbf294d686d078b00726586ff093d36a9d2684e4448bd620f"
+      },
+      "draftify.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "b62dd633113b9d25fe2257a9539dbbc40ff712f65c4b287c08a27648844ef0ec",
+        "localSha256": "b62dd633113b9d25fe2257a9539dbbc40ff712f65c4b287c08a27648844ef0ec"
+      },
+      "index.ts": {
+        "category": "modified",
+        "upstreamSha256": "9e2047dec7553fe918e2e5743a5fe9d628bbfc18c93310cef565579414cf846c",
+        "localSha256": "4927eb19e3cd3f6c918ee75f319ed3ab802e85af5fc74883de681bde2d18602f"
+      },
+      "interface.ts": {
+        "category": "modified",
+        "upstreamSha256": "44eaef8c73f63c102c16d4fdeb9ea829b22cbf1cb67132dc1344ff9fc269cc2f",
+        "localSha256": "e779faba570af9d3380304fa26d3544a3768285d5e3d77b8501f8decb55bbf3f"
+      },
+      "internal.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "0518604301b20702fb653f95a067f340f133c4f576282bb607b82c2ae2f50a75",
+        "localSha256": "0518604301b20702fb653f95a067f340f133c4f576282bb607b82c2ae2f50a75"
+      },
+      "makeCreator.ts": {
+        "category": "modified",
+        "upstreamSha256": "ecfdc9e8f64ce897beffd8ca2020d15555d5f0f597f2f763aefdf7ad8f47c70e",
+        "localSha256": "44f58ae6f84856c7ae404c4dd265729847ca804d3faa16ed15f08671388fa4e4"
+      },
+      "map.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "0f7c1e8bdfb208354222205ff078d8aa15ca0a986d723ed8c05461bb226828d9",
+        "localSha256": "0f7c1e8bdfb208354222205ff078d8aa15ca0a986d723ed8c05461bb226828d9"
+      },
+      "original.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "c87f8ded5e7d733ef145ce2c5a9fd23b7ea7ab94581c86141e1f9c5db87feb3f",
+        "localSha256": "c87f8ded5e7d733ef145ce2c5a9fd23b7ea7ab94581c86141e1f9c5db87feb3f"
+      },
+      "patch.ts": {
+        "category": "modified",
+        "upstreamSha256": "e12f43872470c1778db4985c70c96afe92abc4da4c84224ddac78233ae9083bc",
+        "localSha256": "6d10ae0b37b8c27df2231b01c1d96ed860ece7147b458d68eb06f9b3c0a2c3c6"
+      },
+      "rawReturn.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "7b63e05af3c6f76e17900b6ccf11648d8dde9b9b0c8a6043e9a76a4a0e165621",
+        "localSha256": "7b63e05af3c6f76e17900b6ccf11648d8dde9b9b0c8a6043e9a76a4a0e165621"
+      },
+      "set.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "9d8b5f30b7062901e41a45e66c4318c1e36a4eeb40ec68767a7dd597f5436c15",
+        "localSha256": "9d8b5f30b7062901e41a45e66c4318c1e36a4eeb40ec68767a7dd597f5436c15"
+      },
+      "unsafe.ts": {
+        "category": "modified",
+        "upstreamSha256": "3d84b64fcba725de9a64ef08a10c732463e6f715bd7d6f93a9daff95e9336d71",
+        "localSha256": "469f09f672ba5cfa5bd6c21b781bfb2e7b6b29bbdd2607757b75aa2709d021cf"
+      },
+      "utils/cast.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "1af3f21c18e65236f7e0dc8bc9784e110c278018a780f1f12d4f8934b5588145",
+        "localSha256": "1af3f21c18e65236f7e0dc8bc9784e110c278018a780f1f12d4f8934b5588145"
+      },
+      "utils/copy.ts": {
+        "category": "modified",
+        "upstreamSha256": "46148d8677070ffee29018728375882b70d6c3a528e2238aad4ecaf60abb1e0e",
+        "localSha256": "327679d6bb22d69695e5b740a0cef1092cccddcd6d47fb693d574fbdc7845660"
+      },
+      "utils/deepFreeze.ts": {
+        "category": "modified",
+        "upstreamSha256": "0af7569149b98e0611b33e2c62c49130efbd2c75db75cb3ffe4fc270ab5ae0a1",
+        "localSha256": "c8493537005bded066dc8b1633ea0286059bd5b557f3ca6058f95283e9ccb567"
+      },
+      "utils/draft.ts": {
+        "category": "modified",
+        "upstreamSha256": "dd2008de6b453f8d51faff36a4c65cb8c2bebda83b4a4a789bfc1e648dd6b0fb",
+        "localSha256": "acd15dcaca87a6fcdb6b11ba660a2a82e62bef25a5b3e3f922bc3f7fa4dce117"
+      },
+      "utils/finalize.ts": {
+        "category": "modified",
+        "upstreamSha256": "e2447005be4c5e5cfb17824c158556b9ae895b6a4a668d26f206621bb2571d64",
+        "localSha256": "14443f6141f6e829c3ac40a56cd772887430a148dc4527843a69eefc965113d0"
+      },
+      "utils/forEach.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "6543ff95445cbc56652090466e5d0429e3ad5f6b9e86e48cda64c9405f5fd724",
+        "localSha256": "6543ff95445cbc56652090466e5d0429e3ad5f6b9e86e48cda64c9405f5fd724"
+      },
+      "utils/index.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "cc13706f60d620283667105f8420fdf2418bb1e8327eba5039796ae08176e019",
+        "localSha256": "cc13706f60d620283667105f8420fdf2418bb1e8327eba5039796ae08176e019"
+      },
+      "utils/mark.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "a39e004b0996b1197ee6f0fad9df1006e6e8db7bba2d467b03b83728f5363708",
+        "localSha256": "a39e004b0996b1197ee6f0fad9df1006e6e8db7bba2d467b03b83728f5363708"
+      },
+      "utils/marker.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "695661244b1ce76114bd18559fc774ce2714148bf37d6f48f0a59fc408e48eb6",
+        "localSha256": "695661244b1ce76114bd18559fc774ce2714148bf37d6f48f0a59fc408e48eb6"
+      },
+      "utils/proto.ts": {
+        "category": "unchanged",
+        "upstreamSha256": "c375dbe55d1567a145667e545796c464f9377cc53b428f026e2c8860e3b4b29f",
+        "localSha256": "c375dbe55d1567a145667e545796c464f9377cc53b428f026e2c8860e3b4b29f"
+      }
+    }
+  },
+  "maintainedFork": {
+    "repository": "https://github.com/mineclover/mutative",
+    "branch": "codex/array-perf",
+    "commit": "5fd7d56b3f88185ef26908df055a9a27be9a2b88"
+  },
+  "adapter": {
+    "package": "@context-action/mutative",
+    "versionLine": "0.8.x",
+    "policy": "patch releases carry adapter fixes and synchronized upstream-compatible patches"
+  }
+}
