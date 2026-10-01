@@ -100,6 +100,19 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getPosition()).toBe(0);
   });
 
+  it('rejects invalid history bounds before creating a timeline', () => {
+    for (const maxHistory of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
+      expect(() => createTimeTravel({ count: 0 }, { maxHistory })).toThrow(
+        'maxHistory must be a non-negative safe integer',
+      );
+    }
+    for (const initialPosition of [Number.NaN, Number.POSITIVE_INFINITY, 1.5, -1]) {
+      expect(() => createTimeTravel({ count: 0 }, { initialPosition })).toThrow(
+        'initialPosition must be a non-negative safe integer',
+      );
+    }
+  });
+
   it('supports automatic archive, undo, redo, go, and reset', () => {
     const travel = createTimeTravel({ count: 0 });
 
@@ -291,6 +304,62 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     });
 
     expect(calls).toEqual([{ count: 1, position: 1 }]);
+  });
+
+  it('isolates listener failures and validates the public subscribe boundary', () => {
+    const errors: unknown[] = [];
+    const travel = createTimeTravel(
+      { count: 0 },
+      { onListenerError: (error) => errors.push(error) },
+    );
+    const failed = vi.fn(() => { throw new Error('listener failed'); });
+    const healthy = vi.fn();
+    travel.subscribe(failed);
+    travel.subscribe(healthy);
+
+    expect(() => travel.setState((draft) => { draft.count = 1; })).not.toThrow();
+    expect(travel.getState()).toEqual({ count: 1 });
+    expect(failed).toHaveBeenCalledTimes(1);
+    expect(healthy).toHaveBeenCalledTimes(1);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toEqual(new Error('listener failed'));
+
+    expect(() => (travel.subscribe as unknown as (listener: unknown) => void)(null)).toThrow(
+      TypeError,
+    );
+  });
+
+  it('preserves the mutable root reference when a batch is rejected', () => {
+    const travel = createTimeTravel({ count: 0 }, { mutable: true });
+    const root = travel.getState();
+
+    expect(() => travel.batch(() => {
+      travel.setState((draft) => { draft.count = 1; });
+      throw new Error('rejected batch');
+    })).toThrow('rejected batch');
+
+    expect(travel.getState()).toBe(root);
+    expect(root).toEqual({ count: 0 });
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getHistory()).toEqual([{ count: 0 }]);
+  });
+
+  it.each([false, true])('returns defensive history entries in mutable=%s mode', (mutable) => {
+    const travel = createTimeTravel(
+      { nested: { count: 0 } },
+      { mutable },
+    );
+    travel.setState((draft) => { draft.nested.count = 1; });
+
+    const history = travel.getHistory();
+    (history[1] as { nested: { count: number } }).nested.count = 9;
+    (history[0] as { nested: { count: number } }).nested.count = 8;
+
+    expect(travel.getState()).toEqual({ nested: { count: 1 } });
+    expect(travel.getHistory()).toEqual([
+      { nested: { count: 0 } },
+      { nested: { count: 1 } },
+    ]);
   });
 
   it('separates transition patches from the complete history for listeners', () => {
