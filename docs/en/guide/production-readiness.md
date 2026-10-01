@@ -38,6 +38,13 @@ The upstream baseline and scoped package versions are independent contracts.
 dependency or a scoped adapter version. The core lock and carried patches are
 verified with `pnpm verify:mutative-upstream`.
 
+The React package has two state integration routes. The root entry keeps the
+legacy `Store` and `TimeTravelStore` APIs and therefore installs
+`@context-action/mutative` at runtime. Applications that own their immutable
+semantics can use `@context-action/react/backend` with the framework-neutral
+`@context-action/store-core` contracts; that adapter entry does not execute
+Mutative code.
+
 Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 
 ## Responsibility and function contract
