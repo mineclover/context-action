@@ -104,7 +104,13 @@
     "access": "public"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "@context-action/store-core": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@context-action/store-core": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@context-action/core": "^1.2.3",
