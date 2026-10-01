@@ -8,20 +8,20 @@
     "@context-action/core": "1.2.3",
     "@context-action/store-core": "0.1.0",
     "@context-action/mutative-core": "0.8.11",
-    "@context-action/mutative": "0.8.11",
-    "@context-action/react": "4.0.3"
+    "@context-action/mutative": "0.8.12",
+    "@context-action/react": "4.0.4"
   },
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
     "@context-action/core": "2026-10-01",
     "@context-action/store-core": "2026-10-01",
     "@context-action/mutative-core": "2026-10-01",
-    "@context-action/mutative": "2026-10-01",
-    "@context-action/react": "2026-10-01"
+    "@context-action/mutative": "2026-10-02",
+    "@context-action/react": "2026-10-02"
   },
   "reactDependencyFloors": {
     "@context-action/core": "^1.2.3",
-    "@context-action/mutative": "^0.8.11",
+    "@context-action/mutative": "^0.8.12",
     "@context-action/store-core": "^0.1.0"
   },
   "requiredChecks": [

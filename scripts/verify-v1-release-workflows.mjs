@@ -200,6 +200,15 @@ export function validateReleaseWorkflowSources({
     for (const name of expectedCoordinatedPackages) {
       if (!candidatePublication.includes(`--scope ${name}`)) errors.push(`Coordinated stable candidate workflow must publish ${name}`);
     }
+    for (let index = 1; index < expectedCoordinatedPackages.length; index += 1) {
+      requireOrderedText(
+        errors,
+        candidatePublication,
+        `--scope ${expectedCoordinatedPackages[index - 1]}`,
+        `--scope ${expectedCoordinatedPackages[index]}`,
+        `Coordinated stable candidate workflow must publish ${expectedCoordinatedPackages[index - 1]} before ${expectedCoordinatedPackages[index]}`,
+      );
+    }
     requireCommandBeforePublication(
       errors,
       coordinatedCandidateInspection,

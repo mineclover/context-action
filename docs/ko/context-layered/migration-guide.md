@@ -77,7 +77,7 @@ await register.actions.reset(undefined, { debounce: 100 });
 export하지 않습니다.
 `@context-action/mutative-core` / `@context-action/mutative` fork는 계속
 immutable runtime 계약으로 유지합니다. 현재 stable cohort는 Core `1.2.3`,
-Mutative Core·adapter `0.8.11`, React `4.0.3`입니다. `mutative@1.3.0`은
+Mutative Core `0.8.11`, scoped adapter `0.8.12`, React `4.0.4`입니다. `mutative@1.3.0`은
 인수한 upstream 호환성 기준이며 runtime 교체 버전이 아닙니다. upstream 변경은
 검토된 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)와
 `upstream-lock.json`에 기록하고 `pnpm verify:mutative-upstream`을 실행합니다.

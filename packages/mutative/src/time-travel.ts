@@ -724,7 +724,7 @@ export class TimeTravel<
   /**
    * Reset to initial state
    */
-  reset(): void {
+  reset(metadata?: TimeTravelTransitionMeta): void {
     const canResetMutably =
       this.mutable && isObjectLike(this.state) && isObjectLike(this.initialState);
 
@@ -754,9 +754,12 @@ export class TimeTravel<
       this.options.enablePatches.pathAsArray === false
         ? ''
         : [];
-    this.notify([
-      { op: 'replace', path: rootPath, value: this.state },
-    ] as unknown as Patches<P>);
+    this.notify(
+      [
+        { op: 'replace', path: rootPath, value: this.state },
+      ] as unknown as Patches<P>,
+      metadata,
+    );
   }
 
   /**

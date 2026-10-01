@@ -114,6 +114,7 @@ const packages = [
     directory: 'packages/react',
     imports: [
       { specifier: '@context-action/react', exports: ['createActionContext'] },
+      { specifier: '@context-action/react/backend', exports: ['createBackendStore'] },
       { specifier: '@context-action/react/advanced', exports: ['StoreRegistry'] },
       { specifier: '@context-action/react/utils', exports: ['deepClone'] },
       { specifier: '@context-action/react/webmcp', exports: ['useWebMCPToolScope'] },
@@ -390,11 +391,18 @@ void createTimeTravel;
   if (names.has('@context-action/react')) {
     statements.push(`
 import { createActionContext } from '@context-action/react';
+import { createBackendStore, type BackendStoreOptions } from '@context-action/react/backend';
+import type { StateBackend as ReactStateBackend } from '@context-action/store-core';
 import { StoreRegistry } from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
 const actions = createActionContext('consumer-check');
+const reactBackend = {} as ReactStateBackend<number>;
+const backendStore = createBackendStore('consumer-check', reactBackend);
+const backendOptions = {} as BackendStoreOptions;
 void actions;
+void backendStore;
+void backendOptions;
 void StoreRegistry;
 void deepClone;
 void useWebMCPToolScope;

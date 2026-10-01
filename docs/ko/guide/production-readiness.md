@@ -28,9 +28,10 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
 | `@context-action/core` | `1.2.3` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
+| `@context-action/store-core` | `0.1.0` | framework-neutral state·patch·timeline backend 계약 |
 | `@context-action/mutative-core` | `0.8.11` | upstream `mutative@1.3.0` 호환성 기준과 유지보수 fork 수정 |
-| `@context-action/mutative` | `0.8.11` | immutable update, timeline batch, transition metadata |
-| `@context-action/react` | `4.0.3` | Store·Action API의 React lifecycle·SSR 계약 |
+| `@context-action/mutative` | `0.8.12` | immutable update, timeline batch, transition metadata |
+| `@context-action/react` | `4.0.4` | Store·Action API의 React lifecycle·SSR 계약 |
 
 upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@1.3.0`은
 인수한 source baseline이며 runtime dependency나 scoped adapter 버전이 아닙니다.
@@ -84,7 +85,7 @@ if (claim.status === 'owner') {
 
 ## 프로덕션 도입 체크리스트
 
-- Core `1.2.3`, Mutative Core·adapter `0.8.11`, React `4.0.3`을 함께 고정하고 테스트합니다.
+- Core `1.2.3`, Mutative Core `0.8.11`, scoped adapter `0.8.12`, React `4.0.4`을 함께 고정하고 테스트합니다.
 - 정확한 후보 커밋에서 `pnpm release:check`를 실행합니다.
 - workspace 테스트만이 아니라 패킹 소비자·React 호환성 검사를 릴리즈 게이트로 사용합니다.
 - 이 cohort는 일반적인 애플리케이션 canary·rollback 절차로 점진 배포합니다.

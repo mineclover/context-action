@@ -7,8 +7,8 @@ This candidate promotes the state-management contract as one protected cohort:
 | `@context-action/core` | `1.2.3` | Dispatch trace terminal-outcome reliability |
 | `@context-action/store-core` | `0.1.0` | Framework-neutral state and timeline backend contracts |
 | `@context-action/mutative-core` | `0.8.11` | Upstream 1.3.0 baseline and maintained core inventory |
-| `@context-action/mutative` | `0.8.11` | Cancellable timeline batches and replay metadata |
-| `@context-action/react` | `4.0.3` | Transaction participant safety and array-path invalidation |
+| `@context-action/mutative` | `0.8.12` | Cancellable timeline batches and replay metadata |
+| `@context-action/react` | `4.0.4` | Transaction participant safety and array-path invalidation |
 
 The August 2026 Core/React plan remains historical. This plan uses the exact
 immutable `release_commit` supplied to the candidate workflow for provenance;
@@ -18,3 +18,9 @@ The candidate workflow publishes only to `next`, runs the complete release gate,
 packed consumer closure, and provenance evidence. The promotion workflow then
 checks the same cohort and promotes it to `latest` with a durable rollback
 journal.
+
+Publication is serialized in dependency order: Core, Store Core, Mutative Core,
+Mutative adapter, then React. The helper refuses a scope list that places a
+selected dependency after its consumer. Store Core is the initial registry
+publish in this cohort; use the protected token path for that first publication,
+then allow the helper to resume only after matching artifact integrity is proven.

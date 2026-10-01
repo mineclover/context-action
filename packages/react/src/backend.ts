@@ -1,10 +1,19 @@
-export { BackendStore, createBackendStore } from './stores/core/BackendStore';
+export {
+  BackendStore,
+  createBackendStore,
+} from './stores/core/BackendStore';
+export type {
+  BackendPatchListener,
+  BackendStoreOptions,
+  BackendStoreSetValueOptions,
+} from './stores/core/BackendStore';
 export type {
   HistoryEntryId,
   ReadonlyStateSnapshot,
   StateBackend,
   StateMutationMeta,
   StateMutationOrigin,
+  StatePatch,
   StateReader,
   StateTransition,
   StateWriter,

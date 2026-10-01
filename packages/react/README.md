@@ -104,7 +104,7 @@ The framework-neutral contracts live in `@context-action/store-core`. A custom
 backend can be connected to React without implementing Mutative:
 
 ```ts
-import { createBackendStore } from '@context-action/react';
+import { createBackendStore } from '@context-action/react/backend';
 import type { StateBackend } from '@context-action/store-core';
 
 const backend: StateBackend<{ count: number }> = createYourBackend();

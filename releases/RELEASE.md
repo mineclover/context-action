@@ -50,7 +50,7 @@ pnpm release:check
 | prerelease | `publish-prerelease.yml` | 명시한 prerelease tag만 갱신하며 `latest`는 변경하지 않음 |
 | 일반 도구 패키지 cohort | `publish-packages.yml` | 고정 cohort를 `next`에 게시하고 consumer/evidence를 검증 |
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
-| Core 1.2.3 / Store Core 0.1.0 / Mutative 0.8.11 / React 4.0.3 state-management patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/Store Core/Mutative/React cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
+| Core 1.2.3 / Store Core 0.1.0 / Mutative Core 0.8.11 / Mutative 0.8.12 / React 4.0.4 state-management patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 Core/Store Core/Mutative/React cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -66,6 +66,14 @@ consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 �
 아니라 coordinated stable 경로를 사용합니다. 현재 승인된 cohort와 정확한
 진행 순서는 [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)를
 따릅니다. 이 경로는 다음 조건을 모두 강제합니다.
+
+후보 패키지는 의존성 순서대로 하나의 직렬 publication helper가 게시합니다:
+`@context-action/core` → `@context-action/store-core` →
+`@context-action/mutative-core` → `@context-action/mutative` →
+`@context-action/react`. Helper는 선택된 scope의 manifest를 검사해 선택된
+패키지가 의존 패키지보다 먼저 나오면 게시 전에 중단합니다. Store Core가
+registry에 처음 올라가는 후보에서는 `publish_auth=token`을 사용하고, 이후
+재개는 동일 source artifact integrity를 확인한 경우에만 허용합니다.
 
 - immutable main commit과 정확한 package/version cohort 입력
 - 후보 tag 게시 전 전체 cohort의 미게시 상태 또는 검증 가능한 재개 상태 확인

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.4] (2026-10-02)
+
+### Backend adapters
+
+- Expose the user-owned backend subpath while keeping the main React entry compatible.
+
 ## [4.0.3] (2026-10-01)
 
 ### Reliability fixes
