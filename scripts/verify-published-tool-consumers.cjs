@@ -256,7 +256,7 @@ function runNpmInstallWithVisibilityRetry(argumentsList, options) {
       rmSync(cacheDirectory, { recursive: true, force: true });
     }
   }, {
-    delays: Array.from({ length: 5 }, () => 10_000),
+    delays: [5_000, 10_000, 20_000, 30_000, 60_000],
     onRetry: ({ attempt }) => {
       process.stdout.write(`Waiting for npm install registry visibility (${attempt}/5)...\n`);
     },
