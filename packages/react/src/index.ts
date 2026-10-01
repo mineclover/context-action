@@ -12,6 +12,7 @@ export type {
 
 // Store System (Core functionality)
 export { createStore, Store, type PatchAwareListener } from './stores/core/Store';
+export { BackendStore, createBackendStore } from './stores/core/BackendStore';
 export {
   createTimeTravelStore,
   TimeTravelStore,

@@ -8,12 +8,14 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
 const packagePaths = {
   '@context-action/core': 'packages/core/package.json',
+  '@context-action/store-core': 'packages/store-core/package.json',
   '@context-action/mutative-core': 'packages/mutative-core/package.json',
   '@context-action/mutative': 'packages/mutative/package.json',
   '@context-action/react': 'packages/react/package.json',
 };
 const changelogPaths = {
   '@context-action/core': 'packages/core/CHANGELOG.md',
+  '@context-action/store-core': 'packages/store-core/CHANGELOG.md',
   '@context-action/mutative-core': 'packages/mutative-core/CHANGELOG.md',
   '@context-action/mutative': 'packages/mutative/CHANGELOG.md',
   '@context-action/react': 'packages/react/CHANGELOG.md',
@@ -82,6 +84,7 @@ if (requireCurrentSource) {
   const expectedReactFloors = {
     '@context-action/core': `^${plan.packages['@context-action/core']}`,
     '@context-action/mutative': `^${plan.packages['@context-action/mutative']}`,
+    '@context-action/store-core': `^${plan.packages['@context-action/store-core']}`,
   };
   if (JSON.stringify(Object.keys(plan.reactDependencyFloors ?? {}).sort())
     !== JSON.stringify(Object.keys(expectedReactFloors).sort())) {
@@ -89,7 +92,12 @@ if (requireCurrentSource) {
   }
   for (const [name, floor] of Object.entries(expectedReactFloors)) {
     if (plan.reactDependencyFloors?.[name] !== floor) errors.push(`Release plan floor must be ${name}@${floor}`);
-    if (react.dependencies?.[name] !== floor) errors.push(`React dependency floor must be ${name}@${floor}`);
+    const actualFloor = name === '@context-action/store-core'
+      ? react.peerDependencies?.[name]
+      : react.dependencies?.[name];
+    if (actualFloor !== floor) {
+      errors.push(`React ${name === '@context-action/store-core' ? 'peer dependency' : 'dependency'} floor must be ${name}@${floor}`);
+    }
   }
   const mutative = JSON.parse(await readFile(path.join(repositoryRoot, packagePaths['@context-action/mutative']), 'utf8'));
   const expectedMutativeCoreFloor = `^${plan.packages['@context-action/mutative-core']}`;

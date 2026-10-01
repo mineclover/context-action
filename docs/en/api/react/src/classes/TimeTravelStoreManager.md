@@ -222,7 +222,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:11
 
 ### stores
 
-> `readonly` **stores**: `Map`\<keyof `T`, [`TimeTravelStore`](TimeTravelStore.md)&lt;`any`&gt; \| [`Store`](Store.md)&lt;`any`&gt;\>
+> `readonly` **stores**: `Map`\<keyof `T`, [`Store`](Store.md)&lt;`any`&gt; \| [`TimeTravelStore`](TimeTravelStore.md)&lt;`any`&gt;\>
 
 Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:119](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L119)
 

@@ -98,6 +98,23 @@ when designing new adapters or history tooling.
 
 Read safety migration is documented in [docs/read-mode-migration.md](docs/read-mode-migration.md).
 
+### User-owned state backends
+
+The framework-neutral contracts live in `@context-action/store-core`. A custom
+backend can be connected to React without implementing Mutative:
+
+```ts
+import { createBackendStore } from '@context-action/react';
+import type { StateBackend } from '@context-action/store-core';
+
+const backend: StateBackend<{ count: number }> = createYourBackend();
+const store = createBackendStore('counter', backend);
+```
+
+`@context-action/mutative` remains an optional concrete backend for immutable
+updates and time-travel. A backend that does not provide patches or timeline
+capabilities should leave those capabilities disabled.
+
 `@context-action/react` 4.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
