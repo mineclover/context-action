@@ -34,7 +34,8 @@
       "utils/mark.ts": "a39e004b0996b1197ee6f0fad9df1006e6e8db7bba2d467b03b83728f5363708",
       "utils/marker.ts": "695661244b1ce76114bd18559fc774ce2714148bf37d6f48f0a59fc408e48eb6",
       "utils/proto.ts": "c375dbe55d1567a145667e545796c464f9377cc53b428f026e2c8860e3b4b29f"
-    }
+    },
+    "gitHead": "01945e3274e9730706799e4d432c22248a6bdeb1"
   },
   "local": {
     "sourceRoot": "src",

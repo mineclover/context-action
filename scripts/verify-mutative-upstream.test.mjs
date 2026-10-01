@@ -13,6 +13,7 @@ import {
   sourceInventory,
   sourceTreeHash,
   validateManifestShape,
+  validateSyncManifest,
 } from './verify-mutative-upstream.mjs';
 
 test('normalizeSource canonicalizes CRLF and CR line endings only', () => {
@@ -32,6 +33,19 @@ test('sourceInventory hashes normalized source and has a deterministic tree dige
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('sourceTreeHash uses a locale-independent code-unit path order', () => {
+  const files = new Map([
+    ['z.ts', 'z'.repeat(64)],
+    ['A.ts', 'A'.repeat(64)],
+    ['a.ts', 'a'.repeat(64)],
+  ]);
+  assert.equal(sourceTreeHash(files), sourceTreeHash(new Map([
+    ['a.ts', 'a'.repeat(64)],
+    ['z.ts', 'z'.repeat(64)],
+    ['A.ts', 'A'.repeat(64)],
+  ])));
 });
 
 test('sourceComparison assigns explicit categories and preserves hashes', () => {
@@ -69,6 +83,7 @@ function validManifest() {
     upstream: {
       name: 'mutative',
       version: '1.3.0',
+      gitHead: '01945e3274e9730706799e4d432c22248a6bdeb1',
       sourceRoot: 'src',
       tarballIntegrity: `sha512-${'A'.repeat(43)}=`,
       sourceTreeSha256: digest('e'),
@@ -93,6 +108,7 @@ test('compareManifest reports upstream and local source drift', () => {
   const manifest = validManifest();
   const actual = {
     upstream: {
+      gitHead: manifest.upstream.gitHead,
       tarballIntegrity: manifest.upstream.tarballIntegrity,
       sourceTreeSha256: manifest.upstream.sourceTreeSha256,
       files: manifest.upstream.files,
@@ -117,10 +133,21 @@ test('parseArgs defaults to a check and refuses source mutation', () => {
   assert.throws(() => parseArgs(['--update']), /Source update is intentionally disabled/u);
 });
 
+test('validateManifestShape pins the reviewed upstream baseline and source commit', () => {
+  const manifest = validManifest();
+  validateManifestShape(manifest);
+  manifest.upstream.version = '1.3.1';
+  assert.throws(() => validateManifestShape(manifest), /reviewed 1\.3\.0 baseline/u);
+  manifest.upstream.version = '1.3.0';
+  manifest.upstream.gitHead = 'a'.repeat(40);
+  assert.throws(() => validateManifestShape(manifest), /reviewed .* source commit/u);
+});
+
 test('buildInventory emits explicit patch categories without changing files', () => {
   const inventory = buildInventory({
     name: 'mutative',
     version: '1.3.0',
+    gitHead: '01945e3274e9730706799e4d432c22248a6bdeb1',
     archiveIntegrity: `sha512-${'A'.repeat(43)}=`,
     registry: 'https://registry.npmjs.org',
     upstreamInventory: {
@@ -138,4 +165,26 @@ test('buildInventory emits explicit patch categories without changing files', ()
     upstreamSha256: null,
     localSha256: digest('c'),
   });
+  assert.equal(inventory.upstream.gitHead, '01945e3274e9730706799e4d432c22248a6bdeb1');
+});
+
+test('validateSyncManifest binds sync metadata to the reviewed lock', () => {
+  const lock = validManifest();
+  lock.maintainedFork = {
+    repository: 'https://github.com/mineclover/mutative',
+    branch: 'codex/array-perf',
+    commit: 'b'.repeat(40),
+  };
+  lock.adapter = { package: '@context-action/mutative', versionLine: '0.8.x' };
+  const sync = {
+    schemaVersion: 'context-action-mutative-upstream-lock.v1',
+    upstream: { name: 'mutative', version: '1.3.0', gitHead: lock.upstream.gitHead },
+    maintainedFork: { ...lock.maintainedFork },
+    adapter: { ...lock.adapter },
+    localPatchContracts: [{ id: 'contract', files: ['a.ts'], tests: ['packages/mutative-core/__tests__/regressions.test.ts'] }],
+  };
+  // The fixture repository path is the real checkout, where the named test exists.
+  assert.doesNotThrow(() => validateSyncManifest(sync, lock, process.cwd()));
+  sync.upstream.version = '1.3.1';
+  assert.throws(() => validateSyncManifest(sync, lock, process.cwd()), /must match the reviewed upstream lock/u);
 });
