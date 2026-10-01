@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.1.2] (2026-10-02)
+
+- Reissue the framework-neutral backend contract in the coordinated product-stability cohort.
+
 ## [0.1.1] (2026-10-02)
 
 - Reissue the framework-neutral backend contract with the coordinated release provenance.

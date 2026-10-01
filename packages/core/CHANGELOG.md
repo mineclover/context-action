@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.2.5] (2026-10-02)
+
+- Reissue the coordinated state-management cohort with fresh provenance for the product-stability release.
+
 ## [1.2.4] (2026-10-02)
 
 - Rebind the coordinated stable candidate to the reviewed main release commit.
