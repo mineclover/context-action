@@ -30,6 +30,10 @@ checks rather than replacing focused evidence.
   - Mutative source lineage, carried upstream fixes, licensing, and synchronization rules
 - [Implementation Convention](/en/context-layered/implementation-convention)
   - the standard implementation-playbook rule set
+- [Core Action Contracts](../../../packages/core/docs/action-contracts.md)
+  - framework-neutral dispatch, lifecycle trace, and action-to-state boundary
+- [React State Contracts](../../../packages/react/docs/state-contracts.md)
+  - Store reader/writer roles, safe reads, transactions, timeline, and inspector boundary
 - [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
   - issue lifecycle, contract traceability, decision records, and handoff evidence
 - [Architecture Decision Records](/en/context-layered/decisions/)
@@ -101,6 +105,12 @@ standalone build, filesystem, provider, preview, and browser release checks.
 2. [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
 3. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
 4. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+
+For a stateful action that updates more than one Store, read the [Core Action
+Contracts](../../../packages/core/docs/action-contracts.md) and [React State
+Contracts](../../../packages/react/docs/state-contracts.md) together. Core emits
+dispatch traces but never infers Store ownership; the React layer opens an
+explicit transaction with named participants.
 
 ### For implementer onboarding
 

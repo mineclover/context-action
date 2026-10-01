@@ -1,7 +1,7 @@
 # ToolContext development track
 
 This directory is repository source for the ToolContext work stream. It is not
-an installable `@context-action/react/tools` entry in the React 3 artifact.
+an installable `@context-action/react/tools` entry in the React 4 artifact.
 Keep it out of public package examples until the ToolContext, protocol, and
 Durable Operations release decision is approved.
 

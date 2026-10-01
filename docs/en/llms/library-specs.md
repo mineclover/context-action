@@ -35,7 +35,7 @@
 
 #### @context-action/react
 - **Purpose**: React integration with Context API and hooks
-- **Dependencies**: React 19.2+ (peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, and `@context-action/webmcp`; it does not depend on Durable Operations in the published React 3 artifact
+- **Dependencies**: React 19.2+ (peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, and `@context-action/webmcp`; it does not depend on Durable Operations in the published React 4 artifact
 - **Key Features**: Store management, action contexts, compiler-optimized hooks, Activity-safe provider lifecycles, and React 19.2 SSR support. Import these APIs from `@context-action/react`.
 
 ### Release and Security Baseline

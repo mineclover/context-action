@@ -4,11 +4,11 @@
 
 > 빠른 팀 규칙 요약이 먼저 필요하면 [모범 사례](../guide/best-practices.md#-빠른-팀-요약)를 먼저 읽고, 이 문서는 세부 규칙을 확인할 때 참조하세요.
 
-> 새 기능을 만들 때는 먼저 아래 **React 3.0 현재 요약**을 따르세요. 이후의 긴
+> 새 기능을 만들 때는 먼저 아래 **React 4.0.1 현재 요약**을 따르세요. 이후의 긴
 > 섹션은 상세 참고 자료이며, 저장소의 6계층 구현 프로필이 필요하면
 > [개발 컨벤션 인덱스](/ko/context-layered/convention-index)를 사용합니다.
 
-## React 3.0 현재 요약
+## React 4.0.1 현재 요약
 
 `@context-action/react`는 React 19.2 이상을 요구합니다. 기본 설계는 렌더링,
 도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다.
@@ -39,6 +39,19 @@
 6. **Compiler directive는 라이브러리 구현 세부로 보기.** 배포 패키지는 명시적으로
    annotation된 hook을 컴파일합니다. 애플리케이션 코드가 runtime을 추가하거나
    `"use memo"` directive를 복사할 필요는 없습니다.
+7. **State transaction을 명시적으로 구성하기.** Core dispatch trace는 선택적
+   metadata만 전달하며 Store ownership을 추론하지 않습니다. 하나의 action이
+   여러 Store를 변경하면 이름 있는 participant와 `StoreTransactionCoordinator`를
+   사용하고 `bindActionTransactions()`로 연결합니다.
+8. **읽기 경계를 의도적으로 선택하기.** Declarative TimeTravelStore manager는
+   기본 `readMode: 'safe'`를 사용하고 direct factory는 호환성을 위해
+   `readMode: 'reference'`를 유지합니다. 외부 경계를 넘는 값은 `getSafeValue()`나
+   `readMode: 'safe'`를 사용합니다. `notifyPath()`로 보고하는 mutable 직접 변경은
+   `useStorePath()`를 사용합니다.
+9. **Immutable runtime을 별도로 추적하기.** scoped adapter와 core는 유지보수되는
+   `0.8.9` patch line에서 관리하며 upstream `mutative@1.3.0`을 호환성 기준으로
+   사용합니다. 동기화는 검토된 lock과 `pnpm verify:mutative-upstream`으로만
+   수행합니다.
 
 기능 하나를 완성할 때는 Store/Action 계약, 보이는 UI, 소유한 Activity hide/reveal
 또는 SSR 경계를 함께 테스트하세요. 저장소 구조는 `pnpm convention:check`, 문서
@@ -46,7 +59,7 @@
 
 ## 📋 목차
 
-1. [React 3.0 현재 요약](#react-30-현재-요약)
+1. [React 4.0.1 현재 요약](#react-401-현재-요약)
 2. [네이밍 컨벤션](#네이밍-컨벤션)
 3. [파일 구조](#파일-구조)
 4. [패턴 사용법](#패턴-사용법)

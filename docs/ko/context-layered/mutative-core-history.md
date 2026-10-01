@@ -15,10 +15,14 @@
 | 원본 프로젝트 | [`unadlib/mutative`](https://github.com/unadlib/mutative) | Mutative 원본 구현과 이슈 이력 |
 | 유지보수 포크 | [`mineclover/mutative`](https://github.com/mineclover/mutative) | 유지보수와 upstream 호환 수정의 기준 포크 |
 | 편입 revision | [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88) | `@context-action/mutative-core`에 vendoring한 revision |
+| upstream 호환성 기준 | `mutative@1.3.0` | npm tarball과 source `gitHead`를 `upstream-lock.json`에 기록 |
 | Context-Action 패키지 | [`packages/mutative-core`](../../../packages/mutative-core/) | publish 패키지와 동기화 경계 |
 
 이 revision은 2026-07-18에 준비했으며, 설치 시 별도 빌드가 필요하지 않도록
-배포 산출물도 포함한다. 전체 provenance는 패키지의
+배포 산출물도 포함한다. 인수한 upstream `mutative@1.3.0` npm tarball integrity,
+source-tree hash, local modified/added/unchanged inventory는
+[`upstream-lock.json`](../../../packages/mutative-core/upstream-lock.json)에
+기록한다. 전체 provenance는 패키지의
 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)에도 기록한다.
 
 ## 반영한 upstream 작업
@@ -81,3 +85,15 @@ Context-Action adapter는 별도로 Apache-2.0 라이선스를 사용하며 upst
 4. core 테스트와 타입 체크를 먼저 실행하고, 그 다음
    `@context-action/mutative`를 빌드한 뒤 React 통합 테스트를 실행한다.
 5. adapter 의존성 범위가 바뀌는 release에서는 core 패키지를 먼저 publish한다.
+
+release 전에는 다음 동기화 verifier를 실행합니다.
+
+```bash
+pnpm verify:mutative-upstream
+```
+
+이 verifier는 정확한 upstream tarball을 내려받아 SHA-512 integrity와 모든
+`src` 파일 hash를 검증한 뒤 committed lock inventory와 local fork를 비교합니다.
+읽기 전용이므로 vendored source를 자동으로 덮어쓰지 않습니다. `--inventory`로
+후보를 확인하고 lock과 provenance를 검토·commit한 뒤 `--check`를 다시 실행합니다.
+upstream baseline `1.3.0`과 scoped core/adapter `0.8.9` 버전은 별도 계약입니다.

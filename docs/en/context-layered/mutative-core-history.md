@@ -15,10 +15,14 @@ package boundary; Context-Action-specific helpers such as time travel remain in
 | Original project | [`unadlib/mutative`](https://github.com/unadlib/mutative) | Original Mutative implementation and issue history |
 | Maintained fork | [`mineclover/mutative`](https://github.com/mineclover/mutative) | Fork used for maintenance and upstream-compatible fixes |
 | Imported revision | [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88) | Revision vendored into `@context-action/mutative-core` |
+| Upstream compatibility baseline | `mutative@1.3.0` | npm tarball and source `gitHead` captured in `upstream-lock.json` |
 | Context-Action package | [`packages/mutative-core`](../../../packages/mutative-core/) | Published core package and synchronization boundary |
 
 The imported revision was prepared on 2026-07-18 and includes generated
 distributable output so package consumers do not need an install-time build.
+The acquired upstream `mutative@1.3.0` npm tarball integrity, source-tree
+hashes, and local modified/added/unchanged inventory are recorded in
+[`upstream-lock.json`](../../../packages/mutative-core/upstream-lock.json).
 The complete provenance is also recorded in the package's
 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md).
 
@@ -84,3 +88,16 @@ and the upstream references with every source synchronization.
    and finally run React integration tests.
 5. Publish the core package before publishing the adapter package when the
    adapter dependency range changes.
+
+Run the synchronization verifier before any release:
+
+```bash
+pnpm verify:mutative-upstream
+```
+
+The verifier downloads the exact upstream tarball, validates its SHA-512
+integrity and every `src` file hash, then compares the local fork against the
+committed lock inventory. It is read-only; never overwrite vendored source
+automatically. Review an inventory candidate with `--inventory`, commit the
+updated lock and provenance, and rerun `--check`. The upstream baseline
+`1.3.0` and the scoped `0.8.9` core/adapter versions are separate contracts.

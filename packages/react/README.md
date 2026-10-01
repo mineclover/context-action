@@ -141,7 +141,7 @@ for composition examples, effect cleanup rules, pre-rendering, and SSR limits.
 
 The repository retains ToolContext and Durable Operations source while their
 protocol, persistence, and recovery contract is developed. They are **not** an
-installable `@context-action/react/tools` API in the React 3 artifact and are
+installable `@context-action/react/tools` API in the React 4 artifact and are
 not needed for ordinary Store/Action applications. See the
 [production-readiness guide](../../docs/en/guide/production-readiness.md) for
 the ownership matrix and the separate development-track material.

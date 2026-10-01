@@ -91,7 +91,7 @@ dist-standalone/
 ### 포함된 의존성 및 컴포넌트 목록:
 - **Preact 10.27.3**: 초경량 Virtual DOM 엔진
 - **@preact/signals 2.11.2**: Fine-grained 반응형 시그널 런타임
-- **@context-action/core 1.1.3**: 우선순위 기반 ActionRegister 파이프라인
+- **@context-action/core 1.2.1**: 우선순위 기반 ActionRegister 파이프라인
 - **@context-action/preact**: Dispatch & Source Context 어댑터
 - **@context-action/preact-ui**: DOM 소유권 & 마운트 프리미티브 및 `definePreactElement`
 - **Projected Order 도메인 & Custom Element**: `<order-workspace>`

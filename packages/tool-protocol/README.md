@@ -39,7 +39,7 @@ const initialResult: SearchResult = { items: [] };
 Zod is a runtime dependency because the package exposes the action-schema API from
 its root entry point. `@context-action/core` owns action registration and
 execution. The repository's source-only `packages/react/src/tools` track binds
-this protocol to `createToolContext`, but React 3 deliberately does not publish
+this protocol to `createToolContext`, but React 4 deliberately does not publish
 `@context-action/react/tools`. Protocol and schema symbols must be imported from
 this package directly.
 
@@ -83,7 +83,7 @@ this package directly.
   track applies it before persisting unknown or failed durable operations, while
   successful results remain lossless for the caller. Source-track ToolContext
   callers can override the shared limits with `durableDiagnosticPolicy`; this is
-  not an installed React 3 package option.
+  not an installed React 4 package option.
 - `createToolObservationSink()` creates a `ToolCallObserver` that delivers only
   a serialized metadata projection plus policy/retention metadata. Its callback
   never receives the canonical event, request arguments, result content, or

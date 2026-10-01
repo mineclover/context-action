@@ -35,7 +35,7 @@
 
 #### @context-action/react
 - **목적**: Context API 및 훅을 통한 React 통합
-- **의존성**: React 19.2+(peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, `@context-action/webmcp`. 배포된 React 3 artifact는 Durable Operations에 의존하지 않음
+- **의존성**: React 19.2+(peer), `@context-action/core`, `@context-action/mutative`, `@context-action/tool-protocol`, `@context-action/webmcp`. 배포된 React 4 artifact는 Durable Operations에 의존하지 않음
 - **주요 기능**: 스토어 관리, 액션 컨텍스트, Compiler 최적화 훅, Activity 안전 Provider lifecycle, React 19.2 SSR 지원. Store·Action API는 `@context-action/react`에서 import함
 
 ### 릴리스 및 보안 기준

@@ -28,7 +28,7 @@ npm install @context-action/react @context-action/core @context-action/tool-prot
 
 Import `defineAction`, `createActionSchema`, `listAllTools`, and protocol types
 from `@context-action/tool-protocol`. The repository retains
-`packages/react/src/tools` as a development track, but React 3 intentionally
+`packages/react/src/tools` as a development track, but React 4 intentionally
 does not export `@context-action/react/tools`; do not import it from an
 installed package until a separate ToolContext release is approved.
 `@context-action/react` remains the default action/store entry, while
@@ -57,8 +57,23 @@ await register.actions.reset(undefined, { debounce: 100 });
 APIs from `@context-action/react`; the former `react18` compatibility entry
 point is no longer exported.
 The maintained `@context-action/mutative-core` / `@context-action/mutative`
-fork remains the immutable runtime contract; synchronize upstream changes via
-its [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md) record.
+fork remains the immutable runtime contract. The current stable cohort uses
+Core `1.2.1`, Mutative Core and adapter `0.8.9`, and React `4.0.1`.
+`mutative@1.3.0` is the acquired upstream compatibility baseline, not a
+runtime replacement. Synchronize upstream changes through the reviewed
+[`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md) and
+`upstream-lock.json` records, then run `pnpm verify:mutative-upstream`.
+
+### State contract migration
+
+Use the role interfaces in [Store and time-travel contracts](../../../packages/react/docs/state-contracts.md)
+when introducing new state code. Declarative TimeTravelStore managers default
+to `readMode: 'safe'`; direct `createTimeTravelStore()` factories retain
+`readMode: 'reference'` for compatibility. Use `getSafeValue()` at external
+boundaries. When one action changes multiple Stores, register explicit
+participants with `StoreTransactionCoordinator` and connect Core's dispatch
+trace through `bindActionTransactions()`; do not infer ownership from action
+names or handler registration.
 
 ## 🚀 Migration Strategy
 
