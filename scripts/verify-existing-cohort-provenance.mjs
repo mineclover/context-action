@@ -159,8 +159,10 @@ export async function verifyExistingCohort({ commit, output } = {}) {
         version: '0.0.0',
         dependencies: Object.fromEntries(existing),
       }, null, 2)}\n`);
-      const cacheDirectory = path.join(temporaryDirectory, 'npm-cache');
+      let cacheDirectory;
       await retryTransientRegistryVisibility(async () => {
+        const attempt = await mkdtemp(path.join(temporaryDirectory, 'npm-cache-attempt-'));
+        cacheDirectory = attempt;
         const response = command('npm', [
           'install', '--ignore-scripts', '--no-audit', '--prefer-online',
           `--registry=${registry}`, '--cache', cacheDirectory,
