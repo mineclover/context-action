@@ -54,7 +54,7 @@ const [rootEsm, rootCjs, rootTypes, backendEsm, backendCjs, backendTypes, compil
 
 const toolRuntimePattern = /@context-action\/tool-(?:protocol|durable-operations)/;
 const toolPublicApiPattern = /\b(?:createToolContext|ToolContextConfig|ToolRegistry)\b/;
-const mutativeRuntimePattern = /(?:@context-action\/mutative|(?:require|from)\(['"](?:@context-action\/)?mutative)/;
+const mutativeRuntimePattern = /@context-action\/mutative(?:["'/]|$)|(?:require|from)\(['"](?:@context-action\/)?mutative(?:["'])/;
 
 for (const [relativePath, content] of [
   ['index.js', rootEsm],
