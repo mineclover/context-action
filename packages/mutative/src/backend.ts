@@ -132,28 +132,53 @@ function immutableSnapshotError(type: string): TypeError {
 /** Map proxy whose internal-slot mutators fail even though Object.freeze(Map)
  * alone would still allow map.set/delete/clear. */
 function guardSnapshotMap<K, V>(map: Map<K, V>): Map<K, V> {
-  return new Proxy(map, {
+  let guarded: Map<K, V>;
+  guarded = new Proxy(map, {
     get(target, property) {
       if (property === 'set' || property === 'delete' || property === 'clear') {
         return () => { throw immutableSnapshotError('Map'); };
       }
-      const member = Reflect.get(target, property, target);
-      return typeof member === 'function' ? member.bind(target) : member;
-    },
-  });
-}
-
-/** Set proxy whose internal-slot mutators fail on safe snapshots. */
-function guardSnapshotSet<T>(set: Set<T>): Set<T> {
-  return new Proxy(set, {
-    get(target, property) {
-      if (property === 'add' || property === 'delete' || property === 'clear') {
-        return () => { throw immutableSnapshotError('Set'); };
+      // Map.prototype.forEach normally passes its internal target as the
+      // third callback argument. Bind the callback to the guarded proxy so a
+      // consumer cannot recover the mutable raw target from a safe snapshot.
+      if (property === 'forEach') {
+        return ((
+          callback: (value: V, key: K, map: Map<K, V>) => void,
+          thisArg?: unknown,
+        ) => {
+          target.forEach((value, key) => callback.call(thisArg, value, key, guarded));
+        }) as Map<K, V>['forEach'];
       }
       const member = Reflect.get(target, property, target);
       return typeof member === 'function' ? member.bind(target) : member;
     },
   });
+  return guarded;
+}
+
+/** Set proxy whose internal-slot mutators fail on safe snapshots. */
+function guardSnapshotSet<T>(set: Set<T>): Set<T> {
+  let guarded: Set<T>;
+  guarded = new Proxy(set, {
+    get(target, property) {
+      if (property === 'add' || property === 'delete' || property === 'clear') {
+        return () => { throw immutableSnapshotError('Set'); };
+      }
+      // See guardSnapshotMap: keep Set.prototype.forEach from handing out the
+      // mutable target as its third callback argument.
+      if (property === 'forEach') {
+        return ((
+          callback: (value: T, sameValue: T, set: Set<T>) => void,
+          thisArg?: unknown,
+        ) => {
+          target.forEach(value => callback.call(thisArg, value, value, guarded));
+        }) as Set<T>['forEach'];
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+  return guarded;
 }
 
 /** Date's internal-slot mutators also bypass Object.freeze. */
@@ -171,28 +196,53 @@ function guardSnapshotDate(date: Date): Date {
 
 /** WeakMap proxy whose internal-slot mutators fail on safe snapshots. */
 function guardSnapshotWeakMap<K extends object, V>(weakMap: WeakMap<K, V>): WeakMap<K, V> {
-  return new Proxy(weakMap, {
+  // A Proxy around the caller-owned WeakMap would make Object.freeze(proxy)
+  // call [[PreventExtensions]] on that original object. Use an empty
+  // surrogate as the proxy target and delegate reads to the original instead.
+  const surrogate = new WeakMap<K, V>();
+  const guarded = new Proxy(surrogate, {
     get(target, property) {
       if (property === 'set' || property === 'delete') {
         return () => { throw immutableSnapshotError('WeakMap'); };
       }
-      const member = Reflect.get(target, property, target);
-      return typeof member === 'function' ? member.bind(target) : member;
-    },
-  });
-}
-
-/** WeakSet proxy whose internal-slot mutators fail on safe snapshots. */
-function guardSnapshotWeakSet<T extends object>(weakSet: WeakSet<T>): WeakSet<T> {
-  return new Proxy(weakSet, {
-    get(target, property) {
-      if (property === 'add' || property === 'delete') {
-        return () => { throw immutableSnapshotError('WeakSet'); };
+      if (property === 'get') {
+        return ((key: K) => {
+          const value = weakMap.get(key);
+          // WeakMap values are not enumerable, so clone the value at read
+          // time. Returning the original object would let a snapshot mutate
+          // the live state through weakMap.get(key).
+          return freezeSnapshot(safeGet(value, true));
+        }) as WeakMap<K, V>['get'];
+      }
+      if (property === 'has') {
+        return weakMap.has.bind(weakMap);
       }
       const member = Reflect.get(target, property, target);
       return typeof member === 'function' ? member.bind(target) : member;
     },
   });
+  return guarded;
+}
+
+/** WeakSet proxy whose internal-slot mutators fail on safe snapshots. */
+function guardSnapshotWeakSet<T extends object>(weakSet: WeakSet<T>): WeakSet<T> {
+  // Keep the original WeakSet extensible for the same reason as the WeakMap
+  // surrogate above. Weak collections have no enumerable entries to clone,
+  // so reads are delegated while all mutators are rejected.
+  const surrogate = new WeakSet<T>();
+  const guarded = new Proxy(surrogate, {
+    get(target, property) {
+      if (property === 'add' || property === 'delete') {
+        return () => { throw immutableSnapshotError('WeakSet'); };
+      }
+      if (property === 'has') {
+        return weakSet.has.bind(weakSet);
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+  return guarded;
 }
 
 /**
