@@ -1,7 +1,7 @@
 // Logic-only tests with a minimal Node double. These are NOT browser/Preact tests.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { claimMountRoot, assertUnmanagedAncestors } from '../.native-check/ownership.js';
+import { claimHydrationRoot, claimMountRoot, assertUnmanagedAncestors } from '../.native-check/ownership.js';
 import { createDisposalScope } from '../.native-check/disposal-scope.js';
 
 class NodeDouble {
@@ -30,6 +30,13 @@ test('light-DOM ancestor overlap is rejected', () => {
   const node = root(); const release = claimMountRoot(node);
   const child = root(); node.append(child);
   assert.throws(() => claimMountRoot(child), /already owns/); release();
+});
+test('light-DOM descendant overlap is rejected for hydration', () => {
+  const parent = root(); const child = root(); parent.append(child);
+  const release = claimMountRoot(child);
+  parent.append(root()); // Keep the hydration parent populated.
+  assert.throws(() => claimHydrationRoot(parent), /already owns/);
+  release();
 });
 test('template host preflight rejects a managed ancestor', () => {
   const node = root(); const release = claimMountRoot(node);

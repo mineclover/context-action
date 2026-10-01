@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { h } from 'preact';
 import { signal } from '@preact/signals';
 import { definePreactElement } from '../src/custom-element.js';
 
@@ -150,5 +151,113 @@ describe('Form-Associated Custom Elements (FACE)', () => {
     document.body.append(element);
     element.dispose();
     expect(events).toEqual(['connect', 'disconnect', 'connect', 'disconnect']);
+  });
+
+  it('terminates the connection session when updateInput rendering fails', () => {
+    let label = 'ready';
+    const events: string[] = [];
+    const FailureTag = definePreactElement({
+      tagName: 'test-face-update-failure',
+      setup() {
+        return {
+          view: ({ input }: { input: { label: string } }) => {
+            if (input.label === 'fail') throw new Error('custom element render failed');
+            return h('span', null, input.label);
+          },
+          getInput: () => ({ label }),
+          onConnect() { events.push('connect'); },
+          onDisconnect() { events.push('disconnect'); },
+        };
+      },
+    });
+
+    const element = new FailureTag() as HTMLElement & { updateInput(): void };
+    document.body.append(element);
+    label = 'fail';
+
+    expect(() => element.updateInput()).toThrow('custom element render failed');
+    expect(events).toEqual(['connect', 'disconnect']);
+    expect(element.shadowRoot?.querySelector('div')?.childNodes).toHaveLength(0);
+
+    // The failed update leaves no stale mount/session. A later reconnect can
+    // claim the same root and render exactly one replacement child.
+    label = 'recovered';
+    element.remove();
+    document.body.append(element);
+    expect(events).toEqual(['connect', 'disconnect', 'connect']);
+    expect(element.shadowRoot?.textContent).toBe('recovered');
+    element.remove();
+  });
+
+  it('uses the same failed-session cleanup for observed attribute updates', () => {
+    let label = 'ready';
+    const events: string[] = [];
+    const FailureTag = definePreactElement({
+      tagName: 'test-face-attribute-failure',
+      observedAttributes: ['state'],
+      setup() {
+        return {
+          view: ({ input }: { input: { label: string } }) => {
+            if (input.label === 'fail') throw new Error('attribute render failed');
+            return h('span', null, input.label);
+          },
+          getInput: () => ({ label }),
+          onConnect() { events.push('connect'); },
+          onDisconnect() { events.push('disconnect'); },
+          onAttributeChange(_name, _oldValue, newValue) {
+            label = newValue ?? 'ready';
+          },
+        };
+      },
+    });
+
+    const element = new FailureTag();
+    document.body.append(element);
+    label = 'fail';
+
+    // Invoke the lifecycle callback directly so the test can inspect the
+    // synchronous error; browsers report custom-element callback exceptions
+    // through their error event instead of propagating from setAttribute().
+    expect(() => (element as any).attributeChangedCallback('state', null, 'fail'))
+      .toThrow('attribute render failed');
+    expect(events).toEqual(['connect', 'disconnect']);
+    expect(element.shadowRoot?.querySelector('div')?.childNodes).toHaveLength(0);
+  });
+
+  it('runs permanent destruction even when disconnect cleanup fails', () => {
+    let disconnects = 0;
+    let destroys = 0;
+    const FailureTag = definePreactElement({
+      tagName: 'test-face-dispose-failure',
+      setup() {
+        return {
+          view: () => h('span', null, 'ready'),
+          getInput: () => undefined,
+          onDisconnect() {
+            disconnects += 1;
+            throw new Error('disconnect failed');
+          },
+          onDestroy() {
+            destroys += 1;
+            throw new Error('destroy failed');
+          },
+        };
+      },
+    });
+
+    const element = new FailureTag() as HTMLElement & { dispose(): void };
+    document.body.append(element);
+
+    expect(() => element.dispose()).toThrow(AggregateError);
+    expect(disconnects).toBe(1);
+    expect(destroys).toBe(1);
+    expect(element.shadowRoot?.querySelector('div')?.childNodes).toHaveLength(0);
+
+    // dispose is terminal and idempotent even when the first cleanup reports
+    // multiple failures.
+    expect(() => element.dispose()).not.toThrow();
+    element.remove();
+    expect(disconnects).toBe(1);
+    expect(destroys).toBe(1);
   });
 });

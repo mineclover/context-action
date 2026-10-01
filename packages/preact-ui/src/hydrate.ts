@@ -22,7 +22,17 @@ export function hydratePreact<Input>(
   const destroy = () => {
     if (destroyed) return;
     destroyed = true;
-    try { render(null, root); } finally { release(); }
+    const errors: unknown[] = [];
+    try { render(null, root); } catch (error) { errors.push(error); }
+    try {
+      // A component that throws during diffing can leave a partially created
+      // node behind. The hydration boundary owns the complete root, so clear
+      // any such residue after asking Preact to run its unmount lifecycle.
+      while (root.firstChild) root.removeChild(root.firstChild);
+    } catch (error) { errors.push(error); }
+    try { release(); } catch (error) { errors.push(error); }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) throw new AggregateError(errors, 'Hydration cleanup failed');
   };
   try {
     hydrate(createElement(View, { input: initialInput }), root);
@@ -34,7 +44,14 @@ export function hydratePreact<Input>(
   }
   const update = (input: Input) => {
     if (destroyed) throw new Error('Cannot update a destroyed hydrated UI boundary');
-    render(createElement(View, { input }), root);
+    try {
+      render(createElement(View, { input }), root);
+    } catch (error) {
+      try { destroy(); } catch (cleanupError) {
+        throw new AggregateError([error, cleanupError], 'Render and cleanup failed');
+      }
+      throw error;
+    }
   };
   return { get destroyed() { return destroyed; }, update, destroy };
 }

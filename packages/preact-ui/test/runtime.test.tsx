@@ -3,7 +3,7 @@ import { act } from 'preact/test-utils';
 import { useLayoutEffect } from 'preact/hooks';
 import { signal } from '@preact/signals';
 import { createDispatchContext } from '@context-action/preact';
-import { createDisposalScope, mountPreact, mountTemplate } from '../src/index.js';
+import { createDisposalScope, hydratePreact, mountPreact, mountTemplate } from '../src/index.js';
 import { defineCounterElement } from '../examples/web-component/counter-element.js';
 
 let cleanup: Array<() => void> = [];
@@ -44,6 +44,15 @@ describe('owned runtime roots', () => {
     const populated = root(); populated.textContent = 'keep';
     expect(() => mountPreact(populated, view, 'replace')).toThrow('empty');
     expect(populated.textContent).toBe('keep');
+  });
+  it('rejects hydration of a light-DOM parent containing a managed child root', () => {
+    const parent = root();
+    const child = document.createElement('div');
+    parent.append(child);
+    const instance = mountPreact(child, view, 'child');
+    expect(() => hydratePreact(parent, view, 'server')).toThrow('owns');
+    expect(child.textContent).toBe('child');
+    instance.destroy();
   });
   it('unmounts Preact effects and permits a fresh instance afterwards', () => {
     let disposals = 0;
