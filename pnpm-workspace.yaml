@@ -5,6 +5,7 @@ packages:
   - packages/webmcp
   - packages/tool-durable-operations
   - packages/react
+  - packages/store-core
   - packages/preact
   - packages/preact-ui
   - packages/lit

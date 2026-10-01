@@ -1,9 +1,13 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: transaction participants are heterogeneous store types.
-import type { TimeTravelTransitionMeta } from '@context-action/mutative';
+import type {
+  HistoryEntryId,
+  StateMutationMeta,
+  TransactionBackend,
+} from '@context-action/store-core';
 import { ErrorHandlers } from '../utils/error-handling';
-import type { TimeTravelStore } from './TimeTravelStore';
+type TimeTravelTransitionMeta = StateMutationMeta;
 
-const activeTransactionStores = new WeakSet<TimeTravelStore<any>>();
+const activeTransactionStores = new WeakSet<TransactionBackend<any>>();
 
 export interface StoreTransactionMeta {
   readonly id: string;
@@ -15,7 +19,7 @@ export interface StoreTransactionMeta {
 
 export interface StoreTransactionParticipant<T = unknown> {
   readonly name: string;
-  readonly store: TimeTravelStore<T>;
+  readonly store: TransactionBackend<T>;
 }
 
 export interface StoreTransactionRecord {
@@ -52,11 +56,11 @@ export interface StoreTransactionInspectorSink {
 type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'> & {
   readonly participants: readonly {
     readonly name: string;
-    readonly store: TimeTravelStore<any>;
+    readonly store: TransactionBackend<any>;
     readonly before: number;
     readonly after: number;
-    readonly beforeEntryId: number;
-    readonly afterEntryId: number;
+    readonly beforeEntryId: HistoryEntryId;
+    readonly afterEntryId: HistoryEntryId;
     readonly changed: boolean;
   }[];
 };
@@ -76,7 +80,7 @@ export class StoreTransactionCoordinator {
   private sequence = 0;
   private position = 0;
   private history: StoredStoreTransactionRecord[] = [];
-  private readonly activeStores = new Set<TimeTravelStore<any>>();
+  private readonly activeStores = new Set<TransactionBackend<any>>();
   private readonly listeners = new Set<StoreTransactionListener>();
   private inspectorVersion = 0;
   private inspectorSnapshot: StoreTransactionInspectorSnapshot = {
@@ -161,7 +165,7 @@ export class StoreTransactionCoordinator {
     const unique = [...participants];
     if (unique.length === 0) throw new Error('A transaction requires at least one participant');
     const participantNames = new Set<string>();
-    const participantStores = new Set<TimeTravelStore<any>>();
+    const participantStores = new Set<TransactionBackend<any>>();
     for (const participant of unique) {
       if (participantNames.has(participant.name)) {
         throw new Error(`Duplicate transaction participant name "${participant.name}"`);
@@ -329,7 +333,7 @@ export class StoreTransactionCoordinator {
   ): void {
     const participants = record.participants.map(({ store }) => store);
     const metadata: TimeTravelTransitionMeta = { ...record.meta, origin };
-    const started: TimeTravelStore<any>[] = [];
+    const started: TransactionBackend<any>[] = [];
     try {
       for (const store of participants) {
         store.beginBatch(metadata, { deferNotification: true });

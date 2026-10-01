@@ -22,6 +22,7 @@
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "__tests__", "**/*.test.*", "**/*.spec.*"],
   "references": [
-    { "path": "../core" }
+    { "path": "../core" },
+    { "path": "../store-core" }
   ]
 }

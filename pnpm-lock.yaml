@@ -643,6 +643,9 @@ importers:
       '@context-action/mutative':
         specifier: ^0.8.11
         version: link:../mutative
+      '@context-action/store-core':
+        specifier: workspace:*
+        version: link:../store-core
       '@context-action/tool-protocol':
         specifier: ^1.0.0
         version: link:../tool-protocol
@@ -728,6 +731,24 @@ importers:
       zod:
         specifier: ^4.6.5
         version: 4.6.5
+
+  packages/store-core:
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
+      rimraf:
+        specifier: ^6.1.3
+        version: 6.1.3
+      tsdown:
+        specifier: 0.23.0
+        version: 0.23.0(typescript@6.0.3)(unrun@0.2.33(synckit@0.11.13))
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
 
   packages/style-testing:
     dependencies:

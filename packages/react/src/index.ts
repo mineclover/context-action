@@ -29,12 +29,15 @@ export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTime
 export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
 export type {
+  HistoryEntryId,
   ReadonlyStateSnapshot,
+  StateBackend,
   StateMutationMeta,
   StateMutationOrigin,
   StateTransition,
   StoreReader,
   StoreWriter,
+  TransactionBackend,
   TimelineReader,
   TimelineWriter,
 } from './stores/core/contracts';

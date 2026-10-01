@@ -101,6 +101,15 @@ immutable runtime 계약은 `@context-action/mutative-core`가 소유하며
 `pnpm verify:mutative-upstream`을 실행한다. baseline 버전과 scoped package
 버전은 별도의 release 계약이다.
 
+### Store backend 경계
+
+`@context-action/store-core`는 framework-neutral `StateBackend`,
+`TimelineBackend`, `TransactionBackend` 계약을 소유한다. React, Mutative,
+immutable runtime, DOM dependency가 없다. `@context-action/mutative`는 선택 가능한
+구현 backend이며, store 또는 timeline capability만 필요한 React binding은
+계약 package만 의존해야 한다. patch나 timeline을 제공하지 않는 backend는
+immutable 또는 time-travel 구현으로 간주하지 않고 해당 capability를 명시해야 한다.
+
 ## 4. 패키지 contract
 
 각 package README와 manifest는 다음을 답해야 한다.
