@@ -568,6 +568,13 @@ export class ActionRegister<
 
   /** Subscribe to start/settled dispatch lifecycle events. */
   subscribeDispatchTrace(listener: ActionDispatchTraceListener): UnregisterFunction {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Dispatch trace listener must be a function.');
+    }
+    // Trace subscriptions are part of the register lifecycle.  Rejecting a
+    // late subscription keeps callers from accidentally retaining a listener
+    // that can never observe work and matches handler registration semantics.
+    this.assertAcceptingWork();
     this.dispatchTraceListeners.add(listener);
     return () => this.dispatchTraceListeners.delete(listener);
   }

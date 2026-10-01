@@ -29,6 +29,12 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private readonly unsubscribeBackend: Unsubscribe;
   private readonly unsubscribeBackendPatches: Unsubscribe;
   private backendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
+  // Keep the scalar snapshot contract separately from the object reference.
+  // A user backend may reuse its snapshot object while incrementing `version`;
+  // React still needs a fresh wrapper in that case.
+  private backendSnapshotVersion: number;
+  private backendSnapshotLastUpdate: number;
+  private backendSnapshotValue: T;
   private snapshot: Snapshot<T>;
   private disposed = false;
   private lastPatches: readonly Patch[] | null = null;
@@ -38,17 +44,38 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.backend = backend;
     this.ownership = options.ownership ?? 'shared';
     this.backendSnapshot = backend.getSnapshot();
+    this.backendSnapshotVersion = this.backendSnapshot.version;
+    this.backendSnapshotLastUpdate = this.backendSnapshot.lastUpdate;
+    this.backendSnapshotValue = this.backendSnapshot.value;
     this.snapshot = this.toSnapshot(this.backendSnapshot);
     this.unsubscribeBackendPatches = backend.subscribeWithPatches?.((patches) => {
       this.lastPatches = patches;
     }) ?? (() => {});
     this.unsubscribeBackend = backend.subscribe(() => {
       if (this.disposed) return;
-      const nextBackendSnapshot = backend.getSnapshot();
-      // A backend must replace its snapshot object whenever it publishes. A
-      // duplicate notification therefore cannot invalidate useSyncExternalStore.
-      if (nextBackendSnapshot !== this.backendSnapshot) {
+      let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
+      try {
+        nextBackendSnapshot = backend.getSnapshot();
+      } catch (error) {
+        // A malformed backend must not break an already published snapshot
+        // or prevent unrelated React subscribers from receiving notifications.
+        this.reportListenerError('Backend snapshot read error', error);
+        return;
+      }
+      // Backends should replace snapshots, but accepting a reused object is a
+      // useful compatibility guard for small user-owned adapters. Compare the
+      // contract fields as well so a monotonically increasing version still
+      // invalidates React when the backend mutates its snapshot in place.
+      if (
+        nextBackendSnapshot !== this.backendSnapshot ||
+        nextBackendSnapshot.version !== this.backendSnapshotVersion ||
+        nextBackendSnapshot.lastUpdate !== this.backendSnapshotLastUpdate ||
+        !Object.is(nextBackendSnapshot.value, this.backendSnapshotValue)
+      ) {
         this.backendSnapshot = nextBackendSnapshot;
+        this.backendSnapshotVersion = nextBackendSnapshot.version;
+        this.backendSnapshotLastUpdate = nextBackendSnapshot.lastUpdate;
+        this.backendSnapshotValue = nextBackendSnapshot.value;
         this.snapshot = this.toSnapshot(nextBackendSnapshot);
       }
       const patches = this.lastPatches ?? backend.getLastPatches?.() ?? null;
@@ -57,14 +84,14 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
         try {
           listener();
         } catch (error) {
-          ErrorHandlers.store('Backend store listener error', { storeName: this.name }, error instanceof Error ? error : undefined);
+          this.reportListenerError('Backend store listener error', error);
         }
       }
       for (const listener of [...this.patchListeners]) {
         try {
           listener(patches);
         } catch (error) {
-          ErrorHandlers.store('Backend store patch listener error', { storeName: this.name }, error instanceof Error ? error : undefined);
+          this.reportListenerError('Backend store patch listener error', error);
         }
       }
     });
@@ -108,12 +135,43 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   dispose = (): void => {
     if (this.disposed) return;
     this.disposed = true;
-    this.unsubscribeBackendPatches();
-    this.unsubscribeBackend();
+    // Cleanup is best effort. A broken backend unsubscribe must not leave the
+    // wrapper subscribed, retain listener references, or skip owned disposal.
+    try {
+      this.unsubscribeBackendPatches();
+    } catch (error) {
+      this.reportListenerError('Backend patch unsubscribe error', error);
+    }
+    try {
+      this.unsubscribeBackend();
+    } catch (error) {
+      this.reportListenerError('Backend unsubscribe error', error);
+    }
     this.listeners.clear();
     this.patchListeners.clear();
-    if (this.ownership === 'owned') this.backend.dispose?.();
+    if (this.ownership === 'owned') {
+      try {
+        this.backend.dispose?.();
+      } catch (error) {
+        this.reportListenerError('Owned backend disposal error', error);
+      }
+    }
   };
+
+  private reportListenerError(message: string, error: unknown): void {
+    // ErrorHandlers intentionally throws in some development configurations.
+    // Error reporting must never turn a subscriber/backend failure into a
+    // failed state transition or incomplete disposal.
+    try {
+      ErrorHandlers.store(
+        message,
+        { storeName: this.name },
+        error instanceof Error ? error : undefined,
+      );
+    } catch {
+      // The original failure has already been isolated from the store contract.
+    }
+  }
 
   private toSnapshot(source: ReturnType<StateBackend<T>['getSnapshot']>): Snapshot<T> {
     return {

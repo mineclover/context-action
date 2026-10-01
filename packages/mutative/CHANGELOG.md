@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.8.13] (2026-10-02)
+
+- Align the optional Mutative backend adapter with `@context-action/mutative-core@0.8.12` and Store Core `0.1.1`.
+
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 

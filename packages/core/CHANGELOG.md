@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.2.4] (2026-10-02)
+
+- Rebind the coordinated stable candidate to the reviewed main release commit.
+
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 

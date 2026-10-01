@@ -1,5 +1,9 @@
 # Change Log
 
+## [4.0.5] (2026-10-02)
+
+- Rebind the backend subpath and dependency floors to the coordinated provenance cohort.
+
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 

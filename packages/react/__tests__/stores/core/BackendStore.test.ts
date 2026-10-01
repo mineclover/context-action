@@ -94,6 +94,98 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('invalidates when a compatible backend reuses its snapshot object', () => {
+    let value = 0;
+    const snapshot = { name: 'reused', value, version: 0, lastUpdate: 0 };
+    const listeners = new Set<() => void>();
+    const backend: StateBackend<number> = {
+      name: 'reused',
+      getSnapshot: () => snapshot,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      setValue: next => {
+        value = next;
+        snapshot.value = value;
+        snapshot.version += 1;
+        snapshot.lastUpdate += 1;
+        [...listeners].forEach(listener => listener());
+      },
+      update: updater => {
+        const next = updater(value);
+        if (next !== undefined) backend.setValue(next);
+      },
+    };
+
+    const store = createBackendStore('reused', backend);
+    const initial = store.getSnapshot();
+    backend.setValue(1);
+
+    expect(store.getSnapshot()).not.toBe(initial);
+    expect(store.getSnapshot().value).toBe(1);
+    expect(store.getSnapshot().version).toBe(1);
+    store.dispose();
+  });
+
+  it('keeps cleanup and owned disposal resilient when backend teardown throws', () => {
+    const listeners = new Set<() => void>();
+    let disposed = false;
+    const backend: StateBackend<number> = {
+      name: 'teardown',
+      getSnapshot: () => ({ name: 'teardown', value: 0, version: 0, lastUpdate: 0 }),
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+          throw new Error('unsubscribe failed');
+        };
+      },
+      subscribeWithPatches: () => () => {
+        throw new Error('patch unsubscribe failed');
+      },
+      setValue: () => {},
+      update: () => {},
+      dispose: () => {
+        disposed = true;
+      },
+    };
+
+    const store = createBackendStore('teardown', backend, { ownership: 'owned' });
+
+    expect(() => store.dispose()).not.toThrow();
+    expect(disposed).toBe(true);
+    expect(store.isStoreDisposed()).toBe(true);
+    expect(listeners.size).toBe(0);
+  });
+
+  it('retains the last valid snapshot when a backend read fails during notification', () => {
+    let failRead = false;
+    const listeners = new Set<() => void>();
+    const snapshot = { name: 'read-failure', value: 0, version: 0, lastUpdate: 0 };
+    const backend: StateBackend<number> = {
+      name: 'read-failure',
+      getSnapshot: () => {
+        if (failRead) throw new Error('snapshot unavailable');
+        return snapshot;
+      },
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      setValue: () => {
+        failRead = true;
+        [...listeners].forEach(listener => listener());
+      },
+      update: () => {},
+    };
+
+    const store = createBackendStore('read-failure', backend);
+    expect(() => backend.setValue(1)).not.toThrow();
+    expect(store.getSnapshot().value).toBe(0);
+    store.dispose();
+  });
+
   it('respects shared and owned backend lifecycle', () => {
     const shared = createStateStore('shared', 0);
     const sharedStore = createBackendStore('shared', shared);
