@@ -96,4 +96,4 @@ pnpm verify:mutative-upstream
 `src` 파일 hash를 검증한 뒤 committed lock inventory와 local fork를 비교합니다.
 읽기 전용이므로 vendored source를 자동으로 덮어쓰지 않습니다. `--inventory`로
 후보를 확인하고 lock과 provenance를 검토·commit한 뒤 `--check`를 다시 실행합니다.
-upstream baseline `1.3.0`과 scoped core/adapter `0.8.10` 버전은 별도 계약입니다.
+upstream baseline `1.3.0`과 scoped core/adapter `0.8.11` 버전은 별도 계약입니다.

@@ -3,60 +3,7 @@ import type { TimeTravelTransitionMeta } from '@context-action/mutative';
 import { ErrorHandlers } from '../utils/error-handling';
 import type { TimeTravelStore } from './TimeTravelStore';
 
-function transactionValuesEqual(a: unknown, b: unknown): boolean {
-  const visited = new WeakMap<object, WeakSet<object>>();
-
-  const compare = (left: unknown, right: unknown): boolean => {
-    if (Object.is(left, right)) return true;
-    if (left === null || right === null || typeof left !== 'object' || typeof right !== 'object') {
-      return false;
-    }
-
-    const leftObject = left as object;
-    const rightObject = right as object;
-    const paired = visited.get(leftObject);
-    if (paired?.has(rightObject)) return true;
-    if (paired) paired.add(rightObject);
-    else visited.set(leftObject, new WeakSet([rightObject]));
-
-    if (left instanceof Date || right instanceof Date) {
-      return left instanceof Date && right instanceof Date && left.getTime() === right.getTime();
-    }
-    if (left instanceof RegExp || right instanceof RegExp) {
-      return left instanceof RegExp && right instanceof RegExp && left.toString() === right.toString();
-    }
-    if (left instanceof Map || right instanceof Map) {
-      if (!(left instanceof Map) || !(right instanceof Map) || left.size !== right.size) return false;
-      const unmatched = [...right.entries()];
-      return [...left.entries()].every(([leftKey, leftValue]) => {
-        const match = unmatched.findIndex(([rightKey, rightValue]) => compare(leftKey, rightKey) && compare(leftValue, rightValue));
-        if (match < 0) return false;
-        unmatched.splice(match, 1);
-        return true;
-      });
-    }
-    if (left instanceof Set || right instanceof Set) {
-      if (!(left instanceof Set) || !(right instanceof Set) || left.size !== right.size) return false;
-      const unmatched = [...right.values()];
-      for (const leftValue of left.values()) {
-        const match = unmatched.findIndex(rightValue => compare(leftValue, rightValue));
-        if (match < 0) return false;
-        unmatched.splice(match, 1);
-      }
-      return true;
-    }
-    if (Array.isArray(left) || Array.isArray(right)) {
-      return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => compare(value, right[index]));
-    }
-
-    const leftKeys = Reflect.ownKeys(left);
-    const rightKeys = Reflect.ownKeys(right);
-    if (leftKeys.length !== rightKeys.length || leftKeys.some(key => !rightKeys.includes(key))) return false;
-    return leftKeys.every(key => compare((left as Record<PropertyKey, unknown>)[key], (right as Record<PropertyKey, unknown>)[key]));
-  };
-
-  return compare(a, b);
-}
+const activeTransactionStores = new WeakSet<TimeTravelStore<any>>();
 
 export interface StoreTransactionMeta {
   readonly id: string;
@@ -108,8 +55,9 @@ type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'>
     readonly store: TimeTravelStore<any>;
     readonly before: number;
     readonly after: number;
-    readonly beforeValue: unknown;
-    readonly afterValue: unknown;
+    readonly beforeEntryId: number;
+    readonly afterEntryId: number;
+    readonly changed: boolean;
   }[];
 };
 
@@ -128,6 +76,7 @@ export class StoreTransactionCoordinator {
   private sequence = 0;
   private position = 0;
   private history: StoredStoreTransactionRecord[] = [];
+  private readonly activeStores = new Set<TimeTravelStore<any>>();
   private readonly listeners = new Set<StoreTransactionListener>();
   private inspectorVersion = 0;
   private inspectorSnapshot: StoreTransactionInspectorSnapshot = {
@@ -222,6 +171,9 @@ export class StoreTransactionCoordinator {
       }
       participantNames.add(participant.name);
       participantStores.add(participant.store);
+      if (this.activeStores.has(participant.store) || activeTransactionStores.has(participant.store)) {
+        throw new Error(`Store "${participant.store.name}" already participates in an active transaction`);
+      }
     }
     if (unique.some(participant => participant.store.isStoreDisposed())) {
       throw new Error('A transaction cannot include a disposed store');
@@ -229,7 +181,7 @@ export class StoreTransactionCoordinator {
     const before = unique.map(participant => ({
       ...participant,
       position: participant.store.getPosition(),
-      beforeValue: participant.store.getSafeValue(),
+      beforeEntryId: participant.store.getHistoryEntryId(),
     }));
     const started: typeof unique = [];
     try {
@@ -245,13 +197,24 @@ export class StoreTransactionCoordinator {
       }
       throw error;
     }
+    for (const participant of unique) {
+      this.activeStores.add(participant.store);
+      activeTransactionStores.add(participant.store);
+    }
     this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
     let closed = false;
     const endBatches = () => {
       for (const participant of [...unique].reverse()) participant.store.endBatch();
     };
     const cancelBatches = () => {
-      for (const participant of [...unique].reverse()) participant.store.cancelBatch();
+      for (const participant of [...unique].reverse()) {
+        if (participant.store.isStoreDisposed()) continue;
+        try {
+          participant.store.cancelBatch();
+        } catch (error) {
+          this.reportListenerError(error);
+        }
+      }
     };
     const flushBatches = () => {
       for (const participant of unique) participant.store.resumeNotifications();
@@ -262,32 +225,53 @@ export class StoreTransactionCoordinator {
       commit: () => {
         if (closed) return;
         closed = true;
-        endBatches();
-        flushBatches();
-        const record = {
-          meta,
-          participants: before.map(participant => ({
-            name: participant.name,
-            store: participant.store,
-            before: participant.position,
-            after: participant.store.getPosition(),
-            beforeValue: participant.beforeValue,
-            afterValue: participant.store.getSafeValue(),
-          })),
-        };
-        if (record.participants.some(participant => !transactionValuesEqual(participant.beforeValue, participant.afterValue))) {
-          this.history = this.history.slice(0, this.position);
-          this.history.push(record);
-          this.position += 1;
-          this.emit('committed', record);
+        try {
+          endBatches();
+          flushBatches();
+          const record = {
+            meta,
+            participants: before.map(participant => ({
+                name: participant.name,
+                store: participant.store,
+                before: participant.position,
+                after: participant.store.getPosition(),
+                beforeEntryId: participant.beforeEntryId,
+                afterEntryId: participant.store.getHistoryEntryId(),
+                changed: participant.beforeEntryId !== participant.store.getHistoryEntryId(),
+              })),
+          };
+          if (record.participants.some(participant => participant.changed)) {
+            this.history = this.history.slice(0, this.position);
+            this.history.push(record);
+            this.position += 1;
+            this.emit('committed', record);
+          }
+        } catch (error) {
+          // A participant may be disposed while the callback is running. The
+          // commit must fail without leaking active batches on survivors.
+          cancelBatches();
+          flushBatches();
+          throw error;
+        } finally {
+          for (const participant of unique) {
+            this.activeStores.delete(participant.store);
+            activeTransactionStores.delete(participant.store);
+          }
         }
       },
       rollback: () => {
         if (closed) return;
         closed = true;
-        cancelBatches();
-        flushBatches();
-        this.emit('rolled_back', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
+        try {
+          cancelBatches();
+          flushBatches();
+          this.emit('rolled_back', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
+        } finally {
+          for (const participant of unique) {
+            this.activeStores.delete(participant.store);
+            activeTransactionStores.delete(participant.store);
+          }
+        }
       },
     };
   }
@@ -308,8 +292,12 @@ export class StoreTransactionCoordinator {
     }
   }
 
-  canUndo(): boolean { return this.position > 0; }
-  canRedo(): boolean { return this.position < this.history.length; }
+  canUndo(): boolean {
+    return this.position > 0 && this.canMoveRecord(this.history[this.position - 1]!, 'undo');
+  }
+  canRedo(): boolean {
+    return this.position < this.history.length && this.canMoveRecord(this.history[this.position]!, 'redo');
+  }
   getPosition(): number { return this.position; }
   getHistory(): readonly StoreTransactionRecord[] { return this.history.map(record => this.snapshot(record)); }
 
@@ -355,11 +343,15 @@ export class StoreTransactionCoordinator {
     try {
       for (const participant of participants) {
         const participantRecord = record.participants.find(({ store }) => store === participant)!;
+        if (!participantRecord.changed) continue;
         if (origin === 'undo' ? !participant.canUndo() : !participant.canRedo()) {
           throw new Error(`Transaction ${record.meta.id} cannot ${origin} retained history on store "${participant.name}"`);
         }
-        if (origin === 'undo') participant.undo(1, metadata);
-        else participant.redo(1, metadata);
+        const targetEntryId = origin === 'undo' ? participantRecord.beforeEntryId : participantRecord.afterEntryId;
+        if (!participant.hasHistoryEntry(targetEntryId)) {
+          throw new Error(`Transaction ${record.meta.id} cannot ${origin} retained history on store "${participant.name}"`);
+        }
+        participant.goToHistoryEntry(targetEntryId, metadata);
       }
       applied = true;
     } finally {
@@ -376,10 +368,18 @@ export class StoreTransactionCoordinator {
 
   private assertAtPositions(record: StoredStoreTransactionRecord, side: 'before' | 'after'): void {
     for (const participant of record.participants) {
-      const expectedValue = participant[`${side}Value`];
-      if (!transactionValuesEqual(participant.store.getSafeValue(), expectedValue)) {
+      const expectedEntryId = participant[`${side}EntryId`];
+      if (participant.store.isStoreDisposed() || participant.store.getHistoryEntryId() !== expectedEntryId) {
         throw new Error(`Transaction ${record.meta.id} conflicts with external history on store "${participant.name}"`);
       }
     }
+  }
+
+  private canMoveRecord(record: StoredStoreTransactionRecord, direction: 'undo' | 'redo'): boolean {
+    return record.participants.every(participant =>
+      !participant.changed
+      || (!participant.store.isStoreDisposed()
+        && participant.store.hasHistoryEntry(direction === 'undo' ? participant.beforeEntryId : participant.afterEntryId))
+    );
   }
 }

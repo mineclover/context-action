@@ -5,7 +5,7 @@ the upstream Mutative API while carrying the maintained fork fixes from
 [`mineclover/mutative`](https://github.com/mineclover/mutative), including lazy
 array drafts, nested `create()` isolation, and the `produce` alias.
 
-The current scoped release is `@context-action/mutative-core@0.8.10`. It tracks
+The current scoped release is `@context-action/mutative-core@0.8.11`. It tracks
 the acquired upstream `mutative@1.3.0` compatibility baseline without importing
 the upstream package at runtime. The baseline and scoped version are separate;
 run `pnpm verify:mutative-upstream` before synchronizing the vendored source.

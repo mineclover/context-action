@@ -8,7 +8,7 @@
 
 > **isTimeTravelStore**&lt;`T`&gt;(`store`): `store is TimeTravelStore&lt;T&gt;`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:609](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L609)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:624](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L624)
 
 Type guard to check if a store is a TimeTravelStore
 

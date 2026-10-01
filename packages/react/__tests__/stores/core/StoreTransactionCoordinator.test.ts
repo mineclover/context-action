@@ -149,4 +149,60 @@ describe('StoreTransactionCoordinator', () => {
     expect(store.getValue()).toEqual({ value: 'second' });
     store.dispose();
   });
+
+  it('does not replay unchanged participants during coordinated undo', async () => {
+    const first = createTimeTravelStore('first', { value: 0 });
+    const second = createTimeTravelStore('second', { value: 0 });
+    second.setValue({ value: 99 });
+    const coordinator = new StoreTransactionCoordinator();
+
+    await coordinator.run([{ name: 'first', store: first }], () => {
+      first.setValue({ value: 1 });
+    });
+    coordinator.undo();
+
+    expect(first.getValue()).toEqual({ value: 0 });
+    expect(second.getValue()).toEqual({ value: 99 });
+    first.dispose();
+    second.dispose();
+  });
+
+  it('rejects overlapping transactions on the same coordinator', () => {
+    const store = createTimeTravelStore('overlap', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+    const handle = coordinator.begin([{ name: 'overlap', store }]);
+    expect(() => coordinator.begin([{ name: 'overlap-again', store }])).toThrow('active transaction');
+    handle.rollback();
+    store.dispose();
+  });
+
+  it('detects external same-value history before undo', async () => {
+    const store = createTimeTravelStore('external', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+    await coordinator.run([{ name: 'external', store }], () => {
+      store.setValue({ value: 1 });
+    });
+    store.setValue({ value: 2 });
+    store.setValue({ value: 1 });
+
+    expect(() => coordinator.undo()).toThrow('conflicts with external history');
+    expect(store.getValue()).toEqual({ value: 1 });
+    store.dispose();
+  });
+
+  it('reports bounded history exhaustion through canUndo', async () => {
+    const store = createTimeTravelStore('exhausted', { value: 0 }, { maxHistory: 2 });
+    const coordinator = new StoreTransactionCoordinator();
+    for (const value of [1, 2, 3]) {
+      await coordinator.run([{ name: 'exhausted', store }], () => {
+        store.setValue({ value });
+      });
+    }
+
+    coordinator.undo();
+    coordinator.undo();
+    expect(coordinator.canUndo()).toBe(false);
+    expect(store.getValue()).toEqual({ value: 1 });
+    store.dispose();
+  });
 });

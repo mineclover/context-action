@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.11] (2026-10-01)
+
+### Reliability fixes
+
+- Preserve stable history-entry identities across bounded time-travel cursors and cancellable transaction batches.
+
 ## [0.8.10] (2026-10-01)
 
 ### Reliability fixes
