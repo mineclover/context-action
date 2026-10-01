@@ -358,6 +358,14 @@ const shutdown: Promise<void> = register.destroyAsync({ deferCleanup: true });
 void shutdown;
 `);
   }
+  if (names.has('@context-action/store-core')) {
+    statements.push(`
+import type { StateBackend, TimelineBackend, TransactionBackend } from '@context-action/store-core';
+type ConsumerState = { value: number };
+const backend: StateBackend<ConsumerState> | TimelineBackend<ConsumerState> | TransactionBackend<ConsumerState> = {} as never;
+void backend;
+`);
+  }
   if (names.has('@context-action/mutative-core')) {
     statements.push(`
 import { create, type Draft as CoreDraft } from '@context-action/mutative-core';

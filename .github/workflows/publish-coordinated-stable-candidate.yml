@@ -71,7 +71,7 @@ jobs:
       - name: Verify OIDC candidate publishing eligibility
         if: inputs.publish_auth == 'oidc'
         run: |
-          for PACKAGE_NAME in "@context-action/core" "@context-action/mutative-core" "@context-action/mutative" "@context-action/react"; do
+          for PACKAGE_NAME in "@context-action/core" "@context-action/store-core" "@context-action/mutative-core" "@context-action/mutative" "@context-action/react"; do
             if ! npm view "$PACKAGE_NAME" name --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
               echo "::error title=OIDC bootstrap requires an existing npm package::$PACKAGE_NAME does not exist on npm. npm Trusted Publishing is configured per existing package, so publish this initial version with publish_auth=token after setting the protected NPM_TOKEN secret."
               exit 1
@@ -102,7 +102,7 @@ jobs:
       - name: Verify packed coordinated cohort dependency closure
         run: |
           node scripts/verify-published-tool-consumers.cjs --local --cohort-only \
-            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
+            --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
 
       - name: Re-verify approved source immediately before publication
         env:
@@ -120,6 +120,7 @@ jobs:
             --require-all-unpublished \
             --resume-matching-existing \
             --scope @context-action/core \
+            --scope @context-action/store-core \
             --scope @context-action/mutative-core \
             --scope @context-action/mutative \
             --scope @context-action/react
@@ -136,12 +137,12 @@ jobs:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
         run: |
           pnpm verify:published-tool-consumers -- --tag next \
-            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
+            --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
 
       - name: Capture registry evidence
         run: |
           pnpm capture:published-release -- --tag next \
-            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react" \
+            --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react" \
             --consumer-status passed --output reports/npm-coordinated-stable-candidate-registry-evidence.json
 
       - name: Upload coordinated stable candidate evidence

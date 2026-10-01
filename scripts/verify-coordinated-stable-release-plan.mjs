@@ -92,11 +92,9 @@ if (requireCurrentSource) {
   }
   for (const [name, floor] of Object.entries(expectedReactFloors)) {
     if (plan.reactDependencyFloors?.[name] !== floor) errors.push(`Release plan floor must be ${name}@${floor}`);
-    const actualFloor = name === '@context-action/store-core'
-      ? react.peerDependencies?.[name]
-      : react.dependencies?.[name];
+    const actualFloor = react.dependencies?.[name];
     if (actualFloor !== floor) {
-      errors.push(`React ${name === '@context-action/store-core' ? 'peer dependency' : 'dependency'} floor must be ${name}@${floor}`);
+      errors.push(`React dependency floor must be ${name}@${floor}`);
     }
   }
   const mutative = JSON.parse(await readFile(path.join(repositoryRoot, packagePaths['@context-action/mutative']), 'utf8'));
