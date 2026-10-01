@@ -122,6 +122,29 @@ describe('Mutative backend adapters', () => {
     expect(reference.getSnapshot().value.map.get('count')).toBe(2);
   });
 
+  it('guards WeakMap and WeakSet mutators in safe snapshots', () => {
+    const key = {};
+    const weakMap = new WeakMap<object, number>([[key, 1]]);
+    const weakSet = new WeakSet<object>([key]);
+    const backend = createMutativeStateBackend(
+      'safe-weak-collections',
+      { weakMap, weakSet },
+      { readMode: 'safe' },
+    );
+
+    const snapshot = backend.getSnapshot().value;
+    expect(Object.isFrozen(snapshot.weakMap)).toBe(true);
+    expect(Object.isFrozen(snapshot.weakSet)).toBe(true);
+    expect(snapshot.weakMap.get(key)).toBe(1);
+    expect(snapshot.weakSet.has(key)).toBe(true);
+    expect(() => snapshot.weakMap.set(key, 2)).toThrow('immutable snapshot WeakMap');
+    expect(() => snapshot.weakMap.delete(key)).toThrow('immutable snapshot WeakMap');
+    expect(() => snapshot.weakSet.add({})).toThrow('immutable snapshot WeakSet');
+    expect(() => snapshot.weakSet.delete(key)).toThrow('immutable snapshot WeakSet');
+    expect(backend.getSafeValue().weakMap.get(key)).toBe(1);
+    expect(backend.getSafeValue().weakSet.has(key)).toBe(true);
+  });
+
   it('does not leave notification holds behind when beginBatch fails', () => {
     const backend = createMutativeTimelineBackend('timeline', { count: 0 });
     backend.dispose();

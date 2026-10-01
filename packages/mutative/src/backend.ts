@@ -169,6 +169,32 @@ function guardSnapshotDate(date: Date): Date {
   });
 }
 
+/** WeakMap proxy whose internal-slot mutators fail on safe snapshots. */
+function guardSnapshotWeakMap<K extends object, V>(weakMap: WeakMap<K, V>): WeakMap<K, V> {
+  return new Proxy(weakMap, {
+    get(target, property) {
+      if (property === 'set' || property === 'delete') {
+        return () => { throw immutableSnapshotError('WeakMap'); };
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+}
+
+/** WeakSet proxy whose internal-slot mutators fail on safe snapshots. */
+function guardSnapshotWeakSet<T extends object>(weakSet: WeakSet<T>): WeakSet<T> {
+  return new Proxy(weakSet, {
+    get(target, property) {
+      if (property === 'add' || property === 'delete') {
+        return () => { throw immutableSnapshotError('WeakSet'); };
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+}
+
 /**
  * Make defensive snapshot values immutable without freezing the backend's
  * live state. Internal-slot collections and dates use guarded proxies because
@@ -179,9 +205,31 @@ function freezeSnapshot<T>(value: T): T {
   const seen = new WeakMap<object, unknown>();
   const visit = (current: unknown): unknown => {
     if (current === null || typeof current !== 'object') return current;
+    // WeakMap and WeakSet are not enumerable and therefore cannot be cloned,
+    // but their mutators can still be guarded without exposing a writable
+    // snapshot view of the live collection.
+    if (current instanceof WeakMap) {
+      const objectValue = current as object;
+      const existing = seen.get(objectValue);
+      if (existing) return existing;
+      const guarded = guardSnapshotWeakMap(current);
+      seen.set(objectValue, guarded);
+      Object.freeze(guarded);
+      return guarded;
+    }
+    if (current instanceof WeakSet) {
+      const objectValue = current as object;
+      const existing = seen.get(objectValue);
+      if (existing) return existing;
+      const guarded = guardSnapshotWeakSet(current);
+      seen.set(objectValue, guarded);
+      Object.freeze(guarded);
+      return guarded;
+    }
     // safeGet intentionally preserves DOM and other host objects by
-    // reference. Never freeze an application-owned host object as a side
-    // effect of producing a defensive snapshot.
+    // reference. Never freeze or proxy an application-owned host object as a
+    // side effect of producing a defensive snapshot. These values remain
+    // caller-owned references even when `immutableSnapshots` is enabled.
     if (isNonCloneableType(current)) return current;
     const objectValue = current as object;
     const existing = seen.get(objectValue);
