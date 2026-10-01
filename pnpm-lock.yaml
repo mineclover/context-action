@@ -643,9 +643,6 @@ importers:
       '@context-action/mutative':
         specifier: ^0.8.11
         version: link:../mutative
-      '@context-action/store-core':
-        specifier: workspace:*
-        version: link:../store-core
       '@context-action/tool-protocol':
         specifier: ^1.0.0
         version: link:../tool-protocol
@@ -656,6 +653,9 @@ importers:
       '@babel/core':
         specifier: 7.29.7
         version: 7.29.7
+      '@context-action/store-core':
+        specifier: workspace:*
+        version: link:../store-core
       '@context-action/tool-durable-operations':
         specifier: workspace:*
         version: link:../tool-durable-operations

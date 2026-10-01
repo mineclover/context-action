@@ -100,16 +100,22 @@
     "access": "public"
   },
   "peerDependencies": {
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "@context-action/store-core": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@context-action/store-core": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@context-action/core": "^1.2.3",
-    "@context-action/store-core": "workspace:*",
     "@context-action/mutative": "^0.8.11",
     "@context-action/webmcp": "^0.1.2",
     "@context-action/tool-protocol": "^1.0.0"
   },
   "devDependencies": {
+    "@context-action/store-core": "workspace:*",
     "@babel/core": "7.29.7",
     "@rolldown/plugin-babel": "0.2.4",
     "@swc/core": "1.16.13",
