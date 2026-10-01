@@ -1,3 +1,5 @@
+import type { Patches } from '@context-action/mutative-core';
+import { create } from '@context-action/mutative-core';
 import type {
   HistoryEntryId,
   ReadonlyStateSnapshot,
@@ -6,15 +8,13 @@ import type {
   TransactionBackend,
 } from '@context-action/store-core';
 import { safeGet, safeSet } from './immutable';
-import { isNonCloneableType } from './utils';
-import { create } from '@context-action/mutative-core';
 import { createTimeTravel, type TimeTravel } from './time-travel';
 import type {
   PatchesOption,
   TimeTravelOptions,
   TimeTravelTransitionMeta,
 } from './types';
-import type { Patches } from '@context-action/mutative-core';
+import { isNonCloneableType } from './utils';
 
 export type MutativeReadMode = 'reference' | 'safe';
 export type MutativeNotificationMode = 'immediate' | 'batched';
