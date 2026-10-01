@@ -17,6 +17,10 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./backend": {
+      "import": { "types": "./dist/backend.d.ts", "default": "./dist/backend.js" },
+      "require": { "types": "./dist/backend.d.cts", "default": "./dist/backend.cjs" }
+    },
     "./advanced": {
       "import": {
         "types": "./dist/advanced.d.ts",
@@ -104,12 +108,12 @@
   },
   "dependencies": {
     "@context-action/core": "^1.2.3",
-    "@context-action/store-core": "^0.1.0",
     "@context-action/mutative": "^0.8.11",
     "@context-action/webmcp": "^0.1.2",
     "@context-action/tool-protocol": "^1.0.0"
   },
   "devDependencies": {
+    "@context-action/store-core": "workspace:*",
     "@babel/core": "7.29.7",
     "@rolldown/plugin-babel": "0.2.4",
     "@swc/core": "1.16.13",

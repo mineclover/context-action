@@ -1,10 +1,6 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: transaction participants are heterogeneous store types.
-import type {
-  HistoryEntryId,
-  StateMutationMeta,
-  TransactionBackend,
-} from '@context-action/store-core';
 import { ErrorHandlers } from '../utils/error-handling';
+import type { HistoryEntryId, StateMutationMeta, TransactionBackend } from './contracts';
 type TimeTravelTransitionMeta = StateMutationMeta;
 
 const activeTransactionStores = new WeakSet<TransactionBackend<any>>();

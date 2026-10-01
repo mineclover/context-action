@@ -5,6 +5,7 @@ import reactCompiler from 'babel-plugin-react-compiler'
 export default defineConfig({
   entry: [
     'src/index.ts',      // Main entry point
+    'src/backend.ts',    // User-owned backend adapter entry point
     'src/advanced.ts',   // Advanced features
     'src/utils.ts',      // Utility functions
     'src/webmcp.ts', // Experimental browser adapter entry point
