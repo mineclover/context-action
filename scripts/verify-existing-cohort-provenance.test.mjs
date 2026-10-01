@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  attestedCommit,
   EXPECTED_REPOSITORY,
   EXPECTED_WORKFLOW_PATH,
   EXPECTED_WORKFLOW_REF,
-  attestedCommit,
   validateProvenanceStatement,
 } from './verify-existing-cohort-provenance.mjs';
 
