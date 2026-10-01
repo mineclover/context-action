@@ -48,3 +48,29 @@ test('dispose is idempotent and prevents later publishes', () => {
   assert.equal(notifications, 0);
   assert.equal(store.getSnapshot().value.count, 0);
 });
+
+test('a failing clock leaves the previous snapshot untouched', () => {
+  let failClock = false;
+  const store = createStateStore('reference', 0, {
+    now: () => {
+      if (failClock) throw new Error('clock unavailable');
+      return 10;
+    },
+  });
+  const before = store.getSnapshot();
+  let notifications = 0;
+  store.subscribe(() => { notifications += 1; });
+
+  failClock = true;
+  assert.throws(() => store.setValue(1), /clock unavailable/);
+  assert.strictEqual(store.getSnapshot(), before);
+  assert.equal(store.getSnapshot().value, 0);
+  assert.equal(store.getSnapshot().version, 0);
+  assert.equal(notifications, 0);
+});
+
+test('rejects non-function subscribers at the boundary', () => {
+  const store = createStateStore('reference', 0);
+  assert.throws(() => store.subscribe(null), TypeError);
+  store.dispose();
+});

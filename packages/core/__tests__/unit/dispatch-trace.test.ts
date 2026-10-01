@@ -1,4 +1,9 @@
-import { ActionRegister, type ActionPayloadMap, type ActionDispatchTrace } from '../../src/index';
+import {
+  ActionRegister,
+  ActionRegisterDestroyedError,
+  type ActionPayloadMap,
+  type ActionDispatchTrace,
+} from '../../src/index';
 
 interface Actions extends ActionPayloadMap {
   save: { id: string };
@@ -83,5 +88,21 @@ describe('dispatch trace contract', () => {
     expect(events.filter(event => event.phase === 'settled').map(event => event.status))
       .toEqual(['completed_with_errors', 'completed_with_errors']);
     await register.destroyAsync();
+  });
+
+  it('rejects trace subscriptions after shutdown starts', async () => {
+    const register = new ActionRegister<Actions>();
+    await register.destroyAsync();
+
+    expect(() => register.subscribeDispatchTrace(() => undefined)).toThrow(
+      ActionRegisterDestroyedError,
+    );
+  });
+
+  it('rejects non-function trace listeners at the boundary', () => {
+    const register = new ActionRegister<Actions>();
+
+    expect(() => register.subscribeDispatchTrace(null as never)).toThrow(TypeError);
+    register.destroy();
   });
 });

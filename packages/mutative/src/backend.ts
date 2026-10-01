@@ -116,6 +116,9 @@ export class MutativeStateBackend<T = unknown>
   private lastPatches: Patches | null = null;
   private disposed = false;
   private readonly listeners = new Set<() => void>();
+  private readonly patchListeners = new Set<
+    (patches: readonly MutativePatch[] | null) => void
+  >();
   private readonly options: Required<
     Pick<MutativeStateBackendOptions, 'cloneOnSet' | 'readMode'>
   > & MutativeStateBackendOptions;
@@ -148,6 +151,14 @@ export class MutativeStateBackend<T = unknown>
     if (this.disposed) return () => {};
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  };
+
+  subscribeWithPatches = (
+    listener: (patches: readonly MutativePatch[] | null) => void,
+  ): (() => void) => {
+    if (this.disposed) return () => {};
+    this.patchListeners.add(listener);
+    return () => this.patchListeners.delete(listener);
   };
 
   getLastPatches = (): readonly MutativePatch[] | null => this.lastPatches;
@@ -192,6 +203,7 @@ export class MutativeStateBackend<T = unknown>
     if (this.disposed) return;
     this.disposed = true;
     this.listeners.clear();
+    this.patchListeners.clear();
   };
 
   private publish(nextState: T, patches: Patches): void {
@@ -200,6 +212,13 @@ export class MutativeStateBackend<T = unknown>
     this.lastPatches = patches;
     this.version += 1;
     this.snapshot = snapshotOf(this.name, this.value, this.version, this.options.readMode);
+    for (const listener of [...this.patchListeners]) {
+      try {
+        listener(patches);
+      } catch (error) {
+        reportListenerError(error, this.options.onListenerError);
+      }
+    }
     notifyListeners(this.listeners, this.options.onListenerError);
   }
 }
@@ -218,6 +237,9 @@ export class MutativeTimelineBackend<T = unknown>
 
   private readonly timeTravel: TimeTravel<T, false, true>;
   private readonly listeners = new Set<() => void>();
+  private readonly patchListeners = new Set<
+    (patches: readonly MutativePatch[] | null) => void
+  >();
   private readonly options: Required<
     Pick<MutativeTimelineBackendOptions, 'readMode' | 'notificationMode' | 'cloneOnSet'>
   > & MutativeTimelineBackendOptions;
@@ -230,6 +252,10 @@ export class MutativeTimelineBackend<T = unknown>
   private pendingPatches: Patches | null = null;
   private notificationHoldDepth = 0;
   private notificationDeferred = false;
+  // TimeTravel cancellation emits a synthetic root-replace notification.
+  // A failed metadata-wrapped mutation is not a committed backend transition,
+  // so suppress that internal notification during rollback.
+  private suppressNextTransitionNotification = false;
   private readonly unsubscribeTimeTravel: () => void;
 
   constructor(
@@ -258,6 +284,10 @@ export class MutativeTimelineBackend<T = unknown>
     this.unsubscribeTimeTravel = this.timeTravel.subscribe(
       (_state, travelPatches, _position, changedPatches, metadata) => {
         if (this.disposed) return;
+        if (this.suppressNextTransitionNotification) {
+          this.suppressNextTransitionNotification = false;
+          return;
+        }
         this.lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
         this.lastTransitionMeta = metadata;
         this.version += 1;
@@ -282,6 +312,14 @@ export class MutativeTimelineBackend<T = unknown>
     if (this.disposed) return () => {};
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  };
+
+  subscribeWithPatches = (
+    listener: (patches: readonly MutativePatch[] | null) => void,
+  ): (() => void) => {
+    if (this.disposed) return () => {};
+    this.patchListeners.add(listener);
+    return () => this.patchListeners.delete(listener);
   };
 
   getLastPatches = (): readonly MutativePatch[] | null => this.lastPatches;
@@ -394,6 +432,7 @@ export class MutativeTimelineBackend<T = unknown>
     this.notificationDeferred = false;
     this.unsubscribeTimeTravel();
     this.listeners.clear();
+    this.patchListeners.clear();
   };
 
   private mutateWithMetadata(meta: StateMutationMeta | undefined, operation: () => void): void {
@@ -407,9 +446,14 @@ export class MutativeTimelineBackend<T = unknown>
       this.timeTravel.endBatch();
     } catch (error) {
       try {
+        this.suppressNextTransitionNotification = true;
         this.timeTravel.cancelBatch();
       } catch {
         // Preserve the original updater error.
+      } finally {
+        // Cancellation is currently synchronous. Always clear the guard so a
+        // future history-engine implementation cannot swallow a real commit.
+        this.suppressNextTransitionNotification = false;
       }
       throw error;
     }
@@ -436,9 +480,17 @@ export class MutativeTimelineBackend<T = unknown>
 
   private notifyNow(): void {
     if (this.disposed) return;
-    if (this.pendingPatches) {
-      this.lastPatches = this.pendingPatches;
-      this.pendingPatches = null;
+    const patches = this.pendingPatches ?? this.lastPatches;
+    this.pendingPatches = null;
+    if (patches) {
+      this.lastPatches = patches;
+    }
+    for (const listener of [...this.patchListeners]) {
+      try {
+        listener(patches);
+      } catch (error) {
+        reportListenerError(error, this.options.onListenerError);
+      }
     }
     notifyListeners(this.listeners, this.options.onListenerError);
   }

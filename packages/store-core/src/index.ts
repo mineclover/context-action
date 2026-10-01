@@ -126,9 +126,14 @@ export function createStateStore<T>(
 
   const publish = (next: T): void => {
     if (disposed || Object.is(value, next)) return;
+    // Resolve the timestamp before mutating the backend.  A caller-provided
+    // clock is part of the store boundary and may throw (for example, when a
+    // deterministic test clock is exhausted); a failed timestamp must not
+    // leave the value and snapshot out of sync.
+    const updatedAt = now();
     value = next;
     version += 1;
-    snapshot = { value, name, version, lastUpdate: now() };
+    snapshot = { value, name, version, lastUpdate: updatedAt };
     notify();
   };
 
@@ -137,6 +142,9 @@ export function createStateStore<T>(
     capabilities: { patches: false, timeline: false, immutableSnapshots: false },
     getSnapshot: () => snapshot,
     subscribe(listener) {
+      if (typeof listener !== 'function') {
+        throw new TypeError('Store subscriber must be a function.');
+      }
       if (disposed) return () => {};
       listeners.add(listener);
       return () => listeners.delete(listener);

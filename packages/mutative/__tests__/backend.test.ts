@@ -5,7 +5,9 @@ describe('Mutative backend adapters', () => {
   it('provides a React-independent state backend with patches and safe snapshots', () => {
     const backend = createMutativeStateBackend('state', { count: 0 }, { readMode: 'safe' });
     const listener = vi.fn();
+    const patchListener = vi.fn();
     backend.subscribe(listener);
+    backend.subscribeWithPatches?.(patchListener);
     backend.update(draft => { draft.count += 1; });
 
     expect(backend.getSnapshot().value).toEqual({ count: 1 });
@@ -13,6 +15,8 @@ describe('Mutative backend adapters', () => {
     expect(backend.capabilities?.immutableSnapshots).toBe(true);
     expect(backend.getLastPatches()).toHaveLength(1);
     expect(listener).toHaveBeenCalledTimes(1);
+    expect(patchListener).toHaveBeenCalledTimes(1);
+    expect(patchListener.mock.calls[0]?.[0]).toHaveLength(1);
   });
 
   it('preserves explicit defaults and forwards patch path options', () => {
@@ -77,5 +81,44 @@ describe('Mutative backend adapters', () => {
     expect(() => backend.beginBatch(undefined, { deferNotification: true })).toThrow('disposed');
     expect(() => backend.resumeNotifications()).not.toThrow();
     expect(() => backend.flushNotifications()).not.toThrow();
+  });
+
+  it('does not publish a failed metadata-wrapped mutation', () => {
+    const backend = createMutativeTimelineBackend('timeline', { count: 0 });
+    const listener = vi.fn();
+    backend.subscribe(listener);
+    const before = backend.getSnapshot();
+
+    expect(() => backend.update(() => {
+      throw new Error('rejected');
+    }, { label: 'rejected' })).toThrow('rejected');
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(backend.getSnapshot()).toBe(before);
+    expect(backend.getSnapshot().value).toEqual({ count: 0 });
+    expect(backend.getPosition()).toBe(0);
+  });
+
+  it('coalesces microtask notifications while retaining the final patch set', async () => {
+    const backend = createMutativeTimelineBackend(
+      'timeline',
+      { count: 0 },
+      { notificationMode: 'batched' },
+    );
+    const listener = vi.fn();
+    const patchListener = vi.fn();
+    backend.subscribe(listener);
+    backend.subscribeWithPatches?.(patchListener);
+
+    backend.update(draft => { draft.count = 1; });
+    backend.update(draft => { draft.count = 2; });
+
+    expect(listener).not.toHaveBeenCalled();
+    await Promise.resolve();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(patchListener).toHaveBeenCalledTimes(1);
+    expect(patchListener.mock.calls[0]?.[0]).toHaveLength(2);
+    expect(backend.getSnapshot().value).toEqual({ count: 2 });
+    expect(backend.getLastPatches()).toHaveLength(2);
   });
 });
