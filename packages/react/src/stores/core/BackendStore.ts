@@ -4,6 +4,11 @@ import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } fr
 
 export type BackendPatchListener<Patch = StatePatch> = (patches: readonly Patch[] | null) => void;
 
+interface PendingPatchNotification<Patch> {
+  patches: readonly Patch[] | null;
+  resolved: boolean;
+}
+
 export interface BackendStoreOptions {
   /** Shared backends remain alive when this wrapper is disposed (default). */
   readonly ownership?: 'shared' | 'owned';
@@ -38,6 +43,13 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private snapshot: Snapshot<T>;
   private disposed = false;
   private lastPatches: readonly Patch[] | null = null;
+  private readonly hasPatchChannel: boolean;
+  private hasReadFallbackPatches = false;
+  private lastFallbackPatches: readonly Patch[] | null = null;
+  private readonly pendingPatchNotifications: PendingPatchNotification<Patch>[] = [];
+  private readonly orphanPatchNotifications: Array<readonly Patch[] | null> = [];
+  private listenerDispatchDepth = 0;
+  private patchFlushScheduled = false;
 
   constructor(name: string, backend: StateBackend<T, Patch>, options: BackendStoreOptions = {}) {
     this.name = name;
@@ -48,8 +60,9 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.backendSnapshotLastUpdate = this.backendSnapshot.lastUpdate;
     this.backendSnapshotValue = this.backendSnapshot.value;
     this.snapshot = this.toSnapshot(this.backendSnapshot);
+    this.hasPatchChannel = typeof backend.subscribeWithPatches === 'function';
     this.unsubscribeBackendPatches = backend.subscribeWithPatches?.((patches) => {
-      this.lastPatches = patches;
+      this.capturePatchNotification(patches);
     }) ?? (() => {});
     this.unsubscribeBackend = backend.subscribe(() => {
       if (this.disposed) return;
@@ -78,21 +91,53 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
         this.backendSnapshotValue = nextBackendSnapshot.value;
         this.snapshot = this.toSnapshot(nextBackendSnapshot);
       }
-      const patches = this.lastPatches ?? backend.getLastPatches?.() ?? null;
-      this.lastPatches = null;
-      for (const listener of [...this.listeners]) {
+      let fallbackPatches: readonly Patch[] | null = null;
+      if (!this.hasPatchChannel) {
         try {
-          listener();
+          const candidate = backend.getLastPatches?.() ?? null;
+          // A getLastPatches-only backend has no event channel. Treat a
+          // repeated array reference as stale rather than replaying the prior
+          // mutation for every subsequent patchless transition.
+          if (!this.hasReadFallbackPatches || !Object.is(candidate, this.lastFallbackPatches)) {
+            fallbackPatches = candidate;
+          }
+          this.lastFallbackPatches = candidate;
+          this.hasReadFallbackPatches = true;
         } catch (error) {
-          this.reportListenerError('Backend store listener error', error);
+          this.reportListenerError('Backend patch read error', error);
         }
       }
-      for (const listener of [...this.patchListeners]) {
-        try {
-          listener(patches);
-        } catch (error) {
-          this.reportListenerError('Backend store patch listener error', error);
+      const pendingPatchNotification: PendingPatchNotification<Patch> = {
+        patches: fallbackPatches,
+        // Without a patch channel, null is the authoritative full-invalidation
+        // result and can be delivered synchronously for backwards compatibility.
+        resolved: !this.hasPatchChannel,
+      };
+      // Some backends notify the regular channel before the patch channel,
+      // while others do the reverse. Pair an already received patch with this
+      // transition; otherwise the patch callback can resolve this entry before
+      // the microtask flush below.
+      if (this.orphanPatchNotifications.length > 0) {
+        pendingPatchNotification.patches = this.orphanPatchNotifications.shift() ?? null;
+        pendingPatchNotification.resolved = true;
+      }
+      this.pendingPatchNotifications.push(pendingPatchNotification);
+      this.listenerDispatchDepth += 1;
+      try {
+        for (const listener of [...this.listeners]) {
+          try {
+            listener();
+          } catch (error) {
+            this.reportListenerError('Backend store listener error', error);
+          }
         }
+      } finally {
+        this.listenerDispatchDepth -= 1;
+      }
+      if (pendingPatchNotification.resolved) {
+        this.flushPatchNotifications(true);
+      } else {
+        this.schedulePatchFlush();
       }
     });
   }
@@ -113,7 +158,13 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
 
   getValue = (): T => this.backendSnapshot.value;
 
-  getSafeValue = (): T => this.backend.getSafeValue?.() ?? this.backendSnapshot.value;
+  getSafeValue = (): T => {
+    // Preserve intentional `null`/`undefined` values returned by a backend.
+    // The fallback is only for backends that do not expose a safe-read hook.
+    return this.backend.getSafeValue
+      ? this.backend.getSafeValue()
+      : this.backendSnapshot.value;
+  };
 
   getLastPatches = (): readonly Patch[] | null => this.lastPatches;
 
@@ -170,6 +221,87 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
       );
     } catch {
       // The original failure has already been isolated from the store contract.
+    }
+  }
+
+  private capturePatchNotification(patches: readonly Patch[] | null): void {
+    if (this.disposed) return;
+    // A regular-first backend can re-enter its writer from a listener. While
+    // wrapper listeners are still dispatching, bind the patch to the most
+    // recent unresolved transition (the nested one). Once the outer dispatch
+    // has returned, a late patch callback belongs to the oldest unresolved
+    // transition in the queue.
+    let pending: PendingPatchNotification<Patch> | undefined;
+    if (this.listenerDispatchDepth > 0) {
+      for (let index = this.pendingPatchNotifications.length - 1; index >= 0; index -= 1) {
+        const candidate = this.pendingPatchNotifications[index];
+        if (candidate && !candidate.resolved) {
+          pending = candidate;
+          break;
+        }
+      }
+    }
+    pending ??= this.pendingPatchNotifications.find((entry) => !entry.resolved);
+    if (pending) {
+      pending.patches = patches;
+      pending.resolved = true;
+      this.schedulePatchFlush();
+      return;
+    }
+    // The regular subscription may be invoked after this callback. Keep the
+    // event until that transition arrives so patch-first and regular-first
+    // backends have identical observable semantics.
+    this.orphanPatchNotifications.push(patches);
+  }
+
+  private schedulePatchFlush(): void {
+    if (this.patchFlushScheduled) return;
+    this.patchFlushScheduled = true;
+    queueMicrotask(() => {
+      this.patchFlushScheduled = false;
+      if (this.disposed) {
+        this.pendingPatchNotifications.length = 0;
+        this.orphanPatchNotifications.length = 0;
+        this.listenerDispatchDepth = 0;
+        return;
+      }
+      this.flushPatchNotifications(false);
+    });
+  }
+
+  private flushPatchNotifications(onlyResolved: boolean): void {
+    if (onlyResolved) {
+      // Preserve transition order. A nested transition may resolve before its
+      // outer regular-first transition receives its late patch callback; hold
+      // the nested notification until the outer entry can be delivered too.
+      while (this.pendingPatchNotifications.length > 0) {
+        const pending = this.pendingPatchNotifications[0];
+        if (!pending?.resolved) return;
+        this.pendingPatchNotifications.shift();
+        this.deliverPatchNotification(pending.patches);
+      }
+      return;
+    }
+
+    while (this.pendingPatchNotifications.length > 0) {
+      const pending = this.pendingPatchNotifications[0];
+      if (!pending) return;
+      this.pendingPatchNotifications.shift();
+      const patches = pending.resolved ? pending.patches : null;
+      pending.resolved = true;
+      pending.patches = patches;
+      this.deliverPatchNotification(patches);
+    }
+  }
+
+  private deliverPatchNotification(patches: readonly Patch[] | null): void {
+    this.lastPatches = patches;
+    for (const listener of [...this.patchListeners]) {
+      try {
+        listener(patches);
+      } catch (error) {
+        this.reportListenerError('Backend store patch listener error', error);
+      }
     }
   }
 

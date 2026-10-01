@@ -6,6 +6,7 @@ import type {
   TransactionBackend,
 } from '@context-action/store-core';
 import { safeGet, safeSet } from './immutable';
+import { isNonCloneableType } from './utils';
 import { create } from '@context-action/mutative-core';
 import { createTimeTravel, type TimeTravel } from './time-travel';
 import type {
@@ -90,12 +91,147 @@ function snapshotOf<T>(
   version: number,
   readMode: MutativeReadMode,
 ): ReadonlyStateSnapshot<T> {
+  const snapshotValue = readMode === 'safe' ? freezeSnapshot(safeGet(value, true)) : value;
   return {
     name,
-    value: readMode === 'safe' ? safeGet(value, true) : value,
+    value: snapshotValue,
     version,
     lastUpdate: Date.now(),
   };
+}
+
+/**
+ * Make defensive snapshot values immutable without freezing the backend's
+ * live state. The recursive walk also handles cyclic object graphs, which
+ * can occur in application state even though Mutative itself only drafts
+ * supported structures.
+ */
+const DATE_MUTATORS = new Set([
+  'setDate',
+  'setFullYear',
+  'setHours',
+  'setMilliseconds',
+  'setMinutes',
+  'setMonth',
+  'setSeconds',
+  'setTime',
+  'setUTCDate',
+  'setUTCFullYear',
+  'setUTCHours',
+  'setUTCMilliseconds',
+  'setUTCMinutes',
+  'setUTCMonth',
+  'setUTCSeconds',
+  'setYear',
+]);
+
+function immutableSnapshotError(type: string): TypeError {
+  return new TypeError(`Cannot mutate an immutable snapshot ${type}`);
+}
+
+/** Map proxy whose internal-slot mutators fail even though Object.freeze(Map)
+ * alone would still allow map.set/delete/clear. */
+function guardSnapshotMap<K, V>(map: Map<K, V>): Map<K, V> {
+  return new Proxy(map, {
+    get(target, property) {
+      if (property === 'set' || property === 'delete' || property === 'clear') {
+        return () => { throw immutableSnapshotError('Map'); };
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+}
+
+/** Set proxy whose internal-slot mutators fail on safe snapshots. */
+function guardSnapshotSet<T>(set: Set<T>): Set<T> {
+  return new Proxy(set, {
+    get(target, property) {
+      if (property === 'add' || property === 'delete' || property === 'clear') {
+        return () => { throw immutableSnapshotError('Set'); };
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+}
+
+/** Date's internal-slot mutators also bypass Object.freeze. */
+function guardSnapshotDate(date: Date): Date {
+  return new Proxy(date, {
+    get(target, property) {
+      if (typeof property === 'string' && DATE_MUTATORS.has(property)) {
+        return () => { throw immutableSnapshotError('Date'); };
+      }
+      const member = Reflect.get(target, property, target);
+      return typeof member === 'function' ? member.bind(target) : member;
+    },
+  });
+}
+
+/**
+ * Make defensive snapshot values immutable without freezing the backend's
+ * live state. Internal-slot collections and dates use guarded proxies because
+ * Object.freeze alone does not prevent their mutator methods. The recursive
+ * walk also handles cycles and preserves caller-owned Map keys.
+ */
+function freezeSnapshot<T>(value: T): T {
+  const seen = new WeakMap<object, unknown>();
+  const visit = (current: unknown): unknown => {
+    if (current === null || typeof current !== 'object') return current;
+    // safeGet intentionally preserves DOM and other host objects by
+    // reference. Never freeze an application-owned host object as a side
+    // effect of producing a defensive snapshot.
+    if (isNonCloneableType(current)) return current;
+    const objectValue = current as object;
+    const existing = seen.get(objectValue);
+    if (existing) return existing;
+
+    if (current instanceof Map) {
+      const guarded = guardSnapshotMap(current);
+      seen.set(objectValue, guarded);
+      // safeGet clones Map values but intentionally preserves keys. Do not
+      // freeze those caller-owned key objects while hardening this snapshot.
+      current.forEach((mapValue, key) => {
+        const frozenValue = visit(mapValue);
+        if (frozenValue !== mapValue) {
+          (current as Map<unknown, unknown>).set(key, frozenValue);
+        }
+      });
+      Object.freeze(guarded);
+      return guarded;
+    }
+
+    if (current instanceof Set) {
+      const guarded = guardSnapshotSet(current);
+      seen.set(objectValue, guarded);
+      const values = [...current];
+      current.clear();
+      for (const entry of values) current.add(visit(entry) as typeof entry);
+      Object.freeze(guarded);
+      return guarded;
+    }
+
+    if (current instanceof Date) {
+      const guarded = guardSnapshotDate(current);
+      seen.set(objectValue, guarded);
+      Object.freeze(guarded);
+      return guarded;
+    }
+
+    seen.set(objectValue, current);
+    for (const key of Reflect.ownKeys(objectValue)) {
+      const descriptor = Object.getOwnPropertyDescriptor(objectValue, key);
+      if (!descriptor || !('value' in descriptor)) continue;
+      const frozenValue = visit(descriptor.value);
+      if (frozenValue !== descriptor.value && descriptor.writable) {
+        (objectValue as Record<PropertyKey, unknown>)[key] = frozenValue;
+      }
+    }
+    Object.freeze(objectValue);
+    return current;
+  };
+  return visit(value) as T;
 }
 
 /**

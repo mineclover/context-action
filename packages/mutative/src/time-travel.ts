@@ -458,13 +458,24 @@ export class TimeTravel<
       if (result && typeof (result as { then?: unknown }).then === 'function') {
         return (result as unknown as Promise<unknown>).then(
           value => { this.endBatch(); return value; },
-          error => { this.endBatch(); throw error; },
+          error => {
+            try {
+              this.cancelBatch();
+            } catch {
+              // Preserve the callback's rejection as the public error.
+            }
+            throw error;
+          },
         ) as R;
       }
       this.endBatch();
       return result;
     } catch (error) {
-      this.endBatch();
+      try {
+        this.cancelBatch();
+      } catch {
+        // Preserve the callback's original error if rollback itself fails.
+      }
       throw error;
     }
   }
