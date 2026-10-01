@@ -226,6 +226,10 @@ export class StoreTransactionCoordinator {
         if (closed) return;
         closed = true;
         try {
+          // Check every participant before ending any batch. Once a batch is
+          // committed, cancelBatch cannot restore it on a later failure.
+          const disposed = unique.find(participant => participant.store.isStoreDisposed());
+          if (disposed) throw new Error(`Store "${disposed.store.name}" is disposed`);
           endBatches();
           flushBatches();
           const record = {

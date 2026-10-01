@@ -166,28 +166,41 @@ describe('StoreTransactionCoordinator history identity', () => {
     surviving.dispose();
   });
 
-  it('rolls back surviving participants when commit finds a disposed participant', async () => {
+  it.each([0, 1, 2])('rolls back surviving participants when disposed participant is at index %s', async disposedIndex => {
     const surviving = createTimeTravelStore('surviving-commit', { value: 0 });
+    const other = createTimeTravelStore('other-commit', { value: 0 });
     const disposed = createTimeTravelStore('disposed-commit', { value: 0 });
     const coordinator = new StoreTransactionCoordinator();
-
-    await expect(coordinator.run([
+    const observed: Array<[number, number]> = [];
+    surviving.subscribe(() => observed.push([surviving.getValue().value, other.getValue().value]));
+    other.subscribe(() => observed.push([surviving.getValue().value, other.getValue().value]));
+    const participants = [
       { name: 'surviving-commit', store: surviving },
-      { name: 'disposed-commit', store: disposed },
-    ], () => {
+      { name: 'other-commit', store: other },
+    ];
+    participants.splice(disposedIndex, 0, { name: 'disposed-commit', store: disposed });
+
+    await expect(coordinator.run(participants, () => {
       surviving.setValue({ value: 1 });
+      other.setValue({ value: 2 });
       disposed.dispose();
     })).rejects.toThrow('disposed');
 
     expect(surviving.getValue()).toEqual({ value: 0 });
     expect(surviving.getPosition()).toBe(0);
     expect(surviving.getHistory()).toEqual([{ value: 0 }]);
+    expect(other.getValue()).toEqual({ value: 0 });
+    expect(other.getPosition()).toBe(0);
+    expect(other.getHistory()).toEqual([{ value: 0 }]);
+    expect(observed).toEqual([[0, 0], [0, 0]]);
+    expect(coordinator.getHistory()).toEqual([]);
     expect(coordinator.canUndo()).toBe(false);
-    await coordinator.run([{ name: 'surviving-commit', store: surviving }], () => {
+    await coordinator.run(participants.filter(participant => participant.store !== disposed), () => {
       surviving.setValue({ value: 2 });
     });
     expect(surviving.getValue()).toEqual({ value: 2 });
     surviving.dispose();
+    other.dispose();
   });
 
   it('retains ordered collection transitions', async () => {
