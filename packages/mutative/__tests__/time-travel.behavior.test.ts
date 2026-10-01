@@ -473,4 +473,20 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
       changedPatches: [{ op: 'replace', path: ['count'], value: 1 }],
     });
   });
+
+  it('protects undo and redo from mutations to public patch snapshots', () => {
+    const travel = createTimeTravel({ count: 0 });
+    travel.setState((draft) => { draft.count = 1; });
+
+    const exposed = travel.getPatches() as {
+      patches: Array<Array<{ op: string; path: unknown[]; value?: unknown }> >;
+      inversePatches: Array<Array<{ op: string; path: unknown[]; value?: unknown }> >;
+    };
+    exposed.patches[0]!.push({ op: 'replace', path: ['count'], value: 999 });
+    exposed.patches[0]![0]!.path[0] = 'corrupted';
+
+    travel.back();
+    travel.forward();
+    expect(travel.getState()).toEqual({ count: 1 });
+  });
 });

@@ -277,10 +277,21 @@ export class TimeTravel<
   private notify(changedPatches?: Patches<P>, metadata?: TimeTravelTransitionMeta): void {
     // Snapshot the set so subscriptions added during a notification observe
     // the next transition. Unsubscribed listeners are skipped immediately.
+    const changedSnapshot = changedPatches === undefined
+      ? undefined
+      : (safeGet(changedPatches, true) as Patches<P>);
     for (const listener of [...this.listeners]) {
       if (!this.listeners.has(listener)) continue;
       try {
-        listener(this.state, this.getPatches(), this.position, changedPatches, metadata);
+        listener(
+          this.state,
+          this.getPatches(),
+          this.position,
+          changedSnapshot === undefined
+            ? undefined
+            : (safeGet(changedSnapshot, true) as Patches<P>),
+          metadata,
+        );
       } catch (error) {
         try {
           this.options.onListenerError?.(error);
@@ -955,9 +966,16 @@ export class TimeTravel<
    * Get all patches
    */
   getPatches(): TravelPatches<P> {
-    return !this.autoArchive && this.tempPatches.patches.length
+    const patches = !this.autoArchive && this.tempPatches.patches.length
       ? this.getAllPatches()
       : this.allPatches;
+    // Patch arrays are part of the public inspection API. Never expose the
+    // internal patch groups or their object values, otherwise a caller can
+    // mutate a returned patch and corrupt future undo/redo replay.
+    return {
+      patches: patches.patches.map((group) => safeGet(group, true) as Patches<P>),
+      inversePatches: patches.inversePatches.map((group) => safeGet(group, true) as Patches<P>),
+    };
   }
 
   /**
