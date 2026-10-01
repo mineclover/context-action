@@ -6,7 +6,7 @@
 
 # Interface: StoreTransactionInspectorSink
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L99)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:101](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L101)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:99](h
 
 > **write**(`snapshot`): `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:100](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L100)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L102)
 
 #### Parameters
 
