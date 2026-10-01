@@ -679,11 +679,22 @@ export class TimeTravel<
     let currentState = this.state;
     const _allPatches = this.getAllPatches();
 
-    const patches = !this.autoArchive && _allPatches.patches.length > this.maxHistory
-      ? _allPatches.patches.slice(-this.maxHistory)
+    // `slice(-0)` means "slice from index 0", not an empty slice. Handle the
+    // history-disabled mode explicitly so a pending manual batch cannot
+    // fabricate a duplicate current entry.
+    const patches = !this.autoArchive
+      ? this.maxHistory === 0
+        ? []
+        : _allPatches.patches.length > this.maxHistory
+          ? _allPatches.patches.slice(-this.maxHistory)
+          : _allPatches.patches
       : _allPatches.patches;
-    const inversePatches = !this.autoArchive && _allPatches.inversePatches.length > this.maxHistory
-      ? _allPatches.inversePatches.slice(-this.maxHistory)
+    const inversePatches = !this.autoArchive
+      ? this.maxHistory === 0
+        ? []
+        : _allPatches.inversePatches.length > this.maxHistory
+          ? _allPatches.inversePatches.slice(-this.maxHistory)
+          : _allPatches.inversePatches
       : _allPatches.inversePatches;
 
     // Build future history

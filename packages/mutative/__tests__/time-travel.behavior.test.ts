@@ -114,6 +114,19 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getState()).toEqual({ count: 0 });
   });
 
+  it('does not fabricate a duplicate history entry when manual history is disabled', () => {
+    const travel = createTimeTravel(
+      { count: 0 },
+      { autoArchive: false, maxHistory: 0 },
+    );
+    travel.setState((draft) => { draft.count = 1; });
+
+    expect(travel.getHistory()).toEqual([{ count: 1 }]);
+    expect(travel.getPatches().patches).toHaveLength(1);
+    travel.archive();
+    expect(travel.getHistory()).toEqual([{ count: 1 }]);
+  });
+
   it('rejects invalid history bounds before creating a timeline', () => {
     for (const maxHistory of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
       expect(() => createTimeTravel({ count: 0 }, { maxHistory })).toThrow(
